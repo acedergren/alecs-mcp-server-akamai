@@ -24,6 +24,14 @@ import {
   createProperty,
   listGroups
 } from './tools/property-tools.js';
+import {
+  listZones,
+  getZone,
+  createZone,
+  listRecords,
+  upsertRecord,
+  deleteRecord
+} from './tools/dns-tools.js';
 
 // Tool schemas for validation
 const ListPropertiesSchema = z.object({
@@ -44,6 +52,55 @@ const CreatePropertySchema = z.object({
   contractId: z.string(),
   groupId: z.string(),
   ruleFormat: z.string().optional(),
+});
+
+// DNS Tool Schemas
+const ListZonesSchema = z.object({
+  customer: z.string().optional(),
+  contractIds: z.array(z.string()).optional(),
+  includeAliases: z.boolean().optional(),
+  search: z.string().optional(),
+});
+
+const GetZoneSchema = z.object({
+  customer: z.string().optional(),
+  zone: z.string(),
+});
+
+const CreateZoneSchema = z.object({
+  customer: z.string().optional(),
+  zone: z.string(),
+  type: z.enum(['PRIMARY', 'SECONDARY', 'ALIAS']),
+  comment: z.string().optional(),
+  contractId: z.string().optional(),
+  groupId: z.string().optional(),
+  masters: z.array(z.string()).optional(),
+  target: z.string().optional(),
+});
+
+const ListRecordsSchema = z.object({
+  customer: z.string().optional(),
+  zone: z.string(),
+  search: z.string().optional(),
+  types: z.array(z.string()).optional(),
+});
+
+const UpsertRecordSchema = z.object({
+  customer: z.string().optional(),
+  zone: z.string(),
+  name: z.string(),
+  type: z.string(),
+  ttl: z.number(),
+  rdata: z.array(z.string()),
+  comment: z.string().optional(),
+});
+
+const DeleteRecordSchema = z.object({
+  customer: z.string().optional(),
+  zone: z.string(),
+  name: z.string(),
+  type: z.string(),
+  comment: z.string().optional(),
 });
 
 
@@ -162,6 +219,191 @@ class AkamaiMCPServer {
             },
           },
         },
+        // DNS Tools
+        {
+          name: 'list_zones',
+          description: 'List all DNS zones in your account',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              contractIds: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Filter by contract IDs',
+              },
+              includeAliases: {
+                type: 'boolean',
+                description: 'Optional: Include alias zones',
+              },
+              search: {
+                type: 'string',
+                description: 'Optional: Search for zones by name',
+              },
+            },
+          },
+        },
+        {
+          name: 'get_zone',
+          description: 'Get details of a specific DNS zone',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              zone: {
+                type: 'string',
+                description: 'The zone name (e.g., example.com)',
+              },
+            },
+            required: ['zone'],
+          },
+        },
+        {
+          name: 'create_zone',
+          description: 'Create a new DNS zone',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              zone: {
+                type: 'string',
+                description: 'The zone name (e.g., example.com)',
+              },
+              type: {
+                type: 'string',
+                enum: ['PRIMARY', 'SECONDARY', 'ALIAS'],
+                description: 'Zone type',
+              },
+              comment: {
+                type: 'string',
+                description: 'Optional: Zone comment',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Optional: Contract ID',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Optional: Group ID',
+              },
+              masters: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Master servers (required for SECONDARY zones)',
+              },
+              target: {
+                type: 'string',
+                description: 'Target zone (required for ALIAS zones)',
+              },
+            },
+            required: ['zone', 'type'],
+          },
+        },
+        {
+          name: 'list_records',
+          description: 'List DNS records in a zone',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              zone: {
+                type: 'string',
+                description: 'The zone name (e.g., example.com)',
+              },
+              search: {
+                type: 'string',
+                description: 'Optional: Search for records by name',
+              },
+              types: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Filter by record types (e.g., ["A", "CNAME"])',
+              },
+            },
+            required: ['zone'],
+          },
+        },
+        {
+          name: 'upsert_record',
+          description: 'Create or update a DNS record',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              zone: {
+                type: 'string',
+                description: 'The zone name (e.g., example.com)',
+              },
+              name: {
+                type: 'string',
+                description: 'Record name (e.g., www.example.com)',
+              },
+              type: {
+                type: 'string',
+                description: 'Record type (e.g., A, AAAA, CNAME, MX, TXT)',
+              },
+              ttl: {
+                type: 'number',
+                description: 'Time to live in seconds',
+              },
+              rdata: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Record data (e.g., ["192.0.2.1"] for A record)',
+              },
+              comment: {
+                type: 'string',
+                description: 'Optional: Change comment',
+              },
+            },
+            required: ['zone', 'name', 'type', 'ttl', 'rdata'],
+          },
+        },
+        {
+          name: 'delete_record',
+          description: 'Delete a DNS record',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              zone: {
+                type: 'string',
+                description: 'The zone name (e.g., example.com)',
+              },
+              name: {
+                type: 'string',
+                description: 'Record name (e.g., www.example.com)',
+              },
+              type: {
+                type: 'string',
+                description: 'Record type (e.g., A, AAAA, CNAME)',
+              },
+              comment: {
+                type: 'string',
+                description: 'Optional: Change comment',
+              },
+            },
+            required: ['zone', 'name', 'type'],
+          },
+        },
       ],
     }));
 
@@ -204,6 +446,25 @@ class AkamaiMCPServer {
           
           case 'list_groups':
             return await this.listGroups(akamaiClient, args);
+          
+          // DNS Tools
+          case 'list_zones':
+            return await this.listZones(akamaiClient, args);
+          
+          case 'get_zone':
+            return await this.getZone(akamaiClient, args);
+          
+          case 'create_zone':
+            return await this.createZone(akamaiClient, args);
+          
+          case 'list_records':
+            return await this.listRecords(akamaiClient, args);
+          
+          case 'upsert_record':
+            return await this.upsertRecord(akamaiClient, args);
+          
+          case 'delete_record':
+            return await this.deleteRecord(akamaiClient, args);
           
           default:
             throw new McpError(
@@ -265,6 +526,39 @@ class AkamaiMCPServer {
    */
   private async listGroups(client: AkamaiClient, args: any): Promise<MCPToolResponse> {
     return listGroups(client, args);
+  }
+
+  /**
+   * DNS Tool Methods
+   */
+  private async listZones(client: AkamaiClient, args: any): Promise<MCPToolResponse> {
+    const parsed = ListZonesSchema.parse(args);
+    return listZones(client, parsed);
+  }
+
+  private async getZone(client: AkamaiClient, args: any): Promise<MCPToolResponse> {
+    const parsed = GetZoneSchema.parse(args);
+    return getZone(client, parsed);
+  }
+
+  private async createZone(client: AkamaiClient, args: any): Promise<MCPToolResponse> {
+    const parsed = CreateZoneSchema.parse(args);
+    return createZone(client, parsed);
+  }
+
+  private async listRecords(client: AkamaiClient, args: any): Promise<MCPToolResponse> {
+    const parsed = ListRecordsSchema.parse(args);
+    return listRecords(client, parsed);
+  }
+
+  private async upsertRecord(client: AkamaiClient, args: any): Promise<MCPToolResponse> {
+    const parsed = UpsertRecordSchema.parse(args);
+    return upsertRecord(client, parsed);
+  }
+
+  private async deleteRecord(client: AkamaiClient, args: any): Promise<MCPToolResponse> {
+    const parsed = DeleteRecordSchema.parse(args);
+    return deleteRecord(client, parsed);
   }
 
   async run() {

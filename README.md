@@ -96,12 +96,36 @@ Add to your Claude Desktop configuration:
 "Switch to staging account and show properties"
 ```
 
+### DNS Zone Management
+```
+"List all DNS zones"
+"Get details for zone example.com"
+"Create a new DNS zone for mydomain.com"
+```
+
+### DNS Record Management
+```
+"List all records in example.com"
+"Add an A record for www.example.com pointing to 192.0.2.1"
+"Update the CNAME for blog.example.com"
+"Delete the old MX record"
+```
+
 ## Available Tools
 
+### Property Management
 - `list_properties` - List CDN properties with filtering options
 - `get_property` - Get detailed property information by name or ID
 - `list_groups` - List account groups with search capability
-- `create_property` - Create new CDN properties (coming soon)
+- `create_property` - Create new CDN properties
+
+### DNS Management
+- `list_zones` - List all DNS zones with filtering
+- `get_zone` - Get detailed zone information
+- `create_zone` - Create new DNS zones (PRIMARY, SECONDARY, or ALIAS)
+- `list_records` - List DNS records in a zone
+- `upsert_record` - Create or update DNS records
+- `delete_record` - Delete DNS records
 
 ## Development
 

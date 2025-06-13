@@ -19,11 +19,14 @@
     "mcp",
     "akamai",
     "cdn",
+    "dns",
+    "edge-dns",
     "claude",
     "ai",
     "infrastructure",
     "edgegrid",
-    "property-manager"
+    "property-manager",
+    "alecs"
   ],
   "author": "",
   "license": "MIT",
