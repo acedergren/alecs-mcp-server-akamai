@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Akamai MCP Server - Main entry point
- * Provides natural language interface to Akamai CDN management through Claude
+ * ALECS - MCP Server for Akamai
+ * An MCP server that enables management of Akamai through AI
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -54,7 +54,7 @@ class AkamaiMCPServer {
   constructor() {
     this.server = new Server(
       {
-        name: 'akamai-mcp-server',
+        name: 'alecs-mcp-server-akamai',
         version: '1.0.0',
       },
       {
@@ -268,7 +268,7 @@ class AkamaiMCPServer {
   }
 
   async run() {
-    console.error('🚀 Akamai MCP Server starting...');
+    console.error('🚀 ALECS - MCP Server for Akamai starting...');
     console.error('📍 Looking for credentials in ~/.edgerc');
     
     const transport = new StdioServerTransport();

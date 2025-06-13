@@ -1,10 +1,10 @@
 {
-  "name": "akamai-mcp-server",
+  "name": "alecs-mcp-server-akamai",
   "version": "1.0.0",
-  "description": "MCP Server for Akamai CDN management through Claude AI - Day 0 CDN setup tool",
+  "description": "An MCP (Model Context Protocol) server that enables management of Akamai through AI",
   "main": "dist/index.js",
   "bin": {
-    "akamai-mcp": "dist/index.js"
+    "alecs": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",

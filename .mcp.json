@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "akamai-mcp": {
+    "alecs": {
       "type": "stdio",
       "command": "npx",
       "args": [

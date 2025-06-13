@@ -1,6 +1,8 @@
-# Akamai MCP Server
+# ALECS - MCP Server for Akamai
 
-An MCP (Model Context Protocol) server that enables AI assistants to interact with Akamai's CDN and edge services APIs. This server provides comprehensive tools for managing Akamai properties, configurations, and services through natural language interactions.
+**ALECS - A LaunchGrid for Edge & Cloud Services**
+
+An MCP (Model Context Protocol) server that enables AI assistants to interact with Akamai's CDN and edge services APIs. ALECS provides comprehensive tools for managing Akamai properties, configurations, and services through natural language interactions.
 
 ## Features
 
@@ -27,7 +29,7 @@ An MCP (Model Context Protocol) server that enables AI assistants to interact wi
 ## Installation
 
 ```bash
-npm install akamai-mcp-server
+npm install alecs-mcp-server-akamai
 ```
 
 ## Configuration
@@ -60,7 +62,7 @@ Add to your Claude Desktop configuration:
   "mcpServers": {
     "akamai-mcp": {
       "command": "npx",
-      "args": ["akamai-mcp-server"],
+      "args": ["alecs-mcp-server-akamai"],
       "env": {}
     }
   }
@@ -111,8 +113,8 @@ Add to your Claude Desktop configuration:
 ### Setup
 ```bash
 # Clone the repository
-git clone https://github.com/acedergren/Akamai-MCP.git
-cd Akamai-MCP
+git clone https://github.com/acedergren/alecs-mcp-server-akamai.git
+cd alecs-mcp-server-akamai
 
 # Install dependencies
 npm install
@@ -166,6 +168,6 @@ MIT License - see LICENSE file for details
 
 ## Support
 
-- [Documentation](https://github.com/acedergren/Akamai-MCP/wiki)
-- [Issues](https://github.com/acedergren/Akamai-MCP/issues)
-- [Discussions](https://github.com/acedergren/Akamai-MCP/discussions)
+- [Documentation](https://github.com/acedergren/alecs-mcp-server-akamai/wiki)
+- [Issues](https://github.com/acedergren/alecs-mcp-server-akamai/issues)
+- [Discussions](https://github.com/acedergren/alecs-mcp-server-akamai/discussions)
