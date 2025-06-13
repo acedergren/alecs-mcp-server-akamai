@@ -327,7 +327,7 @@ export class AkamaiMCPServer {
   
   constructor() {
     this.server = new Server({
-      name: 'akamai-mcp-server',
+      name: 'alecs-mcp-server-akamai',
       version: '1.0.0'
     }, {
       capabilities: {

@@ -4,7 +4,7 @@
 
 You've already configured this with:
 ```bash
-claude mcp add akamai-mcp -s project -- npx tsx src/index.ts
+claude mcp add alecs -s project -- npx tsx src/index.ts
 ```
 
 This created `.mcp.json` in your project directory. To verify:
@@ -37,9 +37,9 @@ code ~/Library/Application\ Support/Claude/claude_desktop_config.json
 ```json
 {
   "mcpServers": {
-    "akamai-mcp": {
+    "alecs": {
       "command": "node",
-      "args": ["/Users/acedergr/Akamai-MCP/dist/index.js"],
+      "args": ["/Users/acedergr/alecs-mcp-server-akamai/dist/index.js"],
       "env": {}
     }
   }
@@ -51,9 +51,9 @@ code ~/Library/Application\ Support/Claude/claude_desktop_config.json
 ```json
 {
   "mcpServers": {
-    "akamai-mcp": {
+    "alecs": {
       "command": "npx",
-      "args": ["tsx", "/Users/acedergr/Akamai-MCP/src/index.ts"],
+      "args": ["tsx", "/Users/acedergr/alecs-mcp-server-akamai/src/index.ts"],
       "env": {}
     }
   }
@@ -67,9 +67,9 @@ If your `.edgerc` file is not in the default location (`~/.edgerc`), add:
 ```json
 {
   "mcpServers": {
-    "akamai-mcp": {
+    "alecs": {
       "command": "node",
-      "args": ["/Users/acedergr/Akamai-MCP/dist/index.js"],
+      "args": ["/Users/acedergr/alecs-mcp-server-akamai/dist/index.js"],
       "env": {
         "EDGERC_PATH": "/path/to/your/.edgerc"
       }
@@ -90,9 +90,9 @@ Location: `%APPDATA%\Claude\claude_desktop_config.json`
 ```json
 {
   "mcpServers": {
-    "akamai-mcp": {
+    "alecs": {
       "command": "node",
-      "args": ["C:\\Users\\YourName\\Akamai-MCP\\dist\\index.js"],
+      "args": ["C:\\Users\\YourName\\alecs-mcp-server-akamai\\dist\\index.js"],
       "env": {}
     }
   }
@@ -106,9 +106,9 @@ Location: `~/.config/Claude/claude_desktop_config.json`
 ```json
 {
   "mcpServers": {
-    "akamai-mcp": {
+    "alecs": {
       "command": "node",
-      "args": ["/home/username/Akamai-MCP/dist/index.js"],
+      "args": ["/home/username/alecs-mcp-server-akamai/dist/index.js"],
       "env": {}
     }
   }
@@ -131,12 +131,12 @@ Location: `~/.config/Claude/claude_desktop_config.json`
 
 ### Server not connecting:
 1. Check the path is absolute, not relative
-2. Ensure the file exists: `ls -la /Users/acedergr/Akamai-MCP/dist/index.js`
-3. Build the project first: `cd /Users/acedergr/Akamai-MCP && npm run build`
+2. Ensure the file exists: `ls -la /Users/acedergr/alecs-mcp-server-akamai/dist/index.js`
+3. Build the project first: `cd /Users/acedergr/alecs-mcp-server-akamai && npm run build`
 
 ### Permission issues:
 ```bash
-chmod +x /Users/acedergr/Akamai-MCP/dist/index.js
+chmod +x /Users/acedergr/alecs-mcp-server-akamai/dist/index.js
 ```
 
 ### Debug mode:
@@ -145,9 +145,9 @@ Add logging to see what's happening:
 ```json
 {
   "mcpServers": {
-    "akamai-mcp": {
+    "alecs": {
       "command": "node",
-      "args": ["/Users/acedergr/Akamai-MCP/dist/index.js"],
+      "args": ["/Users/acedergr/alecs-mcp-server-akamai/dist/index.js"],
       "env": {
         "DEBUG": "1"
       }

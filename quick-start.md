@@ -13,7 +13,7 @@ AKAMAI_ACCESS_TOKEN=akab-xxxx
 
 ### 2. Create Project Structure (5 mins)
 ```bash
-mkdir akamai-mcp && cd akamai-mcp
+mkdir alecs-mcp-server-akamai && cd alecs-mcp-server-akamai
 npm init -y
 npm install typescript @types/node tsx dotenv
 npm install @modelcontextprotocol/sdk
@@ -63,7 +63,7 @@ import { EdgeGridAuth } from './auth/edgegrid.js';
 import { PropertyManagerService } from './services/property-manager.js';
 
 const server = new Server({
-  name: "akamai-mcp",
+  name: "alecs-mcp-server-akamai",
   version: "0.1.0",
 }, {
   capabilities: {

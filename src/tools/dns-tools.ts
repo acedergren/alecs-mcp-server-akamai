@@ -5,6 +5,7 @@
 
 import { AkamaiClient } from '../akamai-client.js';
 import { MCPToolResponse } from '../types.js';
+import { Spinner, format, icons } from '../utils/progress.js';
 
 // DNS API Types
 export interface DNSZone {
@@ -51,6 +52,9 @@ export async function listZones(
   client: AkamaiClient,
   args: { contractIds?: string[]; includeAliases?: boolean; search?: string }
 ): Promise<MCPToolResponse> {
+  const spinner = new Spinner();
+  spinner.start('Fetching DNS zones...');
+  
   try {
     const queryParams: any = {};
     
@@ -74,26 +78,29 @@ export async function listZones(
       queryParams
     }) as DNSZoneList;
 
+    spinner.stop();
+
     if (!response.zones || response.zones.length === 0) {
       return {
         content: [{
           type: 'text',
-          text: 'No DNS zones found'
+          text: `${icons.info} No DNS zones found`
         }]
       };
     }
 
     const zonesList = response.zones.map(zone => 
-      `• ${zone.zone} (${zone.type})${zone.comment ? ` - ${zone.comment}` : ''}`
+      `${icons.dns} ${format.cyan(zone.zone)} (${format.green(zone.type)})${zone.comment ? ` - ${format.dim(zone.comment)}` : ''}`
     ).join('\n');
 
     return {
       content: [{
         type: 'text',
-        text: `Found ${response.zones.length} DNS zones:\n\n${zonesList}`
+        text: `${icons.success} Found ${format.bold(response.zones.length.toString())} DNS zones:\n\n${zonesList}`
       }]
     };
   } catch (error) {
+    spinner.fail('Failed to fetch DNS zones');
     console.error('Error listing DNS zones:', error);
     throw error;
   }
@@ -156,6 +163,9 @@ export async function createZone(
     target?: string;
   }
 ): Promise<MCPToolResponse> {
+  const spinner = new Spinner();
+  spinner.start(`Creating ${args.type} zone: ${args.zone}`);
+  
   try {
     const body: any = {
       zone: args.zone,
@@ -186,13 +196,16 @@ export async function createZone(
       queryParams
     });
 
+    spinner.succeed(`Zone created: ${args.zone}`);
+
     return {
       content: [{
         type: 'text',
-        text: `Successfully created DNS zone: ${args.zone} (Type: ${args.type})`
+        text: `${icons.success} Successfully created DNS zone: ${format.cyan(args.zone)} (Type: ${format.green(args.type)})`
       }]
     };
   } catch (error) {
+    spinner.fail(`Failed to create zone: ${args.zone}`);
     console.error('Error creating DNS zone:', error);
     throw error;
   }
@@ -260,8 +273,11 @@ export async function upsertRecord(
     comment?: string;
   }
 ): Promise<MCPToolResponse> {
+  const spinner = new Spinner();
+  
   try {
     // Step 1: Create a change list
+    spinner.start('Creating change list...');
     await client.request({
       path: `/config-dns/v2/changelists`,
       method: 'POST',
@@ -273,6 +289,7 @@ export async function upsertRecord(
     });
 
     // Step 2: Add/update the record in the change list
+    spinner.update(`Adding ${args.type} record for ${args.name}...`);
     const recordData = {
       name: args.name,
       type: args.type,
@@ -291,6 +308,7 @@ export async function upsertRecord(
     });
 
     // Step 3: Submit the change list
+    spinner.update('Submitting changes...');
     const submitResponse = await client.request({
       path: `/config-dns/v2/changelists/${args.zone}/submit`,
       method: 'POST',
@@ -303,13 +321,16 @@ export async function upsertRecord(
       }
     }) as ZoneSubmitResponse;
 
+    spinner.succeed(`Record updated: ${args.name} ${args.type}`);
+
     return {
       content: [{
         type: 'text',
-        text: `Successfully updated DNS record:\n${args.name} ${args.ttl} ${args.type} ${args.rdata.join(' ')}\n\nRequest ID: ${submitResponse.requestId}`
+        text: `${icons.success} Successfully updated DNS record:\n${icons.dns} ${format.cyan(args.name)} ${format.dim(args.ttl.toString())} ${format.green(args.type)} ${format.yellow(args.rdata.join(' '))}\n\n${icons.info} Request ID: ${format.dim(submitResponse.requestId)}`
       }]
     };
   } catch (error) {
+    spinner.fail('Failed to update DNS record');
     console.error('Error updating DNS record:', error);
     throw error;
   }

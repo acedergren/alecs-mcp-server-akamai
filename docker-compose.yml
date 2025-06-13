@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  alecs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: alecs-mcp-server-akamai:latest
+    container_name: alecs-mcp
+    restart: unless-stopped
+    environment:
+      # Optional: Override edgerc path
+      # EDGERC_PATH: /home/alecs/.akamai/.edgerc
+      # Optional: Set default customer
+      # DEFAULT_CUSTOMER: production
+      # Optional: Enable debug logging
+      # DEBUG: "1"
+    volumes:
+      # Mount .edgerc file (required)
+      - ~/.edgerc:/home/alecs/.edgerc:ro
+      # Optional: Mount custom .edgerc location
+      # - ./config/.edgerc:/home/alecs/.akamai/.edgerc:ro
+    # For MCP stdio communication
+    stdin_open: true
+    tty: true
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # Development version with hot reload
+  alecs-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: alecs-mcp-server-akamai:dev
+    container_name: alecs-mcp-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      # EDGERC_PATH: /home/node/.akamai/.edgerc
+      # DEBUG: "1"
+    volumes:
+      # Mount source code for development
+      - ./src:/app/src:ro
+      - ./package.json:/app/package.json:ro
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      # Mount .edgerc file
+      - ~/.edgerc:/home/node/.edgerc:ro
+    stdin_open: true
+    tty: true
+    command: ["npm", "run", "dev"]
+
+# Optional: Add a test container
+  alecs-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    image: alecs-mcp-server-akamai:test
+    container_name: alecs-mcp-test
+    environment:
+      NODE_ENV: test
+    volumes:
+      - ./src:/app/src:ro
+      - ./package.json:/app/package.json:ro
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./coverage:/app/coverage
+    command: ["npm", "test"]
+
+# Network configuration
+networks:
+  default:
+    name: alecs-network

@@ -146,3 +146,11 @@ export interface MCPToolResponse {
     text: string;
   }>;
 }
+
+// DNS Types (needed by dns-migration-tools)
+export interface DNSRecordSet {
+  name: string;
+  type: string;
+  ttl: number;
+  rdata: string[];
+}

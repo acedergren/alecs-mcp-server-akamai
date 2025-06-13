@@ -38,10 +38,10 @@ npm test -- --testNamePattern="pattern"
 ### Deployment
 ```bash
 # Build Docker image
-docker build -t akamai-mcp:latest .
+docker build -t alecs-mcp-server-akamai:latest .
 
 # Run with environment variables
-docker run -it --env-file .env akamai-mcp:latest
+docker run -it --env-file .env alecs-mcp-server-akamai:latest
 
 # Package as single binary
 npx pkg . --targets node18-macos-x64,node18-linux-x64,node18-win-x64

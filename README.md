@@ -4,32 +4,76 @@
 
 An MCP (Model Context Protocol) server that enables AI assistants to interact with Akamai's CDN and edge services APIs. ALECS provides comprehensive tools for managing Akamai properties, configurations, and services through natural language interactions.
 
-## Features
+> **Disclaimer**: This is an independent, solo project and is not affiliated with, endorsed by, or sponsored by Akamai Technologies, Inc. All product names, logos, and brands are property of their respective owners.
 
-### 🚀 Multi-Customer Support
-- Seamless switching between multiple Akamai accounts
-- Account-specific configurations via `.edgerc` sections
-- Automatic account key detection and application
+## Current Scope & Features
 
-### 🔍 Intelligent Search
-- Property lookup by name or ID
-- Group search with filtering capabilities
-- Automatic contract selection when not specified
+### Core Capabilities
 
-### 📊 Comprehensive Property Management
-- List and search properties across contracts
-- Detailed property information including versions and activation status
-- Property configuration and rule management
+#### 🌐 CDN & Property Management
+- **Property Creation & Management**: Create, list, and manage CDN properties
+- **Template-Based Provisioning**: Pre-built templates for Static Websites, Dynamic Web Apps, and API Acceleration
+- **Rule Tree Configuration**: Advanced CDN behavior customization
+- **Edge Hostname Management**: Automatic edge hostname creation and mapping
+- **Activation Workflow**: Deploy to staging/production with progress tracking
 
-### 🔐 Secure Authentication
-- EdgeGrid authentication protocol support
-- Secure credential management via `.edgerc`
-- Account switching via `account_key` field
+#### 🔐 SSL/TLS Certificate Management (CPS)
+- **Default DV Certificates**: Automated domain validation certificates
+- **Enhanced TLS Network**: Modern TLS 1.3 support
+- **ACME DNS Automation**: Automatic DNS validation record creation
+- **Certificate Lifecycle**: Creation, renewal, and deployment tracking
+
+#### 🌍 DNS Management (Edge DNS)
+- **Zone Management**: Create and manage PRIMARY, SECONDARY, and ALIAS zones
+- **Record Operations**: Full CRUD for A, AAAA, CNAME, MX, TXT, and more
+- **Bulk Operations**: Import/export via zone files
+- **Hidden Changelist Workflow**: Transparent change management
+- **Cloudflare-Style Migration**: Direct import from Cloudflare API
+
+#### 🔄 DNS Migration Tools
+- **Zone Transfer (AXFR)**: Import from any DNS provider supporting zone transfers
+- **API Import**: Direct integration with Cloudflare and other providers
+- **Zone File Import**: Parse and import standard BIND zone files
+- **Bulk Record Import**: Efficient migration of large zones
+- **Nameserver Migration Guide**: Step-by-step migration instructions
+
+#### 🚀 Multi-Customer Support
+- **Account Switching**: Seamless switching between multiple Akamai accounts
+- **Customer Profiles**: Separate `.edgerc` sections for different environments
+- **Automatic Authentication**: EdgeGrid protocol with account key support
+
+#### 🛠 Developer Experience
+- **Docker Support**: Production-ready containers with compose configurations
+- **Makefile Automation**: Comprehensive build, test, and deployment commands
+- **Template Engine**: Extensible property template system
+- **Progress Tracking**: Real-time feedback for long-running operations
+- **LLM Optimized**: Designed for AI assistant interactions
 
 ## Installation
 
+### Quick Start
+```bash
+# Clone the repository
+git clone https://github.com/acedergren/alecs-mcp-server-akamai.git
+cd alecs-mcp-server-akamai
+
+# Setup (installs dependencies and builds)
+make setup
+
+# Run development server
+make dev
+```
+
+### NPM Installation (coming soon)
 ```bash
 npm install alecs-mcp-server-akamai
+```
+
+### Docker Installation
+```bash
+# Build and run with Docker
+docker build -t alecs-mcp-server-akamai .
+docker run -it --rm -v ~/.edgerc:/home/alecs/.edgerc:ro alecs-mcp-server-akamai
 ```
 
 ## Configuration
@@ -60,7 +104,7 @@ Add to your Claude Desktop configuration:
 ```json
 {
   "mcpServers": {
-    "akamai-mcp": {
+    "alecs": {
       "command": "npx",
       "args": ["alecs-mcp-server-akamai"],
       "env": {}
@@ -111,21 +155,45 @@ Add to your Claude Desktop configuration:
 "Delete the old MX record"
 ```
 
-## Available Tools
+## Available MCP Tools
 
 ### Property Management
-- `list_properties` - List CDN properties with filtering options
-- `get_property` - Get detailed property information by name or ID
-- `list_groups` - List account groups with search capability
-- `create_property` - Create new CDN properties
+- `property.list` - List CDN properties with filtering options
+- `property.get` - Get detailed property information
+- `property.create` - Create new CDN properties
+- `property.update_rules` - Update property rule tree
+- `property.activate` - Deploy to staging/production
+- `property.create_from_template` - Use pre-built templates
 
-### DNS Management
-- `list_zones` - List all DNS zones with filtering
-- `get_zone` - Get detailed zone information
-- `create_zone` - Create new DNS zones (PRIMARY, SECONDARY, or ALIAS)
-- `list_records` - List DNS records in a zone
-- `upsert_record` - Create or update DNS records
-- `delete_record` - Delete DNS records
+### Edge Hostname Management
+- `edgehostname.create` - Create edge hostnames
+- `edgehostname.list` - List edge hostnames
+- `edgehostname.link` - Link to properties
+
+### Certificate Management (CPS)
+- `cps.create_enrollment` - Create DV certificate
+- `cps.get_enrollment` - Get certificate status
+- `cps.list_enrollments` - List all certificates
+- `cps.check_validation` - Check domain validation
+- `cps.create_acme_records` - Auto-create DNS validation
+
+### DNS Zone Management
+- `dns.zone.list` - List all DNS zones
+- `dns.zone.get` - Get zone details
+- `dns.zone.create` - Create new zones
+- `dns.zone.import_cloudflare` - Import from Cloudflare
+- `dns.zone.import_axfr` - Import via zone transfer
+- `dns.zone.import_file` - Import from zone file
+
+### DNS Record Management
+- `dns.record.list` - List records in zone
+- `dns.record.upsert` - Create/update records
+- `dns.record.delete` - Delete records
+- `dns.record.bulk_import` - Import multiple records
+
+### Group & Contract Management
+- `group.list` - List account groups
+- `contract.list` - List contracts
 
 ## Development
 
@@ -165,17 +233,40 @@ npm run test:coverage
 npm run test:watch
 ```
 
+## Documentation
+
+- [Features Overview](./docs/features-overview.md) - Complete feature list and capabilities
+- [CDN Provisioning Guide](./docs/cdn-provisioning-guide.md) - Step-by-step CDN + HTTPS setup
+- [DNS Migration Guide](./docs/dns-migration-guide.md) - Complete DNS migration workflows
+- [Docker Guide](./docs/docker-guide.md) - Container deployment and configuration
+- [LLM Compatibility](./docs/llm-compatibility-guide.md) - AI assistant integration guide
+- [Quick Start](./quick-start.md) - Get started quickly
+- [Multi-Customer Setup](./docs/multi-customer-architecture.md) - Configure multiple accounts
+
 ## Architecture
 
 The server follows a modular architecture:
 
 ```
 src/
-├── index.ts           # MCP server setup and request handling
-├── akamai-client.ts   # EdgeGrid authentication and API client
-├── types.ts           # TypeScript type definitions
-└── tools/
-    └── property-tools.ts  # Property management implementations
+├── index.ts                      # MCP server setup and request handling
+├── akamai-client.ts              # EdgeGrid authentication and API client
+├── types.ts                      # TypeScript type definitions
+├── tools/
+│   ├── property-tools.ts         # Basic property management
+│   ├── property-manager-tools.ts # Advanced property operations
+│   ├── dns-tools.ts              # DNS zone and record management
+│   ├── cps-tools.ts              # Certificate provisioning
+│   ├── cps-dns-integration.ts    # ACME DNS automation
+│   ├── dns-migration-tools.ts    # DNS migration utilities
+│   ├── enhanced-dns-migration.ts # Cloudflare import
+│   ├── edge-hostname-tools.ts    # Edge hostname management
+│   └── network-list-tools.ts     # Access control lists
+├── templates/
+│   ├── property-templates.ts     # Pre-built CDN templates
+│   └── template-engine.ts        # Template processing
+├── agents/                       # Automation agents
+└── utils/                        # Utility functions
 ```
 
 ## Contributing
@@ -186,6 +277,17 @@ src/
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+## Project Status
+
+This project is actively maintained as a solo effort. It aims to provide comprehensive Akamai CDN management capabilities through the MCP protocol, enabling AI assistants to effectively manage edge infrastructure.
+
+### Roadmap
+- [ ] Fast Purge implementation
+- [ ] Application Security (WAF) tools
+- [ ] Reporting and analytics
+- [ ] Image & Video Manager support
+- [ ] EdgeWorkers integration
+
 ## License
 
 MIT License - see LICENSE file for details
@@ -195,3 +297,7 @@ MIT License - see LICENSE file for details
 - [Documentation](https://github.com/acedergren/alecs-mcp-server-akamai/wiki)
 - [Issues](https://github.com/acedergren/alecs-mcp-server-akamai/issues)
 - [Discussions](https://github.com/acedergren/alecs-mcp-server-akamai/discussions)
+
+## Acknowledgments
+
+This project uses the Akamai OPEN APIs and follows their guidelines for third-party integrations. Special thanks to the MCP team at Anthropic for creating the Model Context Protocol.
