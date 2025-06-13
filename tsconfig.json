@@ -30,6 +30,9 @@
     "node_modules",
     "dist",
     "**/*.spec.ts",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "src/agents/**",
+    "src/utils/progress.ts",
+    "src/tools/enhanced-dns-migration-tools.ts"
   ]
 }

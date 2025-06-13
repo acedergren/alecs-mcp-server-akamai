@@ -49,9 +49,12 @@ function formatStatus(status: string | undefined): string {
  */
 export async function listProperties(
   client: AkamaiClient, 
-  args: { contractId?: string; groupId?: string }
+  args: { contractId?: string; groupId?: string; limit?: number }
 ): Promise<MCPToolResponse> {
   try {
+    // OPTIMIZATION: Add limit to prevent memory issues with large accounts
+    const MAX_PROPERTIES_TO_DISPLAY = args.limit || 50;
+    
     // If no contract ID provided, get the first available contract
     let contractId = args.contractId;
     let groupId = args.groupId;
@@ -117,17 +120,26 @@ export async function listProperties(
     }
 
     // Format properties list with comprehensive details
-    const properties = response.properties.items;
-    let text = `# Akamai Properties (${properties.length} found)\n\n`;
+    const allProperties = response.properties.items;
+    const totalProperties = allProperties.length;
+    
+    // OPTIMIZATION: Limit displayed properties to prevent output overload
+    const propertiesToShow = allProperties.slice(0, MAX_PROPERTIES_TO_DISPLAY);
+    const hasMore = totalProperties > MAX_PROPERTIES_TO_DISPLAY;
+    
+    let text = `# Akamai Properties (${hasMore ? `showing ${propertiesToShow.length} of ${totalProperties}` : `${totalProperties} found`})\n\n`;
     
     // Add filter information
     text += '**Filters Applied:**\n';
     if (contractId) text += `- Contract: ${contractId}${!args.contractId ? ' (auto-selected)' : ''}\n`;
     if (groupId) text += `- Group: ${groupId}${!args.groupId && !args.contractId ? ' (auto-selected)' : ''}\n`;
+    if (hasMore) {
+      text += `- **Limit:** Showing first ${MAX_PROPERTIES_TO_DISPLAY} properties\n`;
+    }
     text += '\n';
 
     // Group properties by contract for better organization
-    const propertiesByContract = properties.reduce((acc, prop) => {
+    const propertiesByContract = propertiesToShow.reduce((acc, prop) => {
       const contract = prop.contractId;
       if (!acc[contract]) acc[contract] = [];
       acc[contract].push(prop);
@@ -152,6 +164,14 @@ export async function listProperties(
         
         text += '\n';
       }
+    }
+    
+    if (hasMore) {
+      text += `\n⚠️ **Note:** Only showing first ${MAX_PROPERTIES_TO_DISPLAY} properties out of ${totalProperties} total.\n`;
+      text += `To see more properties:\n`;
+      text += `- Filter by specific group: \`"list properties in group grp_XXXXX"\`\n`;
+      text += `- Search for specific property: \`"get property [name or ID]"\`\n`;
+      text += `- Increase limit: \`"list properties with limit 100"\`\n`;
     }
 
     // Add helpful next steps
@@ -183,52 +203,146 @@ export async function getProperty(
   try {
     let propertyId = args.propertyId;
     
-    // If not a property ID format, use the search API
+    // If not a property ID format, use optimized search
     if (!propertyId.startsWith('prp_')) {
       try {
-        // Use the find-by-value endpoint for efficient searching
-        const searchResponse = await client.request({
-          path: '/papi/v1/search/find-by-value',
-          method: 'POST',
-          body: {
-            query: propertyId
-          }
-        });
+        // OPTIMIZATION: Limited search to prevent timeouts and memory issues
+        const searchTerm = propertyId.toLowerCase();
+        console.error(`[getProperty] Searching for property: ${searchTerm}`);
         
-        // Check if we found any properties
-        if (!searchResponse.versions?.items || searchResponse.versions.items.length === 0) {
+        // Get groups first
+        const groupsResponse = await client.request({
+          path: '/papi/v1/groups',
+          method: 'GET',
+        }) as GroupList;
+        
+        if (!groupsResponse.groups?.items?.length) {
           return {
             content: [{
               type: 'text',
-              text: `❌ No property found matching "${propertyId}".\n\n💡 **Tips:**\n- Use the exact property name or hostname\n- Use list_properties to see all available properties\n- Property IDs start with 'prp_' (e.g., prp_12345)\n- For hostnames, use the full domain (e.g., www.example.com)`,
+              text: 'No groups found. Please check your API credentials.',
             }],
           };
         }
         
-        // Get the first matching property (preferring active versions)
-        const activeVersion = searchResponse.versions.items.find((v: any) => 
-          v.productionStatus === 'ACTIVE' || v.stagingStatus === 'ACTIVE'
-        );
-        const matchedVersion = activeVersion || searchResponse.versions.items[0];
+        // OPTIMIZATION: Limit search to prevent timeouts
+        const MAX_GROUPS_TO_SEARCH = 5;
+        const MAX_PROPERTIES_PER_GROUP = 100;
+        const MAX_TOTAL_PROPERTIES = 300;
         
-        propertyId = matchedVersion.propertyId;
+        let foundProperties: Array<{property: Property, group: any}> = [];
+        let totalPropertiesSearched = 0;
+        let groupsSearched = 0;
         
-        // Add note about the search
-        let searchNote = `ℹ️ Found property "${matchedVersion.propertyName}" (${propertyId})\n`;
-        if (matchedVersion.productionStatus === 'ACTIVE') {
-          searchNote += `   Active in: PRODUCTION (v${matchedVersion.propertyVersion})\n`;
+        // Search properties with limits
+        for (const group of groupsResponse.groups.items) {
+          if (groupsSearched >= MAX_GROUPS_TO_SEARCH) break;
+          if (totalPropertiesSearched >= MAX_TOTAL_PROPERTIES) break;
+          if (!group.contractIds?.length) continue;
+          
+          groupsSearched++;
+          
+          for (const contractId of group.contractIds) {
+            try {
+              const propertiesResponse = await client.request({
+                path: '/papi/v1/properties',
+                method: 'GET',
+                queryParams: {
+                  contractId: contractId,
+                  groupId: group.groupId
+                }
+              }) as PropertyList;
+              
+              const properties = propertiesResponse.properties?.items || [];
+              totalPropertiesSearched += properties.length;
+              
+              // Limit properties to search per group
+              const propertiesToSearch = properties.slice(0, MAX_PROPERTIES_PER_GROUP);
+              
+              // Search by property name (exact and partial match)
+              const exactMatch = propertiesToSearch.find(prop => 
+                prop.propertyName.toLowerCase() === searchTerm
+              );
+              
+              if (exactMatch) {
+                // Found exact match - return immediately
+                console.error(`[getProperty] Found exact match: ${exactMatch.propertyName}`);
+                return await getPropertyById(client, exactMatch.propertyId, exactMatch);
+              }
+              
+              // Collect partial matches
+              const partialMatches = propertiesToSearch.filter(prop => 
+                prop.propertyName.toLowerCase().includes(searchTerm)
+              );
+              
+              partialMatches.forEach(prop => {
+                foundProperties.push({ property: prop, group });
+              });
+              
+            } catch (err) {
+              console.error(`Failed to search in contract ${contractId}:`, err);
+            }
+          }
         }
-        if (matchedVersion.stagingStatus === 'ACTIVE') {
-          searchNote += `   Active in: STAGING (v${matchedVersion.propertyVersion})\n`;
-        }
-        searchNote += '\n';
         
-        // Continue with the found property ID
-        const result = await getPropertyById(client, propertyId);
-        if (result.content[0] && 'text' in result.content[0]) {
-          result.content[0].text = searchNote + result.content[0].text;
+        // Handle search results
+        if (foundProperties.length === 0) {
+          // No matches found in limited search
+          return {
+            content: [{
+              type: 'text',
+              text: `❌ No properties found matching "${propertyId}" in the first ${groupsSearched} groups (searched ${totalPropertiesSearched} properties).\n\n` +
+                    `**Suggestions:**\n` +
+                    `1. Use the exact property ID (e.g., prp_12345)\n` +
+                    `2. Use "list properties" to browse available properties\n` +
+                    `3. Try a more specific search term\n\n` +
+                    `**Note:** To prevent timeouts, the search was limited to:\n` +
+                    `- First ${MAX_GROUPS_TO_SEARCH} groups\n` +
+                    `- Maximum ${MAX_PROPERTIES_PER_GROUP} properties per group\n` +
+                    `- Total of ${MAX_TOTAL_PROPERTIES} properties\n\n` +
+                    `If your property wasn't found, please use its exact property ID.`,
+            }],
+          };
         }
-        return result;
+        
+        if (foundProperties.length === 1) {
+          // Single match found
+          const match = foundProperties[0];
+          const searchNote = `ℹ️ Found property "${match.property.propertyName}" (${match.property.propertyId})\n\n`;
+          const result = await getPropertyById(client, match.property.propertyId, match.property);
+          if (result.content[0] && 'text' in result.content[0]) {
+            result.content[0].text = searchNote + result.content[0].text;
+          }
+          return result;
+        }
+        
+        // Multiple matches found - show list
+        let text = `🔍 Found ${foundProperties.length} properties matching "${propertyId}":\n\n`;
+        
+        // Show up to 10 matches
+        const matchesToShow = foundProperties.slice(0, 10);
+        matchesToShow.forEach((match, index) => {
+          text += `${index + 1}. **${match.property.propertyName}**\n`;
+          text += `   - Property ID: \`${match.property.propertyId}\`\n`;
+          text += `   - Group: ${match.group.groupName}\n`;
+          text += `   - Production: ${formatStatus(match.property.productionStatus)}\n`;
+          text += `   - Staging: ${formatStatus(match.property.stagingStatus)}\n\n`;
+        });
+        
+        if (foundProperties.length > 10) {
+          text += `... and ${foundProperties.length - 10} more matches\n\n`;
+        }
+        
+        text += `**To get details for a specific property, use its ID:**\n`;
+        text += `Example: "get property ${matchesToShow[0].property.propertyId}"\n\n`;
+        text += `💡 **Tip:** Using the exact property ID (prp_XXXXX) is always faster and more reliable.`;
+        
+        return {
+          content: [{
+            type: 'text',
+            text,
+          }],
+        };
         
       } catch (searchError: any) {
         // If search fails, provide helpful error message
