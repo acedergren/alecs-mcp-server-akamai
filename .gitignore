@@ -55,3 +55,8 @@ temp/
 # Memory files
 memory-complete.md
 akamai-api-memory.md
+
+#Claude things
+.claude
+.prompts
+.old
