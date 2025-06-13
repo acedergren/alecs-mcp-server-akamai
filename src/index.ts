@@ -57,6 +57,11 @@ import {
   convertZoneToPrimary,
   generateMigrationInstructions
 } from './tools/dns-migration-tools.js';
+import {
+  onboardSecureProperty,
+  quickSecurePropertySetup,
+  checkSecurePropertyStatus
+} from './tools/secure-property-onboarding.js';
 
 // Tool schemas for validation
 const ListPropertiesSchema = z.object({
@@ -289,6 +294,33 @@ const GenerateMigrationInstructionsSchema = z.object({
   customer: z.string().optional(),
   zone: z.string(),
   targetProvider: z.enum(['route53', 'cloudflare', 'godaddy', 'namecheap', 'generic']).optional(),
+});
+
+// Secure Property Onboarding Schemas
+const OnboardSecurePropertySchema = z.object({
+  customer: z.string().optional(),
+  propertyName: z.string(),
+  hostnames: z.array(z.string()),
+  originHostname: z.string(),
+  contractId: z.string(),
+  groupId: z.string(),
+  productId: z.string().optional(),
+  cpCode: z.number().optional(),
+  notificationEmails: z.array(z.string()).optional(),
+});
+
+const QuickSecurePropertySetupSchema = z.object({
+  customer: z.string().optional(),
+  domain: z.string(),
+  originHostname: z.string(),
+  contractId: z.string(),
+  groupId: z.string(),
+});
+
+const CheckSecurePropertyStatusSchema = z.object({
+  customer: z.string().optional(),
+  propertyId: z.string(),
+  enrollmentId: z.number().optional(),
 });
 
 /**
@@ -1141,6 +1173,107 @@ class AkamaiMCPServer {
             required: ['zone'],
           },
         },
+        // Secure Property Onboarding Tools
+        {
+          name: 'onboard_secure_property',
+          description: 'Complete workflow for onboarding a secure-by-default property with Default DV certificate',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyName: {
+                type: 'string',
+                description: 'Name for the new property',
+              },
+              hostnames: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Hostnames to be served by this property',
+              },
+              originHostname: {
+                type: 'string',
+                description: 'Origin server hostname',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID for billing',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Group ID for organization',
+              },
+              productId: {
+                type: 'string',
+                description: 'Optional: Product ID (default: prd_Site_Accel)',
+              },
+              cpCode: {
+                type: 'number',
+                description: 'Optional: CP Code for reporting',
+              },
+              notificationEmails: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Email addresses for notifications',
+              },
+            },
+            required: ['propertyName', 'hostnames', 'originHostname', 'contractId', 'groupId'],
+          },
+        },
+        {
+          name: 'quick_secure_property_setup',
+          description: 'Quick setup for secure property with minimal inputs and sensible defaults',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              domain: {
+                type: 'string',
+                description: 'Primary domain (e.g., example.com)',
+              },
+              originHostname: {
+                type: 'string',
+                description: 'Origin server hostname',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID for billing',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Group ID for organization',
+              },
+            },
+            required: ['domain', 'originHostname', 'contractId', 'groupId'],
+          },
+        },
+        {
+          name: 'check_secure_property_status',
+          description: 'Check the status of secure property onboarding including certificate validation',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'Property ID to check',
+              },
+              enrollmentId: {
+                type: 'number',
+                description: 'Optional: Certificate enrollment ID to check status',
+              },
+            },
+            required: ['propertyId'],
+          },
+        },
       ],
     }));
 
@@ -1271,6 +1404,19 @@ class AkamaiMCPServer {
           case 'generate_migration_instructions':
             const genInstructionsArgs = GenerateMigrationInstructionsSchema.parse(args);
             return await generateMigrationInstructions(client, genInstructionsArgs);
+
+          // Secure Property Onboarding tools
+          case 'onboard_secure_property':
+            const onboardArgs = OnboardSecurePropertySchema.parse(args);
+            return await onboardSecureProperty(client, onboardArgs);
+
+          case 'quick_secure_property_setup':
+            const quickSetupArgs = QuickSecurePropertySetupSchema.parse(args);
+            return await quickSecurePropertySetup(client, quickSetupArgs);
+
+          case 'check_secure_property_status':
+            const checkStatusSecureArgs = CheckSecurePropertyStatusSchema.parse(args);
+            return await checkSecurePropertyStatus(client, checkStatusSecureArgs);
 
           default:
             throw new McpError(
