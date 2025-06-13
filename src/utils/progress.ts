@@ -270,6 +270,10 @@ export async function trackProgress<T>(
     const currentIndex = index++;
     const item = items[currentIndex];
     
+    if (item === undefined) {
+      return processNext();
+    }
+    
     try {
       await processor(item, currentIndex);
       progress.increment(1, options.message || `Processing item ${currentIndex + 1}`);

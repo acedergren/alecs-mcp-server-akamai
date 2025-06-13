@@ -183,78 +183,66 @@ export async function getProperty(
   try {
     let propertyId = args.propertyId;
     
-    // If not a property ID format, search for property by name
+    // If not a property ID format, use the search API
     if (!propertyId.startsWith('prp_')) {
-      // Search for property by name
-      const searchName = propertyId.toLowerCase();
-      
-      // Get groups to find contracts
-      const groupsResponse = await client.request({
-        path: '/papi/v1/groups',
-        method: 'GET',
-      }) as GroupList;
-      
-      let foundProperty: Property | null = null;
-      
-      // Search through all contracts
-      if (groupsResponse.groups?.items?.length > 0) {
-        for (const group of groupsResponse.groups.items) {
-          if (group.contractIds?.length > 0 && !foundProperty) {
-            for (const contractId of group.contractIds) {
-              try {
-                const propertiesResponse = await client.request({
-                  path: '/papi/v1/properties',
-                  method: 'GET',
-                  queryParams: { contractId, groupId: group.groupId }
-                }) as PropertyList;
-                
-                if (propertiesResponse.properties?.items) {
-                  // Search for exact match first
-                  let property = propertiesResponse.properties.items.find(
-                    p => p.propertyName.toLowerCase() === searchName
-                  );
-                  
-                  // If no exact match, search for partial match
-                  if (!property) {
-                    property = propertiesResponse.properties.items.find(
-                      p => p.propertyName.toLowerCase().includes(searchName)
-                    );
-                  }
-                  
-                  if (property) {
-                    foundProperty = property;
-                    break;
-                  }
-                }
-              } catch (error) {
-                // Continue searching in other contracts
-                console.error(`Failed to search in contract ${contractId}:`, error);
-              }
-            }
+      try {
+        // Use the find-by-value endpoint for efficient searching
+        const searchResponse = await client.request({
+          path: '/papi/v1/search/find-by-value',
+          method: 'POST',
+          body: {
+            query: propertyId
           }
+        });
+        
+        // Check if we found any properties
+        if (!searchResponse.versions?.items || searchResponse.versions.items.length === 0) {
+          return {
+            content: [{
+              type: 'text',
+              text: `❌ No property found matching "${propertyId}".\n\n💡 **Tips:**\n- Use the exact property name or hostname\n- Use list_properties to see all available properties\n- Property IDs start with 'prp_' (e.g., prp_12345)\n- For hostnames, use the full domain (e.g., www.example.com)`,
+            }],
+          };
         }
+        
+        // Get the first matching property (preferring active versions)
+        const activeVersion = searchResponse.versions.items.find((v: any) => 
+          v.productionStatus === 'ACTIVE' || v.stagingStatus === 'ACTIVE'
+        );
+        const matchedVersion = activeVersion || searchResponse.versions.items[0];
+        
+        propertyId = matchedVersion.propertyId;
+        
+        // Add note about the search
+        let searchNote = `ℹ️ Found property "${matchedVersion.propertyName}" (${propertyId})\n`;
+        if (matchedVersion.productionStatus === 'ACTIVE') {
+          searchNote += `   Active in: PRODUCTION (v${matchedVersion.propertyVersion})\n`;
+        }
+        if (matchedVersion.stagingStatus === 'ACTIVE') {
+          searchNote += `   Active in: STAGING (v${matchedVersion.propertyVersion})\n`;
+        }
+        searchNote += '\n';
+        
+        // Continue with the found property ID
+        const result = await getPropertyById(client, propertyId);
+        if (result.content[0] && 'text' in result.content[0]) {
+          result.content[0].text = searchNote + result.content[0].text;
+        }
+        return result;
+        
+      } catch (searchError: any) {
+        // If search fails, provide helpful error message
+        if (searchError.message?.includes('404')) {
+          return {
+            content: [{
+              type: 'text',
+              text: `❌ No property found matching "${propertyId}".\n\n💡 **Tips:**\n- For property names: Use the exact name (case-insensitive)\n- For hostnames: Use the full domain (e.g., www.example.com)\n- For property IDs: Use the format prp_12345\n- Use list_properties to see all available properties`,
+            }],
+          };
+        }
+        // For other errors, fall through to general error handling
+        throw searchError;
       }
-      
-      if (!foundProperty) {
-        return {
-          content: [{
-            type: 'text',
-            text: `❌ No property found matching "${propertyId}".\n\n💡 **Tips:**\n- Use the exact property name\n- Use list_properties to see all available properties\n- Property IDs start with 'prp_' (e.g., prp_12345)`,
-          }],
-        };
-      }
-      
-      propertyId = foundProperty.propertyId;
-      
-      // Add note about the search
-      const searchNote = `ℹ️ Found property "${foundProperty.propertyName}" (${propertyId})\n\n`;
-      
-      // Continue with the found property ID
-      const result = await getPropertyById(client, propertyId, foundProperty);
-      if (result.content[0] && 'text' in result.content[0]) {
-        result.content[0].text = searchNote + result.content[0].text;
-      }
-      return result;
     }
 
     // Get property by ID

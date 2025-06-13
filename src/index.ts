@@ -348,7 +348,7 @@ class AkamaiMCPServer {
               },
               propertyId: {
                 type: 'string',
-                description: 'The property ID (e.g., prp_12345)',
+                description: 'The property ID (e.g., prp_12345), property name, or hostname to search for',
               },
             },
             required: ['propertyId'],
