@@ -23,7 +23,7 @@ An MCP (Model Context Protocol) server that enables AI assistants to interact wi
 - **ACME DNS Automation**: Automatic DNS validation record creation
 - **Certificate Lifecycle**: Creation, renewal, and deployment tracking
 
-#### 🌍 DNS Management (Edge DNS)
+#### 🌍 DNS Management (Edge DNS) (Upcomming in next version)
 - **Zone Management**: Create and manage PRIMARY, SECONDARY, and ALIAS zones
 - **Record Operations**: Full CRUD for A, AAAA, CNAME, MX, TXT, and more
 - **Bulk Operations**: Import/export via zone files
