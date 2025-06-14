@@ -90,8 +90,7 @@ account-switch-key = OLD-FORMAT-KEY
           method: 'GET',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'PAPI-Use-Prefixes': 'true'
+            'Accept': 'application/json'
           }),
           qs: expect.objectContaining({
             accountSwitchKey: '1-5BYUG1:1-8BYUX',

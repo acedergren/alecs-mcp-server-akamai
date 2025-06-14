@@ -12,9 +12,11 @@ import { AkamaiError } from './types';
 export class AkamaiClient {
   private edgeGrid: EdgeGrid;
   private accountSwitchKey?: string;
+  private debug: boolean;
 
   constructor(section: string = 'default', accountSwitchKey?: string) {
     const edgercPath = this.getEdgeRcPath();
+    this.debug = process.env.DEBUG === '1' || process.env.DEBUG === 'true';
     
     try {
       // Initialize EdgeGrid client using the SDK
@@ -108,11 +110,13 @@ export class AkamaiClient {
       }
 
       // Debug logging
-      console.error(`[AkamaiClient] Making request: ${options.method || 'GET'} ${requestPath}`);
-      console.error(`[AkamaiClient] Request options:`, JSON.stringify({
-        ...requestOptions,
-        body: requestOptions.body ? '[BODY]' : undefined
-      }, null, 2));
+      if (this.debug) {
+        console.error(`[AkamaiClient] Making request: ${options.method || 'GET'} ${requestPath}`);
+        console.error(`[AkamaiClient] Request options:`, JSON.stringify({
+          ...requestOptions,
+          body: requestOptions.body ? '[BODY]' : undefined
+        }, null, 2));
+      }
 
       // Use EdgeGrid's auth method to sign the request
       this.edgeGrid.auth(requestOptions);
@@ -272,13 +276,15 @@ export class AkamaiClient {
         }
       }
       
-      if (accountSwitchKey) {
+      if (accountSwitchKey && this.debug) {
         console.error(`[AkamaiClient] Found account_key in section [${section}]: ${accountSwitchKey}`);
       }
       
       return accountSwitchKey;
     } catch (error) {
-      console.error('[AkamaiClient] Error reading account-switch-key from .edgerc:', error);
+      if (this.debug) {
+        console.error('[AkamaiClient] Error reading account-switch-key from .edgerc:', error);
+      }
       return undefined;
     }
   }

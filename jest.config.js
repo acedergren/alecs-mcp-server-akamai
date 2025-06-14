@@ -21,4 +21,5 @@ module.exports = {
       useESM: true,
     },
   },
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
 };

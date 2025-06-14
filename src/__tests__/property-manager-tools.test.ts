@@ -3,10 +3,8 @@ import { AkamaiClient } from '../akamai-client';
 import {
   createPropertyVersion,
   getPropertyRules,
-  updatePropertyRules,
   createEdgeHostname,
   addPropertyHostname,
-  removePropertyHostname,
   activateProperty,
   getActivationStatus,
   listPropertyActivations
@@ -24,6 +22,15 @@ describe('Property Manager Extended Tools', () => {
       request: jest.fn(),
     } as any;
   });
+
+  // Helper to get text content from result
+  const getTextContent = (result: any): string => {
+    const content = result.content?.[0];
+    if (content && 'text' in content) {
+      return content.text;
+    }
+    return '';
+  };
 
   describe('createPropertyVersion', () => {
     it('should create a new property version', async () => {
@@ -46,7 +53,8 @@ describe('Property Manager Extended Tools', () => {
       });
 
       expect(mockClient.request).toHaveBeenCalledTimes(3);
-      expect(result.content[0].text).toContain('Created new property version 4');
+      const text = getTextContent(result);
+      expect(text).toContain('Created new property version 4');
     });
 
     it('should handle errors gracefully', async () => {
@@ -56,7 +64,8 @@ describe('Property Manager Extended Tools', () => {
         propertyId: 'prp_12345',
       });
 
-      expect(result.content[0].text).toContain('Failed to create property version');
+      const text = getTextContent(result);
+      expect(text).toContain('Failed to create property version');
     });
   });
 
@@ -89,8 +98,9 @@ describe('Property Manager Extended Tools', () => {
         propertyId: 'prp_12345',
       });
 
-      expect(result.content[0].text).toContain('Property Rules - prp_12345');
-      expect(result.content[0].text).toContain('Origin Server: example.com');
+      const text = getTextContent(result);
+      expect(text).toContain('Property Rules - prp_12345');
+      expect(text).toContain('origin: example.com');
     });
   });
 
@@ -117,7 +127,8 @@ describe('Property Manager Extended Tools', () => {
         secure: true,
       });
 
-      expect(result.content[0].text).toContain('Created edge hostname: www.example.com.edgekey.net');
+      const text = getTextContent(result);
+      expect(text).toContain('Created edge hostname: www.example.com.edgekey.net');
       expect(mockClient.request).toHaveBeenCalledWith(expect.objectContaining({
         method: 'POST',
         body: expect.objectContaining({
@@ -150,8 +161,9 @@ describe('Property Manager Extended Tools', () => {
         network: 'STAGING',
       });
 
-      expect(result.content[0].text).toContain('Started activation');
-      expect(result.content[0].text).toContain('STAGING');
+      const text = getTextContent(result);
+      expect(text).toContain('Started activation');
+      expect(text).toContain('STAGING');
       expect(mockClient.request).toHaveBeenCalledWith(expect.objectContaining({
         method: 'POST',
         body: expect.objectContaining({
@@ -177,7 +189,8 @@ describe('Property Manager Extended Tools', () => {
         network: 'STAGING',
       });
 
-      expect(result.content[0].text).toContain('already active in STAGING');
+      const text = getTextContent(result);
+      expect(text).toContain('already active in STAGING');
       expect(mockClient.request).toHaveBeenCalledTimes(1);
     });
   });
@@ -205,8 +218,9 @@ describe('Property Manager Extended Tools', () => {
         activationId: 'atv_123456',
       });
 
-      expect(result.content[0].text).toContain('✅ ACTIVE');
-      expect(result.content[0].text).toContain('Activation Complete!');
+      const text = getTextContent(result);
+      expect(text).toContain('✅ ACTIVE');
+      expect(text).toContain('Activation Complete!');
     });
   });
 
@@ -237,7 +251,8 @@ describe('Property Manager Extended Tools', () => {
         edgeHostname: 'www.example.com.edgesuite.net',
       });
 
-      expect(result.content[0].text).toContain('Added hostname www.example.com');
+      const text = getTextContent(result);
+      expect(text).toContain('Added hostname www.example.com');
       expect(mockClient.request).toHaveBeenCalledWith(expect.objectContaining({
         method: 'PUT',
         body: expect.objectContaining({
@@ -281,9 +296,10 @@ describe('Property Manager Extended Tools', () => {
         propertyId: 'prp_12345',
       });
 
-      expect(result.content[0].text).toContain('Property Activations (2 found)');
-      expect(result.content[0].text).toContain('PRODUCTION');
-      expect(result.content[0].text).toContain('STAGING');
+      const text = getTextContent(result);
+      expect(text).toContain('Property Activations (2 found)');
+      expect(text).toContain('PRODUCTION');
+      expect(text).toContain('STAGING');
     });
   });
 });

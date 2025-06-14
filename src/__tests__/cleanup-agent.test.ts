@@ -195,7 +195,7 @@ describe('CleanupAgent', () => {
         interactive: false
       });
 
-      const result = await agent.run();
+      await agent.run();
       
       // Result should be returned from run() method
       // This test would need the agent to return the result

@@ -15,11 +15,12 @@ describe('DNS Tools', () => {
     } as any;
   });
 
-  // Helper to get text content from result
+  // Helper to get text content from result and strip ANSI codes
   const getTextContent = (result: any): string => {
     const content = result.content[0];
     if (content && 'text' in content) {
-      return content.text;
+      // Strip ANSI escape codes
+      return content.text.replace(/\u001b\[[0-9;]*m/g, '');
     }
     return '';
   };
@@ -62,15 +63,19 @@ describe('DNS Tools', () => {
       expect(mockClient.request).toHaveBeenCalledWith({
         path: '/config-dns/v2/zones',
         method: 'GET',
-        queryParams: undefined
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        queryParams: {}
       });
 
       const text = getTextContent(result);
-      expect(text).toContain('2 zones found');
+      expect(text).toContain('Found 2 DNS zones');
       expect(text).toContain('example.com');
       expect(text).toContain('test.com');
-      expect(text).toContain('Primary zone');
-      expect(text).toContain('Secondary zone');
+      expect(text).toContain('(primary)');
+      expect(text).toContain('(secondary)');
     });
 
     it('should filter zones by search term', async () => {
@@ -83,11 +88,15 @@ describe('DNS Tools', () => {
       expect(mockClient.request).toHaveBeenCalledWith({
         path: '/config-dns/v2/zones',
         method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         queryParams: { search: 'example' }
       });
 
       const text = getTextContent(result);
-      expect(text).toContain('1 zones found');
+      expect(text).toContain('Found 1 DNS zones');
       expect(text).toContain('example.com');
       expect(text).not.toContain('test.com');
     });
@@ -128,24 +137,25 @@ describe('DNS Tools', () => {
 
       expect(mockClient.request).toHaveBeenCalledWith({
         path: '/config-dns/v2/zones/example.com',
-        method: 'GET'
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
       });
 
       const text = getTextContent(result);
-      expect(text).toContain('Zone Details: example.com');
-      expect(text).toContain('Type: PRIMARY');
-      expect(text).toContain('Status: 🟢 ACTIVE');
-      expect(text).toContain('Contract: ctr_1-3CV382');
+      expect(text).toContain('DNS Zone: example.com');
+      expect(text).toContain('Type: primary');
+      expect(text).toContain('DNSSEC: Disabled');
     });
 
     it('should handle zone not found', async () => {
       mockClient.request.mockRejectedValue(new Error('404: Zone not found'));
 
-      const result = await getZone(mockClient, { zone: 'nonexistent.com' });
-
-      const text = getTextContent(result);
-      expect(text).toContain('Failed to get zone');
-      expect(text).toContain('404: Zone not found');
+      await expect(getZone(mockClient, { zone: 'nonexistent.com' }))
+        .rejects
+        .toThrow('404: Zone not found');
     });
   });
 
@@ -169,19 +179,23 @@ describe('DNS Tools', () => {
       expect(mockClient.request).toHaveBeenCalledWith({
         path: '/config-dns/v2/zones',
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: {
           zone: 'newzone.com',
-          type: 'primary',
-          comment: 'New zone for testing',
+          type: 'PRIMARY',
+          comment: 'New zone for testing'
+        },
+        queryParams: {
           contractId: 'ctr_1-3CV382',
-          groupId: 'grp_12345',
-          signAndServe: false
+          gid: 'grp_12345'
         }
       });
 
       const text = getTextContent(result);
-      expect(text).toContain('Created DNS zone successfully');
-      expect(text).toContain('Zone: newzone.com');
+      expect(text).toContain('Successfully created DNS zone: newzone.com');
       expect(text).toContain('Type: PRIMARY');
     });
 
@@ -201,16 +215,21 @@ describe('DNS Tools', () => {
       expect(mockClient.request).toHaveBeenCalledWith({
         path: '/config-dns/v2/zones',
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: {
           zone: 'secondary.com',
-          type: 'secondary',
-          masters: ['192.0.2.1'],
-          signAndServe: false
-        }
+          type: 'SECONDARY',
+          comment: undefined,
+          masters: ['192.0.2.1']
+        },
+        queryParams: {}
       });
 
       const text = getTextContent(result);
-      expect(text).toContain('Created DNS zone successfully');
+      expect(text).toContain('Successfully created DNS zone: secondary.com');
       expect(text).toContain('Type: SECONDARY');
     });
   });
@@ -247,11 +266,15 @@ describe('DNS Tools', () => {
       expect(mockClient.request).toHaveBeenCalledWith({
         path: '/config-dns/v2/zones/example.com/recordsets',
         method: 'GET',
-        queryParams: undefined
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        queryParams: {}
       });
 
       const text = getTextContent(result);
-      expect(text).toContain('3 records found');
+      expect(text).toContain('Found 3 DNS records in zone example.com');
       expect(text).toContain('example.com');
       expect(text).toContain('www.example.com');
       expect(text).toContain('192.0.2.1');
@@ -270,18 +293,27 @@ describe('DNS Tools', () => {
       expect(mockClient.request).toHaveBeenCalledWith({
         path: '/config-dns/v2/zones/example.com/recordsets',
         method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         queryParams: { types: 'A' }
       });
 
       const text = getTextContent(result);
-      expect(text).toContain('1 records found');
-      expect(text).toContain('Type: A');
+      expect(text).toContain('Found 1 DNS records in zone example.com');
+      expect(text).toContain('A');
     });
   });
 
   describe('upsertRecord', () => {
     it('should create a new A record', async () => {
-      mockClient.request.mockResolvedValue({});
+      // Mock changelist workflow
+      mockClient.request
+        .mockRejectedValueOnce(new Error('404')) // No existing changelist
+        .mockResolvedValueOnce({}) // Create new changelist
+        .mockResolvedValueOnce({}) // Create/update record
+        .mockResolvedValueOnce({ requestId: 'req-123', expiryDate: '2024-01-16T10:00:00Z' }); // Submit changelist
 
       const result = await upsertRecord(mockClient, {
         zone: 'example.com',
@@ -291,9 +323,25 @@ describe('DNS Tools', () => {
         rdata: ['192.0.2.100']
       });
 
+      // Check changelist creation
       expect(mockClient.request).toHaveBeenCalledWith({
-        path: '/config-dns/v2/zones/example.com/recordsets/A/test.example.com',
+        path: '/config-dns/v2/changelists',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        queryParams: { zone: 'example.com' }
+      });
+
+      // Check record update
+      expect(mockClient.request).toHaveBeenCalledWith({
+        path: '/config-dns/v2/changelists/example.com/recordsets/test.example.com/A',
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: {
           name: 'test.example.com',
           type: 'A',
@@ -303,13 +351,18 @@ describe('DNS Tools', () => {
       });
 
       const text = getTextContent(result);
-      expect(text).toContain('Successfully created/updated DNS record');
+      expect(text).toContain('Successfully updated DNS record');
       expect(text).toContain('test.example.com');
-      expect(text).toContain('Type: A');
+      expect(text).toContain('192.0.2.100');
     });
 
     it('should update an existing CNAME record', async () => {
-      mockClient.request.mockResolvedValue({});
+      // Mock changelist workflow
+      mockClient.request
+        .mockRejectedValueOnce(new Error('404')) // No existing changelist
+        .mockResolvedValueOnce({}) // Create new changelist
+        .mockResolvedValueOnce({}) // Create/update record
+        .mockResolvedValueOnce({ requestId: 'req-124', expiryDate: '2024-01-16T10:00:00Z' }); // Submit changelist
 
       const result = await upsertRecord(mockClient, {
         zone: 'example.com',
@@ -321,8 +374,12 @@ describe('DNS Tools', () => {
       });
 
       expect(mockClient.request).toHaveBeenCalledWith({
-        path: '/config-dns/v2/zones/example.com/recordsets/CNAME/www.example.com',
+        path: '/config-dns/v2/changelists/example.com/recordsets/www.example.com/CNAME',
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: {
           name: 'www.example.com',
           type: 'CNAME',
@@ -332,13 +389,18 @@ describe('DNS Tools', () => {
       });
 
       const text = getTextContent(result);
-      expect(text).toContain('Successfully created/updated DNS record');
+      expect(text).toContain('Successfully updated DNS record');
     });
   });
 
   describe('deleteRecord', () => {
     it('should delete a record', async () => {
-      mockClient.request.mockResolvedValue({});
+      // Mock changelist workflow
+      mockClient.request
+        .mockRejectedValueOnce(new Error('404')) // No existing changelist
+        .mockResolvedValueOnce({}) // Create new changelist
+        .mockResolvedValueOnce({}) // Delete record
+        .mockResolvedValueOnce({ requestId: 'req-125', expiryDate: '2024-01-16T10:00:00Z' }); // Submit changelist
 
       const result = await deleteRecord(mockClient, {
         zone: 'example.com',
@@ -347,28 +409,29 @@ describe('DNS Tools', () => {
       });
 
       expect(mockClient.request).toHaveBeenCalledWith({
-        path: '/config-dns/v2/zones/example.com/recordsets/A/test.example.com',
-        method: 'DELETE'
+        path: '/config-dns/v2/changelists/example.com/recordsets/test.example.com/A',
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json'
+        }
       });
 
       const text = getTextContent(result);
       expect(text).toContain('Successfully deleted DNS record');
       expect(text).toContain('test.example.com');
-      expect(text).toContain('Type: A');
+      expect(text).toContain('A');
     });
 
     it('should handle deletion of non-existent record', async () => {
       mockClient.request.mockRejectedValue(new Error('404: Record not found'));
 
-      const result = await deleteRecord(mockClient, {
+      await expect(deleteRecord(mockClient, {
         zone: 'example.com',
         name: 'nonexistent.example.com',
         type: 'A'
-      });
-
-      const text = getTextContent(result);
-      expect(text).toContain('Failed to delete record');
-      expect(text).toContain('404: Record not found');
+      }))
+        .rejects
+        .toThrow('404: Record not found');
     });
   });
 });

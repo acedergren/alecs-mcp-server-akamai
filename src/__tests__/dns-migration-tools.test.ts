@@ -13,12 +13,13 @@ jest.mock('../akamai-client');
 
 // Mock the dns-tools module
 jest.mock('../tools/dns-tools', () => ({
-  createZone: jest.fn().mockResolvedValue({
+  createZone: jest.fn(() => Promise.resolve({
     content: [{ type: 'text', text: 'Zone created' }],
-  }),
-  upsertRecord: jest.fn().mockResolvedValue({
+  })),
+  upsertRecord: jest.fn(() => Promise.resolve({
     content: [{ type: 'text', text: 'Record created' }],
-  }),
+  })),
+  ensureCleanChangeList: jest.fn(() => Promise.resolve()),
 }));
 
 describe('DNS Migration Tools', () => {
@@ -31,8 +32,19 @@ describe('DNS Migration Tools', () => {
     } as any;
   });
 
+  // Helper to get text content from result and strip ANSI codes
+  const getTextContent = (result: any): string => {
+    const content = result.content?.[0];
+    if (content && 'text' in content) {
+      // Strip ANSI escape codes
+      return content.text.replace(/\u001b\[[0-9;]*m/g, '');
+    }
+    return '';
+  };
+
   describe('importZoneViaAXFR', () => {
     it('should import zone via AXFR', async () => {
+      // Mock the zone transfer request
       mockClient.request.mockResolvedValueOnce({});
 
       const result = await importZoneViaAXFR(mockClient, {
@@ -42,8 +54,19 @@ describe('DNS Migration Tools', () => {
         groupId: 'grp_12345',
       });
 
-      expect(result.content[0].text).toContain('Started AXFR import for zone example.com');
-      expect(result.content[0].text).toContain('Master Server: 192.0.2.1');
+      const text = getTextContent(result);
+      expect(text).toContain('Started AXFR import for zone example.com');
+      expect(text).toContain('**Master Server:** 192.0.2.1');
+      
+      // Verify createZone was called (it's mocked)
+      const { createZone } = require('../tools/dns-tools');
+      expect(createZone).toHaveBeenCalledWith(mockClient, expect.objectContaining({
+        zone: 'example.com',
+        type: 'SECONDARY',
+        masters: ['192.0.2.1'],
+      }));
+      
+      // Verify zone transfer was initiated
       expect(mockClient.request).toHaveBeenCalledWith(expect.objectContaining({
         path: '/config-dns/v2/zones/example.com/zone-transfer',
         method: 'POST',
@@ -65,8 +88,13 @@ describe('DNS Migration Tools', () => {
         },
       });
 
-      expect(result.content[0].text).toContain('TSIG: Configured');
+      const text = getTextContent(result);
+      expect(text).toContain('**TSIG:** Configured');
+      
+      // Verify TSIG update
       expect(mockClient.request).toHaveBeenCalledWith(expect.objectContaining({
+        path: '/config-dns/v2/zones/example.com',
+        method: 'PUT',
         body: expect.objectContaining({
           tsigKey: expect.objectContaining({
             name: 'transfer-key',
@@ -102,11 +130,12 @@ api     IN      CNAME   www.example.com.
         validateRecords: true,
       });
 
-      expect(result.content[0].text).toContain('Zone File Migration Plan');
-      expect(result.content[0].text).toContain('Total Records:');
-      expect(result.content[0].text).toContain('Migrateable:');
-      expect(result.content[0].text).toContain('example.com 3600 A 192.0.2.1');
-      expect(result.content[0].text).toContain('www.example.com 3600 A 192.0.2.2');
+      const text = getTextContent(result);
+      expect(text).toContain('Zone File Migration Plan');
+      expect(text).toContain('Total Records:');
+      expect(text).toContain('Migrateable:');
+      expect(text).toContain('example.com 3600 A 192.0.2.1');
+      expect(text).toContain('www.example.com 3600 A 192.0.2.2');
     });
 
     it('should identify unsupported record types', async () => {
@@ -122,7 +151,8 @@ _sip._tcp IN    SRV     10 60 5060 sip.example.com.
         zoneFileContent,
       });
 
-      expect(result.content[0].text).toContain('Issues Requiring Attention');
+      const text = getTextContent(result);
+      expect(text).toContain('Issues Requiring Attention');
     });
   });
 
@@ -157,9 +187,10 @@ _sip._tcp IN    SRV     10 60 5060 sip.example.com.
         comment: 'Initial import',
       });
 
-      expect(result.content[0].text).toContain('Bulk Import Results');
-      expect(result.content[0].text).toContain('Successfully Imported: 2');
-      expect(result.content[0].text).toContain('Request ID: req_123456');
+      const text = getTextContent(result);
+      expect(text).toContain('Bulk Import Results');
+      expect(text).toContain('**Successfully Imported:** 2');
+      expect(text).toContain('**Request ID:** req_123456');
       expect(mockClient.request).toHaveBeenCalledTimes(4);
     });
 
@@ -193,9 +224,10 @@ _sip._tcp IN    SRV     10 60 5060 sip.example.com.
         skipValidation: true,
       });
 
-      expect(result.content[0].text).toContain('Successfully Imported: 1');
-      expect(result.content[0].text).toContain('Failed: 1');
-      expect(result.content[0].text).toContain('example.com INVALID: Invalid record');
+      const text = getTextContent(result);
+      expect(text).toContain('**Successfully Imported:** 1');
+      expect(text).toContain('**Failed:** 1');
+      expect(text).toContain('example.com INVALID: Invalid record');
     });
   });
 
@@ -213,9 +245,10 @@ _sip._tcp IN    SRV     10 60 5060 sip.example.com.
         comment: 'Converting to primary',
       });
 
-      expect(result.content[0].text).toContain('Successfully converted example.com to PRIMARY zone');
-      expect(result.content[0].text).toContain('Before: Secondary zone');
-      expect(result.content[0].text).toContain('After: Primary zone');
+      const text = getTextContent(result);
+      expect(text).toContain('Successfully converted example.com to PRIMARY zone');
+      expect(text).toContain('**Before:** Secondary zone');
+      expect(text).toContain('**After:** Primary zone');
       expect(mockClient.request).toHaveBeenCalledWith(expect.objectContaining({
         method: 'PUT',
         body: expect.objectContaining({
@@ -234,7 +267,8 @@ _sip._tcp IN    SRV     10 60 5060 sip.example.com.
         zone: 'example.com',
       });
 
-      expect(result.content[0].text).toContain('already a PRIMARY zone');
+      const text = getTextContent(result);
+      expect(text).toContain('already a PRIMARY zone');
       expect(mockClient.request).toHaveBeenCalledTimes(1);
     });
   });
@@ -260,15 +294,16 @@ _sip._tcp IN    SRV     10 60 5060 sip.example.com.
         estimateDowntime: true,
       });
 
-      expect(result.content[0].text).toContain('DNS Migration Instructions');
-      expect(result.content[0].text).toContain('Pre-Migration Checklist');
-      expect(result.content[0].text).toContain('3 records found');
-      expect(result.content[0].text).toContain('Current Nameservers:');
-      expect(result.content[0].text).toContain('ns1.current.com');
-      expect(result.content[0].text).toContain('Akamai Nameservers:');
-      expect(result.content[0].text).toContain('use.akadns.net');
-      expect(result.content[0].text).toContain('Expected Downtime: ZERO');
-      expect(result.content[0].text).toContain('Emergency Rollback');
+      const text = getTextContent(result);
+      expect(text).toContain('# DNS Migration Instructions');
+      expect(text).toContain('## Pre-Migration Checklist');
+      expect(text).toContain('3 records found');
+      expect(text).toContain('**Current Nameservers:**');
+      expect(text).toContain('ns1.current.com');
+      expect(text).toContain('**Akamai Nameservers:**');
+      expect(text).toContain('use.akadns.net');
+      expect(text).toContain('**Expected Downtime:** ZERO');
+      expect(text).toContain('## Emergency Rollback');
     });
 
     it('should work without current nameservers', async () => {
@@ -285,9 +320,10 @@ _sip._tcp IN    SRV     10 60 5060 sip.example.com.
         zone: 'example.com',
       });
 
-      expect(result.content[0].text).toContain('DNS Migration Instructions');
-      expect(result.content[0].text).not.toContain('Current Nameservers:');
-      expect(result.content[0].text).not.toContain('Expected Downtime:');
+      const text = getTextContent(result);
+      expect(text).toContain('DNS Migration Instructions');
+      expect(text).not.toContain('Current Nameservers:');
+      expect(text).not.toContain('Expected Downtime:');
     });
   });
 });

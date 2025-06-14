@@ -14,7 +14,7 @@ import * as path from 'path';
 import { existsSync } from 'fs';
 import * as readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
-import { ProgressBar, Spinner, format, icons } from '../utils/progress';
+import { ProgressBar, Spinner } from '../utils/progress';
 
 interface FileInfo {
   path: string;

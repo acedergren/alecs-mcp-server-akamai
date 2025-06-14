@@ -21,6 +21,16 @@ describe('Certificate Provisioning System (CPS) Tools', () => {
     } as any;
   });
 
+  // Helper to get text content from result and strip ANSI codes
+  const getTextContent = (result: any): string => {
+    const content = result.content?.[0];
+    if (content && 'text' in content) {
+      // Strip ANSI escape codes
+      return content.text.replace(/\u001b\[[0-9;]*m/g, '');
+    }
+    return '';
+  };
+
   describe('createDVEnrollment', () => {
     it('should create a DV certificate enrollment', async () => {
       mockClient.request.mockResolvedValueOnce({
@@ -46,8 +56,9 @@ describe('Certificate Provisioning System (CPS) Tools', () => {
         enhancedTLS: true,
       });
 
-      expect(result.content[0].text).toContain('Created Default DV certificate enrollment');
-      expect(result.content[0].text).toContain('Enrollment ID: 12345');
+      const text = getTextContent(result);
+      expect(text).toContain('Created Default DV certificate enrollment');
+      expect(text).toContain('**Enrollment ID:** 12345');
       expect(mockClient.request).toHaveBeenCalledWith(expect.objectContaining({
         path: '/cps/v2/enrollments?contractId=ctr_C-123456',
         method: 'POST',
@@ -79,7 +90,8 @@ describe('Certificate Provisioning System (CPS) Tools', () => {
         contractId: 'ctr_C-123456',
       });
 
-      expect(result.content[0].text).toContain('Common name must be a valid domain');
+      const text = getTextContent(result);
+      expect(text).toContain('Common name must be a valid domain');
       expect(mockClient.request).not.toHaveBeenCalled();
     });
   });
@@ -130,11 +142,12 @@ describe('Certificate Provisioning System (CPS) Tools', () => {
         enrollmentId: 12345,
       });
 
-      expect(result.content[0].text).toContain('DV Validation Challenges');
-      expect(result.content[0].text).toContain('_acme-challenge.www.example.com');
-      expect(result.content[0].text).toContain('xyz789_validation_string');
-      expect(result.content[0].text).toContain('_acme-challenge.api.example.com');
-      expect(result.content[0].text).toContain('uvw456_validation_string');
+      const text = getTextContent(result);
+      expect(text).toContain('DV Validation Challenges');
+      expect(text).toContain('_acme-challenge.www.example.com');
+      expect(text).toContain('xyz789_validation_string');
+      expect(text).toContain('_acme-challenge.api.example.com');
+      expect(text).toContain('uvw456_validation_string');
     });
 
     it('should show validated status when complete', async () => {
@@ -165,7 +178,8 @@ describe('Certificate Provisioning System (CPS) Tools', () => {
         enrollmentId: 12345,
       });
 
-      expect(result.content[0].text).toContain('All Domains Validated');
+      const text = getTextContent(result);
+      expect(text).toContain('All Domains Validated');
     });
   });
 
@@ -196,9 +210,10 @@ describe('Certificate Provisioning System (CPS) Tools', () => {
         enrollmentId: 12345,
       });
 
-      expect(result.content[0].text).toContain('✅ active');
-      expect(result.content[0].text).toContain('Certificate Active!');
-      expect(result.content[0].text).toContain('Auto-Renewal Starts');
+      const text = getTextContent(result);
+      expect(text).toContain('✅ active');
+      expect(text).toContain('Certificate Active!');
+      expect(text).toContain('Auto-Renewal Starts');
     });
 
     it('should show validation in progress', async () => {
@@ -221,7 +236,8 @@ describe('Certificate Provisioning System (CPS) Tools', () => {
         enrollmentId: 12345,
       });
 
-      expect(result.content[0].text).toContain('Validation In Progress');
+      const text = getTextContent(result);
+      expect(text).toContain('Validation In Progress');
     });
   });
 
@@ -256,10 +272,11 @@ describe('Certificate Provisioning System (CPS) Tools', () => {
 
       const result = await listCertificateEnrollments(mockClient, {});
 
-      expect(result.content[0].text).toContain('Certificate Enrollments (2 found)');
-      expect(result.content[0].text).toContain('Active Certificates');
-      expect(result.content[0].text).toContain('Expiring Soon');
-      expect(result.content[0].text).toContain('www.example.com, api.example.com');
+      const text = getTextContent(result);
+      expect(text).toContain('Certificate Enrollments (2 found)');
+      expect(text).toContain('Active Certificates');
+      expect(text).toContain('Expiring Soon');
+      expect(text).toContain('www.example.com, api.example.com');
     });
   });
 
@@ -296,7 +313,8 @@ describe('Certificate Provisioning System (CPS) Tools', () => {
         propertyId: 'prp_12345',
       });
 
-      expect(result.content[0].text).toContain('Linked certificate enrollment 12345');
+      const text = getTextContent(result);
+      expect(text).toContain('Linked certificate enrollment 12345');
       expect(mockClient.request).toHaveBeenCalledWith(expect.objectContaining({
         method: 'PUT',
         body: expect.objectContaining({
