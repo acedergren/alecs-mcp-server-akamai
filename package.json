@@ -17,7 +17,10 @@
     "demo:agents": "tsx examples/agent-demo.ts",
     "cleanup": "tsx src/agents/cleanup-agent.ts",
     "cleanup:dry": "tsx src/agents/cleanup-agent.ts --dry-run",
-    "cleanup:interactive": "tsx src/agents/cleanup-agent.ts --interactive"
+    "cleanup:interactive": "tsx src/agents/cleanup-agent.ts --interactive",
+    "sbom": "./scripts/generate-sbom.sh",
+    "licenses": "npx license-checker --summary",
+    "audit": "npm audit"
   },
   "keywords": [
     "mcp",

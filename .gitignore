@@ -60,3 +60,8 @@ akamai-api-memory.md
 .claude
 .prompts
 .old
+
+# SBOM outputs (can be regenerated)
+sbom/
+*.sbom.json
+*.sbom.xml

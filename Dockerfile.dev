@@ -24,7 +24,14 @@ USER node
 # Default command (can be overridden)
 CMD ["npm", "run", "dev"]
 
+# Expose port for debugging (if needed)
+EXPOSE 9229
+
+# Volume for source code (mounted at runtime)
+VOLUME ["/app/src"]
+
 # Labels
 LABEL org.opencontainers.image.source="https://github.com/acedergren/alecs-mcp-server-akamai"
 LABEL org.opencontainers.image.description="ALECS - MCP Server for Akamai (Development)"
 LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.version="1.0.0-dev"

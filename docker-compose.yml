@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # Production service
   alecs:
     build:
       context: .
@@ -15,6 +16,7 @@ services:
       # DEFAULT_CUSTOMER: production
       # Optional: Enable debug logging
       # DEBUG: "1"
+      NODE_ENV: production
     volumes:
       # Mount .edgerc file (required)
       - ~/.edgerc:/home/alecs/.edgerc:ro
@@ -23,6 +25,13 @@ services:
     # For MCP stdio communication
     stdin_open: true
     tty: true
+    # Health check
+    healthcheck:
+      test: ["CMD", "node", "-e", "process.exit(0)"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     # Resource limits
     deploy:
       resources:
@@ -33,7 +42,7 @@ services:
           cpus: '0.5'
           memory: 256M
 
-  # Development version with hot reload
+  # Development service with hot reload
   alecs-dev:
     build:
       context: .
@@ -43,6 +52,8 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: development
+      # Enable TypeScript debugging
+      NODE_OPTIONS: "--inspect=0.0.0.0:9229"
       # EDGERC_PATH: /home/node/.akamai/.edgerc
       # DEBUG: "1"
     volumes:
@@ -50,13 +61,17 @@ services:
       - ./src:/app/src:ro
       - ./package.json:/app/package.json:ro
       - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./node_modules:/app/node_modules:ro
       # Mount .edgerc file
       - ~/.edgerc:/home/node/.edgerc:ro
     stdin_open: true
     tty: true
+    ports:
+      # Expose debugging port
+      - "9229:9229"
     command: ["npm", "run", "dev"]
 
-# Optional: Add a test container
+  # Test runner service
   alecs-test:
     build:
       context: .
@@ -66,14 +81,39 @@ services:
     container_name: alecs-mcp-test
     environment:
       NODE_ENV: test
+      CI: "true"
     volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+      - ./package.json:/app/package.json:ro
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./jest.config.js:/app/jest.config.js:ro
+      - ./coverage:/app/coverage
+      - ~/.edgerc:/root/.edgerc:ro
+    command: ["npm", "test"]
+
+  # One-shot build service
+  alecs-build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    image: alecs-mcp-server-akamai:builder
+    container_name: alecs-mcp-build
+    volumes:
+      - ./dist:/app/dist
       - ./src:/app/src:ro
       - ./package.json:/app/package.json:ro
       - ./tsconfig.json:/app/tsconfig.json:ro
-      - ./coverage:/app/coverage
-    command: ["npm", "test"]
+    command: ["npm", "run", "build"]
 
 # Network configuration
 networks:
   default:
     name: alecs-network
+    driver: bridge
+
+# Optional: Named volumes for persistent data
+volumes:
+  alecs-data:
+    driver: local
