@@ -396,23 +396,38 @@ export async function createEdgeHostname(
 
     // Create edge hostname
     const response = await client.request({
-      path: `/papi/v1/edgehostnames?contractId=${property.contractId}&groupId=${property.groupId}`,
+      path: '/papi/v1/edgehostnames',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'PAPI-Use-Prefixes': 'true',
+      },
+      queryParams: {
+        contractId: property.contractId,
+        groupId: property.groupId,
+        options: 'mapDetails',
       },
       body: {
         productId: productId,
         domainPrefix: args.domainPrefix,
-        domainSuffix: domainSuffix,
+        domainSuffix: domainSuffix.replace(/^\./, ''), // Remove leading dot
         secure: args.secure || domainSuffix.includes('edgekey'),
+        secureNetwork: (args.secure || domainSuffix.includes('edgekey')) ? 'ENHANCED_TLS' : undefined,
         ipVersionBehavior: args.ipVersion || 'IPV4',
-        certificateEnrollmentId: args.certificateEnrollmentId,
+        ...(args.certificateEnrollmentId && { certEnrollmentId: args.certificateEnrollmentId }),
+        useCases: [
+          {
+            "useCase": "Download_Mode",
+            "option": "BACKGROUND",
+            "type": "GLOBAL"
+          }
+        ]
       },
     });
 
-    const edgeHostnameId = response.edgeHostnameLink?.split('/').pop();
-    const edgeHostname = `${args.domainPrefix}${domainSuffix}`;
+    const edgeHostnameId = response.edgeHostnameLink?.split('/').pop()?.split('?')[0];
+    const edgeHostname = `${args.domainPrefix}.${domainSuffix.replace(/^\./, '')}`;
 
     return {
       content: [{
@@ -811,6 +826,364 @@ export async function listPropertyActivations(
     };
   } catch (error) {
     return formatError('list property activations', error);
+  }
+}
+
+/**
+ * Update property with Default DV certificate hostname
+ * This creates and configures a secure edge hostname using Akamai's Default Domain Validation certificate
+ */
+export async function updatePropertyWithDefaultDV(
+  client: AkamaiClient,
+  args: {
+    propertyId: string;
+    hostname: string;
+    version?: number;
+    ipVersion?: 'IPV4' | 'IPV6' | 'IPV4_IPV6';
+    customer?: string;
+  }
+): Promise<MCPToolResponse> {
+  try {
+    // Get property details
+    const propertyResponse = await client.request({
+      path: `/papi/v1/properties/${args.propertyId}`,
+      method: 'GET',
+    });
+    
+    if (!propertyResponse.properties?.items?.[0]) {
+      throw new Error('Property not found');
+    }
+    
+    const property = propertyResponse.properties.items[0];
+    const version = args.version || property.latestVersion || 1;
+    
+    // Extract domain parts from hostname
+    const hostnameParts = args.hostname.split('.');
+    const domainPrefix = hostnameParts[0];
+    const domainSuffix = hostnameParts.slice(1).join('.');
+    
+    // Step 1: Create edge hostname with Default DV
+    const edgeHostnamePrefix = `${domainPrefix}-defaultdv`;
+    const edgeHostnameDomain = `${edgeHostnamePrefix}.${domainSuffix}.edgekey.net`;
+    
+    let text = `# Updating Property with Default DV Certificate\n\n`;
+    text += `**Property:** ${property.propertyName} (${args.propertyId})\n`;
+    text += `**Hostname:** ${args.hostname}\n`;
+    text += `**Edge Hostname:** ${edgeHostnameDomain}\n\n`;
+    
+    try {
+      // Create the edge hostname
+      const edgeHostnameResponse = await client.request({
+        path: '/papi/v1/edgehostnames',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'PAPI-Use-Prefixes': 'true',
+        },
+        queryParams: {
+          contractId: property.contractId,
+          groupId: property.groupId,
+          options: 'mapDetails',
+        },
+        body: {
+          productId: property.productId,
+          domainPrefix: edgeHostnamePrefix,
+          domainSuffix: `${domainSuffix}.edgekey.net`,
+          secure: true,
+          secureNetwork: 'ENHANCED_TLS',
+          ipVersionBehavior: args.ipVersion || 'IPV4_IPV6',
+          useCases: [
+            {
+              "useCase": "Download_Mode",
+              "option": "BACKGROUND",
+              "type": "GLOBAL"
+            }
+          ],
+          // Default DV certificate configuration
+          certEnrollmentId: null, // Will use Default DV
+          slotNumber: null,
+        },
+      });
+      
+      const edgeHostnameId = edgeHostnameResponse.edgeHostnameLink?.split('/').pop()?.split('?')[0];
+      text += `✅ **Step 1 Complete:** Edge hostname created\n`;
+      text += `- Edge Hostname ID: ${edgeHostnameId}\n`;
+      text += `- Certificate Type: Default Domain Validation (DV)\n\n`;
+      
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('already exists')) {
+        text += `ℹ️ Edge hostname ${edgeHostnameDomain} already exists, proceeding...\n\n`;
+      } else {
+        throw err;
+      }
+    }
+    
+    // Step 2: Add hostname to property
+    const currentHostnames = await client.request({
+      path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
+      method: 'GET',
+    });
+    
+    // Check if hostname already exists
+    const existingHostname = currentHostnames.hostnames?.items?.find(
+      (h: any) => h.cnameFrom === args.hostname
+    );
+    
+    if (existingHostname) {
+      text += `⚠️ **Note:** Hostname ${args.hostname} already exists in property\n`;
+      text += `Current mapping: ${args.hostname} → ${existingHostname.cnameTo}\n\n`;
+    } else {
+      // Add the hostname
+      const hostnames = currentHostnames.hostnames?.items || [];
+      hostnames.push({
+        cnameFrom: args.hostname,
+        cnameTo: edgeHostnameDomain,
+        cnameType: 'EDGE_HOSTNAME',
+      });
+      
+      await client.request({
+        path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: {
+          hostnames: hostnames,
+        },
+      });
+      
+      text += `✅ **Step 2 Complete:** Hostname added to property\n\n`;
+    }
+    
+    // Step 3: Domain validation instructions
+    text += `## Step 3: Domain Validation Required\n\n`;
+    text += `Default DV certificates require domain ownership validation:\n\n`;
+    
+    text += `### Option 1: HTTP Token Validation\n`;
+    text += `1. Create a file at:\n`;
+    text += `   \`http://${args.hostname}/.well-known/pki-validation/akamai-domain-verification.txt\`\n`;
+    text += `2. The validation token will be provided after activation\n\n`;
+    
+    text += `### Option 2: DNS TXT Record Validation\n`;
+    text += `1. Create a TXT record at:\n`;
+    text += `   \`_acme-challenge.${args.hostname}\`\n`;
+    text += `2. The validation value will be provided after activation\n\n`;
+    
+    text += `## Next Steps\n\n`;
+    text += `1. **Create DNS CNAME:**\n`;
+    text += `   \`${args.hostname} CNAME ${edgeHostnameDomain}\`\n\n`;
+    text += `2. **Activate to Staging:**\n`;
+    text += `   \`"Activate property ${args.propertyId} version ${version} to staging"\`\n\n`;
+    text += `3. **Complete Domain Validation:**\n`;
+    text += `   Follow the validation instructions provided after activation\n\n`;
+    text += `4. **Activate to Production:**\n`;
+    text += `   \`"Activate property ${args.propertyId} version ${version} to production"\`\n\n`;
+    
+    text += `## Benefits of Default DV\n`;
+    text += `- ✅ Automatic certificate provisioning\n`;
+    text += `- ✅ No manual certificate management\n`;
+    text += `- ✅ Auto-renewal before expiration\n`;
+    text += `- ✅ Enhanced TLS with HTTP/2 support\n`;
+    
+    return {
+      content: [{
+        type: 'text',
+        text,
+      }],
+    };
+  } catch (error) {
+    return formatError('update property with Default DV', error);
+  }
+}
+
+/**
+ * Update property with CPS-managed certificate hostname
+ * This configures a property to use an edge hostname secured with a CPS-managed certificate
+ */
+export async function updatePropertyWithCPSCertificate(
+  client: AkamaiClient,
+  args: {
+    propertyId: string;
+    hostname: string;
+    certificateEnrollmentId: number;
+    version?: number;
+    ipVersion?: 'IPV4' | 'IPV6' | 'IPV4_IPV6';
+    tlsVersion?: 'STANDARD_TLS' | 'ENHANCED_TLS';
+    customer?: string;
+  }
+): Promise<MCPToolResponse> {
+  try {
+    // Get property details
+    const propertyResponse = await client.request({
+      path: `/papi/v1/properties/${args.propertyId}`,
+      method: 'GET',
+    });
+    
+    if (!propertyResponse.properties?.items?.[0]) {
+      throw new Error('Property not found');
+    }
+    
+    const property = propertyResponse.properties.items[0];
+    const version = args.version || property.latestVersion || 1;
+    const tlsVersion = args.tlsVersion || 'ENHANCED_TLS';
+    
+    // Extract domain parts from hostname
+    const hostnameParts = args.hostname.split('.');
+    const domainPrefix = hostnameParts[0];
+    const domainSuffix = hostnameParts.slice(1).join('.');
+    
+    // Determine edge hostname suffix based on TLS version
+    const edgeHostnameSuffix = tlsVersion === 'ENHANCED_TLS' ? 'edgekey.net' : 'edgesuite.net';
+    const edgeHostnamePrefix = `${domainPrefix}-cps`;
+    const edgeHostnameDomain = `${edgeHostnamePrefix}.${domainSuffix}.${edgeHostnameSuffix}`;
+    
+    let text = `# Updating Property with CPS-Managed Certificate\n\n`;
+    text += `**Property:** ${property.propertyName} (${args.propertyId})\n`;
+    text += `**Hostname:** ${args.hostname}\n`;
+    text += `**Certificate Enrollment ID:** ${args.certificateEnrollmentId}\n`;
+    text += `**TLS Version:** ${tlsVersion}\n`;
+    text += `**Edge Hostname:** ${edgeHostnameDomain}\n\n`;
+    
+    // Step 1: Verify certificate enrollment
+    text += `## Step 1: Verifying Certificate Enrollment\n`;
+    text += `Certificate Enrollment ID: ${args.certificateEnrollmentId}\n\n`;
+    text += `⚠️ **Important:** Ensure this certificate enrollment:\n`;
+    text += `- Includes ${args.hostname} as CN or SAN\n`;
+    text += `- Is in ACTIVE status\n`;
+    text += `- Matches the TLS version (${tlsVersion})\n\n`;
+    
+    // Step 2: Create edge hostname with CPS certificate
+    try {
+      const edgeHostnameResponse = await client.request({
+        path: '/papi/v1/edgehostnames',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'PAPI-Use-Prefixes': 'true',
+        },
+        queryParams: {
+          contractId: property.contractId,
+          groupId: property.groupId,
+          options: 'mapDetails',
+        },
+        body: {
+          productId: property.productId,
+          domainPrefix: edgeHostnamePrefix,
+          domainSuffix: `${domainSuffix}.${edgeHostnameSuffix}`,
+          secure: true,
+          secureNetwork: tlsVersion,
+          ipVersionBehavior: args.ipVersion || 'IPV4_IPV6',
+          certEnrollmentId: args.certificateEnrollmentId,
+          useCases: [
+            {
+              "useCase": "Download_Mode",
+              "option": "BACKGROUND",
+              "type": "GLOBAL"
+            }
+          ],
+        },
+      });
+      
+      const edgeHostnameId = edgeHostnameResponse.edgeHostnameLink?.split('/').pop()?.split('?')[0];
+      text += `✅ **Step 2 Complete:** Edge hostname created\n`;
+      text += `- Edge Hostname ID: ${edgeHostnameId}\n`;
+      text += `- Certificate Type: CPS-Managed (Enrollment ${args.certificateEnrollmentId})\n\n`;
+      
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('already exists')) {
+        text += `ℹ️ Edge hostname ${edgeHostnameDomain} already exists, proceeding...\n\n`;
+      } else {
+        throw err;
+      }
+    }
+    
+    // Step 3: Add hostname to property
+    const currentHostnames = await client.request({
+      path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
+      method: 'GET',
+    });
+    
+    // Check if hostname already exists
+    const existingHostname = currentHostnames.hostnames?.items?.find(
+      (h: any) => h.cnameFrom === args.hostname
+    );
+    
+    if (existingHostname) {
+      text += `⚠️ **Note:** Hostname ${args.hostname} already exists in property\n`;
+      text += `Current mapping: ${args.hostname} → ${existingHostname.cnameTo}\n\n`;
+    } else {
+      // Add the hostname
+      const hostnames = currentHostnames.hostnames?.items || [];
+      hostnames.push({
+        cnameFrom: args.hostname,
+        cnameTo: edgeHostnameDomain,
+        cnameType: 'EDGE_HOSTNAME',
+        certStatus: {
+          production: [{
+            status: 'PENDING'
+          }],
+          staging: [{
+            status: 'PENDING'
+          }]
+        }
+      });
+      
+      await client.request({
+        path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: {
+          hostnames: hostnames,
+        },
+      });
+      
+      text += `✅ **Step 3 Complete:** Hostname added to property\n\n`;
+    }
+    
+    // Step 4: Next steps
+    text += `## Next Steps\n\n`;
+    text += `1. **Create DNS CNAME:**\n`;
+    text += `   \`${args.hostname} CNAME ${edgeHostnameDomain}\`\n\n`;
+    
+    text += `2. **Verify Certificate Status:**\n`;
+    text += `   \`"Check DV enrollment status ${args.certificateEnrollmentId}"\`\n\n`;
+    
+    text += `3. **Activate to Staging:**\n`;
+    text += `   \`"Activate property ${args.propertyId} version ${version} to staging"\`\n\n`;
+    
+    text += `4. **Test in Staging:**\n`;
+    text += `   - Verify HTTPS works correctly\n`;
+    text += `   - Check certificate chain\n`;
+    text += `   - Test SSL/TLS configuration\n\n`;
+    
+    text += `5. **Activate to Production:**\n`;
+    text += `   \`"Activate property ${args.propertyId} version ${version} to production"\`\n\n`;
+    
+    text += `## CPS Certificate Benefits\n`;
+    text += `- ✅ Full control over certificate details\n`;
+    text += `- ✅ Support for wildcard and multi-domain certificates\n`;
+    text += `- ✅ Custom certificate chain\n`;
+    if (tlsVersion === 'ENHANCED_TLS') {
+      text += `- ✅ Enhanced TLS with HTTP/2\n`;
+      text += `- ✅ Advanced cipher suites\n`;
+      text += `- ✅ Optimized for performance\n`;
+    } else {
+      text += `- ✅ Standard TLS compatibility\n`;
+      text += `- ✅ Broad client support\n`;
+    }
+    
+    return {
+      content: [{
+        type: 'text',
+        text,
+      }],
+    };
+  } catch (error) {
+    return formatError('update property with CPS certificate', error);
   }
 }
 

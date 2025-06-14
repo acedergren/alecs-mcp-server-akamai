@@ -260,6 +260,139 @@ export async function listRecords(
 }
 
 /**
+ * Get existing changelist for a zone
+ */
+export async function getChangeList(
+  client: AkamaiClient,
+  zone: string
+): Promise<ChangeList | null> {
+  try {
+    const response = await client.request({
+      path: `/config-dns/v2/changelists/${zone}`,
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    }) as ChangeList;
+    return response;
+  } catch (error: any) {
+    if (error.message?.includes('404')) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Submit an existing changelist
+ */
+export async function submitChangeList(
+  client: AkamaiClient,
+  zone: string,
+  comment?: string
+): Promise<ZoneSubmitResponse> {
+  const response = await client.request({
+    path: `/config-dns/v2/changelists/${zone}/submit`,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: {
+      comment: comment || `Submitting pending changes for ${zone}`
+    }
+  }) as ZoneSubmitResponse;
+  return response;
+}
+
+/**
+ * Discard an existing changelist
+ */
+export async function discardChangeList(
+  client: AkamaiClient,
+  zone: string
+): Promise<void> {
+  await client.request({
+    path: `/config-dns/v2/changelists/${zone}`,
+    method: 'DELETE',
+    headers: {
+      'Accept': 'application/json'
+    }
+  });
+}
+
+/**
+ * Helper function to ensure a clean change list for a zone
+ * This will check for an existing change list and handle it gracefully.
+ */
+export async function ensureCleanChangeList(
+  client: AkamaiClient,
+  zone: string,
+  spinner?: Spinner,
+  force?: boolean
+): Promise<void> {
+  // Check for existing change list
+  if (spinner) spinner.update('Checking for existing change list...');
+  
+  const existingChangeList = await getChangeList(client, zone);
+  
+  if (existingChangeList) {
+    // Stop spinner to show interactive message
+    if (spinner) spinner.stop();
+    
+    // Format pending changes
+    const pendingChanges: string[] = [];
+    if (existingChangeList.recordSets && existingChangeList.recordSets.length > 0) {
+      existingChangeList.recordSets.forEach(record => {
+        pendingChanges.push(`  • ${record.name} ${record.ttl} ${record.type} ${record.rdata.join(' ')}`);
+      });
+    }
+    
+    if (!force) {
+      // Show error with details about existing changelist
+      const errorMessage = [
+        `${icons.warning} A changelist already exists for zone ${format.cyan(zone)}`,
+        '',
+        `${icons.info} Last modified by: ${format.dim(existingChangeList.lastModifiedBy)}`,
+        `${icons.info} Last modified: ${format.dim(existingChangeList.lastModifiedDate)}`,
+        '',
+        pendingChanges.length > 0 ? `${icons.list} Pending changes:` : `${icons.info} No pending changes in the changelist`,
+        ...pendingChanges.slice(0, 10),
+        pendingChanges.length > 10 ? `  ... and ${pendingChanges.length - 10} more changes` : '',
+        '',
+        `${icons.question} What would you like to do?`,
+        '',
+        '1. Submit the existing changelist',
+        '2. Discard the existing changelist and continue',
+        '3. Cancel the operation',
+        '',
+        `To force discard without asking, use the force option`
+      ].filter(line => line !== '').join('\n');
+      
+      throw new Error(errorMessage);
+    }
+    
+    // Force mode - discard existing changelist
+    if (spinner) {
+      spinner.start('Discarding existing change list...');
+    }
+    await discardChangeList(client, zone);
+  }
+  
+  // Create a new change list
+  if (spinner) spinner.update('Creating change list...');
+  await client.request({
+    path: `/config-dns/v2/changelists`,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    queryParams: { zone }
+  });
+}
+
+/**
  * Create or update a DNS record using change list workflow
  */
 export async function upsertRecord(
@@ -271,22 +404,15 @@ export async function upsertRecord(
     ttl: number;
     rdata: string[];
     comment?: string;
+    force?: boolean;
   }
 ): Promise<MCPToolResponse> {
   const spinner = new Spinner();
   
   try {
-    // Step 1: Create a change list
-    spinner.start('Creating change list...');
-    await client.request({
-      path: `/config-dns/v2/changelists`,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      queryParams: { zone: args.zone }
-    });
+    // Step 1: Ensure we have a clean change list
+    spinner.start('Preparing DNS changes...');
+    await ensureCleanChangeList(client, args.zone, spinner, args.force);
 
     // Step 2: Add/update the record in the change list
     spinner.update(`Adding ${args.type} record for ${args.name}...`);
@@ -346,21 +472,18 @@ export async function deleteRecord(
     name: string;
     type: string;
     comment?: string;
+    force?: boolean;
   }
 ): Promise<MCPToolResponse> {
+  const spinner = new Spinner();
+  
   try {
-    // Step 1: Create a change list
-    await client.request({
-      path: `/config-dns/v2/changelists`,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      queryParams: { zone: args.zone }
-    });
+    // Step 1: Ensure we have a clean change list
+    spinner.start('Preparing DNS changes...');
+    await ensureCleanChangeList(client, args.zone, spinner, args.force);
 
     // Step 2: Delete the record from the change list
+    spinner.update(`Deleting ${args.type} record for ${args.name}...`);
     await client.request({
       path: `/config-dns/v2/changelists/${args.zone}/recordsets/${args.name}/${args.type}`,
       method: 'DELETE',
@@ -370,6 +493,7 @@ export async function deleteRecord(
     });
 
     // Step 3: Submit the change list
+    spinner.update('Submitting changes...');
     const submitResponse = await client.request({
       path: `/config-dns/v2/changelists/${args.zone}/submit`,
       method: 'POST',
@@ -382,13 +506,16 @@ export async function deleteRecord(
       }
     }) as ZoneSubmitResponse;
 
+    spinner.succeed(`Record deleted: ${args.name} ${args.type}`);
+
     return {
       content: [{
         type: 'text',
-        text: `Successfully deleted DNS record: ${args.name} (${args.type})\n\nRequest ID: ${submitResponse.requestId}`
+        text: `${icons.success} Successfully deleted DNS record:\n${icons.dns} ${format.cyan(args.name)} ${format.green(args.type)}\n\n${icons.info} Request ID: ${format.dim(submitResponse.requestId)}`
       }]
     };
   } catch (error) {
+    spinner.fail('Failed to delete DNS record');
     console.error('Error deleting DNS record:', error);
     throw error;
   }

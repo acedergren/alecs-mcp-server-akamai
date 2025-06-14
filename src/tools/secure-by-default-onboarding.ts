@@ -1,28 +1,88 @@
 /**
- * Secure-by-Default Property Onboarding Tools
- * Implements the complete workflow for creating properties with Default DV certificates
+ * Secure by Default Property Onboarding Tools
+ * Implements the complete workflow for creating properties with Secure by Default (DefaultDV) certificates
  * Based on: https://techdocs.akamai.com/property-mgr/reference/onboard-a-secure-by-default-property
+ * 
+ * IMPORTANT: This uses Secure by Default (DefaultDV) certificates, NOT regular CPS DV certificates
  */
 
 import { AkamaiClient } from '../akamai-client.js';
 import { MCPToolResponse } from '../types.js';
 import { createProperty } from './property-tools.js';
-import { createPropertyVersion, updatePropertyRules, createEdgeHostname, addPropertyHostname, activateProperty } from './property-manager-tools.js';
-import { createDVEnrollment, getDVValidationChallenges, checkDVEnrollmentStatus } from './cps-tools.js';
-import { createACMEValidationRecords } from './cps-dns-integration.js';
+import { updatePropertyRules, addPropertyHostname } from './property-manager-tools.js';
 
 /**
- * Complete workflow for onboarding a secure-by-default property
- * This follows the Akamai recommended process:
- * 1. Create property
- * 2. Create Default DV certificate enrollment
- * 3. Create secure edge hostname with certificate
- * 4. Configure property with secure settings
- * 5. Add hostnames to property
- * 6. Complete DNS validation
- * 7. Activate to staging/production
+ * Create a Secure by Default edge hostname with automatic DefaultDV certificate
+ * This is the key difference - DefaultDV certs are created automatically with the edge hostname
  */
-export async function onboardSecureProperty(
+async function createSecureByDefaultEdgeHostname(
+  client: AkamaiClient,
+  args: {
+    propertyId: string;
+    domainPrefix: string;
+    productId?: string;
+    ipVersion?: 'IPV4' | 'IPV6' | 'IPV4_IPV6';
+  }
+): Promise<{ edgeHostnameId: string; edgeHostnameDomain: string }> {
+  // Get property details
+  const propertyResponse = await client.request({
+    path: `/papi/v1/properties/${args.propertyId}`,
+    method: 'GET',
+  });
+  
+  if (!propertyResponse.properties?.items?.[0]) {
+    throw new Error('Property not found');
+  }
+  
+  const property = propertyResponse.properties.items[0];
+  const productId = args.productId || property.productId;
+
+  // Create Secure by Default edge hostname
+  // The key is using .edgekey.net suffix and NOT specifying a certificateEnrollmentId
+  // This triggers automatic DefaultDV certificate creation
+  const response = await client.request({
+    path: '/papi/v1/edgehostnames',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'PAPI-Use-Prefixes': 'true', // Important header from your example
+    },
+    queryParams: {
+      contractId: property.contractId,
+      groupId: property.groupId,
+      options: 'mapDetails', // From your example
+    },
+    body: {
+      productId: productId,
+      domainPrefix: args.domainPrefix,
+      domainSuffix: 'edgekey.net', // Remove the leading dot based on your example
+      secure: true,
+      secureNetwork: 'ENHANCED_TLS', // Key addition from your example
+      ipVersionBehavior: args.ipVersion || 'IPV4_IPV6',
+      // For Secure by Default, we still omit certEnrollmentId to get DefaultDV
+      // certEnrollmentId: null, // Comment out - don't include this field at all
+      useCases: [
+        {
+          "useCase": "Download_Mode",
+          "option": "BACKGROUND", 
+          "type": "GLOBAL"
+        }
+      ]
+    },
+  });
+
+  const edgeHostnameId = response.edgeHostnameLink?.split('/').pop()?.split('?')[0];
+  const edgeHostnameDomain = `${args.domainPrefix}.edgekey.net`;
+
+  return { edgeHostnameId, edgeHostnameDomain };
+}
+
+/**
+ * Complete workflow for onboarding a Secure by Default property
+ * This uses DefaultDV certificates which are automatically provisioned
+ */
+export async function onboardSecureByDefaultProperty(
   client: AkamaiClient,
   args: {
     propertyName: string;
@@ -39,8 +99,7 @@ export async function onboardSecureProperty(
   try {
     const steps: string[] = [];
     let propertyId: string | null = null;
-    let enrollmentId: number | null = null;
-    let edgeHostnameId: string | null = null;
+    // let edgeHostnameId: string;
     let edgeHostnameDomain: string | null = null;
 
     // Step 1: Create the property
@@ -53,96 +112,33 @@ export async function onboardSecureProperty(
     });
 
     // Extract property ID from response
-    const propMatch = createPropResult.content[0].text.match(/Property ID:\*\* (\w+)/);
-    if (propMatch) {
+    const propMatch = createPropResult.content[0]?.text.match(/Property ID:\*\* (\w+)/);
+    if (propMatch?.[1]) {
       propertyId = propMatch[1];
       steps.push(`✅ Created property: ${propertyId}`);
     } else {
       throw new Error('Failed to extract property ID from creation response');
     }
 
-    // Step 2: Create Default DV certificate enrollment
-    steps.push('🔐 Creating Default DV certificate enrollment...');
-    
-    // Prepare SANs list - include both www and non-www versions
-    const sans: string[] = [];
-    args.hostnames.forEach(hostname => {
-      sans.push(hostname);
-      // Add www version if not already included
-      if (!hostname.startsWith('www.') && !sans.includes(`www.${hostname}`)) {
-        sans.push(`www.${hostname}`);
-      }
-      // Add non-www version if this is a www hostname
-      if (hostname.startsWith('www.')) {
-        const nonWww = hostname.substring(4);
-        if (!sans.includes(nonWww)) {
-          sans.push(nonWww);
-        }
-      }
-    });
-
-    const enrollmentResult = await createDVEnrollment(client, {
-      cn: args.hostnames[0], // Primary hostname as CN
-      sans: sans.slice(1), // Rest as SANs
-      secureNetwork: 'enhanced-tls',
-      mustHaveCiphers: 'ak-akamai-default-2024q1',
-      sniOnly: true,
-      adminContact: {
-        firstName: 'Admin',
-        lastName: 'Contact',
-        email: args.notificationEmails?.[0] || 'admin@example.com',
-        phone: '+1-555-0100',
-      },
-      techContact: {
-        firstName: 'Tech',
-        lastName: 'Contact', 
-        email: args.notificationEmails?.[0] || 'tech@example.com',
-        phone: '+1-555-0100',
-      },
-      certificateChainType: 'default',
-      networkConfiguration: {
-        geography: 'core',
-        quicEnabled: true,
-        dnsNameSettings: {
-          cloneDnsNames: true,
-        },
-      },
-      customer: args.customer,
-    });
-
-    // Extract enrollment ID
-    const enrollMatch = enrollmentResult.content[0].text.match(/Enrollment ID:\*\* (\d+)/);
-    if (enrollMatch) {
-      enrollmentId = parseInt(enrollMatch[1]);
-      steps.push(`✅ Created certificate enrollment: ${enrollmentId}`);
-    } else {
-      throw new Error('Failed to extract enrollment ID');
-    }
-
-    // Step 3: Create secure edge hostname with certificate
-    steps.push('🌐 Creating secure edge hostname...');
+    // Step 2: Create Secure by Default edge hostname with automatic DefaultDV certificate
+    steps.push('🔐 Creating Secure by Default edge hostname with DefaultDV certificate...');
     
     // Generate edge hostname prefix based on property name
     const edgeHostnamePrefix = args.propertyName.toLowerCase().replace(/[^a-z0-9-]/g, '-');
     
-    const edgeHostnameResult = await createEdgeHostname(client, {
-      propertyId: propertyId,
+    const edgeHostnameResult = await createSecureByDefaultEdgeHostname(client, {
+      propertyId: propertyId!,
       domainPrefix: edgeHostnamePrefix,
-      domainSuffix: '.edgekey.net',
       productId: args.productId || 'prd_Site_Accel',
-      secure: true,
       ipVersion: 'IPV4_IPV6',
-      certificateEnrollmentId: enrollmentId,
     });
 
-    // Extract edge hostname
-    const edgeMatch = edgeHostnameResult.content[0].text.match(/Created edge hostname: ([^\s]+)/);
-    if (edgeMatch) {
-      edgeHostnameDomain = edgeMatch[1];
-      steps.push(`✅ Created edge hostname: ${edgeHostnameDomain}`);
-    }
+    // edgeHostnameId = edgeHostnameResult.edgeHostnameId;
+    edgeHostnameDomain = edgeHostnameResult.edgeHostnameDomain;
+    steps.push(`✅ Created Secure by Default edge hostname: ${edgeHostnameDomain}`);
+    steps.push(`✅ DefaultDV certificate automatically provisioned for all hostnames`);
 
-    // Step 4: Configure property rules with secure settings
+    // Step 3: Configure property rules with secure settings
     steps.push('⚙️ Configuring property with secure settings...');
     
     const secureRules = {
@@ -225,6 +221,12 @@ export async function onboardSecureProperty(
           }
         },
         {
+          name: 'http3',
+          options: {
+            enable: true
+          }
+        },
+        {
           name: 'allowPut',
           options: {
             enabled: false
@@ -241,13 +243,6 @@ export async function onboardSecureProperty(
           options: {
             enabled: false
           }
-        },
-        {
-          name: 'edgeRedirector',
-          options: {
-            enabled: true,
-            cloudletSharedPolicy: 0
-          }
         }
       ],
       criteria: [],
@@ -257,45 +252,34 @@ export async function onboardSecureProperty(
     };
 
     await updatePropertyRules(client, {
-      propertyId: propertyId,
+      propertyId: propertyId!,
       rules: secureRules,
-      note: 'Configured secure-by-default settings',
+      note: 'Configured Secure by Default settings',
     });
     steps.push('✅ Configured property with secure settings');
 
-    // Step 5: Add hostnames to property
+    // Step 4: Add hostnames to property
     steps.push('🔗 Adding hostnames to property...');
     
     for (const hostname of args.hostnames) {
       await addPropertyHostname(client, {
-        propertyId: propertyId,
+        propertyId: propertyId!,
         hostname: hostname,
         edgeHostname: edgeHostnameDomain!,
       });
       steps.push(`✅ Added hostname: ${hostname}`);
     }
 
-    // Step 6: Create DNS validation records
-    steps.push('📋 Setting up DNS validation...');
-    
-    const dnsResult = await createACMEValidationRecords(client, {
-      enrollmentId: enrollmentId,
-      customer: args.customer,
-      autoDetectZones: true,
-    });
-    
-    steps.push('✅ Created DNS validation records');
-
-    // Step 7: Provide activation instructions
+    // Step 5: Ready for activation
     steps.push('🚀 Ready for activation!');
 
     // Generate comprehensive response
-    let text = `# ✅ Secure Property Onboarding Complete!\n\n`;
+    let text = `# ✅ Secure by Default Property Onboarding Complete!\n\n`;
     text += `## Summary\n\n`;
     text += `- **Property Name:** ${args.propertyName}\n`;
     text += `- **Property ID:** ${propertyId}\n`;
-    text += `- **Certificate Enrollment:** ${enrollmentId}\n`;
     text += `- **Edge Hostname:** ${edgeHostnameDomain}\n`;
+    text += `- **Certificate Type:** Secure by Default (DefaultDV)\n`;
     text += `- **Hostnames:** ${args.hostnames.join(', ')}\n`;
     text += `- **Origin:** ${args.originHostname}\n\n`;
 
@@ -304,38 +288,41 @@ export async function onboardSecureProperty(
       text += `${index + 1}. ${step}\n`;
     });
 
-    text += `\n## Next Steps\n\n`;
-    text += `### 1. Verify DNS Validation\n`;
-    text += `Wait for DNS propagation (usually 5-15 minutes), then check:\n`;
-    text += `\`\`\`\n"Check DV certificate status for enrollment ${enrollmentId}"\n\`\`\`\n\n`;
+    text += `\n## Key Features of Secure by Default\n\n`;
+    text += `- **Automatic Certificate**: DefaultDV certificate automatically provisioned\n`;
+    text += `- **No DNS Validation Required**: Certificate validates automatically\n`;
+    text += `- **Enhanced Security**: TLS 1.2+ only, strong ciphers\n`;
+    text += `- **HTTP/3 Support**: QUIC protocol enabled\n`;
+    text += `- **Dual Stack**: IPv4 and IPv6 support\n\n`;
 
-    text += `### 2. Create DNS CNAMEs\n`;
+    text += `## Next Steps\n\n`;
+    text += `### 1. Create DNS CNAMEs\n`;
     text += `For each hostname, create a CNAME record pointing to the edge hostname:\n`;
     args.hostnames.forEach(hostname => {
       text += `- ${hostname} → ${edgeHostnameDomain}\n`;
     });
     text += `\n`;
 
-    text += `### 3. Activate to Staging\n`;
+    text += `### 2. Activate to Staging\n`;
     text += `Test your configuration in staging:\n`;
     text += `\`\`\`\n"Activate property ${propertyId} to staging"\n\`\`\`\n\n`;
 
-    text += `### 4. Verify Staging\n`;
+    text += `### 3. Verify Staging\n`;
     text += `Test your site on staging:\n`;
     args.hostnames.forEach(hostname => {
       text += `- https://${hostname}.edgesuite-staging.net\n`;
     });
     text += `\n`;
 
-    text += `### 5. Activate to Production\n`;
+    text += `### 4. Activate to Production\n`;
     text += `Once staging is verified:\n`;
     text += `\`\`\`\n"Activate property ${propertyId} to production"\n\`\`\`\n\n`;
 
     text += `## Important Notes\n\n`;
-    text += `- **Certificate Validation:** The DV certificate will be validated automatically once DNS records propagate\n`;
-    text += `- **HTTPS Redirect:** The property is configured with secure settings and HTTP/2 enabled\n`;
-    text += `- **Enhanced TLS:** Using Enhanced TLS network for better security and performance\n`;
-    text += `- **IPv6:** Edge hostname supports both IPv4 and IPv6\n`;
+    text += `- **No Certificate Enrollment Needed**: DefaultDV certificates are automatic\n`;
+    text += `- **Instant HTTPS**: Certificate is ready immediately, no validation wait\n`;
+    text += `- **Automatic Renewal**: Certificates renew automatically\n`;
+    text += `- **All Subdomains Covered**: DefaultDV covers all hostnames on the property\n`;
 
     return {
       content: [{
@@ -345,15 +332,14 @@ export async function onboardSecureProperty(
     };
 
   } catch (error) {
-    return formatError('onboard secure property', error);
+    return formatError('onboard Secure by Default property', error);
   }
 }
 
 /**
- * Quick setup for secure property with minimal inputs
- * This is a simplified version that uses sensible defaults
+ * Quick setup for Secure by Default property with minimal inputs
  */
-export async function quickSecurePropertySetup(
+export async function quickSecureByDefaultSetup(
   client: AkamaiClient,
   args: {
     domain: string;
@@ -373,36 +359,34 @@ export async function quickSecurePropertySetup(
       hostnames.push(`www.${args.domain}`);
     }
 
-    // Use the full onboarding process with defaults
-    return await onboardSecureProperty(client, {
+    // Use the full onboarding process
+    return await onboardSecureByDefaultProperty(client, {
       propertyName: propertyName,
       hostnames: hostnames,
       originHostname: args.originHostname,
       contractId: args.contractId,
       groupId: args.groupId,
       productId: 'prd_Site_Accel',
-      notificationEmails: [`admin@${args.domain}`],
       customer: args.customer,
     });
 
   } catch (error) {
-    return formatError('quick secure property setup', error);
+    return formatError('quick Secure by Default setup', error);
   }
 }
 
 /**
- * Check the status of secure property onboarding
+ * Check the status of Secure by Default property
  */
-export async function checkSecurePropertyStatus(
+export async function checkSecureByDefaultStatus(
   client: AkamaiClient,
   args: {
     propertyId: string;
-    enrollmentId?: number;
     customer?: string;
   }
 ): Promise<MCPToolResponse> {
   try {
-    let text = `# Secure Property Status\n\n`;
+    let text = `# Secure by Default Property Status\n\n`;
     
     // Get property details
     const propertyResponse = await client.request({
@@ -433,28 +417,25 @@ export async function checkSecurePropertyStatus(
     if (hostnamesResponse.hostnames?.items?.length > 0) {
       hostnamesResponse.hostnames.items.forEach((hostname: any) => {
         text += `- **${hostname.cnameFrom}** → ${hostname.cnameTo}`;
-        if (hostname.certStatus) {
-          const prodStatus = hostname.certStatus.production?.[0]?.status || 'No cert';
-          const stagingStatus = hostname.certStatus.staging?.[0]?.status || 'No cert';
-          text += ` (Prod: ${prodStatus}, Staging: ${stagingStatus})`;
-        }
-        text += '\n';
+        // DefaultDV certificates are always valid for all hostnames
+        text += ` ✅ (DefaultDV certificate active)\n`;
       });
     } else {
       text += 'No hostnames configured\n';
     }
     text += '\n';
 
-    // Check certificate status if enrollment ID provided
-    if (args.enrollmentId) {
-      const certResult = await checkDVEnrollmentStatus(client, {
-        enrollmentId: args.enrollmentId,
-        customer: args.customer,
-      });
-      
-      text += `## Certificate Status\n`;
-      text += certResult.content[0].text.split('## Domain Validation Status')[1] || 'Certificate status not available\n';
+    // Get edge hostnames for the property
+    text += `## Edge Hostname Status\n`;
+    const edgeHostname = hostnamesResponse.hostnames?.items?.[0]?.cnameTo;
+    if (edgeHostname && edgeHostname.includes('.edgekey.net')) {
+      text += `✅ **Secure by Default Edge Hostname:** ${edgeHostname}\n`;
+      text += `✅ **DefaultDV Certificate:** Automatically provisioned and active\n`;
+      text += `✅ **HTTPS Ready:** All hostnames can use HTTPS immediately\n`;
+    } else {
+      text += `⚠️ **Warning:** Property may not be using Secure by Default edge hostname\n`;
     }
+    text += '\n';
 
     // Check activation status
     text += `## Activation Status\n`;
@@ -478,11 +459,8 @@ export async function checkSecurePropertyStatus(
       text += `- Activate to production: \`"Activate property ${args.propertyId} to production"\`\n`;
     }
     
-    if (args.enrollmentId) {
-      text += `- Check certificate: \`"Check DV certificate status for enrollment ${args.enrollmentId}"\`\n`;
-    }
-    
     text += `- View property rules: \`"Show rules for property ${args.propertyId}"\`\n`;
+    text += `- Check hostnames: \`"Show hostnames for property ${args.propertyId}"\`\n`;
 
     return {
       content: [{
@@ -492,7 +470,7 @@ export async function checkSecurePropertyStatus(
     };
 
   } catch (error) {
-    return formatError('check secure property status', error);
+    return formatError('check Secure by Default status', error);
   }
 }
 

@@ -345,4 +345,18 @@ export const icons = {
   cross: '✗',
   arrow: '→',
   bullet: '•',
+  shield: '🛡️',
+  sync: '🔄',
+  contract: '📃',
+  dot: '•',
+  version: '📌',
+  bulk: '📦',
+  list: '📋',
+  file: '📄',
+  folder: '📁',
+  link: '🔗',
+  email: '📧',
+  sparkle: '✨',
+  unlock: '🔓',
+  question: '❓'
 };

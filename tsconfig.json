@@ -31,8 +31,13 @@
     "dist",
     "**/*.spec.ts",
     "**/*.test.ts",
-    "src/agents/**",
+    "src/agents/**/*.ts",
+    "src/agents/**/*.js",
+    "src/orchestration/**/*.ts",
     "src/utils/progress.ts",
-    "src/tools/enhanced-dns-migration-tools.ts"
+    "src/tools/enhanced-dns-migration-tools.ts",
+    "src/tools/cps-dns-integration.ts",
+    "src/tools/property-tools-v2.ts",
+    "src/tools/agent-tools.ts"
   ]
 }

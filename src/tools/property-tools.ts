@@ -307,7 +307,7 @@ export async function getProperty(
         
         if (foundProperties.length === 1) {
           // Single match found
-          const match = foundProperties[0];
+          const match = foundProperties[0]!;
           const searchNote = `ℹ️ Found property "${match.property.propertyName}" (${match.property.propertyId})\n\n`;
           const result = await getPropertyById(client, match.property.propertyId, match.property);
           if (result.content[0] && 'text' in result.content[0]) {
@@ -334,7 +334,7 @@ export async function getProperty(
         }
         
         text += `**To get details for a specific property, use its ID:**\n`;
-        text += `Example: "get property ${matchesToShow[0].property.propertyId}"\n\n`;
+        text += `Example: "get property ${matchesToShow[0]?.property.propertyId}"\n\n`;
         text += `💡 **Tip:** Using the exact property ID (prp_XXXXX) is always faster and more reliable.`;
         
         return {
@@ -567,8 +567,15 @@ export async function createProperty(
 
     // Create the property
     const response = await client.request({
-      path: `/papi/v1/properties?contractId=${args.contractId}&groupId=${args.groupId}`,
+      path: '/papi/v1/properties',
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      queryParams: {
+        contractId: args.contractId,
+        groupId: args.groupId,
+      },
       body: {
         propertyName: args.propertyName,
         productId: args.productId,
@@ -580,8 +587,8 @@ export async function createProperty(
       throw new Error('Property creation failed - no property link returned');
     }
 
-    // Extract property ID from the link
-    const propertyId = response.propertyLink.split('/').pop();
+    // Extract property ID from the link (remove query parameters)
+    const propertyId = response.propertyLink.split('/').pop()?.split('?')[0];
     
     // Format success response with comprehensive next steps
     let text = `✅ **Property Created Successfully!**\n\n`;
@@ -651,6 +658,82 @@ export async function createProperty(
     }
     
     return formatError('create property', error);
+  }
+}
+
+/**
+ * List all available contracts
+ * Provides read-only list of contract names and identifiers
+ */
+export async function listContracts(
+  client: AkamaiClient,
+  args: { searchTerm?: string; customer?: string }
+): Promise<MCPToolResponse> {
+  try {
+    const response = await client.request({
+      path: '/papi/v1/contracts',
+      method: 'GET',
+    });
+
+    if (!response.contracts?.items || response.contracts.items.length === 0) {
+      return {
+        content: [{
+          type: 'text',
+          text: 'No contracts found in your account.\n\n⚠️ This might indicate a permissions issue with your API credentials.',
+        }],
+      };
+    }
+
+    let contracts = response.contracts.items;
+    
+    // Filter contracts by search term if provided
+    if (args.searchTerm) {
+      const searchLower = args.searchTerm.toLowerCase();
+      contracts = contracts.filter((c: any) => 
+        c.contractId.toLowerCase().includes(searchLower) ||
+        (c.contractTypeName && c.contractTypeName.toLowerCase().includes(searchLower))
+      );
+      
+      if (contracts.length === 0) {
+        return {
+          content: [{
+            type: 'text',
+            text: `No contracts found matching "${args.searchTerm}".\n\n💡 **Tip:** Try a partial contract ID or type name.`,
+          }],
+        };
+      }
+    }
+
+    let text = `# Akamai Contracts ${args.searchTerm ? `(${contracts.length} matching "${args.searchTerm}")` : `(${contracts.length} found)`}\n\n`;
+    
+    text += `| Contract ID | Type | Status |\n`;
+    text += `|-------------|------|--------|\n`;
+    
+    for (const contract of contracts) {
+      const contractId = contract.contractId || 'Unknown';
+      const contractType = contract.contractTypeName || 'Standard';
+      const status = contract.status || 'Active';
+      text += `| ${contractId} | ${contractType} | ${status} |\n`;
+    }
+    
+    text += '\n';
+    text += `## How to Use Contracts\n\n`;
+    text += `Contracts are required when:\n`;
+    text += `- Creating new properties\n`;
+    text += `- Creating CP codes\n`;
+    text += `- Enrolling certificates\n\n`;
+    text += `Example usage:\n`;
+    text += `\`"Create property in contract ctr_C-1234567"\`\n\n`;
+    text += `💡 **Tip:** Use \`list_groups\` to see which groups have access to each contract.`;
+
+    return {
+      content: [{
+        type: 'text',
+        text,
+      }],
+    };
+  } catch (error) {
+    return formatError('list contracts', error);
   }
 }
 

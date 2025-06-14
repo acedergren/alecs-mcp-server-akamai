@@ -5,7 +5,7 @@
 
 import { AkamaiClient } from '../akamai-client.js';
 import { MCPToolResponse, DNSRecordSet } from '../types.js';
-import { createZone } from './dns-tools.js';
+import { createZone, ensureCleanChangeList } from './dns-tools.js';
 
 // DNS Migration Types
 export interface ZoneFileRecord {
@@ -243,15 +243,8 @@ export async function bulkImportRecords(
       throw new Error('No records to import. Parse a zone file first or provide records.');
     }
 
-    // Create change list
-    await client.request({
-      path: `/config-dns/v2/changelists`,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      queryParams: { zone: args.zone },
-    });
+    // Ensure we have a clean change list
+    await ensureCleanChangeList(client, args.zone);
 
     // Add records in batches
     const batchSize = 50;
