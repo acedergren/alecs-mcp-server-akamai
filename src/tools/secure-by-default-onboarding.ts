@@ -10,7 +10,7 @@ import { AkamaiClient } from '../akamai-client.js';
 import { MCPToolResponse } from '../types.js';
 import { createProperty } from './property-tools.js';
 import { updatePropertyRules, addPropertyHostname } from './property-manager-tools.js';
-import { getProductId, selectBestProduct, formatProductDisplay } from '../utils/product-mapping.js';
+import { selectBestProduct, formatProductDisplay } from '../utils/product-mapping.js';
 import { createCPCode } from './cpcode-tools.js';
 import { Spinner } from '../utils/progress.js';
 

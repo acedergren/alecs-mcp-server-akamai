@@ -570,7 +570,7 @@ export async function importFromCloudflare(
       throw new Error(`Cloudflare API error: ${cfZonesResponse.statusText}`);
     }
     
-    const zonesData = await cfZonesResponse.json();
+    const zonesData = await cfZonesResponse.json() as any;
     if (!zonesData.result || zonesData.result.length === 0) {
       throw new Error(`Zone ${args.zone} not found in Cloudflare account`);
     }
@@ -607,7 +607,7 @@ export async function importFromCloudflare(
         throw new Error(`Failed to fetch DNS records: ${cfRecordsResponse.statusText}`);
       }
       
-      const recordsData = await cfRecordsResponse.json();
+      const recordsData = await cfRecordsResponse.json() as any;
       allRecords = allRecords.concat(recordsData.result);
       
       if (recordsData.result_info.page >= recordsData.result_info.total_pages) {
@@ -664,7 +664,7 @@ export async function importFromCloudflare(
     }
     
     // Step 5: Bulk import records
-    const importResult = await bulkImportRecords(client, {
+    await bulkImportRecords(client, {
       zone: args.zone,
       records,
       comment: `Cloudflare import - ${records.length} records`,

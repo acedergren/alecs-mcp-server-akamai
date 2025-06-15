@@ -127,9 +127,13 @@ export function selectBestProduct(
 
   // Return the first available product as last resort
   const first = availableProducts[0];
+  if (!first) {
+    throw new Error('No products available');
+  }
   return {
-    ...first,
-    friendlyName: getProductFriendlyName(first.productId)
+    productId: first.productId || '',
+    productName: first.productName || '',
+    friendlyName: getProductFriendlyName(first.productId || '')
   };
 }
 

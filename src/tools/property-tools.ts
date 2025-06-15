@@ -5,7 +5,7 @@
 
 import { AkamaiClient } from '../akamai-client.js';
 import { MCPToolResponse, PropertyList, Property, GroupList } from '../types.js';
-import { getProductFriendlyName, formatProductDisplay } from '../utils/product-mapping.js';
+import { formatProductDisplay } from '../utils/product-mapping.js';
 
 /**
  * Format a date string to a more readable format

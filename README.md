@@ -50,7 +50,7 @@ An MCP (Model Context Protocol) server that enables AI assistants to interact wi
 - **Makefile Automation**: Comprehensive build, test, and deployment commands
 - **Template Engine**: Extensible property template system
 - **Progress Tracking**: Real-time feedback for long-running operations
-- **LLM Optimized**: Designed for AI assistant interactions df17a51 (Implement EdgeDNS advanced functions and complete API coverage)
+- **LLM Optimized**: Designed for AI assistant interactions
 
 ## Installation
 
@@ -290,6 +290,43 @@ src/
 └── utils/
     └── progress.ts                   # Progress indicators and formatting
 ```
+
+## Current Capabilities (v1.1.0)
+
+### ✅ Implemented Features
+- **Property Manager**: Full CRUD operations, version management, activation workflow
+- **Edge DNS**: Zone management, record operations, bulk imports, DNSSEC support
+- **Certificate Management**: Default DV certificates with automatic DNS validation
+- **Multi-Customer Support**: Seamless account switching
+- **Product Mapping**: Intelligent product selection and recommendations
+- **CP Code Management**: Create and manage CP codes for reporting
+- **Secure Property Onboarding**: Automated HTTPS property setup workflow
+- **DNS Migration**: AXFR transfers, zone file imports, provider-specific guides
+- **Advanced Search**: Property search by name, hostname, edge hostname
+- **Progress Tracking**: Real-time feedback for long-running operations
+
+### 🚧 Upcoming Features
+
+#### Q3 2024
+- **Network Lists**: IP and geographic access control list management
+- **Fast Purge**: Content invalidation and cache clearing
+- **Image & Video Manager**: Policy creation and management
+- **Cloudlets**: Edge logic deployment (redirects, forwards, etc.)
+
+#### Q4 2024
+- **Application Security**: WAF rule management and security policies
+- **Bot Manager**: Bot detection and mitigation configuration
+- **Reporting API**: Traffic analytics and performance metrics
+- **DataStream**: Real-time log streaming configuration
+
+#### Future Roadmap
+- **API Gateway**: API definition and policy management
+- **EdgeWorkers**: JavaScript code deployment at the edge
+- **Identity & Access Management**: User and API client management
+- **China CDN**: Separate tools for China delivery properties
+- **mPulse**: RUM (Real User Monitoring) integration
+- **Property activation diffing**: Compare versions before activation
+- **Terraform Export**: Generate Terraform configurations from existing properties
 
 ## Contributing
 
