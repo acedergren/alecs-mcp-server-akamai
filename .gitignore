@@ -9,6 +9,7 @@ dist/
 build/
 *.js
 !jest.config.js
+!jest.setup.js
 *.js.map
 *.d.ts
 !src/**/*.d.ts
