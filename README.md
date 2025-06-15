@@ -1,4 +1,5 @@
 # ALECS - MCP Server for Akamai
+[![smithery badge](https://smithery.ai/badge/@acedergren/alecs-mcp-server-akamai)](https://smithery.ai/server/@acedergren/alecs-mcp-server-akamai)
 
 **ALECS - A LaunchGrid for Edge & Cloud Services**
 
@@ -54,6 +55,15 @@ An MCP (Model Context Protocol) server that enables AI assistants to interact wi
 
 ## Installation
 
+### Installing via Smithery
+
+To install ALECS Akamai Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@acedergren/alecs-mcp-server-akamai):
+
+```bash
+npx -y @smithery/cli install @acedergren/alecs-mcp-server-akamai --client claude
+```
+
+### Manual Installation
 ```bash
 npm install alecs-mcp-server-akamai
 ```
