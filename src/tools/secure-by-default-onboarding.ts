@@ -10,6 +10,118 @@ import { AkamaiClient } from '../akamai-client.js';
 import { MCPToolResponse } from '../types.js';
 import { createProperty } from './property-tools.js';
 import { updatePropertyRules, addPropertyHostname } from './property-manager-tools.js';
+import { getProductId, selectBestProduct, formatProductDisplay } from '../utils/product-mapping.js';
+import { createCPCode } from './cpcode-tools.js';
+import { Spinner } from '../utils/progress.js';
+
+interface OnboardingState {
+  propertyId?: string;
+  edgeHostnameId?: string;
+  cpCodeId?: number;
+  completed: string[];
+  failed?: { step: string; error: string };
+}
+
+/**
+ * Validate prerequisites before starting onboarding
+ */
+async function validatePrerequisites(
+  client: AkamaiClient,
+  args: {
+    originHostname: string;
+    contractId: string;
+    groupId: string;
+    productId?: string;
+  }
+): Promise<{ valid: boolean; errors: string[] }> {
+  const errors: string[] = [];
+
+  // Validate contract exists
+  try {
+    await client.request({
+      path: `/papi/v1/contracts/${args.contractId}`,
+      method: 'GET',
+    });
+  } catch (error) {
+    errors.push(`Contract ${args.contractId} not found or not accessible`);
+  }
+
+  // Validate group exists
+  try {
+    const groupsResponse = await client.request({
+      path: '/papi/v1/groups',
+      method: 'GET',
+    });
+    
+    const groupExists = groupsResponse.groups?.items?.some(
+      (g: any) => g.groupId === args.groupId
+    );
+    
+    if (!groupExists) {
+      errors.push(`Group ${args.groupId} not found`);
+    }
+  } catch (error) {
+    errors.push(`Unable to validate group ${args.groupId}`);
+  }
+
+  // Basic validation of origin hostname format
+  const hostnameRegex = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
+  if (!hostnameRegex.test(args.originHostname)) {
+    errors.push(`Invalid origin hostname format: ${args.originHostname}`);
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+
+/**
+ * Create or get CP Code for the property
+ */
+async function ensureCPCode(
+  client: AkamaiClient,
+  args: {
+    propertyName: string;
+    contractId: string;
+    groupId: string;
+    productId: string;
+    cpCode?: number;
+  }
+): Promise<number> {
+  if (args.cpCode) {
+    // Verify CP code exists
+    try {
+      await client.request({
+        path: `/papi/v1/cpcodes/${args.cpCode}`,
+        method: 'GET',
+        queryParams: {
+          contractId: args.contractId,
+          groupId: args.groupId,
+        },
+      });
+      return args.cpCode;
+    } catch (error) {
+      // CP code doesn't exist, create new one
+    }
+  }
+
+  // Create new CP code
+  const cpCodeResult = await createCPCode(client, {
+    cpcodeName: args.propertyName,
+    contractId: args.contractId,
+    groupId: args.groupId,
+    productId: args.productId,
+  });
+
+  // Extract CP code ID from response
+  const cpCodeMatch = cpCodeResult.content[0]?.text.match(/CP Code ID:\*\* (\d+)/);
+  if (cpCodeMatch?.[1]) {
+    return parseInt(cpCodeMatch[1]);
+  }
+
+  throw new Error('Failed to create CP code');
+}
 
 /**
  * Create a Secure by Default edge hostname with automatic DefaultDV certificate
@@ -93,20 +205,75 @@ export async function onboardSecureByDefaultProperty(
     productId?: string;
     cpCode?: number;
     notificationEmails?: string[];
+    validatePrerequisites?: boolean;
     customer?: string;
   }
 ): Promise<MCPToolResponse> {
+  const spinner = process.env.MCP_ENVIRONMENT === 'production' ? null : new Spinner();
+  const state: OnboardingState = { completed: [] };
+  
   try {
+    // Step 1: Validate prerequisites
+    if (args.validatePrerequisites !== false) {
+      spinner?.start('Validating prerequisites...');
+      const validation = await validatePrerequisites(client, {
+        originHostname: args.originHostname,
+        contractId: args.contractId,
+        groupId: args.groupId,
+        productId: args.productId,
+      });
+
+      if (!validation.valid) {
+        spinner?.fail('Prerequisites validation failed');
+        return {
+          content: [{
+            type: 'text',
+            text: `❌ **Prerequisites Validation Failed**\n\n${validation.errors.map(e => `- ${e}`).join('\n')}\n\n**Solution:** Fix the issues above and try again.`,
+          }],
+        };
+      }
+      spinner?.succeed('Prerequisites validated');
+      state.completed.push('Prerequisites validated');
+    }
+
     const steps: string[] = [];
     let propertyId: string | null = null;
     // let edgeHostnameId: string;
     let edgeHostnameDomain: string | null = null;
 
-    // Step 1: Create the property
+    // If productId is not provided, auto-select best available product
+    let productId = args.productId;
+    if (!productId) {
+      // Get available products for the contract
+      const productsResponse = await client.request({
+        path: `/papi/v1/products`,
+        method: 'GET',
+        queryParams: {
+          contractId: args.contractId,
+        },
+      });
+
+      if (productsResponse.products?.items?.length > 0) {
+        const bestProduct = selectBestProduct(productsResponse.products.items);
+        if (bestProduct) {
+          productId = bestProduct.productId;
+          steps.push(`🔍 Auto-selected product: ${bestProduct.friendlyName} (${bestProduct.productId})`);
+        }
+      }
+      
+      // Fallback to Ion if no product could be selected
+      if (!productId) {
+        productId = 'prd_fresca';
+        steps.push(`🔍 Using default product: Ion (prd_fresca)`);
+      }
+    }
+
+    // Step 2: Create the property
+    spinner?.start('Creating property...');
     steps.push('📦 Creating property...');
     const createPropResult = await createProperty(client, {
       propertyName: args.propertyName,
-      productId: args.productId || 'prd_Site_Accel',
+      productId: productId,
       contractId: args.contractId,
       groupId: args.groupId,
     });
@@ -115,12 +282,30 @@ export async function onboardSecureByDefaultProperty(
     const propMatch = createPropResult.content[0]?.text.match(/Property ID:\*\* (\w+)/);
     if (propMatch?.[1]) {
       propertyId = propMatch[1];
+      state.propertyId = propertyId;
+      spinner?.succeed(`Created property: ${propertyId}`);
       steps.push(`✅ Created property: ${propertyId}`);
+      state.completed.push('Property created');
     } else {
       throw new Error('Failed to extract property ID from creation response');
     }
 
-    // Step 2: Create Secure by Default edge hostname with automatic DefaultDV certificate
+    // Step 3: Ensure CP Code exists
+    spinner?.start('Setting up CP Code...');
+    const cpCodeId = await ensureCPCode(client, {
+      propertyName: args.propertyName,
+      contractId: args.contractId,
+      groupId: args.groupId,
+      productId: productId,
+      cpCode: args.cpCode,
+    });
+    state.cpCodeId = cpCodeId;
+    spinner?.succeed(`CP Code ready: ${cpCodeId}`);
+    steps.push(`✅ CP Code configured: ${cpCodeId}`);
+    state.completed.push('CP Code configured');
+
+    // Step 4: Create Secure by Default edge hostname with automatic DefaultDV certificate
+    spinner?.start('Creating Secure by Default edge hostname...');
     steps.push('🔐 Creating Secure by Default edge hostname with DefaultDV certificate...');
     
     // Generate edge hostname prefix based on property name
@@ -129,16 +314,19 @@ export async function onboardSecureByDefaultProperty(
     const edgeHostnameResult = await createSecureByDefaultEdgeHostname(client, {
       propertyId: propertyId!,
       domainPrefix: edgeHostnamePrefix,
-      productId: args.productId || 'prd_Site_Accel',
+      productId: productId,
       ipVersion: 'IPV4_IPV6',
     });
 
-    // edgeHostnameId = edgeHostnameResult.edgeHostnameId;
+    state.edgeHostnameId = edgeHostnameResult.edgeHostnameId;
     edgeHostnameDomain = edgeHostnameResult.edgeHostnameDomain;
+    spinner?.succeed(`Created edge hostname: ${edgeHostnameDomain}`);
     steps.push(`✅ Created Secure by Default edge hostname: ${edgeHostnameDomain}`);
     steps.push(`✅ DefaultDV certificate automatically provisioned for all hostnames`);
+    state.completed.push('Edge hostname created');
 
-    // Step 3: Configure property rules with secure settings
+    // Step 5: Configure property rules with secure settings
+    spinner?.start('Configuring property rules...');
     steps.push('⚙️ Configuring property with secure settings...');
     
     const secureRules = {
@@ -170,9 +358,9 @@ export async function onboardSecureByDefaultProperty(
           name: 'cpCode',
           options: {
             value: {
-              id: args.cpCode || 12345, // Default CP code
+              id: cpCodeId,
               name: args.propertyName,
-              products: [args.productId || 'prd_Site_Accel']
+              products: [productId]
             }
           }
         },
@@ -256,9 +444,12 @@ export async function onboardSecureByDefaultProperty(
       rules: secureRules,
       note: 'Configured Secure by Default settings',
     });
+    spinner?.succeed('Property rules configured');
     steps.push('✅ Configured property with secure settings');
+    state.completed.push('Property rules configured');
 
-    // Step 4: Add hostnames to property
+    // Step 6: Add hostnames to property
+    spinner?.start('Adding hostnames to property...');
     steps.push('🔗 Adding hostnames to property...');
     
     for (const hostname of args.hostnames) {
@@ -269,8 +460,10 @@ export async function onboardSecureByDefaultProperty(
       });
       steps.push(`✅ Added hostname: ${hostname}`);
     }
+    spinner?.succeed('All hostnames added');
+    state.completed.push('Hostnames configured');
 
-    // Step 5: Ready for activation
+    // Step 7: Ready for activation
     steps.push('🚀 Ready for activation!');
 
     // Generate comprehensive response
@@ -278,6 +471,7 @@ export async function onboardSecureByDefaultProperty(
     text += `## Summary\n\n`;
     text += `- **Property Name:** ${args.propertyName}\n`;
     text += `- **Property ID:** ${propertyId}\n`;
+    text += `- **Product:** ${formatProductDisplay(productId)}\n`;
     text += `- **Edge Hostname:** ${edgeHostnameDomain}\n`;
     text += `- **Certificate Type:** Secure by Default (DefaultDV)\n`;
     text += `- **Hostnames:** ${args.hostnames.join(', ')}\n`;
@@ -332,7 +526,23 @@ export async function onboardSecureByDefaultProperty(
     };
 
   } catch (error) {
-    return formatError('onboard Secure by Default property', error);
+    spinner?.fail('Onboarding failed');
+    
+    // Attempt rollback if needed
+    if (state.propertyId) {
+      try {
+        await rollbackProperty(client, state.propertyId);
+      } catch (rollbackError) {
+        // Log but don't fail
+      }
+    }
+
+    return {
+      content: [{
+        type: 'text',
+        text: generateFailureReport(state, error, args),
+      }],
+    };
   }
 }
 
@@ -366,7 +576,7 @@ export async function quickSecureByDefaultSetup(
       originHostname: args.originHostname,
       contractId: args.contractId,
       groupId: args.groupId,
-      productId: 'prd_Site_Accel',
+      productId: 'prd_fresca',
       customer: args.customer,
     });
 
@@ -471,6 +681,76 @@ export async function checkSecureByDefaultStatus(
 
   } catch (error) {
     return formatError('check Secure by Default status', error);
+  }
+}
+
+/**
+ * Generate failure report with recovery options
+ */
+function generateFailureReport(state: OnboardingState, error: any, args: any): string {
+  let text = `# ❌ Secure Property Onboarding Failed\n\n`;
+  
+  text += `## Error Details\n`;
+  text += `- **Error:** ${error instanceof Error ? error.message : String(error)}\n`;
+  text += `- **Failed At:** ${state.failed?.step || 'Unknown step'}\n\n`;
+
+  text += `## Completed Steps\n`;
+  if (state.completed.length > 0) {
+    state.completed.forEach((step, index) => {
+      text += `${index + 1}. ✅ ${step}\n`;
+    });
+  } else {
+    text += `No steps were completed successfully.\n`;
+  }
+  text += '\n';
+
+  if (state.propertyId) {
+    text += `## Partial Resources Created\n`;
+    text += `- **Property ID:** ${state.propertyId}\n`;
+    text += `  ⚠️ This property was created but not fully configured.\n\n`;
+    
+    text += `## Recovery Options\n`;
+    text += `1. **Continue Setup Manually:**\n`;
+    text += `   - Configure edge hostname: \`"Create edge hostname for property ${state.propertyId}"\`\n`;
+    text += `   - Add hostnames: \`"Add hostname to property ${state.propertyId}"\`\n\n`;
+    
+    text += `2. **Start Over:**\n`;
+    text += `   - Delete property: \`"Remove property ${state.propertyId}"\`\n`;
+    text += `   - Retry: \`"Onboard secure property ${args.propertyName}"\`\n`;
+  } else {
+    text += `## Recovery Options\n`;
+    text += `1. Fix the error and retry the onboarding\n`;
+    text += `2. Use manual property creation if automated onboarding continues to fail\n`;
+  }
+
+  return text;
+}
+
+/**
+ * Rollback a partially created property
+ */
+async function rollbackProperty(client: AkamaiClient, propertyId: string): Promise<void> {
+  try {
+    // Check if property has any activations
+    const propertyResponse = await client.request({
+      path: `/papi/v1/properties/${propertyId}`,
+      method: 'GET',
+    });
+
+    const property = propertyResponse.properties?.items?.[0];
+    if (!property?.productionVersion && !property?.stagingVersion) {
+      // Safe to delete
+      await client.request({
+        path: `/papi/v1/properties/${propertyId}`,
+        method: 'DELETE',
+        queryParams: {
+          contractId: property.contractId,
+          groupId: property.groupId,
+        },
+      });
+    }
+  } catch (error) {
+    // Rollback failed, but don't throw
   }
 }
 

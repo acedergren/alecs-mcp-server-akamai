@@ -6,6 +6,7 @@
 
 import { AkamaiClient } from '../akamai-client.js';
 import { MCPToolResponse } from '../types.js';
+import { getProductFriendlyName, formatProductDisplay, selectBestProduct } from '../utils/product-mapping.js';
 
 /**
  * List all CP Codes in the account
@@ -68,7 +69,7 @@ export async function listCPCodes(
       for (const cpcode of sortedCpcodes) {
         const cpcodeNum = cpcode.cpcodeId.replace('cpc_', '');
         const name = cpcode.cpcodeName || 'Unnamed';
-        const products = cpcode.productIds?.join(', ') || 'None';
+        const products = cpcode.productIds?.map((pid: string) => getProductFriendlyName(pid)).join(', ') || 'None';
         const created = cpcode.createdDate ? new Date(cpcode.createdDate).toLocaleDateString() : 'Unknown';
         
         text += `| ${cpcodeNum} | ${name} | ${products} | ${created} |\n`;
@@ -159,7 +160,7 @@ export async function getCPCode(
       text += `- **Groups:** ${cpcode.groupIds.join(', ')}\n`;
     }
     if (cpcode.productIds?.length > 0) {
-      text += `- **Products:** ${cpcode.productIds.join(', ')}\n`;
+      text += `- **Products:** ${cpcode.productIds.map((pid: string) => formatProductDisplay(pid)).join(', ')}\n`;
     }
     text += '\n';
 
@@ -247,6 +248,34 @@ export async function createCPCode(
       };
     }
 
+    // Auto-select product if not provided
+    let productId = args.productId;
+    if (!productId) {
+      try {
+        const productsResponse = await client.request({
+          path: `/papi/v1/products`,
+          method: 'GET',
+          queryParams: {
+            contractId: args.contractId,
+          },
+        });
+
+        if (productsResponse.products?.items?.length > 0) {
+          const bestProduct = selectBestProduct(productsResponse.products.items);
+          if (bestProduct) {
+            productId = bestProduct.productId;
+          }
+        }
+      } catch (productError) {
+        // Ignore error and use default
+      }
+      
+      // Fallback to Ion if no product could be selected
+      if (!productId) {
+        productId = 'prd_fresca';
+      }
+    }
+
     // Create the CP Code
     const response = await client.request({
       path: '/papi/v1/cpcodes',
@@ -261,7 +290,7 @@ export async function createCPCode(
       },
       body: {
         cpcodeName: args.cpcodeName.trim(),
-        productId: args.productId || 'prd_Site_Accel',
+        productId: productId,
         timeZone: args.timeZone || 'GMT',
       },
     });
@@ -281,7 +310,7 @@ export async function createCPCode(
     text += `- **Name:** ${args.cpcodeName}\n`;
     text += `- **CP Code ID:** ${cpcodeId}\n`;
     text += `- **Numeric ID:** ${numericId}\n`;
-    text += `- **Product:** ${args.productId || 'prd_Site_Accel'}\n`;
+    text += `- **Product:** ${formatProductDisplay(productId)}\n`;
     text += `- **Contract:** ${args.contractId}\n`;
     text += `- **Group:** ${args.groupId}\n`;
     text += `- **Time Zone:** ${args.timeZone || 'GMT'}\n`;

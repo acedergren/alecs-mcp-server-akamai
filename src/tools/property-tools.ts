@@ -5,6 +5,7 @@
 
 import { AkamaiClient } from '../akamai-client.js';
 import { MCPToolResponse, PropertyList, Property, GroupList } from '../types.js';
+import { getProductFriendlyName, formatProductDisplay } from '../utils/product-mapping.js';
 
 /**
  * Format a date string to a more readable format
@@ -226,7 +227,8 @@ export async function getProperty(
         }
         
         // OPTIMIZATION: Limit search to prevent timeouts
-        const MAX_GROUPS_TO_SEARCH = 5;
+        // Reduced from 5 to 3 groups based on timeout issues in production
+        const MAX_GROUPS_TO_SEARCH = 3;
         const MAX_PROPERTIES_PER_GROUP = 100;
         const MAX_TOTAL_PROPERTIES = 300;
         
@@ -436,7 +438,7 @@ async function getPropertyById(
     text += `- **Asset ID:** ${prop.assetId || 'N/A'}\n`;
     text += `- **Contract ID:** ${prop.contractId}\n`;
     text += `- **Group ID:** ${prop.groupId}\n`;
-    text += `- **Product ID:** ${prop.productId || 'N/A'}\n\n`;
+    text += `- **Product:** ${prop.productId ? formatProductDisplay(prop.productId) : 'N/A'}\n\n`;
     
     // Version Information
     text += `## Version Information\n`;
@@ -596,7 +598,7 @@ export async function createProperty(
     text += `## Property Details\n`;
     text += `- **Name:** ${args.propertyName}\n`;
     text += `- **Property ID:** ${propertyId}\n`;
-    text += `- **Product:** ${args.productId}\n`;
+    text += `- **Product:** ${formatProductDisplay(args.productId)}\n`;
     text += `- **Contract:** ${args.contractId}\n`;
     text += `- **Group:** ${args.groupId}\n`;
     text += `- **Rule Format:** ${ruleFormat}\n`;
@@ -624,10 +626,11 @@ export async function createProperty(
     text += `\`"Enroll DV certificate for www.example.com"\`\n\n`;
     
     text += `## Common Product IDs Reference\n`;
+    text += `- **prd_fresca** - Ion (Preferred for most use cases)\n`;
+    text += `- **prd_Site_Accel** - Dynamic Site Accelerator (DSA)\n`;
     text += `- **prd_Web_Accel** - Web Application Accelerator\n`;
     text += `- **prd_Download_Delivery** - Download Delivery\n`;
-    text += `- **prd_Dynamic_Site_Accel** - Dynamic Site Accelerator\n`;
-    text += `- **prd_Site_Accel** - Ion Standard\n`;
+    text += `- **prd_Adaptive_Media_Delivery** - Adaptive Media Delivery (AMD)\n`;
 
     return {
       content: [{
@@ -651,7 +654,7 @@ export async function createProperty(
         return {
           content: [{
             type: 'text',
-            text: `❌ Invalid product ID: ${args.productId}\n\n**Common Product IDs:**\n- prd_Web_Accel\n- prd_Download_Delivery\n- prd_Dynamic_Site_Accel\n- prd_Site_Accel\n\nCheck your contract to see which products are available.`,
+            text: `❌ Invalid product ID: ${args.productId}\n\n**Common Product IDs:**\n- prd_fresca - Ion (Preferred)\n- prd_Site_Accel - DSA\n- prd_Web_Accel - WAA\n- prd_Download_Delivery - DD\n- prd_Adaptive_Media_Delivery - AMD\n\nUse list_products to see which products are available in your contract.`,
           }],
         };
       }

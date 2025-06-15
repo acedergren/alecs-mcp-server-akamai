@@ -830,7 +830,7 @@ class AkamaiMCPServer {
               },
               productId: {
                 type: 'string',
-                description: 'Product ID (e.g., prd_Site_Accel)',
+                description: 'Product ID (e.g., prd_fresca for Ion, prd_Site_Accel for DSA)',
               },
               contractId: {
                 type: 'string',
@@ -1712,7 +1712,7 @@ class AkamaiMCPServer {
               },
               productId: {
                 type: 'string',
-                description: 'Optional: Product ID (default: prd_Site_Accel)',
+                description: 'Optional: Product ID (default: auto-selected, prefers Ion)',
               },
               cpCode: {
                 type: 'number',
@@ -1722,6 +1722,10 @@ class AkamaiMCPServer {
                 type: 'array',
                 items: { type: 'string' },
                 description: 'Optional: Email addresses for notifications',
+              },
+              validatePrerequisites: {
+                type: 'boolean',
+                description: 'Optional: Validate prerequisites before starting (default: true)',
               },
             },
             required: ['propertyName', 'hostnames', 'originHostname', 'contractId', 'groupId'],
@@ -1813,7 +1817,7 @@ class AkamaiMCPServer {
               },
               productId: {
                 type: 'string',
-                description: 'Optional: Product ID (default: prd_Site_Accel)',
+                description: 'Optional: Product ID (default: auto-selected, prefers Ion)',
               },
             },
             required: ['propertyName', 'hostnames', 'originHostname', 'contractId', 'groupId'],
@@ -1909,7 +1913,7 @@ class AkamaiMCPServer {
               },
               productId: {
                 type: 'string',
-                description: 'Optional: Product ID (default: prd_Site_Accel)',
+                description: 'Optional: Product ID (default: auto-selected, prefers Ion)',
               },
               timeZone: {
                 type: 'string',
@@ -2195,7 +2199,7 @@ class AkamaiMCPServer {
         },
         {
           name: 'search_properties',
-          description: 'Search for properties by various criteria',
+          description: 'Search for properties by various criteria including name, hostname, edge hostname, contract, group, product, and activation status',
           inputSchema: {
             type: 'object',
             properties: {
@@ -2203,25 +2207,45 @@ class AkamaiMCPServer {
                 type: 'string',
                 description: 'Optional: Customer section name from .edgerc (default: "default")',
               },
+              // Legacy parameters for backward compatibility
+              searchTerm: {
+                type: 'string',
+                description: 'Optional: Legacy search term (use specific criteria below for better results)',
+              },
+              searchBy: {
+                type: 'string',
+                enum: ['name', 'hostname', 'edgeHostname'],
+                description: 'Optional: What to search by when using searchTerm (legacy)',
+              },
+              // Enhanced search criteria
               propertyName: {
                 type: 'string',
-                description: 'Optional: Property name to search for',
+                description: 'Optional: Property name to search for (partial match)',
               },
               hostname: {
                 type: 'string',
-                description: 'Optional: Hostname to search for',
+                description: 'Optional: Hostname to search for (partial match)',
               },
               edgeHostname: {
                 type: 'string',
-                description: 'Optional: Edge hostname to search for',
+                description: 'Optional: Edge hostname to search for (partial match)',
               },
               contractId: {
                 type: 'string',
-                description: 'Optional: Filter by contract ID',
+                description: 'Optional: Filter by contract ID (exact match)',
               },
               groupId: {
                 type: 'string',
-                description: 'Optional: Filter by group ID',
+                description: 'Optional: Filter by group ID (exact match)',
+              },
+              productId: {
+                type: 'string',
+                description: 'Optional: Filter by product ID (exact match)',
+              },
+              activationStatus: {
+                type: 'string',
+                enum: ['production', 'staging', 'any', 'none'],
+                description: 'Optional: Filter by activation status',
               },
             },
             required: [],

@@ -541,6 +541,179 @@ export async function generateMigrationInstructions(
   }
 }
 
+/**
+ * Import DNS zone from Cloudflare using their API
+ */
+export async function importFromCloudflare(
+  client: AkamaiClient,
+  args: {
+    zone: string;
+    cloudflareApiToken: string;
+    contractId?: string;
+    groupId?: string;
+    includeProxiedRecords?: boolean;
+  }
+): Promise<MCPToolResponse> {
+  try {
+    // Step 1: Get zone information from Cloudflare
+    const cfZonesResponse = await fetch(
+      `https://api.cloudflare.com/client/v4/zones?name=${args.zone}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${args.cloudflareApiToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    
+    if (!cfZonesResponse.ok) {
+      throw new Error(`Cloudflare API error: ${cfZonesResponse.statusText}`);
+    }
+    
+    const zonesData = await cfZonesResponse.json();
+    if (!zonesData.result || zonesData.result.length === 0) {
+      throw new Error(`Zone ${args.zone} not found in Cloudflare account`);
+    }
+    
+    const cfZone = zonesData.result[0];
+    const zoneId = cfZone.id;
+    
+    // Step 2: Create zone in Akamai as PRIMARY
+    await createZone(client, {
+      zone: args.zone,
+      type: 'PRIMARY',
+      comment: `Imported from Cloudflare on ${new Date().toISOString()}`,
+      contractId: args.contractId,
+      groupId: args.groupId,
+    });
+    
+    // Step 3: Get all DNS records from Cloudflare
+    let allRecords: any[] = [];
+    let page = 1;
+    let hasMore = true;
+    
+    while (hasMore) {
+      const cfRecordsResponse = await fetch(
+        `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records?page=${page}&per_page=100`,
+        {
+          headers: {
+            'Authorization': `Bearer ${args.cloudflareApiToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      if (!cfRecordsResponse.ok) {
+        throw new Error(`Failed to fetch DNS records: ${cfRecordsResponse.statusText}`);
+      }
+      
+      const recordsData = await cfRecordsResponse.json();
+      allRecords = allRecords.concat(recordsData.result);
+      
+      if (recordsData.result_info.page >= recordsData.result_info.total_pages) {
+        hasMore = false;
+      } else {
+        page++;
+      }
+    }
+    
+    // Step 4: Convert and import records
+    const records: DNSRecordSet[] = [];
+    const skippedRecords: string[] = [];
+    
+    for (const cfRecord of allRecords) {
+      // Skip proxied records if not requested
+      if (cfRecord.proxied && !args.includeProxiedRecords) {
+        skippedRecords.push(`${cfRecord.name} (${cfRecord.type}) - Cloudflare proxied`);
+        continue;
+      }
+      
+      // Skip unsupported record types
+      const supportedTypes = ['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'NS', 'CAA'];
+      if (!supportedTypes.includes(cfRecord.type)) {
+        skippedRecords.push(`${cfRecord.name} (${cfRecord.type}) - Unsupported type`);
+        continue;
+      }
+      
+      // Convert Cloudflare record to Akamai format
+      const akamaiRecord: DNSRecordSet = {
+        name: cfRecord.name,
+        type: cfRecord.type,
+        ttl: cfRecord.ttl === 1 ? 300 : cfRecord.ttl, // Cloudflare uses 1 for 'automatic'
+        rdata: [],
+      };
+      
+      // Format rdata based on record type
+      switch (cfRecord.type) {
+        case 'MX':
+          akamaiRecord.rdata = [`${cfRecord.priority} ${cfRecord.content}`];
+          break;
+        case 'TXT':
+          // Cloudflare may have quotes, ensure proper formatting
+          akamaiRecord.rdata = [cfRecord.content.replace(/^"|"$/g, '')];
+          break;
+        case 'CAA':
+          const parts = cfRecord.data;
+          akamaiRecord.rdata = [`${parts.flags} ${parts.tag} "${parts.value}"`];
+          break;
+        default:
+          akamaiRecord.rdata = [cfRecord.content];
+      }
+      
+      records.push(akamaiRecord);
+    }
+    
+    // Step 5: Bulk import records
+    const importResult = await bulkImportRecords(client, {
+      zone: args.zone,
+      records,
+      comment: `Cloudflare import - ${records.length} records`,
+    });
+    
+    // Format results
+    let text = `# Cloudflare Import Results - ${args.zone}\n\n`;
+    text += `## Summary\n\n`;
+    text += `- **Cloudflare Zone ID:** ${zoneId}\n`;
+    text += `- **Total Records Found:** ${allRecords.length}\n`;
+    text += `- **Records Imported:** ${records.length}\n`;
+    text += `- **Records Skipped:** ${skippedRecords.length}\n\n`;
+    
+    if (skippedRecords.length > 0) {
+      text += `## Skipped Records\n\n`;
+      skippedRecords.forEach(record => {
+        text += `- ${record}\n`;
+      });
+      text += `\n`;
+    }
+    
+    text += `## Next Steps\n\n`;
+    text += `1. **Review imported records:**\n`;
+    text += `   "List records in zone ${args.zone}"\n\n`;
+    text += `2. **Update nameservers at registrar:**\n`;
+    text += `   - Remove Cloudflare nameservers\n`;
+    text += `   - Add Akamai nameservers:\n`;
+    text += `     - use.akadns.net\n`;
+    text += `     - use4.akadns.net\n\n`;
+    text += `3. **Configure CDN if needed:**\n`;
+    text += `   - Create property for ${args.zone}\n`;
+    text += `   - Add CNAME records for CDN delivery\n\n`;
+    
+    if (allRecords.some((r: any) => r.proxied)) {
+      text += `⚠️ **Note:** Some records were proxied through Cloudflare.\n`;
+      text += `You may need to configure similar security features in Akamai.\n`;
+    }
+    
+    return {
+      content: [{
+        type: 'text',
+        text,
+      }],
+    };
+  } catch (error) {
+    return formatError('import from Cloudflare', error);
+  }
+}
+
 // Helper Functions
 
 /**

@@ -6,6 +6,7 @@
 import { AkamaiClient } from '../akamai-client.js';
 import { MCPToolResponse } from '../types.js';
 import { createProperty } from './property-tools.js';
+import { selectBestProduct, formatProductDisplay } from '../utils/product-mapping.js';
 
 /**
  * Debug version of secure property onboarding with detailed error reporting
@@ -106,14 +107,51 @@ export async function debugSecurePropertyOnboarding(
     }
     text += `\n`;
 
-    // Step 3: Create property
-    text += `## Step 3: Property Creation\n`;
+    // Step 3: Product selection
+    text += `## Step 3: Product Selection\n`;
+    let productId = args.productId;
+    
+    if (!productId) {
+      try {
+        const productsResponse = await client.request({
+          path: `/papi/v1/products`,
+          method: 'GET',
+          queryParams: {
+            contractId: args.contractId,
+          },
+        });
+
+        if (productsResponse.products?.items?.length > 0) {
+          const bestProduct = selectBestProduct(productsResponse.products.items);
+          if (bestProduct) {
+            productId = bestProduct.productId;
+            text += `✅ **Auto-selected product:** ${formatProductDisplay(bestProduct.productId, bestProduct.productName)}\n`;
+          } else {
+            productId = 'prd_fresca';
+            text += `⚠️ **Using default product:** Ion (prd_fresca)\n`;
+          }
+        } else {
+          productId = 'prd_fresca';
+          text += `⚠️ **No products found, using default:** Ion (prd_fresca)\n`;
+        }
+      } catch (productError: any) {
+        productId = 'prd_fresca';
+        text += `⚠️ **Product lookup failed, using default:** Ion (prd_fresca)\n`;
+        text += `Error: ${productError.message}\n`;
+      }
+    } else {
+      text += `✅ **Using specified product:** ${formatProductDisplay(productId)}\n`;
+    }
+    text += `\n`;
+    
+    // Step 4: Create property
+    text += `## Step 4: Property Creation\n`;
     let propertyId: string | null = null;
     
     try {
       const createPropResult = await createProperty(client, {
         propertyName: args.propertyName,
-        productId: args.productId || 'prd_Site_Accel',
+        productId: productId,
         contractId: args.contractId,
         groupId: args.groupId,
       });
@@ -151,8 +189,8 @@ export async function debugSecurePropertyOnboarding(
     }
     text += `\n`;
 
-    // Step 4: Test edge hostname creation (simplified)
-    text += `## Step 4: Edge Hostname Creation Test\n`;
+    // Step 5: Test edge hostname creation (simplified)
+    text += `## Step 5: Edge Hostname Creation Test\n`;
     if (propertyId) {
       try {
         // First, get property details
@@ -168,7 +206,7 @@ export async function debugSecurePropertyOnboarding(
           text += `✅ **Property details retrieved**\n`;
           text += `- Contract: ${property.contractId}\n`;
           text += `- Group: ${property.groupId}\n`;
-          text += `- Product: ${property.productId}\n`;
+          text += `- Product: ${formatProductDisplay(property.productId)}\n`;
           
           // Generate edge hostname prefix
           const edgeHostnamePrefix = args.propertyName.toLowerCase().replace(/[^a-z0-9-]/g, '-');
@@ -283,11 +321,36 @@ export async function testBasicPropertyCreation(
       };
     }
 
-    // Test 2: Property creation
-    text += `## Test 2: Property Creation\n`;
+    // Test 2: Product selection
+    text += `## Test 2: Product Selection\n`;
+    let productId = 'prd_fresca'; // Default to Ion
+    try {
+      const productsResponse = await client.request({
+        path: `/papi/v1/products`,
+        method: 'GET',
+        queryParams: {
+          contractId: args.contractId,
+        },
+      });
+
+      if (productsResponse.products?.items?.length > 0) {
+        const bestProduct = selectBestProduct(productsResponse.products.items);
+        if (bestProduct) {
+          productId = bestProduct.productId;
+          text += `✅ Selected product: ${formatProductDisplay(bestProduct.productId, bestProduct.productName)}\n\n`;
+        } else {
+          text += `⚠️ Using default product: Ion (prd_fresca)\n\n`;
+        }
+      }
+    } catch (productError: any) {
+      text += `⚠️ Product lookup failed, using default: Ion (prd_fresca)\n\n`;
+    }
+    
+    // Test 3: Property creation
+    text += `## Test 3: Property Creation\n`;
     const result = await createProperty(client, {
       propertyName: args.propertyName,
-      productId: 'prd_Site_Accel',
+      productId: productId,
       contractId: args.contractId,
       groupId: args.groupId,
     });

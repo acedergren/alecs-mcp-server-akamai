@@ -664,19 +664,98 @@ export async function cancelPropertyActivation(
   }
 }
 
+interface SearchCriteria {
+  propertyName?: string;
+  hostname?: string;
+  edgeHostname?: string;
+  contractId?: string;
+  groupId?: string;
+  productId?: string;
+  activationStatus?: 'production' | 'staging' | 'any' | 'none';
+}
+
+interface PropertySearchResult {
+  propertyId: string;
+  propertyName: string;
+  contractId: string;
+  groupId: string;
+  productId: string;
+  latestVersion: number;
+  productionVersion?: number;
+  stagingVersion?: number;
+  matchedOn: {
+    field: string;
+    value: string;
+  }[];
+  hostnames?: Array<{
+    hostname: string;
+    edgeHostname: string;
+  }>;
+}
+
 /**
  * Search properties by name, hostname, or edge hostname
+ * Enhanced version with multiple criteria support
  */
 export async function searchProperties(
   client: AkamaiClient,
   args: {
-    searchTerm: string;
+    searchTerm?: string;
     searchBy?: 'name' | 'hostname' | 'edgeHostname';
+    propertyName?: string;
+    hostname?: string;
+    edgeHostname?: string;
+    contractId?: string;
+    groupId?: string;
+    productId?: string;
+    activationStatus?: 'production' | 'staging' | 'any' | 'none';
     customer?: string;
   }
 ): Promise<MCPToolResponse> {
   try {
-    const searchLower = args.searchTerm.toLowerCase();
+    // Handle legacy searchTerm parameter
+    let searchCriteria: SearchCriteria = {};
+    
+    if (args.searchTerm) {
+      // Legacy mode - use searchTerm with searchBy
+      switch (args.searchBy) {
+        case 'hostname':
+          searchCriteria.hostname = args.searchTerm;
+          break;
+        case 'edgeHostname':
+          searchCriteria.edgeHostname = args.searchTerm;
+          break;
+        case 'name':
+        default:
+          searchCriteria.propertyName = args.searchTerm;
+          break;
+      }
+    } else {
+      // New enhanced mode - use individual criteria
+      searchCriteria = {
+        propertyName: args.propertyName,
+        hostname: args.hostname,
+        edgeHostname: args.edgeHostname,
+        contractId: args.contractId,
+        groupId: args.groupId,
+        productId: args.productId,
+        activationStatus: args.activationStatus,
+      };
+    }
+    
+    // Validate at least one search criterion is provided
+    if (!searchCriteria.propertyName && !searchCriteria.hostname && !searchCriteria.edgeHostname && 
+        !searchCriteria.contractId && !searchCriteria.groupId && !searchCriteria.productId) {
+      return {
+        content: [{
+          type: 'text',
+          text: `❌ **No search criteria provided**\n\nPlease specify at least one of:\n- propertyName\n- hostname\n- edgeHostname\n- contractId\n- groupId\n- productId\n- activationStatus\n\nOr use legacy format with searchTerm parameter.`,
+        }],
+      };
+    }
+
+    const results: PropertySearchResult[] = [];
+    const searchStartTime = Date.now();
     
     // Get all properties first
     const groupsResponse = await client.request({
@@ -693,13 +772,23 @@ export async function searchProperties(
       };
     }
 
-    let allMatches: Array<{property: any, matchType: string, matchValue: string}> = [];
+    // Filter groups if groupId is specified
+    let searchGroups = groupsResponse.groups.items;
+    if (searchCriteria.groupId) {
+      searchGroups = searchGroups.filter((g: any) => g.groupId === searchCriteria.groupId);
+    }
 
     // Search through properties in each group
-    for (const group of groupsResponse.groups.items) {
+    for (const group of searchGroups) {
       if (!group.contractIds?.length) continue;
 
-      for (const contractId of group.contractIds) {
+      // Filter contracts if contractId is specified
+      let searchContracts = group.contractIds;
+      if (searchCriteria.contractId) {
+        searchContracts = searchContracts.filter((c: string) => c === searchCriteria.contractId);
+      }
+
+      for (const contractId of searchContracts) {
         try {
           const propertiesResponse = await client.request({
             path: '/papi/v1/properties',
@@ -713,20 +802,50 @@ export async function searchProperties(
           const properties = propertiesResponse.properties?.items || [];
 
           for (const property of properties) {
-            // Search by property name
-            if (!args.searchBy || args.searchBy === 'name') {
-              if (property.propertyName.toLowerCase().includes(searchLower)) {
-                allMatches.push({
-                  property,
-                  matchType: 'Property Name',
-                  matchValue: property.propertyName,
+            const matches: PropertySearchResult['matchedOn'] = [];
+            
+            // Check property name
+            if (searchCriteria.propertyName && 
+                property.propertyName.toLowerCase().includes(searchCriteria.propertyName.toLowerCase())) {
+              matches.push({ field: 'propertyName', value: property.propertyName });
+            }
+
+            // Check product ID
+            if (searchCriteria.productId && property.productId === searchCriteria.productId) {
+              matches.push({ field: 'productId', value: property.productId });
+            }
+
+            // Check activation status
+            if (searchCriteria.activationStatus) {
+              const hasProduction = !!property.productionVersion;
+              const hasStaging = !!property.stagingVersion;
+              
+              let statusMatch = false;
+              switch (searchCriteria.activationStatus) {
+                case 'production':
+                  statusMatch = hasProduction;
+                  break;
+                case 'staging':
+                  statusMatch = hasStaging && !hasProduction;
+                  break;
+                case 'any':
+                  statusMatch = hasProduction || hasStaging;
+                  break;
+                case 'none':
+                  statusMatch = !hasProduction && !hasStaging;
+                  break;
+              }
+              
+              if (statusMatch) {
+                matches.push({ 
+                  field: 'activationStatus', 
+                  value: searchCriteria.activationStatus 
                 });
-                continue;
               }
             }
 
-            // Search by hostname or edge hostname
-            if (!args.searchBy || args.searchBy === 'hostname' || args.searchBy === 'edgeHostname') {
+            // For hostname/edgeHostname search, we need to fetch property hostnames
+            if (searchCriteria.hostname || searchCriteria.edgeHostname) {
               try {
                 const hostnamesResponse = await client.request({
                   path: `/papi/v1/properties/${property.propertyId}/hostnames`,
@@ -734,33 +853,48 @@ export async function searchProperties(
                 });
 
                 const hostnames = hostnamesResponse.hostnames?.items || [];
-                
-                for (const hostname of hostnames) {
-                  // Search by property hostname
-                  if ((!args.searchBy || args.searchBy === 'hostname') && 
-                      hostname.cnameFrom.toLowerCase().includes(searchLower)) {
-                    allMatches.push({
-                      property,
-                      matchType: 'Hostname',
-                      matchValue: hostname.cnameFrom,
-                    });
-                    break;
+                const propertyHostnames: PropertySearchResult['hostnames'] = [];
+
+                for (const hn of hostnames) {
+                  propertyHostnames.push({
+                    hostname: hn.cnameFrom,
+                    edgeHostname: hn.cnameTo,
+                  });
+
+                  if (searchCriteria.hostname && 
+                      hn.cnameFrom.toLowerCase().includes(searchCriteria.hostname.toLowerCase())) {
+                    matches.push({ field: 'hostname', value: hn.cnameFrom });
                   }
-                  
-                  // Search by edge hostname
-                  if ((!args.searchBy || args.searchBy === 'edgeHostname') && 
-                      hostname.cnameTo.toLowerCase().includes(searchLower)) {
-                    allMatches.push({
-                      property,
-                      matchType: 'Edge Hostname',
-                      matchValue: hostname.cnameTo,
-                    });
-                    break;
+
+                  if (searchCriteria.edgeHostname && 
+                      hn.cnameTo.toLowerCase().includes(searchCriteria.edgeHostname.toLowerCase())) {
+                    matches.push({ field: 'edgeHostname', value: hn.cnameTo });
                   }
                 }
+
+                // Store hostnames if we have matches
+                if (matches.length > 0) {
+                  property.hostnames = propertyHostnames;
+                }
               } catch (err) {
-                // Continue if unable to get hostnames
+                // Continue if unable to fetch hostnames
               }
+            }
+
+            // Add to results if we have any matches
+            if (matches.length > 0) {
+              results.push({
+                propertyId: property.propertyId,
+                propertyName: property.propertyName,
+                contractId: contractId,
+                groupId: group.groupId,
+                productId: property.productId,
+                latestVersion: property.latestVersion,
+                productionVersion: property.productionVersion,
+                stagingVersion: property.stagingVersion,
+                matchedOn: matches,
+                hostnames: property.hostnames,
+              });
             }
           }
         } catch (err) {
@@ -769,59 +903,121 @@ export async function searchProperties(
       }
     }
 
-    if (allMatches.length === 0) {
+    // Format results
+    const searchTime = ((Date.now() - searchStartTime) / 1000).toFixed(2);
+    
+    if (results.length === 0) {
       return {
         content: [{
           type: 'text',
-          text: `No properties found matching "${args.searchTerm}"${args.searchBy ? ` by ${args.searchBy}` : ''}.\n\n💡 **Search Tips:**\n- Use partial names or domains\n- Try different search types: name, hostname, or edgeHostname\n- Check spelling and try variations`,
+          text: formatNoResults(searchCriteria, searchTime),
         }],
       };
-    }
-
-    // Deduplicate matches
-    const uniqueMatches = new Map<string, typeof allMatches[0]>();
-    for (const match of allMatches) {
-      const key = `${match.property.propertyId}-${match.matchType}`;
-      if (!uniqueMatches.has(key)) {
-        uniqueMatches.set(key, match);
-      }
-    }
-
-    const finalMatches = Array.from(uniqueMatches.values());
-
-    let text = `# Property Search Results\n\n`;
-    text += `Found ${finalMatches.length} match${finalMatches.length !== 1 ? 'es' : ''} for "${args.searchTerm}"${args.searchBy ? ` (searching by ${args.searchBy})` : ''}:\n\n`;
-
-    text += `| Property Name | Property ID | Match Type | Match Value | Status |\n`;
-    text += `|---------------|-------------|------------|-------------|--------|\n`;
-
-    for (const match of finalMatches) {
-      const prop = match.property;
-      const status = prop.productionVersion ? '🟢 Prod' : (prop.stagingVersion ? '🟡 Stage' : '🔵 Draft');
-      
-      text += `| ${prop.propertyName} | ${prop.propertyId} | ${match.matchType} | ${match.matchValue} | ${status} |\n`;
-    }
-
-    text += '\n## Next Steps\n';
-    if (finalMatches.length === 1) {
-      const propId = finalMatches[0]!.property.propertyId;
-      text += `- View details: \`"Get property ${propId}"\`\n`;
-      text += `- View rules: \`"Get property ${propId} rules"\`\n`;
-      text += `- View hostnames: \`"List hostnames for property ${propId}"\`\n`;
-    } else {
-      text += `- View property details: \`"Get property [propertyId]"\`\n`;
-      text += `- Refine search: \`"Search properties [term] by hostname"\`\n`;
     }
 
     return {
       content: [{
         type: 'text',
-        text,
+        text: formatSearchResults(results, searchCriteria, searchTime),
       }],
     };
   } catch (error) {
     return formatError('search properties', error);
   }
+}
+
+/**
+ * Format search results
+ */
+function formatSearchResults(
+  results: PropertySearchResult[], 
+  criteria: SearchCriteria,
+  searchTime: string
+): string {
+  let text = `# Property Search Results\n\n`;
+  text += `Found **${results.length}** propert${results.length !== 1 ? 'ies' : 'y'} `;
+  text += `(search completed in ${searchTime}s)\n\n`;
+
+  // Show search criteria
+  text += `## Search Criteria\n`;
+  if (criteria.propertyName) text += `- Property Name: *${criteria.propertyName}*\n`;
+  if (criteria.hostname) text += `- Hostname: *${criteria.hostname}*\n`;
+  if (criteria.edgeHostname) text += `- Edge Hostname: *${criteria.edgeHostname}*\n`;
+  if (criteria.contractId) text += `- Contract: ${criteria.contractId}\n`;
+  if (criteria.groupId) text += `- Group: ${criteria.groupId}\n`;
+  if (criteria.productId) text += `- Product: ${criteria.productId}\n`;
+  if (criteria.activationStatus) text += `- Activation Status: ${criteria.activationStatus}\n`;
+  text += '\n';
+
+  // Show results
+  text += `## Results\n\n`;
+  
+  // Summary table
+  text += `| Property Name | ID | Product | Status | Matched On |\n`;
+  text += `|---------------|-----|---------|--------|------------|\n`;
+  
+  for (const result of results) {
+    const status = result.productionVersion ? '🟢 Prod' : 
+                  (result.stagingVersion ? '🟡 Stage' : '🔵 Draft');
+    
+    const matchedFields = [...new Set(result.matchedOn.map(m => m.field))].join(', ');
+    
+    text += `| ${result.propertyName} | ${result.propertyId} | ${result.productId} | ${status} | ${matchedFields} |\n`;
+  }
+
+  // Detailed view for properties with hostname matches
+  const hostnameMatches = results.filter(r => r.hostnames && r.hostnames.length > 0);
+  if (hostnameMatches.length > 0) {
+    text += `\n### Hostname Details\n\n`;
+    for (const result of hostnameMatches) {
+      text += `**${result.propertyName}** (${result.propertyId})\n`;
+      if (result.hostnames) {
+        for (const hn of result.hostnames) {
+          text += `- ${hn.hostname} → ${hn.edgeHostname}\n`;
+        }
+      }
+      text += '\n';
+    }
+  }
+
+  text += `## Next Steps\n`;
+  if (results.length === 1) {
+    const propId = results[0]!.propertyId;
+    text += `- View details: \`"Get property ${propId}"\`\n`;
+    text += `- View rules: \`"Get property ${propId} rules"\`\n`;
+    text += `- View hostnames: \`"List hostnames for property ${propId}"\`\n`;
+  } else {
+    text += `- View property details: \`"Get property [propertyId]"\`\n`;
+    text += `- Refine search by adding more criteria\n`;
+  }
+
+  return text;
+}
+
+/**
+ * Format no results message
+ */
+function formatNoResults(criteria: SearchCriteria, searchTime: string): string {
+  let text = `# No Properties Found\n\n`;
+  text += `Search completed in ${searchTime}s\n\n`;
+  
+  text += `## Search Criteria Used\n`;
+  if (criteria.propertyName) text += `- Property Name: *${criteria.propertyName}*\n`;
+  if (criteria.hostname) text += `- Hostname: *${criteria.hostname}*\n`;
+  if (criteria.edgeHostname) text += `- Edge Hostname: *${criteria.edgeHostname}*\n`;
+  if (criteria.contractId) text += `- Contract: ${criteria.contractId}\n`;
+  if (criteria.groupId) text += `- Group: ${criteria.groupId}\n`;
+  if (criteria.productId) text += `- Product: ${criteria.productId}\n`;
+  if (criteria.activationStatus) text += `- Activation Status: ${criteria.activationStatus}\n`;
+  text += '\n';
+
+  text += `## Suggestions\n`;
+  text += `- Check spelling and try partial names\n`;
+  text += `- Remove some criteria to broaden the search\n`;
+  text += `- Verify you have access to the contract/group\n`;
+  text += `- Use "List all properties" to see available properties\n`;
+
+  return text;
 }
 
 /**

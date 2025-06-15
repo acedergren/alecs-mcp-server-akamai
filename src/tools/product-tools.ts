@@ -5,6 +5,7 @@
 
 import { AkamaiClient } from '../akamai-client.js';
 import { MCPToolResponse } from '../types.js';
+import { getProductFriendlyName, formatProductDisplay, selectBestProduct } from '../utils/product-mapping.js';
 
 /**
  * List all products available under a contract
@@ -58,25 +59,35 @@ export async function listProducts(
     for (const product of sortedProducts) {
       const productId = product.productId || 'Unknown';
       const productName = product.productName || 'Unnamed Product';
+      const friendlyName = getProductFriendlyName(productId);
+      const displayName = friendlyName !== productId ? `${productName} (${friendlyName})` : productName;
       const category = product.category || 'General';
-      text += `| ${productId} | ${productName} | ${category} |\n`;
+      text += `| ${productId} | ${displayName} | ${category} |\n`;
     }
     
     text += '\n';
+    // Add best product recommendation
+    const bestProduct = selectBestProduct(response.products.items);
+    if (bestProduct) {
+      text += `## 🎯 Recommended Product\n\n`;
+      text += `**${formatProductDisplay(bestProduct.productId, bestProduct.productName)}**\n`;
+      text += `Ion products are preferred for most use cases due to their modern features and performance.\n\n`;
+    }
+    
     text += `## Common Product Use Cases\n\n`;
-    text += `- **prd_Site_Accel**: Ion Standard - General web acceleration\n`;
-    text += `- **prd_Web_Accel**: Web Application Accelerator - Dynamic content\n`;
-    text += `- **prd_Download_Delivery**: Large file downloads\n`;
-    text += `- **prd_Dynamic_Site_Accel**: High-performance dynamic sites\n`;
-    text += `- **prd_Adaptive_Media_Delivery**: Video and media streaming\n\n`;
+    text += `- **prd_fresca (Ion)**: Modern web acceleration with advanced features (RECOMMENDED)\n`;
+    text += `- **prd_Site_Accel (DSA)**: Dynamic Site Accelerator - Traditional web acceleration\n`;
+    text += `- **prd_Web_Accel (WAA)**: Web Application Accelerator - Dynamic content\n`;
+    text += `- **prd_Download_Delivery (DD)**: Large file downloads\n`;
+    text += `- **prd_Adaptive_Media_Delivery (AMD)**: Video and media streaming\n\n`;
     
     text += `## Next Steps\n\n`;
     text += `1. Use a product ID when creating properties:\n`;
-    text += `   \`"Create property with product prd_Site_Accel"\`\n\n`;
+    text += `   \`"Create property with product ${bestProduct?.productId || 'prd_fresca'}"\`\n\n`;
     text += `2. View use cases for a specific product:\n`;
-    text += `   \`"List use cases for product prd_Site_Accel"\`\n\n`;
+    text += `   \`"List use cases for product ${bestProduct?.productId || 'prd_fresca'}"\`\n\n`;
     text += `3. Create CP codes with a product:\n`;
-    text += `   \`"Create CP code with product prd_Site_Accel"\``;
+    text += `   \`"Create CP code with product ${bestProduct?.productId || 'prd_fresca'}"\``;
 
     return {
       content: [{
@@ -140,11 +151,13 @@ export async function getProduct(
       };
     }
 
-    let text = `# Product Details: ${product.productName || args.productId}\n\n`;
+    const friendlyName = getProductFriendlyName(product.productId);
+    let text = `# Product Details: ${formatProductDisplay(product.productId, product.productName)}\n\n`;
     
     text += `## Basic Information\n`;
     text += `- **Product ID:** ${product.productId}\n`;
     text += `- **Product Name:** ${product.productName || 'Unknown'}\n`;
+    text += `- **Friendly Name:** ${friendlyName}\n`;
     text += `- **Category:** ${product.category || 'General'}\n`;
     text += `- **Contract:** ${args.contractId}\n\n`;
 
