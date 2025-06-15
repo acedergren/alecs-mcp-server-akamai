@@ -1,4 +1,4 @@
-# Akamai MCP Server - Mission & Strategy
+# ALCES - MCP Server for Akamai - Mission & Strategy
 
 ## Mission Statement
 

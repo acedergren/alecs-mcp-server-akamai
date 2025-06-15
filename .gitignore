@@ -6,10 +6,16 @@ yarn-error.log*
 
 # Build outputs
 dist/
-build/
+# Allow build directory but not compiled outputs
+build/**/*.js
+build/**/*.js.map
+build/**/*.d.ts
+!build/docker/
+!build/make/
 *.js
 !jest.config.js
 !jest.setup.js
+!tests/**/*.js
 *.js.map
 *.d.ts
 !src/**/*.d.ts

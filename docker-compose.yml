@@ -5,7 +5,7 @@ services:
   alecs:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: build/docker/Dockerfile
     image: alecs-mcp-server-akamai:latest
     container_name: alecs-mcp
     restart: unless-stopped
@@ -46,7 +46,7 @@ services:
   alecs-dev:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: build/docker/Dockerfile.dev
     image: alecs-mcp-server-akamai:dev
     container_name: alecs-mcp-dev
     restart: unless-stopped
@@ -75,7 +75,7 @@ services:
   alecs-test:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: build/docker/Dockerfile
       target: builder
     image: alecs-mcp-server-akamai:test
     container_name: alecs-mcp-test
@@ -96,7 +96,7 @@ services:
   alecs-build:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: build/docker/Dockerfile
       target: builder
     image: alecs-mcp-server-akamai:builder
     container_name: alecs-mcp-build
