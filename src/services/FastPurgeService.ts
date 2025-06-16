@@ -1,6 +1,5 @@
-import { EdgeGridClientFactory } from '../utils/edgegrid-client';
-import { CustomerConfigManager } from '../utils/customer-config';
-import { ResilienceManager } from '../utils/resilience-manager';
+import { EdgeGridClient } from '../utils/edgegrid-client';
+import { ResilienceManager, OperationType } from '../utils/resilience-manager';
 import { logger } from '../utils/logger';
 import { AkamaiError } from '../utils/errors';
 
@@ -101,8 +100,7 @@ class TokenBucket {
 
 export class FastPurgeService {
   private static instance: FastPurgeService;
-  private clientFactory: EdgeGridClientFactory;
-  private configManager: CustomerConfigManager;
+  private clients: Map<string, EdgeGridClient> = new Map();
   private resilienceManager: ResilienceManager;
   private rateLimiters: Map<string, TokenBucket> = new Map();
   
@@ -112,13 +110,16 @@ export class FastPurgeService {
   private readonly INITIAL_RETRY_DELAY = 1000; // 1 second
   private readonly MAX_RETRY_DELAY = 16000; // 16 seconds
   private readonly MAX_RETRIES = 5;
-  private readonly CIRCUIT_FAILURE_THRESHOLD = 5;
-  private readonly CIRCUIT_RECOVERY_TIME = 60000; // 60 seconds
 
   private constructor() {
-    this.clientFactory = EdgeGridClientFactory.getInstance();
-    this.configManager = CustomerConfigManager.getInstance();
     this.resilienceManager = ResilienceManager.getInstance();
+  }
+  
+  private getClient(customer: string): EdgeGridClient {
+    if (!this.clients.has(customer)) {
+      this.clients.set(customer, EdgeGridClient.getInstance(customer));
+    }
+    return this.clients.get(customer)!;
   }
 
   static getInstance(): FastPurgeService {
@@ -162,7 +163,7 @@ export class FastPurgeService {
   }
 
   private async executeWithRetry<T>(
-    customer: string,
+    _customer: string,
     operation: () => Promise<T>,
     context: string
   ): Promise<T> {
@@ -172,12 +173,8 @@ export class FastPurgeService {
     for (let attempt = 0; attempt < this.MAX_RETRIES; attempt++) {
       try {
         return await this.resilienceManager.executeWithCircuitBreaker(
-          `fastpurge-${customer}`,
-          operation,
-          {
-            failureThreshold: this.CIRCUIT_FAILURE_THRESHOLD,
-            recoveryTime: this.CIRCUIT_RECOVERY_TIME
-          }
+          OperationType.BULK_OPERATION,
+          operation
         );
       } catch (error: any) {
         lastError = error;
@@ -227,6 +224,7 @@ export class FastPurgeService {
     if (normalizedNetwork !== 'staging' && normalizedNetwork !== 'production') {
       throw new AkamaiError(
         `Invalid network: ${network}. Must be 'staging' or 'production'`,
+        400,
         'INVALID_NETWORK'
       );
     }
@@ -244,11 +242,12 @@ export class FastPurgeService {
     if (!await rateLimiter.consume(1)) {
       throw new AkamaiError(
         'Rate limit exceeded. Please wait before making more requests.',
+        429,
         'RATE_LIMIT_EXCEEDED'
       );
     }
 
-    const client = await this.clientFactory.createClient(customer);
+    const client = this.getClient(customer);
     const batchSizes = this.calculateBatchSize(urls);
     const responses: FastPurgeResponse[] = [];
     let processedCount = 0;
@@ -298,6 +297,7 @@ export class FastPurgeService {
         if (error.response?.data?.type) {
           throw new AkamaiError(
             error.response.data.detail || error.response.data.title,
+            error.response.status || 500,
             'FASTPURGE_ERROR',
             {
               type: error.response.data.type,
@@ -322,13 +322,14 @@ export class FastPurgeService {
   ): Promise<FastPurgeResponse[]> {
     const validatedNetwork = this.validateNetwork(network);
     const rateLimiter = this.getRateLimiter(customer);
-    const client = await this.clientFactory.createClient(customer);
+    const client = this.getClient(customer);
     const responses: FastPurgeResponse[] = [];
 
     for (const cpCode of cpCodes) {
       if (!await rateLimiter.consume(1)) {
         throw new AkamaiError(
           'Rate limit exceeded. Please wait before making more requests.',
+          429,
           'RATE_LIMIT_EXCEEDED'
         );
       }
@@ -372,6 +373,7 @@ export class FastPurgeService {
         if (error.response?.data?.type) {
           throw new AkamaiError(
             error.response.data.detail || error.response.data.title,
+            error.response.status || 500,
             'FASTPURGE_ERROR',
             {
               type: error.response.data.type,
@@ -399,11 +401,12 @@ export class FastPurgeService {
     if (!await rateLimiter.consume(1)) {
       throw new AkamaiError(
         'Rate limit exceeded. Please wait before making more requests.',
+        429,
         'RATE_LIMIT_EXCEEDED'
       );
     }
 
-    const client = await this.clientFactory.createClient(customer);
+    const client = this.getClient(customer);
     const batchSizes = this.calculateBatchSize(tags);
     const responses: FastPurgeResponse[] = [];
     let processedCount = 0;
@@ -452,6 +455,7 @@ export class FastPurgeService {
         if (error.response?.data?.type) {
           throw new AkamaiError(
             error.response.data.detail || error.response.data.title,
+            error.response.status || 500,
             'FASTPURGE_ERROR',
             {
               type: error.response.data.type,
@@ -472,7 +476,7 @@ export class FastPurgeService {
     customer: string,
     purgeId: string
   ): Promise<PurgeStatus> {
-    const client = await this.clientFactory.createClient(customer);
+    const client = this.getClient(customer);
 
     try {
       const response = await this.executeWithRetry(
@@ -508,6 +512,7 @@ export class FastPurgeService {
       if (error.response?.data?.type) {
         throw new AkamaiError(
           error.response.data.detail || error.response.data.title,
+          error.response.status || 500,
           'FASTPURGE_STATUS_ERROR',
           {
             type: error.response.data.type,

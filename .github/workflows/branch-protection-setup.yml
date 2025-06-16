@@ -1,0 +1,118 @@
+name: Setup Branch Protection
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force update existing protection rules'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  setup-branch-protection:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Branch Protection Rules
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const branch = 'main';
+            
+            console.log(`Setting up branch protection for ${owner}/${repo}:${branch}`);
+            
+            try {
+              // Define protection rules
+              const protectionRules = {
+                required_status_checks: {
+                  strict: true,
+                  contexts: ['ci', 'test', 'build', 'lint']
+                },
+                enforce_admins: true,
+                required_pull_request_reviews: {
+                  required_approving_review_count: 1,
+                  dismiss_stale_reviews: true,
+                  require_code_owner_reviews: true,
+                  require_last_push_approval: true
+                },
+                restrictions: null,
+                allow_force_pushes: false,
+                allow_deletions: false,
+                block_creations: false,
+                required_conversation_resolution: true,
+                required_linear_history: true
+              };
+              
+              // Apply protection rules
+              const response = await github.rest.repos.updateBranchProtection({
+                owner: owner,
+                repo: repo,
+                branch: branch,
+                ...protectionRules
+              });
+              
+              console.log('✅ Branch protection rules applied successfully');
+              console.log('Protection details:', JSON.stringify(response.data, null, 2));
+              
+              // Verify the protection was applied
+              const verification = await github.rest.repos.getBranchProtection({
+                owner: owner,
+                repo: repo,
+                branch: branch
+              });
+              
+              console.log('✅ Branch protection verified');
+              
+            } catch (error) {
+              console.error('❌ Failed to setup branch protection:', error.message);
+              
+              if (error.status === 403) {
+                console.error('Permission denied. Ensure the token has admin permissions.');
+              } else if (error.status === 404) {
+                console.error('Branch not found or repository access denied.');
+              }
+              
+              throw error;
+            }
+
+      - name: Validate CI Workflows
+        run: |
+          echo "Validating CI workflows exist..."
+          
+          if [ ! -f ".github/workflows/ci.yml" ]; then
+            echo "⚠️  Warning: .github/workflows/ci.yml not found"
+            echo "Branch protection requires 'ci' status check"
+          fi
+          
+          if [ ! -f "package.json" ]; then
+            echo "⚠️  Warning: package.json not found"
+            echo "Test and build status checks require package.json"
+          fi
+          
+          echo "✅ Validation complete"
+
+      - name: Display Protection Summary
+        run: |
+          echo "🛡️  Branch Protection Summary"
+          echo "================================"
+          echo "Branch: main"
+          echo "Required Reviews: 1"
+          echo "Required Status Checks: ci, test, build, lint"
+          echo "Force Push: Disabled"
+          echo "Delete Protection: Enabled"
+          echo "Admin Enforcement: Enabled"
+          echo "Code Owner Reviews: Required"
+          echo "Conversation Resolution: Required"
+          echo "Linear History: Required"
+          echo ""
+          echo "Next Steps:"
+          echo "1. Ensure CI workflows are properly configured"
+          echo "2. Add team members as collaborators if needed"
+          echo "3. Test with a pull request"
+          echo "4. Update team on new workflow requirements"

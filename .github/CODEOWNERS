@@ -1,0 +1,35 @@
+# Global code owners
+* @acedergr
+
+# Core infrastructure and configuration
+/.github/ @acedergr
+/build/ @acedergr
+/scripts/ @acedergr
+*.json @acedergr
+*.yml @acedergr
+*.yaml @acedergr
+
+# Source code - require review for all changes
+/src/ @acedergr
+
+# Critical files that require extra scrutiny
+/package.json @acedergr
+/package-lock.json @acedergr
+/.env* @acedergr
+/.edgerc @acedergr
+/CLAUDE.md @acedergr
+/README.md @acedergr
+
+# Documentation updates
+/docs/ @acedergr
+*.md @acedergr
+
+# Tests - ensure quality standards
+/src/__tests__/ @acedergr
+/tests/ @acedergr
+/jest.config.js @acedergr
+
+# Security and deployment
+/Dockerfile @acedergr
+/docker-compose*.yml @acedergr
+/.gitignore @acedergr

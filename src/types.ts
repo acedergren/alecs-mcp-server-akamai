@@ -154,3 +154,76 @@ export interface DNSRecordSet {
   ttl: number;
   rdata: string[];
 }
+
+// Network Lists Types
+export interface NetworkList {
+  uniqueId: string;
+  name: string;
+  type: 'IP' | 'GEO' | 'ASN';
+  description?: string;
+  list: string[];
+  numEntries: number;
+  elementCount: number;
+  productionStatus?: string;
+  stagingStatus?: string;
+  productionActivationId?: string;
+  stagingActivationId?: string;
+  createDate: string;
+  createdBy: string;
+  updateDate: string;
+  updatedBy: string;
+  shared: boolean;
+  syncPoint?: number;
+  contractId?: string;
+  groupId?: string;
+}
+
+export interface NetworkListResponse {
+  networkLists: NetworkList[];
+  links?: {
+    create: {
+      href: string;
+    };
+  };
+}
+
+export interface NetworkListItem {
+  value: string;
+  description?: string;
+}
+
+export interface NetworkListActivation {
+  activationId: string;
+  uniqueId: string;
+  name: string;
+  network: 'STAGING' | 'PRODUCTION';
+  status: 'PENDING' | 'ACTIVE' | 'FAILED' | 'INACTIVE';
+  dispatchCount: number;
+  comments?: string;
+  links?: {
+    activationStatus: {
+      href: string;
+    };
+  };
+}
+
+export interface NetworkListBulkUpdate {
+  uniqueId: string;
+  syncPoint: number;
+  add?: string[];
+  remove?: string[];
+}
+
+export interface GeographicLocation {
+  countryCode: string;
+  countryName: string;
+  subdivisionCode?: string;
+  subdivisionName?: string;
+  cityName?: string;
+}
+
+export interface ASNInfo {
+  asn: number;
+  name: string;
+  description?: string;
+}

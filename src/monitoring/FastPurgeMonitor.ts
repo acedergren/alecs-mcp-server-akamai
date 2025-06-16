@@ -300,13 +300,13 @@ export class FastPurgeMonitor {
     }
 
     // Assess queue health
-    const queueHealth = queueStats.failed > queueStats.completed * 0.1 ? 'degraded' : 'healthy';
+    const queueHealth: 'healthy' | 'unhealthy' | 'degraded' = queueStats.failed > queueStats.completed * 0.1 ? 'degraded' : 'healthy';
     
     // Assess status tracker health
-    const statusHealth = dashboard.performance.successRate < 95 ? 'degraded' : 'healthy';
+    const statusHealth: 'healthy' | 'unhealthy' | 'degraded' = dashboard.performance.successRate < 95 ? 'degraded' : 'healthy';
     
     // Assess rate limiting health
-    const rateLimitHealth = rateLimitStatus.available < 10 ? 'degraded' : 'healthy';
+    const rateLimitHealth: 'healthy' | 'unhealthy' | 'degraded' = rateLimitStatus.available < 10 ? 'degraded' : 'healthy';
 
     const components = {
       fastPurgeApi: apiHealth,

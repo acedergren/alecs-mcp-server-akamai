@@ -1,5 +1,4 @@
-import { FastPurgeService, PurgeStatus, FastPurgeResponse } from './FastPurgeService';
-import { QueueItem } from './PurgeQueueManager';
+import { FastPurgeService, FastPurgeResponse } from './FastPurgeService';
 import { logger } from '../utils/logger';
 import { promises as fs } from 'fs';
 import * as path from 'path';

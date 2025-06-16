@@ -27,41 +27,47 @@ export async function createACMEValidationRecords(
     autoDetectZones?: boolean;
   }
 ): Promise<MCPToolResponse> {
-  const spinner = new Spinner('Fetching certificate validation requirements...');
-  spinner.start();
+  const spinner = new Spinner();
+  spinner.start('Fetching certificate validation requirements...');
 
   try {
     // Get validation challenges
     const challengesResponse = await getDVValidationChallenges(client, {
       enrollmentId: args.enrollmentId,
-      customer: args.customer,
     });
 
     spinner.stop();
 
-    if (challengesResponse.isError) {
+    // Check if there's an error in the response
+    const responseText = Array.isArray(challengesResponse.content) 
+      ? challengesResponse.content[0]?.text || ''
+      : '';
+    
+    if (responseText.includes('❌') || responseText.includes('Error')) {
       return challengesResponse;
     }
 
     // Parse DNS records from the response
     const content = Array.isArray(challengesResponse.content) 
-      ? challengesResponse.content[0].text 
-      : challengesResponse.content;
+      ? challengesResponse.content[0]?.text || ''
+      : challengesResponse.content || '';
 
     const records = parseACMERecords(content);
 
     if (records.length === 0) {
       return {
-        content: '✅ No DNS validation records needed - certificate may already be validated!',
-        isError: false,
+        content: [{
+          type: 'text',
+          text: '✅ No DNS validation records needed - certificate may already be validated!'
+        }],
       };
     }
 
     console.log(`\n📋 Found ${records.length} ACME validation records to create`);
 
     // Create records
-    const progressBar = new ProgressBar('Creating ACME validation records', records.length);
-    progressBar.start();
+    const progressBar = new ProgressBar({ total: records.length });
+    progressBar.update({ current: 0, message: 'Creating ACME validation records' });
 
     const results = {
       successful: 0,
@@ -78,7 +84,6 @@ export async function createACMEValidationRecords(
           type: 'TXT',
           ttl: 300,
           rdata: [record.recordValue],
-          customer: args.customer,
           comment: `ACME validation for certificate enrollment ${args.enrollmentId}`,
         });
 
@@ -94,7 +99,6 @@ export async function createACMEValidationRecords(
               type: 'TXT',
               ttl: 300,
               rdata: [record.recordValue],
-              customer: args.customer,
               comment: `ACME validation for certificate enrollment ${args.enrollmentId}`,
             });
             results.successful++;
@@ -117,7 +121,7 @@ export async function createACMEValidationRecords(
       progressBar.increment();
     }
 
-    progressBar.stop();
+    progressBar.finish('ACME validation records processed');
 
     // Generate report
     let report = `# 🔐 ACME DNS Validation Records Created\n\n`;
@@ -157,15 +161,19 @@ export async function createACMEValidationRecords(
     report += `They are only needed for initial validation.\n`;
 
     return {
-      content: report,
-      isError: false,
+      content: [{
+        type: 'text',
+        text: report
+      }],
     };
 
   } catch (error) {
     spinner.stop();
     return {
-      content: `❌ Failed to create ACME validation records: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      isError: true,
+      content: [{
+        type: 'text',
+        text: `❌ Failed to create ACME validation records: ${error instanceof Error ? error.message : 'Unknown error'}`
+      }],
     };
   }
 }
@@ -185,7 +193,7 @@ function parseACMERecords(content: string): ACMERecord[] {
   for (const line of lines) {
     // Detect domain sections
     const domainMatch = line.match(/###\s+[✅❌⏳🔄❓]\s+(.+)/);
-    if (domainMatch) {
+    if (domainMatch && domainMatch[1]) {
       currentDomain = domainMatch[1];
       continue;
     }
@@ -199,12 +207,12 @@ function parseACMERecords(content: string): ACMERecord[] {
     // Parse record details
     if (inDNSChallenge) {
       const nameMatch = line.match(/Record Name:\s+`([^`]+)`/);
-      if (nameMatch) {
+      if (nameMatch && nameMatch[1]) {
         recordName = nameMatch[1];
       }
 
       const valueMatch = line.match(/Record Value:\s+`([^`]+)`/);
-      if (valueMatch) {
+      if (valueMatch && valueMatch[1]) {
         recordValue = valueMatch[1];
         
         // We have both name and value, create record
@@ -257,17 +265,16 @@ export async function monitorCertificateValidation(
   console.log(`\n🔍 Monitoring certificate validation for enrollment ${args.enrollmentId}`);
   console.log(`⏱️  Will check every ${args.checkIntervalSeconds || 30} seconds for up to ${args.maxWaitMinutes || 30} minutes\n`);
 
-  const spinner = new Spinner('Checking validation status...');
+  const spinner = new Spinner();
   
   while (Date.now() - startTime < maxWait) {
-    spinner.start();
+    spinner.start('Checking validation status...');
     
     try {
       // Check enrollment status
       const response = await client.request({
         method: 'GET',
         path: `/cps/v2/enrollments/${args.enrollmentId}`,
-        customer: args.customer,
       });
 
       const enrollment = response.data;
@@ -291,13 +298,14 @@ export async function monitorCertificateValidation(
       console.log(`${'─'.repeat(50)}`);
       
       enrollment.allowedDomains.forEach((domain: any) => {
-        const emoji = {
+        const statusMap: Record<string, string> = {
           'VALIDATED': '✅',
           'PENDING': '⏳',
           'IN_PROGRESS': '🔄',
           'ERROR': '❌',
           'EXPIRED': '⚠️',
-        }[domain.validationStatus] || '❓';
+        };
+        const emoji = statusMap[domain.validationStatus] || '❓';
         
         console.log(`${emoji} ${domain.name}: ${domain.validationStatus}`);
       });
@@ -305,8 +313,10 @@ export async function monitorCertificateValidation(
       if (errorDomains.length > 0) {
         console.log(`\n❌ Validation failed for ${errorDomains.length} domain(s)`);
         return {
-          content: `Certificate validation failed. Please check the validation challenges and try again.`,
-          isError: true,
+          content: [{
+            type: 'text',
+            text: 'Certificate validation failed. Please check the validation challenges and try again.'
+          }],
         };
       }
 
@@ -315,8 +325,10 @@ export async function monitorCertificateValidation(
         console.log(`🚀 Certificate deployment will begin automatically.`);
         
         return {
-          content: `# ✅ Certificate Validation Complete!\n\nAll domains have been successfully validated. Certificate deployment is now in progress.\n\n**Next steps:**\n1. Wait for deployment (typically 30-60 minutes)\n2. Check status: "Check DV enrollment status ${args.enrollmentId}"\n3. Link to property once active`,
-          isError: false,
+          content: [{
+            type: 'text',
+            text: `# ✅ Certificate Validation Complete!\n\nAll domains have been successfully validated. Certificate deployment is now in progress.\n\n**Next steps:**\n1. Wait for deployment (typically 30-60 minutes)\n2. Check status: "Check DV enrollment status ${args.enrollmentId}"\n3. Link to property once active`
+          }],
         };
       }
 
@@ -336,7 +348,9 @@ export async function monitorCertificateValidation(
   }
 
   return {
-    content: `⏱️ Validation monitoring timed out after ${args.maxWaitMinutes} minutes. Please check the status manually: "Check DV enrollment status ${args.enrollmentId}"`,
-    isError: true,
+    content: [{
+      type: 'text',
+      text: `⏱️ Validation monitoring timed out after ${args.maxWaitMinutes || 30} minutes. Please check the status manually: "Check DV enrollment status ${args.enrollmentId}"`
+    }],
   };
 }

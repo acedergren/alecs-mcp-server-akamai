@@ -4,9 +4,8 @@
  */
 
 import { AkamaiClient } from '../akamai-client.js';
-import { MCPToolResponse, RuleTree } from '../types.js';
+import { MCPToolResponse } from '../types.js';
 import { logger } from '../utils/logger.js';
-import { AkamaiError } from '../utils/errors.js';
 
 // Rule tree specific types
 export interface RuleValidationResult {
@@ -35,7 +34,7 @@ export interface RuleValidationWarning {
 }
 
 export interface RuleOptimizationSuggestion {
-  type: 'consolidation' | 'reordering' | 'caching' | 'security';
+  type: 'consolidation' | 'reordering' | 'caching' | 'security' | 'compression' | 'performance';
   impact: 'high' | 'medium' | 'low';
   path: string;
   description: string;
@@ -101,7 +100,7 @@ export interface PerformanceCategory {
 }
 
 // Pre-defined rule templates
-const RULE_TEMPLATES: Map<string, RuleTemplate> = new Map([
+const RULE_TEMPLATES = new Map<string, RuleTemplate>([
   ['performance-basic', {
     id: 'performance-basic',
     name: 'Basic Performance Optimization',
@@ -332,17 +331,16 @@ export async function updatePropertyRulesEnhanced(client: AkamaiClient, args: {
     }
 
     // Update rules
-    const response = await client.request({
-      customer: args.customer,
+    await client.request({
       method: 'PUT',
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/rules`,
       headers: {
         'Content-Type': 'application/vnd.akamai.papirules.latest+json',
       },
-      params: {
+      queryParams: {
         contractId: args.contractId,
         groupId: args.groupId,
-        validateRules: true,
+        validateRules: 'true',
       },
       body: {
         rules: optimizedRules,
@@ -380,7 +378,7 @@ export async function updatePropertyRulesEnhanced(client: AkamaiClient, args: {
 /**
  * Create rule tree from template
  */
-export async function createRuleFromTemplate(client: AkamaiClient, args: {
+export async function createRuleFromTemplate(_client: AkamaiClient, args: {
   customer?: string;
   templateId: string;
   variables?: Record<string, any>;
@@ -472,7 +470,7 @@ export async function createRuleFromTemplate(client: AkamaiClient, args: {
 /**
  * Validate rule tree with comprehensive analysis
  */
-export async function validateRuleTree(client: AkamaiClient, args: {
+export async function validateRuleTree(_client: AkamaiClient, args: {
   customer?: string;
   propertyId?: string;
   version?: number;
@@ -566,7 +564,7 @@ export async function validateRuleTree(client: AkamaiClient, args: {
 /**
  * Merge rule trees with conflict resolution
  */
-export async function mergeRuleTrees(client: AkamaiClient, args: {
+export async function mergeRuleTrees(_client: AkamaiClient, args: {
   customer?: string;
   sourceRules: any;
   targetRules: any;
@@ -631,7 +629,7 @@ export async function mergeRuleTrees(client: AkamaiClient, args: {
 
     if (mergeResult.conflicts.length > 0) {
       text += `**Conflict Details:**\n`;
-      mergeResult.conflicts.slice(0, 5).forEach((conflict, index) => {
+      mergeResult.conflicts.slice(0, 5).forEach((conflict: any, index: number) => {
         text += `${index + 1}. ${conflict.path}\n`;
         text += `   Type: ${conflict.type}\n`;
         text += `   Resolution: ${conflict.resolution}\n\n`;
@@ -669,7 +667,7 @@ export async function mergeRuleTrees(client: AkamaiClient, args: {
 /**
  * Optimize rule tree for performance
  */
-export async function optimizeRuleTree(client: AkamaiClient, args: {
+export async function optimizeRuleTree(_client: AkamaiClient, args: {
   customer?: string;
   rules: any;
   optimizationLevel?: 'basic' | 'standard' | 'aggressive';
@@ -764,7 +762,7 @@ export async function optimizeRuleTree(client: AkamaiClient, args: {
 /**
  * List available rule templates
  */
-export async function listRuleTemplates(client: AkamaiClient, args: {
+export async function listRuleTemplates(_client: AkamaiClient, args: {
   customer?: string;
   category?: string;
   tags?: string[];
@@ -838,7 +836,7 @@ export async function listRuleTemplates(client: AkamaiClient, args: {
 
 // Helper functions
 
-async function validateRuleTreeInternal(rules: any, context: any): Promise<RuleValidationResult> {
+async function validateRuleTreeInternal(rules: any, _context: any): Promise<RuleValidationResult> {
   const errors: RuleValidationError[] = [];
   const warnings: RuleValidationWarning[] = [];
   const suggestions: RuleOptimizationSuggestion[] = [];
@@ -1017,7 +1015,7 @@ function validateCachingBehavior(
 function validateCompressionBehavior(
   behavior: any,
   path: string,
-  warnings: RuleValidationWarning[],
+  _warnings: RuleValidationWarning[],
   suggestions: RuleOptimizationSuggestion[]
 ): void {
   const options = behavior.options || {};
@@ -1037,7 +1035,7 @@ function validateCompressionBehavior(
 function validateHttp2Behavior(
   behavior: any,
   path: string,
-  warnings: RuleValidationWarning[],
+  _warnings: RuleValidationWarning[],
   suggestions: RuleOptimizationSuggestion[]
 ): void {
   const options = behavior.options || {};
@@ -1120,7 +1118,7 @@ function calculatePerformanceScore(rules: any, warnings: RuleValidationWarning[]
 }
 
 function calculateComplianceScore(
-  rules: any,
+  _rules: any,
   errors: RuleValidationError[],
   warnings: RuleValidationWarning[]
 ): number {
@@ -1556,7 +1554,7 @@ function generateOptimizations(
   const optimizations: RuleOptimizationSuggestion[] = [];
   
   // Analyze current state
-  const analysis = analyzeRulePerformance(rules);
+  analyzeRulePerformance(rules);
   
   // Generate optimizations based on level and target metrics
   if (options.targetMetrics.includes('speed')) {
@@ -1633,7 +1631,7 @@ function applyOptimizations(
   return optimizedRules;
 }
 
-function applyCachingOptimization(rules: any, optimization: RuleOptimizationSuggestion): void {
+function applyCachingOptimization(rules: any, _optimization: RuleOptimizationSuggestion): void {
   // Add or update caching behavior
   const existingCaching = rules.behaviors.find((b: any) => b.name === 'caching');
   
@@ -1649,7 +1647,7 @@ function applyCachingOptimization(rules: any, optimization: RuleOptimizationSugg
   }
 }
 
-function applyCompressionOptimization(rules: any, optimization: RuleOptimizationSuggestion): void {
+function applyCompressionOptimization(rules: any, _optimization: RuleOptimizationSuggestion): void {
   // Add compression behaviors
   if (!rules.behaviors.find((b: any) => b.name === 'gzipResponse')) {
     rules.behaviors.push({
@@ -1673,7 +1671,7 @@ function applyPerformanceOptimization(rules: any, optimization: RuleOptimization
   }
 }
 
-function applySecurityOptimization(rules: any, optimization: RuleOptimizationSuggestion): void {
+function applySecurityOptimization(rules: any, _optimization: RuleOptimizationSuggestion): void {
   // Add security headers
   if (!rules.behaviors.find((b: any) => b.name === 'modifyOutgoingResponseHeader')) {
     rules.behaviors.push({

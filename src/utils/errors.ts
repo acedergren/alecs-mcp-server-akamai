@@ -374,6 +374,31 @@ function getFixSuggestion(error: string): string {
 }
 
 /**
+ * Custom error class for Akamai API errors
+ */
+export class AkamaiError extends Error {
+  statusCode?: number;
+  errorCode?: string;
+  code?: string;
+  reference?: string;
+  details?: any;
+
+  constructor(message: string, statusCode?: number, errorCode?: string, details?: any) {
+    super(message);
+    this.name = 'AkamaiError';
+    this.statusCode = statusCode;
+    this.errorCode = errorCode;
+    this.code = errorCode; // Alias for compatibility
+    this.details = details;
+    
+    // Extract reference if present in details
+    if (details?.reference) {
+      this.reference = details.reference;
+    }
+  }
+}
+
+/**
  * Error recovery helper
  */
 export class ErrorRecovery {

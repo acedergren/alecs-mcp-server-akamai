@@ -393,7 +393,15 @@ export class ErrorClassifier {
 
 // Resilience manager
 export class ResilienceManager {
+  private static instance: ResilienceManager;
   private circuitBreakers: Map<OperationType, CircuitBreaker> = new Map();
+
+  static getInstance(): ResilienceManager {
+    if (!ResilienceManager.instance) {
+      ResilienceManager.instance = new ResilienceManager();
+    }
+    return ResilienceManager.instance;
+  }
   private errorTranslator: ErrorTranslator = new ErrorTranslator();
   
   // Default configurations
@@ -422,6 +430,18 @@ export class ResilienceManager {
     });
   }
   
+  async executeWithCircuitBreaker<T>(
+    operationType: OperationType,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    const circuitBreaker = this.circuitBreakers.get(operationType);
+    if (!circuitBreaker) {
+      throw new Error(`No circuit breaker configured for operation type: ${operationType}`);
+    }
+    
+    return circuitBreaker.execute(operation);
+  }
+
   async executeWithResilience<T>(
     operationType: OperationType,
     operation: () => Promise<T>,

@@ -1205,7 +1205,6 @@ export async function createPropertyVersionEnhanced(client: AkamaiClient, args: 
     // Intelligent base version selection
     if (args.autoSelectBase && !baseVersion) {
       const versionsResponse = await client.request({
-        customer: args.customer,
         method: 'GET',
         path: `/papi/v1/properties/${args.propertyId}/versions`,
       });
@@ -1228,7 +1227,6 @@ export async function createPropertyVersionEnhanced(client: AkamaiClient, args: 
 
     // Create new version
     const response = await client.request({
-      customer: args.customer,
       method: 'POST',
       path: `/papi/v1/properties/${args.propertyId}/versions`,
       body: baseVersion ? { createFromVersion: baseVersion } : {},
@@ -1266,7 +1264,6 @@ export async function createPropertyVersionEnhanced(client: AkamaiClient, args: 
       
       if (patches.length > 0) {
         await client.request({
-          customer: args.customer,
           method: 'PATCH',
           path: `/papi/v1/properties/${args.propertyId}/versions/${newVersion}`,
           body: patches,
@@ -1318,12 +1315,10 @@ export async function getVersionDiff(client: AkamaiClient, args: {
     if (compareType === 'rules' || compareType === 'all') {
       const [rules1Response, rules2Response] = await Promise.all([
         client.request({
-          customer: args.customer,
           method: 'GET',
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version1}/rules`,
         }),
         client.request({
-          customer: args.customer,
           method: 'GET',
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version2}/rules`,
         })
@@ -1348,12 +1343,10 @@ export async function getVersionDiff(client: AkamaiClient, args: {
     if (compareType === 'hostnames' || compareType === 'all') {
       const [hostnames1Response, hostnames2Response] = await Promise.all([
         client.request({
-          customer: args.customer,
           method: 'GET',
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version1}/hostnames`,
         }),
         client.request({
-          customer: args.customer,
           method: 'GET',
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version2}/hostnames`,
         })
@@ -1426,7 +1419,6 @@ export async function listPropertyVersionsEnhanced(client: AkamaiClient, args: {
 }): Promise<MCPToolResponse> {
   try {
     const response = await client.request({
-      customer: args.customer,
       method: 'GET',
       path: `/papi/v1/properties/${args.propertyId}/versions`,
     });
@@ -1528,8 +1520,7 @@ export async function rollbackPropertyVersion(client: AkamaiClient, args: {
     // Create backup of current version if requested
     if (args.createBackup !== false) {
       const currentVersionResponse = await client.request({
-        customer: args.customer,
-        method: 'GET',
+          method: 'GET',
         path: `/papi/v1/properties/${args.propertyId}/versions`,
       });
       
@@ -1537,8 +1528,7 @@ export async function rollbackPropertyVersion(client: AkamaiClient, args: {
       const latestVersion = Math.max(...versions.map((v: any) => v.propertyVersion));
       
       const backupResponse = await client.request({
-        customer: args.customer,
-        method: 'POST',
+          method: 'POST',
         path: `/papi/v1/properties/${args.propertyId}/versions`,
         body: { createFromVersion: latestVersion },
       });
@@ -1548,7 +1538,6 @@ export async function rollbackPropertyVersion(client: AkamaiClient, args: {
       // Add backup note
       if (backupVersionId) {
         await client.request({
-          customer: args.customer,
           method: 'PATCH',
           path: `/papi/v1/properties/${args.propertyId}/versions/${backupVersionId}`,
           body: [{
@@ -1562,7 +1551,6 @@ export async function rollbackPropertyVersion(client: AkamaiClient, args: {
 
     // Create new version from target version
     const rollbackResponse = await client.request({
-      customer: args.customer,
       method: 'POST',
       path: `/papi/v1/properties/${args.propertyId}/versions`,
       body: { createFromVersion: args.targetVersion },
@@ -1573,8 +1561,7 @@ export async function rollbackPropertyVersion(client: AkamaiClient, args: {
     // Add rollback note
     if (newVersionId && args.note) {
       await client.request({
-        customer: args.customer,
-        method: 'PATCH',
+          method: 'PATCH',
         path: `/papi/v1/properties/${args.propertyId}/versions/${newVersionId}`,
         body: [{
           op: 'replace',
@@ -1596,7 +1583,6 @@ export async function rollbackPropertyVersion(client: AkamaiClient, args: {
     if (args.autoActivate && args.network) {
       try {
         await client.request({
-          customer: args.customer,
           method: 'POST',
           path: `/papi/v1/properties/${args.propertyId}/activations`,
           body: {
@@ -1658,22 +1644,22 @@ export async function batchVersionOperations(client: AkamaiClient, args: {
           switch (op.operation) {
             case 'create':
               result = await createPropertyVersionEnhanced(client, {
-                customer: args.customer,
-                propertyId: op.propertyId,
+                      propertyId: op.propertyId,
                 ...op.parameters
               });
               break;
             case 'rollback':
               result = await rollbackPropertyVersion(client, {
-                customer: args.customer,
                 propertyId: op.propertyId,
+                targetVersion: op.parameters.targetVersion || 1,
                 ...op.parameters
               });
               break;
             case 'compare':
               result = await getVersionDiff(client, {
-                customer: args.customer,
                 propertyId: op.propertyId,
+                version1: op.parameters.version1 || 1,
+                version2: op.parameters.version2 || 2,
                 ...op.parameters
               });
               break;
@@ -1681,8 +1667,8 @@ export async function batchVersionOperations(client: AkamaiClient, args: {
               throw new Error(`Unknown operation: ${op.operation}`);
           }
           return { index, success: true, result, propertyId: op.propertyId };
-        } catch (error) {
-          return { index, success: false, error: error.message, propertyId: op.propertyId };
+        } catch (error: any) {
+          return { index, success: false, error: error?.message || 'Unknown error', propertyId: op.propertyId };
         }
       });
       
@@ -1690,44 +1676,44 @@ export async function batchVersionOperations(client: AkamaiClient, args: {
       
       allResults.forEach((promiseResult, index) => {
         if (promiseResult.status === 'fulfilled') {
-          const { success, result, error, propertyId } = promiseResult.value;
-          if (success) {
-            results.push({ propertyId, operation: args.operations[index].operation, result });
-          } else {
-            errors.push({ propertyId, operation: args.operations[index].operation, error });
+          const { success, result, error, propertyId } = promiseResult.value || {};
+          if (success && result) {
+            results.push({ propertyId: propertyId || '', operation: args.operations[index]?.operation || '', result });
+          } else if (error) {
+            errors.push({ propertyId: propertyId || '', operation: args.operations[index]?.operation || '', error });
           }
         } else {
           errors.push({ 
-            propertyId: args.operations[index].propertyId, 
-            operation: args.operations[index].operation, 
+            propertyId: args.operations[index]?.propertyId || '', 
+            operation: args.operations[index]?.operation || '', 
             error: promiseResult.reason 
           });
         }
       });
     } else {
       // Execute operations sequentially
-      for (const [index, op] of args.operations.entries()) {
+      for (const [_index, op] of args.operations.entries()) {
         try {
           let result;
           switch (op.operation) {
             case 'create':
               result = await createPropertyVersionEnhanced(client, {
-                customer: args.customer,
-                propertyId: op.propertyId,
+                      propertyId: op.propertyId,
                 ...op.parameters
               });
               break;
             case 'rollback':
               result = await rollbackPropertyVersion(client, {
-                customer: args.customer,
                 propertyId: op.propertyId,
+                targetVersion: op.parameters.targetVersion || 1,
                 ...op.parameters
               });
               break;
             case 'compare':
               result = await getVersionDiff(client, {
-                customer: args.customer,
                 propertyId: op.propertyId,
+                version1: op.parameters.version1 || 1,
+                version2: op.parameters.version2 || 2,
                 ...op.parameters
               });
               break;
@@ -1735,8 +1721,8 @@ export async function batchVersionOperations(client: AkamaiClient, args: {
               throw new Error(`Unknown operation: ${op.operation}`);
           }
           results.push({ propertyId: op.propertyId, operation: op.operation, result });
-        } catch (error) {
-          errors.push({ propertyId: op.propertyId, operation: op.operation, error: error.message });
+        } catch (error: any) {
+          errors.push({ propertyId: op.propertyId, operation: op.operation, error: error?.message || 'Unknown error' });
           
           if (!args.continueOnError) {
             break;
@@ -1786,7 +1772,7 @@ export async function batchVersionOperations(client: AkamaiClient, args: {
 /**
  * Helper function to compare rule trees and identify differences
  */
-function compareRuleTrees(rules1: any, rules2: any, includeDetails: boolean): any[] {
+function compareRuleTrees(rules1: any, rules2: any, _includeDetails: boolean): any[] {
   const differences = [];
   
   // Deep comparison logic would go here
@@ -1815,7 +1801,7 @@ function compareHostnames(hostnames1: any[], hostnames2: any[]): any[] {
   const h2Map = new Map(hostnames2.map(h => [h.cnameFrom, h]));
   
   // Check for added hostnames
-  for (const [hostname, config] of h2Map) {
+  for (const [hostname, _config] of h2Map) {
     if (!h1Map.has(hostname)) {
       differences.push({
         type: 'hostname_added',
@@ -1826,7 +1812,7 @@ function compareHostnames(hostnames1: any[], hostnames2: any[]): any[] {
   }
   
   // Check for removed hostnames
-  for (const [hostname, config] of h1Map) {
+  for (const [hostname, _config] of h1Map) {
     if (!h2Map.has(hostname)) {
       differences.push({
         type: 'hostname_removed',

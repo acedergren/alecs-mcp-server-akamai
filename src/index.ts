@@ -83,6 +83,16 @@ import {
   linkCertificateToProperty
 } from './tools/cps-tools.js';
 import {
+  enrollCertificateWithValidation,
+  validateCertificateEnrollment,
+  deployCertificateToNetwork,
+  monitorCertificateEnrollment,
+  getCertificateDeploymentStatus,
+  renewCertificate,
+  cleanupValidationRecords,
+  getCertificateValidationHistory
+} from './tools/certificate-enrollment-tools.js';
+import {
   importZoneViaAXFR,
   parseZoneFile,
   bulkImportRecords,
@@ -213,6 +223,43 @@ import {
   identifyOwnershipPatterns
 } from './tools/hostname-discovery-engine.js';
 import { fastPurgeTools } from './tools/fastpurge-tools.js';
+import {
+  createEdgeHostnameEnhanced,
+  createBulkEdgeHostnames,
+  getEdgeHostnameDetails,
+  generateEdgeHostnameRecommendations as generateEdgeHostnameRecommendationsEnhanced,
+  validateEdgeHostnameCertificate,
+  associateCertificateWithEdgeHostname
+} from './tools/edge-hostname-management.js';
+import {
+  createBulkProvisioningPlan,
+  executeBulkProvisioning,
+  validateBulkDNS,
+  bulkUpdateHostnameProperties
+} from './tools/bulk-hostname-operations.js';
+import {
+  listNetworkLists,
+  getNetworkList,
+  createNetworkList,
+  updateNetworkList,
+  deleteNetworkList,
+  activateNetworkList,
+  getNetworkListActivationStatus,
+  listNetworkListActivations,
+  deactivateNetworkList,
+  bulkActivateNetworkLists,
+  importNetworkListFromCSV,
+  exportNetworkListToCSV,
+  bulkUpdateNetworkLists,
+  mergeNetworkLists,
+  validateGeographicCodes,
+  getASNInformation,
+  generateGeographicBlockingRecommendations,
+  generateASNSecurityRecommendations,
+  listCommonGeographicCodes,
+  getSecurityPolicyIntegrationGuidance,
+  generateDeploymentChecklist
+} from './tools/security/network-lists-integration.js';
 
 // Tool schemas for validation
 const ListPropertiesSchema = z.object({
@@ -1053,6 +1100,165 @@ const RunLoadTestSchema = z.object({
   duration: z.number().optional(),
   rampUp: z.number().optional(),
   includeAnalysis: z.boolean().optional()
+});
+
+// Network Lists Schemas
+const ListNetworkListsSchema = z.object({
+  customer: z.string().optional(),
+  type: z.enum(['IP', 'GEO', 'ASN']).optional(),
+  search: z.string().optional(),
+  includeElements: z.boolean().optional(),
+  extended: z.boolean().optional()
+});
+
+const GetNetworkListSchema = z.object({
+  customer: z.string().optional(),
+  uniqueId: z.string(),
+  includeElements: z.boolean().optional(),
+  extended: z.boolean().optional()
+});
+
+const CreateNetworkListSchema = z.object({
+  customer: z.string().optional(),
+  name: z.string(),
+  type: z.enum(['IP', 'GEO', 'ASN']),
+  elements: z.array(z.string()),
+  description: z.string().optional(),
+  contractId: z.string().optional(),
+  groupId: z.string().optional()
+});
+
+const UpdateNetworkListSchema = z.object({
+  customer: z.string().optional(),
+  uniqueId: z.string(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+  addElements: z.array(z.string()).optional(),
+  removeElements: z.array(z.string()).optional(),
+  replaceElements: z.array(z.string()).optional()
+});
+
+const DeleteNetworkListSchema = z.object({
+  customer: z.string().optional(),
+  uniqueId: z.string()
+});
+
+const ActivateNetworkListSchema = z.object({
+  customer: z.string().optional(),
+  uniqueId: z.string(),
+  network: z.enum(['STAGING', 'PRODUCTION']),
+  comments: z.string().optional(),
+  notificationEmails: z.array(z.string()).optional(),
+  fast: z.boolean().optional()
+});
+
+const GetNetworkListActivationStatusSchema = z.object({
+  customer: z.string().optional(),
+  activationId: z.string()
+});
+
+const ListNetworkListActivationsSchema = z.object({
+  customer: z.string().optional(),
+  listType: z.enum(['IP', 'GEO', 'ASN']).optional(),
+  network: z.enum(['STAGING', 'PRODUCTION']).optional(),
+  status: z.enum(['PENDING', 'ACTIVE', 'FAILED', 'INACTIVE']).optional()
+});
+
+const DeactivateNetworkListSchema = z.object({
+  customer: z.string().optional(),
+  uniqueId: z.string(),
+  network: z.enum(['STAGING', 'PRODUCTION']),
+  comments: z.string().optional()
+});
+
+const BulkActivateNetworkListsSchema = z.object({
+  customer: z.string().optional(),
+  activations: z.array(z.object({
+    uniqueId: z.string(),
+    network: z.enum(['STAGING', 'PRODUCTION'])
+  })),
+  comments: z.string().optional(),
+  notificationEmails: z.array(z.string()).optional(),
+  waitForCompletion: z.boolean().optional(),
+  maxWaitTime: z.number().optional()
+});
+
+const ImportNetworkListFromCSVSchema = z.object({
+  customer: z.string().optional(),
+  uniqueId: z.string(),
+  csvContent: z.string(),
+  operation: z.enum(['replace', 'append', 'remove']).optional(),
+  validateElements: z.boolean().optional(),
+  skipInvalid: z.boolean().optional(),
+  dryRun: z.boolean().optional()
+});
+
+const ExportNetworkListToCSVSchema = z.object({
+  customer: z.string().optional(),
+  uniqueId: z.string(),
+  includeHeaders: z.boolean().optional(),
+  includeMetadata: z.boolean().optional()
+});
+
+const BulkUpdateNetworkListsSchema = z.object({
+  customer: z.string().optional(),
+  updates: z.array(z.object({
+    uniqueId: z.string(),
+    syncPoint: z.number(),
+    add: z.array(z.string()).optional(),
+    remove: z.array(z.string()).optional()
+  })),
+  validateElements: z.boolean().optional(),
+  skipInvalid: z.boolean().optional(),
+  continueOnError: z.boolean().optional()
+});
+
+const MergeNetworkListsSchema = z.object({
+  customer: z.string().optional(),
+  sourceListIds: z.array(z.string()),
+  targetListId: z.string(),
+  operation: z.enum(['union', 'intersection', 'difference']).optional(),
+  removeDuplicates: z.boolean().optional(),
+  deleteSourceLists: z.boolean().optional()
+});
+
+const ValidateGeographicCodesSchema = z.object({
+  customer: z.string().optional(),
+  codes: z.array(z.string())
+});
+
+const GetASNInformationSchema = z.object({
+  customer: z.string().optional(),
+  asns: z.array(z.string())
+});
+
+const GenerateGeographicBlockingRecommendationsSchema = z.object({
+  customer: z.string().optional(),
+  purpose: z.enum(['compliance', 'security', 'licensing', 'performance']).optional(),
+  allowedRegions: z.array(z.string()).optional(),
+  blockedRegions: z.array(z.string()).optional()
+});
+
+const GenerateASNSecurityRecommendationsSchema = z.object({
+  customer: z.string().optional(),
+  includeCloudProviders: z.boolean().optional(),
+  includeVPNProviders: z.boolean().optional(),
+  includeResidentialISPs: z.boolean().optional(),
+  purpose: z.enum(['bot-protection', 'fraud-prevention', 'compliance']).optional()
+});
+
+const GetSecurityPolicyIntegrationGuidanceSchema = z.object({
+  customer: z.string().optional(),
+  policyType: z.enum(['WAF', 'BOT_PROTECTION', 'RATE_LIMITING', 'ACCESS_CONTROL']).optional(),
+  listType: z.enum(['IP', 'GEO', 'ASN']).optional()
+});
+
+const GenerateDeploymentChecklistSchema = z.object({
+  customer: z.string().optional(),
+  listIds: z.array(z.string()),
+  targetNetwork: z.enum(['STAGING', 'PRODUCTION']).optional(),
+  securityLevel: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
+  includeRollbackPlan: z.boolean().optional()
 });
 
 /**
@@ -2366,6 +2572,210 @@ class AkamaiMCPServer {
               },
             },
             required: ['enrollmentId', 'propertyId'],
+          },
+        },
+        // Certificate Enrollment Tools
+        {
+          name: 'enroll_certificate_with_validation',
+          description: 'Automated certificate enrollment with DV validation',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              commonName: {
+                type: 'string',
+                description: 'Primary domain for the certificate',
+              },
+              sans: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Additional domains (Subject Alternative Names)',
+              },
+              adminContact: {
+                type: 'object',
+                properties: {
+                  firstName: { type: 'string' },
+                  lastName: { type: 'string' },
+                  email: { type: 'string' },
+                  phone: { type: 'string' },
+                },
+                required: ['firstName', 'lastName', 'email', 'phone'],
+              },
+              techContact: {
+                type: 'object',
+                properties: {
+                  firstName: { type: 'string' },
+                  lastName: { type: 'string' },
+                  email: { type: 'string' },
+                  phone: { type: 'string' },
+                },
+                required: ['firstName', 'lastName', 'email', 'phone'],
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID for billing',
+              },
+              enhancedTLS: {
+                type: 'boolean',
+                description: 'Optional: Deploy to Enhanced TLS network (default: true)',
+              },
+              quicEnabled: {
+                type: 'boolean',
+                description: 'Optional: Enable QUIC/HTTP3 support',
+              },
+              autoDeploy: {
+                type: 'boolean',
+                description: 'Optional: Automatically deploy after validation',
+              },
+              targetNetwork: {
+                type: 'string',
+                enum: ['staging', 'production'],
+                description: 'Optional: Target network for deployment',
+              },
+            },
+            required: ['commonName', 'adminContact', 'techContact', 'contractId'],
+          },
+        },
+        {
+          name: 'validate_certificate_enrollment',
+          description: 'Validate existing certificate enrollment',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              enrollmentId: {
+                type: 'number',
+                description: 'Certificate enrollment ID',
+              },
+            },
+            required: ['enrollmentId'],
+          },
+        },
+        {
+          name: 'deploy_certificate_to_network',
+          description: 'Deploy validated certificate to network',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              enrollmentId: {
+                type: 'number',
+                description: 'Certificate enrollment ID',
+              },
+              network: {
+                type: 'string',
+                enum: ['staging', 'production'],
+                description: 'Target network',
+              },
+            },
+            required: ['enrollmentId', 'network'],
+          },
+        },
+        {
+          name: 'monitor_certificate_enrollment',
+          description: 'Monitor certificate enrollment lifecycle',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              enrollmentId: {
+                type: 'number',
+                description: 'Certificate enrollment ID',
+              },
+            },
+            required: ['enrollmentId'],
+          },
+        },
+        {
+          name: 'get_certificate_deployment_status',
+          description: 'Get certificate deployment status',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              enrollmentId: {
+                type: 'number',
+                description: 'Certificate enrollment ID',
+              },
+            },
+            required: ['enrollmentId'],
+          },
+        },
+        {
+          name: 'renew_certificate',
+          description: 'Automated certificate renewal',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              enrollmentId: {
+                type: 'number',
+                description: 'Certificate enrollment ID',
+              },
+              autoValidate: {
+                type: 'boolean',
+                description: 'Optional: Automatically validate after renewal',
+              },
+              autoDeploy: {
+                type: 'boolean',
+                description: 'Optional: Automatically deploy after validation',
+              },
+            },
+            required: ['enrollmentId'],
+          },
+        },
+        {
+          name: 'cleanup_validation_records',
+          description: 'Cleanup DNS validation records',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              enrollmentId: {
+                type: 'number',
+                description: 'Certificate enrollment ID',
+              },
+            },
+            required: ['enrollmentId'],
+          },
+        },
+        {
+          name: 'get_certificate_validation_history',
+          description: 'Get certificate validation history',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              enrollmentId: {
+                type: 'number',
+                description: 'Certificate enrollment ID',
+              },
+            },
+            required: ['enrollmentId'],
           },
         },
         // DNS Migration Tools
@@ -5529,6 +5939,1009 @@ class AkamaiMCPServer {
             },
           },
         },
+        // Edge Hostname Management Tools
+        {
+          name: 'create_edge_hostname_enhanced',
+          description: 'Create a new edge hostname with intelligent defaults',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              domainPrefix: {
+                type: 'string',
+                description: 'Domain prefix (e.g., "www" for www.example.com.edgesuite.net)',
+              },
+              domainSuffix: {
+                type: 'string',
+                enum: ['.edgekey.net', '.edgesuite.net', '.akamaized.net'],
+                description: 'Optional: Domain suffix (defaults to .edgekey.net)',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'Optional: Property ID to associate with',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Optional: Contract ID (required if propertyId not provided)',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Optional: Group ID (required if propertyId not provided)',
+              },
+              productId: {
+                type: 'string',
+                description: 'Optional: Product ID',
+              },
+              secure: {
+                type: 'boolean',
+                description: 'Optional: Enable HTTPS (defaults to true)',
+              },
+              ipVersion: {
+                type: 'string',
+                enum: ['IPV4', 'IPV6', 'IPV4_IPV6'],
+                description: 'Optional: IP version support (defaults to IPV4_IPV6)',
+              },
+              certificateEnrollmentId: {
+                type: 'number',
+                description: 'Optional: Certificate enrollment ID for HTTPS',
+              },
+            },
+            required: ['domainPrefix'],
+          },
+        },
+        {
+          name: 'create_bulk_edge_hostnames',
+          description: 'Create multiple edge hostnames in bulk',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              hostnames: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of hostnames to create edge hostnames for',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID for billing',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Group ID for organization',
+              },
+              productId: {
+                type: 'string',
+                description: 'Optional: Product ID',
+              },
+              secure: {
+                type: 'boolean',
+                description: 'Enable HTTPS for all edge hostnames',
+              },
+              domainSuffix: {
+                type: 'string',
+                enum: ['.edgekey.net', '.edgesuite.net', '.akamaized.net'],
+                description: 'Domain suffix for all edge hostnames',
+              },
+              ipVersion: {
+                type: 'string',
+                enum: ['IPV4', 'IPV6', 'IPV4_IPV6'],
+                description: 'Optional: IP version support',
+              },
+              certificateEnrollmentId: {
+                type: 'number',
+                description: 'Optional: Certificate enrollment ID for HTTPS',
+              },
+            },
+            required: ['hostnames', 'contractId', 'groupId', 'secure', 'domainSuffix'],
+          },
+        },
+        {
+          name: 'get_edge_hostname_details',
+          description: 'Get edge hostname details with certificate information',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              edgeHostnameId: {
+                type: 'string',
+                description: 'Optional: Edge hostname ID (e.g., ehn_12345)',
+              },
+              edgeHostnameDomain: {
+                type: 'string',
+                description: 'Optional: Edge hostname domain (e.g., www.example.com.edgekey.net)',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Optional: Contract ID',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Optional: Group ID',
+              },
+            },
+          },
+        },
+        {
+          name: 'generate_edge_hostname_recommendations',
+          description: 'Generate intelligent edge hostname recommendations',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              hostnames: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of hostnames to generate recommendations for',
+              },
+              purpose: {
+                type: 'string',
+                enum: ['web', 'api', 'media', 'download', 'mixed'],
+                description: 'Optional: Purpose of the hostnames',
+              },
+              securityRequirement: {
+                type: 'string',
+                enum: ['standard', 'enhanced', 'maximum'],
+                description: 'Optional: Security requirement level',
+              },
+              performanceRequirement: {
+                type: 'string',
+                enum: ['standard', 'optimized', 'maximum'],
+                description: 'Optional: Performance requirement level',
+              },
+              geographicScope: {
+                type: 'string',
+                enum: ['global', 'regional', 'china'],
+                description: 'Optional: Geographic scope of delivery',
+              },
+            },
+            required: ['hostnames'],
+          },
+        },
+        {
+          name: 'validate_edge_hostname_certificate',
+          description: 'Validate edge hostname and certificate association',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              edgeHostnameId: {
+                type: 'string',
+                description: 'Edge hostname ID to validate',
+              },
+              hostname: {
+                type: 'string',
+                description: 'Optional: Hostname to check coverage for',
+              },
+            },
+            required: ['edgeHostnameId'],
+          },
+        },
+        {
+          name: 'associate_certificate_with_edge_hostname',
+          description: 'Associate certificate with edge hostname',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              edgeHostnameId: {
+                type: 'string',
+                description: 'Edge hostname ID',
+              },
+              certificateEnrollmentId: {
+                type: 'number',
+                description: 'Certificate enrollment ID to associate',
+              },
+            },
+            required: ['edgeHostnameId', 'certificateEnrollmentId'],
+          },
+        },
+        // Bulk Hostname Operations Tools
+        {
+          name: 'create_bulk_provisioning_plan',
+          description: 'Create a comprehensive bulk hostname provisioning plan',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              hostnames: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of hostnames to provision',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID for billing',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Group ID for organization',
+              },
+              productId: {
+                type: 'string',
+                description: 'Optional: Product ID',
+              },
+              edgeHostnameStrategy: {
+                type: 'string',
+                enum: ['individual', 'shared', 'mixed'],
+                description: 'Optional: Edge hostname strategy',
+              },
+              propertyStrategy: {
+                type: 'string',
+                enum: ['single', 'grouped', 'per-hostname'],
+                description: 'Optional: Property assignment strategy',
+              },
+              certificateStrategy: {
+                type: 'string',
+                enum: ['default-dv', 'cps', 'existing'],
+                description: 'Optional: Certificate strategy',
+              },
+              validationLevel: {
+                type: 'string',
+                enum: ['basic', 'comprehensive'],
+                description: 'Optional: Validation level',
+              },
+            },
+            required: ['hostnames', 'contractId', 'groupId'],
+          },
+        },
+        {
+          name: 'execute_bulk_provisioning',
+          description: 'Execute bulk hostname provisioning',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              hostnames: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of hostnames to provision',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID for billing',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Group ID for organization',
+              },
+              productId: {
+                type: 'string',
+                description: 'Optional: Product ID',
+              },
+              edgeHostnameStrategy: {
+                type: 'string',
+                enum: ['individual', 'shared', 'mixed'],
+                description: 'Optional: Edge hostname strategy',
+              },
+              propertyStrategy: {
+                type: 'string',
+                enum: ['single', 'grouped', 'per-hostname'],
+                description: 'Optional: Property assignment strategy',
+              },
+              certificateStrategy: {
+                type: 'string',
+                enum: ['default-dv', 'cps', 'existing'],
+                description: 'Optional: Certificate strategy',
+              },
+              dryRun: {
+                type: 'boolean',
+                description: 'Optional: Perform dry run without making changes',
+              },
+            },
+            required: ['hostnames', 'contractId', 'groupId'],
+          },
+        },
+        {
+          name: 'validate_bulk_dns',
+          description: 'Validate DNS configuration for hostnames',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              hostnames: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    hostname: { type: 'string' },
+                    expectedCNAME: { type: 'string' },
+                  },
+                  required: ['hostname', 'expectedCNAME'],
+                },
+                description: 'Array of hostname/CNAME pairs to validate',
+              },
+              checkPropagation: {
+                type: 'boolean',
+                description: 'Optional: Check DNS propagation status',
+              },
+            },
+            required: ['hostnames'],
+          },
+        },
+        {
+          name: 'bulk_update_hostname_properties',
+          description: 'Bulk update hostname properties',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              operations: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    hostname: { type: 'string' },
+                    propertyId: { type: 'string' },
+                    edgeHostname: { type: 'string' },
+                    action: {
+                      type: 'string',
+                      enum: ['add', 'update', 'remove'],
+                    },
+                  },
+                  required: ['hostname', 'propertyId', 'edgeHostname', 'action'],
+                },
+                description: 'Array of hostname operations to perform',
+              },
+              createNewVersion: {
+                type: 'boolean',
+                description: 'Optional: Create new version for each property',
+              },
+              versionNote: {
+                type: 'string',
+                description: 'Optional: Version note for updates',
+              },
+            },
+            required: ['operations'],
+          },
+        },
+        // Network Lists Tools
+        {
+          name: 'list_network_lists',
+          description: 'List all network lists in the account with filtering options',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              type: {
+                type: 'string',
+                enum: ['IP', 'GEO', 'ASN'],
+                description: 'Optional: Filter by list type',
+              },
+              search: {
+                type: 'string',
+                description: 'Optional: Search for lists by name',
+              },
+              includeElements: {
+                type: 'boolean',
+                description: 'Optional: Include list elements in response',
+              },
+              extended: {
+                type: 'boolean',
+                description: 'Optional: Include extended information',
+              },
+            },
+          },
+        },
+        {
+          name: 'get_network_list',
+          description: 'Get detailed information about a specific network list',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              uniqueId: {
+                type: 'string',
+                description: 'Network list unique identifier',
+              },
+              includeElements: {
+                type: 'boolean',
+                description: 'Optional: Include list elements in response',
+              },
+              extended: {
+                type: 'boolean',
+                description: 'Optional: Include extended information',
+              },
+            },
+            required: ['uniqueId'],
+          },
+        },
+        {
+          name: 'create_network_list',
+          description: 'Create a new network list for IP, Geographic, or ASN controls',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              name: {
+                type: 'string',
+                description: 'Name for the network list',
+              },
+              type: {
+                type: 'string',
+                enum: ['IP', 'GEO', 'ASN'],
+                description: 'Type of network list',
+              },
+              elements: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of elements (IPs, country codes, or ASNs)',
+              },
+              description: {
+                type: 'string',
+                description: 'Optional: Description for the list',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Optional: Contract ID for billing',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Optional: Group ID for organization',
+              },
+            },
+            required: ['name', 'type', 'elements'],
+          },
+        },
+        {
+          name: 'update_network_list',
+          description: 'Update network list elements and metadata',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              uniqueId: {
+                type: 'string',
+                description: 'Network list unique identifier',
+              },
+              name: {
+                type: 'string',
+                description: 'Optional: New name for the list',
+              },
+              description: {
+                type: 'string',
+                description: 'Optional: New description for the list',
+              },
+              addElements: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Elements to add to the list',
+              },
+              removeElements: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Elements to remove from the list',
+              },
+              replaceElements: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Replace entire list with these elements',
+              },
+            },
+            required: ['uniqueId'],
+          },
+        },
+        {
+          name: 'delete_network_list',
+          description: 'Delete a network list (must be inactive on all networks)',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              uniqueId: {
+                type: 'string',
+                description: 'Network list unique identifier',
+              },
+            },
+            required: ['uniqueId'],
+          },
+        },
+        {
+          name: 'activate_network_list',
+          description: 'Activate a network list to staging or production',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              uniqueId: {
+                type: 'string',
+                description: 'Network list unique identifier',
+              },
+              network: {
+                type: 'string',
+                enum: ['STAGING', 'PRODUCTION'],
+                description: 'Target network for activation',
+              },
+              comments: {
+                type: 'string',
+                description: 'Optional: Comments for the activation',
+              },
+              notificationEmails: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Email addresses to notify',
+              },
+              fast: {
+                type: 'boolean',
+                description: 'Optional: Use fast activation',
+              },
+            },
+            required: ['uniqueId', 'network'],
+          },
+        },
+        {
+          name: 'get_network_list_activation_status',
+          description: 'Get the status of a network list activation',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              activationId: {
+                type: 'string',
+                description: 'Activation ID to check',
+              },
+            },
+            required: ['activationId'],
+          },
+        },
+        {
+          name: 'list_network_list_activations',
+          description: 'List all network list activations with filtering options',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              listType: {
+                type: 'string',
+                enum: ['IP', 'GEO', 'ASN'],
+                description: 'Optional: Filter by list type',
+              },
+              network: {
+                type: 'string',
+                enum: ['STAGING', 'PRODUCTION'],
+                description: 'Optional: Filter by network',
+              },
+              status: {
+                type: 'string',
+                enum: ['PENDING', 'ACTIVE', 'FAILED', 'INACTIVE'],
+                description: 'Optional: Filter by status',
+              },
+            },
+          },
+        },
+        {
+          name: 'deactivate_network_list',
+          description: 'Deactivate a network list from staging or production',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              uniqueId: {
+                type: 'string',
+                description: 'Network list unique identifier',
+              },
+              network: {
+                type: 'string',
+                enum: ['STAGING', 'PRODUCTION'],
+                description: 'Target network for deactivation',
+              },
+              comments: {
+                type: 'string',
+                description: 'Optional: Comments for the deactivation',
+              },
+            },
+            required: ['uniqueId', 'network'],
+          },
+        },
+        {
+          name: 'bulk_activate_network_lists',
+          description: 'Activate multiple network lists with dependency management',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              activations: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    uniqueId: { type: 'string' },
+                    network: {
+                      type: 'string',
+                      enum: ['STAGING', 'PRODUCTION'],
+                    },
+                  },
+                  required: ['uniqueId', 'network'],
+                },
+                description: 'Array of network lists to activate',
+              },
+              comments: {
+                type: 'string',
+                description: 'Optional: Comments for all activations',
+              },
+              notificationEmails: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Email addresses to notify',
+              },
+              waitForCompletion: {
+                type: 'boolean',
+                description: 'Optional: Wait for activations to complete',
+              },
+              maxWaitTime: {
+                type: 'number',
+                description: 'Optional: Maximum wait time in milliseconds',
+              },
+            },
+            required: ['activations'],
+          },
+        },
+        {
+          name: 'import_network_list_from_csv',
+          description: 'Import elements into a network list from CSV content',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              uniqueId: {
+                type: 'string',
+                description: 'Network list unique identifier',
+              },
+              csvContent: {
+                type: 'string',
+                description: 'CSV content with elements to import',
+              },
+              operation: {
+                type: 'string',
+                enum: ['replace', 'append', 'remove'],
+                description: 'Optional: Import operation type (default: replace)',
+              },
+              validateElements: {
+                type: 'boolean',
+                description: 'Optional: Validate elements before import (default: true)',
+              },
+              skipInvalid: {
+                type: 'boolean',
+                description: 'Optional: Skip invalid elements instead of failing',
+              },
+              dryRun: {
+                type: 'boolean',
+                description: 'Optional: Preview changes without applying them',
+              },
+            },
+            required: ['uniqueId', 'csvContent'],
+          },
+        },
+        {
+          name: 'export_network_list_to_csv',
+          description: 'Export network list elements to CSV format',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              uniqueId: {
+                type: 'string',
+                description: 'Network list unique identifier',
+              },
+              includeHeaders: {
+                type: 'boolean',
+                description: 'Optional: Include CSV headers',
+              },
+              includeMetadata: {
+                type: 'boolean',
+                description: 'Optional: Include list metadata as comments',
+              },
+            },
+            required: ['uniqueId'],
+          },
+        },
+        {
+          name: 'bulk_update_network_lists',
+          description: 'Bulk update multiple network lists with element changes',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              updates: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    uniqueId: { type: 'string' },
+                    syncPoint: { type: 'number' },
+                    add: {
+                      type: 'array',
+                      items: { type: 'string' },
+                    },
+                    remove: {
+                      type: 'array',
+                      items: { type: 'string' },
+                    },
+                  },
+                  required: ['uniqueId', 'syncPoint'],
+                },
+                description: 'Array of bulk update operations',
+              },
+              validateElements: {
+                type: 'boolean',
+                description: 'Optional: Validate elements before updating',
+              },
+              skipInvalid: {
+                type: 'boolean',
+                description: 'Optional: Skip invalid elements instead of failing',
+              },
+              continueOnError: {
+                type: 'boolean',
+                description: 'Optional: Continue processing if individual updates fail',
+              },
+            },
+            required: ['updates'],
+          },
+        },
+        {
+          name: 'merge_network_lists',
+          description: 'Merge multiple network lists into a single list',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              sourceListIds: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of source list IDs to merge',
+              },
+              targetListId: {
+                type: 'string',
+                description: 'Target list ID to merge into',
+              },
+              operation: {
+                type: 'string',
+                enum: ['union', 'intersection', 'difference'],
+                description: 'Optional: Merge operation type (default: union)',
+              },
+              removeDuplicates: {
+                type: 'boolean',
+                description: 'Optional: Remove duplicate elements',
+              },
+              deleteSourceLists: {
+                type: 'boolean',
+                description: 'Optional: Delete source lists after merge',
+              },
+            },
+            required: ['sourceListIds', 'targetListId'],
+          },
+        },
+        {
+          name: 'validate_geographic_codes',
+          description: 'Validate and get information about geographic location codes',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              codes: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of geographic codes to validate (e.g., US, GB, US-CA)',
+              },
+            },
+            required: ['codes'],
+          },
+        },
+        {
+          name: 'get_asn_information',
+          description: 'Get information about ASNs (Autonomous System Numbers)',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              asns: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of ASNs to look up (e.g., 16509, AS15169)',
+              },
+            },
+            required: ['asns'],
+          },
+        },
+        {
+          name: 'generate_geographic_blocking_recommendations',
+          description: 'Generate geographic blocking recommendations for different use cases',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              purpose: {
+                type: 'string',
+                enum: ['compliance', 'security', 'licensing', 'performance'],
+                description: 'Optional: Purpose for geographic blocking',
+              },
+              allowedRegions: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Currently allowed regions',
+              },
+              blockedRegions: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Currently blocked regions',
+              },
+            },
+          },
+        },
+        {
+          name: 'generate_asn_security_recommendations',
+          description: 'Generate ASN blocking recommendations for security purposes',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              includeCloudProviders: {
+                type: 'boolean',
+                description: 'Optional: Include cloud provider ASNs in recommendations',
+              },
+              includeVPNProviders: {
+                type: 'boolean',
+                description: 'Optional: Include VPN provider ASNs in recommendations',
+              },
+              includeResidentialISPs: {
+                type: 'boolean',
+                description: 'Optional: Include residential ISP ASNs in recommendations',
+              },
+              purpose: {
+                type: 'string',
+                enum: ['bot-protection', 'fraud-prevention', 'compliance'],
+                description: 'Optional: Purpose for ASN blocking',
+              },
+            },
+          },
+        },
+        {
+          name: 'list_common_geographic_codes',
+          description: 'List common geographic codes for reference',
+          inputSchema: {
+            type: 'object',
+            properties: {},
+          },
+        },
+        {
+          name: 'get_security_policy_integration_guidance',
+          description: 'Get guidance on integrating network lists with security policies',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              policyType: {
+                type: 'string',
+                enum: ['WAF', 'BOT_PROTECTION', 'RATE_LIMITING', 'ACCESS_CONTROL'],
+                description: 'Optional: Type of security policy',
+              },
+              listType: {
+                type: 'string',
+                enum: ['IP', 'GEO', 'ASN'],
+                description: 'Optional: Type of network list',
+              },
+            },
+          },
+        },
+        {
+          name: 'generate_deployment_checklist',
+          description: 'Generate comprehensive deployment checklist for network lists',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              listIds: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of network list IDs to deploy',
+              },
+              targetNetwork: {
+                type: 'string',
+                enum: ['STAGING', 'PRODUCTION'],
+                description: 'Optional: Target network for deployment',
+              },
+              securityLevel: {
+                type: 'string',
+                enum: ['LOW', 'MEDIUM', 'HIGH'],
+                description: 'Optional: Security level for deployment process',
+              },
+              includeRollbackPlan: {
+                type: 'boolean',
+                description: 'Optional: Include rollback plan in checklist',
+              },
+            },
+            required: ['listIds'],
+          },
+        },
         // FastPurge tools
         ...fastPurgeTools.map(tool => ({
           name: tool.name,
@@ -5731,6 +7144,84 @@ class AkamaiMCPServer {
           case 'link_certificate_to_property':
             const linkCertArgs = LinkCertificateToPropertySchema.parse(args);
             return await linkCertificateToProperty(client, linkCertArgs);
+
+          // Certificate Enrollment Tools
+          case 'enroll_certificate_with_validation':
+            const enrollCertArgs = z.object({
+              customer: z.string().optional(),
+              commonName: z.string(),
+              sans: z.array(z.string()).optional(),
+              adminContact: z.object({
+                firstName: z.string(),
+                lastName: z.string(),
+                email: z.string(),
+                phone: z.string(),
+              }),
+              techContact: z.object({
+                firstName: z.string(),
+                lastName: z.string(),
+                email: z.string(),
+                phone: z.string(),
+              }),
+              contractId: z.string(),
+              enhancedTLS: z.boolean().optional(),
+              quicEnabled: z.boolean().optional(),
+              autoDeploy: z.boolean().optional(),
+              targetNetwork: z.enum(['staging', 'production']).optional(),
+            }).parse(args);
+            return await enrollCertificateWithValidation(client, enrollCertArgs);
+
+          case 'validate_certificate_enrollment':
+            const validateEnrollmentArgs = z.object({
+              customer: z.string().optional(),
+              enrollmentId: z.number(),
+            }).parse(args);
+            return await validateCertificateEnrollment(client, validateEnrollmentArgs);
+
+          case 'deploy_certificate_to_network':
+            const deployCertArgs = z.object({
+              customer: z.string().optional(),
+              enrollmentId: z.number(),
+              network: z.enum(['staging', 'production']),
+            }).parse(args);
+            return await deployCertificateToNetwork(client, deployCertArgs);
+
+          case 'monitor_certificate_enrollment':
+            const monitorCertArgs = z.object({
+              customer: z.string().optional(),
+              enrollmentId: z.number(),
+            }).parse(args);
+            return await monitorCertificateEnrollment(client, monitorCertArgs);
+
+          case 'get_certificate_deployment_status':
+            const getDeployStatusArgs = z.object({
+              customer: z.string().optional(),
+              enrollmentId: z.number(),
+            }).parse(args);
+            return await getCertificateDeploymentStatus(client, getDeployStatusArgs);
+
+          case 'renew_certificate':
+            const renewCertArgs = z.object({
+              customer: z.string().optional(),
+              enrollmentId: z.number(),
+              autoValidate: z.boolean().optional(),
+              autoDeploy: z.boolean().optional(),
+            }).parse(args);
+            return await renewCertificate(client, renewCertArgs);
+
+          case 'cleanup_validation_records':
+            const cleanupRecordsArgs = z.object({
+              customer: z.string().optional(),
+              enrollmentId: z.number(),
+            }).parse(args);
+            return await cleanupValidationRecords(client, cleanupRecordsArgs);
+
+          case 'get_certificate_validation_history':
+            const getValidationHistoryArgs = z.object({
+              customer: z.string().optional(),
+              enrollmentId: z.number(),
+            }).parse(args);
+            return await getCertificateValidationHistory(client, getValidationHistoryArgs);
 
           // DNS Migration tools
           case 'import_zone_via_axfr':
@@ -6447,6 +7938,343 @@ class AkamaiMCPServer {
           case 'identify_ownership_patterns':
             const identifyPatternsArgs = IdentifyOwnershipPatternsSchema.parse(args);
             return await identifyOwnershipPatterns(client, identifyPatternsArgs);
+
+          // Edge Hostname Management
+          case 'create_edge_hostname_enhanced':
+            const createEdgeHostnameEnhancedArgs = z.object({
+              domainPrefix: z.string(),
+              domainSuffix: z.enum(['.edgekey.net', '.edgesuite.net', '.akamaized.net']).optional(),
+              propertyId: z.string().optional(),
+              contractId: z.string().optional(),
+              groupId: z.string().optional(),
+              productId: z.string().optional(),
+              secure: z.boolean().optional(),
+              ipVersion: z.enum(['IPV4', 'IPV6', 'IPV4_IPV6']).optional(),
+              certificateEnrollmentId: z.number().optional(),
+            }).parse(args);
+            return await createEdgeHostnameEnhanced(client, createEdgeHostnameEnhancedArgs);
+
+          case 'create_bulk_edge_hostnames':
+            const createBulkEdgeHostnamesArgs = z.object({
+              hostnames: z.array(z.string()),
+              contractId: z.string(),
+              groupId: z.string(),
+              productId: z.string().optional(),
+              secure: z.boolean(),
+              domainSuffix: z.enum(['.edgekey.net', '.edgesuite.net', '.akamaized.net']),
+              ipVersion: z.enum(['IPV4', 'IPV6', 'IPV4_IPV6']).optional(),
+              certificateEnrollmentId: z.number().optional(),
+            }).parse(args);
+            return await createBulkEdgeHostnames(client, createBulkEdgeHostnamesArgs);
+
+          case 'get_edge_hostname_details':
+            const getEdgeHostnameDetailsArgs = z.object({
+              edgeHostnameId: z.string().optional(),
+              edgeHostnameDomain: z.string().optional(),
+              contractId: z.string().optional(),
+              groupId: z.string().optional(),
+            }).parse(args);
+            return await getEdgeHostnameDetails(client, getEdgeHostnameDetailsArgs);
+
+          case 'generate_edge_hostname_recommendations':
+            const generateEdgeHostnameRecommendationsArgs = z.object({
+              hostnames: z.array(z.string()),
+              purpose: z.enum(['web', 'api', 'media', 'download', 'mixed']).optional(),
+              securityRequirement: z.enum(['standard', 'enhanced', 'maximum']).optional(),
+              performanceRequirement: z.enum(['standard', 'optimized', 'maximum']).optional(),
+              geographicScope: z.enum(['global', 'regional', 'china']).optional(),
+            }).parse(args);
+            return await generateEdgeHostnameRecommendationsEnhanced(client, generateEdgeHostnameRecommendationsArgs);
+
+          case 'validate_edge_hostname_certificate':
+            const validateEdgeHostnameCertArgs = z.object({
+              edgeHostnameId: z.string(),
+              hostname: z.string().optional(),
+            }).parse(args);
+            return await validateEdgeHostnameCertificate(client, validateEdgeHostnameCertArgs);
+
+          case 'associate_certificate_with_edge_hostname':
+            const associateCertArgs = z.object({
+              edgeHostnameId: z.string(),
+              certificateEnrollmentId: z.number(),
+            }).parse(args);
+            return await associateCertificateWithEdgeHostname(client, associateCertArgs);
+
+          // Bulk Hostname Operations
+          case 'create_bulk_provisioning_plan':
+            const createBulkProvisioningPlanArgs = z.object({
+              hostnames: z.array(z.string()),
+              contractId: z.string(),
+              groupId: z.string(),
+              productId: z.string().optional(),
+              edgeHostnameStrategy: z.enum(['individual', 'shared', 'mixed']).optional(),
+              propertyStrategy: z.enum(['single', 'grouped', 'per-hostname']).optional(),
+              certificateStrategy: z.enum(['default-dv', 'cps', 'existing']).optional(),
+              validationLevel: z.enum(['basic', 'comprehensive']).optional(),
+            }).parse(args);
+            return await createBulkProvisioningPlan(client, createBulkProvisioningPlanArgs);
+
+          case 'execute_bulk_provisioning':
+            const executeBulkProvisioningArgs = z.object({
+              hostnames: z.array(z.string()),
+              contractId: z.string(),
+              groupId: z.string(),
+              productId: z.string().optional(),
+              edgeHostnameStrategy: z.enum(['individual', 'shared', 'mixed']).optional(),
+              propertyStrategy: z.enum(['single', 'grouped', 'per-hostname']).optional(),
+              certificateStrategy: z.enum(['default-dv', 'cps', 'existing']).optional(),
+              dryRun: z.boolean().optional(),
+            }).parse(args);
+            return await executeBulkProvisioning(client, executeBulkProvisioningArgs);
+
+          case 'validate_bulk_dns':
+            const validateBulkDNSArgs = z.object({
+              hostnames: z.array(z.object({
+                hostname: z.string(),
+                expectedCNAME: z.string(),
+              })),
+              checkPropagation: z.boolean().optional(),
+            }).parse(args);
+            return await validateBulkDNS(client, validateBulkDNSArgs);
+
+          case 'bulk_update_hostname_properties':
+            const bulkUpdateHostnamePropertiesArgs = z.object({
+              operations: z.array(z.object({
+                hostname: z.string(),
+                propertyId: z.string(),
+                edgeHostname: z.string(),
+                action: z.enum(['add', 'update', 'remove']),
+              })),
+              createNewVersion: z.boolean().optional(),
+              versionNote: z.string().optional(),
+            }).parse(args);
+            return await bulkUpdateHostnameProperties(client, bulkUpdateHostnamePropertiesArgs);
+
+          // Network Lists Tools
+          case 'list_network_lists':
+            const listNetworkListsArgs = ListNetworkListsSchema.parse(args);
+            return await listNetworkLists(
+              listNetworkListsArgs.customer,
+              {
+                type: listNetworkListsArgs.type,
+                search: listNetworkListsArgs.search,
+                includeElements: listNetworkListsArgs.includeElements,
+                extended: listNetworkListsArgs.extended
+              }
+            );
+
+          case 'get_network_list':
+            const getNetworkListArgs = GetNetworkListSchema.parse(args);
+            return await getNetworkList(
+              getNetworkListArgs.uniqueId,
+              getNetworkListArgs.customer,
+              {
+                includeElements: getNetworkListArgs.includeElements,
+                extended: getNetworkListArgs.extended
+              }
+            );
+
+          case 'create_network_list':
+            const createNetworkListArgs = CreateNetworkListSchema.parse(args);
+            return await createNetworkList(
+              createNetworkListArgs.name,
+              createNetworkListArgs.type,
+              createNetworkListArgs.elements,
+              createNetworkListArgs.customer,
+              {
+                description: createNetworkListArgs.description,
+                contractId: createNetworkListArgs.contractId,
+                groupId: createNetworkListArgs.groupId
+              }
+            );
+
+          case 'update_network_list':
+            const updateNetworkListArgs = UpdateNetworkListSchema.parse(args);
+            return await updateNetworkList(
+              updateNetworkListArgs.uniqueId,
+              updateNetworkListArgs.customer,
+              {
+                name: updateNetworkListArgs.name,
+                description: updateNetworkListArgs.description,
+                addElements: updateNetworkListArgs.addElements,
+                removeElements: updateNetworkListArgs.removeElements,
+                replaceElements: updateNetworkListArgs.replaceElements
+              }
+            );
+
+          case 'delete_network_list':
+            const deleteNetworkListArgs = DeleteNetworkListSchema.parse(args);
+            return await deleteNetworkList(
+              deleteNetworkListArgs.uniqueId,
+              deleteNetworkListArgs.customer
+            );
+
+          case 'activate_network_list':
+            const activateNetworkListArgs = ActivateNetworkListSchema.parse(args);
+            return await activateNetworkList(
+              activateNetworkListArgs.uniqueId,
+              activateNetworkListArgs.network,
+              activateNetworkListArgs.customer,
+              {
+                comments: activateNetworkListArgs.comments,
+                notificationEmails: activateNetworkListArgs.notificationEmails,
+                fast: activateNetworkListArgs.fast
+              }
+            );
+
+          case 'get_network_list_activation_status':
+            const getNetworkListActivationStatusArgs = GetNetworkListActivationStatusSchema.parse(args);
+            return await getNetworkListActivationStatus(
+              getNetworkListActivationStatusArgs.activationId,
+              getNetworkListActivationStatusArgs.customer
+            );
+
+          case 'list_network_list_activations':
+            const listNetworkListActivationsArgs = ListNetworkListActivationsSchema.parse(args);
+            return await listNetworkListActivations(
+              listNetworkListActivationsArgs.customer,
+              {
+                listType: listNetworkListActivationsArgs.listType,
+                network: listNetworkListActivationsArgs.network,
+                status: listNetworkListActivationsArgs.status
+              }
+            );
+
+          case 'deactivate_network_list':
+            const deactivateNetworkListArgs = DeactivateNetworkListSchema.parse(args);
+            return await deactivateNetworkList(
+              deactivateNetworkListArgs.uniqueId,
+              deactivateNetworkListArgs.network,
+              deactivateNetworkListArgs.customer,
+              {
+                comments: deactivateNetworkListArgs.comments
+              }
+            );
+
+          case 'bulk_activate_network_lists':
+            const bulkActivateNetworkListsArgs = BulkActivateNetworkListsSchema.parse(args);
+            return await bulkActivateNetworkLists(
+              bulkActivateNetworkListsArgs.activations,
+              bulkActivateNetworkListsArgs.customer,
+              {
+                comments: bulkActivateNetworkListsArgs.comments,
+                notificationEmails: bulkActivateNetworkListsArgs.notificationEmails,
+                waitForCompletion: bulkActivateNetworkListsArgs.waitForCompletion,
+                maxWaitTime: bulkActivateNetworkListsArgs.maxWaitTime
+              }
+            );
+
+          case 'import_network_list_from_csv':
+            const importNetworkListFromCSVArgs = ImportNetworkListFromCSVSchema.parse(args);
+            return await importNetworkListFromCSV(
+              importNetworkListFromCSVArgs.uniqueId,
+              importNetworkListFromCSVArgs.csvContent,
+              importNetworkListFromCSVArgs.customer,
+              {
+                operation: importNetworkListFromCSVArgs.operation,
+                validateElements: importNetworkListFromCSVArgs.validateElements,
+                skipInvalid: importNetworkListFromCSVArgs.skipInvalid,
+                dryRun: importNetworkListFromCSVArgs.dryRun
+              }
+            );
+
+          case 'export_network_list_to_csv':
+            const exportNetworkListToCSVArgs = ExportNetworkListToCSVSchema.parse(args);
+            return await exportNetworkListToCSV(
+              exportNetworkListToCSVArgs.uniqueId,
+              exportNetworkListToCSVArgs.customer,
+              {
+                includeHeaders: exportNetworkListToCSVArgs.includeHeaders,
+                includeMetadata: exportNetworkListToCSVArgs.includeMetadata
+              }
+            );
+
+          case 'bulk_update_network_lists':
+            const bulkUpdateNetworkListsArgs = BulkUpdateNetworkListsSchema.parse(args);
+            return await bulkUpdateNetworkLists(
+              bulkUpdateNetworkListsArgs.updates,
+              bulkUpdateNetworkListsArgs.customer,
+              {
+                validateElements: bulkUpdateNetworkListsArgs.validateElements,
+                skipInvalid: bulkUpdateNetworkListsArgs.skipInvalid,
+                continueOnError: bulkUpdateNetworkListsArgs.continueOnError
+              }
+            );
+
+          case 'merge_network_lists':
+            const mergeNetworkListsArgs = MergeNetworkListsSchema.parse(args);
+            return await mergeNetworkLists(
+              mergeNetworkListsArgs.sourceListIds,
+              mergeNetworkListsArgs.targetListId,
+              mergeNetworkListsArgs.customer,
+              {
+                operation: mergeNetworkListsArgs.operation,
+                removeDuplicates: mergeNetworkListsArgs.removeDuplicates,
+                deleteSourceLists: mergeNetworkListsArgs.deleteSourceLists
+              }
+            );
+
+          case 'validate_geographic_codes':
+            const validateGeographicCodesArgs = ValidateGeographicCodesSchema.parse(args);
+            return await validateGeographicCodes(
+              validateGeographicCodesArgs.codes,
+              validateGeographicCodesArgs.customer
+            );
+
+          case 'get_asn_information':
+            const getASNInformationArgs = GetASNInformationSchema.parse(args);
+            return await getASNInformation(
+              getASNInformationArgs.asns,
+              getASNInformationArgs.customer
+            );
+
+          case 'generate_geographic_blocking_recommendations':
+            const generateGeographicBlockingRecommendationsArgs = GenerateGeographicBlockingRecommendationsSchema.parse(args);
+            return await generateGeographicBlockingRecommendations(
+              generateGeographicBlockingRecommendationsArgs.customer,
+              {
+                purpose: generateGeographicBlockingRecommendationsArgs.purpose,
+                allowedRegions: generateGeographicBlockingRecommendationsArgs.allowedRegions,
+                blockedRegions: generateGeographicBlockingRecommendationsArgs.blockedRegions
+              }
+            );
+
+          case 'generate_asn_security_recommendations':
+            const generateASNSecurityRecommendationsArgs = GenerateASNSecurityRecommendationsSchema.parse(args);
+            return await generateASNSecurityRecommendations(
+              generateASNSecurityRecommendationsArgs.customer,
+              {
+                includeCloudProviders: generateASNSecurityRecommendationsArgs.includeCloudProviders,
+                includeVPNProviders: generateASNSecurityRecommendationsArgs.includeVPNProviders,
+                includeResidentialISPs: generateASNSecurityRecommendationsArgs.includeResidentialISPs,
+                purpose: generateASNSecurityRecommendationsArgs.purpose
+              }
+            );
+
+          case 'list_common_geographic_codes':
+            return await listCommonGeographicCodes();
+
+          case 'get_security_policy_integration_guidance':
+            const getSecurityPolicyIntegrationGuidanceArgs = GetSecurityPolicyIntegrationGuidanceSchema.parse(args);
+            return await getSecurityPolicyIntegrationGuidance(
+              getSecurityPolicyIntegrationGuidanceArgs.customer,
+              {
+                policyType: getSecurityPolicyIntegrationGuidanceArgs.policyType,
+                listType: getSecurityPolicyIntegrationGuidanceArgs.listType
+              }
+            );
+
+          case 'generate_deployment_checklist':
+            const generateDeploymentChecklistArgs = GenerateDeploymentChecklistSchema.parse(args);
+            return await generateDeploymentChecklist(
+              generateDeploymentChecklistArgs.listIds,
+              generateDeploymentChecklistArgs.customer,
+              {
+                targetNetwork: generateDeploymentChecklistArgs.targetNetwork,
+                securityLevel: generateDeploymentChecklistArgs.securityLevel,
+                includeRollbackPlan: generateDeploymentChecklistArgs.includeRollbackPlan
+              }
+            );
 
           // FastPurge tools
           case 'fastpurge.url.invalidate':

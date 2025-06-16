@@ -24,6 +24,7 @@ function validateUrls(urls: string[]): void {
   if (invalidUrls.length > 0) {
     throw new AkamaiError(
       `Invalid URLs detected: ${invalidUrls.slice(0, 5).join(', ')}${invalidUrls.length > 5 ? '...' : ''}`,
+      400,
       'INVALID_URLS'
     );
   }
@@ -35,6 +36,7 @@ function validateCpCodes(cpCodes: string[]): void {
   if (invalidCodes.length > 0) {
     throw new AkamaiError(
       `Invalid CP codes detected: ${invalidCodes.join(', ')}. CP codes must be numeric.`,
+      400,
       'INVALID_CP_CODES'
     );
   }
@@ -50,6 +52,7 @@ function validateCacheTags(tags: string[]): void {
   if (invalidTags.length > 0) {
     throw new AkamaiError(
       `Invalid cache tags: ${invalidTags.slice(0, 3).join(', ')}. Tags must be 1-128 characters, alphanumeric, dots, underscores, or hyphens only.`,
+      400,
       'INVALID_CACHE_TAGS'
     );
   }
@@ -112,6 +115,7 @@ export const fastpurgeUrlInvalidate = {
       if (!customers.includes(params.customer)) {
         throw new AkamaiError(
           `Unknown customer: ${params.customer}. Available customers: ${customers.join(', ')}`,
+          400,
           'INVALID_CUSTOMER'
         );
       }
@@ -228,6 +232,7 @@ export const fastpurgeCpcodeInvalidate = {
       if (!customers.includes(params.customer)) {
         throw new AkamaiError(
           `Unknown customer: ${params.customer}. Available customers: ${customers.join(', ')}`,
+          400,
           'INVALID_CUSTOMER'
         );
       }
@@ -327,6 +332,7 @@ export const fastpurgeTagInvalidate = {
       if (!customers.includes(params.customer)) {
         throw new AkamaiError(
           `Unknown customer: ${params.customer}. Available customers: ${customers.join(', ')}`,
+          400,
           'INVALID_CUSTOMER'
         );
       }
@@ -398,6 +404,7 @@ export const fastpurgeStatusCheck = {
       if (!customers.includes(params.customer)) {
         throw new AkamaiError(
           `Unknown customer: ${params.customer}. Available customers: ${customers.join(', ')}`,
+          400,
           'INVALID_CUSTOMER'
         );
       }
@@ -491,6 +498,7 @@ export const fastpurgeQueueStatus = {
       if (!customers.includes(params.customer)) {
         throw new AkamaiError(
           `Unknown customer: ${params.customer}. Available customers: ${customers.join(', ')}`,
+          400,
           'INVALID_CUSTOMER'
         );
       }
@@ -599,6 +607,7 @@ export const fastpurgeEstimate = {
       if (!customers.includes(params.customer)) {
         throw new AkamaiError(
           `Unknown customer: ${params.customer}. Available customers: ${customers.join(', ')}`,
+          400,
           'INVALID_CUSTOMER'
         );
       }
@@ -616,8 +625,8 @@ export const fastpurgeEstimate = {
       const rateLimitStatus = fastPurgeService.getRateLimitStatus(params.customer);
       
       // Calculate batch information
-      const batchSizes = params.objects.map(obj => Buffer.byteLength(obj, 'utf8'));
-      const totalSize = batchSizes.reduce((a, b) => a + b, 0);
+      const batchSizes = params.objects.map((obj: string) => Buffer.byteLength(obj, 'utf8'));
+      const totalSize = batchSizes.reduce((a: number, b: number) => a + b, 0);
       const estimatedBatches = Math.ceil(totalSize / (50 * 1024)); // 50KB limit
       
       const estimate = {

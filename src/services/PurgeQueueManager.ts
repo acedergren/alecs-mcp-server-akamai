@@ -330,7 +330,9 @@ export class PurgeQueueManager {
 
         // Process next item
         const item = pendingItems[0];
-        await this.processItem(item);
+        if (item) {
+          await this.processItem(item);
+        }
         
         rateLimiter.record(1);
       }
