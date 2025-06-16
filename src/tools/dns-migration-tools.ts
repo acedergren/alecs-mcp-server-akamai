@@ -282,7 +282,7 @@ export async function bulkImportRecords(
         } catch (error) {
           errors.push({
             record: `${record.name} ${record.type}`,
-            error: error instanceof Error ? error.message : String(error),
+            error: error instanceof Error ? error.message : JSON.stringify(error),
           });
         }
       }
@@ -293,19 +293,22 @@ export async function bulkImportRecords(
       }
     }
 
-    // Submit change list
-    const submitResponse = await client.request({
-      path: `/config-dns/v2/changelists/${args.zone}/submit`,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: {
-        comment: args.comment || `Bulk import of ${records.length} records`,
-      },
-    });
+    // Submit changelist if we have successful records
+    let submitResponse: any = {};
+    if (successCount > 0) {
+      submitResponse = await client.request({
+        path: `/config-dns/v2/changelists/${args.zone}/submit`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: {
+          comment: args.comment || `Bulk import of ${successCount} records`,
+        },
+      });
+    }
 
-    // Clear cache after successful import
+    // Clear cache after processing (whether successful or not)
     globalMigrationCache.delete(args.zone);
 
     // Format results
@@ -314,7 +317,7 @@ export async function bulkImportRecords(
     text += `- **Total Records:** ${records.length}\n`;
     text += `- **Successfully Imported:** ${successCount} ✅\n`;
     text += `- **Failed:** ${errors.length} ❌\n`;
-    text += `- **Request ID:** ${submitResponse.requestId}\n`;
+    text += `- **Request ID:** ${submitResponse.requestId || submitResponse.changeListId || 'N/A'}\n`;
     text += `- **Status:** ${successCount > 0 ? 'Changes submitted' : 'No changes made'}\n\n`;
 
     if (errors.length > 0) {

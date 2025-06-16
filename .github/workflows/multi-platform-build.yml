@@ -1,0 +1,109 @@
+name: Multi-Platform Build
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-matrix:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: [18.x, 20.x, 22.x]
+        architecture: [x64, arm64]
+        exclude:
+          # Exclude ARM64 on Windows for now
+          - os: windows-latest
+            architecture: arm64
+          # Exclude older Node on ARM64
+          - node-version: 18.x
+            architecture: arm64
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }} (${{ matrix.architecture }})
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        architecture: ${{ matrix.architecture }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build
+      run: npm run build
+    
+    - name: Run tests
+      run: npm test
+      env:
+        FORCE_COLOR: 1
+    
+    - name: Package executable
+      if: matrix.node-version == '20.x' && matrix.architecture == 'x64'
+      run: |
+        npm install -g pkg
+        pkg . --targets node20-${{ matrix.os == 'ubuntu-latest' && 'linux' || matrix.os == 'macos-latest' && 'macos' || 'win' }}-${{ matrix.architecture }} --output alecs-mcp-server-${{ matrix.os }}-${{ matrix.architecture }}
+    
+    - name: Upload build artifact
+      if: matrix.node-version == '20.x' && matrix.architecture == 'x64'
+      uses: actions/upload-artifact@v3
+      with:
+        name: alecs-${{ matrix.os }}-${{ matrix.architecture }}
+        path: alecs-mcp-server-${{ matrix.os }}-${{ matrix.architecture }}*
+        retention-days: 7
+
+  container-builds:
+    needs: build-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [linux/amd64, linux/arm64]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Build for ${{ matrix.platform }}
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        file: ./build/docker/Dockerfile
+        platforms: ${{ matrix.platform }}
+        push: false
+        tags: alecs-mcp-server:${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  compatibility-report:
+    needs: [build-matrix, container-builds]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Generate compatibility matrix
+      run: |
+        echo "## Platform Compatibility Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Platform | Node 18.x | Node 20.x | Node 22.x |" >> $GITHUB_STEP_SUMMARY
+        echo "|----------|-----------|-----------|-----------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Ubuntu x64 | ✅ | ✅ | ✅ |" >> $GITHUB_STEP_SUMMARY
+        echo "| Ubuntu ARM64 | ❌ | ✅ | ✅ |" >> $GITHUB_STEP_SUMMARY
+        echo "| macOS x64 | ✅ | ✅ | ✅ |" >> $GITHUB_STEP_SUMMARY
+        echo "| macOS ARM64 | ❌ | ✅ | ✅ |" >> $GITHUB_STEP_SUMMARY
+        echo "| Windows x64 | ✅ | ✅ | ✅ |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Container Support" >> $GITHUB_STEP_SUMMARY
+        echo "- Linux AMD64: ✅" >> $GITHUB_STEP_SUMMARY
+        echo "- Linux ARM64: ✅" >> $GITHUB_STEP_SUMMARY

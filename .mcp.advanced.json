@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "alecs-dev": {
+      "command": "npx",
+      "args": ["tsx", "src/index.ts"],
+      "env": {
+        "ALECS_LOG_LEVEL": "INFO",
+        "ALECS_LOG_FORMAT": "json",
+        "ALECS_DASHBOARD_PORT": "8080"
+      }
+    },
+    "alecs-production": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "env": {
+        "NODE_ENV": "production",
+        "ALECS_LOG_LEVEL": "WARN",
+        "ALECS_LOG_FORMAT": "json"
+      }
+    },
+    "alecs-testing": {
+      "command": "npx",
+      "args": ["tsx", "src/index.ts"],
+      "env": {
+        "NODE_ENV": "testing",
+        "ALECS_LOG_LEVEL": "DEBUG",
+        "ALECS_LOG_FORMAT": "human",
+        "ALECS_DASHBOARD_PORT": "8081"
+      }
+    }
+  }
+}

@@ -1188,6 +1188,658 @@ export async function updatePropertyWithCPSCertificate(
 }
 
 /**
+ * Enhanced create property version with intelligent base version selection
+ */
+export async function createPropertyVersionEnhanced(client: AkamaiClient, args: {
+  customer?: string;
+  propertyId: string;
+  note?: string;
+  baseVersion?: number;
+  autoSelectBase?: boolean;
+  tags?: string[];
+  metadata?: Record<string, string>;
+}): Promise<MCPToolResponse> {
+  try {
+    let baseVersion = args.baseVersion;
+    
+    // Intelligent base version selection
+    if (args.autoSelectBase && !baseVersion) {
+      const versionsResponse = await client.request({
+        customer: args.customer,
+        method: 'GET',
+        path: `/papi/v1/properties/${args.propertyId}/versions`,
+      });
+      
+      const versions = versionsResponse.data.versions?.items || [];
+      if (versions.length > 0) {
+        // Select latest staging version, or latest production if no staging
+        const stagingVersions = versions.filter((v: any) => v.stagingStatus === 'ACTIVE');
+        const productionVersions = versions.filter((v: any) => v.productionStatus === 'ACTIVE');
+        
+        if (stagingVersions.length > 0) {
+          baseVersion = Math.max(...stagingVersions.map((v: any) => v.propertyVersion));
+        } else if (productionVersions.length > 0) {
+          baseVersion = Math.max(...productionVersions.map((v: any) => v.propertyVersion));
+        } else {
+          baseVersion = Math.max(...versions.map((v: any) => v.propertyVersion));
+        }
+      }
+    }
+
+    // Create new version
+    const response = await client.request({
+      customer: args.customer,
+      method: 'POST',
+      path: `/papi/v1/properties/${args.propertyId}/versions`,
+      body: baseVersion ? { createFromVersion: baseVersion } : {},
+    });
+
+    const newVersion = response.versionLink?.split('/').pop() || 'unknown';
+    
+    // Add note and metadata if provided
+    if (args.note || args.tags || args.metadata) {
+      const patches = [];
+      
+      if (args.note) {
+        patches.push({
+          op: 'replace',
+          path: '/versions/0/note',
+          value: args.note
+        });
+      }
+      
+      // Add tags as part of metadata
+      if (args.tags || args.metadata) {
+        const metadata = { ...args.metadata };
+        if (args.tags) {
+          metadata.tags = args.tags.join(',');
+        }
+        metadata.createdBy = 'akamai-mcp';
+        metadata.created = new Date().toISOString();
+        
+        patches.push({
+          op: 'add',
+          path: '/versions/0/metadata',
+          value: metadata
+        });
+      }
+      
+      if (patches.length > 0) {
+        await client.request({
+          customer: args.customer,
+          method: 'PATCH',
+          path: `/papi/v1/properties/${args.propertyId}/versions/${newVersion}`,
+          body: patches,
+        });
+      }
+    }
+
+    const text = `✅ Created enhanced property version ${newVersion}${baseVersion ? ` based on version ${baseVersion}` : ''}
+${args.note ? `\nNote: ${args.note}` : ''}
+${args.tags ? `\nTags: ${args.tags.join(', ')}` : ''}
+
+**Smart Selections:**
+${args.autoSelectBase ? `- Auto-selected base version: ${baseVersion}` : ''}
+- Version metadata attached
+- Ready for rule updates
+
+**Next Steps:**
+- Update rules: "Update rules for property ${args.propertyId} version ${newVersion}"
+- Compare versions: "Compare property ${args.propertyId} versions ${baseVersion} and ${newVersion}"
+- Activate when ready: "Activate property ${args.propertyId} version ${newVersion} to staging"`;
+
+    return {
+      content: [{
+        type: 'text',
+        text,
+      }],
+    };
+  } catch (error) {
+    return formatError('create enhanced property version', error);
+  }
+}
+
+/**
+ * Get version diff comparing rule trees between versions
+ */
+export async function getVersionDiff(client: AkamaiClient, args: {
+  customer?: string;
+  propertyId: string;
+  version1: number;
+  version2: number;
+  includeDetails?: boolean;
+  compareType?: 'rules' | 'hostnames' | 'all';
+}): Promise<MCPToolResponse> {
+  try {
+    const compareType = args.compareType || 'all';
+    const differences = [];
+
+    // Compare rules if requested
+    if (compareType === 'rules' || compareType === 'all') {
+      const [rules1Response, rules2Response] = await Promise.all([
+        client.request({
+          customer: args.customer,
+          method: 'GET',
+          path: `/papi/v1/properties/${args.propertyId}/versions/${args.version1}/rules`,
+        }),
+        client.request({
+          customer: args.customer,
+          method: 'GET',
+          path: `/papi/v1/properties/${args.propertyId}/versions/${args.version2}/rules`,
+        })
+      ]);
+
+      const rulesDiff = compareRuleTrees(
+        rules1Response.data.rules,
+        rules2Response.data.rules,
+        args.includeDetails || false
+      );
+      
+      if (rulesDiff.length > 0) {
+        differences.push({
+          type: 'rules',
+          changes: rulesDiff.length,
+          details: rulesDiff
+        });
+      }
+    }
+
+    // Compare hostnames if requested
+    if (compareType === 'hostnames' || compareType === 'all') {
+      const [hostnames1Response, hostnames2Response] = await Promise.all([
+        client.request({
+          customer: args.customer,
+          method: 'GET',
+          path: `/papi/v1/properties/${args.propertyId}/versions/${args.version1}/hostnames`,
+        }),
+        client.request({
+          customer: args.customer,
+          method: 'GET',
+          path: `/papi/v1/properties/${args.propertyId}/versions/${args.version2}/hostnames`,
+        })
+      ]);
+
+      const hostnamesDiff = compareHostnames(
+        hostnames1Response.data.hostnames?.items || [],
+        hostnames2Response.data.hostnames?.items || []
+      );
+      
+      if (hostnamesDiff.length > 0) {
+        differences.push({
+          type: 'hostnames',
+          changes: hostnamesDiff.length,
+          details: hostnamesDiff
+        });
+      }
+    }
+
+    let text = `📊 **Version Comparison: ${args.version1} vs ${args.version2}**\n\n`;
+    
+    if (differences.length === 0) {
+      text += '✅ No differences found between versions';
+    } else {
+      text += `**Summary:** ${differences.length} difference category found\n\n`;
+      
+      for (const diff of differences) {
+        text += `**${diff.type.toUpperCase()} Changes:** ${diff.changes} differences\n`;
+        
+        if (args.includeDetails && diff.details) {
+          diff.details.slice(0, 10).forEach((detail: any, index: number) => {
+            text += `  ${index + 1}. ${detail.type}: ${detail.path || detail.description}\n`;
+          });
+          
+          if (diff.details.length > 10) {
+            text += `  ... and ${diff.details.length - 10} more changes\n`;
+          }
+        }
+        text += '\n';
+      }
+    }
+
+    text += `\n**Analysis Options:**
+- Get detailed diff: "Compare property ${args.propertyId} versions ${args.version1} and ${args.version2} with details"
+- View specific changes: "Get rules for property ${args.propertyId} version ${args.version2}"
+- Merge versions: "Merge property ${args.propertyId} version ${args.version2} into ${args.version1}"`;
+
+    return {
+      content: [{
+        type: 'text',
+        text,
+      }],
+    };
+  } catch (error) {
+    return formatError('compare property versions', error);
+  }
+}
+
+/**
+ * List property versions with enhanced filtering and pagination
+ */
+export async function listPropertyVersionsEnhanced(client: AkamaiClient, args: {
+  customer?: string;
+  propertyId: string;
+  limit?: number;
+  offset?: number;
+  status?: 'active' | 'inactive' | 'all';
+  network?: 'staging' | 'production' | 'both';
+  includeMetadata?: boolean;
+}): Promise<MCPToolResponse> {
+  try {
+    const response = await client.request({
+      customer: args.customer,
+      method: 'GET',
+      path: `/papi/v1/properties/${args.propertyId}/versions`,
+    });
+
+    let versions = response.data.versions?.items || [];
+    const limit = args.limit || 20;
+    const offset = args.offset || 0;
+
+    // Apply filters
+    if (args.status === 'active') {
+      versions = versions.filter((v: any) => 
+        v.stagingStatus === 'ACTIVE' || v.productionStatus === 'ACTIVE'
+      );
+    } else if (args.status === 'inactive') {
+      versions = versions.filter((v: any) => 
+        v.stagingStatus !== 'ACTIVE' && v.productionStatus !== 'ACTIVE'
+      );
+    }
+
+    if (args.network === 'staging') {
+      versions = versions.filter((v: any) => v.stagingStatus === 'ACTIVE');
+    } else if (args.network === 'production') {
+      versions = versions.filter((v: any) => v.productionStatus === 'ACTIVE');
+    }
+
+    // Sort by version number (newest first)
+    versions.sort((a: any, b: any) => b.propertyVersion - a.propertyVersion);
+
+    // Apply pagination
+    const totalVersions = versions.length;
+    const paginatedVersions = versions.slice(offset, offset + limit);
+
+    let text = `📋 **Property Versions for ${args.propertyId}**\n\n`;
+    text += `**Total:** ${totalVersions} versions | **Showing:** ${offset + 1}-${Math.min(offset + limit, totalVersions)}\n\n`;
+
+    for (const version of paginatedVersions) {
+      const isActive = version.stagingStatus === 'ACTIVE' || version.productionStatus === 'ACTIVE';
+      const statusIcon = isActive ? '🟢' : '⚪';
+      
+      text += `${statusIcon} **Version ${version.propertyVersion}**\n`;
+      text += `  └ Updated: ${version.updatedDate} by ${version.updatedByUser}\n`;
+      
+      if (version.stagingStatus === 'ACTIVE') text += `  └ 🟡 Active on STAGING\n`;
+      if (version.productionStatus === 'ACTIVE') text += `  └ 🔴 Active on PRODUCTION\n`;
+      
+      if (version.note) text += `  └ Note: ${version.note}\n`;
+      
+      if (args.includeMetadata && version.metadata) {
+        const metadata = typeof version.metadata === 'string' ? 
+          JSON.parse(version.metadata) : version.metadata;
+        if (metadata.tags) text += `  └ Tags: ${metadata.tags}\n`;
+      }
+      
+      text += '\n';
+    }
+
+    // Pagination controls
+    if (totalVersions > limit) {
+      text += `**Navigation:**\n`;
+      if (offset > 0) {
+        text += `- Previous: "List versions for property ${args.propertyId} offset ${Math.max(0, offset - limit)}"\n`;
+      }
+      if (offset + limit < totalVersions) {
+        text += `- Next: "List versions for property ${args.propertyId} offset ${offset + limit}"\n`;
+      }
+    }
+
+    text += `\n**Actions:**
+- Compare versions: "Compare property ${args.propertyId} versions X and Y"
+- Create new version: "Create version for property ${args.propertyId}"
+- View version details: "Get rules for property ${args.propertyId} version X"`;
+
+    return {
+      content: [{
+        type: 'text',
+        text,
+      }],
+    };
+  } catch (error) {
+    return formatError('list property versions', error);
+  }
+}
+
+/**
+ * Rollback property version for quick recovery
+ */
+export async function rollbackPropertyVersion(client: AkamaiClient, args: {
+  customer?: string;
+  propertyId: string;
+  targetVersion: number;
+  createBackup?: boolean;
+  note?: string;
+  autoActivate?: boolean;
+  network?: 'staging' | 'production';
+}): Promise<MCPToolResponse> {
+  try {
+    let backupVersionId = null;
+    
+    // Create backup of current version if requested
+    if (args.createBackup !== false) {
+      const currentVersionResponse = await client.request({
+        customer: args.customer,
+        method: 'GET',
+        path: `/papi/v1/properties/${args.propertyId}/versions`,
+      });
+      
+      const versions = currentVersionResponse.data.versions?.items || [];
+      const latestVersion = Math.max(...versions.map((v: any) => v.propertyVersion));
+      
+      const backupResponse = await client.request({
+        customer: args.customer,
+        method: 'POST',
+        path: `/papi/v1/properties/${args.propertyId}/versions`,
+        body: { createFromVersion: latestVersion },
+      });
+      
+      backupVersionId = backupResponse.versionLink?.split('/').pop();
+      
+      // Add backup note
+      if (backupVersionId) {
+        await client.request({
+          customer: args.customer,
+          method: 'PATCH',
+          path: `/papi/v1/properties/${args.propertyId}/versions/${backupVersionId}`,
+          body: [{
+            op: 'replace',
+            path: '/versions/0/note',
+            value: `Backup before rollback to version ${args.targetVersion} - ${new Date().toISOString()}`
+          }],
+        });
+      }
+    }
+
+    // Create new version from target version
+    const rollbackResponse = await client.request({
+      customer: args.customer,
+      method: 'POST',
+      path: `/papi/v1/properties/${args.propertyId}/versions`,
+      body: { createFromVersion: args.targetVersion },
+    });
+
+    const newVersionId = rollbackResponse.versionLink?.split('/').pop();
+    
+    // Add rollback note
+    if (newVersionId && args.note) {
+      await client.request({
+        customer: args.customer,
+        method: 'PATCH',
+        path: `/papi/v1/properties/${args.propertyId}/versions/${newVersionId}`,
+        body: [{
+          op: 'replace',
+          path: '/versions/0/note',
+          value: `Rollback from version ${args.targetVersion}: ${args.note}`
+        }],
+      });
+    }
+
+    let text = `🔄 **Property Rollback Completed**\n\n`;
+    text += `✅ Rolled back to version ${args.targetVersion}\n`;
+    text += `📦 New version created: ${newVersionId}\n`;
+    
+    if (backupVersionId) {
+      text += `💾 Backup version created: ${backupVersionId}\n`;
+    }
+
+    // Auto-activate if requested
+    if (args.autoActivate && args.network) {
+      try {
+        await client.request({
+          customer: args.customer,
+          method: 'POST',
+          path: `/papi/v1/properties/${args.propertyId}/activations`,
+          body: {
+            propertyVersion: parseInt(newVersionId),
+            network: args.network.toUpperCase(),
+            note: `Auto-activation after rollback to version ${args.targetVersion}`,
+            acknowledgeAllWarnings: true,
+          },
+        });
+        text += `🚀 Auto-activated on ${args.network.toUpperCase()}\n`;
+      } catch (activationError) {
+        text += `⚠️ Rollback completed but auto-activation failed. Manual activation required.\n`;
+      }
+    }
+
+    text += `\n**Recovery Information:**
+- Original version: ${args.targetVersion}
+- New version: ${newVersionId}
+${backupVersionId ? `- Backup version: ${backupVersionId}` : ''}
+
+**Next Steps:**
+${!args.autoActivate ? `- Activate: "Activate property ${args.propertyId} version ${newVersionId} to ${args.network || 'staging'}"` : ''}
+- Verify: "Get rules for property ${args.propertyId} version ${newVersionId}"
+- Compare: "Compare property ${args.propertyId} versions ${backupVersionId} and ${newVersionId}"`;
+
+    return {
+      content: [{
+        type: 'text',
+        text,
+      }],
+    };
+  } catch (error) {
+    return formatError('rollback property version', error);
+  }
+}
+
+/**
+ * Batch version operations across multiple properties
+ */
+export async function batchVersionOperations(client: AkamaiClient, args: {
+  customer?: string;
+  operations: Array<{
+    propertyId: string;
+    operation: 'create' | 'rollback' | 'compare';
+    parameters: Record<string, any>;
+  }>;
+  parallel?: boolean;
+  continueOnError?: boolean;
+}): Promise<MCPToolResponse> {
+  try {
+    const results = [];
+    const errors = [];
+    
+    if (args.parallel) {
+      // Execute operations in parallel
+      const promises = args.operations.map(async (op, index) => {
+        try {
+          let result;
+          switch (op.operation) {
+            case 'create':
+              result = await createPropertyVersionEnhanced(client, {
+                customer: args.customer,
+                propertyId: op.propertyId,
+                ...op.parameters
+              });
+              break;
+            case 'rollback':
+              result = await rollbackPropertyVersion(client, {
+                customer: args.customer,
+                propertyId: op.propertyId,
+                ...op.parameters
+              });
+              break;
+            case 'compare':
+              result = await getVersionDiff(client, {
+                customer: args.customer,
+                propertyId: op.propertyId,
+                ...op.parameters
+              });
+              break;
+            default:
+              throw new Error(`Unknown operation: ${op.operation}`);
+          }
+          return { index, success: true, result, propertyId: op.propertyId };
+        } catch (error) {
+          return { index, success: false, error: error.message, propertyId: op.propertyId };
+        }
+      });
+      
+      const allResults = await Promise.allSettled(promises);
+      
+      allResults.forEach((promiseResult, index) => {
+        if (promiseResult.status === 'fulfilled') {
+          const { success, result, error, propertyId } = promiseResult.value;
+          if (success) {
+            results.push({ propertyId, operation: args.operations[index].operation, result });
+          } else {
+            errors.push({ propertyId, operation: args.operations[index].operation, error });
+          }
+        } else {
+          errors.push({ 
+            propertyId: args.operations[index].propertyId, 
+            operation: args.operations[index].operation, 
+            error: promiseResult.reason 
+          });
+        }
+      });
+    } else {
+      // Execute operations sequentially
+      for (const [index, op] of args.operations.entries()) {
+        try {
+          let result;
+          switch (op.operation) {
+            case 'create':
+              result = await createPropertyVersionEnhanced(client, {
+                customer: args.customer,
+                propertyId: op.propertyId,
+                ...op.parameters
+              });
+              break;
+            case 'rollback':
+              result = await rollbackPropertyVersion(client, {
+                customer: args.customer,
+                propertyId: op.propertyId,
+                ...op.parameters
+              });
+              break;
+            case 'compare':
+              result = await getVersionDiff(client, {
+                customer: args.customer,
+                propertyId: op.propertyId,
+                ...op.parameters
+              });
+              break;
+            default:
+              throw new Error(`Unknown operation: ${op.operation}`);
+          }
+          results.push({ propertyId: op.propertyId, operation: op.operation, result });
+        } catch (error) {
+          errors.push({ propertyId: op.propertyId, operation: op.operation, error: error.message });
+          
+          if (!args.continueOnError) {
+            break;
+          }
+        }
+      }
+    }
+
+    let text = `📋 **Batch Version Operations Results**\n\n`;
+    text += `**Summary:** ${results.length} successful, ${errors.length} failed\n\n`;
+
+    if (results.length > 0) {
+      text += `✅ **Successful Operations:**\n`;
+      results.forEach((result, index) => {
+        text += `${index + 1}. ${result.propertyId} - ${result.operation}\n`;
+      });
+      text += '\n';
+    }
+
+    if (errors.length > 0) {
+      text += `❌ **Failed Operations:**\n`;
+      errors.forEach((error, index) => {
+        text += `${index + 1}. ${error.propertyId} - ${error.operation}: ${error.error}\n`;
+      });
+      text += '\n';
+    }
+
+    text += `**Execution Mode:** ${args.parallel ? 'Parallel' : 'Sequential'}
+**Continue on Error:** ${args.continueOnError ? 'Yes' : 'No'}
+
+**Next Steps:**
+- Review individual results above
+- Retry failed operations if needed
+- Verify successful operations`;
+
+    return {
+      content: [{
+        type: 'text',
+        text,
+      }],
+    };
+  } catch (error) {
+    return formatError('batch version operations', error);
+  }
+}
+
+/**
+ * Helper function to compare rule trees and identify differences
+ */
+function compareRuleTrees(rules1: any, rules2: any, includeDetails: boolean): any[] {
+  const differences = [];
+  
+  // Deep comparison logic would go here
+  // This is a simplified version for demonstration
+  const rules1Str = JSON.stringify(rules1, null, 2);
+  const rules2Str = JSON.stringify(rules2, null, 2);
+  
+  if (rules1Str !== rules2Str) {
+    differences.push({
+      type: 'rule_tree_change',
+      description: 'Rule tree content differs between versions',
+      path: '/rules'
+    });
+  }
+  
+  return differences;
+}
+
+/**
+ * Helper function to compare hostnames
+ */
+function compareHostnames(hostnames1: any[], hostnames2: any[]): any[] {
+  const differences = [];
+  
+  const h1Map = new Map(hostnames1.map(h => [h.cnameFrom, h]));
+  const h2Map = new Map(hostnames2.map(h => [h.cnameFrom, h]));
+  
+  // Check for added hostnames
+  for (const [hostname, config] of h2Map) {
+    if (!h1Map.has(hostname)) {
+      differences.push({
+        type: 'hostname_added',
+        description: `Hostname ${hostname} added`,
+        hostname
+      });
+    }
+  }
+  
+  // Check for removed hostnames
+  for (const [hostname, config] of h1Map) {
+    if (!h2Map.has(hostname)) {
+      differences.push({
+        type: 'hostname_removed',
+        description: `Hostname ${hostname} removed`,
+        hostname
+      });
+    }
+  }
+  
+  return differences;
+}
+
+/**
  * Format error responses with helpful guidance
  */
 function formatError(operation: string, error: any): MCPToolResponse {

@@ -7,7 +7,7 @@ An MCP (Model Context Protocol) server that enables AI assistants to interact wi
 ## Features
 
 ### 🚀 Multi-Customer Support
-- Seamless switching between multiple Akamai accounts
+- Seamless switching between multiple Akamai accounts for Akamai personel and partners.
 - Account-specific configurations via `.edgerc` sections
 - Automatic account key detection and application
 
@@ -139,6 +139,14 @@ Add to your Claude Desktop configuration:
 
 ## Available Tools
 
+### FastPurge - Content Invalidation
+- `fastpurge.url.invalidate` - Invalidate content by URL(s)
+- `fastpurge.cpcode.invalidate` - Invalidate all content for CP code(s)
+- `fastpurge.tag.invalidate` - Invalidate content by cache tag(s)
+- `fastpurge.status.check` - Check purge operation status
+- `fastpurge.queue.status` - View queue status and pending operations
+- `fastpurge.estimate` - Estimate purge completion time
+
 ### Property Management - Core Functions
 - `list_properties` - List CDN properties with filtering options
 - `get_property` - Get detailed property information by name or ID
@@ -153,9 +161,20 @@ Add to your Claude Desktop configuration:
 - `list_property_versions` - List all versions of a property
 - `get_property_version` - Get specific version details
 - `get_latest_property_version` - Get the latest version details
+- `compare_property_versions` - Compare two property versions
+- `get_version_timeline` - Get comprehensive version history
+- `rollback_property_version` - Rollback to a previous version
+- `update_version_metadata` - Update version notes and tags
+- `merge_property_versions` - Merge changes between versions
+- `batch_create_versions` - Create versions across multiple properties
 - `get_property_rules` - Get property configuration rules
 - `update_property_rules` - Update property configuration
 - `patch_property_rules` - Apply JSON patch to rules
+- `validate_rule_tree` - Comprehensive rule validation
+- `create_rule_tree_from_template` - Use predefined rule templates
+- `analyze_rule_tree_performance` - Analyze rule performance
+- `detect_rule_conflicts` - Find rule conflicts
+- `optimize_rule_tree` - Optimize rule configuration
 
 ### Property Management - Hostname & Activation
 - `create_edge_hostname` - Create edge hostname for content delivery
@@ -171,10 +190,22 @@ Add to your Claude Desktop configuration:
 
 ### Property Management - Search & Analysis
 - `search_properties` - Search properties by various criteria
+- `search_properties_advanced` - Multi-criteria advanced search
+- `compare_properties` - Compare two properties in detail
+- `check_property_health` - Comprehensive property health check
+- `detect_configuration_drift` - Detect drift from baseline
 - `list_all_hostnames` - List all hostnames across properties
 - `bulk_search_properties` - Initiate bulk property search
 - `get_bulk_search_results` - Get bulk search results
 - `get_property_audit_history` - Get property change history
+
+### Property Management - Bulk Operations
+- `bulk_clone_properties` - Clone property to multiple targets
+- `bulk_activate_properties` - Activate multiple properties
+- `bulk_update_property_rules` - Update rules across properties
+- `bulk_manage_hostnames` - Add/remove hostnames in bulk
+- `bulk_update_properties` - Apply common changes to multiple properties
+- `get_bulk_operation_status` - Track bulk operation progress
 
 ### Property Management - Products & CP Codes
 - `list_products` - List available Akamai products
@@ -275,11 +306,22 @@ src/
 ├── index.ts                          # MCP server setup and request handling
 ├── akamai-client.ts                  # EdgeGrid authentication and API client
 ├── types.ts                          # TypeScript type definitions
+├── services/
+│   ├── FastPurgeService.ts           # FastPurge v3 API integration
+│   ├── PurgeQueueManager.ts          # Intelligent queue management
+│   └── PurgeStatusTracker.ts         # Real-time operation tracking
+├── monitoring/
+│   └── FastPurgeMonitor.ts           # Production monitoring and alerts
 ├── tools/
 │   ├── property-tools.ts             # Core property management
 │   ├── property-manager-tools.ts     # Property version & activation management
 │   ├── property-manager-advanced-tools.ts  # Advanced property operations
 │   ├── property-manager-rules-tools.ts     # Rule management utilities
+│   ├── property-version-management.ts      # Enhanced version control
+│   ├── rule-tree-management.ts       # Rule optimization and templates
+│   ├── bulk-operations-manager.ts    # Multi-property bulk operations
+│   ├── property-operations-advanced.ts     # Advanced search and health
+│   ├── fastpurge-tools.ts            # FastPurge MCP tools
 │   ├── dns-tools.ts                  # Core DNS operations
 │   ├── dns-advanced-tools.ts         # Advanced DNS functions
 │   ├── dns-migration-tools.ts        # DNS migration utilities
@@ -288,43 +330,56 @@ src/
 │   ├── cps-tools.ts                  # Certificate management
 │   └── secure-by-default-onboarding.ts  # Secure property workflows
 └── utils/
-    └── progress.ts                   # Progress indicators and formatting
+    ├── progress.ts                   # Progress indicators and formatting
+    ├── errors.ts                     # Error handling and translation
+    ├── resilience-manager.ts         # Circuit breaker and retry logic
+    └── performance-monitor.ts        # Performance tracking
 ```
 
-## Current Capabilities (v1.1.0)
+## Current Capabilities (v1.2.0)
 
 ### ✅ Implemented Features
 - **Property Manager**: Full CRUD operations, version management, activation workflow
 - **Edge DNS**: Zone management, record operations, bulk imports, DNSSEC support
 - **Certificate Management**: Default DV certificates with automatic DNS validation
-- **Multi-Customer Support**: Seamless account switching
+- **Multi-Account Support**: Seamless account switching (Akamai intenral and channel partners only)
 - **Product Mapping**: Intelligent product selection and recommendations
 - **CP Code Management**: Create and manage CP codes for reporting
 - **Secure Property Onboarding**: Automated HTTPS property setup workflow
 - **DNS Migration**: AXFR transfers, zone file imports, provider-specific guides
 - **Advanced Search**: Property search by name, hostname, edge hostname
 - **Progress Tracking**: Real-time feedback for long-running operations
+- **FastPurge v3**: Intelligent content invalidation with rate limiting and queue management
+- **Version Control**: Comprehensive version comparison, timeline, and rollback
+- **Rule Tree Management**: Validation, optimization, templates, and merging
+- **Bulk Operations**: Multi-property cloning, activation, and rule updates
+
+### 🎯 New in v1.2.0
+- **FastPurge Service**: Enterprise-grade content invalidation with intelligent rate limiting and batching
+- **Advanced Version Management**: Version comparison, timeline tracking, rollback capabilities
+- **Rule Tree Optimization**: Comprehensive validation, templates, and performance analysis
+- **Bulk Operations**: Multi-property management with progress tracking
+- **Enhanced Search**: Multi-criteria property search and health checks
 
 ### 🚧 Upcoming Features
 
-#### Q3 2024
+#### Short term
 - **Network Lists**: IP and geographic access control list management
-- **Fast Purge**: Content invalidation and cache clearing
 - **Image & Video Manager**: Policy creation and management
-- **Cloudlets**: Edge logic deployment (redirects, forwards, etc.)
+- **Simple Edgeworkers**: Edge logic deployment (redirects, forwards, etc.)
 
-#### Q4 2024
+#### Medium term
 - **Application Security**: WAF rule management and security policies
 - **Bot Manager**: Bot detection and mitigation configuration
 - **Reporting API**: Traffic analytics and performance metrics
-- **DataStream**: Real-time log streaming configuration
+- **Securiy Metrics**: Security trends and metrcis
 
-#### Future Roadmap
-- **API Gateway**: API definition and policy management
-- **EdgeWorkers**: JavaScript code deployment at the edge
+#### Long term Roadmap
+- **API Definitions and Discovery**: API definition and policy management
+- **Advanced EdgeWorkers**: JavaScript code deployment at the edge
 - **Identity & Access Management**: User and API client management
-- **China CDN**: Separate tools for China delivery properties
-- **mPulse**: RUM (Real User Monitoring) integration
+- **Media Worflows**: Specific feature for Media delivery properties
+- **mPulse**: Pull data RUM (Real User Monitoring) API integration
 - **Property activation diffing**: Compare versions before activation
 - **Terraform Export**: Generate Terraform configurations from existing properties
 

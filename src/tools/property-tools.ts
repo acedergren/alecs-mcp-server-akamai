@@ -6,6 +6,7 @@
 import { AkamaiClient } from '../akamai-client.js';
 import { MCPToolResponse, PropertyList, Property, GroupList } from '../types.js';
 import { formatProductDisplay } from '../utils/product-mapping.js';
+import { formatContractDisplay, formatGroupDisplay, formatPropertyDisplay, ensurePrefix } from '../utils/formatting.js';
 
 /**
  * Format a date string to a more readable format
@@ -57,8 +58,8 @@ export async function listProperties(
     const MAX_PROPERTIES_TO_DISPLAY = args.limit || 50;
     
     // If no contract ID provided, get the first available contract
-    let contractId = args.contractId;
-    let groupId = args.groupId;
+    let contractId = args.contractId ? ensurePrefix(args.contractId, 'ctr_') : undefined;
+    let groupId = args.groupId ? ensurePrefix(args.groupId, 'grp_') : undefined;
     
     if (!contractId) {
       // Get groups to find the first contract
@@ -132,8 +133,8 @@ export async function listProperties(
     
     // Add filter information
     text += '**Filters Applied:**\n';
-    if (contractId) text += `- Contract: ${contractId}${!args.contractId ? ' (auto-selected)' : ''}\n`;
-    if (groupId) text += `- Group: ${groupId}${!args.groupId && !args.contractId ? ' (auto-selected)' : ''}\n`;
+    if (contractId) text += `- Contract: ${formatContractDisplay(contractId)}${!args.contractId ? ' (auto-selected)' : ''}\n`;
+    if (groupId) text += `- Group: ${formatGroupDisplay(groupId)}${!args.groupId && !args.contractId ? ' (auto-selected)' : ''}\n`;
     if (hasMore) {
       text += `- **Limit:** Showing first ${MAX_PROPERTIES_TO_DISPLAY} properties\n`;
     }
@@ -149,15 +150,15 @@ export async function listProperties(
 
     // Display properties organized by contract
     for (const [contractId, contractProps] of Object.entries(propertiesByContract)) {
-      text += `## Contract: ${contractId}\n\n`;
+      text += `## ${formatContractDisplay(contractId)}\n\n`;
       
       for (const prop of contractProps) {
         text += `### 📦 ${prop.propertyName}\n`;
-        text += `- **Property ID:** ${prop.propertyId}\n`;
+        text += `- **Property ID:** ${formatPropertyDisplay(prop.propertyId)}\n`;
         text += `- **Current Version:** ${prop.latestVersion || 'N/A'}\n`;
         text += `- **Production:** ${formatStatus(prop.productionStatus)}\n`;
         text += `- **Staging:** ${formatStatus(prop.stagingStatus)}\n`;
-        text += `- **Group:** ${prop.groupId}\n`;
+        text += `- **Group:** ${formatGroupDisplay(prop.groupId)}\n`;
         
         if (prop.note) {
           text += `- **Notes:** ${prop.note}\n`;
@@ -434,10 +435,10 @@ async function getPropertyById(
     
     // Basic Information
     text += `## Basic Information\n`;
-    text += `- **Property ID:** ${prop.propertyId}\n`;
+    text += `- **Property ID:** ${formatPropertyDisplay(prop.propertyId, prop.propertyName)}\n`;
     text += `- **Asset ID:** ${prop.assetId || 'N/A'}\n`;
-    text += `- **Contract ID:** ${prop.contractId}\n`;
-    text += `- **Group ID:** ${prop.groupId}\n`;
+    text += `- **Contract:** ${formatContractDisplay(prop.contractId)}\n`;
+    text += `- **Group:** ${formatGroupDisplay(prop.groupId)}\n`;
     text += `- **Product:** ${prop.productId ? formatProductDisplay(prop.productId) : 'N/A'}\n\n`;
     
     // Version Information
@@ -518,6 +519,14 @@ export async function createProperty(
   }
 ): Promise<MCPToolResponse> {
   try {
+    // Ensure prefixes are added if missing
+    if (args.contractId) {
+      args.contractId = ensurePrefix(args.contractId, 'ctr_');
+    }
+    if (args.groupId) {
+      args.groupId = ensurePrefix(args.groupId, 'grp_');
+    }
+    
     // Validate required parameters
     const validationErrors: string[] = [];
     
@@ -527,12 +536,12 @@ export async function createProperty(
       validationErrors.push('Property name can only contain letters, numbers, hyphens, dots, and underscores');
     }
     
-    if (!args.contractId || !args.contractId.startsWith('ctr_')) {
-      validationErrors.push('Valid contract ID is required (should start with ctr_)');
+    if (!args.contractId) {
+      validationErrors.push('Contract ID is required');
     }
     
-    if (!args.groupId || !args.groupId.startsWith('grp_')) {
-      validationErrors.push('Valid group ID is required (should start with grp_)');
+    if (!args.groupId) {
+      validationErrors.push('Group ID is required');
     }
     
     if (!args.productId) {
@@ -597,10 +606,10 @@ export async function createProperty(
     
     text += `## Property Details\n`;
     text += `- **Name:** ${args.propertyName}\n`;
-    text += `- **Property ID:** ${propertyId}\n`;
+    text += `- **Property ID:** ${formatPropertyDisplay(propertyId)}\n`;
     text += `- **Product:** ${formatProductDisplay(args.productId)}\n`;
-    text += `- **Contract:** ${args.contractId}\n`;
-    text += `- **Group:** ${args.groupId}\n`;
+    text += `- **Contract:** ${formatContractDisplay(args.contractId)}\n`;
+    text += `- **Group:** ${formatGroupDisplay(args.groupId)}\n`;
     text += `- **Rule Format:** ${ruleFormat}\n`;
     text += `- **Status:** 🔵 NEW (Not yet activated)\n\n`;
     
@@ -709,14 +718,15 @@ export async function listContracts(
 
     let text = `# Akamai Contracts ${args.searchTerm ? `(${contracts.length} matching "${args.searchTerm}")` : `(${contracts.length} found)`}\n\n`;
     
-    text += `| Contract ID | Type | Status |\n`;
-    text += `|-------------|------|--------|\n`;
+    text += `| Contract | Type | Status | Raw ID |\n`;
+    text += `|----------|------|--------|--------|\n`;
     
     for (const contract of contracts) {
       const contractId = contract.contractId || 'Unknown';
       const contractType = contract.contractTypeName || 'Standard';
       const status = contract.status || 'Active';
-      text += `| ${contractId} | ${contractType} | ${status} |\n`;
+      const displayName = formatContractDisplay(contractId, contractType);
+      text += `| ${displayName} | ${contractType} | ${status} | ${contractId} |\n`;
     }
     
     text += '\n';
@@ -726,7 +736,7 @@ export async function listContracts(
     text += `- Creating CP codes\n`;
     text += `- Enrolling certificates\n\n`;
     text += `Example usage:\n`;
-    text += `\`"Create property in contract ctr_C-1234567"\`\n\n`;
+    text += `\`"Create property in contract C-1234567"\` (you can omit the ctr_ prefix)\n\n`;
     text += `💡 **Tip:** Use \`list_groups\` to see which groups have access to each contract.`;
 
     return {
@@ -798,10 +808,11 @@ export async function listGroups(
     // Function to recursively display groups
     function displayGroup(group: typeof groups[0], indent: string = ''): string {
       let output = `${indent}📁 **${group.groupName}**\n`;
-      output += `${indent}   Group ID: ${group.groupId}\n`;
+      output += `${indent}   Group ID: ${formatGroupDisplay(group.groupId, undefined, true)}\n`;
       
       if (group.contractIds && group.contractIds.length > 0) {
-        output += `${indent}   Contracts: ${group.contractIds.join(', ')}\n`;
+        const contractDisplays = group.contractIds.map(cid => formatContractDisplay(cid));
+        output += `${indent}   Contracts: ${contractDisplays.join(', ')}\n`;
       } else {
         output += `${indent}   Contracts: None\n`;
       }
@@ -836,7 +847,7 @@ export async function listGroups(
     if (allContracts.size > 0) {
       text += `## All Available Contracts\n\n`;
       Array.from(allContracts).sort().forEach(contract => {
-        text += `- ${contract}\n`;
+        text += `- ${formatContractDisplay(contract)} (${contract})\n`;
       });
       text += '\n';
     }
@@ -852,19 +863,23 @@ export async function listGroups(
     );
     
     for (const group of sortedGroups) {
-      const contracts = group.contractIds?.join(', ') || 'None';
-      text += `| ${group.groupName} | ${group.groupId} | ${contracts} |\n`;
+      const contracts = group.contractIds ? 
+        group.contractIds.map(cid => formatContractDisplay(cid)).join(', ') : 
+        'None';
+      text += `| ${group.groupName} | ${formatGroupDisplay(group.groupId)} | ${contracts} |\n`;
     }
     text += '\n';
     
     // Add usage instructions
     text += `## How to Use This Information\n\n`;
     text += `When creating a new property, you'll need:\n`;
-    text += `1. **Group ID** (grp_XXXXX) - Choose based on your organization structure\n`;
-    text += `2. **Contract ID** (ctr_X-XXXXX) - Choose based on your billing arrangement\n\n`;
+    text += `1. **Group ID** - Choose based on your organization structure\n`;
+    text += `2. **Contract ID** - Choose based on your billing arrangement\n\n`;
     text += `Example:\n`;
-    text += `\`"Create a new property called my-site in group grp_12345 with contract ctr_C-1234567"\`\n\n`;
-    text += `💡 **Tip:** Properties inherit permissions from their group, so choose the appropriate group for access control.`;
+    text += `\`"Create a new property called my-site in group 12345 with contract C-1234567"\`\n\n`;
+    text += `💡 **Tips:**\n`;
+    text += `- You can omit the prefixes (ctr_, grp_) when referencing IDs\n`;
+    text += `- Properties inherit permissions from their group, so choose the appropriate group for access control`;
 
     return {
       content: [{

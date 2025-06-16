@@ -1,4 +1,4 @@
-# Akamai MCP Server - Quick Start Guide
+# ALECS MCP Server - Quick Start Guide
 
 ## Immediate Actions (Start Tonight!)
 

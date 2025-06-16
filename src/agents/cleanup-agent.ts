@@ -140,11 +140,6 @@ class CleanupAgent {
     console.log('');
 
     try {
-      // Create .old directory if it doesn't exist
-      if (!existsSync(this.oldDir)) {
-        await fs.mkdir(this.oldDir, { recursive: true });
-      }
-
       // Step 1: Analyze files
       const plan = await this.analyzeFiles();
       
@@ -416,6 +411,11 @@ class CleanupAgent {
     
     const totalOperations = plan.archive.length + plan.delete.length;
     let completed = 0;
+    
+    // Create .old directory if it doesn't exist and we have files to archive
+    if (plan.archive.length > 0 && !existsSync(this.oldDir)) {
+      await fs.mkdir(this.oldDir, { recursive: true });
+    }
     
     this.progressBar = new ProgressBar({
       total: totalOperations,

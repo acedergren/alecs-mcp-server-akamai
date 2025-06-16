@@ -1,0 +1,12 @@
+dist/
+node_modules/
+coverage/
+*.min.js
+*.d.ts
+package-lock.json
+.git/
+.vscode/
+.idea/
+build/
+temp/
+*.log

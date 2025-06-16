@@ -28,12 +28,18 @@ npm run dev
 
 ### Testing
 ```bash
-# Run tests (when implemented)
+# Run tests
 npm test
 
 # Run specific test
 npm test -- --testNamePattern="pattern"
 ```
+
+#### Test Environment
+A dedicated test environment is available in the `.edgerc` file:
+- Section name: `testing`
+- This represents a test environment in Akamai for integration testing
+- Use `customer: "testing"` parameter in MCP tools to target this environment
 
 ### Deployment
 ```bash

@@ -36,7 +36,8 @@ import {
   createZone,
   listRecords,
   upsertRecord,
-  deleteRecord
+  deleteRecord,
+  activateZoneChanges
 } from './tools/dns-tools.js';
 import {
   createPropertyVersion,
@@ -116,6 +117,102 @@ import {
   getVersionMasterZoneFile,
   createMultipleRecordSets
 } from './tools/dns-advanced-tools.js';
+import {
+  generateDocumentationIndex,
+  generateAPIReference,
+  generateFeatureDocumentation,
+  updateDocumentation,
+  generateChangelog,
+  createKnowledgeArticle
+} from './tools/documentation-tools.js';
+import {
+  validatePropertyActivation,
+  activatePropertyWithMonitoring,
+  getActivationProgress,
+  cancelPropertyActivation as cancelPropertyActivationAdvanced,
+  createActivationPlan
+} from './tools/property-activation-advanced.js';
+import {
+  comparePropertyVersions,
+  batchCreateVersions,
+  getVersionTimeline,
+  rollbackPropertyVersion,
+  updateVersionMetadata,
+  mergePropertyVersions
+} from './tools/property-version-management.js';
+import {
+  validateRuleTree,
+  createRuleTreeFromTemplate,
+  analyzeRuleTreePerformance,
+  detectRuleConflicts,
+  listRuleTemplates
+} from './tools/rule-tree-advanced.js';
+import {
+  analyzeHostnameOwnership,
+  generateEdgeHostnameRecommendations,
+  validateHostnamesBulk,
+  findOptimalPropertyAssignment,
+  createHostnameProvisioningPlan
+} from './tools/hostname-management-advanced.js';
+import {
+  searchPropertiesAdvanced,
+  compareProperties,
+  checkPropertyHealth,
+  detectConfigurationDrift,
+  bulkUpdateProperties
+} from './tools/property-operations-advanced.js';
+import {
+  bulkCloneProperties,
+  bulkActivateProperties,
+  bulkUpdatePropertyRules,
+  bulkManageHostnames,
+  getBulkOperationStatus
+} from './tools/bulk-operations-manager.js';
+import {
+  getSystemHealth,
+  resetCircuitBreaker,
+  getOperationMetrics,
+  testOperationResilience,
+  getErrorRecoverySuggestions
+} from './tools/resilience-tools.js';
+import {
+  getPerformanceAnalysis,
+  optimizeCache,
+  profilePerformance,
+  getRealtimeMetrics,
+  resetPerformanceMonitoring
+} from './tools/performance-tools.js';
+import {
+  runIntegrationTestSuite,
+  checkAPIHealth,
+  generateTestData,
+  validateToolResponses,
+  runLoadTest
+} from './tools/integration-testing-tools.js';
+import {
+  listIncludes,
+  getInclude,
+  createInclude,
+  updateInclude,
+  createIncludeVersion,
+  activateInclude,
+  getIncludeActivationStatus,
+  listIncludeActivations
+} from './tools/includes-tools.js';
+import {
+  getValidationErrors,
+  acknowledgeWarnings,
+  overrideErrors,
+  getErrorRecoveryHelp,
+  validatePropertyConfiguration
+} from './tools/property-error-handling-tools.js';
+import {
+  discoverHostnamesIntelligent,
+  analyzeHostnameConflicts,
+  analyzeWildcardCoverage,
+  identifyOwnershipPatterns
+} from './tools/hostname-discovery-engine.js';
+import { fastPurgeTools } from './tools/fastpurge-tools.js';
 
 // Tool schemas for validation
 const ListPropertiesSchema = z.object({
@@ -220,6 +317,78 @@ const UpdatePropertyRulesSchema = z.object({
   note: z.string().optional(),
 });
 
+const UpdateIncludeSchema = z.object({
+  customer: z.string().optional(),
+  includeId: z.string(),
+  contractId: z.string(),
+  groupId: z.string(),
+  rules: z.any(),
+  version: z.number().optional(),
+  note: z.string().optional(),
+});
+
+const CreateIncludeVersionSchema = z.object({
+  customer: z.string().optional(),
+  includeId: z.string(),
+  contractId: z.string(),
+  groupId: z.string(),
+  baseVersion: z.number().optional(),
+  note: z.string().optional(),
+});
+
+const ListIncludeActivationsSchema = z.object({
+  customer: z.string().optional(),
+  includeId: z.string(),
+  contractId: z.string(),
+  groupId: z.string(),
+});
+
+const OverrideErrorsSchema = z.object({
+  customer: z.string().optional(),
+  propertyId: z.string(),
+  version: z.number(),
+  errors: z.array(z.string()),
+  justification: z.string(),
+  contractId: z.string(),
+  groupId: z.string(),
+  approvedBy: z.string().optional(),
+});
+
+const DiscoverHostnamesIntelligentSchema = z.object({
+  customer: z.string().optional(),
+  analysisScope: z.enum(['all', 'contract', 'group']).optional(),
+  contractId: z.string().optional(),
+  groupId: z.string().optional(),
+  includeInactive: z.boolean().optional(),
+  analyzeWildcards: z.boolean().optional(),
+  detectConflicts: z.boolean().optional(),
+  findOptimizations: z.boolean().optional(),
+});
+
+const AnalyzeHostnameConflictsSchema = z.object({
+  customer: z.string().optional(),
+  targetHostnames: z.array(z.string()),
+  contractId: z.string().optional(),
+  groupId: z.string().optional(),
+  includeWildcardAnalysis: z.boolean().optional(),
+  includeCertificateAnalysis: z.boolean().optional(),
+});
+
+const AnalyzeWildcardCoverageSchema = z.object({
+  customer: z.string().optional(),
+  contractId: z.string().optional(),
+  groupId: z.string().optional(),
+  includeOptimizationSuggestions: z.boolean().optional(),
+});
+
+const IdentifyOwnershipPatternsSchema = z.object({
+  customer: z.string().optional(),
+  contractId: z.string().optional(),
+  groupId: z.string().optional(),
+  minPropertiesForPattern: z.number().optional(),
+  includeConsolidationPlan: z.boolean().optional(),
+});
+
 const CreateEdgeHostnameSchema = z.object({
   customer: z.string().optional(),
   propertyId: z.string(),
@@ -266,6 +435,55 @@ const ListPropertyActivationsSchema = z.object({
   customer: z.string().optional(),
   propertyId: z.string(),
   network: z.enum(['STAGING', 'PRODUCTION']).optional(),
+});
+
+// Advanced Property Activation Schemas
+const ValidatePropertyActivationSchema = z.object({
+  customer: z.string().optional(),
+  propertyId: z.string(),
+  version: z.number().optional(),
+  network: z.enum(['STAGING', 'PRODUCTION']),
+});
+
+const ActivatePropertyWithMonitoringSchema = z.object({
+  customer: z.string().optional(),
+  propertyId: z.string(),
+  version: z.number().optional(),
+  network: z.enum(['STAGING', 'PRODUCTION']),
+  note: z.string().optional(),
+  options: z.object({
+    validateFirst: z.boolean().optional(),
+    waitForCompletion: z.boolean().optional(),
+    maxWaitTime: z.number().optional(),
+    rollbackOnFailure: z.boolean().optional(),
+    requireAllPreflightChecks: z.boolean().optional(),
+    fastPush: z.boolean().optional(),
+    notifyEmails: z.array(z.string()).optional(),
+    acknowledgeWarnings: z.boolean().optional(),
+  }).optional(),
+});
+
+const GetActivationProgressSchema = z.object({
+  customer: z.string().optional(),
+  propertyId: z.string(),
+  activationId: z.string(),
+});
+
+const CancelPropertyActivationAdvancedSchema = z.object({
+  customer: z.string().optional(),
+  propertyId: z.string(),
+  activationId: z.string(),
+});
+
+const CreateActivationPlanSchema = z.object({
+  customer: z.string().optional(),
+  properties: z.array(z.object({
+    propertyId: z.string(),
+    version: z.number().optional(),
+    network: z.enum(['STAGING', 'PRODUCTION']),
+  })),
+  strategy: z.enum(['PARALLEL', 'SEQUENTIAL', 'DEPENDENCY_ORDERED']).optional(),
+  dependencies: z.record(z.array(z.string())).optional(),
 });
 
 // CPS Schemas
@@ -583,6 +801,66 @@ const UpdatePropertyWithCPSCertificateSchema = z.object({
   tlsVersion: z.enum(['STANDARD_TLS', 'ENHANCED_TLS']).optional(),
 });
 
+// Property Version Management Schemas
+const ComparePropertyVersionsSchema = z.object({
+  customer: z.string().optional(),
+  propertyId: z.string(),
+  version1: z.number(),
+  version2: z.number(),
+  compareType: z.enum(['rules', 'hostnames', 'all']).optional(),
+  includeDetails: z.boolean().optional(),
+});
+
+const BatchCreateVersionsSchema = z.object({
+  customer: z.string().optional(),
+  properties: z.array(z.object({
+    propertyId: z.string(),
+    baseVersion: z.number().optional(),
+    note: z.string().optional(),
+  })),
+  defaultNote: z.string().optional(),
+});
+
+const GetVersionTimelineSchema = z.object({
+  customer: z.string().optional(),
+  propertyId: z.string(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  includeChanges: z.boolean().optional(),
+  limit: z.number().optional(),
+});
+
+const RollbackPropertyVersionSchema = z.object({
+  customer: z.string().optional(),
+  propertyId: z.string(),
+  targetVersion: z.number(),
+  preserveHostnames: z.boolean().optional(),
+  createBackup: z.boolean().optional(),
+  note: z.string().optional(),
+});
+
+const UpdateVersionMetadataSchema = z.object({
+  customer: z.string().optional(),
+  propertyId: z.string(),
+  version: z.number(),
+  metadata: z.object({
+    note: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    labels: z.record(z.string()).optional(),
+  }),
+});
+
+const MergePropertyVersionsSchema = z.object({
+  customer: z.string().optional(),
+  propertyId: z.string(),
+  sourceVersion: z.number(),
+  targetVersion: z.number(),
+  mergeStrategy: z.enum(['merge', 'cherry-pick']),
+  includePaths: z.array(z.string()).optional(),
+  excludePaths: z.array(z.string()).optional(),
+  createNewVersion: z.boolean().optional(),
+});
+
 // Advanced DNS Schemas
 const GetZonesDNSSECStatusSchema = z.object({
   customer: z.string().optional(),
@@ -666,6 +944,115 @@ const CreateMultipleRecordSetsSchema = z.object({
     rdata: z.array(z.string()),
   })),
   comment: z.string().optional(),
+});
+
+// Resilience Tools Schemas
+const GetSystemHealthSchema = z.object({
+  customer: z.string().optional(),
+  includeMetrics: z.boolean().optional(),
+  operationType: z.enum(['PROPERTY_READ', 'PROPERTY_WRITE', 'ACTIVATION', 'DNS_READ', 'DNS_WRITE', 'CERTIFICATE', 'BULK_OPERATION']).optional()
+});
+
+const ResetCircuitBreakerSchema = z.object({
+  customer: z.string().optional(),
+  operationType: z.enum(['PROPERTY_READ', 'PROPERTY_WRITE', 'ACTIVATION', 'DNS_READ', 'DNS_WRITE', 'CERTIFICATE', 'BULK_OPERATION']),
+  force: z.boolean().optional()
+});
+
+const GetOperationMetricsSchema = z.object({
+  customer: z.string().optional(),
+  operationType: z.enum(['PROPERTY_READ', 'PROPERTY_WRITE', 'ACTIVATION', 'DNS_READ', 'DNS_WRITE', 'CERTIFICATE', 'BULK_OPERATION']).optional(),
+  includeTrends: z.boolean().optional()
+});
+
+const TestOperationResilienceSchema = z.object({
+  customer: z.string().optional(),
+  operationType: z.enum(['PROPERTY_READ', 'PROPERTY_WRITE', 'ACTIVATION', 'DNS_READ', 'DNS_WRITE', 'CERTIFICATE', 'BULK_OPERATION']),
+  testType: z.enum(['basic', 'circuit_breaker', 'retry']),
+  iterations: z.number().optional()
+});
+
+const GetErrorRecoverySuggestionsSchema = z.object({
+  customer: z.string().optional(),
+  errorType: z.string().optional(),
+  operationType: z.enum(['PROPERTY_READ', 'PROPERTY_WRITE', 'ACTIVATION', 'DNS_READ', 'DNS_WRITE', 'CERTIFICATE', 'BULK_OPERATION']).optional(),
+  includePreventiveMeasures: z.boolean().optional()
+});
+
+// Performance Tools Schemas
+const GetPerformanceAnalysisSchema = z.object({
+  customer: z.string().optional(),
+  operationType: z.string().optional(),
+  timeWindowMs: z.number().optional(),
+  includeRecommendations: z.boolean().optional()
+});
+
+const OptimizeCacheSchema = z.object({
+  customer: z.string().optional(),
+  cleanupExpired: z.boolean().optional(),
+  adjustTtl: z.boolean().optional(),
+  targetHitRate: z.number().optional()
+});
+
+const ProfilePerformanceSchema = z.object({
+  customer: z.string().optional(),
+  testOperations: z.array(z.string()).optional(),
+  iterations: z.number().optional(),
+  includeMemoryProfile: z.boolean().optional()
+});
+
+const GetRealtimeMetricsSchema = z.object({
+  customer: z.string().optional(),
+  interval: z.number().optional(),
+  duration: z.number().optional()
+});
+
+const ResetPerformanceMonitoringSchema = z.object({
+  customer: z.string().optional(),
+  clearMetrics: z.boolean().optional(),
+  clearCache: z.boolean().optional(),
+  resetCounters: z.boolean().optional()
+});
+
+// Integration Testing Schemas
+const RunIntegrationTestSuiteSchema = z.object({
+  customer: z.string().optional(),
+  suiteName: z.string().optional(),
+  category: z.enum(['property', 'dns', 'certificate', 'performance', 'resilience']).optional(),
+  priority: z.enum(['high', 'medium', 'low']).optional(),
+  includeSetup: z.boolean().optional(),
+  generateReport: z.boolean().optional()
+});
+
+const CheckAPIHealthSchema = z.object({
+  customer: z.string().optional(),
+  endpoints: z.array(z.string()).optional(),
+  includeLoadTest: z.boolean().optional()
+});
+
+const GenerateTestDataSchema = z.object({
+  customer: z.string().optional(),
+  dataType: z.enum(['property', 'zone', 'hostname', 'contact', 'all']),
+  count: z.number().optional(),
+  prefix: z.string().optional()
+});
+
+const ValidateToolResponsesSchema = z.object({
+  customer: z.string().optional(),
+  toolName: z.string().optional(),
+  category: z.string().optional(),
+  sampleSize: z.number().optional(),
+  includePerformance: z.boolean().optional()
+});
+
+const RunLoadTestSchema = z.object({
+  customer: z.string().optional(),
+  endpoint: z.string().optional(),
+  operation: z.string().optional(),
+  concurrency: z.number().optional(),
+  duration: z.number().optional(),
+  rampUp: z.number().optional(),
+  includeAnalysis: z.boolean().optional()
 });
 
 /**
@@ -1055,6 +1442,40 @@ class AkamaiMCPServer {
             required: ['zone', 'name', 'type'],
           },
         },
+        {
+          name: 'activate_zone_changes',
+          description: 'Activate pending DNS zone changes with optional validation and monitoring',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              zone: {
+                type: 'string',
+                description: 'The zone name (e.g., example.com)',
+              },
+              comment: {
+                type: 'string',
+                description: 'Optional: Comment for the activation',
+              },
+              validateOnly: {
+                type: 'boolean',
+                description: 'Optional: Only validate changes without activating (default: false)',
+              },
+              waitForCompletion: {
+                type: 'boolean',
+                description: 'Optional: Wait for activation to complete (default: false)',
+              },
+              timeout: {
+                type: 'number',
+                description: 'Optional: Timeout in milliseconds for waiting (default: 300000)',
+              },
+            },
+            required: ['zone'],
+          },
+        },
         // Property Manager Tools
         {
           name: 'create_property_version',
@@ -1332,6 +1753,412 @@ class AkamaiMCPServer {
               },
             },
             required: ['propertyId'],
+          },
+        },
+        // Advanced Property Activation Tools
+        {
+          name: 'validate_property_activation',
+          description: 'Validate property before activation with comprehensive checks',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'The property ID',
+              },
+              version: {
+                type: 'number',
+                description: 'Optional: Version to validate (defaults to latest)',
+              },
+              network: {
+                type: 'string',
+                enum: ['STAGING', 'PRODUCTION'],
+                description: 'Target network for activation',
+              },
+            },
+            required: ['propertyId', 'network'],
+          },
+        },
+        {
+          name: 'activate_property_with_monitoring',
+          description: 'Activate property with validation and progress monitoring',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'The property ID',
+              },
+              version: {
+                type: 'number',
+                description: 'Optional: Version to activate (defaults to latest)',
+              },
+              network: {
+                type: 'string',
+                enum: ['STAGING', 'PRODUCTION'],
+                description: 'Target network',
+              },
+              note: {
+                type: 'string',
+                description: 'Optional: Activation notes',
+              },
+              options: {
+                type: 'object',
+                description: 'Optional: Activation options',
+                properties: {
+                  validateFirst: {
+                    type: 'boolean',
+                    description: 'Validate before activation (default: false)',
+                  },
+                  waitForCompletion: {
+                    type: 'boolean',
+                    description: 'Wait for activation to complete (default: false)',
+                  },
+                  maxWaitTime: {
+                    type: 'number',
+                    description: 'Maximum wait time in milliseconds (default: 1800000)',
+                  },
+                  rollbackOnFailure: {
+                    type: 'boolean',
+                    description: 'Rollback on failure (default: false)',
+                  },
+                  notifyEmails: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    description: 'Email addresses to notify',
+                  },
+                },
+              },
+            },
+            required: ['propertyId', 'network'],
+          },
+        },
+        {
+          name: 'get_activation_progress',
+          description: 'Get detailed progress for an ongoing activation',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'The property ID',
+              },
+              activationId: {
+                type: 'string',
+                description: 'The activation ID',
+              },
+            },
+            required: ['propertyId', 'activationId'],
+          },
+        },
+        {
+          name: 'cancel_property_activation',
+          description: 'Cancel a pending property activation',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'The property ID',
+              },
+              activationId: {
+                type: 'string',
+                description: 'The activation ID to cancel',
+              },
+            },
+            required: ['propertyId', 'activationId'],
+          },
+        },
+        {
+          name: 'create_activation_plan',
+          description: 'Create an activation plan for multiple properties',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              properties: {
+                type: 'array',
+                description: 'Properties to activate',
+                items: {
+                  type: 'object',
+                  properties: {
+                    propertyId: {
+                      type: 'string',
+                      description: 'Property ID',
+                    },
+                    version: {
+                      type: 'number',
+                      description: 'Optional: Version to activate',
+                    },
+                    network: {
+                      type: 'string',
+                      enum: ['STAGING', 'PRODUCTION'],
+                      description: 'Target network',
+                    },
+                  },
+                  required: ['propertyId', 'network'],
+                },
+              },
+              strategy: {
+                type: 'string',
+                enum: ['PARALLEL', 'SEQUENTIAL', 'DEPENDENCY_ORDERED'],
+                description: 'Optional: Activation strategy (default: SEQUENTIAL)',
+              },
+              dependencies: {
+                type: 'object',
+                description: 'Optional: Property dependencies for DEPENDENCY_ORDERED strategy',
+              },
+            },
+            required: ['properties'],
+          },
+        },
+        // Property Version Management Tools
+        {
+          name: 'compare_property_versions',
+          description: 'Compare two property versions to identify differences',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'The property ID',
+              },
+              version1: {
+                type: 'number',
+                description: 'First version to compare',
+              },
+              version2: {
+                type: 'number',
+                description: 'Second version to compare',
+              },
+              compareType: {
+                type: 'string',
+                enum: ['rules', 'hostnames', 'all'],
+                description: 'Optional: What to compare (default: all)',
+              },
+              includeDetails: {
+                type: 'boolean',
+                description: 'Optional: Include detailed diff information (default: true)',
+              },
+            },
+            required: ['propertyId', 'version1', 'version2'],
+          },
+        },
+        {
+          name: 'batch_create_versions',
+          description: 'Create new versions across multiple properties',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              properties: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    propertyId: {
+                      type: 'string',
+                      description: 'Property ID',
+                    },
+                    baseVersion: {
+                      type: 'number',
+                      description: 'Optional: Base version to create from',
+                    },
+                    note: {
+                      type: 'string',
+                      description: 'Optional: Version note',
+                    },
+                  },
+                  required: ['propertyId'],
+                },
+                description: 'Properties to create versions for',
+              },
+              defaultNote: {
+                type: 'string',
+                description: 'Optional: Default note for all versions',
+              },
+            },
+            required: ['properties'],
+          },
+        },
+        {
+          name: 'get_version_timeline',
+          description: 'Get comprehensive version timeline for a property',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'The property ID',
+              },
+              startDate: {
+                type: 'string',
+                description: 'Optional: Start date filter (ISO 8601)',
+              },
+              endDate: {
+                type: 'string',
+                description: 'Optional: End date filter (ISO 8601)',
+              },
+              includeChanges: {
+                type: 'boolean',
+                description: 'Optional: Include change details (default: true)',
+              },
+              limit: {
+                type: 'number',
+                description: 'Optional: Maximum events to return (default: 50)',
+              },
+            },
+            required: ['propertyId'],
+          },
+        },
+        {
+          name: 'rollback_property_version',
+          description: 'Rollback property to a previous version',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'The property ID',
+              },
+              targetVersion: {
+                type: 'number',
+                description: 'Version to rollback to',
+              },
+              preserveHostnames: {
+                type: 'boolean',
+                description: 'Optional: Keep current hostnames (default: true)',
+              },
+              createBackup: {
+                type: 'boolean',
+                description: 'Optional: Create backup of current version (default: true)',
+              },
+              note: {
+                type: 'string',
+                description: 'Optional: Rollback note',
+              },
+            },
+            required: ['propertyId', 'targetVersion'],
+          },
+        },
+        {
+          name: 'update_version_metadata',
+          description: 'Update version metadata including notes and tags',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'The property ID',
+              },
+              version: {
+                type: 'number',
+                description: 'Version to update',
+              },
+              metadata: {
+                type: 'object',
+                properties: {
+                  note: {
+                    type: 'string',
+                    description: 'Optional: Version note',
+                  },
+                  tags: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    description: 'Optional: Version tags',
+                  },
+                  labels: {
+                    type: 'object',
+                    description: 'Optional: Key-value labels',
+                  },
+                },
+                description: 'Metadata to update',
+              },
+            },
+            required: ['propertyId', 'version', 'metadata'],
+          },
+        },
+        {
+          name: 'merge_property_versions',
+          description: 'Merge changes between property versions',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'The property ID',
+              },
+              sourceVersion: {
+                type: 'number',
+                description: 'Source version with changes',
+              },
+              targetVersion: {
+                type: 'number',
+                description: 'Target version to merge into',
+              },
+              mergeStrategy: {
+                type: 'string',
+                enum: ['merge', 'cherry-pick'],
+                description: 'Merge strategy to use',
+              },
+              includePaths: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Specific paths to include (for cherry-pick)',
+              },
+              excludePaths: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Paths to exclude',
+              },
+              createNewVersion: {
+                type: 'boolean',
+                description: 'Optional: Create new version for merge (default: true)',
+              },
+            },
+            required: ['propertyId', 'sourceVersion', 'targetVersion', 'mergeStrategy'],
           },
         },
         // Certificate Hostname Update Tools
@@ -2869,6 +3696,1845 @@ class AkamaiMCPServer {
             required: ['zone', 'recordSets'],
           },
         },
+        // Advanced Rule Tree Management Tools
+        {
+          name: 'validate_rule_tree',
+          description: 'Validate rule tree with comprehensive analysis',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'Property ID',
+              },
+              version: {
+                type: 'number',
+                description: 'Optional: Version number (defaults to latest)',
+              },
+              rules: {
+                type: 'object',
+                description: 'Optional: Rule tree to validate (if not fetching from property)',
+              },
+              includeOptimizations: {
+                type: 'boolean',
+                description: 'Optional: Include optimization suggestions',
+              },
+              includeStatistics: {
+                type: 'boolean',
+                description: 'Optional: Include rule statistics',
+              },
+            },
+            required: ['propertyId'],
+          },
+        },
+        {
+          name: 'create_rule_tree_from_template',
+          description: 'Create rule tree from template',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              templateId: {
+                type: 'string',
+                description: 'Template ID to use',
+              },
+              variables: {
+                type: 'object',
+                description: 'Optional: Template variables',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'Optional: Property ID to update',
+              },
+              version: {
+                type: 'number',
+                description: 'Optional: Version to update',
+              },
+              validate: {
+                type: 'boolean',
+                description: 'Optional: Validate generated rules',
+              },
+            },
+            required: ['templateId'],
+          },
+        },
+        {
+          name: 'analyze_rule_tree_performance',
+          description: 'Analyze rule tree for optimization opportunities',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'Property ID',
+              },
+              version: {
+                type: 'number',
+                description: 'Optional: Version number',
+              },
+              rules: {
+                type: 'object',
+                description: 'Optional: Rule tree to analyze',
+              },
+              includeRecommendations: {
+                type: 'boolean',
+                description: 'Optional: Include recommendations',
+              },
+            },
+            required: ['propertyId'],
+          },
+        },
+        {
+          name: 'detect_rule_conflicts',
+          description: 'Detect conflicts between rules',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'Property ID',
+              },
+              version: {
+                type: 'number',
+                description: 'Optional: Version number',
+              },
+              rules: {
+                type: 'object',
+                description: 'Optional: Rule tree to check',
+              },
+            },
+            required: ['propertyId'],
+          },
+        },
+        {
+          name: 'list_rule_templates',
+          description: 'List available rule templates',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              category: {
+                type: 'string',
+                description: 'Optional: Filter by category',
+              },
+              tags: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Filter by tags',
+              },
+            },
+          },
+        },
+        // Documentation Automation Tools
+        {
+          name: 'generate_documentation_index',
+          description: 'Generate an index of all documentation files with metadata and categories',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              docsPath: {
+                type: 'string',
+                description: 'Optional: Path to documentation directory (default: "docs")',
+              },
+              outputPath: {
+                type: 'string',
+                description: 'Optional: Output path for the index file (default: "docs/index.json")',
+              },
+            },
+          },
+        },
+        {
+          name: 'generate_api_reference',
+          description: 'Generate API reference documentation from tool definitions',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              toolsPath: {
+                type: 'string',
+                description: 'Optional: Path to tools directory (default: "src/tools")',
+              },
+              outputPath: {
+                type: 'string',
+                description: 'Optional: Output path for the reference (default: "docs/api-reference.md")',
+              },
+              format: {
+                type: 'string',
+                enum: ['markdown', 'json'],
+                description: 'Optional: Output format (default: "markdown")',
+              },
+            },
+          },
+        },
+        {
+          name: 'generate_feature_documentation',
+          description: 'Generate comprehensive documentation for a specific feature',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              feature: {
+                type: 'string',
+                description: 'The feature name to document',
+              },
+              analysisDepth: {
+                type: 'string',
+                enum: ['basic', 'detailed', 'comprehensive'],
+                description: 'Optional: Depth of analysis (default: "detailed")',
+              },
+              includeExamples: {
+                type: 'boolean',
+                description: 'Optional: Include code examples (default: true)',
+              },
+              outputPath: {
+                type: 'string',
+                description: 'Optional: Output path for the documentation',
+              },
+            },
+            required: ['feature'],
+          },
+        },
+        {
+          name: 'update_documentation',
+          description: 'Update existing documentation with new content or sections',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              document: {
+                type: 'string',
+                description: 'The document path to update',
+              },
+              updates: {
+                type: 'object',
+                properties: {
+                  sections: {
+                    type: 'object',
+                    description: 'Optional: Sections to update (key: section name, value: new content)',
+                  },
+                  examples: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        title: { type: 'string' },
+                        code: { type: 'string' },
+                        description: { type: 'string' },
+                      },
+                      required: ['title', 'code'],
+                    },
+                    description: 'Optional: Examples to add',
+                  },
+                  metadata: {
+                    type: 'object',
+                    description: 'Optional: Metadata to update',
+                  },
+                },
+                description: 'Updates to apply to the document',
+              },
+              createBackup: {
+                type: 'boolean',
+                description: 'Optional: Create backup before updating (default: true)',
+              },
+            },
+            required: ['document', 'updates'],
+          },
+        },
+        {
+          name: 'generate_changelog',
+          description: 'Generate changelog from git history and conventional commits',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              fromVersion: {
+                type: 'string',
+                description: 'Optional: Starting version or commit',
+              },
+              toVersion: {
+                type: 'string',
+                description: 'Optional: Ending version or commit',
+              },
+              outputPath: {
+                type: 'string',
+                description: 'Optional: Output path for changelog (default: "CHANGELOG.md")',
+              },
+              includeBreakingChanges: {
+                type: 'boolean',
+                description: 'Optional: Include breaking changes section (default: true)',
+              },
+              groupByCategory: {
+                type: 'boolean',
+                description: 'Optional: Group changes by category (default: true)',
+              },
+            },
+          },
+        },
+        {
+          name: 'create_knowledge_article',
+          description: 'Create a new knowledge base article with proper formatting and indexing',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              title: {
+                type: 'string',
+                description: 'Article title',
+              },
+              category: {
+                type: 'string',
+                description: 'Article category',
+              },
+              content: {
+                type: 'string',
+                description: 'Article content in markdown',
+              },
+              tags: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Tags for the article',
+              },
+              relatedArticles: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Related article titles',
+              },
+              outputPath: {
+                type: 'string',
+                description: 'Optional: Custom output path',
+              },
+            },
+            required: ['title', 'category', 'content'],
+          },
+        },
+        // Advanced Hostname Management Tools
+        {
+          name: 'analyze_hostname_ownership',
+          description: 'Analyze hostname ownership and conflicts',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              hostnames: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of hostnames to analyze',
+              },
+              includeWildcardAnalysis: {
+                type: 'boolean',
+                description: 'Optional: Include wildcard coverage analysis',
+              },
+              includeRecommendations: {
+                type: 'boolean',
+                description: 'Optional: Include provisioning recommendations',
+              },
+            },
+            required: ['hostnames'],
+          },
+        },
+        {
+          name: 'generate_edge_hostname_recommendations',
+          description: 'Generate intelligent edge hostname recommendations',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              hostnames: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of hostnames to generate recommendations for',
+              },
+              preferredSuffix: {
+                type: 'string',
+                enum: ['.edgekey.net', '.edgesuite.net', '.akamaized.net'],
+                description: 'Optional: Preferred edge hostname suffix',
+              },
+              forceSecure: {
+                type: 'boolean',
+                description: 'Optional: Force secure edge hostnames',
+              },
+            },
+            required: ['hostnames'],
+          },
+        },
+        {
+          name: 'validate_hostnames_bulk',
+          description: 'Validate hostnames in bulk',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              hostnames: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of hostnames to validate',
+              },
+              checkDNS: {
+                type: 'boolean',
+                description: 'Optional: Check DNS configuration',
+              },
+              checkCertificates: {
+                type: 'boolean',
+                description: 'Optional: Check certificate status',
+              },
+            },
+            required: ['hostnames'],
+          },
+        },
+        {
+          name: 'find_optimal_property_assignment',
+          description: 'Find optimal property assignment for hostnames',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              hostnames: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of hostnames to assign',
+              },
+              groupingStrategy: {
+                type: 'string',
+                enum: ['by-domain', 'by-function', 'by-environment', 'auto'],
+                description: 'Optional: Strategy for grouping hostnames',
+              },
+              maxHostnamesPerProperty: {
+                type: 'number',
+                description: 'Optional: Maximum hostnames per property',
+              },
+            },
+            required: ['hostnames'],
+          },
+        },
+        {
+          name: 'create_hostname_provisioning_plan',
+          description: 'Create comprehensive hostname provisioning plan',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              hostnames: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of hostnames to provision',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID for billing',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Group ID for organization',
+              },
+              productId: {
+                type: 'string',
+                description: 'Optional: Product ID (defaults to Ion)',
+              },
+              securityLevel: {
+                type: 'string',
+                enum: ['standard', 'enhanced', 'advanced'],
+                description: 'Optional: Security level for provisioning',
+              },
+            },
+            required: ['hostnames', 'contractId', 'groupId'],
+          },
+        },
+        // Advanced Property Operations Tools
+        {
+          name: 'search_properties_advanced',
+          description: 'Advanced property search with multiple criteria',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              criteria: {
+                type: 'object',
+                properties: {
+                  name: {
+                    type: 'string',
+                    description: 'Optional: Property name contains',
+                  },
+                  hostname: {
+                    type: 'string',
+                    description: 'Optional: Hostname contains',
+                  },
+                  edgeHostname: {
+                    type: 'string',
+                    description: 'Optional: Edge hostname contains',
+                  },
+                  contractId: {
+                    type: 'string',
+                    description: 'Optional: Contract ID',
+                  },
+                  groupId: {
+                    type: 'string',
+                    description: 'Optional: Group ID',
+                  },
+                  productId: {
+                    type: 'string',
+                    description: 'Optional: Product ID',
+                  },
+                  activationStatus: {
+                    type: 'string',
+                    enum: ['production', 'staging', 'both', 'none'],
+                    description: 'Optional: Activation status filter',
+                  },
+                  lastModifiedAfter: {
+                    type: 'string',
+                    format: 'date-time',
+                    description: 'Optional: Modified after date',
+                  },
+                  lastModifiedBefore: {
+                    type: 'string',
+                    format: 'date-time',
+                    description: 'Optional: Modified before date',
+                  },
+                  hasWarnings: {
+                    type: 'boolean',
+                    description: 'Optional: Has validation warnings',
+                  },
+                  hasErrors: {
+                    type: 'boolean',
+                    description: 'Optional: Has validation errors',
+                  },
+                  certificateStatus: {
+                    type: 'string',
+                    enum: ['valid', 'expiring', 'expired'],
+                    description: 'Optional: Certificate status',
+                  },
+                  ruleFormat: {
+                    type: 'string',
+                    description: 'Optional: Rule format version',
+                  },
+                },
+                description: 'Search criteria',
+              },
+              limit: {
+                type: 'number',
+                description: 'Optional: Maximum results to return',
+              },
+              sortBy: {
+                type: 'string',
+                enum: ['relevance', 'name', 'lastModified', 'size'],
+                description: 'Optional: Sort order',
+              },
+              includeDetails: {
+                type: 'boolean',
+                description: 'Optional: Include detailed information',
+              },
+            },
+            required: ['criteria'],
+          },
+        },
+        {
+          name: 'compare_properties',
+          description: 'Compare two properties in detail',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyIdA: {
+                type: 'string',
+                description: 'First property ID',
+              },
+              propertyIdB: {
+                type: 'string',
+                description: 'Second property ID',
+              },
+              versionA: {
+                type: 'number',
+                description: 'Optional: Version for first property',
+              },
+              versionB: {
+                type: 'number',
+                description: 'Optional: Version for second property',
+              },
+              compareRules: {
+                type: 'boolean',
+                description: 'Optional: Compare rule trees',
+              },
+              compareHostnames: {
+                type: 'boolean',
+                description: 'Optional: Compare hostnames',
+              },
+              compareBehaviors: {
+                type: 'boolean',
+                description: 'Optional: Compare behaviors',
+              },
+            },
+            required: ['propertyIdA', 'propertyIdB'],
+          },
+        },
+        {
+          name: 'check_property_health',
+          description: 'Perform health check on property',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'Property ID to check',
+              },
+              version: {
+                type: 'number',
+                description: 'Optional: Version to check',
+              },
+              includePerformance: {
+                type: 'boolean',
+                description: 'Optional: Include performance analysis',
+              },
+              includeSecurity: {
+                type: 'boolean',
+                description: 'Optional: Include security analysis',
+              },
+            },
+            required: ['propertyId'],
+          },
+        },
+        {
+          name: 'detect_configuration_drift',
+          description: 'Detect configuration drift from baseline',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'Property ID to analyze',
+              },
+              baselineVersion: {
+                type: 'number',
+                description: 'Baseline version number',
+              },
+              compareVersion: {
+                type: 'number',
+                description: 'Optional: Version to compare (defaults to latest)',
+              },
+              checkBehaviors: {
+                type: 'boolean',
+                description: 'Optional: Check behavior changes',
+              },
+              checkHostnames: {
+                type: 'boolean',
+                description: 'Optional: Check hostname changes',
+              },
+              checkSettings: {
+                type: 'boolean',
+                description: 'Optional: Check settings changes',
+              },
+            },
+            required: ['propertyId', 'baselineVersion'],
+          },
+        },
+        {
+          name: 'bulk_update_properties',
+          description: 'Update multiple properties with common changes',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyIds: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of property IDs to update',
+              },
+              updates: {
+                type: 'object',
+                properties: {
+                  addBehavior: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string' },
+                      options: { type: 'object' },
+                      criteria: { type: 'array' },
+                    },
+                    description: 'Optional: Behavior to add',
+                  },
+                  updateBehavior: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string' },
+                      options: { type: 'object' },
+                    },
+                    description: 'Optional: Behavior to update',
+                  },
+                  addHostname: {
+                    type: 'object',
+                    properties: {
+                      hostname: { type: 'string' },
+                      edgeHostname: { type: 'string' },
+                    },
+                    description: 'Optional: Hostname to add',
+                  },
+                  removeHostname: {
+                    type: 'string',
+                    description: 'Optional: Hostname to remove',
+                  },
+                },
+                description: 'Updates to apply',
+              },
+              createNewVersion: {
+                type: 'boolean',
+                description: 'Optional: Create new version for each property',
+              },
+              note: {
+                type: 'string',
+                description: 'Optional: Version note',
+              },
+            },
+            required: ['propertyIds', 'updates'],
+          },
+        },
+        // Bulk Operations Manager Tools
+        {
+          name: 'bulk_clone_properties',
+          description: 'Clone a property to multiple new properties',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              sourcePropertyId: {
+                type: 'string',
+                description: 'Source property ID to clone from',
+              },
+              targetNames: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Names for the new cloned properties',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID for the new properties',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Group ID for the new properties',
+              },
+              productId: {
+                type: 'string',
+                description: 'Optional: Product ID (defaults to source property product)',
+              },
+              ruleFormat: {
+                type: 'string',
+                description: 'Optional: Rule format version',
+              },
+              cloneHostnames: {
+                type: 'boolean',
+                description: 'Optional: Clone hostnames from source',
+              },
+              activateImmediately: {
+                type: 'boolean',
+                description: 'Optional: Activate cloned properties immediately',
+              },
+              network: {
+                type: 'string',
+                enum: ['STAGING', 'PRODUCTION'],
+                description: 'Optional: Network for immediate activation',
+              },
+            },
+            required: ['sourcePropertyId', 'targetNames', 'contractId', 'groupId'],
+          },
+        },
+        {
+          name: 'bulk_activate_properties',
+          description: 'Activate multiple properties on staging or production',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyIds: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Property IDs to activate',
+              },
+              network: {
+                type: 'string',
+                enum: ['STAGING', 'PRODUCTION'],
+                description: 'Target network',
+              },
+              note: {
+                type: 'string',
+                description: 'Optional: Activation note',
+              },
+              notifyEmails: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Email addresses to notify',
+              },
+              acknowledgeAllWarnings: {
+                type: 'boolean',
+                description: 'Optional: Acknowledge all warnings',
+              },
+              waitForCompletion: {
+                type: 'boolean',
+                description: 'Optional: Wait for activation to complete',
+              },
+              maxWaitTime: {
+                type: 'number',
+                description: 'Optional: Maximum wait time in milliseconds',
+              },
+            },
+            required: ['propertyIds', 'network'],
+          },
+        },
+        {
+          name: 'bulk_update_property_rules',
+          description: 'Update rules on multiple properties using JSON patches',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyIds: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Property IDs to update',
+              },
+              rulePatches: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    op: {
+                      type: 'string',
+                      enum: ['add', 'remove', 'replace', 'copy', 'move'],
+                      description: 'Patch operation',
+                    },
+                    path: {
+                      type: 'string',
+                      description: 'JSON path to target',
+                    },
+                    value: {
+                      description: 'Value for the operation',
+                    },
+                    from: {
+                      type: 'string',
+                      description: 'Source path for copy/move operations',
+                    },
+                  },
+                  required: ['op', 'path'],
+                },
+                description: 'JSON patch operations to apply',
+              },
+              createNewVersion: {
+                type: 'boolean',
+                description: 'Optional: Create new version for each property',
+              },
+              validateChanges: {
+                type: 'boolean',
+                description: 'Optional: Validate changes before applying',
+              },
+              note: {
+                type: 'string',
+                description: 'Optional: Version note',
+              },
+            },
+            required: ['propertyIds', 'rulePatches'],
+          },
+        },
+        {
+          name: 'bulk_manage_hostnames',
+          description: 'Add or remove hostnames across multiple properties',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              operations: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    propertyId: {
+                      type: 'string',
+                      description: 'Property ID',
+                    },
+                    action: {
+                      type: 'string',
+                      enum: ['add', 'remove'],
+                      description: 'Action to perform',
+                    },
+                    hostnames: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          hostname: {
+                            type: 'string',
+                            description: 'Hostname',
+                          },
+                          edgeHostname: {
+                            type: 'string',
+                            description: 'Optional: Edge hostname for add operations',
+                          },
+                        },
+                        required: ['hostname'],
+                      },
+                      description: 'Hostnames to add or remove',
+                    },
+                  },
+                  required: ['propertyId', 'action', 'hostnames'],
+                },
+                description: 'Hostname operations to perform',
+              },
+              createNewVersion: {
+                type: 'boolean',
+                description: 'Optional: Create new version for each property',
+              },
+              validateDNS: {
+                type: 'boolean',
+                description: 'Optional: Validate DNS before adding',
+              },
+              note: {
+                type: 'string',
+                description: 'Optional: Version note',
+              },
+            },
+            required: ['operations'],
+          },
+        },
+        {
+          name: 'get_bulk_operation_status',
+          description: 'Get status of a bulk operation',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              operationId: {
+                type: 'string',
+                description: 'Bulk operation ID',
+              },
+              detailed: {
+                type: 'boolean',
+                description: 'Optional: Include detailed property status',
+              },
+            },
+            required: ['operationId'],
+          },
+        },
+        {
+          name: 'get_system_health',
+          description: 'Get system health status and circuit breaker states',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              includeMetrics: {
+                type: 'boolean',
+                description: 'Optional: Include detailed metrics in the response',
+              },
+              operationType: {
+                type: 'string',
+                description: 'Optional: Check specific operation type (PROPERTY_READ, DNS_read, etc.)',
+              },
+            },
+          },
+        },
+        {
+          name: 'reset_circuit_breaker',
+          description: 'Reset circuit breaker for an operation type',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              operationType: {
+                type: 'string',
+                description: 'Operation type to reset (PROPERTY_READ, PROPERTY_WRITE, etc.)',
+              },
+              force: {
+                type: 'boolean',
+                description: 'Optional: Force reset even if already closed',
+              },
+            },
+            required: ['operationType'],
+          },
+        },
+        {
+          name: 'get_operation_metrics',
+          description: 'Get detailed operation metrics and performance data',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              operationType: {
+                type: 'string',
+                description: 'Optional: Specific operation type to get metrics for',
+              },
+              includeTrends: {
+                type: 'boolean',
+                description: 'Optional: Include performance trends and analysis',
+              },
+            },
+          },
+        },
+        {
+          name: 'test_operation_resilience',
+          description: 'Test operation resilience with controlled failure scenarios',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              operationType: {
+                type: 'string',
+                description: 'Operation type to test (PROPERTY_READ, DNS_read, etc.)',
+              },
+              testType: {
+                type: 'string',
+                enum: ['basic', 'circuit_breaker', 'retry'],
+                description: 'Type of resilience test to perform',
+              },
+              iterations: {
+                type: 'number',
+                description: 'Optional: Number of test iterations (default: 5)',
+              },
+            },
+            required: ['operationType', 'testType'],
+          },
+        },
+        {
+          name: 'get_error_recovery_suggestions',
+          description: 'Get error recovery suggestions and troubleshooting guidance',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              errorType: {
+                type: 'string',
+                description: 'Optional: Specific error type or code',
+              },
+              operationType: {
+                type: 'string',
+                description: 'Optional: Operation type context',
+              },
+              includePreventiveMeasures: {
+                type: 'boolean',
+                description: 'Optional: Include preventive measures and best practices',
+              },
+            },
+          },
+        },
+        {
+          name: 'get_performance_analysis',
+          description: 'Get comprehensive performance analysis and metrics',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              operationType: {
+                type: 'string',
+                description: 'Optional: Filter analysis by specific operation type',
+              },
+              timeWindowMs: {
+                type: 'number',
+                description: 'Optional: Time window for analysis in milliseconds',
+              },
+              includeRecommendations: {
+                type: 'boolean',
+                description: 'Optional: Include performance recommendations (default: true)',
+              },
+            },
+          },
+        },
+        {
+          name: 'optimize_cache',
+          description: 'Optimize cache settings and perform cleanup',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              cleanupExpired: {
+                type: 'boolean',
+                description: 'Optional: Clean up expired cache entries (default: true)',
+              },
+              adjustTtl: {
+                type: 'boolean',
+                description: 'Optional: Automatically adjust TTL based on usage patterns',
+              },
+              targetHitRate: {
+                type: 'number',
+                description: 'Optional: Target cache hit rate percentage',
+              },
+            },
+          },
+        },
+        {
+          name: 'profile_performance',
+          description: 'Profile system performance and identify bottlenecks',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              testOperations: {
+                type: 'array',
+                items: {
+                  type: 'string',
+                },
+                description: 'Optional: List of operations to test (default: common operations)',
+              },
+              iterations: {
+                type: 'number',
+                description: 'Optional: Number of test iterations per operation (default: 5)',
+              },
+              includeMemoryProfile: {
+                type: 'boolean',
+                description: 'Optional: Include memory usage profiling (default: true)',
+              },
+            },
+          },
+        },
+        {
+          name: 'get_realtime_metrics',
+          description: 'Monitor real-time performance metrics',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              interval: {
+                type: 'number',
+                description: 'Optional: Sampling interval in milliseconds (default: 5000)',
+              },
+              duration: {
+                type: 'number',
+                description: 'Optional: Monitoring duration in milliseconds (default: 30000)',
+              },
+            },
+          },
+        },
+        {
+          name: 'reset_performance_monitoring',
+          description: 'Clear performance data and reset monitoring',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              clearMetrics: {
+                type: 'boolean',
+                description: 'Optional: Clear performance metrics (default: true)',
+              },
+              clearCache: {
+                type: 'boolean',
+                description: 'Optional: Clear all caches (default: true)',
+              },
+              resetCounters: {
+                type: 'boolean',
+                description: 'Optional: Reset internal counters (default: true)',
+              },
+            },
+          },
+        },
+        {
+          name: 'run_integration_test_suite',
+          description: 'Run comprehensive integration test suite for MCP operations',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              suiteName: {
+                type: 'string',
+                description: 'Optional: Specific test suite to run (property-manager, dns-management, certificate-management, performance, resilience)',
+              },
+              category: {
+                type: 'string',
+                enum: ['property', 'dns', 'certificate', 'performance', 'resilience'],
+                description: 'Optional: Filter tests by category',
+              },
+              priority: {
+                type: 'string',
+                enum: ['high', 'medium', 'low'],
+                description: 'Optional: Filter tests by priority level',
+              },
+              includeSetup: {
+                type: 'boolean',
+                description: 'Optional: Include test setup and teardown (default: true)',
+              },
+              generateReport: {
+                type: 'boolean',
+                description: 'Optional: Generate detailed test report (default: true)',
+              },
+            },
+          },
+        },
+        {
+          name: 'check_api_health',
+          description: 'Check health and performance of Akamai API endpoints',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              endpoints: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Specific endpoints to test (defaults to core endpoints)',
+              },
+              includeLoadTest: {
+                type: 'boolean',
+                description: 'Optional: Include basic load testing (default: false)',
+              },
+            },
+          },
+        },
+        {
+          name: 'generate_test_data',
+          description: 'Generate test data for integration testing and development',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              dataType: {
+                type: 'string',
+                enum: ['property', 'zone', 'hostname', 'contact', 'all'],
+                description: 'Type of test data to generate',
+              },
+              count: {
+                type: 'number',
+                description: 'Optional: Number of items to generate (default: 5)',
+              },
+              prefix: {
+                type: 'string',
+                description: 'Optional: Prefix for generated names (default: "test")',
+              },
+            },
+            required: ['dataType'],
+          },
+        },
+        {
+          name: 'validate_tool_responses',
+          description: 'Validate MCP tool response formats and data structures',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              toolName: {
+                type: 'string',
+                description: 'Optional: Specific tool to validate',
+              },
+              category: {
+                type: 'string',
+                description: 'Optional: Tool category to validate',
+              },
+              sampleSize: {
+                type: 'number',
+                description: 'Optional: Number of samples to test (default: 3)',
+              },
+              includePerformance: {
+                type: 'boolean',
+                description: 'Optional: Include performance validation (default: false)',
+              },
+            },
+          },
+        },
+        {
+          name: 'run_load_test',
+          description: 'Run load and stress testing on MCP operations',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              endpoint: {
+                type: 'string',
+                description: 'Optional: API endpoint to test (default: /papi/v1/properties)',
+              },
+              operation: {
+                type: 'string',
+                description: 'Optional: Specific operation type to test',
+              },
+              concurrency: {
+                type: 'number',
+                description: 'Optional: Number of concurrent workers (default: 10)',
+              },
+              duration: {
+                type: 'number',
+                description: 'Optional: Test duration in milliseconds (default: 30000)',
+              },
+              rampUp: {
+                type: 'number',
+                description: 'Optional: Ramp-up time in milliseconds (default: 5000)',
+              },
+              includeAnalysis: {
+                type: 'boolean',
+                description: 'Optional: Include detailed performance analysis (default: true)',
+              },
+            },
+          },
+        },
+        // Includes Management Tools
+        {
+          name: 'list_includes',
+          description: 'List available includes for modular property management',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Group ID',
+              },
+              includeType: {
+                type: 'string',
+                enum: ['MICROSERVICES', 'COMMON_SETTINGS', 'ALL'],
+                description: 'Optional: Filter by include type',
+              },
+            },
+            required: ['contractId', 'groupId'],
+          },
+        },
+        {
+          name: 'get_include',
+          description: 'Get detailed information about a specific include',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              includeId: {
+                type: 'string',
+                description: 'Include ID',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Group ID',
+              },
+              version: {
+                type: 'number',
+                description: 'Optional: Specific version to retrieve',
+              },
+            },
+            required: ['includeId', 'contractId', 'groupId'],
+          },
+        },
+        {
+          name: 'create_include',
+          description: 'Create a new include for modular property management',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              includeName: {
+                type: 'string',
+                description: 'Name for the new include',
+              },
+              includeType: {
+                type: 'string',
+                enum: ['MICROSERVICES', 'COMMON_SETTINGS'],
+                description: 'Include type',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID for billing',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Group ID for organization',
+              },
+              ruleFormat: {
+                type: 'string',
+                description: 'Optional: Rule format version',
+              },
+              cloneFrom: {
+                type: 'object',
+                properties: {
+                  includeId: {
+                    type: 'string',
+                    description: 'Include ID to clone from',
+                  },
+                  version: {
+                    type: 'number',
+                    description: 'Version to clone from',
+                  },
+                },
+                description: 'Optional: Clone from existing include',
+              },
+            },
+            required: ['includeName', 'includeType', 'contractId', 'groupId'],
+          },
+        },
+        {
+          name: 'activate_include',
+          description: 'Activate an include version to staging or production',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              includeId: {
+                type: 'string',
+                description: 'Include ID',
+              },
+              version: {
+                type: 'number',
+                description: 'Version to activate',
+              },
+              network: {
+                type: 'string',
+                enum: ['STAGING', 'PRODUCTION'],
+                description: 'Target network',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Group ID',
+              },
+              note: {
+                type: 'string',
+                description: 'Optional: Activation notes',
+              },
+              notifyEmails: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Email addresses to notify',
+              },
+              acknowledgeAllWarnings: {
+                type: 'boolean',
+                description: 'Optional: Acknowledge all warnings',
+              },
+            },
+            required: ['includeId', 'version', 'network', 'contractId', 'groupId'],
+          },
+        },
+        {
+          name: 'get_include_activation_status',
+          description: 'Get the status of an include activation',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              includeId: {
+                type: 'string',
+                description: 'Include ID',
+              },
+              activationId: {
+                type: 'string',
+                description: 'Activation ID',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Group ID',
+              },
+            },
+            required: ['includeId', 'activationId', 'contractId', 'groupId'],
+          },
+        },
+        // Enhanced Error Handling Tools
+        {
+          name: 'get_validation_errors',
+          description: 'Get detailed validation errors and warnings for a property version',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'Property ID',
+              },
+              version: {
+                type: 'number',
+                description: 'Version number',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Group ID',
+              },
+              validateRules: {
+                type: 'boolean',
+                description: 'Optional: Validate rule tree (default: true)',
+              },
+              validateHostnames: {
+                type: 'boolean',
+                description: 'Optional: Validate hostnames (default: false)',
+              },
+            },
+            required: ['propertyId', 'version', 'contractId', 'groupId'],
+          },
+        },
+        {
+          name: 'acknowledge_warnings',
+          description: 'Acknowledge warnings for a property version to allow activation',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'Property ID',
+              },
+              version: {
+                type: 'number',
+                description: 'Version number',
+              },
+              warnings: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Warning message IDs to acknowledge',
+              },
+              justification: {
+                type: 'string',
+                description: 'Optional: Justification for acknowledging warnings',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Group ID',
+              },
+            },
+            required: ['propertyId', 'version', 'warnings', 'contractId', 'groupId'],
+          },
+        },
+        {
+          name: 'validate_property_configuration',
+          description: 'Run comprehensive validation checks on property configuration',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'Property ID',
+              },
+              version: {
+                type: 'number',
+                description: 'Version number',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Group ID',
+              },
+              includeHostnameValidation: {
+                type: 'boolean',
+                description: 'Optional: Include hostname validation (default: true)',
+              },
+              includeRuleValidation: {
+                type: 'boolean',
+                description: 'Optional: Include rule validation (default: true)',
+              },
+              includeCertificateValidation: {
+                type: 'boolean',
+                description: 'Optional: Include certificate validation (default: false)',
+              },
+            },
+            required: ['propertyId', 'version', 'contractId', 'groupId'],
+          },
+        },
+        {
+          name: 'get_error_recovery_help',
+          description: 'Get context and resolution suggestions for property errors',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              propertyId: {
+                type: 'string',
+                description: 'Property ID',
+              },
+              version: {
+                type: 'number',
+                description: 'Version number',
+              },
+              errorType: {
+                type: 'string',
+                description: 'Optional: Specific error type for targeted help',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Contract ID',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Group ID',
+              },
+            },
+            required: ['propertyId', 'version', 'contractId', 'groupId'],
+          },
+        },
+        {
+          name: 'discover_hostnames_intelligent',
+          description: 'Perform comprehensive hostname discovery with conflict detection and optimization analysis',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              analysisScope: {
+                type: 'string',
+                enum: ['all', 'contract', 'group'],
+                description: 'Optional: Scope of analysis (default: "all")',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Optional: Contract ID for scoped analysis',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Optional: Group ID for scoped analysis',
+              },
+              includeInactive: {
+                type: 'boolean',
+                description: 'Optional: Include inactive properties (default: false)',
+              },
+              analyzeWildcards: {
+                type: 'boolean',
+                description: 'Optional: Analyze wildcard hostname efficiency (default: true)',
+              },
+              detectConflicts: {
+                type: 'boolean',
+                description: 'Optional: Detect hostname conflicts (default: true)',
+              },
+              findOptimizations: {
+                type: 'boolean',
+                description: 'Optional: Find optimization opportunities (default: true)',
+              },
+            },
+          },
+        },
+        {
+          name: 'analyze_hostname_conflicts',
+          description: 'Analyze specific hostnames for conflicts with existing properties',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              targetHostnames: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'List of hostnames to analyze for conflicts',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Optional: Contract ID for scoped analysis',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Optional: Group ID for scoped analysis',
+              },
+              includeWildcardAnalysis: {
+                type: 'boolean',
+                description: 'Optional: Include wildcard overlap analysis (default: true)',
+              },
+              includeCertificateAnalysis: {
+                type: 'boolean',
+                description: 'Optional: Include certificate coverage analysis (default: true)',
+              },
+            },
+            required: ['targetHostnames'],
+          },
+        },
+        {
+          name: 'analyze_wildcard_coverage',
+          description: 'Analyze wildcard hostname efficiency and coverage across properties',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Optional: Contract ID for scoped analysis',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Optional: Group ID for scoped analysis',
+              },
+              includeOptimizationSuggestions: {
+                type: 'boolean',
+                description: 'Optional: Include optimization suggestions (default: true)',
+              },
+            },
+          },
+        },
+        {
+          name: 'identify_ownership_patterns',
+          description: 'Identify property ownership patterns for consolidation opportunities',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: {
+                type: 'string',
+                description: 'Optional: Customer section name from .edgerc (default: "default")',
+              },
+              contractId: {
+                type: 'string',
+                description: 'Optional: Contract ID for scoped analysis',
+              },
+              groupId: {
+                type: 'string',
+                description: 'Optional: Group ID for scoped analysis',
+              },
+              minPropertiesForPattern: {
+                type: 'number',
+                description: 'Optional: Minimum properties required to identify a pattern (default: 3)',
+              },
+              includeConsolidationPlan: {
+                type: 'boolean',
+                description: 'Optional: Include consolidation planning (default: true)',
+              },
+            },
+          },
+        },
+        // FastPurge tools
+        ...fastPurgeTools.map(tool => ({
+          name: tool.name,
+          description: tool.description,
+          inputSchema: tool.inputSchema
+        }))
       ],
     }));
 
@@ -2937,6 +5603,16 @@ class AkamaiMCPServer {
           case 'delete_record':
             const deleteRecordArgs = DeleteRecordSchema.parse(args);
             return await deleteRecord(client, deleteRecordArgs);
+            
+          case 'activate_zone_changes':
+            const activateZoneArgs = z.object({
+              zone: z.string().describe('The zone name (e.g., example.com)'),
+              comment: z.string().optional().describe('Optional: Comment for the activation'),
+              validateOnly: z.boolean().optional().describe('Optional: Only validate changes without activating'),
+              waitForCompletion: z.boolean().optional().describe('Optional: Wait for activation to complete'),
+              timeout: z.number().optional().describe('Optional: Timeout in milliseconds (default: 300000)')
+            }).parse(args);
+            return await activateZoneChanges(client, activateZoneArgs);
 
           // Property Manager tools
           case 'create_property_version':
@@ -2973,12 +5649,58 @@ class AkamaiMCPServer {
             return await activateProperty(client, activateArgs);
 
           case 'get_activation_status':
-            const getStatusArgs = GetActivationStatusSchema.parse(args);
-            return await getActivationStatus(client, getStatusArgs);
+            const getActivationStatusArgs = GetActivationStatusSchema.parse(args);
+            return await getActivationStatus(client, getActivationStatusArgs);
 
           case 'list_property_activations':
             const listActivationsArgs = ListPropertyActivationsSchema.parse(args);
             return await listPropertyActivations(client, listActivationsArgs);
+
+          // Advanced Property Activation tools
+          case 'validate_property_activation':
+            const validateActivationArgs = ValidatePropertyActivationSchema.parse(args);
+            return await validatePropertyActivation(client, validateActivationArgs);
+
+          case 'activate_property_with_monitoring':
+            const activateMonitoringArgs = ActivatePropertyWithMonitoringSchema.parse(args);
+            return await activatePropertyWithMonitoring(client, activateMonitoringArgs);
+
+          case 'get_activation_progress':
+            const getProgressArgs = GetActivationProgressSchema.parse(args);
+            return await getActivationProgress(client, getProgressArgs);
+
+          case 'cancel_property_activation':
+            const cancelActivationArgs = CancelPropertyActivationAdvancedSchema.parse(args);
+            return await cancelPropertyActivationAdvanced(client, cancelActivationArgs);
+
+          case 'create_activation_plan':
+            const createPlanArgs = CreateActivationPlanSchema.parse(args);
+            return await createActivationPlan(client, createPlanArgs);
+
+          // Property Version Management tools
+          case 'compare_property_versions':
+            const compareVersionsArgs = ComparePropertyVersionsSchema.parse(args);
+            return await comparePropertyVersions(client, compareVersionsArgs);
+
+          case 'batch_create_versions':
+            const batchCreateArgs = BatchCreateVersionsSchema.parse(args);
+            return await batchCreateVersions(client, batchCreateArgs);
+
+          case 'get_version_timeline':
+            const timelineArgs = GetVersionTimelineSchema.parse(args);
+            return await getVersionTimeline(client, timelineArgs);
+
+          case 'rollback_property_version':
+            const rollbackArgs = RollbackPropertyVersionSchema.parse(args);
+            return await rollbackPropertyVersion(client, rollbackArgs);
+
+          case 'update_version_metadata':
+            const updateMetadataArgs = UpdateVersionMetadataSchema.parse(args);
+            return await updateVersionMetadata(client, updateMetadataArgs);
+
+          case 'merge_property_versions':
+            const mergeVersionsArgs = MergePropertyVersionsSchema.parse(args);
+            return await mergePropertyVersions(client, mergeVersionsArgs);
 
           // Certificate Hostname Update tools
           case 'update_property_with_default_dv':
@@ -3202,6 +5924,542 @@ class AkamaiMCPServer {
           case 'create_multiple_record_sets':
             const createMultipleRecordSetsArgs = CreateMultipleRecordSetsSchema.parse(args);
             return await createMultipleRecordSets(client, createMultipleRecordSetsArgs);
+
+          // Documentation tools
+          case 'generate_documentation_index':
+            const generateIndexArgs = z.object({
+              docsPath: z.string().optional(),
+              outputPath: z.string().optional()
+            }).parse(args);
+            return await generateDocumentationIndex(client, generateIndexArgs);
+
+          case 'generate_api_reference':
+            const generateAPIArgs = z.object({
+              toolsPath: z.string().optional(),
+              outputPath: z.string().optional(),
+              format: z.enum(['markdown', 'json']).optional()
+            }).parse(args);
+            return await generateAPIReference(client, generateAPIArgs);
+
+          case 'generate_feature_documentation':
+            const generateFeatureArgs = z.object({
+              feature: z.string(),
+              analysisDepth: z.enum(['basic', 'detailed', 'comprehensive']).optional(),
+              includeExamples: z.boolean().optional(),
+              outputPath: z.string().optional()
+            }).parse(args);
+            return await generateFeatureDocumentation(client, generateFeatureArgs);
+
+          case 'update_documentation':
+            const updateDocArgs = z.object({
+              document: z.string(),
+              updates: z.object({
+                sections: z.record(z.string()).optional(),
+                examples: z.array(z.object({
+                  title: z.string(),
+                  code: z.string(),
+                  description: z.string().optional()
+                })).optional(),
+                metadata: z.record(z.any()).optional()
+              }),
+              createBackup: z.boolean().optional()
+            }).parse(args);
+            return await updateDocumentation(client, updateDocArgs);
+
+          case 'generate_changelog':
+            const generateChangelogArgs = z.object({
+              fromVersion: z.string().optional(),
+              toVersion: z.string().optional(),
+              outputPath: z.string().optional(),
+              includeBreakingChanges: z.boolean().optional(),
+              groupByCategory: z.boolean().optional()
+            }).parse(args);
+            return await generateChangelog(client, generateChangelogArgs);
+
+          case 'create_knowledge_article':
+            const createArticleArgs = z.object({
+              title: z.string(),
+              category: z.string(),
+              content: z.string(),
+              tags: z.array(z.string()).optional(),
+              relatedArticles: z.array(z.string()).optional(),
+              outputPath: z.string().optional()
+            }).parse(args);
+            return await createKnowledgeArticle(client, createArticleArgs);
+
+          // Advanced Rule Tree Management
+          case 'validate_rule_tree':
+            const validateRuleTreeArgs = z.object({
+              propertyId: z.string(),
+              version: z.number().optional(),
+              rules: z.any().optional(),
+              includeOptimizations: z.boolean().optional(),
+              includeStatistics: z.boolean().optional()
+            }).parse(args);
+            return await validateRuleTree(client, validateRuleTreeArgs);
+
+          case 'create_rule_tree_from_template':
+            const createRuleTreeArgs = z.object({
+              templateId: z.string(),
+              variables: z.record(z.any()).optional(),
+              propertyId: z.string().optional(),
+              version: z.number().optional(),
+              validate: z.boolean().optional()
+            }).parse(args);
+            return await createRuleTreeFromTemplate(client, createRuleTreeArgs);
+
+          case 'analyze_rule_tree_performance':
+            const analyzeRuleTreeArgs = z.object({
+              propertyId: z.string(),
+              version: z.number().optional(),
+              rules: z.any().optional(),
+              includeRecommendations: z.boolean().optional()
+            }).parse(args);
+            return await analyzeRuleTreePerformance(client, analyzeRuleTreeArgs);
+
+          case 'detect_rule_conflicts':
+            const detectConflictsArgs = z.object({
+              propertyId: z.string(),
+              version: z.number().optional(),
+              rules: z.any().optional()
+            }).parse(args);
+            return await detectRuleConflicts(client, detectConflictsArgs);
+
+          case 'list_rule_templates':
+            const listTemplatesArgs = z.object({
+              category: z.string().optional(),
+              tags: z.array(z.string()).optional()
+            }).parse(args);
+            return await listRuleTemplates(client, listTemplatesArgs);
+
+          // Advanced Hostname Management
+          case 'analyze_hostname_ownership':
+            const analyzeHostnameArgs = z.object({
+              hostnames: z.array(z.string()),
+              includeWildcardAnalysis: z.boolean().optional(),
+              includeRecommendations: z.boolean().optional()
+            }).parse(args);
+            return await analyzeHostnameOwnership(client, analyzeHostnameArgs);
+
+          case 'generate_edge_hostname_recommendations':
+            const generateEdgeHostnameArgs = z.object({
+              hostnames: z.array(z.string()),
+              preferredSuffix: z.enum(['.edgekey.net', '.edgesuite.net', '.akamaized.net']).optional(),
+              forceSecure: z.boolean().optional()
+            }).parse(args);
+            return await generateEdgeHostnameRecommendations(client, generateEdgeHostnameArgs);
+
+          case 'validate_hostnames_bulk':
+            const validateHostnamesArgs = z.object({
+              hostnames: z.array(z.string()),
+              checkDNS: z.boolean().optional(),
+              checkCertificates: z.boolean().optional()
+            }).parse(args);
+            return await validateHostnamesBulk(client, validateHostnamesArgs);
+
+          case 'find_optimal_property_assignment':
+            const findOptimalArgs = z.object({
+              hostnames: z.array(z.string()),
+              groupingStrategy: z.enum(['by-domain', 'by-function', 'by-environment', 'auto']).optional(),
+              maxHostnamesPerProperty: z.number().optional()
+            }).parse(args);
+            return await findOptimalPropertyAssignment(client, findOptimalArgs);
+
+          case 'create_hostname_provisioning_plan':
+            const createProvisioningPlanArgs = z.object({
+              hostnames: z.array(z.string()),
+              contractId: z.string(),
+              groupId: z.string(),
+              productId: z.string().optional(),
+              securityLevel: z.enum(['standard', 'enhanced', 'advanced']).optional()
+            }).parse(args);
+            return await createHostnameProvisioningPlan(client, createProvisioningPlanArgs);
+
+          // Advanced Property Operations
+          case 'search_properties_advanced':
+            const searchPropertiesAdvancedArgs = z.object({
+              criteria: z.object({
+                name: z.string().optional(),
+                hostname: z.string().optional(),
+                edgeHostname: z.string().optional(),
+                contractId: z.string().optional(),
+                groupId: z.string().optional(),
+                productId: z.string().optional(),
+                activationStatus: z.enum(['production', 'staging', 'both', 'none']).optional(),
+                lastModifiedAfter: z.date().optional(),
+                lastModifiedBefore: z.date().optional(),
+                hasWarnings: z.boolean().optional(),
+                hasErrors: z.boolean().optional(),
+                certificateStatus: z.enum(['valid', 'expiring', 'expired']).optional(),
+                ruleFormat: z.string().optional()
+              }),
+              limit: z.number().optional(),
+              sortBy: z.enum(['relevance', 'name', 'lastModified', 'size']).optional(),
+              includeDetails: z.boolean().optional()
+            }).parse(args);
+            return await searchPropertiesAdvanced(client, searchPropertiesAdvancedArgs);
+
+          case 'compare_properties':
+            const comparePropertiesArgs = z.object({
+              propertyIdA: z.string(),
+              propertyIdB: z.string(),
+              versionA: z.number().optional(),
+              versionB: z.number().optional(),
+              compareRules: z.boolean().optional(),
+              compareHostnames: z.boolean().optional(),
+              compareBehaviors: z.boolean().optional()
+            }).parse(args);
+            return await compareProperties(client, comparePropertiesArgs);
+
+          case 'check_property_health':
+            const checkHealthArgs = z.object({
+              propertyId: z.string(),
+              version: z.number().optional(),
+              includePerformance: z.boolean().optional(),
+              includeSecurity: z.boolean().optional()
+            }).parse(args);
+            return await checkPropertyHealth(client, checkHealthArgs);
+
+          case 'detect_configuration_drift':
+            const detectDriftArgs = z.object({
+              propertyId: z.string(),
+              baselineVersion: z.number(),
+              compareVersion: z.number().optional(),
+              checkBehaviors: z.boolean().optional(),
+              checkHostnames: z.boolean().optional(),
+              checkSettings: z.boolean().optional()
+            }).parse(args);
+            return await detectConfigurationDrift(client, detectDriftArgs);
+
+          case 'bulk_update_properties':
+            const bulkUpdateArgs = z.object({
+              propertyIds: z.array(z.string()),
+              updates: z.object({
+                addBehavior: z.object({
+                  name: z.string(),
+                  options: z.any().optional(),
+                  criteria: z.array(z.any()).optional()
+                }).optional(),
+                updateBehavior: z.object({
+                  name: z.string(),
+                  options: z.any().optional()
+                }).optional(),
+                addHostname: z.object({
+                  hostname: z.string(),
+                  edgeHostname: z.string()
+                }).optional(),
+                removeHostname: z.string().optional()
+              }),
+              createNewVersion: z.boolean().optional(),
+              note: z.string().optional()
+            }).parse(args);
+            return await bulkUpdateProperties(client, bulkUpdateArgs);
+
+          // Bulk Operations Manager
+          case 'bulk_clone_properties':
+            const bulkCloneArgs = z.object({
+              sourcePropertyId: z.string(),
+              targetNames: z.array(z.string()),
+              contractId: z.string(),
+              groupId: z.string(),
+              productId: z.string().optional(),
+              ruleFormat: z.string().optional(),
+              cloneHostnames: z.boolean().optional(),
+              activateImmediately: z.boolean().optional(),
+              network: z.enum(['STAGING', 'PRODUCTION']).optional()
+            }).parse(args);
+            return await bulkCloneProperties(client, bulkCloneArgs);
+
+          case 'bulk_activate_properties':
+            const bulkActivateArgs = z.object({
+              propertyIds: z.array(z.string()),
+              network: z.enum(['STAGING', 'PRODUCTION']),
+              note: z.string().optional(),
+              notifyEmails: z.array(z.string()).optional(),
+              acknowledgeAllWarnings: z.boolean().optional(),
+              waitForCompletion: z.boolean().optional(),
+              maxWaitTime: z.number().optional()
+            }).parse(args);
+            return await bulkActivateProperties(client, bulkActivateArgs);
+
+          case 'bulk_update_property_rules':
+            const bulkRulesArgs = z.object({
+              propertyIds: z.array(z.string()),
+              rulePatches: z.array(z.object({
+                op: z.enum(['add', 'remove', 'replace', 'copy', 'move']),
+                path: z.string(),
+                value: z.any().optional(),
+                from: z.string().optional()
+              })),
+              createNewVersion: z.boolean().optional(),
+              validateChanges: z.boolean().optional(),
+              note: z.string().optional()
+            }).parse(args);
+            return await bulkUpdatePropertyRules(client, bulkRulesArgs);
+
+          case 'bulk_manage_hostnames':
+            const bulkHostnamesArgs = z.object({
+              operations: z.array(z.object({
+                propertyId: z.string(),
+                action: z.enum(['add', 'remove']),
+                hostnames: z.array(z.object({
+                  hostname: z.string(),
+                  edgeHostname: z.string().optional()
+                }))
+              })),
+              createNewVersion: z.boolean().optional(),
+              validateDNS: z.boolean().optional(),
+              note: z.string().optional()
+            }).parse(args);
+            return await bulkManageHostnames(client, bulkHostnamesArgs);
+
+          case 'get_bulk_operation_status':
+            const getBulkStatusArgs = z.object({
+              operationId: z.string(),
+              detailed: z.boolean().optional()
+            }).parse(args);
+            return await getBulkOperationStatus(client, getBulkStatusArgs);
+
+          // Resilience tools
+          case 'get_system_health':
+            const systemHealthArgs = GetSystemHealthSchema.parse(args);
+            return await getSystemHealth(client, {
+              includeMetrics: systemHealthArgs.includeMetrics,
+              operationType: systemHealthArgs.operationType as any
+            });
+
+          case 'reset_circuit_breaker':
+            const resetCircuitArgs = ResetCircuitBreakerSchema.parse(args);
+            return await resetCircuitBreaker(client, {
+              operationType: resetCircuitArgs.operationType as any,
+              force: resetCircuitArgs.force
+            });
+
+          case 'get_operation_metrics':
+            const operationMetricsArgs = GetOperationMetricsSchema.parse(args);
+            return await getOperationMetrics(client, {
+              operationType: operationMetricsArgs.operationType as any,
+              includeTrends: operationMetricsArgs.includeTrends
+            });
+
+          case 'test_operation_resilience':
+            const resilienceTestArgs = TestOperationResilienceSchema.parse(args);
+            return await testOperationResilience(client, {
+              operationType: resilienceTestArgs.operationType as any,
+              testType: resilienceTestArgs.testType,
+              iterations: resilienceTestArgs.iterations
+            });
+
+          case 'get_error_recovery_suggestions':
+            const errorRecoveryArgs = GetErrorRecoverySuggestionsSchema.parse(args);
+            return await getErrorRecoverySuggestions(client, {
+              errorType: errorRecoveryArgs.errorType,
+              operationType: errorRecoveryArgs.operationType as any,
+              includePreventiveMeasures: errorRecoveryArgs.includePreventiveMeasures
+            });
+
+          // Performance tools
+          case 'get_performance_analysis':
+            const performanceAnalysisArgs = GetPerformanceAnalysisSchema.parse(args);
+            return await getPerformanceAnalysis(client, performanceAnalysisArgs);
+
+          case 'optimize_cache':
+            const optimizeCacheArgs = OptimizeCacheSchema.parse(args);
+            return await optimizeCache(client, optimizeCacheArgs);
+
+          case 'profile_performance':
+            const profilePerformanceArgs = ProfilePerformanceSchema.parse(args);
+            return await profilePerformance(client, profilePerformanceArgs);
+
+          case 'get_realtime_metrics':
+            const realtimeMetricsArgs = GetRealtimeMetricsSchema.parse(args);
+            return await getRealtimeMetrics(client, realtimeMetricsArgs);
+
+          case 'reset_performance_monitoring':
+            const resetPerformanceArgs = ResetPerformanceMonitoringSchema.parse(args);
+            return await resetPerformanceMonitoring(client, resetPerformanceArgs);
+
+          // Integration Testing Tools
+          case 'run_integration_test_suite':
+            const runTestSuiteArgs = RunIntegrationTestSuiteSchema.parse(args);
+            return await runIntegrationTestSuite(client, runTestSuiteArgs);
+
+          case 'check_api_health':
+            const checkAPIHealthArgs = CheckAPIHealthSchema.parse(args);
+            return await checkAPIHealth(client, checkAPIHealthArgs);
+
+          case 'generate_test_data':
+            const generateDataArgs = GenerateTestDataSchema.parse(args);
+            return await generateTestData(client, generateDataArgs);
+
+          case 'validate_tool_responses':
+            const validateResponsesArgs = ValidateToolResponsesSchema.parse(args);
+            return await validateToolResponses(client, validateResponsesArgs);
+
+          case 'run_load_test':
+            const runLoadTestArgs = RunLoadTestSchema.parse(args);
+            return await runLoadTest(client, runLoadTestArgs);
+
+          // Includes Management Tools
+          case 'list_includes':
+            const listIncludesArgs = z.object({
+              customer: z.string().optional(),
+              contractId: z.string(),
+              groupId: z.string(),
+              includeType: z.enum(['MICROSERVICES', 'COMMON_SETTINGS', 'ALL']).optional()
+            }).parse(args);
+            return await listIncludes(client, listIncludesArgs);
+
+          case 'get_include':
+            const getIncludeArgs = z.object({
+              customer: z.string().optional(),
+              includeId: z.string(),
+              contractId: z.string(),
+              groupId: z.string(),
+              version: z.number().optional()
+            }).parse(args);
+            return await getInclude(client, getIncludeArgs);
+
+          case 'create_include':
+            const createIncludeArgs = z.object({
+              customer: z.string().optional(),
+              includeName: z.string(),
+              includeType: z.enum(['MICROSERVICES', 'COMMON_SETTINGS']),
+              contractId: z.string(),
+              groupId: z.string(),
+              ruleFormat: z.string().optional(),
+              cloneFrom: z.object({
+                includeId: z.string(),
+                version: z.number()
+              }).optional()
+            }).parse(args);
+            return await createInclude(client, createIncludeArgs);
+
+          case 'activate_include':
+            const activateIncludeArgs = z.object({
+              customer: z.string().optional(),
+              includeId: z.string(),
+              version: z.number(),
+              network: z.enum(['STAGING', 'PRODUCTION']),
+              contractId: z.string(),
+              groupId: z.string(),
+              note: z.string().optional(),
+              notifyEmails: z.array(z.string()).optional(),
+              acknowledgeAllWarnings: z.boolean().optional()
+            }).parse(args);
+            return await activateInclude(client, activateIncludeArgs);
+
+          case 'get_include_activation_status':
+            const getIncludeActivationArgs = z.object({
+              customer: z.string().optional(),
+              includeId: z.string(),
+              activationId: z.string(),
+              contractId: z.string(),
+              groupId: z.string()
+            }).parse(args);
+            return await getIncludeActivationStatus(client, getIncludeActivationArgs);
+
+          // Enhanced Error Handling Tools
+          case 'get_validation_errors':
+            const getValidationErrorsArgs = z.object({
+              customer: z.string().optional(),
+              propertyId: z.string(),
+              version: z.number(),
+              contractId: z.string(),
+              groupId: z.string(),
+              validateRules: z.boolean().optional(),
+              validateHostnames: z.boolean().optional()
+            }).parse(args);
+            return await getValidationErrors(client, getValidationErrorsArgs);
+
+          case 'acknowledge_warnings':
+            const acknowledgeWarningsArgs = z.object({
+              customer: z.string().optional(),
+              propertyId: z.string(),
+              version: z.number(),
+              warnings: z.array(z.string()),
+              justification: z.string().optional(),
+              contractId: z.string(),
+              groupId: z.string()
+            }).parse(args);
+            return await acknowledgeWarnings(client, acknowledgeWarningsArgs);
+
+          case 'validate_property_configuration':
+            const validateConfigArgs = z.object({
+              customer: z.string().optional(),
+              propertyId: z.string(),
+              version: z.number(),
+              contractId: z.string(),
+              groupId: z.string(),
+              includeHostnameValidation: z.boolean().optional(),
+              includeRuleValidation: z.boolean().optional(),
+              includeCertificateValidation: z.boolean().optional()
+            }).parse(args);
+            return await validatePropertyConfiguration(client, validateConfigArgs);
+
+          case 'get_error_recovery_help':
+            const getErrorHelpArgs = z.object({
+              customer: z.string().optional(),
+              propertyId: z.string(),
+              version: z.number(),
+              errorType: z.string().optional(),
+              contractId: z.string(),
+              groupId: z.string()
+            }).parse(args);
+            return await getErrorRecoveryHelp(client, getErrorHelpArgs);
+
+          case 'update_include':
+            const updateIncludeArgs = UpdateIncludeSchema.parse(args);
+            return await updateInclude(client, updateIncludeArgs as {
+              includeId: string;
+              contractId: string;
+              groupId: string;
+              rules: any;
+              version?: number;
+              note?: string;
+              customer?: string;
+            });
+
+          case 'create_include_version':
+            const createIncludeVersionArgs = CreateIncludeVersionSchema.parse(args);
+            return await createIncludeVersion(client, createIncludeVersionArgs);
+
+          case 'list_include_activations':
+            const listIncludeActivationsArgs = ListIncludeActivationsSchema.parse(args);
+            return await listIncludeActivations(client, listIncludeActivationsArgs);
+
+          case 'override_errors':
+            const overrideErrorsArgs = OverrideErrorsSchema.parse(args);
+            return await overrideErrors(client, overrideErrorsArgs);
+
+          case 'discover_hostnames_intelligent':
+            const discoverHostnamesArgs = DiscoverHostnamesIntelligentSchema.parse(args);
+            return await discoverHostnamesIntelligent(client, discoverHostnamesArgs);
+
+          case 'analyze_hostname_conflicts':
+            const analyzeConflictsArgs = AnalyzeHostnameConflictsSchema.parse(args);
+            return await analyzeHostnameConflicts(client, analyzeConflictsArgs);
+
+          case 'analyze_wildcard_coverage':
+            const analyzeWildcardsArgs = AnalyzeWildcardCoverageSchema.parse(args);
+            return await analyzeWildcardCoverage(client, analyzeWildcardsArgs);
+
+          case 'identify_ownership_patterns':
+            const identifyPatternsArgs = IdentifyOwnershipPatternsSchema.parse(args);
+            return await identifyOwnershipPatterns(client, identifyPatternsArgs);
+
+          // FastPurge tools
+          case 'fastpurge.url.invalidate':
+          case 'fastpurge.cpcode.invalidate':
+          case 'fastpurge.tag.invalidate':
+          case 'fastpurge.status.check':
+          case 'fastpurge.queue.status':
+          case 'fastpurge.estimate':
+            const tool = fastPurgeTools.find(t => t.name === name);
+            if (tool) {
+              return await tool.handler(args);
+            }
+            break;
 
           default:
             throw new McpError(

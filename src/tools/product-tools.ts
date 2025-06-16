@@ -6,6 +6,7 @@
 import { AkamaiClient } from '../akamai-client.js';
 import { MCPToolResponse } from '../types.js';
 import { getProductFriendlyName, formatProductDisplay, selectBestProduct } from '../utils/product-mapping.js';
+import { formatContractDisplay, ensurePrefix } from '../utils/formatting.js';
 
 /**
  * List all products available under a contract
@@ -18,21 +19,23 @@ export async function listProducts(
   }
 ): Promise<MCPToolResponse> {
   try {
-    // Validate contract ID format
-    if (!args.contractId || !args.contractId.startsWith('ctr_')) {
+    // Ensure contract has prefix
+    if (!args.contractId) {
       return {
         content: [{
           type: 'text',
-          text: `❌ Invalid contract ID format. Contract IDs should start with "ctr_".\n\n💡 **Tip:** Use \`list_contracts\` to find valid contract IDs.`,
+          text: `❌ Contract ID is required.\n\n💡 **Tip:** Use \`list_contracts\` to find valid contract IDs.`,
         }],
       };
     }
+    
+    const contractId = ensurePrefix(args.contractId, 'ctr_');
 
     const response = await client.request({
       path: `/papi/v1/products`,
       method: 'GET',
       queryParams: {
-        contractId: args.contractId,
+        contractId: contractId,
       },
     });
 
@@ -40,12 +43,12 @@ export async function listProducts(
       return {
         content: [{
           type: 'text',
-          text: `No products found for contract ${args.contractId}.\n\n⚠️ This could mean:\n- The contract has no products assigned\n- Your API credentials lack access to this contract\n- The contract ID is invalid`,
+          text: `No products found for contract ${formatContractDisplay(contractId)}.\n\n⚠️ This could mean:\n- The contract has no products assigned\n- Your API credentials lack access to this contract\n- The contract ID is invalid`,
         }],
       };
     }
 
-    let text = `# Products Available in Contract ${args.contractId}\n\n`;
+    let text = `# Products Available in ${formatContractDisplay(contractId)}\n\n`;
     text += `Found ${response.products.items.length} products:\n\n`;
 
     text += `| Product ID | Product Name | Category |\n`;

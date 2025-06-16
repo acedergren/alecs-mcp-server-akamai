@@ -1,0 +1,344 @@
+/**
+ * Health monitoring for ALECS
+ * Tracks API connectivity, auth validity, and system health
+ */
+
+import { AkamaiClient } from '../akamai-client.js';
+import { logger, createCorrelationId } from './logger.js';
+
+export interface HealthStatus {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  timestamp: string;
+  checks: {
+    api: HealthCheck;
+    auth: HealthCheck;
+    dns: HealthCheck;
+    propertyManager: HealthCheck;
+  };
+  metadata: {
+    uptime: number;
+    lastCheck: string;
+    version: string;
+  };
+}
+
+export interface HealthCheck {
+  status: 'pass' | 'warn' | 'fail';
+  message: string;
+  lastSuccess?: string;
+  consecutiveFailures?: number;
+  latency?: number;
+}
+
+class HealthMonitor {
+  private static instance: HealthMonitor;
+  private startTime: number;
+  private checkInterval: NodeJS.Timeout | null = null;
+  private lastHealthStatus: HealthStatus | null = null;
+  private healthHistory: HealthStatus[] = [];
+  private maxHistorySize = 100;
+
+  private constructor() {
+    this.startTime = Date.now();
+  }
+
+  static getInstance(): HealthMonitor {
+    if (!HealthMonitor.instance) {
+      HealthMonitor.instance = new HealthMonitor();
+    }
+    return HealthMonitor.instance;
+  }
+
+  async checkHealth(client: AkamaiClient): Promise<HealthStatus> {
+    const correlationId = createCorrelationId();
+    logger.debug('Starting health check', { correlationId });
+
+    const checks = await Promise.all([
+      this.checkAPI(client, correlationId),
+      this.checkAuth(client, correlationId),
+      this.checkDNS(client, correlationId),
+      this.checkPropertyManager(client, correlationId),
+    ]);
+
+    const [api, auth, dns, propertyManager] = checks;
+
+    const overallStatus = this.calculateOverallStatus({ api, auth, dns, propertyManager });
+
+    const status: HealthStatus = {
+      status: overallStatus,
+      timestamp: new Date().toISOString(),
+      checks: {
+        api,
+        auth,
+        dns,
+        propertyManager,
+      },
+      metadata: {
+        uptime: Date.now() - this.startTime,
+        lastCheck: new Date().toISOString(),
+        version: '1.1.0',
+      },
+    };
+
+    this.lastHealthStatus = status;
+    this.addToHistory(status);
+
+    logger.info('Health check completed', {
+      correlationId,
+      status: overallStatus,
+      checks: Object.entries(status.checks).map(([name, check]) => ({
+        name,
+        status: check.status,
+      })),
+    });
+
+    return status;
+  }
+
+  private async checkAPI(client: AkamaiClient, correlationId: string): Promise<HealthCheck> {
+    try {
+      const start = Date.now();
+      
+      // Simple API connectivity check
+      await client.request({
+        path: '/papi/v1/contracts',
+        method: 'GET',
+      });
+
+      const latency = Date.now() - start;
+
+      return {
+        status: latency < 1000 ? 'pass' : 'warn',
+        message: `API responding (${latency}ms)`,
+        latency,
+        lastSuccess: new Date().toISOString(),
+      };
+    } catch (error) {
+      logger.error('API health check failed', {
+        correlationId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      return {
+        status: 'fail',
+        message: `API unreachable: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        consecutiveFailures: 1,
+      };
+    }
+  }
+
+  private async checkAuth(client: AkamaiClient, correlationId: string): Promise<HealthCheck> {
+    try {
+      const auth = client.getEdgeGridAuth();
+      
+      if (!auth.client_token || !auth.access_token) {
+        return {
+          status: 'fail',
+          message: 'Missing authentication credentials',
+        };
+      }
+
+      // Try a simple authenticated request
+      await client.request({
+        path: '/identity-management/v3/user-profile',
+        method: 'GET',
+      });
+
+      return {
+        status: 'pass',
+        message: 'Authentication valid',
+        lastSuccess: new Date().toISOString(),
+      };
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        return {
+          status: 'fail',
+          message: 'Authentication failed - check credentials',
+          consecutiveFailures: 1,
+        };
+      }
+
+      return {
+        status: 'warn',
+        message: 'Could not verify authentication',
+      };
+    }
+  }
+
+  private async checkDNS(client: AkamaiClient, correlationId: string): Promise<HealthCheck> {
+    try {
+      const start = Date.now();
+      
+      await client.request({
+        path: '/config-dns/v2/zones',
+        method: 'GET',
+        params: { showAll: false, page: 1, pageSize: 1 },
+      });
+
+      const latency = Date.now() - start;
+
+      return {
+        status: 'pass',
+        message: `Edge DNS API healthy (${latency}ms)`,
+        latency,
+        lastSuccess: new Date().toISOString(),
+      };
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        return {
+          status: 'warn',
+          message: 'Edge DNS API access denied - check permissions',
+        };
+      }
+
+      return {
+        status: 'fail',
+        message: 'Edge DNS API unavailable',
+        consecutiveFailures: 1,
+      };
+    }
+  }
+
+  private async checkPropertyManager(client: AkamaiClient, correlationId: string): Promise<HealthCheck> {
+    try {
+      const start = Date.now();
+      
+      await client.request({
+        path: '/papi/v1/properties',
+        method: 'GET',
+        params: { limit: 1 },
+      });
+
+      const latency = Date.now() - start;
+
+      return {
+        status: 'pass',
+        message: `Property Manager API healthy (${latency}ms)`,
+        latency,
+        lastSuccess: new Date().toISOString(),
+      };
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        return {
+          status: 'warn',
+          message: 'Property Manager API access denied - check permissions',
+        };
+      }
+
+      return {
+        status: 'fail',
+        message: 'Property Manager API unavailable',
+        consecutiveFailures: 1,
+      };
+    }
+  }
+
+  private calculateOverallStatus(checks: Record<string, HealthCheck>): 'healthy' | 'degraded' | 'unhealthy' {
+    const statuses = Object.values(checks).map(c => c.status);
+    
+    if (statuses.every(s => s === 'pass')) {
+      return 'healthy';
+    }
+    
+    if (statuses.some(s => s === 'fail')) {
+      return 'unhealthy';
+    }
+    
+    return 'degraded';
+  }
+
+  private addToHistory(status: HealthStatus): void {
+    this.healthHistory.push(status);
+    
+    if (this.healthHistory.length > this.maxHistorySize) {
+      this.healthHistory = this.healthHistory.slice(-this.maxHistorySize);
+    }
+  }
+
+  startMonitoring(client: AkamaiClient, intervalMs: number = 60000): void {
+    if (this.checkInterval) {
+      clearInterval(this.checkInterval);
+    }
+
+    // Initial check
+    this.checkHealth(client).catch(error => {
+      logger.error('Health check failed', {
+        correlationId: createCorrelationId(),
+        error: error instanceof Error ? error.message : String(error),
+      });
+    });
+
+    // Schedule periodic checks
+    this.checkInterval = setInterval(() => {
+      this.checkHealth(client).catch(error => {
+        logger.error('Health check failed', {
+          correlationId: createCorrelationId(),
+          error: error instanceof Error ? error.message : String(error),
+        });
+      });
+    }, intervalMs);
+
+    logger.info('Health monitoring started', {
+      correlationId: createCorrelationId(),
+      intervalMs,
+    });
+  }
+
+  stopMonitoring(): void {
+    if (this.checkInterval) {
+      clearInterval(this.checkInterval);
+      this.checkInterval = null;
+      
+      logger.info('Health monitoring stopped', {
+        correlationId: createCorrelationId(),
+      });
+    }
+  }
+
+  getLastStatus(): HealthStatus | null {
+    return this.lastHealthStatus;
+  }
+
+  getHealthHistory(): HealthStatus[] {
+    return [...this.healthHistory];
+  }
+
+  getHealthSummary(): any {
+    if (this.healthHistory.length === 0) {
+      return { message: 'No health data available' };
+    }
+
+    const last24h = this.healthHistory.filter(h => {
+      const age = Date.now() - new Date(h.timestamp).getTime();
+      return age < 24 * 60 * 60 * 1000;
+    });
+
+    const summary = {
+      current: this.lastHealthStatus?.status || 'unknown',
+      uptime: Date.now() - this.startTime,
+      last24h: {
+        checks: last24h.length,
+        healthy: last24h.filter(h => h.status === 'healthy').length,
+        degraded: last24h.filter(h => h.status === 'degraded').length,
+        unhealthy: last24h.filter(h => h.status === 'unhealthy').length,
+      },
+      services: {} as Record<string, any>,
+    };
+
+    // Aggregate service-specific stats
+    if (this.lastHealthStatus) {
+      Object.entries(this.lastHealthStatus.checks).forEach(([service, check]) => {
+        summary.services[service] = {
+          status: check.status,
+          message: check.message,
+          latency: check.latency,
+        };
+      });
+    }
+
+    return summary;
+  }
+}
+
+// Export singleton instance
+export const healthMonitor = HealthMonitor.getInstance();

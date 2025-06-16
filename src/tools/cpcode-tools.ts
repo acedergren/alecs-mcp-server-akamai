@@ -7,6 +7,7 @@
 import { AkamaiClient } from '../akamai-client.js';
 import { MCPToolResponse } from '../types.js';
 import { getProductFriendlyName, formatProductDisplay, selectBestProduct } from '../utils/product-mapping.js';
+import { formatContractDisplay, formatGroupDisplay, formatCPCodeDisplay, ensurePrefix } from '../utils/formatting.js';
 
 /**
  * List all CP Codes in the account
@@ -23,10 +24,10 @@ export async function listCPCodes(
     const queryParams: any = {};
     
     if (args.contractId) {
-      queryParams.contractId = args.contractId;
+      queryParams.contractId = ensurePrefix(args.contractId, 'ctr_');
     }
     if (args.groupId) {
-      queryParams.groupId = args.groupId;
+      queryParams.groupId = ensurePrefix(args.groupId, 'grp_');
     }
 
     const response = await client.request({
@@ -56,7 +57,7 @@ export async function listCPCodes(
     }, {});
 
     for (const [contractId, cpcodes] of Object.entries(byContract)) {
-      text += `## Contract: ${contractId}\n\n`;
+      text += `## ${formatContractDisplay(contractId)}\n\n`;
       
       // Sort by CP Code ID
       const sortedCpcodes = (cpcodes as any[]).sort((a, b) => 
@@ -67,7 +68,7 @@ export async function listCPCodes(
       text += `|---------|------|----------|----------|\n`;
       
       for (const cpcode of sortedCpcodes) {
-        const cpcodeNum = cpcode.cpcodeId.replace('cpc_', '');
+        const cpcodeNum = formatCPCodeDisplay(cpcode.cpcodeId);
         const name = cpcode.cpcodeName || 'Unnamed';
         const products = cpcode.productIds?.map((pid: string) => getProductFriendlyName(pid)).join(', ') || 'None';
         const created = cpcode.createdDate ? new Date(cpcode.createdDate).toLocaleDateString() : 'Unknown';
@@ -141,12 +142,12 @@ export async function getCPCode(
 
     const cpcode = targetCpcode;
     
-    let text = `# CP Code Details: ${cpcode.cpcodeId.replace('cpc_', '')}\n\n`;
+    let text = `# CP Code Details: ${formatCPCodeDisplay(cpcode.cpcodeId, cpcode.cpcodeName)}\n\n`;
 
     // Basic Information
     text += `## Basic Information\n`;
-    text += `- **CP Code ID:** ${cpcode.cpcodeId}\n`;
-    text += `- **Numeric ID:** ${cpcode.cpcodeId.replace('cpc_', '')}\n`;
+    text += `- **CP Code ID:** ${formatCPCodeDisplay(cpcode.cpcodeId)}\n`;
+    text += `- **Raw ID:** ${cpcode.cpcodeId}\n`;
     text += `- **Name:** ${cpcode.cpcodeName || 'Unnamed'}\n`;
     text += `- **Created:** ${cpcode.createdDate ? new Date(cpcode.createdDate).toLocaleDateString() : 'Unknown'}\n`;
     text += `- **Time Zone:** ${cpcode.timeZone || 'Not specified'}\n\n`;
@@ -154,10 +155,12 @@ export async function getCPCode(
     // Contract and Group Information
     text += `## Contract & Group Information\n`;
     if (cpcode.contractIds?.length > 0) {
-      text += `- **Contracts:** ${cpcode.contractIds.join(', ')}\n`;
+      const contractDisplays = cpcode.contractIds.map((cid: string) => formatContractDisplay(cid));
+      text += `- **Contracts:** ${contractDisplays.join(', ')}\n`;
     }
     if (cpcode.groupIds?.length > 0) {
-      text += `- **Groups:** ${cpcode.groupIds.join(', ')}\n`;
+      const groupDisplays = cpcode.groupIds.map((gid: string) => formatGroupDisplay(gid));
+      text += `- **Groups:** ${groupDisplays.join(', ')}\n`;
     }
     if (cpcode.productIds?.length > 0) {
       text += `- **Products:** ${cpcode.productIds.map((pid: string) => formatProductDisplay(pid)).join(', ')}\n`;
@@ -222,6 +225,14 @@ export async function createCPCode(
   }
 ): Promise<MCPToolResponse> {
   try {
+    // Ensure prefixes are added if missing
+    if (args.contractId) {
+      args.contractId = ensurePrefix(args.contractId, 'ctr_');
+    }
+    if (args.groupId) {
+      args.groupId = ensurePrefix(args.groupId, 'grp_');
+    }
+    
     // Validate required parameters
     const validationErrors: string[] = [];
     
@@ -231,12 +242,12 @@ export async function createCPCode(
       validationErrors.push('CP Code name must be 100 characters or less');
     }
     
-    if (!args.contractId || !args.contractId.startsWith('ctr_')) {
-      validationErrors.push('Valid contract ID is required (should start with ctr_)');
+    if (!args.contractId) {
+      validationErrors.push('Contract ID is required');
     }
     
-    if (!args.groupId || !args.groupId.startsWith('grp_')) {
-      validationErrors.push('Valid group ID is required (should start with grp_)');
+    if (!args.groupId) {
+      validationErrors.push('Group ID is required');
     }
     
     if (validationErrors.length > 0) {
@@ -308,11 +319,11 @@ export async function createCPCode(
     
     text += `## CP Code Details\n`;
     text += `- **Name:** ${args.cpcodeName}\n`;
-    text += `- **CP Code ID:** ${cpcodeId}\n`;
-    text += `- **Numeric ID:** ${numericId}\n`;
+    text += `- **CP Code ID:** ${formatCPCodeDisplay(cpcodeId, args.cpcodeName)}\n`;
+    text += `- **Raw ID:** ${cpcodeId}\n`;
     text += `- **Product:** ${formatProductDisplay(productId)}\n`;
-    text += `- **Contract:** ${args.contractId}\n`;
-    text += `- **Group:** ${args.groupId}\n`;
+    text += `- **Contract:** ${formatContractDisplay(args.contractId)}\n`;
+    text += `- **Group:** ${formatGroupDisplay(args.groupId)}\n`;
     text += `- **Time Zone:** ${args.timeZone || 'GMT'}\n`;
     text += `- **Status:** 🆕 NEW (Ready for use)\n\n`;
     
@@ -377,10 +388,10 @@ export async function searchCPCodes(
     const queryParams: any = {};
     
     if (args.contractId) {
-      queryParams.contractId = args.contractId;
+      queryParams.contractId = ensurePrefix(args.contractId, 'ctr_');
     }
     if (args.groupId) {
-      queryParams.groupId = args.groupId;
+      queryParams.groupId = ensurePrefix(args.groupId, 'grp_');
     }
 
     const response = await client.request({
