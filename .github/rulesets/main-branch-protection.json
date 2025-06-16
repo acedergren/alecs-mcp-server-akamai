@@ -1,0 +1,73 @@
+{
+  "name": "Main Branch Protection Ruleset",
+  "description": "Comprehensive protection rules for the main branch to ensure code quality, security, and proper review process",
+  "target": "branch",
+  "source_type": "Repository",
+  "source": "acedergren/alecs-mcp-server-akamai",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/heads/main"],
+      "exclude": []
+    }
+  },
+  "rules": [
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 1,
+        "dismiss_stale_reviews_on_push": true,
+        "require_code_owner_reviews": true,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": true
+      }
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "required_status_checks": [
+          {
+            "context": "test",
+            "integration_id": null
+          },
+          {
+            "context": "lint", 
+            "integration_id": null
+          },
+          {
+            "context": "security",
+            "integration_id": null
+          },
+          {
+            "context": "docker-build",
+            "integration_id": null
+          }
+        ]
+      }
+    },
+    {
+      "type": "non_fast_forward",
+      "parameters": {}
+    },
+    {
+      "type": "deletion",
+      "parameters": {}
+    },
+    {
+      "type": "creation",
+      "parameters": {}
+    },
+    {
+      "type": "update",
+      "parameters": {
+        "update_allows_fetch_and_merge": false
+      }
+    },
+    {
+      "type": "required_linear_history",
+      "parameters": {}
+    }
+  ],
+  "bypass_actors": []
+}
