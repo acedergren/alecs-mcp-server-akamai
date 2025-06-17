@@ -4,7 +4,7 @@ services:
   # Production service
   alecs:
     build:
-      context: .
+      context: ../..
       dockerfile: build/docker/Dockerfile
     image: alecs-mcp-server-akamai:latest
     container_name: alecs-mcp
@@ -25,13 +25,6 @@ services:
     # For MCP stdio communication
     stdin_open: true
     tty: true
-    # Health check
-    healthcheck:
-      test: ["CMD", "node", "-e", "process.exit(0)"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 5s
     # Resource limits
     deploy:
       resources:
@@ -45,7 +38,7 @@ services:
   # Development service with hot reload
   alecs-dev:
     build:
-      context: .
+      context: ../..
       dockerfile: build/docker/Dockerfile.dev
     image: alecs-mcp-server-akamai:dev
     container_name: alecs-mcp-dev
@@ -53,17 +46,21 @@ services:
     environment:
       NODE_ENV: development
       # Enable TypeScript debugging
-      NODE_OPTIONS: "--inspect=0.0.0.0:9229"
-      # EDGERC_PATH: /home/node/.akamai/.edgerc
+      NODE_OPTIONS: "--inspect=0.0.0.0:9229 --enable-source-maps"
+      # EDGERC_PATH: /home/node/.edgerc
       # DEBUG: "1"
     volumes:
-      # Mount source code for development
-      - ./src:/app/src:ro
-      - ./package.json:/app/package.json:ro
-      - ./tsconfig.json:/app/tsconfig.json:ro
-      - ./node_modules:/app/node_modules:ro
+      # Mount source code for hot reload
+      - ../../src:/app/src:ro
+      - ../../tests:/app/tests:ro
+      - ../../examples:/app/examples:ro
+      - ../../package.json:/app/package.json:ro
+      - ../../tsconfig.json:/app/tsconfig.json:ro
+      - ../../tsconfig.build.json:/app/tsconfig.build.json:ro
       # Mount .edgerc file
       - ~/.edgerc:/home/node/.edgerc:ro
+      # Mount dist for build output
+      - ../../dist:/app/dist
     stdin_open: true
     tty: true
     ports:
@@ -74,7 +71,7 @@ services:
   # Test runner service
   alecs-test:
     build:
-      context: .
+      context: ../..
       dockerfile: build/docker/Dockerfile
       target: builder
     image: alecs-mcp-server-akamai:test
@@ -82,30 +79,80 @@ services:
     environment:
       NODE_ENV: test
       CI: "true"
+      # Jest configuration
+      JEST_JUNIT_OUTPUT_DIR: /app/coverage
+      JEST_JUNIT_OUTPUT_NAME: junit.xml
     volumes:
-      - ./src:/app/src:ro
-      - ./tests:/app/tests:ro
-      - ./package.json:/app/package.json:ro
-      - ./tsconfig.json:/app/tsconfig.json:ro
-      - ./jest.config.js:/app/jest.config.js:ro
-      - ./coverage:/app/coverage
+      - ../../src:/app/src:ro
+      - ../../tests:/app/tests:ro
+      - ../../package.json:/app/package.json:ro
+      - ../../tsconfig.json:/app/tsconfig.json:ro
+      - ../../jest.config.js:/app/jest.config.js:ro
+      - ../../coverage:/app/coverage
       - ~/.edgerc:/root/.edgerc:ro
     command: ["npm", "test"]
 
   # One-shot build service
   alecs-build:
     build:
-      context: .
+      context: ../..
       dockerfile: build/docker/Dockerfile
       target: builder
     image: alecs-mcp-server-akamai:builder
     container_name: alecs-mcp-build
     volumes:
-      - ./dist:/app/dist
-      - ./src:/app/src:ro
-      - ./package.json:/app/package.json:ro
-      - ./tsconfig.json:/app/tsconfig.json:ro
-    command: ["npm", "run", "build"]
+      - ../../dist:/app/dist
+      - ../../src:/app/src:ro
+      - ../../package.json:/app/package.json:ro
+      - ../../tsconfig.json:/app/tsconfig.json:ro
+      - ../../tsconfig.build.json:/app/tsconfig.build.json:ro
+    command: ["npm", "run", "build:strict"]
+
+  # Interactive launcher service
+  alecs-interactive:
+    build:
+      context: ../..
+      dockerfile: build/docker/Dockerfile
+    image: alecs-mcp-server-akamai:latest
+    container_name: alecs-mcp-interactive
+    environment:
+      NODE_ENV: production
+    volumes:
+      - ~/.edgerc:/home/alecs/.edgerc:ro
+    stdin_open: true
+    tty: true
+    command: ["node", "dist/interactive-launcher.js"]
+
+  # Individual service containers
+  alecs-property:
+    extends:
+      service: alecs
+    container_name: alecs-mcp-property
+    command: ["node", "dist/servers/property-server.js"]
+
+  alecs-dns:
+    extends:
+      service: alecs
+    container_name: alecs-mcp-dns
+    command: ["node", "dist/servers/dns-server.js"]
+
+  alecs-certs:
+    extends:
+      service: alecs
+    container_name: alecs-mcp-certs
+    command: ["node", "dist/servers/certs-server.js"]
+
+  alecs-security:
+    extends:
+      service: alecs
+    container_name: alecs-mcp-security
+    command: ["node", "dist/servers/security-server.js"]
+
+  alecs-reporting:
+    extends:
+      service: alecs
+    container_name: alecs-mcp-reporting
+    command: ["node", "dist/servers/reporting-server.js"]
 
 # Network configuration
 networks:
@@ -116,4 +163,6 @@ networks:
 # Optional: Named volumes for persistent data
 volumes:
   alecs-data:
+    driver: local
+  alecs-coverage:
     driver: local
