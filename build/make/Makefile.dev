@@ -1,0 +1,201 @@
+# Development Makefile for ALECS MCP Server
+# Quick commands for development workflow
+
+# Include main Makefile
+include Makefile
+
+# Development-specific variables
+DEV_PORT := 3000
+TEST_TIMEOUT := 10000
+COVERAGE_DIR := coverage
+
+# Override default goal for development
+.DEFAULT_GOAL := dev-help
+
+# Development help
+dev-help:
+	@echo "$(BLUE)ALECS Development Commands$(NC)"
+	@echo ""
+	@echo "$(GREEN)Quick Start:$(NC)"
+	@echo "  make dev-setup     Complete development setup"
+	@echo "  make dev-run       Start development server"
+	@echo "  make dev-test      Run tests with watch mode"
+	@echo "  make dev-check     Run all checks quickly"
+	@echo ""
+	@echo "$(GREEN)Debugging:$(NC)"
+	@echo "  make debug         Run with Node.js debugger"
+	@echo "  make inspect       Run with Chrome DevTools"
+	@echo "  make trace         Run with trace warnings"
+	@echo ""
+	@echo "$(GREEN)Testing:$(NC)"
+	@echo "  make test-watch    Run tests in watch mode"
+	@echo "  make test-coverage Run tests with coverage"
+	@echo "  make test-single   Run a single test file"
+	@echo ""
+	@echo "$(GREEN)Code Quality:$(NC)"
+	@echo "  make fix           Auto-fix linting issues"
+	@echo "  make format-all    Format all code"
+	@echo "  make check-all     Run all quality checks"
+
+## Complete development setup
+dev-setup: check-deps
+	@echo "$(BLUE)Setting up development environment...$(NC)"
+	@npm install
+	@npm install --save-dev @types/node typescript tsx nodemon
+	@echo "$(GREEN)✓ Development dependencies installed$(NC)"
+	@mkdir -p $(BUILD_DIR)
+	@mkdir -p $(COVERAGE_DIR)
+	@make validate-edgerc
+	@echo ""
+	@echo "$(GREEN)✅ Development setup complete!$(NC)"
+
+## Run development server with hot reload
+dev-run:
+	@echo "$(BLUE)Starting development server with hot reload...$(NC)"
+	@npx nodemon
+
+## Run with debugger
+debug:
+	@echo "$(BLUE)Starting with Node.js debugger...$(NC)"
+	@node --inspect-brk $(BUILD_DIR)/index.js
+
+## Run with Chrome DevTools
+inspect:
+	@echo "$(BLUE)Starting with Chrome DevTools...$(NC)"
+	@echo "$(YELLOW)Open chrome://inspect in Chrome$(NC)"
+	@node --inspect $(BUILD_DIR)/index.js
+
+## Run with trace warnings
+trace:
+	@echo "$(BLUE)Starting with trace warnings...$(NC)"
+	@node --trace-warnings $(BUILD_DIR)/index.js
+
+## Run tests in watch mode
+test-watch:
+	@echo "$(BLUE)Running tests in watch mode...$(NC)"
+	@npx jest --watch
+
+## Run tests with coverage
+test-coverage:
+	@echo "$(BLUE)Running tests with coverage...$(NC)"
+	@npx jest --coverage
+	@echo "$(GREEN)✓ Coverage report generated in $(COVERAGE_DIR)$(NC)"
+
+## Run a single test file
+test-single:
+	@if [ -z "$(FILE)" ]; then \
+		echo "$(RED)❌ Please specify a test file: make test-single FILE=path/to/test$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Running test: $(FILE)$(NC)"
+	@npx jest $(FILE)
+
+## Auto-fix linting issues
+fix:
+	@echo "$(BLUE)Auto-fixing linting issues...$(NC)"
+	@npm run lint -- --fix
+	@echo "$(GREEN)✓ Linting issues fixed$(NC)"
+
+## Format all code
+format-all:
+	@echo "$(BLUE)Formatting all code...$(NC)"
+	@npx prettier --write "$(SRC_DIR)/**/*.{ts,js,json}"
+	@npx prettier --write "*.{json,md,yml}"
+	@echo "$(GREEN)✓ All code formatted$(NC)"
+
+## Run all quality checks
+check-all: format-check lint typecheck test
+	@echo "$(GREEN)✓ All quality checks passed$(NC)"
+
+## Quick development check
+dev-check:
+	@echo "$(BLUE)Running quick development checks...$(NC)"
+	@make -j3 lint typecheck test
+	@echo "$(GREEN)✓ Quick checks passed$(NC)"
+
+## Create a new tool
+new-tool:
+	@if [ -z "$(NAME)" ]; then \
+		echo "$(RED)❌ Please specify a tool name: make new-tool NAME=my-tool$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Creating new tool: $(NAME)$(NC)"
+	@cp $(SRC_DIR)/tools/template-tool.ts $(SRC_DIR)/tools/$(NAME)-tools.ts 2>/dev/null || \
+		echo "// TODO: Implement $(NAME) tool" > $(SRC_DIR)/tools/$(NAME)-tools.ts
+	@echo "$(GREEN)✓ Created $(SRC_DIR)/tools/$(NAME)-tools.ts$(NC)"
+	@echo "$(YELLOW)Don't forget to register the tool in index.ts$(NC)"
+
+## Run specific MCP tool
+run-tool:
+	@if [ -z "$(TOOL)" ]; then \
+		echo "$(RED)❌ Please specify a tool: make run-tool TOOL=dns.zone.list$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Running tool: $(TOOL)$(NC)"
+	@echo '{"tool":"$(TOOL)","args":$(ARGS)}' | node $(BUILD_DIR)/index.js
+
+## Watch and rebuild on changes
+watch-build:
+	@echo "$(BLUE)Watching for changes and rebuilding...$(NC)"
+	@npx tsc --watch
+
+## Clean development artifacts
+dev-clean: clean
+	@echo "$(BLUE)Cleaning development artifacts...$(NC)"
+	@rm -rf node_modules
+	@rm -f package-lock.json
+	@echo "$(GREEN)✓ Development clean complete$(NC)"
+
+## Reset development environment
+dev-reset: dev-clean dev-setup
+	@echo "$(GREEN)✓ Development environment reset$(NC)"
+
+## Show TypeScript errors in real-time
+ts-watch:
+	@echo "$(BLUE)Watching for TypeScript errors...$(NC)"
+	@npx tsc --watch --noEmit
+
+## Generate test coverage report
+coverage-report: test-coverage
+	@echo "$(BLUE)Opening coverage report...$(NC)"
+	@open $(COVERAGE_DIR)/lcov-report/index.html 2>/dev/null || \
+		xdg-open $(COVERAGE_DIR)/lcov-report/index.html 2>/dev/null || \
+		echo "$(YELLOW)Coverage report available at: $(COVERAGE_DIR)/lcov-report/index.html$(NC)"
+
+## Check for unused dependencies
+check-unused:
+	@echo "$(BLUE)Checking for unused dependencies...$(NC)"
+	@npx depcheck
+
+## Run memory leak detection
+check-memory:
+	@echo "$(BLUE)Running memory leak detection...$(NC)"
+	@node --expose-gc $(BUILD_DIR)/index.js
+
+## Profile CPU usage
+profile-cpu:
+	@echo "$(BLUE)Profiling CPU usage...$(NC)"
+	@node --cpu-prof $(BUILD_DIR)/index.js
+	@echo "$(GREEN)✓ CPU profile saved$(NC)"
+
+## Create development build with source maps
+dev-build:
+	@echo "$(BLUE)Building with source maps...$(NC)"
+	@npx tsc --sourceMap
+	@echo "$(GREEN)✓ Development build complete$(NC)"
+
+## Run with environment variables from .env
+dev-env:
+	@echo "$(BLUE)Loading .env and starting server...$(NC)"
+	@npx dotenv -- node $(BUILD_DIR)/index.js
+
+## Generate TypeScript declaration files
+gen-types:
+	@echo "$(BLUE)Generating TypeScript declarations...$(NC)"
+	@npx tsc --declaration --emitDeclarationOnly
+	@echo "$(GREEN)✓ Declaration files generated$(NC)"
+
+## Interactive REPL with project context
+repl:
+	@echo "$(BLUE)Starting interactive REPL...$(NC)"
+	@node -i -e "const alecs = require('./$(BUILD_DIR)/index.js');"

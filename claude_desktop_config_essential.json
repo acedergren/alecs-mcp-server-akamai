@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "alecs-essential": {
+      "command": "node",
+      "args": ["/Users/acedergr/Projects/alecs-mcp-server-akamai/dist/index-essential.js"],
+      "cwd": "/Users/acedergr/Projects/alecs-mcp-server-akamai",
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}

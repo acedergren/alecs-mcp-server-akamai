@@ -1,0 +1,584 @@
+/**
+ * Akamai Security Management and Monitoring Tools
+ * 
+ * Comprehensive security management tools for monitoring, alerting,
+ * incident response, and security operations center (SOC) integration.
+ * 
+ * Features:
+ * - Real-time security monitoring and alerting
+ * - Incident response automation and workflows
+ * - Security dashboard and reporting
+ * - SOC integration and SIEM forwarding
+ * - Security posture assessment
+ * - Vulnerability management
+ * - Security baseline management
+ * - Multi-tenant security operations
+ */
+
+import { z } from 'zod';
+import { 
+  createEdgeGridAuth, 
+  EdgeGridConfig, 
+  validateCustomerExists,
+  getCustomerConfig 
+} from '../../utils/edgegrid-auth.js';
+import { PerformanceMonitor } from '../../utils/performance-monitor.js';
+import { ResilienceManager } from '../../utils/resilience-manager.js';
+import { formatJson, formatTable, formatList } from '../../utils/formatting.js';
+
+const performanceMonitor = PerformanceMonitor.getInstance();
+const resilienceManager = ResilienceManager.getInstance();
+
+// Base schemas
+const CustomerSchema = z.object({
+  customer: z.string().optional().describe('Customer section name from .edgerc (default: "default")')
+});
+
+// Security Monitoring schemas
+const SecurityMonitoringSchema = z.object({
+  ...CustomerSchema.shape,
+  configId: z.number().describe('Application Security configuration ID'),
+  monitoringProfile: z.string().describe('Monitoring profile name'),
+  alertThresholds: z.object({
+    attacksPerMinute: z.number().optional(),
+    falsePositiveRate: z.number().optional(),
+    blockedRequestsPerMinute: z.number().optional(),
+    newAttackPatternsPerHour: z.number().optional(),
+    reputationScoreThreshold: z.number().optional()
+  }).describe('Alert threshold configuration'),
+  enableRealTimeAlerts: z.boolean().optional().describe('Enable real-time alerting'),
+  alertChannels: z.array(z.enum(['email', 'webhook', 'syslog', 'slack', 'teams'])).optional().describe('Alert delivery channels'),
+  monitoringScope: z.enum(['global', 'regional', 'property', 'policy']).optional().describe('Monitoring scope')
+});
+
+// Incident Response schemas
+const IncidentResponseSchema = z.object({
+  ...CustomerSchema.shape,
+  incidentId: z.string().optional().describe('Existing incident ID (for updates)'),
+  severity: z.enum(['low', 'medium', 'high', 'critical']).describe('Incident severity'),
+  incidentType: z.enum(['ddos', 'bot_attack', 'sql_injection', 'xss', 'data_breach', 'policy_violation']).describe('Type of security incident'),
+  affectedAssets: z.array(z.string()).describe('List of affected properties or assets'),
+  description: z.string().describe('Incident description'),
+  assignee: z.string().optional().describe('Incident assignee'),
+  containmentActions: z.array(z.object({
+    action: z.enum(['block_ip', 'block_country', 'enable_challenge', 'rate_limit', 'custom_rule']),
+    parameters: z.record(z.any()),
+    autoExecute: z.boolean().optional()
+  })).optional().describe('Containment actions to execute'),
+  notificationList: z.array(z.string()).optional().describe('Email addresses for notifications')
+});
+
+// SIEM Integration schemas
+const SIEMIntegrationSchema = z.object({
+  ...CustomerSchema.shape,
+  configId: z.number().describe('Application Security configuration ID'),
+  siemType: z.enum(['splunk', 'elastic', 'qradar', 'sentinel', 'arcsight', 'sumo', 'custom']).describe('SIEM platform type'),
+  endpoint: z.string().describe('SIEM endpoint URL'),
+  authentication: z.object({
+    type: z.enum(['api_key', 'token', 'certificate', 'basic_auth']),
+    credentials: z.record(z.string())
+  }).describe('SIEM authentication configuration'),
+  eventTypes: z.array(z.enum(['security_events', 'bot_events', 'rate_limit_events', 'custom_rule_events'])).describe('Event types to forward'),
+  formatType: z.enum(['json', 'cef', 'leef', 'syslog']).describe('Event format'),
+  enableBatching: z.boolean().optional().describe('Enable event batching'),
+  batchSize: z.number().optional().describe('Batch size for events'),
+  retryPolicy: z.object({
+    maxRetries: z.number(),
+    retryDelay: z.number()
+  }).optional().describe('Retry policy for failed events')
+});
+
+// Security Posture Assessment schemas
+const SecurityPostureSchema = z.object({
+  ...CustomerSchema.shape,
+  configId: z.number().optional().describe('Specific configuration to assess (optional for global assessment)'),
+  assessmentType: z.enum(['comprehensive', 'policy', 'compliance', 'vulnerability', 'baseline']).describe('Type of security assessment'),
+  includeRecommendations: z.boolean().optional().describe('Include security recommendations'),
+  complianceFrameworks: z.array(z.enum(['PCI_DSS', 'SOX', 'GDPR', 'HIPAA', 'SOC2', 'NIST'])).optional().describe('Compliance frameworks to assess against'),
+  riskTolerance: z.enum(['low', 'medium', 'high']).optional().describe('Risk tolerance level'),
+  prioritizeByBusiness: z.boolean().optional().describe('Prioritize findings by business impact')
+});
+
+// Security Baseline schemas
+const SecurityBaselineSchema = z.object({
+  ...CustomerSchema.shape,
+  baselineName: z.string().describe('Security baseline name'),
+  description: z.string().optional().describe('Baseline description'),
+  baselineType: z.enum(['industry_standard', 'organizational', 'regulatory', 'custom']).describe('Type of security baseline'),
+  policies: z.array(z.object({
+    category: z.string(),
+    control: z.string(),
+    requirement: z.string(),
+    mandatory: z.boolean()
+  })).describe('Security policies and controls'),
+  complianceTarget: z.number().min(0).max(100).optional().describe('Target compliance percentage'),
+  enforcementMode: z.enum(['monitor', 'enforce', 'mixed']).optional().describe('Enforcement mode for baseline')
+});
+
+// Security Dashboard schemas
+const SecurityDashboardSchema = z.object({
+  ...CustomerSchema.shape,
+  dashboardName: z.string().describe('Dashboard name'),
+  timeRange: z.enum(['1h', '6h', '24h', '7d', '30d']).describe('Time range for dashboard data'),
+  widgets: z.array(z.enum([
+    'attack_summary', 'top_attack_types', 'geographic_threats', 'policy_effectiveness',
+    'false_positive_rate', 'response_time_metrics', 'compliance_status', 'threat_trends'
+  ])).describe('Dashboard widgets to include'),
+  refreshInterval: z.number().optional().describe('Auto-refresh interval in seconds'),
+  exportFormat: z.enum(['pdf', 'png', 'json', 'csv']).optional().describe('Export format for dashboard')
+});
+
+/**
+ * Configure security monitoring and alerting
+ */
+export const configure_security_monitoring = {
+  name: 'configure_security_monitoring',
+  description: 'Configure comprehensive security monitoring and real-time alerting',
+  parameters: SecurityMonitoringSchema,
+  handler: async (args: z.infer<typeof SecurityMonitoringSchema>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_WRITE',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const monitoringData = {
+          profileName: args.monitoringProfile,
+          alertThresholds: args.alertThresholds,
+          ...(args.enableRealTimeAlerts !== undefined && { enableRealTimeAlerts: args.enableRealTimeAlerts }),
+          ...(args.alertChannels && { alertChannels: args.alertChannels }),
+          ...(args.monitoringScope && { monitoringScope: args.monitoringScope })
+        };
+        
+        const response = await auth.post(
+          `/appsec/v1/configs/${args.configId}/monitoring/profiles`,
+          { body: JSON.stringify(monitoringData) }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to configure security monitoring: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            monitoring: data,
+            profileId: data.profileId,
+            message: `Security monitoring profile '${args.monitoringProfile}' configured successfully`,
+            formatted: formatJson(data)
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * Create or update security incident
+ */
+export const manage_security_incident = {
+  name: 'manage_security_incident',
+  description: 'Create or update security incident with automated response capabilities',
+  parameters: IncidentResponseSchema,
+  handler: async (args: z.infer<typeof IncidentResponseSchema>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_WRITE',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const incidentData = {
+          ...(args.incidentId && { incidentId: args.incidentId }),
+          severity: args.severity,
+          incidentType: args.incidentType,
+          affectedAssets: args.affectedAssets,
+          description: args.description,
+          ...(args.assignee && { assignee: args.assignee }),
+          ...(args.containmentActions && { containmentActions: args.containmentActions }),
+          ...(args.notificationList && { notificationList: args.notificationList }),
+          createdAt: new Date().toISOString()
+        };
+        
+        const endpoint = args.incidentId 
+          ? `/appsec/v1/incidents/${args.incidentId}`
+          : '/appsec/v1/incidents';
+          
+        const method = args.incidentId ? 'put' : 'post';
+        
+        const response = await auth[method](endpoint, { body: JSON.stringify(incidentData) });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to manage security incident: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        // Execute automated containment actions if specified
+        if (args.containmentActions) {
+          const autoActions = args.containmentActions.filter(action => action.autoExecute);
+          if (autoActions.length > 0) {
+            // Execute containment actions
+            for (const action of autoActions) {
+              try {
+                await auth.post('/appsec/v1/incident-response/actions', {
+                  body: JSON.stringify({
+                    incidentId: data.incidentId,
+                    action: action.action,
+                    parameters: action.parameters
+                  })
+                });
+              } catch (error) {
+                console.warn(`Failed to execute containment action: ${action.action}`, error);
+              }
+            }
+          }
+        }
+        
+        return {
+          success: true,
+          data: {
+            incident: data,
+            incidentId: data.incidentId,
+            status: data.status,
+            automaticActionsExecuted: args.containmentActions?.filter(a => a.autoExecute).length || 0,
+            message: args.incidentId 
+              ? `Security incident ${args.incidentId} updated successfully`
+              : `New security incident created with ID: ${data.incidentId}`,
+            formatted: formatJson(data)
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * Configure SIEM integration
+ */
+export const configure_siem_integration = {
+  name: 'configure_siem_integration',
+  description: 'Configure SIEM integration for security event forwarding and correlation',
+  parameters: SIEMIntegrationSchema,
+  handler: async (args: z.infer<typeof SIEMIntegrationSchema>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_WRITE',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const siemData = {
+          siemType: args.siemType,
+          endpoint: args.endpoint,
+          authentication: args.authentication,
+          eventTypes: args.eventTypes,
+          formatType: args.formatType,
+          ...(args.enableBatching !== undefined && { enableBatching: args.enableBatching }),
+          ...(args.batchSize && { batchSize: args.batchSize }),
+          ...(args.retryPolicy && { retryPolicy: args.retryPolicy })
+        };
+        
+        const response = await auth.post(
+          `/appsec/v1/configs/${args.configId}/siem-integration`,
+          { body: JSON.stringify(siemData) }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to configure SIEM integration: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            integration: data,
+            integrationId: data.integrationId,
+            siemType: args.siemType,
+            eventTypes: args.eventTypes,
+            message: `SIEM integration configured for ${args.siemType}`,
+            formatted: formatJson(data)
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * Perform security posture assessment
+ */
+export const assess_security_posture = {
+  name: 'assess_security_posture',
+  description: 'Perform comprehensive security posture assessment and risk analysis',
+  parameters: SecurityPostureSchema,
+  handler: async (args: z.infer<typeof SecurityPostureSchema>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_READ',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const assessmentData = {
+          assessmentType: args.assessmentType,
+          ...(args.configId && { configId: args.configId }),
+          ...(args.includeRecommendations !== undefined && { includeRecommendations: args.includeRecommendations }),
+          ...(args.complianceFrameworks && { complianceFrameworks: args.complianceFrameworks }),
+          ...(args.riskTolerance && { riskTolerance: args.riskTolerance }),
+          ...(args.prioritizeByBusiness !== undefined && { prioritizeByBusiness: args.prioritizeByBusiness })
+        };
+        
+        const endpoint = args.configId 
+          ? `/appsec/v1/configs/${args.configId}/security-assessment`
+          : '/appsec/v1/security-assessment';
+        
+        const response = await auth.post(endpoint, { body: JSON.stringify(assessmentData) });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to perform security assessment: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            assessment: data,
+            overallScore: data.overallScore,
+            riskLevel: data.riskLevel,
+            findings: data.findings || [],
+            recommendations: data.recommendations || [],
+            complianceStatus: data.complianceStatus || {},
+            vulnerabilities: data.vulnerabilities || [],
+            formatted: formatTable([
+              { 'Metric': 'Overall Security Score', 'Value': `${data.overallScore || 0}/100` },
+              { 'Metric': 'Risk Level', 'Value': data.riskLevel || 'Unknown' },
+              { 'Metric': 'Critical Findings', 'Value': data.findings?.filter((f: any) => f.severity === 'critical').length || 0 },
+              { 'Metric': 'High Findings', 'Value': data.findings?.filter((f: any) => f.severity === 'high').length || 0 },
+              { 'Metric': 'Recommendations', 'Value': data.recommendations?.length || 0 },
+              { 'Metric': 'Vulnerabilities', 'Value': data.vulnerabilities?.length || 0 }
+            ])
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * Create security baseline
+ */
+export const create_security_baseline = {
+  name: 'create_security_baseline',
+  description: 'Create and manage security baselines for compliance and governance',
+  parameters: SecurityBaselineSchema,
+  handler: async (args: z.infer<typeof SecurityBaselineSchema>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_WRITE',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const baselineData = {
+          name: args.baselineName,
+          ...(args.description && { description: args.description }),
+          baselineType: args.baselineType,
+          policies: args.policies,
+          ...(args.complianceTarget && { complianceTarget: args.complianceTarget }),
+          ...(args.enforcementMode && { enforcementMode: args.enforcementMode }),
+          createdAt: new Date().toISOString()
+        };
+        
+        const response = await auth.post(
+          '/appsec/v1/security-baselines',
+          { body: JSON.stringify(baselineData) }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to create security baseline: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            baseline: data,
+            baselineId: data.baselineId,
+            policiesCount: args.policies.length,
+            message: `Security baseline '${args.baselineName}' created successfully`,
+            formatted: formatJson(data)
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * Generate security dashboard
+ */
+export const generate_security_dashboard = {
+  name: 'generate_security_dashboard',
+  description: 'Generate comprehensive security dashboard with real-time metrics and insights',
+  parameters: SecurityDashboardSchema,
+  handler: async (args: z.infer<typeof SecurityDashboardSchema>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_READ',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const dashboardData = {
+          name: args.dashboardName,
+          timeRange: args.timeRange,
+          widgets: args.widgets,
+          ...(args.refreshInterval && { refreshInterval: args.refreshInterval }),
+          ...(args.exportFormat && { exportFormat: args.exportFormat })
+        };
+        
+        const response = await auth.post(
+          '/appsec/v1/security-dashboard',
+          { body: JSON.stringify(dashboardData) }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to generate security dashboard: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        // Format dashboard data into tables
+        const summaryTable = formatTable([
+          { 'Metric': 'Total Attacks Blocked', 'Value': data.metrics?.totalAttacksBlocked || 0 },
+          { 'Metric': 'Attack Success Rate', 'Value': `${data.metrics?.attackSuccessRate || 0}%` },
+          { 'Metric': 'False Positive Rate', 'Value': `${data.metrics?.falsePositiveRate || 0}%` },
+          { 'Metric': 'Average Response Time', 'Value': `${data.metrics?.avgResponseTime || 0}ms` },
+          { 'Metric': 'Security Score', 'Value': `${data.metrics?.securityScore || 0}/100` }
+        ]);
+        
+        return {
+          success: true,
+          data: {
+            dashboard: data,
+            dashboardId: data.dashboardId,
+            dashboardUrl: data.dashboardUrl,
+            metrics: data.metrics || {},
+            widgets: data.widgets || [],
+            timeRange: args.timeRange,
+            message: `Security dashboard '${args.dashboardName}' generated successfully`,
+            summary: summaryTable,
+            formatted: formatJson(data)
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * Get real-time security alerts
+ */
+export const get_security_alerts = {
+  name: 'get_security_alerts',
+  description: 'Retrieve real-time security alerts and notifications',
+  parameters: z.object({
+    ...CustomerSchema.shape,
+    severity: z.enum(['low', 'medium', 'high', 'critical']).optional().describe('Filter by alert severity'),
+    alertType: z.enum(['threshold', 'anomaly', 'pattern', 'policy_violation']).optional().describe('Filter by alert type'),
+    timeRange: z.enum(['15m', '1h', '6h', '24h']).optional().describe('Time range for alerts'),
+    acknowledged: z.boolean().optional().describe('Filter by acknowledgment status'),
+    limit: z.number().max(1000).optional().describe('Maximum number of alerts to return')
+  }),
+  handler: async (args: z.infer<typeof z.object({
+    ...CustomerSchema.shape,
+    severity: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+    alertType: z.enum(['threshold', 'anomaly', 'pattern', 'policy_violation']).optional(),
+    timeRange: z.enum(['15m', '1h', '6h', '24h']).optional(),
+    acknowledged: z.boolean().optional(),
+    limit: z.number().max(1000).optional()
+  })>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_READ',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const queryParams = new URLSearchParams();
+        if (args.severity) queryParams.append('severity', args.severity);
+        if (args.alertType) queryParams.append('alertType', args.alertType);
+        if (args.timeRange) queryParams.append('timeRange', args.timeRange);
+        if (args.acknowledged !== undefined) queryParams.append('acknowledged', args.acknowledged.toString());
+        if (args.limit) queryParams.append('limit', args.limit.toString());
+        
+        const response = await auth.get(`/appsec/v1/security-alerts?${queryParams.toString()}`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to get security alerts: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            alerts: data.alerts || [],
+            totalAlerts: data.totalAlerts || 0,
+            criticalAlerts: data.alerts?.filter((a: any) => a.severity === 'critical').length || 0,
+            unacknowledgedAlerts: data.alerts?.filter((a: any) => !a.acknowledged).length || 0,
+            formatted: formatTable(data.alerts?.map((alert: any) => ({
+              'Alert ID': alert.alertId,
+              'Severity': alert.severity.toUpperCase(),
+              'Type': alert.alertType,
+              'Message': alert.message,
+              'Time': new Date(alert.timestamp).toLocaleString(),
+              'Status': alert.acknowledged ? 'Acknowledged' : 'New'
+            })) || [])
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+// Export all security management tools
+export const securityManagementTools = [
+  configure_security_monitoring,
+  manage_security_incident,
+  configure_siem_integration,
+  assess_security_posture,
+  create_security_baseline,
+  generate_security_dashboard,
+  get_security_alerts
+];
+
+export default securityManagementTools;

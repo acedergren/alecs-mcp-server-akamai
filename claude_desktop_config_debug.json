@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "alecs-test": {
+      "command": "node",
+      "args": ["/Users/acedergr/Projects/alecs-mcp-server-akamai/test-basic.js"]
+    }
+  }
+}

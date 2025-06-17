@@ -1,0 +1,25 @@
+{
+  "comment": "Add this configuration to your Claude Desktop config at ~/Library/Application Support/Claude/claude_desktop_config.json",
+  "mcpServers": {
+    "alecs-mcp-server-akamai": {
+      "command": "node",
+      "args": ["/Users/acedergr/Projects/alecs-mcp-server-akamai/dist/index.js"],
+      "cwd": "/Users/acedergr/Projects/alecs-mcp-server-akamai",
+      "env": {
+        "DEBUG": "0",
+        "DEFAULT_CUSTOMER": "default",
+        "NODE_ENV": "production"
+      }
+    },
+    "alecs-mcp-server-akamai-dev": {
+      "command": "npx",
+      "args": ["tsx", "src/index.ts"],
+      "cwd": "/Users/acedergr/Projects/alecs-mcp-server-akamai",
+      "env": {
+        "DEBUG": "1",
+        "DEFAULT_CUSTOMER": "default",
+        "NODE_ENV": "development"
+      }
+    }
+  }
+}

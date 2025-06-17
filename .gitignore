@@ -1,0 +1,77 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+# Allow build directory but not compiled outputs
+build/**/*.js
+build/**/*.js.map
+build/**/*.d.ts
+!build/docker/
+!build/make/
+*.js
+!jest.config.js
+!jest.setup.js
+!tests/**/*.js
+*.js.map
+*.d.ts
+!src/**/*.d.ts
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.edgerc
+edgerc-clean.txt
+claude_desktop_config.json
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Test results
+.testresults/
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# MCP server configs (user-specific)
+.mcp.json.local
+
+# Memory files
+memory-complete.md
+akamai-api-memory.md
+
+#Claude things
+.claude
+.prompts
+.old
+
+# SBOM outputs (can be regenerated)
+sbom/
+*.sbom.json
+*.sbom.xml

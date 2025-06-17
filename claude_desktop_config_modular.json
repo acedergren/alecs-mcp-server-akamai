@@ -1,0 +1,39 @@
+{
+  "mcpServers": {
+    "alecs-property": {
+      "command": "node",
+      "args": ["/Users/acedergr/Projects/alecs-mcp-server-akamai/dist/servers/property-server.js"],
+      "env": {
+        "AKAMAI_EDGERC_PATH": "/Users/acedergr/.edgerc"
+      }
+    },
+    "alecs-dns": {
+      "command": "node",
+      "args": ["/Users/acedergr/Projects/alecs-mcp-server-akamai/dist/servers/dns-server.js"],
+      "env": {
+        "AKAMAI_EDGERC_PATH": "/Users/acedergr/.edgerc"
+      }
+    },
+    "alecs-certs": {
+      "command": "node",
+      "args": ["/Users/acedergr/Projects/alecs-mcp-server-akamai/dist/servers/certs-server.js"],
+      "env": {
+        "AKAMAI_EDGERC_PATH": "/Users/acedergr/.edgerc"
+      }
+    },
+    "alecs-reporting": {
+      "command": "node",
+      "args": ["/Users/acedergr/Projects/alecs-mcp-server-akamai/dist/servers/reporting-server.js"],
+      "env": {
+        "AKAMAI_EDGERC_PATH": "/Users/acedergr/.edgerc"
+      }
+    },
+    "alecs-security": {
+      "command": "node",
+      "args": ["/Users/acedergr/Projects/alecs-mcp-server-akamai/dist/servers/security-server.js"],
+      "env": {
+        "AKAMAI_EDGERC_PATH": "/Users/acedergr/.edgerc"
+      }
+    }
+  }
+}

@@ -1,0 +1,816 @@
+/**
+ * Akamai Application Security (APPSEC) MCP Tools
+ * 
+ * Provides comprehensive WAF policy management, bot protection, DDoS mitigation,
+ * and application security configuration tools for Akamai's APPSEC API.
+ * 
+ * Features:
+ * - WAF policy creation and management
+ * - Rate limiting rules and configuration
+ * - Bot protection and mitigation
+ * - Attack pattern detection and blocking
+ * - Security event monitoring and alerting
+ * - DDoS protection configuration
+ * - Custom security rules and exceptions
+ * - Security policy activation and deployment
+ * - Threat intelligence integration
+ */
+
+import { z } from 'zod';
+import { 
+  createEdgeGridAuth, 
+  EdgeGridConfig, 
+  validateCustomerExists,
+  getCustomerConfig 
+} from '../../utils/edgegrid-auth.js';
+import { PerformanceMonitor } from '../../utils/performance-monitor.js';
+import { ResilienceManager } from '../../utils/resilience-manager.js';
+import { formatJson, formatTable, formatList } from '../../utils/formatting.js';
+
+const performanceMonitor = PerformanceMonitor.getInstance();
+const resilienceManager = ResilienceManager.getInstance();
+
+// Base schemas for APPSEC operations
+const CustomerSchema = z.object({
+  customer: z.string().optional().describe('Customer section name from .edgerc (default: "default")')
+});
+
+// WAF Policy schemas
+const WAFPolicySchema = z.object({
+  ...CustomerSchema.shape,
+  configId: z.number().describe('Application Security configuration ID'),
+  policyName: z.string().describe('Name for the WAF policy'),
+  policyMode: z.enum(['ASE_AUTO', 'ASE_MANUAL', 'KRS']).describe('WAF policy mode'),
+  paranoidLevel: z.number().min(1).max(4).optional().describe('Paranoid level (1-4) for ASE modes'),
+  enableCustomRules: z.boolean().optional().describe('Enable custom rule set'),
+  enableBotProtection: z.boolean().optional().describe('Enable bot protection'),
+  enableRateLimiting: z.boolean().optional().describe('Enable rate limiting'),
+  enableDDoSProtection: z.boolean().optional().describe('Enable DDoS protection')
+});
+
+const WAFRuleSchema = z.object({
+  ...CustomerSchema.shape,
+  configId: z.number().describe('Application Security configuration ID'),
+  policyId: z.string().describe('WAF policy ID'),
+  ruleId: z.number().describe('Rule ID to configure'),
+  action: z.enum(['alert', 'deny', 'none']).describe('Action to take when rule triggers'),
+  conditions: z.array(z.object({
+    type: z.enum(['path', 'hostname', 'method', 'header', 'query', 'body']),
+    positiveMatch: z.boolean(),
+    value: z.string(),
+    valueCase: z.boolean().optional(),
+    valueWildcard: z.boolean().optional()
+  })).optional().describe('Conditions for rule activation')
+});
+
+// Rate Limiting schemas
+const RateLimitingPolicySchema = z.object({
+  ...CustomerSchema.shape,
+  configId: z.number().describe('Application Security configuration ID'),
+  policyName: z.string().describe('Rate limiting policy name'),
+  description: z.string().optional().describe('Policy description'),
+  averageThreshold: z.number().describe('Average threshold (requests per second)'),
+  burstThreshold: z.number().describe('Burst threshold (requests)'),
+  clientIdentifier: z.enum(['ip', 'cookie', 'header']).describe('Client identification method'),
+  requestType: z.enum(['ClientRequest', 'ForwardRequest']).describe('Request type to rate limit'),
+  sameActionOnIpv6: z.boolean().optional().describe('Apply same action on IPv6'),
+  path: z.object({
+    positiveMatch: z.boolean(),
+    values: z.array(z.string())
+  }).optional().describe('Path matching configuration'),
+  hosts: z.array(z.string()).optional().describe('Hostnames to apply rate limiting')
+});
+
+// Bot Protection schemas
+const BotProtectionSchema = z.object({
+  ...CustomerSchema.shape,
+  configId: z.number().describe('Application Security configuration ID'),
+  policyName: z.string().describe('Bot protection policy name'),
+  botDetectionAction: z.enum(['monitor', 'deny', 'redirect', 'challenge']).describe('Action for detected bots'),
+  akamaiBotCategoryAction: z.enum(['monitor', 'deny', 'challenge']).describe('Action for Akamai bot categories'),
+  customBotCategoryAction: z.enum(['monitor', 'deny', 'challenge']).describe('Action for custom bot categories'),
+  enableChallengeInterception: z.boolean().optional().describe('Enable challenge interception'),
+  enableBrowserChallengeAction: z.boolean().optional().describe('Enable browser challenge'),
+  challengeInterceptionRedirectURL: z.string().optional().describe('Redirect URL for challenge interception'),
+  googleRecaptchaSecretKey: z.string().optional().describe('Google reCAPTCHA secret key'),
+  googleRecaptchaSiteKey: z.string().optional().describe('Google reCAPTCHA site key')
+});
+
+// DDoS Protection schemas  
+const DDoSProtectionSchema = z.object({
+  ...CustomerSchema.shape,
+  configId: z.number().describe('Application Security configuration ID'),
+  policyName: z.string().describe('DDoS protection policy name'),
+  thresholdPeriod: z.number().describe('Threshold period in seconds'),
+  ipv4Threshold: z.number().describe('IPv4 threshold (requests per second)'),
+  ipv6Threshold: z.number().describe('IPv6 threshold (requests per second)'),
+  action: z.enum(['alert', 'deny']).describe('Action when threshold exceeded'),
+  enableSlowPostProtection: z.boolean().optional().describe('Enable slow POST protection'),
+  slowPostAction: z.enum(['alert', 'abort']).optional().describe('Action for slow POST attacks'),
+  slowPostThreshold: z.number().optional().describe('Slow POST threshold in seconds')
+});
+
+// Security Events schemas
+const SecurityEventsSchema = z.object({
+  ...CustomerSchema.shape,
+  configId: z.number().describe('Application Security configuration ID'),
+  from: z.string().describe('Start time (ISO 8601 format)'),
+  to: z.string().describe('End time (ISO 8601 format)'),
+  attackGroupFilter: z.array(z.string()).optional().describe('Filter by attack groups'),
+  ruleFilter: z.array(z.string()).optional().describe('Filter by rule IDs'),
+  clientIP: z.string().optional().describe('Filter by client IP'),
+  hostname: z.string().optional().describe('Filter by hostname'),
+  eventType: z.enum(['security', 'slowpost', 'ratelimit', 'botmanager']).optional().describe('Event type filter'),
+  limit: z.number().max(1000).optional().describe('Maximum number of events to return'),
+  offset: z.number().optional().describe('Offset for pagination')
+});
+
+// Activation schemas
+const SecurityActivationSchema = z.object({
+  ...CustomerSchema.shape,
+  configId: z.number().describe('Application Security configuration ID'),
+  version: z.number().describe('Configuration version to activate'),
+  network: z.enum(['STAGING', 'PRODUCTION']).describe('Target network'),
+  note: z.string().optional().describe('Activation notes'),
+  notifyEmails: z.array(z.string()).optional().describe('Email addresses to notify'),
+  acknowledgeAllWarnings: z.boolean().optional().describe('Acknowledge all warnings')
+});
+
+/**
+ * List all Application Security configurations
+ */
+export const list_appsec_configurations = {
+  name: 'list_appsec_configurations',
+  description: 'List all Application Security configurations in your account',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      customer: {
+        type: 'string',
+        description: 'Optional: Customer section name from .edgerc (default: "default")'
+      }
+    }
+  },
+  handler: async (args: z.infer<typeof CustomerSchema>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_READ',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const response = await auth.get('/appsec/v1/configs');
+        
+        if (!response.ok) {
+          throw new Error(`Failed to list APPSEC configurations: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            configurations: data.configurations || [],
+            count: data.configurations?.length || 0,
+            formatted: formatTable(data.configurations?.map((config: any) => ({
+              'Config ID': config.id,
+              'Name': config.name,
+              'Description': config.description || 'N/A',
+              'Latest Version': config.latestVersion,
+              'Production Version': config.productionVersion || 'None',
+              'Staging Version': config.stagingVersion || 'None',
+              'Created': config.createDate ? new Date(config.createDate).toLocaleDateString() : 'N/A'
+            })) || [])
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * Get details of a specific Application Security configuration
+ */
+export const get_appsec_configuration = {
+  name: 'get_appsec_configuration',
+  description: 'Get detailed information about a specific Application Security configuration',
+  parameters: z.object({
+    ...CustomerSchema.shape,
+    configId: z.number().describe('Application Security configuration ID'),
+    version: z.number().optional().describe('Specific version to retrieve (defaults to latest)')
+  }),
+  handler: async (args: z.infer<typeof z.object({
+    ...CustomerSchema.shape,
+    configId: z.number(),
+    version: z.number().optional()
+  })>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_READ',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const versionParam = args.version ? `?version=${args.version}` : '';
+        const response = await auth.get(`/appsec/v1/configs/${args.configId}${versionParam}`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to get APPSEC configuration: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            configuration: data,
+            formatted: formatJson(data)
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * Create a new WAF security policy
+ */
+export const create_waf_policy = {
+  name: 'create_waf_policy',
+  description: 'Create a new WAF security policy',
+  parameters: WAFPolicySchema,
+  handler: async (args: z.infer<typeof WAFPolicySchema>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_WRITE',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const policyData = {
+          policyName: args.policyName,
+          policyMode: args.policyMode,
+          ...(args.paranoidLevel && { paranoidLevel: args.paranoidLevel }),
+          ...(args.enableCustomRules !== undefined && { enableCustomRules: args.enableCustomRules }),
+          ...(args.enableBotProtection !== undefined && { enableBotProtection: args.enableBotProtection }),
+          ...(args.enableRateLimiting !== undefined && { enableRateLimiting: args.enableRateLimiting }),
+          ...(args.enableDDoSProtection !== undefined && { enableDDoSProtection: args.enableDDoSProtection })
+        };
+        
+        const response = await auth.post(
+          `/appsec/v1/configs/${args.configId}/versions/1/security-policies`,
+          { body: JSON.stringify(policyData) }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to create WAF policy: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            policy: data,
+            policyId: data.policyId,
+            message: `WAF policy '${args.policyName}' created successfully`,
+            formatted: formatJson(data)
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * Configure WAF rule action and conditions
+ */
+export const configure_waf_rule = {
+  name: 'configure_waf_rule',
+  description: 'Configure a WAF rule action and conditions',
+  parameters: WAFRuleSchema,
+  handler: async (args: z.infer<typeof WAFRuleSchema>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_WRITE',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const ruleData = {
+          action: args.action,
+          ...(args.conditions && { conditions: args.conditions })
+        };
+        
+        const response = await auth.put(
+          `/appsec/v1/configs/${args.configId}/versions/1/security-policies/${args.policyId}/rules/${args.ruleId}`,
+          { body: JSON.stringify(ruleData) }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to configure WAF rule: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            rule: data,
+            message: `WAF rule ${args.ruleId} configured with action: ${args.action}`,
+            formatted: formatJson(data)
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * Create rate limiting policy
+ */
+export const create_rate_limiting_policy = {
+  name: 'create_rate_limiting_policy',
+  description: 'Create a rate limiting policy for DDoS protection',
+  parameters: RateLimitingPolicySchema,
+  handler: async (args: z.infer<typeof RateLimitingPolicySchema>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_WRITE',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const policyData = {
+          name: args.policyName,
+          ...(args.description && { description: args.description }),
+          averageThreshold: args.averageThreshold,
+          burstThreshold: args.burstThreshold,
+          clientIdentifier: args.clientIdentifier,
+          requestType: args.requestType,
+          ...(args.sameActionOnIpv6 !== undefined && { sameActionOnIpv6: args.sameActionOnIpv6 }),
+          ...(args.path && { path: args.path }),
+          ...(args.hosts && { hosts: args.hosts })
+        };
+        
+        const response = await auth.post(
+          `/appsec/v1/configs/${args.configId}/versions/1/rate-policies`,
+          { body: JSON.stringify(policyData) }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to create rate limiting policy: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            policy: data,
+            policyId: data.id,
+            message: `Rate limiting policy '${args.policyName}' created successfully`,
+            formatted: formatJson(data)
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * Configure bot protection policy
+ */
+export const configure_bot_protection = {
+  name: 'configure_bot_protection',
+  description: 'Configure bot protection policy and settings',
+  parameters: BotProtectionSchema,
+  handler: async (args: z.infer<typeof BotProtectionSchema>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_WRITE',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const botProtectionData = {
+          policyName: args.policyName,
+          botDetectionAction: args.botDetectionAction,
+          akamaiBotCategoryAction: args.akamaiBotCategoryAction,
+          customBotCategoryAction: args.customBotCategoryAction,
+          ...(args.enableChallengeInterception !== undefined && { 
+            enableChallengeInterception: args.enableChallengeInterception 
+          }),
+          ...(args.enableBrowserChallengeAction !== undefined && { 
+            enableBrowserChallengeAction: args.enableBrowserChallengeAction 
+          }),
+          ...(args.challengeInterceptionRedirectURL && { 
+            challengeInterceptionRedirectURL: args.challengeInterceptionRedirectURL 
+          }),
+          ...(args.googleRecaptchaSecretKey && { 
+            googleRecaptchaSecretKey: args.googleRecaptchaSecretKey 
+          }),
+          ...(args.googleRecaptchaSiteKey && { 
+            googleRecaptchaSiteKey: args.googleRecaptchaSiteKey 
+          })
+        };
+        
+        const response = await auth.put(
+          `/appsec/v1/configs/${args.configId}/versions/1/bot-protection-settings`,
+          { body: JSON.stringify(botProtectionData) }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to configure bot protection: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            botProtection: data,
+            message: `Bot protection policy '${args.policyName}' configured successfully`,
+            formatted: formatJson(data)
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * Configure DDoS protection settings
+ */
+export const configure_ddos_protection = {
+  name: 'configure_ddos_protection',
+  description: 'Configure DDoS protection settings and thresholds',
+  parameters: DDoSProtectionSchema,
+  handler: async (args: z.infer<typeof DDoSProtectionSchema>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_WRITE',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const ddosData = {
+          policyName: args.policyName,
+          thresholdPeriod: args.thresholdPeriod,
+          ipv4Threshold: args.ipv4Threshold,
+          ipv6Threshold: args.ipv6Threshold,
+          action: args.action,
+          ...(args.enableSlowPostProtection !== undefined && { 
+            enableSlowPostProtection: args.enableSlowPostProtection 
+          }),
+          ...(args.slowPostAction && { slowPostAction: args.slowPostAction }),
+          ...(args.slowPostThreshold && { slowPostThreshold: args.slowPostThreshold })
+        };
+        
+        const response = await auth.put(
+          `/appsec/v1/configs/${args.configId}/versions/1/ddos-protection-settings`,
+          { body: JSON.stringify(ddosData) }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to configure DDoS protection: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            ddosProtection: data,
+            message: `DDoS protection policy '${args.policyName}' configured successfully`,
+            formatted: formatJson(data)
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * Get security events and attack data
+ */
+export const get_security_events = {
+  name: 'get_security_events',
+  description: 'Retrieve security events and attack data for monitoring and analysis',
+  parameters: SecurityEventsSchema,
+  handler: async (args: z.infer<typeof SecurityEventsSchema>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_READ',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const queryParams = new URLSearchParams({
+          from: args.from,
+          to: args.to,
+          ...(args.limit && { limit: args.limit.toString() }),
+          ...(args.offset && { offset: args.offset.toString() }),
+          ...(args.clientIP && { clientIP: args.clientIP }),
+          ...(args.hostname && { hostname: args.hostname }),
+          ...(args.eventType && { eventType: args.eventType })
+        });
+        
+        if (args.attackGroupFilter) {
+          args.attackGroupFilter.forEach(group => queryParams.append('attackGroupFilter', group));
+        }
+        
+        if (args.ruleFilter) {
+          args.ruleFilter.forEach(rule => queryParams.append('ruleFilter', rule));
+        }
+        
+        const response = await auth.get(
+          `/appsec/v1/configs/${args.configId}/security-events?${queryParams.toString()}`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to get security events: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            events: data.securityEvents || [],
+            totalEvents: data.totalEvents || 0,
+            query: {
+              from: args.from,
+              to: args.to,
+              configId: args.configId
+            },
+            formatted: formatTable(data.securityEvents?.map((event: any) => ({
+              'Event Time': new Date(event.httpMessage?.start || event.timestamp).toLocaleString(),
+              'Client IP': event.clientIP,
+              'Rule ID': event.ruleId,
+              'Attack Group': event.attackGroup,
+              'Action': event.action,
+              'Hostname': event.httpMessage?.host,
+              'URI': event.httpMessage?.requestUri,
+              'User Agent': event.httpMessage?.userAgent
+            })) || [])
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * Activate security configuration
+ */
+export const activate_security_configuration = {
+  name: 'activate_security_configuration',
+  description: 'Activate an Application Security configuration to staging or production',
+  parameters: SecurityActivationSchema,
+  handler: async (args: z.infer<typeof SecurityActivationSchema>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_WRITE',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const activationData = {
+          action: 'ACTIVATE',
+          network: args.network,
+          ...(args.note && { note: args.note }),
+          ...(args.notifyEmails && { notifyEmails: args.notifyEmails }),
+          ...(args.acknowledgeAllWarnings !== undefined && { 
+            acknowledgeAllWarnings: args.acknowledgeAllWarnings 
+          })
+        };
+        
+        const response = await auth.post(
+          `/appsec/v1/configs/${args.configId}/versions/${args.version}/activations`,
+          { body: JSON.stringify(activationData) }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to activate security configuration: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            activation: data,
+            activationId: data.activationId,
+            status: data.status,
+            network: args.network,
+            message: `Security configuration ${args.configId} v${args.version} activation initiated on ${args.network}`,
+            formatted: formatJson(data)
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * Get activation status
+ */
+export const get_security_activation_status = {
+  name: 'get_security_activation_status',
+  description: 'Get the status of a security configuration activation',
+  parameters: z.object({
+    ...CustomerSchema.shape,
+    configId: z.number().describe('Application Security configuration ID'),
+    activationId: z.number().describe('Activation ID to check status for')
+  }),
+  handler: async (args: z.infer<typeof z.object({
+    ...CustomerSchema.shape,
+    configId: z.number(),
+    activationId: z.number()
+  })>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_READ',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const response = await auth.get(
+          `/appsec/v1/configs/${args.configId}/activations/${args.activationId}`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to get activation status: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            activation: data,
+            status: data.status,
+            network: data.network,
+            progress: data.progress || 0,
+            message: `Activation ${args.activationId} status: ${data.status}`,
+            formatted: formatJson(data)
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * List threat intelligence feed subscriptions
+ */
+export const list_threat_intelligence_feeds = {
+  name: 'list_threat_intelligence_feeds',
+  description: 'List available threat intelligence feed subscriptions',
+  parameters: CustomerSchema,
+  handler: async (args: z.infer<typeof CustomerSchema>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_READ',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const response = await auth.get('/appsec/v1/threat-intel');
+        
+        if (!response.ok) {
+          throw new Error(`Failed to list threat intelligence feeds: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            feeds: data.feeds || [],
+            count: data.feeds?.length || 0,
+            formatted: formatTable(data.feeds?.map((feed: any) => ({
+              'Feed ID': feed.id,
+              'Name': feed.name,
+              'Description': feed.description || 'N/A',
+              'Status': feed.status,
+              'Last Updated': feed.lastUpdated ? new Date(feed.lastUpdated).toLocaleString() : 'N/A',
+              'Feed Type': feed.feedType
+            })) || [])
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+/**
+ * Subscribe to threat intelligence feed
+ */
+export const subscribe_threat_intelligence_feed = {
+  name: 'subscribe_threat_intelligence_feed',
+  description: 'Subscribe to a threat intelligence feed for enhanced security',
+  parameters: z.object({
+    ...CustomerSchema.shape,
+    configId: z.number().describe('Application Security configuration ID'),
+    feedId: z.string().describe('Threat intelligence feed ID'),
+    action: z.enum(['subscribe', 'unsubscribe']).describe('Action to perform')
+  }),
+  handler: async (args: z.infer<typeof z.object({
+    ...CustomerSchema.shape,
+    configId: z.number(),
+    feedId: z.string(),
+    action: z.enum(['subscribe', 'unsubscribe'])
+  })>) => {
+    const customer = args.customer || 'default';
+    
+    return await resilienceManager.executeWithResilience(
+      'APPSEC_WRITE',
+      async () => {
+        await validateCustomerExists(customer);
+        const config = getCustomerConfig(customer);
+        const auth = createEdgeGridAuth(config);
+        
+        const requestData = {
+          action: args.action,
+          feedId: args.feedId
+        };
+        
+        const response = await auth.post(
+          `/appsec/v1/configs/${args.configId}/versions/1/threat-intel-subscriptions`,
+          { body: JSON.stringify(requestData) }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to ${args.action} threat intelligence feed: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        return {
+          success: true,
+          data: {
+            subscription: data,
+            feedId: args.feedId,
+            action: args.action,
+            message: `Successfully ${args.action}d to threat intelligence feed: ${args.feedId}`,
+            formatted: formatJson(data)
+          }
+        };
+      },
+      customer
+    );
+  }
+};
+
+// Export all tools
+export const appsecTools = [
+  list_appsec_configurations,
+  get_appsec_configuration,
+  create_waf_policy,
+  configure_waf_rule,
+  create_rate_limiting_policy,
+  configure_bot_protection,
+  configure_ddos_protection,
+  get_security_events,
+  activate_security_configuration,
+  get_security_activation_status,
+  list_threat_intelligence_feeds,
+  subscribe_threat_intelligence_feed
+];
+
+export default appsecTools;
