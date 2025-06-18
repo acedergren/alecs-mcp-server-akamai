@@ -8,247 +8,186 @@ This is an ALECS MCP Server (A LaunchGrid for Edge & Cloud Services) - an MCP (M
 
 ## Key Commands
 
-### Project Setup
+### Development
 ```bash
-# Initialize project
-npm init -y
-npm install typescript @types/node tsx dotenv
-npm install @modelcontextprotocol/sdk
-npm install axios crypto
+# Install dependencies
+npm install
 
-# TypeScript setup
-npx tsc --init
+# Build TypeScript
+npm run build              # Standard build
+npm run build:dev          # Development build (looser checks)
+npm run build:strict       # Strict build (production)
+npm run watch             # Watch mode
 
-# Build
-npm run build
+# Start servers
+npm start                 # Interactive mode (default)
+npm run start:json        # JSON configuration mode
+npm run start:stdio       # Standard I/O mode
 
-# Start with interactive mode (default)
-npm start
-
-# Run specific modular servers
+# Run individual servers
 node dist/servers/property-server.js
 node dist/servers/dns-server.js
 node dist/servers/certs-server.js
 node dist/servers/security-server.js
 node dist/servers/reporting-server.js
 
-# Run development server
-npm run dev
+# Development server
+npm run dev              # Runs src/index.ts with tsx
 ```
 
 ### Testing
 ```bash
-# Run tests
-npm test
+# Run all tests
+npm test                  # All tests with coverage
+npm run test:watch       # Watch mode
+npm run test:coverage    # Coverage report
 
-# Run specific test
+# Run specific test categories
+npm run test:unit        # Unit tests only
+npm run test:integration # Integration tests
+npm run test:e2e         # End-to-end tests
+npm run test:type        # Type safety tests
+npm run test:mcp         # MCP protocol tests
+
+# Run single test
 npm test -- --testNamePattern="pattern"
+npm test -- path/to/test.ts
 
-# Run with coverage
-npm test:coverage
-
-# Watch mode for development
-npm test:watch
-
-# Validation and health checks
-npm run test:validate      # Comprehensive validation suite
-npm run test:health        # MCP protocol health check
-npm run test:journey       # Customer journey tests
-npm run test:performance   # Performance and load testing
+# Validation and health
+npm run test:validate    # Comprehensive validation
+npm run test:health      # MCP protocol health check
+npm run test:performance # Performance testing
 ```
-
-#### Test Environment
-A dedicated test environment is available in the `.edgerc` file:
-- Section name: `testing`
-- This represents a test environment in Akamai for integration testing
-- Use `customer: "testing"` parameter in MCP tools to target this environment
 
 ### Code Quality
 ```bash
 # Linting
-npm run lint              # Auto-fix linting issues
-npm run lint:check        # Check without fixing
-
-# Formatting
-npm run format            # Format code with Prettier
-npm run format:check      # Check formatting
+npm run lint             # Auto-fix linting issues
+npm run lint:check       # Check without fixing
 
 # Type checking
-npm run typecheck         # TypeScript validation
-```
+npm run typecheck        # Full type validation
+npm run typecheck:watch  # Watch mode
 
-### Deployment
-```bash
-# Build Docker image
-docker build -t alecs-mcp-server-akamai:latest .
-
-# Run with environment variables
-docker run -it --env-file .env alecs-mcp-server-akamai:latest
-
-# Package as single binary
-npx pkg . --targets node18-macos-x64,node18-linux-x64,node18-win-x64
+# Run all quality checks
+npm run validate         # lint + typecheck + test
 ```
 
 ## Architecture Overview
 
-### Recent Refactoring (v1.3.0)
+### Service Modules
+The project is organized into 5 focused service modules:
 
-The project has undergone a complete architectural refactoring:
+1. **Property Server** (`src/servers/property-server.ts`)
+   - 32 tools for CDN property configuration
+   - Handles property creation, modification, activation
+   - Rule tree management and hostnames
 
-1. **Modular Service Architecture**: The monolithic server has been split into 5 focused modules:
-   - Property Server (32 tools): CDN property configuration
-   - DNS Server (24 tools): DNS zone and record management  
-   - Certificates Server (22 tools): SSL certificate provisioning
-   - Security Server (95 tools): WAF, network lists, and security configurations
-   - Reporting Server (25 tools): Analytics and performance metrics
+2. **DNS Server** (`src/servers/dns-server.ts`)
+   - 24 tools for Edge DNS management
+   - Zone creation, record management
+   - Bulk operations support
 
-2. **TypeScript Migration**: 100% TypeScript with full strict mode enabled
-   - All JavaScript files converted to TypeScript
-   - Comprehensive type definitions and interfaces
-   - Full strict mode compliance
+3. **Certificates Server** (`src/servers/certs-server.ts`)
+   - 22 tools for SSL/TLS certificates
+   - Default DV certificate lifecycle
+   - Deployment and validation tracking
 
-3. **Interactive CLI**: New default startup mode with service selection
-   - User-friendly prompts for service selection
-   - Automatic configuration detection
-   - Graceful error handling
+4. **Security Server** (`src/servers/security-server.ts`)
+   - 95 tools for application security
+   - WAF configurations, rate policies
+   - Network lists and bot management
 
-### Multi-Customer Support
-The server supports multiple Akamai accounts through `.edgerc` configuration sections:
-- Each customer has a section in `.edgerc` with their credentials and optional account-switch-key
-- All MCP tools accept a `customer` parameter to specify which account to use
-- EdgeGrid authentication handles account switching via headers
+5. **Reporting Server** (`src/servers/reporting-server.ts`)
+   - 25 tools for analytics and metrics
+   - Traffic reports, performance data
+   - Real-time and historical data
 
-### Core Components
+### Multi-Customer Architecture
+```typescript
+// All tools accept a customer parameter
+const params = {
+  customer: "acme-corp",  // Maps to .edgerc section
+  propertyId: "prp_123"
+};
 
-1. **EdgeGrid Authentication**: Implements Akamai's EdgeGrid authentication protocol with account switching support
-2. **MCP Tool Structure**: Each tool follows the pattern `service.action` (e.g., `property.list`, `dns.zone.create`)
-3. **Network Targeting**: Activation tools support `STAGING` and `PRODUCTION` networks
-4. **Service Modules**:
-   - Property Manager: CDN property configuration
-   - Edge DNS: DNS zone and record management
-   - CPS (Default DV only): SSL certificate provisioning
-   - Network Lists: IP and geographic access control lists
-   - Fast Purge: Content invalidation
-   - Application Security: WAF and security configurations
-   - Reporting: Traffic and performance metrics
+// CustomerConfigManager handles authentication
+const config = await configManager.getCustomerConfig("acme-corp");
+// Includes account-switch-key if configured
+```
 
-### API Integration Pattern
-1. Research agents analyze Akamai OpenAPI specs from GitHub
-2. Service implementations use TypeScript with strong typing
-3. MCP SDK provides the tool interface layer
-4. Customer context is validated before each API call
+### Tool Naming Convention
+Tools follow the pattern: `service.resource.action`
+- `property.list` - List all properties
+- `dns.zone.create` - Create DNS zone
+- `security.waf.policy.update` - Update WAF policy
+
+### Key Components
+- **EdgeGrid Authentication** (`src/services/edgegrid-auth.ts`): Akamai API authentication with account switching
+- **CustomerConfigManager** (`src/services/customer-config-manager.ts`): Multi-tenant credential management
+- **Base Service Classes** (`src/services/base/`): Shared functionality across services
+- **Type Definitions** (`src/types/`): Comprehensive TypeScript interfaces
 
 ## Development Workflow
 
-### Stage 1 (MVP): Property Manager + DNS
-Focus on core CDN functionality with multi-customer support
-
-### Stage 2: Network Lists + Fast Purge
-Add content control and purging capabilities
-
-### Stage 3: Security Configuration
-Implement WAF and security policy management
-
-### Stage 4: Reporting
-Add traffic and performance reporting tools
-
-## Important Notes
-
-- Always validate customer parameter exists in `.edgerc` before operations
-- Default to Enhanced TLS network for certificate deployments
-- Handle async operations (activations) with proper status polling
-- Respect Akamai API rate limits per customer account
-- Use staging environment for testing before production deployments
-
-## Test Suite Status (Last Updated: 2025-01-17)
-
-### Overall Test Metrics
-- **Total Tests**: 438 total
-- **Passing Tests**: 379 passing
-- **Skipped Tests**: 59 skipped (including 4 MCP SDK ES module compatibility issues)
-- **Test Suites**: 38 total (31 passing, 4 skipped, 3 skipped)
-- **Execution Time**: ~18 seconds
-- **TypeScript**: Full strict mode enabled with 100% type coverage
-
-### MCP Protocol Testing Implementation
-Successfully created comprehensive MCP test suites to improve protocol compliance:
-
-1. **Tool Schema Validation** (`tool-schema-validation.test.ts`) - ✅ PASSING
-   - Validates JSON Schema Draft 7 compliance
-   - Tests parameter type enforcement
-   - Ensures proper error messaging
-
-2. **MCP Server Initialization** (`mcp-server-initialization.test.ts`) - ⚠️ Compilation issues
-   - Tests server setup and configuration
-   - Validates handler registration
-   - Checks lifecycle management
-
-3. **MCP Protocol Compliance** (`mcp-protocol-compliance.test.ts`) - ⚠️ Compilation issues
-   - Tests request/response format validation
-   - Validates MCP error standards
-   - Ensures protocol version compliance
-
-4. **MCP Client Simulation** (`mcp-client-simulation.test.ts`) - ⚠️ Compilation issues
-   - Simulates Claude Desktop client patterns
-   - Tests concurrent client handling
-   - Validates disconnection scenarios
-
-5. **Multi-Tool Workflows** (`mcp-multi-tool-workflows.test.ts`) - ⚠️ Compilation issues
-   - Tests complex tool compositions
-   - Validates state management
-   - Ensures context preservation
-
-### Test Coverage Analysis
-- **Previous Grade**: B+ (85% coverage)
-- **Target Grade**: A+ (95%+ coverage)
-- **Progress**: Added MCP protocol testing framework
-- **Next Steps**: Resolve compilation issues in MCP test suites
-
-### Known Issues
-- MCP test suites have TypeScript compilation errors due to mock setup complexity
-- These tests require deeper integration with the actual MCP server implementation
-- Core functionality tests (338) are all passing
-
-### Testing Commands
-```bash
-# Run all tests
-npm test
-
-# Run specific test pattern
-npm test -- --testNamePattern="MCP"
-
-# Run with coverage
-npm test:coverage
-
-# Run tests in watch mode
-npm test:watch
-
-# Run validation tests
-npm run test:validate
-
-# Run health checks
-npm run test:health
-
-# Run specific test file
-npm test -- src/__tests__/tool-schema-validation.test.ts
-```
-
 ### TypeScript Configuration
+- **Development**: `tsconfig.json` - Standard strict mode
+- **Production**: `tsconfig.build.json` - Even stricter checks
+- **Path Aliases**: Use `@/`, `@utils/`, `@services/`, etc.
 
-The project uses full TypeScript strict mode:
+### Testing Strategy
+1. **Unit Tests**: Individual function/class testing
+2. **Integration Tests**: Service-level API testing
+3. **E2E Tests**: Full workflow validation
+4. **MCP Tests**: Protocol compliance verification
+5. **Performance Tests**: Load and stress testing
 
-```json
-{
-  "compilerOptions": {
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "useUnknownInCatchVariables": true,
-    "alwaysStrict": true
-  }
-}
+### Error Handling
+```typescript
+// Use typed errors
+import { BaseError, ValidationError } from '@/errors';
+
+// Log to stderr (stdout reserved for MCP)
+console.error('[Service] Error:', error.message);
 ```
+
+### Environment Setup
+Create `.edgerc` file with customer sections:
+```ini
+[default]
+client_secret = xxx
+host = xxx.luna.akamaiapis.net
+access_token = xxx
+client_token = xxx
+
+[acme-corp]
+client_secret = yyy
+host = yyy.luna.akamaiapis.net
+access_token = yyy
+client_token = yyy
+account-switch-key = ACC-123456
+
+[testing]
+# Test environment credentials
+```
+
+## Important Implementation Notes
+
+1. **Async Operations**: Activations and deployments require polling for completion
+2. **Network Targeting**: Use `STAGING` for testing, `PRODUCTION` for live
+3. **Rate Limiting**: Respect Akamai API limits per customer
+4. **Validation**: Always validate customer parameter exists in `.edgerc`
+5. **Logging**: Use stderr for logs, stdout is reserved for MCP protocol
+6. **Type Safety**: Project uses TypeScript strict mode - no `any` types
+
+## Docker Support
+```bash
+# Build image
+docker build -t alecs-mcp-server-akamai:latest .
+
+# Run with environment
+docker run -it --env-file .env alecs-mcp-server-akamai:latest
+```
+
+## VS Code Integration
+The project includes browser-optimized VS Code settings in `.vscode/settings.json` for improved performance in cloud IDEs.

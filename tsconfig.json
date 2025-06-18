@@ -24,6 +24,8 @@
     "sourceMap": true,
     "outDir": "./dist",
     "removeComments": true,
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
