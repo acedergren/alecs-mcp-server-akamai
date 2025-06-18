@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Session Start Instructions
+
+**IMPORTANT**: Always check the server time at the beginning of each new session using:
+```bash
+date '+%Y-%m-%d %H:%M:%S %Z'
+```
+
 ## Project Overview
 
 This is an ALECS MCP Server (A LaunchGrid for Edge & Cloud Services) - an MCP (Model Context Protocol) server that enables AI assistants to interact with Akamai's CDN and edge services APIs. The project democratizes Akamai CDN management by eliminating the complexity barrier between intention and execution, supporting multiple Akamai customers through account switching.

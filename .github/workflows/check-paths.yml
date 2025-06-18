@@ -1,0 +1,128 @@
+name: Check Hardcoded Paths
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  check-paths:
+    name: Validate No Hardcoded Paths
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for accurate diff
+
+      - name: Make validation script executable
+        run: chmod +x scripts/check-hardcoded-paths.sh
+
+      - name: Get changed files
+        id: changed-files
+        if: github.event_name == 'pull_request'
+        run: |
+          # Get list of changed files in the PR
+          git diff --name-only origin/${{ github.base_ref }}...HEAD > changed_files.txt
+          echo "Changed files:"
+          cat changed_files.txt
+
+      - name: Run path validation on changed files
+        id: validate
+        if: github.event_name == 'pull_request'
+        run: |
+          # Run validation only on changed files
+          ISSUES_FOUND=0
+          RESULTS=""
+          
+          while IFS= read -r file; do
+            if [[ -f "$file" ]] && [[ "$file" =~ \.(ts|js|md|sh|json)$ ]]; then
+              # Check for hardcoded paths
+              if grep -nE "(^|[^a-zA-Z])(/home/|/Users/|/[a-zA-Z]+/[^/]*alecs)" "$file" 2>/dev/null | \
+                 grep -vE "^[[:space:]]*#|^[[:space:]]*//" | \
+                 grep -vE "(usr|bin|etc|var|opt|sys|proc|dev)/" | \
+                 grep -vE "https?://" | \
+                 grep -vE "<.*>" > /tmp/matches.txt; then
+                
+                ISSUES_FOUND=$((ISSUES_FOUND + 1))
+                RESULTS="${RESULTS}\n### ❌ \`$file\`\n\`\`\`\n$(cat /tmp/matches.txt)\n\`\`\`\n"
+              fi
+            fi
+          done < changed_files.txt
+          
+          if [ $ISSUES_FOUND -gt 0 ]; then
+            echo "validation_failed=true" >> $GITHUB_OUTPUT
+            echo "issues_found=$ISSUES_FOUND" >> $GITHUB_OUTPUT
+            # Save results for comment
+            echo -e "$RESULTS" > validation_results.md
+          else
+            echo "validation_failed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run full validation
+        if: github.event_name == 'push'
+        run: |
+          ./scripts/check-hardcoded-paths.sh || echo "validation_failed=true" >> $GITHUB_OUTPUT
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && steps.validate.outputs.validation_failed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const results = fs.readFileSync('validation_results.md', 'utf8');
+            
+            const comment = `## ❌ Hardcoded Paths Detected
+            
+            This PR contains hardcoded absolute paths that will break portability.
+            
+            ${results}
+            
+            ### 📝 How to Fix
+            
+            1. **Replace user-specific paths:**
+               - Use \`~/\` instead of \`/home/username/\`
+               - Use \`<PROJECT_ROOT>/\` for project paths
+               - Use relative paths where possible
+            
+            2. **For scripts**, use dynamic path detection:
+               \`\`\`bash
+               SCRIPT_DIR="$( cd "$( dirname "\${BASH_SOURCE[0]}" )" && pwd )"
+               PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+               \`\`\`
+            
+            3. **For documentation**, add this note at the beginning:
+               \`\`\`markdown
+               > **Note**: This guide uses the following path placeholders:
+               > - \`<USER_HOME>\` or \`~/\` - Your home directory
+               > - \`<PROJECT_ROOT>\` - The directory where you cloned this repository
+               \`\`\`
+            
+            Please update the files and push your changes.`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Fail if hardcoded paths found
+        if: steps.validate.outputs.validation_failed == 'true'
+        run: |
+          echo "❌ Hardcoded paths were found in the code!"
+          echo "Please fix the issues mentioned in the PR comment."
+          exit 1
+
+      - name: Success message
+        if: steps.validate.outputs.validation_failed != 'true'
+        run: |
+          echo "✅ No hardcoded paths found!"
+          echo "The code is portable and ready for distribution."

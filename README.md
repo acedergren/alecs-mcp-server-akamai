@@ -561,7 +561,7 @@ MIT License - see LICENSE file for details
 
 ## Support
 
-- [Documentation](https://github.com/acedergren/alecs-mcp-server-akamai/wiki)
+- [Documentation](./docs/README.md)
 - [Issues](https://github.com/acedergren/alecs-mcp-server-akamai/issues)
 - [Discussions](https://github.com/acedergren/alecs-mcp-server-akamai/discussions)
 

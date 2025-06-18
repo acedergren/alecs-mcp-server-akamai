@@ -126,7 +126,7 @@ Each guide should include:
 
 ## Contributing
 
-See [Contribution Guidelines](./contributor-guide/Contribution-Guidelines.md) for details on contributing to documentation.
+Documentation contributions are welcome! Please follow the project's standard contribution guidelines.
 
 ### Quick Tips
 

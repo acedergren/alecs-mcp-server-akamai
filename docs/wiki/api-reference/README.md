@@ -4,14 +4,14 @@ Complete reference documentation for all ALECS MCP Server tools and APIs.
 
 ## Tool Categories
 
-### [Property Management](./property-tools.md)
+### Property Management
 Basic property operations and management
 - `list_properties` - List all CDN properties
 - `get_property` - Get property details
 - `create_property` - Create new property
 - `list_groups` - List groups and contracts
 
-### [Property Manager](./property-manager-tools.md)
+### Property Manager
 Advanced property configuration and deployment
 - `create_property_version` - Create property version
 - `get_property_rules` - Get rule configuration
@@ -23,7 +23,7 @@ Advanced property configuration and deployment
 - `get_activation_status` - Check activation
 - `list_property_activations` - Activation history
 
-### [DNS Management](./dns-tools.md)
+### DNS Management
 DNS zone and record management
 - `list_zones` - List DNS zones
 - `get_zone` - Get zone details
@@ -32,7 +32,7 @@ DNS zone and record management
 - `upsert_record` - Create/update record
 - `delete_record` - Delete record
 
-### [Certificate Management](./cps-tools.md)
+### Certificate Management
 SSL/TLS certificate provisioning
 - `create_dv_enrollment` - Create DV certificate
 - `get_dv_validation_challenges` - Get validation requirements
@@ -40,7 +40,7 @@ SSL/TLS certificate provisioning
 - `list_certificate_enrollments` - List certificates
 - `link_certificate_to_property` - Link to property
 
-### [DNS Migration](./dns-migration-tools.md)
+### DNS Migration
 Tools for migrating DNS from other providers
 - `import_zone_via_axfr` - Import via zone transfer
 - `parse_zone_file` - Parse BIND zone file
@@ -48,7 +48,7 @@ Tools for migrating DNS from other providers
 - `convert_zone_to_primary` - Convert zone type
 - `generate_migration_instructions` - Migration guide
 
-### [Enhanced Tools](./enhanced-tools.md)
+### Enhanced Tools
 Additional automation and convenience tools
 - `import_from_cloudflare` - Cloudflare import
 - `import_zone_file` - Direct zone file import
@@ -194,6 +194,6 @@ Current version: 1.0.0
 
 ---
 
-*For detailed tool documentation, see the individual reference pages listed above.*
+*For detailed tool documentation, see the main API documentation.*
 
 *Last Updated: January 2025*

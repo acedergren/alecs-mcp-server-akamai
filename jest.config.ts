@@ -167,7 +167,10 @@ const config: Config = {
 const defaultConfig: Config = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  testMatch: ['<rootDir>/src/**/*.test.ts', '<rootDir>/src/__tests__/**/*.ts'],
+  testMatch: [
+    '<rootDir>/tests/**/*.test.ts',
+    '<rootDir>/tests/**/*.spec.ts'
+  ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',
@@ -185,6 +188,12 @@ const defaultConfig: Config = {
   collectCoverage: false,
   coverageDirectory: 'coverage',
   coverageProvider: 'v8',
+  collectCoverageFrom: [
+    'src/**/*.ts',
+    '!src/**/*.d.ts',
+    '!src/**/index.ts',
+    '!src/types/**'
+  ],
   testTimeout: 30000,
   verbose: true,
   transformIgnorePatterns: [
