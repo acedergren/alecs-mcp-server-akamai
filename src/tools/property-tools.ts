@@ -7,6 +7,27 @@ import { AkamaiClient } from '../akamai-client';
 import { MCPToolResponse, PropertyList, Property, GroupList } from '../types';
 import { formatProductDisplay } from '../utils/product-mapping';
 import { formatContractDisplay, formatGroupDisplay, formatPropertyDisplay, ensurePrefix } from '../utils/formatting';
+import { 
+  validateParameters,
+  PropertyManagerSchemas,
+  formatQueryParameters,
+  ensureAkamaiIdFormat
+} from '../utils/parameter-validation';
+import { 
+  parseAkamaiResponse,
+  ResponseParser
+} from '../utils/response-parsing';
+import { 
+  withToolErrorHandling,
+  ErrorContext
+} from '../utils/tool-error-handling';
+import {
+  TreeNode,
+  renderTree,
+  generateTreeSummary,
+  formatPropertyNode,
+  formatGroupNode
+} from '../utils/tree-view';
 
 /**
  * Format a date string to a more readable format
@@ -51,15 +72,34 @@ function formatStatus(status: string | undefined): string {
  */
 export async function listProperties(
   client: AkamaiClient, 
-  args: { contractId?: string; groupId?: string; limit?: number }
+  args: { contractId?: string; groupId?: string; limit?: number; customer?: string; includeSubgroups?: boolean }
 ): Promise<MCPToolResponse> {
-  try {
+  const context: ErrorContext = {
+    operation: 'list properties',
+    endpoint: '/papi/v1/properties',
+    apiType: 'papi',
+    customer: args.customer
+  };
+
+  // If a specific groupId is provided, use tree view
+  if (args.groupId && args.includeSubgroups !== false) {
+    return listPropertiesTreeView(client, {
+      groupId: args.groupId,
+      includeSubgroups: true,
+      customer: args.customer
+    });
+  }
+
+  return withToolErrorHandling(async () => {
+    // Validate parameters
+    const validatedArgs = validateParameters(PropertyManagerSchemas.listProperties, args);
+    
     // OPTIMIZATION: Add limit to prevent memory issues with large accounts
-    const MAX_PROPERTIES_TO_DISPLAY = args.limit || 50;
+    const MAX_PROPERTIES_TO_DISPLAY = validatedArgs.limit || 50;
     
     // If no contract ID provided, get the first available contract
-    let contractId = args.contractId ? ensurePrefix(args.contractId, 'ctr_') : undefined;
-    let groupId = args.groupId ? ensurePrefix(args.groupId, 'grp_') : undefined;
+    let contractId = validatedArgs.contractId ? ensureAkamaiIdFormat(validatedArgs.contractId, 'contract') : undefined;
+    let groupId = validatedArgs.groupId ? ensureAkamaiIdFormat(validatedArgs.groupId, 'group') : undefined;
     
     if (!contractId) {
       // Get groups to find the first contract
@@ -91,19 +131,28 @@ export async function listProperties(
       }
     }
     
-    // Build query parameters
-    const queryParams: Record<string, string> = {};
-    if (contractId) queryParams.contractId = contractId;
-    if (groupId) queryParams.groupId = groupId;
+    // Build query parameters with proper formatting
+    const queryParams = formatQueryParameters({
+      contractId,
+      groupId,
+      limit: MAX_PROPERTIES_TO_DISPLAY
+    });
 
     const response = await client.request({
       path: '/papi/v1/properties',
       method: 'GET',
-      queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
-    }) as PropertyList;
+      headers: {
+        'Accept': 'application/json',
+        'PAPI-Use-Prefixes': 'true'
+      },
+      queryParams
+    });
+
+    // Parse response with enhanced validation
+    const parsedResponse = parseAkamaiResponse(response, 'papi');
 
     // Handle empty results
-    if (!response.properties?.items || response.properties.items.length === 0) {
+    if (!parsedResponse.properties || parsedResponse.properties.length === 0) {
       let message = 'No properties found';
       if (args.contractId) message += ` for contract ${args.contractId}`;
       if (args.groupId) message += ` in group ${args.groupId}`;
@@ -122,7 +171,7 @@ export async function listProperties(
     }
 
     // Format properties list with comprehensive details
-    const allProperties = response.properties.items;
+    const allProperties = parsedResponse.properties;
     const totalProperties = allProperties.length;
     
     // OPTIMIZATION: Limit displayed properties to prevent output overload
@@ -141,7 +190,7 @@ export async function listProperties(
     text += '\n';
 
     // Group properties by contract for better organization
-    const propertiesByContract = propertiesToShow.reduce((acc, prop) => {
+    const propertiesByContract = propertiesToShow.reduce((acc: Record<string, Property[]>, prop: Property) => {
       const contract = prop.contractId;
       if (!acc[contract]) acc[contract] = [];
       acc[contract].push(prop);
@@ -152,7 +201,7 @@ export async function listProperties(
     for (const [contractId, contractProps] of Object.entries(propertiesByContract)) {
       text += `## ${formatContractDisplay(contractId)}\n\n`;
       
-      for (const prop of contractProps) {
+      for (const prop of contractProps as Property[]) {
         text += `### 📦 ${prop.propertyName}\n`;
         text += `- **Property ID:** ${formatPropertyDisplay(prop.propertyId)}\n`;
         text += `- **Current Version:** ${prop.latestVersion || 'N/A'}\n`;
@@ -189,9 +238,166 @@ export async function listProperties(
         text,
       }],
     };
-  } catch (error) {
-    return formatError('list properties', error);
-  }
+  }, context);
+}
+
+/**
+ * List properties with tree view for groups and their subgroups
+ * Provides hierarchical display of properties within group structures
+ */
+export async function listPropertiesTreeView(
+  client: AkamaiClient,
+  args: { groupId: string; includeSubgroups?: boolean; customer?: string }
+): Promise<MCPToolResponse> {
+  const context: ErrorContext = {
+    operation: 'list properties tree view',
+    endpoint: '/papi/v1/properties',
+    apiType: 'papi',
+    customer: args.customer
+  };
+
+  return withToolErrorHandling(async () => {
+    const groupId = ensureAkamaiIdFormat(args.groupId, 'group');
+    
+    // Get all groups to build hierarchy
+    const groupsResponse = await client.request({
+      path: '/papi/v1/groups',
+      method: 'GET',
+    }) as GroupList;
+    
+    if (!groupsResponse.groups?.items?.length) {
+      return {
+        content: [{
+          type: 'text',
+          text: 'No groups found. Please check your API credentials.',
+        }],
+      };
+    }
+    
+    // Find the target group and its hierarchy
+    const targetGroup = groupsResponse.groups.items.find(g => g.groupId === groupId);
+    if (!targetGroup) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Group ${groupId} not found.`,
+        }],
+      };
+    }
+    
+    // Build tree structure
+    const treeNodes: TreeNode[] = [];
+    
+    // Get properties for the main group
+    if (targetGroup.contractIds?.length > 0) {
+      for (const contractId of targetGroup.contractIds) {
+        try {
+          const propertiesResponse = await client.request({
+            path: '/papi/v1/properties',
+            method: 'GET',
+            queryParams: {
+              contractId: contractId,
+              groupId: targetGroup.groupId
+            }
+          }) as PropertyList;
+          
+          const properties = propertiesResponse.properties?.items || [];
+          
+          // Create the main group node
+          const groupNode = formatGroupNode(targetGroup, properties);
+          
+          // If including subgroups, find and add them
+          if (args.includeSubgroups !== false) {
+            const childGroups = groupsResponse.groups.items.filter(g => 
+              g.parentGroupId === targetGroup.groupId
+            );
+            
+            for (const childGroup of childGroups) {
+              const childProperties: Property[] = [];
+              
+              // Get properties for each child group
+              if (childGroup.contractIds?.length > 0) {
+                for (const childContractId of childGroup.contractIds) {
+                  try {
+                    const childPropsResponse = await client.request({
+                      path: '/papi/v1/properties',
+                      method: 'GET',
+                      queryParams: {
+                        contractId: childContractId,
+                        groupId: childGroup.groupId
+                      }
+                    }) as PropertyList;
+                    
+                    childProperties.push(...(childPropsResponse.properties?.items || []));
+                  } catch (error) {
+                    console.error(`Failed to get properties for child group ${childGroup.groupId}:`, error);
+                  }
+                }
+              }
+              
+              // Add child group to parent's children
+              const childNode = formatGroupNode(childGroup, childProperties);
+              
+              // Check for grandchildren
+              const grandchildGroups = groupsResponse.groups.items.filter(g => 
+                g.parentGroupId === childGroup.groupId
+              );
+              
+              for (const grandchild of grandchildGroups) {
+                const grandchildProperties: Property[] = [];
+                
+                if (grandchild.contractIds?.length > 0) {
+                  for (const gcContractId of grandchild.contractIds) {
+                    try {
+                      const gcPropsResponse = await client.request({
+                        path: '/papi/v1/properties',
+                        method: 'GET',
+                        queryParams: {
+                          contractId: gcContractId,
+                          groupId: grandchild.groupId
+                        }
+                      }) as PropertyList;
+                      
+                      grandchildProperties.push(...(gcPropsResponse.properties?.items || []));
+                    } catch (error) {
+                      console.error(`Failed to get properties for grandchild group ${grandchild.groupId}:`, error);
+                    }
+                  }
+                }
+                
+                const grandchildNode = formatGroupNode(grandchild, grandchildProperties);
+                childNode.children?.push(grandchildNode);
+              }
+              
+              groupNode.children?.push(childNode);
+            }
+          }
+          
+          treeNodes.push(groupNode);
+          break; // Only process first contract for now
+        } catch (error) {
+          console.error(`Failed to get properties for contract ${contractId}:`, error);
+        }
+      }
+    }
+    
+    // Render the tree
+    const treeOutput = renderTree(treeNodes);
+    const summary = generateTreeSummary(treeNodes);
+    
+    let output = `# Properties in ${targetGroup.groupName} Group\n\n`;
+    output += '```\n';
+    output += treeOutput;
+    output += '```\n';
+    output += summary;
+    
+    return {
+      content: [{
+        type: 'text',
+        text: output,
+      }],
+    };
+  }, context);
 }
 
 /**
@@ -485,10 +691,14 @@ async function getPropertyById(
     // Get latest version details
     let versionDetails = null;
     try {
-      if (prop.latestVersion) {
+      if (prop.latestVersion && contractId && groupId) {
         versionDetails = await client.request({
           path: `/papi/v1/properties/${propertyId}/versions/${prop.latestVersion}`,
           method: 'GET',
+          queryParams: {
+            contractId: contractId,
+            groupId: groupId
+          }
         });
       }
     } catch (versionError) {
@@ -499,10 +709,16 @@ async function getPropertyById(
     // Get hostnames associated with the property
     let hostnames = null;
     try {
-      hostnames = await client.request({
-        path: `/papi/v1/properties/${propertyId}/hostnames`,
-        method: 'GET',
-      });
+      if (prop.latestVersion && contractId && groupId) {
+        hostnames = await client.request({
+          path: `/papi/v1/properties/${propertyId}/versions/${prop.latestVersion}/hostnames`,
+          method: 'GET',
+          queryParams: {
+            contractId: contractId,
+            groupId: groupId
+          }
+        });
+      }
     } catch (hostnameError) {
       // Continue without hostname details
       console.error('Failed to get hostnames:', hostnameError);
