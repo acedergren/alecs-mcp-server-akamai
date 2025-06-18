@@ -6,7 +6,7 @@ services:
     build:
       context: ../..
       dockerfile: build/docker/Dockerfile
-    image: alecs-mcp-server-akamai:latest
+    image: alecs-mcp-server-akamai:1.3.3
     container_name: alecs-mcp
     restart: unless-stopped
     environment:
@@ -40,7 +40,7 @@ services:
     build:
       context: ../..
       dockerfile: build/docker/Dockerfile.dev
-    image: alecs-mcp-server-akamai:dev
+    image: alecs-mcp-server-akamai:dev-1.3.3
     container_name: alecs-mcp-dev
     restart: unless-stopped
     environment:
@@ -113,7 +113,7 @@ services:
     build:
       context: ../..
       dockerfile: build/docker/Dockerfile
-    image: alecs-mcp-server-akamai:latest
+    image: alecs-mcp-server-akamai:1.3.3
     container_name: alecs-mcp-interactive
     environment:
       NODE_ENV: production

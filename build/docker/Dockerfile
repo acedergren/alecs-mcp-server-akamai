@@ -78,6 +78,6 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 LABEL org.opencontainers.image.source="https://github.com/acedergren/alecs-mcp-server-akamai"
 LABEL org.opencontainers.image.description="ALECS - MCP Server for Akamai CDN Management"
 LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.version="1.3.0"
+LABEL org.opencontainers.image.version="1.3.3"
 LABEL org.opencontainers.image.vendor="ALECS"
 LABEL org.opencontainers.image.title="ALECS MCP Server"
