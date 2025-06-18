@@ -72,6 +72,13 @@ import {
   validateRuleTree
 } from '../tools/rule-tree-advanced';
 
+// Property Onboarding Tools
+import {
+  onboardPropertyTool,
+  onboardPropertyWizard,
+  checkOnboardingStatus
+} from '../tools/property-onboarding-tools';
+
 const log = (level: string, message: string, data?: any) => {
   const timestamp = new Date().toISOString();
   const logMessage = `[${timestamp}] [PROPERTY] [${level}] ${message}`;
@@ -144,6 +151,51 @@ class PropertyALECSServer {
               propertyId: { type: 'string', description: 'Property ID (e.g., prp_12345)' },
             },
             required: ['propertyId'],
+          },
+        },
+        {
+          name: 'onboard-property',
+          description: 'Complete property onboarding workflow (HTTPS-only with Enhanced TLS)',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: { type: 'string', description: 'Optional: Customer section name' },
+              hostname: { type: 'string', description: 'Hostname to onboard (e.g., code.example.com)' },
+              originHostname: { type: 'string', description: 'Origin server hostname' },
+              groupId: { type: 'string', description: 'Optional: Group ID (defaults to first available)' },
+              productId: { type: 'string', description: 'Optional: Product ID (defaults to Ion Standard)' },
+              network: { type: 'string', enum: ['STANDARD_TLS', 'ENHANCED_TLS', 'SHARED_CERT'], description: 'Optional: Network type (defaults to ENHANCED_TLS)' },
+              certificateType: { type: 'string', enum: ['DEFAULT', 'CPS_MANAGED'], description: 'Optional: Certificate type (defaults to DEFAULT)' },
+              notificationEmails: { type: 'array', items: { type: 'string' }, description: 'Optional: Notification email addresses' },
+              skipDnsSetup: { type: 'boolean', description: 'Optional: Skip DNS setup' },
+              dnsProvider: { type: 'string', description: 'Optional: Current DNS provider (aws, cloudflare, azure, other)' },
+            },
+            required: ['hostname'],
+          },
+        },
+        {
+          name: 'onboard-property-wizard',
+          description: 'Interactive property onboarding wizard',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: { type: 'string', description: 'Optional: Customer section name' },
+              hostname: { type: 'string', description: 'Hostname to onboard' },
+            },
+            required: ['hostname'],
+          },
+        },
+        {
+          name: 'check-onboarding-status',
+          description: 'Check the status of property onboarding',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: { type: 'string', description: 'Optional: Customer section name' },
+              hostname: { type: 'string', description: 'Hostname being onboarded' },
+              propertyId: { type: 'string', description: 'Optional: Property ID to check' },
+            },
+            required: ['hostname'],
           },
         },
         {
@@ -508,6 +560,15 @@ class PropertyALECSServer {
             break;
           case 'get-property':
             result = await getProperty(client, args as any);
+            break;
+          case 'onboard-property':
+            result = await onboardPropertyTool(client, args as any);
+            break;
+          case 'onboard-property-wizard':
+            result = await onboardPropertyWizard(client, args as any);
+            break;
+          case 'check-onboarding-status':
+            result = await checkOnboardingStatus(client, args as any);
             break;
           case 'create-property':
             result = await createProperty(client, args as any);
