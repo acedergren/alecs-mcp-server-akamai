@@ -1,0 +1,159 @@
+# Git
+.git
+.gitignore
+.github
+
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store
+
+# Build outputs
+dist
+build
+out
+.next
+.nuxt
+.cache
+*.tsbuildinfo
+
+# Test coverage
+coverage
+.nyc_output
+test-results
+junit.xml
+
+# Documentation
+docs
+*.md
+LICENSE
+CHANGELOG.md
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+
+# Development files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+!.env.example
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Logs
+logs
+*.log
+lerna-debug.log*
+
+# Testing
+tests
+test
+spec
+__tests__
+__mocks__
+*.test.ts
+*.spec.ts
+*.test.js
+*.spec.js
+jest.config.*
+vitest.config.*
+cypress
+playwright
+
+# CI/CD
+.travis.yml
+.circleci
+.gitlab-ci.yml
+azure-pipelines.yml
+.buildkite
+.drone.yml
+Jenkinsfile
+
+# Examples and demos
+examples
+demo
+samples
+
+# Temporary files
+*.tmp
+*.temp
+.temp.md
+tmp
+temp
+
+# Archives
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# Editor configs
+.editorconfig
+.eslintrc*
+.prettierrc*
+.stylelintrc*
+
+# Scripts (except essential ones)
+scripts
+!scripts/docker-entrypoint.sh
+
+# Performance reports
+PERFORMANCE_AUDIT_REPORT.md
+performance-*.json
+benchmarks
+
+# Local development
+.local
+.cache
+.parcel-cache
+.turbo
+
+# OS files
+Desktop.ini
+.Spotlight-V100
+.Trashes
+
+# Package manager files
+.yarn
+.pnp.*
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
+!package.json
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Source maps
+*.map
+*.js.map
+*.css.map
+
+# Miscellaneous
+*.bak
+*.orig
+*.rej
+*.patch
+.history
+.vscode-test
+*.pid
+*.seed
+*.pid.lock
+
+# Keep only essential config files
+!tsconfig.json
+!.npmrc

@@ -1,0 +1,27 @@
+name: Daily Checks
+
+on:
+  schedule:
+    # Run at 9 AM UTC every day
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - run: npm ci
+      
+      # Check for security vulnerabilities
+      - run: npm audit --production
+      
+      # Check for outdated dependencies
+      - run: npm outdated || true
