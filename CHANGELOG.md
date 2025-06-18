@@ -5,6 +5,63 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2] - 2025-01-18
+
+### Added
+- **Tree View for Properties**: New hierarchical tree view display for group properties and subgroups
+  - Automatically displays properties in tree format when listing by group
+  - Shows property count, versions, and status for each group
+  - Includes summary statistics for total properties and distribution
+  - Supports nested subgroup display with clear visual hierarchy
+- **Tree View Utilities**: New utility module for rendering hierarchical data structures
+  - Flexible tree rendering with customizable icons and metadata
+  - Support for empty group filtering and property status display
+  - Reusable components for future tree view implementations
+
+### Enhanced
+- **Property Listing UX**: Improved user experience when viewing properties by group
+  - Automatic tree view activation when groupId is specified
+  - Clear distinction between direct properties and subgroup properties
+  - Visual indicators for empty groups and property counts
+- **Code Organization**: Added dedicated tree view utilities for consistent hierarchical displays
+
+### Technical Details
+- Added `src/utils/tree-view.ts` with comprehensive tree rendering utilities
+- Enhanced `listProperties` function to support tree view with `includeSubgroups` parameter
+- Added `listPropertiesTreeView` function for recursive group property queries
+- Maintains backward compatibility with existing property listing behavior
+
+## [1.3.1] - 2025-01-18
+
+### Added
+- **Enhanced Parameter Support**: Added valuable optional parameters across multiple APIs for improved functionality
+  - **Property Manager**: Added `useFastFallback`, `fastPush`, and `complianceRecord` parameters to activations
+  - **Edge DNS**: Added `sortBy`, `order`, `limit`, and `offset` parameters for pagination and sorting
+  - **Certificate Provisioning**: Added `geography`, `signatureAlgorithm`, `autoRenewal`, and `sniOnly` options
+  - **Fast Purge**: Added `priority`, `description`, `notifyEmails`, `waitForCompletion`, and `useQueue` parameters
+
+### Enhanced
+- **Parameter Validation**: Updated all Zod schemas with new optional parameters and sensible defaults
+- **API Feature Parity**: Brought MCP server closer to full Akamai API capabilities
+- **User Experience**: Implemented intelligent defaults to reduce configuration overhead
+- **Compliance Support**: Added compliance tracking for regulated environments
+
+### Fixed
+- Missing optional parameters that limited advanced functionality
+- Parameter validation schemas now include all documented API parameters
+- Enhanced error handling with proper parameter validation
+
+### Technical Details
+- Modified 5 tool files to support new parameters:
+  - `src/tools/property-manager-tools.ts`
+  - `src/tools/dns-tools.ts`
+  - `src/tools/cps-tools.ts`
+  - `src/tools/fastpurge-tools.ts`
+  - `src/utils/parameter-validation.ts`
+- Added 20+ new optional parameters across 4 major APIs
+- All changes maintain backward compatibility
+- Comprehensive gap analysis completed with 20 critical gaps fixed
+
 ## [1.3.0] - 2025-01-17
 
 ### Added
