@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.5.1] - 2025-01-18
+
+### Added
+- **Property Onboarding Agent**: Automated workflow for complete property onboarding
+  - HTTPS-only configuration with Enhanced TLS by default
+  - Automatic Default DV certificate provisioning
+  - DNS automation with ACME challenge record creation for Edge DNS zones
+
 ## [1.3.3] - 2025-01-18
 
 ### Added
@@ -38,6 +46,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Caching strategy guide in `VALKEY_OPTIMIZATION_PLAN.md`
 - Cache opportunity analysis in `CACHE_OPPORTUNITY_ANALYSIS.md`
 
+  - Interactive DNS migration guidance for AWS, Cloudflare, Azure, and other providers
+  - Origin hostname validation and prompting
+  - Smart defaults: .edgekey.net edge hostnames, DEFAULT certificates
+- **Property Onboarding Tools**: Three new MCP tools for streamlined onboarding
+  - `onboard-property`: Complete automated onboarding workflow
+  - `onboard-property-wizard`: Interactive wizard for missing parameters
+  - `check-onboarding-status`: Status verification for onboarding progress
+
+### Enhanced
+- **Workflow Automation**: Reduced property onboarding from 12 manual steps to single command
+- **DNS Integration**: Automatic ACME challenge record creation for Edge DNS zones
+- **Provider Migration**: Specific migration guides for major DNS providers
+
+### Technical Details
+- Added `src/agents/property-onboarding.agent.ts` with complete workflow orchestration
+- Added `src/tools/property-onboarding-tools.ts` for MCP tool exposure
+- Integrated with existing property, DNS, and certificate management tools
+- Maintains security best practices with HTTPS-only and Enhanced TLS defaults
+
 ## [1.3.2] - 2025-01-18
 
 ### Added
@@ -64,7 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `listPropertiesTreeView` function for recursive group property queries
 - Maintains backward compatibility with existing property listing behavior
 
-## [1.3.1] - 2025-01-18
+## [1.3.1] - 2025-06-18
 
 ### Added
 - **Enhanced Parameter Support**: Added valuable optional parameters across multiple APIs for improved functionality
@@ -95,7 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All changes maintain backward compatibility
 - Comprehensive gap analysis completed with 20 critical gaps fixed
 
-## [1.3.0] - 2025-01-17
+## [1.3.0] - 2025-06-17
 
 ### Added
 - **Interactive CLI**: New default startup mode with user-friendly service selection
@@ -135,7 +162,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `useUnknownInCatchVariables`: 39 errors fixed
 - Test status: 379 tests passing, 59 skipped (4 due to MCP SDK ES module issues)
 
-## [2.0.0] - 2025-01-17
+## [1.2.5] - 2025-06-17
 
 ### Changed - BREAKING
 - **Modular Architecture**: Split monolithic server into 5 focused modules
@@ -241,7 +268,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - File-based persistence for queue management
 - Circuit breaker with configurable thresholds
 
-## [1.1.0] - 2025-01-08
+## [1.1.0] - 2025-06-15
 
 ### Added
 - Product mapping and intelligent product selection
@@ -255,7 +282,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Certificate validation errors
 - DNS record update conflicts
 
-## [1.0.0] - 2024-12-15
+## [1.0.0] - 2025-06-14
 
 ### Added
 - Initial release with core Property Manager functionality
