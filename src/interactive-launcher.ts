@@ -309,12 +309,12 @@ function showClaudeDesktopInstructions(configs: SetupConfig[]) {
   
   console.log('To add these servers to Claude Desktop, use ONE of these methods:\n');
   
-  console.log('🔧 Method 1: Using Claude CLI (Recommended)');
+  console.log('🔧 Method 1: Using Claude Code (Recommended)');
   console.log('─'.repeat(40));
   
   configs.forEach((config, index) => {
     console.log(`\n${index + 1}. For ${config.displayName}:`);
-    console.log(`   claude add ${config.name} -s user node ${config.path}`);
+    console.log(`   claude mcp add ${config.name} -s user node ${config.path}`);
   });
   
   console.log('\n\n💻 Method 2: Manual Configuration');

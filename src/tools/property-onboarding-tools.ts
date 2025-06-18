@@ -23,6 +23,7 @@ export async function onboardPropertyTool(
   args: {
     hostname: string;
     originHostname?: string;
+    contractId?: string;
     groupId?: string;
     productId?: string;
     network?: 'STANDARD_TLS' | 'ENHANCED_TLS' | 'SHARED_CERT';
@@ -31,6 +32,7 @@ export async function onboardPropertyTool(
     notificationEmails?: string[];
     skipDnsSetup?: boolean;
     dnsProvider?: 'aws' | 'cloudflare' | 'azure' | 'other' | string;
+    useCase?: 'web-app' | 'api' | 'download' | 'streaming' | 'basic-web';
   }
 ): Promise<MCPToolResponse> {
   const context: ErrorContext = {
@@ -50,6 +52,7 @@ export async function onboardPropertyTool(
     const config: OnboardingConfig = {
       hostname: args.hostname,
       originHostname: args.originHostname,
+      contractId: args.contractId,
       groupId: args.groupId,
       productId: args.productId,
       network: args.network,
@@ -57,7 +60,8 @@ export async function onboardPropertyTool(
       customer: args.customer,
       notificationEmails: args.notificationEmails,
       skipDnsSetup: args.skipDnsSetup,
-      dnsProvider: args.dnsProvider
+      dnsProvider: args.dnsProvider,
+      useCase: args.useCase || 'web-app'
     };
 
     // Execute onboarding workflow
@@ -104,14 +108,24 @@ export async function onboardPropertyWizard(
     responseText += `- **Network**: Enhanced TLS (HTTPS-only)\n`;
     responseText += `- **Certificate**: Default DV (shared certificate)\n`;
     responseText += `- **Edge Hostname**: ${args.hostname}.edgekey.net\n`;
-    responseText += `- **Group**: Default group (configurable)\n`;
-    responseText += `- **Product**: Ion Standard (prd_Fresca)\n\n`;
+    responseText += `- **Use Case**: Web Application (Ion Standard if available)\n`;
+    responseText += `- **CP Code**: Created automatically\n\n`;
+    
+    responseText += `## Use Case Options\n\n`;
+    responseText += `- **web-app**: Web applications (Ion Standard)\n`;
+    responseText += `- **api**: API delivery (Ion Standard)\n`;
+    responseText += `- **download**: File downloads (Download Delivery)\n`;
+    responseText += `- **streaming**: Video/audio streaming (Adaptive Media)\n`;
+    responseText += `- **basic-web**: Basic websites (Standard TLS)\n\n`;
     
     responseText += `## Example Command\n\n`;
     responseText += '```\n';
     responseText += `onboard-property \\\n`;
     responseText += `  --hostname "${args.hostname}" \\\n`;
     responseText += `  --originHostname "origin-${args.hostname}" \\\n`;
+    responseText += `  --contractId "ctr_YOUR-CONTRACT" \\\n`;
+    responseText += `  --groupId "grp_YOUR-GROUP" \\\n`;
+    responseText += `  --useCase "web-app" \\\n`;
     responseText += `  --dnsProvider "cloudflare" \\\n`;
     responseText += `  --notificationEmails '["team@example.com"]'\n`;
     responseText += '```\n\n';

@@ -96,11 +96,19 @@ export interface ZoneActivationStatus {
 }
 
 /**
- * List all DNS zones
+ * List all DNS zones with enhanced filtering and pagination
  */
 export async function listZones(
   client: AkamaiClient,
-  args: { contractIds?: string[]; includeAliases?: boolean; search?: string }
+  args: { 
+    contractIds?: string[]; 
+    includeAliases?: boolean; 
+    search?: string;
+    sortBy?: 'zone' | 'type' | 'lastModified';
+    order?: 'ASC' | 'DESC';
+    limit?: number;
+    offset?: number;
+  }
 ): Promise<MCPToolResponse> {
   const spinner = new Spinner();
   spinner.start('Fetching DNS zones...');
@@ -116,6 +124,20 @@ export async function listZones(
     }
     if (args.search) {
       queryParams.search = args.search;
+    }
+    
+    // Enhanced pagination and sorting parameters
+    if (args.sortBy) {
+      queryParams.sortBy = args.sortBy;
+    }
+    if (args.order) {
+      queryParams.order = args.order;
+    }
+    if (args.limit !== undefined) {
+      queryParams.limit = Math.min(args.limit, 1000); // API limit of 1000
+    }
+    if (args.offset !== undefined) {
+      queryParams.offset = args.offset;
     }
 
     const response = await client.request({

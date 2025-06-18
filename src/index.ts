@@ -5,8 +5,8 @@
  * A fully typed MCP server implementation with comprehensive error handling
  */
 
-import { Server } from '@modelcontextprotocol/sdk/server/index';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
   CallToolRequest,
   CallToolRequestSchema,
@@ -16,7 +16,7 @@ import {
   ListToolsRequestSchema,
   McpError,
   Tool,
-} from '@modelcontextprotocol/sdk/types';
+} from '@modelcontextprotocol/sdk/types.js';
 import { z, ZodSchema } from 'zod';
 import { CustomerConfigManager } from './utils/customer-config';
 import { logger } from './utils/logger';

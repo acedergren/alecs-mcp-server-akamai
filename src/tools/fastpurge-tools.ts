@@ -104,6 +104,27 @@ export const fastpurgeUrlInvalidate = {
         type: 'boolean',
         default: true,
         description: 'Use intelligent queue management for batching and rate limiting'
+      },
+      priority: {
+        type: 'string',
+        enum: ['high', 'normal', 'low'],
+        default: 'normal',
+        description: 'Priority level for purge operation (affects queue processing order)'
+      },
+      description: {
+        type: 'string',
+        maxLength: 255,
+        description: 'Optional description for tracking and audit purposes'
+      },
+      notifyEmails: {
+        type: 'array',
+        items: { type: 'string', format: 'email' },
+        description: 'Email addresses to notify when purge completes'
+      },
+      waitForCompletion: {
+        type: 'boolean',
+        default: false,
+        description: 'Wait for purge completion before returning (may take up to 5 minutes)'
       }
     },
     required: ['customer', 'urls']

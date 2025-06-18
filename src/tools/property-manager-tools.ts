@@ -587,6 +587,11 @@ export async function activateProperty(
     note?: string;
     notifyEmails?: string[];
     acknowledgeAllWarnings?: boolean;
+    fastPush?: boolean;
+    useFastFallback?: boolean;
+    complianceRecord?: {
+      noncomplianceReason?: string;
+    };
   }
 ): Promise<MCPToolResponse> {
   try {
@@ -621,22 +626,29 @@ export async function activateProperty(
       };
     }
 
-    // Create activation
+    // Create activation with enhanced parameters
+    const activationBody: any = {
+      propertyVersion: version,
+      network: args.network,
+      note: args.note || `Activated via MCP on ${new Date().toISOString()}`,
+      notifyEmails: args.notifyEmails || [],
+      acknowledgeAllWarnings: args.acknowledgeAllWarnings !== false,
+      fastPush: args.fastPush !== false, // Default to true for faster activations
+      useFastFallback: args.useFastFallback || false, // Default to false for safety
+    };
+
+    // Add compliance record if provided (for regulated environments)
+    if (args.complianceRecord) {
+      activationBody.complianceRecord = args.complianceRecord;
+    }
+
     const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/activations`,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: {
-        propertyVersion: version,
-        network: args.network,
-        note: args.note || `Activated via MCP on ${new Date().toISOString()}`,
-        notifyEmails: args.notifyEmails || [],
-        acknowledgeAllWarnings: args.acknowledgeAllWarnings || true,
-        fastPush: true,
-        useFastFallback: false,
-      },
+      body: activationBody,
     });
 
     const activationId = response.activationLink?.split('/').pop();

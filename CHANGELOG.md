@@ -8,6 +8,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.5.1] - 2025-01-18
 
 ### Added
+- **CP Code Creation**: Automatic CP Code generation during property onboarding
+  - Creates CP Code with property hostname-based naming
+  - Integrates CP Code into property rule configuration
+  - Enables proper traffic reporting and billing categorization
+- **Production Activation Agent**: Separate sub-agent for production network activation
+  - Handles 10-60 minute propagation time for new hostnames
+  - Staging-only activation by default for immediate testing
+  - Optional wait-for-completion functionality with status polling
+- **Use Case Templates**: Smart product selection based on property use case
+  - Auto-detects web applications for api.* and www.* hostnames
+  - Ion Standard (prd_Fresca) template for premium web/API delivery
+  - Support for download, streaming, and basic web use cases
+  - Full Ion Standard rule tree with performance optimizations
+
+### Enhanced
+- **Property Onboarding**: Complete end-to-end automation with CP Codes
+  - CP Code creation integrated into workflow (Step 4)
+  - Ion Standard template with advanced features (HTTP/3, adaptive acceleration)
+  - Intelligent product selection based on hostname patterns
+  - Removed hard-coded personal references (group IDs, contracts)
+
+### Fixed
+- Compilation errors in agent parameter passing
+- Removed customer parameter from API calls where not supported
+- Fixed DNS record creation using upsertRecord instead of createRecord
+- Corrected edge hostname creation parameters
+
+### Added
 - **Property Onboarding Agent**: Automated workflow for complete property onboarding
   - HTTPS-only configuration with Enhanced TLS by default
   - Automatic Default DV certificate provisioning

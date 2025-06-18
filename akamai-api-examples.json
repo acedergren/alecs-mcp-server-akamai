@@ -1,0 +1,872 @@
+{
+  "metadata": {
+    "title": "Akamai API Practical Examples",
+    "description": "Real working examples and integration patterns for all Akamai APIs",
+    "version": "1.0.0",
+    "created": "2025-01-18",
+    "note": "All examples use sanitized data - replace with actual values"
+  },
+  "working_request_examples": {
+    "property_manager": {
+      "list_properties": {
+        "description": "List all properties in an account",
+        "curl_example": {
+          "command": "curl -X GET",
+          "url": "https://akaa-xxxx.luna.akamaiapis.net/papi/v1/properties",
+          "headers": [
+            "Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-xxxx;timestamp=20250118T103000+0000;nonce=12345678;signature=xxxx",
+            "Accept: application/json",
+            "PAPI-Use-Prefixes: true"
+          ],
+          "query_parameters": {
+            "contractId": "ctr_C-1FRYVMN",
+            "groupId": "grp_68817"
+          }
+        },
+        "success_response": {
+          "status": 200,
+          "body": {
+            "properties": {
+              "items": [
+                {
+                  "accountId": "act_1-FRYVMN",
+                  "contractId": "ctr_C-1FRYVMN",
+                  "groupId": "grp_68817",
+                  "propertyId": "prp_123456",
+                  "propertyName": "example.com",
+                  "latestVersion": 3,
+                  "stagingVersion": 2,
+                  "productionVersion": 1,
+                  "assetId": "aid_123456",
+                  "note": "Main website property"
+                }
+              ]
+            }
+          }
+        },
+        "parameter_variations": {
+          "filter_by_contract": "?contractId=ctr_C-1FRYVMN",
+          "filter_by_group": "?groupId=grp_68817",
+          "both_filters": "?contractId=ctr_C-1FRYVMN&groupId=grp_68817"
+        }
+      },
+      "create_property": {
+        "description": "Create a new property",
+        "curl_example": {
+          "command": "curl -X POST",
+          "url": "https://akaa-xxxx.luna.akamaiapis.net/papi/v1/properties",
+          "headers": [
+            "Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-xxxx;timestamp=20250118T103000+0000;nonce=12345678;signature=xxxx",
+            "Content-Type: application/json",
+            "Accept: application/json",
+            "PAPI-Use-Prefixes: true"
+          ],
+          "query_parameters": {
+            "contractId": "ctr_C-1FRYVMN",
+            "groupId": "grp_68817"
+          },
+          "body": {
+            "productId": "prd_SPM",
+            "propertyName": "new-example.com",
+            "ruleFormat": "v2023-10-30"
+          }
+        },
+        "success_response": {
+          "status": 201,
+          "body": {
+            "propertyLink": "/papi/v1/properties/prp_654321?contractId=ctr_C-1FRYVMN&groupId=grp_68817"
+          }
+        }
+      },
+      "get_property_rules": {
+        "description": "Get property rule tree",
+        "curl_example": {
+          "command": "curl -X GET",
+          "url": "https://akaa-xxxx.luna.akamaiapis.net/papi/v1/properties/prp_123456/versions/3/rules",
+          "headers": [
+            "Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-xxxx;timestamp=20250118T103000+0000;nonce=12345678;signature=xxxx",
+            "Accept: application/json",
+            "PAPI-Use-Prefixes: true"
+          ],
+          "query_parameters": {
+            "contractId": "ctr_C-1FRYVMN",
+            "groupId": "grp_68817"
+          }
+        },
+        "success_response": {
+          "status": 200,
+          "body": {
+            "rules": {
+              "name": "default",
+              "children": [],
+              "behaviors": [
+                {
+                  "name": "origin",
+                  "options": {
+                    "cacheKeyHostname": "REQUEST_HOST_HEADER",
+                    "compress": true,
+                    "enableTrueClientIp": false,
+                    "hostname": "origin.example.com",
+                    "httpPort": 80,
+                    "httpsPort": 443,
+                    "originType": "CUSTOMER"
+                  }
+                },
+                {
+                  "name": "cpCode",
+                  "options": {
+                    "value": {
+                      "id": 12345,
+                      "description": "example.com CP Code"
+                    }
+                  }
+                }
+              ],
+              "options": {
+                "is_secure": true
+              }
+            },
+            "ruleFormat": "v2023-10-30"
+          }
+        }
+      },
+      "activate_property": {
+        "description": "Activate property to staging or production",
+        "curl_example": {
+          "command": "curl -X POST",
+          "url": "https://akaa-xxxx.luna.akamaiapis.net/papi/v1/properties/prp_123456/activations",
+          "headers": [
+            "Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-xxxx;timestamp=20250118T103000+0000;nonce=12345678;signature=xxxx",
+            "Content-Type: application/json",
+            "Accept: application/json",
+            "PAPI-Use-Prefixes: true"
+          ],
+          "query_parameters": {
+            "contractId": "ctr_C-1FRYVMN",
+            "groupId": "grp_68817"
+          },
+          "body": {
+            "propertyVersion": 3,
+            "network": "STAGING",
+            "note": "Testing new configuration",
+            "notifyEmails": ["admin@example.com"],
+            "acknowledgeAllWarnings": true
+          }
+        },
+        "success_response": {
+          "status": 201,
+          "body": {
+            "activationLink": "/papi/v1/properties/prp_123456/activations/act_789012"
+          }
+        }
+      }
+    },
+    "edge_dns": {
+      "list_zones": {
+        "description": "List DNS zones",
+        "curl_example": {
+          "command": "curl -X GET",
+          "url": "https://akaa-xxxx.luna.akamaiapis.net/config-dns/v2/zones",
+          "headers": [
+            "Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-xxxx;timestamp=20250118T103000+0000;nonce=12345678;signature=xxxx",
+            "Accept: application/json"
+          ],
+          "query_parameters": {
+            "contractIds": "ctr_C-1FRYVMN"
+          }
+        },
+        "success_response": {
+          "status": 200,
+          "body": {
+            "zones": [
+              {
+                "zone": "example.com",
+                "type": "PRIMARY",
+                "masters": [],
+                "comment": "Main domain zone",
+                "signAndServe": false,
+                "tsigKey": null,
+                "target": null,
+                "endCustomerId": null,
+                "contractId": "ctr_C-1FRYVMN",
+                "activationState": "ACTIVE",
+                "lastActivationDate": "2025-01-15T14:30:00Z",
+                "versionId": "12345"
+              }
+            ]
+          }
+        }
+      },
+      "create_zone": {
+        "description": "Create a new DNS zone",
+        "curl_example": {
+          "command": "curl -X POST",
+          "url": "https://akaa-xxxx.luna.akamaiapis.net/config-dns/v2/zones",
+          "headers": [
+            "Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-xxxx;timestamp=20250118T103000+0000;nonce=12345678;signature=xxxx",
+            "Content-Type: application/json",
+            "Accept: application/json"
+          ],
+          "body": {
+            "zone": "newdomain.com",
+            "type": "PRIMARY",
+            "comment": "New domain for testing",
+            "contractId": "ctr_C-1FRYVMN"
+          }
+        },
+        "success_response": {
+          "status": 201,
+          "body": {
+            "zone": "newdomain.com",
+            "type": "PRIMARY",
+            "comment": "New domain for testing",
+            "contractId": "ctr_C-1FRYVMN"
+          }
+        }
+      },
+      "changelist_workflow": {
+        "description": "Complete DNS record management workflow",
+        "step_1_create_changelist": {
+          "curl_example": {
+            "command": "curl -X POST",
+            "url": "https://akaa-xxxx.luna.akamaiapis.net/config-dns/v2/changelists",
+            "headers": [
+              "Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-xxxx;timestamp=20250118T103000+0000;nonce=12345678;signature=xxxx",
+              "Content-Type: application/json"
+            ],
+            "body": {
+              "zone": "example.com"
+            }
+          }
+        },
+        "step_2_add_record": {
+          "curl_example": {
+            "command": "curl -X PUT",
+            "url": "https://akaa-xxxx.luna.akamaiapis.net/config-dns/v2/changelists/example.com/recordsets/www/A",
+            "headers": [
+              "Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-xxxx;timestamp=20250118T103000+0000;nonce=12345678;signature=xxxx",
+              "Content-Type: application/json"
+            ],
+            "body": {
+              "name": "www",
+              "type": "A",
+              "ttl": 300,
+              "rdata": ["192.0.2.1", "192.0.2.2"]
+            }
+          }
+        },
+        "step_3_submit_changelist": {
+          "curl_example": {
+            "command": "curl -X POST",
+            "url": "https://akaa-xxxx.luna.akamaiapis.net/config-dns/v2/changelists/example.com/submit",
+            "headers": [
+              "Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-xxxx;timestamp=20250118T103000+0000;nonce=12345678;signature=xxxx",
+              "Content-Type: application/json"
+            ],
+            "body": {}
+          }
+        }
+      }
+    },
+    "certificate_provisioning": {
+      "create_dv_enrollment": {
+        "description": "Create Domain Validated certificate enrollment",
+        "curl_example": {
+          "command": "curl -X POST",
+          "url": "https://akaa-xxxx.luna.akamaiapis.net/cps/v2/enrollments",
+          "headers": [
+            "Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-xxxx;timestamp=20250118T103000+0000;nonce=12345678;signature=xxxx",
+            "Content-Type: application/json",
+            "Accept: application/json"
+          ],
+          "body": {
+            "ra": "lets-encrypt",
+            "validationType": "dv",
+            "certificateType": "san",
+            "networkConfiguration": {
+              "geography": "core",
+              "secureNetwork": "enhanced-tls",
+              "sni": {
+                "cloneDnsNames": false,
+                "dnsNames": ["example.com", "www.example.com"]
+              },
+              "quicEnabled": true
+            },
+            "org": {
+              "name": "Example Corporation",
+              "addressLineOne": "123 Main Street",
+              "city": "San Francisco",
+              "region": "CA",
+              "postalCode": "94105",
+              "country": "US",
+              "phone": "+1-555-123-4567"
+            },
+            "csr": {
+              "cn": "example.com",
+              "sans": ["www.example.com"],
+              "c": "US",
+              "st": "CA",
+              "l": "San Francisco",
+              "o": "Example Corporation"
+            },
+            "adminContact": {
+              "firstName": "John",
+              "lastName": "Admin",
+              "phone": "+1-555-123-4567",
+              "email": "admin@example.com",
+              "addressLineOne": "123 Main Street",
+              "city": "San Francisco",
+              "region": "CA",
+              "postalCode": "94105",
+              "country": "US",
+              "organizationName": "Example Corporation",
+              "title": "IT Administrator"
+            },
+            "techContact": {
+              "firstName": "Jane",
+              "lastName": "Tech",
+              "phone": "+1-555-123-4568",
+              "email": "tech@example.com",
+              "addressLineOne": "123 Main Street",
+              "city": "San Francisco",
+              "region": "CA",
+              "postalCode": "94105",
+              "country": "US",
+              "organizationName": "Example Corporation",
+              "title": "Technical Contact"
+            }
+          }
+        },
+        "success_response": {
+          "status": 202,
+          "body": {
+            "enrollment": "/cps/v2/enrollments/12345",
+            "changes": ["/cps/v2/enrollments/12345/changes/67890"]
+          }
+        }
+      },
+      "check_dv_challenges": {
+        "description": "Check domain validation challenges",
+        "curl_example": {
+          "command": "curl -X GET",
+          "url": "https://akaa-xxxx.luna.akamaiapis.net/cps/v2/enrollments/12345/dv-history",
+          "headers": [
+            "Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-xxxx;timestamp=20250118T103000+0000;nonce=12345678;signature=xxxx",
+            "Accept: application/json"
+          ]
+        },
+        "success_response": {
+          "status": 200,
+          "body": {
+            "domainHistory": [
+              {
+                "domain": "example.com",
+                "validationStatus": "pending",
+                "validationRecords": [
+                  {
+                    "hostname": "_acme-challenge.example.com",
+                    "recordType": "TXT",
+                    "target": "random-challenge-string-here"
+                  }
+                ],
+                "challenges": [
+                  {
+                    "type": "dns-01",
+                    "status": "pending",
+                    "token": "challenge-token",
+                    "keyAuthorization": "key-auth-string"
+                  }
+                ],
+                "expires": "2025-01-25T10:30:00Z"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "fast_purge": {
+      "purge_by_url": {
+        "description": "Purge content by URL",
+        "curl_example": {
+          "command": "curl -X POST",
+          "url": "https://akaa-xxxx.luna.akamaiapis.net/ccu/v3/invalidate/url/production",
+          "headers": [
+            "Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-xxxx;timestamp=20250118T103000+0000;nonce=12345678;signature=xxxx",
+            "Content-Type: application/json",
+            "Accept: application/json"
+          ],
+          "body": {
+            "objects": [
+              "https://www.example.com/",
+              "https://www.example.com/page1.html",
+              "https://www.example.com/assets/style.css"
+            ]
+          }
+        },
+        "success_response": {
+          "status": 201,
+          "body": {
+            "httpStatus": 201,
+            "detail": "Request accepted",
+            "estimatedSeconds": 5,
+            "purgeId": "12345678-1234-1234-1234-123456789012",
+            "supportId": "17PY1234567890123456-123456789"
+          }
+        }
+      },
+      "purge_status": {
+        "description": "Check purge request status",
+        "curl_example": {
+          "command": "curl -X GET",
+          "url": "https://akaa-xxxx.luna.akamaiapis.net/ccu/v3/purge-requests/12345678-1234-1234-1234-123456789012",
+          "headers": [
+            "Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-xxxx;timestamp=20250118T103000+0000;nonce=12345678;signature=xxxx",
+            "Accept: application/json"
+          ]
+        },
+        "success_response": {
+          "status": 200,
+          "body": {
+            "httpStatus": 200,
+            "detail": "Purge request completed",
+            "status": "Done",
+            "submittedBy": "user@example.com",
+            "submissionTime": "2025-01-18T10:30:00Z",
+            "completionTime": "2025-01-18T10:30:05Z"
+          }
+        }
+      }
+    },
+    "application_security": {
+      "list_configurations": {
+        "description": "List security configurations",
+        "curl_example": {
+          "command": "curl -X GET",
+          "url": "https://akaa-xxxx.luna.akamaiapis.net/appsec/v1/configs",
+          "headers": [
+            "Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-xxxx;timestamp=20250118T103000+0000;nonce=12345678;signature=xxxx",
+            "Accept: application/json"
+          ]
+        },
+        "success_response": {
+          "status": 200,
+          "body": {
+            "configurations": [
+              {
+                "id": 12345,
+                "name": "Example Security Config",
+                "description": "Main security configuration",
+                "contractId": "ctr_C-1FRYVMN",
+                "groupId": "grp_68817",
+                "latestVersion": 2,
+                "productionVersion": 1,
+                "stagingVersion": 2
+              }
+            ]
+          }
+        }
+      }
+    },
+    "network_lists": {
+      "create_network_list": {
+        "description": "Create IP network list",
+        "curl_example": {
+          "command": "curl -X POST",
+          "url": "https://akaa-xxxx.luna.akamaiapis.net/network-list/v2/network-lists",
+          "headers": [
+            "Authorization: EG1-HMAC-SHA256 client_token=akab-xxxx;access_token=akab-xxxx;timestamp=20250118T103000+0000;nonce=12345678;signature=xxxx",
+            "Content-Type: application/json",
+            "Accept: application/json"
+          ],
+          "body": {
+            "name": "Blocked IPs",
+            "type": "IP",
+            "description": "Known malicious IP addresses",
+            "elements": [
+              "192.0.2.100",
+              "192.0.2.0/24",
+              "2001:db8::1"
+            ]
+          }
+        },
+        "success_response": {
+          "status": 201,
+          "body": {
+            "uniqueId": "12345_BLOCKEDIPS",
+            "name": "Blocked IPs",
+            "type": "IP",
+            "description": "Known malicious IP addresses",
+            "elements": [
+              "192.0.2.100",
+              "192.0.2.0/24",
+              "2001:db8::1"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "response_variations": {
+    "pagination_examples": {
+      "property_list_paginated": {
+        "description": "Large property list with pagination",
+        "request": {
+          "url": "/papi/v1/properties?limit=2&offset=0"
+        },
+        "response": {
+          "status": 200,
+          "body": {
+            "properties": {
+              "items": [
+                {"propertyId": "prp_123456", "propertyName": "example1.com"},
+                {"propertyId": "prp_789012", "propertyName": "example2.com"}
+              ]
+            },
+            "totalItems": 10,
+            "currentPage": 1,
+            "pageSize": 2,
+            "links": {
+              "next": "/papi/v1/properties?limit=2&offset=2",
+              "self": "/papi/v1/properties?limit=2&offset=0"
+            }
+          }
+        }
+      }
+    },
+    "empty_result_sets": {
+      "no_properties": {
+        "description": "Account with no properties",
+        "response": {
+          "status": 200,
+          "body": {
+            "properties": {
+              "items": []
+            }
+          }
+        }
+      },
+      "no_dns_zones": {
+        "description": "No DNS zones in contract",
+        "response": {
+          "status": 200,
+          "body": {
+            "zones": []
+          }
+        }
+      }
+    },
+    "different_data_types": {
+      "property_with_no_versions": {
+        "description": "Property that has never been activated",
+        "response": {
+          "propertyId": "prp_123456",
+          "propertyName": "new-property.com",
+          "latestVersion": 1,
+          "stagingVersion": null,
+          "productionVersion": null
+        }
+      },
+      "zone_with_dnssec": {
+        "description": "DNS zone with DNSSEC enabled",
+        "response": {
+          "zone": "secure.example.com",
+          "type": "PRIMARY",
+          "signAndServe": true,
+          "signAndServeAlgorithm": "RSASHA256"
+        }
+      }
+    }
+  },
+  "common_integration_patterns": {
+    "complete_property_deployment": {
+      "description": "End-to-end property creation and deployment workflow",
+      "sequence": [
+        {
+          "step": "1",
+          "description": "Discover account structure",
+          "requests": [
+            "GET /papi/v1/contracts",
+            "GET /papi/v1/groups?contractId={contractId}",
+            "GET /papi/v1/products?contractId={contractId}"
+          ],
+          "data_extraction": {
+            "contractId": "contracts.items[0].contractId",
+            "groupId": "groups.items[0].groupId", 
+            "productId": "products.items[0].productId"
+          }
+        },
+        {
+          "step": "2",
+          "description": "Create property foundation",
+          "requests": [
+            "POST /papi/v1/properties"
+          ],
+          "parameters_passed": ["contractId", "groupId", "productId", "propertyName"],
+          "data_extraction": {
+            "propertyId": "Extract from Location header"
+          }
+        },
+        {
+          "step": "3",
+          "description": "Configure property",
+          "requests": [
+            "GET /papi/v1/properties/{propertyId}/versions/1/rules",
+            "PUT /papi/v1/properties/{propertyId}/versions/1/rules"
+          ],
+          "rule_modifications": [
+            "Update origin hostname",
+            "Configure caching behaviors",
+            "Add security rules"
+          ]
+        },
+        {
+          "step": "4", 
+          "description": "Set up hostnames",
+          "requests": [
+            "POST /papi/v1/edgehostnames",
+            "GET /papi/v1/properties/{propertyId}/versions/1/hostnames",
+            "PUT /papi/v1/properties/{propertyId}/versions/1/hostnames"
+          ],
+          "hostname_association": "Link customer hostnames to edge hostnames"
+        },
+        {
+          "step": "5",
+          "description": "Deploy and test",
+          "requests": [
+            "POST /papi/v1/properties/{propertyId}/activations (STAGING)",
+            "GET /papi/v1/properties/{propertyId}/activations/{activationId} (polling)",
+            "POST /papi/v1/properties/{propertyId}/activations (PRODUCTION)"
+          ],
+          "validation": [
+            "Check staging activation status",
+            "Verify configuration works",
+            "Activate to production"
+          ]
+        }
+      ]
+    },
+    "certificate_automation_workflow": {
+      "description": "Automated certificate provisioning with DNS validation",
+      "prerequisites": [
+        "Domain managed in Edge DNS",
+        "Property configured with edge hostnames"
+      ],
+      "sequence": [
+        {
+          "step": "1",
+          "description": "Create certificate enrollment",
+          "api_call": "POST /cps/v2/enrollments",
+          "validation_type": "dv",
+          "automation_ready": true
+        },
+        {
+          "step": "2",
+          "description": "Monitor validation challenges",
+          "api_call": "GET /cps/v2/enrollments/{id}/dv-history",
+          "polling_interval": "30 seconds",
+          "challenge_detection": "Extract DNS challenge records"
+        },
+        {
+          "step": "3",
+          "description": "Automate DNS validation",
+          "api_calls": [
+            "POST /config-dns/v2/changelists",
+            "PUT /config-dns/v2/changelists/{zone}/recordsets/_acme-challenge/TXT",
+            "POST /config-dns/v2/changelists/{zone}/submit"
+          ],
+          "automation": "Create DNS TXT records for validation"
+        },
+        {
+          "step": "4",
+          "description": "Monitor certificate issuance",
+          "api_call": "GET /cps/v2/enrollments/{id}",
+          "completion_criteria": "Status becomes 'active'",
+          "typical_duration": "5-30 minutes"
+        },
+        {
+          "step": "5",
+          "description": "Associate with property",
+          "api_calls": [
+            "PUT /papi/v1/edgehostnames/{id}",
+            "POST /papi/v1/properties/{propertyId}/activations"
+          ],
+          "certificate_deployment": "Automatic with property activation"
+        }
+      ]
+    },
+    "dns_migration_workflow": {
+      "description": "Migrate DNS from external provider to Edge DNS",
+      "preparation": [
+        "Export zone file from current provider",
+        "Identify record types and dependencies"
+      ],
+      "sequence": [
+        {
+          "step": "1",
+          "description": "Create Edge DNS zone",
+          "api_call": "POST /config-dns/v2/zones",
+          "zone_type": "PRIMARY",
+          "contract_binding": "Associate with appropriate contract"
+        },
+        {
+          "step": "2",
+          "description": "Import existing records",
+          "options": [
+            {
+              "method": "Bulk import",
+              "api_call": "POST /config-dns/v2/zones/{zone}/import",
+              "input": "Zone file or structured data"
+            },
+            {
+              "method": "Individual records",
+              "api_calls": [
+                "POST /config-dns/v2/changelists",
+                "PUT /config-dns/v2/changelists/{zone}/recordsets/{name}/{type}"
+              ]
+            }
+          ]
+        },
+        {
+          "step": "3",
+          "description": "Validate configuration",
+          "validation_steps": [
+            "Compare imported records with source",
+            "Test DNS resolution",
+            "Verify TTL values"
+          ]
+        },
+        {
+          "step": "4",
+          "description": "Activate changes",
+          "api_call": "POST /config-dns/v2/changelists/{zone}/submit",
+          "propagation_time": "5-10 minutes"
+        },
+        {
+          "step": "5",
+          "description": "Update nameservers",
+          "manual_steps": [
+            "Update nameservers at domain registrar",
+            "Monitor DNS propagation",
+            "Verify all records resolve correctly"
+          ]
+        }
+      ]
+    }
+  },
+  "parameter_substitution_examples": {
+    "multi_customer_operations": {
+      "description": "Examples of customer parameter usage",
+      "default_customer": {
+        "description": "Using default .edgerc section",
+        "request_headers": [
+          "Authorization: EG1-HMAC-SHA256 client_token=akab-default-token;..."
+        ],
+        "mcp_parameter": "customer: undefined or omitted"
+      },
+      "specific_customer": {
+        "description": "Using named .edgerc section",
+        "request_headers": [
+          "Authorization: EG1-HMAC-SHA256 client_token=akab-customer1-token;...",
+          "AKAMAI-ACCOUNT-SWITCH-KEY: ACC-123456"
+        ],
+        "mcp_parameter": "customer: 'customer1'"
+      }
+    },
+    "environment_targeting": {
+      "staging_operations": {
+        "description": "Operations targeting staging environment",
+        "property_activation": {
+          "network": "STAGING",
+          "notification_emails": "Optional",
+          "validation_requirements": "Reduced"
+        },
+        "purge_operations": {
+          "url": "/ccu/v3/invalidate/url/staging",
+          "impact": "No production traffic affected"
+        }
+      },
+      "production_operations": {
+        "description": "Operations targeting production environment",
+        "property_activation": {
+          "network": "PRODUCTION",
+          "notification_emails": "Required",
+          "validation_requirements": "Full validation"
+        },
+        "purge_operations": {
+          "url": "/ccu/v3/invalidate/url/production",
+          "impact": "Affects live traffic"
+        }
+      }
+    }
+  },
+  "integration_templates": {
+    "property_configuration_template": {
+      "description": "Template for basic property configuration",
+      "rule_tree": {
+        "name": "default",
+        "children": [],
+        "behaviors": [
+          {
+            "name": "origin",
+            "options": {
+              "hostname": "${ORIGIN_HOSTNAME}",
+              "originType": "CUSTOMER",
+              "httpPort": 80,
+              "httpsPort": 443
+            }
+          },
+          {
+            "name": "cpCode",
+            "options": {
+              "value": {
+                "id": "${CP_CODE_ID}"
+              }
+            }
+          },
+          {
+            "name": "caching",
+            "options": {
+              "behavior": "MAX_AGE",
+              "mustRevalidate": false,
+              "ttl": "1d"
+            }
+          }
+        ],
+        "options": {
+          "is_secure": true
+        }
+      },
+      "substitution_variables": {
+        "ORIGIN_HOSTNAME": "Customer's origin server hostname",
+        "CP_CODE_ID": "Akamai CP Code identifier"
+      }
+    },
+    "dns_record_templates": {
+      "web_service_records": [
+        {
+          "name": "@",
+          "type": "A",
+          "ttl": 300,
+          "rdata": ["${WEB_SERVER_IP}"]
+        },
+        {
+          "name": "www",
+          "type": "CNAME",
+          "ttl": 300,
+          "rdata": ["${EDGE_HOSTNAME}"]
+        },
+        {
+          "name": "@",
+          "type": "MX",
+          "ttl": 3600,
+          "rdata": ["10 mail.${DOMAIN_NAME}"]
+        }
+      ],
+      "substitution_variables": {
+        "WEB_SERVER_IP": "Web server IP address",
+        "EDGE_HOSTNAME": "Akamai edge hostname",
+        "DOMAIN_NAME": "Domain name"
+      }
+    }
+  }
+}
