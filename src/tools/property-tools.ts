@@ -287,6 +287,16 @@ export async function listPropertiesTreeView(
     
     // Build tree structure
     const treeNodes: TreeNode[] = [];
+    const contractSummary: Map<string, { groupCount: number; propertyCount: number }> = new Map();
+    
+    // First pass: collect statistics
+    const allGroupsInHierarchy = new Set<string>();
+    const collectGroupStats = (groupId: string) => {
+      allGroupsInHierarchy.add(groupId);
+      const children = groupsResponse.groups.items.filter(g => g.parentGroupId === groupId);
+      children.forEach(child => collectGroupStats(child.groupId));
+    };
+    collectGroupStats(targetGroup.groupId);
     
     // Get properties for the main group
     if (targetGroup.contractIds?.length > 0) {
@@ -302,6 +312,14 @@ export async function listPropertiesTreeView(
           }) as PropertyList;
           
           const properties = propertiesResponse.properties?.items || [];
+          
+          // Update contract summary
+          if (!contractSummary.has(contractId)) {
+            contractSummary.set(contractId, { groupCount: 0, propertyCount: 0 });
+          }
+          const stats = contractSummary.get(contractId)!;
+          stats.groupCount++;
+          stats.propertyCount += properties.length;
           
           // Create the main group node
           const groupNode = formatGroupNode(targetGroup, properties);
@@ -328,7 +346,16 @@ export async function listPropertiesTreeView(
                       }
                     }) as PropertyList;
                     
-                    childProperties.push(...(childPropsResponse.properties?.items || []));
+                    const childProps = childPropsResponse.properties?.items || [];
+                    childProperties.push(...childProps);
+                    
+                    // Update contract summary for child groups
+                    if (!contractSummary.has(childContractId)) {
+                      contractSummary.set(childContractId, { groupCount: 0, propertyCount: 0 });
+                    }
+                    const childStats = contractSummary.get(childContractId)!;
+                    childStats.groupCount++;
+                    childStats.propertyCount += childProps.length;
                   } catch (error) {
                     console.error(`Failed to get properties for child group ${childGroup.groupId}:`, error);
                   }
@@ -381,11 +408,56 @@ export async function listPropertiesTreeView(
       }
     }
     
+    // Calculate summary statistics
+    let totalProperties = 0;
+    let totalGroups = allGroupsInHierarchy.size;
+    const groupsWithProperties: string[] = [];
+    
+    // Count properties across all nodes
+    const countProperties = (nodes: TreeNode[]): number => {
+      let count = 0;
+      for (const node of nodes) {
+        if (node.metadata?.propertyCount) {
+          count += node.metadata.propertyCount;
+          if (node.metadata.propertyCount > 0) {
+            groupsWithProperties.push(node.name);
+          }
+        }
+        if (node.children) {
+          count += countProperties(node.children);
+        }
+      }
+      return count;
+    };
+    
+    totalProperties = countProperties(treeNodes);
+    
+    // Build enhanced output with summary first
+    let output = `# Properties in ${targetGroup.groupName} Group\n\n`;
+    
+    // Add contract summary section
+    output += `## Summary\n\n`;
+    output += `- **Total Groups**: ${totalGroups}\n`;
+    output += `- **Groups with Properties**: ${groupsWithProperties.length}\n`;
+    output += `- **Total Properties**: ${totalProperties}\n`;
+    
+    if (contractSummary.size > 0) {
+      output += `\n### Contract Breakdown:\n`;
+      for (const [contractId, stats] of contractSummary) {
+        output += `- **${contractId}**: ${stats.propertyCount} properties across ${stats.groupCount} groups\n`;
+      }
+    }
+    
+    if (totalProperties > 100) {
+      output += `\n⚠️ **Note**: This group hierarchy contains ${totalProperties} properties across ${totalGroups} groups.\n`;
+    }
+    
+    output += `\n## Property Tree\n\n`;
+    
     // Render the tree
     const treeOutput = renderTree(treeNodes);
     const summary = generateTreeSummary(treeNodes);
     
-    let output = `# Properties in ${targetGroup.groupName} Group\n\n`;
     output += '```\n';
     output += treeOutput;
     output += '```\n';
