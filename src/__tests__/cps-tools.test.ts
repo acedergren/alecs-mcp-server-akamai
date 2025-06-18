@@ -60,8 +60,11 @@ describe('Certificate Provisioning System (CPS) Tools', () => {
       expect(text).toContain('Created Default DV certificate enrollment');
       expect(text).toContain('**Enrollment ID:** 12345');
       expect(mockClient.request).toHaveBeenCalledWith(expect.objectContaining({
-        path: '/cps/v2/enrollments?contractId=ctr_C-123456',
+        path: '/cps/v2/enrollments',
         method: 'POST',
+        queryParams: {
+          contractId: 'ctr_C-123456'
+        },
         body: expect.objectContaining({
           validationType: 'dv',
           csr: expect.objectContaining({

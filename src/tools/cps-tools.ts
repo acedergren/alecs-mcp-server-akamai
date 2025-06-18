@@ -120,6 +120,10 @@ export async function createDVEnrollment(
     contractId: string;
     enhancedTLS?: boolean;
     quicEnabled?: boolean;
+    geography?: 'core' | 'china' | 'russia';
+    signatureAlgorithm?: 'SHA256withRSA' | 'SHA384withECDSA';
+    autoRenewal?: boolean;
+    sniOnly?: boolean;
   }
 ): Promise<MCPToolResponse> {
   try {
@@ -128,7 +132,7 @@ export async function createDVEnrollment(
       throw new Error('Common name must be a valid domain (e.g., www.example.com)');
     }
 
-    // Prepare enrollment request
+    // Prepare enrollment request with enhanced configuration options
     const enrollment: CPSEnrollment = {
       id: 0, // Will be assigned by API
       ra: 'lets-encrypt',
@@ -136,13 +140,13 @@ export async function createDVEnrollment(
       certificateType: args.sans && args.sans.length > 0 ? 'san' : 'single',
       certificateChainType: 'default',
       networkConfiguration: {
-        geography: 'core',
-        quicEnabled: args.quicEnabled || false,
+        geography: args.geography || 'core',
+        quicEnabled: args.quicEnabled !== false, // Default to true for modern performance
         secureNetwork: args.enhancedTLS !== false ? 'enhanced-tls' : 'standard-tls',
-        sniOnly: true,
+        sniOnly: args.sniOnly !== false, // Default to true for most use cases
       },
-      signatureAlgorithm: 'SHA256withRSA',
-      changeManagement: false,
+      signatureAlgorithm: args.signatureAlgorithm || 'SHA256withRSA',
+      changeManagement: args.autoRenewal !== false, // Default to true for auto-renewal
       csr: {
         cn: args.commonName,
         sans: args.sans,
@@ -156,11 +160,14 @@ export async function createDVEnrollment(
 
     // Create enrollment
     const response = await client.request({
-      path: `/cps/v2/enrollments?contractId=${args.contractId}`,
+      path: `/cps/v2/enrollments`,
       method: 'POST',
       headers: {
         'Content-Type': 'application/vnd.akamai.cps.enrollment.v11+json',
         'Accept': 'application/vnd.akamai.cps.enrollment-status.v1+json',
+      },
+      queryParams: {
+        contractId: args.contractId
       },
       body: enrollment,
     });

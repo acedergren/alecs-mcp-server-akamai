@@ -35,19 +35,25 @@ import {
 import {
   listProducts
 } from '../tools/product-tools';
+import {
+  createCPCode
+} from '../tools/cpcode-tools';
 import { formatPropertyDisplay } from '../utils/formatting';
 
 export interface OnboardingConfig {
   hostname: string;
   originHostname?: string;
+  contractId?: string;
   groupId?: string;
   productId?: string;
+  cpCodeId?: string;
   network?: 'STANDARD_TLS' | 'ENHANCED_TLS' | 'SHARED_CERT';
   certificateType?: 'DEFAULT' | 'CPS_MANAGED';
   customer?: string;
   notificationEmails?: string[];
   skipDnsSetup?: boolean;
   dnsProvider?: string;
+  useCase?: 'web-app' | 'api' | 'download' | 'streaming' | 'basic-web';
 }
 
 export interface OnboardingResult {
@@ -127,10 +133,11 @@ export class PropertyOnboardingAgent {
 
     try {
       // Step 1: Validate and prepare configuration
+      console.error('[PropertyOnboarding] Step 1: Validating configuration...');
       const validatedConfig = await this.validateConfig(config);
       
       // Step 2: Pre-flight checks
-      console.error(`[PropertyOnboarding] Starting onboarding for ${validatedConfig.hostname}`);
+      console.error(`[PropertyOnboarding] Step 2: Pre-flight checks for ${validatedConfig.hostname}...`);
       const preflightResult = await this.performPreflightChecks(validatedConfig);
       if (!preflightResult.canProceed) {
         result.errors = preflightResult.errors;
@@ -138,21 +145,35 @@ export class PropertyOnboardingAgent {
       }
 
       // Step 3: Determine group and product if not provided
+      console.error('[PropertyOnboarding] Step 3: Determining group and product...');
       if (!validatedConfig.groupId || !validatedConfig.productId) {
         const selection = await this.selectGroupAndProduct(validatedConfig);
         validatedConfig.groupId = selection.groupId;
         validatedConfig.productId = selection.productId;
       }
 
-      // Step 4: Create property
+      // Step 4: Create CP Code
+      console.error('[PropertyOnboarding] Step 4: Creating CP Code...');
+      const cpCodeResult = await this.createCPCodeForProperty(validatedConfig);
+      if (!cpCodeResult.success || !cpCodeResult.cpCodeId) {
+        result.errors!.push('Failed to create CP Code');
+        return result;
+      }
+      console.error(`[PropertyOnboarding] Created CP Code: ${cpCodeResult.cpCodeId}`);
+      validatedConfig.cpCodeId = cpCodeResult.cpCodeId;
+
+      // Step 5: Create property
+      console.error('[PropertyOnboarding] Step 5: Creating property...');
       const propertyResult = await this.createPropertyWithRetry(validatedConfig);
       if (!propertyResult.success || !propertyResult.propertyId) {
         result.errors!.push('Failed to create property');
         return result;
       }
       result.propertyId = propertyResult.propertyId;
+      console.error(`[PropertyOnboarding] Created property: ${result.propertyId}`);
 
-      // Step 5: Create edge hostname
+      // Step 6: Create edge hostname
+      console.error('[PropertyOnboarding] Step 6: Creating edge hostname...');
       const edgeHostnameResult = await this.createEdgeHostnameWithRetry(
         propertyResult.propertyId,
         validatedConfig
@@ -164,20 +185,23 @@ export class PropertyOnboardingAgent {
       }
       result.edgeHostname = edgeHostnameResult.edgeHostname;
 
-      // Step 6: Add hostname to property
+      // Step 7: Add hostname to property
+      console.error('[PropertyOnboarding] Step 7: Adding hostname to property...');
       await this.addHostnameToProperty(
         propertyResult.propertyId,
         validatedConfig.hostname,
         edgeHostnameResult.edgeHostname!
       );
 
-      // Step 7: Configure property rules
+      // Step 8: Configure property rules with CP Code
+      console.error('[PropertyOnboarding] Step 8: Configuring property rules...');
       await this.configurePropertyRules(
         propertyResult.propertyId,
         validatedConfig
       );
 
-      // Step 8: Handle DNS setup
+      // Step 9: Handle DNS setup
+      console.error('[PropertyOnboarding] Step 9: Handling DNS setup...');
       if (!validatedConfig.skipDnsSetup) {
         const dnsResult = await this.handleDnsSetup(
           validatedConfig.hostname,
@@ -193,7 +217,8 @@ export class PropertyOnboardingAgent {
         }
       }
 
-      // Step 9: Activate to staging
+      // Step 10: Activate to staging only (production takes 10-60 minutes)
+      console.error('[PropertyOnboarding] Step 10: Activating to staging network...');
       const activationResult = await this.activatePropertyToStaging(
         propertyResult.propertyId,
         validatedConfig
@@ -203,10 +228,15 @@ export class PropertyOnboardingAgent {
       // Success!
       result.success = true;
       result.nextSteps!.push(
-        `Property ${result.propertyId} created and activated to staging`,
-        `Edge hostname: ${result.edgeHostname}`,
-        `Test in staging: curl -H "Host: ${validatedConfig.hostname}" https://${result.edgeHostname}`,
-        'Once validated, activate to production'
+        `✅ Property ${result.propertyId} created and activated to STAGING`,
+        `🌐 Edge hostname: ${result.edgeHostname}`,
+        `🧪 Test in staging: curl -H "Host: ${validatedConfig.hostname}" https://${result.edgeHostname}`,
+        '',
+        '⏳ Production activation:',
+        '   - New hostnames take 10-60 minutes to propagate',
+        '   - Test thoroughly in staging first',
+        '   - Use property.activate tool to push to production when ready',
+        `   - Command: property.activate --propertyId "${result.propertyId}" --version 1 --network "PRODUCTION" --note "Production activation after staging validation"`
       );
 
       return result;
@@ -299,23 +329,96 @@ export class PropertyOnboardingAgent {
   }> {
     // Get groups
     const groupsResult = await listGroups(this.client, {
-      searchTerm: 'default',
-      customer: config.customer
+      searchTerm: 'default'
     });
 
-    // Default to first available group or allow user to specify
-    let groupId = config.groupId || 'grp_99912'; // Default group ID
+    // Use provided group ID or prompt user to specify
+    let groupId = config.groupId;
+    if (!groupId) {
+      throw new Error('Group ID is required. Use "List groups" to find available groups.');
+    }
     
     // Get products for the contract
+    let contractId = config.contractId || 'ctr_1-5C13O2'; // Default contract
     const productsResult = await listProducts(this.client, {
-      contractId: 'ctr_1-5C13O2', // Your main contract
+      contractId: contractId,
       customer: config.customer
     });
 
-    // Default to Ion Standard (Fresca) for HTTPS delivery
-    const productId = config.productId || 'prd_Fresca';
+    // Select product based on use case
+    let productId = config.productId;
+    if (!productId) {
+      // Check if Ion Standard (prd_Fresca) is available
+      const responseText = productsResult.content[0].text;
+      const hasIonStandard = responseText.includes('prd_Fresca') || responseText.includes('Ion Standard');
+      
+      // Auto-detect use case based on hostname if not specified
+      let useCase = config.useCase;
+      if (!useCase) {
+        if (config.hostname.startsWith('api.') || config.hostname.startsWith('www.')) {
+          useCase = 'web-app'; // Default to web-app for api. and www. prefixes
+        }
+      }
+      
+      switch (useCase) {
+        case 'web-app':
+        case 'api':
+          productId = hasIonStandard ? 'prd_Fresca' : 'prd_SPM'; // Ion Standard or Standard TLS
+          break;
+        case 'download':
+          productId = 'prd_Download_Delivery'; // Download Delivery
+          break;
+        case 'streaming':
+          productId = 'prd_Adaptive_Media_Delivery'; // Adaptive Media Delivery
+          break;
+        case 'basic-web':
+        default:
+          productId = 'prd_SPM'; // Standard TLS
+          break;
+      }
+      
+      console.error(`[PropertyOnboarding] Selected product: ${productId} for use case: ${useCase || 'default'}`);
+    }
 
     return { groupId, productId };
+  }
+
+  private async createCPCodeForProperty(config: Required<OnboardingConfig>): Promise<{
+    success: boolean;
+    cpCodeId?: string;
+  }> {
+    try {
+      // Generate CP Code name based on hostname or property name
+      const cpCodeName = config.hostname.replace(/\./g, '-');
+      
+      console.error(`[PropertyOnboarding] Creating CP Code with name: ${cpCodeName}`);
+      
+      const result = await createCPCode(this.client, {
+        productId: config.productId!,
+        contractId: config.contractId || 'ctr_1-5C13O2',
+        groupId: config.groupId!,
+        cpcodeName: cpCodeName
+      });
+
+      // Extract CP Code ID from response
+      const responseText = result.content[0].text;
+      // Look for patterns like "CP Code ID: 1234567" or "CP Code: cpc_1234567"
+      const cpCodeMatch = responseText.match(/(?:CP Code ID:|CP Code:)\s*(?:cpc_)?(\d+)/i);
+      
+      if (cpCodeMatch) {
+        const cpCodeId = cpCodeMatch[1];
+        return {
+          success: true,
+          cpCodeId: cpCodeId // Just the numeric part
+        };
+      }
+
+      console.error('[PropertyOnboarding] Could not extract CP Code ID from response');
+      return { success: false };
+    } catch (error) {
+      console.error('[PropertyOnboarding] Create CP Code error:', error);
+      return { success: false };
+    }
   }
 
   private async createPropertyWithRetry(config: Required<OnboardingConfig>): Promise<{
@@ -326,9 +429,8 @@ export class PropertyOnboardingAgent {
       const result = await createProperty(this.client, {
         propertyName: config.hostname,
         productId: config.productId!,
-        contractId: 'ctr_1-5C13O2', // Your main contract
-        groupId: config.groupId!,
-        customer: config.customer
+        contractId: config.contractId || 'ctr_1-5C13O2',
+        groupId: config.groupId!
       });
 
       // Extract property ID from response
@@ -365,9 +467,8 @@ export class PropertyOnboardingAgent {
         domainPrefix,
         domainSuffix,
         productId: config.productId!,
-        secureNetwork: config.network,
-        ipVersionBehavior: 'IPV4',
-        customer: config.customer
+        secure: true, // Always secure for ENHANCED_TLS
+        ipVersion: 'IPV4'
       });
 
       const edgeHostname = `${domainPrefix}.${domainSuffix}`;
@@ -389,15 +490,8 @@ export class PropertyOnboardingAgent {
     await addPropertyHostname(this.client, {
       propertyId,
       version: 1,
-      hostnames: [{
-        cnameFrom: hostname,
-        cnameTo: edgeHostname,
-        cnameType: 'EDGE_HOSTNAME',
-        certStatus: {
-          type: 'DEFAULT'
-        }
-      }],
-      customer: 'default'
+      hostname: hostname,
+      edgeHostname: edgeHostname
     });
   }
 
@@ -405,37 +499,140 @@ export class PropertyOnboardingAgent {
     propertyId: string,
     config: Required<OnboardingConfig>
   ): Promise<void> {
-    // Get current rules
-    const currentRules = await getPropertyRules(this.client, {
+    // Use the Ion Standard template provided by the user
+    const rules = this.getIonStandardTemplate(config);
+
+    await updatePropertyRules(this.client, {
       propertyId,
       version: 1,
-      customer: config.customer
+      rules
     });
+  }
 
-    // Create HTTPS-only rule configuration
-    const rules = {
+  private getIonStandardTemplate(config: Required<OnboardingConfig>): any {
+    // Based on the user-provided Ion Standard template
+    const template = {
       name: 'default',
       children: [
         {
-          name: 'HTTPS Only',
-          behaviors: [
+          name: 'Augment insights',
+          children: [
             {
-              name: 'redirectPlus',
-              options: {
-                enabled: true,
-                destination: 'SAME_AS_REQUEST',
-                responseCode: 301
-              }
+              name: 'Traffic reporting',
+              children: [],
+              behaviors: [
+                {
+                  name: 'cpCode',
+                  options: {
+                    value: {
+                      id: parseInt(config.cpCodeId!),
+                      name: config.hostname.replace(/\./g, '-')
+                    }
+                  }
+                }
+              ],
+              criteria: [],
+              criteriaMustSatisfy: 'all',
+              comments: 'Identify your main traffic segments so you can granularly zoom in your traffic statistics like hits, bandwidth, offload, response codes, and errors.'
+            },
+            {
+              name: 'mPulse RUM',
+              children: [],
+              behaviors: [
+                {
+                  name: 'mPulse',
+                  options: {
+                    apiKey: '',
+                    bufferSize: '',
+                    configOverride: '',
+                    enabled: false, // Disabled by default
+                    loaderVersion: 'V12',
+                    requirePci: false,
+                    titleOptional: ''
+                  }
+                }
+              ],
+              criteria: [],
+              criteriaMustSatisfy: 'all'
+            },
+            {
+              name: 'Geolocation',
+              children: [],
+              behaviors: [
+                {
+                  name: 'edgeScape',
+                  options: {
+                    enabled: false
+                  }
+                }
+              ],
+              criteria: [
+                {
+                  name: 'requestType',
+                  options: {
+                    matchOperator: 'IS',
+                    value: 'CLIENT_REQ'
+                  }
+                }
+              ],
+              criteriaMustSatisfy: 'all'
+            },
+            {
+              name: 'Log delivery',
+              children: [],
+              behaviors: [
+                {
+                  name: 'report',
+                  options: {
+                    logAcceptLanguage: false,
+                    logCookies: 'OFF',
+                    logCustomLogField: false,
+                    logEdgeIP: false,
+                    logHost: false,
+                    logReferer: false,
+                    logUserAgent: false,
+                    logXForwardedFor: false
+                  }
+                }
+              ],
+              criteria: [],
+              criteriaMustSatisfy: 'all'
             }
           ],
-          criteria: [
+          behaviors: [],
+          criteria: [],
+          criteriaMustSatisfy: 'all'
+        },
+        // Add HTTPS redirect as first rule in Strengthen security
+        {
+          name: 'Strengthen security',
+          children: [
             {
-              name: 'requestProtocol',
-              options: {
-                value: 'HTTP'
-              }
+              name: 'HTTPS Redirect',
+              behaviors: [
+                {
+                  name: 'redirectPlus',
+                  options: {
+                    enabled: true,
+                    destination: 'SAME_AS_REQUEST',
+                    responseCode: 301
+                  }
+                }
+              ],
+              criteria: [
+                {
+                  name: 'requestProtocol',
+                  options: {
+                    value: 'HTTP'
+                  }
+                }
+              ],
+              criteriaMustSatisfy: 'all',
+              comments: 'Redirect all HTTP traffic to HTTPS'
             }
           ],
+          behaviors: [],
+          criteria: [],
           criteriaMustSatisfy: 'all'
         }
       ],
@@ -443,53 +640,42 @@ export class PropertyOnboardingAgent {
         {
           name: 'origin',
           options: {
-            originType: 'CUSTOMER',
-            hostname: config.originHostname,
+            cacheKeyHostname: 'REQUEST_HOST_HEADER',
+            compress: true,
+            enableTrueClientIp: true,
             forwardHostHeader: 'REQUEST_HOST_HEADER',
+            httpPort: 80,
             httpsPort: 443,
+            minTlsVersion: 'DYNAMIC',
+            originCertificate: '',
             originSni: true,
+            originType: 'CUSTOMER',
+            ports: '',
+            tlsVersionTitle: '',
+            trueClientIpClientSetting: false,
+            trueClientIpHeader: 'True-Client-IP',
             verificationMode: 'PLATFORM_SETTINGS',
-            originCertsToHonor: 'STANDARD_CERTIFICATE_AUTHORITIES',
-            standardCertificateAuthorities: ['akamai-permissive']
+            ipVersion: 'IPV4',
+            hostname: config.originHostname
           }
         },
         {
-          name: 'cpCode',
+          name: 'enhancedDebug',
           options: {
-            value: {
-              id: 1234567, // This would need to be created/fetched
-              name: config.hostname
-            }
-          }
-        },
-        {
-          name: 'allowPost',
-          options: {
-            enabled: true,
-            allowWithoutContentLength: false
-          }
-        },
-        {
-          name: 'caching',
-          options: {
-            behavior: 'MAX_AGE',
-            ttl: '1d'
+            enableDebug: false
           }
         }
       ],
       options: {
         is_secure: true
       },
+      variables: [],
       criteria: [],
-      criteriaMustSatisfy: 'all'
+      criteriaMustSatisfy: 'all',
+      comments: 'Ion Standard template optimized for web applications and API delivery with Enhanced TLS'
     };
 
-    await updatePropertyRules(this.client, {
-      propertyId,
-      version: 1,
-      rules,
-      customer: config.customer
-    });
+    return template;
   }
 
   private async handleDnsSetup(
@@ -507,8 +693,7 @@ export class PropertyOnboardingAgent {
     try {
       // Check if zone exists in Edge DNS
       const zonesResult = await listZones(this.client, {
-        search: domain,
-        customer: config.customer
+        search: domain
       });
 
       const responseText = zonesResult.content[0].text;
@@ -521,8 +706,7 @@ export class PropertyOnboardingAgent {
           name: recordName,
           type: 'CNAME',
           ttl: 300,
-          rdata: [edgeHostname],
-          customer: config.customer
+          rdata: [edgeHostname]
         });
 
         // For Default DV cert, create ACME challenge records
@@ -565,8 +749,7 @@ export class PropertyOnboardingAgent {
         name: acmeRecord,
         type: 'CNAME',
         ttl: 300,
-        rdata: [acmeTarget],
-        customer: config.customer
+        rdata: [acmeTarget]
       });
     } catch (error) {
       console.error('[PropertyOnboarding] ACME record creation error:', error);
@@ -584,7 +767,7 @@ export class PropertyOnboardingAgent {
     steps.push(`DNS zone ${domain} is not in Akamai Edge DNS.`);
     steps.push('');
     steps.push('Option 1: Migrate DNS to Akamai Edge DNS');
-    steps.push(`  - Create zone: mcp__alecs-full__create-zone --zone "${domain}" --type "PRIMARY" --contractId "ctr_1-5C13O2"`);
+    steps.push(`  - Create zone: dns.zone.create --zone "${domain}" --type "PRIMARY" --contractId "[YOUR-CONTRACT-ID]"`);
     
     if (config.dnsProvider) {
       const providerKey = config.dnsProvider.toLowerCase() as keyof typeof DNS_PROVIDER_GUIDES;
@@ -624,8 +807,7 @@ export class PropertyOnboardingAgent {
         version: 1,
         network: 'STAGING',
         note: `Initial staging activation for ${config.hostname}`,
-        emails: config.notificationEmails,
-        customer: config.customer
+        notifyEmails: config.notificationEmails
       });
 
       // Extract activation ID from response

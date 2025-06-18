@@ -25,7 +25,11 @@ describe('Property Server Module', () => {
       const serverProcess = spawn('node', [
         'dist/servers/property-server.js'
       ], {
-        env: { ...process.env, NODE_ENV: 'test' },
+        env: { 
+          ...process.env, 
+          NODE_ENV: 'test',
+          EDGERC_PATH: '.edgerc.test' 
+        },
         stdio: 'pipe'
       });
 

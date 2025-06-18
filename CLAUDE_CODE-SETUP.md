@@ -1,13 +1,13 @@
 # Claude Configuration Setup
 
-## For Claude Code (CLI)
+## For Claude Code
 
-You've already configured this with:
+You can configure this with:
 ```bash
 claude mcp add alecs -s project -- npx tsx src/index.ts
 ```
 
-This created `.mcp.json` in your project directory. To verify:
+This creates `.mcp.json` in your project directory. To verify:
 
 ```bash
 # List configured servers

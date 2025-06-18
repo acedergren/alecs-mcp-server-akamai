@@ -30,7 +30,7 @@ describe.skip('MCP Protocol Compliance', () => {
     };
 
     // Mock the Server constructor
-    const { Server } = require('@modelcontextprotocol/sdk/server/index.js');
+    const { Server } = require('@modelcontextprotocol/sdk/server');
     Server.mockImplementation(() => mockServer);
   });
 
@@ -335,7 +335,7 @@ describe.skip('MCP Protocol Compliance', () => {
 
   describe('Protocol Version and Capabilities', () => {
     it('should announce correct protocol version', async () => {
-      const { Server } = require('@modelcontextprotocol/sdk/server/index.js');
+      const { Server } = require('@modelcontextprotocol/sdk/server');
 
       expect(Server).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -347,7 +347,7 @@ describe.skip('MCP Protocol Compliance', () => {
     });
 
     it('should announce tool capabilities only', async () => {
-      const { Server } = require('@modelcontextprotocol/sdk/server/index.js');
+      const { Server } = require('@modelcontextprotocol/sdk/server');
 
       // Verify that Server is mocked
       expect(Server).toBeDefined();

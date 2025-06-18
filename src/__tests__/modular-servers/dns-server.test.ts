@@ -25,7 +25,11 @@ describe('DNS Server Module', () => {
       const serverProcess = spawn('node', [
         'dist/servers/dns-server.js'
       ], {
-        env: { ...process.env, NODE_ENV: 'test' },
+        env: { 
+          ...process.env, 
+          NODE_ENV: 'test',
+          EDGERC_PATH: '.edgerc.test' 
+        },
         stdio: 'pipe'
       });
 
