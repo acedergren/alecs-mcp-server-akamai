@@ -2,7 +2,7 @@
  * Middleware type definitions for MCP server
  */
 
-import { McpToolResponse } from './mcp';
+import { type McpToolResponse } from './mcp';
 
 /**
  * Middleware function type
@@ -10,7 +10,7 @@ import { McpToolResponse } from './mcp';
 export type MiddlewareFunction = (
   req: MiddlewareRequest,
   res: MiddlewareResponse,
-  next: NextFunction
+  next: NextFunction,
 ) => Promise<void> | void;
 
 /**
@@ -171,7 +171,7 @@ export class MiddlewareStack {
       }
 
       const middleware = this.middlewares[index++];
-      
+
       if (!middleware) {
         return;
       }
@@ -212,9 +212,9 @@ export const Middleware = {
   logging(options: LoggingMiddlewareOptions = {}): MiddlewareFunction {
     return async (req, res, next) => {
       const { level = 'info', includeBody = true } = options;
-      
+
       const startTime = Date.now();
-      
+
       // Log request
       const logData: Record<string, unknown> = {
         requestId: req.requestId,
@@ -236,7 +236,7 @@ export const Middleware = {
       console.log(`[${level.toUpperCase()}] Response:`, {
         requestId: req.requestId,
         duration,
-        status: res.status
+        status: res.status,
       });
     };
   },
@@ -260,10 +260,10 @@ export const Middleware = {
 
       // Get existing requests
       const requestTimes = requests.get(key) || [];
-      
+
       // Filter out old requests
-      const recentRequests = requestTimes.filter(time => time > windowStart);
-      
+      const recentRequests = requestTimes.filter((time) => time > windowStart);
+
       if (recentRequests.length >= maxRequests) {
         return res.error('Rate limit exceeded', 'RATE_LIMIT_EXCEEDED');
       }
@@ -291,7 +291,7 @@ export const Middleware = {
             requestId: req.requestId,
             toolName: req.toolName,
             error: error instanceof Error ? error.message : String(error),
-            stack: includeStackTrace && error instanceof Error ? error.stack : undefined
+            stack: includeStackTrace && error instanceof Error ? error.stack : undefined,
           });
         }
 
@@ -302,5 +302,5 @@ export const Middleware = {
         }
       }
     };
-  }
+  },
 };

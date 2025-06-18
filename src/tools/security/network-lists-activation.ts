@@ -4,11 +4,11 @@
  */
 
 import { AkamaiClient } from '../../akamai-client';
-import { 
-  MCPToolResponse, 
-  NetworkList,
-  NetworkListActivation,
-  AkamaiError 
+import {
+  type MCPToolResponse,
+  type NetworkList,
+  type NetworkListActivation,
+  type AkamaiError,
 } from '../../types';
 
 /**
@@ -16,14 +16,14 @@ import {
  */
 function formatActivationStatus(status: string | undefined): string {
   if (!status) return '⚫ INACTIVE';
-  
+
   const statusMap: Record<string, string> = {
-    'ACTIVE': '🟢 ACTIVE',
-    'INACTIVE': '⚫ INACTIVE',
-    'PENDING': '🟡 PENDING',
-    'FAILED': '🔴 FAILED'
+    ACTIVE: '🟢 ACTIVE',
+    INACTIVE: '⚫ INACTIVE',
+    PENDING: '🟡 PENDING',
+    FAILED: '🔴 FAILED',
   };
-  
+
   return statusMap[status] || `⚫ ${status}`;
 }
 
@@ -33,12 +33,12 @@ function formatActivationStatus(status: string | undefined): string {
 export async function activateNetworkList(
   uniqueId: string,
   network: 'STAGING' | 'PRODUCTION',
-  customer: string = 'default',
+  customer = 'default',
   options: {
     comments?: string;
     notificationEmails?: string[];
     fast?: boolean;
-  } = {}
+  } = {},
 ): Promise<MCPToolResponse> {
   try {
     const client = new AkamaiClient(customer);
@@ -46,7 +46,7 @@ export async function activateNetworkList(
     // First get the list details
     const listResponse = await client.request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
-      method: 'GET'
+      method: 'GET',
     });
 
     const list: NetworkList = listResponse;
@@ -55,18 +55,20 @@ export async function activateNetworkList(
     const currentStatus = network === 'PRODUCTION' ? list.productionStatus : list.stagingStatus;
     if (currentStatus === 'ACTIVE') {
       return {
-        content: [{
-          type: 'text',
-          text: `ℹ️ Network list "${list.name}" is already active on ${network}`
-        }]
+        content: [
+          {
+            type: 'text',
+            text: `ℹ️ Network list "${list.name}" is already active on ${network}`,
+          },
+        ],
       };
     }
 
     const requestBody: any = {
       networkList: {
-        uniqueId: uniqueId
+        uniqueId: uniqueId,
       },
-      network: network
+      network: network,
     };
 
     if (options.comments) {
@@ -84,7 +86,7 @@ export async function activateNetworkList(
     const response = await client.request({
       path: '/network-list/v2/network-lists/activations',
       method: 'POST',
-      body: requestBody
+      body: requestBody,
     });
 
     const activation: NetworkListActivation = response;
@@ -94,7 +96,7 @@ export async function activateNetworkList(
     output += `**Network:** ${network}\n`;
     output += `**Activation ID:** ${activation.activationId}\n`;
     output += `**Status:** ${formatActivationStatus(activation.status)}\n`;
-    
+
     if (options.comments) {
       output += `**Comments:** ${options.comments}\n`;
     }
@@ -106,19 +108,22 @@ export async function activateNetworkList(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: output
-      }]
+      content: [
+        {
+          type: 'text',
+          text: output,
+        },
+      ],
     };
-
   } catch (error) {
     const akamaiError = error as AkamaiError;
     return {
-      content: [{
-        type: 'text',
-        text: `Error activating network list: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Error activating network list: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+        },
+      ],
     };
   }
 }
@@ -128,14 +133,14 @@ export async function activateNetworkList(
  */
 export async function getNetworkListActivationStatus(
   activationId: string,
-  customer: string = 'default'
+  customer = 'default',
 ): Promise<MCPToolResponse> {
   try {
     const client = new AkamaiClient(customer);
 
     const response = await client.request({
       path: `/network-list/v2/network-lists/activations/${activationId}`,
-      method: 'GET'
+      method: 'GET',
     });
 
     const activation: NetworkListActivation = response;
@@ -163,19 +168,22 @@ export async function getNetworkListActivationStatus(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: output
-      }]
+      content: [
+        {
+          type: 'text',
+          text: output,
+        },
+      ],
     };
-
   } catch (error) {
     const akamaiError = error as AkamaiError;
     return {
-      content: [{
-        type: 'text',
-        text: `Error retrieving activation status: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Error retrieving activation status: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+        },
+      ],
     };
   }
 }
@@ -184,12 +192,12 @@ export async function getNetworkListActivationStatus(
  * List all activations for network lists
  */
 export async function listNetworkListActivations(
-  customer: string = 'default',
+  customer = 'default',
   options: {
     listType?: 'IP' | 'GEO' | 'ASN';
     network?: 'STAGING' | 'PRODUCTION';
     status?: 'PENDING' | 'ACTIVE' | 'FAILED' | 'INACTIVE';
-  } = {}
+  } = {},
 ): Promise<MCPToolResponse> {
   try {
     const client = new AkamaiClient(customer);
@@ -208,17 +216,19 @@ export async function listNetworkListActivations(
     const response = await client.request({
       path: '/network-list/v2/network-lists/activations',
       method: 'GET',
-      queryParams
+      queryParams,
     });
 
     const activations = response.activations || [];
 
     if (activations.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: 'No network list activations found matching the criteria.'
-        }]
+        content: [
+          {
+            type: 'text',
+            text: 'No network list activations found matching the criteria.',
+          },
+        ],
       };
     }
 
@@ -236,28 +246,31 @@ export async function listNetworkListActivations(
       output += `   Network: ${activation.network}\n`;
       output += `   Status: ${formatActivationStatus(activation.status)}\n`;
       output += `   Dispatches: ${activation.dispatchCount}\n`;
-      
+
       if (activation.comments) {
         output += `   Comments: ${activation.comments}\n`;
       }
-      
+
       output += '\n';
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: output.trim()
-      }]
+      content: [
+        {
+          type: 'text',
+          text: output.trim(),
+        },
+      ],
     };
-
   } catch (error) {
     const akamaiError = error as AkamaiError;
     return {
-      content: [{
-        type: 'text',
-        text: `Error listing activations: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Error listing activations: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+        },
+      ],
     };
   }
 }
@@ -268,10 +281,10 @@ export async function listNetworkListActivations(
 export async function deactivateNetworkList(
   uniqueId: string,
   network: 'STAGING' | 'PRODUCTION',
-  customer: string = 'default',
+  customer = 'default',
   options: {
     comments?: string;
-  } = {}
+  } = {},
 ): Promise<MCPToolResponse> {
   try {
     const client = new AkamaiClient(customer);
@@ -279,7 +292,7 @@ export async function deactivateNetworkList(
     // First get the list details
     const listResponse = await client.request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
-      method: 'GET'
+      method: 'GET',
     });
 
     const list: NetworkList = listResponse;
@@ -288,19 +301,21 @@ export async function deactivateNetworkList(
     const currentStatus = network === 'PRODUCTION' ? list.productionStatus : list.stagingStatus;
     if (currentStatus !== 'ACTIVE') {
       return {
-        content: [{
-          type: 'text',
-          text: `ℹ️ Network list "${list.name}" is not currently active on ${network}`
-        }]
+        content: [
+          {
+            type: 'text',
+            text: `ℹ️ Network list "${list.name}" is not currently active on ${network}`,
+          },
+        ],
       };
     }
 
     const requestBody: any = {
       networkList: {
-        uniqueId: uniqueId
+        uniqueId: uniqueId,
       },
       network: network,
-      action: 'DEACTIVATE'
+      action: 'DEACTIVATE',
     };
 
     if (options.comments) {
@@ -310,7 +325,7 @@ export async function deactivateNetworkList(
     const response = await client.request({
       path: '/network-list/v2/network-lists/activations',
       method: 'POST',
-      body: requestBody
+      body: requestBody,
     });
 
     const activation: NetworkListActivation = response;
@@ -320,7 +335,7 @@ export async function deactivateNetworkList(
     output += `**Network:** ${network}\n`;
     output += `**Activation ID:** ${activation.activationId}\n`;
     output += `**Status:** ${formatActivationStatus(activation.status)}\n`;
-    
+
     if (options.comments) {
       output += `**Comments:** ${options.comments}\n`;
     }
@@ -329,19 +344,22 @@ export async function deactivateNetworkList(
     output += `Traffic that was previously blocked/allowed by this list will no longer be filtered.\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text: output
-      }]
+      content: [
+        {
+          type: 'text',
+          text: output,
+        },
+      ],
     };
-
   } catch (error) {
     const akamaiError = error as AkamaiError;
     return {
-      content: [{
-        type: 'text',
-        text: `Error deactivating network list: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Error deactivating network list: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+        },
+      ],
     };
   }
 }
@@ -354,13 +372,13 @@ export async function bulkActivateNetworkLists(
     uniqueId: string;
     network: 'STAGING' | 'PRODUCTION';
   }>,
-  customer: string = 'default',
+  customer = 'default',
   options: {
     comments?: string;
     notificationEmails?: string[];
     waitForCompletion?: boolean;
     maxWaitTime?: number; // in milliseconds
-  } = {}
+  } = {},
 ): Promise<MCPToolResponse> {
   try {
     const client = new AkamaiClient(customer);
@@ -374,9 +392,9 @@ export async function bulkActivateNetworkLists(
       try {
         const requestBody: any = {
           networkList: {
-            uniqueId: activation.uniqueId
+            uniqueId: activation.uniqueId,
           },
-          network: activation.network
+          network: activation.network,
         };
 
         if (options.comments) {
@@ -390,30 +408,29 @@ export async function bulkActivateNetworkLists(
         const response = await client.request({
           path: '/network-list/v2/network-lists/activations',
           method: 'POST',
-          body: requestBody
+          body: requestBody,
         });
 
         const activationResult: NetworkListActivation = response;
         results.push({
           uniqueId: activation.uniqueId,
-          activationId: activationResult.activationId
+          activationId: activationResult.activationId,
         });
 
         output += `✅ ${activation.uniqueId} → ${activation.network} (${activationResult.activationId})\n`;
-
       } catch (error) {
         const akamaiError = error as AkamaiError;
         results.push({
           uniqueId: activation.uniqueId,
-          error: akamaiError.title || akamaiError.detail || 'Unknown error'
+          error: akamaiError.title || akamaiError.detail || 'Unknown error',
         });
 
         output += `❌ ${activation.uniqueId} → ${activation.network} (Error: ${akamaiError.title})\n`;
       }
     }
 
-    const successful = results.filter(r => r.activationId).length;
-    const failed = results.filter(r => r.error).length;
+    const successful = results.filter((r) => r.activationId).length;
+    const failed = results.filter((r) => r.error).length;
 
     output += `\n**Summary:**\n`;
     output += `✅ Successful: ${successful}\n`;
@@ -426,19 +443,22 @@ export async function bulkActivateNetworkLists(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: output
-      }]
+      content: [
+        {
+          type: 'text',
+          text: output,
+        },
+      ],
     };
-
   } catch (error) {
     const akamaiError = error as AkamaiError;
     return {
-      content: [{
-        type: 'text',
-        text: `Error in bulk activation: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Error in bulk activation: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+        },
+      ],
     };
   }
 }

@@ -12,18 +12,18 @@
 export function formatContractDisplay(
   contractId: string | undefined,
   contractName?: string,
-  showRaw: boolean = false
+  showRaw = false,
 ): string {
   if (!contractId) return 'Unknown';
-  
+
   // Remove the 'ctr_' prefix for cleaner display
   const cleanId = contractId.replace(/^ctr_/, '');
-  
+
   if (contractName) {
     // If we have a name, show it prominently
     return showRaw ? `${contractName} (${contractId})` : contractName;
   }
-  
+
   // For contract IDs without names, show the clean version
   return showRaw ? `Contract ${cleanId} (${contractId})` : `Contract ${cleanId}`;
 }
@@ -36,13 +36,11 @@ export function formatContractDisplay(
  */
 export function formatContractList(
   contractIds: string[] | undefined,
-  contractMap?: Record<string, string>
+  contractMap?: Record<string, string>,
 ): string {
   if (!contractIds || contractIds.length === 0) return 'None';
-  
-  return contractIds.map(id => 
-    formatContractDisplay(id, contractMap?.[id])
-  ).join(', ');
+
+  return contractIds.map((id) => formatContractDisplay(id, contractMap?.[id])).join(', ');
 }
 
 /**
@@ -55,17 +53,17 @@ export function formatContractList(
 export function formatGroupDisplay(
   groupId: string | undefined,
   groupName?: string,
-  showRaw: boolean = false
+  showRaw = false,
 ): string {
   if (!groupId) return 'Unknown';
-  
+
   // Remove the 'grp_' prefix for cleaner display
   const cleanId = groupId.replace(/^grp_/, '');
-  
+
   if (groupName) {
     return showRaw ? `${groupName} (${groupId})` : groupName;
   }
-  
+
   return showRaw ? `Group ${cleanId} (${groupId})` : `Group ${cleanId}`;
 }
 
@@ -77,17 +75,17 @@ export function formatGroupDisplay(
  */
 export function formatPropertyDisplay(
   propertyId: string | undefined,
-  propertyName?: string
+  propertyName?: string,
 ): string {
   if (!propertyId) return 'Unknown';
-  
+
   // Remove the 'prp_' prefix for cleaner display
   const cleanId = propertyId.replace(/^prp_/, '');
-  
+
   if (propertyName) {
     return `${propertyName} (${cleanId})`;
   }
-  
+
   return `Property ${cleanId}`;
 }
 
@@ -97,19 +95,16 @@ export function formatPropertyDisplay(
  * @param cpcodeName - Optional CP Code name
  * @returns Formatted CP Code display string
  */
-export function formatCPCodeDisplay(
-  cpcodeId: string | undefined,
-  cpcodeName?: string
-): string {
+export function formatCPCodeDisplay(cpcodeId: string | undefined, cpcodeName?: string): string {
   if (!cpcodeId) return 'Unknown';
-  
+
   // Remove the 'cpc_' prefix - CP Codes are commonly referred by number only
   const cleanId = cpcodeId.replace(/^cpc_/, '');
-  
+
   if (cpcodeName) {
     return `${cpcodeName} (${cleanId})`;
   }
-  
+
   return cleanId; // CP Codes are typically just shown as numbers
 }
 
@@ -133,18 +128,23 @@ export function ensurePrefix(identifier: string, expectedPrefix: string): string
  */
 export function extractContractName(contractType?: string): string | undefined {
   if (!contractType) return undefined;
-  
+
   // Common contract type mappings
   const typeMap: Record<string, string> = {
-    'AKAMAI_INTERNAL': 'Internal',
-    'DIRECT_CUSTOMER': 'Direct',
-    'INDIRECT_CUSTOMER': 'Indirect',
-    'PARENT_CUSTOMER': 'Parent',
-    'OTHER': 'Other'
+    AKAMAI_INTERNAL: 'Internal',
+    DIRECT_CUSTOMER: 'Direct',
+    INDIRECT_CUSTOMER: 'Indirect',
+    PARENT_CUSTOMER: 'Parent',
+    OTHER: 'Other',
   };
-  
-  return typeMap[contractType] || contractType.replace(/_/g, ' ').toLowerCase()
-    .replace(/\b\w/g, l => l.toUpperCase());
+
+  return (
+    typeMap[contractType] ||
+    contractType
+      .replace(/_/g, ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, (l) => l.toUpperCase())
+  );
 }
 
 /**
@@ -153,7 +153,7 @@ export function extractContractName(contractType?: string): string | undefined {
  * @param indent - Number of spaces for indentation (default: 2)
  * @returns Formatted JSON string
  */
-export function formatJson(data: any, indent: number = 2): string {
+export function formatJson(data: any, indent = 2): string {
   return JSON.stringify(data, null, indent);
 }
 
@@ -163,21 +163,19 @@ export function formatJson(data: any, indent: number = 2): string {
  * @param columns - Optional column configuration
  * @returns Formatted table string
  */
-export function formatTable(data: any[], columns?: { key: string; header: string }[]): string {
+export function formatTable(data: any[], columns?: Array<{ key: string; header: string }>): string {
   if (!data || data.length === 0) return 'No data';
-  
+
   // If no columns specified, use all keys from first item
-  const keys = columns ? columns.map(c => c.key) : Object.keys(data[0]);
-  const headers = columns ? columns.map(c => c.header) : keys;
-  
+  const keys = columns ? columns.map((c) => c.key) : Object.keys(data[0]);
+  const headers = columns ? columns.map((c) => c.header) : keys;
+
   // Build simple table
   const rows = [
     headers.join(' | '),
-    headers.map(h => '-'.repeat(h.length)).join('-|-'),
-    ...data.map(item => 
-      keys.map(key => String(item[key] || '')).join(' | ')
-    )
+    headers.map((h) => '-'.repeat(h.length)).join('-|-'),
+    ...data.map((item) => keys.map((key) => String(item[key] || '')).join(' | ')),
   ];
-  
+
   return rows.join('\n');
 }

@@ -125,7 +125,16 @@ export interface PropertyActivation extends AkamaiBaseResponse {
   /** Network */
   network: 'PRODUCTION' | 'STAGING';
   /** Activation status */
-  status: 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'ZONE_1' | 'ZONE_2' | 'ZONE_3' | 'ABORTED' | 'FAILED' | 'DEACTIVATED';
+  status:
+    | 'ACTIVE'
+    | 'INACTIVE'
+    | 'PENDING'
+    | 'ZONE_1'
+    | 'ZONE_2'
+    | 'ZONE_3'
+    | 'ABORTED'
+    | 'FAILED'
+    | 'DEACTIVATED';
   /** Submission date */
   submitDate: string;
   /** Update date */

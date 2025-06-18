@@ -1,7 +1,7 @@
-import { EdgeGridClient } from '../utils/edgegrid-client';
-import { ResilienceManager, OperationType } from '../utils/resilience-manager';
-import { logger } from '../utils/logger';
-import { AkamaiError } from '../utils/errors';
+import { EdgeGridClient } from '@utils/edgegrid-client';
+import { ResilienceManager, OperationType } from '@utils/resilience-manager';
+import { logger } from '@utils/logger';
+import { AkamaiError } from '@utils/errors';
 
 // TypeScript interfaces for FastPurge API
 export interface FastPurgeRequest {
@@ -57,9 +57,9 @@ class TokenBucket {
   private readonly burstCapacity: number;
 
   constructor(
-    capacity: number = 100,
+    capacity = 100,
     refillRate: number = 100 / 60, // 100 per minute
-    burstCapacity: number = 50
+    burstCapacity = 50,
   ) {
     this.capacity = capacity;
     this.refillRate = refillRate;
@@ -68,9 +68,9 @@ class TokenBucket {
     this.lastRefill = Date.now();
   }
 
-  async consume(count: number = 1): Promise<boolean> {
+  async consume(count = 1): Promise<boolean> {
     this.refill();
-    
+
     if (count > this.burstCapacity) {
       return false;
     }
@@ -87,7 +87,7 @@ class TokenBucket {
     const now = Date.now();
     const elapsed = (now - this.lastRefill) / 1000;
     const tokensToAdd = elapsed * this.refillRate;
-    
+
     this.tokens = Math.min(this.capacity, this.tokens + tokensToAdd);
     this.lastRefill = now;
   }
@@ -103,7 +103,7 @@ export class FastPurgeService {
   private clients: Map<string, EdgeGridClient> = new Map();
   private resilienceManager: ResilienceManager;
   private rateLimiters: Map<string, TokenBucket> = new Map();
-  
+
   // Constants
   private readonly MAX_REQUEST_SIZE = 50 * 1024; // 50KB
   private readonly MAX_URLS_PER_REQUEST = 5000;
@@ -114,7 +114,7 @@ export class FastPurgeService {
   private constructor() {
     this.resilienceManager = ResilienceManager.getInstance();
   }
-  
+
   private getClient(customer: string): EdgeGridClient {
     if (!this.clients.has(customer)) {
       this.clients.set(customer, EdgeGridClient.getInstance(customer));
@@ -143,9 +143,11 @@ export class FastPurgeService {
 
     for (const obj of objects) {
       const objSize = Buffer.byteLength(obj, 'utf8');
-      
-      if (currentBatchSize + objSize > this.MAX_REQUEST_SIZE || 
-          currentBatchCount >= this.MAX_URLS_PER_REQUEST) {
+
+      if (
+        currentBatchSize + objSize > this.MAX_REQUEST_SIZE ||
+        currentBatchCount >= this.MAX_URLS_PER_REQUEST
+      ) {
         batches.push(currentBatchCount);
         currentBatchSize = objSize;
         currentBatchCount = 1;
@@ -165,7 +167,7 @@ export class FastPurgeService {
   private async executeWithRetry<T>(
     _customer: string,
     operation: () => Promise<T>,
-    context: string
+    context: string,
   ): Promise<T> {
     let lastError: Error | null = null;
     let delay = this.INITIAL_RETRY_DELAY;
@@ -174,7 +176,7 @@ export class FastPurgeService {
       try {
         return await this.resilienceManager.executeWithCircuitBreaker(
           OperationType.BULK_OPERATION,
-          operation
+          operation,
         );
       } catch (error: any) {
         lastError = error;
@@ -183,10 +185,10 @@ export class FastPurgeService {
         if (error.status === 429) {
           const retryAfter = parseInt(error.headers?.['retry-after'] || '0') * 1000;
           const waitTime = retryAfter || delay;
-          
+
           logger.warn(`Rate limited on ${context}. Waiting ${waitTime}ms`);
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-          
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
+
           delay = Math.min(delay * 2, this.MAX_RETRY_DELAY);
           continue;
         }
@@ -199,7 +201,7 @@ export class FastPurgeService {
         // Exponential backoff for other errors
         if (attempt < this.MAX_RETRIES - 1) {
           logger.warn(`Retry ${attempt + 1} for ${context} after ${delay}ms`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
           delay = Math.min(delay * 2, this.MAX_RETRY_DELAY);
         }
       }
@@ -212,10 +214,8 @@ export class FastPurgeService {
     return {
       limit: parseInt(headers?.['x-ratelimit-limit'] || '100'),
       remaining: parseInt(headers?.['x-ratelimit-remaining'] || '0'),
-      reset: headers?.['x-ratelimit-reset'] ? 
-        parseInt(headers['x-ratelimit-reset']) : undefined,
-      retryAfter: headers?.['retry-after'] ? 
-        parseInt(headers['retry-after']) : undefined
+      reset: headers?.['x-ratelimit-reset'] ? parseInt(headers['x-ratelimit-reset']) : undefined,
+      retryAfter: headers?.['retry-after'] ? parseInt(headers['retry-after']) : undefined,
     };
   }
 
@@ -225,25 +225,25 @@ export class FastPurgeService {
       throw new AkamaiError(
         `Invalid network: ${network}. Must be 'staging' or 'production'`,
         400,
-        'INVALID_NETWORK'
+        'INVALID_NETWORK',
       );
     }
-    return normalizedNetwork as 'staging' | 'production';
+    return normalizedNetwork;
   }
 
   async purgeByUrl(
     customer: string,
     network: string,
-    urls: string[]
+    urls: string[],
   ): Promise<FastPurgeResponse[]> {
     const validatedNetwork = this.validateNetwork(network);
     const rateLimiter = this.getRateLimiter(customer);
-    
-    if (!await rateLimiter.consume(1)) {
+
+    if (!(await rateLimiter.consume(1))) {
       throw new AkamaiError(
         'Rate limit exceeded. Please wait before making more requests.',
         429,
-        'RATE_LIMIT_EXCEEDED'
+        'RATE_LIMIT_EXCEEDED',
       );
     }
 
@@ -254,7 +254,7 @@ export class FastPurgeService {
 
     for (const batchSize of batchSizes) {
       const batch = urls.slice(processedCount, processedCount + batchSize);
-      
+
       try {
         const response = await this.executeWithRetry(
           customer,
@@ -263,19 +263,21 @@ export class FastPurgeService {
               method: 'POST',
               path: `/ccu/v3/invalidate/url/${validatedNetwork}`,
               body: {
-                objects: batch
+                objects: batch,
               },
               headers: {
-                'Content-Type': 'application/json'
-              }
+                'Content-Type': 'application/json',
+              },
             });
 
             const rateLimitInfo = this.parseRateLimitHeaders(result.headers);
-            logger.info(`FastPurge URL batch completed. Rate limit: ${rateLimitInfo.remaining}/${rateLimitInfo.limit}`);
+            logger.info(
+              `FastPurge URL batch completed. Rate limit: ${rateLimitInfo.remaining}/${rateLimitInfo.limit}`,
+            );
 
             return result;
           },
-          `FastPurge URL batch for ${customer}`
+          `FastPurge URL batch for ${customer}`,
         );
 
         responses.push({
@@ -286,13 +288,13 @@ export class FastPurgeService {
           httpStatus: response.data.httpStatus,
           purgedCount: batch.length,
           title: response.data.title,
-          pingAfterSeconds: response.data.pingAfterSeconds
+          pingAfterSeconds: response.data.pingAfterSeconds,
         });
 
         processedCount += batchSize;
       } catch (error: any) {
         logger.error(`Failed to purge URL batch: ${error.message}`);
-        
+
         // Handle RFC 7807 problem details
         if (error.response?.data?.type) {
           throw new AkamaiError(
@@ -303,11 +305,11 @@ export class FastPurgeService {
               type: error.response.data.type,
               supportId: error.response.data.supportId,
               instance: error.response.data.instance,
-              status: error.response.data.status
-            }
+              status: error.response.data.status,
+            },
           );
         }
-        
+
         throw error;
       }
     }
@@ -318,7 +320,7 @@ export class FastPurgeService {
   async purgeByCpCode(
     customer: string,
     network: string,
-    cpCodes: string[]
+    cpCodes: string[],
   ): Promise<FastPurgeResponse[]> {
     const validatedNetwork = this.validateNetwork(network);
     const rateLimiter = this.getRateLimiter(customer);
@@ -326,11 +328,11 @@ export class FastPurgeService {
     const responses: FastPurgeResponse[] = [];
 
     for (const cpCode of cpCodes) {
-      if (!await rateLimiter.consume(1)) {
+      if (!(await rateLimiter.consume(1))) {
         throw new AkamaiError(
           'Rate limit exceeded. Please wait before making more requests.',
           429,
-          'RATE_LIMIT_EXCEEDED'
+          'RATE_LIMIT_EXCEEDED',
         );
       }
 
@@ -342,19 +344,21 @@ export class FastPurgeService {
               method: 'POST',
               path: `/ccu/v3/invalidate/cpcode/${validatedNetwork}`,
               body: {
-                objects: [cpCode]
+                objects: [cpCode],
               },
               headers: {
-                'Content-Type': 'application/json'
-              }
+                'Content-Type': 'application/json',
+              },
             });
 
             const rateLimitInfo = this.parseRateLimitHeaders(result.headers);
-            logger.info(`FastPurge CP code completed. Rate limit: ${rateLimitInfo.remaining}/${rateLimitInfo.limit}`);
+            logger.info(
+              `FastPurge CP code completed. Rate limit: ${rateLimitInfo.remaining}/${rateLimitInfo.limit}`,
+            );
 
             return result;
           },
-          `FastPurge CP code ${cpCode} for ${customer}`
+          `FastPurge CP code ${cpCode} for ${customer}`,
         );
 
         responses.push({
@@ -365,11 +369,11 @@ export class FastPurgeService {
           httpStatus: response.data.httpStatus,
           purgedCount: 1,
           title: response.data.title,
-          pingAfterSeconds: response.data.pingAfterSeconds
+          pingAfterSeconds: response.data.pingAfterSeconds,
         });
       } catch (error: any) {
         logger.error(`Failed to purge CP code ${cpCode}: ${error.message}`);
-        
+
         if (error.response?.data?.type) {
           throw new AkamaiError(
             error.response.data.detail || error.response.data.title,
@@ -378,11 +382,11 @@ export class FastPurgeService {
             {
               type: error.response.data.type,
               supportId: error.response.data.supportId,
-              cpCode: cpCode
-            }
+              cpCode: cpCode,
+            },
           );
         }
-        
+
         throw error;
       }
     }
@@ -393,16 +397,16 @@ export class FastPurgeService {
   async purgeByCacheTag(
     customer: string,
     network: string,
-    tags: string[]
+    tags: string[],
   ): Promise<FastPurgeResponse[]> {
     const validatedNetwork = this.validateNetwork(network);
     const rateLimiter = this.getRateLimiter(customer);
-    
-    if (!await rateLimiter.consume(1)) {
+
+    if (!(await rateLimiter.consume(1))) {
       throw new AkamaiError(
         'Rate limit exceeded. Please wait before making more requests.',
         429,
-        'RATE_LIMIT_EXCEEDED'
+        'RATE_LIMIT_EXCEEDED',
       );
     }
 
@@ -413,7 +417,7 @@ export class FastPurgeService {
 
     for (const batchSize of batchSizes) {
       const batch = tags.slice(processedCount, processedCount + batchSize);
-      
+
       try {
         const response = await this.executeWithRetry(
           customer,
@@ -422,19 +426,21 @@ export class FastPurgeService {
               method: 'POST',
               path: `/ccu/v3/invalidate/tag/${validatedNetwork}`,
               body: {
-                objects: batch
+                objects: batch,
               },
               headers: {
-                'Content-Type': 'application/json'
-              }
+                'Content-Type': 'application/json',
+              },
             });
 
             const rateLimitInfo = this.parseRateLimitHeaders(result.headers);
-            logger.info(`FastPurge tag batch completed. Rate limit: ${rateLimitInfo.remaining}/${rateLimitInfo.limit}`);
+            logger.info(
+              `FastPurge tag batch completed. Rate limit: ${rateLimitInfo.remaining}/${rateLimitInfo.limit}`,
+            );
 
             return result;
           },
-          `FastPurge tag batch for ${customer}`
+          `FastPurge tag batch for ${customer}`,
         );
 
         responses.push({
@@ -445,13 +451,13 @@ export class FastPurgeService {
           httpStatus: response.data.httpStatus,
           purgedCount: batch.length,
           title: response.data.title,
-          pingAfterSeconds: response.data.pingAfterSeconds
+          pingAfterSeconds: response.data.pingAfterSeconds,
         });
 
         processedCount += batchSize;
       } catch (error: any) {
         logger.error(`Failed to purge tag batch: ${error.message}`);
-        
+
         if (error.response?.data?.type) {
           throw new AkamaiError(
             error.response.data.detail || error.response.data.title,
@@ -460,11 +466,11 @@ export class FastPurgeService {
             {
               type: error.response.data.type,
               supportId: error.response.data.supportId,
-              tags: batch
-            }
+              tags: batch,
+            },
           );
         }
-        
+
         throw error;
       }
     }
@@ -472,10 +478,7 @@ export class FastPurgeService {
     return responses;
   }
 
-  async checkPurgeStatus(
-    customer: string,
-    purgeId: string
-  ): Promise<PurgeStatus> {
+  async checkPurgeStatus(customer: string, purgeId: string): Promise<PurgeStatus> {
     const client = this.getClient(customer);
 
     try {
@@ -486,13 +489,13 @@ export class FastPurgeService {
             method: 'GET',
             path: `/ccu/v3/purges/${purgeId}`,
             headers: {
-              'Accept': 'application/json'
-            }
+              Accept: 'application/json',
+            },
           });
 
           return result;
         },
-        `Check purge status ${purgeId} for ${customer}`
+        `Check purge status ${purgeId} for ${customer}`,
       );
 
       return {
@@ -504,11 +507,11 @@ export class FastPurgeService {
         estimatedSeconds: response.data.estimatedSeconds,
         purgedCount: response.data.purgedCount || 0,
         supportId: response.data.supportId,
-        customer: customer
+        customer: customer,
       };
     } catch (error: any) {
       logger.error(`Failed to check purge status ${purgeId}: ${error.message}`);
-      
+
       if (error.response?.data?.type) {
         throw new AkamaiError(
           error.response.data.detail || error.response.data.title,
@@ -517,11 +520,11 @@ export class FastPurgeService {
           {
             type: error.response.data.type,
             supportId: error.response.data.supportId,
-            purgeId: purgeId
-          }
+            purgeId: purgeId,
+          },
         );
       }
-      
+
       throw error;
     }
   }
@@ -530,7 +533,7 @@ export class FastPurgeService {
     const rateLimiter = this.getRateLimiter(customer);
     return {
       available: rateLimiter.getAvailableTokens(),
-      capacity: 100
+      capacity: 100,
     };
   }
 
@@ -538,7 +541,7 @@ export class FastPurgeService {
   estimateCompletionTime(objects: string[]): number {
     const batchSizes = this.calculateBatchSize(objects);
     const batchCount = batchSizes.length;
-    
+
     // Akamai typically completes purges in ~5 seconds
     // Add buffer for multiple batches
     return 5 + (batchCount - 1) * 2;

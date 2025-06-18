@@ -3,7 +3,7 @@
  */
 
 import { z } from 'zod';
-import { NetworkEnvironment } from './config';
+import { type NetworkEnvironment } from './config';
 
 /**
  * Base MCP tool parameters
@@ -358,12 +358,12 @@ export interface ActivateSecurityConfigParams extends BaseMcpParams {
 export const ListPropertiesSchema = z.object({
   customer: z.string().optional(),
   contractId: z.string().optional(),
-  groupId: z.string().optional()
+  groupId: z.string().optional(),
 });
 
 export const GetPropertySchema = z.object({
   customer: z.string().optional(),
-  propertyId: z.string()
+  propertyId: z.string(),
 });
 
 export const CreatePropertySchema = z.object({
@@ -372,7 +372,7 @@ export const CreatePropertySchema = z.object({
   productId: z.string(),
   contractId: z.string(),
   groupId: z.string(),
-  ruleFormat: z.string().optional()
+  ruleFormat: z.string().optional(),
 });
 
 export const ActivatePropertySchema = z.object({
@@ -381,7 +381,7 @@ export const ActivatePropertySchema = z.object({
   version: z.number(),
   network: z.enum(['STAGING', 'PRODUCTION']),
   emails: z.array(z.string()).optional(),
-  note: z.string().optional()
+  note: z.string().optional(),
 });
 
 export const CreateZoneSchema = z.object({
@@ -390,7 +390,7 @@ export const CreateZoneSchema = z.object({
   type: z.enum(['PRIMARY', 'SECONDARY', 'ALIAS']),
   contractId: z.string(),
   comment: z.string().optional(),
-  signAndServe: z.boolean().optional()
+  signAndServe: z.boolean().optional(),
 });
 
 export const CreateRecordSchema = z.object({
@@ -399,13 +399,13 @@ export const CreateRecordSchema = z.object({
   name: z.string(),
   type: z.string(),
   ttl: z.number(),
-  rdata: z.array(z.string())
+  rdata: z.array(z.string()),
 });
 
 export const PurgeByUrlSchema = z.object({
   customer: z.string().optional(),
   urls: z.array(z.string()),
-  network: z.enum(['STAGING', 'PRODUCTION']).optional()
+  network: z.enum(['STAGING', 'PRODUCTION']).optional(),
 });
 
 export const CreateNetworkListSchema = z.object({
@@ -413,7 +413,7 @@ export const CreateNetworkListSchema = z.object({
   name: z.string(),
   type: z.enum(['IP', 'GEO']),
   description: z.string().optional(),
-  list: z.array(z.string()).optional()
+  list: z.array(z.string()).optional(),
 });
 
 /**

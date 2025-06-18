@@ -3,9 +3,9 @@
  * Comprehensive tools for managing PAPI includes - essential for modular property management
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { handleApiError } from '../utils/error-handling';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import { handleApiError } from '@utils/error-handling';
 
 /**
  * List available includes
@@ -17,25 +17,25 @@ export async function listIncludes(
     groupId: string;
     includeType?: 'MICROSERVICES' | 'COMMON_SETTINGS' | 'ALL';
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const params = new URLSearchParams({
       contractId: args.contractId,
-      groupId: args.groupId
+      groupId: args.groupId,
     });
-    
+
     if (args.includeType && args.includeType !== 'ALL') {
       params.append('includeType', args.includeType);
     }
 
     const response = await client.request({
       path: `/papi/v1/includes?${params.toString()}`,
-      method: 'GET'
+      method: 'GET',
     });
 
     const includes = response.includes?.items || [];
-    
+
     let responseText = `# Includes List\n\n`;
     responseText += `**Contract:** ${args.contractId}\n`;
     responseText += `**Group:** ${args.groupId}\n`;
@@ -47,7 +47,7 @@ export async function listIncludes(
     if (includes.length === 0) {
       responseText += `No includes found.\n`;
       return {
-        content: [{ type: 'text', text: responseText }]
+        content: [{ type: 'text', text: responseText }],
       };
     }
 
@@ -63,7 +63,7 @@ export async function listIncludes(
 
     for (const [type, typeIncludes] of Object.entries(groupedIncludes)) {
       responseText += `## ${type} Includes\n\n`;
-      
+
       (typeIncludes as any[]).forEach((include: any) => {
         responseText += `### ${include.includeName}\n`;
         responseText += `- **ID:** ${include.includeId}\n`;
@@ -91,7 +91,7 @@ export async function listIncludes(
     }
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'listing includes');
@@ -109,28 +109,30 @@ export async function getInclude(
     groupId: string;
     version?: number;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const params = new URLSearchParams({
       contractId: args.contractId,
-      groupId: args.groupId
+      groupId: args.groupId,
     });
 
     const versionPath = args.version ? `/versions/${args.version}` : '';
     const response = await client.request({
       path: `/papi/v1/includes/${args.includeId}${versionPath}?${params.toString()}`,
-      method: 'GET'
+      method: 'GET',
     });
 
     const include = response.includes?.items?.[0] || response.include;
-    
+
     if (!include) {
       return {
-        content: [{
-          type: 'text',
-          text: `Include ${args.includeId} not found.`
-        }]
+        content: [
+          {
+            type: 'text',
+            text: `Include ${args.includeId} not found.`,
+          },
+        ],
       };
     }
 
@@ -147,19 +149,19 @@ export async function getInclude(
     responseText += `**Group:** ${args.groupId}\n`;
     responseText += `**Created:** ${new Date(include.createdDate).toISOString()}\n`;
     responseText += `**Modified:** ${new Date(include.updatedDate).toISOString()}\n`;
-    
+
     if (include.ruleFormat) {
       responseText += `**Rule Format:** ${include.ruleFormat}\n`;
     }
-    
+
     if (include.productionVersion) {
       responseText += `**Production Version:** ${include.productionVersion}\n`;
     }
-    
+
     if (include.stagingVersion) {
       responseText += `**Staging Version:** ${include.stagingVersion}\n`;
     }
-    
+
     responseText += `\n`;
 
     // Include note if available
@@ -187,7 +189,7 @@ export async function getInclude(
     }
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'getting include details');
@@ -210,14 +212,14 @@ export async function createInclude(
       version: number;
     };
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const requestBody: any = {
       includeName: args.includeName,
       includeType: args.includeType,
       contractId: args.contractId,
-      groupId: args.groupId
+      groupId: args.groupId,
     };
 
     if (args.ruleFormat) {
@@ -231,7 +233,7 @@ export async function createInclude(
     const response = await client.request({
       path: '/papi/v1/includes',
       method: 'POST',
-      body: requestBody
+      body: requestBody,
     });
 
     const includeLink = response.includeLink;
@@ -243,15 +245,15 @@ export async function createInclude(
     responseText += `**Include ID:** ${includeId}\n`;
     responseText += `**Contract:** ${args.contractId}\n`;
     responseText += `**Group:** ${args.groupId}\n`;
-    
+
     if (args.ruleFormat) {
       responseText += `**Rule Format:** ${args.ruleFormat}\n`;
     }
-    
+
     if (args.cloneFrom) {
       responseText += `**Cloned From:** ${args.cloneFrom.includeId} v${args.cloneFrom.version}\n`;
     }
-    
+
     responseText += `**Created:** ${new Date().toISOString()}\n\n`;
 
     responseText += `## Next Steps\n\n`;
@@ -264,7 +266,7 @@ export async function createInclude(
     responseText += `Include Link: ${includeLink}\n`;
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'creating include');
@@ -284,17 +286,17 @@ export async function updateInclude(
     version?: number;
     note?: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const params = new URLSearchParams({
       contractId: args.contractId,
-      groupId: args.groupId
+      groupId: args.groupId,
     });
 
     const versionPath = args.version ? `/versions/${args.version}` : '';
     const requestBody: any = {
-      rules: args.rules
+      rules: args.rules,
     };
 
     if (args.note) {
@@ -304,7 +306,7 @@ export async function updateInclude(
     await client.request({
       path: `/papi/v1/includes/${args.includeId}${versionPath}/rules?${params.toString()}`,
       method: 'PUT',
-      body: requestBody
+      body: requestBody,
     });
 
     let responseText = `# Include Updated Successfully\n\n`;
@@ -315,11 +317,11 @@ export async function updateInclude(
     responseText += `**Contract:** ${args.contractId}\n`;
     responseText += `**Group:** ${args.groupId}\n`;
     responseText += `**Updated:** ${new Date().toISOString()}\n`;
-    
+
     if (args.note) {
       responseText += `**Note:** ${args.note}\n`;
     }
-    
+
     responseText += `\n`;
 
     // Rules summary
@@ -336,7 +338,7 @@ export async function updateInclude(
     responseText += `4. **Activate:** Deploy to production when ready\n`;
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'updating include');
@@ -355,20 +357,20 @@ export async function createIncludeVersion(
     baseVersion?: number;
     note?: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const params = new URLSearchParams({
       contractId: args.contractId,
-      groupId: args.groupId
+      groupId: args.groupId,
     });
 
     const requestBody: any = {};
-    
+
     if (args.baseVersion) {
       requestBody.createFromVersion = args.baseVersion;
     }
-    
+
     if (args.note) {
       requestBody.note = args.note;
     }
@@ -376,7 +378,7 @@ export async function createIncludeVersion(
     const response = await client.request({
       path: `/papi/v1/includes/${args.includeId}/versions?${params.toString()}`,
       method: 'POST',
-      body: requestBody
+      body: requestBody,
     });
 
     const versionLink = response.versionLink;
@@ -391,11 +393,11 @@ export async function createIncludeVersion(
     responseText += `**Contract:** ${args.contractId}\n`;
     responseText += `**Group:** ${args.groupId}\n`;
     responseText += `**Created:** ${new Date().toISOString()}\n`;
-    
+
     if (args.note) {
       responseText += `**Note:** ${args.note}\n`;
     }
-    
+
     responseText += `\n`;
 
     responseText += `## Version Information\n\n`;
@@ -407,7 +409,7 @@ export async function createIncludeVersion(
     responseText += `3. **Activate:** Deploy to staging/production\n`;
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'creating include version');
@@ -429,13 +431,13 @@ export async function activateInclude(
     notifyEmails?: string[];
     acknowledgeAllWarnings?: boolean;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const requestBody: any = {
       network: args.network,
       note: args.note || `Activating include ${args.includeId} v${args.version} to ${args.network}`,
-      acknowledgeAllWarnings: args.acknowledgeAllWarnings || false
+      acknowledgeAllWarnings: args.acknowledgeAllWarnings || false,
     };
 
     if (args.notifyEmails && args.notifyEmails.length > 0) {
@@ -444,13 +446,13 @@ export async function activateInclude(
 
     const params = new URLSearchParams({
       contractId: args.contractId,
-      groupId: args.groupId
+      groupId: args.groupId,
     });
 
     const response = await client.request({
       path: `/papi/v1/includes/${args.includeId}/versions/${args.version}/activations?${params.toString()}`,
       method: 'POST',
-      body: requestBody
+      body: requestBody,
     });
 
     const activationLink = response.activationLink;
@@ -464,15 +466,15 @@ export async function activateInclude(
     responseText += `**Contract:** ${args.contractId}\n`;
     responseText += `**Group:** ${args.groupId}\n`;
     responseText += `**Initiated:** ${new Date().toISOString()}\n`;
-    
+
     if (args.note) {
       responseText += `**Note:** ${args.note}\n`;
     }
-    
+
     if (args.notifyEmails) {
       responseText += `**Notifications:** ${args.notifyEmails.join(', ')}\n`;
     }
-    
+
     responseText += `\n`;
 
     responseText += `## Activation Details\n\n`;
@@ -493,7 +495,7 @@ export async function activateInclude(
     responseText += `- You will receive email notifications when activation completes\n`;
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'activating include');
@@ -511,27 +513,29 @@ export async function getIncludeActivationStatus(
     contractId: string;
     groupId: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const params = new URLSearchParams({
       contractId: args.contractId,
-      groupId: args.groupId
+      groupId: args.groupId,
     });
 
     const response = await client.request({
       path: `/papi/v1/includes/${args.includeId}/activations/${args.activationId}?${params.toString()}`,
-      method: 'GET'
+      method: 'GET',
     });
 
     const activation = response.activations?.items?.[0];
-    
+
     if (!activation) {
       return {
-        content: [{
-          type: 'text',
-          text: `Activation ${args.activationId} not found for include ${args.includeId}.`
-        }]
+        content: [
+          {
+            type: 'text',
+            text: `Activation ${args.activationId} not found for include ${args.includeId}.`,
+          },
+        ],
       };
     }
 
@@ -542,15 +546,15 @@ export async function getIncludeActivationStatus(
     responseText += `**Network:** ${activation.network}\n`;
     responseText += `**Status:** ${activation.status}\n`;
     responseText += `**Submitted:** ${new Date(activation.submitDate).toISOString()}\n`;
-    
+
     if (activation.updateDate) {
       responseText += `**Last Updated:** ${new Date(activation.updateDate).toISOString()}\n`;
     }
-    
+
     if (activation.note) {
       responseText += `**Note:** ${activation.note}\n`;
     }
-    
+
     responseText += `\n`;
 
     // Status-specific information
@@ -597,7 +601,7 @@ export async function getIncludeActivationStatus(
     }
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'getting include activation status');
@@ -614,17 +618,17 @@ export async function listIncludeActivations(
     contractId: string;
     groupId: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const params = new URLSearchParams({
       contractId: args.contractId,
-      groupId: args.groupId
+      groupId: args.groupId,
     });
 
     const response = await client.request({
       path: `/papi/v1/includes/${args.includeId}/activations?${params.toString()}`,
-      method: 'GET'
+      method: 'GET',
     });
 
     const activations = response.activations?.items || [];
@@ -638,7 +642,7 @@ export async function listIncludeActivations(
     if (activations.length === 0) {
       responseText += `No activations found for this include.\n`;
       return {
-        content: [{ type: 'text', text: responseText }]
+        content: [{ type: 'text', text: responseText }],
       };
     }
 
@@ -649,10 +653,15 @@ export async function listIncludeActivations(
     if (stagingActivations.length > 0) {
       responseText += `## Staging Activations\n\n`;
       stagingActivations.forEach((activation: any) => {
-        const statusIcon = activation.status === 'ACTIVE' ? '✅' : 
-                          activation.status === 'PENDING' ? '⏳' : 
-                          activation.status === 'FAILED' ? '❌' : '❓';
-        
+        const statusIcon =
+          activation.status === 'ACTIVE'
+            ? '✅'
+            : activation.status === 'PENDING'
+              ? '⏳'
+              : activation.status === 'FAILED'
+                ? '❌'
+                : '❓';
+
         responseText += `### ${statusIcon} Version ${activation.includeVersion}\n`;
         responseText += `- **Activation ID:** ${activation.activationId}\n`;
         responseText += `- **Status:** ${activation.status}\n`;
@@ -670,10 +679,15 @@ export async function listIncludeActivations(
     if (productionActivations.length > 0) {
       responseText += `## Production Activations\n\n`;
       productionActivations.forEach((activation: any) => {
-        const statusIcon = activation.status === 'ACTIVE' ? '✅' : 
-                          activation.status === 'PENDING' ? '⏳' : 
-                          activation.status === 'FAILED' ? '❌' : '❓';
-        
+        const statusIcon =
+          activation.status === 'ACTIVE'
+            ? '✅'
+            : activation.status === 'PENDING'
+              ? '⏳'
+              : activation.status === 'FAILED'
+                ? '❌'
+                : '❓';
+
         responseText += `### ${statusIcon} Version ${activation.includeVersion}\n`;
         responseText += `- **Activation ID:** ${activation.activationId}\n`;
         responseText += `- **Status:** ${activation.status}\n`;
@@ -689,7 +703,7 @@ export async function listIncludeActivations(
     }
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'listing include activations');

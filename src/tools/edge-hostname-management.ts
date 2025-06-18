@@ -3,9 +3,9 @@
  * Comprehensive edge hostname creation, management, and intelligent recommendations
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { ErrorTranslator } from '../utils/errors';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import { ErrorTranslator } from '@utils/errors';
 
 // Edge Hostname Types
 export interface EdgeHostnameConfig {
@@ -93,16 +93,16 @@ export async function createEdgeHostnameEnhanced(
     ipVersion?: 'IPV4' | 'IPV6' | 'IPV4_IPV6';
     certificateEnrollmentId?: number;
     useCases?: EdgeHostnameUseCase[];
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     // Determine contract and group
     let contractId = args.contractId;
     let groupId = args.groupId;
     let productId = args.productId;
-    
+
     if (!contractId || !groupId) {
       if (args.propertyId) {
         // Get from property
@@ -110,12 +110,12 @@ export async function createEdgeHostnameEnhanced(
           path: `/papi/v1/properties/${args.propertyId}`,
           method: 'GET',
         });
-        
+
         const property = propertyResponse.properties?.items?.[0];
         if (!property) {
           throw new Error('Property not found');
         }
-        
+
         contractId = contractId || property.contractId;
         groupId = groupId || property.groupId;
         productId = productId || property.productId;
@@ -125,17 +125,18 @@ export async function createEdgeHostnameEnhanced(
     }
 
     // Intelligent defaults
-    const domainSuffix = args.domainSuffix || determineOptimalSuffix(args.domainPrefix, args.secure);
+    const domainSuffix =
+      args.domainSuffix || determineOptimalSuffix(args.domainPrefix, args.secure);
     const secure = args.secure !== false || domainSuffix === '.edgekey.net';
     const ipVersion = args.ipVersion || 'IPV4_IPV6'; // Default to dual-stack
-    
+
     // Default use cases
     const useCases = args.useCases || [
       {
         useCase: 'Download_Mode',
         option: 'BACKGROUND',
-        type: 'GLOBAL'
-      }
+        type: 'GLOBAL',
+      },
     ];
 
     // Create edge hostname
@@ -173,16 +174,16 @@ export async function createEdgeHostnameEnhanced(
     responseText += `**Type:** ${secure ? '🔒 Enhanced TLS (HTTPS)' : '🔓 Standard (HTTP)'}\n`;
     responseText += `**Network:** ${domainSuffix}\n`;
     responseText += `**IP Version:** ${ipVersion}\n`;
-    
+
     if (args.certificateEnrollmentId) {
       responseText += `**Certificate Enrollment:** ${args.certificateEnrollmentId}\n`;
     }
-    
+
     responseText += `\n## Technical Details\n`;
     responseText += `- **Contract:** ${contractId}\n`;
     responseText += `- **Group:** ${groupId}\n`;
     responseText += `- **Product:** ${productId || 'prd_Ion'}\n`;
-    
+
     if (response.mapDetails) {
       responseText += `- **Serial Number:** ${response.mapDetails.serialNumber}\n`;
       responseText += `- **Slot Number:** ${response.mapDetails.slotNumber}\n`;
@@ -213,21 +214,25 @@ export async function createEdgeHostnameEnhanced(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'create edge hostname',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'create edge hostname',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -237,10 +242,10 @@ export async function createEdgeHostnameEnhanced(
  */
 export async function createBulkEdgeHostnames(
   client: AkamaiClient,
-  args: BulkEdgeHostnameRequest
+  args: BulkEdgeHostnameRequest,
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     const results = {
       successful: [] as Array<{ hostname: string; edgeHostname: string; edgeHostnameId: string }>,
@@ -252,7 +257,7 @@ export async function createBulkEdgeHostnames(
       try {
         // Generate edge hostname prefix
         const prefix = generateEdgeHostnamePrefix(hostname);
-        
+
         // Create edge hostname
         const response = await client.request({
           path: '/papi/v1/edgehostnames',
@@ -278,8 +283,8 @@ export async function createBulkEdgeHostnames(
               {
                 useCase: 'Download_Mode',
                 option: 'BACKGROUND',
-                type: 'GLOBAL'
-              }
+                type: 'GLOBAL',
+              },
             ],
           },
         });
@@ -312,8 +317,8 @@ export async function createBulkEdgeHostnames(
       responseText += `## ✅ Successfully Created (${results.successful.length})\n`;
       responseText += `| Hostname | Edge Hostname | ID |\n`;
       responseText += `|----------|---------------|----|\n`;
-      
-      results.successful.forEach(result => {
+
+      results.successful.forEach((result) => {
         responseText += `| ${result.hostname} | ${result.edgeHostname} | ${result.edgeHostnameId} |\n`;
       });
       responseText += '\n';
@@ -321,7 +326,7 @@ export async function createBulkEdgeHostnames(
 
     if (results.failed.length > 0) {
       responseText += `## ❌ Failed Creations (${results.failed.length})\n`;
-      results.failed.forEach(result => {
+      results.failed.forEach((result) => {
         responseText += `- **${result.hostname}**: ${result.error}\n`;
       });
       responseText += '\n';
@@ -330,7 +335,7 @@ export async function createBulkEdgeHostnames(
     responseText += `## DNS Configuration Required\n`;
     responseText += `Configure CNAME records for each hostname:\n\n`;
     responseText += `\`\`\`\n`;
-    results.successful.forEach(result => {
+    results.successful.forEach((result) => {
       responseText += `${result.hostname}  CNAME  ${result.edgeHostname}\n`;
     });
     responseText += `\`\`\`\n\n`;
@@ -342,21 +347,25 @@ export async function createBulkEdgeHostnames(
     responseText += `4. Activate properties to staging\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'create bulk edge hostnames',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'create bulk edge hostnames',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -371,36 +380,39 @@ export async function getEdgeHostnameDetails(
     edgeHostnameDomain?: string;
     contractId?: string;
     groupId?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     let edgeHostnameId = args.edgeHostnameId;
-    
+
     // If domain provided instead of ID, find the ID
     if (!edgeHostnameId && args.edgeHostnameDomain) {
       const queryParams: any = {};
       if (args.contractId) queryParams.contractId = args.contractId;
       if (args.groupId) queryParams.groupId = args.groupId;
-      
+
       const listResponse = await client.request({
         path: '/papi/v1/edgehostnames',
         method: 'GET',
         queryParams,
       });
 
-      const found = listResponse.edgeHostnames?.items?.find((eh: any) => 
-        eh.edgeHostnameDomain === args.edgeHostnameDomain ||
-        `${eh.domainPrefix}.${eh.domainSuffix}` === args.edgeHostnameDomain
+      const found = listResponse.edgeHostnames?.items?.find(
+        (eh: any) =>
+          eh.edgeHostnameDomain === args.edgeHostnameDomain ||
+          `${eh.domainPrefix}.${eh.domainSuffix}` === args.edgeHostnameDomain,
       );
 
       if (!found) {
         return {
-          content: [{
-            type: 'text',
-            text: `❌ Edge hostname "${args.edgeHostnameDomain}" not found.\n\nTip: Use "List edge hostnames" to see available edge hostnames.`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `❌ Edge hostname "${args.edgeHostnameDomain}" not found.\n\nTip: Use "List edge hostnames" to see available edge hostnames.`,
+            },
+          ],
         };
       }
 
@@ -428,7 +440,7 @@ export async function getEdgeHostnameDetails(
     // Format response
     let responseText = `# Edge Hostname Details\n\n`;
     responseText += `## ${eh.edgeHostnameDomain || `${eh.domainPrefix}.${eh.domainSuffix}`}\n\n`;
-    
+
     responseText += `### Basic Information\n`;
     responseText += `- **Edge Hostname ID:** ${eh.edgeHostnameId}\n`;
     responseText += `- **Domain:** ${eh.edgeHostnameDomain || `${eh.domainPrefix}.${eh.domainSuffix}`}\n`;
@@ -476,12 +488,13 @@ export async function getEdgeHostnameDetails(
           path: `/papi/v1/properties/${prop.propertyId}/versions/${prop.latestVersion}/hostnames`,
           method: 'GET',
         });
-        
-        const usesThisEdgeHostname = hostnamesResponse.hostnames?.items?.some((h: any) => 
-          h.cnameTo === eh.edgeHostnameDomain || 
-          h.cnameTo === `${eh.domainPrefix}.${eh.domainSuffix}`
+
+        const usesThisEdgeHostname = hostnamesResponse.hostnames?.items?.some(
+          (h: any) =>
+            h.cnameTo === eh.edgeHostnameDomain ||
+            h.cnameTo === `${eh.domainPrefix}.${eh.domainSuffix}`,
         );
-        
+
         if (usesThisEdgeHostname) {
           usingProperties.push(`${prop.propertyName} (${prop.propertyId})`);
         }
@@ -492,7 +505,7 @@ export async function getEdgeHostnameDetails(
 
     if (usingProperties.length > 0) {
       responseText += `### Properties Using This Edge Hostname\n`;
-      usingProperties.forEach(prop => {
+      usingProperties.forEach((prop) => {
         responseText += `- ${prop}\n`;
       });
       responseText += '\n';
@@ -512,21 +525,25 @@ export async function getEdgeHostnameDetails(
     responseText += `- List all edge hostnames: \`List edge hostnames\`\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'get edge hostname details',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'get edge hostname details',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -542,31 +559,34 @@ export async function generateEdgeHostnameRecommendations(
     securityRequirement?: 'standard' | 'enhanced' | 'maximum';
     performanceRequirement?: 'standard' | 'optimized' | 'maximum';
     geographicScope?: 'global' | 'regional' | 'china';
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     const recommendations: EdgeHostnameRecommendation[] = [];
-    
+
     for (const hostname of args.hostnames) {
       const recommendation = generateSingleHostnameRecommendation(
         hostname,
         args.purpose,
         args.securityRequirement,
         args.performanceRequirement,
-        args.geographicScope
+        args.geographicScope,
       );
       recommendations.push(recommendation);
     }
 
     // Group recommendations by strategy
-    const byStrategy = recommendations.reduce((acc, rec) => {
-      const key = `${rec.recommendedSuffix}-${rec.secure}`;
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(rec);
-      return acc;
-    }, {} as Record<string, EdgeHostnameRecommendation[]>);
+    const byStrategy = recommendations.reduce(
+      (acc, rec) => {
+        const key = `${rec.recommendedSuffix}-${rec.secure}`;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(rec);
+        return acc;
+      },
+      {} as Record<string, EdgeHostnameRecommendation[]>,
+    );
 
     // Format response
     let responseText = `# Edge Hostname Recommendations\n\n`;
@@ -586,20 +606,20 @@ export async function generateEdgeHostnameRecommendations(
 
     // Detailed recommendations
     responseText += `## Detailed Recommendations\n\n`;
-    
+
     // Group by suffix for better organization
     const suffixGroups = {
-      '.edgekey.net': recommendations.filter(r => r.recommendedSuffix === '.edgekey.net'),
-      '.edgesuite.net': recommendations.filter(r => r.recommendedSuffix === '.edgesuite.net'),
-      '.akamaized.net': recommendations.filter(r => r.recommendedSuffix === '.akamaized.net'),
+      '.edgekey.net': recommendations.filter((r) => r.recommendedSuffix === '.edgekey.net'),
+      '.edgesuite.net': recommendations.filter((r) => r.recommendedSuffix === '.edgesuite.net'),
+      '.akamaized.net': recommendations.filter((r) => r.recommendedSuffix === '.akamaized.net'),
     };
 
     Object.entries(suffixGroups).forEach(([suffix, recs]) => {
       if (recs.length === 0) return;
-      
+
       responseText += `### ${suffix} (${recs.length} hostnames)\n\n`;
-      
-      recs.forEach(rec => {
+
+      recs.forEach((rec) => {
         responseText += `#### ${rec.hostname}\n`;
         responseText += `- **Edge Hostname:** \`${rec.recommendedPrefix}${rec.recommendedSuffix}\`\n`;
         responseText += `- **Secure:** ${rec.secure ? '🔒 Yes' : '🔓 No'}\n`;
@@ -615,27 +635,30 @@ export async function generateEdgeHostnameRecommendations(
 
     // Cost optimization summary
     responseText += `## Cost Optimization\n`;
-    const secureCount = recommendations.filter(r => r.secure).length;
+    const secureCount = recommendations.filter((r) => r.secure).length;
     const nonSecureCount = recommendations.length - secureCount;
-    
+
     responseText += `- **Secure Edge Hostnames:** ${secureCount}\n`;
     responseText += `- **Non-Secure Edge Hostnames:** ${nonSecureCount}\n`;
-    
+
     if (nonSecureCount > 0 && args.securityRequirement !== 'maximum') {
       responseText += `\n💡 **Cost Saving Tip:** Using non-secure edge hostnames for static content can reduce costs.\n`;
     }
-    
+
     // Certificate strategy summary
-    const certStrategies = recommendations.reduce((acc, rec) => {
-      acc[rec.certificateStrategy] = (acc[rec.certificateStrategy] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    
+    const certStrategies = recommendations.reduce(
+      (acc, rec) => {
+        acc[rec.certificateStrategy] = (acc[rec.certificateStrategy] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
     responseText += `\n## Certificate Strategy\n`;
     Object.entries(certStrategies).forEach(([strategy, count]) => {
       responseText += `- **${strategy}**: ${count} hostnames\n`;
     });
-    
+
     if (certStrategies['DEFAULT_DV'] && certStrategies['DEFAULT_DV'] > 0) {
       responseText += `\n✅ **DefaultDV Recommended:** Fastest deployment with automatic certificate provisioning.\n`;
     }
@@ -645,7 +668,7 @@ export async function generateEdgeHostnameRecommendations(
     responseText += `### Bulk Creation Script\n`;
     responseText += `\`\`\`bash\n`;
     responseText += `# Create all recommended edge hostnames\n`;
-    recommendations.slice(0, 5).forEach(rec => {
+    recommendations.slice(0, 5).forEach((rec) => {
       responseText += `akamai edge-hostname create \\\n`;
       responseText += `  --prefix "${rec.recommendedPrefix}" \\\n`;
       responseText += `  --suffix "${rec.recommendedSuffix}" \\\n`;
@@ -664,21 +687,25 @@ export async function generateEdgeHostnameRecommendations(
     responseText += `4. Update DNS records to point to the new edge hostnames\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'generate edge hostname recommendations',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'generate edge hostname recommendations',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -691,10 +718,10 @@ export async function validateEdgeHostnameCertificate(
   args: {
     edgeHostnameId: string;
     hostname?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     // Get edge hostname details
     const ehResponse = await client.request({
@@ -717,29 +744,31 @@ export async function validateEdgeHostnameCertificate(
     if (!eh.secure) {
       responseText += `## ℹ️ Non-Secure Edge Hostname\n`;
       responseText += `This edge hostname is configured for HTTP-only traffic and does not require a certificate.\n`;
-      
+
       return {
-        content: [{
-          type: 'text',
-          text: responseText,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: responseText,
+          },
+        ],
       };
     }
 
     responseText += `## Certificate Status\n`;
-    
+
     if (eh.certEnrollmentId) {
       responseText += `✅ **Certificate Associated**\n`;
       responseText += `- **Enrollment ID:** ${eh.certEnrollmentId}\n`;
       responseText += `- **Status:** ${eh.certStatus || 'Unknown'}\n\n`;
-      
+
       // Try to get more certificate details
       try {
         const certResponse = await client.request({
           path: `/cps/v2/enrollments/${eh.certEnrollmentId}`,
           method: 'GET',
         });
-        
+
         if (certResponse) {
           responseText += `### Certificate Details\n`;
           responseText += `- **Common Name:** ${certResponse.cn || 'N/A'}\n`;
@@ -757,7 +786,7 @@ export async function validateEdgeHostnameCertificate(
       responseText += `1. Create a certificate enrollment\n`;
       responseText += `2. Complete domain validation\n`;
       responseText += `3. Associate the certificate with this edge hostname\n\n`;
-      
+
       responseText += `### Certificate Options\n`;
       responseText += `- **DefaultDV (Recommended):** Automatic DV certificate from Let's Encrypt\n`;
       responseText += `- **CPS Standard:** Akamai-managed DV certificate\n`;
@@ -767,7 +796,7 @@ export async function validateEdgeHostnameCertificate(
     if (args.hostname) {
       responseText += `## Hostname Coverage Check\n`;
       responseText += `**Hostname:** ${args.hostname}\n`;
-      
+
       if (eh.certEnrollmentId) {
         // Check if hostname would be covered
         responseText += `⚠️ **Note:** Certificate coverage verification requires checking the certificate's CN and SANs.\n`;
@@ -794,21 +823,25 @@ export async function validateEdgeHostnameCertificate(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'validate edge hostname certificate',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'validate edge hostname certificate',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -821,10 +854,10 @@ export async function associateCertificateWithEdgeHostname(
   args: {
     edgeHostnameId: string;
     certificateEnrollmentId: number;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     // Update edge hostname with certificate
     await client.request({
@@ -868,47 +901,62 @@ export async function associateCertificateWithEdgeHostname(
     responseText += `- Ensure DNS records point to this edge hostname\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'associate certificate with edge hostname',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'associate certificate with edge hostname',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
 
 // Helper Functions
 
-function determineOptimalSuffix(domainPrefix: string, secure?: boolean): '.edgekey.net' | '.edgesuite.net' | '.akamaized.net' {
+function determineOptimalSuffix(
+  domainPrefix: string,
+  secure?: boolean,
+): '.edgekey.net' | '.edgesuite.net' | '.akamaized.net' {
   // If explicitly secure, use edgekey
   if (secure === true) {
     return '.edgekey.net';
   }
-  
+
   // If explicitly not secure, use edgesuite
   if (secure === false) {
     return '.edgesuite.net';
   }
-  
+
   // Otherwise, make intelligent decision based on prefix
-  if (domainPrefix.includes('api') || domainPrefix.includes('secure') || domainPrefix.includes('auth')) {
+  if (
+    domainPrefix.includes('api') ||
+    domainPrefix.includes('secure') ||
+    domainPrefix.includes('auth')
+  ) {
     return '.edgekey.net';
   }
-  
-  if (domainPrefix.includes('static') || domainPrefix.includes('cdn') || domainPrefix.includes('assets')) {
+
+  if (
+    domainPrefix.includes('static') ||
+    domainPrefix.includes('cdn') ||
+    domainPrefix.includes('assets')
+  ) {
     return '.edgesuite.net';
   }
-  
+
   // Default to edgekey for better security
   return '.edgekey.net';
 }
@@ -916,16 +964,16 @@ function determineOptimalSuffix(domainPrefix: string, secure?: boolean): '.edgek
 function generateEdgeHostnamePrefix(hostname: string): string {
   // Remove common prefixes and domain
   let prefix = hostname;
-  
+
   // Remove www. if present
   if (prefix.startsWith('www.')) {
     prefix = prefix.substring(4);
   }
-  
+
   // For subdomains, keep the full structure
   // e.g., api.example.com -> api.example.com
   // e.g., secure.api.example.com -> secure.api.example.com
-  
+
   return prefix;
 }
 
@@ -934,42 +982,46 @@ function generateSingleHostnameRecommendation(
   purpose?: string,
   securityRequirement?: string,
   performanceRequirement?: string,
-  geographicScope?: string
+  geographicScope?: string,
 ): EdgeHostnameRecommendation {
   const prefix = generateEdgeHostnamePrefix(hostname);
-  
+
   // Determine security needs
   let secure = true;
   let certificateStrategy: 'DEFAULT_DV' | 'CPS' | 'SHARED_CERT' = 'DEFAULT_DV';
-  
-  if (securityRequirement === 'standard' && !hostname.includes('api') && !hostname.includes('auth')) {
+
+  if (
+    securityRequirement === 'standard' &&
+    !hostname.includes('api') &&
+    !hostname.includes('auth')
+  ) {
     secure = false;
   } else if (securityRequirement === 'maximum') {
     certificateStrategy = 'CPS';
   }
-  
+
   // Determine suffix based on requirements
   let suffix: '.edgekey.net' | '.edgesuite.net' | '.akamaized.net' = '.edgekey.net';
-  
+
   if (geographicScope === 'china') {
     suffix = '.akamaized.net';
   } else if (!secure && performanceRequirement !== 'maximum') {
     suffix = '.edgesuite.net';
   }
-  
+
   // Determine IP version
   let ipVersion: 'IPV4' | 'IPV6' | 'IPV4_IPV6' = 'IPV4_IPV6';
   if (purpose === 'api' || performanceRequirement === 'maximum') {
     ipVersion = 'IPV4_IPV6';
   }
-  
+
   // Generate rationale
   const rationales = [];
-  
+
   if (hostname.includes('api')) {
     rationales.push('API endpoint requires secure delivery');
   }
-  
+
   if (suffix === '.edgekey.net') {
     rationales.push('Enhanced TLS network for optimal security and performance');
   } else if (suffix === '.edgesuite.net') {
@@ -977,17 +1029,17 @@ function generateSingleHostnameRecommendation(
   } else if (suffix === '.akamaized.net') {
     rationales.push('China-optimized network for regional performance');
   }
-  
+
   if (ipVersion === 'IPV4_IPV6') {
     rationales.push('Dual-stack support for maximum compatibility');
   }
-  
+
   // Estimate cost
   let estimatedCost = secure ? 'Standard SSL pricing' : 'No SSL cost';
   if (certificateStrategy === 'CPS') {
     estimatedCost = 'Premium SSL pricing';
   }
-  
+
   return {
     hostname,
     recommendedPrefix: prefix,

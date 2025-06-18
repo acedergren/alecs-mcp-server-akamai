@@ -1,6 +1,6 @@
-import { EdgeGridClient } from '../utils/edgegrid-client';
-import { logger } from '../utils/logger';
-import { PerformanceMonitor } from '../utils/performance-monitor';
+import { EdgeGridClient } from '@utils/edgegrid-client';
+import { logger } from '@utils/logger';
+import { PerformanceMonitor } from '@utils/performance-monitor';
 import { EventEmitter } from 'events';
 
 export interface RealTimeMetric {
@@ -51,19 +51,19 @@ export interface MonitoringConfiguration {
 
 export interface HealthStatus {
   overall: 'healthy' | 'warning' | 'critical' | 'unknown';
-  services: {
+  services: Array<{
     name: string;
     status: 'healthy' | 'warning' | 'critical' | 'unknown';
     lastCheck: string;
     responseTime?: number;
     details?: string;
-  }[];
-  metrics: {
+  }>;
+  metrics: Array<{
     name: string;
     value: number;
     status: 'normal' | 'warning' | 'critical';
     threshold?: number;
-  }[];
+  }>;
   activeAlerts: number;
   lastUpdate: string;
 }
@@ -77,13 +77,13 @@ export class RealTimeMonitoringService extends EventEmitter {
   private metricHistory: Map<string, RealTimeMetric[]> = new Map();
   private monitoringInterval?: NodeJS.Timeout;
   private alertInterval?: NodeJS.Timeout;
-  private isMonitoring: boolean = false;
+  private isMonitoring = false;
 
-  constructor(customer: string = 'default', config?: Partial<MonitoringConfiguration>) {
+  constructor(customer = 'default', config?: Partial<MonitoringConfiguration>) {
     super();
     this.client = EdgeGridClient.getInstance(customer);
     this.performanceMonitor = new PerformanceMonitor();
-    
+
     this.config = {
       refreshInterval: 60, // 1 minute
       retentionPeriod: 24, // 24 hours
@@ -95,9 +95,9 @@ export class RealTimeMonitoringService extends EventEmitter {
         'error-rate',
         'response-time',
         'cache-hit-ratio',
-        'origin-response-time'
+        'origin-response-time',
       ],
-      ...config
+      ...config,
     };
   }
 
@@ -118,13 +118,13 @@ export class RealTimeMonitoringService extends EventEmitter {
       // Start metric collection
       this.monitoringInterval = setInterval(
         () => this.collectMetrics(),
-        this.config.refreshInterval * 1000
+        this.config.refreshInterval * 1000,
       );
 
       // Start alert evaluation
       this.alertInterval = setInterval(
         () => this.evaluateAlerts(),
-        this.config.alertEvaluationInterval * 1000
+        this.config.alertEvaluationInterval * 1000,
       );
 
       // Initial metric collection
@@ -132,11 +132,12 @@ export class RealTimeMonitoringService extends EventEmitter {
 
       this.emit('monitoring-started', { timestamp: new Date().toISOString() });
       logger.info('Real-time monitoring started successfully');
-
     } catch (error) {
       logger.error('Failed to start real-time monitoring', { error });
       this.isMonitoring = false;
-      throw new Error(`Failed to start real-time monitoring: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to start real-time monitoring: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -171,10 +172,10 @@ export class RealTimeMonitoringService extends EventEmitter {
    */
   async getCurrentMetrics(
     metrics?: string[],
-    filter?: Record<string, any>
+    filter?: Record<string, any>,
   ): Promise<RealTimeMetric[]> {
     const timer = this.performanceMonitor.startOperation('realtime_get_current_metrics');
-    
+
     try {
       const metricsToFetch = metrics || this.config.enabledMetrics;
       logger.info('Fetching current real-time metrics', { metrics: metricsToFetch, filter });
@@ -191,7 +192,7 @@ export class RealTimeMonitoringService extends EventEmitter {
             value,
             timestamp,
             unit: this.getMetricUnit(metric),
-            tags: filter
+            tags: filter,
           };
         } catch (error) {
           logger.error(`Failed to fetch metric ${metric}`, { error });
@@ -200,7 +201,7 @@ export class RealTimeMonitoringService extends EventEmitter {
       });
 
       const results = await Promise.all(metricPromises);
-      
+
       for (const result of results) {
         if (result) {
           currentMetrics.push(result);
@@ -208,16 +209,17 @@ export class RealTimeMonitoringService extends EventEmitter {
         }
       }
 
-      logger.info('Current metrics fetched successfully', { 
+      logger.info('Current metrics fetched successfully', {
         metricCount: currentMetrics.length,
-        timestamp 
+        timestamp,
       });
 
       return currentMetrics;
-
     } catch (error) {
       logger.error('Failed to get current metrics', { error, metrics, filter });
-      throw new Error(`Failed to get current metrics: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to get current metrics: ${error instanceof Error ? error.message : String(error)}`,
+      );
     } finally {
       this.performanceMonitor.endOperation(timer);
     }
@@ -232,16 +234,16 @@ export class RealTimeMonitoringService extends EventEmitter {
       ...rule,
       id: ruleId,
       consecutiveViolations: 0,
-      lastTriggered: undefined
+      lastTriggered: undefined,
     };
 
     this.alertRules.set(ruleId, alertRule);
-    
-    logger.info('Alert rule added', { 
-      ruleId, 
-      name: rule.name, 
+
+    logger.info('Alert rule added', {
+      ruleId,
+      name: rule.name,
       metric: rule.metric,
-      threshold: rule.threshold
+      threshold: rule.threshold,
     });
 
     this.emit('alert-rule-added', { rule: alertRule });
@@ -253,7 +255,7 @@ export class RealTimeMonitoringService extends EventEmitter {
    */
   removeAlertRule(ruleId: string): boolean {
     const removed = this.alertRules.delete(ruleId);
-    
+
     if (removed) {
       logger.info('Alert rule removed', { ruleId });
       this.emit('alert-rule-removed', { ruleId });
@@ -279,14 +281,11 @@ export class RealTimeMonitoringService extends EventEmitter {
   /**
    * Get metric history for a specific metric
    */
-  getMetricHistory(
-    metric: string, 
-    timeWindow: string = '1h'
-  ): RealTimeMetric[] {
+  getMetricHistory(metric: string, timeWindow = '1h'): RealTimeMetric[] {
     const history = this.metricHistory.get(metric) || [];
     const cutoffTime = this.calculateCutoffTime(timeWindow);
-    
-    return history.filter(m => new Date(m.timestamp) >= cutoffTime);
+
+    return history.filter((m) => new Date(m.timestamp) >= cutoffTime);
   }
 
   /**
@@ -294,42 +293,43 @@ export class RealTimeMonitoringService extends EventEmitter {
    */
   async getHealthStatus(): Promise<HealthStatus> {
     const timer = this.performanceMonitor.startOperation('realtime_health_status');
-    
+
     try {
       logger.info('Calculating health status');
 
       // Get current metrics
       const currentMetrics = await this.getCurrentMetrics();
-      
+
       // Check service health
       const services = await this.checkServiceHealth();
-      
+
       // Evaluate metric status
       const metricStatuses = this.evaluateMetricHealth(currentMetrics);
-      
+
       // Determine overall status
       const overallStatus = this.calculateOverallStatus(services, metricStatuses);
-      
+
       const healthStatus: HealthStatus = {
         overall: overallStatus,
         services,
         metrics: metricStatuses,
         activeAlerts: this.activeAlerts.size,
-        lastUpdate: new Date().toISOString()
+        lastUpdate: new Date().toISOString(),
       };
 
-      logger.info('Health status calculated', { 
+      logger.info('Health status calculated', {
         overall: overallStatus,
         serviceCount: services.length,
         metricCount: metricStatuses.length,
-        activeAlerts: this.activeAlerts.size
+        activeAlerts: this.activeAlerts.size,
       });
 
       return healthStatus;
-
     } catch (error) {
       logger.error('Failed to get health status', { error });
-      throw new Error(`Failed to get health status: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to get health status: ${error instanceof Error ? error.message : String(error)}`,
+      );
     } finally {
       this.performanceMonitor.endOperation(timer);
     }
@@ -340,15 +340,15 @@ export class RealTimeMonitoringService extends EventEmitter {
    */
   updateConfiguration(config: Partial<MonitoringConfiguration>): void {
     logger.info('Updating monitoring configuration', { config });
-    
+
     const wasMonitoring = this.isMonitoring;
-    
+
     if (wasMonitoring) {
       this.stopMonitoring();
     }
 
     this.config = { ...this.config, ...config };
-    
+
     if (wasMonitoring) {
       this.startMonitoring();
     }
@@ -362,24 +362,25 @@ export class RealTimeMonitoringService extends EventEmitter {
   private async collectMetrics(): Promise<void> {
     try {
       logger.debug('Collecting real-time metrics');
-      
+
       const metrics = await this.getCurrentMetrics(
         this.config.enabledMetrics,
-        this.config.defaultFilters
+        this.config.defaultFilters,
       );
 
-      this.emit('metrics-collected', { 
+      this.emit('metrics-collected', {
         metrics,
         timestamp: new Date().toISOString(),
-        count: metrics.length
+        count: metrics.length,
       });
 
       // Clean up old metric history
       this.cleanupMetricHistory();
-
     } catch (error) {
       logger.error('Failed to collect metrics', { error });
-      this.emit('metrics-collection-failed', { error: error instanceof Error ? error.message : String(error) });
+      this.emit('metrics-collection-failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
@@ -397,7 +398,7 @@ export class RealTimeMonitoringService extends EventEmitter {
         if (rule.lastTriggered) {
           const lastTriggeredTime = new Date(rule.lastTriggered);
           const timeSinceLastTrigger = (currentTime.getTime() - lastTriggeredTime.getTime()) / 1000;
-          
+
           if (timeSinceLastTrigger < rule.cooldownPeriod) {
             continue;
           }
@@ -408,7 +409,6 @@ export class RealTimeMonitoringService extends EventEmitter {
       }
 
       logger.debug('Alert evaluation completed', { evaluatedRules: evaluatedRules.length });
-
     } catch (error) {
       logger.error('Failed to evaluate alerts', { error });
     }
@@ -418,13 +418,13 @@ export class RealTimeMonitoringService extends EventEmitter {
     try {
       // Get current metric value
       const currentValue = await this.fetchCurrentMetricValue(rule.metric);
-      
+
       // Check if threshold is violated
       const isViolation = this.checkThresholdViolation(currentValue, rule.operator, rule.threshold);
 
       if (isViolation) {
         rule.consecutiveViolations++;
-        
+
         if (rule.consecutiveViolations >= rule.maxViolations) {
           await this.triggerAlert(rule, currentValue);
           rule.lastTriggered = new Date().toISOString();
@@ -434,17 +434,17 @@ export class RealTimeMonitoringService extends EventEmitter {
         // Reset consecutive violations if threshold is not violated
         if (rule.consecutiveViolations > 0) {
           rule.consecutiveViolations = 0;
-          
+
           // Check if we need to resolve any active alerts for this rule
-          const activeAlert = Array.from(this.activeAlerts.values())
-            .find(alert => alert.ruleId === rule.id && !alert.resolved);
-          
+          const activeAlert = Array.from(this.activeAlerts.values()).find(
+            (alert) => alert.ruleId === rule.id && !alert.resolved,
+          );
+
           if (activeAlert) {
             await this.resolveAlert(activeAlert.id);
           }
         }
       }
-
     } catch (error) {
       logger.error('Failed to evaluate alert rule', { error, ruleId: rule.id });
     }
@@ -462,7 +462,7 @@ export class RealTimeMonitoringService extends EventEmitter {
       severity: rule.severity,
       timestamp: new Date().toISOString(),
       description: this.generateAlertDescription(rule, currentValue),
-      resolved: false
+      resolved: false,
     };
 
     this.activeAlerts.set(alertId, alertEvent);
@@ -473,7 +473,7 @@ export class RealTimeMonitoringService extends EventEmitter {
       metric: rule.metric,
       value: currentValue,
       threshold: rule.threshold,
-      severity: rule.severity
+      severity: rule.severity,
     });
 
     this.emit('alert-triggered', { alert: alertEvent });
@@ -500,29 +500,32 @@ export class RealTimeMonitoringService extends EventEmitter {
 
   private async sendAlertNotifications(alert: AlertEvent, channels: string[]): Promise<void> {
     // Implementation would depend on notification system
-    logger.info('Sending alert notifications', { 
+    logger.info('Sending alert notifications', {
       alertId: alert.id,
       channels: channels.length,
-      severity: alert.severity
+      severity: alert.severity,
     });
 
     // Simulate notification sending
-    this.emit('notifications-sent', { 
+    this.emit('notifications-sent', {
       alert,
       channels,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
-  private async fetchCurrentMetricValue(metric: string, filter?: Record<string, any>): Promise<number> {
+  private async fetchCurrentMetricValue(
+    metric: string,
+    filter?: Record<string, any>,
+  ): Promise<number> {
     // This would make actual API calls to Akamai's real-time reporting endpoints
     const response = await this.client.request({
       method: 'GET',
       path: `/reporting/v1/realtime/${metric}`,
       queryParams: {
         timeWindow: '1m',
-        ...filter
-      }
+        ...filter,
+      },
     });
 
     return response.data.value || 0;
@@ -538,28 +541,34 @@ export class RealTimeMonitoringService extends EventEmitter {
 
     // Keep only recent history based on retention period
     const cutoffTime = new Date(Date.now() - this.config.retentionPeriod * 60 * 60 * 1000);
-    const filteredHistory = history.filter(m => new Date(m.timestamp) >= cutoffTime);
-    
+    const filteredHistory = history.filter((m) => new Date(m.timestamp) >= cutoffTime);
+
     this.metricHistory.set(metric.metric, filteredHistory);
   }
 
   private cleanupMetricHistory(): void {
     const cutoffTime = new Date(Date.now() - this.config.retentionPeriod * 60 * 60 * 1000);
-    
+
     for (const [metric, history] of this.metricHistory.entries()) {
-      const filteredHistory = history.filter(m => new Date(m.timestamp) >= cutoffTime);
+      const filteredHistory = history.filter((m) => new Date(m.timestamp) >= cutoffTime);
       this.metricHistory.set(metric, filteredHistory);
     }
   }
 
   private checkThresholdViolation(value: number, operator: string, threshold: number): boolean {
     switch (operator) {
-      case 'gt': return value > threshold;
-      case 'gte': return value >= threshold;
-      case 'lt': return value < threshold;
-      case 'lte': return value <= threshold;
-      case 'eq': return value === threshold;
-      default: return false;
+      case 'gt':
+        return value > threshold;
+      case 'gte':
+        return value >= threshold;
+      case 'lt':
+        return value < threshold;
+      case 'lte':
+        return value <= threshold;
+      case 'eq':
+        return value === threshold;
+      default:
+        return false;
     }
   }
 
@@ -574,7 +583,7 @@ export class RealTimeMonitoringService extends EventEmitter {
       { name: 'Property Manager API', endpoint: '/papi/v1' },
       { name: 'Edge DNS API', endpoint: '/config-dns/v2' },
       { name: 'Reporting API', endpoint: '/reporting/v1' },
-      { name: 'Fast Purge API', endpoint: '/ccu/v3' }
+      { name: 'Fast Purge API', endpoint: '/ccu/v3' },
     ];
 
     const healthChecks = services.map(async (service) => {
@@ -591,14 +600,14 @@ export class RealTimeMonitoringService extends EventEmitter {
           status: 'healthy' as const,
           lastCheck: new Date().toISOString(),
           responseTime,
-          details: `Response time: ${responseTime}ms`
+          details: `Response time: ${responseTime}ms`,
         };
       } catch (error) {
         return {
           name: service.name,
           status: 'critical' as const,
           lastCheck: new Date().toISOString(),
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         };
       }
     });
@@ -607,19 +616,20 @@ export class RealTimeMonitoringService extends EventEmitter {
   }
 
   private evaluateMetricHealth(metrics: RealTimeMetric[]): HealthStatus['metrics'] {
-    return metrics.map(metric => {
-      const alertRule = Array.from(this.alertRules.values())
-        .find(rule => rule.metric === metric.metric && rule.enabled);
+    return metrics.map((metric) => {
+      const alertRule = Array.from(this.alertRules.values()).find(
+        (rule) => rule.metric === metric.metric && rule.enabled,
+      );
 
       let status: 'normal' | 'warning' | 'critical' = 'normal';
-      
+
       if (alertRule) {
         const isViolation = this.checkThresholdViolation(
-          metric.value, 
-          alertRule.operator, 
-          alertRule.threshold
+          metric.value,
+          alertRule.operator,
+          alertRule.threshold,
         );
-        
+
         if (isViolation) {
           status = alertRule.severity === 'critical' ? 'critical' : 'warning';
         }
@@ -629,25 +639,25 @@ export class RealTimeMonitoringService extends EventEmitter {
         name: metric.metric,
         value: metric.value,
         status,
-        threshold: alertRule?.threshold
+        threshold: alertRule?.threshold,
       };
     });
   }
 
   private calculateOverallStatus(
-    services: HealthStatus['services'], 
-    metrics: HealthStatus['metrics']
+    services: HealthStatus['services'],
+    metrics: HealthStatus['metrics'],
   ): HealthStatus['overall'] {
-    const hasCriticalService = services.some(s => s.status === 'critical');
-    const hasCriticalMetric = metrics.some(m => m.status === 'critical');
-    
+    const hasCriticalService = services.some((s) => s.status === 'critical');
+    const hasCriticalMetric = metrics.some((m) => m.status === 'critical');
+
     if (hasCriticalService || hasCriticalMetric) {
       return 'critical';
     }
 
-    const hasWarningService = services.some(s => s.status === 'warning');
-    const hasWarningMetric = metrics.some(m => m.status === 'warning');
-    
+    const hasWarningService = services.some((s) => s.status === 'warning');
+    const hasWarningMetric = metrics.some((m) => m.status === 'warning');
+
     if (hasWarningService || hasWarningMetric) {
       return 'warning';
     }
@@ -659,7 +669,7 @@ export class RealTimeMonitoringService extends EventEmitter {
     const now = new Date();
     const unit = timeWindow.slice(-1);
     const value = parseInt(timeWindow.slice(0, -1));
-    
+
     switch (unit) {
       case 'm':
         return new Date(now.getTime() - value * 60 * 1000);
@@ -674,14 +684,14 @@ export class RealTimeMonitoringService extends EventEmitter {
 
   private getMetricUnit(metric: string): string {
     const units: Record<string, string> = {
-      'bandwidth': 'bytes',
-      'requests': 'count',
+      bandwidth: 'bytes',
+      requests: 'count',
       'error-rate': '%',
       'response-time': 'ms',
       'cache-hit-ratio': '%',
-      'origin-response-time': 'ms'
+      'origin-response-time': 'ms',
     };
-    
+
     return units[metric] || '';
   }
 

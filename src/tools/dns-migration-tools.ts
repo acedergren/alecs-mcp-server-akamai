@@ -3,8 +3,8 @@
  * Implements zone import via AXFR, zone file parsing, and bulk record migration
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse, DNSRecordSet } from '../types';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse, type DNSRecordSet } from '../types';
 import { createZone, ensureCleanChangeList } from './dns-tools';
 
 // DNS Migration Types
@@ -55,7 +55,7 @@ export async function importZoneViaAXFR(
     contractId?: string;
     groupId?: string;
     comment?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // First, create the zone as SECONDARY
@@ -95,10 +95,12 @@ export async function importZoneViaAXFR(
     });
 
     return {
-      content: [{
-        type: 'text',
-        text: `✅ Started AXFR import for zone ${args.zone}\n\n**Master Server:** ${args.masterServer}\n**Type:** Secondary Zone\n${args.tsigKey ? '**TSIG:** Configured\n' : ''}\n## Import Status\n\nThe zone transfer has been initiated. This typically takes 5-15 minutes depending on zone size.\n\n## Next Steps\n\n1. **Check Import Status:**\n   "Get zone ${args.zone}"\n\n2. **Convert to Primary Zone:**\n   Once imported, convert to primary for full control:\n   "Convert zone ${args.zone} to primary"\n\n3. **Review Records:**\n   "List records in zone ${args.zone}"\n\n## Migration Timeline\n\n- Zone transfer: 5-15 minutes\n- DNS propagation: 5-30 minutes (depends on TTL)\n- Full migration: 24-48 hours (wait for old TTLs to expire)\n\n⚠️ **Important:** Keep the original nameservers active during migration!`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `✅ Started AXFR import for zone ${args.zone}\n\n**Master Server:** ${args.masterServer}\n**Type:** Secondary Zone\n${args.tsigKey ? '**TSIG:** Configured\n' : ''}\n## Import Status\n\nThe zone transfer has been initiated. This typically takes 5-15 minutes depending on zone size.\n\n## Next Steps\n\n1. **Check Import Status:**\n   "Get zone ${args.zone}"\n\n2. **Convert to Primary Zone:**\n   Once imported, convert to primary for full control:\n   "Convert zone ${args.zone} to primary"\n\n3. **Review Records:**\n   "List records in zone ${args.zone}"\n\n## Migration Timeline\n\n- Zone transfer: 5-15 minutes\n- DNS propagation: 5-30 minutes (depends on TTL)\n- Full migration: 24-48 hours (wait for old TTLs to expire)\n\n⚠️ **Important:** Keep the original nameservers active during migration!`,
+        },
+      ],
     };
   } catch (error) {
     return formatError('import zone via AXFR', error);
@@ -114,12 +116,12 @@ export async function parseZoneFile(
     zone: string;
     zoneFileContent: string;
     validateRecords?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const records = parseBindZoneFile(args.zoneFileContent, args.zone);
     const akamaiRecords = convertToAkamaiFormat(records, args.zone);
-    
+
     // Analyze migration
     const conflicts: Array<{ record: string; issue: string; resolution: string }> = [];
     const unsupportedTypes = new Set<string>();
@@ -128,7 +130,7 @@ export async function parseZoneFile(
 
     for (const record of records) {
       totalRecords++;
-      
+
       // Check for unsupported record types
       const supportedTypes = ['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'NS', 'SRV', 'CAA', 'PTR'];
       if (!supportedTypes.includes(record.type)) {
@@ -165,7 +167,7 @@ export async function parseZoneFile(
     if (unsupportedTypes.size > 0) {
       text += `## ⚠️ Unsupported Record Types\n\n`;
       text += `The following record types need manual migration:\n`;
-      Array.from(unsupportedTypes).forEach(type => {
+      Array.from(unsupportedTypes).forEach((type) => {
         text += `- ${type}\n`;
       });
       text += '\n';
@@ -183,7 +185,7 @@ export async function parseZoneFile(
     // Show sample records
     text += `## Sample Records (First 10)\n\n`;
     text += '```\n';
-    akamaiRecords.slice(0, 10).forEach(record => {
+    akamaiRecords.slice(0, 10).forEach((record) => {
       text += `${record.name} ${record.ttl} ${record.type} ${record.rdata.join(' ')}\n`;
     });
     if (akamaiRecords.length > 10) {
@@ -195,7 +197,7 @@ export async function parseZoneFile(
     if (args.validateRecords) {
       text += `## Validation Results\n\n`;
       const validationResults = await validateDNSRecords(records.slice(0, 5)); // Validate first 5
-      
+
       for (const result of validationResults) {
         text += `- **${result.name} ${result.type}:** ${result.valid ? '✅ Valid' : '❌ ' + result.error}\n`;
       }
@@ -214,10 +216,12 @@ export async function parseZoneFile(
     globalMigrationCache.set(args.zone, akamaiRecords);
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('parse zone file', error);
@@ -234,7 +238,7 @@ export async function bulkImportRecords(
     records?: DNSRecordSet[];
     skipValidation?: boolean;
     comment?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Get records from cache or args
@@ -253,7 +257,7 @@ export async function bulkImportRecords(
 
     for (let i = 0; i < records.length; i += batchSize) {
       const batch = records.slice(i, i + batchSize);
-      
+
       for (const record of batch) {
         try {
           // Skip validation if requested
@@ -277,7 +281,7 @@ export async function bulkImportRecords(
             },
             body: record,
           });
-          
+
           successCount++;
         } catch (error) {
           errors.push({
@@ -289,7 +293,9 @@ export async function bulkImportRecords(
 
       // Show progress
       if (i + batchSize < records.length) {
-        console.error(`Progress: ${Math.min(i + batchSize, records.length)}/${records.length} records processed`);
+        console.error(
+          `Progress: ${Math.min(i + batchSize, records.length)}/${records.length} records processed`,
+        );
       }
     }
 
@@ -322,7 +328,7 @@ export async function bulkImportRecords(
 
     if (errors.length > 0) {
       text += `## ❌ Failed Records\n\n`;
-      errors.slice(0, 20).forEach(error => {
+      errors.slice(0, 20).forEach((error) => {
         text += `- **${error.record}:** ${error.error}\n`;
       });
       if (errors.length > 20) {
@@ -335,7 +341,7 @@ export async function bulkImportRecords(
     text += `1. **Verify Import:**\n   "List records in zone ${args.zone}"\n\n`;
     text += `2. **Test Resolution:**\n   \`dig @use4-akadns.net ${args.zone} SOA\`\n\n`;
     text += `3. **Fix Failed Records:**\n   Review and manually add any failed records\n\n`;
-    
+
     if (successCount > 0) {
       text += `## 🎉 Success!\n\n`;
       text += `Your DNS records have been imported to Akamai Edge DNS.\n\n`;
@@ -348,10 +354,12 @@ export async function bulkImportRecords(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('bulk import records', error);
@@ -366,7 +374,7 @@ export async function convertZoneToPrimary(
   args: {
     zone: string;
     comment?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Get current zone config
@@ -377,10 +385,12 @@ export async function convertZoneToPrimary(
 
     if (currentZone.type !== 'SECONDARY') {
       return {
-        content: [{
-          type: 'text',
-          text: `Zone ${args.zone} is already a ${currentZone.type} zone.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `Zone ${args.zone} is already a ${currentZone.type} zone.`,
+          },
+        ],
       };
     }
 
@@ -399,10 +409,12 @@ export async function convertZoneToPrimary(
     });
 
     return {
-      content: [{
-        type: 'text',
-        text: `✅ Successfully converted ${args.zone} to PRIMARY zone\n\n## What Changed\n\n- **Before:** Secondary zone (read-only, synced from master)\n- **After:** Primary zone (full control, authoritative)\n\n## Benefits\n\n- Full control over all DNS records\n- Can add, modify, delete records\n- No dependency on external master server\n- Integrated with Akamai CDN services\n\n## Next Steps\n\n1. **Review Records:**\n   "List records in zone ${args.zone}"\n\n2. **Add CDN Records:**\n   "Create CNAME record www.${args.zone} pointing to www.${args.zone}.edgesuite.net"\n\n3. **Update Nameservers:**\n   Update your domain registrar to use Akamai nameservers`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `✅ Successfully converted ${args.zone} to PRIMARY zone\n\n## What Changed\n\n- **Before:** Secondary zone (read-only, synced from master)\n- **After:** Primary zone (full control, authoritative)\n\n## Benefits\n\n- Full control over all DNS records\n- Can add, modify, delete records\n- No dependency on external master server\n- Integrated with Akamai CDN services\n\n## Next Steps\n\n1. **Review Records:**\n   "List records in zone ${args.zone}"\n\n2. **Add CDN Records:**\n   "Create CNAME record www.${args.zone} pointing to www.${args.zone}.edgesuite.net"\n\n3. **Update Nameservers:**\n   Update your domain registrar to use Akamai nameservers`,
+        },
+      ],
     };
   } catch (error) {
     return formatError('convert zone to primary', error);
@@ -418,7 +430,7 @@ export async function generateMigrationInstructions(
     zone: string;
     currentNameservers?: string[];
     estimateDowntime?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Get zone details
@@ -445,7 +457,7 @@ export async function generateMigrationInstructions(
     text += `## Current Configuration\n\n`;
     if (args.currentNameservers && args.currentNameservers.length > 0) {
       text += `**Current Nameservers:**\n`;
-      args.currentNameservers.forEach(ns => {
+      args.currentNameservers.forEach((ns) => {
         text += `- ${ns}\n`;
       });
       text += '\n';
@@ -534,10 +546,12 @@ export async function generateMigrationInstructions(
     text += `- **Your Team:** Define escalation contacts\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('generate migration instructions', error);
@@ -555,7 +569,7 @@ export async function importFromCloudflare(
     contractId?: string;
     groupId?: string;
     includeProxiedRecords?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Step 1: Get zone information from Cloudflare
@@ -563,24 +577,24 @@ export async function importFromCloudflare(
       `https://api.cloudflare.com/client/v4/zones?name=${args.zone}`,
       {
         headers: {
-          'Authorization': `Bearer ${args.cloudflareApiToken}`,
+          Authorization: `Bearer ${args.cloudflareApiToken}`,
           'Content-Type': 'application/json',
         },
-      }
+      },
     );
-    
+
     if (!cfZonesResponse.ok) {
       throw new Error(`Cloudflare API error: ${cfZonesResponse.statusText}`);
     }
-    
-    const zonesData = await cfZonesResponse.json() as any;
+
+    const zonesData = (await cfZonesResponse.json()) as any;
     if (!zonesData.result || zonesData.result.length === 0) {
       throw new Error(`Zone ${args.zone} not found in Cloudflare account`);
     }
-    
+
     const cfZone = zonesData.result[0];
     const zoneId = cfZone.id;
-    
+
     // Step 2: Create zone in Akamai as PRIMARY
     await createZone(client, {
       zone: args.zone,
@@ -589,55 +603,55 @@ export async function importFromCloudflare(
       contractId: args.contractId,
       groupId: args.groupId,
     });
-    
+
     // Step 3: Get all DNS records from Cloudflare
     let allRecords: any[] = [];
     let page = 1;
     let hasMore = true;
-    
+
     while (hasMore) {
       const cfRecordsResponse = await fetch(
         `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records?page=${page}&per_page=100`,
         {
           headers: {
-            'Authorization': `Bearer ${args.cloudflareApiToken}`,
+            Authorization: `Bearer ${args.cloudflareApiToken}`,
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
-      
+
       if (!cfRecordsResponse.ok) {
         throw new Error(`Failed to fetch DNS records: ${cfRecordsResponse.statusText}`);
       }
-      
-      const recordsData = await cfRecordsResponse.json() as any;
+
+      const recordsData = (await cfRecordsResponse.json()) as any;
       allRecords = allRecords.concat(recordsData.result);
-      
+
       if (recordsData.result_info.page >= recordsData.result_info.total_pages) {
         hasMore = false;
       } else {
         page++;
       }
     }
-    
+
     // Step 4: Convert and import records
     const records: DNSRecordSet[] = [];
     const skippedRecords: string[] = [];
-    
+
     for (const cfRecord of allRecords) {
       // Skip proxied records if not requested
       if (cfRecord.proxied && !args.includeProxiedRecords) {
         skippedRecords.push(`${cfRecord.name} (${cfRecord.type}) - Cloudflare proxied`);
         continue;
       }
-      
+
       // Skip unsupported record types
       const supportedTypes = ['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'NS', 'CAA'];
       if (!supportedTypes.includes(cfRecord.type)) {
         skippedRecords.push(`${cfRecord.name} (${cfRecord.type}) - Unsupported type`);
         continue;
       }
-      
+
       // Convert Cloudflare record to Akamai format
       const akamaiRecord: DNSRecordSet = {
         name: cfRecord.name,
@@ -645,7 +659,7 @@ export async function importFromCloudflare(
         ttl: cfRecord.ttl === 1 ? 300 : cfRecord.ttl, // Cloudflare uses 1 for 'automatic'
         rdata: [],
       };
-      
+
       // Format rdata based on record type
       switch (cfRecord.type) {
         case 'MX':
@@ -662,17 +676,17 @@ export async function importFromCloudflare(
         default:
           akamaiRecord.rdata = [cfRecord.content];
       }
-      
+
       records.push(akamaiRecord);
     }
-    
+
     // Step 5: Bulk import records
     await bulkImportRecords(client, {
       zone: args.zone,
       records,
       comment: `Cloudflare import - ${records.length} records`,
     });
-    
+
     // Format results
     let text = `# Cloudflare Import Results - ${args.zone}\n\n`;
     text += `## Summary\n\n`;
@@ -680,15 +694,15 @@ export async function importFromCloudflare(
     text += `- **Total Records Found:** ${allRecords.length}\n`;
     text += `- **Records Imported:** ${records.length}\n`;
     text += `- **Records Skipped:** ${skippedRecords.length}\n\n`;
-    
+
     if (skippedRecords.length > 0) {
       text += `## Skipped Records\n\n`;
-      skippedRecords.forEach(record => {
+      skippedRecords.forEach((record) => {
         text += `- ${record}\n`;
       });
       text += `\n`;
     }
-    
+
     text += `## Next Steps\n\n`;
     text += `1. **Review imported records:**\n`;
     text += `   "List records in zone ${args.zone}"\n\n`;
@@ -700,17 +714,19 @@ export async function importFromCloudflare(
     text += `3. **Configure CDN if needed:**\n`;
     text += `   - Create property for ${args.zone}\n`;
     text += `   - Add CNAME records for CDN delivery\n\n`;
-    
+
     if (allRecords.some((r: any) => r.proxied)) {
       text += `⚠️ **Note:** Some records were proxied through Cloudflare.\n`;
       text += `You may need to configure similar security features in Akamai.\n`;
     }
-    
+
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('import from Cloudflare', error);
@@ -725,16 +741,16 @@ export async function importFromCloudflare(
 function parseBindZoneFile(content: string, zone: string): ZoneFileRecord[] {
   const records: ZoneFileRecord[] = [];
   const lines = content.split('\n');
-  
+
   let currentTTL = 86400; // Default TTL
   let currentName = zone;
-  
+
   for (const line of lines) {
     // Skip comments and empty lines
     const lineParts = line.split(';');
     const cleanLine = lineParts[0] ? lineParts[0].trim() : '';
     if (!cleanLine) continue;
-    
+
     // Handle $TTL directive
     if (cleanLine.startsWith('$TTL')) {
       const ttlMatch = cleanLine.match(/\$TTL\s+(\d+)/);
@@ -743,23 +759,23 @@ function parseBindZoneFile(content: string, zone: string): ZoneFileRecord[] {
       }
       continue;
     }
-    
+
     // Skip other directives
     if (cleanLine.startsWith('$')) continue;
-    
+
     // Parse record
     const parts = cleanLine.split(/\s+/);
     if (parts.length < 3) continue;
-    
+
     let name: string;
     let ttl: number;
     let recordClass: string;
     let type: string;
     let rdata: string[];
-    
+
     // Determine field positions
     let fieldIndex = 0;
-    
+
     // Name field (could be @, *, or actual name)
     if (parts[0] === '@') {
       name = zone;
@@ -778,7 +794,7 @@ function parseBindZoneFile(content: string, zone: string): ZoneFileRecord[] {
     }
     currentName = name;
     fieldIndex++;
-    
+
     // Check for TTL
     const ttlField = fieldIndex < parts.length ? parts[fieldIndex] : undefined;
     if (ttlField && /^\d+$/.test(ttlField)) {
@@ -787,7 +803,7 @@ function parseBindZoneFile(content: string, zone: string): ZoneFileRecord[] {
     } else {
       ttl = currentTTL;
     }
-    
+
     // Check for class
     const classField = fieldIndex < parts.length ? parts[fieldIndex] : undefined;
     if (classField && classField.toUpperCase() === 'IN') {
@@ -796,16 +812,16 @@ function parseBindZoneFile(content: string, zone: string): ZoneFileRecord[] {
     } else {
       recordClass = 'IN';
     }
-    
+
     // Type
     const typeField = fieldIndex < parts.length ? parts[fieldIndex] : undefined;
     type = typeField ? typeField.toUpperCase() : '';
     if (!type) continue;
     fieldIndex++;
-    
+
     // Rest is RDATA
     rdata = parts.slice(fieldIndex);
-    
+
     // Special handling for different record types
     switch (type) {
       case 'MX':
@@ -814,26 +830,26 @@ function parseBindZoneFile(content: string, zone: string): ZoneFileRecord[] {
           records.push({ name, ttl, class: recordClass, type, rdata });
         }
         break;
-        
+
       case 'TXT':
         // Concatenate TXT record data
         const txtData = rdata.join(' ').replace(/"/g, '');
         records.push({ name, ttl, class: recordClass, type, rdata: [txtData] });
         break;
-        
+
       case 'SRV':
         // SRV records need all parts
         if (rdata.length >= 4) {
           records.push({ name, ttl, class: recordClass, type, rdata });
         }
         break;
-        
+
       default:
         // Simple records (A, AAAA, CNAME, NS, etc.)
         records.push({ name, ttl, class: recordClass, type, rdata });
     }
   }
-  
+
   return records;
 }
 
@@ -842,10 +858,10 @@ function parseBindZoneFile(content: string, zone: string): ZoneFileRecord[] {
  */
 function convertToAkamaiFormat(records: ZoneFileRecord[], _zone: string): DNSRecordSet[] {
   const akamaiRecords: DNSRecordSet[] = [];
-  
+
   // Group records by name and type
   const grouped = new Map<string, ZoneFileRecord[]>();
-  
+
   for (const record of records) {
     const key = `${record.name}|${record.type}`;
     if (!grouped.has(key)) {
@@ -853,17 +869,17 @@ function convertToAkamaiFormat(records: ZoneFileRecord[], _zone: string): DNSRec
     }
     grouped.get(key)!.push(record);
   }
-  
+
   // Convert grouped records
   for (const [key, groupedRecords] of grouped) {
     const [name, type] = key.split('|');
     const firstRecord = groupedRecords[0];
-    
+
     if (!firstRecord || !name || !type) continue;
-    
+
     // Combine rdata from all records in group
     const rdata: string[] = [];
-    
+
     for (const record of groupedRecords) {
       switch (type) {
         case 'MX':
@@ -872,54 +888,50 @@ function convertToAkamaiFormat(records: ZoneFileRecord[], _zone: string): DNSRec
             const priority = record.rdata[0];
             const hostnameField = record.rdata[1];
             if (hostnameField) {
-              const hostname = hostnameField.endsWith('.') 
-                ? hostnameField.slice(0, -1) 
+              const hostname = hostnameField.endsWith('.')
+                ? hostnameField.slice(0, -1)
                 : hostnameField;
               rdata.push(`${priority} ${hostname}`);
             }
           }
           break;
-          
+
         case 'TXT':
           // TXT records might need quotes
           if (record.rdata.length > 0 && record.rdata[0]) {
             rdata.push(record.rdata[0]);
           }
           break;
-          
+
         case 'SRV':
           // Format: priority weight port target
           if (record.rdata.length >= 4) {
             const targetField = record.rdata[3];
             if (targetField) {
-              const target = targetField.endsWith('.')
-                ? targetField.slice(0, -1)
-                : targetField;
+              const target = targetField.endsWith('.') ? targetField.slice(0, -1) : targetField;
               rdata.push(`${record.rdata[0]} ${record.rdata[1]} ${record.rdata[2]} ${target}`);
             }
           }
           break;
-          
+
         case 'CNAME':
         case 'NS':
           // Remove trailing dots
           if (record.rdata.length > 0) {
             const targetField = record.rdata[0];
             if (targetField) {
-              const target = targetField.endsWith('.')
-                ? targetField.slice(0, -1)
-                : targetField;
+              const target = targetField.endsWith('.') ? targetField.slice(0, -1) : targetField;
               rdata.push(target);
             }
           }
           break;
-          
+
         default:
           // A, AAAA, and others - use as is
           rdata.push(...record.rdata);
       }
     }
-    
+
     akamaiRecords.push({
       name: name,
       type: type,
@@ -927,21 +939,23 @@ function convertToAkamaiFormat(records: ZoneFileRecord[], _zone: string): DNSRec
       rdata: rdata,
     });
   }
-  
+
   return akamaiRecords;
 }
 
 /**
  * Validate DNS records (basic validation)
  */
-async function validateDNSRecords(records: ZoneFileRecord[]): Promise<Array<{
-  name: string;
-  type: string;
-  valid: boolean;
-  error?: string;
-}>> {
+async function validateDNSRecords(records: ZoneFileRecord[]): Promise<
+  Array<{
+    name: string;
+    type: string;
+    valid: boolean;
+    error?: string;
+  }>
+> {
   const results = [];
-  
+
   for (const record of records) {
     try {
       const result = await validateSingleRecord({
@@ -960,7 +974,7 @@ async function validateDNSRecords(records: ZoneFileRecord[]): Promise<Array<{
       });
     }
   }
-  
+
   return results;
 }
 
@@ -979,51 +993,78 @@ async function validateSingleRecord(record: DNSRecordSet): Promise<{
         // Validate IPv4 addresses
         for (const ip of record.rdata) {
           if (!/^(\d{1,3}\.){3}\d{1,3}$/.test(ip)) {
-            return { name: record.name, type: record.type, valid: false, error: 'Invalid IPv4 address' };
+            return {
+              name: record.name,
+              type: record.type,
+              valid: false,
+              error: 'Invalid IPv4 address',
+            };
           }
           const parts = ip.split('.').map(Number);
-          if (parts.some(p => p > 255)) {
-            return { name: record.name, type: record.type, valid: false, error: 'Invalid IPv4 octet' };
+          if (parts.some((p) => p > 255)) {
+            return {
+              name: record.name,
+              type: record.type,
+              valid: false,
+              error: 'Invalid IPv4 octet',
+            };
           }
         }
         break;
-        
+
       case 'AAAA':
         // Validate IPv6 addresses
         for (const ip of record.rdata) {
-          if (!/^([\da-fA-F]{1,4}:){7}[\da-fA-F]{1,4}$/.test(ip) && 
-              !/^::1$/.test(ip) && 
-              !/^([\da-fA-F]{1,4}:){1,7}:$/.test(ip)) {
-            return { name: record.name, type: record.type, valid: false, error: 'Invalid IPv6 address' };
+          if (
+            !/^([\da-fA-F]{1,4}:){7}[\da-fA-F]{1,4}$/.test(ip) &&
+            !/^::1$/.test(ip) &&
+            !/^([\da-fA-F]{1,4}:){1,7}:$/.test(ip)
+          ) {
+            return {
+              name: record.name,
+              type: record.type,
+              valid: false,
+              error: 'Invalid IPv6 address',
+            };
           }
         }
         break;
-        
+
       case 'CNAME':
         // CNAME should have exactly one target
         if (record.rdata.length !== 1) {
-          return { name: record.name, type: record.type, valid: false, error: 'CNAME must have exactly one target' };
+          return {
+            name: record.name,
+            type: record.type,
+            valid: false,
+            error: 'CNAME must have exactly one target',
+          };
         }
         break;
-        
+
       case 'MX':
         // Validate MX format
         for (const mx of record.rdata) {
           if (!/^\d+ \S+$/.test(mx)) {
-            return { name: record.name, type: record.type, valid: false, error: 'Invalid MX format (priority hostname)' };
+            return {
+              name: record.name,
+              type: record.type,
+              valid: false,
+              error: 'Invalid MX format (priority hostname)',
+            };
           }
         }
         break;
-        
+
       case 'TXT':
         // TXT records can contain anything
         break;
-        
+
       default:
         // Basic validation passed
         break;
     }
-    
+
     return { name: record.name, type: record.type, valid: true };
   } catch (error) {
     return {
@@ -1059,10 +1100,10 @@ const globalMigrationCache = new Map<string, DNSRecordSet[]>();
 function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
-  
+
   if (error instanceof Error) {
     errorMessage += `: ${error.message}`;
-    
+
     // Provide specific solutions
     if (error.message.includes('zone') && error.message.includes('exist')) {
       solution = '**Solution:** Create the zone first using "Create primary zone [domain]"';
@@ -1074,16 +1115,18 @@ function formatError(operation: string, error: any): MCPToolResponse {
   } else {
     errorMessage += `: ${String(error)}`;
   }
-  
+
   let text = errorMessage;
   if (solution) {
     text += `\n\n${solution}`;
   }
 
   return {
-    content: [{
-      type: 'text',
-      text,
-    }],
+    content: [
+      {
+        type: 'text',
+        text,
+      },
+    ],
   };
 }

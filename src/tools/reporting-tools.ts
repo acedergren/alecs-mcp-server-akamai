@@ -1,10 +1,10 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { ReportingService } from '../services/ReportingService';
-import { logger } from '../utils/logger';
+import { type Tool } from '@modelcontextprotocol/sdk/types.js';
+import { ReportingService } from '@services/ReportingService';
+import { logger } from '@utils/logger';
 
 /**
  * MCP Tools for Akamai Reporting API - Traffic Analytics and Performance Metrics
- * 
+ *
  * This module provides comprehensive reporting capabilities including:
  * - Traffic and bandwidth analytics
  * - Performance metrics and benchmarking
@@ -17,7 +17,8 @@ const reportingToolsBase: Tool[] = [
   // Traffic Analytics Tools
   {
     name: 'get-traffic-summary',
-    description: 'Get comprehensive traffic summary including bandwidth, requests, cache metrics, and performance data',
+    description:
+      'Get comprehensive traffic summary including bandwidth, requests, cache metrics, and performance data',
     inputSchema: {
       type: 'object',
       properties: {
@@ -86,7 +87,8 @@ const reportingToolsBase: Tool[] = [
 
   {
     name: 'get-timeseries-data',
-    description: 'Get time-series data for specific metrics with configurable granularity and filtering',
+    description:
+      'Get time-series data for specific metrics with configurable granularity and filtering',
     inputSchema: {
       type: 'object',
       properties: {
@@ -97,7 +99,8 @@ const reportingToolsBase: Tool[] = [
         metrics: {
           type: 'array',
           items: { type: 'string' },
-          description: 'Metrics to retrieve (e.g., ["bandwidth", "requests", "cache-ratio", "response-time"])',
+          description:
+            'Metrics to retrieve (e.g., ["bandwidth", "requests", "cache-ratio", "response-time"])',
         },
         period: {
           type: 'object',
@@ -130,7 +133,8 @@ const reportingToolsBase: Tool[] = [
   // Performance Analytics Tools
   {
     name: 'get-performance-benchmarks',
-    description: 'Get performance benchmarks comparing current metrics against industry standards and historical data',
+    description:
+      'Get performance benchmarks comparing current metrics against industry standards and historical data',
     inputSchema: {
       type: 'object',
       properties: {
@@ -163,7 +167,8 @@ const reportingToolsBase: Tool[] = [
 
   {
     name: 'analyze-cache-performance',
-    description: 'Analyze cache performance including hit ratios, miss reasons, and optimization opportunities',
+    description:
+      'Analyze cache performance including hit ratios, miss reasons, and optimization opportunities',
     inputSchema: {
       type: 'object',
       properties: {
@@ -199,7 +204,8 @@ const reportingToolsBase: Tool[] = [
   // Cost Optimization Tools
   {
     name: 'get-cost-optimization-insights',
-    description: 'Generate cost optimization insights and recommendations based on traffic patterns and performance metrics',
+    description:
+      'Generate cost optimization insights and recommendations based on traffic patterns and performance metrics',
     inputSchema: {
       type: 'object',
       properties: {
@@ -235,7 +241,8 @@ const reportingToolsBase: Tool[] = [
 
   {
     name: 'analyze-bandwidth-usage',
-    description: 'Analyze bandwidth usage patterns, peak traffic times, and identify optimization opportunities',
+    description:
+      'Analyze bandwidth usage patterns, peak traffic times, and identify optimization opportunities',
     inputSchema: {
       type: 'object',
       properties: {
@@ -335,7 +342,8 @@ const reportingToolsBase: Tool[] = [
 
   {
     name: 'export-report-data',
-    description: 'Export reporting data in various formats (CSV, JSON, Excel) for external analysis',
+    description:
+      'Export reporting data in various formats (CSV, JSON, Excel) for external analysis',
     inputSchema: {
       type: 'object',
       properties: {
@@ -382,7 +390,8 @@ const reportingToolsBase: Tool[] = [
   // Real-time Monitoring Tools
   {
     name: 'configure-monitoring-alerts',
-    description: 'Configure real-time monitoring alerts with custom thresholds and notification settings',
+    description:
+      'Configure real-time monitoring alerts with custom thresholds and notification settings',
     inputSchema: {
       type: 'object',
       properties: {
@@ -395,10 +404,21 @@ const reportingToolsBase: Tool[] = [
           items: {
             type: 'object',
             properties: {
-              metric: { type: 'string', description: 'Metric to monitor (e.g., "bandwidth", "error-rate", "response-time")' },
-              operator: { type: 'string', enum: ['gt', 'lt', 'eq', 'gte', 'lte'], description: 'Comparison operator' },
+              metric: {
+                type: 'string',
+                description: 'Metric to monitor (e.g., "bandwidth", "error-rate", "response-time")',
+              },
+              operator: {
+                type: 'string',
+                enum: ['gt', 'lt', 'eq', 'gte', 'lte'],
+                description: 'Comparison operator',
+              },
               value: { type: 'number', description: 'Threshold value' },
-              severity: { type: 'string', enum: ['critical', 'warning', 'info'], description: 'Alert severity level' },
+              severity: {
+                type: 'string',
+                enum: ['critical', 'warning', 'info'],
+                description: 'Alert severity level',
+              },
               enabled: { type: 'boolean', description: 'Whether the alert is enabled' },
             },
             required: ['metric', 'operator', 'value', 'severity', 'enabled'],
@@ -410,8 +430,14 @@ const reportingToolsBase: Tool[] = [
             type: 'object',
             properties: {
               type: { type: 'string', enum: ['email', 'webhook', 'sms'] },
-              target: { type: 'string', description: 'Email address, webhook URL, or phone number' },
-              severity: { type: 'array', items: { type: 'string', enum: ['critical', 'warning', 'info'] } },
+              target: {
+                type: 'string',
+                description: 'Email address, webhook URL, or phone number',
+              },
+              severity: {
+                type: 'array',
+                items: { type: 'string', enum: ['critical', 'warning', 'info'] },
+              },
             },
             required: ['type', 'target'],
           },
@@ -456,7 +482,8 @@ const reportingToolsBase: Tool[] = [
   // Historical Analysis Tools
   {
     name: 'analyze-traffic-trends',
-    description: 'Analyze historical traffic trends and patterns for capacity planning and optimization',
+    description:
+      'Analyze historical traffic trends and patterns for capacity planning and optimization',
     inputSchema: {
       type: 'object',
       properties: {
@@ -504,7 +531,8 @@ const reportingToolsBase: Tool[] = [
 
   {
     name: 'generate-performance-report',
-    description: 'Generate comprehensive performance report with executive summary, trends, and recommendations',
+    description:
+      'Generate comprehensive performance report with executive summary, trends, and recommendations',
     inputSchema: {
       type: 'object',
       properties: {
@@ -578,7 +606,8 @@ const reportingToolsBase: Tool[] = [
         metrics: {
           type: 'array',
           items: { type: 'string' },
-          description: 'Metrics to analyze by geography (default: ["bandwidth", "requests", "response-time", "error-rate"])',
+          description:
+            'Metrics to analyze by geography (default: ["bandwidth", "requests", "response-time", "error-rate"])',
         },
         includeEdgeLocations: {
           type: 'boolean',
@@ -592,7 +621,8 @@ const reportingToolsBase: Tool[] = [
   // Security and Error Analytics
   {
     name: 'analyze-error-patterns',
-    description: 'Analyze error patterns, status codes, and security events for troubleshooting and optimization',
+    description:
+      'Analyze error patterns, status codes, and security events for troubleshooting and optimization',
     inputSchema: {
       type: 'object',
       properties: {
@@ -638,93 +668,96 @@ const reportingToolsBase: Tool[] = [
 
 export async function handleGetTrafficSummary(args: any) {
   const { customer = 'default', period, filter } = args;
-  
+
   try {
     logger.info('Getting traffic summary', { customer, period, filter });
-    
+
     const reportingService = new ReportingService(customer);
     const summary = await reportingService.getTrafficSummary(period, filter);
-    
+
     return {
       success: true,
       data: summary,
-      message: 'Traffic summary retrieved successfully'
+      message: 'Traffic summary retrieved successfully',
     };
   } catch (error) {
     logger.error('Failed to get traffic summary', { error, args });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
-      details: 'Failed to retrieve traffic summary'
+      details: 'Failed to retrieve traffic summary',
     };
   }
 }
 
 export async function handleGetTimeseriesData(args: any) {
   const { customer = 'default', metrics, period, filter } = args;
-  
+
   try {
     logger.info('Getting timeseries data', { customer, metrics, period, filter });
-    
+
     const reportingService = new ReportingService(customer);
     const data = await reportingService.getTimeSeriesData(metrics, period, filter);
-    
+
     return {
       success: true,
       data,
-      message: `Time-series data retrieved for ${metrics.length} metrics`
+      message: `Time-series data retrieved for ${metrics.length} metrics`,
     };
   } catch (error) {
     logger.error('Failed to get timeseries data', { error, args });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
-      details: 'Failed to retrieve time-series data'
+      details: 'Failed to retrieve time-series data',
     };
   }
 }
 
 export async function handleGetPerformanceBenchmarks(args: any) {
   const { customer = 'default', period, filter } = args;
-  
+
   try {
     logger.info('Getting performance benchmarks', { customer, period, filter });
-    
+
     const reportingService = new ReportingService(customer);
     const benchmarks = await reportingService.getPerformanceBenchmarks(period, filter);
-    
+
     return {
       success: true,
       data: benchmarks,
-      message: `Performance benchmarks calculated for ${benchmarks.length} metrics`
+      message: `Performance benchmarks calculated for ${benchmarks.length} metrics`,
     };
   } catch (error) {
     logger.error('Failed to get performance benchmarks', { error, args });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
-      details: 'Failed to retrieve performance benchmarks'
+      details: 'Failed to retrieve performance benchmarks',
     };
   }
 }
 
 export async function handleGetCostOptimizationInsights(args: any) {
   const { customer = 'default', period, filter, analysisType = 'all' } = args;
-  
+
   try {
     logger.info('Getting cost optimization insights', { customer, period, filter, analysisType });
-    
+
     const reportingService = new ReportingService(customer);
     const insights = await reportingService.getCostOptimizationInsights(period, filter);
-    
+
     // Filter insights by analysis type if specified
     let filteredInsights = insights;
     if (analysisType !== 'all') {
-      filteredInsights = insights.filter(insight => insight.type === analysisType);
+      filteredInsights = insights.filter((insight) => insight.type === analysisType);
     }
-    
-    const totalSavings = filteredInsights.reduce((sum, insight) => sum + insight.potentialSavings, 0);
-    
+
+    const totalSavings = filteredInsights.reduce(
+      (sum, insight) => sum + insight.potentialSavings,
+      0,
+    );
+
     return {
       success: true,
       data: {
@@ -732,27 +765,35 @@ export async function handleGetCostOptimizationInsights(args: any) {
         summary: {
           totalInsights: filteredInsights.length,
           totalPotentialSavings: totalSavings,
-          highPriorityInsights: filteredInsights.filter(i => i.priority === 'high').length
-        }
+          highPriorityInsights: filteredInsights.filter((i) => i.priority === 'high').length,
+        },
       },
-      message: `Generated ${filteredInsights.length} cost optimization insights`
+      message: `Generated ${filteredInsights.length} cost optimization insights`,
     };
   } catch (error) {
     logger.error('Failed to get cost optimization insights', { error, args });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
-      details: 'Failed to generate cost optimization insights'
+      details: 'Failed to generate cost optimization insights',
     };
   }
 }
 
 export async function handleCreateReportingDashboard(args: any) {
-  const { customer = 'default', name, description, widgets, filters, refreshInterval, shared = false } = args;
-  
+  const {
+    customer = 'default',
+    name,
+    description,
+    widgets,
+    filters,
+    refreshInterval,
+    shared = false,
+  } = args;
+
   try {
     logger.info('Creating reporting dashboard', { customer, name, widgetCount: widgets.length });
-    
+
     const reportingService = new ReportingService(customer);
     const dashboard = await reportingService.createDashboard({
       name,
@@ -760,33 +801,33 @@ export async function handleCreateReportingDashboard(args: any) {
       widgets,
       filters,
       refreshInterval,
-      shared
+      shared,
     });
-    
+
     return {
       success: true,
       data: dashboard,
-      message: `Dashboard "${name}" created successfully with ${widgets.length} widgets`
+      message: `Dashboard "${name}" created successfully with ${widgets.length} widgets`,
     };
   } catch (error) {
     logger.error('Failed to create reporting dashboard', { error, args });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
-      details: 'Failed to create reporting dashboard'
+      details: 'Failed to create reporting dashboard',
     };
   }
 }
 
 export async function handleExportReportData(args: any) {
   const { customer = 'default', format, metrics, period, filter } = args;
-  
+
   try {
     logger.info('Exporting report data', { customer, format, metrics, period });
-    
+
     const reportingService = new ReportingService(customer);
     const exportResult = await reportingService.exportReport(format, metrics, period, filter);
-    
+
     return {
       success: true,
       data: {
@@ -795,31 +836,31 @@ export async function handleExportReportData(args: any) {
         dataSize: exportResult.data.length,
         // Note: In a real implementation, you'd return a download link or file handle
         // For MCP, we return metadata about the export
-        preview: format === 'json' ? exportResult.data.substring(0, 500) + '...' : 'Binary data'
+        preview: format === 'json' ? exportResult.data.substring(0, 500) + '...' : 'Binary data',
       },
-      message: `Report exported successfully as ${format.toUpperCase()}`
+      message: `Report exported successfully as ${format.toUpperCase()}`,
     };
   } catch (error) {
     logger.error('Failed to export report data', { error, args });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
-      details: 'Failed to export report data'
+      details: 'Failed to export report data',
     };
   }
 }
 
 export async function handleConfigureMonitoringAlerts(args: any) {
   const { customer = 'default', thresholds, notificationChannels = [] } = args;
-  
+
   try {
     logger.info('Configuring monitoring alerts', { customer, thresholdCount: thresholds.length });
-    
+
     const reportingService = new ReportingService(customer);
     await reportingService.configureAlerts(thresholds);
-    
+
     const enabledAlerts = thresholds.filter((t: any) => t.enabled).length;
-    
+
     return {
       success: true,
       data: {
@@ -829,16 +870,16 @@ export async function handleConfigureMonitoringAlerts(args: any) {
         alertsByMetric: thresholds.reduce((acc: any, threshold: any) => {
           acc[threshold.metric] = (acc[threshold.metric] || 0) + 1;
           return acc;
-        }, {})
+        }, {}),
       },
-      message: `Configured ${enabledAlerts} active monitoring alerts`
+      message: `Configured ${enabledAlerts} active monitoring alerts`,
     };
   } catch (error) {
     logger.error('Failed to configure monitoring alerts', { error, args });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
-      details: 'Failed to configure monitoring alerts'
+      details: 'Failed to configure monitoring alerts',
     };
   }
 }
@@ -867,15 +908,15 @@ function getHandlerForTool(toolName: string) {
       return async (_args: any) => ({
         success: false,
         error: `Handler not implemented for tool: ${toolName}`,
-        details: 'This reporting tool is defined but handler implementation is pending'
+        details: 'This reporting tool is defined but handler implementation is pending',
       });
   }
 }
 
 // Add handlers to tools
-const reportingToolsWithHandlers = reportingToolsBase.map(tool => ({
+const reportingToolsWithHandlers = reportingToolsBase.map((tool) => ({
   ...tool,
-  handler: getHandlerForTool(tool.name)
+  handler: getHandlerForTool(tool.name),
 }));
 
 export const reportingToolHandlers = {

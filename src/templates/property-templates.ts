@@ -1,6 +1,6 @@
 /**
  * Property Templates for Akamai CDN Configuration
- * 
+ *
  * These templates provide pre-configured rule trees for common use cases,
  * enabling quick provisioning of CDN properties with best practices.
  */
@@ -73,7 +73,8 @@ export interface DNSRecordTemplate {
 export const staticWebsiteTemplate: PropertyTemplate = {
   id: 'static-website',
   name: 'Static Website',
-  description: 'Optimized for static websites with HTML, CSS, JS, and images. Includes aggressive caching, compression, and HTTP/2 optimization.',
+  description:
+    'Optimized for static websites with HTML, CSS, JS, and images. Includes aggressive caching, compression, and HTTP/2 optimization.',
   category: 'web',
   requiredInputs: [
     {
@@ -83,9 +84,9 @@ export const staticWebsiteTemplate: PropertyTemplate = {
       type: 'domain',
       validation: {
         required: true,
-        pattern: '^([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$'
+        pattern: '^([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$',
       },
-      placeholder: 'www.example.com'
+      placeholder: 'www.example.com',
     },
     {
       key: 'originHostname',
@@ -94,10 +95,10 @@ export const staticWebsiteTemplate: PropertyTemplate = {
       type: 'domain',
       validation: {
         required: true,
-        pattern: '^([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$'
+        pattern: '^([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$',
       },
-      placeholder: 'origin.example.com'
-    }
+      placeholder: 'origin.example.com',
+    },
   ],
   optionalInputs: [
     {
@@ -105,7 +106,7 @@ export const staticWebsiteTemplate: PropertyTemplate = {
       label: 'Additional Hostnames',
       description: 'Additional hostnames that should point to this property',
       type: 'multiselect',
-      placeholder: 'example.com, cdn.example.com'
+      placeholder: 'example.com, cdn.example.com',
     },
     {
       key: 'cachingStrategy',
@@ -114,36 +115,48 @@ export const staticWebsiteTemplate: PropertyTemplate = {
       type: 'select',
       defaultValue: 'standard',
       options: [
-        { value: 'aggressive', label: 'Aggressive (30 days)', description: 'Maximum performance, requires cache busting for updates' },
-        { value: 'standard', label: 'Standard (7 days)', description: 'Good balance of performance and freshness' },
-        { value: 'conservative', label: 'Conservative (1 day)', description: 'More frequent origin checks' }
-      ]
+        {
+          value: 'aggressive',
+          label: 'Aggressive (30 days)',
+          description: 'Maximum performance, requires cache busting for updates',
+        },
+        {
+          value: 'standard',
+          label: 'Standard (7 days)',
+          description: 'Good balance of performance and freshness',
+        },
+        {
+          value: 'conservative',
+          label: 'Conservative (1 day)',
+          description: 'More frequent origin checks',
+        },
+      ],
     },
     {
       key: 'compressionEnabled',
       label: 'Enable Compression',
       description: 'Compress text-based content (HTML, CSS, JS)',
       type: 'boolean',
-      defaultValue: true
+      defaultValue: true,
     },
     {
       key: 'http2Enabled',
       label: 'Enable HTTP/2',
       description: 'Enable HTTP/2 for better performance',
       type: 'boolean',
-      defaultValue: true
-    }
+      defaultValue: true,
+    },
   ],
   edgeHostnameConfig: {
     domainSuffix: '.edgesuite.net',
     ipVersionBehavior: 'IPV4_IPV6',
-    certificateType: 'ENHANCED_TLS'
+    certificateType: 'ENHANCED_TLS',
   },
   certificateRequirements: {
     type: 'DV',
     networkDeployment: 'ENHANCED_TLS',
     sniOnly: true,
-    quicEnabled: true
+    quicEnabled: true,
   },
   recommendedDNSRecords: [
     {
@@ -151,15 +164,15 @@ export const staticWebsiteTemplate: PropertyTemplate = {
       name: '{{hostname}}',
       value: '{{edgeHostname}}',
       ttl: 300,
-      description: 'Points your hostname to Akamai edge servers'
+      description: 'Points your hostname to Akamai edge servers',
     },
     {
       type: 'CAA',
       name: '{{hostname}}',
       value: '0 issue "digicert.com"',
       ttl: 3600,
-      description: 'Authorizes DigiCert to issue certificates for this domain'
-    }
+      description: 'Authorizes DigiCert to issue certificates for this domain',
+    },
   ],
   ruleTree: {
     name: 'default',
@@ -174,32 +187,38 @@ export const staticWebsiteTemplate: PropertyTemplate = {
                 name: 'contentType',
                 options: {
                   matchOperator: 'IS_ONE_OF',
-                  values: ['text/*', 'application/javascript', 'application/x-javascript', 'application/json', 'application/xml']
-                }
-              }
+                  values: [
+                    'text/*',
+                    'application/javascript',
+                    'application/x-javascript',
+                    'application/json',
+                    'application/xml',
+                  ],
+                },
+              },
             ],
             behaviors: [
               {
                 name: 'gzipResponse',
-                options: { behavior: 'ALWAYS' }
-              }
-            ]
-          }
+                options: { behavior: 'ALWAYS' },
+              },
+            ],
+          },
         ],
         behaviors: [
           {
             name: 'http2',
-            options: { enabled: '{{http2Enabled}}' }
+            options: { enabled: '{{http2Enabled}}' },
           },
           {
             name: 'allowTransferEncoding',
-            options: { enabled: true }
+            options: { enabled: true },
           },
           {
             name: 'removeVary',
-            options: { enabled: true }
-          }
-        ]
+            options: { enabled: true },
+          },
+        ],
       },
       {
         name: 'Offload',
@@ -211,9 +230,23 @@ export const staticWebsiteTemplate: PropertyTemplate = {
                 name: 'fileExtension',
                 options: {
                   matchOperator: 'IS_ONE_OF',
-                  values: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'css', 'js', 'woff', 'woff2', 'ttf', 'eot', 'svg', 'ico']
-                }
-              }
+                  values: [
+                    'jpg',
+                    'jpeg',
+                    'png',
+                    'gif',
+                    'webp',
+                    'css',
+                    'js',
+                    'woff',
+                    'woff2',
+                    'ttf',
+                    'eot',
+                    'svg',
+                    'ico',
+                  ],
+                },
+              },
             ],
             behaviors: [
               {
@@ -221,17 +254,17 @@ export const staticWebsiteTemplate: PropertyTemplate = {
                 options: {
                   behavior: 'MAX_AGE',
                   mustRevalidate: false,
-                  ttl: '{{cachingStrategy === "aggressive" ? "30d" : cachingStrategy === "standard" ? "7d" : "1d"}}'
-                }
+                  ttl: '{{cachingStrategy === "aggressive" ? "30d" : cachingStrategy === "standard" ? "7d" : "1d"}}',
+                },
               },
               {
                 name: 'prefreshCache',
                 options: {
                   enabled: true,
-                  prefreshval: 90
-                }
-              }
-            ]
+                  prefreshval: 90,
+                },
+              },
+            ],
           },
           {
             name: 'HTML Pages',
@@ -240,9 +273,9 @@ export const staticWebsiteTemplate: PropertyTemplate = {
                 name: 'fileExtension',
                 options: {
                   matchOperator: 'IS_ONE_OF',
-                  values: ['html', 'htm']
-                }
-              }
+                  values: ['html', 'htm'],
+                },
+              },
             ],
             behaviors: [
               {
@@ -250,35 +283,42 @@ export const staticWebsiteTemplate: PropertyTemplate = {
                 options: {
                   behavior: 'MAX_AGE',
                   mustRevalidate: true,
-                  ttl: '10m'
-                }
+                  ttl: '10m',
+                },
               },
               {
                 name: 'cacheKeyQueryParams',
                 options: {
                   behavior: 'IGNORE',
                   exactMatch: true,
-                  parameters: ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'fbclid', 'gclid']
-                }
-              }
-            ]
-          }
+                  parameters: [
+                    'utm_source',
+                    'utm_medium',
+                    'utm_campaign',
+                    'utm_content',
+                    'fbclid',
+                    'gclid',
+                  ],
+                },
+              },
+            ],
+          },
         ],
         behaviors: [
           {
             name: 'caching',
             options: {
-              behavior: 'NO_STORE'
-            }
+              behavior: 'NO_STORE',
+            },
           },
           {
             name: 'tieredDistribution',
             options: {
-              enabled: true
-            }
-          }
-        ]
-      }
+              enabled: true,
+            },
+          },
+        ],
+      },
     ],
     behaviors: [
       {
@@ -293,19 +333,19 @@ export const staticWebsiteTemplate: PropertyTemplate = {
           httpsPort: 443,
           originSni: true,
           originType: 'CUSTOMER',
-          verificationMode: 'PLATFORM_SETTINGS'
-        }
+          verificationMode: 'PLATFORM_SETTINGS',
+        },
       },
       {
         name: 'cpCode',
         options: {
           value: {
-            id: '{{cpCode}}'
-          }
-        }
-      }
-    ]
-  }
+            id: '{{cpCode}}',
+          },
+        },
+      },
+    ],
+  },
 };
 
 /**
@@ -315,7 +355,8 @@ export const staticWebsiteTemplate: PropertyTemplate = {
 export const dynamicWebApplicationTemplate: PropertyTemplate = {
   id: 'dynamic-web-app',
   name: 'Dynamic Web Application',
-  description: 'Optimized for modern web applications with API backends. Includes intelligent caching, API acceleration, and security headers.',
+  description:
+    'Optimized for modern web applications with API backends. Includes intelligent caching, API acceleration, and security headers.',
   category: 'web',
   requiredInputs: [
     {
@@ -325,8 +366,8 @@ export const dynamicWebApplicationTemplate: PropertyTemplate = {
       type: 'domain',
       validation: {
         required: true,
-        pattern: '^([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$'
-      }
+        pattern: '^([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$',
+      },
     },
     {
       key: 'originHostname',
@@ -334,8 +375,8 @@ export const dynamicWebApplicationTemplate: PropertyTemplate = {
       description: 'The hostname of your origin server',
       type: 'domain',
       validation: {
-        required: true
-      }
+        required: true,
+      },
     },
     {
       key: 'apiPath',
@@ -345,9 +386,9 @@ export const dynamicWebApplicationTemplate: PropertyTemplate = {
       defaultValue: '/api/*',
       validation: {
         required: true,
-        pattern: '^/.*'
-      }
-    }
+        pattern: '^/.*',
+      },
+    },
   ],
   optionalInputs: [
     {
@@ -355,40 +396,40 @@ export const dynamicWebApplicationTemplate: PropertyTemplate = {
       label: 'CORS Allowed Origins',
       description: 'Allowed origins for CORS requests',
       type: 'multiselect',
-      placeholder: 'https://app.example.com, https://mobile.example.com'
+      placeholder: 'https://app.example.com, https://mobile.example.com',
     },
     {
       key: 'sessionAffinity',
       label: 'Enable Session Affinity',
       description: 'Sticky sessions for stateful applications',
       type: 'boolean',
-      defaultValue: false
+      defaultValue: false,
     },
     {
       key: 'webSocketSupport',
       label: 'Enable WebSocket Support',
       description: 'Support for WebSocket connections',
       type: 'boolean',
-      defaultValue: true
+      defaultValue: true,
     },
     {
       key: 'cachePersonalized',
       label: 'Cache Personalized Content',
       description: 'Cache content based on user segments',
       type: 'boolean',
-      defaultValue: false
-    }
+      defaultValue: false,
+    },
   ],
   edgeHostnameConfig: {
     domainSuffix: '.edgekey.net',
     ipVersionBehavior: 'IPV4_IPV6',
-    certificateType: 'ENHANCED_TLS'
+    certificateType: 'ENHANCED_TLS',
   },
   certificateRequirements: {
     type: 'DV',
     networkDeployment: 'ENHANCED_TLS',
     sniOnly: true,
-    quicEnabled: true
+    quicEnabled: true,
   },
   recommendedDNSRecords: [
     {
@@ -396,8 +437,8 @@ export const dynamicWebApplicationTemplate: PropertyTemplate = {
       name: '{{hostname}}',
       value: '{{edgeHostname}}',
       ttl: 300,
-      description: 'Points your hostname to Akamai edge servers'
-    }
+      description: 'Points your hostname to Akamai edge servers',
+    },
   ],
   ruleTree: {
     name: 'default',
@@ -409,9 +450,9 @@ export const dynamicWebApplicationTemplate: PropertyTemplate = {
             name: 'path',
             options: {
               matchOperator: 'MATCHES_ONE_OF',
-              values: ['{{apiPath}}']
-            }
-          }
+              values: ['{{apiPath}}'],
+            },
+          },
         ],
         children: [
           {
@@ -427,10 +468,10 @@ export const dynamicWebApplicationTemplate: PropertyTemplate = {
                   allowHeaders: ['Authorization', 'Content-Type', 'X-Requested-With'],
                   exposeHeaders: ['X-Total-Count', 'X-Page-Count'],
                   allowCredentials: true,
-                  preflightMaxAge: 86400
-                }
-              }
-            ]
+                  preflightMaxAge: 86400,
+                },
+              },
+            ],
           },
           {
             name: 'GraphQL Caching',
@@ -439,34 +480,34 @@ export const dynamicWebApplicationTemplate: PropertyTemplate = {
                 name: 'path',
                 options: {
                   matchOperator: 'MATCHES_ONE_OF',
-                  values: ['/graphql', '/graphql/*']
-                }
-              }
+                  values: ['/graphql', '/graphql/*'],
+                },
+              },
             ],
             behaviors: [
               {
                 name: 'graphqlCaching',
                 options: {
                   enabled: true,
-                  cacheResponsesWithErrors: false
-                }
-              }
-            ]
-          }
+                  cacheResponsesWithErrors: false,
+                },
+              },
+            ],
+          },
         ],
         behaviors: [
           {
             name: 'caching',
             options: {
-              behavior: 'BYPASS_CACHE'
-            }
+              behavior: 'BYPASS_CACHE',
+            },
           },
           {
             name: 'apiPrioritization',
             options: {
               enabled: true,
-              priorityType: 'DYNAMIC'
-            }
+              priorityType: 'DYNAMIC',
+            },
           },
           {
             name: 'adaptiveAcceleration',
@@ -474,10 +515,10 @@ export const dynamicWebApplicationTemplate: PropertyTemplate = {
               enabled: true,
               source: 'mPulse',
               enablePush: true,
-              enablePreconnect: true
-            }
-          }
-        ]
+              enablePreconnect: true,
+            },
+          },
+        ],
       },
       {
         name: 'Static Assets',
@@ -486,9 +527,9 @@ export const dynamicWebApplicationTemplate: PropertyTemplate = {
             name: 'path',
             options: {
               matchOperator: 'MATCHES_ONE_OF',
-              values: ['/static/*', '/assets/*', '/dist/*']
-            }
-          }
+              values: ['/static/*', '/assets/*', '/dist/*'],
+            },
+          },
         ],
         behaviors: [
           {
@@ -496,14 +537,14 @@ export const dynamicWebApplicationTemplate: PropertyTemplate = {
             options: {
               behavior: 'MAX_AGE',
               ttl: '365d',
-              mustRevalidate: false
-            }
+              mustRevalidate: false,
+            },
           },
           {
             name: 'removeVary',
-            options: { enabled: true }
-          }
-        ]
+            options: { enabled: true },
+          },
+        ],
       },
       {
         name: 'Security Headers',
@@ -514,8 +555,8 @@ export const dynamicWebApplicationTemplate: PropertyTemplate = {
               action: 'ADD',
               standardHeaderName: 'OTHER',
               customHeaderName: 'X-Frame-Options',
-              headerValue: 'SAMEORIGIN'
-            }
+              headerValue: 'SAMEORIGIN',
+            },
           },
           {
             name: 'modifyOutgoingResponseHeader',
@@ -523,8 +564,8 @@ export const dynamicWebApplicationTemplate: PropertyTemplate = {
               action: 'ADD',
               standardHeaderName: 'OTHER',
               customHeaderName: 'X-Content-Type-Options',
-              headerValue: 'nosniff'
-            }
+              headerValue: 'nosniff',
+            },
           },
           {
             name: 'modifyOutgoingResponseHeader',
@@ -532,11 +573,11 @@ export const dynamicWebApplicationTemplate: PropertyTemplate = {
               action: 'ADD',
               standardHeaderName: 'OTHER',
               customHeaderName: 'Strict-Transport-Security',
-              headerValue: 'max-age=31536000; includeSubDomains'
-            }
-          }
-        ]
-      }
+              headerValue: 'max-age=31536000; includeSubDomains',
+            },
+          },
+        ],
+      },
     ],
     behaviors: [
       {
@@ -551,27 +592,27 @@ export const dynamicWebApplicationTemplate: PropertyTemplate = {
           httpsPort: 443,
           originSni: true,
           originType: 'CUSTOMER',
-          verificationMode: 'PLATFORM_SETTINGS'
-        }
+          verificationMode: 'PLATFORM_SETTINGS',
+        },
       },
       {
         name: 'cpCode',
         options: {
           value: {
-            id: '{{cpCode}}'
-          }
-        }
+            id: '{{cpCode}}',
+          },
+        },
       },
       {
         name: 'sureRoute',
         options: {
           enabled: true,
           type: 'PERFORMANCE',
-          testObjectUrl: '/akamai-sureroute-test.html'
-        }
-      }
-    ]
-  }
+          testObjectUrl: '/akamai-sureroute-test.html',
+        },
+      },
+    ],
+  },
 };
 
 /**
@@ -581,7 +622,8 @@ export const dynamicWebApplicationTemplate: PropertyTemplate = {
 export const apiAccelerationTemplate: PropertyTemplate = {
   id: 'api-acceleration',
   name: 'API Acceleration',
-  description: 'Optimized for RESTful APIs and microservices. Includes rate limiting, authentication caching, and API-specific optimizations.',
+  description:
+    'Optimized for RESTful APIs and microservices. Includes rate limiting, authentication caching, and API-specific optimizations.',
   category: 'api',
   requiredInputs: [
     {
@@ -591,8 +633,8 @@ export const apiAccelerationTemplate: PropertyTemplate = {
       type: 'domain',
       validation: {
         required: true,
-        pattern: '^([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$'
-      }
+        pattern: '^([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$',
+      },
     },
     {
       key: 'originHostname',
@@ -600,8 +642,8 @@ export const apiAccelerationTemplate: PropertyTemplate = {
       description: 'The hostname of your origin API server',
       type: 'domain',
       validation: {
-        required: true
-      }
+        required: true,
+      },
     },
     {
       key: 'apiVersion',
@@ -610,9 +652,9 @@ export const apiAccelerationTemplate: PropertyTemplate = {
       type: 'string',
       defaultValue: '/v1',
       validation: {
-        pattern: '^/v\\d+$'
-      }
-    }
+        pattern: '^/v\\d+$',
+      },
+    },
   ],
   optionalInputs: [
     {
@@ -623,22 +665,22 @@ export const apiAccelerationTemplate: PropertyTemplate = {
       defaultValue: 1000,
       validation: {
         min: 1,
-        max: 100000
-      }
+        max: 100000,
+      },
     },
     {
       key: 'authCaching',
       label: 'Cache Authentication Results',
       description: 'Cache successful authentication for performance',
       type: 'boolean',
-      defaultValue: true
+      defaultValue: true,
     },
     {
       key: 'jsonCompression',
       label: 'Enable JSON Compression',
       description: 'Compress JSON responses',
       type: 'boolean',
-      defaultValue: true
+      defaultValue: true,
     },
     {
       key: 'allowedMethods',
@@ -653,19 +695,19 @@ export const apiAccelerationTemplate: PropertyTemplate = {
         { value: 'DELETE', label: 'DELETE' },
         { value: 'PATCH', label: 'PATCH' },
         { value: 'HEAD', label: 'HEAD' },
-        { value: 'OPTIONS', label: 'OPTIONS' }
-      ]
-    }
+        { value: 'OPTIONS', label: 'OPTIONS' },
+      ],
+    },
   ],
   edgeHostnameConfig: {
     domainSuffix: '.edgekey.net',
     ipVersionBehavior: 'IPV4_IPV6',
-    certificateType: 'ENHANCED_TLS'
+    certificateType: 'ENHANCED_TLS',
   },
   certificateRequirements: {
     type: 'DV',
     networkDeployment: 'ENHANCED_TLS',
-    sniOnly: true
+    sniOnly: true,
   },
   recommendedDNSRecords: [
     {
@@ -673,8 +715,8 @@ export const apiAccelerationTemplate: PropertyTemplate = {
       name: '{{hostname}}',
       value: '{{edgeHostname}}',
       ttl: 300,
-      description: 'Points your API hostname to Akamai edge servers'
-    }
+      description: 'Points your API hostname to Akamai edge servers',
+    },
   ],
   ruleTree: {
     name: 'default',
@@ -686,9 +728,9 @@ export const apiAccelerationTemplate: PropertyTemplate = {
             name: 'path',
             options: {
               matchOperator: 'MATCHES_ONE_OF',
-              values: ['{{apiVersion}}/*']
-            }
-          }
+              values: ['{{apiVersion}}/*'],
+            },
+          },
         ],
         children: [
           {
@@ -698,9 +740,9 @@ export const apiAccelerationTemplate: PropertyTemplate = {
                 name: 'requestMethod',
                 options: {
                   matchOperator: 'IS',
-                  value: 'GET'
-                }
-              }
+                  value: 'GET',
+                },
+              },
             ],
             behaviors: [
               {
@@ -708,16 +750,16 @@ export const apiAccelerationTemplate: PropertyTemplate = {
                 options: {
                   behavior: 'MAX_AGE',
                   ttl: '5m',
-                  mustRevalidate: true
-                }
+                  mustRevalidate: true,
+                },
               },
               {
                 name: 'cacheKeyQueryParams',
                 options: {
-                  behavior: 'INCLUDE_ALL_PRESERVE_ORDER'
-                }
-              }
-            ]
+                  behavior: 'INCLUDE_ALL_PRESERVE_ORDER',
+                },
+              },
+            ],
           },
           {
             name: 'Non-GET Requests',
@@ -726,19 +768,19 @@ export const apiAccelerationTemplate: PropertyTemplate = {
                 name: 'requestMethod',
                 options: {
                   matchOperator: 'IS_NOT',
-                  value: 'GET'
-                }
-              }
+                  value: 'GET',
+                },
+              },
             ],
             behaviors: [
               {
                 name: 'caching',
                 options: {
-                  behavior: 'BYPASS_CACHE'
-                }
-              }
-            ]
-          }
+                  behavior: 'BYPASS_CACHE',
+                },
+              },
+            ],
+          },
         ],
         behaviors: [
           {
@@ -748,10 +790,10 @@ export const apiAccelerationTemplate: PropertyTemplate = {
               algorithm: 'FIXED_WINDOW',
               requestsPerMinute: '{{rateLimitRequests}}',
               keyType: 'CLIENT_IP',
-              responseCode: 429
-            }
-          }
-        ]
+              responseCode: 429,
+            },
+          },
+        ],
       },
       {
         name: 'Authentication Caching',
@@ -760,25 +802,25 @@ export const apiAccelerationTemplate: PropertyTemplate = {
             name: 'path',
             options: {
               matchOperator: 'MATCHES_ONE_OF',
-              values: ['/auth/*', '/oauth/*', '/token']
-            }
-          }
+              values: ['/auth/*', '/oauth/*', '/token'],
+            },
+          },
         ],
         behaviors: [
           {
             name: 'caching',
             options: {
               behavior: '{{authCaching ? "MAX_AGE" : "BYPASS_CACHE"}}',
-              ttl: '5m'
-            }
+              ttl: '5m',
+            },
           },
           {
             name: 'cacheKeyCustomization',
             options: {
-              includeHeaders: ['Authorization']
-            }
-          }
-        ]
+              includeHeaders: ['Authorization'],
+            },
+          },
+        ],
       },
       {
         name: 'API Documentation',
@@ -787,20 +829,20 @@ export const apiAccelerationTemplate: PropertyTemplate = {
             name: 'path',
             options: {
               matchOperator: 'MATCHES_ONE_OF',
-              values: ['/docs', '/docs/*', '/swagger', '/swagger/*', '/openapi.json']
-            }
-          }
+              values: ['/docs', '/docs/*', '/swagger', '/swagger/*', '/openapi.json'],
+            },
+          },
         ],
         behaviors: [
           {
             name: 'caching',
             options: {
               behavior: 'MAX_AGE',
-              ttl: '1h'
-            }
-          }
-        ]
-      }
+              ttl: '1h',
+            },
+          },
+        ],
+      },
     ],
     behaviors: [
       {
@@ -815,51 +857,51 @@ export const apiAccelerationTemplate: PropertyTemplate = {
           httpsPort: 443,
           originSni: true,
           originType: 'CUSTOMER',
-          verificationMode: 'PLATFORM_SETTINGS'
-        }
+          verificationMode: 'PLATFORM_SETTINGS',
+        },
       },
       {
         name: 'cpCode',
         options: {
           value: {
-            id: '{{cpCode}}'
-          }
-        }
+            id: '{{cpCode}}',
+          },
+        },
       },
       {
         name: 'allowedMethods',
         options: {
-          methods: '{{allowedMethods}}'
-        }
+          methods: '{{allowedMethods}}',
+        },
       },
       {
         name: 'responseCode',
         options: {
           statusCode: 405,
           reasonPhrase: 'Method Not Allowed',
-          enabled: true
-        }
-      }
-    ]
-  }
+          enabled: true,
+        },
+      },
+    ],
+  },
 };
 
 // Export all templates as a collection
 export const propertyTemplates: PropertyTemplate[] = [
   staticWebsiteTemplate,
   dynamicWebApplicationTemplate,
-  apiAccelerationTemplate
+  apiAccelerationTemplate,
 ];
 
 // Helper function to get template by ID
 export function getTemplateById(id: string): PropertyTemplate | undefined {
-  return propertyTemplates.find(template => template.id === id);
+  return propertyTemplates.find((template) => template.id === id);
 }
 
 // Helper function to validate inputs against template requirements
 export function validateTemplateInputs(
   template: PropertyTemplate,
-  inputs: Record<string, any>
+  inputs: Record<string, any>,
 ): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
@@ -873,7 +915,7 @@ export function validateTemplateInputs(
     // Validate input value
     if (input.validation) {
       const value = inputs[input.key];
-      
+
       if (input.validation.pattern) {
         const regex = new RegExp(input.validation.pattern);
         if (!regex.test(value)) {
@@ -901,18 +943,15 @@ export function validateTemplateInputs(
 
   return {
     valid: errors.length === 0,
-    errors
+    errors,
   };
 }
 
 // Helper function to apply inputs to template rule tree
-export function applyTemplateInputs(
-  template: PropertyTemplate,
-  inputs: Record<string, any>
-): any {
+export function applyTemplateInputs(template: PropertyTemplate, inputs: Record<string, any>): any {
   // Deep clone the rule tree
   const ruleTree = JSON.parse(JSON.stringify(template.ruleTree));
-  
+
   // Replace placeholders with actual values
   const replacePlaceholders = (obj: any): any => {
     if (typeof obj === 'string') {
@@ -930,7 +969,7 @@ export function applyTemplateInputs(
             return match;
           }
         }
-        
+
         // Simple variable replacement
         return inputs[expression.trim()] || match;
       });

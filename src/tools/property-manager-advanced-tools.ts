@@ -1,11 +1,11 @@
 /**
  * Advanced Property Manager Tools
- * Implements extended property management features including edge hostnames, property versions, 
+ * Implements extended property management features including edge hostnames, property versions,
  * search, bulk operations, and domain validation
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
 
 /**
  * List all edge hostnames available under a contract
@@ -16,7 +16,7 @@ export async function listEdgeHostnames(
     contractId?: string;
     groupId?: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Build query parameters
@@ -32,15 +32,17 @@ export async function listEdgeHostnames(
 
     if (!response.edgeHostnames?.items || response.edgeHostnames.items.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: `No edge hostnames found${args.contractId ? ` for contract ${args.contractId}` : ''}.\n\n💡 **Tip:** Edge hostnames are created automatically when you:\n- Create properties\n- Use the "create_edge_hostname" tool`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `No edge hostnames found${args.contractId ? ` for contract ${args.contractId}` : ''}.\n\n💡 **Tip:** Edge hostnames are created automatically when you:\n- Create properties\n- Use the "create_edge_hostname" tool`,
+          },
+        ],
       };
     }
 
     let text = `# Edge Hostnames (${response.edgeHostnames.items.length} found)\n\n`;
-    
+
     if (args.contractId) text += `**Contract:** ${args.contractId}\n`;
     if (args.groupId) text += `**Group:** ${args.groupId}\n`;
     text += '\n';
@@ -54,7 +56,7 @@ export async function listEdgeHostnames(
       const secure = eh.secure ? '🔒 Yes' : '❌ No';
       const status = eh.status || 'Active';
       const serial = eh.mapDetails?.serialNumber || 'N/A';
-      
+
       text += `| ${hostname} | ${product} | ${secure} | ${status} | ${serial} |\n`;
     }
 
@@ -69,10 +71,12 @@ export async function listEdgeHostnames(
     text += '- Use in property: `"Add hostname www.example.com to property prp_XXX"`\n';
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('list edge hostnames', error);
@@ -87,7 +91,7 @@ export async function getEdgeHostname(
   args: {
     edgeHostnameId: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Edge hostname IDs should be in format ehn_XXXXX
@@ -99,17 +103,20 @@ export async function getEdgeHostname(
         method: 'GET',
       });
 
-      const found = listResponse.edgeHostnames?.items?.find((eh: any) => 
-        eh.edgeHostnameDomain === args.edgeHostnameId ||
-        `${eh.domainPrefix}.${eh.domainSuffix}` === args.edgeHostnameId
+      const found = listResponse.edgeHostnames?.items?.find(
+        (eh: any) =>
+          eh.edgeHostnameDomain === args.edgeHostnameId ||
+          `${eh.domainPrefix}.${eh.domainSuffix}` === args.edgeHostnameId,
       );
 
       if (!found) {
         return {
-          content: [{
-            type: 'text',
-            text: `❌ Edge hostname "${args.edgeHostnameId}" not found.\n\n💡 **Tip:** Use "list_edge_hostnames" to see available edge hostnames.`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `❌ Edge hostname "${args.edgeHostnameId}" not found.\n\n💡 **Tip:** Use "list_edge_hostnames" to see available edge hostnames.`,
+            },
+          ],
         };
       }
 
@@ -127,7 +134,7 @@ export async function getEdgeHostname(
     }
 
     let text = `# Edge Hostname Details: ${eh.edgeHostnameDomain || `${eh.domainPrefix}.${eh.domainSuffix}`}\n\n`;
-    
+
     text += `## Basic Information\n`;
     text += `- **Edge Hostname ID:** ${eh.edgeHostnameId}\n`;
     text += `- **Domain:** ${eh.edgeHostnameDomain || `${eh.domainPrefix}.${eh.domainSuffix}`}\n`;
@@ -162,10 +169,12 @@ export async function getEdgeHostname(
     text += `- List properties using this: \`"Search properties using edge hostname ${eh.edgeHostnameDomain}"\`\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('get edge hostname', error);
@@ -184,7 +193,7 @@ export async function cloneProperty(
     groupId?: string;
     cloneHostnames?: boolean;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Get source property details
@@ -196,10 +205,12 @@ export async function cloneProperty(
     const sourceProperty = sourceResponse.properties?.items?.[0];
     if (!sourceProperty) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Source property ${args.sourcePropertyId} not found.\n\n💡 **Tip:** Use "list_properties" to find valid property IDs.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ Source property ${args.sourcePropertyId} not found.\n\n💡 **Tip:** Use "list_properties" to find valid property IDs.`,
+          },
+        ],
       };
     }
 
@@ -265,10 +276,12 @@ export async function cloneProperty(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('clone property', error);
@@ -283,7 +296,7 @@ export async function removeProperty(
   args: {
     propertyId: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // First check if property exists and is not active
@@ -295,20 +308,24 @@ export async function removeProperty(
     const property = propertyResponse.properties?.items?.[0];
     if (!property) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Property ${args.propertyId} not found.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ Property ${args.propertyId} not found.`,
+          },
+        ],
       };
     }
 
     // Check if property is active
     if (property.productionVersion || property.stagingVersion) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Cannot delete property "${property.propertyName}" (${args.propertyId}).\n\n**Reason:** Property has active versions:\n- Production: ${property.productionVersion || 'None'}\n- Staging: ${property.stagingVersion || 'None'}\n\n**Solution:** Deactivate all versions first:\n1. \`"Deactivate property ${args.propertyId} from production"\`\n2. \`"Deactivate property ${args.propertyId} from staging"\`\n3. Then retry deletion`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ Cannot delete property "${property.propertyName}" (${args.propertyId}).\n\n**Reason:** Property has active versions:\n- Production: ${property.productionVersion || 'None'}\n- Staging: ${property.stagingVersion || 'None'}\n\n**Solution:** Deactivate all versions first:\n1. \`"Deactivate property ${args.propertyId} from production"\`\n2. \`"Deactivate property ${args.propertyId} from staging"\`\n3. Then retry deletion`,
+          },
+        ],
       };
     }
 
@@ -323,10 +340,12 @@ export async function removeProperty(
     });
 
     return {
-      content: [{
-        type: 'text',
-        text: `✅ **Property Deleted Successfully**\n\n**Deleted Property:**\n- Name: ${property.propertyName}\n- ID: ${args.propertyId}\n- Contract: ${property.contractId}\n- Group: ${property.groupId}\n\n⚠️ **Note:** This action cannot be undone.`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `✅ **Property Deleted Successfully**\n\n**Deleted Property:**\n- Name: ${property.propertyName}\n- ID: ${args.propertyId}\n- Contract: ${property.contractId}\n- Group: ${property.groupId}\n\n⚠️ **Note:** This action cannot be undone.`,
+        },
+      ],
     };
   } catch (error) {
     return formatError('remove property', error);
@@ -342,7 +361,7 @@ export async function listPropertyVersions(
     propertyId: string;
     limit?: number;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const limit = args.limit || 50;
@@ -356,10 +375,12 @@ export async function listPropertyVersions(
 
     if (!response.versions?.items || response.versions.items.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: `No versions found for property ${args.propertyId}.\n\n💡 **Tip:** Verify the property ID is correct.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `No versions found for property ${args.propertyId}.\n\n💡 **Tip:** Verify the property ID is correct.`,
+          },
+        ],
       };
     }
 
@@ -388,11 +409,13 @@ export async function listPropertyVersions(
       } else if (property?.stagingVersion === versionNum) {
         status = '🟡 Staging';
       }
-      
+
       const updatedBy = version.updatedByUser || 'Unknown';
-      const updatedDate = version.updatedDate ? new Date(version.updatedDate).toLocaleDateString() : 'Unknown';
+      const updatedDate = version.updatedDate
+        ? new Date(version.updatedDate).toLocaleDateString()
+        : 'Unknown';
       const note = version.note || '-';
-      
+
       text += `| v${versionNum} | ${status} | ${updatedBy} | ${updatedDate} | ${note} |\n`;
     }
 
@@ -408,10 +431,12 @@ export async function listPropertyVersions(
     text += `- Activate version: \`"Activate property ${args.propertyId} version 5 to staging"\`\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('list property versions', error);
@@ -427,7 +452,7 @@ export async function getPropertyVersion(
     propertyId: string;
     version: number;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const response = await client.request({
@@ -438,10 +463,12 @@ export async function getPropertyVersion(
     const version = response.versions?.items?.[0];
     if (!version) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Version ${args.version} not found for property ${args.propertyId}.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ Version ${args.version} not found for property ${args.propertyId}.`,
+          },
+        ],
       };
     }
 
@@ -461,7 +488,7 @@ export async function getPropertyVersion(
     text += `- **Updated By:** ${version.updatedByUser || 'Unknown'}\n`;
     text += `- **Updated Date:** ${version.updatedDate ? new Date(version.updatedDate).toLocaleString() : 'Unknown'}\n`;
     text += `- **Rule Format:** ${version.ruleFormat || 'Unknown'}\n`;
-    
+
     if (version.note) {
       text += `- **Version Note:** ${version.note}\n`;
     }
@@ -488,16 +515,18 @@ export async function getPropertyVersion(
     text += `- View rules: \`"Get property ${args.propertyId} version ${args.version} rules"\`\n`;
     text += `- View hostnames: \`"List hostnames for property ${args.propertyId} version ${args.version}"\`\n`;
     text += `- Create new version based on this: \`"Create property version for ${args.propertyId} based on version ${args.version}"\`\n`;
-    
+
     if (property?.productionVersion !== versionNum && property?.stagingVersion !== versionNum) {
       text += `- Activate: \`"Activate property ${args.propertyId} version ${args.version} to staging"\`\n`;
     }
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('get property version', error);
@@ -513,7 +542,7 @@ export async function getLatestPropertyVersion(
     propertyId: string;
     activatedOn?: 'PRODUCTION' | 'STAGING' | 'LATEST';
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const propertyResponse = await client.request({
@@ -524,10 +553,12 @@ export async function getLatestPropertyVersion(
     const property = propertyResponse.properties?.items?.[0];
     if (!property) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Property ${args.propertyId} not found.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ Property ${args.propertyId} not found.`,
+          },
+        ],
       };
     }
 
@@ -552,10 +583,12 @@ export async function getLatestPropertyVersion(
 
     if (!targetVersion) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ No ${versionType.toLowerCase()} version found for property "${property.propertyName}".\n\n💡 **Tip:** This property may not have been activated to ${versionType.toLowerCase()} yet.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ No ${versionType.toLowerCase()} version found for property "${property.propertyName}".\n\n💡 **Tip:** This property may not have been activated to ${versionType.toLowerCase()} yet.`,
+          },
+        ],
       };
     }
 
@@ -578,7 +611,7 @@ export async function getLatestPropertyVersion(
     text += `- **Updated By:** ${version.updatedByUser || 'Unknown'}\n`;
     text += `- **Updated Date:** ${version.updatedDate ? new Date(version.updatedDate).toLocaleString() : 'Unknown'}\n`;
     text += `- **Rule Format:** ${version.ruleFormat || 'Unknown'}\n`;
-    
+
     if (version.note) {
       text += `- **Version Note:** ${version.note}\n`;
     }
@@ -592,16 +625,18 @@ export async function getLatestPropertyVersion(
     text += `## Next Steps\n`;
     text += `- View rules: \`"Get property ${args.propertyId} version ${targetVersion} rules"\`\n`;
     text += `- View all versions: \`"List versions for property ${args.propertyId}"\`\n`;
-    
+
     if (versionType === 'Latest' && targetVersion !== property.productionVersion) {
       text += `- Activate to production: \`"Activate property ${args.propertyId} version ${targetVersion} to production"\`\n`;
     }
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('get latest property version', error);
@@ -617,7 +652,7 @@ export async function cancelPropertyActivation(
     propertyId: string;
     activationId: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // First get the activation details to verify it's pending
@@ -629,10 +664,12 @@ export async function cancelPropertyActivation(
     const activation = activationResponse.activations?.items?.[0];
     if (!activation) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Activation ${args.activationId} not found for property ${args.propertyId}.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ Activation ${args.activationId} not found for property ${args.propertyId}.`,
+          },
+        ],
       };
     }
 
@@ -640,10 +677,12 @@ export async function cancelPropertyActivation(
     const cancellableStatuses = ['PENDING', 'ZONE_1', 'ZONE_2', 'ZONE_3', 'NEW'];
     if (!cancellableStatuses.includes(activation.status)) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Cannot cancel activation ${args.activationId}.\n\n**Status:** ${activation.status}\n**Reason:** Activation can only be cancelled when status is PENDING or in progress.\n\n💡 **Tip:** If the activation is already ACTIVE, you can roll back by activating a previous version.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ Cannot cancel activation ${args.activationId}.\n\n**Status:** ${activation.status}\n**Reason:** Activation can only be cancelled when status is PENDING or in progress.\n\n💡 **Tip:** If the activation is already ACTIVE, you can roll back by activating a previous version.`,
+          },
+        ],
       };
     }
 
@@ -654,10 +693,12 @@ export async function cancelPropertyActivation(
     });
 
     return {
-      content: [{
-        type: 'text',
-        text: `✅ **Activation Cancelled Successfully**\n\n**Cancelled Activation:**\n- Activation ID: ${args.activationId}\n- Property: ${activation.propertyName}\n- Version: v${activation.propertyVersion}\n- Network: ${activation.network}\n- Previous Status: ${activation.status}\n\n**What Happens Next:**\n- The activation process has been stopped\n- The currently active version (if any) remains active\n- You can create a new activation when ready\n\n**Next Steps:**\n- Fix any issues with version ${activation.propertyVersion}\n- Create new activation: \`"Activate property ${args.propertyId} version ${activation.propertyVersion} to ${activation.network.toLowerCase()}"\`\n- Or activate a different version: \`"List versions for property ${args.propertyId}"\``,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `✅ **Activation Cancelled Successfully**\n\n**Cancelled Activation:**\n- Activation ID: ${args.activationId}\n- Property: ${activation.propertyName}\n- Version: v${activation.propertyVersion}\n- Network: ${activation.network}\n- Previous Status: ${activation.status}\n\n**What Happens Next:**\n- The activation process has been stopped\n- The currently active version (if any) remains active\n- You can create a new activation when ready\n\n**Next Steps:**\n- Fix any issues with version ${activation.propertyVersion}\n- Create new activation: \`"Activate property ${args.propertyId} version ${activation.propertyVersion} to ${activation.network.toLowerCase()}"\`\n- Or activate a different version: \`"List versions for property ${args.propertyId}"\``,
+        },
+      ],
     };
   } catch (error) {
     return formatError('cancel property activation', error);
@@ -683,10 +724,10 @@ interface PropertySearchResult {
   latestVersion: number;
   productionVersion?: number;
   stagingVersion?: number;
-  matchedOn: {
+  matchedOn: Array<{
     field: string;
     value: string;
-  }[];
+  }>;
   hostnames?: Array<{
     hostname: string;
     edgeHostname: string;
@@ -710,12 +751,12 @@ export async function searchProperties(
     productId?: string;
     activationStatus?: 'production' | 'staging' | 'any' | 'none';
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Handle legacy searchTerm parameter
     let searchCriteria: SearchCriteria = {};
-    
+
     if (args.searchTerm) {
       // Legacy mode - use searchTerm with searchBy
       switch (args.searchBy) {
@@ -742,21 +783,29 @@ export async function searchProperties(
         activationStatus: args.activationStatus,
       };
     }
-    
+
     // Validate at least one search criterion is provided
-    if (!searchCriteria.propertyName && !searchCriteria.hostname && !searchCriteria.edgeHostname && 
-        !searchCriteria.contractId && !searchCriteria.groupId && !searchCriteria.productId) {
+    if (
+      !searchCriteria.propertyName &&
+      !searchCriteria.hostname &&
+      !searchCriteria.edgeHostname &&
+      !searchCriteria.contractId &&
+      !searchCriteria.groupId &&
+      !searchCriteria.productId
+    ) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ **No search criteria provided**\n\nPlease specify at least one of:\n- propertyName\n- hostname\n- edgeHostname\n- contractId\n- groupId\n- productId\n- activationStatus\n\nOr use legacy format with searchTerm parameter.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ **No search criteria provided**\n\nPlease specify at least one of:\n- propertyName\n- hostname\n- edgeHostname\n- contractId\n- groupId\n- productId\n- activationStatus\n\nOr use legacy format with searchTerm parameter.`,
+          },
+        ],
       };
     }
 
     const results: PropertySearchResult[] = [];
     const searchStartTime = Date.now();
-    
+
     // Get all properties first
     const groupsResponse = await client.request({
       path: '/papi/v1/groups',
@@ -765,10 +814,12 @@ export async function searchProperties(
 
     if (!groupsResponse.groups?.items?.length) {
       return {
-        content: [{
-          type: 'text',
-          text: 'No groups found. Unable to search properties.',
-        }],
+        content: [
+          {
+            type: 'text',
+            text: 'No groups found. Unable to search properties.',
+          },
+        ],
       };
     }
 
@@ -803,10 +854,14 @@ export async function searchProperties(
 
           for (const property of properties) {
             const matches: PropertySearchResult['matchedOn'] = [];
-            
+
             // Check property name
-            if (searchCriteria.propertyName && 
-                property.propertyName.toLowerCase().includes(searchCriteria.propertyName.toLowerCase())) {
+            if (
+              searchCriteria.propertyName &&
+              property.propertyName
+                .toLowerCase()
+                .includes(searchCriteria.propertyName.toLowerCase())
+            ) {
               matches.push({ field: 'propertyName', value: property.propertyName });
             }
 
@@ -819,7 +874,7 @@ export async function searchProperties(
             if (searchCriteria.activationStatus) {
               const hasProduction = !!property.productionVersion;
               const hasStaging = !!property.stagingVersion;
-              
+
               let statusMatch = false;
               switch (searchCriteria.activationStatus) {
                 case 'production':
@@ -835,11 +890,11 @@ export async function searchProperties(
                   statusMatch = !hasProduction && !hasStaging;
                   break;
               }
-              
+
               if (statusMatch) {
-                matches.push({ 
-                  field: 'activationStatus', 
-                  value: searchCriteria.activationStatus 
+                matches.push({
+                  field: 'activationStatus',
+                  value: searchCriteria.activationStatus,
                 });
               }
             }
@@ -861,13 +916,17 @@ export async function searchProperties(
                     edgeHostname: hn.cnameTo,
                   });
 
-                  if (searchCriteria.hostname && 
-                      hn.cnameFrom.toLowerCase().includes(searchCriteria.hostname.toLowerCase())) {
+                  if (
+                    searchCriteria.hostname &&
+                    hn.cnameFrom.toLowerCase().includes(searchCriteria.hostname.toLowerCase())
+                  ) {
                     matches.push({ field: 'hostname', value: hn.cnameFrom });
                   }
 
-                  if (searchCriteria.edgeHostname && 
-                      hn.cnameTo.toLowerCase().includes(searchCriteria.edgeHostname.toLowerCase())) {
+                  if (
+                    searchCriteria.edgeHostname &&
+                    hn.cnameTo.toLowerCase().includes(searchCriteria.edgeHostname.toLowerCase())
+                  ) {
                     matches.push({ field: 'edgeHostname', value: hn.cnameTo });
                   }
                 }
@@ -905,21 +964,25 @@ export async function searchProperties(
 
     // Format results
     const searchTime = ((Date.now() - searchStartTime) / 1000).toFixed(2);
-    
+
     if (results.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: formatNoResults(searchCriteria, searchTime),
-        }],
+        content: [
+          {
+            type: 'text',
+            text: formatNoResults(searchCriteria, searchTime),
+          },
+        ],
       };
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: formatSearchResults(results, searchCriteria, searchTime),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: formatSearchResults(results, searchCriteria, searchTime),
+        },
+      ],
     };
   } catch (error) {
     return formatError('search properties', error);
@@ -930,9 +993,9 @@ export async function searchProperties(
  * Format search results
  */
 function formatSearchResults(
-  results: PropertySearchResult[], 
+  results: PropertySearchResult[],
   criteria: SearchCriteria,
-  searchTime: string
+  searchTime: string,
 ): string {
   let text = `# Property Search Results\n\n`;
   text += `Found **${results.length}** propert${results.length !== 1 ? 'ies' : 'y'} `;
@@ -951,22 +1014,25 @@ function formatSearchResults(
 
   // Show results
   text += `## Results\n\n`;
-  
+
   // Summary table
   text += `| Property Name | ID | Product | Status | Matched On |\n`;
   text += `|---------------|-----|---------|--------|------------|\n`;
-  
+
   for (const result of results) {
-    const status = result.productionVersion ? '🟢 Prod' : 
-                  (result.stagingVersion ? '🟡 Stage' : '🔵 Draft');
-    
-    const matchedFields = [...new Set(result.matchedOn.map(m => m.field))].join(', ');
-    
+    const status = result.productionVersion
+      ? '🟢 Prod'
+      : result.stagingVersion
+        ? '🟡 Stage'
+        : '🔵 Draft';
+
+    const matchedFields = [...new Set(result.matchedOn.map((m) => m.field))].join(', ');
+
     text += `| ${result.propertyName} | ${result.propertyId} | ${result.productId} | ${status} | ${matchedFields} |\n`;
   }
 
   // Detailed view for properties with hostname matches
-  const hostnameMatches = results.filter(r => r.hostnames && r.hostnames.length > 0);
+  const hostnameMatches = results.filter((r) => r.hostnames && r.hostnames.length > 0);
   if (hostnameMatches.length > 0) {
     text += `\n### Hostname Details\n\n`;
     for (const result of hostnameMatches) {
@@ -982,7 +1048,7 @@ function formatSearchResults(
 
   text += `## Next Steps\n`;
   if (results.length === 1) {
-    const propId = results[0]!.propertyId;
+    const propId = results[0].propertyId;
     text += `- View details: \`"Get property ${propId}"\`\n`;
     text += `- View rules: \`"Get property ${propId} rules"\`\n`;
     text += `- View hostnames: \`"List hostnames for property ${propId}"\`\n`;
@@ -1000,7 +1066,7 @@ function formatSearchResults(
 function formatNoResults(criteria: SearchCriteria, searchTime: string): string {
   let text = `# No Properties Found\n\n`;
   text += `Search completed in ${searchTime}s\n\n`;
-  
+
   text += `## Search Criteria Used\n`;
   if (criteria.propertyName) text += `- Property Name: *${criteria.propertyName}*\n`;
   if (criteria.hostname) text += `- Hostname: *${criteria.hostname}*\n`;
@@ -1030,7 +1096,7 @@ export async function listAllHostnames(
     groupId?: string;
     includeDetails?: boolean;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Get all properties
@@ -1041,14 +1107,16 @@ export async function listAllHostnames(
 
     if (!groupsResponse.groups?.items?.length) {
       return {
-        content: [{
-          type: 'text',
-          text: 'No groups found. Unable to list hostnames.',
-        }],
+        content: [
+          {
+            type: 'text',
+            text: 'No groups found. Unable to list hostnames.',
+          },
+        ],
       };
     }
 
-    let allHostnames: Array<{
+    const allHostnames: Array<{
       hostname: string;
       edgeHostname: string;
       propertyId: string;
@@ -1086,7 +1154,7 @@ export async function listAllHostnames(
               });
 
               const hostnames = hostnamesResponse.hostnames?.items || [];
-              
+
               for (const hostname of hostnames) {
                 allHostnames.push({
                   hostname: hostname.cnameFrom,
@@ -1113,12 +1181,14 @@ export async function listAllHostnames(
       if (args.contractId) message += ` for contract ${args.contractId}`;
       if (args.groupId) message += ` in group ${args.groupId}`;
       message += '.';
-      
+
       return {
-        content: [{
-          type: 'text',
-          text: message,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: message,
+          },
+        ],
       };
     }
 
@@ -1126,7 +1196,7 @@ export async function listAllHostnames(
     allHostnames.sort((a, b) => a.hostname.localeCompare(b.hostname));
 
     let text = `# All Property Hostnames (${allHostnames.length} found)\n\n`;
-    
+
     if (args.contractId) text += `**Contract:** ${args.contractId}\n`;
     if (args.groupId) text += `**Group:** ${args.groupId}\n`;
     text += '\n';
@@ -1134,7 +1204,7 @@ export async function listAllHostnames(
     if (args.includeDetails) {
       text += `| Hostname | Property | Edge Hostname | Cert Status |\n`;
       text += `|----------|----------|---------------|-------------|\n`;
-      
+
       for (const h of allHostnames) {
         text += `| ${h.hostname} | ${h.propertyName} | ${h.edgeHostname} | ${h.certStatus} |\n`;
       }
@@ -1161,7 +1231,7 @@ export async function listAllHostnames(
 
     text += `## Summary\n`;
     text += `- Total hostnames: ${allHostnames.length}\n`;
-    text += `- Unique properties: ${new Set(allHostnames.map(h => h.propertyId)).size}\n\n`;
+    text += `- Unique properties: ${new Set(allHostnames.map((h) => h.propertyId)).size}\n\n`;
 
     text += `## Next Steps\n`;
     text += `- View with details: \`"List all hostnames with details"\`\n`;
@@ -1169,10 +1239,12 @@ export async function listAllHostnames(
     text += `- Add new hostname: \`"Add hostname www.newsite.com to property prp_XXX"\`\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('list all hostnames', error);
@@ -1189,7 +1261,7 @@ export async function listPropertyVersionHostnames(
     version?: number;
     validateCnames?: boolean;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Get latest version if not specified
@@ -1199,17 +1271,19 @@ export async function listPropertyVersionHostnames(
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
-      
+
       const property = propertyResponse.properties?.items?.[0];
       if (!property) {
         return {
-          content: [{
-            type: 'text',
-            text: `❌ Property ${args.propertyId} not found.`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `❌ Property ${args.propertyId} not found.`,
+            },
+          ],
         };
       }
-      
+
       version = property.latestVersion || 1;
     }
 
@@ -1222,10 +1296,12 @@ export async function listPropertyVersionHostnames(
 
     if (!response.hostnames?.items || response.hostnames.items.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: `No hostnames configured for property ${args.propertyId} version ${version}.\n\n💡 **Tip:** Add hostnames using:\n\`"Add hostname www.example.com to property ${args.propertyId}"\``,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `No hostnames configured for property ${args.propertyId} version ${version}.\n\n💡 **Tip:** Add hostnames using:\n\`"Add hostname www.example.com to property ${args.propertyId}"\``,
+          },
+        ],
       };
     }
 
@@ -1236,10 +1312,11 @@ export async function listPropertyVersionHostnames(
     text += `|----------|---------------|------|-------------|\n`;
 
     for (const hostname of response.hostnames.items) {
-      const certStatus = hostname.certStatus?.production?.[0]?.status || 
-                        hostname.certStatus?.staging?.[0]?.status || 
-                        'No cert';
-      
+      const certStatus =
+        hostname.certStatus?.production?.[0]?.status ||
+        hostname.certStatus?.staging?.[0]?.status ||
+        'No cert';
+
       text += `| ${hostname.cnameFrom} | ${hostname.cnameTo} | ${hostname.cnameType || 'EDGE_HOSTNAME'} | ${certStatus} |\n`;
     }
 
@@ -1271,10 +1348,12 @@ export async function listPropertyVersionHostnames(
     text += `- Activate version: \`"Activate property ${args.propertyId} version ${version} to staging"\`\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('list property version hostnames', error);
@@ -1287,10 +1366,10 @@ export async function listPropertyVersionHostnames(
 function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
-  
+
   if (error instanceof Error) {
     errorMessage += `: ${error.message}`;
-    
+
     // Provide specific solutions based on error type
     if (error.message.includes('401') || error.message.includes('credentials')) {
       solution = '**Solution:** Check your ~/.edgerc file has valid credentials.';
@@ -1306,22 +1385,25 @@ function formatError(operation: string, error: any): MCPToolResponse {
   } else {
     errorMessage += `: ${String(error)}`;
   }
-  
+
   let text = errorMessage;
   if (solution) {
     text += `\n\n${solution}`;
   }
-  
+
   // Add general help
   text += '\n\n**Need Help?**\n';
   text += '- Property operations: https://techdocs.akamai.com/property-mgr/reference/properties\n';
-  text += '- Edge hostname docs: https://techdocs.akamai.com/property-mgr/reference/edge-hostnames\n';
+  text +=
+    '- Edge hostname docs: https://techdocs.akamai.com/property-mgr/reference/edge-hostnames\n';
   text += '- Activation guide: https://techdocs.akamai.com/property-mgr/reference/activations';
 
   return {
-    content: [{
-      type: 'text',
-      text,
-    }],
+    content: [
+      {
+        type: 'text',
+        text,
+      },
+    ],
   };
 }

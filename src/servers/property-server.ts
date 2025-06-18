@@ -23,12 +23,10 @@ import {
   getProperty,
   createProperty,
   listGroups,
-  listContracts
+  listContracts,
 } from '../tools/property-tools';
 
-import {
-  listProducts
-} from '../tools/product-tools';
+import { listProducts, listBillingProducts } from '../tools/product-tools';
 
 import {
   createPropertyVersion,
@@ -40,7 +38,7 @@ import {
   getActivationStatus,
   listPropertyActivations,
   updatePropertyWithDefaultDV,
-  updatePropertyWithCPSCertificate
+  updatePropertyWithCPSCertificate,
 } from '../tools/property-manager-tools';
 
 import {
@@ -49,34 +47,23 @@ import {
   removeProperty,
   listPropertyVersions,
   getPropertyVersion,
-  searchProperties
+  searchProperties,
 } from '../tools/property-manager-advanced-tools';
 
-
 // CP Code Tools
-import {
-  listCPCodes,
-  createCPCode
-} from '../tools/cpcode-tools';
+import { listCPCodes, createCPCode } from '../tools/cpcode-tools';
 
 // Includes Tools
-import {
-  listIncludes,
-  createInclude
-} from '../tools/includes-tools';
-
-
+import { listIncludes, createInclude } from '../tools/includes-tools';
 
 // Rule Tree Tools
-import {
-  validateRuleTree
-} from '../tools/rule-tree-advanced';
+import { validateRuleTree } from '../tools/rule-tree-advanced';
 
 // Property Onboarding Tools
 import {
   onboardPropertyTool,
   onboardPropertyWizard,
-  checkOnboardingStatus
+  checkOnboardingStatus,
 } from '../tools/property-onboarding-tools';
 
 const log = (level: string, message: string, data?: any) => {
@@ -97,23 +84,26 @@ class PropertyALECSServer {
     log('INFO', '🏢 ALECS Property Server starting...');
     log('INFO', 'Node version:', { version: process.version });
     log('INFO', 'Working directory:', { cwd: process.cwd() });
-    
-    this.server = new Server({
-      name: 'alecs-property',
-      version: '1.0.0',
-    }, {
-      capabilities: {
-        tools: {},
+
+    this.server = new Server(
+      {
+        name: 'alecs-property',
+        version: '1.0.0',
       },
-    });
+      {
+        capabilities: {
+          tools: {},
+        },
+      },
+    );
 
     try {
       log('INFO', 'Initializing Akamai client...');
       this.client = new AkamaiClient();
       log('INFO', '✅ Akamai client initialized successfully');
     } catch (error) {
-      log('ERROR', '❌ Failed to initialize Akamai client', { 
-        error: error instanceof Error ? error.message : String(error) 
+      log('ERROR', '❌ Failed to initialize Akamai client', {
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -123,7 +113,7 @@ class PropertyALECSServer {
 
   private setupHandlers() {
     log('INFO', 'Setting up request handlers...');
-    
+
     // List all property and certificate tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       log('INFO', '📋 Tools list requested');
@@ -160,15 +150,39 @@ class PropertyALECSServer {
             type: 'object',
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
-              hostname: { type: 'string', description: 'Hostname to onboard (e.g., code.example.com)' },
+              hostname: {
+                type: 'string',
+                description: 'Hostname to onboard (e.g., code.example.com)',
+              },
               originHostname: { type: 'string', description: 'Origin server hostname' },
-              groupId: { type: 'string', description: 'Optional: Group ID (defaults to first available)' },
-              productId: { type: 'string', description: 'Optional: Product ID (defaults to Ion Standard)' },
-              network: { type: 'string', enum: ['STANDARD_TLS', 'ENHANCED_TLS', 'SHARED_CERT'], description: 'Optional: Network type (defaults to ENHANCED_TLS)' },
-              certificateType: { type: 'string', enum: ['DEFAULT', 'CPS_MANAGED'], description: 'Optional: Certificate type (defaults to DEFAULT)' },
-              notificationEmails: { type: 'array', items: { type: 'string' }, description: 'Optional: Notification email addresses' },
+              groupId: {
+                type: 'string',
+                description: 'Optional: Group ID (defaults to first available)',
+              },
+              productId: {
+                type: 'string',
+                description: 'Optional: Product ID (defaults to Ion Standard)',
+              },
+              network: {
+                type: 'string',
+                enum: ['STANDARD_TLS', 'ENHANCED_TLS', 'SHARED_CERT'],
+                description: 'Optional: Network type (defaults to ENHANCED_TLS)',
+              },
+              certificateType: {
+                type: 'string',
+                enum: ['DEFAULT', 'CPS_MANAGED'],
+                description: 'Optional: Certificate type (defaults to DEFAULT)',
+              },
+              notificationEmails: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Notification email addresses',
+              },
               skipDnsSetup: { type: 'boolean', description: 'Optional: Skip DNS setup' },
-              dnsProvider: { type: 'string', description: 'Optional: Current DNS provider (aws, cloudflare, azure, other)' },
+              dnsProvider: {
+                type: 'string',
+                description: 'Optional: Current DNS provider (aws, cloudflare, azure, other)',
+              },
             },
             required: ['hostname'],
           },
@@ -421,6 +435,20 @@ class PropertyALECSServer {
             required: ['contractId'],
           },
         },
+        {
+          name: 'list-billing-products',
+          description: 'List billing products to discover additional product mappings',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: { type: 'string' },
+              contractId: { type: 'string' },
+              year: { type: 'number', description: 'Optional: Year (defaults to current)' },
+              month: { type: 'number', description: 'Optional: Month 1-12 (defaults to current)' },
+            },
+            required: ['contractId'],
+          },
+        },
         // Default Certificate Integration (for property provisioning)
         {
           name: 'update-property-with-default-dv',
@@ -536,7 +564,7 @@ class PropertyALECSServer {
           },
         },
       ];
-      
+
       log('INFO', `✅ Returning ${tools.length} tools`);
       return { tools };
     });
@@ -544,15 +572,15 @@ class PropertyALECSServer {
     // Handle tool calls
     this.server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> => {
       const { name, arguments: args } = request.params;
-      
+
       log('INFO', `🔧 Tool called: ${name}`, { args });
-      
+
       const startTime = Date.now();
       const client = this.client;
 
       try {
         let result;
-        
+
         switch (name) {
           // Property Management Tools
           case 'list-properties':
@@ -621,7 +649,10 @@ class PropertyALECSServer {
           case 'list-products':
             result = await listProducts(client, args as any);
             break;
-          
+          case 'list-billing-products':
+            result = await listBillingProducts(client, args as any);
+            break;
+
           // Default Certificate Integration
           case 'update-property-with-default-dv':
             result = await updatePropertyWithDefaultDV(client, args as any);
@@ -629,7 +660,7 @@ class PropertyALECSServer {
           case 'update-property-with-cps-certificate':
             result = await updatePropertyWithCPSCertificate(client, args as any);
             break;
-          
+
           // Edge Hostname Tools
           case 'list-edge-hostnames':
             result = await listEdgeHostnames(client, args as any);
@@ -637,7 +668,7 @@ class PropertyALECSServer {
           case 'create-edge-hostname':
             result = await createEdgeHostname(client, args as any);
             break;
-          
+
           // CP Code Tools
           case 'list-cpcodes':
             result = await listCPCodes(client, args as any);
@@ -645,7 +676,7 @@ class PropertyALECSServer {
           case 'create-cpcode':
             result = await createCPCode(client, args as any);
             break;
-          
+
           // Includes Tools
           case 'list-includes':
             result = await listIncludes(client, args as any);
@@ -655,79 +686,81 @@ class PropertyALECSServer {
             break;
 
           default:
-            throw new McpError(
-              ErrorCode.MethodNotFound,
-              `Tool not found: ${name}`
-            );
+            throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
         }
-        
+
         const duration = Date.now() - startTime;
         log('INFO', `✅ Tool ${name} completed in ${duration}ms`);
-        
+
         return result;
-        
       } catch (error) {
         const duration = Date.now() - startTime;
         log('ERROR', `❌ Tool ${name} failed after ${duration}ms`, {
-          error: error instanceof Error ? {
-            message: error.message,
-            stack: error.stack
-          } : String(error)
+          error:
+            error instanceof Error
+              ? {
+                  message: error.message,
+                  stack: error.stack,
+                }
+              : String(error),
         });
-        
+
         if (error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`
+            `Invalid parameters: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
           );
         }
-        
+
         if (error instanceof McpError) {
           throw error;
         }
-        
+
         throw new McpError(
           ErrorCode.InternalError,
-          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`
+          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     });
-    
+
     log('INFO', '✅ Request handlers set up successfully');
   }
 
   async start() {
     log('INFO', '📍 Starting server connection...');
-    
+
     const transport = new StdioServerTransport();
-    
+
     // Add error handling for transport
     transport.onerror = (error: Error) => {
       log('ERROR', '❌ Transport error', {
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
     };
-    
+
     transport.onclose = () => {
       log('INFO', '🔌 Transport closed, shutting down...');
       process.exit(0);
     };
-    
+
     try {
       await this.server.connect(transport);
       log('INFO', '✅ Server connected and ready for MCP connections');
       log('INFO', '📊 Server stats', {
         toolCount: 32,
         memoryUsage: process.memoryUsage(),
-        uptime: process.uptime()
+        uptime: process.uptime(),
       });
     } catch (error) {
       log('ERROR', '❌ Failed to connect server', {
-        error: error instanceof Error ? {
-          message: error.message,
-          stack: error.stack
-        } : String(error)
+        error:
+          error instanceof Error
+            ? {
+                message: error.message,
+                stack: error.stack,
+              }
+            : String(error),
       });
       throw error;
     }
@@ -737,26 +770,28 @@ class PropertyALECSServer {
 // Main entry point
 async function main() {
   log('INFO', '🎯 ALECS Property Server main() started');
-  
+
   try {
     const server = new PropertyALECSServer();
     await server.start();
-    
+
     // Set up periodic status logging
     setInterval(() => {
       log('DEBUG', '💓 Server heartbeat', {
         uptime: process.uptime(),
         memory: process.memoryUsage(),
-        pid: process.pid
+        pid: process.pid,
       });
     }, 30000); // Every 30 seconds
-    
   } catch (error) {
     log('ERROR', '❌ Failed to start server', {
-      error: error instanceof Error ? {
-        message: error.message,
-        stack: error.stack
-      } : String(error)
+      error:
+        error instanceof Error
+          ? {
+              message: error.message,
+              stack: error.stack,
+            }
+          : String(error),
     });
     process.exit(1);
   }
@@ -767,19 +802,22 @@ process.on('uncaughtException', (error) => {
   log('ERROR', '❌ Uncaught exception', {
     error: {
       message: error.message,
-      stack: error.stack
-    }
+      stack: error.stack,
+    },
   });
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   log('ERROR', '❌ Unhandled rejection', {
-    reason: reason instanceof Error ? {
-      message: reason.message,
-      stack: reason.stack
-    } : String(reason),
-    promise: String(promise)
+    reason:
+      reason instanceof Error
+        ? {
+            message: reason.message,
+            stack: reason.stack,
+          }
+        : String(reason),
+    promise: String(promise),
   });
   process.exit(1);
 });

@@ -18,7 +18,7 @@ export interface ProgressUpdate {
 }
 
 export class ProgressBar extends EventEmitter {
-  private current: number = 0;
+  private current = 0;
   private total: number;
   private startTime: number;
   private format: string;
@@ -27,7 +27,7 @@ export class ProgressBar extends EventEmitter {
   private barWidth: number;
   private stream: NodeJS.WriteStream;
   private clear: boolean;
-  private lastDrawnLength: number = 0;
+  private lastDrawnLength = 0;
 
   constructor(options: ProgressOptions = {}) {
     super();
@@ -49,7 +49,7 @@ export class ProgressBar extends EventEmitter {
     this.render(update.message || '', update.status);
   }
 
-  increment(delta: number = 1, message?: string): void {
+  increment(delta = 1, message?: string): void {
     this.current += delta;
     this.render(message || '');
   }
@@ -66,14 +66,14 @@ export class ProgressBar extends EventEmitter {
     const percent = Math.min(100, Math.floor((this.current / this.total) * 100));
     const filledLength = Math.floor((percent / 100) * this.barWidth);
     const emptyLength = this.barWidth - filledLength;
-    
-    const bar = this.barCompleteChar.repeat(filledLength) + 
-                this.barIncompleteChar.repeat(emptyLength);
-    
+
+    const bar =
+      this.barCompleteChar.repeat(filledLength) + this.barIncompleteChar.repeat(emptyLength);
+
     const elapsed = (Date.now() - this.startTime) / 1000;
     const rate = this.current / elapsed;
     const eta = this.total > 0 ? (this.total - this.current) / rate : 0;
-    
+
     let output = this.format
       .replace(':bar', bar)
       .replace(':percent', `${percent}%`)
@@ -83,17 +83,17 @@ export class ProgressBar extends EventEmitter {
       .replace(':eta', this.formatTime(eta))
       .replace(':rate', rate.toFixed(2))
       .replace(':message', message);
-    
+
     // Add color based on status
     if (status) {
       output = this.colorize(output, status);
     }
-    
+
     // Clear previous line
     if (this.lastDrawnLength > 0) {
       this.stream.write('\r' + ' '.repeat(this.lastDrawnLength) + '\r');
     }
-    
+
     this.stream.write(output);
     this.lastDrawnLength = output.length;
   }
@@ -103,7 +103,7 @@ export class ProgressBar extends EventEmitter {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
-    
+
     if (hours > 0) {
       return `${hours}h${minutes}m${secs}s`;
     } else if (minutes > 0) {
@@ -117,7 +117,7 @@ export class ProgressBar extends EventEmitter {
     const colors: Record<string, string> = {
       running: '\x1b[36m', // cyan
       success: '\x1b[32m', // green
-      error: '\x1b[31m',   // red
+      error: '\x1b[31m', // red
       warning: '\x1b[33m', // yellow
     };
     const reset = '\x1b[0m';
@@ -130,7 +130,7 @@ export class Spinner {
   private current = 0;
   private interval: NodeJS.Timeout | null = null;
   private stream: NodeJS.WriteStream;
-  private lastMessage: string = '';
+  private lastMessage = '';
 
   constructor(stream: NodeJS.WriteStream = process.stdout) {
     this.stream = stream;
@@ -217,7 +217,7 @@ export class MultiProgress {
   }
 
   clear(): void {
-    this.spinners.forEach(spinner => spinner.stop());
+    this.spinners.forEach((spinner) => spinner.stop());
     this.spinners.clear();
     this.bars.clear();
   }
@@ -227,23 +227,23 @@ export class MultiProgress {
 export function withProgress<T>(
   task: () => Promise<T>,
   message: string,
-  options?: { showSpinner?: boolean }
+  options?: { showSpinner?: boolean },
 ): Promise<T> {
   if (options?.showSpinner !== false) {
     const spinner = new Spinner();
     spinner.start(message);
-    
+
     return task()
-      .then(result => {
+      .then((result) => {
         spinner.succeed(`${message} - Done`);
         return result;
       })
-      .catch(error => {
+      .catch((error) => {
         spinner.fail(`${message} - Failed`);
         throw error;
       });
   }
-  
+
   return task();
 }
 
@@ -254,11 +254,11 @@ export async function trackProgress<T>(
     message?: string;
     format?: string;
     concurrent?: number;
-  } = {}
+  } = {},
 ): Promise<void> {
   const progress = new ProgressBar({
     total: items.length,
-    format: options.format || '[:bar] :percent :current/:total :message'
+    format: options.format || '[:bar] :percent :current/:total :message',
   });
 
   const concurrent = options.concurrent || 1;
@@ -266,14 +266,14 @@ export async function trackProgress<T>(
 
   async function processNext(): Promise<void> {
     if (index >= items.length) return;
-    
+
     const currentIndex = index++;
     const item = items[currentIndex];
-    
+
     if (item === undefined) {
       return processNext();
     }
-    
+
     try {
       await processor(item, currentIndex);
       progress.increment(1, options.message || `Processing item ${currentIndex + 1}`);
@@ -281,7 +281,7 @@ export async function trackProgress<T>(
       progress.update({
         current: progress['current'],
         message: `Error processing item ${currentIndex + 1}`,
-        status: 'error'
+        status: 'error',
       });
       throw error;
     }
@@ -301,7 +301,7 @@ export const format = {
   dim: (text: string) => `\x1b[2m${text}\x1b[0m`,
   italic: (text: string) => `\x1b[3m${text}\x1b[0m`,
   underline: (text: string) => `\x1b[4m${text}\x1b[0m`,
-  
+
   // Colors
   red: (text: string) => `\x1b[31m${text}\x1b[0m`,
   green: (text: string) => `\x1b[32m${text}\x1b[0m`,
@@ -311,7 +311,7 @@ export const format = {
   cyan: (text: string) => `\x1b[36m${text}\x1b[0m`,
   white: (text: string) => `\x1b[37m${text}\x1b[0m`,
   gray: (text: string) => `\x1b[90m${text}\x1b[0m`,
-  
+
   // Background colors
   bgRed: (text: string) => `\x1b[41m${text}\x1b[0m`,
   bgGreen: (text: string) => `\x1b[42m${text}\x1b[0m`,
@@ -361,5 +361,5 @@ export const icons = {
   question: '❓',
   clipboard: '📋',
   terminal: '💻',
-  document: '📄'
+  document: '📄',
 };

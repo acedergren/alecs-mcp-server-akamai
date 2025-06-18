@@ -1,6 +1,6 @@
-import { EdgeGridClient } from '../utils/edgegrid-client';
-import { logger } from '../utils/logger';
-import { PerformanceMonitor } from '../utils/performance-monitor';
+import { EdgeGridClient } from '@utils/edgegrid-client';
+import { logger } from '@utils/logger';
+import { PerformanceMonitor } from '@utils/performance-monitor';
 
 export interface ReportingMetric {
   timestamp: string;
@@ -90,7 +90,7 @@ export class ReportingService {
   private client: EdgeGridClient;
   private performanceMonitor: PerformanceMonitor;
 
-  constructor(customer: string = 'default') {
+  constructor(customer = 'default') {
     this.client = EdgeGridClient.getInstance(customer);
     this.performanceMonitor = new PerformanceMonitor();
   }
@@ -100,16 +100,16 @@ export class ReportingService {
    */
   async getTrafficSummary(
     period: ReportingPeriod,
-    filter?: ReportingFilter
+    filter?: ReportingFilter,
   ): Promise<TrafficSummary> {
     const operationId = this.performanceMonitor.startOperation('reporting_traffic_summary');
-    
+
     try {
       logger.info('Fetching traffic summary', { period, filter });
 
       // Build query parameters
       const params = this.buildReportingParams(period, filter);
-      
+
       // Fetch multiple metrics in parallel
       const [
         bandwidthData,
@@ -119,7 +119,7 @@ export class ReportingService {
         performanceData,
         originBandwidthData,
         originRequestsData,
-        originResponseTimeData
+        originResponseTimeData,
       ] = await Promise.all([
         this.fetchMetric('bandwidth', params),
         this.fetchMetric('requests', params),
@@ -128,7 +128,7 @@ export class ReportingService {
         this.fetchMetric('response-time', params),
         this.fetchMetric('origin-bandwidth', params),
         this.fetchMetric('origin-requests', params),
-        this.fetchMetric('origin-response-time', params)
+        this.fetchMetric('origin-response-time', params),
       ]);
 
       const summary: TrafficSummary = {
@@ -140,17 +140,18 @@ export class ReportingService {
         origin: {
           bandwidth: this.aggregateMetric(originBandwidthData, 'sum'),
           requests: this.aggregateMetric(originRequestsData, 'sum'),
-          responseTime: this.aggregateMetric(originResponseTimeData, 'avg')
-        }
+          responseTime: this.aggregateMetric(originResponseTimeData, 'avg'),
+        },
       };
 
       logger.info('Traffic summary fetched successfully', { summary });
       return summary;
-
     } catch (error) {
       logger.error('Failed to fetch traffic summary', { error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
-      throw new Error(`Failed to fetch traffic summary: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to fetch traffic summary: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     } finally {
       this.performanceMonitor.endOperation(operationId);
     }
@@ -162,10 +163,10 @@ export class ReportingService {
   async getTimeSeriesData(
     metrics: string[],
     period: ReportingPeriod,
-    filter?: ReportingFilter
+    filter?: ReportingFilter,
   ): Promise<Record<string, ReportingMetric[]>> {
     const operationId = this.performanceMonitor.startOperation('reporting_timeseries');
-    
+
     try {
       logger.info('Fetching time-series data', { metrics, period, filter });
 
@@ -179,22 +180,23 @@ export class ReportingService {
       });
 
       const metricResults = await Promise.all(metricPromises);
-      
+
       for (const { metric, data } of metricResults) {
         results[metric] = data;
       }
 
-      logger.info('Time-series data fetched successfully', { 
+      logger.info('Time-series data fetched successfully', {
         metrics: Object.keys(results),
-        dataPoints: Object.values(results).reduce((sum, data) => sum + data.length, 0)
+        dataPoints: Object.values(results).reduce((sum, data) => sum + data.length, 0),
       });
 
       return results;
-
     } catch (error) {
       logger.error('Failed to fetch time-series data', { error, metrics, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
-      throw new Error(`Failed to fetch time-series data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to fetch time-series data: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     } finally {
       this.performanceMonitor.endOperation(operationId);
     }
@@ -205,72 +207,90 @@ export class ReportingService {
    */
   async getCostOptimizationInsights(
     period: ReportingPeriod,
-    filter?: ReportingFilter
+    filter?: ReportingFilter,
   ): Promise<CostOptimizationInsight[]> {
     const operationId = this.performanceMonitor.startOperation('reporting_cost_insights');
-    
+
     try {
       logger.info('Generating cost optimization insights', { period, filter });
 
       const insights: CostOptimizationInsight[] = [];
-      
+
       // Get current traffic data
       const summary = await this.getTrafficSummary(period, filter);
-      
+
       // Analyze cache efficiency
       if (summary.cacheHitRatio < 85) {
         insights.push({
           type: 'cache_efficiency',
           title: 'Low Cache Hit Ratio',
           description: `Current cache hit ratio is ${summary.cacheHitRatio.toFixed(1)}%, below optimal 85%+`,
-          potentialSavings: this.calculateBandwidthSavings(summary.bandwidth, summary.cacheHitRatio, 85),
+          potentialSavings: this.calculateBandwidthSavings(
+            summary.bandwidth,
+            summary.cacheHitRatio,
+            85,
+          ),
           recommendation: 'Review cache headers, TTL settings, and cacheable content configuration',
           priority: summary.cacheHitRatio < 70 ? 'high' : 'medium',
-          effort: 'moderate'
+          effort: 'moderate',
         });
       }
 
       // Analyze origin offload
-      const originOffloadRatio = (summary.requests - summary.origin.requests) / summary.requests * 100;
+      const originOffloadRatio =
+        ((summary.requests - summary.origin.requests) / summary.requests) * 100;
       if (originOffloadRatio < 90) {
         insights.push({
           type: 'origin_offload',
           title: 'Low Origin Offload',
           description: `Origin offload ratio is ${originOffloadRatio.toFixed(1)}%, below optimal 90%+`,
-          potentialSavings: this.calculateOriginSavings(summary.origin.requests, originOffloadRatio, 90),
+          potentialSavings: this.calculateOriginSavings(
+            summary.origin.requests,
+            originOffloadRatio,
+            90,
+          ),
           recommendation: 'Optimize caching rules and increase TTL for static content',
           priority: originOffloadRatio < 80 ? 'high' : 'medium',
-          effort: 'moderate'
+          effort: 'moderate',
         });
       }
 
       // Analyze peak traffic patterns
-      const timeSeriesData = await this.getTimeSeriesData(['bandwidth', 'requests'], period, filter);
+      const timeSeriesData = await this.getTimeSeriesData(
+        ['bandwidth', 'requests'],
+        period,
+        filter,
+      );
       const peakAnalysis = this.analyzePeakTraffic(timeSeriesData);
-      
+
       if (peakAnalysis.peakVariance > 300) {
         insights.push({
           type: 'bandwidth',
           title: 'High Traffic Variance',
           description: `Peak traffic is ${peakAnalysis.peakVariance}% above average`,
-          potentialSavings: this.calculateVarianceSavings(summary.bandwidth, peakAnalysis.peakVariance),
-          recommendation: 'Consider implementing adaptive caching or traffic shaping during peak hours',
+          potentialSavings: this.calculateVarianceSavings(
+            summary.bandwidth,
+            peakAnalysis.peakVariance,
+          ),
+          recommendation:
+            'Consider implementing adaptive caching or traffic shaping during peak hours',
           priority: 'medium',
-          effort: 'complex'
+          effort: 'complex',
         });
       }
 
-      logger.info('Cost optimization insights generated', { 
+      logger.info('Cost optimization insights generated', {
         insightCount: insights.length,
-        totalPotentialSavings: insights.reduce((sum, insight) => sum + insight.potentialSavings, 0)
+        totalPotentialSavings: insights.reduce((sum, insight) => sum + insight.potentialSavings, 0),
       });
 
       return insights;
-
     } catch (error) {
       logger.error('Failed to generate cost optimization insights', { error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
-      throw new Error(`Failed to generate cost optimization insights: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to generate cost optimization insights: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     } finally {
       this.performanceMonitor.endOperation(operationId);
     }
@@ -281,24 +301,24 @@ export class ReportingService {
    */
   async getPerformanceBenchmarks(
     period: ReportingPeriod,
-    filter?: ReportingFilter
+    filter?: ReportingFilter,
   ): Promise<PerformanceBenchmark[]> {
     const operationId = this.performanceMonitor.startOperation('reporting_benchmarks');
-    
+
     try {
       logger.info('Fetching performance benchmarks', { period, filter });
 
       const benchmarks: PerformanceBenchmark[] = [];
-      
+
       // Get current metrics
       const summary = await this.getTrafficSummary(period, filter);
-      
+
       // Industry benchmarks (these would come from Akamai's benchmark data)
       const industryBenchmarks = {
         cacheHitRatio: 85,
         responseTime: 200,
         errorRate: 0.1,
-        originOffload: 90
+        originOffload: 90,
       };
 
       // Calculate percentiles (simplified - would use actual percentile data)
@@ -306,22 +326,31 @@ export class ReportingService {
         metric: 'Cache Hit Ratio',
         current: summary.cacheHitRatio,
         benchmark: industryBenchmarks.cacheHitRatio,
-        percentile: this.calculatePercentile(summary.cacheHitRatio, industryBenchmarks.cacheHitRatio),
+        percentile: this.calculatePercentile(
+          summary.cacheHitRatio,
+          industryBenchmarks.cacheHitRatio,
+        ),
         trend: await this.calculateTrend('cache-ratio', period),
-        recommendation: summary.cacheHitRatio < industryBenchmarks.cacheHitRatio 
-          ? 'Optimize cache configuration to improve hit ratio' 
-          : undefined
+        recommendation:
+          summary.cacheHitRatio < industryBenchmarks.cacheHitRatio
+            ? 'Optimize cache configuration to improve hit ratio'
+            : undefined,
       });
 
       benchmarks.push({
         metric: 'Response Time',
         current: summary.responseTime,
         benchmark: industryBenchmarks.responseTime,
-        percentile: this.calculatePercentile(summary.responseTime, industryBenchmarks.responseTime, true),
+        percentile: this.calculatePercentile(
+          summary.responseTime,
+          industryBenchmarks.responseTime,
+          true,
+        ),
         trend: await this.calculateTrend('response-time', period),
-        recommendation: summary.responseTime > industryBenchmarks.responseTime 
-          ? 'Review edge configurations and optimize content delivery' 
-          : undefined
+        recommendation:
+          summary.responseTime > industryBenchmarks.responseTime
+            ? 'Review edge configurations and optimize content delivery'
+            : undefined,
       });
 
       benchmarks.push({
@@ -330,34 +359,37 @@ export class ReportingService {
         benchmark: industryBenchmarks.errorRate,
         percentile: this.calculatePercentile(summary.errorRate, industryBenchmarks.errorRate, true),
         trend: await this.calculateTrend('error-rate', period),
-        recommendation: summary.errorRate > industryBenchmarks.errorRate 
-          ? 'Investigate error sources and implement error handling improvements' 
-          : undefined
+        recommendation:
+          summary.errorRate > industryBenchmarks.errorRate
+            ? 'Investigate error sources and implement error handling improvements'
+            : undefined,
       });
 
-      const originOffload = (summary.requests - summary.origin.requests) / summary.requests * 100;
+      const originOffload = ((summary.requests - summary.origin.requests) / summary.requests) * 100;
       benchmarks.push({
         metric: 'Origin Offload',
         current: originOffload,
         benchmark: industryBenchmarks.originOffload,
         percentile: this.calculatePercentile(originOffload, industryBenchmarks.originOffload),
         trend: await this.calculateTrend('origin-offload', period),
-        recommendation: originOffload < industryBenchmarks.originOffload 
-          ? 'Improve caching strategies to reduce origin load' 
-          : undefined
+        recommendation:
+          originOffload < industryBenchmarks.originOffload
+            ? 'Improve caching strategies to reduce origin load'
+            : undefined,
       });
 
-      logger.info('Performance benchmarks calculated', { 
+      logger.info('Performance benchmarks calculated', {
         benchmarkCount: benchmarks.length,
-        averagePercentile: benchmarks.reduce((sum, b) => sum + b.percentile, 0) / benchmarks.length
+        averagePercentile: benchmarks.reduce((sum, b) => sum + b.percentile, 0) / benchmarks.length,
       });
 
       return benchmarks;
-
     } catch (error) {
       logger.error('Failed to fetch performance benchmarks', { error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
-      throw new Error(`Failed to fetch performance benchmarks: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to fetch performance benchmarks: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     } finally {
       this.performanceMonitor.endOperation(operationId);
     }
@@ -368,7 +400,7 @@ export class ReportingService {
    */
   async createDashboard(dashboard: Omit<ReportingDashboard, 'id'>): Promise<ReportingDashboard> {
     const operationId = this.performanceMonitor.startOperation('reporting_create_dashboard');
-    
+
     try {
       logger.info('Creating reporting dashboard', { name: dashboard.name });
 
@@ -376,7 +408,7 @@ export class ReportingService {
         ...dashboard,
         id: this.generateDashboardId(),
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       // In a real implementation, this would save to a database
@@ -384,23 +416,24 @@ export class ReportingService {
       const response = await this.client.request({
         method: 'POST',
         path: '/reporting/v1/dashboards',
-        body: dashboardData
+        body: dashboardData,
       });
 
       const createdDashboard: ReportingDashboard = response.data;
 
-      logger.info('Dashboard created successfully', { 
+      logger.info('Dashboard created successfully', {
         id: createdDashboard.id,
         name: createdDashboard.name,
-        widgetCount: createdDashboard.widgets.length
+        widgetCount: createdDashboard.widgets.length,
       });
 
       return createdDashboard;
-
     } catch (error) {
       logger.error('Failed to create dashboard', { error, name: dashboard.name });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
-      throw new Error(`Failed to create dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to create dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     } finally {
       this.performanceMonitor.endOperation(operationId);
     }
@@ -413,10 +446,10 @@ export class ReportingService {
     format: 'csv' | 'json' | 'xlsx',
     metrics: string[],
     period: ReportingPeriod,
-    filter?: ReportingFilter
+    filter?: ReportingFilter,
   ): Promise<{ data: any; filename: string; contentType: string }> {
     const operationId = this.performanceMonitor.startOperation('reporting_export');
-    
+
     try {
       logger.info('Exporting report data', { format, metrics, period, filter });
 
@@ -428,14 +461,14 @@ export class ReportingService {
         timeSeries: timeSeriesData,
         period,
         filter,
-        exportedAt: new Date().toISOString()
+        exportedAt: new Date().toISOString(),
       };
 
       const filename = this.generateExportFilename(format, period);
       const contentType = this.getContentType(format);
 
       let processedData: any;
-      
+
       switch (format) {
         case 'csv':
           processedData = this.convertToCSV(exportData);
@@ -450,22 +483,23 @@ export class ReportingService {
           throw new Error(`Unsupported export format: ${format}`);
       }
 
-      logger.info('Report exported successfully', { 
-        format, 
-        filename, 
-        dataSize: JSON.stringify(exportData).length
+      logger.info('Report exported successfully', {
+        format,
+        filename,
+        dataSize: JSON.stringify(exportData).length,
       });
 
       return {
         data: processedData,
         filename,
-        contentType
+        contentType,
       };
-
     } catch (error) {
       logger.error('Failed to export report', { error, format, metrics, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
-      throw new Error(`Failed to export report: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to export report: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     } finally {
       this.performanceMonitor.endOperation(operationId);
     }
@@ -476,30 +510,31 @@ export class ReportingService {
    */
   async configureAlerts(thresholds: AlertThreshold[]): Promise<void> {
     const operationId = this.performanceMonitor.startOperation('reporting_configure_alerts');
-    
+
     try {
       logger.info('Configuring monitoring alerts', { thresholdCount: thresholds.length });
 
       const alertConfig = {
         thresholds,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       await this.client.request({
         method: 'PUT',
         path: '/reporting/v1/alerts/configuration',
-        body: alertConfig
+        body: alertConfig,
       });
 
-      logger.info('Alerts configured successfully', { 
-        enabledAlerts: thresholds.filter(t => t.enabled).length,
-        totalAlerts: thresholds.length
+      logger.info('Alerts configured successfully', {
+        enabledAlerts: thresholds.filter((t) => t.enabled).length,
+        totalAlerts: thresholds.length,
       });
-
     } catch (error) {
       logger.error('Failed to configure alerts', { error, thresholds });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
-      throw new Error(`Failed to configure alerts: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to configure alerts: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     } finally {
       this.performanceMonitor.endOperation(operationId);
     }
@@ -507,11 +542,14 @@ export class ReportingService {
 
   // Private helper methods
 
-  private buildReportingParams(period: ReportingPeriod, filter?: ReportingFilter): Record<string, any> {
+  private buildReportingParams(
+    period: ReportingPeriod,
+    filter?: ReportingFilter,
+  ): Record<string, any> {
     const params: Record<string, any> = {
       start: period.start,
       end: period.end,
-      granularity: period.granularity
+      granularity: period.granularity,
     };
 
     if (filter) {
@@ -538,26 +576,29 @@ export class ReportingService {
     return params;
   }
 
-  private async fetchMetric(metric: string, params: Record<string, any>): Promise<ReportingMetric[]> {
+  private async fetchMetric(
+    metric: string,
+    params: Record<string, any>,
+  ): Promise<ReportingMetric[]> {
     const response = await this.client.request({
       method: 'GET',
       path: `/reporting/v1/reports/${metric}`,
-      queryParams: params
+      queryParams: params,
     });
 
     return response.data.map((item: any) => ({
       timestamp: item.datetime,
       value: item.value,
       unit: item.unit,
-      dimensions: item.dimensions
+      dimensions: item.dimensions,
     }));
   }
 
   private aggregateMetric(data: ReportingMetric[], method: 'sum' | 'avg' | 'max' | 'min'): number {
     if (!data || data.length === 0) return 0;
 
-    const values = data.map(d => d.value);
-    
+    const values = data.map((d) => d.value);
+
     switch (method) {
       case 'sum':
         return values.reduce((sum, val) => sum + val, 0);
@@ -572,12 +613,20 @@ export class ReportingService {
     }
   }
 
-  private calculateBandwidthSavings(currentBandwidth: number, currentRatio: number, targetRatio: number): number {
+  private calculateBandwidthSavings(
+    currentBandwidth: number,
+    currentRatio: number,
+    targetRatio: number,
+  ): number {
     const improvement = (targetRatio - currentRatio) / 100;
     return currentBandwidth * improvement * 0.1; // Simplified calculation
   }
 
-  private calculateOriginSavings(originRequests: number, currentRatio: number, targetRatio: number): number {
+  private calculateOriginSavings(
+    originRequests: number,
+    currentRatio: number,
+    targetRatio: number,
+  ): number {
     const improvement = (targetRatio - currentRatio) / 100;
     return originRequests * improvement * 0.001; // Cost per request
   }
@@ -586,20 +635,22 @@ export class ReportingService {
     return bandwidth * (variance / 100) * 0.05; // Simplified calculation
   }
 
-  private analyzePeakTraffic(timeSeriesData: Record<string, ReportingMetric[]>): { peakVariance: number } {
+  private analyzePeakTraffic(timeSeriesData: Record<string, ReportingMetric[]>): {
+    peakVariance: number;
+  } {
     const bandwidthData = timeSeriesData.bandwidth || [];
     if (bandwidthData.length === 0) return { peakVariance: 0 };
 
-    const values = bandwidthData.map(d => d.value);
+    const values = bandwidthData.map((d) => d.value);
     const average = values.reduce((sum, val) => sum + val, 0) / values.length;
     const peak = Math.max(...values);
-    
+
     return {
-      peakVariance: ((peak - average) / average) * 100
+      peakVariance: ((peak - average) / average) * 100,
     };
   }
 
-  private calculatePercentile(current: number, benchmark: number, lowerIsBetter: boolean = false): number {
+  private calculatePercentile(current: number, benchmark: number, lowerIsBetter = false): number {
     if (lowerIsBetter) {
       return Math.max(0, Math.min(100, 100 - ((current - benchmark) / benchmark) * 100));
     } else {
@@ -607,7 +658,10 @@ export class ReportingService {
     }
   }
 
-  private async calculateTrend(_metric: string, _period: ReportingPeriod): Promise<'improving' | 'stable' | 'degrading'> {
+  private async calculateTrend(
+    _metric: string,
+    _period: ReportingPeriod,
+  ): Promise<'improving' | 'stable' | 'degrading'> {
     // Simplified trend calculation - would use historical data comparison
     return 'stable';
   }
@@ -625,7 +679,7 @@ export class ReportingService {
     const contentTypes: Record<string, string> = {
       csv: 'text/csv',
       json: 'application/json',
-      xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     };
     return contentTypes[format] || 'application/octet-stream';
   }
@@ -633,7 +687,7 @@ export class ReportingService {
   private convertToCSV(data: any): string {
     // Simplified CSV conversion
     const lines = ['Metric,Value,Unit,Timestamp'];
-    
+
     // Add summary data
     lines.push(`Bandwidth,${data.summary.bandwidth},bytes,${data.period.start}`);
     lines.push(`Requests,${data.summary.requests},count,${data.period.start}`);

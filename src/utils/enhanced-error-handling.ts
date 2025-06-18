@@ -1,11 +1,11 @@
 /**
  * Enhanced Error Handling for Akamai APIs
- * 
+ *
  * Comprehensive error handling with retry logic, categorization,
  * and user-friendly messaging based on documented error patterns.
  */
 
-import { AkamaiErrorResponse } from './response-parsing';
+import { type AkamaiErrorResponse } from './response-parsing';
 
 export interface RetryConfig {
   maxAttempts: number;
@@ -46,7 +46,7 @@ export enum ErrorType {
   SERVER_ERROR = 'server_error',
   NETWORK_ERROR = 'network_error',
   TIMEOUT = 'timeout',
-  UNKNOWN = 'unknown'
+  UNKNOWN = 'unknown',
 }
 
 export class EnhancedErrorHandler {
@@ -55,7 +55,7 @@ export class EnhancedErrorHandler {
     baseDelay: 1000,
     maxDelay: 30000,
     multiplier: 2,
-    jitter: true
+    jitter: true,
   };
 
   /**
@@ -65,15 +65,15 @@ export class EnhancedErrorHandler {
     const httpStatus = this.extractHttpStatus(error);
     const akamaiError = this.parseAkamaiErrorResponse(error);
     const errorType = this.categorizeError(httpStatus, akamaiError, context);
-    
+
     // Extract request ID and add to context for suggestions
     const requestId = akamaiError?.requestId || this.extractRequestId(error);
     if (requestId && !context.requestId) {
       context.requestId = requestId;
     }
-    
+
     const suggestions = this.generateSuggestions(httpStatus, akamaiError, errorType, context);
-    
+
     return {
       success: false,
       error: this.formatTechnicalError(akamaiError, httpStatus),
@@ -84,7 +84,7 @@ export class EnhancedErrorHandler {
       errorCode: akamaiError?.type,
       errorType,
       suggestions,
-      context
+      context,
     };
   }
 
@@ -94,7 +94,7 @@ export class EnhancedErrorHandler {
   async withRetry<T>(
     operation: () => Promise<T>,
     context: ErrorContext = {},
-    retryConfig?: Partial<RetryConfig>
+    retryConfig?: Partial<RetryConfig>,
   ): Promise<T> {
     const config = { ...this.defaultRetryConfig, ...retryConfig };
     let lastError: any;
@@ -110,7 +110,10 @@ export class EnhancedErrorHandler {
         attempts.push({
           attempt,
           error: errorResult,
-          delay: attempt < config.maxAttempts ? this.calculateDelay(attempt, config, errorResult.retryAfter) : 0
+          delay:
+            attempt < config.maxAttempts
+              ? this.calculateDelay(attempt, config, errorResult.retryAfter)
+              : 0,
         });
 
         // Don't retry if error is not retryable
@@ -127,7 +130,7 @@ export class EnhancedErrorHandler {
 
         // Calculate delay and wait
         const delay = this.calculateDelay(attempt, config, errorResult.retryAfter);
-        
+
         this.logRetryAttempt(attempt, delay, errorResult, context);
         await this.delay(delay);
       }
@@ -164,7 +167,7 @@ export class EnhancedErrorHandler {
         return {
           title: 'API Error',
           detail: errorData,
-          status: this.extractHttpStatus(error)
+          status: this.extractHttpStatus(error),
         };
       }
     }
@@ -178,7 +181,7 @@ export class EnhancedErrorHandler {
         status: errorData.status || this.extractHttpStatus(error),
         instance: errorData.instance,
         requestId: errorData.requestId || this.extractRequestId(error),
-        errors: errorData.errors
+        errors: errorData.errors,
       };
     }
 
@@ -188,12 +191,16 @@ export class EnhancedErrorHandler {
   /**
    * Categorize error for appropriate handling
    */
-  private categorizeError(httpStatus: number, akamaiError: AkamaiErrorResponse | null, context: ErrorContext): ErrorType {
+  private categorizeError(
+    httpStatus: number,
+    akamaiError: AkamaiErrorResponse | null,
+    context: ErrorContext,
+  ): ErrorType {
     // Network/connection errors
     if (httpStatus >= 500 && httpStatus <= 599) {
       return ErrorType.SERVER_ERROR;
     }
-    
+
     // Client errors
     switch (httpStatus) {
       case 401:
@@ -220,10 +227,12 @@ export class EnhancedErrorHandler {
       if (akamaiError.type.includes('validation')) return ErrorType.VALIDATION;
       if (akamaiError.type.includes('rate-limit')) return ErrorType.RATE_LIMIT;
     }
-    
+
     // Check for validation errors in errors array
     if (akamaiError?.errors && akamaiError.errors.length > 0) {
-      const hasFieldErrors = akamaiError.errors.some((err: any) => err.field || err.type === 'field-error');
+      const hasFieldErrors = akamaiError.errors.some(
+        (err: any) => err.field || err.type === 'field-error',
+      );
       if (hasFieldErrors) return ErrorType.VALIDATION;
     }
 
@@ -234,10 +243,10 @@ export class EnhancedErrorHandler {
    * Generate actionable suggestions based on error type and context
    */
   private generateSuggestions(
-    httpStatus: number, 
-    akamaiError: AkamaiErrorResponse | null, 
+    httpStatus: number,
+    akamaiError: AkamaiErrorResponse | null,
     errorType: ErrorType,
-    context: ErrorContext
+    context: ErrorContext,
   ): string[] {
     const suggestions: string[] = [];
 
@@ -247,7 +256,9 @@ export class EnhancedErrorHandler {
         suggestions.push('Check that the client_token, client_secret, and access_token are valid');
         suggestions.push('Ensure the host URL matches your credential configuration');
         if (context.customer) {
-          suggestions.push(`Verify the customer section '${context.customer}' exists in your .edgerc file`);
+          suggestions.push(
+            `Verify the customer section '${context.customer}' exists in your .edgerc file`,
+          );
         }
         break;
 
@@ -275,7 +286,7 @@ export class EnhancedErrorHandler {
 
       case ErrorType.VALIDATION:
         if (akamaiError?.errors) {
-          akamaiError.errors.forEach(err => {
+          akamaiError.errors.forEach((err) => {
             if (err.field) {
               suggestions.push(`Fix the '${err.field}' field: ${err.detail || err.title}`);
             } else {
@@ -337,7 +348,10 @@ export class EnhancedErrorHandler {
   /**
    * Format technical error message for logging
    */
-  private formatTechnicalError(akamaiError: AkamaiErrorResponse | null, httpStatus: number): string {
+  private formatTechnicalError(
+    akamaiError: AkamaiErrorResponse | null,
+    httpStatus: number,
+  ): string {
     if (akamaiError) {
       let message = `${akamaiError.title} (HTTP ${httpStatus})`;
       if (akamaiError.detail) {
@@ -347,9 +361,9 @@ export class EnhancedErrorHandler {
         message += ` [${akamaiError.type}]`;
       }
       if (akamaiError.errors?.length) {
-        const details = akamaiError.errors.map(e =>
-          e.field ? `${e.field}: ${e.detail || e.title}` : e.detail || e.title
-        ).join(', ');
+        const details = akamaiError.errors
+          .map((e) => (e.field ? `${e.field}: ${e.detail || e.title}` : e.detail || e.title))
+          .join(', ');
         message += ` (${details})`;
       }
       return message;
@@ -365,7 +379,7 @@ export class EnhancedErrorHandler {
     httpStatus: number,
     akamaiError: AkamaiErrorResponse | null,
     errorType: ErrorType,
-    context: ErrorContext
+    context: ErrorContext,
   ): string {
     const operation = context.operation || 'operation';
 
@@ -388,8 +402,8 @@ export class EnhancedErrorHandler {
       case ErrorType.VALIDATION:
         if (akamaiError?.errors?.length) {
           const fieldErrors = akamaiError.errors
-            .filter(e => e.field)
-            .map(e => `${e.field}: ${e.detail || e.title}`)
+            .filter((e) => e.field)
+            .map((e) => `${e.field}: ${e.detail || e.title}`)
             .slice(0, 3) // Limit to first 3 errors
             .join(', ');
 
@@ -430,7 +444,7 @@ export class EnhancedErrorHandler {
       ErrorType.RATE_LIMIT,
       ErrorType.SERVER_ERROR,
       ErrorType.TIMEOUT,
-      ErrorType.NETWORK_ERROR
+      ErrorType.NETWORK_ERROR,
     ];
 
     return retryableTypes.includes(errorType) || httpStatus >= 500;
@@ -440,8 +454,7 @@ export class EnhancedErrorHandler {
    * Extract retry-after value from error response
    */
   private extractRetryAfter(error: any): number | undefined {
-    const retryAfter = error.response?.headers?.['retry-after'] ||
-                      error.headers?.['retry-after'];
+    const retryAfter = error.response?.headers?.['retry-after'] || error.headers?.['retry-after'];
 
     if (retryAfter) {
       const seconds = parseInt(retryAfter, 10);
@@ -455,11 +468,13 @@ export class EnhancedErrorHandler {
    * Extract request ID for support tracking
    */
   private extractRequestId(error: any): string | undefined {
-    return error.response?.headers?.['x-request-id'] ||
-           error.headers?.['x-request-id'] ||
-           error.response?.headers?.['x-trace-id'] ||
-           error.headers?.['x-trace-id'] ||
-           error.response?.data?.requestId;
+    return (
+      error.response?.headers?.['x-request-id'] ||
+      error.headers?.['x-request-id'] ||
+      error.response?.headers?.['x-trace-id'] ||
+      error.headers?.['x-trace-id'] ||
+      error.response?.data?.requestId
+    );
   }
 
   /**
@@ -488,7 +503,7 @@ export class EnhancedErrorHandler {
    * Create delay promise
    */
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -498,7 +513,7 @@ export class EnhancedErrorHandler {
     attempt: number,
     delay: number,
     errorResult: EnhancedErrorResult,
-    context: ErrorContext
+    context: ErrorContext,
   ): void {
     console.warn(`Retry attempt ${attempt} after ${delay}ms:`, {
       timestamp: new Date().toISOString(),
@@ -507,7 +522,7 @@ export class EnhancedErrorHandler {
       customer: context.customer,
       errorType: errorResult.errorType,
       error: errorResult.error,
-      requestId: errorResult.requestId
+      requestId: errorResult.requestId,
     });
   }
 
@@ -516,7 +531,7 @@ export class EnhancedErrorHandler {
    */
   private logFailure(
     attempts: Array<{ attempt: number; error: any; delay: number }>,
-    context: ErrorContext
+    context: ErrorContext,
   ): void {
     console.error('Operation failed after all retry attempts:', {
       timestamp: new Date().toISOString(),
@@ -524,12 +539,12 @@ export class EnhancedErrorHandler {
       endpoint: context.endpoint,
       customer: context.customer,
       totalAttempts: attempts.length,
-      attempts: attempts.map(a => ({
+      attempts: attempts.map((a) => ({
         attempt: a.attempt,
         errorType: a.error.errorType,
-        delay: a.delay
+        delay: a.delay,
       })),
-      finalError: attempts[attempts.length - 1]?.error
+      finalError: attempts[attempts.length - 1]?.error,
     });
   }
 }
@@ -540,7 +555,7 @@ export class EnhancedErrorHandler {
 export async function withEnhancedErrorHandling<T>(
   operation: () => Promise<T>,
   context: ErrorContext = {},
-  retryConfig?: Partial<RetryConfig>
+  retryConfig?: Partial<RetryConfig>,
 ): Promise<T> {
   const handler = new EnhancedErrorHandler();
   return handler.withRetry(operation, context, retryConfig);

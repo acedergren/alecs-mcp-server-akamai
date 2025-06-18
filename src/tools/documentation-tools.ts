@@ -3,8 +3,8 @@
  * Manages documentation generation, updates, and knowledge base
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -29,40 +29,40 @@ interface DocumentationIndex {
  */
 export async function generateDocumentationIndex(
   _client: AkamaiClient,
-  args: { 
+  args: {
     docsPath?: string;
     outputPath?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const docsPath = args.docsPath || 'docs';
   const outputPath = args.outputPath || path.join(docsPath, 'index.json');
-  
+
   try {
     const index: DocumentationIndex = {
       documents: new Map(),
       categories: new Map(),
-      tags: new Map()
+      tags: new Map(),
     };
 
     // Read all markdown files
     const files = await fs.readdir(docsPath);
-    const mdFiles = files.filter(f => f.endsWith('.md'));
+    const mdFiles = files.filter((f) => f.endsWith('.md'));
 
     for (const file of mdFiles) {
       const filePath = path.join(docsPath, file);
       const content = await fs.readFile(filePath, 'utf-8');
-      
+
       // Extract metadata from frontmatter or content
       const metadata = extractDocumentMetadata(file, content);
-      
+
       // Add to index
       index.documents.set(file, metadata);
-      
+
       // Update category index
       const categoryDocs = index.categories.get(metadata.category) || [];
       categoryDocs.push(file);
       index.categories.set(metadata.category, categoryDocs);
-      
+
       // Update tag index
       for (const tag of metadata.tags) {
         const tagDocs = index.tags.get(tag) || [];
@@ -77,20 +77,22 @@ export async function generateDocumentationIndex(
       documentCount: index.documents.size,
       documents: Object.fromEntries(index.documents),
       categories: Object.fromEntries(index.categories),
-      tags: Object.fromEntries(index.tags)
+      tags: Object.fromEntries(index.tags),
     };
 
     await fs.writeFile(outputPath, JSON.stringify(indexData, null, 2));
 
     return {
-      content: [{
-        type: 'text',
-        text: `Documentation index generated successfully:
+      content: [
+        {
+          type: 'text',
+          text: `Documentation index generated successfully:
 - Documents indexed: ${index.documents.size}
 - Categories: ${index.categories.size}
 - Unique tags: ${index.tags.size}
-- Output: ${outputPath}`
-      }]
+- Output: ${outputPath}`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error generating documentation index:', error);
@@ -107,7 +109,7 @@ export async function generateAPIReference(
     toolsPath?: string;
     outputPath?: string;
     format?: 'markdown' | 'json';
-  }
+  },
 ): Promise<MCPToolResponse> {
   const toolsPath = args.toolsPath || 'src/tools';
   const outputPath = args.outputPath || 'docs/api-reference.md';
@@ -116,21 +118,23 @@ export async function generateAPIReference(
   try {
     // Scan for tool files
     const files = await fs.readdir(toolsPath);
-    const toolFiles = files.filter(f => f.endsWith('-tools.ts') || f.endsWith('-tools.js'));
-    
+    const toolFiles = files.filter((f) => f.endsWith('-tools.ts') || f.endsWith('-tools.js'));
+
     const toolDefinitions: any[] = [];
 
     for (const file of toolFiles) {
       const filePath = path.join(toolsPath, file);
       const content = await fs.readFile(filePath, 'utf-8');
-      
+
       // Extract function definitions and JSDoc comments
       const tools = extractToolDefinitions(content);
-      toolDefinitions.push(...tools.map(tool => ({
-        ...tool,
-        file: file,
-        category: getCategoryFromFilename(file)
-      })));
+      toolDefinitions.push(
+        ...tools.map((tool) => ({
+          ...tool,
+          file: file,
+          category: getCategoryFromFilename(file),
+        })),
+      );
     }
 
     // Generate output
@@ -144,14 +148,16 @@ export async function generateAPIReference(
     await fs.writeFile(outputPath, output);
 
     return {
-      content: [{
-        type: 'text',
-        text: `API reference generated successfully:
+      content: [
+        {
+          type: 'text',
+          text: `API reference generated successfully:
 - Tools documented: ${toolDefinitions.length}
-- Categories: ${new Set(toolDefinitions.map(t => t.category)).size}
+- Categories: ${new Set(toolDefinitions.map((t) => t.category)).size}
 - Output format: ${outputFormat}
-- Output file: ${outputPath}`
-      }]
+- Output file: ${outputPath}`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error generating API reference:', error);
@@ -169,7 +175,7 @@ export async function generateFeatureDocumentation(
     analysisDepth?: 'basic' | 'detailed' | 'comprehensive';
     includeExamples?: boolean;
     outputPath?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const depth = args.analysisDepth || 'detailed';
   const includeExamples = args.includeExamples ?? true;
@@ -178,14 +184,14 @@ export async function generateFeatureDocumentation(
   try {
     // Analyze feature implementation
     const analysis = await analyzeFeature(args.feature);
-    
+
     // Generate documentation
     let doc = `# ${formatFeatureName(args.feature)}\n\n`;
     doc += `${analysis.description}\n\n`;
-    
+
     // Add overview
     doc += `## Overview\n\n${analysis.overview}\n\n`;
-    
+
     // Add capabilities
     if (analysis.capabilities.length > 0) {
       doc += `## Capabilities\n\n`;
@@ -194,10 +200,10 @@ export async function generateFeatureDocumentation(
       }
       doc += '\n';
     }
-    
+
     // Add usage
     doc += `## Usage\n\n${analysis.usage}\n\n`;
-    
+
     // Add examples if requested
     if (includeExamples && analysis.examples.length > 0) {
       doc += `## Examples\n\n`;
@@ -211,7 +217,7 @@ export async function generateFeatureDocumentation(
         }
       }
     }
-    
+
     // Add API reference
     if (analysis.apis.length > 0) {
       doc += `## API Reference\n\n`;
@@ -230,7 +236,7 @@ export async function generateFeatureDocumentation(
         }
       }
     }
-    
+
     // Add related documentation
     if (analysis.related.length > 0) {
       doc += `## Related Documentation\n\n`;
@@ -245,14 +251,16 @@ export async function generateFeatureDocumentation(
     await fs.writeFile(outputPath, doc);
 
     return {
-      content: [{
-        type: 'text',
-        text: `Feature documentation generated successfully:
+      content: [
+        {
+          type: 'text',
+          text: `Feature documentation generated successfully:
 - Feature: ${args.feature}
 - Analysis depth: ${depth}
 - Examples included: ${includeExamples}
-- Output: ${outputPath}`
-      }]
+- Output: ${outputPath}`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error generating feature documentation:', error);
@@ -273,7 +281,7 @@ export async function updateDocumentation(
       metadata?: Partial<DocumentationMetadata>;
     };
     createBackup?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const docPath = args.document.startsWith('docs/') ? args.document : `docs/${args.document}`;
   const createBackup = args.createBackup ?? true;
@@ -281,7 +289,7 @@ export async function updateDocumentation(
   try {
     // Read existing document
     const content = await fs.readFile(docPath, 'utf-8');
-    
+
     // Create backup if requested
     if (createBackup) {
       const backupPath = `${docPath}.backup.${Date.now()}`;
@@ -290,39 +298,41 @@ export async function updateDocumentation(
 
     // Parse document structure
     let updatedContent = content;
-    
+
     // Update sections
     if (args.updates.sections) {
       for (const [section, newContent] of Object.entries(args.updates.sections)) {
         updatedContent = updateDocumentSection(updatedContent, section, newContent);
       }
     }
-    
+
     // Add examples
     if (args.updates.examples && args.updates.examples.length > 0) {
       updatedContent = addExamplesToDocument(updatedContent, args.updates.examples);
     }
-    
+
     // Update metadata
     if (args.updates.metadata) {
       updatedContent = updateDocumentMetadata(updatedContent, args.updates.metadata);
     }
-    
+
     // Update last modified date
     updatedContent = updateLastModified(updatedContent);
-    
+
     // Save updated document
     await fs.writeFile(docPath, updatedContent);
 
     return {
-      content: [{
-        type: 'text',
-        text: `Documentation updated successfully:
+      content: [
+        {
+          type: 'text',
+          text: `Documentation updated successfully:
 - Document: ${docPath}
 - Sections updated: ${Object.keys(args.updates.sections || {}).length}
 - Examples added: ${args.updates.examples?.length || 0}
-- Backup created: ${createBackup}`
-      }]
+- Backup created: ${createBackup}`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error updating documentation:', error);
@@ -341,7 +351,7 @@ export async function generateChangelog(
     outputPath?: string;
     includeBreakingChanges?: boolean;
     groupByCategory?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const outputPath = args.outputPath || 'CHANGELOG.md';
   const includeBreaking = args.includeBreakingChanges ?? true;
@@ -350,23 +360,23 @@ export async function generateChangelog(
   try {
     // Get git history
     const commits = await getGitCommits(args.fromVersion, args.toVersion);
-    
+
     // Parse commits for conventional format
     const changes = parseConventionalCommits(commits);
-    
+
     // Group changes
     const grouped = groupByCategory ? groupChangesByCategory(changes) : { all: changes };
-    
+
     // Generate changelog
     let changelog = `# Changelog\n\n`;
-    
+
     if (args.toVersion) {
       changelog += `## [${args.toVersion}] - ${new Date().toISOString().split('T')[0]}\n\n`;
     }
-    
+
     // Add breaking changes section
     if (includeBreaking) {
-      const breakingChanges = changes.filter(c => c.breaking);
+      const breakingChanges = changes.filter((c) => c.breaking);
       if (breakingChanges.length > 0) {
         changelog += `### ⚠️ Breaking Changes\n\n`;
         for (const change of breakingChanges) {
@@ -375,11 +385,11 @@ export async function generateChangelog(
         changelog += '\n';
       }
     }
-    
+
     // Add categorized changes
     for (const [category, categoryChanges] of Object.entries(grouped)) {
       if (category === 'all' || categoryChanges.length === 0) continue;
-      
+
       changelog += `### ${formatCategory(category)}\n\n`;
       for (const change of categoryChanges) {
         changelog += `- ${change.description}`;
@@ -393,7 +403,7 @@ export async function generateChangelog(
       }
       changelog += '\n';
     }
-    
+
     // Add contributors section
     const contributors = getUniqueContributors(commits);
     if (contributors.length > 0) {
@@ -409,18 +419,20 @@ export async function generateChangelog(
       const existing = await fs.readFile(outputPath, 'utf-8');
       changelog = changelog + '\n' + existing;
     }
-    
+
     await fs.writeFile(outputPath, changelog);
 
     return {
-      content: [{
-        type: 'text',
-        text: `Changelog generated successfully:
+      content: [
+        {
+          type: 'text',
+          text: `Changelog generated successfully:
 - Commits analyzed: ${commits.length}
 - Changes documented: ${changes.length}
-- Breaking changes: ${changes.filter(c => c.breaking).length}
-- Output: ${outputPath}`
-      }]
+- Breaking changes: ${changes.filter((c) => c.breaking).length}
+- Output: ${outputPath}`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error generating changelog:', error);
@@ -440,7 +452,7 @@ export async function createKnowledgeArticle(
     tags?: string[];
     relatedArticles?: string[];
     outputPath?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const slug = generateSlug(args.title);
   const outputPath = args.outputPath || `docs/knowledge-base/${args.category}/${slug}.md`;
@@ -448,17 +460,17 @@ export async function createKnowledgeArticle(
   try {
     // Create knowledge article
     let article = `# ${args.title}\n\n`;
-    
+
     // Add metadata
     article += `---\n`;
     article += `category: ${args.category}\n`;
     article += `tags: ${(args.tags || []).join(', ')}\n`;
     article += `created: ${new Date().toISOString()}\n`;
     article += `---\n\n`;
-    
+
     // Add content
     article += args.content + '\n\n';
-    
+
     // Add related articles section
     if (args.relatedArticles && args.relatedArticles.length > 0) {
       article += `## Related Articles\n\n`;
@@ -470,27 +482,29 @@ export async function createKnowledgeArticle(
 
     // Create directory if needed
     await fs.mkdir(path.dirname(outputPath), { recursive: true });
-    
+
     // Save article
     await fs.writeFile(outputPath, article);
-    
+
     // Update knowledge base index
     await updateKnowledgeBaseIndex(outputPath, {
       title: args.title,
       category: args.category,
       tags: args.tags || [],
-      path: outputPath
+      path: outputPath,
     });
 
     return {
-      content: [{
-        type: 'text',
-        text: `Knowledge article created successfully:
+      content: [
+        {
+          type: 'text',
+          text: `Knowledge article created successfully:
 - Title: ${args.title}
 - Category: ${args.category}
 - Tags: ${args.tags?.join(', ') || 'none'}
-- Output: ${outputPath}`
-      }]
+- Output: ${outputPath}`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error creating knowledge article:', error);
@@ -508,12 +522,12 @@ function extractDocumentMetadata(filename: string, content: string): Documentati
     const frontmatter = frontmatterMatch[1];
     const metadata: any = {};
     if (frontmatter) {
-      frontmatter.split('\n').forEach(line => {
-      const [key, value] = line.split(':').map(s => s.trim());
-      if (key && value) {
-        metadata[key] = value;
-      }
-    });
+      frontmatter.split('\n').forEach((line) => {
+        const [key, value] = line.split(':').map((s) => s.trim());
+        if (key && value) {
+          metadata[key] = value;
+        }
+      });
     }
     return {
       title: metadata.title || getTitleFromFilename(filename),
@@ -521,10 +535,10 @@ function extractDocumentMetadata(filename: string, content: string): Documentati
       category: metadata.category || getCategoryFromFilename(filename),
       tags: metadata.tags ? metadata.tags.split(',').map((t: string) => t.trim()) : [],
       lastUpdated: metadata.lastUpdated || new Date().toISOString(),
-      version: metadata.version || '1.0.0'
+      version: metadata.version || '1.0.0',
     };
   }
-  
+
   // Extract from content
   const titleMatch = content.match(/^# (.+)$/m);
   return {
@@ -533,7 +547,7 @@ function extractDocumentMetadata(filename: string, content: string): Documentati
     category: getCategoryFromFilename(filename),
     tags: extractTags(content),
     lastUpdated: new Date().toISOString(),
-    version: '1.0.0'
+    version: '1.0.0',
   };
 }
 
@@ -541,7 +555,7 @@ function getTitleFromFilename(filename: string): string {
   return filename
     .replace(/\.md$/, '')
     .replace(/-/g, ' ')
-    .replace(/\b\w/g, l => l.toUpperCase());
+    .replace(/\b\w/g, (l) => l.toUpperCase());
 }
 
 function getCategoryFromFilename(filename: string): string {
@@ -557,7 +571,7 @@ function extractFirstParagraph(content: string): string {
   const lines = content.split('\n');
   let inParagraph = false;
   let paragraph = '';
-  
+
   for (const line of lines) {
     if (line.trim() === '') {
       if (inParagraph) break;
@@ -567,13 +581,13 @@ function extractFirstParagraph(content: string): string {
     inParagraph = true;
     paragraph += line + ' ';
   }
-  
+
   return paragraph.trim();
 }
 
 function extractTags(content: string): string[] {
   const tags = new Set<string>();
-  
+
   // Look for common keywords
   const keywords = ['API', 'MCP', 'Akamai', 'CDN', 'DNS', 'Certificate', 'Property', 'Security'];
   for (const keyword of keywords) {
@@ -581,54 +595,54 @@ function extractTags(content: string): string[] {
       tags.add(keyword.toLowerCase());
     }
   }
-  
+
   return Array.from(tags);
 }
 
 function extractToolDefinitions(content: string): any[] {
   const tools: any[] = [];
-  
+
   // Regular expression to match exported functions with JSDoc
   const functionRegex = /\/\*\*[\s\S]*?\*\/\s*export\s+async\s+function\s+(\w+)\s*\([^)]*\)/g;
-  
+
   let match;
   while ((match = functionRegex.exec(content)) !== null) {
     const functionName = match[1];
     const jsdocMatch = match[0].match(/\/\*\*([\s\S]*?)\*\//);
-    
+
     if (jsdocMatch) {
       const jsdoc = jsdocMatch[1] || '';
       const description = jsdoc.match(/\* (.+)$/m)?.[1] || '';
-      
+
       tools.push({
         name: functionName,
         description: description.trim(),
         parameters: extractParameters(match[0]),
-        returns: extractReturns(jsdoc)
+        returns: extractReturns(jsdoc),
       });
     }
   }
-  
+
   return tools;
 }
 
 function extractParameters(functionDef: string): any[] {
   const params: any[] = [];
   const paramMatch = functionDef.match(/\(([^)]*)\)/);
-  
+
   if (paramMatch && paramMatch[1]) {
     const paramList = paramMatch[1];
     // Simple parameter extraction - could be enhanced
-    const paramParts = paramList.split(',').map(p => p.trim());
-    
+    const paramParts = paramList.split(',').map((p) => p.trim());
+
     for (const part of paramParts) {
       if (part.includes(':')) {
-        const [name, type] = part.split(':').map(s => s.trim());
+        const [name, type] = part.split(':').map((s) => s.trim());
         params.push({ name, type });
       }
     }
   }
-  
+
   return params;
 }
 
@@ -641,7 +655,7 @@ function extractReturns(jsdoc: string | undefined): string {
 function generateMarkdownAPIReference(tools: any[]): string {
   let doc = '# API Reference\n\n';
   doc += `Generated on ${new Date().toISOString()}\n\n`;
-  
+
   // Group by category
   const byCategory = new Map<string, any[]>();
   for (const tool of tools) {
@@ -649,15 +663,15 @@ function generateMarkdownAPIReference(tools: any[]): string {
     categoryTools.push(tool);
     byCategory.set(tool.category, categoryTools);
   }
-  
+
   // Generate sections
   for (const [category, categoryTools] of byCategory) {
     doc += `## ${category}\n\n`;
-    
+
     for (const tool of categoryTools) {
       doc += `### ${tool.name}\n\n`;
       doc += `${tool.description}\n\n`;
-      
+
       if (tool.parameters.length > 0) {
         doc += '**Parameters:**\n\n';
         for (const param of tool.parameters) {
@@ -665,13 +679,13 @@ function generateMarkdownAPIReference(tools: any[]): string {
         }
         doc += '\n';
       }
-      
+
       doc += `**Returns:** ${tool.returns}\n\n`;
       doc += `**Source:** \`${tool.file}\`\n\n`;
       doc += '---\n\n';
     }
   }
-  
+
   return doc;
 }
 
@@ -681,26 +695,21 @@ async function analyzeFeature(feature: string): Promise<any> {
   return {
     description: `The ${feature} feature provides...`,
     overview: `This feature enables...`,
-    capabilities: [
-      `Capability 1 for ${feature}`,
-      `Capability 2 for ${feature}`
-    ],
+    capabilities: [`Capability 1 for ${feature}`, `Capability 2 for ${feature}`],
     usage: `To use ${feature}, you need to...`,
     examples: [],
     apis: [],
-    related: []
+    related: [],
   };
 }
 
 function formatFeatureName(feature: string): string {
-  return feature
-    .replace(/-/g, ' ')
-    .replace(/\b\w/g, l => l.toUpperCase());
+  return feature.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 }
 
 function updateDocumentSection(content: string, section: string, newContent: string): string {
   const sectionRegex = new RegExp(`(## ${section}\\n\\n)[\\s\\S]*?(?=\\n## |$)`, 'i');
-  
+
   if (sectionRegex.test(content)) {
     return content.replace(sectionRegex, `$1${newContent}\n`);
   } else {
@@ -720,17 +729,17 @@ function addExamplesToDocument(content: string, examples: any[]): string {
       examplesSection += `${example.description}\n\n`;
     }
   }
-  
+
   return updateDocumentSection(content, 'Examples', examplesSection);
 }
 
 function updateDocumentMetadata(content: string, metadata: Partial<DocumentationMetadata>): string {
   // Update frontmatter if it exists
   const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
-  
+
   if (frontmatterMatch) {
     let frontmatter = frontmatterMatch[1] || '';
-    
+
     for (const [key, value] of Object.entries(metadata)) {
       const keyRegex = new RegExp(`^${key}:.*$`, 'm');
       if (frontmatter && keyRegex.test(frontmatter)) {
@@ -739,10 +748,10 @@ function updateDocumentMetadata(content: string, metadata: Partial<Documentation
         frontmatter = (frontmatter || '') + `\n${key}: ${value}`;
       }
     }
-    
+
     return content.replace(/^---\n[\s\S]*?\n---/, `---\n${frontmatter}\n---`);
   }
-  
+
   return content;
 }
 
@@ -768,9 +777,9 @@ function groupChangesByCategory(changes: any[]): Record<string, any[]> {
     fixes: [],
     performance: [],
     documentation: [],
-    other: []
+    other: [],
   };
-  
+
   for (const change of changes) {
     const category = change.type || 'other';
     if (grouped[category]) {
@@ -781,7 +790,7 @@ function groupChangesByCategory(changes: any[]): Record<string, any[]> {
       }
     }
   }
-  
+
   return grouped;
 }
 
@@ -791,9 +800,9 @@ function formatCategory(category: string): string {
     fixes: '🐛 Bug Fixes',
     performance: '⚡ Performance',
     documentation: '📚 Documentation',
-    other: '🔧 Other Changes'
+    other: '🔧 Other Changes',
   };
-  
+
   return categoryNames[category] || category;
 }
 
@@ -822,24 +831,24 @@ function generateSlug(title: string): string {
 
 async function updateKnowledgeBaseIndex(_articlePath: string, metadata: any): Promise<void> {
   const indexPath = 'docs/knowledge-base/index.json';
-  
+
   try {
     let index: any = {};
-    
+
     if (await fileExists(indexPath)) {
       const content = await fs.readFile(indexPath, 'utf-8');
       index = JSON.parse(content);
     }
-    
+
     if (!index.articles) {
       index.articles = [];
     }
-    
+
     index.articles.push({
       ...metadata,
-      created: new Date().toISOString()
+      created: new Date().toISOString(),
     });
-    
+
     await fs.writeFile(indexPath, JSON.stringify(index, null, 2));
   } catch (error) {
     console.error('Error updating knowledge base index:', error);

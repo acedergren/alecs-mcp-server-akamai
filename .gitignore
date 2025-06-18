@@ -83,4 +83,12 @@ sbom/
 *.sbom.xml
 
 #Akamai API Credentials
-.edgerc
+.edgerc*.bak
+*.backup
+.archive/
+*.d.ts.map
+
+# Personalized Claude Desktop configs
+claude_desktop_config.json
+claude_desktop_config_*.json
+\!examples/claude_desktop_config*.example.json

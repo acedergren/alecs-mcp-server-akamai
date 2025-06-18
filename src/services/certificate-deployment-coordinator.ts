@@ -3,7 +3,7 @@
  * Manages certificate deployment to Akamai edge networks and property linking
  */
 
-import { AkamaiClient } from '../akamai-client';
+import { type AkamaiClient } from '../akamai-client';
 import { EventEmitter } from 'events';
 
 // Deployment Configuration
@@ -82,7 +82,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
       network,
       status: 'pending',
       startTime: new Date(),
-      progress: 0
+      progress: 0,
     };
 
     this.activeDeployments.set(enrollmentId, deploymentState);
@@ -91,7 +91,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
     try {
       // Verify certificate is ready for deployment
       await this.verifyCertificateReadiness(enrollmentId);
-      
+
       // Initiate deployment
       deploymentState.status = 'initiated';
       deploymentState.progress = 10;
@@ -105,7 +105,11 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
       // Link to properties if requested
       if (config.autoLinkProperties && config.propertyIds) {
-        await this.linkCertificateToProperties(enrollmentId, config.propertyIds, config.parallelDeployment);
+        await this.linkCertificateToProperties(
+          enrollmentId,
+          config.propertyIds,
+          config.parallelDeployment,
+        );
       }
 
       // Mark as completed
@@ -115,7 +119,6 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
       this.emit('deployment:completed', enrollmentId, deploymentId);
 
       return deploymentState;
-
     } catch (error) {
       deploymentState.status = 'failed';
       deploymentState.error = error instanceof Error ? error.message : String(error);
@@ -140,25 +143,25 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
   async linkCertificateToProperties(
     enrollmentId: number,
     propertyIds: string[],
-    parallel: boolean = false
+    parallel = false,
   ): Promise<Map<string, PropertyLinkState>> {
     const linkingState = {
       total: propertyIds.length,
       completed: 0,
-      failed: 0
+      failed: 0,
     };
 
     // Initialize property states
-    propertyIds.forEach(propertyId => {
+    propertyIds.forEach((propertyId) => {
       this.propertyStates.set(propertyId, {
         propertyId,
-        status: 'pending'
+        status: 'pending',
       });
     });
 
     if (parallel) {
       // Link properties in parallel
-      const linkPromises = propertyIds.map(propertyId => 
+      const linkPromises = propertyIds.map((propertyId) =>
         this.linkToProperty(enrollmentId, propertyId)
           .then(() => {
             linkingState.completed++;
@@ -167,7 +170,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
           .catch(() => {
             linkingState.failed++;
             this.updateDeploymentProgress(enrollmentId, linkingState);
-          })
+          }),
       );
 
       await Promise.allSettled(linkPromises);
@@ -202,7 +205,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
         path: `/cps/v2/enrollments/${enrollmentId}/deployments`,
         method: 'GET',
         headers: {
-          'Accept': 'application/vnd.akamai.cps.deployments.v3+json',
+          Accept: 'application/vnd.akamai.cps.deployments.v3+json',
         },
       });
 
@@ -213,13 +216,13 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
       // Get latest deployment
       const latest = deployments[0];
-      
+
       return {
         deploymentId: latest.deploymentId,
         network: latest.targetEnvironment || latest.primaryCertificate?.network || 'unknown',
         status: this.mapDeploymentStatus(latest.deploymentStatus),
         startTime: new Date(latest.deploymentDate || Date.now()),
-        progress: latest.deploymentStatus === 'active' ? 100 : 50
+        progress: latest.deploymentStatus === 'active' ? 100 : 50,
       };
     } catch (error) {
       return null;
@@ -231,7 +234,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
    */
   async cancelDeployment(enrollmentId: number): Promise<void> {
     const deploymentState = this.activeDeployments.get(enrollmentId);
-    if (!deploymentState || !deploymentState.deploymentId) {
+    if (!deploymentState?.deploymentId) {
       throw new Error(`No active deployment found for enrollment ${enrollmentId}`);
     }
 
@@ -247,7 +250,9 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
       deploymentState.status = 'rolled_back';
       this.emit('rollback:completed', enrollmentId);
     } catch (error) {
-      throw new Error(`Failed to cancel deployment: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to cancel deployment: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -258,13 +263,13 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
       path: `/cps/v2/enrollments/${enrollmentId}`,
       method: 'GET',
       headers: {
-        'Accept': 'application/vnd.akamai.cps.enrollment-status.v1+json',
+        Accept: 'application/vnd.akamai.cps.enrollment-status.v1+json',
       },
     });
 
     // Check if all domains are validated
     const allValidated = response.allowedDomains?.every(
-      (domain: any) => domain.validationStatus === 'VALIDATED'
+      (domain: any) => domain.validationStatus === 'VALIDATED',
     );
 
     if (!allValidated) {
@@ -273,7 +278,9 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
     // Check certificate status
     if (!['active', 'modified'].includes(response.status?.toLowerCase())) {
-      throw new Error(`Certificate is not ready for deployment. Current status: ${response.status}`);
+      throw new Error(
+        `Certificate is not ready for deployment. Current status: ${response.status}`,
+      );
     }
   }
 
@@ -283,14 +290,14 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
       path: `/cps/v2/enrollments/${enrollmentId}/deployments`,
       headers: {
         'Content-Type': 'application/vnd.akamai.cps.deployment-schedule.v1+json',
-        'Accept': 'application/vnd.akamai.cps.deployment.v3+json'
+        Accept: 'application/vnd.akamai.cps.deployment.v3+json',
       },
       body: {
         ra: 'lets-encrypt',
         targetEnvironment: network,
         notAfter: null,
-        allowCancel: true
-      }
+        allowCancel: true,
+      },
     });
 
     const deploymentId = parseInt(response.headers?.location?.split('/').pop() || '0');
@@ -302,20 +309,20 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
   }
 
   private async monitorDeployment(
-    enrollmentId: number, 
+    enrollmentId: number,
     deploymentId: number,
-    deploymentState: DeploymentState
+    deploymentState: DeploymentState,
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       let checkCount = 0;
       const maxChecks = 180; // 30 minutes with 10-second intervals
-      
+
       const monitor = setInterval(async () => {
         try {
           checkCount++;
-          
+
           const status = await this.checkDeploymentProgress(enrollmentId, deploymentId);
-          
+
           // Update state
           deploymentState.status = status.status;
           deploymentState.progress = status.progress;
@@ -343,21 +350,21 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
   }
 
   private async checkDeploymentProgress(
-    enrollmentId: number, 
-    deploymentId: number
+    enrollmentId: number,
+    deploymentId: number,
   ): Promise<{ status: DeploymentState['status']; progress: number }> {
     try {
       const response = await this.client.request({
         method: 'GET',
         path: `/cps/v2/enrollments/${enrollmentId}/deployments/${deploymentId}`,
         headers: {
-          'Accept': 'application/vnd.akamai.cps.deployment.v3+json',
+          Accept: 'application/vnd.akamai.cps.deployment.v3+json',
         },
       });
 
       const apiStatus = response.deploymentStatus || response.status;
       const status = this.mapDeploymentStatus(apiStatus);
-      
+
       // Estimate progress based on status
       let progress = 50;
       if (status === 'deployed') progress = 100;
@@ -419,7 +426,6 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
       propertyState.status = 'linked';
       propertyState.version = version;
       this.emit('property:linked', propertyId, version);
-
     } catch (error) {
       propertyState.status = 'failed';
       propertyState.error = error instanceof Error ? error.message : String(error);
@@ -430,7 +436,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
   private async rollbackDeployment(enrollmentId: number): Promise<void> {
     this.emit('rollback:started', enrollmentId);
-    
+
     try {
       // Cancel deployment if possible
       await this.cancelDeployment(enrollmentId);
@@ -452,18 +458,18 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
     if (deploymentState) {
       deploymentState.propertyLinking = linkingState;
       const linkProgress = (linkingState.completed / linkingState.total) * 100;
-      const overallProgress = Math.min(90 + (linkProgress * 0.1), 99);
+      const overallProgress = Math.min(90 + linkProgress * 0.1, 99);
       this.emit('deployment:progress', enrollmentId, overallProgress);
     }
   }
 
   private mapDeploymentStatus(apiStatus: string): DeploymentState['status'] {
     const statusMap: Record<string, DeploymentState['status']> = {
-      'active': 'deployed',
-      'pending': 'pending',
+      active: 'deployed',
+      pending: 'pending',
       'in-progress': 'in_progress',
-      'failed': 'failed',
-      'cancelled': 'rolled_back'
+      failed: 'failed',
+      cancelled: 'rolled_back',
     };
 
     return statusMap[apiStatus?.toLowerCase()] || 'in_progress';
@@ -474,7 +480,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
    */
   generateDeploymentReport(enrollmentId: number): string {
     const deploymentState = this.activeDeployments.get(enrollmentId);
-    
+
     let report = `# Certificate Deployment Report\n\n`;
     report += `**Enrollment ID:** ${enrollmentId}\n`;
     report += `**Generated:** ${new Date().toISOString()}\n\n`;
@@ -490,7 +496,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
     report += `- **Status:** ${deploymentState.status}\n`;
     report += `- **Progress:** ${deploymentState.progress}%\n`;
     report += `- **Started:** ${deploymentState.startTime.toLocaleString()}\n`;
-    
+
     if (deploymentState.endTime) {
       report += `- **Completed:** ${deploymentState.endTime.toLocaleString()}\n`;
       const duration = deploymentState.endTime.getTime() - deploymentState.startTime.getTime();
@@ -510,26 +516,27 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
       if (this.propertyStates.size > 0) {
         report += `### Property Details\n\n`;
-        
+
         for (const [propertyId, state] of this.propertyStates) {
-          const statusEmoji = {
-            'linked': '✅',
-            'failed': '❌',
-            'linking': '🔄',
-            'pending': '⏳'
-          }[state.status] || '❓';
+          const statusEmoji =
+            {
+              linked: '✅',
+              failed: '❌',
+              linking: '🔄',
+              pending: '⏳',
+            }[state.status] || '❓';
 
           report += `- ${statusEmoji} **${state.propertyName || propertyId}**\n`;
           report += `  - Status: ${state.status}\n`;
-          
+
           if (state.version) {
             report += `  - Version: ${state.version}\n`;
           }
-          
+
           if (state.error) {
             report += `  - Error: ${state.error}\n`;
           }
-          
+
           report += '\n';
         }
       }
@@ -540,6 +547,8 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 }
 
 // Factory function
-export function createDeploymentCoordinator(client: AkamaiClient): CertificateDeploymentCoordinator {
+export function createDeploymentCoordinator(
+  client: AkamaiClient,
+): CertificateDeploymentCoordinator {
   return new CertificateDeploymentCoordinator(client);
 }

@@ -22,7 +22,7 @@ import {
   getDVValidationChallenges,
   checkDVEnrollmentStatus,
   listCertificateEnrollments,
-  linkCertificateToProperty
+  linkCertificateToProperty,
 } from '../tools/cps-tools';
 
 import {
@@ -33,32 +33,32 @@ import {
   getCertificateDeploymentStatus,
   renewCertificate,
   cleanupValidationRecords,
-  getCertificateValidationHistory
+  getCertificateValidationHistory,
 } from '../tools/certificate-enrollment-tools';
 
 // Edge Hostname Certificate Tools
 import {
   validateEdgeHostnameCertificate,
-  associateCertificateWithEdgeHostname
+  associateCertificateWithEdgeHostname,
 } from '../tools/edge-hostname-management';
 
 // Property Certificate Integration
 import {
   updatePropertyWithDefaultDV,
-  updatePropertyWithCPSCertificate
+  updatePropertyWithCPSCertificate,
 } from '../tools/property-manager-tools';
 
 // Domain Validation Tools
 import {
   generateDomainValidationChallenges,
-  resumeDomainValidation
+  resumeDomainValidation,
 } from '../tools/property-manager-rules-tools';
 
 // Secure Property Certificate Tools
 import {
   onboardSecureByDefaultProperty,
   quickSecureByDefaultSetup,
-  checkSecureByDefaultStatus
+  checkSecureByDefaultStatus,
 } from '../tools/secure-by-default-onboarding';
 
 const log = (level: string, message: string, data?: any) => {
@@ -79,23 +79,26 @@ class CertsALECSServer {
     log('INFO', '🔐 ALECS Certificates Server starting...');
     log('INFO', 'Node version:', { version: process.version });
     log('INFO', 'Working directory:', { cwd: process.cwd() });
-    
-    this.server = new Server({
-      name: 'alecs-certs',
-      version: '1.0.0',
-    }, {
-      capabilities: {
-        tools: {},
+
+    this.server = new Server(
+      {
+        name: 'alecs-certs',
+        version: '1.0.0',
       },
-    });
+      {
+        capabilities: {
+          tools: {},
+        },
+      },
+    );
 
     try {
       log('INFO', 'Initializing Akamai client...');
       this.client = new AkamaiClient();
       log('INFO', '✅ Akamai client initialized successfully');
     } catch (error) {
-      log('ERROR', '❌ Failed to initialize Akamai client', { 
-        error: error instanceof Error ? error.message : String(error) 
+      log('ERROR', '❌ Failed to initialize Akamai client', {
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -105,7 +108,7 @@ class CertsALECSServer {
 
   private setupHandlers() {
     log('INFO', 'Setting up request handlers...');
-    
+
     // List all certificate tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       log('INFO', '📋 Tools list requested');
@@ -119,8 +122,12 @@ class CertsALECSServer {
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
               cn: { type: 'string', description: 'Common name (primary domain)' },
-              sans: { type: 'array', items: { type: 'string' }, description: 'Subject alternative names' },
-              adminContact: { 
+              sans: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Subject alternative names',
+              },
+              adminContact: {
                 type: 'object',
                 properties: {
                   firstName: { type: 'string' },
@@ -128,9 +135,9 @@ class CertsALECSServer {
                   email: { type: 'string' },
                   phone: { type: 'string' },
                 },
-                description: 'Admin contact information' 
+                description: 'Admin contact information',
               },
-              techContact: { 
+              techContact: {
                 type: 'object',
                 properties: {
                   firstName: { type: 'string' },
@@ -138,9 +145,9 @@ class CertsALECSServer {
                   email: { type: 'string' },
                   phone: { type: 'string' },
                 },
-                description: 'Technical contact information' 
+                description: 'Technical contact information',
               },
-              org: { 
+              org: {
                 type: 'object',
                 properties: {
                   name: { type: 'string' },
@@ -151,15 +158,19 @@ class CertsALECSServer {
                   countryCode: { type: 'string' },
                   phone: { type: 'string' },
                 },
-                description: 'Organization information' 
+                description: 'Organization information',
               },
-              networkConfiguration: { 
+              networkConfiguration: {
                 type: 'object',
                 properties: {
-                  networkType: { type: 'string', enum: ['STANDARD_TLS', 'ENHANCED_TLS'], default: 'ENHANCED_TLS' },
+                  networkType: {
+                    type: 'string',
+                    enum: ['STANDARD_TLS', 'ENHANCED_TLS'],
+                    default: 'ENHANCED_TLS',
+                  },
                   sniOnly: { type: 'boolean', default: true },
                 },
-                description: 'Network configuration' 
+                description: 'Network configuration',
               },
             },
             required: ['cn', 'adminContact', 'techContact', 'org'],
@@ -223,12 +234,24 @@ class CertsALECSServer {
             type: 'object',
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
-              domains: { type: 'array', items: { type: 'string' }, description: 'Domains to include' },
-              validationMethod: { type: 'string', enum: ['dns-01', 'http-01'], description: 'Validation method' },
+              domains: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Domains to include',
+              },
+              validationMethod: {
+                type: 'string',
+                enum: ['dns-01', 'http-01'],
+                description: 'Validation method',
+              },
               adminContact: { type: 'object', description: 'Admin contact' },
               techContact: { type: 'object', description: 'Tech contact' },
               org: { type: 'object', description: 'Organization details' },
-              autoValidate: { type: 'boolean', description: 'Automatically validate domains', default: true },
+              autoValidate: {
+                type: 'boolean',
+                description: 'Automatically validate domains',
+                default: true,
+              },
             },
             required: ['domains', 'validationMethod', 'adminContact', 'techContact', 'org'],
           },
@@ -240,8 +263,16 @@ class CertsALECSServer {
             type: 'object',
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
-              domains: { type: 'array', items: { type: 'string' }, description: 'Domains to validate' },
-              validationMethod: { type: 'string', enum: ['dns-01', 'http-01'], description: 'Validation method' },
+              domains: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Domains to validate',
+              },
+              validationMethod: {
+                type: 'string',
+                enum: ['dns-01', 'http-01'],
+                description: 'Validation method',
+              },
               checkDNS: { type: 'boolean', description: 'Check DNS configuration', default: true },
             },
             required: ['domains', 'validationMethod'],
@@ -255,8 +286,16 @@ class CertsALECSServer {
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
               enrollmentId: { type: 'number', description: 'Enrollment ID' },
-              network: { type: 'string', enum: ['STAGING', 'PRODUCTION'], description: 'Target network' },
-              allowedNetworks: { type: 'array', items: { type: 'string' }, description: 'Allowed networks' },
+              network: {
+                type: 'string',
+                enum: ['STAGING', 'PRODUCTION'],
+                description: 'Target network',
+              },
+              allowedNetworks: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Allowed networks',
+              },
             },
             required: ['enrollmentId', 'network'],
           },
@@ -269,7 +308,11 @@ class CertsALECSServer {
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
               enrollmentId: { type: 'number', description: 'Enrollment ID' },
-              waitForCompletion: { type: 'boolean', description: 'Wait for completion', default: false },
+              waitForCompletion: {
+                type: 'boolean',
+                description: 'Wait for completion',
+                default: false,
+              },
               timeout: { type: 'number', description: 'Timeout in seconds', default: 300 },
             },
             required: ['enrollmentId'],
@@ -283,7 +326,11 @@ class CertsALECSServer {
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
               enrollmentId: { type: 'number', description: 'Enrollment ID' },
-              network: { type: 'string', enum: ['STAGING', 'PRODUCTION'], description: 'Network to check' },
+              network: {
+                type: 'string',
+                enum: ['STAGING', 'PRODUCTION'],
+                description: 'Network to check',
+              },
             },
             required: ['enrollmentId'],
           },
@@ -296,9 +343,21 @@ class CertsALECSServer {
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
               enrollmentId: { type: 'number', description: 'Current enrollment ID' },
-              addDomains: { type: 'array', items: { type: 'string' }, description: 'Domains to add' },
-              removeDomains: { type: 'array', items: { type: 'string' }, description: 'Domains to remove' },
-              autoValidate: { type: 'boolean', description: 'Auto-validate new domains', default: true },
+              addDomains: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Domains to add',
+              },
+              removeDomains: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Domains to remove',
+              },
+              autoValidate: {
+                type: 'boolean',
+                description: 'Auto-validate new domains',
+                default: true,
+              },
             },
             required: ['enrollmentId'],
           },
@@ -311,8 +370,16 @@ class CertsALECSServer {
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
               enrollmentId: { type: 'number', description: 'Enrollment ID' },
-              domains: { type: 'array', items: { type: 'string' }, description: 'Specific domains to clean' },
-              validationType: { type: 'string', enum: ['dns-01', 'http-01'], description: 'Validation type' },
+              domains: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Specific domains to clean',
+              },
+              validationType: {
+                type: 'string',
+                enum: ['dns-01', 'http-01'],
+                description: 'Validation type',
+              },
             },
             required: ['enrollmentId'],
           },
@@ -325,7 +392,11 @@ class CertsALECSServer {
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
               enrollmentId: { type: 'number', description: 'Enrollment ID' },
-              includeDetails: { type: 'boolean', description: 'Include validation details', default: true },
+              includeDetails: {
+                type: 'boolean',
+                description: 'Include validation details',
+                default: true,
+              },
             },
             required: ['enrollmentId'],
           },
@@ -338,8 +409,16 @@ class CertsALECSServer {
             type: 'object',
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
-              domains: { type: 'array', items: { type: 'string' }, description: 'Domains to validate' },
-              validationType: { type: 'string', enum: ['dns-01', 'http-01'], description: 'Validation type' },
+              domains: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Domains to validate',
+              },
+              validationType: {
+                type: 'string',
+                enum: ['dns-01', 'http-01'],
+                description: 'Validation type',
+              },
             },
             required: ['domains', 'validationType'],
           },
@@ -352,7 +431,11 @@ class CertsALECSServer {
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
               enrollmentId: { type: 'number', description: 'Enrollment ID' },
-              domains: { type: 'array', items: { type: 'string' }, description: 'Domains to resume' },
+              domains: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Domains to resume',
+              },
             },
             required: ['enrollmentId'],
           },
@@ -395,7 +478,11 @@ class CertsALECSServer {
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
               edgeHostname: { type: 'string', description: 'Edge hostname' },
-              certificateType: { type: 'string', enum: ['DEFAULT', 'CPS'], description: 'Certificate type' },
+              certificateType: {
+                type: 'string',
+                enum: ['DEFAULT', 'CPS'],
+                description: 'Certificate type',
+              },
             },
             required: ['edgeHostname'],
           },
@@ -427,8 +514,17 @@ class CertsALECSServer {
               groupId: { type: 'string', description: 'Group ID' },
               productId: { type: 'string', description: 'Product ID' },
               cpCodeName: { type: 'string', description: 'CP code name' },
-              edgeHostnameSuffix: { type: 'string', description: 'Edge hostname suffix', default: 'edgesuite.net' },
-              certificateType: { type: 'string', enum: ['DEFAULT_DV', 'CPS'], description: 'Certificate type', default: 'DEFAULT_DV' },
+              edgeHostnameSuffix: {
+                type: 'string',
+                description: 'Edge hostname suffix',
+                default: 'edgesuite.net',
+              },
+              certificateType: {
+                type: 'string',
+                enum: ['DEFAULT_DV', 'CPS'],
+                description: 'Certificate type',
+                default: 'DEFAULT_DV',
+              },
             },
             required: ['propertyName', 'hostnames', 'contractId', 'groupId', 'productId'],
           },
@@ -440,7 +536,11 @@ class CertsALECSServer {
             type: 'object',
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
-              hostnames: { type: 'array', items: { type: 'string' }, description: 'Hostnames to secure' },
+              hostnames: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Hostnames to secure',
+              },
               contractId: { type: 'string', description: 'Contract ID' },
               groupId: { type: 'string', description: 'Group ID' },
             },
@@ -455,13 +555,17 @@ class CertsALECSServer {
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
               propertyId: { type: 'string', description: 'Property ID' },
-              includeValidation: { type: 'boolean', description: 'Include validation status', default: true },
+              includeValidation: {
+                type: 'boolean',
+                description: 'Include validation status',
+                default: true,
+              },
             },
             required: ['propertyId'],
           },
         },
       ];
-      
+
       log('INFO', `✅ Returning ${tools.length} tools`);
       return { tools };
     });
@@ -469,15 +573,15 @@ class CertsALECSServer {
     // Handle tool calls
     this.server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> => {
       const { name, arguments: args } = request.params;
-      
+
       log('INFO', `🔧 Tool called: ${name}`, { args });
-      
+
       const startTime = Date.now();
       const client = this.client;
 
       try {
         let result;
-        
+
         switch (name) {
           // Basic DV Certificate Tools
           case 'create-dv-enrollment':
@@ -495,7 +599,7 @@ class CertsALECSServer {
           case 'link-certificate-to-property':
             result = await linkCertificateToProperty(client, args as any);
             break;
-          
+
           // Advanced Certificate Enrollment
           case 'enroll-certificate-with-validation':
             result = await enrollCertificateWithValidation(client, args as any);
@@ -521,7 +625,7 @@ class CertsALECSServer {
           case 'get-certificate-validation-history':
             result = await getCertificateValidationHistory(client, args as any);
             break;
-          
+
           // Domain Validation
           case 'generate-domain-validation-challenges':
             result = await generateDomainValidationChallenges(client, args as any);
@@ -529,7 +633,7 @@ class CertsALECSServer {
           case 'resume-domain-validation':
             result = await resumeDomainValidation(client, args as any);
             break;
-          
+
           // Property Integration
           case 'update-property-with-default-dv':
             result = await updatePropertyWithDefaultDV(client, args as any);
@@ -537,7 +641,7 @@ class CertsALECSServer {
           case 'update-property-with-cps-certificate':
             result = await updatePropertyWithCPSCertificate(client, args as any);
             break;
-          
+
           // Edge Hostname Certificate
           case 'validate-edge-hostname-certificate':
             result = await validateEdgeHostnameCertificate(client, args as any);
@@ -545,7 +649,7 @@ class CertsALECSServer {
           case 'associate-certificate-with-edge-hostname':
             result = await associateCertificateWithEdgeHostname(client, args as any);
             break;
-          
+
           // Secure by Default
           case 'onboard-secure-property':
             result = await onboardSecureByDefaultProperty(client, args as any);
@@ -558,79 +662,81 @@ class CertsALECSServer {
             break;
 
           default:
-            throw new McpError(
-              ErrorCode.MethodNotFound,
-              `Tool not found: ${name}`
-            );
+            throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
         }
-        
+
         const duration = Date.now() - startTime;
         log('INFO', `✅ Tool ${name} completed in ${duration}ms`);
-        
+
         return result;
-        
       } catch (error) {
         const duration = Date.now() - startTime;
         log('ERROR', `❌ Tool ${name} failed after ${duration}ms`, {
-          error: error instanceof Error ? {
-            message: error.message,
-            stack: error.stack
-          } : String(error)
+          error:
+            error instanceof Error
+              ? {
+                  message: error.message,
+                  stack: error.stack,
+                }
+              : String(error),
         });
-        
+
         if (error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`
+            `Invalid parameters: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
           );
         }
-        
+
         if (error instanceof McpError) {
           throw error;
         }
-        
+
         throw new McpError(
           ErrorCode.InternalError,
-          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`
+          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     });
-    
+
     log('INFO', '✅ Request handlers set up successfully');
   }
 
   async start() {
     log('INFO', '📍 Starting server connection...');
-    
+
     const transport = new StdioServerTransport();
-    
+
     // Add error handling for transport
     transport.onerror = (error: Error) => {
       log('ERROR', '❌ Transport error', {
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
     };
-    
+
     transport.onclose = () => {
       log('INFO', '🔌 Transport closed, shutting down...');
       process.exit(0);
     };
-    
+
     try {
       await this.server.connect(transport);
       log('INFO', '✅ Server connected and ready for MCP connections');
       log('INFO', '📊 Server stats', {
         toolCount: 22,
         memoryUsage: process.memoryUsage(),
-        uptime: process.uptime()
+        uptime: process.uptime(),
       });
     } catch (error) {
       log('ERROR', '❌ Failed to connect server', {
-        error: error instanceof Error ? {
-          message: error.message,
-          stack: error.stack
-        } : String(error)
+        error:
+          error instanceof Error
+            ? {
+                message: error.message,
+                stack: error.stack,
+              }
+            : String(error),
       });
       throw error;
     }
@@ -640,26 +746,28 @@ class CertsALECSServer {
 // Main entry point
 async function main() {
   log('INFO', '🎯 ALECS Certificates Server main() started');
-  
+
   try {
     const server = new CertsALECSServer();
     await server.start();
-    
+
     // Set up periodic status logging
     setInterval(() => {
       log('DEBUG', '💓 Server heartbeat', {
         uptime: process.uptime(),
         memory: process.memoryUsage(),
-        pid: process.pid
+        pid: process.pid,
       });
     }, 30000); // Every 30 seconds
-    
   } catch (error) {
     log('ERROR', '❌ Failed to start server', {
-      error: error instanceof Error ? {
-        message: error.message,
-        stack: error.stack
-      } : String(error)
+      error:
+        error instanceof Error
+          ? {
+              message: error.message,
+              stack: error.stack,
+            }
+          : String(error),
     });
     process.exit(1);
   }
@@ -670,19 +778,22 @@ process.on('uncaughtException', (error) => {
   log('ERROR', '❌ Uncaught exception', {
     error: {
       message: error.message,
-      stack: error.stack
-    }
+      stack: error.stack,
+    },
   });
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   log('ERROR', '❌ Unhandled rejection', {
-    reason: reason instanceof Error ? {
-      message: reason.message,
-      stack: reason.stack
-    } : String(reason),
-    promise: String(promise)
+    reason:
+      reason instanceof Error
+        ? {
+            message: reason.message,
+            stack: reason.stack,
+          }
+        : String(reason),
+    promise: String(promise),
   });
   process.exit(1);
 });

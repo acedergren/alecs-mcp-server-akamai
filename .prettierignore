@@ -1,0 +1,11 @@
+dist/
+node_modules/
+coverage/
+.git/
+*.min.js
+*.d.ts
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+.tsbuildinfo
+*.log

@@ -3,7 +3,7 @@
  * Real-time monitoring and automation for certificate validation
  */
 
-import { AkamaiClient } from '../akamai-client';
+import { type AkamaiClient } from '../akamai-client';
 import { EventEmitter } from 'events';
 
 // Validation States
@@ -15,7 +15,7 @@ export enum ValidationStatus {
   VALIDATION_IN_PROGRESS = 'validation_in_progress',
   VALIDATED = 'validated',
   FAILED = 'failed',
-  EXPIRED = 'expired'
+  EXPIRED = 'expired',
 }
 
 // Monitor Configuration
@@ -62,7 +62,7 @@ export class CertificateValidationMonitor extends EventEmitter {
   private client: AkamaiClient;
   private monitors: Map<number, NodeJS.Timeout> = new Map();
   private validationStates: Map<number, Map<string, DomainValidation>> = new Map();
-  
+
   constructor(client: AkamaiClient) {
     super();
     this.client = client;
@@ -72,12 +72,7 @@ export class CertificateValidationMonitor extends EventEmitter {
    * Start monitoring certificate validation
    */
   async startMonitoring(config: MonitorConfig): Promise<void> {
-    const {
-      enrollmentId,
-      checkInterval = 30,
-      maxAttempts = 60,
-      autoRetry = true
-    } = config;
+    const { enrollmentId, checkInterval = 30, maxAttempts = 60, autoRetry = true } = config;
 
     // Stop existing monitor if any
     this.stopMonitoring(enrollmentId);
@@ -85,13 +80,13 @@ export class CertificateValidationMonitor extends EventEmitter {
     // Initialize validation states
     const domains = await this.fetchDomains(enrollmentId);
     const domainStates = new Map<string, DomainValidation>();
-    
-    domains.forEach(domain => {
+
+    domains.forEach((domain) => {
       domainStates.set(domain, {
         domain,
         status: ValidationStatus.PENDING,
         method: 'dns-01',
-        attempts: 0
+        attempts: 0,
       });
     });
 
@@ -103,7 +98,7 @@ export class CertificateValidationMonitor extends EventEmitter {
     const monitor = setInterval(async () => {
       try {
         attempts++;
-        
+
         // Check if max attempts reached
         if (attempts > maxAttempts) {
           this.stopMonitoring(enrollmentId);
@@ -113,7 +108,7 @@ export class CertificateValidationMonitor extends EventEmitter {
 
         // Check validation status
         const allValidated = await this.checkValidationStatus(enrollmentId);
-        
+
         if (allValidated) {
           this.stopMonitoring(enrollmentId);
           const validatedDomains = Array.from(domainStates.keys());
@@ -122,10 +117,13 @@ export class CertificateValidationMonitor extends EventEmitter {
           // Retry failed validations
           await this.retryFailedValidations(enrollmentId);
         }
-
       } catch (error) {
         console.error(`Monitor error for enrollment ${enrollmentId}:`, error);
-        this.emit('validation:failed', enrollmentId, error instanceof Error ? error.message : String(error));
+        this.emit(
+          'validation:failed',
+          enrollmentId,
+          error instanceof Error ? error.message : String(error),
+        );
       }
     }, checkInterval * 1000);
 
@@ -154,24 +152,20 @@ export class CertificateValidationMonitor extends EventEmitter {
    * Check DNS propagation for a domain
    */
   async checkDNSPropagation(
-    domain: string, 
-    recordName: string, 
-    expectedValue: string
+    domain: string,
+    recordName: string,
+    expectedValue: string,
   ): Promise<boolean> {
     try {
       // Use Google's DNS resolver to check propagation
-      const response = await fetch(
-        `https://dns.google/resolve?name=${recordName}&type=TXT`
-      );
-      
+      const response = await fetch(`https://dns.google/resolve?name=${recordName}&type=TXT`);
+
       if (!response.ok) return false;
-      
+
       const data: any = await response.json();
       const answers = data.Answer || [];
-      
-      return answers.some((answer: any) => 
-        answer.data && answer.data.includes(expectedValue)
-      );
+
+      return answers.some((answer: any) => answer.data?.includes(expectedValue));
     } catch (error) {
       console.error(`DNS propagation check failed for ${domain}:`, error);
       return false;
@@ -187,7 +181,7 @@ export class CertificateValidationMonitor extends EventEmitter {
         method: 'POST',
         path: `/cps/v2/enrollments/${enrollmentId}/dv-validation/${domain}`,
         headers: { 'Content-Type': 'application/json' },
-        body: { acknowledgeWarnings: true }
+        body: { acknowledgeWarnings: true },
       });
 
       const domainState = this.validationStates.get(enrollmentId)?.get(domain);
@@ -215,7 +209,7 @@ export class CertificateValidationMonitor extends EventEmitter {
       path: `/cps/v2/enrollments/${enrollmentId}`,
       method: 'GET',
       headers: {
-        'Accept': 'application/vnd.akamai.cps.enrollment-status.v1+json',
+        Accept: 'application/vnd.akamai.cps.enrollment-status.v1+json',
       },
     });
 
@@ -227,7 +221,7 @@ export class CertificateValidationMonitor extends EventEmitter {
       path: `/cps/v2/enrollments/${enrollmentId}`,
       method: 'GET',
       headers: {
-        'Accept': 'application/vnd.akamai.cps.enrollment-status.v1+json',
+        Accept: 'application/vnd.akamai.cps.enrollment-status.v1+json',
       },
     });
 
@@ -241,7 +235,7 @@ export class CertificateValidationMonitor extends EventEmitter {
       if (!domainState) continue;
 
       const previousStatus = domainState.status;
-      
+
       // Update status based on API response
       switch (domain.validationStatus) {
         case 'VALIDATED':
@@ -251,7 +245,7 @@ export class CertificateValidationMonitor extends EventEmitter {
             this.emit('domain:validated', domain.name);
           }
           break;
-        
+
         case 'PENDING':
           if (domainState.status === ValidationStatus.PENDING) {
             // Check if DNS record exists
@@ -261,7 +255,7 @@ export class CertificateValidationMonitor extends EventEmitter {
                   domainState.challenge = {
                     token: challenge.token,
                     recordName: `_acme-challenge.${domain.name}`,
-                    recordValue: challenge.responseBody
+                    recordValue: challenge.responseBody,
                   };
                 }
               }
@@ -269,12 +263,12 @@ export class CertificateValidationMonitor extends EventEmitter {
           }
           allValidated = false;
           break;
-        
+
         case 'IN_PROGRESS':
           domainState.status = ValidationStatus.VALIDATION_IN_PROGRESS;
           allValidated = false;
           break;
-        
+
         case 'ERROR':
         case 'FAILED':
           domainState.status = ValidationStatus.FAILED;
@@ -282,12 +276,12 @@ export class CertificateValidationMonitor extends EventEmitter {
           this.emit('domain:failed', domain.name, domainState.error);
           allValidated = false;
           break;
-        
+
         case 'EXPIRED':
           domainState.status = ValidationStatus.EXPIRED;
           allValidated = false;
           break;
-        
+
         default:
           allValidated = false;
       }
@@ -306,9 +300,7 @@ export class CertificateValidationMonitor extends EventEmitter {
     if (!domainStates) return;
 
     for (const [domain, state] of domainStates) {
-      if (state.status === ValidationStatus.FAILED || 
-          state.status === ValidationStatus.EXPIRED) {
-        
+      if (state.status === ValidationStatus.FAILED || state.status === ValidationStatus.EXPIRED) {
         // Don't retry if max attempts reached
         if (state.attempts >= 3) continue;
 
@@ -335,11 +327,10 @@ export class CertificateValidationMonitor extends EventEmitter {
 
     // Summary
     const statuses = Array.from(domainStates.values());
-    const validated = statuses.filter(s => s.status === ValidationStatus.VALIDATED).length;
-    const failed = statuses.filter(s => s.status === ValidationStatus.FAILED).length;
-    const pending = statuses.filter(s => 
-      s.status !== ValidationStatus.VALIDATED && 
-      s.status !== ValidationStatus.FAILED
+    const validated = statuses.filter((s) => s.status === ValidationStatus.VALIDATED).length;
+    const failed = statuses.filter((s) => s.status === ValidationStatus.FAILED).length;
+    const pending = statuses.filter(
+      (s) => s.status !== ValidationStatus.VALIDATED && s.status !== ValidationStatus.FAILED,
     ).length;
 
     report += `## Summary\n\n`;
@@ -350,40 +341,41 @@ export class CertificateValidationMonitor extends EventEmitter {
 
     // Domain Details
     report += `## Domain Status\n\n`;
-    
+
     for (const [domain, state] of domainStates) {
-      const statusEmoji = {
-        [ValidationStatus.VALIDATED]: '✅',
-        [ValidationStatus.FAILED]: '❌',
-        [ValidationStatus.VALIDATION_IN_PROGRESS]: '🔄',
-        [ValidationStatus.DNS_RECORD_CREATED]: '📝',
-        [ValidationStatus.DNS_PROPAGATED]: '🌐',
-        [ValidationStatus.VALIDATION_TRIGGERED]: '🔐',
-        [ValidationStatus.PENDING]: '⏳',
-        [ValidationStatus.EXPIRED]: '⚠️'
-      }[state.status] || '❓';
+      const statusEmoji =
+        {
+          [ValidationStatus.VALIDATED]: '✅',
+          [ValidationStatus.FAILED]: '❌',
+          [ValidationStatus.VALIDATION_IN_PROGRESS]: '🔄',
+          [ValidationStatus.DNS_RECORD_CREATED]: '📝',
+          [ValidationStatus.DNS_PROPAGATED]: '🌐',
+          [ValidationStatus.VALIDATION_TRIGGERED]: '🔐',
+          [ValidationStatus.PENDING]: '⏳',
+          [ValidationStatus.EXPIRED]: '⚠️',
+        }[state.status] || '❓';
 
       report += `### ${statusEmoji} ${domain}\n`;
       report += `- **Status:** ${state.status}\n`;
       report += `- **Method:** ${state.method}\n`;
       report += `- **Attempts:** ${state.attempts}\n`;
-      
+
       if (state.lastAttempt) {
         report += `- **Last Attempt:** ${state.lastAttempt.toLocaleString()}\n`;
       }
-      
+
       if (state.validatedAt) {
         report += `- **Validated At:** ${state.validatedAt.toLocaleString()}\n`;
       }
-      
+
       if (state.error) {
         report += `- **Error:** ${state.error}\n`;
       }
-      
+
       if (state.challenge?.recordName) {
         report += `- **DNS Record:** ${state.challenge.recordName}\n`;
       }
-      
+
       report += '\n';
     }
 

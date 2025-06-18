@@ -4,10 +4,19 @@
  * CP Codes are used for reporting, billing, and traffic analysis
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { getProductFriendlyName, formatProductDisplay, selectBestProduct } from '../utils/product-mapping';
-import { formatContractDisplay, formatGroupDisplay, formatCPCodeDisplay, ensurePrefix } from '../utils/formatting';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import {
+  getProductFriendlyName,
+  formatProductDisplay,
+  selectBestProduct,
+} from '@utils/product-mapping';
+import {
+  formatContractDisplay,
+  formatGroupDisplay,
+  formatCPCodeDisplay,
+  ensurePrefix,
+} from '@utils/formatting';
 
 /**
  * List all CP Codes in the account
@@ -18,11 +27,11 @@ export async function listCPCodes(
     contractId?: string;
     groupId?: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const queryParams: any = {};
-    
+
     if (args.contractId) {
       queryParams.contractId = ensurePrefix(args.contractId, 'ctr_');
     }
@@ -38,10 +47,12 @@ export async function listCPCodes(
 
     if (!response.cpcodes?.items || response.cpcodes.items.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: 'No CP Codes found in your account.\n\n💡 **Tip:** CP Codes are automatically created when you create properties, or you can create them manually for specific reporting needs.',
-        }],
+        content: [
+          {
+            type: 'text',
+            text: 'No CP Codes found in your account.\n\n💡 **Tip:** CP Codes are automatically created when you create properties, or you can create them manually for specific reporting needs.',
+          },
+        ],
       };
     }
 
@@ -58,21 +69,25 @@ export async function listCPCodes(
 
     for (const [contractId, cpcodes] of Object.entries(byContract)) {
       text += `## ${formatContractDisplay(contractId)}\n\n`;
-      
+
       // Sort by CP Code ID
-      const sortedCpcodes = (cpcodes as any[]).sort((a, b) => 
-        parseInt(a.cpcodeId.replace('cpc_', '')) - parseInt(b.cpcodeId.replace('cpc_', ''))
+      const sortedCpcodes = (cpcodes as any[]).sort(
+        (a, b) =>
+          parseInt(a.cpcodeId.replace('cpc_', '')) - parseInt(b.cpcodeId.replace('cpc_', '')),
       );
 
       text += `| CP Code | Name | Products | Created |\n`;
       text += `|---------|------|----------|----------|\n`;
-      
+
       for (const cpcode of sortedCpcodes) {
         const cpcodeNum = formatCPCodeDisplay(cpcode.cpcodeId);
         const name = cpcode.cpcodeName || 'Unnamed';
-        const products = cpcode.productIds?.map((pid: string) => getProductFriendlyName(pid)).join(', ') || 'None';
-        const created = cpcode.createdDate ? new Date(cpcode.createdDate).toLocaleDateString() : 'Unknown';
-        
+        const products =
+          cpcode.productIds?.map((pid: string) => getProductFriendlyName(pid)).join(', ') || 'None';
+        const created = cpcode.createdDate
+          ? new Date(cpcode.createdDate).toLocaleDateString()
+          : 'Unknown';
+
         text += `| ${cpcodeNum} | ${name} | ${products} | ${created} |\n`;
       }
       text += '\n';
@@ -91,10 +106,12 @@ export async function listCPCodes(
     text += `- **Performance Monitoring:** Monitor response times and errors\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('list CP Codes', error);
@@ -109,7 +126,7 @@ export async function getCPCode(
   args: {
     cpcodeId: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Ensure CP Code ID has the right format
@@ -120,28 +137,32 @@ export async function getCPCode(
       path: '/papi/v1/cpcodes',
       method: 'GET',
     });
-    
+
     if (!response.cpcodes?.items) {
       throw new Error('No CP Codes available');
     }
-    
+
     // Find the specific CP Code
-    const targetCpcode = response.cpcodes.items.find((cpcode: any) => 
-      cpcode.cpcodeId === cpcodeId || cpcode.cpcodeId === `cpc_${args.cpcodeId}` || 
-      cpcode.cpcodeId.replace('cpc_', '') === args.cpcodeId
+    const targetCpcode = response.cpcodes.items.find(
+      (cpcode: any) =>
+        cpcode.cpcodeId === cpcodeId ||
+        cpcode.cpcodeId === `cpc_${args.cpcodeId}` ||
+        cpcode.cpcodeId.replace('cpc_', '') === args.cpcodeId,
     );
 
     if (!targetCpcode) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ CP Code ${args.cpcodeId} not found.\n\n💡 **Tip:** Use \`"List CP Codes"\` to see all available CP Codes in your account.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ CP Code ${args.cpcodeId} not found.\n\n💡 **Tip:** Use \`"List CP Codes"\` to see all available CP Codes in your account.`,
+          },
+        ],
       };
     }
 
     const cpcode = targetCpcode;
-    
+
     let text = `# CP Code Details: ${formatCPCodeDisplay(cpcode.cpcodeId, cpcode.cpcodeName)}\n\n`;
 
     // Basic Information
@@ -200,10 +221,12 @@ export async function getCPCode(
     text += `- Cache Performance Analysis\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('get CP Code details', error);
@@ -222,7 +245,7 @@ export async function createCPCode(
     productId?: string;
     timeZone?: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Ensure prefixes are added if missing
@@ -232,30 +255,32 @@ export async function createCPCode(
     if (args.groupId) {
       args.groupId = ensurePrefix(args.groupId, 'grp_');
     }
-    
+
     // Validate required parameters
     const validationErrors: string[] = [];
-    
+
     if (!args.cpcodeName || args.cpcodeName.trim().length === 0) {
       validationErrors.push('CP Code name is required');
     } else if (args.cpcodeName.length > 100) {
       validationErrors.push('CP Code name must be 100 characters or less');
     }
-    
+
     if (!args.contractId) {
       validationErrors.push('Contract ID is required');
     }
-    
+
     if (!args.groupId) {
       validationErrors.push('Group ID is required');
     }
-    
+
     if (validationErrors.length > 0) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Cannot create CP Code - validation errors:\n\n${validationErrors.map(e => `- ${e}`).join('\n')}\n\n💡 **Tip:** Use \`"List groups"\` to find valid contract and group IDs.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ Cannot create CP Code - validation errors:\n\n${validationErrors.map((e) => `- ${e}`).join('\n')}\n\n💡 **Tip:** Use \`"List groups"\` to find valid contract and group IDs.`,
+          },
+        ],
       };
     }
 
@@ -280,7 +305,7 @@ export async function createCPCode(
       } catch (productError) {
         // Ignore error and use default
       }
-      
+
       // Fallback to Ion if no product could be selected
       if (!productId) {
         productId = 'prd_fresca';
@@ -313,10 +338,10 @@ export async function createCPCode(
     // Extract CP Code ID from the link
     const cpcodeId = response.cpcodeLink.split('/').pop()?.split('?')[0];
     const numericId = cpcodeId?.replace('cpc_', '');
-    
+
     // Format success response
     let text = `✅ **CP Code Created Successfully!**\n\n`;
-    
+
     text += `## CP Code Details\n`;
     text += `- **Name:** ${args.cpcodeName}\n`;
     text += `- **CP Code ID:** ${formatCPCodeDisplay(cpcodeId, args.cpcodeName)}\n`;
@@ -326,20 +351,20 @@ export async function createCPCode(
     text += `- **Group:** ${formatGroupDisplay(args.groupId)}\n`;
     text += `- **Time Zone:** ${args.timeZone || 'GMT'}\n`;
     text += `- **Status:** 🆕 NEW (Ready for use)\n\n`;
-    
+
     text += `## Next Steps\n\n`;
     text += `### 1. Assign to Property\n`;
     text += `Add this CP Code to a property's rule tree:\n`;
     text += `\`"Update property rules to use CP Code ${numericId}"\`\n\n`;
-    
+
     text += `### 2. Use in New Property\n`;
     text += `Create a new property with this CP Code:\n`;
     text += `\`"Create property with CP Code ${numericId}"\`\n\n`;
-    
+
     text += `### 3. Monitor Usage\n`;
     text += `Check CP Code details and usage:\n`;
     text += `\`"Get details for CP Code ${numericId}"\`\n\n`;
-    
+
     text += `## Rule Tree Configuration\n`;
     text += `Use this configuration in property rules:\n`;
     text += `\`\`\`json\n`;
@@ -353,7 +378,7 @@ export async function createCPCode(
     text += `  }\n`;
     text += `}\n`;
     text += `\`\`\`\n\n`;
-    
+
     text += `## Reporting Benefits\n`;
     text += `With this CP Code, you can now:\n`;
     text += `- **Track Traffic:** Monitor bandwidth and request volumes\n`;
@@ -362,10 +387,12 @@ export async function createCPCode(
     text += `- **Troubleshooting:** Isolate issues to specific content categories\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('create CP Code', error);
@@ -382,11 +409,11 @@ export async function searchCPCodes(
     contractId?: string;
     groupId?: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const queryParams: any = {};
-    
+
     if (args.contractId) {
       queryParams.contractId = ensurePrefix(args.contractId, 'ctr_');
     }
@@ -402,10 +429,12 @@ export async function searchCPCodes(
 
     if (!response.cpcodes?.items || response.cpcodes.items.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: 'No CP Codes found to search.\n\n💡 **Tip:** Create a CP Code first or check your contract/group permissions.',
-        }],
+        content: [
+          {
+            type: 'text',
+            text: 'No CP Codes found to search.\n\n💡 **Tip:** Create a CP Code first or check your contract/group permissions.',
+          },
+        ],
       };
     }
 
@@ -419,10 +448,12 @@ export async function searchCPCodes(
 
     if (matchingCpcodes.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: `No CP Codes found matching "${args.searchTerm}".\n\n**Search Tips:**\n- Try partial names or IDs\n- Search is case-insensitive\n- Use \`"List CP Codes"\` to see all available CP Codes`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `No CP Codes found matching "${args.searchTerm}".\n\n**Search Tips:**\n- Try partial names or IDs\n- Search is case-insensitive\n- Use \`"List CP Codes"\` to see all available CP Codes`,
+          },
+        ],
       };
     }
 
@@ -431,13 +462,15 @@ export async function searchCPCodes(
 
     text += `| CP Code | Name | Products | Created |\n`;
     text += `|---------|------|----------|----------|\n`;
-    
+
     for (const cpcode of matchingCpcodes) {
       const cpcodeNum = cpcode.cpcodeId.replace('cpc_', '');
       const name = cpcode.cpcodeName || 'Unnamed';
       const products = cpcode.productIds?.join(', ') || 'None';
-      const created = cpcode.createdDate ? new Date(cpcode.createdDate).toLocaleDateString() : 'Unknown';
-      
+      const created = cpcode.createdDate
+        ? new Date(cpcode.createdDate).toLocaleDateString()
+        : 'Unknown';
+
       text += `| ${cpcodeNum} | ${name} | ${products} | ${created} |\n`;
     }
     text += '\n';
@@ -451,10 +484,12 @@ export async function searchCPCodes(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('search CP Codes', error);
@@ -467,31 +502,35 @@ export async function searchCPCodes(
 function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
-  
+
   if (error instanceof Error) {
     errorMessage += `: ${error.message}`;
-    
+
     // Provide specific solutions based on error type
     if (error.message.includes('401') || error.message.includes('credentials')) {
-      solution = '**Solution:** Check your ~/.edgerc file has valid credentials for CP Code management.';
+      solution =
+        '**Solution:** Check your ~/.edgerc file has valid credentials for CP Code management.';
     } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
-      solution = '**Solution:** Your API credentials may lack the necessary permissions for CP Code operations.';
+      solution =
+        '**Solution:** Your API credentials may lack the necessary permissions for CP Code operations.';
     } else if (error.message.includes('404') || error.message.includes('not found')) {
-      solution = '**Solution:** The CP Code was not found. Use "List CP Codes" to see available CP Codes.';
+      solution =
+        '**Solution:** The CP Code was not found. Use "List CP Codes" to see available CP Codes.';
     } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
-      solution = '**Solution:** Invalid request parameters. Check the CP Code name and contract/group IDs.';
+      solution =
+        '**Solution:** Invalid request parameters. Check the CP Code name and contract/group IDs.';
     } else if (error.message.includes('409') || error.message.includes('Conflict')) {
       solution = '**Solution:** A CP Code with this name may already exist in this contract/group.';
     }
   } else {
     errorMessage += `: ${String(error)}`;
   }
-  
+
   let text = errorMessage;
   if (solution) {
     text += `\n\n${solution}`;
   }
-  
+
   // Add general help
   text += '\n\n**Need Help?**\n';
   text += '- List available CP Codes: `"List CP Codes"`\n';
@@ -499,9 +538,11 @@ function formatError(operation: string, error: any): MCPToolResponse {
   text += '- CP Code documentation: https://techdocs.akamai.com/property-mgr/reference/cp-codes';
 
   return {
-    content: [{
-      type: 'text',
-      text,
-    }],
+    content: [
+      {
+        type: 'text',
+        text,
+      },
+    ],
   };
 }

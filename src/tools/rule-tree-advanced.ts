@@ -3,9 +3,9 @@
  * Comprehensive rule validation, templates, optimization, and analysis
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { ErrorTranslator } from '../utils/errors';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import { ErrorTranslator } from '@utils/errors';
 
 // Rule validation types
 export interface RuleValidationResult {
@@ -108,10 +108,10 @@ export async function validateRuleTree(
     rules?: any;
     includeOptimizations?: boolean;
     includeStatistics?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     let rules = args.rules;
     let propertyName = 'Unknown';
@@ -240,9 +240,14 @@ export async function validateRuleTree(
     if (validation.suggestions.length > 0) {
       responseText += `## 💡 Optimization Suggestions (${validation.suggestions.length})\n`;
       validation.suggestions.forEach((suggestion, idx) => {
-        const icon = suggestion.type === 'PERFORMANCE' ? '🚀' : 
-                     suggestion.type === 'SECURITY' ? '🔒' :
-                     suggestion.type === 'COST' ? '💰' : '✨';
+        const icon =
+          suggestion.type === 'PERFORMANCE'
+            ? '🚀'
+            : suggestion.type === 'SECURITY'
+              ? '🔒'
+              : suggestion.type === 'COST'
+                ? '💰'
+                : '✨';
         responseText += `${idx + 1}. ${icon} **${suggestion.type}** - ${suggestion.impact}\n`;
         responseText += `   - **Path:** \`${suggestion.path}\`\n`;
         responseText += `   - **Effort:** ${suggestion.effort}\n`;
@@ -265,21 +270,25 @@ export async function validateRuleTree(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'validate rule tree',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'validate rule tree',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -295,10 +304,10 @@ export async function createRuleTreeFromTemplate(
     propertyId?: string;
     version?: number;
     validate?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     // Get template
     const template = getRuleTemplate(args.templateId);
@@ -310,31 +319,39 @@ export async function createRuleTreeFromTemplate(
     const validationErrors = validateTemplateVariables(template, args.variables || {});
     if (validationErrors.length > 0) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Template variable validation failed:\n\n${validationErrors.map(e => `- ${e}`).join('\n')}`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ Template variable validation failed:\n\n${validationErrors.map((e) => `- ${e}`).join('\n')}`,
+          },
+        ],
       };
     }
 
     // Apply variables to template
-    const rules = applyTemplateVariables(template.rules, args.variables || {}, template.variables || []);
+    const rules = applyTemplateVariables(
+      template.rules,
+      args.variables || {},
+      template.variables || [],
+    );
 
     // Validate if requested
     if (args.validate) {
-      const validationResult = await validateRuleTree(client, { 
+      const validationResult = await validateRuleTree(client, {
         propertyId: args.propertyId || '',
         rules,
         includeOptimizations: true,
       });
-      
+
       const validationText = validationResult.content[0]?.text || '';
       if (validationText.includes('❌ INVALID')) {
         return {
-          content: [{
-            type: 'text',
-            text: `❌ Template generated invalid rule tree:\n\n${validationText}`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `❌ Template generated invalid rule tree:\n\n${validationText}`,
+            },
+          ],
         };
       }
     }
@@ -349,10 +366,12 @@ export async function createRuleTreeFromTemplate(
 
       if (updateResponse.errors?.length > 0) {
         return {
-          content: [{
-            type: 'text',
-            text: `❌ Failed to apply template:\n\n${updateResponse.errors.map((e: any) => `- ${e.detail}`).join('\n')}`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `❌ Failed to apply template:\n\n${updateResponse.errors.map((e: any) => `- ${e.detail}`).join('\n')}`,
+            },
+          ],
         };
       }
     }
@@ -391,21 +410,25 @@ export async function createRuleTreeFromTemplate(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'create rule tree from template',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'create rule tree from template',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -420,10 +443,10 @@ export async function analyzeRuleTreePerformance(
     version?: number;
     rules?: any;
     includeRecommendations?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     let rules = args.rules;
     let propertyName = 'Unknown';
@@ -537,21 +560,25 @@ export async function analyzeRuleTreePerformance(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'analyze rule tree performance',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'analyze rule tree performance',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -565,10 +592,10 @@ export async function detectRuleConflicts(
     propertyId: string;
     version?: number;
     rules?: any;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     let rules = args.rules;
 
@@ -604,9 +631,9 @@ export async function detectRuleConflicts(
       responseText += `The rule configuration appears to be consistent and conflict-free.\n`;
     } else {
       // Group conflicts by severity
-      const highSeverity = conflicts.filter(c => c.severity === 'HIGH');
-      const mediumSeverity = conflicts.filter(c => c.severity === 'MEDIUM');
-      const lowSeverity = conflicts.filter(c => c.severity === 'LOW');
+      const highSeverity = conflicts.filter((c) => c.severity === 'HIGH');
+      const mediumSeverity = conflicts.filter((c) => c.severity === 'MEDIUM');
+      const lowSeverity = conflicts.filter((c) => c.severity === 'LOW');
 
       if (highSeverity.length > 0) {
         responseText += `## 🔴 High Severity Conflicts (${highSeverity.length})\n`;
@@ -659,21 +686,25 @@ export async function detectRuleConflicts(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'detect rule conflicts',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'detect rule conflicts',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -686,23 +717,23 @@ export async function listRuleTemplates(
   args: {
     category?: string;
     tags?: string[];
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const templates = getRuleTemplates();
-    
+
     // Filter by category if provided
     let filteredTemplates = templates;
     if (args.category) {
-      filteredTemplates = filteredTemplates.filter(t => 
-        t.category.toLowerCase() === args.category!.toLowerCase()
+      filteredTemplates = filteredTemplates.filter(
+        (t) => t.category.toLowerCase() === args.category!.toLowerCase(),
       );
     }
 
     // Filter by tags if provided
     if (args.tags && args.tags.length > 0) {
-      filteredTemplates = filteredTemplates.filter(t =>
-        args.tags!.some(tag => t.tags.includes(tag))
+      filteredTemplates = filteredTemplates.filter((t) =>
+        args.tags!.some((tag) => t.tags.includes(tag)),
       );
     }
 
@@ -718,17 +749,20 @@ export async function listRuleTemplates(
     responseText += '\n';
 
     // Group by category
-    const byCategory = filteredTemplates.reduce((acc, template) => {
-      const cat = template.category;
-      if (!acc[cat]) acc[cat] = [];
-      acc[cat].push(template);
-      return acc;
-    }, {} as Record<string, RuleTemplate[]>);
+    const byCategory = filteredTemplates.reduce(
+      (acc, template) => {
+        const cat = template.category;
+        if (!acc[cat]) acc[cat] = [];
+        acc[cat].push(template);
+        return acc;
+      },
+      {} as Record<string, RuleTemplate[]>,
+    );
 
     Object.entries(byCategory).forEach(([category, categoryTemplates]) => {
       responseText += `## ${category}\n\n`;
-      
-      categoryTemplates.forEach(template => {
+
+      categoryTemplates.forEach((template) => {
         responseText += `### ${template.name}\n`;
         responseText += `- **ID:** \`${template.id}\`\n`;
         responseText += `- **Description:** ${template.description}\n`;
@@ -736,11 +770,11 @@ export async function listRuleTemplates(
         responseText += `- **Version:** ${template.version}\n`;
         responseText += `- **Author:** ${template.author}\n`;
         responseText += `- **Last Updated:** ${template.lastUpdated}\n`;
-        
+
         if (template.variables && template.variables.length > 0) {
-          responseText += `- **Variables:** ${template.variables!.length} customizable parameters\n`;
+          responseText += `- **Variables:** ${template.variables.length} customizable parameters\n`;
         }
-        
+
         responseText += '\n';
       });
     });
@@ -761,17 +795,21 @@ export async function listRuleTemplates(
     responseText += `- **Performance**: Optimization patterns\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: `❌ Failed to list rule templates: ${error instanceof Error ? error.message : String(error)}`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `❌ Failed to list rule templates: ${error instanceof Error ? error.message : String(error)}`,
+        },
+      ],
     };
   }
 }
@@ -787,15 +825,15 @@ function calculateRuleStatistics(rules: any): RuleStatistics {
   function traverse(rule: any, depth: number) {
     totalRules++;
     maxDepth = Math.max(maxDepth, depth);
-    
+
     if (rule.behaviors) {
       totalBehaviors += rule.behaviors.length;
     }
-    
+
     if (rule.criteria) {
       totalCriteria += rule.criteria.length;
     }
-    
+
     if (rule.children) {
       rule.children.forEach((child: any) => traverse(child, depth + 1));
     }
@@ -804,18 +842,13 @@ function calculateRuleStatistics(rules: any): RuleStatistics {
   traverse(rules, 0);
 
   // Calculate complexity score (0-100)
-  const complexityScore = Math.min(100, 
-    (totalRules * 2) + 
-    (totalBehaviors * 1) + 
-    (totalCriteria * 1.5) + 
-    (maxDepth * 10)
+  const complexityScore = Math.min(
+    100,
+    totalRules * 2 + totalBehaviors * 1 + totalCriteria * 1.5 + maxDepth * 10,
   );
 
   // Estimate evaluation time
-  const estimatedEvaluationTime = 
-    (totalRules * 0.5) + 
-    (totalBehaviors * 0.3) + 
-    (totalCriteria * 0.4);
+  const estimatedEvaluationTime = totalRules * 0.5 + totalBehaviors * 0.3 + totalCriteria * 0.4;
 
   return {
     totalRules,
@@ -862,12 +895,12 @@ function validateRuleStructure(rule: any, validation: RuleValidationResult, path
 function validateBehaviors(rule: any, validation: RuleValidationResult, path: string) {
   if (rule.behaviors) {
     const behaviorNames = rule.behaviors.map((b: any) => b.name);
-    
+
     // Check for duplicates
-    const duplicates = behaviorNames.filter((name: string, index: number) => 
-      behaviorNames.indexOf(name) !== index
+    const duplicates = behaviorNames.filter(
+      (name: string, index: number) => behaviorNames.indexOf(name) !== index,
     );
-    
+
     if (duplicates.length > 0) {
       validation.warnings.push({
         severity: 'WARNING',
@@ -881,7 +914,7 @@ function validateBehaviors(rule: any, validation: RuleValidationResult, path: st
     // Check behavior-specific validations
     rule.behaviors.forEach((behavior: any, index: number) => {
       const behaviorPath = `${path}/behaviors/${index}`;
-      
+
       // Origin validation
       if (behavior.name === 'origin' && path === '') {
         if (!behavior.options?.hostname) {
@@ -911,7 +944,7 @@ function validateBehaviors(rule: any, validation: RuleValidationResult, path: st
   }
 
   // Check for required behaviors in default rule
-  if (path === '' && (!rule.behaviors || !rule.behaviors.some((b: any) => b.name === 'origin'))) {
+  if (path === '' && !rule.behaviors?.some((b: any) => b.name === 'origin')) {
     validation.errors.push({
       severity: 'ERROR',
       path,
@@ -933,7 +966,7 @@ function validateCriteria(rule: any, validation: RuleValidationResult, path: str
   if (rule.criteria && rule.criteria.length > 0) {
     // Check for conflicting criteria
     const criteriaTypes = rule.criteria.map((c: any) => c.name);
-    
+
     // Path and hostname conflicts
     if (criteriaTypes.includes('path') && criteriaTypes.includes('hostname')) {
       validation.warnings.push({
@@ -986,8 +1019,8 @@ function detectRuleConflictsInternal(rules: any): RuleConflict[] {
   ];
 
   conflictingBehaviors.forEach(([behavior1, behavior2]) => {
-    const paths1 = behaviorMap.get(behavior1 as string) || [];
-    const paths2 = behaviorMap.get(behavior2 as string) || [];
+    const paths1 = behaviorMap.get(behavior1) || [];
+    const paths2 = behaviorMap.get(behavior2) || [];
 
     if (paths1.length > 0 && paths2.length > 0) {
       conflicts.push({
@@ -1003,17 +1036,17 @@ function detectRuleConflictsInternal(rules: any): RuleConflict[] {
 
   // Check for ordering issues
   const orderDependencies: Record<string, string[]> = {
-    'modifyOutgoingResponseHeader': ['caching', 'gzipResponse'],
-    'gzipResponse': ['caching'],
+    modifyOutgoingResponseHeader: ['caching', 'gzipResponse'],
+    gzipResponse: ['caching'],
   };
 
   Object.entries(orderDependencies).forEach(([dependent, requirements]) => {
     const dependentPaths = behaviorMap.get(dependent) || [];
-    
-    dependentPaths.forEach(depPath => {
-      requirements.forEach(req => {
+
+    dependentPaths.forEach((depPath) => {
+      requirements.forEach((req) => {
         const reqPaths = behaviorMap.get(req) || [];
-        const validReqPath = reqPaths.find(rPath => {
+        const validReqPath = reqPaths.find((rPath) => {
           // Check if requirement is in same rule or parent
           return rPath.startsWith(depPath.substring(0, depPath.lastIndexOf('/')));
         });
@@ -1042,13 +1075,16 @@ function generateOptimizationSuggestions(rules: any): RuleOptimization[] {
     // Check caching optimizations
     if (rule.behaviors) {
       const cachingBehavior = rule.behaviors.find((b: any) => b.name === 'caching');
-      
+
       if (cachingBehavior && cachingBehavior.options?.behavior === 'NO_CACHE') {
         // Check if this could be cached
         const pathCriteria = rule.criteria?.find((c: any) => c.name === 'path');
-        if (pathCriteria && pathCriteria.options?.values?.some((v: string) => 
-          v.includes('.js') || v.includes('.css') || v.includes('.jpg') || v.includes('.png')
-        )) {
+        if (
+          pathCriteria?.options?.values?.some(
+            (v: string) =>
+              v.includes('.js') || v.includes('.css') || v.includes('.jpg') || v.includes('.png'),
+          )
+        ) {
           suggestions.push({
             type: 'PERFORMANCE',
             path: `${path}/behaviors/${rule.behaviors.indexOf(cachingBehavior)}`,
@@ -1067,9 +1103,9 @@ function generateOptimizationSuggestions(rules: any): RuleOptimization[] {
           type: 'PERFORMANCE',
           path: path,
           current: { gzipResponse: false },
-          recommended: { 
+          recommended: {
             name: 'gzipResponse',
-            options: { behavior: 'ALWAYS' }
+            options: { behavior: 'ALWAYS' },
           },
           impact: 'Reduce bandwidth by 60-80% for text content',
           effort: 'LOW',
@@ -1077,11 +1113,12 @@ function generateOptimizationSuggestions(rules: any): RuleOptimization[] {
       }
 
       // Check for missing security headers
-      const hasSecurityHeaders = rule.behaviors.some((b: any) => 
-        b.name === 'modifyOutgoingResponseHeader' &&
-        b.options?.customHeaderName?.includes('Security')
+      const hasSecurityHeaders = rule.behaviors.some(
+        (b: any) =>
+          b.name === 'modifyOutgoingResponseHeader' &&
+          b.options?.customHeaderName?.includes('Security'),
       );
-      
+
       if (!hasSecurityHeaders && path === '') {
         suggestions.push({
           type: 'SECURITY',
@@ -1092,8 +1129,8 @@ function generateOptimizationSuggestions(rules: any): RuleOptimization[] {
             options: {
               action: 'ADD',
               customHeaderName: 'X-Content-Type-Options',
-              headerValue: 'nosniff'
-            }
+              headerValue: 'nosniff',
+            },
           },
           impact: 'Improve security posture with security headers',
           effort: 'LOW',
@@ -1144,17 +1181,19 @@ function performRuleTreeAnalysis(rules: any): any {
   let totalRules = 0;
   let rulesWithCaching = 0;
   let staticRules = 0;
-  
+
   function analyzeCaching(rule: any) {
     totalRules++;
-    
+
     const hasCaching = rule.behaviors?.some((b: any) => b.name === 'caching');
     if (hasCaching) rulesWithCaching++;
 
     const pathCriteria = rule.criteria?.find((c: any) => c.name === 'path');
-    if (pathCriteria && pathCriteria.options?.values?.some((v: string) =>
-      /\.(js|css|jpg|jpeg|png|gif|svg|woff|woff2|ttf|eot)$/.test(v)
-    )) {
+    if (
+      pathCriteria?.options?.values?.some((v: string) =>
+        /\.(js|css|jpg|jpeg|png|gif|svg|woff|woff2|ttf|eot)$/.test(v),
+      )
+    ) {
       staticRules++;
     }
 
@@ -1181,8 +1220,8 @@ function performRuleTreeAnalysis(rules: any): any {
   // Calculate optimization potential
   analysis.optimizationPotential = Math.round(
     (100 - analysis.cacheEfficiency) * 0.4 +
-    (100 - analysis.caching.staticCoverage) * 0.3 +
-    (analysis.bottlenecks.length * 10)
+      (100 - analysis.caching.staticCoverage) * 0.3 +
+      analysis.bottlenecks.length * 10,
   );
 
   // Generate recommendations
@@ -1211,7 +1250,7 @@ function performRuleTreeAnalysis(rules: any): any {
   analysis.efficiency.pathBased = Math.round(analysis.caching.staticCoverage);
   analysis.efficiency.custom = 75; // Placeholder
   analysis.efficiency.overall = Math.round(
-    (analysis.efficiency.default + analysis.efficiency.pathBased + analysis.efficiency.custom) / 3
+    (analysis.efficiency.default + analysis.efficiency.pathBased + analysis.efficiency.custom) / 3,
   );
 
   return analysis;
@@ -1219,7 +1258,7 @@ function performRuleTreeAnalysis(rules: any): any {
 
 function getRuleTemplate(templateId: string): RuleTemplate | null {
   const templates = getRuleTemplates();
-  return templates.find(t => t.id === templateId) || null;
+  return templates.find((t) => t.id === templateId) || null;
 }
 
 function getRuleTemplates(): RuleTemplate[] {
@@ -1227,7 +1266,8 @@ function getRuleTemplates(): RuleTemplate[] {
     {
       id: 'static-website-optimized',
       name: 'Static Website Optimized',
-      description: 'Optimized configuration for static websites with aggressive caching and performance features',
+      description:
+        'Optimized configuration for static websites with aggressive caching and performance features',
       category: 'Web Delivery',
       tags: ['static', 'performance', 'caching'],
       version: '1.0.0',
@@ -1386,10 +1426,13 @@ function getRuleTemplates(): RuleTemplate[] {
   ];
 }
 
-function validateTemplateVariables(template: RuleTemplate, variables: Record<string, any>): string[] {
+function validateTemplateVariables(
+  template: RuleTemplate,
+  variables: Record<string, any>,
+): string[] {
   const errors: string[] = [];
 
-  template.variables?.forEach(variable => {
+  template.variables?.forEach((variable) => {
     const value = variables[variable.name];
 
     // Check required
@@ -1417,7 +1460,9 @@ function validateTemplateVariables(template: RuleTemplate, variables: Record<str
       if (variable.validation.pattern && variable.type === 'string') {
         const regex = new RegExp(variable.validation.pattern);
         if (!regex.test(value)) {
-          errors.push(`Variable ${variable.name} does not match pattern: ${variable.validation.pattern}`);
+          errors.push(
+            `Variable ${variable.name} does not match pattern: ${variable.validation.pattern}`,
+          );
         }
       }
 
@@ -1434,7 +1479,9 @@ function validateTemplateVariables(template: RuleTemplate, variables: Record<str
       }
 
       if (variable.validation.enum && !variable.validation.enum.includes(value)) {
-        errors.push(`Variable ${variable.name} must be one of: ${variable.validation.enum.join(', ')}`);
+        errors.push(
+          `Variable ${variable.name} must be one of: ${variable.validation.enum.join(', ')}`,
+        );
       }
     }
   });
@@ -1442,10 +1489,14 @@ function validateTemplateVariables(template: RuleTemplate, variables: Record<str
   return errors;
 }
 
-function applyTemplateVariables(rules: any, variables: Record<string, any>, templateVars: TemplateVariable[]): any {
+function applyTemplateVariables(
+  rules: any,
+  variables: Record<string, any>,
+  templateVars: TemplateVariable[],
+): any {
   // Create a map with defaults
   const varMap: Record<string, any> = {};
-  templateVars.forEach(v => {
+  templateVars.forEach((v) => {
     varMap[v.name] = variables[v.name] !== undefined ? variables[v.name] : v.default;
   });
 

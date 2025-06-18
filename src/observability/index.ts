@@ -5,9 +5,12 @@
 
 import { EventEmitter } from 'events';
 import MetricsAPI, { HTTPPushTarget, SystemMetricsCollector } from './metrics-api';
-import DebugAPI, { DebugEvent, StreamingConnection } from './debug-api';
-import DiagnosticsAPI, { SystemDiagnostics } from './diagnostics-api';
-import TelemetryExporter, { TelemetryDestination, DestinationFactory } from './telemetry-exporter';
+import DebugAPI, { type DebugEvent, type StreamingConnection } from './debug-api';
+import DiagnosticsAPI, { type SystemDiagnostics } from './diagnostics-api';
+import TelemetryExporter, {
+  type TelemetryDestination,
+  DestinationFactory,
+} from './telemetry-exporter';
 
 export interface ObservabilityConfig {
   metrics: {
@@ -78,7 +81,7 @@ export class ObservabilityStack extends EventEmitter {
   public readonly telemetry: TelemetryExporter;
 
   private startTime: number;
-  public instrumentationActive: boolean = false;
+  public instrumentationActive = false;
 
   constructor(private config: ObservabilityConfig) {
     super();
@@ -104,15 +107,10 @@ export class ObservabilityStack extends EventEmitter {
       enablePerformanceMonitoring: config.diagnostics.enablePerformanceMonitoring,
     });
 
-    this.telemetry = new TelemetryExporter(
-      this.metrics,
-      this.debug,
-      this.diagnostics,
-      {
-        defaultFlushIntervalMs: config.telemetry.batchExportIntervalMs,
-        maxRetryAttempts: config.telemetry.maxRetryAttempts,
-      }
-    );
+    this.telemetry = new TelemetryExporter(this.metrics, this.debug, this.diagnostics, {
+      defaultFlushIntervalMs: config.telemetry.batchExportIntervalMs,
+      maxRetryAttempts: config.telemetry.maxRetryAttempts,
+    });
 
     this.setupEventForwarding();
     this.initialize();
@@ -141,10 +139,15 @@ export class ObservabilityStack extends EventEmitter {
       this.instrumentationActive = true;
       this.emit('initialized');
 
-      this.debug.logEvent('info', 'observability', 'Observability stack initialized', {
-        config: this.config,
-      }, 'observability-stack');
-
+      this.debug.logEvent(
+        'info',
+        'observability',
+        'Observability stack initialized',
+        {
+          config: this.config,
+        },
+        'observability-stack',
+      );
     } catch (error) {
       this.emit('initializationError', error);
       throw error;
@@ -170,8 +173,11 @@ export class ObservabilityStack extends EventEmitter {
         destination: result.destination,
         status: 'success',
       });
-      this.metrics.recordHistogram('akamai_mcp_telemetry_export_duration_seconds', 
-        result.duration / 1000, { destination: result.destination });
+      this.metrics.recordHistogram(
+        'akamai_mcp_telemetry_export_duration_seconds',
+        result.duration / 1000,
+        { destination: result.destination },
+      );
     });
 
     this.telemetry.on('exportError', (result) => {
@@ -188,7 +194,7 @@ export class ObservabilityStack extends EventEmitter {
         'diagnostics',
         `Alert triggered: ${alert.message}`,
         alert,
-        'diagnostics-api'
+        'diagnostics-api',
       );
     });
   }
@@ -199,7 +205,7 @@ export class ObservabilityStack extends EventEmitter {
   instrumentMCPRequest(
     method: string,
     customer?: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): {
     traceId: string;
     spanId: string;
@@ -249,18 +255,24 @@ export class ObservabilityStack extends EventEmitter {
           status,
         });
 
-        this.metrics.recordHistogram('akamai_mcp_request_duration_seconds', 
-          duration / 1000, { method, customer: customer || 'default' });
+        this.metrics.recordHistogram('akamai_mcp_request_duration_seconds', duration / 1000, {
+          method,
+          customer: customer || 'default',
+        });
 
         // Log event
         this.debug.logEvent(
           error ? 'error' : 'info',
           'mcp-request',
           `MCP ${method} ${status}`,
-          { duration, error: error?.message, responseSize: response ? JSON.stringify(response).length : 0 },
+          {
+            duration,
+            error: error?.message,
+            responseSize: response ? JSON.stringify(response).length : 0,
+          },
           'mcp-server',
           traceId,
-          spanId
+          spanId,
         );
       },
     };
@@ -273,7 +285,7 @@ export class ObservabilityStack extends EventEmitter {
     service: string,
     endpoint: string,
     customer: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): {
     traceId: string;
     spanId: string;
@@ -318,8 +330,11 @@ export class ObservabilityStack extends EventEmitter {
           status,
         });
 
-        this.metrics.recordHistogram('akamai_api_request_duration_seconds', 
-          duration / 1000, { service, endpoint, customer });
+        this.metrics.recordHistogram('akamai_api_request_duration_seconds', duration / 1000, {
+          service,
+          endpoint,
+          customer,
+        });
 
         // Log event
         this.debug.logEvent(
@@ -329,7 +344,7 @@ export class ObservabilityStack extends EventEmitter {
           { duration, error: error?.message },
           'akamai-client',
           traceId,
-          spanId
+          spanId,
         );
       },
     };
@@ -341,7 +356,7 @@ export class ObservabilityStack extends EventEmitter {
   addStreamingConnection(
     type: 'websocket' | 'sse' | 'webhook',
     url: string,
-    filters?: any
+    filters?: any,
   ): string {
     const connection: Omit<StreamingConnection, 'id' | 'lastActivity' | 'active'> = {
       type,
@@ -385,7 +400,7 @@ export class ObservabilityStack extends EventEmitter {
         healthChecks: healthStatus.summary.total,
         alertRules: 0, // Would track alert rules
         activeAlerts: this.diagnostics.getAlerts({ acknowledged: false }).length,
-        lastHealthCheck: Math.max(...healthStatus.checks.map(c => c.lastCheck)),
+        lastHealthCheck: Math.max(...healthStatus.checks.map((c) => c.lastCheck)),
       },
       telemetry: {
         destinations: Object.keys(telemetryStats.destinations).length,
@@ -415,15 +430,17 @@ export class ObservabilityStack extends EventEmitter {
 
     // Generate recommendations
     const recommendations: string[] = [];
-    
+
     if (healthChecks.summary.critical > 0) {
-      recommendations.push(`Address ${healthChecks.summary.critical} critical health check failures`);
+      recommendations.push(
+        `Address ${healthChecks.summary.critical} critical health check failures`,
+      );
     }
-    
+
     if (stats.telemetry.failedExports > stats.telemetry.successfulExports * 0.1) {
       recommendations.push('High telemetry export failure rate detected');
     }
-    
+
     if (stats.debugging.events > 10000) {
       recommendations.push('High number of debug events - consider adjusting log levels');
     }
@@ -447,19 +464,19 @@ export class ObservabilityStack extends EventEmitter {
    */
   async testAllDestinations(): Promise<Record<string, { success: boolean; error?: string }>> {
     const results: Record<string, { success: boolean; error?: string }> = {};
-    
+
     for (const [name] of this.telemetry['destinations']) {
       try {
         await this.telemetry.testDestination(name);
         results[name] = { success: true };
       } catch (error) {
-        results[name] = { 
-          success: false, 
-          error: error instanceof Error ? error.message : 'Unknown error'
+        results[name] = {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
         };
       }
     }
-    
+
     return results;
   }
 
@@ -469,16 +486,20 @@ export class ObservabilityStack extends EventEmitter {
   async exportObservabilityData(format: 'json' | 'prometheus' = 'json'): Promise<string> {
     const stats = this.getStats();
     const healthReport = await this.generateHealthReport();
-    
+
     if (format === 'json') {
-      return JSON.stringify({
-        timestamp: Date.now(),
-        stats,
-        healthReport,
-        metrics: this.metrics.getMetricsSnapshot(),
-        recentEvents: this.debug.getRecentEvents(100),
-        recentTraces: this.debug.getRecentTraces(10),
-      }, null, 2);
+      return JSON.stringify(
+        {
+          timestamp: Date.now(),
+          stats,
+          healthReport,
+          metrics: this.metrics.getMetricsSnapshot(),
+          recentEvents: this.debug.getRecentEvents(100),
+          recentTraces: this.debug.getRecentTraces(10),
+        },
+        null,
+        2,
+      );
     } else {
       return this.metrics.exportPrometheus();
     }
@@ -489,18 +510,19 @@ export class ObservabilityStack extends EventEmitter {
    */
   stop(): void {
     this.instrumentationActive = false;
-    
+
     this.telemetry.stop();
     this.diagnostics.stop();
     this.debug.stop();
     this.metrics.stop();
-    
+
     this.emit('stopped');
   }
 
   private generateTraceId(): string {
-    return Math.random().toString(36).substring(2, 15) + 
-           Math.random().toString(36).substring(2, 15);
+    return (
+      Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    );
   }
 }
 

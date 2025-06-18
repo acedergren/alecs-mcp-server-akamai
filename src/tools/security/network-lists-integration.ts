@@ -3,12 +3,12 @@
  * Exports all network list tools for MCP server integration
  */
 
-import { 
+import {
   listNetworkLists,
   getNetworkList,
   createNetworkList,
   updateNetworkList,
-  deleteNetworkList
+  deleteNetworkList,
 } from './network-lists-tools';
 
 import {
@@ -16,14 +16,14 @@ import {
   getNetworkListActivationStatus,
   listNetworkListActivations,
   deactivateNetworkList,
-  bulkActivateNetworkLists
+  bulkActivateNetworkLists,
 } from './network-lists-activation';
 
 import {
   importNetworkListFromCSV,
   exportNetworkListToCSV,
   bulkUpdateNetworkLists,
-  mergeNetworkLists
+  mergeNetworkLists,
 } from './network-lists-bulk';
 
 import {
@@ -31,10 +31,10 @@ import {
   getASNInformation,
   generateGeographicBlockingRecommendations,
   generateASNSecurityRecommendations,
-  listCommonGeographicCodes
+  listCommonGeographicCodes,
 } from './network-lists-geo-asn';
 
-import { MCPToolResponse } from '../../types';
+import { type MCPToolResponse } from '../../types';
 
 // Export all functions for MCP tool registration
 export {
@@ -44,26 +44,26 @@ export {
   createNetworkList,
   updateNetworkList,
   deleteNetworkList,
-  
+
   // Activation and deployment
   activateNetworkList,
   getNetworkListActivationStatus,
   listNetworkListActivations,
   deactivateNetworkList,
   bulkActivateNetworkLists,
-  
+
   // Bulk operations
   importNetworkListFromCSV,
   exportNetworkListToCSV,
   bulkUpdateNetworkLists,
   mergeNetworkLists,
-  
+
   // Geographic and ASN utilities
   validateGeographicCodes,
   getASNInformation,
   generateGeographicBlockingRecommendations,
   generateASNSecurityRecommendations,
-  listCommonGeographicCodes
+  listCommonGeographicCodes,
 };
 
 /**
@@ -71,11 +71,11 @@ export {
  * Provides guidance on integrating network lists with security policies
  */
 export async function getSecurityPolicyIntegrationGuidance(
-  _customer: string = 'default',
+  _customer = 'default',
   options: {
     policyType?: 'WAF' | 'BOT_PROTECTION' | 'RATE_LIMITING' | 'ACCESS_CONTROL';
     listType?: 'IP' | 'GEO' | 'ASN';
-  } = {}
+  } = {},
 ): Promise<MCPToolResponse> {
   const policyType = options.policyType || 'ACCESS_CONTROL';
   const listType = options.listType || 'IP';
@@ -179,10 +179,12 @@ export async function getSecurityPolicyIntegrationGuidance(
   output += `- Not having an appeal process\n`;
 
   return {
-    content: [{
-      type: 'text',
-      text: output
-    }]
+    content: [
+      {
+        type: 'text',
+        text: output,
+      },
+    ],
   };
 }
 
@@ -191,12 +193,12 @@ export async function getSecurityPolicyIntegrationGuidance(
  */
 export async function generateDeploymentChecklist(
   listIds: string[],
-  _customer: string = 'default',
+  _customer = 'default',
   options: {
     targetNetwork?: 'STAGING' | 'PRODUCTION';
     securityLevel?: 'LOW' | 'MEDIUM' | 'HIGH';
     includeRollbackPlan?: boolean;
-  } = {}
+  } = {},
 ): Promise<MCPToolResponse> {
   const targetNetwork = options.targetNetwork || 'STAGING';
   const securityLevel = options.securityLevel || 'MEDIUM';
@@ -260,9 +262,11 @@ export async function generateDeploymentChecklist(
   output += `□ Training materials updated\n`;
 
   return {
-    content: [{
-      type: 'text',
-      text: output
-    }]
+    content: [
+      {
+        type: 'text',
+        text: output,
+      },
+    ],
   };
 }

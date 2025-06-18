@@ -1,26 +1,26 @@
 import { EdgeGridAuth } from '../auth/EdgeGridAuth';
-import { 
-  ProgressBar, 
-  Spinner, 
-  MultiProgress, 
-  withProgress, 
-  format, 
-  icons 
-} from '../utils/progress';
+import {
+  ProgressBar,
+  Spinner,
+  MultiProgress,
+  withProgress,
+  format,
+  icons,
+} from '@utils/progress';
 import axios from 'axios';
-import { 
-  PapiVersionResponse,
-  PapiRulesResponse,
-  PapiEdgeHostnameResponse,
-  PapiActivationResponse,
-  PapiGroupsResponse,
-  PapiVersionsResponse,
-  PapiHostnamesResponse,
-  PapiEdgeHostnamesResponse,
-  PapiActivationsResponse,
-  PapiPropertyResponse,
-  PapiErrorsResponse,
-  PapiEtagResponse
+import {
+  type PapiVersionResponse,
+  type PapiRulesResponse,
+  type PapiEdgeHostnameResponse,
+  type PapiActivationResponse,
+  type PapiGroupsResponse,
+  type PapiVersionsResponse,
+  type PapiHostnamesResponse,
+  type PapiEdgeHostnamesResponse,
+  type PapiActivationsResponse,
+  type PapiPropertyResponse,
+  type PapiErrorsResponse,
+  type PapiEtagResponse,
 } from './types';
 
 interface PropertyVersion {
@@ -71,9 +71,9 @@ export class CDNProvisioningAgent {
   private groupId: string;
 
   constructor(
-    private customer: string = 'default',
+    private customer = 'default',
     contractId?: string,
-    groupId?: string
+    groupId?: string,
   ) {
     this.auth = EdgeGridAuth.getInstance({ customer: this.customer });
     this.multiProgress = new MultiProgress();
@@ -108,7 +108,7 @@ export class CDNProvisioningAgent {
   async createPropertyVersion(
     propertyId: string,
     baseVersion?: number,
-    note?: string
+    note?: string,
   ): Promise<PropertyVersion> {
     const spinner = new Spinner();
     spinner.start(`Creating new version for property ${propertyId}`);
@@ -136,7 +136,9 @@ export class CDNProvisioningAgent {
       spinner.succeed(`Created version ${versionNumber} for property ${propertyId}`);
       return await this.getPropertyVersion(propertyId, versionNumber);
     } catch (error) {
-      spinner.fail(`Failed to create property version: ${error instanceof Error ? error.message : String(error)}`);
+      spinner.fail(
+        `Failed to create property version: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   }
@@ -145,7 +147,7 @@ export class CDNProvisioningAgent {
     sourcePropertyId: string,
     sourceVersion: number,
     targetPropertyId: string,
-    note?: string
+    note?: string,
   ): Promise<PropertyVersion> {
     const progress = new ProgressBar({
       total: 4,
@@ -162,16 +164,12 @@ export class CDNProvisioningAgent {
       const targetVersion = await this.createPropertyVersion(
         targetPropertyId,
         undefined,
-        note || `Cloned from ${sourcePropertyId} v${sourceVersion}`
+        note || `Cloned from ${sourcePropertyId} v${sourceVersion}`,
       );
 
       // Step 3: Apply rule tree to target
       progress.update({ current: 3, message: 'Applying configuration' });
-      await this.updateRuleTree(
-        targetPropertyId,
-        targetVersion.propertyVersion,
-        sourceRuleTree
-      );
+      await this.updateRuleTree(targetPropertyId, targetVersion.propertyVersion, sourceRuleTree);
 
       // Step 4: Copy hostnames
       progress.update({ current: 4, message: 'Copying hostnames' });
@@ -181,14 +179,18 @@ export class CDNProvisioningAgent {
           targetPropertyId,
           targetVersion.propertyVersion,
           hostname.cnameFrom,
-          hostname.cnameTo
+          hostname.cnameTo,
         );
       }
 
       progress.finish('Version cloned successfully');
       return targetVersion;
     } catch (error) {
-      progress.update({ current: progress['current'], status: 'error', message: error instanceof Error ? error.message : String(error) });
+      progress.update({
+        current: progress['current'],
+        status: 'error',
+        message: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
   }
@@ -203,17 +205,13 @@ export class CDNProvisioningAgent {
     return response.rules;
   }
 
-  async updateRuleTree(
-    propertyId: string,
-    version: number,
-    ruleTree: RuleTree
-  ): Promise<void> {
+  async updateRuleTree(propertyId: string, version: number, ruleTree: RuleTree): Promise<void> {
     const spinner = new Spinner();
     spinner.start('Updating rule configuration');
 
     try {
       const etag = await this.getVersionEtag(propertyId, version);
-      
+
       await this.auth.request({
         method: 'PUT',
         path: `/papi/v1/properties/${propertyId}/versions/${version}/rules?contractId=${this.contractId}&groupId=${this.groupId}`,
@@ -226,7 +224,9 @@ export class CDNProvisioningAgent {
 
       spinner.succeed('Rule configuration updated');
     } catch (error) {
-      spinner.fail(`Failed to update rules: ${error instanceof Error ? error.message : String(error)}`);
+      spinner.fail(
+        `Failed to update rules: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   }
@@ -235,14 +235,14 @@ export class CDNProvisioningAgent {
     propertyId: string,
     version: number,
     template: 'origin' | 'caching' | 'performance' | 'security',
-    options: any = {}
+    options: any = {},
   ): Promise<void> {
     const spinner = new Spinner();
     spinner.start(`Applying ${template} template`);
 
     try {
       const ruleTree = await this.getRuleTree(propertyId, version);
-      
+
       switch (template) {
         case 'origin':
           this.applyOriginTemplate(ruleTree, options);
@@ -261,7 +261,9 @@ export class CDNProvisioningAgent {
       await this.updateRuleTree(propertyId, version, ruleTree);
       spinner.succeed(`${format.bold(template)} template applied`);
     } catch (error) {
-      spinner.fail(`Failed to apply template: ${error instanceof Error ? error.message : String(error)}`);
+      spinner.fail(
+        `Failed to apply template: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   }
@@ -275,7 +277,7 @@ export class CDNProvisioningAgent {
       ipVersionBehavior?: 'IPV4' | 'IPV6' | 'IPV4_IPV6';
       secureNetwork?: 'STANDARD_TLS' | 'ENHANCED_TLS' | 'SHARED_CERT';
       certEnrollmentId?: number;
-    } = {}
+    } = {},
   ): Promise<EdgeHostname> {
     const progress = new ProgressBar({
       total: 3,
@@ -317,10 +319,16 @@ export class CDNProvisioningAgent {
       // Poll for completion
       const edgeHostname = await this.waitForEdgeHostname(edgeHostnameId);
 
-      progress.finish(`Edge hostname ${format.cyan(domainPrefix + '.' + request.domainSuffix)} created`);
+      progress.finish(
+        `Edge hostname ${format.cyan(domainPrefix + '.' + request.domainSuffix)} created`,
+      );
       return edgeHostname;
     } catch (error) {
-      progress.update({ current: progress['current'], status: 'error', message: error instanceof Error ? error.message : String(error) });
+      progress.update({
+        current: progress['current'],
+        status: 'error',
+        message: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
   }
@@ -337,7 +345,7 @@ export class CDNProvisioningAgent {
         noncomplianceReason?: string;
       };
       note?: string;
-    } = {}
+    } = {},
   ): Promise<ActivationStatus> {
     const progress = new ProgressBar({
       total: 100,
@@ -387,7 +395,7 @@ export class CDNProvisioningAgent {
 
       while (true) {
         status = await this.getActivationStatus(propertyId, activationId);
-        
+
         // Update progress based on status
         let currentProgress = lastProgress;
         switch (status.status) {
@@ -415,12 +423,16 @@ export class CDNProvisioningAgent {
           case 'DEACTIVATED':
             throw new Error(`Activation ${status.status.toLowerCase()}`);
         }
-        
+
         lastProgress = currentProgress;
-        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+        await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds
       }
     } catch (error) {
-      progress.update({ current: progress['current'], status: 'error', message: error instanceof Error ? error.message : String(error) });
+      progress.update({
+        current: progress['current'],
+        status: 'error',
+        message: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
   }
@@ -430,14 +442,14 @@ export class CDNProvisioningAgent {
     propertyId: string,
     version: number,
     hostname: string,
-    edgeHostname: string
+    edgeHostname: string,
   ): Promise<void> {
     const spinner = new Spinner();
     spinner.start(`Adding hostname ${hostname}`);
 
     try {
       const hostnames = await this.getPropertyHostnames(propertyId, version);
-      
+
       hostnames.push({
         cnameType: 'EDGE_HOSTNAME',
         cnameFrom: hostname,
@@ -458,7 +470,9 @@ export class CDNProvisioningAgent {
 
       spinner.succeed(`Added hostname ${format.cyan(hostname)} → ${format.green(edgeHostname)}`);
     } catch (error) {
-      spinner.fail(`Failed to add hostname: ${error instanceof Error ? error.message : String(error)}`);
+      spinner.fail(
+        `Failed to add hostname: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   }
@@ -467,7 +481,7 @@ export class CDNProvisioningAgent {
   async provisionDefaultDVCertificate(
     propertyId: string,
     version: number,
-    hostnames: string[]
+    hostnames: string[],
   ): Promise<void> {
     console.log(`\n${format.bold('Default DV Certificate Provisioning')}`);
     console.log(format.dim('─'.repeat(50)));
@@ -488,23 +502,23 @@ export class CDNProvisioningAgent {
       // For each hostname, create DNS validation records
       let currentStep = 2;
       for (const hostname of hostnames) {
-        progress.update({ 
-          current: ++currentStep, 
-          message: `Creating ACME record for ${hostname}` 
+        progress.update({
+          current: ++currentStep,
+          message: `Creating ACME record for ${hostname}`,
         });
 
         await this.createACMEValidationRecord(hostname, enrollment.dv[hostname]);
 
-        progress.update({ 
-          current: ++currentStep, 
-          message: `Validating ${hostname}` 
+        progress.update({
+          current: ++currentStep,
+          message: `Validating ${hostname}`,
         });
 
         await this.waitForDomainValidation(enrollment.enrollmentId, hostname);
 
-        progress.update({ 
-          current: ++currentStep, 
-          message: `${hostname} validated` 
+        progress.update({
+          current: ++currentStep,
+          message: `${hostname} validated`,
         });
       }
 
@@ -514,12 +528,11 @@ export class CDNProvisioningAgent {
       console.log(`  ${icons.bullet} Enrollment ID: ${format.cyan(enrollment.enrollmentId)}`);
       console.log(`  ${icons.bullet} Network: ${format.green('Enhanced TLS')}`);
       console.log(`  ${icons.bullet} Validated Domains: ${hostnames.length}`);
-      
     } catch (error) {
-      progress.update({ 
-        current: progress['current'], 
-        status: 'error', 
-        message: error instanceof Error ? error.message : String(error) 
+      progress.update({
+        current: progress['current'],
+        status: 'error',
+        message: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -534,10 +547,7 @@ export class CDNProvisioningAgent {
     return response.groups.items;
   }
 
-  private async getPropertyVersion(
-    propertyId: string,
-    version: number
-  ): Promise<PropertyVersion> {
+  private async getPropertyVersion(propertyId: string, version: number): Promise<PropertyVersion> {
     const response = await this.auth.request<PapiVersionsResponse>({
       method: 'GET',
       path: `/papi/v1/properties/${propertyId}/versions/${version}?contractId=${this.contractId}&groupId=${this.groupId}`,
@@ -547,7 +557,7 @@ export class CDNProvisioningAgent {
   }
 
   private async getVersionEtag(propertyId: string, version?: number): Promise<string> {
-    const v = version || await this.getLatestVersion(propertyId);
+    const v = version || (await this.getLatestVersion(propertyId));
     const response = await this.auth.request<PapiVersionsResponse & PapiEtagResponse>({
       method: 'GET',
       path: `/papi/v1/properties/${propertyId}/versions/${v}?contractId=${this.contractId}&groupId=${this.groupId}`,
@@ -567,7 +577,7 @@ export class CDNProvisioningAgent {
   private async updateVersionNotes(
     propertyId: string,
     version: number,
-    note: string
+    note: string,
   ): Promise<void> {
     const etag = await this.getVersionEtag(propertyId, version);
     await this.auth.request({
@@ -577,9 +587,7 @@ export class CDNProvisioningAgent {
         'Content-Type': 'application/json-patch+json',
         'If-Match': etag,
       },
-      body: JSON.stringify([
-        { op: 'replace', path: '/note', value: note }
-      ]),
+      body: JSON.stringify([{ op: 'replace', path: '/note', value: note }]),
     });
   }
 
@@ -603,7 +611,7 @@ export class CDNProvisioningAgent {
         return hostname;
       }
 
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 
@@ -620,7 +628,7 @@ export class CDNProvisioningAgent {
 
   private async getActivationStatus(
     propertyId: string,
-    activationId: string
+    activationId: string,
   ): Promise<ActivationStatus> {
     const response = await this.auth.request<PapiActivationsResponse>({
       method: 'GET',
@@ -649,7 +657,7 @@ export class CDNProvisioningAgent {
     };
 
     // Find or add origin behavior
-    const existingIndex = ruleTree.behaviors.findIndex(b => b.name === 'origin');
+    const existingIndex = ruleTree.behaviors.findIndex((b) => b.name === 'origin');
     if (existingIndex >= 0) {
       ruleTree.behaviors[existingIndex] = originBehavior;
     } else {
@@ -707,7 +715,7 @@ export class CDNProvisioningAgent {
     };
 
     // Add or replace caching rules
-    const existingIndex = ruleTree.children.findIndex(c => c.name === 'Performance');
+    const existingIndex = ruleTree.children.findIndex((c) => c.name === 'Performance');
     if (existingIndex >= 0) {
       ruleTree.children[existingIndex] = cachingRule;
     } else {
@@ -748,8 +756,8 @@ export class CDNProvisioningAgent {
     ];
 
     // Add performance behaviors
-    performanceBehaviors.forEach(behavior => {
-      const existingIndex = ruleTree.behaviors.findIndex(b => b.name === behavior.name);
+    performanceBehaviors.forEach((behavior) => {
+      const existingIndex = ruleTree.behaviors.findIndex((b) => b.name === behavior.name);
       if (existingIndex >= 0) {
         ruleTree.behaviors[existingIndex] = behavior;
       } else {
@@ -801,7 +809,7 @@ export class CDNProvisioningAgent {
     };
 
     // Add security rules
-    const existingIndex = ruleTree.children.findIndex(c => c.name === 'Security');
+    const existingIndex = ruleTree.children.findIndex((c) => c.name === 'Security');
     if (existingIndex >= 0) {
       ruleTree.children[existingIndex] = securityRule;
     } else {
@@ -825,7 +833,7 @@ export class CDNProvisioningAgent {
 
   private async waitForDomainValidation(enrollmentId: string, hostname: string): Promise<void> {
     // This would poll CPS API for validation status
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
   // Orchestration method for complete CDN setup
@@ -838,12 +846,12 @@ export class CDNProvisioningAgent {
       activateStaging?: boolean;
       activateProduction?: boolean;
       notifyEmails?: string[];
-    } = {}
+    } = {},
   ): Promise<void> {
     console.log(`\n${format.bold('Complete CDN Property Provisioning')}`);
     console.log(format.dim('═'.repeat(60)));
     console.log(`${icons.package} Property: ${format.cyan(propertyName)}`);
-    console.log(`${icons.globe} Hostnames: ${hostnames.map(h => format.green(h)).join(', ')}`);
+    console.log(`${icons.globe} Hostnames: ${hostnames.map((h) => format.green(h)).join(', ')}`);
     console.log(`${icons.server} Origin: ${format.yellow(originHostname)}`);
     console.log(format.dim('─'.repeat(60)));
 
@@ -865,7 +873,7 @@ export class CDNProvisioningAgent {
     });
 
     let propertyId: string;
-    let version = 1;
+    const version = 1;
     let edgeHostname: string;
 
     try {
@@ -887,7 +895,7 @@ export class CDNProvisioningAgent {
       progress.update({ current: 2, message: steps[1] });
       const edgeHostnameResult = await this.createEdgeHostname(
         options.productId || 'prd_Web_Accel',
-        propertyName.toLowerCase().replace(/[^a-z0-9-]/g, '-')
+        propertyName.toLowerCase().replace(/[^a-z0-9-]/g, '-'),
       );
       edgeHostname = `${edgeHostnameResult.domainPrefix}.${edgeHostnameResult.domainSuffix}`;
 
@@ -940,27 +948,30 @@ export class CDNProvisioningAgent {
       console.log(`${icons.success} Edge Hostname: ${format.green(edgeHostname)}`);
       console.log(`${icons.success} Version: ${version}`);
       console.log(`${icons.success} Certificates: Provisioned for ${hostnames.length} domains`);
-      
+
       if (options.activateStaging || options.activateProduction) {
-        console.log(`${icons.success} Active on: ${[
-          options.activateStaging && 'STAGING',
-          options.activateProduction && 'PRODUCTION'
-        ].filter(Boolean).join(', ')}`);
+        console.log(
+          `${icons.success} Active on: ${[
+            options.activateStaging && 'STAGING',
+            options.activateProduction && 'PRODUCTION',
+          ]
+            .filter(Boolean)
+            .join(', ')}`,
+        );
       }
 
       console.log(`\n${icons.info} Next Steps:`);
       console.log(`  1. Update DNS CNAME records:`);
-      hostnames.forEach(hostname => {
+      hostnames.forEach((hostname) => {
         console.log(`     ${hostname} → ${edgeHostname}`);
       });
       console.log(`  2. Test on staging: https://${hostnames[0]}.edgesuite-staging.net`);
       console.log(`  3. Monitor activation status in Control Center`);
-
     } catch (error) {
-      progress.update({ 
-        current: progress['current'], 
-        status: 'error', 
-        message: `Failed: ${error instanceof Error ? error.message : String(error)}` 
+      progress.update({
+        current: progress['current'],
+        status: 'error',
+        message: `Failed: ${error instanceof Error ? error.message : String(error)}`,
       });
       throw error;
     }
@@ -971,7 +982,7 @@ export class CDNProvisioningAgent {
 export async function createCDNProvisioningAgent(
   customer?: string,
   contractId?: string,
-  groupId?: string
+  groupId?: string,
 ): Promise<CDNProvisioningAgent> {
   const agent = new CDNProvisioningAgent(customer, contractId, groupId);
   await agent.initialize();

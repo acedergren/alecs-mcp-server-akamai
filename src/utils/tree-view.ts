@@ -37,8 +37,8 @@ const DEFAULT_OPTIONS: TreeViewOptions = {
 export function renderTree(
   nodes: TreeNode[],
   options: TreeViewOptions = DEFAULT_OPTIONS,
-  level: number = 0,
-  isLast: boolean[] = []
+  level = 0,
+  isLast: boolean[] = [],
 ): string {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   let output = '';
@@ -86,12 +86,12 @@ export function renderTree(
     // Recursively render children
     if (node.children && node.children.length > 0) {
       // Add extra line before children for groups with properties
-      if (node.type === 'group' && node.children.some(child => child.type === 'property')) {
+      if (node.type === 'group' && node.children.some((child) => child.type === 'property')) {
         output += buildIndent(level + 1, newIsLast) + '\n';
       }
-      
+
       output += renderTree(node.children, opts, level + 1, newIsLast);
-      
+
       // Add extra line after children if not the last node
       if (!isLastNode && level === 0) {
         output += '\n';
@@ -118,24 +118,24 @@ function buildIndent(level: number, isLast: boolean[]): string {
  */
 export function generateTreeSummary(nodes: TreeNode[]): string {
   const stats = calculateTreeStats(nodes);
-  
+
   let summary = '\n**Summary:**\n';
   summary += `- **Total Properties**: ${stats.totalProperties}\n`;
-  
+
   if (stats.groupStats.length > 0) {
     summary += `- **Property Distribution**:\n`;
-    stats.groupStats.forEach(group => {
+    stats.groupStats.forEach((group) => {
       if (group.level === 0) {
         summary += `  - **Direct in ${group.name}**: ${group.directProperties}\n`;
       }
     });
-    
+
     const subgroupProperties = stats.totalProperties - stats.rootProperties;
     if (subgroupProperties > 0) {
       summary += `  - **In Subgroups**: ${subgroupProperties}\n`;
     }
   }
-  
+
   if (stats.emptyGroups > 0) {
     summary += `- **Empty Subgroups**: ${stats.emptyGroups}`;
     if (stats.emptyGroupNames.length > 0) {
@@ -143,7 +143,7 @@ export function generateTreeSummary(nodes: TreeNode[]): string {
     }
     summary += '\n';
   }
-  
+
   return summary;
 }
 
@@ -152,15 +152,15 @@ interface TreeStats {
   rootProperties: number;
   emptyGroups: number;
   emptyGroupNames: string[];
-  groupStats: {
+  groupStats: Array<{
     name: string;
     level: number;
     directProperties: number;
     totalProperties: number;
-  }[];
+  }>;
 }
 
-function calculateTreeStats(nodes: TreeNode[], level: number = 0): TreeStats {
+function calculateTreeStats(nodes: TreeNode[], level = 0): TreeStats {
   const stats: TreeStats = {
     totalProperties: 0,
     rootProperties: 0,
@@ -169,7 +169,7 @@ function calculateTreeStats(nodes: TreeNode[], level: number = 0): TreeStats {
     groupStats: [],
   };
 
-  nodes.forEach(node => {
+  nodes.forEach((node) => {
     if (node.type === 'property') {
       stats.totalProperties++;
       if (level === 0) {
@@ -185,9 +185,11 @@ function calculateTreeStats(nodes: TreeNode[], level: number = 0): TreeStats {
 
       if (node.children) {
         const childStats = calculateTreeStats(node.children, level + 1);
-        groupStat.directProperties = node.children.filter(child => child.type === 'property').length;
+        groupStat.directProperties = node.children.filter(
+          (child) => child.type === 'property',
+        ).length;
         groupStat.totalProperties = childStats.totalProperties;
-        
+
         stats.totalProperties += childStats.totalProperties;
         stats.emptyGroups += childStats.emptyGroups;
         stats.emptyGroupNames.push(...childStats.emptyGroupNames);
@@ -209,10 +211,7 @@ function calculateTreeStats(nodes: TreeNode[], level: number = 0): TreeStats {
 /**
  * Formats a property for tree display
  */
-export function formatPropertyNode(
-  property: any,
-  showDetails: boolean = true
-): TreeNode {
+export function formatPropertyNode(property: any, showDetails = true): TreeNode {
   const node: TreeNode = {
     type: 'property',
     id: property.propertyId,
@@ -238,7 +237,7 @@ export function formatPropertyNode(
 export function formatGroupNode(
   group: any,
   properties: any[] = [],
-  childGroups: any[] = []
+  childGroups: any[] = [],
 ): TreeNode {
   const node: TreeNode = {
     type: 'group',
@@ -252,7 +251,7 @@ export function formatGroupNode(
 
   // Add properties first
   if (properties.length > 0) {
-    node.children!.push(...properties.map(prop => formatPropertyNode(prop)));
+    node.children!.push(...properties.map((prop) => formatPropertyNode(prop)));
   }
 
   // Then add child groups

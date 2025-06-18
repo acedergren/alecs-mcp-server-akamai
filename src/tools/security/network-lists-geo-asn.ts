@@ -3,11 +3,11 @@
  * Provides utilities for geographic location and ASN validation and management
  */
 
-import { 
-  MCPToolResponse, 
-  GeographicLocation,
-  ASNInfo,
-  AkamaiError 
+import {
+  type MCPToolResponse,
+  type GeographicLocation,
+  type ASNInfo,
+  type AkamaiError,
 } from '../../types';
 
 /**
@@ -15,27 +15,27 @@ import {
  */
 const COMMON_GEO_CODES = {
   // Major countries
-  'US': 'United States',
-  'CA': 'Canada',
-  'GB': 'United Kingdom',
-  'DE': 'Germany',
-  'FR': 'France',
-  'IT': 'Italy',
-  'ES': 'Spain',
-  'JP': 'Japan',
-  'CN': 'China',
-  'IN': 'India',
-  'BR': 'Brazil',
-  'AU': 'Australia',
-  'RU': 'Russia',
-  'KR': 'South Korea',
-  'MX': 'Mexico',
-  'NL': 'Netherlands',
-  'SE': 'Sweden',
-  'NO': 'Norway',
-  'CH': 'Switzerland',
-  'SG': 'Singapore',
-  
+  US: 'United States',
+  CA: 'Canada',
+  GB: 'United Kingdom',
+  DE: 'Germany',
+  FR: 'France',
+  IT: 'Italy',
+  ES: 'Spain',
+  JP: 'Japan',
+  CN: 'China',
+  IN: 'India',
+  BR: 'Brazil',
+  AU: 'Australia',
+  RU: 'Russia',
+  KR: 'South Korea',
+  MX: 'Mexico',
+  NL: 'Netherlands',
+  SE: 'Sweden',
+  NO: 'Norway',
+  CH: 'Switzerland',
+  SG: 'Singapore',
+
   // Common subdivisions
   'US-CA': 'California, United States',
   'US-NY': 'New York, United States',
@@ -50,7 +50,7 @@ const COMMON_GEO_CODES = {
   'ES-MD': 'Madrid, Spain',
   'JP-13': 'Tokyo, Japan',
   'AU-NSW': 'New South Wales, Australia',
-  'BR-SP': 'São Paulo, Brazil'
+  'BR-SP': 'São Paulo, Brazil',
 };
 
 /**
@@ -62,20 +62,23 @@ const COMMON_ASNS = {
   '8075': { name: 'Microsoft Corporation', description: 'Microsoft Azure' },
   '15169': { name: 'Google LLC', description: 'Google Cloud Platform' },
   '13335': { name: 'Cloudflare, Inc.', description: 'Cloudflare CDN' },
-  
+
   // Major ISPs
-  '7922': { name: 'Comcast Cable Communications, LLC', description: 'Comcast residential/business' },
+  '7922': {
+    name: 'Comcast Cable Communications, LLC',
+    description: 'Comcast residential/business',
+  },
   '20115': { name: 'Charter Communications Inc', description: 'Charter/Spectrum' },
   '22773': { name: 'Cox Communications Inc.', description: 'Cox Cable' },
   '7018': { name: 'AT&T Services, Inc.', description: 'AT&T Internet' },
   '701': { name: 'Verizon Business', description: 'Verizon Enterprise' },
-  
+
   // International providers
   '3356': { name: 'Level 3 Parent, LLC', description: 'Level 3 Communications' },
   '174': { name: 'Cogent Communications', description: 'Cogent backbone' },
   '6453': { name: 'TATA COMMUNICATIONS (AMERICA) INC', description: 'TATA Communications' },
   '1299': { name: 'Telia Company AB', description: 'Telia Carrier' },
-  '3491': { name: 'PCCW Global, Inc.', description: 'PCCW Global' }
+  '3491': { name: 'PCCW Global, Inc.', description: 'PCCW Global' },
 };
 
 /**
@@ -83,7 +86,7 @@ const COMMON_ASNS = {
  */
 export async function validateGeographicCodes(
   codes: string[],
-  _customer: string = 'default'
+  _customer = 'default',
 ): Promise<MCPToolResponse> {
   try {
     const validCodes: GeographicLocation[] = [];
@@ -94,7 +97,7 @@ export async function validateGeographicCodes(
 
     for (const code of codes) {
       const upperCode = code.toUpperCase();
-      
+
       // Basic format validation
       const geoCodeRegex = /^[A-Z]{2}(-[A-Z0-9]{1,3})?$/;
       if (!geoCodeRegex.test(upperCode)) {
@@ -110,9 +113,11 @@ export async function validateGeographicCodes(
         const subdivisionCode = parts[1];
         validCodes.push({
           countryCode: countryCode,
-          countryName: subdivisionCode ? COMMON_GEO_CODES[countryCode as keyof typeof COMMON_GEO_CODES] || countryCode : name,
+          countryName: subdivisionCode
+            ? COMMON_GEO_CODES[countryCode as keyof typeof COMMON_GEO_CODES] || countryCode
+            : name,
           subdivisionCode: subdivisionCode,
-          subdivisionName: subdivisionCode ? name : undefined
+          subdivisionName: subdivisionCode ? name : undefined,
         });
       } else {
         // Assume valid if format is correct but not in our database
@@ -123,7 +128,9 @@ export async function validateGeographicCodes(
           countryCode: countryCode2,
           countryName: `Unknown country: ${countryCode2}`,
           subdivisionCode: subdivisionCode2,
-          subdivisionName: subdivisionCode2 ? `Unknown subdivision: ${subdivisionCode2}` : undefined
+          subdivisionName: subdivisionCode2
+            ? `Unknown subdivision: ${subdivisionCode2}`
+            : undefined,
         });
       }
     }
@@ -154,19 +161,22 @@ export async function validateGeographicCodes(
     output += `- All codes must be uppercase\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text: output
-      }]
+      content: [
+        {
+          type: 'text',
+          text: output,
+        },
+      ],
     };
-
   } catch (error) {
     const akamaiError = error as AkamaiError;
     return {
-      content: [{
-        type: 'text',
-        text: `Error validating geographic codes: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Error validating geographic codes: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+        },
+      ],
     };
   }
 }
@@ -176,7 +186,7 @@ export async function validateGeographicCodes(
  */
 export async function getASNInformation(
   asns: string[],
-  _customer: string = 'default'
+  _customer = 'default',
 ): Promise<MCPToolResponse> {
   try {
     const validASNs: ASNInfo[] = [];
@@ -187,10 +197,8 @@ export async function getASNInformation(
 
     for (const asnInput of asns) {
       // Normalize ASN format
-      const asnStr = asnInput.toUpperCase().startsWith('AS') 
-        ? asnInput.slice(2) 
-        : asnInput;
-      
+      const asnStr = asnInput.toUpperCase().startsWith('AS') ? asnInput.slice(2) : asnInput;
+
       // Validate ASN format
       const asnRegex = /^\d+$/;
       if (!asnRegex.test(asnStr)) {
@@ -199,20 +207,20 @@ export async function getASNInformation(
       }
 
       const asnNumber = parseInt(asnStr, 10);
-      
+
       // Check against common ASNs
       const asnInfo = COMMON_ASNS[asnStr as keyof typeof COMMON_ASNS];
       if (asnInfo) {
         validASNs.push({
           asn: asnNumber,
           name: asnInfo.name,
-          description: asnInfo.description
+          description: asnInfo.description,
         });
       } else {
         validASNs.push({
           asn: asnNumber,
           name: `AS${asnNumber}`,
-          description: 'Unknown ASN - verify before use'
+          description: 'Unknown ASN - verify before use',
         });
       }
     }
@@ -242,19 +250,22 @@ export async function getASNInformation(
     output += `- Valid range: 1-4294967295 (32-bit)\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text: output
-      }]
+      content: [
+        {
+          type: 'text',
+          text: output,
+        },
+      ],
     };
-
   } catch (error) {
     const akamaiError = error as AkamaiError;
     return {
-      content: [{
-        type: 'text',
-        text: `Error looking up ASN information: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Error looking up ASN information: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+        },
+      ],
     };
   }
 }
@@ -263,12 +274,12 @@ export async function getASNInformation(
  * Generate geographic blocking recommendations
  */
 export async function generateGeographicBlockingRecommendations(
-  _customer: string = 'default',
+  _customer = 'default',
   options: {
     purpose?: 'compliance' | 'security' | 'licensing' | 'performance';
     allowedRegions?: string[];
     blockedRegions?: string[];
-  } = {}
+  } = {},
 ): Promise<MCPToolResponse> {
   try {
     let output = `🛡️ **Geographic Blocking Recommendations**\n\n`;
@@ -282,7 +293,7 @@ export async function generateGeographicBlockingRecommendations(
         output += `- Allow EU countries: DE, FR, IT, ES, NL, SE, etc.\n`;
         output += `- Consider data residency requirements\n`;
         output += `- Review CCPA requirements for US-CA\n\n`;
-        
+
         output += `**Common Compliance Blocks:**\n`;
         output += `- High-risk countries per financial regulations\n`;
         output += `- Countries with data localization laws\n`;
@@ -294,7 +305,7 @@ export async function generateGeographicBlockingRecommendations(
         output += `- Countries with high bot/fraud activity\n`;
         output += `- Regions not serving legitimate users\n`;
         output += `- Consider temporary blocks during attacks\n\n`;
-        
+
         output += `**Common Security Blocks:**\n`;
         output += `- Known bot farms and click farms\n`;
         output += `- Countries with high malware activity\n`;
@@ -306,7 +317,7 @@ export async function generateGeographicBlockingRecommendations(
         output += `- Media content geographic restrictions\n`;
         output += `- Software licensing limitations\n`;
         output += `- Sports broadcast territories\n\n`;
-        
+
         output += `**Implementation Strategy:**\n`;
         output += `- Define primary service regions\n`;
         output += `- Block unlicensed territories\n`;
@@ -318,7 +329,7 @@ export async function generateGeographicBlockingRecommendations(
         output += `- Block regions with poor connectivity\n`;
         output += `- Redirect to appropriate CDN regions\n`;
         output += `- Consider latency-based routing\n\n`;
-        
+
         output += `**Optimization Strategy:**\n`;
         output += `- Analyze current traffic patterns\n`;
         output += `- Identify underperforming regions\n`;
@@ -353,19 +364,22 @@ export async function generateGeographicBlockingRecommendations(
     output += `6. Document business justification for blocks\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text: output
-      }]
+      content: [
+        {
+          type: 'text',
+          text: output,
+        },
+      ],
     };
-
   } catch (error) {
     const akamaiError = error as AkamaiError;
     return {
-      content: [{
-        type: 'text',
-        text: `Error generating recommendations: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Error generating recommendations: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+        },
+      ],
     };
   }
 }
@@ -374,19 +388,19 @@ export async function generateGeographicBlockingRecommendations(
  * Generate common ASN blocking lists for security
  */
 export async function generateASNSecurityRecommendations(
-  _customer: string = 'default',
+  _customer = 'default',
   options: {
     includeCloudProviders?: boolean;
     includeVPNProviders?: boolean;
     includeResidentialISPs?: boolean;
     purpose?: 'bot-protection' | 'fraud-prevention' | 'compliance';
-  } = {}
+  } = {},
 ): Promise<MCPToolResponse> {
   try {
     let output = `🛡️ **ASN Security Recommendations**\n\n`;
 
     const purpose = options.purpose || 'bot-protection';
-    output += `**Purpose:** ${purpose.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}\n\n`;
+    output += `**Purpose:** ${purpose.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}\n\n`;
 
     // Cloud providers
     if (options.includeCloudProviders !== false) {
@@ -458,19 +472,22 @@ export async function generateASNSecurityRecommendations(
     output += `6. Monitor false positive rates\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text: output
-      }]
+      content: [
+        {
+          type: 'text',
+          text: output,
+        },
+      ],
     };
-
   } catch (error) {
     const akamaiError = error as AkamaiError;
     return {
-      content: [{
-        type: 'text',
-        text: `Error generating ASN recommendations: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Error generating ASN recommendations: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+        },
+      ],
     };
   }
 }
@@ -506,9 +523,11 @@ export async function listCommonGeographicCodes(): Promise<MCPToolResponse> {
   output += `- EU countries: DE,FR,IT,ES,NL,SE,PL,etc.\n`;
 
   return {
-    content: [{
-      type: 'text',
-      text: output
-    }]
+    content: [
+      {
+        type: 'text',
+        text: output,
+      },
+    ],
   };
 }

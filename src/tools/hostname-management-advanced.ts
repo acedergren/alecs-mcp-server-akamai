@@ -3,9 +3,9 @@
  * Comprehensive hostname discovery, conflict detection, and intelligent provisioning
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { ErrorTranslator } from '../utils/errors';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import { ErrorTranslator } from '@utils/errors';
 
 // Hostname analysis types
 export interface HostnameAnalysis {
@@ -87,10 +87,10 @@ export async function analyzeHostnameOwnership(
     hostnames: string[];
     includeWildcardAnalysis?: boolean;
     includeRecommendations?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     // Get all properties and their hostnames
     const allHostnamesResponse = await client.request({
@@ -98,8 +98,8 @@ export async function analyzeHostnameOwnership(
       method: 'GET',
       queryParams: {
         includeEdgeHostnames: 'true',
-        includeCertStatus: 'true'
-      }
+        includeCertStatus: 'true',
+      },
     });
 
     const existingHostnames = allHostnamesResponse.hostnames?.items || [];
@@ -113,7 +113,7 @@ export async function analyzeHostnameOwnership(
         conflicts: [],
         wildcardCoverage: [],
         recommendations: [],
-        validationIssues: []
+        validationIssues: [],
       };
 
       // Validate hostname format
@@ -123,9 +123,7 @@ export async function analyzeHostnameOwnership(
       }
 
       // Check for exact matches
-      const exactMatch = existingHostnames.find((h: any) => 
-        h.cnameFrom === hostname
-      );
+      const exactMatch = existingHostnames.find((h: any) => h.cnameFrom === hostname);
 
       if (exactMatch) {
         analysis.status = 'in-use';
@@ -135,7 +133,7 @@ export async function analyzeHostnameOwnership(
           version: exactMatch.propertyVersion,
           network: getNetworkStatus(exactMatch),
           edgeHostname: exactMatch.cnameTo,
-          certificateStatus: exactMatch.certStatus
+          certificateStatus: exactMatch.certStatus,
         };
       }
 
@@ -146,13 +144,14 @@ export async function analyzeHostnameOwnership(
 
         if (wildcardCoverage.length > 0 && !exactMatch) {
           analysis.status = 'conflict';
-          wildcardCoverage.forEach(coverage => {
+          wildcardCoverage.forEach((coverage) => {
             analysis.conflicts.push({
               type: 'wildcard-overlap',
               severity: 'MEDIUM',
               conflictingProperty: coverage.propertyId,
               description: `Hostname is covered by wildcard ${coverage.wildcardHostname}`,
-              resolution: 'Consider using the existing wildcard certificate or create a specific hostname entry'
+              resolution:
+                'Consider using the existing wildcard certificate or create a specific hostname entry',
             });
           });
         }
@@ -173,26 +172,26 @@ export async function analyzeHostnameOwnership(
     // Format response
     let responseText = `# Hostname Ownership Analysis\n\n`;
     responseText += `**Total Hostnames Analyzed:** ${args.hostnames.length}\n`;
-    responseText += `**Available:** ${analyses.filter(a => a.status === 'available').length}\n`;
-    responseText += `**In Use:** ${analyses.filter(a => a.status === 'in-use').length}\n`;
-    responseText += `**Conflicts:** ${analyses.filter(a => a.status === 'conflict').length}\n`;
-    responseText += `**Invalid:** ${analyses.filter(a => a.status === 'invalid').length}\n\n`;
+    responseText += `**Available:** ${analyses.filter((a) => a.status === 'available').length}\n`;
+    responseText += `**In Use:** ${analyses.filter((a) => a.status === 'in-use').length}\n`;
+    responseText += `**Conflicts:** ${analyses.filter((a) => a.status === 'conflict').length}\n`;
+    responseText += `**Invalid:** ${analyses.filter((a) => a.status === 'invalid').length}\n\n`;
 
     // Group by status
     const statusGroups = {
-      available: analyses.filter(a => a.status === 'available'),
-      'in-use': analyses.filter(a => a.status === 'in-use'),
-      conflict: analyses.filter(a => a.status === 'conflict'),
-      invalid: analyses.filter(a => a.status === 'invalid')
+      available: analyses.filter((a) => a.status === 'available'),
+      'in-use': analyses.filter((a) => a.status === 'in-use'),
+      conflict: analyses.filter((a) => a.status === 'conflict'),
+      invalid: analyses.filter((a) => a.status === 'invalid'),
     };
 
     // Available hostnames
     if (statusGroups.available.length > 0) {
       responseText += `## ✅ Available Hostnames (${statusGroups.available.length})\n`;
-      statusGroups.available.forEach(analysis => {
+      statusGroups.available.forEach((analysis) => {
         responseText += `- **${analysis.hostname}** - Ready for provisioning\n`;
         if (analysis.recommendations.length > 0) {
-          analysis.recommendations.forEach(rec => {
+          analysis.recommendations.forEach((rec) => {
             responseText += `  - 💡 ${rec.recommendation}\n`;
           });
         }
@@ -203,7 +202,7 @@ export async function analyzeHostnameOwnership(
     // In-use hostnames
     if (statusGroups['in-use'].length > 0) {
       responseText += `## 🔒 In-Use Hostnames (${statusGroups['in-use'].length})\n`;
-      statusGroups['in-use'].forEach(analysis => {
+      statusGroups['in-use'].forEach((analysis) => {
         const prop = analysis.currentProperty!;
         responseText += `- **${analysis.hostname}**\n`;
         responseText += `  - Property: ${prop.propertyName} (${prop.propertyId})\n`;
@@ -219,15 +218,15 @@ export async function analyzeHostnameOwnership(
     // Conflicting hostnames
     if (statusGroups.conflict.length > 0) {
       responseText += `## ⚠️ Conflicting Hostnames (${statusGroups.conflict.length})\n`;
-      statusGroups.conflict.forEach(analysis => {
+      statusGroups.conflict.forEach((analysis) => {
         responseText += `- **${analysis.hostname}**\n`;
-        analysis.conflicts.forEach(conflict => {
+        analysis.conflicts.forEach((conflict) => {
           responseText += `  - ${conflict.severity}: ${conflict.description}\n`;
           responseText += `    - Resolution: ${conflict.resolution}\n`;
         });
         if (analysis.wildcardCoverage.length > 0) {
           responseText += `  - Wildcard Coverage:\n`;
-          analysis.wildcardCoverage.forEach(wc => {
+          analysis.wildcardCoverage.forEach((wc) => {
             responseText += `    - ${wc.wildcardHostname} in ${wc.propertyName}\n`;
           });
         }
@@ -238,9 +237,9 @@ export async function analyzeHostnameOwnership(
     // Invalid hostnames
     if (statusGroups.invalid.length > 0) {
       responseText += `## ❌ Invalid Hostnames (${statusGroups.invalid.length})\n`;
-      statusGroups.invalid.forEach(analysis => {
+      statusGroups.invalid.forEach((analysis) => {
         responseText += `- **${analysis.hostname}**\n`;
-        analysis.validationIssues.forEach(issue => {
+        analysis.validationIssues.forEach((issue) => {
           responseText += `  - ${issue}\n`;
         });
       });
@@ -273,21 +272,25 @@ export async function analyzeHostnameOwnership(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'analyze hostname ownership',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'analyze hostname ownership',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -301,10 +304,10 @@ export async function generateEdgeHostnameRecommendations(
     hostnames: string[];
     preferredSuffix?: '.edgekey.net' | '.edgesuite.net' | '.akamaized.net';
     forceSecure?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     const recommendations: EdgeHostnameRecommendation[] = [];
 
@@ -313,7 +316,7 @@ export async function generateEdgeHostnameRecommendations(
       const parts = hostname.split('.');
       const isApi = parts[0] === 'api' || parts[0]?.includes('api') || false;
       const isStatic = parts[0] === 'static' || parts[0] === 'cdn' || parts[0] === 'assets';
-      
+
       // Determine suffix
       let suffix = args.preferredSuffix || '.edgekey.net';
       let secure = args.forceSecure !== false;
@@ -342,7 +345,7 @@ export async function generateEdgeHostnameRecommendations(
         secure,
         ipVersion: 'IPV4_IPV6', // Default to dual-stack
         certificateType,
-        rationale: generateEdgeHostnameRationale(hostname, suffix, secure)
+        rationale: generateEdgeHostnameRationale(hostname, suffix, secure),
       });
     }
 
@@ -351,17 +354,20 @@ export async function generateEdgeHostnameRecommendations(
     responseText += `**Total Hostnames:** ${args.hostnames.length}\n\n`;
 
     // Group by suffix
-    const bySuffix = recommendations.reduce((acc, rec) => {
-      const suffix = rec.domainSuffix as string;
-      if (!acc[suffix]) acc[suffix] = [];
-      acc[suffix].push(rec);
-      return acc;
-    }, {} as Record<string, EdgeHostnameRecommendation[]>);
+    const bySuffix = recommendations.reduce(
+      (acc, rec) => {
+        const suffix = rec.domainSuffix as string;
+        if (!acc[suffix]) acc[suffix] = [];
+        acc[suffix].push(rec);
+        return acc;
+      },
+      {} as Record<string, EdgeHostnameRecommendation[]>,
+    );
 
     Object.entries(bySuffix).forEach(([suffix, recs]) => {
       responseText += `## ${suffix} (${recs.length} hostnames)\n\n`;
-      
-      recs.forEach(rec => {
+
+      recs.forEach((rec) => {
         responseText += `### ${rec.hostname}\n`;
         responseText += `- **Edge Hostname:** \`${rec.suggestedEdgeHostname}\`\n`;
         responseText += `- **Secure:** ${rec.secure ? '✅ Yes' : '❌ No'}\n`;
@@ -373,13 +379,13 @@ export async function generateEdgeHostnameRecommendations(
 
     // Bulk creation commands
     responseText += `## Bulk Creation Commands\n\n`;
-    
+
     // Group secure hostnames
-    const secureHostnames = recommendations.filter(r => r.secure);
+    const secureHostnames = recommendations.filter((r) => r.secure);
     if (secureHostnames.length > 0) {
       responseText += `### Secure Edge Hostnames (${secureHostnames.length})\n`;
       responseText += `\`\`\`\n`;
-      secureHostnames.forEach(rec => {
+      secureHostnames.forEach((rec) => {
         responseText += `Create edge hostname:\n`;
         responseText += `- Domain prefix: ${rec.hostname.split('.')[0]}\n`;
         responseText += `- Domain suffix: ${rec.domainSuffix}\n`;
@@ -393,7 +399,7 @@ export async function generateEdgeHostnameRecommendations(
     responseText += `## Summary\n`;
     responseText += `- **Secure Hostnames:** ${secureHostnames.length}\n`;
     responseText += `- **Non-Secure Hostnames:** ${recommendations.length - secureHostnames.length}\n`;
-    responseText += `- **DefaultDV Certificates:** ${recommendations.filter(r => r.certificateType === 'DEFAULT_DV').length}\n\n`;
+    responseText += `- **DefaultDV Certificates:** ${recommendations.filter((r) => r.certificateType === 'DEFAULT_DV').length}\n\n`;
 
     responseText += `## Next Steps\n`;
     responseText += `1. Review and adjust recommendations as needed\n`;
@@ -401,21 +407,25 @@ export async function generateEdgeHostnameRecommendations(
     responseText += `3. Update DNS CNAME records after creation\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'generate edge hostname recommendations',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'generate edge hostname recommendations',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -429,17 +439,17 @@ export async function validateHostnamesBulk(
     hostnames: string[];
     checkDNS?: boolean;
     checkCertificates?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     const validation: BulkHostnameValidation = {
       totalHostnames: args.hostnames.length,
       validHostnames: [],
       invalidHostnames: [],
       conflicts: [],
-      recommendations: []
+      recommendations: [],
     };
 
     // Get existing hostnames for conflict detection
@@ -455,7 +465,7 @@ export async function validateHostnamesBulk(
       if (!isValidHostname(hostname)) {
         validation.invalidHostnames.push({
           hostname,
-          reason: 'Invalid hostname format'
+          reason: 'Invalid hostname format',
         });
         continue;
       }
@@ -464,24 +474,25 @@ export async function validateHostnamesBulk(
       if (hostname.length > 253) {
         validation.invalidHostnames.push({
           hostname,
-          reason: 'Hostname exceeds maximum length (253 characters)'
+          reason: 'Hostname exceeds maximum length (253 characters)',
         });
         continue;
       }
 
       // Label validation
       const labels = hostname.split('.');
-      const invalidLabel = labels.find(label => 
-        label.length > 63 || 
-        label.startsWith('-') || 
-        label.endsWith('-') ||
-        !/^[a-zA-Z0-9-]+$/.test(label)
+      const invalidLabel = labels.find(
+        (label) =>
+          label.length > 63 ||
+          label.startsWith('-') ||
+          label.endsWith('-') ||
+          !/^[a-zA-Z0-9-]+$/.test(label),
       );
 
       if (invalidLabel) {
         validation.invalidHostnames.push({
           hostname,
-          reason: `Invalid label: ${invalidLabel}`
+          reason: `Invalid label: ${invalidLabel}`,
         });
         continue;
       }
@@ -490,7 +501,7 @@ export async function validateHostnamesBulk(
       if (labels.length < 2) {
         validation.invalidHostnames.push({
           hostname,
-          reason: 'Missing top-level domain'
+          reason: 'Missing top-level domain',
         });
         continue;
       }
@@ -527,7 +538,7 @@ export async function validateHostnamesBulk(
     // Valid hostnames
     if (validation.validHostnames.length > 0) {
       responseText += `## ✅ Valid Hostnames (${validation.validHostnames.length})\n`;
-      validation.validHostnames.forEach(hostname => {
+      validation.validHostnames.forEach((hostname) => {
         responseText += `- ${hostname}\n`;
       });
       responseText += '\n';
@@ -547,7 +558,7 @@ export async function validateHostnamesBulk(
       responseText += `## ⚠️ Hostname Conflicts (${validation.conflicts.length})\n`;
       validation.conflicts.forEach(({ hostname, conflicts }) => {
         responseText += `- **${hostname}**\n`;
-        conflicts.forEach(conflict => {
+        conflicts.forEach((conflict) => {
           responseText += `  - ${conflict.severity}: ${conflict.description}\n`;
         });
       });
@@ -559,7 +570,7 @@ export async function validateHostnamesBulk(
       responseText += `## 💡 Recommendations\n`;
       validation.recommendations.forEach(({ hostname, recommendations }) => {
         responseText += `- **${hostname}**\n`;
-        recommendations.forEach(rec => {
+        recommendations.forEach((rec) => {
           responseText += `  - ${rec.recommendation}\n`;
         });
       });
@@ -568,15 +579,20 @@ export async function validateHostnamesBulk(
 
     // Summary statistics
     responseText += `## Validation Summary\n`;
-    const successRate = Math.round((validation.validHostnames.length / validation.totalHostnames) * 100);
+    const successRate = Math.round(
+      (validation.validHostnames.length / validation.totalHostnames) * 100,
+    );
     responseText += `- **Success Rate:** ${successRate}%\n`;
-    
+
     if (validation.invalidHostnames.length > 0) {
-      const reasons = validation.invalidHostnames.reduce((acc, { reason }) => {
-        acc[reason] = (acc[reason] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      
+      const reasons = validation.invalidHostnames.reduce(
+        (acc, { reason }) => {
+          acc[reason] = (acc[reason] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
+
       responseText += `- **Failure Reasons:**\n`;
       Object.entries(reasons).forEach(([reason, count]) => {
         responseText += `  - ${reason}: ${count}\n`;
@@ -594,21 +610,25 @@ export async function validateHostnamesBulk(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'validate hostnames bulk',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'validate hostnames bulk',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -622,10 +642,10 @@ export async function findOptimalPropertyAssignment(
     hostnames: string[];
     groupingStrategy?: 'by-domain' | 'by-function' | 'by-environment' | 'auto';
     maxHostnamesPerProperty?: number;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     const strategy = args.groupingStrategy || 'auto';
     const maxPerProperty = args.maxHostnamesPerProperty || 100;
@@ -655,7 +675,7 @@ export async function findOptimalPropertyAssignment(
 
       // Check if group can use existing property
       const matchingProperty = findMatchingProperty(groupName, hostnames, existingProperties);
-      
+
       if (matchingProperty) {
         responseText += `### ♻️ Reuse Existing Property\n`;
         responseText += `- **Property:** ${matchingProperty.propertyName} (${matchingProperty.propertyId})\n`;
@@ -669,7 +689,7 @@ export async function findOptimalPropertyAssignment(
       }
 
       responseText += `### Hostnames in this group:\n`;
-      hostnames.slice(0, 10).forEach(hostname => {
+      hostnames.slice(0, 10).forEach((hostname) => {
         responseText += `- ${hostname}\n`;
       });
       if (hostnames.length > 10) {
@@ -682,12 +702,12 @@ export async function findOptimalPropertyAssignment(
 
     // Optimization recommendations
     responseText += `## 📊 Optimization Analysis\n`;
-    
+
     // Certificate optimization
     const wildcardOpportunities = findWildcardOpportunities(args.hostnames);
     if (wildcardOpportunities.length > 0) {
       responseText += `### 🔐 Certificate Optimization\n`;
-      wildcardOpportunities.forEach(opp => {
+      wildcardOpportunities.forEach((opp) => {
         responseText += `- Use wildcard certificate for \`*.${opp.domain}\` (covers ${opp.count} hostnames)\n`;
       });
       responseText += '\n';
@@ -702,12 +722,12 @@ export async function findOptimalPropertyAssignment(
     // Implementation plan
     responseText += `## 🚀 Implementation Plan\n`;
     let step = 1;
-    
+
     // Properties to create
-    const newProperties = Object.entries(hostnameGroups).filter(([_, hostnames]) => 
-      !findMatchingProperty('', hostnames, existingProperties)
+    const newProperties = Object.entries(hostnameGroups).filter(
+      ([_, hostnames]) => !findMatchingProperty('', hostnames, existingProperties),
     );
-    
+
     if (newProperties.length > 0) {
       responseText += `### Phase 1: Property Creation\n`;
       newProperties.forEach(([groupName, hostnames]) => {
@@ -739,21 +759,25 @@ export async function findOptimalPropertyAssignment(
     responseText += `${step}. Activate to production\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'find optimal property assignment',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'find optimal property assignment',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -769,25 +793,27 @@ export async function createHostnameProvisioningPlan(
     groupId: string;
     productId?: string;
     securityLevel?: 'standard' | 'enhanced' | 'advanced';
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     // Validate all hostnames first
     const validationResult = await validateHostnamesBulk(client, {
-      hostnames: args.hostnames
+      hostnames: args.hostnames,
     });
 
     // Extract valid hostnames from validation
     const validHostnames = extractValidHostnames(validationResult);
-    
+
     if (validHostnames.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: '❌ No valid hostnames found. Please fix validation errors and try again.',
-        }],
+        content: [
+          {
+            type: 'text',
+            text: '❌ No valid hostnames found. Please fix validation errors and try again.',
+          },
+        ],
       };
     }
 
@@ -795,19 +821,19 @@ export async function createHostnameProvisioningPlan(
     const ownershipResult = await analyzeHostnameOwnership(client, {
       hostnames: validHostnames,
       includeWildcardAnalysis: true,
-      includeRecommendations: true
+      includeRecommendations: true,
     });
 
     // Generate edge hostname recommendations
     const edgeHostnameResult = await generateEdgeHostnameRecommendations(client, {
       hostnames: validHostnames,
-      forceSecure: args.securityLevel !== 'standard'
+      forceSecure: args.securityLevel !== 'standard',
     });
 
     // Find optimal property assignments
     const assignmentResult = await findOptimalPropertyAssignment(client, {
       hostnames: validHostnames,
-      groupingStrategy: 'auto'
+      groupingStrategy: 'auto',
     });
 
     // Build comprehensive provisioning plan
@@ -884,21 +910,25 @@ export async function createHostnameProvisioningPlan(
     responseText += `\`Execute hostname provisioning plan for ${validHostnames.length} hostnames\``;
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'create hostname provisioning plan',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'create hostname provisioning plan',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -913,7 +943,7 @@ function isValidHostname(hostname: string): boolean {
 function getNetworkStatus(hostname: any): 'STAGING' | 'PRODUCTION' | 'BOTH' | 'NONE' {
   const staging = hostname.stagingStatus === 'ACTIVE';
   const production = hostname.productionStatus === 'ACTIVE';
-  
+
   if (staging && production) return 'BOTH';
   if (staging) return 'STAGING';
   if (production) return 'PRODUCTION';
@@ -922,8 +952,8 @@ function getNetworkStatus(hostname: any): 'STAGING' | 'PRODUCTION' | 'BOTH' | 'N
 
 function findWildcardCoverage(hostname: string, existingHostnames: any[]): WildcardCoverage[] {
   const coverage: WildcardCoverage[] = [];
-  
-  existingHostnames.forEach(existing => {
+
+  existingHostnames.forEach((existing) => {
     if (existing.cnameFrom.startsWith('*.')) {
       const wildcardDomain = existing.cnameFrom.substring(2);
       if (hostname.endsWith(wildcardDomain) && hostname !== wildcardDomain) {
@@ -932,21 +962,20 @@ function findWildcardCoverage(hostname: string, existingHostnames: any[]): Wildc
           propertyId: existing.propertyId,
           propertyName: existing.propertyName,
           coverageType: 'full',
-          certificateType: 'wildcard'
+          certificateType: 'wildcard',
         });
       }
     }
   });
-  
+
   return coverage;
 }
 
 function findSubdomainConflicts(hostname: string, existingHostnames: any[]): HostnameConflict[] {
   const conflicts: HostnameConflict[] = [];
-  
+
   // Check if this hostname would conflict with existing subdomains
-  existingHostnames.forEach(existing => {
-    
+  existingHostnames.forEach((existing) => {
     // Check if one is a subdomain of the other
     if (hostname.endsWith(existing.cnameFrom) && hostname !== existing.cnameFrom) {
       conflicts.push({
@@ -954,7 +983,7 @@ function findSubdomainConflicts(hostname: string, existingHostnames: any[]): Hos
         severity: 'LOW',
         conflictingProperty: existing.propertyId,
         description: `${hostname} is a subdomain of existing ${existing.cnameFrom}`,
-        resolution: 'Subdomains can coexist; ensure proper routing rules'
+        resolution: 'Subdomains can coexist; ensure proper routing rules',
       });
     } else if (existing.cnameFrom.endsWith(hostname) && hostname !== existing.cnameFrom) {
       conflicts.push({
@@ -962,67 +991,68 @@ function findSubdomainConflicts(hostname: string, existingHostnames: any[]): Hos
         severity: 'MEDIUM',
         conflictingProperty: existing.propertyId,
         description: `${hostname} is a parent domain of existing ${existing.cnameFrom}`,
-        resolution: 'Parent domain may affect subdomain routing; verify configuration'
+        resolution: 'Parent domain may affect subdomain routing; verify configuration',
       });
     }
   });
-  
+
   return conflicts;
 }
 
-function generateHostnameRecommendations(analysis: HostnameAnalysis, existingHostnames: any[]): HostnameRecommendation[] {
+function generateHostnameRecommendations(
+  analysis: HostnameAnalysis,
+  existingHostnames: any[],
+): HostnameRecommendation[] {
   const recommendations: HostnameRecommendation[] = [];
-  
+
   if (analysis.status === 'available') {
     // Check if it fits with existing property patterns
     const domain = analysis.hostname.split('.').slice(-2).join('.');
-    const relatedProperties = existingHostnames.filter(h => 
-      h.cnameFrom.endsWith(domain)
-    );
-    
+    const relatedProperties = existingHostnames.filter((h) => h.cnameFrom.endsWith(domain));
+
     if (relatedProperties.length > 0) {
       recommendations.push({
         type: 'property-assignment',
         priority: 'HIGH',
         recommendation: `Consider adding to property ${relatedProperties[0].propertyName}`,
-        rationale: 'Other hostnames from this domain are already in this property'
+        rationale: 'Other hostnames from this domain are already in this property',
       });
     }
-    
+
     // Edge hostname recommendations
     if (analysis.hostname.startsWith('api.') || analysis.hostname.includes('api-')) {
       recommendations.push({
         type: 'edge-hostname',
         priority: 'HIGH',
         recommendation: 'Use .edgekey.net with Enhanced TLS for API endpoints',
-        rationale: 'API endpoints benefit from enhanced security and HTTP/2 support'
+        rationale: 'API endpoints benefit from enhanced security and HTTP/2 support',
       });
     }
   }
-  
+
   return recommendations;
 }
 
 function generateEdgeHostname(hostname: string, suffix: string): string {
   // Remove www. prefix if present
-  let base = hostname.startsWith('www.') ? hostname.substring(4) : hostname;
-  
+  const base = hostname.startsWith('www.') ? hostname.substring(4) : hostname;
+
   // For .edgekey.net, we can use the full hostname
   if (suffix === '.edgekey.net' || suffix === '.akamaized.net') {
     return hostname + suffix;
   }
-  
+
   // For .edgesuite.net, traditional format
   return base + suffix;
 }
 
 function generateEdgeHostnameRationale(hostname: string, suffix: string, secure: boolean): string {
   const reasons: string[] = [];
-  
+
   if (hostname.startsWith('api.') || hostname.includes('api-')) {
     reasons.push('API endpoint requires secure delivery');
   }
-  
+
   if (suffix === '.edgekey.net') {
     reasons.push('Enhanced TLS network for optimal security');
     reasons.push('HTTP/2 and HTTP/3 support');
@@ -1032,110 +1062,125 @@ function generateEdgeHostnameRationale(hostname: string, suffix: string, secure:
       reasons.push('Cost-optimized for non-secure content');
     }
   }
-  
+
   return reasons.join('; ');
 }
 
 function detectHostnameConflicts(hostname: string, existingHostnames: any[]): HostnameConflict[] {
   const conflicts: HostnameConflict[] = [];
-  
+
   // Check exact match
-  const exactMatch = existingHostnames.find(h => h.cnameFrom === hostname);
+  const exactMatch = existingHostnames.find((h) => h.cnameFrom === hostname);
   if (exactMatch) {
     conflicts.push({
       type: 'exact-match',
       severity: 'HIGH',
       conflictingProperty: exactMatch.propertyId,
       description: 'Hostname already exists',
-      resolution: 'Use existing property or choose different hostname'
+      resolution: 'Use existing property or choose different hostname',
     });
   }
-  
+
   // Check wildcard conflicts
   const wildcardConflicts = findWildcardCoverage(hostname, existingHostnames);
-  wildcardConflicts.forEach(wc => {
+  wildcardConflicts.forEach((wc) => {
     conflicts.push({
       type: 'wildcard-overlap',
       severity: 'MEDIUM',
       conflictingProperty: wc.propertyId,
       description: `Covered by wildcard ${wc.wildcardHostname}`,
-      resolution: 'Can coexist; wildcard provides fallback'
+      resolution: 'Can coexist; wildcard provides fallback',
     });
   });
-  
+
   return conflicts;
 }
 
-function generateValidationRecommendations(hostname: string, existingHostnames: any[]): HostnameRecommendation[] {
+function generateValidationRecommendations(
+  hostname: string,
+  existingHostnames: any[],
+): HostnameRecommendation[] {
   const recommendations: HostnameRecommendation[] = [];
-  
+
   // Check naming patterns
-  if (!hostname.startsWith('www.') && !hostname.startsWith('api.') && !hostname.startsWith('cdn.')) {
+  if (
+    !hostname.startsWith('www.') &&
+    !hostname.startsWith('api.') &&
+    !hostname.startsWith('cdn.')
+  ) {
     const baseDomain = hostname.split('.').slice(1).join('.');
-    if (!existingHostnames.some(h => h.cnameFrom === `www.${baseDomain}`)) {
+    if (!existingHostnames.some((h) => h.cnameFrom === `www.${baseDomain}`)) {
       recommendations.push({
         type: 'naming',
         priority: 'LOW',
         recommendation: `Consider also provisioning www.${baseDomain}`,
-        rationale: 'Common practice to have both www and non-www versions'
+        rationale: 'Common practice to have both www and non-www versions',
       });
     }
   }
-  
+
   return recommendations;
 }
 
 function groupHostnamesByStrategy(
-  hostnames: string[], 
-  strategy: 'by-domain' | 'by-function' | 'by-environment' | 'auto'
+  hostnames: string[],
+  strategy: 'by-domain' | 'by-function' | 'by-environment' | 'auto',
 ): Record<string, string[]> {
   const groups: Record<string, string[]> = {};
-  
+
   switch (strategy) {
     case 'by-domain':
-      hostnames.forEach(hostname => {
+      hostnames.forEach((hostname) => {
         const domain = hostname.split('.').slice(-2).join('.');
         if (!groups[domain]) groups[domain] = [];
         groups[domain].push(hostname);
       });
       break;
-      
+
     case 'by-function':
-      hostnames.forEach(hostname => {
+      hostnames.forEach((hostname) => {
         let category = 'general';
         if (hostname.startsWith('api.') || hostname.includes('api-')) {
           category = 'api';
-        } else if (hostname.startsWith('static.') || hostname.startsWith('cdn.') || hostname.startsWith('assets.')) {
+        } else if (
+          hostname.startsWith('static.') ||
+          hostname.startsWith('cdn.') ||
+          hostname.startsWith('assets.')
+        ) {
           category = 'static';
         } else if (hostname.startsWith('www.')) {
           category = 'www';
         }
         if (!groups[category]) groups[category] = [];
-        groups[category]!.push(hostname);
+        groups[category].push(hostname);
       });
       break;
-      
+
     case 'by-environment':
-      hostnames.forEach(hostname => {
+      hostnames.forEach((hostname) => {
         let env = 'production';
         if (hostname.includes('-dev') || hostname.includes('dev.')) {
           env = 'development';
-        } else if (hostname.includes('-staging') || hostname.includes('staging.') || hostname.includes('-stg')) {
+        } else if (
+          hostname.includes('-staging') ||
+          hostname.includes('staging.') ||
+          hostname.includes('-stg')
+        ) {
           env = 'staging';
         }
         if (!groups[env]) groups[env] = [];
-        groups[env]!.push(hostname);
+        groups[env].push(hostname);
       });
       break;
-      
+
     case 'auto':
     default:
       // Intelligent grouping based on patterns
-      hostnames.forEach(hostname => {
+      hostnames.forEach((hostname) => {
         const parts = hostname.split('.');
         const domain = parts.slice(-2).join('.');
         const subdomain = parts[0];
-        
+
         // Group by function if clear pattern
         if (subdomain && (subdomain === 'api' || subdomain.includes('api'))) {
           const key = `api-${domain}`;
@@ -1153,20 +1198,24 @@ function groupHostnamesByStrategy(
       });
       break;
   }
-  
+
   return groups;
 }
 
-function findMatchingProperty(_groupName: string, hostnames: string[], existingProperties: any[]): any {
+function findMatchingProperty(
+  _groupName: string,
+  hostnames: string[],
+  existingProperties: any[],
+): any {
   // Look for properties that already have hostnames from the same domain
   const domain = hostnames[0]?.split('.').slice(-2).join('.');
-  
-  return existingProperties.find(property => {
+
+  return existingProperties.find((property) => {
     // Check if property name matches pattern
     if (domain && property.propertyName.toLowerCase().includes(domain.split('.')[0])) {
       return true;
     }
-    
+
     // Check if property already has related hostnames
     // This would require additional API call in real implementation
     return false;
@@ -1179,15 +1228,15 @@ function generatePropertyName(groupName: string, hostnames: string[]): string {
     const parts = groupName.split('-');
     return `${parts[1]}-${parts[0]}`;
   }
-  
+
   // Use first hostname as basis
   const firstHostname = hostnames[0];
   if (!firstHostname) return 'property';
-  
+
   const parts = firstHostname.split('.');
   const domain = parts.slice(-2).join('.');
   const subdomain = parts[0];
-  
+
   if (subdomain === 'www') {
     return domain.replace('.', '-');
   } else {
@@ -1197,15 +1246,15 @@ function generatePropertyName(groupName: string, hostnames: string[]): string {
 
 function findWildcardOpportunities(hostnames: string[]): Array<{ domain: string; count: number }> {
   const domainCounts: Record<string, number> = {};
-  
-  hostnames.forEach(hostname => {
+
+  hostnames.forEach((hostname) => {
     const parts = hostname.split('.');
     if (parts.length >= 3) {
       const domain = parts.slice(-2).join('.');
       domainCounts[domain] = (domainCounts[domain] || 0) + 1;
     }
   });
-  
+
   // Return domains with 3+ subdomains as wildcard opportunities
   return Object.entries(domainCounts)
     .filter(([_, count]) => count >= 3)
@@ -1215,22 +1264,22 @@ function findWildcardOpportunities(hostnames: string[]): Array<{ domain: string;
 function extractValidHostnames(validationResult: MCPToolResponse): string[] {
   const text = validationResult.content[0]?.text || '';
   const validSection = text.split('## ✅ Valid Hostnames')[1]?.split('##')[0] || '';
-  
+
   return validSection
     .split('\n')
-    .filter(line => line.startsWith('- '))
-    .map(line => line.substring(2).trim())
-    .filter(h => h.length > 0);
+    .filter((line) => line.startsWith('- '))
+    .map((line) => line.substring(2).trim())
+    .filter((h) => h.length > 0);
 }
 
 function extractSummaryFromResponse(response: MCPToolResponse): string {
   const text = response.content[0]?.text || '';
   const lines = text.split('\n');
-  
+
   // Extract first few summary lines
   const summaryLines: string[] = [];
   let foundSummary = false;
-  
+
   for (const line of lines) {
     if (line.startsWith('**') && !foundSummary) {
       foundSummary = true;
@@ -1240,6 +1289,6 @@ function extractSummaryFromResponse(response: MCPToolResponse): string {
       if (summaryLines.length >= 3) break;
     }
   }
-  
+
   return summaryLines.join('\n');
 }

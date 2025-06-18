@@ -4,15 +4,10 @@
  * Handles the 10-60 minute propagation time for new hostnames
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import {
-  activateProperty,
-  getActivationStatus
-} from '../tools/property-manager-tools';
-import {
-  getProperty
-} from '../tools/property-tools';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import { activateProperty, getActivationStatus } from '../tools/property-manager-tools';
+import { getProperty } from '../tools/property-tools';
 
 export interface ProductionActivationConfig {
   propertyId: string;
@@ -40,7 +35,7 @@ export class PropertyProductionActivationAgent {
     const result: ProductionActivationResult = {
       success: false,
       errors: [],
-      warnings: []
+      warnings: [],
     };
 
     try {
@@ -53,7 +48,7 @@ export class PropertyProductionActivationAgent {
       }
 
       const version = config.version || propertyInfo.latestVersion!;
-      
+
       // Step 2: Check if already activated to production
       console.error('[ProductionActivation] Step 2: Checking current activation status...');
       const currentStatus = await this.checkCurrentActivation(config.propertyId, version);
@@ -65,12 +60,8 @@ export class PropertyProductionActivationAgent {
 
       // Step 3: Activate to production
       console.error('[ProductionActivation] Step 3: Activating to production network...');
-      const activationResult = await this.activateToProduction(
-        config.propertyId,
-        version,
-        config
-      );
-      
+      const activationResult = await this.activateToProduction(config.propertyId, version, config);
+
       if (!activationResult.success) {
         result.errors!.push('Failed to activate property to production');
         return result;
@@ -85,7 +76,7 @@ export class PropertyProductionActivationAgent {
         const completionResult = await this.waitForActivationCompletion(
           config.propertyId,
           activationResult.activationId!,
-          config.maxWaitTime || 60
+          config.maxWaitTime || 60,
         );
         result.status = completionResult.status;
         if (completionResult.warnings) {
@@ -95,16 +86,17 @@ export class PropertyProductionActivationAgent {
         result.status = 'PENDING';
         result.warnings!.push(
           'Production activation initiated but not waiting for completion',
-          'New hostnames typically take 10-60 minutes to propagate globally'
+          'New hostnames typically take 10-60 minutes to propagate globally',
         );
       }
 
       result.success = true;
       return result;
-
     } catch (error) {
       console.error('[ProductionActivation] Error:', error);
-      result.errors!.push(`Unexpected error: ${error instanceof Error ? error.message : String(error)}`);
+      result.errors!.push(
+        `Unexpected error: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return result;
     }
   }
@@ -116,33 +108,36 @@ export class PropertyProductionActivationAgent {
   }> {
     try {
       const propertyResult = await getProperty(this.client, {
-        propertyId: config.propertyId
+        propertyId: config.propertyId,
       });
 
       // Extract version from response
       const responseText = propertyResult.content[0].text;
       const versionMatch = responseText.match(/Latest Version:\*\* (\d+)/);
-      
+
       if (versionMatch) {
         return {
           valid: true,
-          latestVersion: parseInt(versionMatch[1])
+          latestVersion: parseInt(versionMatch[1]),
         };
       }
 
       return {
         valid: false,
-        errors: ['Could not determine property version']
+        errors: ['Could not determine property version'],
       };
     } catch (error) {
       return {
         valid: false,
-        errors: [`Property ${config.propertyId} not found or inaccessible`]
+        errors: [`Property ${config.propertyId} not found or inaccessible`],
       };
     }
   }
 
-  private async checkCurrentActivation(propertyId: string, version: number): Promise<{
+  private async checkCurrentActivation(
+    propertyId: string,
+    version: number,
+  ): Promise<{
     alreadyActive: boolean;
   }> {
     try {
@@ -159,20 +154,20 @@ export class PropertyProductionActivationAgent {
   private async activateToProduction(
     propertyId: string,
     version: number,
-    config: ProductionActivationConfig
+    config: ProductionActivationConfig,
   ): Promise<{
     success: boolean;
     activationId?: string;
   }> {
     try {
       const note = config.note || `Production activation after staging validation (v${version})`;
-      
+
       const result = await activateProperty(this.client, {
         propertyId,
         version,
         network: 'PRODUCTION',
         note,
-        notifyEmails: config.notificationEmails
+        notifyEmails: config.notificationEmails,
       });
 
       // Extract activation ID from response
@@ -181,7 +176,7 @@ export class PropertyProductionActivationAgent {
 
       return {
         success: true,
-        activationId: activationIdMatch ? activationIdMatch[1] : undefined
+        activationId: activationIdMatch ? activationIdMatch[1] : undefined,
       };
     } catch (error) {
       console.error('[ProductionActivation] Activation error:', error);
@@ -192,7 +187,7 @@ export class PropertyProductionActivationAgent {
   private async waitForActivationCompletion(
     propertyId: string,
     activationId: string,
-    maxWaitMinutes: number
+    maxWaitMinutes: number,
   ): Promise<{
     status: string;
     warnings?: string[];
@@ -205,23 +200,23 @@ export class PropertyProductionActivationAgent {
       try {
         const statusResult = await getActivationStatus(this.client, {
           propertyId,
-          activationId
+          activationId,
         });
 
         const responseText = statusResult.content[0].text;
-        
+
         // Check for completion status
         if (responseText.includes('ACTIVE')) {
           return { status: 'ACTIVE' };
         } else if (responseText.includes('FAILED') || responseText.includes('ABORTED')) {
-          return { 
+          return {
             status: 'FAILED',
-            warnings: ['Activation failed or was aborted']
+            warnings: ['Activation failed or was aborted'],
           };
         }
 
         // Wait before next check
-        await new Promise(resolve => setTimeout(resolve, checkInterval));
+        await new Promise((resolve) => setTimeout(resolve, checkInterval));
       } catch (error) {
         console.error('[ProductionActivation] Status check error:', error);
       }
@@ -229,7 +224,9 @@ export class PropertyProductionActivationAgent {
 
     return {
       status: 'TIMEOUT',
-      warnings: [`Activation did not complete within ${maxWaitMinutes} minutes. It may still be processing.`]
+      warnings: [
+        `Activation did not complete within ${maxWaitMinutes} minutes. It may still be processing.`,
+      ],
     };
   }
 
@@ -243,13 +240,13 @@ export class PropertyProductionActivationAgent {
 // Export function for easy tool integration
 export async function activatePropertyToProduction(
   client: AkamaiClient,
-  args: ProductionActivationConfig
+  args: ProductionActivationConfig,
 ): Promise<MCPToolResponse> {
   const agent = new PropertyProductionActivationAgent(client);
   const result = await agent.execute(args);
 
   let responseText = '';
-  
+
   if (result.success) {
     responseText = `# ✅ Production Activation ${result.status === 'ACTIVE' ? 'Complete' : 'Initiated'}\n\n`;
     if (result.activationId) {
@@ -267,7 +264,7 @@ export async function activatePropertyToProduction(
     responseText = `# ❌ Production Activation Failed\n\n`;
     if (result.errors && result.errors.length > 0) {
       responseText += `## Errors\n\n`;
-      result.errors.forEach(error => {
+      result.errors.forEach((error) => {
         responseText += `- ${error}\n`;
       });
     }
@@ -275,15 +272,17 @@ export async function activatePropertyToProduction(
 
   if (result.warnings && result.warnings.length > 0) {
     responseText += `\n## ⚠️ Warnings\n\n`;
-    result.warnings.forEach(warning => {
+    result.warnings.forEach((warning) => {
       responseText += `- ${warning}\n`;
     });
   }
 
   return {
-    content: [{
-      type: 'text',
-      text: responseText
-    }]
+    content: [
+      {
+        type: 'text',
+        text: responseText,
+      },
+    ],
   };
 }

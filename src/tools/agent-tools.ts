@@ -3,24 +3,18 @@
  * Provides MCP-compatible interfaces to agent functionality
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { 
-  CDNProvisioningAgent, 
-  createCDNProvisioningAgent 
-} from '../agents/cdn-provisioning.agent';
-import { 
-  CPSCertificateAgent, 
-  createCPSCertificateAgent 
-} from '../agents/cps-certificate.agent';
-import { 
-  DNSMigrationAgent, 
-  createDNSMigrationAgent 
-} from '../agents/dns-migration.agent';
-import { 
-  AkamaiOrchestrator, 
-  createOrchestrator 
-} from '../orchestration/index';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import {
+  type CDNProvisioningAgent,
+  createCDNProvisioningAgent,
+} from '@agents/cdn-provisioning.agent';
+import {
+  type CPSCertificateAgent,
+  createCPSCertificateAgent,
+} from '@agents/cps-certificate.agent';
+import { type DNSMigrationAgent, createDNSMigrationAgent } from '@agents/dns-migration.agent';
+import { type AkamaiOrchestrator, createOrchestrator } from '../orchestration/index';
 
 // Agent cache
 const agentCache = new Map<string, any>();
@@ -86,28 +80,25 @@ export async function provisionCompleteProperty(
     activateStaging?: boolean;
     activateProduction?: boolean;
     notifyEmails?: string[];
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const agent = await getCDNAgent(client.getCustomer());
-    
-    await agent.provisionCompleteProperty(
-      args.propertyName,
-      args.hostnames,
-      args.originHostname,
-      {
-        productId: args.productId,
-        activateStaging: args.activateStaging,
-        activateProduction: args.activateProduction,
-        notifyEmails: args.notifyEmails,
-      }
-    );
+
+    await agent.provisionCompleteProperty(args.propertyName, args.hostnames, args.originHostname, {
+      productId: args.productId,
+      activateStaging: args.activateStaging,
+      activateProduction: args.activateProduction,
+      notifyEmails: args.notifyEmails,
+    });
 
     return {
-      content: [{
-        type: 'text',
-        text: `Successfully provisioned property ${args.propertyName} with ${args.hostnames.length} hostnames`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Successfully provisioned property ${args.propertyName} with ${args.hostnames.length} hostnames`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error provisioning property:', error);
@@ -122,23 +113,25 @@ export async function clonePropertyVersion(
     sourceVersion: number;
     targetPropertyId: string;
     note?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const agent = await getCDNAgent(client.getCustomer());
-    
+
     const result = await agent.clonePropertyVersion(
       args.sourcePropertyId,
       args.sourceVersion,
       args.targetPropertyId,
-      args.note
+      args.note,
     );
 
     return {
-      content: [{
-        type: 'text',
-        text: `Successfully cloned version ${args.sourceVersion} from ${args.sourcePropertyId} to ${args.targetPropertyId} (new version: ${result.propertyVersion})`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Successfully cloned version ${args.sourceVersion} from ${args.sourcePropertyId} to ${args.targetPropertyId} (new version: ${result.propertyVersion})`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error cloning property version:', error);
@@ -153,23 +146,25 @@ export async function applyPropertyTemplate(
     version: number;
     template: 'origin' | 'caching' | 'performance' | 'security';
     templateOptions?: any;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const agent = await getCDNAgent(client.getCustomer());
-    
+
     await agent.applyRuleTemplate(
       args.propertyId,
       args.version,
       args.template,
-      args.templateOptions
+      args.templateOptions,
     );
 
     return {
-      content: [{
-        type: 'text',
-        text: `Successfully applied ${args.template} template to property ${args.propertyId} version ${args.version}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Successfully applied ${args.template} template to property ${args.propertyId} version ${args.version}`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error applying template:', error);
@@ -187,26 +182,25 @@ export async function provisionAndDeployCertificate(
     network?: 'staging' | 'production';
     propertyIds?: string[];
     autoRenewal?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const agent = await getCPSAgent(client.getCustomer());
-    
-    await agent.provisionAndDeployCertificate(
-      args.domains,
-      {
-        type: args.type,
-        network: args.network,
-        propertyIds: args.propertyIds,
-        autoRenewal: args.autoRenewal,
-      }
-    );
+
+    await agent.provisionAndDeployCertificate(args.domains, {
+      type: args.type,
+      network: args.network,
+      propertyIds: args.propertyIds,
+      autoRenewal: args.autoRenewal,
+    });
 
     return {
-      content: [{
-        type: 'text',
-        text: `Successfully provisioned and deployed certificate for ${args.domains.length} domains`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Successfully provisioned and deployed certificate for ${args.domains.length} domains`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error provisioning certificate:', error);
@@ -219,21 +213,20 @@ export async function automatedDNSValidation(
   args: {
     enrollmentId: number;
     autoCreateRecords?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const agent = await getCPSAgent(client.getCustomer());
-    
-    await agent.automatedDNSValidation(
-      args.enrollmentId,
-      args.autoCreateRecords
-    );
+
+    await agent.automatedDNSValidation(args.enrollmentId, args.autoCreateRecords);
 
     return {
-      content: [{
-        type: 'text',
-        text: `DNS validation completed for enrollment ${args.enrollmentId}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `DNS validation completed for enrollment ${args.enrollmentId}`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error with DNS validation:', error);
@@ -245,18 +238,20 @@ export async function processCertificateRenewal(
   client: AkamaiClient,
   args: {
     enrollmentId: number;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const agent = await getCPSAgent(client.getCustomer());
-    
+
     await agent.processCertificateRenewal(args.enrollmentId);
 
     return {
-      content: [{
-        type: 'text',
-        text: `Successfully renewed certificate ${args.enrollmentId}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Successfully renewed certificate ${args.enrollmentId}`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error renewing certificate:', error);
@@ -272,22 +267,24 @@ export async function importZoneFromCloudflare(
     cfApiToken: string;
     cfZoneId: string;
     targetZoneName: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const agent = await getDNSAgent(client.getCustomer());
-    
+
     const result = await agent.importFromCloudflare(
       args.cfApiToken,
       args.cfZoneId,
-      args.targetZoneName
+      args.targetZoneName,
     );
 
     return {
-      content: [{
-        type: 'text',
-        text: `Successfully imported ${result.recordsImported} records from Cloudflare zone to ${args.targetZoneName}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Successfully imported ${result.recordsImported} records from Cloudflare zone to ${args.targetZoneName}`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error importing from Cloudflare:', error);
@@ -302,11 +299,11 @@ export async function bulkDNSMigration(
     sourceType: 'cloudflare' | 'route53' | 'axfr';
     sourceConfig: any;
     parallel?: number;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const orchestrator = await getOrchestrator(client.getCustomer());
-    
+
     await orchestrator.bulkDNSMigration({
       zones: args.zones,
       sourceType: args.sourceType,
@@ -315,10 +312,12 @@ export async function bulkDNSMigration(
     });
 
     return {
-      content: [{
-        type: 'text',
-        text: `Bulk DNS migration completed for ${args.zones.length} zones`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Bulk DNS migration completed for ${args.zones.length} zones`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error with bulk DNS migration:', error);
@@ -339,18 +338,20 @@ export async function migrateWebsite(
     activateStaging?: boolean;
     activateProduction?: boolean;
     notifyEmails?: string[];
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const orchestrator = await getOrchestrator(client.getCustomer());
-    
+
     await orchestrator.migrateWebsite(args);
 
     return {
-      content: [{
-        type: 'text',
-        text: `Successfully migrated ${args.domain} from ${args.sourceProvider} to Akamai`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Successfully migrated ${args.domain} from ${args.sourceProvider} to Akamai`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error migrating website:', error);
@@ -368,18 +369,20 @@ export async function provisionSecureWebsite(
     enableDDoS?: boolean;
     cacheStrategy?: 'aggressive' | 'moderate' | 'minimal';
     notifyEmails?: string[];
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const orchestrator = await getOrchestrator(client.getCustomer());
-    
+
     await orchestrator.provisionSecureWebsite(args);
 
     return {
-      content: [{
-        type: 'text',
-        text: `Successfully provisioned secure website for ${args.domains.join(', ')}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Successfully provisioned secure website for ${args.domains.join(', ')}`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error provisioning secure website:', error);

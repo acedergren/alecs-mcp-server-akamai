@@ -3,8 +3,8 @@
  * Implements rule tree operations, behaviors, criteria, and domain validation
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
 
 /**
  * List available behaviors for a property
@@ -17,38 +17,40 @@ export async function listAvailableBehaviors(
     productId?: string;
     ruleFormat?: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Get property details if needed
     let productId = args.productId;
     let ruleFormat = args.ruleFormat;
-    
+
     if (!productId || !ruleFormat) {
       const propertyResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
-      
+
       const property = propertyResponse.properties?.items?.[0];
       if (!property) {
         return {
-          content: [{
-            type: 'text',
-            text: `❌ Property ${args.propertyId} not found.`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `❌ Property ${args.propertyId} not found.`,
+            },
+          ],
         };
       }
-      
+
       productId = productId || property.productId;
-      
+
       // Get rule format from latest version
       const version = args.version || property.latestVersion || 1;
       const rulesResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
         method: 'GET',
       });
-      
+
       ruleFormat = ruleFormat || rulesResponse.ruleFormat;
     }
 
@@ -64,10 +66,12 @@ export async function listAvailableBehaviors(
 
     if (!response.behaviors?.items || response.behaviors.items.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: `No behaviors found for product ${productId} with rule format ${ruleFormat}.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `No behaviors found for product ${productId} with rule format ${ruleFormat}.`,
+          },
+        ],
       };
     }
 
@@ -86,7 +90,7 @@ export async function listAvailableBehaviors(
 
     for (const [category, behaviors] of Object.entries(behaviorsByCategory)) {
       text += `## ${category}\n\n`;
-      
+
       for (const behavior of behaviors as any[]) {
         text += `### ${behavior.displayName || behavior.name}\n`;
         text += `- **Name:** \`${behavior.name}\`\n`;
@@ -126,10 +130,12 @@ export async function listAvailableBehaviors(
     text += `- List criteria: \`"List available criteria for property ${args.propertyId}"\`\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('list available behaviors', error);
@@ -147,38 +153,40 @@ export async function listAvailableCriteria(
     productId?: string;
     ruleFormat?: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Get property details if needed
     let productId = args.productId;
     let ruleFormat = args.ruleFormat;
-    
+
     if (!productId || !ruleFormat) {
       const propertyResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
-      
+
       const property = propertyResponse.properties?.items?.[0];
       if (!property) {
         return {
-          content: [{
-            type: 'text',
-          text: `❌ Property ${args.propertyId} not found.`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `❌ Property ${args.propertyId} not found.`,
+            },
+          ],
         };
       }
-      
+
       productId = productId || property.productId;
-      
+
       // Get rule format from latest version
       const version = args.version || property.latestVersion || 1;
       const rulesResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
         method: 'GET',
       });
-      
+
       ruleFormat = ruleFormat || rulesResponse.ruleFormat;
     }
 
@@ -194,10 +202,12 @@ export async function listAvailableCriteria(
 
     if (!response.criteria?.items || response.criteria.items.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: `No criteria found for product ${productId} with rule format ${ruleFormat}.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `No criteria found for product ${productId} with rule format ${ruleFormat}.`,
+          },
+        ],
       };
     }
 
@@ -216,7 +226,7 @@ export async function listAvailableCriteria(
 
     for (const [category, criteria] of Object.entries(criteriaByCategory)) {
       text += `## ${category}\n\n`;
-      
+
       for (const criterion of criteria as any[]) {
         text += `### ${criterion.displayName || criterion.name}\n`;
         text += `- **Name:** \`${criterion.name}\`\n`;
@@ -255,10 +265,12 @@ export async function listAvailableCriteria(
     text += `- List behaviors: \`"List available behaviors for property ${args.propertyId}"\`\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('list available criteria', error);
@@ -281,7 +293,7 @@ export async function patchPropertyRules(
     }>;
     validateRules?: boolean;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Get property details and version
@@ -289,17 +301,19 @@ export async function patchPropertyRules(
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
-    
+
     const property = propertyResponse.properties?.items?.[0];
     if (!property) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Property ${args.propertyId} not found.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ Property ${args.propertyId} not found.`,
+          },
+        ],
       };
     }
-    
+
     const version = args.version || property.latestVersion || 1;
 
     // Apply patches
@@ -352,10 +366,12 @@ export async function patchPropertyRules(
     text += `- Activate changes: \`"Activate property ${args.propertyId} version ${version} to staging"\`\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('patch property rules', error);
@@ -373,7 +389,7 @@ export async function bulkSearchProperties(
     contractIds?: string[];
     groupIds?: string[];
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Initiate bulk search
@@ -411,7 +427,7 @@ export async function bulkSearchProperties(
     text += `**Search ID:** ${bulkSearchId}\n`;
     text += `**JSONPath Query:** \`${args.jsonPath}\`\n`;
     text += `**Network:** ${args.network || 'All versions'}\n`;
-    
+
     if (args.contractIds?.length) {
       text += `**Contracts:** ${args.contractIds.join(', ')}\n`;
     }
@@ -421,7 +437,7 @@ export async function bulkSearchProperties(
 
     text += `\n## Search Status\n`;
     text += `The bulk search is running asynchronously. This may take several minutes.\n\n`;
-    
+
     text += `## Next Steps\n`;
     text += `Check search status and get results:\n`;
     text += `\`"Get bulk search results ${bulkSearchId}"\`\n\n`;
@@ -432,10 +448,12 @@ export async function bulkSearchProperties(
     text += `- Find CP codes: \`$.rules..behaviors[?(@.name == "cpCode")].options.value.id\`\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('bulk search properties', error);
@@ -450,7 +468,7 @@ export async function getBulkSearchResults(
   args: {
     bulkSearchId: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const response = await client.request({
@@ -460,26 +478,30 @@ export async function getBulkSearchResults(
 
     if (!response.results) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Bulk search ${args.bulkSearchId} not found.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ Bulk search ${args.bulkSearchId} not found.`,
+          },
+        ],
       };
     }
 
     let text = `# Bulk Search Results: ${args.bulkSearchId}\n\n`;
     text += `**Status:** ${response.searchStatus || 'Unknown'}\n`;
     text += `**Progress:** ${response.searchProgress || 0}%\n`;
-    
+
     if (response.searchStatus === 'IN_PROGRESS') {
       text += `\n⏳ **Search still in progress...**\n`;
       text += `Check again in a few moments:\n`;
       text += `\`"Get bulk search results ${args.bulkSearchId}"\`\n`;
       return {
-        content: [{
-          type: 'text',
-          text,
-        }],
+        content: [
+          {
+            type: 'text',
+            text,
+          },
+        ],
       };
     }
 
@@ -491,7 +513,7 @@ export async function getBulkSearchResults(
         text += `No properties matched the search criteria.\n`;
       } else {
         text += `## Matching Properties\n\n`;
-        
+
         // Group by property
         const byProperty = results.reduce((acc: any, result: any) => {
           const key = result.propertyId;
@@ -506,7 +528,7 @@ export async function getBulkSearchResults(
           text += `- **Contract:** ${firstMatch.contractId}\n`;
           text += `- **Group:** ${firstMatch.groupId}\n`;
           text += `- **Versions with matches:** ${(matches as any[]).length}\n`;
-          
+
           for (const match of matches as any[]) {
             text += `  - Version ${match.propertyVersion}: ${match.matchLocations?.length || 0} match locations\n`;
           }
@@ -524,10 +546,12 @@ export async function getBulkSearchResults(
     text += `- Start new search: \`"Bulk search properties with JSONPath [query]"\`\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('get bulk search results', error);
@@ -543,25 +567,25 @@ export async function generateDomainValidationChallenges(
     domains: string[];
     validationMethod?: 'HTTP' | 'DNS';
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // This would typically integrate with CPS API for Default DV certificates
     // For now, provide guidance on the process
-    
+
     const method = args.validationMethod || 'HTTP';
-    
+
     let text = `# Domain Validation Challenges\n\n`;
     text += `**Validation Method:** ${method}\n`;
     text += `**Domains:** ${args.domains.length}\n\n`;
 
     for (const domain of args.domains) {
       text += `## ${domain}\n\n`;
-      
+
       if (method === 'HTTP') {
         const token = `akamai-domain-verification-${Math.random().toString(36).substring(7)}`;
         const path = `/.well-known/pki-validation/${token}.txt`;
-        
+
         text += `### HTTP Validation\n`;
         text += `1. Create a file at: \`${path}\`\n`;
         text += `2. File content:\n`;
@@ -574,7 +598,7 @@ export async function generateDomainValidationChallenges(
       } else {
         const recordName = `_acme-challenge.${domain}`;
         const recordValue = `akamai-validation-${Math.random().toString(36).substring(7)}`;
-        
+
         text += `### DNS Validation\n`;
         text += `Create a TXT record:\n`;
         text += `- **Name:** \`${recordName}\`\n`;
@@ -598,10 +622,12 @@ export async function generateDomainValidationChallenges(
     text += `   \`"Update property with Default DV certificate hostname"\`\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('generate domain validation challenges', error);
@@ -617,19 +643,19 @@ export async function resumeDomainValidation(
     enrollmentId: number;
     domains?: string[];
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // This would integrate with CPS API
     // For now, provide guidance
-    
+
     let text = `# Resume Domain Validation\n\n`;
     text += `**Enrollment ID:** ${args.enrollmentId}\n`;
-    
+
     if (args.domains?.length) {
       text += `**Domains to Resume:** ${args.domains.join(', ')}\n`;
     }
-    
+
     text += `\n## Validation Process\n`;
     text += `1. ✅ Validation challenges have been set up\n`;
     text += `2. ⏳ Resuming validation process...\n`;
@@ -650,10 +676,12 @@ export async function resumeDomainValidation(
     text += `3. Regenerate challenges if needed\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('resume domain validation', error);
@@ -671,33 +699,33 @@ export async function getPropertyAuditHistory(
     endDate?: string;
     limit?: number;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // This would typically use the audit API
     // For now, we'll get activation history as an example
-    
+
     const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/activations`,
       method: 'GET',
     });
 
     let text = `# Property Audit History: ${args.propertyId}\n\n`;
-    
+
     if (args.startDate) text += `**Start Date:** ${args.startDate}\n`;
     if (args.endDate) text += `**End Date:** ${args.endDate}\n`;
-    
+
     text += `\n## Recent Activations\n\n`;
-    
+
     if (!response.activations?.items || response.activations.items.length === 0) {
       text += `No activation history found.\n`;
     } else {
       text += `| Date | Version | Network | Status | User | Note |\n`;
       text += `|------|---------|---------|--------|------|------|\n`;
-      
+
       const limit = args.limit || 20;
       const activations = response.activations.items.slice(0, limit);
-      
+
       for (const activation of activations) {
         const date = new Date(activation.updateDate).toLocaleDateString();
         const version = `v${activation.propertyVersion}`;
@@ -705,7 +733,7 @@ export async function getPropertyAuditHistory(
         const status = activation.status;
         const user = activation.activatedBy || 'Unknown';
         const note = activation.note?.substring(0, 30) || '-';
-        
+
         text += `| ${date} | ${version} | ${network} | ${status} | ${user} | ${note} |\n`;
       }
     }
@@ -724,10 +752,12 @@ export async function getPropertyAuditHistory(
     text += `- Set up audit notifications: Use Control Center\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('get property audit history', error);
@@ -740,10 +770,10 @@ export async function getPropertyAuditHistory(
 function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
-  
+
   if (error instanceof Error) {
     errorMessage += `: ${error.message}`;
-    
+
     // Provide specific solutions based on error type
     if (error.message.includes('401') || error.message.includes('credentials')) {
       solution = '**Solution:** Check your ~/.edgerc file has valid credentials.';
@@ -757,12 +787,12 @@ function formatError(operation: string, error: any): MCPToolResponse {
   } else {
     errorMessage += `: ${String(error)}`;
   }
-  
+
   let text = errorMessage;
   if (solution) {
     text += `\n\n${solution}`;
   }
-  
+
   // Add general help
   text += '\n\n**Need Help?**\n';
   text += '- Rule tree docs: https://techdocs.akamai.com/property-mgr/reference/rule-trees\n';
@@ -770,9 +800,11 @@ function formatError(operation: string, error: any): MCPToolResponse {
   text += '- Criteria reference: https://techdocs.akamai.com/property-mgr/reference/criteria';
 
   return {
-    content: [{
-      type: 'text',
-      text,
-    }],
+    content: [
+      {
+        type: 'text',
+        text,
+      },
+    ],
   };
 }
