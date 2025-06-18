@@ -8,6 +8,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.5.1] - 2025-01-18
 
 ### Added
+- **Comprehensive Documentation**: Created extensive guides for property onboarding
+  - MCP Usage Guide with detailed protocol examples
+  - Conversational examples showing natural language prompts
+  - Step-by-step onboarding workflow documentation
+  - Troubleshooting guide with common issues and solutions
+- **Testing Scripts**: Multiple test and demo scripts for validation
+  - Real API connection testing
+  - Property existence checking
+  - MCP protocol demonstrations
+  - Interactive onboarding examples
+
+### Enhanced
+- **User Experience**: Improved onboarding with natural language support
+  - Conversational prompts for average users
+  - Clear success indicators and next steps
+  - Comprehensive error messages
+  - Interactive shell scripts for testing
+
+### Documentation
+- Created `MCP_USAGE_GUIDE.md` with complete usage instructions
+- Created `conversational-examples.md` with real-world prompts
+- Created `ONBOARDING_SUMMARY.md` with workflow details
+- Added multiple demo and test scripts for validation
+
+### Added
 - **CP Code Creation**: Automatic CP Code generation during property onboarding
   - Creates CP Code with property hostname-based naming
   - Integrates CP Code into property rule configuration
