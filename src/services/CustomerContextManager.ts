@@ -4,7 +4,7 @@
  */
 
 import { AuthorizationManager } from '@/auth/AuthorizationManager';
-import { EdgeGridAuth } from '@/auth/EdgeGridAuth';
+// import { EdgeGridAuth } from '@/auth/EdgeGridAuth'; // Not used after refactor
 import { OAuthManager } from '@/auth/oauth/OAuthManager';
 import { AkamaiClient } from '@/akamai-client';
 import type {
@@ -284,10 +284,6 @@ export class CustomerContextManager {
       session.profile.sub,
     );
 
-    // Clear cached EdgeGrid client
-    const credentialList = this.credentialManager.listCustomerCredentials(
-      session.currentContext!.customerId,
-    );
     // No cache to clear anymore
 
     logger.info('Customer credentials rotated', {
@@ -490,10 +486,7 @@ export class CustomerContextManager {
    * Revoke session
    */
   async revokeSession(sessionId: string): Promise<void> {
-    // Clear cached EdgeGrid clients for this session
-    const session = this.oauthManager.getSession(sessionId);
     // No cache to clear anymore
-
     await this.oauthManager.revokeSession(sessionId);
   }
 

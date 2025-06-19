@@ -20,7 +20,9 @@ jest.mock('@/utils/logger');
 jest.mock('@/utils/customer-config');
 
 // Mock timers for rotation testing
-jest.useFakeTimers();
+jest.useFakeTimers({ 
+  doNotFake: ['nextTick', 'setImmediate'],
+});
 
 describe('SecureCredentialManager', () => {
   let credentialManager: SecureCredentialManager;
@@ -838,10 +840,10 @@ describe('SecureCredentialManager', () => {
 
     it('should handle special characters in credentials', async () => {
       const specialCredentials: EdgeGridCredentials = {
-        clientSecret: '!@#$%^&*()_+-=[]{}|;:"<>,.?/~`',
+        client_secret: '!@#$%^&*()_+-=[]{}|;:"<>,.?/~`',
         host: 'https://test.akamai.com',
-        accessToken: '\\n\\r\\t\\0',
-        clientToken: '🔐🔑🛡️',
+        access_token: '\\n\\r\\t\\0',
+        client_token: '🔐🔑🛡️',
       };
 
       const credentialId = await credentialManager.encryptCredentials(
@@ -862,7 +864,7 @@ describe('SecureCredentialManager', () => {
         .fill(null)
         .map((_, i) =>
           credentialManager.encryptCredentials(
-            { ...testCredentials, clientSecret: `secret-${i}` },
+            { ...testCredentials, client_secret: `secret-${i}` },
             `customer-${i}`,
           ),
         );
