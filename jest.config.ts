@@ -130,8 +130,8 @@ const config: Config = {
   
   // Watch plugins for better development experience
   watchPlugins: [
-    'jest-watch-typeahead/filename',
-    'jest-watch-typeahead/testname',
+    // 'jest-watch-typeahead/filename',
+    // 'jest-watch-typeahead/testname',
   ],
   
   // Error handling
