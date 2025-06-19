@@ -8,6 +8,9 @@ yarn-error.log*
 .temp.md
 *.temp.md
 
+# Archive folder
+.archive/
+
 # Build outputs
 dist/
 .tsbuildinfo
