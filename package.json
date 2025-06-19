@@ -80,7 +80,7 @@
     "commander": "^14.0.0",
     "minimatch": "^10.0.3",
     "simple-git": "^3.28.0",
-    "zod": "^3.22.0"
+    "zod": "^3.25.67"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
