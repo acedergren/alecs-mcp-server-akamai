@@ -73,7 +73,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.5.0",
+    "@modelcontextprotocol/sdk": "^1.13.0",
     "@types/commander": "^2.12.0",
     "@types/ioredis": "^4.28.10",
     "akamai-edgegrid": "^3.4.0",
