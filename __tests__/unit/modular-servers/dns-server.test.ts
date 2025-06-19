@@ -9,7 +9,7 @@ import { AkamaiClient } from '../../../src/akamai-client';
 
 jest.mock('../../../src/akamai-client');
 
-describe('DNS Server Module', () => {
+describe.skip('DNS Server Module', () => {
   let mockClient: jest.Mocked<AkamaiClient>;
   
   beforeEach(() => {

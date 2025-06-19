@@ -370,7 +370,7 @@ describe.skip('MCP Server Initialization (Fixed)', () => {
       const mockClientInstance = {
         request: jest.fn(() => Promise.resolve({ properties: [] })),
       };
-      (AkamaiClient as any).mockImplementation((_, customer) => {
+      (AkamaiClient as any).mockImplementation((_: any, customer: any) => {
         expect(customer).toBe('default');
         return mockClientInstance;
       });

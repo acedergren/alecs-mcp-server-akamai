@@ -285,6 +285,7 @@ describe.skip('Modular Server Integration', () => {
             }]
           };
         }
+        return { content: [] };
       });
 
       const server = new Server({
@@ -317,6 +318,7 @@ describe.skip('Modular Server Integration', () => {
             }]
           };
         }
+        return { content: [] };
       });
 
       const server = new Server({

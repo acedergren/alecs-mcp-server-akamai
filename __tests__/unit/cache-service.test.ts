@@ -8,35 +8,34 @@ import { ValkeyCache, CacheTTL } from '../../src/services/valkey-cache-service';
 import { AkamaiCacheService } from '../../src/services/akamai-cache-service';
 
 // Mock ioredis
-jest.mock('ioredis', () => {
-  return {
-    default: jest.fn().mockImplementation(() => ({
-      connect: jest.fn(() => Promise.resolve()),
-      get: jest.fn(),
-      set: jest.fn(),
-      setex: jest.fn(),
-      del: jest.fn(),
-      ttl: jest.fn(),
-      mget: jest.fn(),
-      expire: jest.fn(),
-      hincrby: jest.fn(),
-      hgetall: jest.fn(),
-      flushdb: jest.fn(),
-      quit: jest.fn(),
-      on: jest.fn(),
-      status: 'ready',
-    })),
-  };
-});
+const mockRedisInstance = {
+  connect: jest.fn(() => Promise.resolve()),
+  get: jest.fn(),
+  set: jest.fn(),
+  setex: jest.fn(),
+  del: jest.fn(),
+  ttl: jest.fn(),
+  mget: jest.fn(),
+  expire: jest.fn(),
+  hincrby: jest.fn(),
+  hgetall: jest.fn(),
+  flushdb: jest.fn(),
+  quit: jest.fn(),
+  on: jest.fn(),
+  status: 'ready',
+};
+
+jest.mock('ioredis', () => ({
+  __esModule: true,
+  default: jest.fn(() => mockRedisInstance),
+  Cluster: jest.fn(() => mockRedisInstance),
+}));
 
 describe('Cache Service Unit Tests', () => {
   let cache: ValkeyCache;
-  let mockRedisInstance: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    const Redis = require('ioredis').default;
-    mockRedisInstance = new Redis();
     cache = new ValkeyCache({ keyPrefix: 'test:' });
   });
 
