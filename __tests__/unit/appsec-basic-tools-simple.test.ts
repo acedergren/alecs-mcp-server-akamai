@@ -13,7 +13,7 @@ import {
 import { AkamaiClient } from '../../src/akamai-client';
 
 // Mock AkamaiClient
-jest.mock('../akamai-client', () => ({
+jest.mock('../../src/akamai-client', () => ({
   AkamaiClient: jest.fn().mockImplementation(() => ({
     request: jest.fn()
   }))

@@ -12,7 +12,7 @@ import {
 } from '../../src/tools/integration-testing-tools';
 
 // Mock the AkamaiClient
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 
 describe('Integration Testing Tools', () => {
   let mockClient: jest.Mocked<AkamaiClient>;

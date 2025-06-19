@@ -13,7 +13,7 @@ import {
 import { globalResilienceManager, OperationType } from '@utils/resilience-manager';
 
 // Mock the AkamaiClient
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 
 describe('Resilience Tools', () => {
   let mockClient: jest.Mocked<AkamaiClient>;

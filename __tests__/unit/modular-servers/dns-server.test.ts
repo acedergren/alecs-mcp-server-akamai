@@ -5,9 +5,9 @@
 
 import { jest } from '@jest/globals';
 import { spawn } from 'child_process';
-import { AkamaiClient } from '../../akamai-client';
+import { AkamaiClient } from '../../../src/akamai-client';
 
-jest.mock('../../akamai-client');
+jest.mock('../../src/akamai-client');
 
 describe('DNS Server Module', () => {
   let mockClient: jest.Mocked<AkamaiClient>;

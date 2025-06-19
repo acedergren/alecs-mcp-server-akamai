@@ -13,7 +13,7 @@ import {
 import { globalPerformanceMonitor, responseCache, metadataCache } from '@utils/performance-monitor';
 
 // Mock the AkamaiClient
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 
 describe('Performance Tools', () => {
   let mockClient: jest.Mocked<AkamaiClient>;

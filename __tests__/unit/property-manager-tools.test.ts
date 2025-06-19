@@ -11,7 +11,7 @@ import {
 } from '../../src/tools/property-manager-tools';
 
 // Mock the AkamaiClient
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 
 describe('Property Manager Extended Tools', () => {
   let mockClient: jest.Mocked<AkamaiClient>;

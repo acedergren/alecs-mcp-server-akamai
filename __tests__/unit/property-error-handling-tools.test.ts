@@ -12,7 +12,7 @@ import {
 } from '../../src/tools/property-error-handling-tools';
 
 // Mock the AkamaiClient
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 
 describe('Property Error Handling Tools', () => {
   let mockClient: jest.Mocked<AkamaiClient>;

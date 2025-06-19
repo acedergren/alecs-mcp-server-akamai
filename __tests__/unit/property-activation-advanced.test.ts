@@ -14,7 +14,7 @@ import { AkamaiClient } from '../../src/akamai-client';
 import { validateMCPResponse } from '../../src/testing/test-utils';
 
 // Mock the AkamaiClient
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 
 describe('Advanced Property Activation Tools', () => {
   let mockClient: jest.Mocked<AkamaiClient>;

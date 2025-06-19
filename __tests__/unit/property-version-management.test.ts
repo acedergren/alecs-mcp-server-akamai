@@ -13,7 +13,7 @@ import {
 import { AkamaiClient } from '../../src/akamai-client';
 
 // Mock AkamaiClient
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 
 describe('Property Version Management Tools', () => {
   let mockClient: jest.Mocked<AkamaiClient>;

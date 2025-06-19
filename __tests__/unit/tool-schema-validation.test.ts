@@ -8,7 +8,7 @@ import { jest } from '@jest/globals';
 // Mock modules
 jest.mock('@modelcontextprotocol/sdk/server/index');
 jest.mock('@modelcontextprotocol/sdk/server/stdio');
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 
 // Simple Ajv mock for testing
 class MockAjv {
