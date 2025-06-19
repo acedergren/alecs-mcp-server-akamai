@@ -374,7 +374,7 @@ describe.skip('Cross-Module Workflows', () => {
       const summary = {
         properties: properties.properties.items.length,
         dnsZones: zones.zones.length,
-        activeCertificates: certificates.enrollments.filter(e => e.status === 'active').length,
+        activeCertificates: certificates.enrollments.filter((e: any) => e.status === 'active').length,
         networkLists: networkLists.networkLists.length,
         totalTrafficGB: traffic.data.summaries[0].bytesOut / (1024 * 1024 * 1024),
         cacheHitRatio: traffic.data.summaries[0].cacheHitRatio
@@ -449,7 +449,7 @@ describe.skip('Cross-Module Workflows', () => {
 
       expect(dnsRecord.type).toBe('A');
       expect(activationError).toBeDefined();
-      expect(activationError.status).toBe(400);
+      expect((activationError as any).status).toBe(400);
     });
   });
 });

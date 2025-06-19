@@ -191,15 +191,17 @@ export class AuthorizationManager {
         return isolationCheck;
       }
 
-      // Evaluate permissions
-      const permissionCheck = await this.evaluatePermissions(
-        context.permissions,
-        policyContext,
-        context.customerContext,
-      );
+      // Evaluate direct permissions first
+      if (context.permissions && context.permissions.length > 0) {
+        const permissionCheck = await this.evaluatePermissions(
+          context.permissions,
+          policyContext,
+          context.customerContext,
+        );
 
-      if (!permissionCheck.allowed) {
-        return permissionCheck;
+        if (permissionCheck.allowed) {
+          return permissionCheck;
+        }
       }
 
       // Check role-based permissions
@@ -320,7 +322,7 @@ export class AuthorizationManager {
 
     return {
       allowed: false,
-      reason: 'No matching permissions',
+      reason: 'No matching direct permissions',
       missingPermissions,
     };
   }
@@ -453,7 +455,7 @@ export class AuthorizationManager {
 
     return {
       allowed: false,
-      reason: 'No matching role permissions',
+      reason: roleIds.length === 0 ? 'No matching permissions' : 'No matching role permissions',
       missingPermissions: this.getMissingPermissions(policyContext),
     };
   }

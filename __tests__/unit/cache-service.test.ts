@@ -9,26 +9,23 @@ import { AkamaiCacheService } from '../../src/services/akamai-cache-service';
 
 // Mock ioredis
 jest.mock('ioredis', () => {
-  const mockRedis = {
-    connect: jest.fn().mockResolvedValue(undefined),
-    get: jest.fn(),
-    set: jest.fn(),
-    setex: jest.fn(),
-    del: jest.fn(),
-    ttl: jest.fn(),
-    mget: jest.fn(),
-    expire: jest.fn(),
-    hincrby: jest.fn(),
-    hgetall: jest.fn(),
-    flushdb: jest.fn(),
-    quit: jest.fn(),
-    on: jest.fn(),
-    status: 'ready',
-  };
-
   return {
-    default: jest.fn(() => mockRedis),
-    Redis: jest.fn(() => mockRedis),
+    default: jest.fn().mockImplementation(() => ({
+      connect: jest.fn(() => Promise.resolve()),
+      get: jest.fn(),
+      set: jest.fn(),
+      setex: jest.fn(),
+      del: jest.fn(),
+      ttl: jest.fn(),
+      mget: jest.fn(),
+      expire: jest.fn(),
+      hincrby: jest.fn(),
+      hgetall: jest.fn(),
+      flushdb: jest.fn(),
+      quit: jest.fn(),
+      on: jest.fn(),
+      status: 'ready',
+    })),
   };
 });
 
@@ -85,7 +82,7 @@ describe('Cache Service Unit Tests', () => {
     });
 
     it('should warn about large values', async () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       const largeValue = 'x'.repeat(60 * 1024 * 1024); // 60MB string
       
       await cache.set('large', largeValue, 60);
@@ -145,9 +142,9 @@ describe('Cache Service Unit Tests', () => {
       mockRedisInstance.get.mockResolvedValue(JSON.stringify({ data: 'cached' }));
       mockRedisInstance.ttl.mockResolvedValue(50); // 50 seconds remaining
       
-      const fetchFn = jest.fn().mockResolvedValue({ data: 'fresh' });
+      const fetchFn = jest.fn<() => Promise<{ data: string }>>().mockResolvedValue({ data: 'fresh' });
       
-      const result = await cache.getWithRefresh('key', 60, fetchFn);
+      const result = await cache.getWithRefresh('key', 60, fetchFn as any);
       
       expect(result).toEqual({ data: 'cached' });
       expect(fetchFn).not.toHaveBeenCalled();
@@ -157,9 +154,9 @@ describe('Cache Service Unit Tests', () => {
       mockRedisInstance.get.mockResolvedValue(JSON.stringify({ data: 'cached' }));
       mockRedisInstance.ttl.mockResolvedValue(10); // Only 10 seconds remaining
       
-      const fetchFn = jest.fn().mockResolvedValue({ data: 'fresh' });
+      const fetchFn = jest.fn<() => Promise<{ data: string }>>().mockResolvedValue({ data: 'fresh' });
       
-      const result = await cache.getWithRefresh('key', 60, fetchFn, {
+      const result = await cache.getWithRefresh('key', 60, fetchFn as any, {
         refreshThreshold: 0.2, // Refresh when 20% remains (12 seconds)
       });
       
@@ -175,9 +172,9 @@ describe('Cache Service Unit Tests', () => {
       mockRedisInstance.set.mockResolvedValue('OK');
       mockRedisInstance.setex.mockResolvedValue('OK');
       
-      const fetchFn = jest.fn().mockResolvedValue({ data: 'fetched' });
+      const fetchFn = jest.fn<() => Promise<{ data: string }>>().mockResolvedValue({ data: 'fetched' });
       
-      const result = await cache.getWithRefresh('key', 60, fetchFn);
+      const result = await cache.getWithRefresh('key', 60, fetchFn as any);
       
       expect(result).toEqual({ data: 'fetched' });
       expect(fetchFn).toHaveBeenCalled();
@@ -250,7 +247,7 @@ describe('Cache Service Unit Tests', () => {
     it('should handle property invalidation', async () => {
       mockRedisInstance.del.mockResolvedValue(3);
       mockRedisInstance.scanStream = jest.fn().mockReturnValue({
-        on: jest.fn((event, callback) => {
+        on: jest.fn((event: string, callback: any) => {
           if (event === 'data') {
             callback(['test:customer1:search:key1', 'test:customer1:search:key2']);
           } else if (event === 'end') {

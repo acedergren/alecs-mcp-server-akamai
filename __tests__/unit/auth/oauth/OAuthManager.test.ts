@@ -64,6 +64,9 @@ describe('OAuthManager', () => {
     });
 
     it('should initialize with provider configurations from environment', () => {
+      // Set providers to check
+      process.env.OAUTH_PROVIDERS = 'github';
+      
       // Reset singleton to trigger initialization
       (OAuthManager as any).instance = undefined;
       const manager = OAuthManager.getInstance();
@@ -71,6 +74,8 @@ describe('OAuthManager', () => {
       expect(mockLogger.warn).toHaveBeenCalledWith(
         'OAuth provider github configuration incomplete'
       );
+      
+      delete process.env.OAUTH_PROVIDERS;
     });
   });
 
@@ -516,6 +521,9 @@ describe('OAuthManager', () => {
     });
 
     it('should refresh token successfully', async () => {
+      // Add small delay to ensure different timestamps
+      await new Promise(resolve => setTimeout(resolve, 10));
+      
       const newToken = await oauthManager.refreshToken(session.sessionId);
 
       expect(newToken).toMatchObject({
@@ -527,7 +535,7 @@ describe('OAuthManager', () => {
         issuedAt: expect.any(Number),
       });
 
-      expect(newToken.issuedAt).toBeGreaterThanOrEqual(session.token.issuedAt);
+      expect(newToken.issuedAt).toBeGreaterThan(session.token.issuedAt);
 
       const updatedSession = oauthManager.getSession(session.sessionId);
       expect(updatedSession?.token).toEqual(newToken);

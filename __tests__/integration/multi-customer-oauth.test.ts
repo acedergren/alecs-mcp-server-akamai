@@ -8,11 +8,13 @@ import { AuthorizationManager } from '@/auth/AuthorizationManager';
 import { CustomerContextManager } from '@/services/CustomerContextManager';
 import type {
   OAuthToken,
-  OAuthProvider,
   CustomerContext,
   Permission,
-  PermissionScope,
   Role,
+} from '@/auth/oauth/types';
+import {
+  OAuthProvider,
+  PermissionScope,
   IsolationLevel,
 } from '@/auth/oauth/types';
 import type { EdgeGridCredentials } from '@/types/config';
@@ -22,8 +24,10 @@ process.env.CREDENTIAL_MASTER_KEY = 'test-master-key-32-characters-long';
 process.env.OAUTH_PROVIDERS = 'google,okta';
 process.env.OAUTH_GOOGLE_CLIENT_ID = 'test-google-client';
 process.env.OAUTH_GOOGLE_CLIENT_SECRET = 'test-google-secret';
+process.env.OAUTH_GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo';
 process.env.OAUTH_OKTA_CLIENT_ID = 'test-okta-client';
 process.env.OAUTH_OKTA_CLIENT_SECRET = 'test-okta-secret';
+process.env.OAUTH_OKTA_USERINFO_URL = 'https://okta.example.com/oauth2/v1/userinfo';
 
 describe('Multi-Customer OAuth Integration', () => {
   let contextManager: CustomerContextManager;
@@ -412,10 +416,12 @@ describe('Multi-Customer OAuth Integration', () => {
             allowedIds: ['prop-1', 'prop-2'],
           },
         ],
-        networkRestrictions: {
-          allowedIpRanges: ['10.0.0.0/8'],
-          requireVpn: true,
-        },
+        networkRestrictions: [
+          {
+            allowedIpRanges: ['10.0.0.0/8'],
+            requireVpn: true,
+          }
+        ],
       });
 
       const policy = authManager.getCustomerIsolationPolicy('isolated-customer');

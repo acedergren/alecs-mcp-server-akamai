@@ -50,7 +50,7 @@ describe('TokenValidator', () => {
     mockCache = {
       get: jest.fn(),
       set: jest.fn(),
-      delete: jest.fn(),
+      del: jest.fn(),
     } as any;
 
     tokenValidator = new TokenValidator(defaultConfig, mockCache);
@@ -656,7 +656,7 @@ describe('TokenValidator', () => {
 
       await tokenValidator.revokeToken(token, 'access_token');
 
-      expect(mockCache.delete).toHaveBeenCalledWith(`token:validation:${hashedToken}`);
+      expect(mockCache.del).toHaveBeenCalledWith(`token:validation:${hashedToken}`);
       expect(mockLogger.info).toHaveBeenCalledWith('Token revoked', {
         tokenType: 'access_token',
       });

@@ -6,6 +6,7 @@
 import { AuthorizationManager } from '@/auth/AuthorizationManager';
 import { EdgeGridAuth } from '@/auth/EdgeGridAuth';
 import { OAuthManager } from '@/auth/oauth/OAuthManager';
+import { AkamaiClient } from '@/akamai-client';
 import type {
   OAuthToken,
   OAuthProvider,
@@ -58,7 +59,8 @@ export class CustomerContextManager {
   private readonly oauthManager: OAuthManager;
   private readonly credentialManager: SecureCredentialManager;
   private readonly authorizationManager: AuthorizationManager;
-  private edgeGridClients: Map<string, EdgeGridAuth> = new Map();
+  // Note: We no longer cache AkamaiClient instances as they are lightweight
+  // private edgeGridClients: Map<string, AkamaiClient> = new Map();
 
   private constructor() {
     this.oauthManager = OAuthManager.getInstance();
@@ -124,10 +126,7 @@ export class CustomerContextManager {
       targetCustomerId,
     );
 
-    // Clear cached EdgeGrid client for old context
-    if (session.currentContext) {
-      this.edgeGridClients.delete(session.currentContext.customerId);
-    }
+    // No cache to clear anymore
 
     logger.info('Customer context switched', {
       sessionId,
@@ -143,7 +142,7 @@ export class CustomerContextManager {
   /**
    * Get EdgeGrid client for customer
    */
-  async getEdgeGridClient(request: CustomerCredentialRequest): Promise<EdgeGridAuth> {
+  async getEdgeGridClient(request: CustomerCredentialRequest): Promise<AkamaiClient> {
     const { sessionId, customerId, purpose } = request;
 
     // Get session
@@ -179,37 +178,15 @@ export class CustomerContextManager {
       throw new Error(`Not authorized to access credentials: ${decision.reason}`);
     }
 
-    // Check cache
-    const cachedClient = this.edgeGridClients.get(customerId);
-    if (cachedClient) {
-      return cachedClient;
-    }
+    // For OAuth-based access, we still use the standard .edgerc file
+    // The OAuth layer only controls WHO can access WHICH customer section
+    // It does NOT replace EdgeRC authentication
+    
+    // Create standard AkamaiClient with the customer section from .edgerc
+    const client = new AkamaiClient(customerId);
 
-    // Get encrypted credentials
-    const credentialList = this.credentialManager.listCustomerCredentials(customerId);
-    if (credentialList.length === 0) {
-      throw new Error(`No credentials found for customer ${customerId}`);
-    }
-
-    // Use the most recent credential
-    const latestCredential = credentialList.sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
-    )[0];
-
-    // Decrypt credentials
-    const credentials = await this.credentialManager.decryptCredentials(
-      latestCredential!.id,
-      session.profile.sub,
-    );
-
-    // Create EdgeGrid client
-    const client = EdgeGridAuth.getInstance({
-      customer: customerId,
-      validateOnInit: true,
-    });
-
-    // Cache client
-    this.edgeGridClients.set(customerId, client);
+    // Note: We don't cache AkamaiClient instances as they are lightweight
+    // and the underlying EdgeGrid SDK handles its own connection pooling
 
     logger.info('EdgeGrid client created for customer', {
       customerId,
@@ -311,10 +288,7 @@ export class CustomerContextManager {
     const credentialList = this.credentialManager.listCustomerCredentials(
       session.currentContext!.customerId,
     );
-    const credential = credentialList.find((c) => c.id === credentialId);
-    if (credential) {
-      this.edgeGridClients.delete(credential.customerId);
-    }
+    // No cache to clear anymore
 
     logger.info('Customer credentials rotated', {
       oldCredentialId: credentialId,
@@ -518,11 +492,7 @@ export class CustomerContextManager {
   async revokeSession(sessionId: string): Promise<void> {
     // Clear cached EdgeGrid clients for this session
     const session = this.oauthManager.getSession(sessionId);
-    if (session) {
-      session.availableContexts.forEach((context) => {
-        this.edgeGridClients.delete(context.customerId);
-      });
-    }
+    // No cache to clear anymore
 
     await this.oauthManager.revokeSession(sessionId);
   }
@@ -533,17 +503,6 @@ export class CustomerContextManager {
   cleanupExpired(): void {
     this.oauthManager.cleanupExpiredSessions();
 
-    // Clean up orphaned EdgeGrid clients
-    const validCustomerIds = new Set<string>();
-
-    // Get all valid customer IDs from active sessions
-    // This would need to be implemented in OAuthManager
-
-    // Remove clients for customers without active sessions
-    this.edgeGridClients.forEach((client, customerId) => {
-      if (!validCustomerIds.has(customerId)) {
-        this.edgeGridClients.delete(customerId);
-      }
-    });
+    // No cache to clean up anymore
   }
 }

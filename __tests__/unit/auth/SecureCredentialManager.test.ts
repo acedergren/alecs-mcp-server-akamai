@@ -29,10 +29,10 @@ describe('SecureCredentialManager', () => {
   
   const masterKey = 'test-master-key-32-characters-long!!';
   const testCredentials: EdgeGridCredentials = {
-    clientSecret: 'test-client-secret',
+    client_secret: 'test-client-secret',
     host: 'https://test.akamai.com',
-    accessToken: 'test-access-token',
-    clientToken: 'test-client-token',
+    access_token: 'test-access-token',
+    client_token: 'test-client-token',
   };
 
   beforeEach(() => {
@@ -88,10 +88,9 @@ describe('SecureCredentialManager', () => {
     it('should encrypt credentials with rotation schedule', async () => {
       const customerId = 'customer-123';
       const rotationSchedule: CredentialRotationSchedule = {
-        enabled: true,
+        autoRotate: true,
         intervalDays: 30,
         nextRotation: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        autoRotate: true,
         notifications: {
           enabled: true,
           daysBeforeRotation: 7,
@@ -114,10 +113,9 @@ describe('SecureCredentialManager', () => {
     it('should schedule immediate rotation if rotation is due', async () => {
       const customerId = 'customer-123';
       const rotationSchedule: CredentialRotationSchedule = {
-        enabled: true,
+        autoRotate: true,
         intervalDays: 30,
         nextRotation: new Date(Date.now() - 1000), // Past date
-        autoRotate: true,
       };
 
       // Mock the performAutoRotation method
@@ -188,12 +186,12 @@ describe('SecureCredentialManager', () => {
       
       const credentials1: EdgeGridCredentials = {
         ...testCredentials,
-        clientSecret: 'secret1',
+        client_secret: 'secret1',
       };
       
       const credentials2: EdgeGridCredentials = {
         ...testCredentials,
-        clientSecret: 'secret2',
+        client_secret: 'secret2',
       };
 
       const id1 = await credentialManager.encryptCredentials(credentials1, customerId);
@@ -311,8 +309,8 @@ describe('SecureCredentialManager', () => {
     it('should rotate credentials successfully', async () => {
       const newCredentials: EdgeGridCredentials = {
         ...testCredentials,
-        clientSecret: 'new-client-secret',
-        accessToken: 'new-access-token',
+        client_secret: 'new-client-secret',
+        access_token: 'new-access-token',
       };
 
       const newCredentialId = await credentialManager.rotateCredentials(
@@ -348,10 +346,9 @@ describe('SecureCredentialManager', () => {
 
     it('should preserve rotation schedule during rotation', async () => {
       const rotationSchedule: CredentialRotationSchedule = {
-        enabled: true,
+        autoRotate: true,
         intervalDays: 30,
         nextRotation: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        autoRotate: true,
       };
 
       const originalId = await credentialManager.encryptCredentials(
@@ -362,7 +359,7 @@ describe('SecureCredentialManager', () => {
 
       const newCredentials: EdgeGridCredentials = {
         ...testCredentials,
-        clientSecret: 'rotated-secret',
+        client_secret: 'rotated-secret',
       };
 
       const newId = await credentialManager.rotateCredentials(
@@ -377,10 +374,9 @@ describe('SecureCredentialManager', () => {
 
     it('should cancel rotation timer for old credential', async () => {
       const rotationSchedule: CredentialRotationSchedule = {
-        enabled: true,
+        autoRotate: true,
         intervalDays: 30,
         nextRotation: new Date(Date.now() + 1000),
-        autoRotate: true,
       };
 
       const originalId = await credentialManager.encryptCredentials(
@@ -452,10 +448,9 @@ describe('SecureCredentialManager', () => {
 
     it('should update rotation schedule successfully', async () => {
       const newSchedule: CredentialRotationSchedule = {
-        enabled: true,
+        autoRotate: true,
         intervalDays: 60,
         nextRotation: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-        autoRotate: true,
         notifications: {
           enabled: true,
           daysBeforeRotation: 14,
@@ -484,10 +479,9 @@ describe('SecureCredentialManager', () => {
 
     it('should cancel existing timer when updating schedule', async () => {
       const initialSchedule: CredentialRotationSchedule = {
-        enabled: true,
+        autoRotate: true,
         intervalDays: 30,
         nextRotation: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        autoRotate: true,
       };
 
       const id = await credentialManager.encryptCredentials(
@@ -500,10 +494,9 @@ describe('SecureCredentialManager', () => {
       expect(initialTimer).toBeDefined();
 
       const newSchedule: CredentialRotationSchedule = {
-        enabled: true,
+        autoRotate: true,
         intervalDays: 60,
         nextRotation: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-        autoRotate: true,
       };
 
       await credentialManager.updateRotationSchedule(id, newSchedule, 'user-123');
@@ -517,10 +510,9 @@ describe('SecureCredentialManager', () => {
 
     it('should disable auto-rotation', async () => {
       const schedule: CredentialRotationSchedule = {
-        enabled: true,
+        autoRotate: false,
         intervalDays: 30,
         nextRotation: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        autoRotate: false,
       };
 
       await credentialManager.updateRotationSchedule(
@@ -535,10 +527,9 @@ describe('SecureCredentialManager', () => {
 
     it('should throw error for non-existent credential', async () => {
       const schedule: CredentialRotationSchedule = {
-        enabled: true,
+        autoRotate: true,
         intervalDays: 30,
         nextRotation: new Date(),
-        autoRotate: true,
       };
 
       await expect(
@@ -561,7 +552,7 @@ describe('SecureCredentialManager', () => {
         customerId,
       );
       const id2 = await credentialManager.encryptCredentials(
-        { ...testCredentials, clientSecret: 'different-secret' },
+        { ...testCredentials, client_secret: 'different-secret' },
         customerId,
       );
       const id3 = await credentialManager.encryptCredentials(
@@ -612,10 +603,9 @@ describe('SecureCredentialManager', () => {
 
     it('should cancel rotation timer when deleting', async () => {
       const rotationSchedule: CredentialRotationSchedule = {
-        enabled: true,
+        autoRotate: true,
         intervalDays: 30,
         nextRotation: new Date(Date.now() + 1000),
-        autoRotate: true,
       };
 
       const id = await credentialManager.encryptCredentials(
@@ -659,10 +649,9 @@ describe('SecureCredentialManager', () => {
   describe('Automatic rotation', () => {
     it('should perform automatic rotation', async () => {
       const rotationSchedule: CredentialRotationSchedule = {
-        enabled: true,
+        autoRotate: true,
         intervalDays: 30,
         nextRotation: new Date(Date.now() + 1000), // 1 second from now
-        autoRotate: true,
       };
 
       // Mock CustomerConfigManager
@@ -695,10 +684,9 @@ describe('SecureCredentialManager', () => {
 
     it('should handle automatic rotation failure', async () => {
       const rotationSchedule: CredentialRotationSchedule = {
-        enabled: true,
+        autoRotate: true,
         intervalDays: 30,
         nextRotation: new Date(Date.now() + 1000),
-        autoRotate: true,
       };
 
       // Mock CustomerConfigManager to throw error
@@ -731,10 +719,9 @@ describe('SecureCredentialManager', () => {
 
     it('should send rotation notification', async () => {
       const rotationSchedule: CredentialRotationSchedule = {
-        enabled: true,
+        autoRotate: true,
         intervalDays: 30,
         nextRotation: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), // 10 days
-        autoRotate: true,
         notifications: {
           enabled: true,
           daysBeforeRotation: 7,
@@ -830,10 +817,10 @@ describe('SecureCredentialManager', () => {
   describe('Edge cases', () => {
     it('should handle very large credentials', async () => {
       const largeCredentials: EdgeGridCredentials = {
-        clientSecret: 'x'.repeat(10000),
+        client_secret: 'x'.repeat(10000),
         host: 'https://test.akamai.com',
-        accessToken: 'y'.repeat(10000),
-        clientToken: 'z'.repeat(10000),
+        access_token: 'y'.repeat(10000),
+        client_token: 'z'.repeat(10000),
       };
 
       const credentialId = await credentialManager.encryptCredentials(

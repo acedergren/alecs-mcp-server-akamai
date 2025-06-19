@@ -50,7 +50,7 @@ describe('OAuth21ComplianceManager', () => {
     mockCache = {
       get: jest.fn(),
       set: jest.fn(),
-      delete: jest.fn(),
+      del: jest.fn(),
     } as any;
 
     complianceManager = new OAuth21ComplianceManager(defaultConfig, mockCache);
@@ -390,7 +390,7 @@ describe('OAuth21ComplianceManager', () => {
       const result = await complianceManager.validateState(state);
 
       expect(result).toEqual(data);
-      expect(mockCache.delete).toHaveBeenCalledWith(`oauth2:state:${state}`);
+      expect(mockCache.del).toHaveBeenCalledWith(`oauth2:state:${state}`);
     });
 
     it('should return null for non-existent state', async () => {

@@ -377,7 +377,9 @@ describe('OAuthMiddleware', () => {
         'session-123',
       );
       expect(mockRequest.context.availableCustomers).toEqual(customers);
-      expect(mockRequest.context.currentCustomer).toBeUndefined();
+      // Auto-selects first customer when none specified
+      expect(mockRequest.customer).toBe('customer-1');
+      expect(mockRequest.context.currentCustomer).toEqual(customers[0]);
       expect(mockNext).toHaveBeenCalled();
     });
 
@@ -576,7 +578,7 @@ describe('OAuthMiddleware', () => {
 
       // Setup request with session
       mockRequest.context.sessionId = 'session-123';
-      mockRequest.toolName = 'property.list';
+      mockRequest.toolName = 'property_list';
 
       // Mock successful auth
       const authDecision: AuthorizationDecision = { allowed: true };
@@ -590,15 +592,37 @@ describe('OAuthMiddleware', () => {
       const mockClient = { request: jest.fn() };
       mockContextManagerInstance.getEdgeGridClient.mockResolvedValue(mockClient);
 
+      // Track middleware calls
+      let authCalled = false;
+      let contextCalled = false;
+      let credentialCalled = false;
+
       // Run middleware chain
       await authMiddleware(mockRequest, mockResponse, async () => {
+        authCalled = true;
         await contextMiddleware(mockRequest, mockResponse, async () => {
-          await credentialMiddleware(mockRequest, mockResponse, mockNext);
+          contextCalled = true;
+          await credentialMiddleware(mockRequest, mockResponse, async () => {
+            credentialCalled = true;
+            mockNext();
+          });
         });
       });
 
+      // Check if any errors were returned
+      const errorFn = mockResponse.error as jest.Mock;
+      if (errorFn.mock.calls.length > 0) {
+        console.error('Response errors:', errorFn.mock.calls);
+      }
+
       // Verify complete flow
+      expect(mockResponse.error).not.toHaveBeenCalled();
+      expect(authCalled).toBe(true);
+      expect(contextCalled).toBe(true);
+      expect(credentialCalled).toBe(true);
       expect(mockNext).toHaveBeenCalled();
+      
+      // Check if context middleware set the customer
       expect(mockRequest.customer).toBe('customer-1');
       expect(mockRequest.context.edgeGridClient).toBe(mockClient);
       expect(mockRequest.context.hasCredentialAccess).toBe(true);
