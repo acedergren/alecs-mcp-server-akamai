@@ -14,7 +14,7 @@ import { AkamaiClient } from '../../src/akamai-client';
 import * as fs from 'fs/promises';
 
 // Mock dependencies
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 jest.mock('fs/promises');
 
 const mockFs = fs as jest.Mocked<typeof fs>;

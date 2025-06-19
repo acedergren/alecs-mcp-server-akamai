@@ -12,7 +12,7 @@ import {
 } from '../../src/tools/property-operations-advanced';
 
 // Mock the AkamaiClient
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 
 describe('Advanced Property Operations Tools', () => {
   let mockClient: jest.Mocked<AkamaiClient>;

@@ -12,7 +12,7 @@ import {
 } from '../../src/tools/bulk-operations-manager';
 
 // Mock the AkamaiClient
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 
 describe('Bulk Operations Manager', () => {
   let mockClient: jest.Mocked<AkamaiClient>;

@@ -9,7 +9,7 @@ import {
 } from '../../src/tools/cps-tools';
 
 // Mock the AkamaiClient
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 
 describe('Certificate Provisioning System (CPS) Tools', () => {
   let mockClient: jest.Mocked<AkamaiClient>;

@@ -12,7 +12,7 @@ import {
 } from '../../src/tools/hostname-discovery-engine';
 
 // Mock the AkamaiClient
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 
 describe('Hostname Discovery Engine', () => {
   let mockClient: jest.Mocked<AkamaiClient>;

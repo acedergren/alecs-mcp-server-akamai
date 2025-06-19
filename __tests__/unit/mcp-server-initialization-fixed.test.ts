@@ -12,7 +12,7 @@ import { jest } from '@jest/globals';
 // Mock the MCP SDK
 // jest.mock('@modelcontextprotocol/sdk/server/index');
 // jest.mock('@modelcontextprotocol/sdk/server/stdio');
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 
 describe.skip('MCP Server Initialization (Fixed)', () => {
   let mockServer: any; // jest.Mocked<Server>;

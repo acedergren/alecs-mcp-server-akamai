@@ -7,7 +7,7 @@ import { spawn } from 'child_process';
 import { jest } from '@jest/globals';
 import { AkamaiClient } from '../../src/akamai-client';
 
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 
 describe.skip('Modular Architecture', () => {
   const servers = [

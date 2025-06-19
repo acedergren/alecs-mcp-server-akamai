@@ -12,7 +12,7 @@ jest.mock('@modelcontextprotocol/sdk/server/index', () => ({
 jest.mock('@modelcontextprotocol/sdk/server/stdio', () => ({
   StdioServerTransport: jest.fn()
 }));
-jest.mock('../akamai-client', () => ({
+jest.mock('../../src/akamai-client', () => ({
   AkamaiClient: jest.fn()
 }));
 

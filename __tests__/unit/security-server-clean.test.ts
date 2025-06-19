@@ -20,7 +20,7 @@ import {
   generateASNSecurityRecommendations
 } from '../../src/tools/security/network-lists-integration';
 
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 
 describe('Security Server - Clean Tests', () => {
   let mockClient: jest.Mocked<AkamaiClient>;

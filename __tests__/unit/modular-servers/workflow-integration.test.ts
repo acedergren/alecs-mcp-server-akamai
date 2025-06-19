@@ -4,9 +4,9 @@
  */
 
 import { jest } from '@jest/globals';
-import { AkamaiClient } from '../../akamai-client';
+import { AkamaiClient } from '../../../src/akamai-client';
 
-jest.mock('../../akamai-client');
+jest.mock('../../../src/akamai-client');
 
 describe.skip('Cross-Module Workflows', () => {
   let mockClient: jest.Mocked<AkamaiClient>;
