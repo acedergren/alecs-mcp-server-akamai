@@ -303,8 +303,11 @@ export class FastPurgeMonitor {
       await this.fastPurgeService.getRateLimitStatus(customer);
       apiLatency = Date.now() - start;
 
-      if (apiLatency > 5000) apiHealth = 'unhealthy';
-      else if (apiLatency > 2000) apiHealth = 'degraded';
+      if (apiLatency > 5000) {
+apiHealth = 'unhealthy';
+} else if (apiLatency > 2000) {
+apiHealth = 'degraded';
+}
     } catch (error) {
       apiHealth = 'unhealthy';
       apiLatency = -1;
@@ -411,7 +414,9 @@ export class FastPurgeMonitor {
   }
 
   private calculateTrend(values: number[]): 'increasing' | 'decreasing' | 'stable' {
-    if (values.length < 2) return 'stable';
+    if (values.length < 2) {
+return 'stable';
+}
 
     const first = values.slice(0, Math.ceil(values.length / 2));
     const second = values.slice(Math.floor(values.length / 2));
@@ -422,8 +427,12 @@ export class FastPurgeMonitor {
     const diff = secondAvg - firstAvg;
     const threshold = firstAvg * 0.05; // 5% threshold
 
-    if (diff > threshold) return 'increasing';
-    if (diff < -threshold) return 'decreasing';
+    if (diff > threshold) {
+return 'increasing';
+}
+    if (diff < -threshold) {
+return 'decreasing';
+}
     return 'stable';
   }
 
@@ -488,12 +497,16 @@ export class FastPurgeMonitor {
   }
 
   private calculateGrowthRate(metrics: FastPurgeMetrics[]): number {
-    if (metrics.length < 2) return 0;
+    if (metrics.length < 2) {
+return 0;
+}
 
     const recent = metrics.slice(-7); // Last 7 data points
     const older = metrics.slice(-14, -7); // Previous 7 data points
 
-    if (older.length === 0) return 0;
+    if (older.length === 0) {
+return 0;
+}
 
     const recentAvg =
       recent.reduce((sum, m) => sum + m.costMetrics.operationsToday, 0) / recent.length;

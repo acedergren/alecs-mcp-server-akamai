@@ -3,8 +3,9 @@
  * Wrapper around the main error utilities to provide consistent error handling
  */
 
-import { ErrorTranslator, type ErrorContext } from './errors';
 import { type MCPToolResponse } from '../types';
+
+import { ErrorTranslator, type ErrorContext } from './errors';
 
 const errorTranslator = new ErrorTranslator();
 

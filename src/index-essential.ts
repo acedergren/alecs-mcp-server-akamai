@@ -14,18 +14,16 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
+
 import { AkamaiClient } from './akamai-client';
 
 // Import essential tools only
-import { listProperties, getProperty, createProperty, listGroups } from './tools/property-tools';
-
-import { listZones, getZone, createZone, listRecords, upsertRecord } from './tools/dns-tools';
-
-import { activateProperty, getActivationStatus } from './tools/property-manager-tools';
 
 import { createDVEnrollment, checkDVEnrollmentStatus } from './tools/cps-tools';
-
+import { listZones, getZone, createZone, listRecords, upsertRecord } from './tools/dns-tools';
 import { fastPurgeTools } from './tools/fastpurge-tools';
+import { activateProperty, getActivationStatus } from './tools/property-manager-tools';
+import { listProperties, getProperty, createProperty, listGroups } from './tools/property-tools';
 import { reportingTools } from './tools/reporting-tools';
 
 // Schemas

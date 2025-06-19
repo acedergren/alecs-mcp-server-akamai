@@ -3,9 +3,10 @@
  * Implements additional DNS management functions
  */
 
+import { Spinner, format, icons } from '@utils/progress';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { Spinner, format, icons } from '@utils/progress';
 
 // Advanced DNS Types
 export interface DNSSECStatus {
@@ -235,7 +236,7 @@ export async function getZoneContract(
     }
 
     if (response.features && response.features.length > 0) {
-      text += `\nEnabled Features:\n`;
+      text += '\nEnabled Features:\n';
       response.features.forEach((feature: any) => {
         text += `  ${icons.check} ${feature}\n`;
       });
@@ -276,7 +277,7 @@ export async function getRecordSet(
     text += `Name: ${format.yellow(response.name)}\n`;
     text += `Type: ${format.green(response.type)}\n`;
     text += `TTL: ${response.ttl} seconds\n`;
-    text += `\nRecord Data:\n`;
+    text += '\nRecord Data:\n';
 
     response.rdata.forEach((data: string) => {
       text += `  ${icons.dot} ${data}\n`;
@@ -430,7 +431,7 @@ export async function submitBulkZoneCreateRequest(
     text += `Status: ${format.cyan(response.status)}\n`;
     text += `Total Zones: ${args.zones.length}\n\n`;
 
-    text += `Zones to be created:\n`;
+    text += 'Zones to be created:\n';
     args.zones.forEach((zone) => {
       text += `  ${icons.dns} ${zone.zone} (${zone.type})\n`;
     });
@@ -501,8 +502,12 @@ export async function getVersionRecordSets(
 ): Promise<MCPToolResponse> {
   try {
     const queryParams: any = {};
-    if (args.offset !== undefined) queryParams.offset = args.offset;
-    if (args.limit !== undefined) queryParams.limit = args.limit;
+    if (args.offset !== undefined) {
+queryParams.offset = args.offset;
+}
+    if (args.limit !== undefined) {
+queryParams.limit = args.limit;
+}
 
     const response = await client.request({
       path: `/config-dns/v2/zones/${args.zone}/versions/${args.versionId}/recordsets`,
@@ -626,7 +631,7 @@ export async function createMultipleRecordSets(
   try {
     // Create change list
     await client.request({
-      path: `/config-dns/v2/changelists`,
+      path: '/config-dns/v2/changelists',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -688,7 +693,7 @@ export async function createMultipleRecordSets(
     text += `${icons.check} Successful: ${successful.length}\n`;
     if (failed.length > 0) {
       text += `${icons.cross} Failed: ${failed.length}\n\n`;
-      text += `Failed Records:\n`;
+      text += 'Failed Records:\n';
       failed.forEach((result) => {
         text += `  ${icons.error} ${result.record}: ${result.error}\n`;
       });

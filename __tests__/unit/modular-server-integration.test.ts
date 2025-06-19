@@ -4,12 +4,12 @@
  */
 
 import { jest } from '@jest/globals';
-// import { Server } from '@modelcontextprotocol/sdk/server/index';
-// import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
+import { Server } from '@modelcontextprotocol/sdk/server/index';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
 
 // Mock the SDK
-// jest.mock('@modelcontextprotocol/sdk/server/index');
-// jest.mock('@modelcontextprotocol/sdk/server/stdio');
+jest.mock('@modelcontextprotocol/sdk/server/index');
+jest.mock('@modelcontextprotocol/sdk/server/stdio');
 
 describe.skip('Modular Server Integration', () => {
   let mockServer: any; // jest.Mocked<Server>;
@@ -285,6 +285,7 @@ describe.skip('Modular Server Integration', () => {
             }]
           };
         }
+        return { content: [] };
       });
 
       const server = new Server({
@@ -317,6 +318,7 @@ describe.skip('Modular Server Integration', () => {
             }]
           };
         }
+        return { content: [] };
       });
 
       const server = new Server({

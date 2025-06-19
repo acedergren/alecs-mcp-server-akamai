@@ -3,9 +3,10 @@
  * Enterprise-grade bulk operations with progress tracking, rollback, and coordination
  */
 
+import { ErrorTranslator } from '@utils/errors';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { ErrorTranslator } from '@utils/errors';
 
 // Bulk operation types
 export interface BulkOperation {
@@ -141,13 +142,21 @@ class BulkOperationTracker {
       if (property) {
         property.status = status;
         property.endTime = new Date();
-        if (result) property.result = result;
-        if (error) property.error = error;
+        if (result) {
+property.result = result;
+}
+        if (error) {
+property.error = error;
+}
 
         // Update counters
         operation.processedItems++;
-        if (status === 'completed') operation.successfulItems++;
-        if (status === 'failed') operation.failedItems++;
+        if (status === 'completed') {
+operation.successfulItems++;
+}
+        if (status === 'failed') {
+operation.failedItems++;
+}
       }
     }
   }
@@ -313,7 +322,7 @@ export async function bulkCloneProperties(
     const operation = operationTracker.getOperation(operationId)!;
 
     // Format response
-    let responseText = `# Bulk Clone Operation Results\n\n`;
+    let responseText = '# Bulk Clone Operation Results\n\n';
     responseText += `**Operation ID:** ${operationId}\n`;
     responseText += `**Source Property:** ${sourceProperty.propertyName} (${args.sourcePropertyId})\n`;
     responseText += `**Total Clones:** ${operation.totalItems}\n`;
@@ -342,20 +351,20 @@ export async function bulkCloneProperties(
         });
     }
 
-    responseText += `\n## Operation Summary\n`;
+    responseText += '\n## Operation Summary\n';
     responseText += `- **Duration:** ${Math.round((operation.endTime!.getTime() - operation.startTime.getTime()) / 1000)} seconds\n`;
     responseText += `- **Average time per clone:** ${Math.round((operation.endTime!.getTime() - operation.startTime.getTime()) / operation.processedItems)} ms\n`;
 
-    responseText += `\n## Next Steps\n`;
+    responseText += '\n## Next Steps\n';
     if (operation.successfulItems > 0) {
-      responseText += `1. Configure hostnames for cloned properties\n`;
-      responseText += `2. Update origin settings as needed\n`;
-      responseText += `3. Test and activate properties\n`;
+      responseText += '1. Configure hostnames for cloned properties\n';
+      responseText += '2. Update origin settings as needed\n';
+      responseText += '3. Test and activate properties\n';
     }
     if (operation.failedItems > 0) {
-      responseText += `1. Review failed clones for errors\n`;
-      responseText += `2. Fix permission or validation issues\n`;
-      responseText += `3. Retry failed operations individually\n`;
+      responseText += '1. Review failed clones for errors\n';
+      responseText += '2. Fix permission or validation issues\n';
+      responseText += '3. Retry failed operations individually\n';
     }
 
     return {
@@ -542,7 +551,7 @@ export async function bulkActivateProperties(
     const operation = operationTracker.getOperation(operationId)!;
 
     // Format response
-    let responseText = `# Bulk Activation Results\n\n`;
+    let responseText = '# Bulk Activation Results\n\n';
     responseText += `**Operation ID:** ${operationId}\n`;
     responseText += `**Network:** ${args.network}\n`;
     responseText += `**Total Properties:** ${operation.totalItems}\n`;
@@ -582,20 +591,20 @@ export async function bulkActivateProperties(
         });
     }
 
-    responseText += `\n## Operation Summary\n`;
+    responseText += '\n## Operation Summary\n';
     responseText += `- **Duration:** ${Math.round((operation.endTime!.getTime() - operation.startTime.getTime()) / 1000)} seconds\n`;
     responseText += `- **Average time per property:** ${Math.round((operation.endTime!.getTime() - operation.startTime.getTime()) / operation.processedItems)} ms\n`;
 
-    responseText += `\n## Next Steps\n`;
+    responseText += '\n## Next Steps\n';
     if (operation.successfulItems > 0) {
-      responseText += `1. Monitor activation progress in Control Center\n`;
-      responseText += `2. Test activated properties\n`;
-      responseText += `3. Monitor performance metrics\n`;
+      responseText += '1. Monitor activation progress in Control Center\n';
+      responseText += '2. Test activated properties\n';
+      responseText += '3. Monitor performance metrics\n';
     }
     if (operation.failedItems > 0) {
-      responseText += `1. Review validation errors for failed properties\n`;
-      responseText += `2. Fix any issues and retry activation\n`;
-      responseText += `3. Consider activating to staging first\n`;
+      responseText += '1. Review validation errors for failed properties\n';
+      responseText += '2. Fix any issues and retry activation\n';
+      responseText += '3. Consider activating to staging first\n';
     }
 
     return {
@@ -794,7 +803,7 @@ export async function bulkUpdatePropertyRules(
     const operation = operationTracker.getOperation(operationId)!;
 
     // Format response
-    let responseText = `# Bulk Rule Update Results\n\n`;
+    let responseText = '# Bulk Rule Update Results\n\n';
     responseText += `**Operation ID:** ${operationId}\n`;
     responseText += `**Total Properties:** ${operation.totalItems}\n`;
     responseText += `**Patches Applied:** ${args.rulePatches.length}\n`;
@@ -802,7 +811,7 @@ export async function bulkUpdatePropertyRules(
     responseText += `**Failed:** ${operation.failedItems}\n\n`;
 
     // Show patch summary
-    responseText += `## Patches Applied\n`;
+    responseText += '## Patches Applied\n';
     args.rulePatches.forEach((patch, idx) => {
       responseText += `${idx + 1}. **${patch.op}** ${patch.path}\n`;
       if (patch.value && patch.op !== 'remove') {
@@ -831,12 +840,12 @@ export async function bulkUpdatePropertyRules(
         });
     }
 
-    responseText += `\n## Next Steps\n`;
-    responseText += `1. Review the updated rules in each property\n`;
-    responseText += `2. Test changes in staging environment\n`;
-    responseText += `3. Activate properties when ready\n`;
+    responseText += '\n## Next Steps\n';
+    responseText += '1. Review the updated rules in each property\n';
+    responseText += '2. Test changes in staging environment\n';
+    responseText += '3. Activate properties when ready\n';
     if (operation.failedItems > 0) {
-      responseText += `4. Investigate failed updates and retry if needed\n`;
+      responseText += '4. Investigate failed updates and retry if needed\n';
     }
 
     return {
@@ -1058,7 +1067,7 @@ export async function bulkManageHostnames(
     const successCount = results.filter((r) => r.success).length;
     const failCount = results.filter((r) => !r.success).length;
 
-    let responseText = `# Bulk Hostname Management Results\n\n`;
+    let responseText = '# Bulk Hostname Management Results\n\n';
     responseText += `**Operation ID:** ${operationId}\n`;
     responseText += `**Total Operations:** ${results.length}\n`;
     responseText += `**Successful:** ${successCount}\n`;
@@ -1074,7 +1083,7 @@ export async function bulkManageHostnames(
       byProperty.get(key)!.push(r);
     });
 
-    responseText += `## Results by Property\n`;
+    responseText += '## Results by Property\n';
     byProperty.forEach((propResults, propertyId) => {
       const propName = propResults[0]?.propertyName || 'Unknown';
       const propSuccess = propResults.filter((r) => r.success).length;
@@ -1084,7 +1093,7 @@ export async function bulkManageHostnames(
       responseText += `Success: ${propSuccess}, Failed: ${propFail}\n\n`;
 
       if (propSuccess > 0) {
-        responseText += `**✅ Successful:**\n`;
+        responseText += '**✅ Successful:**\n';
         propResults
           .filter((r) => r.success)
           .forEach((r) => {
@@ -1093,7 +1102,7 @@ export async function bulkManageHostnames(
       }
 
       if (propFail > 0) {
-        responseText += `\n**❌ Failed:**\n`;
+        responseText += '\n**❌ Failed:**\n';
         propResults
           .filter((r) => !r.success)
           .forEach((r) => {
@@ -1102,11 +1111,11 @@ export async function bulkManageHostnames(
       }
     });
 
-    responseText += `\n## Next Steps\n`;
-    responseText += `1. Update DNS records for added hostnames\n`;
-    responseText += `2. Configure SSL certificates as needed\n`;
-    responseText += `3. Test hostname resolution\n`;
-    responseText += `4. Activate properties when ready\n`;
+    responseText += '\n## Next Steps\n';
+    responseText += '1. Update DNS records for added hostnames\n';
+    responseText += '2. Configure SSL certificates as needed\n';
+    responseText += '3. Test hostname resolution\n';
+    responseText += '4. Activate properties when ready\n';
 
     return {
       content: [
@@ -1156,7 +1165,7 @@ export async function getBulkOperationStatus(
       };
     }
 
-    let responseText = `# Bulk Operation Status\n\n`;
+    let responseText = '# Bulk Operation Status\n\n';
     responseText += `**Operation ID:** ${operation.id}\n`;
     responseText += `**Type:** ${operation.type}\n`;
     responseText += `**Status:** ${operation.status}\n`;
@@ -1165,7 +1174,7 @@ export async function getBulkOperationStatus(
       responseText += `**End Time:** ${operation.endTime.toISOString()}\n`;
       responseText += `**Duration:** ${Math.round((operation.endTime.getTime() - operation.startTime.getTime()) / 1000)} seconds\n`;
     }
-    responseText += `\n**Progress:**\n`;
+    responseText += '\n**Progress:**\n';
     responseText += `- Total Items: ${operation.totalItems}\n`;
     responseText += `- Processed: ${operation.processedItems}\n`;
     responseText += `- Successful: ${operation.successfulItems}\n`;
@@ -1177,7 +1186,7 @@ export async function getBulkOperationStatus(
     }
 
     if (args.detailed && operation.properties.length > 0) {
-      responseText += `\n## Detailed Property Status\n`;
+      responseText += '\n## Detailed Property Status\n';
 
       const byStatus = new Map<string, typeof operation.properties>();
       operation.properties.forEach((p) => {
@@ -1207,7 +1216,7 @@ export async function getBulkOperationStatus(
       const remaining = operation.totalItems - operation.processedItems;
       const eta = new Date(Date.now() + avgTime * remaining);
 
-      responseText += `\n## Estimated Completion\n`;
+      responseText += '\n## Estimated Completion\n';
       responseText += `- Remaining Items: ${remaining}\n`;
       responseText += `- Average Time per Item: ${Math.round(avgTime)} ms\n`;
       responseText += `- Estimated Completion: ${eta.toISOString()}\n`;
@@ -1251,7 +1260,9 @@ function applyJsonPatch(obj: any, patch: any): any {
       } else if (part) {
         current = current[part];
       }
-      if (current === undefined) return undefined;
+      if (current === undefined) {
+return undefined;
+}
     }
     return current;
   };
@@ -1266,11 +1277,17 @@ function applyJsonPatch(obj: any, patch: any): any {
         const key = part.substring(0, bracketIndex);
         const indexStr = part.substring(bracketIndex + 1, part.indexOf(']'));
         const index = parseInt(indexStr);
-        if (!current[key]) current[key] = [];
-        if (!current[key][index]) current[key][index] = {};
+        if (!current[key]) {
+current[key] = [];
+}
+        if (!current[key][index]) {
+current[key][index] = {};
+}
         current = current[key][index];
       } else if (part) {
-        if (!current[part]) current[part] = {};
+        if (!current[part]) {
+current[part] = {};
+}
         current = current[part];
       }
     }
@@ -1280,7 +1297,9 @@ function applyJsonPatch(obj: any, patch: any): any {
       const key = lastPart.substring(0, bracketIndex);
       const indexStr = lastPart.substring(bracketIndex + 1, lastPart.indexOf(']'));
       const index = parseInt(indexStr);
-      if (!current[key]) current[key] = [];
+      if (!current[key]) {
+current[key] = [];
+}
       current[key][index] = value;
     } else if (lastPart) {
       current[lastPart] = value;

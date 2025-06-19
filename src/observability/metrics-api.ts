@@ -176,7 +176,9 @@ export class MetricsAPI extends EventEmitter {
 
     for (const [name, values] of this.metrics.entries()) {
       const definition = this.definitions.get(name);
-      if (!definition) continue;
+      if (!definition) {
+continue;
+}
 
       const metric: PrometheusMetric = {
         name: name.replace(/[^a-zA-Z0-9_]/g, '_'),
@@ -203,7 +205,9 @@ export class MetricsAPI extends EventEmitter {
 
     for (const [name, values] of this.metrics.entries()) {
       const definition = this.definitions.get(name);
-      if (!definition) continue;
+      if (!definition) {
+continue;
+}
 
       const metric: OpenTelemetryMetric = {
         name,
@@ -490,7 +494,9 @@ export class MetricsAPI extends EventEmitter {
 
   private getLatestMetricValue(name: string, labels: Record<string, string>): number | null {
     const values = this.metrics.get(name);
-    if (!values || values.length === 0) return null;
+    if (!values || values.length === 0) {
+return null;
+}
 
     // Find the latest value with matching labels
     for (let i = values.length - 1; i >= 0; i--) {

@@ -3,9 +3,6 @@
  * Implements core CRUD operations for Akamai CDN properties
  */
 
-import { type AkamaiClient } from '../akamai-client';
-import { type MCPToolResponse, type PropertyList, type Property, type GroupList } from '../types';
-import { formatProductDisplay } from '@utils/product-mapping';
 import {
   formatContractDisplay,
   formatGroupDisplay,
@@ -18,6 +15,7 @@ import {
   formatQueryParameters,
   ensureAkamaiIdFormat,
 } from '@utils/parameter-validation';
+import { formatProductDisplay } from '@utils/product-mapping';
 import { parseAkamaiResponse, ResponseParser } from '@utils/response-parsing';
 import { withToolErrorHandling, type ErrorContext } from '@utils/tool-error-handling';
 import {
@@ -28,11 +26,16 @@ import {
   formatGroupNode,
 } from '@utils/tree-view';
 
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse, type PropertyList, type Property, type GroupList } from '../types';
+
 /**
  * Format a date string to a more readable format
  */
 function formatDate(dateString: string | undefined): string {
-  if (!dateString) return 'N/A';
+  if (!dateString) {
+return 'N/A';
+}
   try {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -51,7 +54,9 @@ function formatDate(dateString: string | undefined): string {
  * Format activation status with appropriate emoji
  */
 function formatStatus(status: string | undefined): string {
-  if (!status) return '⚫ INACTIVE';
+  if (!status) {
+return '⚫ INACTIVE';
+}
 
   const statusMap: Record<string, string> = {
     ACTIVE: '🟢 ACTIVE',
@@ -165,8 +170,12 @@ export async function listProperties(
     // Handle empty results
     if (!parsedResponse.properties || parsedResponse.properties.length === 0) {
       let message = 'No properties found';
-      if (args.contractId) message += ` for contract ${args.contractId}`;
-      if (args.groupId) message += ` in group ${args.groupId}`;
+      if (args.contractId) {
+message += ` for contract ${args.contractId}`;
+}
+      if (args.groupId) {
+message += ` in group ${args.groupId}`;
+}
       message += '.';
 
       if (!args.contractId && !args.groupId) {
@@ -196,10 +205,12 @@ export async function listProperties(
 
     // Add filter information
     text += '**Filters Applied:**\n';
-    if (contractId)
-      text += `- Contract: ${formatContractDisplay(contractId)}${!args.contractId ? ' (auto-selected)' : ''}\n`;
-    if (groupId)
-      text += `- Group: ${formatGroupDisplay(groupId)}${!args.groupId && !args.contractId ? ' (auto-selected)' : ''}\n`;
+    if (contractId) {
+text += `- Contract: ${formatContractDisplay(contractId)}${!args.contractId ? ' (auto-selected)' : ''}\n`;
+}
+    if (groupId) {
+text += `- Group: ${formatGroupDisplay(groupId)}${!args.groupId && !args.contractId ? ' (auto-selected)' : ''}\n`;
+}
     if (hasMore) {
       text += `- **Limit:** Showing first ${MAX_PROPERTIES_TO_DISPLAY} properties\n`;
     }
@@ -209,7 +220,9 @@ export async function listProperties(
     const propertiesByContract = propertiesToShow.reduce(
       (acc: Record<string, Property[]>, prop: Property) => {
         const contract = prop.contractId;
-        if (!acc[contract]) acc[contract] = [];
+        if (!acc[contract]) {
+acc[contract] = [];
+}
         acc[contract].push(prop);
         return acc;
       },
@@ -238,10 +251,10 @@ export async function listProperties(
 
     if (hasMore) {
       text += `\n⚠️ **Note:** Only showing first ${MAX_PROPERTIES_TO_DISPLAY} properties out of ${totalProperties} total.\n`;
-      text += `To see more properties:\n`;
-      text += `- Filter by specific group: \`"list properties in group grp_XXXXX"\`\n`;
-      text += `- Search for specific property: \`"get property [name or ID]"\`\n`;
-      text += `- Increase limit: \`"list properties with limit 100"\`\n`;
+      text += 'To see more properties:\n';
+      text += '- Filter by specific group: `"list properties in group grp_XXXXX"`\n';
+      text += '- Search for specific property: `"get property [name or ID]"`\n';
+      text += '- Increase limit: `"list properties with limit 100"`\n';
     }
 
     // Add helpful next steps
@@ -467,13 +480,13 @@ export async function listPropertiesTreeView(
     let output = `# Properties in ${targetGroup.groupName} Group\n\n`;
 
     // Add contract summary section
-    output += `## Summary\n\n`;
+    output += '## Summary\n\n';
     output += `- **Total Groups**: ${totalGroups}\n`;
     output += `- **Groups with Properties**: ${groupsWithProperties.length}\n`;
     output += `- **Total Properties**: ${totalProperties}\n`;
 
     if (contractSummary.size > 0) {
-      output += `\n### Contract Breakdown:\n`;
+      output += '\n### Contract Breakdown:\n';
       for (const [contractId, stats] of contractSummary) {
         output += `- **${contractId}**: ${stats.propertyCount} properties across ${stats.groupCount} groups\n`;
       }
@@ -483,7 +496,7 @@ export async function listPropertiesTreeView(
       output += `\n⚠️ **Note**: This group hierarchy contains ${totalProperties} properties across ${totalGroups} groups.\n`;
     }
 
-    output += `\n## Property Tree\n\n`;
+    output += '\n## Property Tree\n\n';
 
     // Render the tree
     const treeOutput = renderTree(treeNodes);
@@ -552,9 +565,15 @@ export async function getProperty(
 
         // Search properties with limits
         for (const group of groupsResponse.groups.items) {
-          if (groupsSearched >= MAX_GROUPS_TO_SEARCH) break;
-          if (totalPropertiesSearched >= MAX_TOTAL_PROPERTIES) break;
-          if (!group.contractIds?.length) continue;
+          if (groupsSearched >= MAX_GROUPS_TO_SEARCH) {
+break;
+}
+          if (totalPropertiesSearched >= MAX_TOTAL_PROPERTIES) {
+break;
+}
+          if (!group.contractIds?.length) {
+continue;
+}
 
           groupsSearched++;
 
@@ -609,15 +628,15 @@ export async function getProperty(
                 type: 'text',
                 text:
                   `❌ No properties found matching "${propertyId}" in the first ${groupsSearched} groups (searched ${totalPropertiesSearched} properties).\n\n` +
-                  `**Suggestions:**\n` +
-                  `1. Use the exact property ID (e.g., prp_12345)\n` +
-                  `2. Use "list properties" to browse available properties\n` +
-                  `3. Try a more specific search term\n\n` +
-                  `**Note:** To prevent timeouts, the search was limited to:\n` +
+                  '**Suggestions:**\n' +
+                  '1. Use the exact property ID (e.g., prp_12345)\n' +
+                  '2. Use "list properties" to browse available properties\n' +
+                  '3. Try a more specific search term\n\n' +
+                  '**Note:** To prevent timeouts, the search was limited to:\n' +
                   `- First ${MAX_GROUPS_TO_SEARCH} groups\n` +
                   `- Maximum ${MAX_PROPERTIES_PER_GROUP} properties per group\n` +
                   `- Total of ${MAX_TOTAL_PROPERTIES} properties\n\n` +
-                  `If your property wasn't found, please use its exact property ID.`,
+                  'If your property wasn\'t found, please use its exact property ID.',
               },
             ],
           };
@@ -651,9 +670,9 @@ export async function getProperty(
           text += `... and ${foundProperties.length - 10} more matches\n\n`;
         }
 
-        text += `**To get details for a specific property, use its ID:**\n`;
+        text += '**To get details for a specific property, use its ID:**\n';
         text += `Example: "get property ${matchesToShow[0]?.property.propertyId}"\n\n`;
-        text += `💡 **Tip:** Using the exact property ID (prp_XXXXX) is always faster and more reliable.`;
+        text += '💡 **Tip:** Using the exact property ID (prp_XXXXX) is always faster and more reliable.';
 
         return {
           content: [
@@ -730,7 +749,9 @@ async function getPropertyById(
 
       // Search for the property in limited groups
       for (const group of groupsToSearch) {
-        if (!group.contractIds?.length) continue;
+        if (!group.contractIds?.length) {
+continue;
+}
 
         // Only check first contract per group for speed
         const cId = group.contractIds[0];
@@ -844,7 +865,7 @@ async function getPropertyById(
     let text = `# Property Details: ${prop.propertyName}\n\n`;
 
     // Basic Information
-    text += `## Basic Information\n`;
+    text += '## Basic Information\n';
     text += `- **Property ID:** ${formatPropertyDisplay(prop.propertyId, prop.propertyName)}\n`;
     text += `- **Asset ID:** ${prop.assetId || 'N/A'}\n`;
     text += `- **Contract:** ${formatContractDisplay(prop.contractId)}\n`;
@@ -852,13 +873,13 @@ async function getPropertyById(
     text += `- **Product:** ${prop.productId ? formatProductDisplay(prop.productId) : 'N/A'}\n\n`;
 
     // Version Information
-    text += `## Version Information\n`;
+    text += '## Version Information\n';
     text += `- **Latest Version:** ${prop.latestVersion || 'N/A'}\n`;
     text += `- **Production Version:** ${prop.productionVersion || 'None'}\n`;
     text += `- **Staging Version:** ${prop.stagingVersion || 'None'}\n\n`;
 
     // Activation Status
-    text += `## Activation Status\n`;
+    text += '## Activation Status\n';
     text += `- **Production:** ${formatStatus(prop.productionStatus)}\n`;
     text += `- **Staging:** ${formatStatus(prop.stagingStatus)}\n\n`;
 
@@ -876,7 +897,7 @@ async function getPropertyById(
 
     // Hostnames if available
     if (hostnames?.hostnames?.items && (hostnames.hostnames.items as any[]).length > 0) {
-      text += `## Associated Hostnames\n`;
+      text += '## Associated Hostnames\n';
       for (const hostname of hostnames.hostnames.items) {
         text += `- **${hostname.cnameFrom}** → ${hostname.cnameTo}`;
         if (hostname.certStatus) {
@@ -893,14 +914,14 @@ async function getPropertyById(
     }
 
     // Next Steps
-    text += `## Available Actions\n`;
+    text += '## Available Actions\n';
     text += `- View rules: \`"Show me the rules for property ${propertyId}"\`\n`;
     text += `- Update rules: \`"Update property ${propertyId} to use origin server example.com"\`\n`;
     text += `- Activate: \`"Activate property ${propertyId} to staging"\`\n`;
     text += `- View activations: \`"Show activation history for property ${propertyId}"\`\n`;
 
     if (!prop.productionVersion) {
-      text += `\n⚠️ **Note:** This property has never been activated to production.`;
+      text += '\n⚠️ **Note:** This property has never been activated to production.';
     }
 
     return {
@@ -1018,44 +1039,44 @@ export async function createProperty(
     const propertyId = response.propertyLink.split('/').pop()?.split('?')[0];
 
     // Format success response with comprehensive next steps
-    let text = `✅ **Property Created Successfully!**\n\n`;
+    let text = '✅ **Property Created Successfully!**\n\n';
 
-    text += `## Property Details\n`;
+    text += '## Property Details\n';
     text += `- **Name:** ${args.propertyName}\n`;
     text += `- **Property ID:** ${formatPropertyDisplay(propertyId)}\n`;
     text += `- **Product:** ${formatProductDisplay(args.productId)}\n`;
     text += `- **Contract:** ${formatContractDisplay(args.contractId)}\n`;
     text += `- **Group:** ${formatGroupDisplay(args.groupId)}\n`;
     text += `- **Rule Format:** ${ruleFormat}\n`;
-    text += `- **Status:** 🔵 NEW (Not yet activated)\n\n`;
+    text += '- **Status:** 🔵 NEW (Not yet activated)\n\n';
 
-    text += `## Required Next Steps\n\n`;
-    text += `### 1. Create Edge Hostname\n`;
-    text += `You need an edge hostname for content delivery:\n`;
+    text += '## Required Next Steps\n\n';
+    text += '### 1. Create Edge Hostname\n';
+    text += 'You need an edge hostname for content delivery:\n';
     text += `\`"Create edge hostname for property ${propertyId}"\`\n\n`;
 
-    text += `### 2. Configure Property Rules\n`;
-    text += `Set up origin server and caching behavior:\n`;
+    text += '### 2. Configure Property Rules\n';
+    text += 'Set up origin server and caching behavior:\n';
     text += `\`"Update property ${propertyId} to use origin server [your-origin.com]"\`\n\n`;
 
-    text += `### 3. Add Hostnames\n`;
-    text += `Associate your domains with the property:\n`;
+    text += '### 3. Add Hostnames\n';
+    text += 'Associate your domains with the property:\n';
     text += `\`"Add hostname www.example.com to property ${propertyId}"\`\n\n`;
 
-    text += `### 4. Activate to Staging\n`;
-    text += `Test your configuration in staging first:\n`;
+    text += '### 4. Activate to Staging\n';
+    text += 'Test your configuration in staging first:\n';
     text += `\`"Activate property ${propertyId} to staging"\`\n\n`;
 
-    text += `### 5. SSL Certificate\n`;
-    text += `If using HTTPS, enroll a certificate:\n`;
-    text += `\`"Enroll DV certificate for www.example.com"\`\n\n`;
+    text += '### 5. SSL Certificate\n';
+    text += 'If using HTTPS, enroll a certificate:\n';
+    text += '`"Enroll DV certificate for www.example.com"`\n\n';
 
-    text += `## Common Product IDs Reference\n`;
-    text += `- **prd_fresca** - Ion (Preferred for most use cases)\n`;
-    text += `- **prd_Site_Accel** - Dynamic Site Accelerator (DSA)\n`;
-    text += `- **prd_Web_Accel** - Web Application Accelerator\n`;
-    text += `- **prd_Download_Delivery** - Download Delivery\n`;
-    text += `- **prd_Adaptive_Media_Delivery** - Adaptive Media Delivery (AMD)\n`;
+    text += '## Common Product IDs Reference\n';
+    text += '- **prd_fresca** - Ion (Preferred for most use cases)\n';
+    text += '- **prd_Site_Accel** - Dynamic Site Accelerator (DSA)\n';
+    text += '- **prd_Web_Accel** - Web Application Accelerator\n';
+    text += '- **prd_Download_Delivery** - Download Delivery\n';
+    text += '- **prd_Adaptive_Media_Delivery** - Adaptive Media Delivery (AMD)\n';
 
     return {
       content: [
@@ -1145,8 +1166,8 @@ export async function listContracts(
 
     let text = `# Akamai Contracts ${args.searchTerm ? `(${contracts.length} matching "${args.searchTerm}")` : `(${contracts.length} found)`}\n\n`;
 
-    text += `| Contract | Type | Status | Raw ID |\n`;
-    text += `|----------|------|--------|--------|\n`;
+    text += '| Contract | Type | Status | Raw ID |\n';
+    text += '|----------|------|--------|--------|\n';
 
     for (const contract of contracts) {
       const contractId = contract.contractId || 'Unknown';
@@ -1157,14 +1178,14 @@ export async function listContracts(
     }
 
     text += '\n';
-    text += `## How to Use Contracts\n\n`;
-    text += `Contracts are required when:\n`;
-    text += `- Creating new properties\n`;
-    text += `- Creating CP codes\n`;
-    text += `- Enrolling certificates\n\n`;
-    text += `Example usage:\n`;
-    text += `\`"Create property in contract C-1234567"\` (you can omit the ctr_ prefix)\n\n`;
-    text += `💡 **Tip:** Use \`list_groups\` to see which groups have access to each contract.`;
+    text += '## How to Use Contracts\n\n';
+    text += 'Contracts are required when:\n';
+    text += '- Creating new properties\n';
+    text += '- Creating CP codes\n';
+    text += '- Enrolling certificates\n\n';
+    text += 'Example usage:\n';
+    text += '`"Create property in contract C-1234567"` (you can omit the ctr_ prefix)\n\n';
+    text += '💡 **Tip:** Use `list_groups` to see which groups have access to each contract.';
 
     return {
       content: [
@@ -1232,7 +1253,9 @@ export async function listGroups(
     const groupsByParent = groups.reduce(
       (acc: any, group: any) => {
         if (group.parentGroupId) {
-          if (!acc[group.parentGroupId]) acc[group.parentGroupId] = [];
+          if (!acc[group.parentGroupId]) {
+acc[group.parentGroupId] = [];
+}
           acc[group.parentGroupId].push(group);
         }
         return acc;
@@ -1268,7 +1291,7 @@ export async function listGroups(
     }
 
     // Display top-level groups and their hierarchies
-    text += `## Group Hierarchy\n\n`;
+    text += '## Group Hierarchy\n\n';
     for (const group of topLevelGroups) {
       text += displayGroup(group);
     }
@@ -1282,7 +1305,7 @@ export async function listGroups(
     });
 
     if (allContracts.size > 0) {
-      text += `## All Available Contracts\n\n`;
+      text += '## All Available Contracts\n\n';
       Array.from(allContracts)
         .sort()
         .forEach((contract) => {
@@ -1292,9 +1315,9 @@ export async function listGroups(
     }
 
     // Add group name to ID lookup table
-    text += `## Group Name to ID Lookup\n\n`;
-    text += `| Group Name | Group ID | Contracts |\n`;
-    text += `|------------|----------|----------|\n`;
+    text += '## Group Name to ID Lookup\n\n';
+    text += '| Group Name | Group ID | Contracts |\n';
+    text += '|------------|----------|----------|\n';
 
     // Sort groups by name for easy lookup
     const sortedGroups = [...groups].sort((a, b) =>
@@ -1310,15 +1333,15 @@ export async function listGroups(
     text += '\n';
 
     // Add usage instructions
-    text += `## How to Use This Information\n\n`;
-    text += `When creating a new property, you'll need:\n`;
-    text += `1. **Group ID** - Choose based on your organization structure\n`;
-    text += `2. **Contract ID** - Choose based on your billing arrangement\n\n`;
-    text += `Example:\n`;
-    text += `\`"Create a new property called my-site in group 12345 with contract C-1234567"\`\n\n`;
-    text += `💡 **Tips:**\n`;
-    text += `- You can omit the prefixes (ctr_, grp_) when referencing IDs\n`;
-    text += `- Properties inherit permissions from their group, so choose the appropriate group for access control`;
+    text += '## How to Use This Information\n\n';
+    text += 'When creating a new property, you\'ll need:\n';
+    text += '1. **Group ID** - Choose based on your organization structure\n';
+    text += '2. **Contract ID** - Choose based on your billing arrangement\n\n';
+    text += 'Example:\n';
+    text += '`"Create a new property called my-site in group 12345 with contract C-1234567"`\n\n';
+    text += '💡 **Tips:**\n';
+    text += '- You can omit the prefixes (ctr_, grp_) when referencing IDs\n';
+    text += '- Properties inherit permissions from their group, so choose the appropriate group for access control';
 
     return {
       content: [
@@ -1416,9 +1439,9 @@ export async function listProducts(
 
     // Display by category
     if (deliveryProducts.length > 0) {
-      text += `## 📦 Content Delivery Products\n\n`;
-      text += `| Product ID | Product Name | Friendly Name | Use Case |\n`;
-      text += `|------------|--------------|---------------|----------|\n`;
+      text += '## 📦 Content Delivery Products\n\n';
+      text += '| Product ID | Product Name | Friendly Name | Use Case |\n';
+      text += '|------------|--------------|---------------|----------|\n';
 
       for (const prod of deliveryProducts) {
         let useCase = 'General delivery';
@@ -1438,9 +1461,9 @@ export async function listProducts(
     }
 
     if (securityProducts.length > 0) {
-      text += `## 🔒 Security Products\n\n`;
-      text += `| Product ID | Product Name | Friendly Name |\n`;
-      text += `|------------|--------------|---------------|\n`;
+      text += '## 🔒 Security Products\n\n';
+      text += '| Product ID | Product Name | Friendly Name |\n';
+      text += '|------------|--------------|---------------|\n';
 
       for (const prod of securityProducts) {
         text += `| \`${prod.id}\` | ${prod.name} | ${prod.friendly} |\n`;
@@ -1449,9 +1472,9 @@ export async function listProducts(
     }
 
     if (otherProducts.length > 0) {
-      text += `## 🔧 Other Products\n\n`;
-      text += `| Product ID | Product Name | Friendly Name |\n`;
-      text += `|------------|--------------|---------------|\n`;
+      text += '## 🔧 Other Products\n\n';
+      text += '| Product ID | Product Name | Friendly Name |\n';
+      text += '|------------|--------------|---------------|\n';
 
       for (const prod of otherProducts) {
         text += `| \`${prod.id}\` | ${prod.name} | ${prod.friendly} |\n`;
@@ -1460,14 +1483,14 @@ export async function listProducts(
     }
 
     // Add usage tips
-    text += `## Usage Tips\n\n`;
-    text += `- **Ion Premier** (prd_SPM) - Best for dynamic web applications with global reach\n`;
-    text += `- **Ion Standard** (prd_FRESCA) - Great for standard web delivery\n`;
-    text += `- **DSA** - Optimized for dynamic content and personalization\n`;
-    text += `- **Download Delivery** - Ideal for software distribution and large files\n`;
-    text += `- **AMD** - Purpose-built for video streaming\n\n`;
+    text += '## Usage Tips\n\n';
+    text += '- **Ion Premier** (prd_SPM) - Best for dynamic web applications with global reach\n';
+    text += '- **Ion Standard** (prd_FRESCA) - Great for standard web delivery\n';
+    text += '- **DSA** - Optimized for dynamic content and personalization\n';
+    text += '- **Download Delivery** - Ideal for software distribution and large files\n';
+    text += '- **AMD** - Purpose-built for video streaming\n\n';
 
-    text += `To use a product when creating a property:\n`;
+    text += 'To use a product when creating a property:\n';
     text += `\`"Create property my-site with product ${deliveryProducts[0]?.id || 'prd_SPM'} on contract ${contractId}"\``;
 
     // Update our product mappings if we found new ones
@@ -1483,12 +1506,12 @@ export async function listProducts(
     }
 
     if (newMappings.length > 0) {
-      text += `\n\n## 📝 New Product Mappings Discovered\n\n`;
-      text += `The following products don't have friendly name mappings yet:\n\n`;
+      text += '\n\n## 📝 New Product Mappings Discovered\n\n';
+      text += 'The following products don\'t have friendly name mappings yet:\n\n';
       text += '```typescript\n';
       text += newMappings.join(',\n');
       text += '\n```\n';
-      text += `\nConsider adding these to the product mapping configuration.`;
+      text += '\nConsider adding these to the product mapping configuration.';
     }
 
     return {

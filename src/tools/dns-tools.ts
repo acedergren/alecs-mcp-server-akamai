@@ -3,10 +3,12 @@
  * Implements Akamai Edge DNS API v2 with change-list workflow
  */
 
+import { createHash } from 'crypto';
+
+import { Spinner, format, icons } from '@utils/progress';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { Spinner, format, icons } from '@utils/progress';
-import { createHash } from 'crypto';
 
 // Operational logging utilities
 function generateRequestId(): string {
@@ -125,7 +127,7 @@ export async function listZones(
     if (args.search) {
       queryParams.search = args.search;
     }
-    
+
     // Enhanced pagination and sorting parameters
     if (args.sortBy) {
       queryParams.sortBy = args.sortBy;
@@ -277,8 +279,12 @@ export async function createZone(
     }
 
     const queryParams: any = {};
-    if (args.contractId) queryParams.contractId = args.contractId;
-    if (args.groupId) queryParams.gid = args.groupId;
+    if (args.contractId) {
+queryParams.contractId = args.contractId;
+}
+    if (args.groupId) {
+queryParams.gid = args.groupId;
+}
 
     await client.request({
       path: '/config-dns/v2/zones',
@@ -317,8 +323,12 @@ export async function listRecords(
 ): Promise<MCPToolResponse> {
   try {
     const queryParams: any = {};
-    if (args.search) queryParams.search = args.search;
-    if (args.types?.length) queryParams.types = args.types.join(',');
+    if (args.search) {
+queryParams.search = args.search;
+}
+    if (args.types?.length) {
+queryParams.types = args.types.join(',');
+}
 
     const response = await client.request({
       path: `/config-dns/v2/zones/${args.zone}/recordsets`,
@@ -547,7 +557,9 @@ export async function submitChangeList(
 
     return response;
   } catch (error) {
-    if (spinner) spinner.fail('Failed to submit changelist');
+    if (spinner) {
+spinner.fail('Failed to submit changelist');
+}
     throw error;
   }
 }
@@ -739,7 +751,9 @@ export async function processMultipleZones(
 
   for (let i = 0; i < zones.length; i++) {
     const zone = zones[i];
-    if (!zone) continue; // TypeScript guard
+    if (!zone) {
+continue;
+} // TypeScript guard
 
     try {
       await operation(zone);
@@ -777,7 +791,9 @@ export async function ensureCleanChangeList(
   force?: boolean,
 ): Promise<void> {
   // Check for existing change list
-  if (spinner) spinner.update('Checking for existing change list...');
+  if (spinner) {
+spinner.update('Checking for existing change list...');
+}
 
   const existingChangeList = await getChangeList(client, zone);
 
@@ -792,7 +808,9 @@ export async function ensureCleanChangeList(
     });
 
     // Stop spinner to show interactive message
-    if (spinner) spinner.stop();
+    if (spinner) {
+spinner.stop();
+}
 
     // Format pending changes
     const pendingChanges: string[] = [];
@@ -824,7 +842,7 @@ export async function ensureCleanChangeList(
         '2. Discard the existing changelist and continue',
         '3. Cancel the operation',
         '',
-        `To force discard without asking, use the force option`,
+        'To force discard without asking, use the force option',
       ]
         .filter((line) => line !== '')
         .join('\n');
@@ -846,13 +864,15 @@ export async function ensureCleanChangeList(
   }
 
   // Create a new change list
-  if (spinner) spinner.update('Creating change list...');
+  if (spinner) {
+spinner.update('Creating change list...');
+}
 
   const createRequestId = generateRequestId();
   logOperation('CREATING_CHANGELIST', { zone, requestId: createRequestId });
 
   await client.request({
-    path: `/config-dns/v2/changelists`,
+    path: '/config-dns/v2/changelists',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1102,9 +1122,9 @@ export async function activateZoneChanges(
             text:
               `${icons.error} ${error.message}\n\n` +
               `${icons.info} To make changes:\n` +
-              `  1. Use upsertRecord to add/update records\n` +
-              `  2. Use deleteRecord to remove records\n` +
-              `  3. Then use activateZoneChanges to submit`,
+              '  1. Use upsertRecord to add/update records\n' +
+              '  2. Use deleteRecord to remove records\n' +
+              '  3. Then use activateZoneChanges to submit',
           },
         ],
       };

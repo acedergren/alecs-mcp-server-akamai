@@ -9,11 +9,12 @@
  * - Creating cleanup reports
  */
 
+import { existsSync } from 'fs';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { existsSync } from 'fs';
-import * as readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
+import * as readline from 'readline/promises';
+
 import { ProgressBar, Spinner } from '@utils/progress';
 
 interface FileInfo {

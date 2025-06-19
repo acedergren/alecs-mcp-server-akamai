@@ -293,7 +293,9 @@ export class ResponseParser {
    * Parse Property Manager responses
    */
   static parsePropertyResponse(response: any): any {
-    if (!response) return response;
+    if (!response) {
+return response;
+}
 
     if (response.properties?.items) {
       return {
@@ -342,7 +344,9 @@ export class ResponseParser {
    * Parse DNS responses
    */
   static parseDNSResponse(response: any): any {
-    if (!response) return response;
+    if (!response) {
+return response;
+}
 
     if (response.zones) {
       return {

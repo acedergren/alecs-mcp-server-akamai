@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect } from '@jest/globals';
+
 import {
   validateParameters,
   PropertyManagerSchemas,
@@ -13,7 +14,7 @@ import {
   NetworkListSchemas,
   AKAMAI_ID_PATTERNS,
   ensureAkamaiIdFormat,
-  formatQueryParameters
+  formatQueryParameters,
 } from '../../utils/parameter-validation';
 
 describe('Parameter Validation Tests', () => {
@@ -23,7 +24,7 @@ describe('Parameter Validation Tests', () => {
       expect(AKAMAI_ID_PATTERNS.property.test('prp_123456')).toBe(true);
       expect(AKAMAI_ID_PATTERNS.property.test('prp_1')).toBe(true);
       expect(AKAMAI_ID_PATTERNS.property.test('prp_999999999')).toBe(true);
-      
+
       // Invalid property IDs
       expect(AKAMAI_ID_PATTERNS.property.test('prop_123')).toBe(false);
       expect(AKAMAI_ID_PATTERNS.property.test('prp_')).toBe(false);
@@ -37,7 +38,7 @@ describe('Parameter Validation Tests', () => {
       expect(AKAMAI_ID_PATTERNS.contract.test('ctr_C-1ABC234')).toBe(true);
       expect(AKAMAI_ID_PATTERNS.contract.test('ctr_P-2XYZ789')).toBe(true);
       expect(AKAMAI_ID_PATTERNS.contract.test('ctr_1-ABCDEF')).toBe(true);
-      
+
       // Invalid contract IDs
       expect(AKAMAI_ID_PATTERNS.contract.test('contract_123')).toBe(false);
       expect(AKAMAI_ID_PATTERNS.contract.test('ctr_')).toBe(false);
@@ -50,7 +51,7 @@ describe('Parameter Validation Tests', () => {
       expect(AKAMAI_ID_PATTERNS.group.test('grp_12345')).toBe(true);
       expect(AKAMAI_ID_PATTERNS.group.test('grp_1')).toBe(true);
       expect(AKAMAI_ID_PATTERNS.group.test('grp_999999')).toBe(true);
-      
+
       // Invalid group IDs
       expect(AKAMAI_ID_PATTERNS.group.test('group_123')).toBe(false);
       expect(AKAMAI_ID_PATTERNS.group.test('grp_')).toBe(false);
@@ -62,7 +63,7 @@ describe('Parameter Validation Tests', () => {
       expect(AKAMAI_ID_PATTERNS.product.test('prd_fresca')).toBe(true);
       expect(AKAMAI_ID_PATTERNS.product.test('prd_Site_Accel')).toBe(true);
       expect(AKAMAI_ID_PATTERNS.product.test('prd_Download_Delivery')).toBe(true);
-      
+
       // Invalid product IDs
       expect(AKAMAI_ID_PATTERNS.product.test('product_fresca')).toBe(false);
       expect(AKAMAI_ID_PATTERNS.product.test('prd_')).toBe(false);
@@ -95,7 +96,7 @@ describe('Parameter Validation Tests', () => {
           customer: 'acme-corp',
           contractId: 'ctr_C-123',
           groupId: 'grp_456',
-          limit: 50
+          limit: 50,
         };
         expect(() => validateParameters(PropertyManagerSchemas.listProperties, valid)).not.toThrow();
       });
@@ -108,10 +109,10 @@ describe('Parameter Validation Tests', () => {
       it('should reject invalid limit values', () => {
         const invalid = { limit: 1001 }; // Over max
         expect(() => validateParameters(PropertyManagerSchemas.listProperties, invalid)).toThrow();
-        
+
         const negative = { limit: -1 };
         expect(() => validateParameters(PropertyManagerSchemas.listProperties, negative)).toThrow();
-        
+
         const nonInteger = { limit: 5.5 };
         expect(() => validateParameters(PropertyManagerSchemas.listProperties, nonInteger)).toThrow();
       });
@@ -129,8 +130,8 @@ describe('Parameter Validation Tests', () => {
           useFastFallback: false,
           fastPush: true,
           complianceRecord: {
-            noncomplianceReason: 'Emergency deployment'
-          }
+            noncomplianceReason: 'Emergency deployment',
+          },
         };
         expect(() => validateParameters(PropertyManagerSchemas.activateProperty, valid)).not.toThrow();
       });
@@ -140,7 +141,7 @@ describe('Parameter Validation Tests', () => {
           propertyId: 'prp_123456',
           version: 1,
           network: 'PRODUCTION',
-          note: 'Production deployment'
+          note: 'Production deployment',
         };
         expect(() => validateParameters(PropertyManagerSchemas.activateProperty, prodWithoutEmails)).toThrow();
       });
@@ -150,7 +151,7 @@ describe('Parameter Validation Tests', () => {
           propertyId: 'prp_123456',
           version: 1,
           network: 'STAGING',
-          note: 'Staging test'
+          note: 'Staging test',
         };
         expect(() => validateParameters(PropertyManagerSchemas.activateProperty, stagingWithoutEmails)).not.toThrow();
       });
@@ -161,7 +162,7 @@ describe('Parameter Validation Tests', () => {
           version: 1,
           network: 'PRODUCTION',
           note: 'Test',
-          notifyEmails: ['not-an-email', 'test@example.com']
+          notifyEmails: ['not-an-email', 'test@example.com'],
         };
         expect(() => validateParameters(PropertyManagerSchemas.activateProperty, invalidEmails)).toThrow();
       });
@@ -171,7 +172,7 @@ describe('Parameter Validation Tests', () => {
           propertyId: 'prp_123456',
           version: 0, // Version must be at least 1
           network: 'STAGING',
-          note: 'Test'
+          note: 'Test',
         };
         expect(() => validateParameters(PropertyManagerSchemas.activateProperty, invalidVersion)).toThrow();
       });
@@ -183,7 +184,7 @@ describe('Parameter Validation Tests', () => {
           contractId: 'ctr_C-123',
           groupId: 'grp_456',
           propertyName: 'valid-property_name.com',
-          productId: 'prd_fresca'
+          productId: 'prd_fresca',
         };
         expect(() => validateParameters(PropertyManagerSchemas.createProperty, validName)).not.toThrow();
 
@@ -192,7 +193,7 @@ describe('Parameter Validation Tests', () => {
           contractId: 'ctr_C-123',
           groupId: 'grp_456',
           propertyName: 'a'.repeat(86),
-          productId: 'prd_fresca'
+          productId: 'prd_fresca',
         };
         expect(() => validateParameters(PropertyManagerSchemas.createProperty, longName)).toThrow();
 
@@ -201,7 +202,7 @@ describe('Parameter Validation Tests', () => {
           contractId: 'ctr_C-123',
           groupId: 'grp_456',
           propertyName: 'property name with spaces',
-          productId: 'prd_fresca'
+          productId: 'prd_fresca',
         };
         expect(() => validateParameters(PropertyManagerSchemas.createProperty, invalidChars)).toThrow();
       });
@@ -212,7 +213,7 @@ describe('Parameter Validation Tests', () => {
           groupId: 'grp_456',
           propertyName: 'test-property',
           productId: 'prd_fresca',
-          ruleFormat: 'v2023-10-30'
+          ruleFormat: 'v2023-10-30',
         };
         const validated = validateParameters(PropertyManagerSchemas.createProperty, withRuleFormat);
         expect(validated.ruleFormat).toBe('v2023-10-30');
@@ -222,7 +223,7 @@ describe('Parameter Validation Tests', () => {
           contractId: 'ctr_C-123',
           groupId: 'grp_456',
           propertyName: 'test-property',
-          productId: 'prd_fresca'
+          productId: 'prd_fresca',
         };
         const defaulted = validateParameters(PropertyManagerSchemas.createProperty, withoutRuleFormat);
         expect(defaulted.ruleFormat).toBe('v2023-10-30');
@@ -233,7 +234,7 @@ describe('Parameter Validation Tests', () => {
           groupId: 'grp_456',
           propertyName: 'test-property',
           productId: 'prd_fresca',
-          ruleFormat: 'invalid-format'
+          ruleFormat: 'invalid-format',
         };
         expect(() => validateParameters(PropertyManagerSchemas.createProperty, invalidFormat)).toThrow();
       });
@@ -247,7 +248,7 @@ describe('Parameter Validation Tests', () => {
           sortBy: 'zone',
           order: 'ASC',
           limit: 100,
-          offset: 0
+          offset: 0,
         };
         expect(() => validateParameters(DNSSchemas.listZones, valid)).not.toThrow();
       });
@@ -255,7 +256,7 @@ describe('Parameter Validation Tests', () => {
       it('should reject invalid sort options', () => {
         const invalidSort = {
           sortBy: 'invalid' as any,
-          order: 'ASC'
+          order: 'ASC',
         };
         expect(() => validateParameters(DNSSchemas.listZones, invalidSort)).toThrow();
       });
@@ -263,7 +264,7 @@ describe('Parameter Validation Tests', () => {
       it('should reject invalid order options', () => {
         const invalidOrder = {
           sortBy: 'zone',
-          order: 'RANDOM' as any
+          order: 'RANDOM' as any,
         };
         expect(() => validateParameters(DNSSchemas.listZones, invalidOrder)).toThrow();
       });
@@ -271,7 +272,7 @@ describe('Parameter Validation Tests', () => {
       it('should validate offset constraints', () => {
         const negativeOffset = { offset: -1 };
         expect(() => validateParameters(DNSSchemas.listZones, negativeOffset)).toThrow();
-        
+
         const validOffset = { offset: 100 };
         expect(() => validateParameters(DNSSchemas.listZones, validOffset)).not.toThrow();
       });
@@ -283,7 +284,7 @@ describe('Parameter Validation Tests', () => {
           zone: 'example.com',
           type: 'PRIMARY',
           contractId: 'ctr_C-123',
-          comment: 'Test zone'
+          comment: 'Test zone',
         };
         expect(() => validateParameters(DNSSchemas.createZone, validPrimary)).not.toThrow();
       });
@@ -292,7 +293,7 @@ describe('Parameter Validation Tests', () => {
         const secondaryWithoutMasters = {
           zone: 'example.com',
           type: 'SECONDARY',
-          contractId: 'ctr_C-123'
+          contractId: 'ctr_C-123',
         };
         expect(() => validateParameters(DNSSchemas.createZone, secondaryWithoutMasters)).toThrow();
 
@@ -300,7 +301,7 @@ describe('Parameter Validation Tests', () => {
           zone: 'example.com',
           type: 'SECONDARY',
           contractId: 'ctr_C-123',
-          masters: ['192.168.1.1', '10.0.0.1']
+          masters: ['192.168.1.1', '10.0.0.1'],
         };
         expect(() => validateParameters(DNSSchemas.createZone, secondaryWithMasters)).not.toThrow();
       });
@@ -309,7 +310,7 @@ describe('Parameter Validation Tests', () => {
         const aliasWithoutTarget = {
           zone: 'example.com',
           type: 'ALIAS',
-          contractId: 'ctr_C-123'
+          contractId: 'ctr_C-123',
         };
         expect(() => validateParameters(DNSSchemas.createZone, aliasWithoutTarget)).toThrow();
 
@@ -317,7 +318,7 @@ describe('Parameter Validation Tests', () => {
           zone: 'example.com',
           type: 'ALIAS',
           contractId: 'ctr_C-123',
-          target: 'target.example.com'
+          target: 'target.example.com',
         };
         expect(() => validateParameters(DNSSchemas.createZone, aliasWithTarget)).not.toThrow();
       });
@@ -327,7 +328,7 @@ describe('Parameter Validation Tests', () => {
           zone: 'example.com',
           type: 'SECONDARY',
           contractId: 'ctr_C-123',
-          masters: ['not-an-ip', '192.168.1.1']
+          masters: ['not-an-ip', '192.168.1.1'],
         };
         expect(() => validateParameters(DNSSchemas.createZone, invalidIPs)).toThrow();
       });
@@ -337,7 +338,7 @@ describe('Parameter Validation Tests', () => {
           zone: 'example.com',
           type: 'PRIMARY',
           contractId: 'ctr_C-123',
-          comment: 'a'.repeat(2049) // Over 2048 limit
+          comment: 'a'.repeat(2049), // Over 2048 limit
         };
         expect(() => validateParameters(DNSSchemas.createZone, longComment)).toThrow();
       });
@@ -350,7 +351,7 @@ describe('Parameter Validation Tests', () => {
           name: 'test',
           type: 'A',
           ttl: 300,
-          rdata: ['192.168.1.1']
+          rdata: ['192.168.1.1'],
         };
         expect(() => validateParameters(DNSSchemas.upsertRecord, validTTL)).not.toThrow();
 
@@ -360,7 +361,7 @@ describe('Parameter Validation Tests', () => {
           name: 'test',
           type: 'A',
           ttl: 29, // Below minimum of 30
-          rdata: ['192.168.1.1']
+          rdata: ['192.168.1.1'],
         };
         expect(() => validateParameters(DNSSchemas.upsertRecord, tooLowTTL)).toThrow();
 
@@ -370,7 +371,7 @@ describe('Parameter Validation Tests', () => {
           name: 'test',
           type: 'A',
           ttl: 2147483648, // Above maximum
-          rdata: ['192.168.1.1']
+          rdata: ['192.168.1.1'],
         };
         expect(() => validateParameters(DNSSchemas.upsertRecord, tooHighTTL)).toThrow();
       });
@@ -383,7 +384,7 @@ describe('Parameter Validation Tests', () => {
             name: 'test',
             type,
             ttl: 300,
-            rdata: ['test-data']
+            rdata: ['test-data'],
           };
           expect(() => validateParameters(DNSSchemas.upsertRecord, record)).not.toThrow();
         });
@@ -393,7 +394,7 @@ describe('Parameter Validation Tests', () => {
           name: 'test',
           type: 'INVALID',
           ttl: 300,
-          rdata: ['test-data']
+          rdata: ['test-data'],
         };
         expect(() => validateParameters(DNSSchemas.upsertRecord, invalidType)).toThrow();
       });
@@ -404,7 +405,7 @@ describe('Parameter Validation Tests', () => {
           name: 'test',
           type: 'A',
           ttl: 300,
-          rdata: []
+          rdata: [],
         };
         expect(() => validateParameters(DNSSchemas.upsertRecord, emptyRdata)).toThrow();
 
@@ -413,7 +414,7 @@ describe('Parameter Validation Tests', () => {
           name: 'test',
           type: 'A',
           ttl: 300,
-          rdata: ['']
+          rdata: [''],
         };
         expect(() => validateParameters(DNSSchemas.upsertRecord, emptyString)).toThrow();
       });
@@ -432,7 +433,7 @@ describe('Parameter Validation Tests', () => {
         region: 'NY',
         postalCode: '10001',
         country: 'US',
-        organizationName: 'ACME Corp'
+        organizationName: 'ACME Corp',
       };
 
       it('should validate complete DV enrollment', () => {
@@ -449,15 +450,15 @@ describe('Parameter Validation Tests', () => {
             region: 'NY',
             postalCode: '10001',
             country: 'US',
-            phone: '+1234567890'
+            phone: '+1234567890',
           },
           validationType: 'dv',
           certificateType: 'san',
           networkConfiguration: {
             geography: 'core',
             secureNetwork: 'enhanced-tls',
-            quicEnabled: true
-          }
+            quicEnabled: true,
+          },
         };
         expect(() => validateParameters(CertificateSchemas.createDVEnrollment, valid)).not.toThrow();
       });
@@ -475,8 +476,8 @@ describe('Parameter Validation Tests', () => {
             region: 'NY',
             postalCode: '10001',
             country: 'US',
-            phone: '+1234567890'
-          }
+            phone: '+1234567890',
+          },
         };
         expect(() => validateParameters(CertificateSchemas.createDVEnrollment, invalidCN)).toThrow();
       });
@@ -484,9 +485,9 @@ describe('Parameter Validation Tests', () => {
       it('should validate email formats in contacts', () => {
         const invalidEmail = {
           ...validContact,
-          email: 'not-an-email'
+          email: 'not-an-email',
         };
-        
+
         const enrollment = {
           contractId: 'ctr_C-123',
           cn: 'www.example.com',
@@ -499,8 +500,8 @@ describe('Parameter Validation Tests', () => {
             region: 'NY',
             postalCode: '10001',
             country: 'US',
-            phone: '+1234567890'
-          }
+            phone: '+1234567890',
+          },
         };
         expect(() => validateParameters(CertificateSchemas.createDVEnrollment, enrollment)).toThrow();
       });
@@ -508,9 +509,9 @@ describe('Parameter Validation Tests', () => {
       it('should validate country codes', () => {
         const invalidCountry = {
           ...validContact,
-          country: 'USA' // Should be 2-letter code
+          country: 'USA', // Should be 2-letter code
         };
-        
+
         const enrollment = {
           contractId: 'ctr_C-123',
           cn: 'www.example.com',
@@ -523,8 +524,8 @@ describe('Parameter Validation Tests', () => {
             region: 'NY',
             postalCode: '10001',
             country: 'USA', // Should be 'US'
-            phone: '+1234567890'
-          }
+            phone: '+1234567890',
+          },
         };
         expect(() => validateParameters(CertificateSchemas.createDVEnrollment, enrollment)).toThrow();
       });
@@ -542,10 +543,10 @@ describe('Parameter Validation Tests', () => {
             region: 'NY',
             postalCode: '10001',
             country: 'US',
-            phone: '+1234567890'
-          }
+            phone: '+1234567890',
+          },
         };
-        
+
         const validated = validateParameters(CertificateSchemas.createDVEnrollment, minimal);
         expect(validated.validationType).toBe('dv');
         expect(validated.certificateType).toBe('san');
@@ -563,14 +564,14 @@ describe('Parameter Validation Tests', () => {
           description: 'Emergency purge',
           notifyEmails: ['ops@example.com'],
           waitForCompletion: false,
-          useQueue: true
+          useQueue: true,
         };
         expect(() => validateParameters(FastPurgeSchemas.purgeByUrl, validUrls)).not.toThrow();
       });
 
       it('should reject invalid URLs', () => {
         const invalidUrls = {
-          urls: ['not-a-url', 'https://example.com/valid']
+          urls: ['not-a-url', 'https://example.com/valid'],
         };
         expect(() => validateParameters(FastPurgeSchemas.purgeByUrl, invalidUrls)).toThrow();
       });
@@ -599,7 +600,7 @@ describe('Parameter Validation Tests', () => {
       it('should validate description length', () => {
         const longDescription = {
           urls: ['https://example.com'],
-          description: 'a'.repeat(256) // Over 255 limit
+          description: 'a'.repeat(256), // Over 255 limit
         };
         expect(() => validateParameters(FastPurgeSchemas.purgeByUrl, longDescription)).toThrow();
       });
@@ -620,14 +621,14 @@ describe('Parameter Validation Tests', () => {
           cpcodes: [12345, 67890],
           network: 'production',
           priority: 'normal',
-          confirmed: true
+          confirmed: true,
         };
         expect(() => validateParameters(FastPurgeSchemas.purgeByCpcode, validCodes)).not.toThrow();
       });
 
       it('should reject non-numeric CP codes', () => {
         const invalidCodes = {
-          cpcodes: ['abc' as any, 123]
+          cpcodes: ['abc' as any, 123],
         };
         expect(() => validateParameters(FastPurgeSchemas.purgeByCpcode, invalidCodes)).toThrow();
       });
@@ -659,7 +660,7 @@ describe('Parameter Validation Tests', () => {
           name: 'Blocked IPs',
           type: 'IP',
           description: 'List of blocked IP addresses',
-          elements: ['192.168.1.1', '10.0.0.0/24']
+          elements: ['192.168.1.1', '10.0.0.0/24'],
         };
         expect(() => validateParameters(NetworkListSchemas.createNetworkList, valid)).not.toThrow();
       });
@@ -689,7 +690,7 @@ describe('Parameter Validation Tests', () => {
         const longDescription = {
           name: 'Test List',
           type: 'IP',
-          description: 'a'.repeat(2049) // Over 2048 limit
+          description: 'a'.repeat(2049), // Over 2048 limit
         };
         expect(() => validateParameters(NetworkListSchemas.createNetworkList, longDescription)).toThrow();
       });
@@ -703,16 +704,16 @@ describe('Parameter Validation Tests', () => {
         groupId: 'grp_456',
         limit: 50,
         includeRules: true,
-        search: 'test query'
+        search: 'test query',
       };
-      
+
       const formatted = formatQueryParameters(params);
       expect(formatted).toEqual({
         contractId: 'ctr_C-123',
         groupId: 'grp_456',
         limit: 50,
         includeRules: true,
-        search: 'test query'
+        search: 'test query',
       });
     });
 
@@ -721,12 +722,12 @@ describe('Parameter Validation Tests', () => {
         contractId: 'ctr_C-123',
         groupId: undefined,
         limit: null,
-        search: ''
+        search: '',
       };
-      
+
       const formatted = formatQueryParameters(params);
       expect(formatted).toEqual({
-        contractId: 'ctr_C-123'
+        contractId: 'ctr_C-123',
       });
       expect(formatted.groupId).toBeUndefined();
       expect(formatted.limit).toBeUndefined();
@@ -737,27 +738,27 @@ describe('Parameter Validation Tests', () => {
       const params = {
         includeRules: false,
         acknowledgeWarnings: true,
-        fastPush: false
+        fastPush: false,
       };
-      
+
       const formatted = formatQueryParameters(params);
       expect(formatted).toEqual({
         includeRules: false,
         acknowledgeWarnings: true,
-        fastPush: false
+        fastPush: false,
       });
     });
 
     it('should preserve zero values', () => {
       const params = {
         offset: 0,
-        limit: 100
+        limit: 100,
       };
-      
+
       const formatted = formatQueryParameters(params);
       expect(formatted).toEqual({
         offset: 0,
-        limit: 100
+        limit: 100,
       });
     });
   });
@@ -786,7 +787,7 @@ describe('Parameter Validation Tests', () => {
         contractId: 'ctr_C-123',
         groupId: 'grp_456',
         propertyName: 'test-property_v2.0',
-        productId: 'prd_fresca'
+        productId: 'prd_fresca',
       };
       expect(() => validateParameters(PropertyManagerSchemas.createProperty, specialChars)).not.toThrow();
 
@@ -796,7 +797,7 @@ describe('Parameter Validation Tests', () => {
         version: 1,
         network: 'PRODUCTION',
         note: 'Test',
-        notifyEmails: ['test+production@example.com']
+        notifyEmails: ['test+production@example.com'],
       };
       expect(() => validateParameters(PropertyManagerSchemas.activateProperty, emailWithPlus)).not.toThrow();
     });
@@ -817,7 +818,7 @@ describe('Parameter Validation Tests', () => {
           region: 'NY',
           postalCode: '10001',
           country: 'US',
-          organizationName: 'ACME Corp'
+          organizationName: 'ACME Corp',
         },
         techContact: {
           firstName: 'John',
@@ -829,7 +830,7 @@ describe('Parameter Validation Tests', () => {
           region: 'NY',
           postalCode: '10001',
           country: 'US',
-          organizationName: 'ACME Corp'
+          organizationName: 'ACME Corp',
         },
         org: {
           name: 'ACME Corp',
@@ -838,8 +839,8 @@ describe('Parameter Validation Tests', () => {
           region: 'NY',
           postalCode: '10001',
           country: 'US',
-          phone: '+1234567890'
-        }
+          phone: '+1234567890',
+        },
       };
       expect(() => validateParameters(CertificateSchemas.createDVEnrollment, emptyOptionalArray)).not.toThrow();
     });

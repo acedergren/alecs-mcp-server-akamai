@@ -3,21 +3,23 @@
  * Provides type-safe authentication with account switching support
  */
 
+import * as crypto from 'crypto';
+
+import { CustomerConfigManager } from '@utils/customer-config';
+import { logger } from '@utils/logger';
 import axios, {
   type AxiosInstance,
   type AxiosError,
   type InternalAxiosRequestConfig,
   type AxiosResponse,
 } from 'axios';
-import * as crypto from 'crypto';
-import { CustomerConfigManager } from '@utils/customer-config';
+
 import {
   type EdgeGridCredentials,
   ConfigurationError,
   ConfigErrorType,
   type NetworkEnvironment,
 } from '../types/config';
-import { logger } from '@utils/logger';
 
 /**
  * EdgeGrid authentication header components
@@ -272,7 +274,7 @@ export class EdgeGridAuth {
    */
   private formatAuthHeader(header: EdgeGridAuthHeader): string {
     return (
-      `EG1-HMAC-SHA256 ` +
+      'EG1-HMAC-SHA256 ' +
       `client_token=${header.client_token};` +
       `access_token=${header.access_token};` +
       `timestamp=${header.timestamp};` +
@@ -333,7 +335,7 @@ export class EdgeGridAuth {
   ): string {
     const dataToSign =
       authData +
-      `EG1-HMAC-SHA256 ` +
+      'EG1-HMAC-SHA256 ' +
       `client_token=${this.credentials.client_token};` +
       `access_token=${this.credentials.access_token};` +
       `timestamp=${timestamp};` +

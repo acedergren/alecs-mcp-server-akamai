@@ -5,11 +5,12 @@
 
 import { EventEmitter } from 'events';
 import { performance } from 'perf_hooks';
-import type MetricsAPI from './metrics-api';
+
 import { type DebugEvent, type RequestTrace } from './debug-api';
 import type DebugAPI from './debug-api';
 import { type SystemDiagnostics, type HealthCheck, type DiagnosticAlert } from './diagnostics-api';
 import type DiagnosticsAPI from './diagnostics-api';
+import type MetricsAPI from './metrics-api';
 
 export interface TelemetryDestination {
   name: string;
@@ -156,7 +157,9 @@ export class TelemetryExporter extends EventEmitter {
    */
   updateDestination(name: string, updates: Partial<TelemetryDestination>): boolean {
     const destination = this.destinations.get(name);
-    if (!destination) return false;
+    if (!destination) {
+return false;
+}
 
     Object.assign(destination, updates);
     this.emit('destinationUpdated', name, destination);
@@ -168,7 +171,9 @@ export class TelemetryExporter extends EventEmitter {
    */
   setDestinationEnabled(name: string, enabled: boolean): boolean {
     const destination = this.destinations.get(name);
-    if (!destination) return false;
+    if (!destination) {
+return false;
+}
 
     destination.enabled = enabled;
     this.emit('destinationToggled', name, enabled);
@@ -724,13 +729,19 @@ export class TelemetryExporter extends EventEmitter {
   }
 
   private async processExportQueue(): Promise<void> {
-    if (this.exportQueue.length === 0) return;
+    if (this.exportQueue.length === 0) {
+return;
+}
 
     const item = this.exportQueue.shift();
-    if (!item) return;
+    if (!item) {
+return;
+}
 
     const batch = this.batches.get(item.batchId);
-    if (!batch) return;
+    if (!batch) {
+return;
+}
 
     const destination = this.destinations.get(batch.destination);
     if (!destination?.enabled) {

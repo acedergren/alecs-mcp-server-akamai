@@ -613,10 +613,18 @@ export class TestOutputAnalyzer {
   private assessTestHealth(
     overview: Overview,
   ): 'EXCELLENT' | 'GOOD' | 'FAIR' | 'POOR' | 'CRITICAL' {
-    if (overview.successRate >= 95) return 'EXCELLENT';
-    if (overview.successRate >= 90) return 'GOOD';
-    if (overview.successRate >= 80) return 'FAIR';
-    if (overview.successRate >= 70) return 'POOR';
+    if (overview.successRate >= 95) {
+return 'EXCELLENT';
+}
+    if (overview.successRate >= 90) {
+return 'GOOD';
+}
+    if (overview.successRate >= 80) {
+return 'FAIR';
+}
+    if (overview.successRate >= 70) {
+return 'POOR';
+}
     return 'CRITICAL';
   }
 
@@ -691,17 +699,31 @@ export class TestOutputAnalyzer {
     category: string,
   ): 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' {
     // Critical severity indicators
-    if (category === 'AUTH_ERROR' || category === 'CONFIG_ERROR') return 'CRITICAL';
-    if (error.message.includes('CRITICAL') || error.message.includes('FATAL')) return 'CRITICAL';
+    if (category === 'AUTH_ERROR' || category === 'CONFIG_ERROR') {
+return 'CRITICAL';
+}
+    if (error.message.includes('CRITICAL') || error.message.includes('FATAL')) {
+return 'CRITICAL';
+}
 
     // High severity indicators
-    if (category === 'API_ERROR' || category === 'ACTIVATION_ERROR') return 'HIGH';
-    if (error.message.includes('HIGH') || error.message.includes('SEVERE')) return 'HIGH';
-    if (error.type === 'suite_error') return 'HIGH';
+    if (category === 'API_ERROR' || category === 'ACTIVATION_ERROR') {
+return 'HIGH';
+}
+    if (error.message.includes('HIGH') || error.message.includes('SEVERE')) {
+return 'HIGH';
+}
+    if (error.type === 'suite_error') {
+return 'HIGH';
+}
 
     // Medium severity indicators
-    if (category === 'VALIDATION_ERROR' || category === 'TIMEOUT_ERROR') return 'MEDIUM';
-    if (error.message.includes('MEDIUM') || error.message.includes('WARNING')) return 'MEDIUM';
+    if (category === 'VALIDATION_ERROR' || category === 'TIMEOUT_ERROR') {
+return 'MEDIUM';
+}
+    if (error.message.includes('MEDIUM') || error.message.includes('WARNING')) {
+return 'MEDIUM';
+}
 
     // Default to LOW
     return 'LOW';
@@ -857,9 +879,13 @@ export class TestOutputAnalyzer {
       impact.technicalImpact.level,
       impact.customerImpact.level,
     ];
-    if (impacts.includes('CRITICAL')) impact.riskLevel = 'CRITICAL';
-    else if (impacts.includes('HIGH')) impact.riskLevel = 'HIGH';
-    else if (impacts.includes('MEDIUM')) impact.riskLevel = 'MEDIUM';
+    if (impacts.includes('CRITICAL')) {
+impact.riskLevel = 'CRITICAL';
+} else if (impacts.includes('HIGH')) {
+impact.riskLevel = 'HIGH';
+} else if (impacts.includes('MEDIUM')) {
+impact.riskLevel = 'MEDIUM';
+}
 
     return impact;
   }

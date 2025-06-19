@@ -123,7 +123,7 @@ export function generateTreeSummary(nodes: TreeNode[]): string {
   summary += `- **Total Properties**: ${stats.totalProperties}\n`;
 
   if (stats.groupStats.length > 0) {
-    summary += `- **Property Distribution**:\n`;
+    summary += '- **Property Distribution**:\n';
     stats.groupStats.forEach((group) => {
       if (group.level === 0) {
         summary += `  - **Direct in ${group.name}**: ${group.directProperties}\n`;

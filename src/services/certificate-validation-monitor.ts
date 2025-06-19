@@ -3,8 +3,9 @@
  * Real-time monitoring and automation for certificate validation
  */
 
-import { type AkamaiClient } from '../akamai-client';
 import { EventEmitter } from 'events';
+
+import { type AkamaiClient } from '../akamai-client';
 
 // Validation States
 export enum ValidationStatus {
@@ -160,7 +161,9 @@ export class CertificateValidationMonitor extends EventEmitter {
       // Use Google's DNS resolver to check propagation
       const response = await fetch(`https://dns.google/resolve?name=${recordName}&type=TXT`);
 
-      if (!response.ok) return false;
+      if (!response.ok) {
+return false;
+}
 
       const data: any = await response.json();
       const answers = data.Answer || [];
@@ -226,13 +229,17 @@ export class CertificateValidationMonitor extends EventEmitter {
     });
 
     const domainStates = this.validationStates.get(enrollmentId);
-    if (!domainStates) return false;
+    if (!domainStates) {
+return false;
+}
 
     let allValidated = true;
 
     for (const domain of response.allowedDomains || []) {
       const domainState = domainStates.get(domain.name);
-      if (!domainState) continue;
+      if (!domainState) {
+continue;
+}
 
       const previousStatus = domainState.status;
 
@@ -297,12 +304,16 @@ export class CertificateValidationMonitor extends EventEmitter {
 
   private async retryFailedValidations(enrollmentId: number): Promise<void> {
     const domainStates = this.validationStates.get(enrollmentId);
-    if (!domainStates) return;
+    if (!domainStates) {
+return;
+}
 
     for (const [domain, state] of domainStates) {
       if (state.status === ValidationStatus.FAILED || state.status === ValidationStatus.EXPIRED) {
         // Don't retry if max attempts reached
-        if (state.attempts >= 3) continue;
+        if (state.attempts >= 3) {
+continue;
+}
 
         try {
           await this.triggerDomainValidation(enrollmentId, domain);
@@ -333,14 +344,14 @@ export class CertificateValidationMonitor extends EventEmitter {
       (s) => s.status !== ValidationStatus.VALIDATED && s.status !== ValidationStatus.FAILED,
     ).length;
 
-    report += `## Summary\n\n`;
+    report += '## Summary\n\n';
     report += `- **Total Domains:** ${statuses.length}\n`;
     report += `- **Validated:** ${validated}\n`;
     report += `- **Failed:** ${failed}\n`;
     report += `- **In Progress:** ${pending}\n\n`;
 
     // Domain Details
-    report += `## Domain Status\n\n`;
+    report += '## Domain Status\n\n';
 
     for (const [domain, state] of domainStates) {
       const statusEmoji =

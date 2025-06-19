@@ -3,8 +3,6 @@
  * MCP tools for monitoring, managing, and recovering from operational issues
  */
 
-import { type AkamaiClient } from '../akamai-client';
-import { type MCPToolResponse } from '../types';
 import {
   globalResilienceManager,
   OperationType,
@@ -12,6 +10,9 @@ import {
   HealthChecker,
   type HealthCheckResult,
 } from '@utils/resilience-manager';
+
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
 
 /**
  * Get system health status
@@ -38,7 +39,7 @@ export async function getSystemHealth(
         ? 'UNHEALTHY'
         : 'DEGRADED';
 
-    let responseText = `# System Health Report\n\n`;
+    let responseText = '# System Health Report\n\n';
     responseText += `**Overall Status:** ${getStatusEmoji(overallStatus)} ${overallStatus}\n`;
     responseText += `**Last Check:** ${new Date().toISOString()}\n\n`;
 
@@ -47,13 +48,13 @@ export async function getSystemHealth(
     const degradedCount = healthChecks.filter((h) => h.status === 'DEGRADED').length;
     const unhealthyCount = healthChecks.filter((h) => h.status === 'UNHEALTHY').length;
 
-    responseText += `## Status Summary\n`;
+    responseText += '## Status Summary\n';
     responseText += `- ${getStatusEmoji('HEALTHY')} Healthy: ${healthyCount}\n`;
     responseText += `- ${getStatusEmoji('DEGRADED')} Degraded: ${degradedCount}\n`;
     responseText += `- ${getStatusEmoji('UNHEALTHY')} Unhealthy: ${unhealthyCount}\n\n`;
 
     // Detailed status by operation type
-    responseText += `## Operation Status\n\n`;
+    responseText += '## Operation Status\n\n';
 
     healthChecks.forEach((check) => {
       responseText += `### ${check.operationType}\n`;
@@ -61,14 +62,14 @@ export async function getSystemHealth(
       responseText += `**Circuit Breaker:** ${getCircuitBreakerEmoji(check.circuitBreakerState)} ${check.circuitBreakerState}\n`;
 
       if (check.issues.length > 0) {
-        responseText += `**Issues:**\n`;
+        responseText += '**Issues:**\n';
         check.issues.forEach((issue) => {
           responseText += `- ${issue}\n`;
         });
       }
 
       if (args.includeMetrics) {
-        responseText += `**Metrics:**\n`;
+        responseText += '**Metrics:**\n';
         responseText += `- Total Calls: ${check.metrics.totalCalls}\n`;
         responseText += `- Success Rate: ${((1 - check.metrics.errorRate) * 100).toFixed(1)}%\n`;
         responseText += `- Avg Response Time: ${check.metrics.averageResponseTime.toFixed(0)}ms\n`;
@@ -78,7 +79,7 @@ export async function getSystemHealth(
         }
       }
 
-      responseText += `\n`;
+      responseText += '\n';
     });
 
     // Action recommendations
@@ -86,10 +87,10 @@ export async function getSystemHealth(
     const degradedOps = healthChecks.filter((h) => h.status === 'DEGRADED');
 
     if (unhealthyOps.length > 0 || degradedOps.length > 0) {
-      responseText += `## Recommended Actions\n\n`;
+      responseText += '## Recommended Actions\n\n';
 
       if (unhealthyOps.length > 0) {
-        responseText += `### Critical Issues\n`;
+        responseText += '### Critical Issues\n';
         unhealthyOps.forEach((op) => {
           responseText += `**${op.operationType}:**\n`;
           op.issues.forEach((issue) => {
@@ -97,22 +98,22 @@ export async function getSystemHealth(
           });
 
           if (op.circuitBreakerState === CircuitBreakerState.OPEN) {
-            responseText += `- Wait for circuit breaker reset or use \`reset_circuit_breaker\` tool\n`;
+            responseText += '- Wait for circuit breaker reset or use `reset_circuit_breaker` tool\n';
           }
-          responseText += `- Check Akamai service status\n`;
-          responseText += `- Review recent changes to configuration\n\n`;
+          responseText += '- Check Akamai service status\n';
+          responseText += '- Review recent changes to configuration\n\n';
         });
       }
 
       if (degradedOps.length > 0) {
-        responseText += `### Performance Issues\n`;
+        responseText += '### Performance Issues\n';
         degradedOps.forEach((op) => {
           responseText += `**${op.operationType}:**\n`;
           op.issues.forEach((issue) => {
             responseText += `- ${issue}\n`;
           });
-          responseText += `- Monitor for improvement\n`;
-          responseText += `- Consider reducing request frequency\n\n`;
+          responseText += '- Monitor for improvement\n';
+          responseText += '- Consider reducing request frequency\n\n';
         });
       }
     }
@@ -174,23 +175,23 @@ export async function resetCircuitBreaker(
 
     globalResilienceManager.resetCircuitBreaker(args.operationType);
 
-    let responseText = `# Circuit Breaker Reset\n\n`;
+    let responseText = '# Circuit Breaker Reset\n\n';
     responseText += `**Operation Type:** ${args.operationType}\n`;
     responseText += `**Previous State:** ${currentState}\n`;
-    responseText += `**New State:** CLOSED\n`;
+    responseText += '**New State:** CLOSED\n';
     responseText += `**Reset Time:** ${new Date().toISOString()}\n\n`;
 
-    responseText += `## What This Means\n`;
-    responseText += `- The circuit breaker has been reset to CLOSED state\n`;
-    responseText += `- Operations will be attempted normally\n`;
-    responseText += `- Failure counting starts fresh\n`;
-    responseText += `- Monitor system health to ensure stability\n\n`;
+    responseText += '## What This Means\n';
+    responseText += '- The circuit breaker has been reset to CLOSED state\n';
+    responseText += '- Operations will be attempted normally\n';
+    responseText += '- Failure counting starts fresh\n';
+    responseText += '- Monitor system health to ensure stability\n\n';
 
-    responseText += `## Recommended Actions\n`;
-    responseText += `1. Monitor the operation closely after reset\n`;
-    responseText += `2. Check for underlying issues that caused the failures\n`;
-    responseText += `3. Consider implementing additional safeguards if issues persist\n`;
-    responseText += `4. Use \`get_system_health\` to track recovery progress\n`;
+    responseText += '## Recommended Actions\n';
+    responseText += '1. Monitor the operation closely after reset\n';
+    responseText += '2. Check for underlying issues that caused the failures\n';
+    responseText += '3. Consider implementing additional safeguards if issues persist\n';
+    responseText += '4. Use `get_system_health` to track recovery progress\n';
 
     return {
       content: [
@@ -223,7 +224,7 @@ export async function getOperationMetrics(
   },
 ): Promise<MCPToolResponse> {
   try {
-    let responseText = `# Operation Metrics Report\n\n`;
+    let responseText = '# Operation Metrics Report\n\n';
     responseText += `**Generated:** ${new Date().toISOString()}\n\n`;
 
     const allMetrics = globalResilienceManager.getAllMetrics();
@@ -243,7 +244,7 @@ export async function getOperationMetrics(
 
       responseText += formatOperationMetrics(args.operationType, metrics);
     } else {
-      responseText += `## All Operations Summary\n\n`;
+      responseText += '## All Operations Summary\n\n';
 
       let totalCalls = 0;
       let totalSuccessful = 0;
@@ -265,11 +266,11 @@ export async function getOperationMetrics(
       responseText += `- **Overall Success Rate:** ${overallSuccessRate.toFixed(1)}%\n`;
       responseText += `- **Average Response Time:** ${avgResponseTime.toFixed(0)}ms\n\n`;
 
-      responseText += `## Individual Operation Metrics\n\n`;
+      responseText += '## Individual Operation Metrics\n\n';
 
       allMetrics.forEach((metrics, operationType) => {
         responseText += formatOperationMetrics(operationType, metrics);
-        responseText += `\n`;
+        responseText += '\n';
       });
     }
 
@@ -306,7 +307,7 @@ export async function testOperationResilience(
 ): Promise<MCPToolResponse> {
   try {
     const iterations = args.iterations || 5;
-    let responseText = `# Resilience Test Report\n\n`;
+    let responseText = '# Resilience Test Report\n\n';
     responseText += `**Operation Type:** ${args.operationType}\n`;
     responseText += `**Test Type:** ${args.testType}\n`;
     responseText += `**Iterations:** ${iterations}\n`;
@@ -323,7 +324,7 @@ export async function testOperationResilience(
     const initialMetrics = globalResilienceManager.getOperationMetrics(args.operationType);
     const initialState = globalResilienceManager.getCircuitBreakerState(args.operationType);
 
-    responseText += `## Initial State\n`;
+    responseText += '## Initial State\n';
     responseText += `- **Circuit Breaker State:** ${initialState}\n`;
     responseText += `- **Error Rate:** ${initialMetrics ? (initialMetrics.errorRate * 100).toFixed(1) : 'N/A'}%\n`;
     responseText += `- **Total Calls:** ${initialMetrics?.totalCalls || 0}\n\n`;
@@ -359,7 +360,7 @@ export async function testOperationResilience(
     const failureCount = results.filter((r) => !r.success).length;
     const avgResponseTime = results.reduce((sum, r) => sum + r.responseTime, 0) / results.length;
 
-    responseText += `## Test Results\n`;
+    responseText += '## Test Results\n';
     responseText += `- **Successful Operations:** ${successCount}/${iterations}\n`;
     responseText += `- **Failed Operations:** ${failureCount}/${iterations}\n`;
     responseText += `- **Success Rate:** ${((successCount / iterations) * 100).toFixed(1)}%\n`;
@@ -369,24 +370,24 @@ export async function testOperationResilience(
     const finalMetrics = globalResilienceManager.getOperationMetrics(args.operationType);
     const finalState = globalResilienceManager.getCircuitBreakerState(args.operationType);
 
-    responseText += `## Final State\n`;
+    responseText += '## Final State\n';
     responseText += `- **Circuit Breaker State:** ${finalState}\n`;
     responseText += `- **Error Rate:** ${finalMetrics ? (finalMetrics.errorRate * 100).toFixed(1) : 'N/A'}%\n`;
     responseText += `- **Total Calls:** ${finalMetrics?.totalCalls || 0}\n\n`;
 
     // Detailed results
     if (failureCount > 0) {
-      responseText += `## Failed Operations\n`;
+      responseText += '## Failed Operations\n';
       results
         .filter((r) => !r.success)
         .forEach((result) => {
           responseText += `- **Iteration ${result.iteration}:** ${result.error} (${result.responseTime}ms)\n`;
         });
-      responseText += `\n`;
+      responseText += '\n';
     }
 
     // Analysis and recommendations
-    responseText += `## Analysis\n`;
+    responseText += '## Analysis\n';
 
     if (initialState !== finalState) {
       responseText += `- Circuit breaker state changed from ${initialState} to ${finalState}\n`;
@@ -394,17 +395,17 @@ export async function testOperationResilience(
 
     if (failureCount > 0) {
       responseText += `- ${failureCount} operations failed during testing\n`;
-      responseText += `- Consider investigating error patterns\n`;
+      responseText += '- Consider investigating error patterns\n';
     }
 
     if (avgResponseTime > 5000) {
-      responseText += `- High average response time detected\n`;
-      responseText += `- Monitor for performance issues\n`;
+      responseText += '- High average response time detected\n';
+      responseText += '- Monitor for performance issues\n';
     }
 
     if (successCount === iterations) {
-      responseText += `- All operations completed successfully\n`;
-      responseText += `- System resilience appears healthy for this operation type\n`;
+      responseText += '- All operations completed successfully\n';
+      responseText += '- System resilience appears healthy for this operation type\n';
     }
 
     return {
@@ -439,36 +440,36 @@ export async function getErrorRecoverySuggestions(
   },
 ): Promise<MCPToolResponse> {
   try {
-    let responseText = `# Error Recovery Suggestions\n\n`;
+    let responseText = '# Error Recovery Suggestions\n\n';
 
     if (args.errorType || args.operationType) {
-      responseText += `**Context:**\n`;
+      responseText += '**Context:**\n';
       if (args.errorType) {
         responseText += `- Error Type: ${args.errorType}\n`;
       }
       if (args.operationType) {
         responseText += `- Operation Type: ${args.operationType}\n`;
       }
-      responseText += `\n`;
+      responseText += '\n';
     }
 
     // General recovery strategies
-    responseText += `## Immediate Recovery Actions\n\n`;
+    responseText += '## Immediate Recovery Actions\n\n';
 
-    responseText += `### 1. Circuit Breaker Management\n`;
-    responseText += `- Check circuit breaker status: \`get_system_health\`\n`;
-    responseText += `- Reset if stuck open: \`reset_circuit_breaker\`\n`;
-    responseText += `- Monitor recovery progress\n\n`;
+    responseText += '### 1. Circuit Breaker Management\n';
+    responseText += '- Check circuit breaker status: `get_system_health`\n';
+    responseText += '- Reset if stuck open: `reset_circuit_breaker`\n';
+    responseText += '- Monitor recovery progress\n\n';
 
-    responseText += `### 2. Retry Strategy\n`;
-    responseText += `- Most operations use automatic retry with exponential backoff\n`;
-    responseText += `- For manual retry, wait 30-60 seconds between attempts\n`;
-    responseText += `- Check operation metrics to understand failure patterns\n\n`;
+    responseText += '### 2. Retry Strategy\n';
+    responseText += '- Most operations use automatic retry with exponential backoff\n';
+    responseText += '- For manual retry, wait 30-60 seconds between attempts\n';
+    responseText += '- Check operation metrics to understand failure patterns\n\n';
 
-    responseText += `### 3. Service Health Verification\n`;
-    responseText += `- Run system health check to identify issues\n`;
-    responseText += `- Verify Akamai service status\n`;
-    responseText += `- Check network connectivity\n\n`;
+    responseText += '### 3. Service Health Verification\n';
+    responseText += '- Run system health check to identify issues\n';
+    responseText += '- Verify Akamai service status\n';
+    responseText += '- Check network connectivity\n\n';
 
     // Error-specific guidance
     if (args.errorType) {
@@ -482,27 +483,27 @@ export async function getErrorRecoverySuggestions(
 
     // Preventive measures
     if (args.includePreventiveMeasures) {
-      responseText += `## Preventive Measures\n\n`;
+      responseText += '## Preventive Measures\n\n';
 
-      responseText += `### 1. Monitoring\n`;
-      responseText += `- Regularly check system health\n`;
-      responseText += `- Set up alerts for high error rates\n`;
-      responseText += `- Monitor circuit breaker states\n\n`;
+      responseText += '### 1. Monitoring\n';
+      responseText += '- Regularly check system health\n';
+      responseText += '- Set up alerts for high error rates\n';
+      responseText += '- Monitor circuit breaker states\n\n';
 
-      responseText += `### 2. Rate Limiting\n`;
-      responseText += `- Use bulk operations for multiple items\n`;
-      responseText += `- Implement delays between requests\n`;
-      responseText += `- Respect API rate limits\n\n`;
+      responseText += '### 2. Rate Limiting\n';
+      responseText += '- Use bulk operations for multiple items\n';
+      responseText += '- Implement delays between requests\n';
+      responseText += '- Respect API rate limits\n\n';
 
-      responseText += `### 3. Error Handling\n`;
-      responseText += `- Implement proper retry logic in applications\n`;
-      responseText += `- Use circuit breaker patterns\n`;
-      responseText += `- Log errors for analysis\n\n`;
+      responseText += '### 3. Error Handling\n';
+      responseText += '- Implement proper retry logic in applications\n';
+      responseText += '- Use circuit breaker patterns\n';
+      responseText += '- Log errors for analysis\n\n';
 
-      responseText += `### 4. Capacity Planning\n`;
-      responseText += `- Monitor response times\n`;
-      responseText += `- Plan for peak usage periods\n`;
-      responseText += `- Test resilience regularly\n`;
+      responseText += '### 4. Capacity Planning\n';
+      responseText += '- Monitor response times\n';
+      responseText += '- Plan for peak usage periods\n';
+      responseText += '- Test resilience regularly\n';
     }
 
     return {
@@ -602,41 +603,41 @@ function getErrorSpecificGuidance(errorType: string): string {
   switch (errorType.toLowerCase()) {
     case 'rate_limit':
     case '429':
-      guidance += `### Rate Limit Errors\n`;
-      guidance += `- **Immediate Action:** Wait 60 seconds before retry\n`;
-      guidance += `- **Recovery:** Use exponential backoff for retries\n`;
-      guidance += `- **Prevention:** Reduce request frequency, use bulk operations\n\n`;
+      guidance += '### Rate Limit Errors\n';
+      guidance += '- **Immediate Action:** Wait 60 seconds before retry\n';
+      guidance += '- **Recovery:** Use exponential backoff for retries\n';
+      guidance += '- **Prevention:** Reduce request frequency, use bulk operations\n\n';
       break;
 
     case 'network':
     case 'connection':
-      guidance += `### Network Errors\n`;
-      guidance += `- **Immediate Action:** Check internet connectivity\n`;
-      guidance += `- **Recovery:** Retry with automatic backoff\n`;
-      guidance += `- **Prevention:** Implement connection pooling, use timeouts\n\n`;
+      guidance += '### Network Errors\n';
+      guidance += '- **Immediate Action:** Check internet connectivity\n';
+      guidance += '- **Recovery:** Retry with automatic backoff\n';
+      guidance += '- **Prevention:** Implement connection pooling, use timeouts\n\n';
       break;
 
     case 'authentication':
     case '401':
-      guidance += `### Authentication Errors\n`;
-      guidance += `- **Immediate Action:** Verify .edgerc credentials\n`;
-      guidance += `- **Recovery:** Check API client configuration\n`;
-      guidance += `- **Prevention:** Monitor credential expiration\n\n`;
+      guidance += '### Authentication Errors\n';
+      guidance += '- **Immediate Action:** Verify .edgerc credentials\n';
+      guidance += '- **Recovery:** Check API client configuration\n';
+      guidance += '- **Prevention:** Monitor credential expiration\n\n';
       break;
 
     case 'authorization':
     case '403':
-      guidance += `### Authorization Errors\n`;
-      guidance += `- **Immediate Action:** Check API client permissions\n`;
-      guidance += `- **Recovery:** Contact Akamai administrator\n`;
-      guidance += `- **Prevention:** Regular permission audits\n\n`;
+      guidance += '### Authorization Errors\n';
+      guidance += '- **Immediate Action:** Check API client permissions\n';
+      guidance += '- **Recovery:** Contact Akamai administrator\n';
+      guidance += '- **Prevention:** Regular permission audits\n\n';
       break;
 
     default:
-      guidance += `### General Error Recovery\n`;
-      guidance += `- **Immediate Action:** Check error message details\n`;
-      guidance += `- **Recovery:** Use automatic retry mechanisms\n`;
-      guidance += `- **Prevention:** Monitor error patterns\n\n`;
+      guidance += '### General Error Recovery\n';
+      guidance += '- **Immediate Action:** Check error message details\n';
+      guidance += '- **Recovery:** Use automatic retry mechanisms\n';
+      guidance += '- **Prevention:** Monitor error patterns\n\n';
   }
 
   return guidance;
@@ -647,38 +648,38 @@ function getOperationSpecificGuidance(operationType: OperationType): string {
 
   switch (operationType) {
     case OperationType.PROPERTY_WRITE:
-      guidance += `### Property Write Operations\n`;
-      guidance += `- **Recovery:** Check for partial updates\n`;
-      guidance += `- **Rollback:** Use version management for rollback\n`;
-      guidance += `- **Prevention:** Validate changes before applying\n\n`;
+      guidance += '### Property Write Operations\n';
+      guidance += '- **Recovery:** Check for partial updates\n';
+      guidance += '- **Rollback:** Use version management for rollback\n';
+      guidance += '- **Prevention:** Validate changes before applying\n\n';
       break;
 
     case OperationType.ACTIVATION:
-      guidance += `### Activation Operations\n`;
-      guidance += `- **Recovery:** Check activation status\n`;
-      guidance += `- **Rollback:** Activate previous version if needed\n`;
-      guidance += `- **Prevention:** Test in staging first\n\n`;
+      guidance += '### Activation Operations\n';
+      guidance += '- **Recovery:** Check activation status\n';
+      guidance += '- **Rollback:** Activate previous version if needed\n';
+      guidance += '- **Prevention:** Test in staging first\n\n';
       break;
 
     case OperationType.DNS_WRITE:
-      guidance += `### DNS Write Operations\n`;
-      guidance += `- **Recovery:** Check zone activation status\n`;
-      guidance += `- **Rollback:** Revert DNS changes if needed\n`;
-      guidance += `- **Prevention:** Validate DNS records before applying\n\n`;
+      guidance += '### DNS Write Operations\n';
+      guidance += '- **Recovery:** Check zone activation status\n';
+      guidance += '- **Rollback:** Revert DNS changes if needed\n';
+      guidance += '- **Prevention:** Validate DNS records before applying\n\n';
       break;
 
     case OperationType.BULK_OPERATION:
-      guidance += `### Bulk Operations\n`;
-      guidance += `- **Recovery:** Check individual operation status\n`;
-      guidance += `- **Rollback:** May require individual rollbacks\n`;
-      guidance += `- **Prevention:** Use smaller batch sizes\n\n`;
+      guidance += '### Bulk Operations\n';
+      guidance += '- **Recovery:** Check individual operation status\n';
+      guidance += '- **Rollback:** May require individual rollbacks\n';
+      guidance += '- **Prevention:** Use smaller batch sizes\n\n';
       break;
 
     default:
-      guidance += `### General Operation Recovery\n`;
-      guidance += `- **Recovery:** Check operation completion status\n`;
-      guidance += `- **Rollback:** Use appropriate rollback mechanism\n`;
-      guidance += `- **Prevention:** Implement proper validation\n\n`;
+      guidance += '### General Operation Recovery\n';
+      guidance += '- **Recovery:** Check operation completion status\n';
+      guidance += '- **Rollback:** Use appropriate rollback mechanism\n';
+      guidance += '- **Prevention:** Implement proper validation\n\n';
   }
 
   return guidance;

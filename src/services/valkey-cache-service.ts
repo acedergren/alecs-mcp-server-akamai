@@ -4,6 +4,7 @@
  */
 
 import Redis, { Cluster, ClusterNode } from 'ioredis';
+
 import { AkamaiClient } from '../akamai-client';
 
 export interface ValkeyConfig {
@@ -165,7 +166,9 @@ export class ValkeyCache {
    * Get value from cache
    */
   async get<T = any>(key: string): Promise<T | null> {
-    if (!this.isAvailable()) return null;
+    if (!this.isAvailable()) {
+return null;
+}
 
     try {
       const fullKey = this.buildKey(key);
@@ -192,7 +195,9 @@ export class ValkeyCache {
    * Set value in cache with TTL
    */
   async set<T = any>(key: string, value: T, ttl: number): Promise<boolean> {
-    if (!this.isAvailable()) return false;
+    if (!this.isAvailable()) {
+return false;
+}
 
     try {
       const fullKey = this.buildKey(key);
@@ -219,7 +224,9 @@ export class ValkeyCache {
    * Delete key(s) from cache
    */
   async del(keys: string | string[]): Promise<number> {
-    if (!this.isAvailable()) return 0;
+    if (!this.isAvailable()) {
+return 0;
+}
 
     try {
       const keysArray = Array.isArray(keys) ? keys : [keys];
@@ -235,7 +242,9 @@ export class ValkeyCache {
    * Get remaining TTL for a key
    */
   async ttl(key: string): Promise<number> {
-    if (!this.isAvailable()) return -1;
+    if (!this.isAvailable()) {
+return -1;
+}
 
     try {
       const fullKey = this.buildKey(key);
@@ -298,7 +307,9 @@ export class ValkeyCache {
       // Another process is fetching, wait and retry
       await this.sleep(100);
       const cached = await this.get<T>(key);
-      if (cached) return cached;
+      if (cached) {
+return cached;
+}
 
       // Retry with exponential backoff
       return this.getWithLock(key, ttl, fetchFn, lockTimeout);
@@ -370,7 +381,9 @@ export class ValkeyCache {
    * Scan and delete keys matching pattern
    */
   async scanAndDelete(pattern: string): Promise<number> {
-    if (!this.isAvailable()) return 0;
+    if (!this.isAvailable()) {
+return 0;
+}
 
     let deleted = 0;
     const fullPattern = this.buildKey(pattern);
@@ -450,7 +463,9 @@ export class ValkeyCache {
    */
   async getHitRate(pattern?: string): Promise<number> {
     const total = this.metrics.hits + this.metrics.misses;
-    if (total === 0) return 0;
+    if (total === 0) {
+return 0;
+}
     return (this.metrics.hits / total) * 100;
   }
 
@@ -471,7 +486,9 @@ export class ValkeyCache {
    * Clear all cache
    */
   async flushAll(): Promise<void> {
-    if (!this.isAvailable()) return;
+    if (!this.isAvailable()) {
+return;
+}
 
     try {
       await this.client.flushdb();

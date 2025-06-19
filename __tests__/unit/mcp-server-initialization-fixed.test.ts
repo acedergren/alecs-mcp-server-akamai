@@ -4,14 +4,14 @@
  * Updated for MCP SDK 0.5.0
  */
 
-// import { Server } from '@modelcontextprotocol/sdk/server/index';
-// import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
+import { Server } from '@modelcontextprotocol/sdk/server/index';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
 import { AkamaiClient } from '../../src/akamai-client';
 import { jest } from '@jest/globals';
 
 // Mock the MCP SDK
-// jest.mock('@modelcontextprotocol/sdk/server/index');
-// jest.mock('@modelcontextprotocol/sdk/server/stdio');
+jest.mock('@modelcontextprotocol/sdk/server/index');
+jest.mock('@modelcontextprotocol/sdk/server/stdio');
 jest.mock('../../src/akamai-client');
 
 describe.skip('MCP Server Initialization (Fixed)', () => {
@@ -370,7 +370,7 @@ describe.skip('MCP Server Initialization (Fixed)', () => {
       const mockClientInstance = {
         request: jest.fn(() => Promise.resolve({ properties: [] })),
       };
-      (AkamaiClient as any).mockImplementation((_, customer) => {
+      (AkamaiClient as any).mockImplementation((_: any, customer: any) => {
         expect(customer).toBe('default');
         return mockClientInstance;
       });

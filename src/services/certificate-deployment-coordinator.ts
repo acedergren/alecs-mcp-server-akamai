@@ -3,8 +3,9 @@
  * Manages certificate deployment to Akamai edge networks and property linking
  */
 
-import { type AkamaiClient } from '../akamai-client';
 import { EventEmitter } from 'events';
+
+import { type AkamaiClient } from '../akamai-client';
 
 // Deployment Configuration
 export interface DeploymentConfig {
@@ -367,9 +368,13 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
       // Estimate progress based on status
       let progress = 50;
-      if (status === 'deployed') progress = 100;
-      else if (status === 'in_progress') progress = 75;
-      else if (status === 'initiated') progress = 25;
+      if (status === 'deployed') {
+progress = 100;
+} else if (status === 'in_progress') {
+progress = 75;
+} else if (status === 'initiated') {
+progress = 25;
+}
 
       return { status, progress };
     } catch (error) {
@@ -481,7 +486,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
   generateDeploymentReport(enrollmentId: number): string {
     const deploymentState = this.activeDeployments.get(enrollmentId);
 
-    let report = `# Certificate Deployment Report\n\n`;
+    let report = '# Certificate Deployment Report\n\n';
     report += `**Enrollment ID:** ${enrollmentId}\n`;
     report += `**Generated:** ${new Date().toISOString()}\n\n`;
 
@@ -491,7 +496,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
     }
 
     // Deployment Summary
-    report += `## Deployment Summary\n\n`;
+    report += '## Deployment Summary\n\n';
     report += `- **Network:** ${deploymentState.network.toUpperCase()}\n`;
     report += `- **Status:** ${deploymentState.status}\n`;
     report += `- **Progress:** ${deploymentState.progress}%\n`;
@@ -509,13 +514,13 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
     // Property Linking Status
     if (deploymentState.propertyLinking) {
-      report += `\n## Property Linking\n\n`;
+      report += '\n## Property Linking\n\n';
       report += `- **Total Properties:** ${deploymentState.propertyLinking.total}\n`;
       report += `- **Linked:** ${deploymentState.propertyLinking.completed}\n`;
       report += `- **Failed:** ${deploymentState.propertyLinking.failed}\n\n`;
 
       if (this.propertyStates.size > 0) {
-        report += `### Property Details\n\n`;
+        report += '### Property Details\n\n';
 
         for (const [propertyId, state] of this.propertyStates) {
           const statusEmoji =

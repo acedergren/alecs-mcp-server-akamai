@@ -3,12 +3,13 @@
  * Collection of comprehensive test suites for different Akamai services
  */
 
+import { type AkamaiClient } from '../akamai-client';
+
 import {
   type TestSuite,
   type TestScenario,
   TestScenarioBuilder,
 } from './integration-test-framework';
-import { type AkamaiClient } from '../akamai-client';
 
 // Property Manager Test Suite
 const propertyManagerTestSuite: TestSuite = {

@@ -595,7 +595,9 @@ export class ReportingService {
   }
 
   private aggregateMetric(data: ReportingMetric[], method: 'sum' | 'avg' | 'max' | 'min'): number {
-    if (!data || data.length === 0) return 0;
+    if (!data || data.length === 0) {
+return 0;
+}
 
     const values = data.map((d) => d.value);
 
@@ -639,7 +641,9 @@ export class ReportingService {
     peakVariance: number;
   } {
     const bandwidthData = timeSeriesData.bandwidth || [];
-    if (bandwidthData.length === 0) return { peakVariance: 0 };
+    if (bandwidthData.length === 0) {
+return { peakVariance: 0 };
+}
 
     const values = bandwidthData.map((d) => d.value);
     const average = values.reduce((sum, val) => sum + val, 0) / values.length;

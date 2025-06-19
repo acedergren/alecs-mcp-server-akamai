@@ -4,6 +4,8 @@
  * Supports whitelisting, blacklisting, geo-blocking, and security policy integration
  */
 
+import { formatContractDisplay, formatGroupDisplay, ensurePrefix } from '@utils/formatting';
+
 import { AkamaiClient } from '../../akamai-client';
 import {
   type MCPToolResponse,
@@ -11,7 +13,6 @@ import {
   type NetworkListResponse,
   type AkamaiError,
 } from '../../types';
-import { formatContractDisplay, formatGroupDisplay, ensurePrefix } from '@utils/formatting';
 
 /**
  * Validate IP address or CIDR block
@@ -49,7 +50,9 @@ function validateASN(asn: string): boolean {
  * Format activation status with emoji
  */
 function formatActivationStatus(status: string | undefined): string {
-  if (!status) return '⚫ INACTIVE';
+  if (!status) {
+return '⚫ INACTIVE';
+}
 
   const statusMap: Record<string, string> = {
     ACTIVE: '🟢 ACTIVE',
@@ -146,7 +149,7 @@ export async function listNetworkLists(
       output += `   Shared: ${list.shared ? 'Yes' : 'No'}\n`;
 
       if (options.includeElements && list.list && list.list.length > 0) {
-        output += `   Elements (first 10):\n`;
+        output += '   Elements (first 10):\n';
         const elementsToShow = list.list.slice(0, 10);
         for (const element of elementsToShow) {
           output += `     - ${element}\n`;
@@ -210,7 +213,7 @@ export async function getNetworkList(
 
     const list: NetworkList = response;
 
-    let output = `📋 **Network List Details**\n\n`;
+    let output = '📋 **Network List Details**\n\n';
     output += `**Name:** ${list.name}\n`;
     output += `**ID:** ${list.uniqueId}\n`;
     output += `**Type:** ${formatListType(list.type)}\n`;
@@ -347,7 +350,7 @@ export async function createNetworkList(
 
     const newList: NetworkList = response;
 
-    let output = `✅ **Network List Created Successfully**\n\n`;
+    let output = '✅ **Network List Created Successfully**\n\n';
     output += `**Name:** ${newList.name}\n`;
     output += `**ID:** ${newList.uniqueId}\n`;
     output += `**Type:** ${formatListType(newList.type)}\n`;
@@ -360,10 +363,10 @@ export async function createNetworkList(
     output += `**Created:** ${new Date(newList.createDate).toLocaleString()}\n`;
     output += `**Shared:** ${newList.shared ? 'Yes' : 'No'}\n`;
 
-    output += `\n**Next Steps:**\n`;
-    output += `1. Review the list elements\n`;
-    output += `2. Activate to staging for testing\n`;
-    output += `3. Activate to production when ready\n`;
+    output += '\n**Next Steps:**\n';
+    output += '1. Review the list elements\n';
+    output += '2. Activate to staging for testing\n';
+    output += '3. Activate to production when ready\n';
 
     return {
       content: [
@@ -490,7 +493,7 @@ export async function updateNetworkList(
 
     const updatedList: NetworkList = response;
 
-    let output = `✅ **Network List Updated Successfully**\n\n`;
+    let output = '✅ **Network List Updated Successfully**\n\n';
     output += `**Name:** ${updatedList.name}\n`;
     output += `**ID:** ${updatedList.uniqueId}\n`;
     output += `**Type:** ${formatListType(updatedList.type)}\n`;
@@ -498,20 +501,20 @@ export async function updateNetworkList(
     output += `**Updated:** ${new Date(updatedList.updateDate).toLocaleString()}\n`;
 
     if (options.addElements && options.addElements.length > 0) {
-      output += `\n**Added Elements:**\n`;
+      output += '\n**Added Elements:**\n';
       options.addElements.forEach((element) => {
         output += `+ ${element}\n`;
       });
     }
 
     if (options.removeElements && options.removeElements.length > 0) {
-      output += `\n**Removed Elements:**\n`;
+      output += '\n**Removed Elements:**\n';
       options.removeElements.forEach((element) => {
         output += `- ${element}\n`;
       });
     }
 
-    output += `\n**Note:** Changes are not yet active. Activate to staging/production to deploy.`;
+    output += '\n**Note:** Changes are not yet active. Activate to staging/production to deploy.';
 
     return {
       content: [

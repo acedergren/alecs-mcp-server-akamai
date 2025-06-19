@@ -4,9 +4,10 @@
  */
 
 import { EventEmitter } from 'events';
-import MetricsAPI, { HTTPPushTarget, SystemMetricsCollector } from './metrics-api';
+
 import DebugAPI, { type DebugEvent, type StreamingConnection } from './debug-api';
 import DiagnosticsAPI, { type SystemDiagnostics } from './diagnostics-api';
+import MetricsAPI, { HTTPPushTarget, SystemMetricsCollector } from './metrics-api';
 import TelemetryExporter, {
   type TelemetryDestination,
   DestinationFactory,

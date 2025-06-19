@@ -14,17 +14,10 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
+
 import { AkamaiClient } from '../akamai-client';
 
 // Certificate Tools
-import {
-  createDVEnrollment,
-  getDVValidationChallenges,
-  checkDVEnrollmentStatus,
-  listCertificateEnrollments,
-  linkCertificateToProperty,
-} from '../tools/cps-tools';
-
 import {
   enrollCertificateWithValidation,
   validateCertificateEnrollment,
@@ -35,6 +28,13 @@ import {
   cleanupValidationRecords,
   getCertificateValidationHistory,
 } from '../tools/certificate-enrollment-tools';
+import {
+  createDVEnrollment,
+  getDVValidationChallenges,
+  checkDVEnrollmentStatus,
+  listCertificateEnrollments,
+  linkCertificateToProperty,
+} from '../tools/cps-tools';
 
 // Edge Hostname Certificate Tools
 import {
@@ -44,15 +44,15 @@ import {
 
 // Property Certificate Integration
 import {
+  generateDomainValidationChallenges,
+  resumeDomainValidation,
+} from '../tools/property-manager-rules-tools';
+import {
   updatePropertyWithDefaultDV,
   updatePropertyWithCPSCertificate,
 } from '../tools/property-manager-tools';
 
 // Domain Validation Tools
-import {
-  generateDomainValidationChallenges,
-  resumeDomainValidation,
-} from '../tools/property-manager-rules-tools';
 
 // Secure Property Certificate Tools
 import {

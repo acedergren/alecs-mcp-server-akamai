@@ -221,7 +221,7 @@ describe.skip('Modular Architecture', () => {
       };
       mockClient.request.mockResolvedValue({ success: true });
 
-      (AkamaiClient as any).mockImplementation((_, customer) => {
+      (AkamaiClient as any).mockImplementation((_: any, customer: any) => {
         expect(['default', 'testing', 'production']).toContain(customer || 'default');
         return mockClient;
       });

@@ -271,10 +271,15 @@ export class FixStrategyOptimizer {
 
     items.forEach((item) => {
       const effort = item.effort_details?.hours || 0;
-      if (effort <= 4) balance.quick_fixes++;
-      else if (effort <= 16) balance.tactical_fixes++;
-      else if (effort <= 80) balance.strategic_fixes++;
-      else balance.architectural_changes++;
+      if (effort <= 4) {
+balance.quick_fixes++;
+} else if (effort <= 16) {
+balance.tactical_fixes++;
+} else if (effort <= 80) {
+balance.strategic_fixes++;
+} else {
+balance.architectural_changes++;
+}
     });
 
     const total = Object.values(balance).reduce((sum, count) => sum + count, 0);
@@ -411,7 +416,9 @@ export class FixStrategyOptimizer {
     Object.keys(groups).forEach((category) => {
       groups[category].sort((a, b) => {
         const priorityDiff = (b.priority_details?.weight || 0) - (a.priority_details?.weight || 0);
-        if (priorityDiff !== 0) return priorityDiff;
+        if (priorityDiff !== 0) {
+return priorityDiff;
+}
 
         // Consider dependencies
         const aDeps = this.getDependencyCount(a);
@@ -541,8 +548,12 @@ export class FixStrategyOptimizer {
 
     // Default resources based on effort and type
     const effort = item.effort_details?.hours || 0;
-    if (effort > 40) return ['architect', 'senior_developer'];
-    if (effort > 16) return ['senior_developer'];
+    if (effort > 40) {
+return ['architect', 'senior_developer'];
+}
+    if (effort > 16) {
+return ['senior_developer'];
+}
     return ['senior_developer', 'junior_developer'];
   }
 
@@ -803,12 +814,21 @@ export class FixStrategyOptimizer {
     const description = item.description?.toLowerCase() || '';
     const tags = item.tags || [];
 
-    if (tags.includes('authentication') || title.includes('auth')) return 'authentication';
-    if (tags.includes('configuration') || title.includes('config')) return 'configuration';
-    if (tags.includes('api') || title.includes('api')) return 'api_integration';
-    if (tags.includes('performance') || title.includes('performance')) return 'performance';
-    if (tags.includes('infrastructure') || title.includes('infrastructure'))
-      return 'infrastructure';
+    if (tags.includes('authentication') || title.includes('auth')) {
+return 'authentication';
+}
+    if (tags.includes('configuration') || title.includes('config')) {
+return 'configuration';
+}
+    if (tags.includes('api') || title.includes('api')) {
+return 'api_integration';
+}
+    if (tags.includes('performance') || title.includes('performance')) {
+return 'performance';
+}
+    if (tags.includes('infrastructure') || title.includes('infrastructure')) {
+return 'infrastructure';
+}
 
     return 'other';
   }
@@ -845,17 +865,29 @@ export class FixStrategyOptimizer {
     // Simplified business value calculation
     return items.reduce((sum, item) => {
       let value = item.priority_details?.weight || 0;
-      if (item.tags?.includes('customer-facing')) value *= 1.5;
-      if (item.tags?.includes('revenue-impact')) value *= 2.0;
-      if (item.tags?.includes('security')) value *= 1.3;
+      if (item.tags?.includes('customer-facing')) {
+value *= 1.5;
+}
+      if (item.tags?.includes('revenue-impact')) {
+value *= 2.0;
+}
+      if (item.tags?.includes('security')) {
+value *= 1.3;
+}
       return sum + value;
     }, 0);
   }
 
   assessCustomerImpact(item: TodoItem): string {
-    if (item.tags?.includes('customer-facing')) return 'HIGH';
-    if (item.tags?.includes('user-experience')) return 'MEDIUM';
-    if (item.priority === 'CRITICAL') return 'HIGH';
+    if (item.tags?.includes('customer-facing')) {
+return 'HIGH';
+}
+    if (item.tags?.includes('user-experience')) {
+return 'MEDIUM';
+}
+    if (item.priority === 'CRITICAL') {
+return 'HIGH';
+}
     return 'LOW';
   }
 
@@ -863,8 +895,12 @@ export class FixStrategyOptimizer {
     const effort = item.effort_details?.hours || 0;
     const complexity = this.categorizeItem(item);
 
-    if (effort <= 2 && complexity !== 'infrastructure') return 'LOW';
-    if (effort <= 8 && complexity !== 'authentication') return 'MEDIUM';
+    if (effort <= 2 && complexity !== 'infrastructure') {
+return 'LOW';
+}
+    if (effort <= 8 && complexity !== 'authentication') {
+return 'MEDIUM';
+}
     return 'HIGH';
   }
 
@@ -894,9 +930,15 @@ export class FixStrategyOptimizer {
     const riskScores = Object.values(risks).map((risk) => risk.score || 0);
     const avgRisk = riskScores.reduce((sum, score) => sum + score, 0) / riskScores.length;
 
-    if (avgRisk > 80) return 'CRITICAL';
-    if (avgRisk > 60) return 'HIGH';
-    if (avgRisk > 40) return 'MEDIUM';
+    if (avgRisk > 80) {
+return 'CRITICAL';
+}
+    if (avgRisk > 60) {
+return 'HIGH';
+}
+    if (avgRisk > 40) {
+return 'MEDIUM';
+}
     return 'LOW';
   }
 
@@ -964,7 +1006,9 @@ export class FixStrategyOptimizer {
     const themes: Record<string, TodoItem[]> = {};
     candidates.forEach((item) => {
       const theme = this.categorizeItem(item);
-      if (!themes[theme]) themes[theme] = [];
+      if (!themes[theme]) {
+themes[theme] = [];
+}
       themes[theme].push(item);
     });
     return themes;
@@ -995,8 +1039,12 @@ export class FixStrategyOptimizer {
   private assessInitiativeComplexity(items: TodoItem[]): string {
     const avgEffort =
       items.reduce((sum, item) => sum + (item.effort_details?.hours || 0), 0) / items.length;
-    if (avgEffort > 40) return 'HIGH';
-    if (avgEffort > 16) return 'MEDIUM';
+    if (avgEffort > 40) {
+return 'HIGH';
+}
+    if (avgEffort > 16) {
+return 'MEDIUM';
+}
     return 'LOW';
   }
 

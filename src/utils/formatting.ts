@@ -14,7 +14,9 @@ export function formatContractDisplay(
   contractName?: string,
   showRaw = false,
 ): string {
-  if (!contractId) return 'Unknown';
+  if (!contractId) {
+return 'Unknown';
+}
 
   // Remove the 'ctr_' prefix for cleaner display
   const cleanId = contractId.replace(/^ctr_/, '');
@@ -38,7 +40,9 @@ export function formatContractList(
   contractIds: string[] | undefined,
   contractMap?: Record<string, string>,
 ): string {
-  if (!contractIds || contractIds.length === 0) return 'None';
+  if (!contractIds || contractIds.length === 0) {
+return 'None';
+}
 
   return contractIds.map((id) => formatContractDisplay(id, contractMap?.[id])).join(', ');
 }
@@ -55,7 +59,9 @@ export function formatGroupDisplay(
   groupName?: string,
   showRaw = false,
 ): string {
-  if (!groupId) return 'Unknown';
+  if (!groupId) {
+return 'Unknown';
+}
 
   // Remove the 'grp_' prefix for cleaner display
   const cleanId = groupId.replace(/^grp_/, '');
@@ -77,7 +83,9 @@ export function formatPropertyDisplay(
   propertyId: string | undefined,
   propertyName?: string,
 ): string {
-  if (!propertyId) return 'Unknown';
+  if (!propertyId) {
+return 'Unknown';
+}
 
   // Remove the 'prp_' prefix for cleaner display
   const cleanId = propertyId.replace(/^prp_/, '');
@@ -96,7 +104,9 @@ export function formatPropertyDisplay(
  * @returns Formatted CP Code display string
  */
 export function formatCPCodeDisplay(cpcodeId: string | undefined, cpcodeName?: string): string {
-  if (!cpcodeId) return 'Unknown';
+  if (!cpcodeId) {
+return 'Unknown';
+}
 
   // Remove the 'cpc_' prefix - CP Codes are commonly referred by number only
   const cleanId = cpcodeId.replace(/^cpc_/, '');
@@ -115,7 +125,9 @@ export function formatCPCodeDisplay(cpcodeId: string | undefined, cpcodeName?: s
  * @returns Properly formatted identifier
  */
 export function ensurePrefix(identifier: string, expectedPrefix: string): string {
-  if (!identifier) return identifier;
+  if (!identifier) {
+return identifier;
+}
   if (identifier.startsWith(expectedPrefix)) {
     return identifier;
   }
@@ -127,7 +139,9 @@ export function ensurePrefix(identifier: string, expectedPrefix: string): string
  * Common patterns: "AKAMAI_INTERNAL", "DIRECT_CUSTOMER", etc.
  */
 export function extractContractName(contractType?: string): string | undefined {
-  if (!contractType) return undefined;
+  if (!contractType) {
+return undefined;
+}
 
   // Common contract type mappings
   const typeMap: Record<string, string> = {
@@ -164,7 +178,9 @@ export function formatJson(data: any, indent = 2): string {
  * @returns Formatted table string
  */
 export function formatTable(data: any[], columns?: Array<{ key: string; header: string }>): string {
-  if (!data || data.length === 0) return 'No data';
+  if (!data || data.length === 0) {
+return 'No data';
+}
 
   // If no columns specified, use all keys from first item
   const keys = columns ? columns.map((c) => c.key) : Object.keys(data[0]);

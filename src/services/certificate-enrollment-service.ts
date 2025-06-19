@@ -3,15 +3,16 @@
  * Comprehensive service for managing certificate enrollment lifecycle with DefaultDV focus
  */
 
+import { PerformanceMonitor } from '@utils/performance-monitor';
+
 import { type AkamaiClient } from '../akamai-client';
-import { type MCPToolResponse } from '../types';
 import {
   createACMEValidationRecords,
   monitorCertificateValidation,
 } from '../tools/cps-dns-integration';
 import { checkDVEnrollmentStatus, getDVValidationChallenges } from '../tools/cps-tools';
 import { activateZoneChanges } from '../tools/dns-tools';
-import { PerformanceMonitor } from '@utils/performance-monitor';
+import { type MCPToolResponse } from '../types';
 
 // Service Configuration
 interface CertificateEnrollmentConfig {
@@ -156,7 +157,7 @@ export class CertificateEnrollmentService {
       this.activeEnrollments.set(enrollmentId, enrollmentState);
       this.logWorkflowEvent('enrollment_created', { enrollmentId, domains });
 
-      let workflowSteps = `✅ Certificate Enrollment Created\n\n`;
+      let workflowSteps = '✅ Certificate Enrollment Created\n\n';
       workflowSteps += `**Enrollment ID:** ${enrollmentId}\n`;
       workflowSteps += `**Domains:** ${domains.join(', ')}\n`;
       workflowSteps += `**Network:** ${args.enhancedTLS !== false ? 'Enhanced TLS' : 'Standard TLS'}\n\n`;
@@ -165,7 +166,7 @@ export class CertificateEnrollmentService {
       if (args.autoValidate !== false) {
         workflowSteps += await this.performAutoValidation(enrollmentId, enrollmentState);
       } else {
-        workflowSteps += `## Manual Validation Required\n\n`;
+        workflowSteps += '## Manual Validation Required\n\n';
         workflowSteps += `Run validation: "Validate certificate enrollment ${enrollmentId}"\n\n`;
       }
 
@@ -180,30 +181,30 @@ export class CertificateEnrollmentService {
 
       // Generate workflow summary
       const duration = Date.now() - startTime;
-      workflowSteps += `\n## Workflow Summary\n\n`;
+      workflowSteps += '\n## Workflow Summary\n\n';
       workflowSteps += `- **Duration:** ${Math.round(duration / 1000)}s\n`;
       workflowSteps += `- **Final Status:** ${enrollmentState.status}\n`;
       workflowSteps += `- **Errors:** ${enrollmentState.errors.length}\n`;
 
       if (enrollmentState.errors.length > 0) {
-        workflowSteps += `\n### Errors Encountered:\n`;
+        workflowSteps += '\n### Errors Encountered:\n';
         enrollmentState.errors.forEach((err) => {
           workflowSteps += `- ${err}\n`;
         });
       }
 
       // Add next steps
-      workflowSteps += `\n## Next Steps\n\n`;
+      workflowSteps += '\n## Next Steps\n\n';
       if (enrollmentState.status === 'deployed') {
-        workflowSteps += `1. Link certificate to properties\n`;
-        workflowSteps += `2. Test HTTPS connectivity\n`;
-        workflowSteps += `3. Monitor certificate health\n`;
+        workflowSteps += '1. Link certificate to properties\n';
+        workflowSteps += '2. Test HTTPS connectivity\n';
+        workflowSteps += '3. Monitor certificate health\n';
       } else if (enrollmentState.status === 'validated') {
         workflowSteps += `1. Deploy certificate: "Deploy certificate ${enrollmentId} to production"\n`;
-        workflowSteps += `2. Link to properties after deployment\n`;
+        workflowSteps += '2. Link to properties after deployment\n';
       } else {
         workflowSteps += `1. Check enrollment status: "Check certificate enrollment status ${enrollmentId}"\n`;
-        workflowSteps += `2. Complete validation if needed\n`;
+        workflowSteps += '2. Complete validation if needed\n';
       }
 
       this.performanceMonitor.endOperation('CERTIFICATE_ENROLLMENT');
@@ -334,18 +335,18 @@ export class CertificateEnrollmentService {
       const statusResponse = await checkDVEnrollmentStatus(this.client, { enrollmentId });
       const challengesResponse = await getDVValidationChallenges(this.client, { enrollmentId });
 
-      let report = `# Certificate Lifecycle Monitor\n\n`;
+      let report = '# Certificate Lifecycle Monitor\n\n';
       report += `**Enrollment ID:** ${enrollmentId}\n`;
       report += `**Timestamp:** ${new Date().toISOString()}\n\n`;
 
       // Current Status
-      report += `## Current Status\n\n`;
+      report += '## Current Status\n\n';
       report += Array.isArray(statusResponse.content) ? statusResponse.content[0]?.text || '' : '';
       report += '\n\n';
 
       // Validation Details
       if (challengesResponse.content) {
-        report += `## Validation Details\n\n`;
+        report += '## Validation Details\n\n';
         report += Array.isArray(challengesResponse.content)
           ? challengesResponse.content[0]?.text || ''
           : '';
@@ -355,7 +356,7 @@ export class CertificateEnrollmentService {
       const events = this.workflowEvents.filter((e) => e.data.enrollmentId === enrollmentId);
 
       if (events.length > 0) {
-        report += `\n\n## Workflow Timeline\n\n`;
+        report += '\n\n## Workflow Timeline\n\n';
         events.forEach((event) => {
           const time = event.timestamp.toLocaleTimeString();
           report += `- **${time}** - ${this.formatEventType(event.type)}\n`;
@@ -369,7 +370,7 @@ export class CertificateEnrollmentService {
       );
 
       if (enrollmentMetrics.length > 0) {
-        report += `\n\n## Performance Metrics\n\n`;
+        report += '\n\n## Performance Metrics\n\n';
         enrollmentMetrics.forEach((metric: any) => {
           report += `- **Duration:** ${metric.duration}ms\n`;
           report += `- **Success:** ${metric.success ? '✅' : '❌'}\n`;
@@ -443,7 +444,7 @@ export class CertificateEnrollmentService {
     enrollmentId: number,
     enrollmentState: EnrollmentState,
   ): Promise<string> {
-    let validationSteps = `## 🔐 Automated DNS Validation\n\n`;
+    let validationSteps = '## 🔐 Automated DNS Validation\n\n';
 
     try {
       enrollmentState.status = 'validating';
@@ -451,7 +452,7 @@ export class CertificateEnrollmentService {
 
       // Step 1: Create DNS records
       if (this.config.autoCreateDNSRecords) {
-        validationSteps += `### Creating DNS Records\n\n`;
+        validationSteps += '### Creating DNS Records\n\n';
 
         const recordsResult = await createACMEValidationRecords(this.client, {
           enrollmentId,
@@ -481,7 +482,7 @@ export class CertificateEnrollmentService {
 
       // Step 2: Activate DNS zones if needed
       if (this.config.autoActivateDNS) {
-        validationSteps += `### Activating DNS Zones\n\n`;
+        validationSteps += '### Activating DNS Zones\n\n';
 
         const zones = this.extractZonesFromDomains(enrollmentState.domains);
         for (const zone of zones) {
@@ -499,7 +500,7 @@ export class CertificateEnrollmentService {
       }
 
       // Step 3: Monitor validation
-      validationSteps += `### Monitoring Validation Progress\n\n`;
+      validationSteps += '### Monitoring Validation Progress\n\n';
 
       const monitorResult = await monitorCertificateValidation(this.client, {
         enrollmentId,
@@ -543,7 +544,7 @@ export class CertificateEnrollmentService {
     network: 'staging' | 'production',
     enrollmentState: EnrollmentState,
   ): Promise<string> {
-    let deploymentSteps = `## 🚀 Automated Certificate Deployment\n\n`;
+    let deploymentSteps = '## 🚀 Automated Certificate Deployment\n\n';
     deploymentSteps += `**Target Network:** ${network.toUpperCase()}\n\n`;
 
     try {
@@ -571,8 +572,8 @@ export class CertificateEnrollmentService {
         },
       });
 
-      deploymentSteps += `✅ Deployment initiated\n`;
-      deploymentSteps += `⏳ Deployment typically takes 30-60 minutes\n\n`;
+      deploymentSteps += '✅ Deployment initiated\n';
+      deploymentSteps += '⏳ Deployment typically takes 30-60 minutes\n\n';
 
       // Update state
       enrollmentState.deploymentStatus.status = 'in-progress';
@@ -580,14 +581,14 @@ export class CertificateEnrollmentService {
       // Note: In a real implementation, we would monitor deployment progress
       // For now, we'll just indicate it's in progress
 
-      deploymentSteps += `### Deployment Status\n\n`;
-      deploymentSteps += `To check deployment progress:\n`;
+      deploymentSteps += '### Deployment Status\n\n';
+      deploymentSteps += 'To check deployment progress:\n';
       deploymentSteps += `"Check certificate deployment status ${enrollmentId}"\n\n`;
 
-      deploymentSteps += `### Post-Deployment Steps\n\n`;
-      deploymentSteps += `1. Wait for deployment completion\n`;
-      deploymentSteps += `2. Link certificate to properties\n`;
-      deploymentSteps += `3. Test HTTPS connectivity\n`;
+      deploymentSteps += '### Post-Deployment Steps\n\n';
+      deploymentSteps += '1. Wait for deployment completion\n';
+      deploymentSteps += '2. Link certificate to properties\n';
+      deploymentSteps += '3. Test HTTPS connectivity\n';
 
       this.logWorkflowEvent('deployment_completed', { enrollmentId, network });
       enrollmentState.status = 'deployed';

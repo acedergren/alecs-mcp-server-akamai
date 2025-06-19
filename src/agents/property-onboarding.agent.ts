@@ -5,8 +5,9 @@
  */
 
 import { type AkamaiClient } from '../akamai-client';
-import { type MCPToolResponse } from '../types';
-import { listProperties, getProperty, createProperty, listGroups } from '../tools/property-tools';
+import { createCPCode } from '../tools/cpcode-tools';
+import { listZones, createZone, upsertRecord, listRecords } from '../tools/dns-tools';
+import { listProducts } from '../tools/product-tools';
 import { searchProperties, listEdgeHostnames } from '../tools/property-manager-advanced-tools';
 import {
   createEdgeHostname,
@@ -16,9 +17,8 @@ import {
   updatePropertyRules,
   getPropertyRules,
 } from '../tools/property-manager-tools';
-import { listZones, createZone, upsertRecord, listRecords } from '../tools/dns-tools';
-import { listProducts } from '../tools/product-tools';
-import { createCPCode } from '../tools/cpcode-tools';
+import { listProperties, getProperty, createProperty, listGroups } from '../tools/property-tools';
+import { type MCPToolResponse } from '../types';
 import { formatPropertyDisplay } from '../utils/formatting';
 
 export interface OnboardingConfig {
@@ -840,20 +840,20 @@ export async function onboardProperty(
   let responseText = '';
 
   if (result.success) {
-    responseText = `# ✅ Property Onboarding Successful\n\n`;
+    responseText = '# ✅ Property Onboarding Successful\n\n';
     responseText += `**Property ID:** ${result.propertyId}\n`;
     responseText += `**Edge Hostname:** ${result.edgeHostname}\n`;
     if (result.activationId) {
       responseText += `**Activation ID:** ${result.activationId}\n`;
     }
-    responseText += `\n## Next Steps\n\n`;
+    responseText += '\n## Next Steps\n\n';
     result.nextSteps?.forEach((step) => {
       responseText += `- ${step}\n`;
     });
   } else {
-    responseText = `# ❌ Property Onboarding Failed\n\n`;
+    responseText = '# ❌ Property Onboarding Failed\n\n';
     if (result.errors && result.errors.length > 0) {
-      responseText += `## Errors\n\n`;
+      responseText += '## Errors\n\n';
       result.errors.forEach((error) => {
         responseText += `- ${error}\n`;
       });
@@ -861,7 +861,7 @@ export async function onboardProperty(
   }
 
   if (result.warnings && result.warnings.length > 0) {
-    responseText += `\n## Warnings\n\n`;
+    responseText += '\n## Warnings\n\n';
     result.warnings.forEach((warning) => {
       responseText += `- ${warning}\n`;
     });

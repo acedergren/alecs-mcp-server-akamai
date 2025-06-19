@@ -1,0 +1,2 @@
+// Test factory functions
+export {};

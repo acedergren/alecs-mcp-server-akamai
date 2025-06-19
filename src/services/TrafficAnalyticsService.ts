@@ -595,7 +595,9 @@ export class TrafficAnalyticsService {
     // Simplified pattern detection algorithm
     const patterns: TrafficPattern[] = [];
 
-    if (timeSeriesData.length === 0) return patterns;
+    if (timeSeriesData.length === 0) {
+return patterns;
+}
 
     const values = timeSeriesData.map((d) => d.value);
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
@@ -681,7 +683,9 @@ export class TrafficAnalyticsService {
     // Simplified forecasting - would use proper time series forecasting algorithms
     const forecasts: TrafficForecast[] = [];
 
-    if (timeSeriesData.length === 0) return forecasts;
+    if (timeSeriesData.length === 0) {
+return forecasts;
+}
 
     const values = timeSeriesData.map((d) => d.value);
     const trend = this.calculateLinearTrend(values);
@@ -709,7 +713,9 @@ export class TrafficAnalyticsService {
   private calculateLinearTrend(values: number[]): number {
     // Simple linear regression to calculate trend
     const n = values.length;
-    if (n < 2) return 0;
+    if (n < 2) {
+return 0;
+}
 
     const xSum = (n * (n - 1)) / 2;
     const ySum = values.reduce((sum, val) => sum + val, 0);

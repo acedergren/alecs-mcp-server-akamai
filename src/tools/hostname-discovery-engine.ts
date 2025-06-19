@@ -4,9 +4,10 @@
  * wildcard coverage analysis, and property ownership pattern recognition
  */
 
+import { handleApiError } from '@utils/error-handling';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { handleApiError } from '@utils/error-handling';
 
 export interface HostnameConflict {
   hostname: string;
@@ -92,7 +93,7 @@ export async function discoverHostnamesIntelligent(
   },
 ): Promise<MCPToolResponse> {
   try {
-    let responseText = `# Intelligent Hostname Discovery Analysis\n\n`;
+    let responseText = '# Intelligent Hostname Discovery Analysis\n\n';
     responseText += `**Analysis Scope:** ${args.analysisScope || 'all'}\n`;
     responseText += `**Analysis Started:** ${new Date().toISOString()}\n\n`;
 
@@ -178,17 +179,17 @@ export async function analyzeHostnameConflicts(
       },
     );
 
-    let responseText = `# Hostname Conflict Analysis\n\n`;
+    let responseText = '# Hostname Conflict Analysis\n\n';
     responseText += `**Target Hostnames:** ${args.targetHostnames.length}\n`;
     responseText += `**Existing Hostnames:** ${existingHostnames.length}\n`;
     responseText += `**Conflicts Found:** ${conflicts.length}\n`;
     responseText += `**Analysis Date:** ${new Date().toISOString()}\n\n`;
 
     if (conflicts.length === 0) {
-      responseText += `## ✅ No Conflicts Detected\n\n`;
-      responseText += `All target hostnames are available for configuration.\n\n`;
+      responseText += '## ✅ No Conflicts Detected\n\n';
+      responseText += 'All target hostnames are available for configuration.\n\n';
     } else {
-      responseText += `## ⚠️ Conflicts Detected\n\n`;
+      responseText += '## ⚠️ Conflicts Detected\n\n';
 
       const criticalConflicts = conflicts.filter((c) => c.severity === 'critical');
       const warningConflicts = conflicts.filter((c) => c.severity === 'warning');
@@ -244,20 +245,20 @@ export async function analyzeWildcardCoverage(
     const allHostnames = extractAllHostnames(properties);
     const wildcardCoverage = await analyzeWildcardEfficiency(allHostnames, properties);
 
-    let responseText = `# Wildcard Coverage Analysis\n\n`;
+    let responseText = '# Wildcard Coverage Analysis\n\n';
     responseText += `**Total Properties:** ${properties.length}\n`;
     responseText += `**Total Hostnames:** ${allHostnames.length}\n`;
     responseText += `**Wildcard Configurations:** ${wildcardCoverage.length}\n`;
     responseText += `**Analysis Date:** ${new Date().toISOString()}\n\n`;
 
     if (wildcardCoverage.length === 0) {
-      responseText += `## No Wildcard Configurations Found\n\n`;
-      responseText += `Consider implementing wildcard hostnames for:\n`;
-      responseText += `- Domain families with multiple subdomains\n`;
-      responseText += `- Development/staging environments\n`;
-      responseText += `- API endpoint consolidation\n\n`;
+      responseText += '## No Wildcard Configurations Found\n\n';
+      responseText += 'Consider implementing wildcard hostnames for:\n';
+      responseText += '- Domain families with multiple subdomains\n';
+      responseText += '- Development/staging environments\n';
+      responseText += '- API endpoint consolidation\n\n';
     } else {
-      responseText += `## Wildcard Coverage Analysis\n\n`;
+      responseText += '## Wildcard Coverage Analysis\n\n';
 
       wildcardCoverage.forEach((coverage, index) => {
         responseText += buildWildcardCoverageReport(coverage, index + 1);
@@ -296,19 +297,19 @@ export async function identifyOwnershipPatterns(
       minPropertiesForPattern: args.minPropertiesForPattern || 3,
     });
 
-    let responseText = `# Property Ownership Pattern Analysis\n\n`;
+    let responseText = '# Property Ownership Pattern Analysis\n\n';
     responseText += `**Total Properties Analyzed:** ${properties.length}\n`;
     responseText += `**Patterns Identified:** ${patterns.length}\n`;
     responseText += `**Analysis Date:** ${new Date().toISOString()}\n\n`;
 
     if (patterns.length === 0) {
-      responseText += `## No Clear Ownership Patterns Found\n\n`;
-      responseText += `This could indicate:\n`;
-      responseText += `- Well-organized property structure\n`;
-      responseText += `- Diverse portfolio without clear patterns\n`;
-      responseText += `- Opportunity for better organization\n\n`;
+      responseText += '## No Clear Ownership Patterns Found\n\n';
+      responseText += 'This could indicate:\n';
+      responseText += '- Well-organized property structure\n';
+      responseText += '- Diverse portfolio without clear patterns\n';
+      responseText += '- Opportunity for better organization\n\n';
     } else {
-      responseText += `## Identified Ownership Patterns\n\n`;
+      responseText += '## Identified Ownership Patterns\n\n';
 
       patterns.forEach((pattern, index) => {
         responseText += buildOwnershipPatternReport(pattern, index + 1);
@@ -335,8 +336,12 @@ async function getAllPropertiesWithHostnames(client: AkamaiClient, args: any): P
   // This is a simplified version - real implementation would paginate through all properties
   const params = new URLSearchParams();
 
-  if (args.contractId) params.append('contractId', args.contractId);
-  if (args.groupId) params.append('groupId', args.groupId);
+  if (args.contractId) {
+params.append('contractId', args.contractId);
+}
+  if (args.groupId) {
+params.append('groupId', args.groupId);
+}
 
   const response = await client.request({
     path: `/papi/v1/properties?${params.toString()}`,
@@ -496,7 +501,7 @@ function findOwnershipPatterns(properties: any[], options: any = {}): PropertyOw
 // Helper functions for report building
 
 function buildDiscoveryReport(result: HostnameDiscoveryResult): string {
-  let report = `## Discovery Summary\n\n`;
+  let report = '## Discovery Summary\n\n';
   report += `- **Total Hostnames:** ${result.discoveredHostnames.length}\n`;
   report += `- **Conflicts Found:** ${result.conflicts.length}\n`;
   report += `- **Wildcard Configurations:** ${result.wildcardCoverage.length}\n`;
@@ -504,21 +509,21 @@ function buildDiscoveryReport(result: HostnameDiscoveryResult): string {
 
   // Add detailed sections for each analysis type
   if (result.conflicts.length > 0) {
-    report += `## Conflicts Analysis\n\n`;
+    report += '## Conflicts Analysis\n\n';
     result.conflicts.forEach((conflict, index) => {
       report += buildConflictReport(conflict, index + 1);
     });
   }
 
   if (result.wildcardCoverage.length > 0) {
-    report += `## Wildcard Analysis\n\n`;
+    report += '## Wildcard Analysis\n\n';
     result.wildcardCoverage.forEach((coverage, index) => {
       report += buildWildcardCoverageReport(coverage, index + 1);
     });
   }
 
   if (result.ownershipPatterns.length > 0) {
-    report += `## Ownership Patterns\n\n`;
+    report += '## Ownership Patterns\n\n';
     result.ownershipPatterns.forEach((pattern, index) => {
       report += buildOwnershipPatternReport(pattern, index + 1);
     });
@@ -526,7 +531,7 @@ function buildDiscoveryReport(result: HostnameDiscoveryResult): string {
 
   // Add recommendations
   if (result.recommendations.newPropertySuggestions.length > 0) {
-    report += `## New Property Suggestions\n\n`;
+    report += '## New Property Suggestions\n\n';
     result.recommendations.newPropertySuggestions.forEach((suggestion, index) => {
       report += `### ${index + 1}. ${suggestion.hostname}\n`;
       report += `- **Suggested Property:** ${suggestion.suggestedPropertyName}\n`;
@@ -546,13 +551,13 @@ function buildConflictReport(conflict: HostnameConflict, index: number): string 
   report += `- **Details:** ${conflict.conflictDetails}\n`;
 
   if (conflict.resolutionSuggestions.length > 0) {
-    report += `- **Resolution Options:**\n`;
+    report += '- **Resolution Options:**\n';
     conflict.resolutionSuggestions.forEach((suggestion) => {
       report += `  - ${suggestion}\n`;
     });
   }
 
-  report += `\n`;
+  report += '\n';
   return report;
 }
 
@@ -567,17 +572,17 @@ function buildWildcardCoverageReport(coverage: WildcardCoverage, index: number):
     if (coverage.coveredHostnames.length > 5) {
       report += ` and ${coverage.coveredHostnames.length - 5} more`;
     }
-    report += `\n`;
+    report += '\n';
   }
 
   if (coverage.recommendations.length > 0) {
-    report += `- **Recommendations:**\n`;
+    report += '- **Recommendations:**\n';
     coverage.recommendations.forEach((rec) => {
       report += `  - ${rec}\n`;
     });
   }
 
-  report += `\n`;
+  report += '\n';
   return report;
 }
 
@@ -594,21 +599,21 @@ function buildOwnershipPatternReport(pattern: PropertyOwnershipPattern, index: n
     report += `- **Consolidation Opportunity:** Target ${pattern.suggestedConsolidation.targetProperty}\n`;
   }
 
-  report += `\n`;
+  report += '\n';
   return report;
 }
 
 function buildConflictResolutionGuidance(conflicts: HostnameConflict[]): string {
-  let guidance = `## Resolution Guidance\n\n`;
+  let guidance = '## Resolution Guidance\n\n';
 
   const criticalConflicts = conflicts.filter((c) => c.severity === 'critical');
   if (criticalConflicts.length > 0) {
-    guidance += `### Critical Actions Required\n\n`;
+    guidance += '### Critical Actions Required\n\n';
     guidance += `${criticalConflicts.length} critical conflicts must be resolved before proceeding:\n\n`;
-    guidance += `1. **Review existing property configurations**\n`;
-    guidance += `2. **Choose alternative hostnames or consolidate properties**\n`;
-    guidance += `3. **Update DNS configuration accordingly**\n`;
-    guidance += `4. **Test all changes in staging environment**\n\n`;
+    guidance += '1. **Review existing property configurations**\n';
+    guidance += '2. **Choose alternative hostnames or consolidate properties**\n';
+    guidance += '3. **Update DNS configuration accordingly**\n';
+    guidance += '4. **Test all changes in staging environment**\n\n';
   }
 
   return guidance;
@@ -618,7 +623,7 @@ function buildWildcardOptimizationSuggestions(
   coverage: WildcardCoverage[],
   allHostnames: string[],
 ): string {
-  let suggestions = `## Optimization Opportunities\n\n`;
+  let suggestions = '## Optimization Opportunities\n\n';
 
   // Find domains that could benefit from wildcard consolidation
   const domainCounts = new Map<string, string[]>();
@@ -645,7 +650,7 @@ function buildWildcardOptimizationSuggestions(
         if (hostnames.length > 5) {
           suggestions += ` and ${hostnames.length - 5} more`;
         }
-        suggestions += `\n\n`;
+        suggestions += '\n\n';
       }
     }
   });
@@ -654,7 +659,7 @@ function buildWildcardOptimizationSuggestions(
 }
 
 function buildConsolidationRecommendations(patterns: PropertyOwnershipPattern[]): string {
-  let recommendations = `## Consolidation Recommendations\n\n`;
+  let recommendations = '## Consolidation Recommendations\n\n';
 
   patterns.forEach((pattern, index) => {
     if (pattern.properties.length >= 3) {
@@ -663,10 +668,10 @@ function buildConsolidationRecommendations(patterns: PropertyOwnershipPattern[])
       pattern.properties.forEach((prop) => {
         recommendations += `- ${prop.propertyName} (${prop.hostnames.length} hostnames)\n`;
       });
-      recommendations += `\n**Benefits:**\n`;
-      recommendations += `- Simplified management\n`;
-      recommendations += `- Reduced configuration overhead\n`;
-      recommendations += `- Consistent behavior across domain family\n\n`;
+      recommendations += '\n**Benefits:**\n';
+      recommendations += '- Simplified management\n';
+      recommendations += '- Reduced configuration overhead\n';
+      recommendations += '- Consistent behavior across domain family\n\n';
     }
   });
 
@@ -694,7 +699,9 @@ function findPropertyByHostname(properties: any[], hostname: string): any {
 }
 
 function extractDomain(hostname: string): string | null {
-  if (!hostname || hostname.startsWith('*.')) return null;
+  if (!hostname || hostname.startsWith('*.')) {
+return null;
+}
 
   const parts = hostname.split('.');
   if (parts.length >= 2) {

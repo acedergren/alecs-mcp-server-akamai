@@ -1,0 +1,164 @@
+name: Dependency Update Check
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  check-updates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Check for updates
+        id: check
+        run: |
+          # Check for outdated packages
+          echo "## Outdated Dependencies Report" > dependency-report.md
+          echo "" >> dependency-report.md
+          
+          # Get outdated packages in JSON format
+          npm outdated --json > outdated.json || true
+          
+          # Parse and format the output
+          if [ -s outdated.json ] && [ "$(cat outdated.json)" != "{}" ]; then
+            echo "Found outdated dependencies" >> dependency-report.md
+            echo "" >> dependency-report.md
+            
+            # Create a markdown table
+            echo "| Package | Current | Wanted | Latest | Type |" >> dependency-report.md
+            echo "|---------|---------|---------|---------|------|" >> dependency-report.md
+            
+            # Parse JSON and create table rows
+            node -e "
+              const outdated = require('./outdated.json');
+              for (const [pkg, info] of Object.entries(outdated)) {
+                const type = info.type || 'dependencies';
+                console.log(\`| \${pkg} | \${info.current} | \${info.wanted} | \${info.latest} | \${type} |\`);
+              }
+            " >> dependency-report.md
+            
+            echo "UPDATES_AVAILABLE=true" >> $GITHUB_OUTPUT
+          else
+            echo "All dependencies are up to date!" >> dependency-report.md
+            echo "UPDATES_AVAILABLE=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for security vulnerabilities
+        run: |
+          echo "" >> dependency-report.md
+          echo "## Security Audit" >> dependency-report.md
+          echo "" >> dependency-report.md
+          npm audit --production >> dependency-report.md 2>&1 || true
+
+      - name: Create issue if updates are available
+        if: steps.check.outputs.UPDATES_AVAILABLE == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('dependency-report.md', 'utf8');
+            
+            // Check if an open issue already exists
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['dependencies', 'automated'],
+              state: 'open'
+            });
+            
+            const existingIssue = issues.data.find(issue => 
+              issue.title.startsWith('[Automated] Dependency Updates Available')
+            );
+            
+            const date = new Date().toISOString().split('T')[0];
+            const title = `[Automated] Dependency Updates Available - ${date}`;
+            
+            if (existingIssue) {
+              // Update existing issue
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: report
+              });
+              console.log(`Updated existing issue #${existingIssue.number}`);
+            } else {
+              // Create new issue
+              const issue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: report,
+                labels: ['dependencies', 'automated']
+              });
+              console.log(`Created new issue #${issue.data.number}`);
+            }
+
+  update-dependencies:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Update dependencies
+        run: |
+          # Update to latest wanted versions (respecting semver)
+          npm update
+          
+          # Update package-lock.json
+          npm install
+
+      - name: Run tests
+        run: |
+          npm run lint:check || true
+          npm run typecheck
+          npm test || true
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore(deps): Update dependencies to latest versions'
+          title: '[Automated] Update Dependencies'
+          body: |
+            ## Automated Dependency Update
+            
+            This PR updates dependencies to their latest versions within semver constraints.
+            
+            ### Changes Made:
+            - Updated dependencies using `npm update`
+            - Regenerated package-lock.json
+            
+            ### Testing:
+            - [ ] Linting check
+            - [ ] TypeScript compilation
+            - [ ] Test suite
+            
+            Please review the changes and ensure all tests pass before merging.
+          branch: deps/automated-update
+          delete-branch: true
+          labels: |
+            dependencies
+            automated

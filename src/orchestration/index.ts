@@ -162,10 +162,10 @@ export class AkamaiOrchestrator {
       );
 
       console.log(`\n${icons.info} Next Steps:`);
-      console.log(`  1. Update nameservers at domain registrar`);
-      console.log(`  2. Test thoroughly on staging`);
-      console.log(`  3. Activate to production when ready`);
-      console.log(`  4. Monitor traffic and performance`);
+      console.log('  1. Update nameservers at domain registrar');
+      console.log('  2. Test thoroughly on staging');
+      console.log('  3. Activate to production when ready');
+      console.log('  4. Monitor traffic and performance');
     } catch (error) {
       progress.update({
         current: progress['current'],

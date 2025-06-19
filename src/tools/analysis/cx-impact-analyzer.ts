@@ -315,9 +315,15 @@ export class CustomerExperienceImpactAnalyzer {
    * Calculate overall customer experience health
    */
   calculateOverallHealth(failureRate: number, criticalFailures: number): string {
-    if (criticalFailures > 0 || failureRate > 0.3) return 'POOR';
-    if (failureRate > 0.15) return 'FAIR';
-    if (failureRate > 0.05) return 'GOOD';
+    if (criticalFailures > 0 || failureRate > 0.3) {
+return 'POOR';
+}
+    if (failureRate > 0.15) {
+return 'FAIR';
+}
+    if (failureRate > 0.05) {
+return 'GOOD';
+}
     return 'EXCELLENT';
   }
 
@@ -502,7 +508,9 @@ export class CustomerExperienceImpactAnalyzer {
    */
   getPersonaRelevantFailures(personaId: string, testResults: TestResults): TestFailure[] {
     const persona = this.customerPersonas[personaId];
-    if (!persona) return [];
+    if (!persona) {
+return [];
+}
 
     const failures = testResults.failures || [];
 
@@ -638,7 +646,9 @@ export class CustomerExperienceImpactAnalyzer {
    */
   getJourneyRelevantFailures(journeyId: string, testResults: TestResults): TestFailure[] {
     const journey = this.customerJourneys[journeyId];
-    if (!journey) return [];
+    if (!journey) {
+return [];
+}
 
     const failures = testResults.failures || [];
     const stepNames = journey.steps.map((s) => s.step);
@@ -694,7 +704,9 @@ export class CustomerExperienceImpactAnalyzer {
     };
 
     const journeyMappings = contextMappings[journeyId];
-    if (!journeyMappings?.[stepName]) return false;
+    if (!journeyMappings?.[stepName]) {
+return false;
+}
 
     const keywords = journeyMappings[stepName];
     return keywords.some(
@@ -1115,9 +1127,15 @@ export class CustomerExperienceImpactAnalyzer {
   }
 
   calculateRiskLevel(failureRate: number, criticalFailures: number): string {
-    if (criticalFailures > 0 || failureRate > 0.3) return 'CRITICAL';
-    if (failureRate > 0.15) return 'HIGH';
-    if (failureRate > 0.05) return 'MEDIUM';
+    if (criticalFailures > 0 || failureRate > 0.3) {
+return 'CRITICAL';
+}
+    if (failureRate > 0.15) {
+return 'HIGH';
+}
+    if (failureRate > 0.05) {
+return 'MEDIUM';
+}
     return 'LOW';
   }
 
@@ -1131,9 +1149,15 @@ export class CustomerExperienceImpactAnalyzer {
     const criticalFailures = this.identifyCriticalFailures(testResults, analysisResults);
     const authFailures = this.countFailuresByType(testResults, 'auth');
 
-    if (authFailures > 0) return 'ALL';
-    if (criticalFailures.length > 2) return 'MAJORITY';
-    if (criticalFailures.length > 0) return 'SUBSET';
+    if (authFailures > 0) {
+return 'ALL';
+}
+    if (criticalFailures.length > 2) {
+return 'MAJORITY';
+}
+    if (criticalFailures.length > 0) {
+return 'SUBSET';
+}
     return 'MINIMAL';
   }
 
@@ -1171,32 +1195,54 @@ export class CustomerExperienceImpactAnalyzer {
 
   assessFailureCustomerImpact(failure: TestFailure): string {
     const message = failure.message?.toLowerCase() || '';
-    if (message.includes('auth') || message.includes('critical')) return 'CRITICAL';
-    if (message.includes('api') || message.includes('onboard')) return 'HIGH';
-    if (message.includes('config') || message.includes('setup')) return 'MEDIUM';
+    if (message.includes('auth') || message.includes('critical')) {
+return 'CRITICAL';
+}
+    if (message.includes('api') || message.includes('onboard')) {
+return 'HIGH';
+}
+    if (message.includes('config') || message.includes('setup')) {
+return 'MEDIUM';
+}
     return 'LOW';
   }
 
   assessFailureBusinessValue(failure: TestFailure): string {
     const testName = (failure.test || '').toLowerCase();
-    if (testName.includes('critical') || testName.includes('revenue')) return 'HIGH';
-    if (testName.includes('customer') || testName.includes('user')) return 'MEDIUM';
+    if (testName.includes('critical') || testName.includes('revenue')) {
+return 'HIGH';
+}
+    if (testName.includes('customer') || testName.includes('user')) {
+return 'MEDIUM';
+}
     return 'LOW';
   }
 
   assessFailureUrgency(failure: TestFailure): string {
     const message = failure.message?.toLowerCase() || '';
-    if (message.includes('critical') || message.includes('fatal')) return 'CRITICAL';
-    if (message.includes('auth') || message.includes('security')) return 'HIGH';
-    if (message.includes('performance') || message.includes('timeout')) return 'MEDIUM';
+    if (message.includes('critical') || message.includes('fatal')) {
+return 'CRITICAL';
+}
+    if (message.includes('auth') || message.includes('security')) {
+return 'HIGH';
+}
+    if (message.includes('performance') || message.includes('timeout')) {
+return 'MEDIUM';
+}
     return 'LOW';
   }
 
   estimateFixEffort(failure: TestFailure): number {
     const message = failure.message?.toLowerCase() || '';
-    if (message.includes('config') || message.includes('validation')) return 2;
-    if (message.includes('api') || message.includes('auth')) return 4;
-    if (message.includes('complex') || message.includes('architecture')) return 16;
+    if (message.includes('config') || message.includes('validation')) {
+return 2;
+}
+    if (message.includes('api') || message.includes('auth')) {
+return 4;
+}
+    if (message.includes('complex') || message.includes('architecture')) {
+return 16;
+}
     return 8;
   }
 
@@ -1205,12 +1251,21 @@ export class CustomerExperienceImpactAnalyzer {
     const message = failure.message?.toLowerCase() || '';
     const personas: string[] = [];
 
-    if (message.includes('api')) personas.push('developer');
-    if (message.includes('config') || message.includes('deploy')) personas.push('devops_engineer');
-    if (message.includes('security') || message.includes('cert')) personas.push('security_admin');
-    if (message.includes('content') || message.includes('performance'))
-      personas.push('content_manager');
-    if (message.includes('site') || message.includes('domain')) personas.push('site_admin');
+    if (message.includes('api')) {
+personas.push('developer');
+}
+    if (message.includes('config') || message.includes('deploy')) {
+personas.push('devops_engineer');
+}
+    if (message.includes('security') || message.includes('cert')) {
+personas.push('security_admin');
+}
+    if (message.includes('content') || message.includes('performance')) {
+personas.push('content_manager');
+}
+    if (message.includes('site') || message.includes('domain')) {
+personas.push('site_admin');
+}
 
     return personas.length > 0 ? personas : ['developer']; // Default to developer
   }
@@ -1220,14 +1275,21 @@ export class CustomerExperienceImpactAnalyzer {
     const testName = (failure.test || '').toLowerCase();
     const journeys: string[] = [];
 
-    if (testName.includes('onboard') || testName.includes('setup')) journeys.push('onboarding');
-    if (testName.includes('daily') || testName.includes('monitor'))
-      journeys.push('daily_operations');
-    if (testName.includes('incident') || testName.includes('critical'))
-      journeys.push('incident_response');
-    if (testName.includes('feature') || testName.includes('new')) journeys.push('feature_adoption');
-    if (testName.includes('scale') || testName.includes('performance'))
-      journeys.push('scaling_operations');
+    if (testName.includes('onboard') || testName.includes('setup')) {
+journeys.push('onboarding');
+}
+    if (testName.includes('daily') || testName.includes('monitor')) {
+journeys.push('daily_operations');
+}
+    if (testName.includes('incident') || testName.includes('critical')) {
+journeys.push('incident_response');
+}
+    if (testName.includes('feature') || testName.includes('new')) {
+journeys.push('feature_adoption');
+}
+    if (testName.includes('scale') || testName.includes('performance')) {
+journeys.push('scaling_operations');
+}
 
     return journeys.length > 0 ? journeys : ['daily_operations']; // Default
   }
@@ -1249,9 +1311,15 @@ export class CustomerExperienceImpactAnalyzer {
   }
 
   private assessPersonaRisk(impactScore: number, painPointsCount: number): string {
-    if (impactScore < 50 || painPointsCount > 3) return 'CRITICAL';
-    if (impactScore < 70 || painPointsCount > 2) return 'HIGH';
-    if (impactScore < 85 || painPointsCount > 1) return 'MEDIUM';
+    if (impactScore < 50 || painPointsCount > 3) {
+return 'CRITICAL';
+}
+    if (impactScore < 70 || painPointsCount > 2) {
+return 'HIGH';
+}
+    if (impactScore < 85 || painPointsCount > 1) {
+return 'MEDIUM';
+}
     return 'LOW';
   }
 
@@ -1261,9 +1329,15 @@ export class CustomerExperienceImpactAnalyzer {
   }
 
   private estimatePersonaAffectedUsers(personaId: string, impactScore: number): string {
-    if (impactScore < 50) return 'ALL';
-    if (impactScore < 70) return 'MAJORITY';
-    if (impactScore < 85) return 'SUBSET';
+    if (impactScore < 50) {
+return 'ALL';
+}
+    if (impactScore < 70) {
+return 'MAJORITY';
+}
+    if (impactScore < 85) {
+return 'SUBSET';
+}
     return 'MINIMAL';
   }
 
@@ -1272,7 +1346,9 @@ export class CustomerExperienceImpactAnalyzer {
     failures: TestFailure[],
   ): JourneyStep[] {
     const journey = this.customerJourneys[journeyId];
-    if (!journey) return [];
+    if (!journey) {
+return [];
+}
 
     // Implementation would analyze failures and map to journey steps
     return [];
@@ -1284,14 +1360,22 @@ export class CustomerExperienceImpactAnalyzer {
   }
 
   private assessJourneyRisk(impactScore: number, criticalStepsAffected: number): string {
-    if (impactScore < 50 || criticalStepsAffected > 2) return 'CRITICAL';
-    if (impactScore < 70 || criticalStepsAffected > 1) return 'HIGH';
-    if (impactScore < 85 || criticalStepsAffected > 0) return 'MEDIUM';
+    if (impactScore < 50 || criticalStepsAffected > 2) {
+return 'CRITICAL';
+}
+    if (impactScore < 70 || criticalStepsAffected > 1) {
+return 'HIGH';
+}
+    if (impactScore < 85 || criticalStepsAffected > 0) {
+return 'MEDIUM';
+}
     return 'LOW';
   }
 
   private calculateCompletionRisk(affectedSteps: JourneyStep[], allSteps: JourneyStep[]): number {
-    if (allSteps.length === 0) return 0;
+    if (allSteps.length === 0) {
+return 0;
+}
     return (affectedSteps.length / allSteps.length) * 100;
   }
 
@@ -1307,7 +1391,9 @@ export class CustomerExperienceImpactAnalyzer {
   }
 
   private calculateMetricImpactPercentage(baseline: number, projected: number): number {
-    if (baseline === 0) return 0;
+    if (baseline === 0) {
+return 0;
+}
     return ((projected - baseline) / baseline) * 100;
   }
 
@@ -1315,9 +1401,15 @@ export class CustomerExperienceImpactAnalyzer {
     const targetDiff = Math.abs(projectedValue - metric.target);
     const baselineDiff = Math.abs(projectedValue - metric.baseline);
 
-    if (targetDiff > baselineDiff * 2) return 'CRITICAL';
-    if (targetDiff > baselineDiff * 1.5) return 'HIGH';
-    if (targetDiff > baselineDiff) return 'MEDIUM';
+    if (targetDiff > baselineDiff * 2) {
+return 'CRITICAL';
+}
+    if (targetDiff > baselineDiff * 1.5) {
+return 'HIGH';
+}
+    if (targetDiff > baselineDiff) {
+return 'MEDIUM';
+}
     return 'LOW';
   }
 
@@ -1335,16 +1427,26 @@ export class CustomerExperienceImpactAnalyzer {
 
   private estimateRevenueLoss(overallImpact: number): string {
     // Simplified calculation - would use actual business metrics
-    if (Math.abs(overallImpact) > 50) return '$100K+';
-    if (Math.abs(overallImpact) > 30) return '$50K-$100K';
-    if (Math.abs(overallImpact) > 15) return '$10K-$50K';
-    if (Math.abs(overallImpact) > 5) return '$1K-$10K';
+    if (Math.abs(overallImpact) > 50) {
+return '$100K+';
+}
+    if (Math.abs(overallImpact) > 30) {
+return '$50K-$100K';
+}
+    if (Math.abs(overallImpact) > 15) {
+return '$10K-$50K';
+}
+    if (Math.abs(overallImpact) > 5) {
+return '$1K-$10K';
+}
     return '<$1K';
   }
 
   private estimateChurnRisk(metrics: Record<string, MetricImpact>): number {
     const churnMetric = metrics['churn_risk'];
-    if (!churnMetric) return 0;
+    if (!churnMetric) {
+return 0;
+}
 
     return churnMetric.projected;
   }
@@ -1353,10 +1455,18 @@ export class CustomerExperienceImpactAnalyzer {
     const criticalFailures = this.identifyCriticalFailures(testResults, analysisResults);
     const totalFailures = testResults.summary?.failedTests || 0;
 
-    if (criticalFailures.length > 5) return '1-2 weeks';
-    if (criticalFailures.length > 2) return '3-5 days';
-    if (totalFailures > 10) return '2-3 days';
-    if (totalFailures > 5) return '1-2 days';
+    if (criticalFailures.length > 5) {
+return '1-2 weeks';
+}
+    if (criticalFailures.length > 2) {
+return '3-5 days';
+}
+    if (totalFailures > 10) {
+return '2-3 days';
+}
+    if (totalFailures > 5) {
+return '1-2 days';
+}
     return '< 1 day';
   }
 

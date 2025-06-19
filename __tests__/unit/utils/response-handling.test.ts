@@ -7,11 +7,9 @@ import { describe, it, expect } from '@jest/globals';
 import {
   ResponseParser,
   parseAkamaiResponse,
-  AkamaiErrorResponse
 } from '@utils/response-parsing';
 import {
   EnhancedErrorHandler,
-  withEnhancedErrorHandling,
   handleAkamaiError,
   ErrorType
 } from '@utils/enhanced-error-handling';

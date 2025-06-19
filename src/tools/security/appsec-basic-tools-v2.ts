@@ -19,7 +19,9 @@ function formatJson(obj: any): string {
 }
 
 function formatTable(data: any[]): string {
-  if (!data || data.length === 0) return 'No data available';
+  if (!data || data.length === 0) {
+return 'No data available';
+}
 
   const keys = Object.keys(data[0]);
   let result = keys.join('\t') + '\n';

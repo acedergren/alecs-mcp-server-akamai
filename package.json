@@ -1,7 +1,7 @@
 {
   "name": "alecs-mcp-server-akamai",
-  "version": "1.3.5.1",
-  "description": "An MCP (Model Context Protocol) server that enables management of Akamai through AI",
+  "version": "1.4.0",
+  "description": "Enterprise MCP server for Akamai with OAuth 2.1 authentication and MCP 2025-06-18 compliance",
   "main": "dist/index.js",
   "bin": {
     "alecs": "dist/index.js"
@@ -83,21 +83,28 @@
   },
   "devDependencies": {
     "@jest/globals": "^30.0.2",
+    "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.0.3",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "eslint": "^8.57.1",
+    "@types/supertest": "^6.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.34.1",
+    "@typescript-eslint/parser": "^8.34.1",
+    "eslint": "^9.29.0",
     "eslint-plugin-import": "^2.28.0",
-    "eslint-plugin-jest": "^27.2.0",
+    "eslint-plugin-jest": "^29.0.1",
     "fast-check": "^4.1.1",
     "jest": "^30.0.2",
     "jest-junit": "^16.0.0",
+    "jsonwebtoken": "^9.0.2",
     "prettier": "^3.0.0",
+    "supertest": "^7.1.1",
     "ts-jest": "^29.4.0",
+    "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "tsx": "^4.0.0",
-    "typescript": "^5.0.0"
+    "tsx": "^4.20.3",
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.34.1"
   },
   "files": [
     "dist/",

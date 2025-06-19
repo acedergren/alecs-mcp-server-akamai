@@ -3,10 +3,11 @@
  * Manages documentation generation, updates, and knowledge base
  */
 
-import { type AkamaiClient } from '../akamai-client';
-import { type MCPToolResponse } from '../types';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
 
 interface DocumentationMetadata {
   title: string;
@@ -194,7 +195,7 @@ export async function generateFeatureDocumentation(
 
     // Add capabilities
     if (analysis.capabilities.length > 0) {
-      doc += `## Capabilities\n\n`;
+      doc += '## Capabilities\n\n';
       for (const capability of analysis.capabilities) {
         doc += `- ${capability}\n`;
       }
@@ -206,7 +207,7 @@ export async function generateFeatureDocumentation(
 
     // Add examples if requested
     if (includeExamples && analysis.examples.length > 0) {
-      doc += `## Examples\n\n`;
+      doc += '## Examples\n\n';
       for (const example of analysis.examples) {
         doc += `### ${example.title}\n\n`;
         doc += '```typescript\n';
@@ -220,12 +221,12 @@ export async function generateFeatureDocumentation(
 
     // Add API reference
     if (analysis.apis.length > 0) {
-      doc += `## API Reference\n\n`;
+      doc += '## API Reference\n\n';
       for (const api of analysis.apis) {
         doc += `### ${api.name}\n\n`;
         doc += `${api.description}\n\n`;
         if (api.parameters.length > 0) {
-          doc += `**Parameters:**\n\n`;
+          doc += '**Parameters:**\n\n';
           for (const param of api.parameters) {
             doc += `- \`${param.name}\` (${param.type}): ${param.description}\n`;
           }
@@ -239,7 +240,7 @@ export async function generateFeatureDocumentation(
 
     // Add related documentation
     if (analysis.related.length > 0) {
-      doc += `## Related Documentation\n\n`;
+      doc += '## Related Documentation\n\n';
       for (const related of analysis.related) {
         doc += `- [${related.title}](${related.path})\n`;
       }
@@ -368,7 +369,7 @@ export async function generateChangelog(
     const grouped = groupByCategory ? groupChangesByCategory(changes) : { all: changes };
 
     // Generate changelog
-    let changelog = `# Changelog\n\n`;
+    let changelog = '# Changelog\n\n';
 
     if (args.toVersion) {
       changelog += `## [${args.toVersion}] - ${new Date().toISOString().split('T')[0]}\n\n`;
@@ -378,7 +379,7 @@ export async function generateChangelog(
     if (includeBreaking) {
       const breakingChanges = changes.filter((c) => c.breaking);
       if (breakingChanges.length > 0) {
-        changelog += `### ⚠️ Breaking Changes\n\n`;
+        changelog += '### ⚠️ Breaking Changes\n\n';
         for (const change of breakingChanges) {
           changelog += `- ${change.description}\n`;
         }
@@ -388,7 +389,9 @@ export async function generateChangelog(
 
     // Add categorized changes
     for (const [category, categoryChanges] of Object.entries(grouped)) {
-      if (category === 'all' || categoryChanges.length === 0) continue;
+      if (category === 'all' || categoryChanges.length === 0) {
+continue;
+}
 
       changelog += `### ${formatCategory(category)}\n\n`;
       for (const change of categoryChanges) {
@@ -407,7 +410,7 @@ export async function generateChangelog(
     // Add contributors section
     const contributors = getUniqueContributors(commits);
     if (contributors.length > 0) {
-      changelog += `### Contributors\n\n`;
+      changelog += '### Contributors\n\n';
       for (const contributor of contributors) {
         changelog += `- ${contributor}\n`;
       }
@@ -462,18 +465,18 @@ export async function createKnowledgeArticle(
     let article = `# ${args.title}\n\n`;
 
     // Add metadata
-    article += `---\n`;
+    article += '---\n';
     article += `category: ${args.category}\n`;
     article += `tags: ${(args.tags || []).join(', ')}\n`;
     article += `created: ${new Date().toISOString()}\n`;
-    article += `---\n\n`;
+    article += '---\n\n';
 
     // Add content
     article += args.content + '\n\n';
 
     // Add related articles section
     if (args.relatedArticles && args.relatedArticles.length > 0) {
-      article += `## Related Articles\n\n`;
+      article += '## Related Articles\n\n';
       for (const related of args.relatedArticles) {
         article += `- [${related}](../${generateSlug(related)}.md)\n`;
       }
@@ -559,11 +562,21 @@ function getTitleFromFilename(filename: string): string {
 }
 
 function getCategoryFromFilename(filename: string): string {
-  if (filename.includes('api')) return 'API Reference';
-  if (filename.includes('guide')) return 'Guides';
-  if (filename.includes('tool')) return 'Tools';
-  if (filename.includes('feature')) return 'Features';
-  if (filename.includes('test')) return 'Testing';
+  if (filename.includes('api')) {
+return 'API Reference';
+}
+  if (filename.includes('guide')) {
+return 'Guides';
+}
+  if (filename.includes('tool')) {
+return 'Tools';
+}
+  if (filename.includes('feature')) {
+return 'Features';
+}
+  if (filename.includes('test')) {
+return 'Testing';
+}
   return 'General';
 }
 
@@ -574,10 +587,14 @@ function extractFirstParagraph(content: string): string {
 
   for (const line of lines) {
     if (line.trim() === '') {
-      if (inParagraph) break;
+      if (inParagraph) {
+break;
+}
       continue;
     }
-    if (line.startsWith('#')) continue;
+    if (line.startsWith('#')) {
+continue;
+}
     inParagraph = true;
     paragraph += line + ' ';
   }
@@ -647,7 +664,9 @@ function extractParameters(functionDef: string): any[] {
 }
 
 function extractReturns(jsdoc: string | undefined): string {
-  if (!jsdoc) return 'Promise<MCPToolResponse>';
+  if (!jsdoc) {
+return 'Promise<MCPToolResponse>';
+}
   const returnMatch = jsdoc.match(/@returns?\s+(.+)$/m);
   return returnMatch?.[1]?.trim() || 'Promise<MCPToolResponse>';
 }
@@ -694,7 +713,7 @@ async function analyzeFeature(feature: string): Promise<any> {
   // For now, return a mock analysis
   return {
     description: `The ${feature} feature provides...`,
-    overview: `This feature enables...`,
+    overview: 'This feature enables...',
     capabilities: [`Capability 1 for ${feature}`, `Capability 2 for ${feature}`],
     usage: `To use ${feature}, you need to...`,
     examples: [],

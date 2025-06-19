@@ -3,11 +3,13 @@
  * Automatically creates ACME validation records in EdgeDNS
  */
 
+import { ProgressBar, Spinner } from '@utils/progress';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+
 import { getDVValidationChallenges } from './cps-tools';
 import { upsertRecord } from './dns-tools';
-import { ProgressBar, Spinner } from '@utils/progress';
 
 interface ACMERecord {
   domain: string;
@@ -126,16 +128,16 @@ export async function createACMEValidationRecords(
     progressBar.finish('ACME validation records processed');
 
     // Generate report
-    let report = `# 🔐 ACME DNS Validation Records Created\n\n`;
-    report += `## Summary\n`;
+    let report = '# 🔐 ACME DNS Validation Records Created\n\n';
+    report += '## Summary\n';
     report += `- **Enrollment ID**: ${args.enrollmentId}\n`;
     report += `- **Total Records**: ${records.length}\n`;
     report += `- **Successfully Created**: ${results.successful}\n`;
     report += `- **Failed**: ${results.failed}\n\n`;
 
     if (results.successful > 0) {
-      report += `## ✅ Created Records\n\n`;
-      report += `The following ACME validation records were created:\n\n`;
+      report += '## ✅ Created Records\n\n';
+      report += 'The following ACME validation records were created:\n\n';
 
       for (const record of records) {
         if (!results.errors.find((e) => e.record === record.recordName)) {
@@ -146,21 +148,21 @@ export async function createACMEValidationRecords(
     }
 
     if (results.errors.length > 0) {
-      report += `## ❌ Failed Records\n\n`;
+      report += '## ❌ Failed Records\n\n';
       results.errors.forEach((err) => {
         report += `- **${err.record}**: ${err.error}\n`;
       });
       report += '\n';
     }
 
-    report += `## 🕐 Next Steps\n\n`;
-    report += `1. **Wait for DNS propagation** (usually 5-15 minutes)\n`;
+    report += '## 🕐 Next Steps\n\n';
+    report += '1. **Wait for DNS propagation** (usually 5-15 minutes)\n';
     report += `2. **Check validation status**: "Check DV enrollment status ${args.enrollmentId}"\n`;
-    report += `3. **Certificate deployment** will begin automatically after validation\n\n`;
+    report += '3. **Certificate deployment** will begin automatically after validation\n\n';
 
-    report += `## 🧹 Cleanup\n\n`;
-    report += `After the certificate is issued, you can safely remove these TXT records.\n`;
-    report += `They are only needed for initial validation.\n`;
+    report += '## 🧹 Cleanup\n\n';
+    report += 'After the certificate is issued, you can safely remove these TXT records.\n';
+    report += 'They are only needed for initial validation.\n';
 
     return {
       content: [
@@ -329,8 +331,8 @@ export async function monitorCertificateValidation(
       }
 
       if (allValidated) {
-        console.log(`\n✅ All domains validated successfully!`);
-        console.log(`🚀 Certificate deployment will begin automatically.`);
+        console.log('\n✅ All domains validated successfully!');
+        console.log('🚀 Certificate deployment will begin automatically.');
 
         return {
           content: [

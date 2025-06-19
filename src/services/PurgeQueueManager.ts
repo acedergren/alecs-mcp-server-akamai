@@ -1,12 +1,14 @@
+import * as crypto from 'crypto';
+import { promises as fs } from 'fs';
+import * as path from 'path';
+
+import { logger } from '@utils/logger';
+
 import {
   FastPurgeService,
   type FastPurgeRequest,
   type FastPurgeResponse,
 } from './FastPurgeService';
-import { logger } from '@utils/logger';
-import { promises as fs } from 'fs';
-import * as path from 'path';
-import * as crypto from 'crypto';
 
 // Queue item interfaces
 export interface QueueItem {
@@ -232,7 +234,9 @@ export class PurgeQueueManager {
   private analyzeConsolidation(items: QueueItem[]): ConsolidationSuggestion | null {
     // Group URLs by domain
     const urlItems = items.filter((item) => item.type === 'url' && item.status === 'pending');
-    if (urlItems.length === 0) return null;
+    if (urlItems.length === 0) {
+return null;
+}
 
     const domainMap = new Map<string, Set<string>>();
 

@@ -18,8 +18,32 @@ import {
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z, type ZodSchema } from 'zod';
-import { CustomerConfigManager } from './utils/customer-config';
-import { logger } from './utils/logger';
+
+import {
+  listZones,
+  getZone,
+  createZone,
+  listRecords,
+  upsertRecord,
+  deleteRecord,
+  activateZoneChanges,
+} from './tools/dns-tools';
+import { listProducts, getProduct } from './tools/product-tools';
+import {
+  createPropertyVersion,
+  getPropertyRules,
+  updatePropertyRules,
+  activateProperty,
+  getActivationStatus,
+} from './tools/property-manager-tools';
+import {
+  listProperties,
+  getProperty,
+  createProperty,
+  listGroups,
+  listContracts,
+} from './tools/property-tools';
+import { ConfigurationError, ConfigErrorType } from './types/config';
 import {
   type BaseMcpParams,
   type McpToolResponse,
@@ -33,33 +57,10 @@ import {
   PurgeByUrlSchema,
   CreateNetworkListSchema,
 } from './types/mcp';
-import { ConfigurationError, ConfigErrorType } from './types/config';
+import { CustomerConfigManager } from './utils/customer-config';
+import { logger } from './utils/logger';
 
 // Import tool implementations
-import {
-  listProperties,
-  getProperty,
-  createProperty,
-  listGroups,
-  listContracts,
-} from './tools/property-tools';
-import { listProducts, getProduct } from './tools/product-tools';
-import {
-  listZones,
-  getZone,
-  createZone,
-  listRecords,
-  upsertRecord,
-  deleteRecord,
-  activateZoneChanges,
-} from './tools/dns-tools';
-import {
-  createPropertyVersion,
-  getPropertyRules,
-  updatePropertyRules,
-  activateProperty,
-  getActivationStatus,
-} from './tools/property-manager-tools';
 
 /**
  * Tool registry entry with metadata

@@ -3,9 +3,10 @@
  * Production-ready property activation with validation, monitoring, and rollback capabilities
  */
 
+import { ErrorTranslator, ErrorRecovery } from '@utils/errors';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { ErrorTranslator, ErrorRecovery } from '@utils/errors';
 
 // Enhanced activation types
 export interface ActivationProgress {
@@ -228,7 +229,7 @@ export async function validatePropertyActivation(
     }
 
     // Format response
-    let responseText = `# Property Activation Validation\n\n`;
+    let responseText = '# Property Activation Validation\n\n';
     responseText += `**Property:** ${property.propertyName} (${args.propertyId})\n`;
     responseText += `**Version:** ${version}\n`;
     responseText += `**Target Network:** ${args.network}\n\n`;
@@ -239,8 +240,12 @@ export async function validatePropertyActivation(
       responseText += `### Errors (${validation.errors.length})\n`;
       validation.errors.forEach((error, index) => {
         responseText += `${index + 1}. **${error.severity}**: ${error.detail}\n`;
-        if (error.location) responseText += `   - Location: ${error.location}\n`;
-        if (error.resolution) responseText += `   - Resolution: ${error.resolution}\n`;
+        if (error.location) {
+responseText += `   - Location: ${error.location}\n`;
+}
+        if (error.resolution) {
+responseText += `   - Resolution: ${error.resolution}\n`;
+}
       });
       responseText += '\n';
     }
@@ -249,23 +254,27 @@ export async function validatePropertyActivation(
       responseText += `### Warnings (${validation.warnings.length})\n`;
       validation.warnings.forEach((warning, index) => {
         responseText += `${index + 1}. **${warning.severity}**: ${warning.detail}\n`;
-        if (warning.location) responseText += `   - Location: ${warning.location}\n`;
+        if (warning.location) {
+responseText += `   - Location: ${warning.location}\n`;
+}
       });
       responseText += '\n';
     }
 
     if (validation.preflightChecks.length > 0) {
-      responseText += `### Preflight Checks\n`;
+      responseText += '### Preflight Checks\n';
       validation.preflightChecks.forEach((check) => {
         const icon = check.status === 'PASSED' ? '✅' : check.status === 'FAILED' ? '❌' : '⚠️';
         responseText += `- ${icon} **${check.name}**: ${check.message}\n`;
-        if (check.details) responseText += `  - ${check.details}\n`;
+        if (check.details) {
+responseText += `  - ${check.details}\n`;
+}
       });
       responseText += '\n';
     }
 
     if (validation.suggestions.length > 0) {
-      responseText += `### Suggestions\n`;
+      responseText += '### Suggestions\n';
       validation.suggestions.forEach((suggestion, index) => {
         responseText += `${index + 1}. ${suggestion}\n`;
       });
@@ -496,7 +505,7 @@ export async function getActivationProgress(
     const startTime = new Date(activation.submitDate).getTime();
     const progress = buildActivationProgress(activation, startTime);
 
-    let responseText = `# Activation Progress\n\n`;
+    let responseText = '# Activation Progress\n\n';
     responseText += `**Activation ID:** ${args.activationId}\n`;
     responseText += `**Property:** ${activation.propertyName} (v${activation.propertyVersion})\n`;
     responseText += `**Network:** ${activation.network}\n`;
@@ -536,20 +545,20 @@ export async function getActivationProgress(
     }
 
     // Next steps based on status
-    responseText += `### Next Steps\n`;
+    responseText += '### Next Steps\n';
     if (progress.status.state === 'ACTIVE') {
-      responseText += `✅ Activation completed successfully!\n`;
+      responseText += '✅ Activation completed successfully!\n';
       responseText += `- Test your property: https://${activation.propertyName}\n`;
-      responseText += `- Monitor performance in Control Center\n`;
+      responseText += '- Monitor performance in Control Center\n';
     } else if (progress.status.state === 'FAILED' || progress.status.state === 'ABORTED') {
-      responseText += `❌ Activation failed. Options:\n`;
-      responseText += `1. Review errors above and fix issues\n`;
-      responseText += `2. Create new property version with fixes\n`;
-      responseText += `3. Contact Akamai support with activation ID\n`;
+      responseText += '❌ Activation failed. Options:\n';
+      responseText += '1. Review errors above and fix issues\n';
+      responseText += '2. Create new property version with fixes\n';
+      responseText += '3. Contact Akamai support with activation ID\n';
     } else {
-      responseText += `⏳ Activation in progress...\n`;
-      responseText += `- Continue monitoring this activation\n`;
-      responseText += `- Check again in a few minutes\n`;
+      responseText += '⏳ Activation in progress...\n';
+      responseText += '- Continue monitoring this activation\n';
+      responseText += '- Check again in a few minutes\n';
     }
 
     return {
@@ -648,7 +657,9 @@ async function checkOriginConnectivity(
       if (rules.children) {
         for (const child of rules.children) {
           const origin = findOrigin(child);
-          if (origin) return origin;
+          if (origin) {
+return origin;
+}
         }
       }
       return null;
@@ -771,9 +782,15 @@ function buildActivationProgress(activation: any, startTime: number): Activation
 }
 
 function getProgressiveDelay(elapsedTime: number): number {
-  if (elapsedTime < 120000) return 5000; // First 2 minutes: 5 seconds
-  if (elapsedTime < 420000) return 10000; // Next 5 minutes: 10 seconds
-  if (elapsedTime < 1020000) return 30000; // Next 10 minutes: 30 seconds
+  if (elapsedTime < 120000) {
+return 5000;
+} // First 2 minutes: 5 seconds
+  if (elapsedTime < 420000) {
+return 10000;
+} // Next 5 minutes: 10 seconds
+  if (elapsedTime < 1020000) {
+return 30000;
+} // Next 10 minutes: 30 seconds
   return 60000; // After 17 minutes: 60 seconds
 }
 
@@ -793,15 +810,15 @@ function formatActivationSuccess(
   const minutes = Math.round(duration / 60000);
 
   return (
-    `✅ **Activation Completed Successfully!**\n\n` +
+    '✅ **Activation Completed Successfully!**\n\n' +
     `**Property:** ${property.propertyName}\n` +
     `**Version:** ${version}\n` +
     `**Network:** ${network}\n` +
     `**Duration:** ${minutes} minutes\n\n` +
-    `## What's Next?\n` +
-    `1. **Test your property**: Visit your website to verify changes\n` +
-    `2. **Monitor performance**: Check Control Center for metrics\n` +
-    `3. **Clear cache if needed**: Use Fast Purge for immediate updates\n\n` +
+    '## What\'s Next?\n' +
+    '1. **Test your property**: Visit your website to verify changes\n' +
+    '2. **Monitor performance**: Check Control Center for metrics\n' +
+    '3. **Clear cache if needed**: Use Fast Purge for immediate updates\n\n' +
     `${network === 'STAGING' ? '💡 **Tip**: Test thoroughly before activating to PRODUCTION' : '🎉 **Congratulations!** Your property is now live in production.'}`
   );
 }
@@ -813,7 +830,7 @@ function formatActivationFailure(
   progress: ActivationProgress,
 ): string {
   let response =
-    `❌ **Activation Failed**\n\n` +
+    '❌ **Activation Failed**\n\n' +
     `**Property:** ${property.propertyName}\n` +
     `**Version:** ${version}\n` +
     `**Network:** ${network}\n` +
@@ -823,7 +840,7 @@ function formatActivationFailure(
     response += `**Error:** ${progress.status.details}\n`;
   }
 
-  response += `\n## Error Details\n`;
+  response += '\n## Error Details\n';
 
   if (progress.errors && progress.errors.length > 0) {
     progress.errors.forEach((error, index) => {
@@ -831,10 +848,10 @@ function formatActivationFailure(
     });
   }
 
-  response += `\n## Recommended Actions\n`;
-  response += `1. Review the errors above\n`;
-  response += `2. Create a new property version with fixes\n`;
-  response += `3. Validate the new version before activation\n`;
+  response += '\n## Recommended Actions\n';
+  response += '1. Review the errors above\n';
+  response += '2. Create a new property version with fixes\n';
+  response += '3. Validate the new version before activation\n';
   response += `4. Contact support if the issue persists (Activation ID: ${progress.activationId})\n`;
 
   return response;
@@ -866,7 +883,7 @@ async function rollbackActivation(
         body: {
           propertyVersion: previousActivation.propertyVersion,
           network: network,
-          note: `Automatic rollback due to failed activation`,
+          note: 'Automatic rollback due to failed activation',
           acknowledgeAllWarnings: true,
           fastPush: true,
         },
@@ -981,11 +998,11 @@ export async function createActivationPlan(
     );
 
     // Build activation plan
-    let responseText = `# Activation Plan\n\n`;
+    let responseText = '# Activation Plan\n\n';
     responseText += `**Strategy:** ${strategy}\n`;
     responseText += `**Properties:** ${propertyDetails.length}\n\n`;
 
-    responseText += `## Deployment Order\n`;
+    responseText += '## Deployment Order\n';
 
     if (strategy === 'DEPENDENCY_ORDERED' && args.dependencies) {
       // Sort by dependencies
@@ -1000,21 +1017,21 @@ export async function createActivationPlan(
       });
     }
 
-    responseText += `\n## Estimated Timeline\n`;
+    responseText += '\n## Estimated Timeline\n';
     const estimatedTime = calculateEstimatedTime(propertyDetails, strategy);
     responseText += `- **Total Duration:** ${estimatedTime.total} minutes\n`;
-    responseText += `- **Start Time:** Now\n`;
+    responseText += '- **Start Time:** Now\n';
     responseText += `- **Completion:** ~${new Date(Date.now() + estimatedTime.total * 60000).toLocaleTimeString()}\n`;
 
-    responseText += `\n## Pre-Activation Checklist\n`;
-    responseText += `- [ ] All properties validated\n`;
-    responseText += `- [ ] Certificates ready for HTTPS hostnames\n`;
-    responseText += `- [ ] Origin servers accessible\n`;
-    responseText += `- [ ] Notification emails configured\n`;
-    responseText += `- [ ] Rollback plan prepared\n`;
+    responseText += '\n## Pre-Activation Checklist\n';
+    responseText += '- [ ] All properties validated\n';
+    responseText += '- [ ] Certificates ready for HTTPS hostnames\n';
+    responseText += '- [ ] Origin servers accessible\n';
+    responseText += '- [ ] Notification emails configured\n';
+    responseText += '- [ ] Rollback plan prepared\n';
 
-    responseText += `\n## Execute Plan\n`;
-    responseText += `To execute this activation plan:\n`;
+    responseText += '\n## Execute Plan\n';
+    responseText += 'To execute this activation plan:\n';
     responseText += `\`\`\`\nExecute activation plan for ${propertyDetails.length} properties\n\`\`\``;
 
     return {
@@ -1047,14 +1064,18 @@ function topologicalSort(properties: any[], dependencies: Record<string, string[
   const visited = new Set<string>();
 
   const visit = (propId: string) => {
-    if (visited.has(propId)) return;
+    if (visited.has(propId)) {
+return;
+}
     visited.add(propId);
 
     const deps = dependencies[propId] || [];
     deps.forEach((dep) => visit(dep));
 
     const prop = properties.find((p) => p.propertyId === propId);
-    if (prop) sorted.push(prop);
+    if (prop) {
+sorted.push(prop);
+}
   };
 
   properties.forEach((prop) => visit(prop.propertyId));
@@ -1067,7 +1088,7 @@ function formatDeploymentOrder(properties: any[]): string {
     const version = prop.version || prop.details.latestVersion;
     text += `${index + 1}. **${prop.details.propertyName}** (${prop.propertyId} v${version}) → ${prop.network}\n`;
     if (index < properties.length - 1) {
-      text += `   ↓\n`;
+      text += '   ↓\n';
     }
   });
   return text;

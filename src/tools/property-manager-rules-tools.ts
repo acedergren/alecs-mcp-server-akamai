@@ -56,7 +56,7 @@ export async function listAvailableBehaviors(
 
     // Get available behaviors
     const response = await client.request({
-      path: `/papi/v1/catalog/behaviors`,
+      path: '/papi/v1/catalog/behaviors',
       method: 'GET',
       queryParams: {
         productId: productId!,
@@ -83,7 +83,9 @@ export async function listAvailableBehaviors(
     // Group behaviors by category
     const behaviorsByCategory = response.behaviors.items.reduce((acc: any, behavior: any) => {
       const category = behavior.category || 'Other';
-      if (!acc[category]) acc[category] = [];
+      if (!acc[category]) {
+acc[category] = [];
+}
       acc[category].push(behavior);
       return acc;
     }, {});
@@ -104,27 +106,27 @@ export async function listAvailableBehaviors(
       }
     }
 
-    text += `## Common Behaviors\n\n`;
-    text += `- **origin**: Configure origin server settings\n`;
-    text += `- **caching**: Control caching behavior\n`;
-    text += `- **cpCode**: Assign CP code for reporting\n`;
-    text += `- **edgeRedirector**: Redirect requests at the edge\n`;
-    text += `- **modifyOutgoingResponseHeader**: Modify response headers\n`;
-    text += `- **gzipResponse**: Enable GZIP compression\n\n`;
+    text += '## Common Behaviors\n\n';
+    text += '- **origin**: Configure origin server settings\n';
+    text += '- **caching**: Control caching behavior\n';
+    text += '- **cpCode**: Assign CP code for reporting\n';
+    text += '- **edgeRedirector**: Redirect requests at the edge\n';
+    text += '- **modifyOutgoingResponseHeader**: Modify response headers\n';
+    text += '- **gzipResponse**: Enable GZIP compression\n\n';
 
-    text += `## Usage Example\n`;
-    text += `\`\`\`json\n`;
-    text += `{\n`;
-    text += `  "name": "origin",\n`;
-    text += `  "options": {\n`;
-    text += `    "hostname": "origin.example.com",\n`;
-    text += `    "httpPort": 80,\n`;
-    text += `    "httpsPort": 443\n`;
-    text += `  }\n`;
-    text += `}\n`;
-    text += `\`\`\`\n\n`;
+    text += '## Usage Example\n';
+    text += '```json\n';
+    text += '{\n';
+    text += '  "name": "origin",\n';
+    text += '  "options": {\n';
+    text += '    "hostname": "origin.example.com",\n';
+    text += '    "httpPort": 80,\n';
+    text += '    "httpsPort": 443\n';
+    text += '  }\n';
+    text += '}\n';
+    text += '```\n\n';
 
-    text += `## Next Steps\n`;
+    text += '## Next Steps\n';
     text += `- View current rules: \`"Get property ${args.propertyId} rules"\`\n`;
     text += `- Update rules: \`"Update property ${args.propertyId} rules"\`\n`;
     text += `- List criteria: \`"List available criteria for property ${args.propertyId}"\`\n`;
@@ -192,7 +194,7 @@ export async function listAvailableCriteria(
 
     // Get available criteria
     const response = await client.request({
-      path: `/papi/v1/catalog/criteria`,
+      path: '/papi/v1/catalog/criteria',
       method: 'GET',
       queryParams: {
         productId: productId!,
@@ -219,7 +221,9 @@ export async function listAvailableCriteria(
     // Group criteria by category
     const criteriaByCategory = response.criteria.items.reduce((acc: any, criterion: any) => {
       const category = criterion.category || 'Other';
-      if (!acc[category]) acc[category] = [];
+      if (!acc[category]) {
+acc[category] = [];
+}
       acc[category].push(criterion);
       return acc;
     }, {});
@@ -240,26 +244,26 @@ export async function listAvailableCriteria(
       }
     }
 
-    text += `## Common Criteria\n\n`;
-    text += `- **path**: Match URL paths\n`;
-    text += `- **hostname**: Match specific hostnames\n`;
-    text += `- **fileExtension**: Match file extensions\n`;
-    text += `- **requestMethod**: Match HTTP methods\n`;
-    text += `- **contentType**: Match content types\n`;
-    text += `- **userAgent**: Match user agent strings\n\n`;
+    text += '## Common Criteria\n\n';
+    text += '- **path**: Match URL paths\n';
+    text += '- **hostname**: Match specific hostnames\n';
+    text += '- **fileExtension**: Match file extensions\n';
+    text += '- **requestMethod**: Match HTTP methods\n';
+    text += '- **contentType**: Match content types\n';
+    text += '- **userAgent**: Match user agent strings\n\n';
 
-    text += `## Usage Example\n`;
-    text += `\`\`\`json\n`;
-    text += `{\n`;
-    text += `  "name": "path",\n`;
-    text += `  "options": {\n`;
-    text += `    "matchOperator": "MATCHES_ONE_OF",\n`;
-    text += `    "values": ["/api/*", "/v1/*"]\n`;
-    text += `  }\n`;
-    text += `}\n`;
-    text += `\`\`\`\n\n`;
+    text += '## Usage Example\n';
+    text += '```json\n';
+    text += '{\n';
+    text += '  "name": "path",\n';
+    text += '  "options": {\n';
+    text += '    "matchOperator": "MATCHES_ONE_OF",\n';
+    text += '    "values": ["/api/*", "/v1/*"]\n';
+    text += '  }\n';
+    text += '}\n';
+    text += '```\n\n';
 
-    text += `## Next Steps\n`;
+    text += '## Next Steps\n';
     text += `- View current rules: \`"Get property ${args.propertyId} rules"\`\n`;
     text += `- Update rules: \`"Update property ${args.propertyId} rules"\`\n`;
     text += `- List behaviors: \`"List available behaviors for property ${args.propertyId}"\`\n`;
@@ -327,7 +331,7 @@ export async function patchPropertyRules(
       body: args.patches,
     });
 
-    let text = `✅ **Rule Tree Patched Successfully**\n\n`;
+    let text = '✅ **Rule Tree Patched Successfully**\n\n';
     text += `**Property:** ${property.propertyName} (${args.propertyId})\n`;
     text += `**Version:** ${version}\n`;
     text += `**Patches Applied:** ${args.patches.length}\n\n`;
@@ -348,7 +352,7 @@ export async function patchPropertyRules(
       text += '\n';
     }
 
-    text += `## Patches Applied\n`;
+    text += '## Patches Applied\n';
     for (const patch of args.patches) {
       text += `- **${patch.op}** ${patch.path}`;
       if (patch.value !== undefined) {
@@ -360,7 +364,7 @@ export async function patchPropertyRules(
       text += '\n';
     }
 
-    text += `\n## Next Steps\n`;
+    text += '\n## Next Steps\n';
     text += `- View updated rules: \`"Get property ${args.propertyId} version ${version} rules"\`\n`;
     text += `- Validate rules: \`"Validate property ${args.propertyId} version ${version} rules"\`\n`;
     text += `- Activate changes: \`"Activate property ${args.propertyId} version ${version} to staging"\`\n`;
@@ -423,7 +427,7 @@ export async function bulkSearchProperties(
       throw new Error('Failed to initiate bulk search');
     }
 
-    let text = `✅ **Bulk Search Initiated**\n\n`;
+    let text = '✅ **Bulk Search Initiated**\n\n';
     text += `**Search ID:** ${bulkSearchId}\n`;
     text += `**JSONPath Query:** \`${args.jsonPath}\`\n`;
     text += `**Network:** ${args.network || 'All versions'}\n`;
@@ -435,17 +439,17 @@ export async function bulkSearchProperties(
       text += `**Groups:** ${args.groupIds.join(', ')}\n`;
     }
 
-    text += `\n## Search Status\n`;
-    text += `The bulk search is running asynchronously. This may take several minutes.\n\n`;
+    text += '\n## Search Status\n';
+    text += 'The bulk search is running asynchronously. This may take several minutes.\n\n';
 
-    text += `## Next Steps\n`;
-    text += `Check search status and get results:\n`;
+    text += '## Next Steps\n';
+    text += 'Check search status and get results:\n';
     text += `\`"Get bulk search results ${bulkSearchId}"\`\n\n`;
 
-    text += `## JSONPath Examples\n`;
-    text += `- Find properties with specific origin: \`$.rules.behaviors[?(@.name == "origin")].options.hostname\`\n`;
-    text += `- Find caching TTL settings: \`$.rules..behaviors[?(@.name == "caching")].options.defaultTtl\`\n`;
-    text += `- Find CP codes: \`$.rules..behaviors[?(@.name == "cpCode")].options.value.id\`\n`;
+    text += '## JSONPath Examples\n';
+    text += '- Find properties with specific origin: `$.rules.behaviors[?(@.name == "origin")].options.hostname`\n';
+    text += '- Find caching TTL settings: `$.rules..behaviors[?(@.name == "caching")].options.defaultTtl`\n';
+    text += '- Find CP codes: `$.rules..behaviors[?(@.name == "cpCode")].options.value.id`\n';
 
     return {
       content: [
@@ -492,8 +496,8 @@ export async function getBulkSearchResults(
     text += `**Progress:** ${response.searchProgress || 0}%\n`;
 
     if (response.searchStatus === 'IN_PROGRESS') {
-      text += `\n⏳ **Search still in progress...**\n`;
-      text += `Check again in a few moments:\n`;
+      text += '\n⏳ **Search still in progress...**\n';
+      text += 'Check again in a few moments:\n';
       text += `\`"Get bulk search results ${args.bulkSearchId}"\`\n`;
       return {
         content: [
@@ -510,14 +514,16 @@ export async function getBulkSearchResults(
       text += `**Matches Found:** ${results.length}\n\n`;
 
       if (results.length === 0) {
-        text += `No properties matched the search criteria.\n`;
+        text += 'No properties matched the search criteria.\n';
       } else {
-        text += `## Matching Properties\n\n`;
+        text += '## Matching Properties\n\n';
 
         // Group by property
         const byProperty = results.reduce((acc: any, result: any) => {
           const key = result.propertyId;
-          if (!acc[key]) acc[key] = [];
+          if (!acc[key]) {
+acc[key] = [];
+}
           acc[key].push(result);
           return acc;
         }, {});
@@ -536,14 +542,14 @@ export async function getBulkSearchResults(
         }
       }
     } else if (response.searchStatus === 'FAILED') {
-      text += `\n❌ **Search Failed**\n`;
+      text += '\n❌ **Search Failed**\n';
       text += `Error: ${response.searchError || 'Unknown error'}\n`;
     }
 
-    text += `\n## Next Steps\n`;
-    text += `- View property details: \`"Get property [propertyId]"\`\n`;
-    text += `- View property rules: \`"Get property [propertyId] rules"\`\n`;
-    text += `- Start new search: \`"Bulk search properties with JSONPath [query]"\`\n`;
+    text += '\n## Next Steps\n';
+    text += '- View property details: `"Get property [propertyId]"`\n';
+    text += '- View property rules: `"Get property [propertyId] rules"`\n';
+    text += '- Start new search: `"Bulk search properties with JSONPath [query]"`\n';
 
     return {
       content: [
@@ -575,7 +581,7 @@ export async function generateDomainValidationChallenges(
 
     const method = args.validationMethod || 'HTTP';
 
-    let text = `# Domain Validation Challenges\n\n`;
+    let text = '# Domain Validation Challenges\n\n';
     text += `**Validation Method:** ${method}\n`;
     text += `**Domains:** ${args.domains.length}\n\n`;
 
@@ -586,40 +592,40 @@ export async function generateDomainValidationChallenges(
         const token = `akamai-domain-verification-${Math.random().toString(36).substring(7)}`;
         const path = `/.well-known/pki-validation/${token}.txt`;
 
-        text += `### HTTP Validation\n`;
+        text += '### HTTP Validation\n';
         text += `1. Create a file at: \`${path}\`\n`;
-        text += `2. File content:\n`;
-        text += `\`\`\`\n`;
+        text += '2. File content:\n';
+        text += '```\n';
         text += `${token}\n`;
-        text += `akamai-validation-content\n`;
-        text += `\`\`\`\n`;
-        text += `3. Ensure the file is accessible at:\n`;
+        text += 'akamai-validation-content\n';
+        text += '```\n';
+        text += '3. Ensure the file is accessible at:\n';
         text += `   \`http://${domain}${path}\`\n\n`;
       } else {
         const recordName = `_acme-challenge.${domain}`;
         const recordValue = `akamai-validation-${Math.random().toString(36).substring(7)}`;
 
-        text += `### DNS Validation\n`;
-        text += `Create a TXT record:\n`;
+        text += '### DNS Validation\n';
+        text += 'Create a TXT record:\n';
         text += `- **Name:** \`${recordName}\`\n`;
-        text += `- **Type:** TXT\n`;
+        text += '- **Type:** TXT\n';
         text += `- **Value:** \`"${recordValue}"\`\n`;
-        text += `- **TTL:** 300 (5 minutes)\n\n`;
+        text += '- **TTL:** 300 (5 minutes)\n\n';
       }
     }
 
-    text += `## Important Notes\n`;
-    text += `- Validation challenges expire after 7 days\n`;
-    text += `- HTTP validation requires the origin server to be accessible\n`;
-    text += `- DNS validation may take up to 48 hours to propagate\n`;
-    text += `- You can validate domains before adding them to properties\n\n`;
+    text += '## Important Notes\n';
+    text += '- Validation challenges expire after 7 days\n';
+    text += '- HTTP validation requires the origin server to be accessible\n';
+    text += '- DNS validation may take up to 48 hours to propagate\n';
+    text += '- You can validate domains before adding them to properties\n\n';
 
-    text += `## Next Steps\n`;
-    text += `1. Complete the validation steps above\n`;
-    text += `2. Use Default DV when creating edge hostnames:\n`;
-    text += `   \`"Create edge hostname with Default DV certificate"\`\n`;
-    text += `3. Or update existing property:\n`;
-    text += `   \`"Update property with Default DV certificate hostname"\`\n`;
+    text += '## Next Steps\n';
+    text += '1. Complete the validation steps above\n';
+    text += '2. Use Default DV when creating edge hostnames:\n';
+    text += '   `"Create edge hostname with Default DV certificate"`\n';
+    text += '3. Or update existing property:\n';
+    text += '   `"Update property with Default DV certificate hostname"`\n';
 
     return {
       content: [
@@ -649,31 +655,31 @@ export async function resumeDomainValidation(
     // This would integrate with CPS API
     // For now, provide guidance
 
-    let text = `# Resume Domain Validation\n\n`;
+    let text = '# Resume Domain Validation\n\n';
     text += `**Enrollment ID:** ${args.enrollmentId}\n`;
 
     if (args.domains?.length) {
       text += `**Domains to Resume:** ${args.domains.join(', ')}\n`;
     }
 
-    text += `\n## Validation Process\n`;
-    text += `1. ✅ Validation challenges have been set up\n`;
-    text += `2. ⏳ Resuming validation process...\n`;
-    text += `3. ⏱️ Akamai will check the validation challenges\n`;
-    text += `4. ✅ Certificate will be issued upon successful validation\n\n`;
+    text += '\n## Validation Process\n';
+    text += '1. ✅ Validation challenges have been set up\n';
+    text += '2. ⏳ Resuming validation process...\n';
+    text += '3. ⏱️ Akamai will check the validation challenges\n';
+    text += '4. ✅ Certificate will be issued upon successful validation\n\n';
 
-    text += `## Expected Timeline\n`;
-    text += `- **HTTP Validation:** 5-15 minutes\n`;
-    text += `- **DNS Validation:** 15-60 minutes (depends on DNS propagation)\n\n`;
+    text += '## Expected Timeline\n';
+    text += '- **HTTP Validation:** 5-15 minutes\n';
+    text += '- **DNS Validation:** 15-60 minutes (depends on DNS propagation)\n\n';
 
-    text += `## Next Steps\n`;
-    text += `Check validation status:\n`;
+    text += '## Next Steps\n';
+    text += 'Check validation status:\n';
     text += `\`"Check DV enrollment status ${args.enrollmentId}"\`\n\n`;
 
-    text += `If validation fails:\n`;
-    text += `1. Verify challenge files/records are correctly placed\n`;
-    text += `2. Check domain accessibility\n`;
-    text += `3. Regenerate challenges if needed\n`;
+    text += 'If validation fails:\n';
+    text += '1. Verify challenge files/records are correctly placed\n';
+    text += '2. Check domain accessibility\n';
+    text += '3. Regenerate challenges if needed\n';
 
     return {
       content: [
@@ -712,16 +718,20 @@ export async function getPropertyAuditHistory(
 
     let text = `# Property Audit History: ${args.propertyId}\n\n`;
 
-    if (args.startDate) text += `**Start Date:** ${args.startDate}\n`;
-    if (args.endDate) text += `**End Date:** ${args.endDate}\n`;
+    if (args.startDate) {
+text += `**Start Date:** ${args.startDate}\n`;
+}
+    if (args.endDate) {
+text += `**End Date:** ${args.endDate}\n`;
+}
 
-    text += `\n## Recent Activations\n\n`;
+    text += '\n## Recent Activations\n\n';
 
     if (!response.activations?.items || response.activations.items.length === 0) {
-      text += `No activation history found.\n`;
+      text += 'No activation history found.\n';
     } else {
-      text += `| Date | Version | Network | Status | User | Note |\n`;
-      text += `|------|---------|---------|--------|------|------|\n`;
+      text += '| Date | Version | Network | Status | User | Note |\n';
+      text += '|------|---------|---------|--------|------|------|\n';
 
       const limit = args.limit || 20;
       const activations = response.activations.items.slice(0, limit);
@@ -738,18 +748,18 @@ export async function getPropertyAuditHistory(
       }
     }
 
-    text += `\n## Audit Categories\n`;
-    text += `A complete audit history includes:\n`;
-    text += `- ✅ **Activations**: Version deployments to staging/production\n`;
-    text += `- 📝 **Rule Changes**: Modifications to property configuration\n`;
-    text += `- 🏷️ **Hostname Changes**: Added or removed domains\n`;
-    text += `- 🔐 **Certificate Updates**: SSL/TLS certificate changes\n`;
-    text += `- 👥 **Permission Changes**: User access modifications\n\n`;
+    text += '\n## Audit Categories\n';
+    text += 'A complete audit history includes:\n';
+    text += '- ✅ **Activations**: Version deployments to staging/production\n';
+    text += '- 📝 **Rule Changes**: Modifications to property configuration\n';
+    text += '- 🏷️ **Hostname Changes**: Added or removed domains\n';
+    text += '- 🔐 **Certificate Updates**: SSL/TLS certificate changes\n';
+    text += '- 👥 **Permission Changes**: User access modifications\n\n';
 
-    text += `## Next Steps\n`;
-    text += `- View version differences: \`"Compare property versions"\`\n`;
-    text += `- Export full audit log: Contact Akamai support\n`;
-    text += `- Set up audit notifications: Use Control Center\n`;
+    text += '## Next Steps\n';
+    text += '- View version differences: `"Compare property versions"`\n';
+    text += '- Export full audit log: Contact Akamai support\n';
+    text += '- Set up audit notifications: Use Control Center\n';
 
     return {
       content: [

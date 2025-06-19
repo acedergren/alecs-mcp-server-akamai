@@ -3,9 +3,10 @@
  * Comprehensive version management including comparison, metadata, batch operations, and rollback
  */
 
+import { ErrorTranslator } from '@utils/errors';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { ErrorTranslator } from '@utils/errors';
 
 // Version comparison types
 export interface VersionDiff {
@@ -157,11 +158,11 @@ export async function comparePropertyVersions(
       comparison.differences.summary.ruleChanges + comparison.differences.summary.hostnameChanges;
 
     // Format response
-    let responseText = `# Property Version Comparison\n\n`;
+    let responseText = '# Property Version Comparison\n\n';
     responseText += `**Property:** ${property.propertyName} (${args.propertyId})\n`;
     responseText += `**Comparing:** Version ${args.version1} ↔ Version ${args.version2}\n\n`;
 
-    responseText += `## Summary\n`;
+    responseText += '## Summary\n';
     responseText += `- **Total Changes:** ${comparison.differences.summary.totalChanges}\n`;
     responseText += `- **Rule Changes:** ${comparison.differences.summary.ruleChanges}\n`;
     responseText += `- **Behavior Changes:** ${comparison.differences.summary.behaviorChanges}\n`;
@@ -169,13 +170,13 @@ export async function comparePropertyVersions(
     responseText += `- **Hostname Changes:** ${comparison.differences.summary.hostnameChanges}\n\n`;
 
     if (comparison.differences.rules && comparison.differences.rules.length > 0) {
-      responseText += `## Rule Changes\n`;
+      responseText += '## Rule Changes\n';
       responseText += formatDifferences(comparison.differences.rules, includeDetails);
       responseText += '\n';
     }
 
     if (comparison.differences.hostnames && comparison.differences.hostnames.length > 0) {
-      responseText += `## Hostname Changes\n`;
+      responseText += '## Hostname Changes\n';
       responseText += formatHostnameDifferences(comparison.differences.hostnames);
       responseText += '\n';
     }
@@ -183,10 +184,10 @@ export async function comparePropertyVersions(
     if (comparison.differences.summary.totalChanges === 0) {
       responseText += `✅ **No differences found** between version ${args.version1} and version ${args.version2}.\n`;
     } else {
-      responseText += `## Next Steps\n`;
-      responseText += `- Review changes carefully before activation\n`;
-      responseText += `- Test in staging environment first\n`;
-      responseText += `- Create new version to merge changes if needed\n`;
+      responseText += '## Next Steps\n';
+      responseText += '- Review changes carefully before activation\n';
+      responseText += '- Test in staging environment first\n';
+      responseText += '- Create new version to merge changes if needed\n';
     }
 
     return {
@@ -296,13 +297,13 @@ export async function batchCreateVersions(
     }
 
     // Format response
-    let responseText = `# Batch Version Creation Results\n\n`;
+    let responseText = '# Batch Version Creation Results\n\n';
     responseText += `**Total Properties:** ${args.properties.length}\n`;
     responseText += `**Successful:** ${results.filter((r) => r.success).length}\n`;
     responseText += `**Failed:** ${results.filter((r) => !r.success).length}\n\n`;
 
     if (results.some((r) => r.success)) {
-      responseText += `## ✅ Successful Versions\n`;
+      responseText += '## ✅ Successful Versions\n';
       results
         .filter((r) => r.success)
         .forEach((result) => {
@@ -312,7 +313,7 @@ export async function batchCreateVersions(
     }
 
     if (results.some((r) => !r.success)) {
-      responseText += `## ❌ Failed Versions\n`;
+      responseText += '## ❌ Failed Versions\n';
       results
         .filter((r) => !r.success)
         .forEach((result) => {
@@ -321,10 +322,10 @@ export async function batchCreateVersions(
       responseText += '\n';
     }
 
-    responseText += `## Next Steps\n`;
-    responseText += `- Update rules for new versions as needed\n`;
-    responseText += `- Validate versions before activation\n`;
-    responseText += `- Use batch activation for coordinated deployment\n`;
+    responseText += '## Next Steps\n';
+    responseText += '- Update rules for new versions as needed\n';
+    responseText += '- Validate versions before activation\n';
+    responseText += '- Use batch activation for coordinated deployment\n';
 
     return {
       content: [
@@ -403,8 +404,12 @@ export async function getVersionTimeline(
       const versionDate = new Date(version.updatedDate);
 
       // Apply date filters if provided
-      if (args.startDate && versionDate < new Date(args.startDate)) continue;
-      if (args.endDate && versionDate > new Date(args.endDate)) continue;
+      if (args.startDate && versionDate < new Date(args.startDate)) {
+continue;
+}
+      if (args.endDate && versionDate > new Date(args.endDate)) {
+continue;
+}
 
       timeline.timeline.push({
         version: version.propertyVersion,
@@ -436,7 +441,7 @@ export async function getVersionTimeline(
     timeline.timeline.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     // Format response
-    let responseText = `# Property Version Timeline\n\n`;
+    let responseText = '# Property Version Timeline\n\n';
     responseText += `**Property:** ${property.propertyName} (${args.propertyId})\n`;
     responseText += `**Current Version:** ${property.latestVersion}\n`;
     responseText += `**Production Version:** ${property.productionVersion || 'None'}\n`;
@@ -455,14 +460,20 @@ export async function getVersionTimeline(
       responseText += `### ${icon} Version ${event.version}\n`;
       responseText += `- **Date:** ${date}\n`;
       responseText += `- **Event:** ${event.event}`;
-      if (event.network) responseText += ` to ${event.network}`;
+      if (event.network) {
+responseText += ` to ${event.network}`;
+}
       responseText += '\n';
-      if (event.user) responseText += `- **By:** ${event.user}\n`;
-      if (event.note) responseText += `- **Note:** ${event.note}\n`;
+      if (event.user) {
+responseText += `- **By:** ${event.user}\n`;
+}
+      if (event.note) {
+responseText += `- **Note:** ${event.note}\n`;
+}
       responseText += '\n';
     }
 
-    responseText += `## Version Statistics\n`;
+    responseText += '## Version Statistics\n';
     const totalVersions = new Set(timeline.timeline.map((e) => e.version)).size;
     const activations = timeline.timeline.filter((e) => e.event === 'activated');
     responseText += `- **Total Versions:** ${totalVersions}\n`;
@@ -597,7 +608,7 @@ export async function rollbackPropertyVersion(
     }
 
     // Format response
-    let responseText = `# Property Version Rollback\n\n`;
+    let responseText = '# Property Version Rollback\n\n';
     responseText += `**Property:** ${property.propertyName} (${args.propertyId})\n`;
     responseText += `**Rolled Back:** v${currentVersion} → v${args.targetVersion}\n`;
     responseText += `**New Version:** v${newVersion}\n`;
@@ -606,7 +617,7 @@ export async function rollbackPropertyVersion(
     }
     responseText += `**Hostnames:** ${preserveHostnames ? 'Preserved' : 'Restored from target'}\n\n`;
 
-    responseText += `## Rollback Summary\n`;
+    responseText += '## Rollback Summary\n';
     responseText += `✅ Successfully created version ${newVersion} based on version ${args.targetVersion}\n`;
     if (preserveHostnames) {
       responseText += `✅ Preserved ${currentHostnames.length} hostname(s) from current version\n`;
@@ -616,12 +627,12 @@ export async function rollbackPropertyVersion(
     }
     responseText += '\n';
 
-    responseText += `## Next Steps\n`;
-    responseText += `1. **Validate** the new version:\n`;
+    responseText += '## Next Steps\n';
+    responseText += '1. **Validate** the new version:\n';
     responseText += `   \`validate_property_activation propertyId=${args.propertyId} version=${newVersion}\`\n`;
-    responseText += `2. **Test** in staging first:\n`;
+    responseText += '2. **Test** in staging first:\n';
     responseText += `   \`activate_property propertyId=${args.propertyId} version=${newVersion} network=STAGING\`\n`;
-    responseText += `3. **Deploy** to production when ready:\n`;
+    responseText += '3. **Deploy** to production when ready:\n';
     responseText += `   \`activate_property propertyId=${args.propertyId} version=${newVersion} network=PRODUCTION\`\n`;
 
     if (backupVersion) {
@@ -704,7 +715,9 @@ export async function updateVersionMetadata(
       const rules = rulesResponse.rules;
 
       // Add metadata as comments in rule tree
-      if (!rules.comments) rules.comments = {};
+      if (!rules.comments) {
+rules.comments = {};
+}
 
       if (args.metadata.tags) {
         rules.comments.tags = args.metadata.tags.join(', ');
@@ -725,11 +738,11 @@ export async function updateVersionMetadata(
     }
 
     // Format response
-    let responseText = `# Version Metadata Updated\n\n`;
+    let responseText = '# Version Metadata Updated\n\n';
     responseText += `**Property:** ${property.propertyName} (${args.propertyId})\n`;
     responseText += `**Version:** ${args.version}\n\n`;
 
-    responseText += `## Updated Metadata\n`;
+    responseText += '## Updated Metadata\n';
     if (args.metadata.note) {
       responseText += `- **Note:** ${args.metadata.note}\n`;
     }
@@ -737,7 +750,7 @@ export async function updateVersionMetadata(
       responseText += `- **Tags:** ${args.metadata.tags.join(', ')}\n`;
     }
     if (args.metadata.labels) {
-      responseText += `- **Labels:**\n`;
+      responseText += '- **Labels:**\n';
       Object.entries(args.metadata.labels).forEach(([key, value]) => {
         responseText += `  - ${key}: ${value}\n`;
       });
@@ -745,9 +758,9 @@ export async function updateVersionMetadata(
 
     responseText += `\n✅ Metadata successfully updated for version ${args.version}\n`;
 
-    responseText += `\n## Note\n`;
-    responseText += `Tags and labels are stored as rule comments since PAPI doesn't natively support extended metadata.\n`;
-    responseText += `They will be preserved across version updates and can be retrieved when viewing rules.\n`;
+    responseText += '\n## Note\n';
+    responseText += 'Tags and labels are stored as rule comments since PAPI doesn\'t natively support extended metadata.\n';
+    responseText += 'They will be preserved across version updates and can be retrieved when viewing rules.\n';
 
     return {
       content: [
@@ -860,7 +873,7 @@ export async function mergePropertyVersions(
     });
 
     // Format response
-    let responseText = `# Version Merge Results\n\n`;
+    let responseText = '# Version Merge Results\n\n';
     responseText += `**Property:** ${property.propertyName} (${args.propertyId})\n`;
     responseText += `**Merge Strategy:** ${args.mergeStrategy}\n`;
     responseText += `**Source Version:** ${args.sourceVersion}\n`;
@@ -870,29 +883,29 @@ export async function mergePropertyVersions(
     }
     responseText += '\n';
 
-    responseText += `## Merge Summary\n`;
+    responseText += '## Merge Summary\n';
     responseText += `✅ ${mergeDescription}\n`;
 
     if (args.includePaths) {
-      responseText += `\n### Included Paths\n`;
+      responseText += '\n### Included Paths\n';
       args.includePaths.forEach((path) => {
         responseText += `- ${path}\n`;
       });
     }
 
     if (args.excludePaths) {
-      responseText += `\n### Excluded Paths\n`;
+      responseText += '\n### Excluded Paths\n';
       args.excludePaths.forEach((path) => {
         responseText += `- ${path}\n`;
       });
     }
 
-    responseText += `\n## Next Steps\n`;
-    responseText += `1. **Review** the merged rules:\n`;
+    responseText += '\n## Next Steps\n';
+    responseText += '1. **Review** the merged rules:\n';
     responseText += `   \`get_property_rules propertyId=${args.propertyId} version=${finalVersion}\`\n`;
-    responseText += `2. **Validate** the configuration:\n`;
+    responseText += '2. **Validate** the configuration:\n';
     responseText += `   \`validate_property_activation propertyId=${args.propertyId} version=${finalVersion}\`\n`;
-    responseText += `3. **Test** in staging environment\n`;
+    responseText += '3. **Test** in staging environment\n';
 
     return {
       content: [
@@ -991,7 +1004,7 @@ function compareRuleTrees(rules1: any, rules2: any, includeDetails: boolean): Ve
         path,
         oldValue: includeDetails ? obj1 : undefined,
         newValue: includeDetails ? obj2 : undefined,
-        description: `Changed value`,
+        description: 'Changed value',
       });
     }
   };
@@ -1154,7 +1167,9 @@ function cherryPickChanges(
 
   // Extract and apply specific paths from source
   for (const path of includePaths) {
-    if (excludePaths?.includes(path)) continue;
+    if (excludePaths?.includes(path)) {
+continue;
+}
 
     const value = getValueAtPath(sourceRules, path);
     if (value !== undefined) {
@@ -1220,7 +1235,9 @@ function getValueAtPath(obj: any, path: string): any {
       current = current[part];
     }
 
-    if (current === undefined) break;
+    if (current === undefined) {
+break;
+}
   }
 
   return current;
@@ -1232,7 +1249,9 @@ function setValueAtPath(obj: any, path: string, value: any): void {
 
   for (let i = 0; i < parts.length - 1; i++) {
     const part = parts[i];
-    if (!part) continue;
+    if (!part) {
+continue;
+}
 
     if (part.includes('[') && part.includes(']')) {
       const bracketIndex = part.indexOf('[');
@@ -1240,12 +1259,18 @@ function setValueAtPath(obj: any, path: string, value: any): void {
       const indexStr = part.substring(bracketIndex + 1, part.indexOf(']'));
       const index = parseInt(indexStr);
 
-      if (!current[key]) current[key] = [];
-      if (!current[key][index]) current[key][index] = {};
+      if (!current[key]) {
+current[key] = [];
+}
+      if (!current[key][index]) {
+current[key][index] = {};
+}
 
       current = current[key][index];
     } else {
-      if (!current[part]) current[part] = {};
+      if (!current[part]) {
+current[part] = {};
+}
       current = current[part];
     }
   }
@@ -1257,7 +1282,9 @@ function setValueAtPath(obj: any, path: string, value: any): void {
     const indexStr = lastPart.substring(bracketIndex + 1, lastPart.indexOf(']'));
     const index = parseInt(indexStr);
 
-    if (!current[key]) current[key] = [];
+    if (!current[key]) {
+current[key] = [];
+}
     current[key][index] = value;
   } else if (lastPart) {
     current[lastPart] = value;

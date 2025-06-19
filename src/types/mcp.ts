@@ -3,6 +3,7 @@
  */
 
 import { z } from 'zod';
+
 import { type NetworkEnvironment } from './config';
 
 /**

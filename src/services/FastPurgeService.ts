@@ -1,7 +1,7 @@
 import { EdgeGridClient } from '@utils/edgegrid-client';
-import { ResilienceManager, OperationType } from '@utils/resilience-manager';
-import { logger } from '@utils/logger';
 import { AkamaiError } from '@utils/errors';
+import { logger } from '@utils/logger';
+import { ResilienceManager, OperationType } from '@utils/resilience-manager';
 
 // TypeScript interfaces for FastPurge API
 export interface FastPurgeRequest {

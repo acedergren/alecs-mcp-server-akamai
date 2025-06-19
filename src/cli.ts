@@ -4,11 +4,12 @@
  * ALECS CLI - Command line tool for managing ALECS MCP servers
  */
 
-import { Command } from 'commander';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
 import { spawn } from 'child_process';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+
+import { Command } from 'commander';
 
 const program = new Command();
 

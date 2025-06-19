@@ -1,4 +1,3 @@
-import { EdgeGridAuth } from '../auth/EdgeGridAuth';
 import {
   ProgressBar,
   Spinner,
@@ -8,6 +7,9 @@ import {
   icons,
 } from '@utils/progress';
 import axios from 'axios';
+
+import { EdgeGridAuth } from '../auth/EdgeGridAuth';
+
 import {
   type PapiVersionResponse,
   type PapiRulesResponse,
@@ -961,12 +963,12 @@ export class CDNProvisioningAgent {
       }
 
       console.log(`\n${icons.info} Next Steps:`);
-      console.log(`  1. Update DNS CNAME records:`);
+      console.log('  1. Update DNS CNAME records:');
       hostnames.forEach((hostname) => {
         console.log(`     ${hostname} → ${edgeHostname}`);
       });
       console.log(`  2. Test on staging: https://${hostnames[0]}.edgesuite-staging.net`);
-      console.log(`  3. Monitor activation status in Control Center`);
+      console.log('  3. Monitor activation status in Control Center');
     } catch (error) {
       progress.update({
         current: progress['current'],

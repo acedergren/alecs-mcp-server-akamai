@@ -3,9 +3,10 @@
  * Comprehensive hostname discovery, conflict detection, and intelligent provisioning
  */
 
+import { ErrorTranslator } from '@utils/errors';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { ErrorTranslator } from '@utils/errors';
 
 // Hostname analysis types
 export interface HostnameAnalysis {
@@ -170,7 +171,7 @@ export async function analyzeHostnameOwnership(
     }
 
     // Format response
-    let responseText = `# Hostname Ownership Analysis\n\n`;
+    let responseText = '# Hostname Ownership Analysis\n\n';
     responseText += `**Total Hostnames Analyzed:** ${args.hostnames.length}\n`;
     responseText += `**Available:** ${analyses.filter((a) => a.status === 'available').length}\n`;
     responseText += `**In Use:** ${analyses.filter((a) => a.status === 'in-use').length}\n`;
@@ -225,7 +226,7 @@ export async function analyzeHostnameOwnership(
           responseText += `    - Resolution: ${conflict.resolution}\n`;
         });
         if (analysis.wildcardCoverage.length > 0) {
-          responseText += `  - Wildcard Coverage:\n`;
+          responseText += '  - Wildcard Coverage:\n';
           analysis.wildcardCoverage.forEach((wc) => {
             responseText += `    - ${wc.wildcardHostname} in ${wc.propertyName}\n`;
           });
@@ -248,27 +249,27 @@ export async function analyzeHostnameOwnership(
 
     // Summary recommendations
     if (args.includeRecommendations) {
-      responseText += `## 📋 Provisioning Recommendations\n`;
+      responseText += '## 📋 Provisioning Recommendations\n';
       const availableCount = statusGroups.available.length;
       if (availableCount > 0) {
         if (availableCount > 5) {
           responseText += `- Consider bulk provisioning for ${availableCount} hostnames\n`;
-          responseText += `- Group related hostnames into shared properties\n`;
+          responseText += '- Group related hostnames into shared properties\n';
         }
-        responseText += `- Use DefaultDV certificates for quick SSL provisioning\n`;
-        responseText += `- Enable Enhanced TLS for optimal performance\n`;
+        responseText += '- Use DefaultDV certificates for quick SSL provisioning\n';
+        responseText += '- Enable Enhanced TLS for optimal performance\n';
       }
     }
 
-    responseText += `\n## Next Steps\n`;
+    responseText += '\n## Next Steps\n';
     if (statusGroups.available.length > 0) {
-      responseText += `1. Create edge hostnames for available domains\n`;
-      responseText += `2. Provision properties with appropriate templates\n`;
-      responseText += `3. Configure DNS CNAME records\n`;
+      responseText += '1. Create edge hostnames for available domains\n';
+      responseText += '2. Provision properties with appropriate templates\n';
+      responseText += '3. Configure DNS CNAME records\n';
     }
     if (statusGroups.conflict.length > 0) {
-      responseText += `1. Resolve conflicts before provisioning\n`;
-      responseText += `2. Consider consolidating with existing properties\n`;
+      responseText += '1. Resolve conflicts before provisioning\n';
+      responseText += '2. Consider consolidating with existing properties\n';
     }
 
     return {
@@ -350,14 +351,16 @@ export async function generateEdgeHostnameRecommendations(
     }
 
     // Format response
-    let responseText = `# Edge Hostname Recommendations\n\n`;
+    let responseText = '# Edge Hostname Recommendations\n\n';
     responseText += `**Total Hostnames:** ${args.hostnames.length}\n\n`;
 
     // Group by suffix
     const bySuffix = recommendations.reduce(
       (acc, rec) => {
         const suffix = rec.domainSuffix as string;
-        if (!acc[suffix]) acc[suffix] = [];
+        if (!acc[suffix]) {
+acc[suffix] = [];
+}
         acc[suffix].push(rec);
         return acc;
       },
@@ -378,33 +381,33 @@ export async function generateEdgeHostnameRecommendations(
     });
 
     // Bulk creation commands
-    responseText += `## Bulk Creation Commands\n\n`;
+    responseText += '## Bulk Creation Commands\n\n';
 
     // Group secure hostnames
     const secureHostnames = recommendations.filter((r) => r.secure);
     if (secureHostnames.length > 0) {
       responseText += `### Secure Edge Hostnames (${secureHostnames.length})\n`;
-      responseText += `\`\`\`\n`;
+      responseText += '```\n';
       secureHostnames.forEach((rec) => {
-        responseText += `Create edge hostname:\n`;
+        responseText += 'Create edge hostname:\n';
         responseText += `- Domain prefix: ${rec.hostname.split('.')[0]}\n`;
         responseText += `- Domain suffix: ${rec.domainSuffix}\n`;
-        responseText += `- Secure: true\n`;
+        responseText += '- Secure: true\n';
         responseText += `- IP version: ${rec.ipVersion}\n\n`;
       });
-      responseText += `\`\`\`\n\n`;
+      responseText += '```\n\n';
     }
 
     // Summary
-    responseText += `## Summary\n`;
+    responseText += '## Summary\n';
     responseText += `- **Secure Hostnames:** ${secureHostnames.length}\n`;
     responseText += `- **Non-Secure Hostnames:** ${recommendations.length - secureHostnames.length}\n`;
     responseText += `- **DefaultDV Certificates:** ${recommendations.filter((r) => r.certificateType === 'DEFAULT_DV').length}\n\n`;
 
-    responseText += `## Next Steps\n`;
-    responseText += `1. Review and adjust recommendations as needed\n`;
-    responseText += `2. Create edge hostnames using the bulk commands\n`;
-    responseText += `3. Update DNS CNAME records after creation\n`;
+    responseText += '## Next Steps\n';
+    responseText += '1. Review and adjust recommendations as needed\n';
+    responseText += '2. Create edge hostnames using the bulk commands\n';
+    responseText += '3. Update DNS CNAME records after creation\n';
 
     return {
       content: [
@@ -529,7 +532,7 @@ export async function validateHostnamesBulk(
     }
 
     // Format response
-    let responseText = `# Bulk Hostname Validation Results\n\n`;
+    let responseText = '# Bulk Hostname Validation Results\n\n';
     responseText += `**Total Hostnames:** ${validation.totalHostnames}\n`;
     responseText += `**Valid:** ${validation.validHostnames.length} ✅\n`;
     responseText += `**Invalid:** ${validation.invalidHostnames.length} ❌\n`;
@@ -567,7 +570,7 @@ export async function validateHostnamesBulk(
 
     // Recommendations
     if (validation.recommendations.length > 0) {
-      responseText += `## 💡 Recommendations\n`;
+      responseText += '## 💡 Recommendations\n';
       validation.recommendations.forEach(({ hostname, recommendations }) => {
         responseText += `- **${hostname}**\n`;
         recommendations.forEach((rec) => {
@@ -578,7 +581,7 @@ export async function validateHostnamesBulk(
     }
 
     // Summary statistics
-    responseText += `## Validation Summary\n`;
+    responseText += '## Validation Summary\n';
     const successRate = Math.round(
       (validation.validHostnames.length / validation.totalHostnames) * 100,
     );
@@ -593,20 +596,20 @@ export async function validateHostnamesBulk(
         {} as Record<string, number>,
       );
 
-      responseText += `- **Failure Reasons:**\n`;
+      responseText += '- **Failure Reasons:**\n';
       Object.entries(reasons).forEach(([reason, count]) => {
         responseText += `  - ${reason}: ${count}\n`;
       });
     }
 
-    responseText += `\n## Next Steps\n`;
+    responseText += '\n## Next Steps\n';
     if (validation.validHostnames.length > 0) {
       responseText += `1. Proceed with provisioning ${validation.validHostnames.length} valid hostnames\n`;
-      responseText += `2. Create edge hostnames and properties\n`;
+      responseText += '2. Create edge hostnames and properties\n';
     }
     if (validation.invalidHostnames.length > 0) {
       responseText += `1. Fix ${validation.invalidHostnames.length} invalid hostnames\n`;
-      responseText += `2. Re-validate after corrections\n`;
+      responseText += '2. Re-validate after corrections\n';
     }
 
     return {
@@ -661,7 +664,7 @@ export async function findOptimalPropertyAssignment(
     const hostnameGroups = groupHostnamesByStrategy(args.hostnames, strategy);
 
     // Format response
-    let responseText = `# Optimal Property Assignment Analysis\n\n`;
+    let responseText = '# Optimal Property Assignment Analysis\n\n';
     responseText += `**Total Hostnames:** ${args.hostnames.length}\n`;
     responseText += `**Grouping Strategy:** ${strategy}\n`;
     responseText += `**Max Hostnames per Property:** ${maxPerProperty}\n`;
@@ -677,18 +680,18 @@ export async function findOptimalPropertyAssignment(
       const matchingProperty = findMatchingProperty(groupName, hostnames, existingProperties);
 
       if (matchingProperty) {
-        responseText += `### ♻️ Reuse Existing Property\n`;
+        responseText += '### ♻️ Reuse Existing Property\n';
         responseText += `- **Property:** ${matchingProperty.propertyName} (${matchingProperty.propertyId})\n`;
         responseText += `- **Current Hostnames:** ${matchingProperty.hostnameCount || 0}\n`;
         responseText += `- **Available Capacity:** ${maxPerProperty - (matchingProperty.hostnameCount || 0)}\n\n`;
       } else {
-        responseText += `### 🆕 Create New Property\n`;
+        responseText += '### 🆕 Create New Property\n';
         responseText += `- **Suggested Name:** ${generatePropertyName(groupName, hostnames)}\n`;
-        responseText += `- **Product:** Ion (recommended for mixed content)\n`;
-        responseText += `- **Rule Template:** Auto-select based on content type\n\n`;
+        responseText += '- **Product:** Ion (recommended for mixed content)\n';
+        responseText += '- **Rule Template:** Auto-select based on content type\n\n';
       }
 
-      responseText += `### Hostnames in this group:\n`;
+      responseText += '### Hostnames in this group:\n';
       hostnames.slice(0, 10).forEach((hostname) => {
         responseText += `- ${hostname}\n`;
       });
@@ -701,12 +704,12 @@ export async function findOptimalPropertyAssignment(
     });
 
     // Optimization recommendations
-    responseText += `## 📊 Optimization Analysis\n`;
+    responseText += '## 📊 Optimization Analysis\n';
 
     // Certificate optimization
     const wildcardOpportunities = findWildcardOpportunities(args.hostnames);
     if (wildcardOpportunities.length > 0) {
-      responseText += `### 🔐 Certificate Optimization\n`;
+      responseText += '### 🔐 Certificate Optimization\n';
       wildcardOpportunities.forEach((opp) => {
         responseText += `- Use wildcard certificate for \`*.${opp.domain}\` (covers ${opp.count} hostnames)\n`;
       });
@@ -714,13 +717,13 @@ export async function findOptimalPropertyAssignment(
     }
 
     // Performance recommendations
-    responseText += `### ⚡ Performance Recommendations\n`;
-    responseText += `- Group API endpoints separately for optimized caching rules\n`;
-    responseText += `- Separate static assets into dedicated properties\n`;
-    responseText += `- Use shared CP codes for related hostnames\n\n`;
+    responseText += '### ⚡ Performance Recommendations\n';
+    responseText += '- Group API endpoints separately for optimized caching rules\n';
+    responseText += '- Separate static assets into dedicated properties\n';
+    responseText += '- Use shared CP codes for related hostnames\n\n';
 
     // Implementation plan
-    responseText += `## 🚀 Implementation Plan\n`;
+    responseText += '## 🚀 Implementation Plan\n';
     let step = 1;
 
     // Properties to create
@@ -729,7 +732,7 @@ export async function findOptimalPropertyAssignment(
     );
 
     if (newProperties.length > 0) {
-      responseText += `### Phase 1: Property Creation\n`;
+      responseText += '### Phase 1: Property Creation\n';
       newProperties.forEach(([groupName, hostnames]) => {
         responseText += `${step}. Create property "${generatePropertyName(groupName, hostnames)}"\n`;
         step++;
@@ -737,21 +740,21 @@ export async function findOptimalPropertyAssignment(
       responseText += '\n';
     }
 
-    responseText += `### Phase 2: Edge Hostname Creation\n`;
+    responseText += '### Phase 2: Edge Hostname Creation\n';
     responseText += `${step}. Create ${args.hostnames.length} edge hostnames with DefaultDV\n`;
     step++;
     responseText += `${step}. Wait for certificate validation\n`;
     step++;
     responseText += '\n';
 
-    responseText += `### Phase 3: Hostname Assignment\n`;
+    responseText += '### Phase 3: Hostname Assignment\n';
     responseText += `${step}. Add hostnames to properties according to groupings\n`;
     step++;
     responseText += `${step}. Configure property rules based on content type\n`;
     step++;
     responseText += '\n';
 
-    responseText += `### Phase 4: Activation\n`;
+    responseText += '### Phase 4: Activation\n';
     responseText += `${step}. Activate all properties to staging\n`;
     step++;
     responseText += `${step}. Validate functionality\n`;
@@ -837,7 +840,7 @@ export async function createHostnameProvisioningPlan(
     });
 
     // Build comprehensive provisioning plan
-    let responseText = `# Comprehensive Hostname Provisioning Plan\n\n`;
+    let responseText = '# Comprehensive Hostname Provisioning Plan\n\n';
     responseText += `**Contract:** ${args.contractId}\n`;
     responseText += `**Group:** ${args.groupId}\n`;
     responseText += `**Product:** ${args.productId || 'Ion (auto-selected)'}\n`;
@@ -845,68 +848,68 @@ export async function createHostnameProvisioningPlan(
     responseText += `**Valid Hostnames:** ${validHostnames.length}/${args.hostnames.length}\n\n`;
 
     // Validation summary
-    responseText += `## 1️⃣ Validation Summary\n`;
+    responseText += '## 1️⃣ Validation Summary\n';
     responseText += extractSummaryFromResponse(validationResult);
     responseText += '\n';
 
     // Ownership analysis
-    responseText += `## 2️⃣ Ownership Analysis\n`;
+    responseText += '## 2️⃣ Ownership Analysis\n';
     responseText += extractSummaryFromResponse(ownershipResult);
     responseText += '\n';
 
     // Edge hostname plan
-    responseText += `## 3️⃣ Edge Hostname Configuration\n`;
+    responseText += '## 3️⃣ Edge Hostname Configuration\n';
     responseText += extractSummaryFromResponse(edgeHostnameResult);
     responseText += '\n';
 
     // Property assignment
-    responseText += `## 4️⃣ Property Assignment Strategy\n`;
+    responseText += '## 4️⃣ Property Assignment Strategy\n';
     responseText += extractSummaryFromResponse(assignmentResult);
     responseText += '\n';
 
     // Execution timeline
-    responseText += `## 📅 Execution Timeline\n\n`;
-    responseText += `### Day 1: Preparation\n`;
-    responseText += `- Validate all prerequisites\n`;
-    responseText += `- Create required properties\n`;
-    responseText += `- Generate edge hostnames\n\n`;
+    responseText += '## 📅 Execution Timeline\n\n';
+    responseText += '### Day 1: Preparation\n';
+    responseText += '- Validate all prerequisites\n';
+    responseText += '- Create required properties\n';
+    responseText += '- Generate edge hostnames\n\n';
 
-    responseText += `### Day 2-3: Certificate Provisioning\n`;
-    responseText += `- Create DefaultDV enrollments\n`;
-    responseText += `- Complete domain validation\n`;
-    responseText += `- Monitor certificate deployment\n\n`;
+    responseText += '### Day 2-3: Certificate Provisioning\n';
+    responseText += '- Create DefaultDV enrollments\n';
+    responseText += '- Complete domain validation\n';
+    responseText += '- Monitor certificate deployment\n\n';
 
-    responseText += `### Day 4-5: Configuration\n`;
-    responseText += `- Add hostnames to properties\n`;
-    responseText += `- Configure property rules\n`;
-    responseText += `- Validate configurations\n\n`;
+    responseText += '### Day 4-5: Configuration\n';
+    responseText += '- Add hostnames to properties\n';
+    responseText += '- Configure property rules\n';
+    responseText += '- Validate configurations\n\n';
 
-    responseText += `### Day 6-7: Activation\n`;
-    responseText += `- Activate to staging\n`;
-    responseText += `- Perform testing\n`;
-    responseText += `- Activate to production\n\n`;
+    responseText += '### Day 6-7: Activation\n';
+    responseText += '- Activate to staging\n';
+    responseText += '- Perform testing\n';
+    responseText += '- Activate to production\n\n';
 
     // Risk assessment
-    responseText += `## ⚠️ Risk Assessment\n`;
-    responseText += `- **DNS Cutover Risk:** Low (using CNAME records)\n`;
-    responseText += `- **Certificate Risk:** Low (using DefaultDV)\n`;
-    responseText += `- **Downtime Risk:** None (gradual DNS transition)\n`;
-    responseText += `- **Rollback Strategy:** Keep original DNS records until verified\n\n`;
+    responseText += '## ⚠️ Risk Assessment\n';
+    responseText += '- **DNS Cutover Risk:** Low (using CNAME records)\n';
+    responseText += '- **Certificate Risk:** Low (using DefaultDV)\n';
+    responseText += '- **Downtime Risk:** None (gradual DNS transition)\n';
+    responseText += '- **Rollback Strategy:** Keep original DNS records until verified\n\n';
 
     // Automation commands
-    responseText += `## 🤖 Automation Commands\n`;
-    responseText += `\`\`\`bash\n`;
-    responseText += `# Create properties\n`;
+    responseText += '## 🤖 Automation Commands\n';
+    responseText += '```bash\n';
+    responseText += '# Create properties\n';
     responseText += `akamai property create --name "property-name" --product ${args.productId || 'prd_Ion'} --contract ${args.contractId} --group ${args.groupId}\n\n`;
-    responseText += `# Create edge hostnames\n`;
-    responseText += `akamai edgehostname create --hostname "hostname" --secure true --cert DEFAULT\n\n`;
-    responseText += `# Add hostnames\n`;
-    responseText += `akamai property hostname add --property "property-id" --hostname "hostname" --edgehostname "edge-hostname"\n`;
-    responseText += `\`\`\`\n\n`;
+    responseText += '# Create edge hostnames\n';
+    responseText += 'akamai edgehostname create --hostname "hostname" --secure true --cert DEFAULT\n\n';
+    responseText += '# Add hostnames\n';
+    responseText += 'akamai property hostname add --property "property-id" --hostname "hostname" --edgehostname "edge-hostname"\n';
+    responseText += '```\n\n';
 
-    responseText += `## ✅ Ready to Execute?\n`;
+    responseText += '## ✅ Ready to Execute?\n';
     responseText += `This plan will provision ${validHostnames.length} hostnames across multiple properties with DefaultDV certificates.\n\n`;
-    responseText += `**Next Step:** Execute the plan with:\n`;
+    responseText += '**Next Step:** Execute the plan with:\n';
     responseText += `\`Execute hostname provisioning plan for ${validHostnames.length} hostnames\``;
 
     return {
@@ -944,9 +947,15 @@ function getNetworkStatus(hostname: any): 'STAGING' | 'PRODUCTION' | 'BOTH' | 'N
   const staging = hostname.stagingStatus === 'ACTIVE';
   const production = hostname.productionStatus === 'ACTIVE';
 
-  if (staging && production) return 'BOTH';
-  if (staging) return 'STAGING';
-  if (production) return 'PRODUCTION';
+  if (staging && production) {
+return 'BOTH';
+}
+  if (staging) {
+return 'STAGING';
+}
+  if (production) {
+return 'PRODUCTION';
+}
   return 'NONE';
 }
 
@@ -1132,7 +1141,9 @@ function groupHostnamesByStrategy(
     case 'by-domain':
       hostnames.forEach((hostname) => {
         const domain = hostname.split('.').slice(-2).join('.');
-        if (!groups[domain]) groups[domain] = [];
+        if (!groups[domain]) {
+groups[domain] = [];
+}
         groups[domain].push(hostname);
       });
       break;
@@ -1151,7 +1162,9 @@ function groupHostnamesByStrategy(
         } else if (hostname.startsWith('www.')) {
           category = 'www';
         }
-        if (!groups[category]) groups[category] = [];
+        if (!groups[category]) {
+groups[category] = [];
+}
         groups[category].push(hostname);
       });
       break;
@@ -1168,7 +1181,9 @@ function groupHostnamesByStrategy(
         ) {
           env = 'staging';
         }
-        if (!groups[env]) groups[env] = [];
+        if (!groups[env]) {
+groups[env] = [];
+}
         groups[env].push(hostname);
       });
       break;
@@ -1184,15 +1199,21 @@ function groupHostnamesByStrategy(
         // Group by function if clear pattern
         if (subdomain && (subdomain === 'api' || subdomain.includes('api'))) {
           const key = `api-${domain}`;
-          if (!groups[key]) groups[key] = [];
+          if (!groups[key]) {
+groups[key] = [];
+}
           groups[key].push(hostname);
         } else if (subdomain === 'static' || subdomain === 'cdn' || subdomain === 'assets') {
           const key = `static-${domain}`;
-          if (!groups[key]) groups[key] = [];
+          if (!groups[key]) {
+groups[key] = [];
+}
           groups[key].push(hostname);
         } else {
           // Otherwise group by domain
-          if (!groups[domain]) groups[domain] = [];
+          if (!groups[domain]) {
+groups[domain] = [];
+}
           groups[domain].push(hostname);
         }
       });
@@ -1231,7 +1252,9 @@ function generatePropertyName(groupName: string, hostnames: string[]): string {
 
   // Use first hostname as basis
   const firstHostname = hostnames[0];
-  if (!firstHostname) return 'property';
+  if (!firstHostname) {
+return 'property';
+}
 
   const parts = firstHostname.split('.');
   const domain = parts.slice(-2).join('.');
@@ -1286,7 +1309,9 @@ function extractSummaryFromResponse(response: MCPToolResponse): string {
     }
     if (foundSummary && line.trim() !== '') {
       summaryLines.push(line);
-      if (summaryLines.length >= 3) break;
+      if (summaryLines.length >= 3) {
+break;
+}
     }
   }
 

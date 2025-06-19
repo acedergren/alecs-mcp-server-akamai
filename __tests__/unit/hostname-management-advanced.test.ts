@@ -192,7 +192,7 @@ describe('Advanced Hostname Management Tools', () => {
 
       // Mock the internal tool calls
       const validateHostnamesBulkSpy = jest.spyOn(
-        require('../tools/hostname-management-advanced'),
+        require('../../src/tools/hostname-management-advanced'),
         'validateHostnamesBulk'
       ).mockResolvedValue({
         content: [{
@@ -202,7 +202,7 @@ describe('Advanced Hostname Management Tools', () => {
       });
 
       const analyzeOwnershipSpy = jest.spyOn(
-        require('../tools/hostname-management-advanced'),
+        require('../../src/tools/hostname-management-advanced'),
         'analyzeHostnameOwnership'
       ).mockResolvedValue({
         content: [{
@@ -228,7 +228,7 @@ describe('Advanced Hostname Management Tools', () => {
 
     it('should handle invalid hostnames', async () => {
       const validateHostnamesBulkSpy = jest.spyOn(
-        require('../tools/hostname-management-advanced'),
+        require('../../src/tools/hostname-management-advanced'),
         'validateHostnamesBulk'
       ).mockResolvedValue({
         content: [{

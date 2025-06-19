@@ -14,18 +14,10 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
+
 import { AkamaiClient } from '../akamai-client';
 
 // DNS Tools
-import {
-  listZones,
-  getZone,
-  createZone,
-  listRecords,
-  upsertRecord,
-  deleteRecord,
-  activateZoneChanges,
-} from '../tools/dns-tools';
 
 // DNS Advanced Tools
 import {
@@ -50,6 +42,15 @@ import {
   convertZoneToPrimary,
   generateMigrationInstructions,
 } from '../tools/dns-migration-tools';
+import {
+  listZones,
+  getZone,
+  createZone,
+  listRecords,
+  upsertRecord,
+  deleteRecord,
+  activateZoneChanges,
+} from '../tools/dns-tools';
 
 const log = (level: string, message: string, data?: any) => {
   const timestamp = new Date().toISOString();

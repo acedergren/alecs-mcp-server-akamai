@@ -59,7 +59,7 @@ describe('DNS Migration Tools', () => {
       expect(text).toContain('**Master Server:** 192.0.2.1');
       
       // Verify createZone was called (it's mocked)
-      const { createZone } = require('../tools/dns-tools');
+      const { createZone } = require('../../src/tools/dns-tools');
       expect(createZone).toHaveBeenCalledWith(mockClient, expect.objectContaining({
         zone: 'example.com',
         type: 'SECONDARY',

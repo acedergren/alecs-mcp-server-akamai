@@ -194,7 +194,9 @@ export class PerformanceMonitor {
   }
 
   private calculatePercentile(sortedArray: number[], percentile: number): number {
-    if (sortedArray.length === 0) return 0;
+    if (sortedArray.length === 0) {
+return 0;
+}
     const index = Math.ceil(sortedArray.length * percentile) - 1;
     return sortedArray[Math.max(0, index)] || 0;
   }

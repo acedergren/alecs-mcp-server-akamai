@@ -3,8 +3,9 @@
  * Provides caching for Akamai API responses with smart invalidation
  */
 
-import { ValkeyCache, CacheTTL } from './valkey-cache-service';
 import { type AkamaiClient } from '../akamai-client';
+
+import { ValkeyCache, CacheTTL } from './valkey-cache-service';
 
 export interface PropertySearchResult {
   type:

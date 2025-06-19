@@ -5,11 +5,11 @@ export * from './BaseAkamaiClient';
 export * from './certificate-deployment-coordinator';
 export * from './certificate-enrollment-service';
 export * from './certificate-validation-monitor';
-export { 
+export {
   FastPurgeService,
   type FastPurgeRequest,
   type FastPurgeResponse,
-  type PurgeStatus
+  type PurgeStatus,
 } from './FastPurgeService';
 export * from './PurgeQueueManager';
 export * from './PurgeStatusTracker';

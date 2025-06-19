@@ -504,7 +504,9 @@ export class TodoGenerator {
     };
 
     const config = rootCauseConfigs[rootCause];
-    if (!config) return null;
+    if (!config) {
+return null;
+}
 
     return {
       id: `root-cause-${rootCause}-${Date.now()}`,
@@ -791,7 +793,9 @@ export class TodoGenerator {
     todos.items.sort((a, b) => {
       const priorityDiff =
         this.priorityMatrix[b.priority].weight - this.priorityMatrix[a.priority].weight;
-      if (priorityDiff !== 0) return priorityDiff;
+      if (priorityDiff !== 0) {
+return priorityDiff;
+}
 
       return this.effortEstimates[a.effort].hours - this.effortEstimates[b.effort].hours;
     });
@@ -826,7 +830,9 @@ export class TodoGenerator {
     const seen = new Set<string>();
     return items.filter((item) => {
       const key = `${item.title}-${item.type}-${item.priority}`;
-      if (seen.has(key)) return false;
+      if (seen.has(key)) {
+return false;
+}
       seen.add(key);
       return true;
     });
@@ -1021,7 +1027,7 @@ export class TodoGenerator {
   private exportToMarkdown(todos: TodoList): string {
     let markdown = `# TODO List - Generated ${new Date().toISOString()}\n\n`;
 
-    markdown += `## Summary\n`;
+    markdown += '## Summary\n';
     markdown += `- **Total Items**: ${todos.metadata.totalItems}\n`;
     markdown += `- **Critical**: ${todos.metadata.criticalCount}\n`;
     markdown += `- **High Priority**: ${todos.metadata.highCount}\n`;
@@ -1029,7 +1035,7 @@ export class TodoGenerator {
 
     // Quick Wins
     if (todos.quickWins.length > 0) {
-      markdown += `## 🚀 Quick Wins\n\n`;
+      markdown += '## 🚀 Quick Wins\n\n';
       todos.quickWins.forEach((item) => {
         markdown += `- **${item.title}** (${item.effort_details?.hours}h) - ${item.description}\n`;
       });
@@ -1055,7 +1061,7 @@ export class TodoGenerator {
           markdown += `${item.description}\n\n`;
 
           if (item.details?.suggestedActions) {
-            markdown += `**Suggested Actions**:\n`;
+            markdown += '**Suggested Actions**:\n';
             item.details.suggestedActions.forEach((action) => {
               markdown += `- ${action}\n`;
             });
@@ -1122,14 +1128,14 @@ export class TodoGenerator {
   private generateGitHubIssueBody(item: TodoItem): string {
     let body = `## Description\n${item.description}\n\n`;
 
-    body += `## Details\n`;
+    body += '## Details\n';
     body += `- **Priority**: ${item.priority}\n`;
     body += `- **Type**: ${item.type_details?.category}\n`;
     body += `- **Estimated Effort**: ${item.effort_details?.label} (${item.effort_details?.hours} hours)\n`;
     body += `- **Confidence**: ${((item.effort_details?.confidence || 0) * 100).toFixed(0)}%\n\n`;
 
     if (item.details?.suggestedActions) {
-      body += `## Suggested Actions\n`;
+      body += '## Suggested Actions\n';
       item.details.suggestedActions.forEach((action) => {
         body += `- [ ] ${action}\n`;
       });
@@ -1137,16 +1143,16 @@ export class TodoGenerator {
     }
 
     if (item.details?.affectedTests?.length) {
-      body += `## Affected Tests\n`;
+      body += '## Affected Tests\n';
       item.details.affectedTests.forEach((test) => {
         body += `- ${test}\n`;
       });
       body += '\n';
     }
 
-    body += `## Generated Information\n`;
+    body += '## Generated Information\n';
     body += `- **Created**: ${item.createdAt}\n`;
-    body += `- **Generator**: Intelligent Bug Analysis System\n`;
+    body += '- **Generator**: Intelligent Bug Analysis System\n';
 
     return body;
   }

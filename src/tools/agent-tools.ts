@@ -3,8 +3,6 @@
  * Provides MCP-compatible interfaces to agent functionality
  */
 
-import { type AkamaiClient } from '../akamai-client';
-import { type MCPToolResponse } from '../types';
 import {
   type CDNProvisioningAgent,
   createCDNProvisioningAgent,
@@ -14,7 +12,10 @@ import {
   createCPSCertificateAgent,
 } from '@agents/cps-certificate.agent';
 import { type DNSMigrationAgent, createDNSMigrationAgent } from '@agents/dns-migration.agent';
+
+import { type AkamaiClient } from '../akamai-client';
 import { type AkamaiOrchestrator, createOrchestrator } from '../orchestration/index';
+import { type MCPToolResponse } from '../types';
 
 // Agent cache
 const agentCache = new Map<string, any>();

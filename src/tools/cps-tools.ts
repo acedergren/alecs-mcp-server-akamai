@@ -160,7 +160,7 @@ export async function createDVEnrollment(
 
     // Create enrollment
     const response = await client.request({
-      path: `/cps/v2/enrollments`,
+      path: '/cps/v2/enrollments',
       method: 'POST',
       headers: {
         'Content-Type': 'application/vnd.akamai.cps.enrollment.v11+json',
@@ -254,7 +254,7 @@ export async function getDVValidationChallenges(
 
               text += `  - **DNS Challenge (${challenge.status}):**\n`;
               text += `    - Record Name: \`${recordName}\`\n`;
-              text += `    - Record Type: \`TXT\`\n`;
+              text += '    - Record Type: `TXT`\n';
               text += `    - Record Value: \`${recordValue}\`\n`;
             }
           } else if (challenge.type === 'http-01' && challenge.status !== 'VALIDATED') {
@@ -279,14 +279,14 @@ export async function getDVValidationChallenges(
         text += `### ${record.domain}\n`;
         text += '```\n';
         text += `Name:  ${record.recordName}\n`;
-        text += `Type:  TXT\n`;
+        text += 'Type:  TXT\n';
         text += `Value: ${record.recordValue}\n`;
-        text += `TTL:   300\n`;
+        text += 'TTL:   300\n';
         text += '```\n\n';
 
         // Generate MCP command
         const zone = record.domain.split('.').slice(-2).join('.');
-        text += `**Quick Command:**\n`;
+        text += '**Quick Command:**\n';
         text += `"Create TXT record ${record.recordName} with value ${record.recordValue} in zone ${zone}"\n\n`;
       }
 
@@ -345,7 +345,7 @@ export async function checkDVEnrollmentStatus(
         cancelled: '🚫',
       }[response.status.toLowerCase() as keyof {active: string; new: string; modified: string; 'renewal-in-progress': string; 'expiring-soon': string; expired: string; pending: string; cancelled: string}] || '❓';
 
-    let text = `# Certificate Enrollment Status\n\n`;
+    let text = '# Certificate Enrollment Status\n\n';
     text += `**Enrollment ID:** ${response.enrollmentId}\n`;
     text += `**Status:** ${statusEmoji} ${response.status}\n`;
     text += `**Type:** ${response.certificateType} (${response.validationType.toUpperCase()})\n`;
@@ -472,7 +472,9 @@ export async function listCertificateEnrollments(
     const byStatus = response.enrollments.reduce(
       (acc: any, enrollment: any) => {
         const status = enrollment.status.toLowerCase();
-        if (!acc[status]) acc[status] = [];
+        if (!acc[status]) {
+acc[status] = [];
+}
         acc[status].push(enrollment);
         return acc;
       },

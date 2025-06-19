@@ -5,9 +5,9 @@
  */
 
 import { type AkamaiClient } from '../akamai-client';
-import { type MCPToolResponse } from '../types';
 import { activateProperty, getActivationStatus } from '../tools/property-manager-tools';
 import { getProperty } from '../tools/property-tools';
+import { type MCPToolResponse } from '../types';
 
 export interface ProductionActivationConfig {
   propertyId: string;
@@ -172,12 +172,12 @@ export async function activatePropertyToProduction(
   let responseText = '';
 
   if (result.success) {
-    responseText = `# ✅ Production Activation Initiated\n\n`;
+    responseText = '# ✅ Production Activation Initiated\n\n';
     responseText += `**Activation ID:** ${result.activationId}\n`;
     responseText += `**Status:** ${result.status}\n`;
     responseText += `**Estimated Completion:** ${result.estimatedCompletionTime}\n\n`;
 
-    responseText += `## Important Notes\n\n`;
+    responseText += '## Important Notes\n\n';
     if (result.warnings && result.warnings.length > 0) {
       result.warnings.forEach((warning) => {
         responseText += `⚠️ ${warning}\n`;
@@ -185,15 +185,15 @@ export async function activatePropertyToProduction(
       responseText += '\n';
     }
 
-    responseText += `## Next Steps\n\n`;
+    responseText += '## Next Steps\n\n';
     responseText += `1. Monitor activation status with: property.activation.status --propertyId "${args.propertyId}" --activationId "${result.activationId}"\n`;
-    responseText += `2. Once active, test your production hostname\n`;
-    responseText += `3. Update DNS records to point to the Akamai edge hostname\n`;
-    responseText += `4. Monitor traffic and performance in Control Center\n`;
+    responseText += '2. Once active, test your production hostname\n';
+    responseText += '3. Update DNS records to point to the Akamai edge hostname\n';
+    responseText += '4. Monitor traffic and performance in Control Center\n';
   } else {
-    responseText = `# ❌ Production Activation Failed\n\n`;
+    responseText = '# ❌ Production Activation Failed\n\n';
     if (result.errors && result.errors.length > 0) {
-      responseText += `## Errors\n\n`;
+      responseText += '## Errors\n\n';
       result.errors.forEach((error) => {
         responseText += `- ${error}\n`;
       });
