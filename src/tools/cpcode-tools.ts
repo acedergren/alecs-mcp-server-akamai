@@ -4,19 +4,20 @@
  * CP Codes are used for reporting, billing, and traffic analysis
  */
 
-import { type AkamaiClient } from '../akamai-client';
-import { type MCPToolResponse } from '../types';
-import {
-  getProductFriendlyName,
-  formatProductDisplay,
-  selectBestProduct,
-} from '@utils/product-mapping';
 import {
   formatContractDisplay,
   formatGroupDisplay,
   formatCPCodeDisplay,
   ensurePrefix,
 } from '@utils/formatting';
+import {
+  getProductFriendlyName,
+  formatProductDisplay,
+  selectBestProduct,
+} from '@utils/product-mapping';
+
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
 
 /**
  * List all CP Codes in the account
@@ -57,12 +58,14 @@ export async function listCPCodes(
     }
 
     let text = `# CP Codes (${response.cpcodes.items.length} found)\n\n`;
-    text += `CP Codes are used for traffic reporting, billing analysis, and content categorization.\n\n`;
+    text += 'CP Codes are used for traffic reporting, billing analysis, and content categorization.\n\n';
 
     // Group by contract for better organization
     const byContract = response.cpcodes.items.reduce((acc: any, cpcode: any) => {
       const contract = cpcode.contractIds?.[0] || 'Unknown';
-      if (!acc[contract]) acc[contract] = [];
+      if (!acc[contract]) {
+acc[contract] = [];
+}
       acc[contract].push(cpcode);
       return acc;
     }, {});
@@ -76,8 +79,8 @@ export async function listCPCodes(
           parseInt(a.cpcodeId.replace('cpc_', '')) - parseInt(b.cpcodeId.replace('cpc_', '')),
       );
 
-      text += `| CP Code | Name | Products | Created |\n`;
-      text += `|---------|------|----------|----------|\n`;
+      text += '| CP Code | Name | Products | Created |\n';
+      text += '|---------|------|----------|----------|\n';
 
       for (const cpcode of sortedCpcodes) {
         const cpcodeNum = formatCPCodeDisplay(cpcode.cpcodeId);
@@ -94,16 +97,16 @@ export async function listCPCodes(
     }
 
     // Add usage examples
-    text += `## Usage Examples\n\n`;
-    text += `### View CP Code Details\n`;
-    text += `\`"Get details for CP Code 12345"\`\n\n`;
-    text += `### Create New CP Code\n`;
-    text += `\`"Create CP Code named my-site-content for contract ctr_1-5C13O2 group grp_125952"\`\n\n`;
-    text += `### Use in Property\n`;
-    text += `CP Codes are automatically assigned to properties and used for:\n`;
-    text += `- **Traffic Reporting:** Analyze bandwidth, requests, and cache hit ratios\n`;
-    text += `- **Billing:** Track usage for cost allocation\n`;
-    text += `- **Performance Monitoring:** Monitor response times and errors\n`;
+    text += '## Usage Examples\n\n';
+    text += '### View CP Code Details\n';
+    text += '`"Get details for CP Code 12345"`\n\n';
+    text += '### Create New CP Code\n';
+    text += '`"Create CP Code named my-site-content for contract ctr_1-5C13O2 group grp_125952"`\n\n';
+    text += '### Use in Property\n';
+    text += 'CP Codes are automatically assigned to properties and used for:\n';
+    text += '- **Traffic Reporting:** Analyze bandwidth, requests, and cache hit ratios\n';
+    text += '- **Billing:** Track usage for cost allocation\n';
+    text += '- **Performance Monitoring:** Monitor response times and errors\n';
 
     return {
       content: [
@@ -166,7 +169,7 @@ export async function getCPCode(
     let text = `# CP Code Details: ${formatCPCodeDisplay(cpcode.cpcodeId, cpcode.cpcodeName)}\n\n`;
 
     // Basic Information
-    text += `## Basic Information\n`;
+    text += '## Basic Information\n';
     text += `- **CP Code ID:** ${formatCPCodeDisplay(cpcode.cpcodeId)}\n`;
     text += `- **Raw ID:** ${cpcode.cpcodeId}\n`;
     text += `- **Name:** ${cpcode.cpcodeName || 'Unnamed'}\n`;
@@ -174,7 +177,7 @@ export async function getCPCode(
     text += `- **Time Zone:** ${cpcode.timeZone || 'Not specified'}\n\n`;
 
     // Contract and Group Information
-    text += `## Contract & Group Information\n`;
+    text += '## Contract & Group Information\n';
     if (cpcode.contractIds?.length > 0) {
       const contractDisplays = cpcode.contractIds.map((cid: string) => formatContractDisplay(cid));
       text += `- **Contracts:** ${contractDisplays.join(', ')}\n`;
@@ -189,36 +192,36 @@ export async function getCPCode(
     text += '\n';
 
     // Usage Information
-    text += `## Usage & Applications\n`;
-    text += `This CP Code can be used for:\n`;
-    text += `- **Property Configuration:** Assign to properties for traffic categorization\n`;
-    text += `- **Reporting:** Track bandwidth, requests, and performance metrics\n`;
-    text += `- **Billing Analysis:** Monitor usage for cost allocation\n`;
-    text += `- **Performance Monitoring:** Analyze cache hit ratios and response times\n\n`;
+    text += '## Usage & Applications\n';
+    text += 'This CP Code can be used for:\n';
+    text += '- **Property Configuration:** Assign to properties for traffic categorization\n';
+    text += '- **Reporting:** Track bandwidth, requests, and performance metrics\n';
+    text += '- **Billing Analysis:** Monitor usage for cost allocation\n';
+    text += '- **Performance Monitoring:** Analyze cache hit ratios and response times\n\n';
 
     // Integration Examples
-    text += `## Integration Examples\n\n`;
-    text += `### Assign to Property Rule\n`;
-    text += `\`\`\`json\n`;
-    text += `{\n`;
-    text += `  "name": "cpCode",\n`;
-    text += `  "options": {\n`;
-    text += `    "value": {\n`;
+    text += '## Integration Examples\n\n';
+    text += '### Assign to Property Rule\n';
+    text += '```json\n';
+    text += '{\n';
+    text += '  "name": "cpCode",\n';
+    text += '  "options": {\n';
+    text += '    "value": {\n';
     text += `      "id": ${cpcode.cpcodeId.replace('cpc_', '')},\n`;
     text += `      "name": "${cpcode.cpcodeName || 'CP Code'}"\n`;
-    text += `    }\n`;
-    text += `  }\n`;
-    text += `}\n`;
-    text += `\`\`\`\n\n`;
+    text += '    }\n';
+    text += '  }\n';
+    text += '}\n';
+    text += '```\n\n';
 
-    text += `### Use in Property Creation\n`;
+    text += '### Use in Property Creation\n';
     text += `\`"Create property with CP Code ${cpcode.cpcodeId.replace('cpc_', '')}"\`\n\n`;
 
-    text += `### Reporting APIs\n`;
-    text += `Use this CP Code in Akamai reporting APIs for:\n`;
-    text += `- Traffic Analytics\n`;
-    text += `- Bandwidth Reports\n`;
-    text += `- Cache Performance Analysis\n`;
+    text += '### Reporting APIs\n';
+    text += 'Use this CP Code in Akamai reporting APIs for:\n';
+    text += '- Traffic Analytics\n';
+    text += '- Bandwidth Reports\n';
+    text += '- Cache Performance Analysis\n';
 
     return {
       content: [
@@ -289,7 +292,7 @@ export async function createCPCode(
     if (!productId) {
       try {
         const productsResponse = await client.request({
-          path: `/papi/v1/products`,
+          path: '/papi/v1/products',
           method: 'GET',
           queryParams: {
             contractId: args.contractId,
@@ -340,9 +343,9 @@ export async function createCPCode(
     const numericId = cpcodeId?.replace('cpc_', '');
 
     // Format success response
-    let text = `✅ **CP Code Created Successfully!**\n\n`;
+    let text = '✅ **CP Code Created Successfully!**\n\n';
 
-    text += `## CP Code Details\n`;
+    text += '## CP Code Details\n';
     text += `- **Name:** ${args.cpcodeName}\n`;
     text += `- **CP Code ID:** ${formatCPCodeDisplay(cpcodeId, args.cpcodeName)}\n`;
     text += `- **Raw ID:** ${cpcodeId}\n`;
@@ -350,41 +353,41 @@ export async function createCPCode(
     text += `- **Contract:** ${formatContractDisplay(args.contractId)}\n`;
     text += `- **Group:** ${formatGroupDisplay(args.groupId)}\n`;
     text += `- **Time Zone:** ${args.timeZone || 'GMT'}\n`;
-    text += `- **Status:** 🆕 NEW (Ready for use)\n\n`;
+    text += '- **Status:** 🆕 NEW (Ready for use)\n\n';
 
-    text += `## Next Steps\n\n`;
-    text += `### 1. Assign to Property\n`;
-    text += `Add this CP Code to a property's rule tree:\n`;
+    text += '## Next Steps\n\n';
+    text += '### 1. Assign to Property\n';
+    text += 'Add this CP Code to a property\'s rule tree:\n';
     text += `\`"Update property rules to use CP Code ${numericId}"\`\n\n`;
 
-    text += `### 2. Use in New Property\n`;
-    text += `Create a new property with this CP Code:\n`;
+    text += '### 2. Use in New Property\n';
+    text += 'Create a new property with this CP Code:\n';
     text += `\`"Create property with CP Code ${numericId}"\`\n\n`;
 
-    text += `### 3. Monitor Usage\n`;
-    text += `Check CP Code details and usage:\n`;
+    text += '### 3. Monitor Usage\n';
+    text += 'Check CP Code details and usage:\n';
     text += `\`"Get details for CP Code ${numericId}"\`\n\n`;
 
-    text += `## Rule Tree Configuration\n`;
-    text += `Use this configuration in property rules:\n`;
-    text += `\`\`\`json\n`;
-    text += `{\n`;
-    text += `  "name": "cpCode",\n`;
-    text += `  "options": {\n`;
-    text += `    "value": {\n`;
+    text += '## Rule Tree Configuration\n';
+    text += 'Use this configuration in property rules:\n';
+    text += '```json\n';
+    text += '{\n';
+    text += '  "name": "cpCode",\n';
+    text += '  "options": {\n';
+    text += '    "value": {\n';
     text += `      "id": ${numericId},\n`;
     text += `      "name": "${args.cpcodeName}"\n`;
-    text += `    }\n`;
-    text += `  }\n`;
-    text += `}\n`;
-    text += `\`\`\`\n\n`;
+    text += '    }\n';
+    text += '  }\n';
+    text += '}\n';
+    text += '```\n\n';
 
-    text += `## Reporting Benefits\n`;
-    text += `With this CP Code, you can now:\n`;
-    text += `- **Track Traffic:** Monitor bandwidth and request volumes\n`;
-    text += `- **Analyze Performance:** Measure cache hit ratios and response times\n`;
-    text += `- **Cost Management:** Allocate usage costs to specific content or applications\n`;
-    text += `- **Troubleshooting:** Isolate issues to specific content categories\n`;
+    text += '## Reporting Benefits\n';
+    text += 'With this CP Code, you can now:\n';
+    text += '- **Track Traffic:** Monitor bandwidth and request volumes\n';
+    text += '- **Analyze Performance:** Measure cache hit ratios and response times\n';
+    text += '- **Cost Management:** Allocate usage costs to specific content or applications\n';
+    text += '- **Troubleshooting:** Isolate issues to specific content categories\n';
 
     return {
       content: [
@@ -457,11 +460,11 @@ export async function searchCPCodes(
       };
     }
 
-    let text = `# CP Code Search Results\n\n`;
+    let text = '# CP Code Search Results\n\n';
     text += `Found ${matchingCpcodes.length} CP Code(s) matching "${args.searchTerm}":\n\n`;
 
-    text += `| CP Code | Name | Products | Created |\n`;
-    text += `|---------|------|----------|----------|\n`;
+    text += '| CP Code | Name | Products | Created |\n';
+    text += '|---------|------|----------|----------|\n';
 
     for (const cpcode of matchingCpcodes) {
       const cpcodeNum = cpcode.cpcodeId.replace('cpc_', '');
@@ -478,7 +481,7 @@ export async function searchCPCodes(
     if (matchingCpcodes.length === 1) {
       const cpcode = matchingCpcodes[0];
       const cpcodeNum = cpcode.cpcodeId.replace('cpc_', '');
-      text += `## Quick Actions\n`;
+      text += '## Quick Actions\n';
       text += `- View details: \`"Get details for CP Code ${cpcodeNum}"\`\n`;
       text += `- Use in property: \`"Update property rules to use CP Code ${cpcodeNum}"\`\n`;
     }

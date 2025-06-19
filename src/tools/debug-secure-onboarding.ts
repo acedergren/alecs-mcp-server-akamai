@@ -3,10 +3,12 @@
  * This version provides detailed error information and step-by-step feedback
  */
 
+import { selectBestProduct, formatProductDisplay } from '@utils/product-mapping';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+
 import { createProperty } from './property-tools';
-import { selectBestProduct, formatProductDisplay } from '@utils/product-mapping';
 
 /**
  * Debug version of secure property onboarding with detailed error reporting
@@ -23,7 +25,7 @@ export async function debugSecurePropertyOnboarding(
     customer?: string;
   },
 ): Promise<MCPToolResponse> {
-  let text = `# 🔍 Debug: Secure Property Onboarding\n\n`;
+  let text = '# 🔍 Debug: Secure Property Onboarding\n\n';
   text += `**Target:** ${args.propertyName}\n`;
   text += `**Hostnames:** ${args.hostnames.join(', ')}\n`;
   text += `**Origin:** ${args.originHostname}\n`;
@@ -32,7 +34,7 @@ export async function debugSecurePropertyOnboarding(
 
   try {
     // Step 1: Validate inputs
-    text += `## Step 1: Input Validation\n`;
+    text += '## Step 1: Input Validation\n';
     const validationErrors: string[] = [];
 
     if (!args.propertyName || args.propertyName.trim().length === 0) {
@@ -52,11 +54,11 @@ export async function debugSecurePropertyOnboarding(
     }
 
     if (validationErrors.length > 0) {
-      text += `❌ **Validation Failed:**\n`;
+      text += '❌ **Validation Failed:**\n';
       validationErrors.forEach((error) => {
         text += `- ${error}\n`;
       });
-      text += `\n`;
+      text += '\n';
 
       return {
         content: [
@@ -68,10 +70,10 @@ export async function debugSecurePropertyOnboarding(
       };
     }
 
-    text += `✅ **Input validation passed**\n\n`;
+    text += '✅ **Input validation passed**\n\n';
 
     // Step 2: Test API connectivity
-    text += `## Step 2: API Connectivity Test\n`;
+    text += '## Step 2: API Connectivity Test\n';
     try {
       const groupsResponse = await client.request({
         path: '/papi/v1/groups',
@@ -89,18 +91,18 @@ export async function debugSecurePropertyOnboarding(
           text += `✅ **Target group found:** ${targetGroup.groupName}\n`;
         } else {
           text += `❌ **Target group ${args.groupId} not found**\n`;
-          text += `Available groups:\n`;
+          text += 'Available groups:\n';
           groupsResponse.groups.items.slice(0, 5).forEach((g: any) => {
             text += `- ${g.groupId}: ${g.groupName}\n`;
           });
-          text += `\n`;
+          text += '\n';
         }
       } else {
-        text += `❌ **API connectivity issue** - unexpected response format\n`;
+        text += '❌ **API connectivity issue** - unexpected response format\n';
       }
     } catch (apiError: any) {
       text += `❌ **API connectivity failed:** ${apiError.message}\n`;
-      text += `\n`;
+      text += '\n';
 
       return {
         content: [
@@ -111,16 +113,16 @@ export async function debugSecurePropertyOnboarding(
         ],
       };
     }
-    text += `\n`;
+    text += '\n';
 
     // Step 3: Product selection
-    text += `## Step 3: Product Selection\n`;
+    text += '## Step 3: Product Selection\n';
     let productId = args.productId;
 
     if (!productId) {
       try {
         const productsResponse = await client.request({
-          path: `/papi/v1/products`,
+          path: '/papi/v1/products',
           method: 'GET',
           queryParams: {
             contractId: args.contractId,
@@ -134,24 +136,24 @@ export async function debugSecurePropertyOnboarding(
             text += `✅ **Auto-selected product:** ${formatProductDisplay(bestProduct.productId, bestProduct.productName)}\n`;
           } else {
             productId = 'prd_fresca';
-            text += `⚠️ **Using default product:** Ion (prd_fresca)\n`;
+            text += '⚠️ **Using default product:** Ion (prd_fresca)\n';
           }
         } else {
           productId = 'prd_fresca';
-          text += `⚠️ **No products found, using default:** Ion (prd_fresca)\n`;
+          text += '⚠️ **No products found, using default:** Ion (prd_fresca)\n';
         }
       } catch (productError: any) {
         productId = 'prd_fresca';
-        text += `⚠️ **Product lookup failed, using default:** Ion (prd_fresca)\n`;
+        text += '⚠️ **Product lookup failed, using default:** Ion (prd_fresca)\n';
         text += `Error: ${productError.message}\n`;
       }
     } else {
       text += `✅ **Using specified product:** ${formatProductDisplay(productId)}\n`;
     }
-    text += `\n`;
+    text += '\n';
 
     // Step 4: Create property
-    text += `## Step 4: Property Creation\n`;
+    text += '## Step 4: Property Creation\n';
     let propertyId: string | null = null;
 
     try {
@@ -169,11 +171,11 @@ export async function debugSecurePropertyOnboarding(
           propertyId = propMatch[1];
           text += `✅ **Property created successfully:** ${propertyId}\n`;
         } else {
-          text += `⚠️ **Property created but ID extraction failed**\n`;
+          text += '⚠️ **Property created but ID extraction failed**\n';
           text += `Response: ${createPropResult.content[0].text.substring(0, 200)}...\n`;
         }
       } else {
-        text += `❌ **Property creation failed**\n`;
+        text += '❌ **Property creation failed**\n';
         text += `Response: ${createPropResult.content[0]?.text || 'No response'}\n`;
 
         return {
@@ -197,10 +199,10 @@ export async function debugSecurePropertyOnboarding(
         ],
       };
     }
-    text += `\n`;
+    text += '\n';
 
     // Step 5: Test edge hostname creation (simplified)
-    text += `## Step 5: Edge Hostname Creation Test\n`;
+    text += '## Step 5: Edge Hostname Creation Test\n';
     if (propertyId) {
       try {
         // First, get property details
@@ -213,7 +215,7 @@ export async function debugSecurePropertyOnboarding(
           text += `❌ **Cannot retrieve property details for ${propertyId}**\n`;
         } else {
           const property = propertyResponse.properties.items[0];
-          text += `✅ **Property details retrieved**\n`;
+          text += '✅ **Property details retrieved**\n';
           text += `- Contract: ${property.contractId}\n`;
           text += `- Group: ${property.groupId}\n`;
           text += `- Product: ${formatProductDisplay(property.productId)}\n`;
@@ -245,7 +247,7 @@ export async function debugSecurePropertyOnboarding(
               text += `✅ **Edge hostname created:** ${edgeHostnameDomain}\n`;
               text += `- ID: ${edgeHostnameId}\n`;
             } else {
-              text += `❌ **Edge hostname creation failed** - no link returned\n`;
+              text += '❌ **Edge hostname creation failed** - no link returned\n';
               text += `Response: ${JSON.stringify(edgeResponse, null, 2)}\n`;
             }
           } catch (edgeError: any) {
@@ -259,22 +261,22 @@ export async function debugSecurePropertyOnboarding(
         text += `❌ **Property detail retrieval failed:** ${propDetailError.message}\n`;
       }
     } else {
-      text += `⏭️ **Skipped - no property ID available**\n`;
+      text += '⏭️ **Skipped - no property ID available**\n';
     }
-    text += `\n`;
+    text += '\n';
 
     // Summary
-    text += `## Summary\n`;
+    text += '## Summary\n';
     if (propertyId) {
-      text += `✅ **Property creation successful**\n`;
-      text += `\n`;
-      text += `**Next steps to complete manually:**\n`;
+      text += '✅ **Property creation successful**\n';
+      text += '\n';
+      text += '**Next steps to complete manually:**\n';
       text += `1. Create edge hostname: \`"Create edge hostname for property ${propertyId} with prefix ${args.propertyName.toLowerCase().replace(/[^a-z0-9-]/g, '-')}"\`\n`;
-      text += `2. Configure property rules\n`;
-      text += `3. Add hostnames to property\n`;
-      text += `4. Activate to staging\n`;
+      text += '2. Configure property rules\n';
+      text += '3. Add hostnames to property\n';
+      text += '4. Activate to staging\n';
     } else {
-      text += `❌ **Property creation failed** - cannot proceed with automation\n`;
+      text += '❌ **Property creation failed** - cannot proceed with automation\n';
     }
 
     return {
@@ -286,7 +288,7 @@ export async function debugSecurePropertyOnboarding(
       ],
     };
   } catch (error: any) {
-    text += `\n## ❌ Unexpected Error\n`;
+    text += '\n## ❌ Unexpected Error\n';
     text += `**Message:** ${error.message}\n`;
     text += `**Stack:** ${error.stack}\n`;
 
@@ -314,10 +316,10 @@ export async function testBasicPropertyCreation(
   },
 ): Promise<MCPToolResponse> {
   try {
-    let text = `# 🧪 Basic Property Creation Test\n\n`;
+    let text = '# 🧪 Basic Property Creation Test\n\n';
 
     // Test 1: API connectivity
-    text += `## Test 1: API Connectivity\n`;
+    text += '## Test 1: API Connectivity\n';
     try {
       const response = await client.request({
         path: '/papi/v1/groups',
@@ -337,11 +339,11 @@ export async function testBasicPropertyCreation(
     }
 
     // Test 2: Product selection
-    text += `## Test 2: Product Selection\n`;
+    text += '## Test 2: Product Selection\n';
     let productId = 'prd_fresca'; // Default to Ion
     try {
       const productsResponse = await client.request({
-        path: `/papi/v1/products`,
+        path: '/papi/v1/products',
         method: 'GET',
         queryParams: {
           contractId: args.contractId,
@@ -354,15 +356,15 @@ export async function testBasicPropertyCreation(
           productId = bestProduct.productId;
           text += `✅ Selected product: ${formatProductDisplay(bestProduct.productId, bestProduct.productName)}\n\n`;
         } else {
-          text += `⚠️ Using default product: Ion (prd_fresca)\n\n`;
+          text += '⚠️ Using default product: Ion (prd_fresca)\n\n';
         }
       }
     } catch (productError: any) {
-      text += `⚠️ Product lookup failed, using default: Ion (prd_fresca)\n\n`;
+      text += '⚠️ Product lookup failed, using default: Ion (prd_fresca)\n\n';
     }
 
     // Test 3: Property creation
-    text += `## Test 3: Property Creation\n`;
+    text += '## Test 3: Property Creation\n';
     const result = await createProperty(client, {
       propertyName: args.propertyName,
       productId: productId,
@@ -370,7 +372,7 @@ export async function testBasicPropertyCreation(
       groupId: args.groupId,
     });
 
-    text += `**Result:**\n`;
+    text += '**Result:**\n';
     text += result.content[0]?.text || 'No response';
 
     return {

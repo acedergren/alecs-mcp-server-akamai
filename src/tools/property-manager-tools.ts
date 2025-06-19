@@ -820,7 +820,9 @@ export async function listPropertyActivations(
     // Group by network
     const byNetwork = response.activations.items.reduce(
       (acc: any, act: any) => {
-        if (!acc[act.network]) acc[act.network] = [];
+        if (!acc[act.network]) {
+acc[act.network] = [];
+}
         acc[act.network].push(act);
         return acc;
       },
@@ -911,7 +913,7 @@ export async function updatePropertyWithDefaultDV(
     const edgeHostnamePrefix = `${domainPrefix}-defaultdv`;
     const edgeHostnameDomain = `${edgeHostnamePrefix}.${domainSuffix}.edgekey.net`;
 
-    let text = `# Updating Property with Default DV Certificate\n\n`;
+    let text = '# Updating Property with Default DV Certificate\n\n';
     text += `**Property:** ${property.propertyName} (${args.propertyId})\n`;
     text += `**Hostname:** ${args.hostname}\n`;
     text += `**Edge Hostname:** ${edgeHostnameDomain}\n\n`;
@@ -952,9 +954,9 @@ export async function updatePropertyWithDefaultDV(
       });
 
       const edgeHostnameId = edgeHostnameResponse.edgeHostnameLink?.split('/').pop()?.split('?')[0];
-      text += `✅ **Step 1 Complete:** Edge hostname created\n`;
+      text += '✅ **Step 1 Complete:** Edge hostname created\n';
       text += `- Edge Hostname ID: ${edgeHostnameId}\n`;
-      text += `- Certificate Type: Default Domain Validation (DV)\n\n`;
+      text += '- Certificate Type: Default Domain Validation (DV)\n\n';
     } catch (err) {
       if (err instanceof Error && err.message.includes('already exists')) {
         text += `ℹ️ Edge hostname ${edgeHostnameDomain} already exists, proceeding...\n\n`;
@@ -997,38 +999,38 @@ export async function updatePropertyWithDefaultDV(
         },
       });
 
-      text += `✅ **Step 2 Complete:** Hostname added to property\n\n`;
+      text += '✅ **Step 2 Complete:** Hostname added to property\n\n';
     }
 
     // Step 3: Domain validation instructions
-    text += `## Step 3: Domain Validation Required\n\n`;
-    text += `Default DV certificates require domain ownership validation:\n\n`;
+    text += '## Step 3: Domain Validation Required\n\n';
+    text += 'Default DV certificates require domain ownership validation:\n\n';
 
-    text += `### Option 1: HTTP Token Validation\n`;
-    text += `1. Create a file at:\n`;
+    text += '### Option 1: HTTP Token Validation\n';
+    text += '1. Create a file at:\n';
     text += `   \`http://${args.hostname}/.well-known/pki-validation/akamai-domain-verification.txt\`\n`;
-    text += `2. The validation token will be provided after activation\n\n`;
+    text += '2. The validation token will be provided after activation\n\n';
 
-    text += `### Option 2: DNS TXT Record Validation\n`;
-    text += `1. Create a TXT record at:\n`;
+    text += '### Option 2: DNS TXT Record Validation\n';
+    text += '1. Create a TXT record at:\n';
     text += `   \`_acme-challenge.${args.hostname}\`\n`;
-    text += `2. The validation value will be provided after activation\n\n`;
+    text += '2. The validation value will be provided after activation\n\n';
 
-    text += `## Next Steps\n\n`;
-    text += `1. **Create DNS CNAME:**\n`;
+    text += '## Next Steps\n\n';
+    text += '1. **Create DNS CNAME:**\n';
     text += `   \`${args.hostname} CNAME ${edgeHostnameDomain}\`\n\n`;
-    text += `2. **Activate to Staging:**\n`;
+    text += '2. **Activate to Staging:**\n';
     text += `   \`"Activate property ${args.propertyId} version ${version} to staging"\`\n\n`;
-    text += `3. **Complete Domain Validation:**\n`;
-    text += `   Follow the validation instructions provided after activation\n\n`;
-    text += `4. **Activate to Production:**\n`;
+    text += '3. **Complete Domain Validation:**\n';
+    text += '   Follow the validation instructions provided after activation\n\n';
+    text += '4. **Activate to Production:**\n';
     text += `   \`"Activate property ${args.propertyId} version ${version} to production"\`\n\n`;
 
-    text += `## Benefits of Default DV\n`;
-    text += `- ✅ Automatic certificate provisioning\n`;
-    text += `- ✅ No manual certificate management\n`;
-    text += `- ✅ Auto-renewal before expiration\n`;
-    text += `- ✅ Enhanced TLS with HTTP/2 support\n`;
+    text += '## Benefits of Default DV\n';
+    text += '- ✅ Automatic certificate provisioning\n';
+    text += '- ✅ No manual certificate management\n';
+    text += '- ✅ Auto-renewal before expiration\n';
+    text += '- ✅ Enhanced TLS with HTTP/2 support\n';
 
     return {
       content: [
@@ -1084,7 +1086,7 @@ export async function updatePropertyWithCPSCertificate(
     const edgeHostnamePrefix = `${domainPrefix}-cps`;
     const edgeHostnameDomain = `${edgeHostnamePrefix}.${domainSuffix}.${edgeHostnameSuffix}`;
 
-    let text = `# Updating Property with CPS-Managed Certificate\n\n`;
+    let text = '# Updating Property with CPS-Managed Certificate\n\n';
     text += `**Property:** ${property.propertyName} (${args.propertyId})\n`;
     text += `**Hostname:** ${args.hostname}\n`;
     text += `**Certificate Enrollment ID:** ${args.certificateEnrollmentId}\n`;
@@ -1092,11 +1094,11 @@ export async function updatePropertyWithCPSCertificate(
     text += `**Edge Hostname:** ${edgeHostnameDomain}\n\n`;
 
     // Step 1: Verify certificate enrollment
-    text += `## Step 1: Verifying Certificate Enrollment\n`;
+    text += '## Step 1: Verifying Certificate Enrollment\n';
     text += `Certificate Enrollment ID: ${args.certificateEnrollmentId}\n\n`;
-    text += `⚠️ **Important:** Ensure this certificate enrollment:\n`;
+    text += '⚠️ **Important:** Ensure this certificate enrollment:\n';
     text += `- Includes ${args.hostname} as CN or SAN\n`;
-    text += `- Is in ACTIVE status\n`;
+    text += '- Is in ACTIVE status\n';
     text += `- Matches the TLS version (${tlsVersion})\n\n`;
 
     // Step 2: Create edge hostname with CPS certificate
@@ -1133,7 +1135,7 @@ export async function updatePropertyWithCPSCertificate(
       });
 
       const edgeHostnameId = edgeHostnameResponse.edgeHostnameLink?.split('/').pop()?.split('?')[0];
-      text += `✅ **Step 2 Complete:** Edge hostname created\n`;
+      text += '✅ **Step 2 Complete:** Edge hostname created\n';
       text += `- Edge Hostname ID: ${edgeHostnameId}\n`;
       text += `- Certificate Type: CPS-Managed (Enrollment ${args.certificateEnrollmentId})\n\n`;
     } catch (err) {
@@ -1190,39 +1192,39 @@ export async function updatePropertyWithCPSCertificate(
         },
       });
 
-      text += `✅ **Step 3 Complete:** Hostname added to property\n\n`;
+      text += '✅ **Step 3 Complete:** Hostname added to property\n\n';
     }
 
     // Step 4: Next steps
-    text += `## Next Steps\n\n`;
-    text += `1. **Create DNS CNAME:**\n`;
+    text += '## Next Steps\n\n';
+    text += '1. **Create DNS CNAME:**\n';
     text += `   \`${args.hostname} CNAME ${edgeHostnameDomain}\`\n\n`;
 
-    text += `2. **Verify Certificate Status:**\n`;
+    text += '2. **Verify Certificate Status:**\n';
     text += `   \`"Check DV enrollment status ${args.certificateEnrollmentId}"\`\n\n`;
 
-    text += `3. **Activate to Staging:**\n`;
+    text += '3. **Activate to Staging:**\n';
     text += `   \`"Activate property ${args.propertyId} version ${version} to staging"\`\n\n`;
 
-    text += `4. **Test in Staging:**\n`;
-    text += `   - Verify HTTPS works correctly\n`;
-    text += `   - Check certificate chain\n`;
-    text += `   - Test SSL/TLS configuration\n\n`;
+    text += '4. **Test in Staging:**\n';
+    text += '   - Verify HTTPS works correctly\n';
+    text += '   - Check certificate chain\n';
+    text += '   - Test SSL/TLS configuration\n\n';
 
-    text += `5. **Activate to Production:**\n`;
+    text += '5. **Activate to Production:**\n';
     text += `   \`"Activate property ${args.propertyId} version ${version} to production"\`\n\n`;
 
-    text += `## CPS Certificate Benefits\n`;
-    text += `- ✅ Full control over certificate details\n`;
-    text += `- ✅ Support for wildcard and multi-domain certificates\n`;
-    text += `- ✅ Custom certificate chain\n`;
+    text += '## CPS Certificate Benefits\n';
+    text += '- ✅ Full control over certificate details\n';
+    text += '- ✅ Support for wildcard and multi-domain certificates\n';
+    text += '- ✅ Custom certificate chain\n';
     if (tlsVersion === 'ENHANCED_TLS') {
-      text += `- ✅ Enhanced TLS with HTTP/2\n`;
-      text += `- ✅ Advanced cipher suites\n`;
-      text += `- ✅ Optimized for performance\n`;
+      text += '- ✅ Enhanced TLS with HTTP/2\n';
+      text += '- ✅ Advanced cipher suites\n';
+      text += '- ✅ Optimized for performance\n';
     } else {
-      text += `- ✅ Standard TLS compatibility\n`;
-      text += `- ✅ Broad client support\n`;
+      text += '- ✅ Standard TLS compatibility\n';
+      text += '- ✅ Broad client support\n';
     }
 
     return {
@@ -1525,15 +1527,23 @@ export async function listPropertyVersionsEnhanced(
       text += `${statusIcon} **Version ${version.propertyVersion}**\n`;
       text += `  └ Updated: ${version.updatedDate} by ${version.updatedByUser}\n`;
 
-      if (version.stagingStatus === 'ACTIVE') text += `  └ 🟡 Active on STAGING\n`;
-      if (version.productionStatus === 'ACTIVE') text += `  └ 🔴 Active on PRODUCTION\n`;
+      if (version.stagingStatus === 'ACTIVE') {
+text += '  └ 🟡 Active on STAGING\n';
+}
+      if (version.productionStatus === 'ACTIVE') {
+text += '  └ 🔴 Active on PRODUCTION\n';
+}
 
-      if (version.note) text += `  └ Note: ${version.note}\n`;
+      if (version.note) {
+text += `  └ Note: ${version.note}\n`;
+}
 
       if (args.includeMetadata && version.metadata) {
         const metadata =
           typeof version.metadata === 'string' ? JSON.parse(version.metadata) : version.metadata;
-        if (metadata.tags) text += `  └ Tags: ${metadata.tags}\n`;
+        if (metadata.tags) {
+text += `  └ Tags: ${metadata.tags}\n`;
+}
       }
 
       text += '\n';
@@ -1541,7 +1551,7 @@ export async function listPropertyVersionsEnhanced(
 
     // Pagination controls
     if (totalVersions > limit) {
-      text += `**Navigation:**\n`;
+      text += '**Navigation:**\n';
       if (offset > 0) {
         text += `- Previous: "List versions for property ${args.propertyId} offset ${Math.max(0, offset - limit)}"\n`;
       }
@@ -1644,7 +1654,7 @@ export async function rollbackPropertyVersion(
       });
     }
 
-    let text = `🔄 **Property Rollback Completed**\n\n`;
+    let text = '🔄 **Property Rollback Completed**\n\n';
     text += `✅ Rolled back to version ${args.targetVersion}\n`;
     text += `📦 New version created: ${newVersionId}\n`;
 
@@ -1667,7 +1677,7 @@ export async function rollbackPropertyVersion(
         });
         text += `🚀 Auto-activated on ${args.network.toUpperCase()}\n`;
       } catch (activationError) {
-        text += `⚠️ Rollback completed but auto-activation failed. Manual activation required.\n`;
+        text += '⚠️ Rollback completed but auto-activation failed. Manual activation required.\n';
       }
     }
 
@@ -1826,11 +1836,11 @@ export async function batchVersionOperations(
       }
     }
 
-    let text = `📋 **Batch Version Operations Results**\n\n`;
+    let text = '📋 **Batch Version Operations Results**\n\n';
     text += `**Summary:** ${results.length} successful, ${errors.length} failed\n\n`;
 
     if (results.length > 0) {
-      text += `✅ **Successful Operations:**\n`;
+      text += '✅ **Successful Operations:**\n';
       results.forEach((result, index) => {
         text += `${index + 1}. ${result.propertyId} - ${result.operation}\n`;
       });
@@ -1838,7 +1848,7 @@ export async function batchVersionOperations(
     }
 
     if (errors.length > 0) {
-      text += `❌ **Failed Operations:**\n`;
+      text += '❌ **Failed Operations:**\n';
       errors.forEach((error, index) => {
         text += `${index + 1}. ${error.propertyId} - ${error.operation}: ${error.error}\n`;
       });

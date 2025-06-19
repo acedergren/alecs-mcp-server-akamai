@@ -6,13 +6,15 @@
  * IMPORTANT: This uses Secure by Default (DefaultDV) certificates, NOT regular CPS DV certificates
  */
 
+import { selectBestProduct, formatProductDisplay } from '@utils/product-mapping';
+import { Spinner } from '@utils/progress';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { createProperty } from './property-tools';
-import { updatePropertyRules, addPropertyHostname } from './property-manager-tools';
-import { selectBestProduct, formatProductDisplay } from '@utils/product-mapping';
+
 import { createCPCode } from './cpcode-tools';
-import { Spinner } from '@utils/progress';
+import { updatePropertyRules, addPropertyHostname } from './property-manager-tools';
+import { createProperty } from './property-tools';
 
 interface OnboardingState {
   propertyId?: string;
@@ -246,7 +248,7 @@ export async function onboardSecureByDefaultProperty(
     if (!productId) {
       // Get available products for the contract
       const productsResponse = await client.request({
-        path: `/papi/v1/products`,
+        path: '/papi/v1/products',
         method: 'GET',
         queryParams: {
           contractId: args.contractId,
@@ -266,7 +268,7 @@ export async function onboardSecureByDefaultProperty(
       // Fallback to Ion if no product could be selected
       if (!productId) {
         productId = 'prd_fresca';
-        steps.push(`🔍 Using default product: Ion (prd_fresca)`);
+        steps.push('🔍 Using default product: Ion (prd_fresca)');
       }
     }
 
@@ -324,7 +326,7 @@ export async function onboardSecureByDefaultProperty(
     edgeHostnameDomain = edgeHostnameResult.edgeHostnameDomain;
     spinner?.succeed(`Created edge hostname: ${edgeHostnameDomain}`);
     steps.push(`✅ Created Secure by Default edge hostname: ${edgeHostnameDomain}`);
-    steps.push(`✅ DefaultDV certificate automatically provisioned for all hostnames`);
+    steps.push('✅ DefaultDV certificate automatically provisioned for all hostnames');
     state.completed.push('Edge hostname created');
 
     // Step 5: Configure property rules with secure settings
@@ -469,56 +471,56 @@ export async function onboardSecureByDefaultProperty(
     steps.push('🚀 Ready for activation!');
 
     // Generate comprehensive response
-    let text = `# ✅ Secure by Default Property Onboarding Complete!\n\n`;
-    text += `## Summary\n\n`;
+    let text = '# ✅ Secure by Default Property Onboarding Complete!\n\n';
+    text += '## Summary\n\n';
     text += `- **Property Name:** ${args.propertyName}\n`;
     text += `- **Property ID:** ${propertyId}\n`;
     text += `- **Product:** ${formatProductDisplay(productId)}\n`;
     text += `- **Edge Hostname:** ${edgeHostnameDomain}\n`;
-    text += `- **Certificate Type:** Secure by Default (DefaultDV)\n`;
+    text += '- **Certificate Type:** Secure by Default (DefaultDV)\n';
     text += `- **Hostnames:** ${args.hostnames.join(', ')}\n`;
     text += `- **Origin:** ${args.originHostname}\n\n`;
 
-    text += `## Steps Completed\n\n`;
+    text += '## Steps Completed\n\n';
     steps.forEach((step, index) => {
       text += `${index + 1}. ${step}\n`;
     });
 
-    text += `\n## Key Features of Secure by Default\n\n`;
-    text += `- **Automatic Certificate**: DefaultDV certificate automatically provisioned\n`;
-    text += `- **No DNS Validation Required**: Certificate validates automatically\n`;
-    text += `- **Enhanced Security**: TLS 1.2+ only, strong ciphers\n`;
-    text += `- **HTTP/3 Support**: QUIC protocol enabled\n`;
-    text += `- **Dual Stack**: IPv4 and IPv6 support\n\n`;
+    text += '\n## Key Features of Secure by Default\n\n';
+    text += '- **Automatic Certificate**: DefaultDV certificate automatically provisioned\n';
+    text += '- **No DNS Validation Required**: Certificate validates automatically\n';
+    text += '- **Enhanced Security**: TLS 1.2+ only, strong ciphers\n';
+    text += '- **HTTP/3 Support**: QUIC protocol enabled\n';
+    text += '- **Dual Stack**: IPv4 and IPv6 support\n\n';
 
-    text += `## Next Steps\n\n`;
-    text += `### 1. Create DNS CNAMEs\n`;
-    text += `For each hostname, create a CNAME record pointing to the edge hostname:\n`;
+    text += '## Next Steps\n\n';
+    text += '### 1. Create DNS CNAMEs\n';
+    text += 'For each hostname, create a CNAME record pointing to the edge hostname:\n';
     args.hostnames.forEach((hostname) => {
       text += `- ${hostname} → ${edgeHostnameDomain}\n`;
     });
-    text += `\n`;
+    text += '\n';
 
-    text += `### 2. Activate to Staging\n`;
-    text += `Test your configuration in staging:\n`;
+    text += '### 2. Activate to Staging\n';
+    text += 'Test your configuration in staging:\n';
     text += `\`\`\`\n"Activate property ${propertyId} to staging"\n\`\`\`\n\n`;
 
-    text += `### 3. Verify Staging\n`;
-    text += `Test your site on staging:\n`;
+    text += '### 3. Verify Staging\n';
+    text += 'Test your site on staging:\n';
     args.hostnames.forEach((hostname) => {
       text += `- https://${hostname}.edgesuite-staging.net\n`;
     });
-    text += `\n`;
+    text += '\n';
 
-    text += `### 4. Activate to Production\n`;
-    text += `Once staging is verified:\n`;
+    text += '### 4. Activate to Production\n';
+    text += 'Once staging is verified:\n';
     text += `\`\`\`\n"Activate property ${propertyId} to production"\n\`\`\`\n\n`;
 
-    text += `## Important Notes\n\n`;
-    text += `- **No Certificate Enrollment Needed**: DefaultDV certificates are automatic\n`;
-    text += `- **Instant HTTPS**: Certificate is ready immediately, no validation wait\n`;
-    text += `- **Automatic Renewal**: Certificates renew automatically\n`;
-    text += `- **All Subdomains Covered**: DefaultDV covers all hostnames on the property\n`;
+    text += '## Important Notes\n\n';
+    text += '- **No Certificate Enrollment Needed**: DefaultDV certificates are automatic\n';
+    text += '- **Instant HTTPS**: Certificate is ready immediately, no validation wait\n';
+    text += '- **Automatic Renewal**: Certificates renew automatically\n';
+    text += '- **All Subdomains Covered**: DefaultDV covers all hostnames on the property\n';
 
     return {
       content: [
@@ -600,7 +602,7 @@ export async function checkSecureByDefaultStatus(
   },
 ): Promise<MCPToolResponse> {
   try {
-    let text = `# Secure by Default Property Status\n\n`;
+    let text = '# Secure by Default Property Status\n\n';
 
     // Get property details
     const propertyResponse = await client.request({
@@ -614,7 +616,7 @@ export async function checkSecureByDefaultStatus(
 
     const property = propertyResponse.properties.items[0];
 
-    text += `## Property Information\n`;
+    text += '## Property Information\n';
     text += `- **Name:** ${property.propertyName}\n`;
     text += `- **ID:** ${property.propertyId}\n`;
     text += `- **Latest Version:** ${property.latestVersion}\n`;
@@ -627,12 +629,12 @@ export async function checkSecureByDefaultStatus(
       method: 'GET',
     });
 
-    text += `## Configured Hostnames\n`;
+    text += '## Configured Hostnames\n';
     if (hostnamesResponse.hostnames?.items?.length > 0) {
       hostnamesResponse.hostnames.items.forEach((hostname: any) => {
         text += `- **${hostname.cnameFrom}** → ${hostname.cnameTo}`;
         // DefaultDV certificates are always valid for all hostnames
-        text += ` ✅ (DefaultDV certificate active)\n`;
+        text += ' ✅ (DefaultDV certificate active)\n';
       });
     } else {
       text += 'No hostnames configured\n';
@@ -640,32 +642,32 @@ export async function checkSecureByDefaultStatus(
     text += '\n';
 
     // Get edge hostnames for the property
-    text += `## Edge Hostname Status\n`;
+    text += '## Edge Hostname Status\n';
     const edgeHostname = hostnamesResponse.hostnames?.items?.[0]?.cnameTo;
     if (edgeHostname?.includes('.edgekey.net')) {
       text += `✅ **Secure by Default Edge Hostname:** ${edgeHostname}\n`;
-      text += `✅ **DefaultDV Certificate:** Automatically provisioned and active\n`;
-      text += `✅ **HTTPS Ready:** All hostnames can use HTTPS immediately\n`;
+      text += '✅ **DefaultDV Certificate:** Automatically provisioned and active\n';
+      text += '✅ **HTTPS Ready:** All hostnames can use HTTPS immediately\n';
     } else {
-      text += `⚠️ **Warning:** Property may not be using Secure by Default edge hostname\n`;
+      text += '⚠️ **Warning:** Property may not be using Secure by Default edge hostname\n';
     }
     text += '\n';
 
     // Check activation status
-    text += `## Activation Status\n`;
+    text += '## Activation Status\n';
     if (property.productionVersion) {
       text += `✅ **Production:** Version ${property.productionVersion} is active\n`;
     } else {
-      text += `⏳ **Production:** Not yet activated\n`;
+      text += '⏳ **Production:** Not yet activated\n';
     }
 
     if (property.stagingVersion) {
       text += `✅ **Staging:** Version ${property.stagingVersion} is active\n`;
     } else {
-      text += `⏳ **Staging:** Not yet activated\n`;
+      text += '⏳ **Staging:** Not yet activated\n';
     }
 
-    text += `\n## Next Actions\n`;
+    text += '\n## Next Actions\n';
 
     if (!property.stagingVersion) {
       text += `- Activate to staging: \`"Activate property ${args.propertyId} to staging"\`\n`;
@@ -693,39 +695,39 @@ export async function checkSecureByDefaultStatus(
  * Generate failure report with recovery options
  */
 function generateFailureReport(state: OnboardingState, error: any, args: any): string {
-  let text = `# ❌ Secure Property Onboarding Failed\n\n`;
+  let text = '# ❌ Secure Property Onboarding Failed\n\n';
 
-  text += `## Error Details\n`;
+  text += '## Error Details\n';
   text += `- **Error:** ${error instanceof Error ? error.message : String(error)}\n`;
   text += `- **Failed At:** ${state.failed?.step || 'Unknown step'}\n\n`;
 
-  text += `## Completed Steps\n`;
+  text += '## Completed Steps\n';
   if (state.completed.length > 0) {
     state.completed.forEach((step, index) => {
       text += `${index + 1}. ✅ ${step}\n`;
     });
   } else {
-    text += `No steps were completed successfully.\n`;
+    text += 'No steps were completed successfully.\n';
   }
   text += '\n';
 
   if (state.propertyId) {
-    text += `## Partial Resources Created\n`;
+    text += '## Partial Resources Created\n';
     text += `- **Property ID:** ${state.propertyId}\n`;
-    text += `  ⚠️ This property was created but not fully configured.\n\n`;
+    text += '  ⚠️ This property was created but not fully configured.\n\n';
 
-    text += `## Recovery Options\n`;
-    text += `1. **Continue Setup Manually:**\n`;
+    text += '## Recovery Options\n';
+    text += '1. **Continue Setup Manually:**\n';
     text += `   - Configure edge hostname: \`"Create edge hostname for property ${state.propertyId}"\`\n`;
     text += `   - Add hostnames: \`"Add hostname to property ${state.propertyId}"\`\n\n`;
 
-    text += `2. **Start Over:**\n`;
+    text += '2. **Start Over:**\n';
     text += `   - Delete property: \`"Remove property ${state.propertyId}"\`\n`;
     text += `   - Retry: \`"Onboard secure property ${args.propertyName}"\`\n`;
   } else {
-    text += `## Recovery Options\n`;
-    text += `1. Fix the error and retry the onboarding\n`;
-    text += `2. Use manual property creation if automated onboarding continues to fail\n`;
+    text += '## Recovery Options\n';
+    text += '1. Fix the error and retry the onboarding\n';
+    text += '2. Use manual property creation if automated onboarding continues to fail\n';
   }
 
   return text;

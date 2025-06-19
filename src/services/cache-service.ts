@@ -4,6 +4,7 @@
  */
 
 import Redis from 'ioredis';
+
 import { type AkamaiClient } from '../akamai-client';
 
 export interface CacheConfig {
@@ -126,7 +127,9 @@ export class AkamaiCacheService {
     customer: string,
     properties: any[],
   ): Promise<void> {
-    if (!this.enabled || !this.redis) return;
+    if (!this.enabled || !this.redis) {
+return;
+}
 
     const hostnameMap: Record<string, any> = {};
 
@@ -275,7 +278,9 @@ export class AkamaiCacheService {
    * Invalidate cache for a specific property
    */
   async invalidateProperty(propertyId: string, customer = 'default'): Promise<void> {
-    if (!this.enabled || !this.redis) return;
+    if (!this.enabled || !this.redis) {
+return;
+}
 
     try {
       const keys = [

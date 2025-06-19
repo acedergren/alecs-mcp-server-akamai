@@ -1,7 +1,9 @@
-import { FastPurgeService, type FastPurgeResponse } from './FastPurgeService';
-import { logger } from '@utils/logger';
 import { promises as fs } from 'fs';
 import * as path from 'path';
+
+import { logger } from '@utils/logger';
+
+import { FastPurgeService, type FastPurgeResponse } from './FastPurgeService';
 
 export interface PurgeOperation {
   id: string;
@@ -136,11 +138,17 @@ export class PurgeStatusTracker {
 
             // Convert date strings back to Date objects
             operation.createdAt = new Date(operation.createdAt);
-            if (operation.startedAt) operation.startedAt = new Date(operation.startedAt);
-            if (operation.completedAt) operation.completedAt = new Date(operation.completedAt);
+            if (operation.startedAt) {
+operation.startedAt = new Date(operation.startedAt);
+}
+            if (operation.completedAt) {
+operation.completedAt = new Date(operation.completedAt);
+}
 
             operation.batches.forEach((batch: any) => {
-              if (batch.completedAt) batch.completedAt = new Date(batch.completedAt);
+              if (batch.completedAt) {
+batch.completedAt = new Date(batch.completedAt);
+}
             });
 
             operation.errors.forEach((error: any) => {
@@ -262,7 +270,9 @@ export class PurgeStatusTracker {
 
   private async updateOperationStatus(operationId: string): Promise<void> {
     const operation = this.operations.get(operationId);
-    if (!operation) return;
+    if (!operation) {
+return;
+}
 
     try {
       let completedBatches = 0;

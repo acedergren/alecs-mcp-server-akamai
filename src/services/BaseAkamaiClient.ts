@@ -2,10 +2,11 @@
  * Base Akamai API client with TypeScript generics and comprehensive error handling
  */
 
-import { EdgeGridAuth, EdgeGridRequestConfig, EdgeGridAuthError } from '../auth/EdgeGridAuth';
-import { type NetworkEnvironment, ConfigurationError, ConfigErrorType } from '../types/config';
 import { logger } from '@utils/logger';
 import { z, type ZodSchema } from 'zod';
+
+import { EdgeGridAuth, EdgeGridRequestConfig, EdgeGridAuthError } from '../auth/EdgeGridAuth';
+import { type NetworkEnvironment, ConfigurationError, ConfigErrorType } from '../types/config';
 
 /**
  * Generic API response wrapper
@@ -124,11 +125,21 @@ export class HttpError extends Error {
   }
 
   get category(): HttpStatusCategory {
-    if (this.statusCode >= 100 && this.statusCode < 200) return HttpStatusCategory.INFORMATIONAL;
-    if (this.statusCode >= 200 && this.statusCode < 300) return HttpStatusCategory.SUCCESS;
-    if (this.statusCode >= 300 && this.statusCode < 400) return HttpStatusCategory.REDIRECTION;
-    if (this.statusCode >= 400 && this.statusCode < 500) return HttpStatusCategory.CLIENT_ERROR;
-    if (this.statusCode >= 500 && this.statusCode < 600) return HttpStatusCategory.SERVER_ERROR;
+    if (this.statusCode >= 100 && this.statusCode < 200) {
+return HttpStatusCategory.INFORMATIONAL;
+}
+    if (this.statusCode >= 200 && this.statusCode < 300) {
+return HttpStatusCategory.SUCCESS;
+}
+    if (this.statusCode >= 300 && this.statusCode < 400) {
+return HttpStatusCategory.REDIRECTION;
+}
+    if (this.statusCode >= 400 && this.statusCode < 500) {
+return HttpStatusCategory.CLIENT_ERROR;
+}
+    if (this.statusCode >= 500 && this.statusCode < 600) {
+return HttpStatusCategory.SERVER_ERROR;
+}
     throw new Error(`Invalid status code: ${this.statusCode}`);
   }
 }

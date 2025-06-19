@@ -3,10 +3,11 @@
  * Dramatically improved performance through intelligent caching
  */
 
+import { AkamaiCacheService } from '@services/akamai-cache-service';
+import { handleApiError } from '@utils/error-handling';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { handleApiError } from '@utils/error-handling';
-import { AkamaiCacheService } from '@services/akamai-cache-service';
 
 // Singleton cache service
 let cacheService: AkamaiCacheService | null = null;
@@ -267,11 +268,11 @@ export async function universalSearchWithCacheHandler(
     let responseText = `🔍 **Search Results for "${args.query}"**\n\n`;
 
     if (results.matches.length === 0) {
-      responseText += `❌ No matches found.\n\n💡 Try searching for:\n`;
-      responseText += `• Full hostname (e.g., www.example.com)\n`;
-      responseText += `• Property name or ID (prp_12345)\n`;
-      responseText += `• Contract ID (ctr_X-XXXXX)\n`;
-      responseText += `• Group ID (grp_12345)\n`;
+      responseText += '❌ No matches found.\n\n💡 Try searching for:\n';
+      responseText += '• Full hostname (e.g., www.example.com)\n';
+      responseText += '• Property name or ID (prp_12345)\n';
+      responseText += '• Contract ID (ctr_X-XXXXX)\n';
+      responseText += '• Group ID (grp_12345)\n';
     } else {
       responseText += `✅ Found ${results.summary.totalMatches} match${results.summary.totalMatches > 1 ? 'es' : ''}\n`;
       responseText += `⏱️ Search time: ${results.performance.searchTimeMs}ms`;
@@ -288,7 +289,7 @@ export async function universalSearchWithCacheHandler(
           responseText += `• Match: ${match.matchReason}\n`;
 
           if (r.hostnames) {
-            responseText += `• **Hostnames:**\n`;
+            responseText += '• **Hostnames:**\n';
             r.hostnames.slice(0, 5).forEach((h: any) => {
               responseText += `  - ${h.cnameFrom} → ${h.cnameTo}\n`;
             });
@@ -308,7 +309,7 @@ export async function universalSearchWithCacheHandler(
 
     // Add cache statistics if available
     if (cacheStats && useCache) {
-      responseText += `\n📊 **Cache Performance:**\n`;
+      responseText += '\n📊 **Cache Performance:**\n';
       responseText += `• Hit Rate: ${cacheStats.hitRatePercent}\n`;
       responseText += `• API Calls Saved: ${cacheStats.apiCallsSaved}\n`;
       responseText += `• Estimated Savings: ${cacheStats.estimatedCostSavings}\n`;

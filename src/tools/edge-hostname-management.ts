@@ -3,9 +3,10 @@
  * Comprehensive edge hostname creation, management, and intelligent recommendations
  */
 
+import { ErrorTranslator } from '@utils/errors';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { ErrorTranslator } from '@utils/errors';
 
 // Edge Hostname Types
 export interface EdgeHostnameConfig {
@@ -168,7 +169,7 @@ export async function createEdgeHostnameEnhanced(
     const edgeHostname = `${args.domainPrefix}.${domainSuffix.replace(/^\./, '')}`;
 
     // Format response
-    let responseText = `# ✅ Edge Hostname Created Successfully\n\n`;
+    let responseText = '# ✅ Edge Hostname Created Successfully\n\n';
     responseText += `**Edge Hostname:** \`${edgeHostname}\`\n`;
     responseText += `**Edge Hostname ID:** ${edgeHostnameId}\n`;
     responseText += `**Type:** ${secure ? '🔒 Enhanced TLS (HTTPS)' : '🔓 Standard (HTTP)'}\n`;
@@ -179,7 +180,7 @@ export async function createEdgeHostnameEnhanced(
       responseText += `**Certificate Enrollment:** ${args.certificateEnrollmentId}\n`;
     }
 
-    responseText += `\n## Technical Details\n`;
+    responseText += '\n## Technical Details\n';
     responseText += `- **Contract:** ${contractId}\n`;
     responseText += `- **Group:** ${groupId}\n`;
     responseText += `- **Product:** ${productId || 'prd_Ion'}\n`;
@@ -189,28 +190,28 @@ export async function createEdgeHostnameEnhanced(
       responseText += `- **Slot Number:** ${response.mapDetails.slotNumber}\n`;
     }
 
-    responseText += `\n## DNS Configuration\n`;
-    responseText += `Configure your DNS with the following CNAME record:\n`;
-    responseText += `\`\`\`\n`;
-    responseText += `Type:   CNAME\n`;
+    responseText += '\n## DNS Configuration\n';
+    responseText += 'Configure your DNS with the following CNAME record:\n';
+    responseText += '```\n';
+    responseText += 'Type:   CNAME\n';
     responseText += `Name:   ${args.domainPrefix}\n`;
     responseText += `Value:  ${edgeHostname}\n`;
-    responseText += `TTL:    300 (5 minutes)\n`;
-    responseText += `\`\`\`\n`;
+    responseText += 'TTL:    300 (5 minutes)\n';
+    responseText += '```\n';
 
-    responseText += `\n## Next Steps\n`;
+    responseText += '\n## Next Steps\n';
     responseText += `1. Add hostnames to property: \`Add hostname ${args.domainPrefix}.example.com to property using edge hostname ${edgeHostname}\`\n`;
-    responseText += `2. Configure DNS records as shown above\n`;
-    responseText += `3. Activate property to staging for testing\n`;
-    responseText += `4. Verify SSL certificate (if secure)\n`;
+    responseText += '2. Configure DNS records as shown above\n';
+    responseText += '3. Activate property to staging for testing\n';
+    responseText += '4. Verify SSL certificate (if secure)\n';
 
     if (secure && !args.certificateEnrollmentId) {
-      responseText += `\n## ⚠️ Certificate Required\n`;
-      responseText += `This is a secure edge hostname but no certificate enrollment was specified.\n`;
-      responseText += `You'll need to:\n`;
-      responseText += `1. Create a certificate enrollment\n`;
-      responseText += `2. Complete domain validation\n`;
-      responseText += `3. Associate the certificate with this edge hostname\n`;
+      responseText += '\n## ⚠️ Certificate Required\n';
+      responseText += 'This is a secure edge hostname but no certificate enrollment was specified.\n';
+      responseText += 'You\'ll need to:\n';
+      responseText += '1. Create a certificate enrollment\n';
+      responseText += '2. Complete domain validation\n';
+      responseText += '3. Associate the certificate with this edge hostname\n';
     }
 
     return {
@@ -306,7 +307,7 @@ export async function createBulkEdgeHostnames(
     }
 
     // Format response
-    let responseText = `# Bulk Edge Hostname Creation Results\n\n`;
+    let responseText = '# Bulk Edge Hostname Creation Results\n\n';
     responseText += `**Total Requested:** ${args.hostnames.length}\n`;
     responseText += `**Successful:** ${results.successful.length} ✅\n`;
     responseText += `**Failed:** ${results.failed.length} ❌\n`;
@@ -315,8 +316,8 @@ export async function createBulkEdgeHostnames(
 
     if (results.successful.length > 0) {
       responseText += `## ✅ Successfully Created (${results.successful.length})\n`;
-      responseText += `| Hostname | Edge Hostname | ID |\n`;
-      responseText += `|----------|---------------|----|\n`;
+      responseText += '| Hostname | Edge Hostname | ID |\n';
+      responseText += '|----------|---------------|----|\n';
 
       results.successful.forEach((result) => {
         responseText += `| ${result.hostname} | ${result.edgeHostname} | ${result.edgeHostnameId} |\n`;
@@ -332,19 +333,19 @@ export async function createBulkEdgeHostnames(
       responseText += '\n';
     }
 
-    responseText += `## DNS Configuration Required\n`;
-    responseText += `Configure CNAME records for each hostname:\n\n`;
-    responseText += `\`\`\`\n`;
+    responseText += '## DNS Configuration Required\n';
+    responseText += 'Configure CNAME records for each hostname:\n\n';
+    responseText += '```\n';
     results.successful.forEach((result) => {
       responseText += `${result.hostname}  CNAME  ${result.edgeHostname}\n`;
     });
-    responseText += `\`\`\`\n\n`;
+    responseText += '```\n\n';
 
-    responseText += `## Next Steps\n`;
-    responseText += `1. Add hostnames to properties\n`;
-    responseText += `2. Configure DNS records as shown above\n`;
-    responseText += `3. Validate certificate coverage (if secure)\n`;
-    responseText += `4. Activate properties to staging\n`;
+    responseText += '## Next Steps\n';
+    responseText += '1. Add hostnames to properties\n';
+    responseText += '2. Configure DNS records as shown above\n';
+    responseText += '3. Validate certificate coverage (if secure)\n';
+    responseText += '4. Activate properties to staging\n';
 
     return {
       content: [
@@ -390,8 +391,12 @@ export async function getEdgeHostnameDetails(
     // If domain provided instead of ID, find the ID
     if (!edgeHostnameId && args.edgeHostnameDomain) {
       const queryParams: any = {};
-      if (args.contractId) queryParams.contractId = args.contractId;
-      if (args.groupId) queryParams.groupId = args.groupId;
+      if (args.contractId) {
+queryParams.contractId = args.contractId;
+}
+      if (args.groupId) {
+queryParams.groupId = args.groupId;
+}
 
       const listResponse = await client.request({
         path: '/papi/v1/edgehostnames',
@@ -438,10 +443,10 @@ export async function getEdgeHostnameDetails(
     }
 
     // Format response
-    let responseText = `# Edge Hostname Details\n\n`;
+    let responseText = '# Edge Hostname Details\n\n';
     responseText += `## ${eh.edgeHostnameDomain || `${eh.domainPrefix}.${eh.domainSuffix}`}\n\n`;
 
-    responseText += `### Basic Information\n`;
+    responseText += '### Basic Information\n';
     responseText += `- **Edge Hostname ID:** ${eh.edgeHostnameId}\n`;
     responseText += `- **Domain:** ${eh.edgeHostnameDomain || `${eh.domainPrefix}.${eh.domainSuffix}`}\n`;
     responseText += `- **Product:** ${eh.productId || 'Unknown'}\n`;
@@ -451,20 +456,20 @@ export async function getEdgeHostnameDetails(
     responseText += `- **Network:** ${eh.secureNetwork || 'Standard'}\n\n`;
 
     if (eh.mapDetails) {
-      responseText += `### Mapping Details\n`;
+      responseText += '### Mapping Details\n';
       responseText += `- **Serial Number:** ${eh.mapDetails.serialNumber || 'N/A'}\n`;
       responseText += `- **Slot Number:** ${eh.mapDetails.slotNumber || 'N/A'}\n`;
       responseText += `- **Map Algorithm Version:** ${eh.mapDetails.mapAlgorithmVersion || 'N/A'}\n\n`;
     }
 
     if (eh.certEnrollmentId) {
-      responseText += `### Certificate Information\n`;
+      responseText += '### Certificate Information\n';
       responseText += `- **Enrollment ID:** ${eh.certEnrollmentId}\n`;
       responseText += `- **Certificate Status:** ${eh.certStatus || 'Unknown'}\n\n`;
     }
 
     if (eh.useCases && eh.useCases.length > 0) {
-      responseText += `### Use Cases\n`;
+      responseText += '### Use Cases\n';
       eh.useCases.forEach((uc: any) => {
         responseText += `- **${uc.useCase}**: ${uc.option} (${uc.type})\n`;
       });
@@ -504,25 +509,25 @@ export async function getEdgeHostnameDetails(
     }
 
     if (usingProperties.length > 0) {
-      responseText += `### Properties Using This Edge Hostname\n`;
+      responseText += '### Properties Using This Edge Hostname\n';
       usingProperties.forEach((prop) => {
         responseText += `- ${prop}\n`;
       });
       responseText += '\n';
     }
 
-    responseText += `### DNS Configuration\n`;
-    responseText += `Use this edge hostname as a CNAME target:\n`;
-    responseText += `\`\`\`\n`;
+    responseText += '### DNS Configuration\n';
+    responseText += 'Use this edge hostname as a CNAME target:\n';
+    responseText += '```\n';
     responseText += `www.example.com  CNAME  ${eh.edgeHostnameDomain || `${eh.domainPrefix}.${eh.domainSuffix}`}\n`;
-    responseText += `\`\`\`\n\n`;
+    responseText += '```\n\n';
 
-    responseText += `## Actions\n`;
+    responseText += '## Actions\n';
     responseText += `- Add to property: \`Add hostname to property using edge hostname ${eh.edgeHostnameDomain}\`\n`;
     if (eh.secure && !eh.certEnrollmentId) {
       responseText += `- Associate certificate: \`Associate certificate with edge hostname ${eh.edgeHostnameId}\`\n`;
     }
-    responseText += `- List all edge hostnames: \`List edge hostnames\`\n`;
+    responseText += '- List all edge hostnames: `List edge hostnames`\n';
 
     return {
       content: [
@@ -581,7 +586,9 @@ export async function generateEdgeHostnameRecommendations(
     const byStrategy = recommendations.reduce(
       (acc, rec) => {
         const key = `${rec.recommendedSuffix}-${rec.secure}`;
-        if (!acc[key]) acc[key] = [];
+        if (!acc[key]) {
+acc[key] = [];
+}
         acc[key].push(rec);
         return acc;
       },
@@ -589,7 +596,7 @@ export async function generateEdgeHostnameRecommendations(
     );
 
     // Format response
-    let responseText = `# Edge Hostname Recommendations\n\n`;
+    let responseText = '# Edge Hostname Recommendations\n\n';
     responseText += `**Total Hostnames:** ${args.hostnames.length}\n`;
     responseText += `**Purpose:** ${args.purpose || 'mixed'}\n`;
     responseText += `**Security Requirement:** ${args.securityRequirement || 'enhanced'}\n`;
@@ -597,7 +604,7 @@ export async function generateEdgeHostnameRecommendations(
     responseText += `**Geographic Scope:** ${args.geographicScope || 'global'}\n\n`;
 
     // Summary by recommendation type
-    responseText += `## Summary\n`;
+    responseText += '## Summary\n';
     Object.entries(byStrategy).forEach(([key, recs]) => {
       const [suffix, secure] = key.split('-');
       responseText += `- **${suffix} (${secure === 'true' ? 'Secure' : 'Non-secure'})**: ${recs.length} hostnames\n`;
@@ -605,7 +612,7 @@ export async function generateEdgeHostnameRecommendations(
     responseText += '\n';
 
     // Detailed recommendations
-    responseText += `## Detailed Recommendations\n\n`;
+    responseText += '## Detailed Recommendations\n\n';
 
     // Group by suffix for better organization
     const suffixGroups = {
@@ -615,7 +622,9 @@ export async function generateEdgeHostnameRecommendations(
     };
 
     Object.entries(suffixGroups).forEach(([suffix, recs]) => {
-      if (recs.length === 0) return;
+      if (recs.length === 0) {
+return;
+}
 
       responseText += `### ${suffix} (${recs.length} hostnames)\n\n`;
 
@@ -634,7 +643,7 @@ export async function generateEdgeHostnameRecommendations(
     });
 
     // Cost optimization summary
-    responseText += `## Cost Optimization\n`;
+    responseText += '## Cost Optimization\n';
     const secureCount = recommendations.filter((r) => r.secure).length;
     const nonSecureCount = recommendations.length - secureCount;
 
@@ -642,7 +651,7 @@ export async function generateEdgeHostnameRecommendations(
     responseText += `- **Non-Secure Edge Hostnames:** ${nonSecureCount}\n`;
 
     if (nonSecureCount > 0 && args.securityRequirement !== 'maximum') {
-      responseText += `\n💡 **Cost Saving Tip:** Using non-secure edge hostnames for static content can reduce costs.\n`;
+      responseText += '\n💡 **Cost Saving Tip:** Using non-secure edge hostnames for static content can reduce costs.\n';
     }
 
     // Certificate strategy summary
@@ -654,22 +663,22 @@ export async function generateEdgeHostnameRecommendations(
       {} as Record<string, number>,
     );
 
-    responseText += `\n## Certificate Strategy\n`;
+    responseText += '\n## Certificate Strategy\n';
     Object.entries(certStrategies).forEach(([strategy, count]) => {
       responseText += `- **${strategy}**: ${count} hostnames\n`;
     });
 
     if (certStrategies['DEFAULT_DV'] && certStrategies['DEFAULT_DV'] > 0) {
-      responseText += `\n✅ **DefaultDV Recommended:** Fastest deployment with automatic certificate provisioning.\n`;
+      responseText += '\n✅ **DefaultDV Recommended:** Fastest deployment with automatic certificate provisioning.\n';
     }
 
     // Implementation commands
-    responseText += `\n## Implementation Commands\n\n`;
-    responseText += `### Bulk Creation Script\n`;
-    responseText += `\`\`\`bash\n`;
-    responseText += `# Create all recommended edge hostnames\n`;
+    responseText += '\n## Implementation Commands\n\n';
+    responseText += '### Bulk Creation Script\n';
+    responseText += '```bash\n';
+    responseText += '# Create all recommended edge hostnames\n';
     recommendations.slice(0, 5).forEach((rec) => {
-      responseText += `akamai edge-hostname create \\\n`;
+      responseText += 'akamai edge-hostname create \\\n';
       responseText += `  --prefix "${rec.recommendedPrefix}" \\\n`;
       responseText += `  --suffix "${rec.recommendedSuffix}" \\\n`;
       responseText += `  --secure ${rec.secure} \\\n`;
@@ -678,13 +687,13 @@ export async function generateEdgeHostnameRecommendations(
     if (recommendations.length > 5) {
       responseText += `# ... and ${recommendations.length - 5} more\n`;
     }
-    responseText += `\`\`\`\n`;
+    responseText += '```\n';
 
-    responseText += `\n## Next Steps\n`;
-    responseText += `1. Review and adjust recommendations based on your specific requirements\n`;
-    responseText += `2. Create edge hostnames using the bulk creation commands\n`;
-    responseText += `3. Configure appropriate certificates for secure edge hostnames\n`;
-    responseText += `4. Update DNS records to point to the new edge hostnames\n`;
+    responseText += '\n## Next Steps\n';
+    responseText += '1. Review and adjust recommendations based on your specific requirements\n';
+    responseText += '2. Create edge hostnames using the bulk creation commands\n';
+    responseText += '3. Configure appropriate certificates for secure edge hostnames\n';
+    responseText += '4. Update DNS records to point to the new edge hostnames\n';
 
     return {
       content: [
@@ -737,13 +746,13 @@ export async function validateEdgeHostnameCertificate(
     const edgeHostnameDomain = eh.edgeHostnameDomain || `${eh.domainPrefix}.${eh.domainSuffix}`;
 
     // Format response
-    let responseText = `# Edge Hostname Certificate Validation\n\n`;
+    let responseText = '# Edge Hostname Certificate Validation\n\n';
     responseText += `**Edge Hostname:** ${edgeHostnameDomain}\n`;
     responseText += `**Secure:** ${eh.secure ? 'Yes' : 'No'}\n\n`;
 
     if (!eh.secure) {
-      responseText += `## ℹ️ Non-Secure Edge Hostname\n`;
-      responseText += `This edge hostname is configured for HTTP-only traffic and does not require a certificate.\n`;
+      responseText += '## ℹ️ Non-Secure Edge Hostname\n';
+      responseText += 'This edge hostname is configured for HTTP-only traffic and does not require a certificate.\n';
 
       return {
         content: [
@@ -755,10 +764,10 @@ export async function validateEdgeHostnameCertificate(
       };
     }
 
-    responseText += `## Certificate Status\n`;
+    responseText += '## Certificate Status\n';
 
     if (eh.certEnrollmentId) {
-      responseText += `✅ **Certificate Associated**\n`;
+      responseText += '✅ **Certificate Associated**\n';
       responseText += `- **Enrollment ID:** ${eh.certEnrollmentId}\n`;
       responseText += `- **Status:** ${eh.certStatus || 'Unknown'}\n\n`;
 
@@ -770,7 +779,7 @@ export async function validateEdgeHostnameCertificate(
         });
 
         if (certResponse) {
-          responseText += `### Certificate Details\n`;
+          responseText += '### Certificate Details\n';
           responseText += `- **Common Name:** ${certResponse.cn || 'N/A'}\n`;
           responseText += `- **SANs:** ${certResponse.sans?.join(', ') || 'None'}\n`;
           responseText += `- **Status:** ${certResponse.status || 'Unknown'}\n`;
@@ -781,45 +790,45 @@ export async function validateEdgeHostnameCertificate(
         // Certificate details not accessible
       }
     } else {
-      responseText += `❌ **No Certificate Associated**\n\n`;
-      responseText += `### Required Actions\n`;
-      responseText += `1. Create a certificate enrollment\n`;
-      responseText += `2. Complete domain validation\n`;
-      responseText += `3. Associate the certificate with this edge hostname\n\n`;
+      responseText += '❌ **No Certificate Associated**\n\n';
+      responseText += '### Required Actions\n';
+      responseText += '1. Create a certificate enrollment\n';
+      responseText += '2. Complete domain validation\n';
+      responseText += '3. Associate the certificate with this edge hostname\n\n';
 
-      responseText += `### Certificate Options\n`;
-      responseText += `- **DefaultDV (Recommended):** Automatic DV certificate from Let's Encrypt\n`;
-      responseText += `- **CPS Standard:** Akamai-managed DV certificate\n`;
-      responseText += `- **Third-Party:** Upload your own certificate\n`;
+      responseText += '### Certificate Options\n';
+      responseText += '- **DefaultDV (Recommended):** Automatic DV certificate from Let\'s Encrypt\n';
+      responseText += '- **CPS Standard:** Akamai-managed DV certificate\n';
+      responseText += '- **Third-Party:** Upload your own certificate\n';
     }
 
     if (args.hostname) {
-      responseText += `## Hostname Coverage Check\n`;
+      responseText += '## Hostname Coverage Check\n';
       responseText += `**Hostname:** ${args.hostname}\n`;
 
       if (eh.certEnrollmentId) {
         // Check if hostname would be covered
-        responseText += `⚠️ **Note:** Certificate coverage verification requires checking the certificate's CN and SANs.\n`;
+        responseText += '⚠️ **Note:** Certificate coverage verification requires checking the certificate\'s CN and SANs.\n';
       } else {
-        responseText += `❌ **Not Covered:** No certificate is associated with this edge hostname.\n`;
+        responseText += '❌ **Not Covered:** No certificate is associated with this edge hostname.\n';
       }
     }
 
-    responseText += `\n## DNS Validation\n`;
-    responseText += `Ensure your DNS is configured correctly:\n`;
-    responseText += `\`\`\`\n`;
+    responseText += '\n## DNS Validation\n';
+    responseText += 'Ensure your DNS is configured correctly:\n';
+    responseText += '```\n';
     responseText += `${args.hostname || 'your-hostname.com'}  CNAME  ${edgeHostnameDomain}\n`;
-    responseText += `\`\`\`\n`;
+    responseText += '```\n';
 
-    responseText += `\n## Next Steps\n`;
+    responseText += '\n## Next Steps\n';
     if (!eh.certEnrollmentId) {
       responseText += `1. Create DefaultDV certificate: \`Create DefaultDV certificate for ${edgeHostnameDomain}\`\n`;
-      responseText += `2. Complete domain validation\n`;
-      responseText += `3. Associate certificate with edge hostname\n`;
+      responseText += '2. Complete domain validation\n';
+      responseText += '3. Associate certificate with edge hostname\n';
     } else {
-      responseText += `1. Verify certificate status\n`;
-      responseText += `2. Ensure DNS is properly configured\n`;
-      responseText += `3. Test HTTPS connectivity\n`;
+      responseText += '1. Verify certificate status\n';
+      responseText += '2. Ensure DNS is properly configured\n';
+      responseText += '3. Test HTTPS connectivity\n';
     }
 
     return {
@@ -880,25 +889,25 @@ export async function associateCertificateWithEdgeHostname(
     const eh = ehResponse.edgeHostnames?.items?.[0];
     const edgeHostnameDomain = eh?.edgeHostnameDomain || 'Unknown';
 
-    let responseText = `# ✅ Certificate Associated Successfully\n\n`;
+    let responseText = '# ✅ Certificate Associated Successfully\n\n';
     responseText += `**Edge Hostname:** ${edgeHostnameDomain}\n`;
     responseText += `**Certificate Enrollment ID:** ${args.certificateEnrollmentId}\n`;
-    responseText += `**Status:** Certificate association in progress\n\n`;
+    responseText += '**Status:** Certificate association in progress\n\n';
 
-    responseText += `## What Happens Next\n`;
-    responseText += `1. Certificate deployment begins automatically\n`;
-    responseText += `2. Deployment typically takes 20-30 minutes\n`;
-    responseText += `3. HTTPS will be available once deployment completes\n\n`;
+    responseText += '## What Happens Next\n';
+    responseText += '1. Certificate deployment begins automatically\n';
+    responseText += '2. Deployment typically takes 20-30 minutes\n';
+    responseText += '3. HTTPS will be available once deployment completes\n\n';
 
-    responseText += `## Verification Steps\n`;
+    responseText += '## Verification Steps\n';
     responseText += `1. Check certificate status: \`Validate edge hostname certificate ${args.edgeHostnameId}\`\n`;
-    responseText += `2. Test HTTPS connectivity after deployment\n`;
-    responseText += `3. Monitor for any certificate warnings\n\n`;
+    responseText += '2. Test HTTPS connectivity after deployment\n';
+    responseText += '3. Monitor for any certificate warnings\n\n';
 
-    responseText += `## Important Notes\n`;
-    responseText += `- Existing HTTP traffic is not affected\n`;
-    responseText += `- Certificate renewals are handled automatically\n`;
-    responseText += `- Ensure DNS records point to this edge hostname\n`;
+    responseText += '## Important Notes\n';
+    responseText += '- Existing HTTP traffic is not affected\n';
+    responseText += '- Certificate renewals are handled automatically\n';
+    responseText += '- Ensure DNS records point to this edge hostname\n';
 
     return {
       content: [

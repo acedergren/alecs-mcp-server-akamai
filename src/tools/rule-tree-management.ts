@@ -3,9 +3,10 @@
  * Provides comprehensive rule tree manipulation, validation, and optimization capabilities
  */
 
+import { logger } from '@utils/logger';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { logger } from '@utils/logger';
 
 // Rule tree specific types
 export interface RuleValidationResult {
@@ -269,7 +270,7 @@ export async function updatePropertyRulesEnhanced(
     });
 
     if (!validation.isValid && !args.validateOnly) {
-      let text = `❌ **Rule Validation Failed**\n\n`;
+      let text = '❌ **Rule Validation Failed**\n\n';
       text += `**Errors Found:** ${validation.errors.length}\n\n`;
 
       validation.errors.slice(0, 5).forEach((error, index) => {
@@ -286,7 +287,7 @@ export async function updatePropertyRulesEnhanced(
         text += `... and ${validation.errors.length - 5} more errors\n`;
       }
 
-      text += `\n**Action Required:** Fix validation errors before updating rules`;
+      text += '\n**Action Required:** Fix validation errors before updating rules';
 
       return {
         content: [
@@ -307,14 +308,14 @@ export async function updatePropertyRulesEnhanced(
     if (args.validateOnly || args.dryRun) {
       let text = `✅ **Rule Validation ${args.dryRun ? 'and Dry Run ' : ''}Successful**\n\n`;
 
-      text += `**Validation Summary:**\n`;
+      text += '**Validation Summary:**\n';
       text += `- Errors: ${validation.errors.length}\n`;
       text += `- Warnings: ${validation.warnings.length}\n`;
       text += `- Performance Score: ${validation.performanceScore}/100\n`;
       text += `- Compliance Score: ${validation.complianceScore}/100\n\n`;
 
       if (validation.warnings.length > 0) {
-        text += `**Warnings:**\n`;
+        text += '**Warnings:**\n';
         validation.warnings.slice(0, 5).forEach((warning, index) => {
           text += `${index + 1}. ${warning.message}\n`;
           text += `   Recommendation: ${warning.recommendation}\n\n`;
@@ -322,7 +323,7 @@ export async function updatePropertyRulesEnhanced(
       }
 
       if (validation.suggestions.length > 0) {
-        text += `**Optimization Suggestions:**\n`;
+        text += '**Optimization Suggestions:**\n';
         validation.suggestions.slice(0, 5).forEach((suggestion, index) => {
           text += `${index + 1}. [${suggestion.impact}] ${suggestion.description}\n`;
           text += `   Implementation: ${suggestion.implementation}\n\n`;
@@ -330,7 +331,7 @@ export async function updatePropertyRulesEnhanced(
       }
 
       if (!args.validateOnly) {
-        text += `\n**Dry Run Mode:** No changes were made. Remove dryRun flag to apply changes.`;
+        text += '\n**Dry Run Mode:** No changes were made. Remove dryRun flag to apply changes.';
       }
 
       return {
@@ -360,7 +361,7 @@ export async function updatePropertyRulesEnhanced(
       },
     });
 
-    let text = `✅ **Property Rules Updated Successfully**\n\n`;
+    let text = '✅ **Property Rules Updated Successfully**\n\n';
     text += `Property: ${args.propertyId}\n`;
     text += `Version: ${args.version}\n`;
 
@@ -368,11 +369,11 @@ export async function updatePropertyRulesEnhanced(
       text += `\n**Optimizations Applied:** ${validation.suggestions.length}\n`;
     }
 
-    text += `\n**Validation Results:**\n`;
+    text += '\n**Validation Results:**\n';
     text += `- Performance Score: ${validation.performanceScore}/100\n`;
     text += `- Compliance Score: ${validation.complianceScore}/100\n`;
 
-    text += `\n**Next Steps:**\n`;
+    text += '\n**Next Steps:**\n';
     text += `- Validate activation: "Validate property ${args.propertyId} version ${args.version} for staging"\n`;
     text += `- Activate: "Activate property ${args.propertyId} version ${args.version} to staging"\n`;
     text += `- Compare with previous: "Compare property ${args.propertyId} versions ${args.version - 1} and ${args.version}"\n`;
@@ -461,29 +462,29 @@ export async function createRuleFromTemplate(
       }
     }
 
-    let text = `✅ **Rule Tree Created from Template**\n\n`;
+    let text = '✅ **Rule Tree Created from Template**\n\n';
     text += `**Template:** ${template.name}\n`;
     text += `**Category:** ${template.category}\n`;
     text += `**Description:** ${template.description}\n\n`;
 
-    text += `**Applied Variables:**\n`;
+    text += '**Applied Variables:**\n';
     for (const [key, value] of Object.entries(variables)) {
       text += `- ${key}: ${JSON.stringify(value)}\n`;
     }
 
-    text += `\n**Generated Rule Tree:**\n`;
+    text += '\n**Generated Rule Tree:**\n';
     text += '```json\n';
     text += JSON.stringify(processedRuleTree, null, 2);
     text += '\n```\n';
 
-    text += `\n**Compatibility:**\n`;
+    text += '\n**Compatibility:**\n';
     text += `- Products: ${template.compatibility.products.join(', ')}\n`;
     text += `- Rule Formats: ${template.compatibility.ruleFormats.join(', ')}\n`;
 
-    text += `\n**Next Steps:**\n`;
-    text += `- Apply to property: Use the generated rule tree with "Update property rules"\n`;
-    text += `- Customize further: Modify the generated rules as needed\n`;
-    text += `- Validate: "Validate rule tree" with your property context\n`;
+    text += '\n**Next Steps:**\n';
+    text += '- Apply to property: Use the generated rule tree with "Update property rules"\n';
+    text += '- Customize further: Modify the generated rules as needed\n';
+    text += '- Validate: "Validate rule tree" with your property context\n';
 
     return {
       content: [
@@ -520,22 +521,22 @@ export async function validateRuleTree(
       includePerformance: args.includePerformance || false,
     });
 
-    let text = `📋 **Rule Tree Validation Report**\n\n`;
+    let text = '📋 **Rule Tree Validation Report**\n\n';
 
     const statusIcon = validation.isValid ? '✅' : '❌';
     text += `**Overall Status:** ${statusIcon} ${validation.isValid ? 'Valid' : 'Invalid'}\n\n`;
 
-    text += `**Scores:**\n`;
+    text += '**Scores:**\n';
     text += `- Performance: ${validation.performanceScore}/100\n`;
     text += `- Compliance: ${validation.complianceScore}/100\n\n`;
 
-    text += `**Summary:**\n`;
+    text += '**Summary:**\n';
     text += `- Errors: ${validation.errors.length}\n`;
     text += `- Warnings: ${validation.warnings.length}\n`;
     text += `- Suggestions: ${validation.suggestions.length}\n\n`;
 
     if (validation.errors.length > 0) {
-      text += `**🚨 Errors (must fix):**\n`;
+      text += '**🚨 Errors (must fix):**\n';
       validation.errors.forEach((error, index) => {
         text += `${index + 1}. [${error.severity}] ${error.type}\n`;
         text += `   Path: ${error.path}\n`;
@@ -548,7 +549,7 @@ export async function validateRuleTree(
     }
 
     if (validation.warnings.length > 0) {
-      text += `**⚠️ Warnings (should review):**\n`;
+      text += '**⚠️ Warnings (should review):**\n';
       validation.warnings.slice(0, 10).forEach((warning, index) => {
         text += `${index + 1}. [${warning.type}] ${warning.message}\n`;
         text += `   Path: ${warning.path}\n`;
@@ -561,7 +562,7 @@ export async function validateRuleTree(
     }
 
     if (validation.suggestions.length > 0) {
-      text += `**💡 Optimization Suggestions:**\n`;
+      text += '**💡 Optimization Suggestions:**\n';
       validation.suggestions.slice(0, 10).forEach((suggestion, index) => {
         text += `${index + 1}. [${suggestion.impact}] ${suggestion.type}\n`;
         text += `   ${suggestion.description}\n`;
@@ -577,12 +578,12 @@ export async function validateRuleTree(
       }
     }
 
-    text += `\n**Actions:**\n`;
+    text += '\n**Actions:**\n';
     if (!validation.isValid) {
-      text += `- Fix errors before applying rules\n`;
+      text += '- Fix errors before applying rules\n';
     }
-    text += `- Review warnings and implement suggestions\n`;
-    text += `- Re-validate after making changes\n`;
+    text += '- Review warnings and implement suggestions\n';
+    text += '- Re-validate after making changes\n';
 
     return {
       content: [
@@ -632,18 +633,18 @@ export async function mergeRuleTrees(
       });
 
       if (!validation.isValid) {
-        let text = `⚠️ **Rule Merge Completed with Validation Issues**\n\n`;
-        text += `**Merge Summary:**\n`;
+        let text = '⚠️ **Rule Merge Completed with Validation Issues**\n\n';
+        text += '**Merge Summary:**\n';
         text += `- Rules merged: ${mergeResult.rulesAdded}\n`;
         text += `- Conflicts resolved: ${mergeResult.conflictsResolved}\n`;
         text += `- Validation errors: ${validation.errors.length}\n\n`;
 
-        text += `**Validation Errors:**\n`;
+        text += '**Validation Errors:**\n';
         validation.errors.slice(0, 5).forEach((error, index) => {
           text += `${index + 1}. ${error.message}\n`;
         });
 
-        text += `\n**Note:** The merge completed but resulted in an invalid rule tree. Review and fix validation errors.`;
+        text += '\n**Note:** The merge completed but resulted in an invalid rule tree. Review and fix validation errors.';
 
         return {
           content: [
@@ -656,20 +657,20 @@ export async function mergeRuleTrees(
       }
     }
 
-    let text = `✅ **Rule Trees Merged Successfully**\n\n`;
-    text += `**Merge Configuration:**\n`;
+    let text = '✅ **Rule Trees Merged Successfully**\n\n';
+    text += '**Merge Configuration:**\n';
     text += `- Strategy: ${options.strategy}\n`;
     text += `- Conflict Resolution: ${options.conflictResolution}\n`;
     text += `- Order Preserved: ${options.preserveOrder}\n\n`;
 
-    text += `**Merge Results:**\n`;
+    text += '**Merge Results:**\n';
     text += `- Rules from source: ${mergeResult.rulesFromSource}\n`;
     text += `- Rules from target: ${mergeResult.rulesFromTarget}\n`;
     text += `- Rules merged: ${mergeResult.rulesAdded}\n`;
     text += `- Conflicts resolved: ${mergeResult.conflictsResolved}\n\n`;
 
     if (mergeResult.conflicts.length > 0) {
-      text += `**Conflict Details:**\n`;
+      text += '**Conflict Details:**\n';
       mergeResult.conflicts.slice(0, 5).forEach((conflict: any, index: number) => {
         text += `${index + 1}. ${conflict.path}\n`;
         text += `   Type: ${conflict.type}\n`;
@@ -681,7 +682,7 @@ export async function mergeRuleTrees(
       }
     }
 
-    text += `\n**Merged Rule Tree:**\n`;
+    text += '\n**Merged Rule Tree:**\n';
     text += '```json\n';
     text += JSON.stringify(mergeResult.mergedRules, null, 2).substring(0, 1000);
     if (JSON.stringify(mergeResult.mergedRules).length > 1000) {
@@ -689,10 +690,10 @@ export async function mergeRuleTrees(
     }
     text += '\n```\n';
 
-    text += `\n**Next Steps:**\n`;
-    text += `- Review merged rules for correctness\n`;
-    text += `- Validate the merged rule tree\n`;
-    text += `- Apply to property with "Update property rules"\n`;
+    text += '\n**Next Steps:**\n';
+    text += '- Review merged rules for correctness\n';
+    text += '- Validate the merged rule tree\n';
+    text += '- Apply to property with "Update property rules"\n';
 
     return {
       content: [
@@ -740,11 +741,11 @@ export async function optimizeRuleTree(
     // Re-analyze for comparison
     const newAnalysis = analyzeRulePerformance(optimizedRules);
 
-    let text = `🚀 **Rule Tree Optimization Report**\n\n`;
+    let text = '🚀 **Rule Tree Optimization Report**\n\n';
     text += `**Optimization Level:** ${level}\n`;
     text += `**Target Metrics:** ${metrics.join(', ')}\n\n`;
 
-    text += `**Performance Improvements:**\n`;
+    text += '**Performance Improvements:**\n';
     text += `- Overall Score: ${analysis.overallScore}/100 → ${newAnalysis.overallScore}/100 (+${newAnalysis.overallScore - analysis.overallScore})\n`;
     text += `- Caching: ${analysis.categories.caching.score}/100 → ${newAnalysis.categories.caching.score}/100\n`;
     text += `- Compression: ${analysis.categories.compression.score}/100 → ${newAnalysis.categories.compression.score}/100\n`;
@@ -767,14 +768,14 @@ export async function optimizeRuleTree(
     }
 
     if (newAnalysis.criticalIssues.length > 0) {
-      text += `**⚠️ Remaining Critical Issues:**\n`;
+      text += '**⚠️ Remaining Critical Issues:**\n';
       newAnalysis.criticalIssues.forEach((issue, index) => {
         text += `${index + 1}. ${issue}\n`;
       });
       text += '\n';
     }
 
-    text += `**Optimized Rule Tree:**\n`;
+    text += '**Optimized Rule Tree:**\n';
     text += '```json\n';
     text += JSON.stringify(optimizedRules, null, 2).substring(0, 800);
     if (JSON.stringify(optimizedRules).length > 800) {
@@ -782,17 +783,17 @@ export async function optimizeRuleTree(
     }
     text += '\n```\n';
 
-    text += `\n**Best Practices Applied:**\n`;
-    text += `- ✅ Cache headers optimized for static content\n`;
-    text += `- ✅ Compression enabled for text-based resources\n`;
-    text += `- ✅ HTTP/2 and Server Push configured\n`;
-    text += `- ✅ Image optimization behaviors added\n`;
-    text += `- ✅ Mobile detection and optimization\n`;
+    text += '\n**Best Practices Applied:**\n';
+    text += '- ✅ Cache headers optimized for static content\n';
+    text += '- ✅ Compression enabled for text-based resources\n';
+    text += '- ✅ HTTP/2 and Server Push configured\n';
+    text += '- ✅ Image optimization behaviors added\n';
+    text += '- ✅ Mobile detection and optimization\n';
 
-    text += `\n**Next Steps:**\n`;
-    text += `- Review and validate optimized rules\n`;
-    text += `- Test in staging environment first\n`;
-    text += `- Monitor performance metrics after deployment\n`;
+    text += '\n**Next Steps:**\n';
+    text += '- Review and validate optimized rules\n';
+    text += '- Test in staging environment first\n';
+    text += '- Monitor performance metrics after deployment\n';
 
     return {
       content: [
@@ -831,7 +832,7 @@ export async function listRuleTemplates(
       templates = templates.filter((t) => args.tags!.some((tag) => t.tags.includes(tag)));
     }
 
-    let text = `📚 **Available Rule Templates**\n\n`;
+    let text = '📚 **Available Rule Templates**\n\n';
 
     if (templates.length === 0) {
       text += 'No templates found matching your criteria.\n';
@@ -864,13 +865,13 @@ export async function listRuleTemplates(
       }
     }
 
-    text += `\n**Usage:**\n`;
-    text += `To use a template: "Create rule from template <template-id>"\n`;
-    text += `Example: "Create rule from template performance-basic with cacheDefaultTtl=3600"\n`;
+    text += '\n**Usage:**\n';
+    text += 'To use a template: "Create rule from template <template-id>"\n';
+    text += 'Example: "Create rule from template performance-basic with cacheDefaultTtl=3600"\n';
 
-    text += `\n**Available Filters:**\n`;
-    text += `- By category: performance, security, delivery\n`;
-    text += `- By tags: caching, compression, headers, etc.\n`;
+    text += '\n**Available Filters:**\n';
+    text += '- By category: performance, security, delivery\n';
+    text += '- By tags: caching, compression, headers, etc.\n';
 
     return {
       content: [
@@ -1012,7 +1013,7 @@ function validateBehavior(
       severity: 'warning',
       path: `${path}`,
       message: `Behavior '${behavior.name}' is deprecated`,
-      recommendation: `Consider using modern alternatives or removing if not needed`,
+      recommendation: 'Consider using modern alternatives or removing if not needed',
     });
   }
 
@@ -1162,9 +1163,15 @@ function calculatePerformanceScore(rules: any, warnings: RuleValidationWarning[]
   const hasCompression = hasSpecificBehavior(rules, 'gzipResponse');
   const hasHttp2 = hasSpecificBehavior(rules, 'http2');
 
-  if (!hasCaching) score -= 20;
-  if (!hasCompression) score -= 15;
-  if (!hasHttp2) score -= 15;
+  if (!hasCaching) {
+score -= 20;
+}
+  if (!hasCompression) {
+score -= 15;
+}
+  if (!hasHttp2) {
+score -= 15;
+}
 
   return Math.max(0, Math.min(100, score));
 }

@@ -3,9 +3,10 @@
  * One tool to search everything in Akamai with an impressive UX
  */
 
+import { handleApiError } from '@utils/error-handling';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { handleApiError } from '@utils/error-handling';
 
 // Pattern matchers to identify query types
 const patterns = {
@@ -231,11 +232,11 @@ export async function universalSearchHandler(
     let responseText = `🔍 **Search Results for "${args.query}"**\n\n`;
 
     if (results.matches.length === 0) {
-      responseText += `❌ No matches found.\n\n💡 Try searching for:\n`;
-      responseText += `• Full hostname (e.g., www.example.com)\n`;
-      responseText += `• Property name or ID (prp_12345)\n`;
-      responseText += `• Contract ID (ctr_X-XXXXX)\n`;
-      responseText += `• Group ID (grp_12345)\n`;
+      responseText += '❌ No matches found.\n\n💡 Try searching for:\n';
+      responseText += '• Full hostname (e.g., www.example.com)\n';
+      responseText += '• Property name or ID (prp_12345)\n';
+      responseText += '• Contract ID (ctr_X-XXXXX)\n';
+      responseText += '• Group ID (grp_12345)\n';
     } else {
       responseText += `✅ Found ${results.summary.totalMatches} match${results.summary.totalMatches > 1 ? 'es' : ''}\n\n`;
 
@@ -250,7 +251,7 @@ export async function universalSearchHandler(
           responseText += `• Match: ${match.matchReason}\n`;
 
           if (r.hostnames) {
-            responseText += `• **Hostnames:**\n`;
+            responseText += '• **Hostnames:**\n';
             r.hostnames.slice(0, 5).forEach((h: any) => {
               responseText += `  - ${h.cnameFrom} → ${h.cnameTo}\n`;
             });

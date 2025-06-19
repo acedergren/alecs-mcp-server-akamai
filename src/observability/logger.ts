@@ -91,7 +91,9 @@ class StructuredLogger {
   }
 
   log(level: LogLevel, message: string, context: LogContext): void {
-    if (!this.shouldLog(level)) return;
+    if (!this.shouldLog(level)) {
+return;
+}
 
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
@@ -151,7 +153,9 @@ class StructuredLogger {
 
     for (const [correlationId, entries] of this.correlations.entries()) {
       const lastEntry = entries[entries.length - 1];
-      if (!lastEntry) continue;
+      if (!lastEntry) {
+continue;
+}
       const lastTimestamp = new Date(lastEntry.timestamp).getTime();
 
       if (lastTimestamp < cutoff) {

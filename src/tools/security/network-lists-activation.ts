@@ -15,7 +15,9 @@ import {
  * Format activation status with emoji
  */
 function formatActivationStatus(status: string | undefined): string {
-  if (!status) return '⚫ INACTIVE';
+  if (!status) {
+return '⚫ INACTIVE';
+}
 
   const statusMap: Record<string, string> = {
     ACTIVE: '🟢 ACTIVE',
@@ -91,7 +93,7 @@ export async function activateNetworkList(
 
     const activation: NetworkListActivation = response;
 
-    let output = `🚀 **Network List Activation Initiated**\n\n`;
+    let output = '🚀 **Network List Activation Initiated**\n\n';
     output += `**List:** ${list.name} (${list.uniqueId})\n`;
     output += `**Network:** ${network}\n`;
     output += `**Activation ID:** ${activation.activationId}\n`;
@@ -102,8 +104,8 @@ export async function activateNetworkList(
     }
 
     if (activation.status === 'PENDING') {
-      output += `\n**⏳ Activation in progress...**\n`;
-      output += `Use the activation ID to monitor progress.\n`;
+      output += '\n**⏳ Activation in progress...**\n';
+      output += 'Use the activation ID to monitor progress.\n';
       output += `Typical activation time: 2-5 minutes for ${network.toLowerCase()}\n`;
     }
 
@@ -145,7 +147,7 @@ export async function getNetworkListActivationStatus(
 
     const activation: NetworkListActivation = response;
 
-    let output = `📊 **Network List Activation Status**\n\n`;
+    let output = '📊 **Network List Activation Status**\n\n';
     output += `**Activation ID:** ${activation.activationId}\n`;
     output += `**List:** ${activation.name} (${activation.uniqueId})\n`;
     output += `**Network:** ${activation.network}\n`;
@@ -157,14 +159,14 @@ export async function getNetworkListActivationStatus(
     }
 
     if (activation.status === 'PENDING') {
-      output += `\n⏳ **Activation still in progress**\n`;
-      output += `Check again in a few minutes for updates.\n`;
+      output += '\n⏳ **Activation still in progress**\n';
+      output += 'Check again in a few minutes for updates.\n';
     } else if (activation.status === 'ACTIVE') {
-      output += `\n✅ **Activation completed successfully**\n`;
-      output += `The network list is now active and enforcing policies.\n`;
+      output += '\n✅ **Activation completed successfully**\n';
+      output += 'The network list is now active and enforcing policies.\n';
     } else if (activation.status === 'FAILED') {
-      output += `\n❌ **Activation failed**\n`;
-      output += `Please check the activation details and try again.\n`;
+      output += '\n❌ **Activation failed**\n';
+      output += 'Please check the activation details and try again.\n';
     }
 
     return {
@@ -330,7 +332,7 @@ export async function deactivateNetworkList(
 
     const activation: NetworkListActivation = response;
 
-    let output = `🛑 **Network List Deactivation Initiated**\n\n`;
+    let output = '🛑 **Network List Deactivation Initiated**\n\n';
     output += `**List:** ${list.name} (${list.uniqueId})\n`;
     output += `**Network:** ${network}\n`;
     output += `**Activation ID:** ${activation.activationId}\n`;
@@ -340,8 +342,8 @@ export async function deactivateNetworkList(
       output += `**Comments:** ${options.comments}\n`;
     }
 
-    output += `\n⚠️ **Warning:** Deactivating this list will remove its security policies from the edge network.\n`;
-    output += `Traffic that was previously blocked/allowed by this list will no longer be filtered.\n`;
+    output += '\n⚠️ **Warning:** Deactivating this list will remove its security policies from the edge network.\n';
+    output += 'Traffic that was previously blocked/allowed by this list will no longer be filtered.\n';
 
     return {
       content: [
@@ -384,7 +386,7 @@ export async function bulkActivateNetworkLists(
     const client = new AkamaiClient(customer);
     const results: Array<{ uniqueId: string; activationId?: string; error?: string }> = [];
 
-    let output = `🚀 **Bulk Network List Activation**\n\n`;
+    let output = '🚀 **Bulk Network List Activation**\n\n';
     output += `Activating ${activations.length} network lists...\n\n`;
 
     // Process each activation
@@ -432,14 +434,14 @@ export async function bulkActivateNetworkLists(
     const successful = results.filter((r) => r.activationId).length;
     const failed = results.filter((r) => r.error).length;
 
-    output += `\n**Summary:**\n`;
+    output += '\n**Summary:**\n';
     output += `✅ Successful: ${successful}\n`;
     output += `❌ Failed: ${failed}\n`;
 
     if (options.waitForCompletion && successful > 0) {
-      output += `\n⏳ Waiting for activations to complete...\n`;
+      output += '\n⏳ Waiting for activations to complete...\n';
       // Note: This would require polling logic in a real implementation
-      output += `(Monitoring activation status - this may take 2-5 minutes per network)\n`;
+      output += '(Monitoring activation status - this may take 2-5 minutes per network)\n';
     }
 
     return {

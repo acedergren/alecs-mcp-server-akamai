@@ -215,11 +215,11 @@ export class IntegrationTestFramework {
   generateReport(): string {
     const summary = this.getTestSummary();
 
-    let report = `# Integration Test Report\n\n`;
+    let report = '# Integration Test Report\n\n';
     report += `**Generated:** ${new Date().toISOString()}\n\n`;
 
     // Summary
-    report += `## Summary\n\n`;
+    report += '## Summary\n\n';
     report += `- **Total Tests:** ${summary.total}\n`;
     report += `- **Passed:** ${summary.passed} ✅\n`;
     report += `- **Failed:** ${summary.failed} ❌\n`;
@@ -246,7 +246,7 @@ export class IntegrationTestFramework {
           report += `  - Error: ${result.error}\n`;
         }
       }
-      report += `\n`;
+      report += '\n';
     }
 
     // Failed tests details
@@ -254,7 +254,7 @@ export class IntegrationTestFramework {
       (r) => r.status === 'failed' || r.status === 'error',
     );
     if (failedTests.length > 0) {
-      report += `## Failed Tests Details\n\n`;
+      report += '## Failed Tests Details\n\n';
       for (const test of failedTests) {
         report += `### ${test.scenario}\n`;
         report += `**Status:** ${test.status}\n`;
@@ -262,7 +262,7 @@ export class IntegrationTestFramework {
         if (test.error) {
           report += `**Error:** ${test.error}\n`;
         }
-        report += `\n`;
+        report += '\n';
       }
     }
 

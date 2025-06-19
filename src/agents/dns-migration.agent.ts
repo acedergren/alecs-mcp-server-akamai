@@ -1,4 +1,6 @@
-import { EdgeGridAuth } from '../auth/EdgeGridAuth';
+import * as dns from 'dns';
+import { promisify } from 'util';
+
 import {
   ProgressBar,
   Spinner,
@@ -9,9 +11,10 @@ import {
   trackProgress,
 } from '@utils/progress';
 import axios from 'axios';
+
+import { EdgeGridAuth } from '../auth/EdgeGridAuth';
+
 import { type DnsRecordsetsResponse, type CpsLocationResponse } from './types';
-import * as dns from 'dns';
-import { promisify } from 'util';
 
 const resolveTxt = promisify(dns.resolveTxt);
 const resolveNs = promisify(dns.resolveNs);
@@ -447,16 +450,16 @@ export class DNSMigrationAgent {
       console.log(`\n${icons.terminal} ${format.bold('Verification Commands')}`);
 
       migration.verificationCommands = [
-        `# Check current nameservers`,
+        '# Check current nameservers',
         `dig +short NS ${zoneName}`,
         '',
-        `# Test resolution with Akamai nameservers`,
+        '# Test resolution with Akamai nameservers',
         ...akamaiNS.map((ns) => `dig @${ns} ${zoneName} A +short`),
         '',
-        `# Verify record types`,
+        '# Verify record types',
         `dig @${akamaiNS[0]} ${zoneName} ANY +noall +answer`,
         '',
-        `# Check DNS propagation`,
+        '# Check DNS propagation',
         `watch -n 10 'dig +short NS ${zoneName}'`,
       ];
 
@@ -477,11 +480,11 @@ export class DNSMigrationAgent {
       // Rollback instructions
       if (options.includeRollback) {
         console.log(`\n${icons.warning} ${format.bold('Rollback Procedure')}`);
-        console.log(`  1. Update nameservers back to original values at registrar`);
-        console.log(`  2. Original nameservers:`);
+        console.log('  1. Update nameservers back to original values at registrar');
+        console.log('  2. Original nameservers:');
         currentNS.forEach((ns) => console.log(`     ${icons.arrow} ${ns}`));
-        console.log(`  3. Wait for DNS propagation (monitor with dig)`);
-        console.log(`  4. Verify services are restored`);
+        console.log('  3. Wait for DNS propagation (monitor with dig)');
+        console.log('  4. Verify services are restored');
       }
 
       console.log(format.dim('\n═'.repeat(60)));
@@ -584,9 +587,15 @@ export class DNSMigrationAgent {
 
     try {
       const params = new URLSearchParams();
-      if (options.types) params.append('types', options.types.join(','));
-      if (options.search) params.append('search', options.search);
-      if (options.limit) params.append('page_size', options.limit.toString());
+      if (options.types) {
+params.append('types', options.types.join(','));
+}
+      if (options.search) {
+params.append('search', options.search);
+}
+      if (options.limit) {
+params.append('page_size', options.limit.toString());
+}
 
       const response = await this.auth.request<DnsRecordsetsResponse>({
         method: 'GET',
@@ -794,7 +803,9 @@ export class DNSMigrationAgent {
         const lines = content.split('\n');
 
         for (const line of lines) {
-          if (line.trim() === '' || line.startsWith(';')) continue;
+          if (line.trim() === '' || line.startsWith(';')) {
+continue;
+}
 
           // Simple parser - would need more robust implementation
           const parts = line.split(/\s+/);

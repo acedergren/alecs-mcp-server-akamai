@@ -3,9 +3,10 @@
  * Comprehensive rule validation, templates, optimization, and analysis
  */
 
+import { ErrorTranslator } from '@utils/errors';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { ErrorTranslator } from '@utils/errors';
 
 // Rule validation types
 export interface RuleValidationResult {
@@ -192,7 +193,7 @@ export async function validateRuleTree(
     }
 
     // Format response
-    let responseText = `# Rule Tree Validation Report\n\n`;
+    let responseText = '# Rule Tree Validation Report\n\n';
     if (args.propertyId) {
       responseText += `**Property:** ${propertyName} (${args.propertyId})\n`;
       responseText += `**Version:** ${version}\n`;
@@ -201,7 +202,7 @@ export async function validateRuleTree(
 
     // Statistics
     if (args.includeStatistics) {
-      responseText += `## Rule Statistics\n`;
+      responseText += '## Rule Statistics\n';
       responseText += `- **Total Rules:** ${validation.statistics.totalRules}\n`;
       responseText += `- **Total Behaviors:** ${validation.statistics.totalBehaviors}\n`;
       responseText += `- **Total Criteria:** ${validation.statistics.totalCriteria}\n`;
@@ -258,15 +259,15 @@ export async function validateRuleTree(
     }
 
     // Next steps
-    responseText += `## Next Steps\n`;
+    responseText += '## Next Steps\n';
     if (!validation.valid) {
-      responseText += `1. Fix the errors listed above\n`;
-      responseText += `2. Re-validate the rule tree\n`;
+      responseText += '1. Fix the errors listed above\n';
+      responseText += '2. Re-validate the rule tree\n';
     } else if (validation.warnings.length > 0) {
-      responseText += `1. Review warnings and apply recommendations\n`;
-      responseText += `2. Consider optimization suggestions\n`;
+      responseText += '1. Review warnings and apply recommendations\n';
+      responseText += '2. Consider optimization suggestions\n';
     } else {
-      responseText += `✅ Rule tree is valid and ready for use\n`;
+      responseText += '✅ Rule tree is valid and ready for use\n';
     }
 
     return {
@@ -377,13 +378,13 @@ export async function createRuleTreeFromTemplate(
     }
 
     // Format response
-    let responseText = `# Rule Tree Template Applied\n\n`;
+    let responseText = '# Rule Tree Template Applied\n\n';
     responseText += `**Template:** ${template.name}\n`;
     responseText += `**Category:** ${template.category}\n`;
     responseText += `**Description:** ${template.description}\n\n`;
 
     if (args.variables && Object.keys(args.variables).length > 0) {
-      responseText += `## Applied Variables\n`;
+      responseText += '## Applied Variables\n';
       Object.entries(args.variables).forEach(([key, value]) => {
         responseText += `- **${key}:** ${JSON.stringify(value)}\n`;
       });
@@ -391,22 +392,22 @@ export async function createRuleTreeFromTemplate(
     }
 
     if (args.propertyId && args.version) {
-      responseText += `## Property Updated\n`;
+      responseText += '## Property Updated\n';
       responseText += `✅ Successfully applied template to property ${args.propertyId} version ${args.version}\n\n`;
     } else {
-      responseText += `## Generated Rule Tree\n`;
+      responseText += '## Generated Rule Tree\n';
       responseText += `\`\`\`json\n${JSON.stringify(rules, null, 2)}\n\`\`\`\n\n`;
     }
 
-    responseText += `## Next Steps\n`;
+    responseText += '## Next Steps\n';
     if (args.propertyId && args.version) {
-      responseText += `1. Validate the updated rules\n`;
-      responseText += `2. Test in staging environment\n`;
-      responseText += `3. Activate when ready\n`;
+      responseText += '1. Validate the updated rules\n';
+      responseText += '2. Test in staging environment\n';
+      responseText += '3. Activate when ready\n';
     } else {
-      responseText += `1. Review the generated rule tree\n`;
-      responseText += `2. Apply to a property version\n`;
-      responseText += `3. Validate before activation\n`;
+      responseText += '1. Review the generated rule tree\n';
+      responseText += '2. Apply to a property version\n';
+      responseText += '3. Validate before activation\n';
     }
 
     return {
@@ -479,14 +480,14 @@ export async function analyzeRuleTreePerformance(
     const analysis = performRuleTreeAnalysis(rules);
 
     // Format response
-    let responseText = `# Rule Tree Performance Analysis\n\n`;
+    let responseText = '# Rule Tree Performance Analysis\n\n';
     if (args.propertyId) {
       responseText += `**Property:** ${propertyName} (${args.propertyId})\n`;
       responseText += `**Version:** ${version}\n\n`;
     }
 
     // Performance metrics
-    responseText += `## Performance Metrics\n`;
+    responseText += '## Performance Metrics\n';
     responseText += `- **Evaluation Complexity:** ${analysis.complexity}/100\n`;
     responseText += `- **Cache Efficiency:** ${analysis.cacheEfficiency}%\n`;
     responseText += `- **Rule Redundancy:** ${analysis.redundancy}%\n`;
@@ -494,7 +495,7 @@ export async function analyzeRuleTreePerformance(
 
     // Critical findings
     if (analysis.criticalFindings.length > 0) {
-      responseText += `## 🚨 Critical Findings\n`;
+      responseText += '## 🚨 Critical Findings\n';
       analysis.criticalFindings.forEach((finding: any, idx: number) => {
         responseText += `${idx + 1}. **${finding.type}**: ${finding.description}\n`;
         responseText += `   - **Impact:** ${finding.impact}\n`;
@@ -505,7 +506,7 @@ export async function analyzeRuleTreePerformance(
 
     // Performance bottlenecks
     if (analysis.bottlenecks.length > 0) {
-      responseText += `## 🐌 Performance Bottlenecks\n`;
+      responseText += '## 🐌 Performance Bottlenecks\n';
       analysis.bottlenecks.forEach((bottleneck: any, idx: number) => {
         responseText += `${idx + 1}. **${bottleneck.behavior}** at \`${bottleneck.path}\`\n`;
         responseText += `   - **Issue:** ${bottleneck.issue}\n`;
@@ -515,7 +516,7 @@ export async function analyzeRuleTreePerformance(
     }
 
     // Caching analysis
-    responseText += `## 💾 Caching Analysis\n`;
+    responseText += '## 💾 Caching Analysis\n';
     responseText += `- **Static Content Coverage:** ${analysis.caching.staticCoverage}%\n`;
     responseText += `- **Dynamic Content Strategy:** ${analysis.caching.dynamicStrategy}\n`;
     responseText += `- **TTL Optimization:** ${analysis.caching.ttlOptimization}\n`;
@@ -523,7 +524,7 @@ export async function analyzeRuleTreePerformance(
 
     // Recommendations
     if (args.includeRecommendations && analysis.recommendations.length > 0) {
-      responseText += `## 📋 Recommendations\n`;
+      responseText += '## 📋 Recommendations\n';
       analysis.recommendations.forEach((rec: any, idx: number) => {
         responseText += `${idx + 1}. **${rec.priority} Priority**: ${rec.title}\n`;
         responseText += `   - ${rec.description}\n`;
@@ -534,29 +535,29 @@ export async function analyzeRuleTreePerformance(
     }
 
     // Rule efficiency breakdown
-    responseText += `## 📊 Rule Efficiency Breakdown\n`;
-    responseText += `\`\`\`\n`;
+    responseText += '## 📊 Rule Efficiency Breakdown\n';
+    responseText += '```\n';
     responseText += `Default Rule:     ${analysis.efficiency.default}% efficient\n`;
     responseText += `Path-based Rules: ${analysis.efficiency.pathBased}% efficient\n`;
     responseText += `Custom Rules:     ${analysis.efficiency.custom}% efficient\n`;
     responseText += `Overall Score:    ${analysis.efficiency.overall}% efficient\n`;
-    responseText += `\`\`\`\n\n`;
+    responseText += '```\n\n';
 
     // Next steps
-    responseText += `## Next Steps\n`;
+    responseText += '## Next Steps\n';
     if (analysis.optimizationPotential > 70) {
-      responseText += `⚡ High optimization potential detected!\n`;
-      responseText += `1. Apply recommended optimizations\n`;
-      responseText += `2. Consolidate redundant rules\n`;
-      responseText += `3. Implement caching improvements\n`;
+      responseText += '⚡ High optimization potential detected!\n';
+      responseText += '1. Apply recommended optimizations\n';
+      responseText += '2. Consolidate redundant rules\n';
+      responseText += '3. Implement caching improvements\n';
     } else if (analysis.optimizationPotential > 30) {
-      responseText += `💡 Moderate optimization opportunities available\n`;
-      responseText += `1. Review critical findings\n`;
-      responseText += `2. Apply high-priority recommendations\n`;
+      responseText += '💡 Moderate optimization opportunities available\n';
+      responseText += '1. Review critical findings\n';
+      responseText += '2. Apply high-priority recommendations\n';
     } else {
-      responseText += `✅ Rule tree is well-optimized\n`;
-      responseText += `1. Monitor performance metrics\n`;
-      responseText += `2. Review periodically for improvements\n`;
+      responseText += '✅ Rule tree is well-optimized\n';
+      responseText += '1. Monitor performance metrics\n';
+      responseText += '2. Review periodically for improvements\n';
     }
 
     return {
@@ -623,12 +624,12 @@ export async function detectRuleConflicts(
     const conflicts = detectRuleConflictsInternal(rules);
 
     // Format response
-    let responseText = `# Rule Conflict Analysis\n\n`;
+    let responseText = '# Rule Conflict Analysis\n\n';
     responseText += `**Total Conflicts Found:** ${conflicts.length}\n\n`;
 
     if (conflicts.length === 0) {
-      responseText += `✅ No conflicts detected in the rule tree!\n\n`;
-      responseText += `The rule configuration appears to be consistent and conflict-free.\n`;
+      responseText += '✅ No conflicts detected in the rule tree!\n\n';
+      responseText += 'The rule configuration appears to be consistent and conflict-free.\n';
     } else {
       // Group conflicts by severity
       const highSeverity = conflicts.filter((c) => c.severity === 'HIGH');
@@ -668,21 +669,21 @@ export async function detectRuleConflicts(
     }
 
     // Add dependency information
-    responseText += `## 📋 Behavior Dependencies\n`;
-    responseText += `Common behavior dependencies to be aware of:\n`;
-    responseText += `- **caching** works best with **cpCode** for reporting\n`;
-    responseText += `- **gzipResponse** should be ordered after **caching**\n`;
-    responseText += `- **modifyOutgoingResponseHeader** should be last in the behavior list\n`;
-    responseText += `- **origin** must be present in the default rule\n\n`;
+    responseText += '## 📋 Behavior Dependencies\n';
+    responseText += 'Common behavior dependencies to be aware of:\n';
+    responseText += '- **caching** works best with **cpCode** for reporting\n';
+    responseText += '- **gzipResponse** should be ordered after **caching**\n';
+    responseText += '- **modifyOutgoingResponseHeader** should be last in the behavior list\n';
+    responseText += '- **origin** must be present in the default rule\n\n';
 
-    responseText += `## Next Steps\n`;
+    responseText += '## Next Steps\n';
     if (conflicts.length > 0) {
-      responseText += `1. Address high severity conflicts first\n`;
-      responseText += `2. Review and apply recommended resolutions\n`;
-      responseText += `3. Re-validate after making changes\n`;
+      responseText += '1. Address high severity conflicts first\n';
+      responseText += '2. Review and apply recommended resolutions\n';
+      responseText += '3. Re-validate after making changes\n';
     } else {
-      responseText += `1. Continue with rule configuration\n`;
-      responseText += `2. Test thoroughly before activation\n`;
+      responseText += '1. Continue with rule configuration\n';
+      responseText += '2. Test thoroughly before activation\n';
     }
 
     return {
@@ -738,7 +739,7 @@ export async function listRuleTemplates(
     }
 
     // Format response
-    let responseText = `# Available Rule Templates\n\n`;
+    let responseText = '# Available Rule Templates\n\n';
     responseText += `**Total Templates:** ${filteredTemplates.length}\n`;
     if (args.category) {
       responseText += `**Category Filter:** ${args.category}\n`;
@@ -752,7 +753,9 @@ export async function listRuleTemplates(
     const byCategory = filteredTemplates.reduce(
       (acc, template) => {
         const cat = template.category;
-        if (!acc[cat]) acc[cat] = [];
+        if (!acc[cat]) {
+acc[cat] = [];
+}
         acc[cat].push(template);
         return acc;
       },
@@ -779,20 +782,20 @@ export async function listRuleTemplates(
       });
     });
 
-    responseText += `## Usage Example\n`;
-    responseText += `To use a template:\n`;
-    responseText += `\`\`\`\n`;
-    responseText += `Create rule tree from template:\n`;
-    responseText += `- Template ID: [template_id]\n`;
-    responseText += `- Variables: { "origin": "origin.example.com", "ttl": "1d" }\n`;
-    responseText += `\`\`\`\n\n`;
+    responseText += '## Usage Example\n';
+    responseText += 'To use a template:\n';
+    responseText += '```\n';
+    responseText += 'Create rule tree from template:\n';
+    responseText += '- Template ID: [template_id]\n';
+    responseText += '- Variables: { "origin": "origin.example.com", "ttl": "1d" }\n';
+    responseText += '```\n\n';
 
-    responseText += `## Template Categories\n`;
-    responseText += `- **Web Delivery**: Static sites, dynamic applications\n`;
-    responseText += `- **API**: REST APIs, GraphQL, microservices\n`;
-    responseText += `- **Media**: Video streaming, downloads\n`;
-    responseText += `- **Security**: WAF, bot management, DDoS\n`;
-    responseText += `- **Performance**: Optimization patterns\n`;
+    responseText += '## Template Categories\n';
+    responseText += '- **Web Delivery**: Static sites, dynamic applications\n';
+    responseText += '- **API**: REST APIs, GraphQL, microservices\n';
+    responseText += '- **Media**: Video streaming, downloads\n';
+    responseText += '- **Security**: WAF, bot management, DDoS\n';
+    responseText += '- **Performance**: Optimization patterns\n';
 
     return {
       content: [
@@ -1029,7 +1032,7 @@ function detectRuleConflictsInternal(rules: any): RuleConflict[] {
         path1: paths1[0] || '',
         path2: paths2[0] || '',
         description: `Conflicting behaviors: ${behavior1} and ${behavior2}`,
-        resolution: `Remove one of the conflicting behaviors`,
+        resolution: 'Remove one of the conflicting behaviors',
       });
     }
   });
@@ -1186,7 +1189,9 @@ function performRuleTreeAnalysis(rules: any): any {
     totalRules++;
 
     const hasCaching = rule.behaviors?.some((b: any) => b.name === 'caching');
-    if (hasCaching) rulesWithCaching++;
+    if (hasCaching) {
+rulesWithCaching++;
+}
 
     const pathCriteria = rule.criteria?.find((c: any) => c.name === 'path');
     if (
@@ -1442,7 +1447,9 @@ function validateTemplateVariables(
     }
 
     // Skip validation if not provided and not required
-    if (value === undefined) return;
+    if (value === undefined) {
+return;
+}
 
     // Type validation
     if (variable.type === 'string' && typeof value !== 'string') {

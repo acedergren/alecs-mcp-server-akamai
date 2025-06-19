@@ -3,9 +3,11 @@
  * Enhanced tools for certificate enrollment automation and management
  */
 
+import { createCertificateEnrollmentService } from '@services/certificate-enrollment-service';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { createCertificateEnrollmentService } from '@services/certificate-enrollment-service';
+
 import { checkDVEnrollmentStatus } from './cps-tools';
 
 /**
@@ -134,14 +136,16 @@ export async function getCertificateDeploymentStatus(
       };
     }
 
-    let text = `# Certificate Deployment Status\n\n`;
+    let text = '# Certificate Deployment Status\n\n';
     text += `**Enrollment ID:** ${args.enrollmentId}\n\n`;
 
     // Group by network
     const byNetwork: Record<string, any[]> = {};
     deployments.forEach((dep: any) => {
       const network = dep.primaryCertificate?.network || dep.targetEnvironment || 'unknown';
-      if (!byNetwork[network]) byNetwork[network] = [];
+      if (!byNetwork[network]) {
+byNetwork[network] = [];
+}
       byNetwork[network].push(dep);
     });
 
@@ -184,7 +188,7 @@ export async function getCertificateDeploymentStatus(
       });
     });
 
-    text += `## Actions\n\n`;
+    text += '## Actions\n\n';
     text += `- Check validation: "Get DV validation challenges for enrollment ${args.enrollmentId}"\n`;
     text += `- Deploy to staging: "Deploy certificate ${args.enrollmentId} to staging"\n`;
     text += `- Deploy to production: "Deploy certificate ${args.enrollmentId} to production"\n`;
@@ -222,7 +226,7 @@ export async function renewCertificate(
   },
 ): Promise<MCPToolResponse> {
   try {
-    let steps = `# Certificate Renewal Process\n\n`;
+    let steps = '# Certificate Renewal Process\n\n';
     steps += `**Enrollment ID:** ${args.enrollmentId}\n\n`;
 
     // Step 1: Check current status
@@ -247,7 +251,7 @@ export async function renewCertificate(
     }
 
     // Step 2: Initiate renewal
-    steps += `## Initiating Renewal\n\n`;
+    steps += '## Initiating Renewal\n\n';
 
     await client.request({
       method: 'POST',
@@ -260,11 +264,11 @@ export async function renewCertificate(
       },
     });
 
-    steps += `✅ Renewal initiated\n\n`;
+    steps += '✅ Renewal initiated\n\n';
 
     // Step 3: Handle validation if auto-validate
     if (args.autoValidate) {
-      steps += `## Auto-Validation\n\n`;
+      steps += '## Auto-Validation\n\n';
       const service = createCertificateEnrollmentService(client, {
         customer: args.customer,
       });
@@ -278,7 +282,7 @@ export async function renewCertificate(
 
     // Step 4: Handle deployment if auto-deploy
     if (args.autoDeploy) {
-      steps += `## Auto-Deployment\n\n`;
+      steps += '## Auto-Deployment\n\n';
       const service = createCertificateEnrollmentService(client, {
         customer: args.customer,
       });
@@ -289,7 +293,7 @@ export async function renewCertificate(
         : deployResult.content || '';
     }
 
-    steps += `\n## Next Steps\n\n`;
+    steps += '\n## Next Steps\n\n';
     steps += `1. Monitor renewal: "Monitor certificate enrollment ${args.enrollmentId}"\n`;
     steps += `2. Check deployment: "Get certificate deployment status ${args.enrollmentId}"\n`;
 
@@ -362,7 +366,7 @@ export async function cleanupValidationRecords(
       };
     }
 
-    let text = `# Cleaning Up Validation Records\n\n`;
+    let text = '# Cleaning Up Validation Records\n\n';
     text += `Found ${recordsToDelete.length} ACME validation records to remove:\n\n`;
 
     // Import deleteRecord function
@@ -387,12 +391,12 @@ export async function cleanupValidationRecords(
       }
     }
 
-    text += `\n## Summary\n\n`;
+    text += '\n## Summary\n\n';
     text += `- **Records Deleted:** ${deleted}\n`;
     text += `- **Failed:** ${failed}\n`;
 
     if (deleted > 0) {
-      text += `\n✅ Validation records cleaned up successfully`;
+      text += '\n✅ Validation records cleaned up successfully';
     }
 
     return {
@@ -447,14 +451,16 @@ export async function getCertificateValidationHistory(
       };
     }
 
-    let text = `# Certificate Validation History\n\n`;
+    let text = '# Certificate Validation History\n\n';
     text += `**Enrollment ID:** ${args.enrollmentId}\n\n`;
 
     // Group by domain
     const byDomain: Record<string, any[]> = {};
     history.forEach((entry: any) => {
       const domain = entry.domain || 'unknown';
-      if (!byDomain[domain]) byDomain[domain] = [];
+      if (!byDomain[domain]) {
+byDomain[domain] = [];
+}
       byDomain[domain].push(entry);
     });
 

@@ -3,10 +3,12 @@
  * Uses the official akamai-edgegrid SDK for authentication
  */
 
-import EdgeGrid = require('akamai-edgegrid');
-import * as path from 'path';
-import * as os from 'os';
 import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+
+import EdgeGrid = require('akamai-edgegrid');
+
 import { type AkamaiError } from './types';
 
 export class AkamaiClient {
@@ -39,8 +41,8 @@ export class AkamaiClient {
       if (error instanceof Error && error.message.includes('ENOENT')) {
         throw new Error(
           `EdgeGrid configuration not found at ${edgercPath}\n` +
-            `Please create this file with your Akamai API credentials.\n` +
-            `See: https://techdocs.akamai.com/developer/docs/set-up-authentication-credentials`,
+            'Please create this file with your Akamai API credentials.\n' +
+            'See: https://techdocs.akamai.com/developer/docs/set-up-authentication-credentials',
         );
       } else if (error instanceof Error && error.message.includes('section')) {
         throw new Error(
@@ -114,7 +116,7 @@ export class AkamaiClient {
       if (this.debug) {
         console.error(`[AkamaiClient] Making request: ${options.method || 'GET'} ${requestPath}`);
         console.error(
-          `[AkamaiClient] Request options:`,
+          '[AkamaiClient] Request options:',
           JSON.stringify(
             {
               ...requestOptions,

@@ -16,6 +16,7 @@ import {
 import { z } from 'zod';
 
 // Network Lists Tools
+import { basicAppSecTools } from '../tools/security/appsec-basic-tools-v2';
 import {
   listNetworkLists,
   getNetworkList,
@@ -41,7 +42,6 @@ import {
 } from '../tools/security/network-lists-integration';
 
 // Application Security Tools
-import { basicAppSecTools } from '../tools/security/appsec-basic-tools-v2';
 
 const log = (level: string, message: string, data?: any) => {
   const timestamp = new Date().toISOString();
@@ -495,7 +495,9 @@ class SecurityALECSServer {
               } else if (typedArgs.mode === 'replace') {
                 updateOptions.replaceElements = typedArgs.elements;
               }
-              if (typedArgs.description) updateOptions.description = typedArgs.description;
+              if (typedArgs.description) {
+updateOptions.description = typedArgs.description;
+}
               result = await updateNetworkList(
                 typedArgs.networkListId,
                 typedArgs.customer,
@@ -507,9 +509,12 @@ class SecurityALECSServer {
               break;
             case 'activate-network-list':
               const activateOptions: any = {};
-              if (typedArgs.comment) activateOptions.comments = typedArgs.comment;
-              if (typedArgs.notificationRecipients)
-                activateOptions.notificationEmails = typedArgs.notificationRecipients;
+              if (typedArgs.comment) {
+activateOptions.comments = typedArgs.comment;
+}
+              if (typedArgs.notificationRecipients) {
+activateOptions.notificationEmails = typedArgs.notificationRecipients;
+}
               result = await activateNetworkList(
                 typedArgs.networkListId,
                 typedArgs.network,
@@ -531,7 +536,9 @@ class SecurityALECSServer {
               break;
             case 'deactivate-network-list':
               const deactivateOptions: any = {};
-              if (typedArgs.comment) deactivateOptions.comments = typedArgs.comment;
+              if (typedArgs.comment) {
+deactivateOptions.comments = typedArgs.comment;
+}
               result = await deactivateNetworkList(
                 typedArgs.networkListId,
                 typedArgs.network,
@@ -545,7 +552,9 @@ class SecurityALECSServer {
                 network: typedArgs.network,
               }));
               const bulkOptions: any = {};
-              if (typedArgs.comment) bulkOptions.comments = typedArgs.comment;
+              if (typedArgs.comment) {
+bulkOptions.comments = typedArgs.comment;
+}
               result = await bulkActivateNetworkLists(
                 bulkActivations,
                 typedArgs.customer,

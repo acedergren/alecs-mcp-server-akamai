@@ -3,10 +3,11 @@
  * Enhanced version with Valkey cache support for performance
  */
 
-import { type AkamaiClient } from '../akamai-client';
-import { type MCPToolResponse } from '../types';
 import { AkamaiCacheService } from '@services/akamai-cache-service';
 import { CacheTTL } from '@services/valkey-cache-service';
+
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
 
 // Import original functions
 import {

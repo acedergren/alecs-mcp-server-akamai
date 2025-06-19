@@ -4,9 +4,9 @@
  */
 
 import { EventEmitter } from 'events';
-import { performance } from 'perf_hooks';
 import { promises as fs } from 'fs';
 import * as os from 'os';
+import { performance } from 'perf_hooks';
 
 export interface HealthCheck {
   name: string;
@@ -384,7 +384,9 @@ export class DiagnosticsAPI extends EventEmitter {
    */
   acknowledgeAlert(alertId: string, acknowledgedBy: string): boolean {
     const alert = this.alerts.find((a) => a.id === alertId);
-    if (!alert) return false;
+    if (!alert) {
+return false;
+}
 
     alert.acknowledged = true;
     alert.acknowledgedBy = acknowledgedBy;
@@ -641,7 +643,9 @@ export class DiagnosticsAPI extends EventEmitter {
   }
 
   private async checkAlerts(): Promise<void> {
-    if (!this.systemDiagnostics) return;
+    if (!this.systemDiagnostics) {
+return;
+}
 
     const healthChecks = Array.from(this.healthChecks.values());
     const now = Date.now();

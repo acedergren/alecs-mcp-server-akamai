@@ -4,17 +4,18 @@
  */
 
 import { describe, it, expect } from '@jest/globals';
-import {
-  ResponseParser,
-  parseAkamaiResponse,
-  AkamaiErrorResponse
-} from '../../utils/response-parsing';
+
 import {
   EnhancedErrorHandler,
   withEnhancedErrorHandling,
   handleAkamaiError,
-  ErrorType
+  ErrorType,
 } from '../../utils/enhanced-error-handling';
+import {
+  ResponseParser,
+  parseAkamaiResponse,
+  AkamaiErrorResponse,
+} from '../../utils/response-parsing';
 
 // Mock API responses for testing
 const mockPropertyListResponse = {
@@ -31,10 +32,10 @@ const mockPropertyListResponse = {
         productionVersion: 1,
         assetId: 'ast_789',
         productId: 'prd_fresca',
-        ruleFormat: 'v2023-10-30'
-      }
-    ]
-  }
+        ruleFormat: 'v2023-10-30',
+      },
+    ],
+  },
 };
 
 const mockActivationResponse = {
@@ -59,12 +60,12 @@ const mockActivationResponse = {
           {
             type: 'BEHAVIOR_DEPRECATED',
             title: 'Deprecated behavior detected',
-            detail: 'The behavior "oldCache" is deprecated'
-          }
-        ]
-      }
-    ]
-  }
+            detail: 'The behavior "oldCache" is deprecated',
+          },
+        ],
+      },
+    ],
+  },
 };
 
 const mockDNSZoneResponse = {
@@ -78,9 +79,9 @@ const mockDNSZoneResponse = {
       contractId: 'ctr_C-123',
       activationState: 'ACTIVE',
       lastActivationDate: '2025-01-15T08:30:00Z',
-      versionId: 'v456'
-    }
-  ]
+      versionId: 'v456',
+    },
+  ],
 };
 
 const mockCertificateEnrollmentResponse = {
@@ -93,17 +94,17 @@ const mockCertificateEnrollmentResponse = {
       networkConfiguration: {
         geography: 'core',
         secureNetwork: 'enhanced-tls',
-        quicEnabled: true
+        quicEnabled: true,
       },
       csr: {
         cn: 'www.example.com',
-        sans: ['api.example.com', 'app.example.com']
+        sans: ['api.example.com', 'app.example.com'],
       },
       pendingChanges: ['renewal-in-progress'],
       maxAllowedSanNames: 100,
-      autoRenewalStartTime: '2025-03-01T00:00:00Z'
-    }
-  ]
+      autoRenewalStartTime: '2025-03-01T00:00:00Z',
+    },
+  ],
 };
 
 const mockFastPurgeResponse = {
@@ -111,7 +112,7 @@ const mockFastPurgeResponse = {
   detail: 'Request accepted',
   estimatedSeconds: 5,
   purgeId: 'purge_123',
-  supportId: 'support_456'
+  supportId: 'support_456',
 };
 
 const mockNetworkListResponse = [
@@ -127,9 +128,9 @@ const mockNetworkListResponse = [
     links: {
       activateInProduction: '/network-lists/list_123/activate/production',
       activateInStaging: '/network-lists/list_123/activate/staging',
-      retrieve: '/network-lists/list_123'
-    }
-  }
+      retrieve: '/network-lists/list_123',
+    },
+  },
 ];
 
 describe('Response Parser Tests', () => {
@@ -144,7 +145,7 @@ describe('Response Parser Tests', () => {
         groupId: 'grp_456',
         latestVersion: 3,
         stagingVersion: 2,
-        productionVersion: 1
+        productionVersion: 1,
       });
     });
 
@@ -156,10 +157,10 @@ describe('Response Parser Tests', () => {
         currentPage: 1,
         links: {
           next: '/properties?page=2',
-          self: '/properties?page=1'
-        }
+          self: '/properties?page=1',
+        },
       };
-      
+
       const parsed = ResponseParser.parsePropertyResponse(responseWithPagination);
       expect(parsed.pagination).toBeDefined();
       expect(parsed.pagination).toMatchObject({
@@ -168,8 +169,8 @@ describe('Response Parser Tests', () => {
         currentPage: 1,
         links: {
           next: '/properties?page=2',
-          self: '/properties?page=1'
-        }
+          self: '/properties?page=1',
+        },
       });
     });
 
@@ -180,7 +181,7 @@ describe('Response Parser Tests', () => {
         activationId: 'act_123',
         status: 'PENDING',
         network: 'STAGING',
-        propertyVersion: 2
+        propertyVersion: 2,
       });
       expect(parsed.activations[0].warnings).toHaveLength(1);
     });
@@ -201,7 +202,7 @@ describe('Response Parser Tests', () => {
         type: 'PRIMARY',
         signAndServe: true,
         contractId: 'ctr_C-123',
-        activationState: 'ACTIVE'
+        activationState: 'ACTIVE',
       });
     });
 
@@ -212,24 +213,24 @@ describe('Response Parser Tests', () => {
             name: 'www',
             type: 'A',
             ttl: 300,
-            rdata: ['192.168.1.1', '192.168.1.2']
+            rdata: ['192.168.1.1', '192.168.1.2'],
           },
           {
             name: '@',
             type: 'MX',
             ttl: 3600,
-            rdata: ['10 mail.example.com']
-          }
-        ]
+            rdata: ['10 mail.example.com'],
+          },
+        ],
       };
-      
+
       const parsed = ResponseParser.parseDNSResponse(recordsResponse);
       expect(parsed.records).toHaveLength(2);
       expect(parsed.records[0]).toMatchObject({
         name: 'www',
         type: 'A',
         ttl: 300,
-        rdata: ['192.168.1.1', '192.168.1.2']
+        rdata: ['192.168.1.1', '192.168.1.2'],
       });
     });
   });
@@ -242,7 +243,7 @@ describe('Response Parser Tests', () => {
         id: 12345,
         ra: 'lets-encrypt',
         validationType: 'dv',
-        certificateType: 'san'
+        certificateType: 'san',
       });
       expect(parsed.enrollments[0].networkConfiguration.quicEnabled).toBe(true);
     });
@@ -258,19 +259,19 @@ describe('Response Parser Tests', () => {
                 type: 'dns-01',
                 status: 'pending',
                 token: 'abc123',
-                keyAuthorization: 'xyz789'
-              }
+                keyAuthorization: 'xyz789',
+              },
             ],
-            expires: '2025-01-25T10:00:00Z'
-          }
-        ]
+            expires: '2025-01-25T10:00:00Z',
+          },
+        ],
       };
-      
+
       const parsed = ResponseParser.parseCertificateResponse(challengeResponse);
       expect(parsed.validationHistory).toHaveLength(1);
       expect(parsed.validationHistory[0]).toMatchObject({
         domain: 'www.example.com',
-        validationStatus: 'pending'
+        validationStatus: 'pending',
       });
       expect(parsed.validationHistory[0].challenges).toHaveLength(1);
     });
@@ -284,7 +285,7 @@ describe('Response Parser Tests', () => {
         detail: 'Request accepted',
         estimatedSeconds: 5,
         purgeId: 'purge_123',
-        supportId: 'support_456'
+        supportId: 'support_456',
       });
     });
 
@@ -295,14 +296,14 @@ describe('Response Parser Tests', () => {
         status: 'Done',
         submittedBy: 'user@example.com',
         submissionTime: '2025-01-18T10:00:00Z',
-        completionTime: '2025-01-18T10:00:05Z'
+        completionTime: '2025-01-18T10:00:05Z',
       };
-      
+
       const parsed = ResponseParser.parseFastPurgeResponse(statusResponse);
       expect(parsed).toMatchObject({
         httpStatus: 200,
         status: 'Done',
-        submittedBy: 'user@example.com'
+        submittedBy: 'user@example.com',
       });
     });
   });
@@ -315,7 +316,7 @@ describe('Response Parser Tests', () => {
         uniqueId: 'list_123',
         name: 'Blocked IPs',
         type: 'IP',
-        elementCount: 150
+        elementCount: 150,
       });
     });
 
@@ -325,15 +326,15 @@ describe('Response Parser Tests', () => {
         name: 'Allowed Countries',
         type: 'GEO',
         elementCount: 50,
-        elements: ['US', 'CA', 'GB']
+        elements: ['US', 'CA', 'GB'],
       };
-      
+
       const parsed = ResponseParser.parseNetworkListResponse(singleListResponse);
       expect(parsed).toMatchObject({
         uniqueId: 'list_456',
         name: 'Allowed Countries',
         type: 'GEO',
-        elementCount: 50
+        elementCount: 50,
       });
     });
   });
@@ -346,9 +347,9 @@ describe('Response Parser Tests', () => {
         status: 404,
         detail: 'The requested property prp_999 does not exist',
         instance: '/papi/v1/properties/prp_999',
-        requestId: 'req_123'
+        requestId: 'req_123',
       };
-      
+
       const parsed = ResponseParser.parseErrorResponse({ response: { data: errorResponse, status: 404 } });
       expect(parsed).toMatchObject({
         type: '/papi/v1/errors/property-not-found',
@@ -356,7 +357,7 @@ describe('Response Parser Tests', () => {
         status: 404,
         detail: 'The requested property prp_999 does not exist',
         instance: '/papi/v1/properties/prp_999',
-        requestId: 'req_123'
+        requestId: 'req_123',
       });
     });
 
@@ -369,23 +370,23 @@ describe('Response Parser Tests', () => {
             type: 'field-error',
             title: 'Invalid format',
             detail: 'Property name contains invalid characters',
-            field: 'propertyName'
+            field: 'propertyName',
           },
           {
             type: 'field-error',
             title: 'Required field missing',
             detail: 'Contract ID is required',
-            field: 'contractId'
-          }
-        ]
+            field: 'contractId',
+          },
+        ],
       };
-      
+
       const parsed = ResponseParser.parseErrorResponse({ response: { data: validationError, status: 400 } });
       expect(parsed.errors).toHaveLength(2);
       expect(parsed.errors?.[0]).toMatchObject({
         type: 'field-error',
         title: 'Invalid format',
-        field: 'propertyName'
+        field: 'propertyName',
       });
     });
 
@@ -395,7 +396,7 @@ describe('Response Parser Tests', () => {
       expect(parsed).toMatchObject({
         title: 'API Error',
         detail: 'Internal server error occurred',
-        status: 500
+        status: 500,
       });
     });
 
@@ -405,7 +406,7 @@ describe('Response Parser Tests', () => {
       expect(parsed).toMatchObject({
         title: 'Rate limit exceeded',
         detail: 'Rate limit exceeded',
-        status: 429
+        status: 429,
       });
     });
   });
@@ -416,15 +417,15 @@ describe('Response Parser Tests', () => {
         headers: {
           'x-ratelimit-limit': '100',
           'x-ratelimit-remaining': '75',
-          'x-ratelimit-reset': '1705576800'
-        }
+          'x-ratelimit-reset': '1705576800',
+        },
       };
-      
+
       const metadata = ResponseParser.extractResponseMetadata(response);
       expect(metadata.rateLimit).toMatchObject({
         limit: 100,
         remaining: 75,
-        reset: 1705576800
+        reset: 1705576800,
       });
     });
 
@@ -434,16 +435,16 @@ describe('Response Parser Tests', () => {
           'x-request-id': 'req_abc123',
           'etag': 'W/"abc123"',
           'last-modified': 'Fri, 18 Jan 2025 10:00:00 GMT',
-          'cache-control': 'max-age=300'
-        }
+          'cache-control': 'max-age=300',
+        },
       };
-      
+
       const metadata = ResponseParser.extractResponseMetadata(response);
       expect(metadata).toMatchObject({
         requestId: 'req_abc123',
         etag: 'W/"abc123"',
         lastModified: 'Fri, 18 Jan 2025 10:00:00 GMT',
-        cacheControl: 'max-age=300'
+        cacheControl: 'max-age=300',
       });
     });
   });
@@ -454,15 +455,15 @@ describe('Response Parser Tests', () => {
         activationId: 'act_789',
         status: 'ZONE_2',
         estimatedSeconds: 180,
-        submitDate: '2025-01-18T10:00:00Z'
+        submitDate: '2025-01-18T10:00:00Z',
       };
-      
+
       const parsed = ResponseParser.parseAsyncOperationResponse(asyncResponse);
       expect(parsed).toMatchObject({
         operationId: 'act_789',
         operationStatus: 'ZONE_2',
         isComplete: false,
-        isFailed: false
+        isFailed: false,
       });
       expect(new Date(parsed.estimatedCompletion)).toBeInstanceOf(Date);
     });
@@ -470,9 +471,9 @@ describe('Response Parser Tests', () => {
     it('should identify completed operations', () => {
       const completedOp = {
         activationId: 'act_999',
-        status: 'ACTIVE'
+        status: 'ACTIVE',
       };
-      
+
       const parsed = ResponseParser.parseAsyncOperationResponse(completedOp);
       expect(parsed.isComplete).toBe(true);
       expect(parsed.isFailed).toBe(false);
@@ -481,9 +482,9 @@ describe('Response Parser Tests', () => {
     it('should identify failed operations', () => {
       const failedOp = {
         purgeId: 'purge_999',
-        status: 'FAILED'
+        status: 'FAILED',
       };
-      
+
       const parsed = ResponseParser.parseAsyncOperationResponse(failedOp);
       expect(parsed.isComplete).toBe(false);
       expect(parsed.isFailed).toBe(true);
@@ -506,13 +507,13 @@ describe('Response Parser Tests', () => {
         properties: {
           items: [
             {
-              propertyId: 'prp_123'
+              propertyId: 'prp_123',
               // Missing most fields
-            }
-          ]
-        }
+            },
+          ],
+        },
       };
-      
+
       const parsed = ResponseParser.parsePropertyResponse(incompleteResponse);
       expect(parsed.properties).toHaveLength(1);
       expect(parsed.properties[0].propertyId).toBe('prp_123');
@@ -525,12 +526,12 @@ describe('Response Parser Tests', () => {
             {
               ...mockPropertyListResponse.properties.items[0],
               unexpectedField: 'should not break parsing',
-              anotherExtra: 123
-            }
-          ]
-        }
+              anotherExtra: 123,
+            },
+          ],
+        },
       };
-      
+
       const parsed = ResponseParser.parsePropertyResponse(responseWithExtra);
       expect(parsed.properties).toHaveLength(1);
       expect(parsed.properties[0].propertyId).toBe('prp_123');
@@ -545,13 +546,13 @@ describe('Response Parser Tests', () => {
               propertyName: 'test',
               hostnames: null,
               versions: {
-                items: null
-              }
-            }
-          ]
-        }
+                items: null,
+              },
+            },
+          ],
+        },
       };
-      
+
       expect(() => ResponseParser.parsePropertyResponse(nestedNullResponse)).not.toThrow();
     });
   });
@@ -567,11 +568,11 @@ describe('Enhanced Error Handler Tests', () => {
           status: 401,
           data: {
             title: 'Authentication failed',
-            detail: 'Invalid credentials'
-          }
-        }
+            detail: 'Invalid credentials',
+          },
+        },
       };
-      
+
       const result = errorHandler.handle(authError);
       expect(result.errorType).toBe(ErrorType.AUTHENTICATION);
       expect(result.suggestions).toContain('Verify your .edgerc credentials are correct and not expired');
@@ -582,15 +583,15 @@ describe('Enhanced Error Handler Tests', () => {
         response: {
           status: 429,
           headers: {
-            'retry-after': '60'
+            'retry-after': '60',
           },
           data: {
             title: 'Rate limit exceeded',
-            detail: 'Too many requests'
-          }
-        }
+            detail: 'Too many requests',
+          },
+        },
       };
-      
+
       const result = errorHandler.handle(rateLimitError);
       expect(result.errorType).toBe(ErrorType.RATE_LIMIT);
       expect(result.shouldRetry).toBe(true);
@@ -608,13 +609,13 @@ describe('Enhanced Error Handler Tests', () => {
                 type: 'field-error',
                 field: 'propertyName',
                 title: 'Invalid format',
-                detail: 'Contains invalid characters'
-              }
-            ]
-          }
-        }
+                detail: 'Contains invalid characters',
+              },
+            ],
+          },
+        },
       };
-      
+
       const result = errorHandler.handle(validationError);
       expect(result.errorType).toBe(ErrorType.VALIDATION);
       expect(result.suggestions[0]).toContain("Fix the 'propertyName' field");
@@ -631,7 +632,7 @@ describe('Enhanced Error Handler Tests', () => {
         }
         return 'success';
       };
-      
+
       const result = await errorHandler.withRetry(operation);
       expect(result).toBe('success');
       expect(attempts).toBe(3);
@@ -643,9 +644,9 @@ describe('Enhanced Error Handler Tests', () => {
         attempts++;
         throw { response: { status: 400 } };
       };
-      
+
       await expect(errorHandler.withRetry(operation)).rejects.toMatchObject({
-        response: { status: 400 }
+        response: { status: 400 },
       });
       expect(attempts).toBe(1);
     });
@@ -653,23 +654,23 @@ describe('Enhanced Error Handler Tests', () => {
     it('should respect retry-after header', async () => {
       const startTime = Date.now();
       let attempts = 0;
-      
+
       const operation = async () => {
         attempts++;
         if (attempts === 1) {
           throw {
             response: {
               status: 429,
-              headers: { 'retry-after': '1' } // 1 second
-            }
+              headers: { 'retry-after': '1' }, // 1 second
+            },
           };
         }
         return 'success';
       };
-      
+
       const result = await errorHandler.withRetry(operation);
       const duration = Date.now() - startTime;
-      
+
       expect(result).toBe('success');
       expect(attempts).toBe(2);
       expect(duration).toBeGreaterThanOrEqual(900); // At least 900ms (allowing for some variance)
@@ -679,37 +680,37 @@ describe('Enhanced Error Handler Tests', () => {
       const delays: number[] = [];
       let lastAttemptTime = Date.now();
       let attemptCount = 0;
-      
+
       const operation = async () => {
         attemptCount++;
         const now = Date.now();
         const delay = now - lastAttemptTime;
-        
+
         // Only record delays between retries (not the initial attempt)
         if (attemptCount > 1) {
           delays.push(delay);
         }
         lastAttemptTime = now;
-        
+
         // Fail first 2 attempts, succeed on third
         if (attemptCount < 3) {
           throw { response: { status: 503 } };
         }
         return 'success';
       };
-      
+
       await errorHandler.withRetry(operation, {}, { baseDelay: 100, jitter: false });
-      
+
       // Should have 2 delays recorded (between attempts 1->2 and 2->3)
       expect(delays.length).toBe(2);
-      
+
       // Second delay should be longer than first due to exponential backoff
       expect(delays[1]).toBeGreaterThan(delays[0]);
-      
+
       // First delay should be approximately 100ms (baseDelay)
       expect(delays[0]).toBeGreaterThanOrEqual(90);
       expect(delays[0]).toBeLessThanOrEqual(110);
-      
+
       // Second delay should be approximately 200ms (baseDelay * multiplier)
       expect(delays[1]).toBeGreaterThanOrEqual(190);
       expect(delays[1]).toBeLessThanOrEqual(210);
@@ -723,16 +724,16 @@ describe('Enhanced Error Handler Tests', () => {
           status: 403,
           data: {
             title: 'Forbidden',
-            detail: 'Access denied to property'
-          }
-        }
+            detail: 'Access denied to property',
+          },
+        },
       };
-      
+
       const result = errorHandler.handle(papiError, {
         apiType: 'papi',
-        operation: 'activate property'
+        operation: 'activate property',
       });
-      
+
       expect(result.suggestions).toContain('Ensure you have Property Manager API access');
     });
 
@@ -742,16 +743,16 @@ describe('Enhanced Error Handler Tests', () => {
           status: 409,
           data: {
             title: 'Conflict',
-            detail: 'Another activation is in progress'
-          }
-        }
+            detail: 'Another activation is in progress',
+          },
+        },
       };
-      
+
       const result = errorHandler.handle(activationError, {
         apiType: 'papi',
-        endpoint: '/papi/v1/properties/prp_123/activations'
+        endpoint: '/papi/v1/properties/prp_123/activations',
       });
-      
+
       expect(result.suggestions).toContain('Wait for the current activation to complete');
     });
   });
@@ -760,9 +761,9 @@ describe('Enhanced Error Handler Tests', () => {
     it('should handle network errors', () => {
       const networkError = {
         code: 'ECONNREFUSED',
-        message: 'Connection refused'
+        message: 'Connection refused',
       };
-      
+
       const result = errorHandler.handle(networkError);
       expect(result.errorType).toBe(ErrorType.SERVER_ERROR);
       expect(result.shouldRetry).toBe(true);
@@ -771,9 +772,9 @@ describe('Enhanced Error Handler Tests', () => {
     it('should handle timeout errors', () => {
       const timeoutError = {
         code: 'ETIMEDOUT',
-        message: 'Request timeout'
+        message: 'Request timeout',
       };
-      
+
       const result = errorHandler.handle(timeoutError);
       expect(result.errorType).toBe(ErrorType.TIMEOUT);
       expect(result.shouldRetry).toBe(true);
@@ -785,15 +786,15 @@ describe('Enhanced Error Handler Tests', () => {
           status: 500,
           headers: {
             'x-request-id': 'req_abc123',
-            'x-trace-id': 'trace_xyz789'
+            'x-trace-id': 'trace_xyz789',
           },
           data: {
             title: 'Internal server error',
-            requestId: 'req_abc123'
-          }
-        }
+            requestId: 'req_abc123',
+          },
+        },
       };
-      
+
       const result = errorHandler.handle(errorWithRequestId);
       expect(result.requestId).toBe('req_abc123');
       expect(result.suggestions).toContain('Contact Akamai support with request ID: req_abc123');
@@ -810,11 +811,11 @@ describe('Integration Response Handling', () => {
         'x-ratelimit-remaining': '99',
         'x-ratelimit-limit': '100',
         'x-ratelimit-reset': '1705576800',
-        'etag': 'W/"abc"'
+        'etag': 'W/"abc"',
       },
-      data: mockPropertyListResponse
+      data: mockPropertyListResponse,
     };
-    
+
     const parsed = parseAkamaiResponse(fullResponse, 'papi');
     expect(parsed.properties).toBeDefined();
     expect(parsed._metadata).toMatchObject({
@@ -822,9 +823,9 @@ describe('Integration Response Handling', () => {
       rateLimit: {
         limit: 100,
         remaining: 99,
-        reset: 1705576800
+        reset: 1705576800,
       },
-      etag: 'W/"abc"'
+      etag: 'W/"abc"',
     });
   });
 
@@ -842,18 +843,18 @@ describe('Integration Response Handling', () => {
               type: 'field-error',
               field: 'rules.behaviors[0].options.ttl',
               title: 'Invalid TTL',
-              detail: 'TTL must be between 30 and 86400'
-            }
-          ]
-        }
-      }
+              detail: 'TTL must be between 30 and 86400',
+            },
+          ],
+        },
+      },
     };
-    
+
     const result = handleAkamaiError(error, {
       operation: 'update property rules',
-      apiType: 'papi'
+      apiType: 'papi',
     });
-    
+
     expect(result.errorType).toBe(ErrorType.VALIDATION);
     expect(result.suggestions.length).toBeGreaterThan(0);
     expect(result.userMessage).toContain('Please fix the following issues');

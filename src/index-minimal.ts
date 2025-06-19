@@ -14,6 +14,7 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
+
 import { AkamaiClient } from './akamai-client';
 import { listProperties, getProperty, listGroups } from './tools/property-tools';
 
@@ -123,7 +124,7 @@ class MinimalALECSServer {
       const { name, arguments: args } = request.params;
 
       console.error(`🔧 Tool called: ${name}`);
-      console.error(`📝 Arguments:`, JSON.stringify(args, null, 2));
+      console.error('📝 Arguments:', JSON.stringify(args, null, 2));
 
       const client = this.client;
 
@@ -145,7 +146,7 @@ class MinimalALECSServer {
             throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
         }
       } catch (error) {
-        console.error(`❌ Tool error:`, error);
+        console.error('❌ Tool error:', error);
 
         if (error instanceof z.ZodError) {
           throw new McpError(

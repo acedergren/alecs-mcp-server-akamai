@@ -3,9 +3,11 @@
  * Handles bulk hostname provisioning, DNS validation, and property assignment
  */
 
+import { ErrorTranslator } from '@utils/errors';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { ErrorTranslator } from '@utils/errors';
+
 import {
   createBulkEdgeHostnames,
   type EdgeHostnameRecommendation,
@@ -226,8 +228,8 @@ export async function createBulkProvisioningPlan(
     ];
 
     // Format response
-    let responseText = `# Bulk Hostname Provisioning Plan\n\n`;
-    responseText += `## Summary\n`;
+    let responseText = '# Bulk Hostname Provisioning Plan\n\n';
+    responseText += '## Summary\n';
     responseText += `- **Total Hostnames:** ${args.hostnames.length}\n`;
     responseText += `- **Valid Hostnames:** ${validHostnames.length} ✅\n`;
     responseText += `- **Invalid Hostnames:** ${invalidHostnames.length} ❌\n`;
@@ -235,7 +237,7 @@ export async function createBulkProvisioningPlan(
     responseText += `- **Group:** ${args.groupId}\n`;
     responseText += `- **Product:** ${args.productId || 'Ion (auto-selected)'}\n\n`;
 
-    responseText += `## Strategy\n`;
+    responseText += '## Strategy\n';
     responseText += `- **Edge Hostname Strategy:** ${plan.edgeHostnameStrategy}\n`;
     responseText += `- **Property Strategy:** ${plan.propertyStrategy}\n`;
     responseText += `- **Certificate Strategy:** ${plan.certificateStrategy}\n`;
@@ -244,7 +246,7 @@ export async function createBulkProvisioningPlan(
     // Validation results
     if (invalidHostnames.length > 0) {
       responseText += `## ❌ Invalid Hostnames (${invalidHostnames.length})\n`;
-      responseText += `The following hostnames failed validation and will be excluded:\n`;
+      responseText += 'The following hostnames failed validation and will be excluded:\n';
       invalidHostnames.slice(0, 5).forEach((h) => {
         responseText += `- ${h.hostname}: ${h.reason}\n`;
       });
@@ -255,12 +257,12 @@ export async function createBulkProvisioningPlan(
     }
 
     // Provisioning phases
-    responseText += `## Provisioning Phases\n\n`;
+    responseText += '## Provisioning Phases\n\n';
     plan.phases.forEach((phase) => {
       responseText += `### Phase ${phase.phase}: ${phase.name}\n`;
       responseText += `**Duration:** ${phase.estimatedDuration}\n`;
       responseText += `**Description:** ${phase.description}\n`;
-      responseText += `**Tasks:**\n`;
+      responseText += '**Tasks:**\n';
       phase.tasks.forEach((task) => {
         responseText += `- ${task}\n`;
       });
@@ -271,10 +273,10 @@ export async function createBulkProvisioningPlan(
     });
 
     // Sample configurations
-    responseText += `## Sample Configurations\n\n`;
-    responseText += `### Edge Hostnames (First 5)\n`;
-    responseText += `| Hostname | Edge Hostname | Type |\n`;
-    responseText += `|----------|---------------|------|\n`;
+    responseText += '## Sample Configurations\n\n';
+    responseText += '### Edge Hostnames (First 5)\n';
+    responseText += '| Hostname | Edge Hostname | Type |\n';
+    responseText += '|----------|---------------|------|\n';
 
     const edgeHostnameRecommendations = extractRecommendationsFromResult(edgeHostnameRecs);
     edgeHostnameRecommendations.slice(0, 5).forEach((rec) => {
@@ -286,46 +288,46 @@ export async function createBulkProvisioningPlan(
     responseText += '\n';
 
     // DNS configuration preview
-    responseText += `### DNS Configuration Required\n`;
-    responseText += `\`\`\`\n`;
+    responseText += '### DNS Configuration Required\n';
+    responseText += '```\n';
     edgeHostnameRecommendations.slice(0, 3).forEach((rec) => {
       responseText += `${rec.hostname}  CNAME  ${rec.recommendedPrefix}${rec.recommendedSuffix}\n`;
     });
     if (validHostnames.length > 3) {
       responseText += `# ... and ${validHostnames.length - 3} more\n`;
     }
-    responseText += `\`\`\`\n\n`;
+    responseText += '```\n\n';
 
     // Risk assessment
-    responseText += `## Risk Assessment\n`;
+    responseText += '## Risk Assessment\n';
     responseText += `- **Validation Risk:** ${invalidHostnames.length > 0 ? `Medium (${invalidHostnames.length} invalid hostnames)` : 'Low'}\n`;
-    responseText += `- **DNS Risk:** Low (gradual cutover possible)\n`;
+    responseText += '- **DNS Risk:** Low (gradual cutover possible)\n';
     responseText += `- **Certificate Risk:** ${args.certificateStrategy === 'default-dv' ? 'Low (automated DV)' : 'Medium (manual validation)'}\n`;
-    responseText += `- **Downtime Risk:** None (DNS-based cutover)\n\n`;
+    responseText += '- **Downtime Risk:** None (DNS-based cutover)\n\n';
 
     // Execution options
-    responseText += `## Execution Options\n\n`;
-    responseText += `### Option 1: Automated Execution\n`;
-    responseText += `Execute the entire plan automatically with progress monitoring:\n`;
+    responseText += '## Execution Options\n\n';
+    responseText += '### Option 1: Automated Execution\n';
+    responseText += 'Execute the entire plan automatically with progress monitoring:\n';
     responseText += `\`Execute bulk provisioning plan for ${validHostnames.length} hostnames\`\n\n`;
 
-    responseText += `### Option 2: Phase-by-Phase Execution\n`;
-    responseText += `Execute each phase manually for more control:\n`;
+    responseText += '### Option 2: Phase-by-Phase Execution\n';
+    responseText += 'Execute each phase manually for more control:\n';
     plan.phases.forEach((phase) => {
       responseText += `- Phase ${phase.phase}: \`Execute provisioning phase ${phase.phase}\`\n`;
     });
     responseText += '\n';
 
-    responseText += `### Option 3: Custom Execution\n`;
-    responseText += `Modify the plan parameters and re-generate:\n`;
-    responseText += `\`Modify provisioning plan with [your changes]\`\n\n`;
+    responseText += '### Option 3: Custom Execution\n';
+    responseText += 'Modify the plan parameters and re-generate:\n';
+    responseText += '`Modify provisioning plan with [your changes]`\n\n';
 
-    responseText += `## Ready to Proceed?\n`;
+    responseText += '## Ready to Proceed?\n';
     responseText += `This plan will provision ${validHostnames.length} hostnames with the following configuration:\n`;
     responseText += `- Edge Hostname Strategy: ${plan.edgeHostnameStrategy}\n`;
     responseText += `- Property Strategy: ${plan.propertyStrategy}\n`;
     responseText += `- Certificate Strategy: ${plan.certificateStrategy}\n\n`;
-    responseText += `**Type one of the execution options above to begin.**`;
+    responseText += '**Type one of the execution options above to begin.**';
 
     return {
       content: [
@@ -388,12 +390,12 @@ export async function executeBulkProvisioning(
     responseText += `**Started:** ${operation.startTime.toISOString()}\n\n`;
 
     if (args.dryRun) {
-      responseText += `## 🔍 Dry Run Mode\n`;
-      responseText += `This is a simulation. No actual changes will be made.\n\n`;
+      responseText += '## 🔍 Dry Run Mode\n';
+      responseText += 'This is a simulation. No actual changes will be made.\n\n';
     }
 
     // Phase 1: Validation
-    responseText += `## Phase 1: Validation\n`;
+    responseText += '## Phase 1: Validation\n';
     const validationResult = await validateHostnamesBulk(client, {
       hostnames: args.hostnames,
     });
@@ -406,7 +408,7 @@ export async function executeBulkProvisioning(
     if (validHostnames.length === 0) {
       operation.status = 'failed';
       operation.endTime = new Date();
-      responseText += `\n❌ Operation failed: No valid hostnames to provision.\n`;
+      responseText += '\n❌ Operation failed: No valid hostnames to provision.\n';
 
       return {
         content: [
@@ -419,7 +421,7 @@ export async function executeBulkProvisioning(
     }
 
     // Phase 2: Edge Hostname Creation
-    responseText += `## Phase 2: Edge Hostname Creation\n`;
+    responseText += '## Phase 2: Edge Hostname Creation\n';
 
     if (!args.dryRun) {
       const edgeHostnameResult = await createBulkEdgeHostnames(client, {
@@ -455,46 +457,46 @@ export async function executeBulkProvisioning(
       });
     } else {
       responseText += `- Would create ${validHostnames.length} edge hostnames\n`;
-      responseText += `- Domain suffix: .edgekey.net\n`;
+      responseText += '- Domain suffix: .edgekey.net\n';
       responseText += `- Secure: ${args.certificateStrategy !== 'existing' ? 'Yes' : 'No'}\n\n`;
     }
 
     // Phase 3: Property Assignment
-    responseText += `## Phase 3: Property Assignment\n`;
+    responseText += '## Phase 3: Property Assignment\n';
 
     if (args.propertyStrategy === 'single') {
-      responseText += `- Strategy: Single property for all hostnames\n`;
+      responseText += '- Strategy: Single property for all hostnames\n';
       responseText += `- Hostnames per property: ${validHostnames.length}\n`;
     } else if (args.propertyStrategy === 'grouped') {
       const groups = Math.ceil(validHostnames.length / 50); // Max 50 hostnames per property
-      responseText += `- Strategy: Grouped by domain/function\n`;
+      responseText += '- Strategy: Grouped by domain/function\n';
       responseText += `- Estimated property count: ${groups}\n`;
     } else {
-      responseText += `- Strategy: One property per hostname\n`;
+      responseText += '- Strategy: One property per hostname\n';
       responseText += `- Property count: ${validHostnames.length}\n`;
     }
 
     if (!args.dryRun) {
       // In a real implementation, we would create/update properties here
-      responseText += `- Property configuration completed\n`;
+      responseText += '- Property configuration completed\n';
     } else {
-      responseText += `- Would configure properties as specified\n`;
+      responseText += '- Would configure properties as specified\n';
     }
     responseText += '\n';
 
     // Phase 4: Certificate Status
-    responseText += `## Phase 4: Certificate Provisioning\n`;
+    responseText += '## Phase 4: Certificate Provisioning\n';
     if (args.certificateStrategy === 'default-dv') {
-      responseText += `- Strategy: DefaultDV (Let's Encrypt)\n`;
-      responseText += `- Automatic provisioning and renewal\n`;
-      responseText += `- Domain validation required\n`;
+      responseText += '- Strategy: DefaultDV (Let\'s Encrypt)\n';
+      responseText += '- Automatic provisioning and renewal\n';
+      responseText += '- Domain validation required\n';
     } else if (args.certificateStrategy === 'cps') {
-      responseText += `- Strategy: CPS (Akamai-managed)\n`;
-      responseText += `- Manual domain validation required\n`;
-      responseText += `- Higher security options available\n`;
+      responseText += '- Strategy: CPS (Akamai-managed)\n';
+      responseText += '- Manual domain validation required\n';
+      responseText += '- Higher security options available\n';
     } else {
-      responseText += `- Strategy: Use existing certificates\n`;
-      responseText += `- No new certificates will be created\n`;
+      responseText += '- Strategy: Use existing certificates\n';
+      responseText += '- No new certificates will be created\n';
     }
     responseText += '\n';
 
@@ -503,19 +505,19 @@ export async function executeBulkProvisioning(
     operation.status = operation.failedHostnames === 0 ? 'completed' : 'partial';
     operation.processedHostnames = operation.successfulHostnames + operation.failedHostnames;
 
-    responseText += `## Summary\n`;
+    responseText += '## Summary\n';
     responseText += `**Operation ID:** ${operation.operationId}\n`;
     responseText += `**Status:** ${operation.status}\n`;
     responseText += `**Duration:** ${((operation.endTime.getTime() - operation.startTime.getTime()) / 1000).toFixed(2)} seconds\n\n`;
 
-    responseText += `### Results\n`;
+    responseText += '### Results\n';
     responseText += `- **Total Hostnames:** ${operation.totalHostnames}\n`;
     responseText += `- **Processed:** ${operation.processedHostnames}\n`;
     responseText += `- **Successful:** ${operation.successfulHostnames} ✅\n`;
     responseText += `- **Failed:** ${operation.failedHostnames} ❌\n\n`;
 
     if (operation.results.length > 0 && !args.dryRun) {
-      responseText += `### Successful Provisions (First 10)\n`;
+      responseText += '### Successful Provisions (First 10)\n';
       operation.results
         .filter((r) => r.status === 'success')
         .slice(0, 10)
@@ -529,7 +531,7 @@ export async function executeBulkProvisioning(
       responseText += '\n';
 
       if (operation.failedHostnames > 0) {
-        responseText += `### Failed Provisions\n`;
+        responseText += '### Failed Provisions\n';
         operation.results
           .filter((r) => r.status === 'failed')
           .forEach((result) => {
@@ -539,14 +541,14 @@ export async function executeBulkProvisioning(
       }
     }
 
-    responseText += `## Next Steps\n`;
+    responseText += '## Next Steps\n';
     if (!args.dryRun && operation.successfulHostnames > 0) {
-      responseText += `1. Configure DNS records for provisioned hostnames\n`;
-      responseText += `2. Complete certificate domain validation\n`;
-      responseText += `3. Activate properties to staging\n`;
-      responseText += `4. Test functionality before production activation\n`;
+      responseText += '1. Configure DNS records for provisioned hostnames\n';
+      responseText += '2. Complete certificate domain validation\n';
+      responseText += '3. Activate properties to staging\n';
+      responseText += '4. Test functionality before production activation\n';
     } else if (args.dryRun) {
-      responseText += `1. Review the dry run results\n`;
+      responseText += '1. Review the dry run results\n';
       responseText += `2. Execute without dry run: \`Execute bulk provisioning for ${validHostnames.length} hostnames\`\n`;
     }
 
@@ -614,7 +616,7 @@ export async function validateBulkDNS(
     }
 
     // Format response
-    let responseText = `# Bulk DNS Validation Results\n\n`;
+    let responseText = '# Bulk DNS Validation Results\n\n';
     responseText += `**Total Hostnames:** ${args.hostnames.length}\n`;
     responseText += `**Check Propagation:** ${args.checkPropagation ? 'Yes' : 'No'}\n\n`;
 
@@ -622,7 +624,7 @@ export async function validateBulkDNS(
     const invalidCount = results.filter((r) => r.status === 'invalid').length;
     const pendingCount = results.filter((r) => r.status === 'pending').length;
 
-    responseText += `## Summary\n`;
+    responseText += '## Summary\n';
     responseText += `- **Valid:** ${validCount} ✅\n`;
     responseText += `- **Invalid:** ${invalidCount} ❌\n`;
     responseText += `- **Pending:** ${pendingCount} ⏳\n\n`;
@@ -667,9 +669,9 @@ export async function validateBulkDNS(
 
     // DNS configuration instructions
     if (invalidCount > 0) {
-      responseText += `## Required DNS Changes\n`;
-      responseText += `Configure the following CNAME records:\n\n`;
-      responseText += `\`\`\`\n`;
+      responseText += '## Required DNS Changes\n';
+      responseText += 'Configure the following CNAME records:\n\n';
+      responseText += '```\n';
       results
         .filter((r) => r.status === 'invalid')
         .slice(0, 5)
@@ -679,19 +681,19 @@ export async function validateBulkDNS(
       if (invalidCount > 5) {
         responseText += `# ... and ${invalidCount - 5} more\n`;
       }
-      responseText += `\`\`\`\n\n`;
+      responseText += '```\n\n';
     }
 
-    responseText += `## Next Steps\n`;
+    responseText += '## Next Steps\n';
     if (invalidCount > 0) {
-      responseText += `1. Configure the missing CNAME records\n`;
-      responseText += `2. Wait for DNS propagation (typically 5-30 minutes)\n`;
-      responseText += `3. Re-run validation: \`Validate DNS for hostnames\`\n`;
+      responseText += '1. Configure the missing CNAME records\n';
+      responseText += '2. Wait for DNS propagation (typically 5-30 minutes)\n';
+      responseText += '3. Re-run validation: `Validate DNS for hostnames`\n';
     } else if (validCount === args.hostnames.length) {
-      responseText += `✅ All DNS records are configured correctly!\n`;
-      responseText += `1. Proceed with property activation\n`;
-      responseText += `2. Test HTTPS connectivity\n`;
-      responseText += `3. Monitor for any issues\n`;
+      responseText += '✅ All DNS records are configured correctly!\n';
+      responseText += '1. Proceed with property activation\n';
+      responseText += '2. Test HTTPS connectivity\n';
+      responseText += '3. Monitor for any issues\n';
     }
 
     return {
@@ -745,7 +747,9 @@ export async function bulkUpdateHostnameProperties(
     // Group operations by property
     const operationsByProperty = args.operations.reduce(
       (acc, op) => {
-        if (!acc[op.propertyId]) acc[op.propertyId] = [];
+        if (!acc[op.propertyId]) {
+acc[op.propertyId] = [];
+}
         acc[op.propertyId].push(op);
         return acc;
       },
@@ -866,7 +870,7 @@ export async function bulkUpdateHostnameProperties(
     }
 
     // Format response
-    let responseText = `# Bulk Hostname Property Update Results\n\n`;
+    let responseText = '# Bulk Hostname Property Update Results\n\n';
     responseText += `**Total Operations:** ${args.operations.length}\n`;
     responseText += `**Properties Updated:** ${Object.keys(operationsByProperty).length}\n`;
     responseText += `**Successful:** ${results.successful.length} ✅\n`;
@@ -878,7 +882,9 @@ export async function bulkUpdateHostnameProperties(
       // Group by action
       const byAction = results.successful.reduce(
         (acc, r) => {
-          if (!acc[r.action]) acc[r.action] = [];
+          if (!acc[r.action]) {
+acc[r.action] = [];
+}
           acc[r.action].push(r);
           return acc;
         },
@@ -905,15 +911,15 @@ export async function bulkUpdateHostnameProperties(
       responseText += '\n';
     }
 
-    responseText += `## Next Steps\n`;
+    responseText += '## Next Steps\n';
     if (results.successful.length > 0) {
-      responseText += `1. Activate updated properties to staging\n`;
-      responseText += `2. Test hostname functionality\n`;
-      responseText += `3. Activate to production\n`;
-      responseText += `4. Monitor for any issues\n`;
+      responseText += '1. Activate updated properties to staging\n';
+      responseText += '2. Test hostname functionality\n';
+      responseText += '3. Activate to production\n';
+      responseText += '4. Monitor for any issues\n';
     }
     if (results.failed.length > 0) {
-      responseText += `\n⚠️ Review and fix failed updates before proceeding.\n`;
+      responseText += '\n⚠️ Review and fix failed updates before proceeding.\n';
     }
 
     return {
@@ -957,8 +963,12 @@ function estimateProvisioningDuration(hostnameCount: number): string {
 }
 
 function estimatePropertyCount(hostnames: string[], strategy?: string): number {
-  if (strategy === 'single') return 1;
-  if (strategy === 'per-hostname') return hostnames.length;
+  if (strategy === 'single') {
+return 1;
+}
+  if (strategy === 'per-hostname') {
+return hostnames.length;
+}
 
   // For grouped strategy, estimate based on domains
   const domains = new Set(hostnames.map((h) => h.split('.').slice(-2).join('.')));

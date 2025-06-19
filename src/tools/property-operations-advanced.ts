@@ -3,10 +3,11 @@
  * Comprehensive property management including search, comparison, health checks, and bulk updates
  */
 
-import { type AkamaiClient } from '../akamai-client';
-import { type MCPToolResponse } from '../types';
 import { ErrorTranslator } from '@utils/errors';
 import { formatPropertyDisplay } from '@utils/formatting';
+
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
 
 // Property search types
 export interface PropertySearchCriteria {
@@ -197,9 +198,15 @@ export async function searchPropertiesAdvanced(
       }
 
       // Contract/Group/Product filtering
-      if (args.criteria.contractId && property.contractId !== args.criteria.contractId) continue;
-      if (args.criteria.groupId && property.groupId !== args.criteria.groupId) continue;
-      if (args.criteria.productId && property.productId !== args.criteria.productId) continue;
+      if (args.criteria.contractId && property.contractId !== args.criteria.contractId) {
+continue;
+}
+      if (args.criteria.groupId && property.groupId !== args.criteria.groupId) {
+continue;
+}
+      if (args.criteria.productId && property.productId !== args.criteria.productId) {
+continue;
+}
 
       // Activation status filtering
       if (args.criteria.activationStatus) {
@@ -208,19 +215,27 @@ export async function searchPropertiesAdvanced(
 
         switch (args.criteria.activationStatus) {
           case 'production':
-            if (!hasProduction) continue;
+            if (!hasProduction) {
+continue;
+}
             matchReasons.push('Active in production');
             break;
           case 'staging':
-            if (!hasStaging) continue;
+            if (!hasStaging) {
+continue;
+}
             matchReasons.push('Active in staging');
             break;
           case 'both':
-            if (!hasProduction || !hasStaging) continue;
+            if (!hasProduction || !hasStaging) {
+continue;
+}
             matchReasons.push('Active in both networks');
             break;
           case 'none':
-            if (hasProduction || hasStaging) continue;
+            if (hasProduction || hasStaging) {
+continue;
+}
             matchReasons.push('Not activated');
             break;
         }
@@ -275,10 +290,12 @@ export async function searchPropertiesAdvanced(
 
       // Last modified filtering
       const lastModified = new Date(property.lastModified || property.updateDate);
-      if (args.criteria.lastModifiedAfter && lastModified < args.criteria.lastModifiedAfter)
-        continue;
-      if (args.criteria.lastModifiedBefore && lastModified > args.criteria.lastModifiedBefore)
-        continue;
+      if (args.criteria.lastModifiedAfter && lastModified < args.criteria.lastModifiedAfter) {
+continue;
+}
+      if (args.criteria.lastModifiedBefore && lastModified > args.criteria.lastModifiedBefore) {
+continue;
+}
 
       // Add to results if matches criteria
       if (score > 0 || matchReasons.length > 0 || !hasAnyCriteria(args.criteria)) {
@@ -317,7 +334,7 @@ export async function searchPropertiesAdvanced(
     const limitedResults = searchResults.slice(0, limit);
 
     // Format response
-    let responseText = `# Advanced Property Search Results\n\n`;
+    let responseText = '# Advanced Property Search Results\n\n';
     responseText += `**Total Matches:** ${searchResults.length}`;
     if (searchResults.length > limit) {
       responseText += ` (showing top ${limit})`;
@@ -325,17 +342,28 @@ export async function searchPropertiesAdvanced(
     responseText += '\n\n';
 
     // Search criteria summary
-    responseText += `## Search Criteria\n`;
-    if (args.criteria.name) responseText += `- **Name contains:** ${args.criteria.name}\n`;
-    if (args.criteria.hostname)
-      responseText += `- **Hostname contains:** ${args.criteria.hostname}\n`;
-    if (args.criteria.edgeHostname)
-      responseText += `- **Edge hostname contains:** ${args.criteria.edgeHostname}\n`;
-    if (args.criteria.contractId) responseText += `- **Contract:** ${args.criteria.contractId}\n`;
-    if (args.criteria.groupId) responseText += `- **Group:** ${args.criteria.groupId}\n`;
-    if (args.criteria.productId) responseText += `- **Product:** ${args.criteria.productId}\n`;
-    if (args.criteria.activationStatus)
-      responseText += `- **Activation status:** ${args.criteria.activationStatus}\n`;
+    responseText += '## Search Criteria\n';
+    if (args.criteria.name) {
+responseText += `- **Name contains:** ${args.criteria.name}\n`;
+}
+    if (args.criteria.hostname) {
+responseText += `- **Hostname contains:** ${args.criteria.hostname}\n`;
+}
+    if (args.criteria.edgeHostname) {
+responseText += `- **Edge hostname contains:** ${args.criteria.edgeHostname}\n`;
+}
+    if (args.criteria.contractId) {
+responseText += `- **Contract:** ${args.criteria.contractId}\n`;
+}
+    if (args.criteria.groupId) {
+responseText += `- **Group:** ${args.criteria.groupId}\n`;
+}
+    if (args.criteria.productId) {
+responseText += `- **Product:** ${args.criteria.productId}\n`;
+}
+    if (args.criteria.activationStatus) {
+responseText += `- **Activation status:** ${args.criteria.activationStatus}\n`;
+}
     responseText += '\n';
 
     // Results
@@ -348,7 +376,7 @@ export async function searchPropertiesAdvanced(
         responseText += `**Score:** ${result.score}\n`;
 
         if (result.matchReasons.length > 0) {
-          responseText += `**Match Reasons:**\n`;
+          responseText += '**Match Reasons:**\n';
           result.matchReasons.forEach((reason) => {
             responseText += `- ${reason}\n`;
           });
@@ -604,8 +632,8 @@ export async function compareProperties(
       comparison.similarity.behaviors * 0.3;
 
     // Format response
-    let responseText = `# Property Comparison Report\n\n`;
-    responseText += `## Properties Being Compared\n\n`;
+    let responseText = '# Property Comparison Report\n\n';
+    responseText += '## Properties Being Compared\n\n';
     responseText += `### Property A: ${comparison.propertyA.propertyName}\n`;
     responseText += `- **ID:** ${comparison.propertyA.propertyId}\n`;
     responseText += `- **Version:** ${comparison.propertyA.version}\n`;
@@ -618,7 +646,7 @@ export async function compareProperties(
     responseText += `- **Product:** ${formatPropertyDisplay(comparison.propertyB.productId)}\n`;
     responseText += `- **Rule Format:** ${comparison.propertyB.ruleFormat}\n\n`;
 
-    responseText += `## Similarity Scores\n`;
+    responseText += '## Similarity Scores\n';
     responseText += `- **Overall Similarity:** ${Math.round(comparison.similarity.overall)}%\n`;
     responseText += `- **Hostname Similarity:** ${Math.round(comparison.similarity.hostnames)}%\n`;
     responseText += `- **Rule Similarity:** ${Math.round(comparison.similarity.rules)}%\n`;
@@ -626,7 +654,7 @@ export async function compareProperties(
 
     // Metadata differences
     if (comparison.differences.metadata.length > 0) {
-      responseText += `## Metadata Differences\n`;
+      responseText += '## Metadata Differences\n';
       comparison.differences.metadata.forEach((diff) => {
         responseText += `- **${diff.field}:** ${diff.valueA} → ${diff.valueB}\n`;
       });
@@ -640,12 +668,12 @@ export async function compareProperties(
       const removed = comparison.differences.hostnames.filter((h) => h.type === 'removed');
 
       if (added.length > 0) {
-        responseText += `### Added in Property B:\n`;
+        responseText += '### Added in Property B:\n';
         added.forEach((h) => (responseText += `- ${h.hostname}\n`));
       }
 
       if (removed.length > 0) {
-        responseText += `### Removed from Property B:\n`;
+        responseText += '### Removed from Property B:\n';
         removed.forEach((h) => (responseText += `- ${h.hostname}\n`));
       }
       responseText += '\n';
@@ -676,7 +704,7 @@ export async function compareProperties(
     }
 
     // Activation differences
-    responseText += `## Activation Status\n`;
+    responseText += '## Activation Status\n';
     comparison.differences.activations.forEach((diff) => {
       responseText += `- **${diff.network}:** `;
       if (diff.versionA === diff.versionB) {
@@ -881,18 +909,18 @@ export async function checkPropertyHealth(
     }
 
     // Format response
-    let responseText = `# Property Health Check Report\n\n`;
+    let responseText = '# Property Health Check Report\n\n';
     responseText += `**Property:** ${healthCheck.propertyName} (${healthCheck.propertyId})\n`;
     responseText += `**Version:** ${healthCheck.version}\n`;
     responseText += `**Overall Health:** ${getHealthEmoji(healthCheck.overallHealth)} ${healthCheck.overallHealth.toUpperCase()}\n\n`;
 
-    responseText += `## Health Check Results\n\n`;
+    responseText += '## Health Check Results\n\n';
     Object.entries(healthCheck.checks).forEach(([category, result]) => {
       responseText += `### ${category.charAt(0).toUpperCase() + category.slice(1)}\n`;
       responseText += `${getHealthEmoji(result.status)} **Status:** ${result.status.toUpperCase()}\n`;
       responseText += `**Message:** ${result.message}\n`;
       if (result.details && result.details.length > 0) {
-        responseText += `**Details:**\n`;
+        responseText += '**Details:**\n';
         result.details.forEach((detail) => {
           responseText += `- ${detail}\n`;
         });
@@ -910,28 +938,28 @@ export async function checkPropertyHealth(
       const lowIssues = healthCheck.issues.filter((i) => i.severity === 'low');
 
       if (criticalIssues.length > 0) {
-        responseText += `### 🔴 Critical Issues\n`;
+        responseText += '### 🔴 Critical Issues\n';
         criticalIssues.forEach((issue) => {
           responseText += formatIssue(issue);
         });
       }
 
       if (highIssues.length > 0) {
-        responseText += `### 🟠 High Priority Issues\n`;
+        responseText += '### 🟠 High Priority Issues\n';
         highIssues.forEach((issue) => {
           responseText += formatIssue(issue);
         });
       }
 
       if (mediumIssues.length > 0) {
-        responseText += `### 🟡 Medium Priority Issues\n`;
+        responseText += '### 🟡 Medium Priority Issues\n';
         mediumIssues.forEach((issue) => {
           responseText += formatIssue(issue);
         });
       }
 
       if (lowIssues.length > 0) {
-        responseText += `### 🟢 Low Priority Issues\n`;
+        responseText += '### 🟢 Low Priority Issues\n';
         lowIssues.forEach((issue) => {
           responseText += formatIssue(issue);
         });
@@ -940,26 +968,26 @@ export async function checkPropertyHealth(
 
     // Recommendations
     if (healthCheck.recommendations.length > 0) {
-      responseText += `## 💡 Recommendations\n\n`;
+      responseText += '## 💡 Recommendations\n\n';
       healthCheck.recommendations.forEach((rec) => {
         responseText += `- ${rec}\n`;
       });
     }
 
     // Next steps
-    responseText += `\n## Next Steps\n`;
+    responseText += '\n## Next Steps\n';
     if (healthCheck.overallHealth === 'critical') {
-      responseText += `1. Address critical issues immediately\n`;
-      responseText += `2. Review and fix certificate problems\n`;
-      responseText += `3. Re-run health check after fixes\n`;
+      responseText += '1. Address critical issues immediately\n';
+      responseText += '2. Review and fix certificate problems\n';
+      responseText += '3. Re-run health check after fixes\n';
     } else if (healthCheck.overallHealth === 'warning') {
-      responseText += `1. Review and address warnings\n`;
-      responseText += `2. Implement recommended optimizations\n`;
-      responseText += `3. Consider security enhancements\n`;
+      responseText += '1. Review and address warnings\n';
+      responseText += '2. Implement recommended optimizations\n';
+      responseText += '3. Consider security enhancements\n';
     } else {
-      responseText += `1. Property is healthy!\n`;
-      responseText += `2. Consider implementing recommendations for optimization\n`;
-      responseText += `3. Schedule regular health checks\n`;
+      responseText += '1. Property is healthy!\n';
+      responseText += '2. Consider implementing recommendations for optimization\n';
+      responseText += '3. Schedule regular health checks\n';
     }
 
     return {
@@ -1088,7 +1116,7 @@ export async function detectConfigurationDrift(
     }
 
     // Format response
-    let responseText = `# Configuration Drift Analysis\n\n`;
+    let responseText = '# Configuration Drift Analysis\n\n';
     responseText += `**Property:** ${drift.propertyName} (${drift.propertyId})\n`;
     responseText += `**Baseline Version:** ${args.baselineVersion}\n`;
     responseText += `**Compare Version:** ${compareVersion}\n`;
@@ -1104,48 +1132,48 @@ export async function detectConfigurationDrift(
       const lowImpact = drift.drifts.filter((d) => d.impact === 'low');
 
       if (highImpact.length > 0) {
-        responseText += `### 🔴 High Impact Changes\n`;
+        responseText += '### 🔴 High Impact Changes\n';
         highImpact.forEach((drift) => {
           responseText += formatDrift(drift);
         });
       }
 
       if (mediumImpact.length > 0) {
-        responseText += `### 🟡 Medium Impact Changes\n`;
+        responseText += '### 🟡 Medium Impact Changes\n';
         mediumImpact.forEach((drift) => {
           responseText += formatDrift(drift);
         });
       }
 
       if (lowImpact.length > 0) {
-        responseText += `### 🟢 Low Impact Changes\n`;
+        responseText += '### 🟢 Low Impact Changes\n';
         lowImpact.forEach((drift) => {
           responseText += formatDrift(drift);
         });
       }
     } else {
-      responseText += `## No Configuration Drift Detected\n\n`;
+      responseText += '## No Configuration Drift Detected\n\n';
       responseText += `The configuration in version ${compareVersion} matches the baseline version ${args.baselineVersion}.\n`;
     }
 
     // Recommendations
     if (drift.recommendations.length > 0) {
-      responseText += `\n## Recommendations\n\n`;
+      responseText += '\n## Recommendations\n\n';
       drift.recommendations.forEach((rec) => {
         responseText += `- ${rec}\n`;
       });
     }
 
     // Next steps
-    responseText += `\n## Next Steps\n`;
+    responseText += '\n## Next Steps\n';
     if (drift.driftDetected) {
-      responseText += `1. Review each drift item to verify it's intentional\n`;
-      responseText += `2. Test changes in staging environment\n`;
-      responseText += `3. Document significant changes\n`;
-      responseText += `4. Consider updating baseline after verification\n`;
+      responseText += '1. Review each drift item to verify it\'s intentional\n';
+      responseText += '2. Test changes in staging environment\n';
+      responseText += '3. Document significant changes\n';
+      responseText += '4. Consider updating baseline after verification\n';
     } else {
-      responseText += `1. No action required - configuration is stable\n`;
-      responseText += `2. Continue monitoring for future changes\n`;
+      responseText += '1. No action required - configuration is stable\n';
+      responseText += '2. Continue monitoring for future changes\n';
     }
 
     return {
@@ -1270,7 +1298,9 @@ export async function bulkUpdateProperties(
 
           // Add behavior
           if (args.updates.addBehavior) {
-            if (!rules.behaviors) rules.behaviors = [];
+            if (!rules.behaviors) {
+rules.behaviors = [];
+}
             rules.behaviors.push({
               name: args.updates.addBehavior.name,
               options: args.updates.addBehavior.options,
@@ -1393,13 +1423,13 @@ export async function bulkUpdateProperties(
     }
 
     // Format response
-    let responseText = `# Bulk Property Update Results\n\n`;
+    let responseText = '# Bulk Property Update Results\n\n';
     responseText += `**Total Properties:** ${args.propertyIds.length}\n`;
     responseText += `**Successful:** ${results.filter((r) => r.success).length}\n`;
     responseText += `**Failed:** ${results.filter((r) => !r.success).length}\n\n`;
 
     // Update summary
-    responseText += `## Updates Applied\n`;
+    responseText += '## Updates Applied\n';
     if (args.updates.addBehavior) {
       responseText += `- **Add Behavior:** ${args.updates.addBehavior.name}\n`;
     }
@@ -1415,7 +1445,7 @@ export async function bulkUpdateProperties(
     responseText += '\n';
 
     // Results by property
-    responseText += `## Results by Property\n\n`;
+    responseText += '## Results by Property\n\n';
 
     const successful = results.filter((r) => r.success);
     const failed = results.filter((r) => !r.success);
@@ -1442,16 +1472,16 @@ export async function bulkUpdateProperties(
     }
 
     // Next steps
-    responseText += `## Next Steps\n`;
+    responseText += '## Next Steps\n';
     if (successful.length > 0) {
-      responseText += `1. Review the changes in each property\n`;
-      responseText += `2. Test in staging environment\n`;
-      responseText += `3. Activate properties when ready\n`;
+      responseText += '1. Review the changes in each property\n';
+      responseText += '2. Test in staging environment\n';
+      responseText += '3. Activate properties when ready\n';
     }
     if (failed.length > 0) {
-      responseText += `1. Review failed properties individually\n`;
-      responseText += `2. Fix any permission or validation issues\n`;
-      responseText += `3. Retry updates for failed properties\n`;
+      responseText += '1. Review failed properties individually\n';
+      responseText += '2. Fix any permission or validation issues\n';
+      responseText += '3. Retry updates for failed properties\n';
     }
 
     return {
@@ -1484,14 +1514,20 @@ function calculateStringMatch(str1: string, str2: string): number {
   const s1 = str1.toLowerCase();
   const s2 = str2.toLowerCase();
 
-  if (s1 === s2) return 1;
-  if (s1.includes(s2) || s2.includes(s1)) return 0.8;
+  if (s1 === s2) {
+return 1;
+}
+  if (s1.includes(s2) || s2.includes(s1)) {
+return 0.8;
+}
 
   // Simple similarity score
   const maxLen = Math.max(s1.length, s2.length);
   let matches = 0;
   for (let i = 0; i < Math.min(s1.length, s2.length); i++) {
-    if (s1[i] === s2[i]) matches++;
+    if (s1[i] === s2[i]) {
+matches++;
+}
   }
   return matches / maxLen;
 }

@@ -9,11 +9,12 @@
  */
 
 // @ts-ignore - JavaScript modules will be converted to TypeScript
+import { CustomerExperienceImpactAnalyzer } from './cx-impact-analyzer';
+import { FixStrategyOptimizer } from './fix-strategy';
+
 const TestOutputAnalyzer = require('./output-analyzer');
 // @ts-ignore - JavaScript modules will be converted to TypeScript
 const TodoGenerator = require('./todo-generator');
-import { CustomerExperienceImpactAnalyzer } from './cx-impact-analyzer';
-import { FixStrategyOptimizer } from './fix-strategy';
 
 // Type Definitions
 interface AnalyzerOptions {
@@ -667,13 +668,27 @@ export class IntelligentBugAnalyzer {
    * Get health grade
    */
   private getHealthGrade(score: number): string {
-    if (score >= 95) return 'A+';
-    if (score >= 90) return 'A';
-    if (score >= 85) return 'B+';
-    if (score >= 80) return 'B';
-    if (score >= 75) return 'C+';
-    if (score >= 70) return 'C';
-    if (score >= 60) return 'D';
+    if (score >= 95) {
+return 'A+';
+}
+    if (score >= 90) {
+return 'A';
+}
+    if (score >= 85) {
+return 'B+';
+}
+    if (score >= 80) {
+return 'B';
+}
+    if (score >= 75) {
+return 'C+';
+}
+    if (score >= 70) {
+return 'C';
+}
+    if (score >= 60) {
+return 'D';
+}
     return 'F';
   }
 
@@ -728,14 +743,14 @@ export class IntelligentBugAnalyzer {
   private generateMarkdownReport(report: AnalysisReport): string {
     const { metadata, executive_summary, test_analysis, todo_management } = report;
 
-    let markdown = `# Bug Analysis Report\n\n`;
+    let markdown = '# Bug Analysis Report\n\n';
     markdown += `**Analysis ID**: ${metadata.analysisId}\n`;
     markdown += `**Generated**: ${metadata.timestamp}\n`;
     markdown += `**Processing Time**: ${metadata.processingTime}ms\n\n`;
 
     // Executive Summary
-    markdown += `## 📋 Executive Summary\n\n`;
-    markdown += `### Situation\n`;
+    markdown += '## 📋 Executive Summary\n\n';
+    markdown += '### Situation\n';
     markdown += `- **Severity**: ${executive_summary.situation.severity}\n`;
     markdown += `- **Description**: ${executive_summary.situation.description}\n`;
     markdown += `- **Success Rate**: ${executive_summary.situation.success_rate.toFixed(1)}%\n`;
@@ -751,7 +766,7 @@ export class IntelligentBugAnalyzer {
     }
 
     // TODO List Summary
-    markdown += `## ✅ TODO Summary\n\n`;
+    markdown += '## ✅ TODO Summary\n\n';
     markdown += `- **Total Items**: ${todo_management.list.metadata.totalItems}\n`;
     markdown += `- **Critical**: ${todo_management.list.metadata.criticalCount}\n`;
     markdown += `- **High Priority**: ${todo_management.list.metadata.highCount}\n`;
@@ -759,7 +774,7 @@ export class IntelligentBugAnalyzer {
 
     // Quick Wins
     if (todo_management.list.quickWins && todo_management.list.quickWins.length > 0) {
-      markdown += `### 🚀 Quick Wins\n\n`;
+      markdown += '### 🚀 Quick Wins\n\n';
       todo_management.list.quickWins.forEach((item) => {
         markdown += `- **${item.title}** (${item.effort_details?.hours}h) - ${item.description}\n`;
       });
@@ -769,7 +784,7 @@ export class IntelligentBugAnalyzer {
     // Critical Items
     const criticalItems = todo_management.list.priorityGroups?.CRITICAL || [];
     if (criticalItems.length > 0) {
-      markdown += `### 🚨 Critical Items\n\n`;
+      markdown += '### 🚨 Critical Items\n\n';
       criticalItems.forEach((item) => {
         markdown += `#### ${item.type_details?.icon} ${item.title}\n`;
         markdown += `${item.description}\n\n`;
@@ -780,10 +795,10 @@ export class IntelligentBugAnalyzer {
 
     // Recommendations
     if (report.recommendations) {
-      markdown += `## 💡 Recommendations\n\n`;
+      markdown += '## 💡 Recommendations\n\n';
 
       if (report.recommendations.immediate?.length > 0) {
-        markdown += `### Immediate Actions\n`;
+        markdown += '### Immediate Actions\n';
         report.recommendations.immediate.forEach((rec) => {
           markdown += `- **${rec.action}** (${rec.effort}) - ${rec.reason}\n`;
         });
@@ -861,9 +876,15 @@ export class IntelligentBugAnalyzer {
 
   private estimateInitiativeTimeline(initiative: { estimatedEffort: number }): string {
     const hours = initiative.estimatedEffort || 0;
-    if (hours < 40) return '1-2 weeks';
-    if (hours < 160) return '3-4 weeks';
-    if (hours < 320) return '6-8 weeks';
+    if (hours < 40) {
+return '1-2 weeks';
+}
+    if (hours < 160) {
+return '3-4 weeks';
+}
+    if (hours < 320) {
+return '6-8 weeks';
+}
     return '2-3 months';
   }
 
@@ -873,10 +894,18 @@ export class IntelligentBugAnalyzer {
       (testResults.testSuites?.length || 1);
 
     // Score based on average test runtime (lower is better)
-    if (avgRuntime < 1000) return 100;
-    if (avgRuntime < 5000) return 90;
-    if (avgRuntime < 10000) return 80;
-    if (avgRuntime < 30000) return 70;
+    if (avgRuntime < 1000) {
+return 100;
+}
+    if (avgRuntime < 5000) {
+return 90;
+}
+    if (avgRuntime < 10000) {
+return 80;
+}
+    if (avgRuntime < 30000) {
+return 70;
+}
     return 60;
   }
 
@@ -905,13 +934,19 @@ export class IntelligentBugAnalyzer {
     probability -= criticalIssues * 5;
 
     // Adjust based on customer impact
-    if (customerImpact?.overview?.riskLevel === 'CRITICAL') probability -= 15;
-    else if (customerImpact?.overview?.riskLevel === 'HIGH') probability -= 10;
+    if (customerImpact?.overview?.riskLevel === 'CRITICAL') {
+probability -= 15;
+} else if (customerImpact?.overview?.riskLevel === 'HIGH') {
+probability -= 10;
+}
 
     // Adjust based on total effort
     const totalHours = todoList.metadata?.estimatedTotalHours || 0;
-    if (totalHours > 500) probability -= 10;
-    else if (totalHours > 200) probability -= 5;
+    if (totalHours > 500) {
+probability -= 10;
+} else if (totalHours > 200) {
+probability -= 5;
+}
 
     return Math.max(10, Math.min(95, probability));
   }

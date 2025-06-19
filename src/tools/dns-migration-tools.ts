@@ -5,6 +5,7 @@
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse, type DNSRecordSet } from '../types';
+
 import { createZone, ensureCleanChangeList } from './dns-tools';
 
 // DNS Migration Types
@@ -158,15 +159,15 @@ export async function parseZoneFile(
 
     // Generate migration plan
     let text = `# Zone File Migration Plan - ${args.zone}\n\n`;
-    text += `## Summary\n\n`;
+    text += '## Summary\n\n';
     text += `- **Total Records:** ${totalRecords}\n`;
     text += `- **Migrateable:** ${migrateableRecords}\n`;
     text += `- **Requires Attention:** ${conflicts.length}\n`;
     text += `- **Estimated Migration Time:** ${estimateMigrationTime(totalRecords)}\n\n`;
 
     if (unsupportedTypes.size > 0) {
-      text += `## ⚠️ Unsupported Record Types\n\n`;
-      text += `The following record types need manual migration:\n`;
+      text += '## ⚠️ Unsupported Record Types\n\n';
+      text += 'The following record types need manual migration:\n';
       Array.from(unsupportedTypes).forEach((type) => {
         text += `- ${type}\n`;
       });
@@ -174,7 +175,7 @@ export async function parseZoneFile(
     }
 
     if (conflicts.length > 0) {
-      text += `## 🔍 Issues Requiring Attention\n\n`;
+      text += '## 🔍 Issues Requiring Attention\n\n';
       for (const conflict of conflicts) {
         text += `### ${conflict.record}\n`;
         text += `- **Issue:** ${conflict.issue}\n`;
@@ -183,7 +184,7 @@ export async function parseZoneFile(
     }
 
     // Show sample records
-    text += `## Sample Records (First 10)\n\n`;
+    text += '## Sample Records (First 10)\n\n';
     text += '```\n';
     akamaiRecords.slice(0, 10).forEach((record) => {
       text += `${record.name} ${record.ttl} ${record.type} ${record.rdata.join(' ')}\n`;
@@ -195,7 +196,7 @@ export async function parseZoneFile(
 
     // Validation results if requested
     if (args.validateRecords) {
-      text += `## Validation Results\n\n`;
+      text += '## Validation Results\n\n';
       const validationResults = await validateDNSRecords(records.slice(0, 5)); // Validate first 5
 
       for (const result of validationResults) {
@@ -205,12 +206,12 @@ export async function parseZoneFile(
     }
 
     // Migration instructions
-    text += `## Migration Steps\n\n`;
+    text += '## Migration Steps\n\n';
     text += `1. **Create Zone:**\n   "Create primary zone ${args.zone}"\n\n`;
     text += `2. **Import Records:**\n   "Bulk import records to zone ${args.zone}"\n\n`;
     text += `3. **Verify Import:**\n   "List records in zone ${args.zone}"\n\n`;
-    text += `4. **Test Resolution:**\n   Test with Akamai nameservers before switching\n\n`;
-    text += `5. **Update Nameservers:**\n   Update domain registrar to use Akamai nameservers\n\n`;
+    text += '4. **Test Resolution:**\n   Test with Akamai nameservers before switching\n\n';
+    text += '5. **Update Nameservers:**\n   Update domain registrar to use Akamai nameservers\n\n';
 
     // Store parsed records for bulk import
     globalMigrationCache.set(args.zone, akamaiRecords);
@@ -319,7 +320,7 @@ export async function bulkImportRecords(
 
     // Format results
     let text = `# Bulk Import Results - ${args.zone}\n\n`;
-    text += `## Summary\n\n`;
+    text += '## Summary\n\n';
     text += `- **Total Records:** ${records.length}\n`;
     text += `- **Successfully Imported:** ${successCount} ✅\n`;
     text += `- **Failed:** ${errors.length} ❌\n`;
@@ -327,7 +328,7 @@ export async function bulkImportRecords(
     text += `- **Status:** ${successCount > 0 ? 'Changes submitted' : 'No changes made'}\n\n`;
 
     if (errors.length > 0) {
-      text += `## ❌ Failed Records\n\n`;
+      text += '## ❌ Failed Records\n\n';
       errors.slice(0, 20).forEach((error) => {
         text += `- **${error.record}:** ${error.error}\n`;
       });
@@ -337,20 +338,20 @@ export async function bulkImportRecords(
       text += '\n';
     }
 
-    text += `## Next Steps\n\n`;
+    text += '## Next Steps\n\n';
     text += `1. **Verify Import:**\n   "List records in zone ${args.zone}"\n\n`;
     text += `2. **Test Resolution:**\n   \`dig @use4-akadns.net ${args.zone} SOA\`\n\n`;
-    text += `3. **Fix Failed Records:**\n   Review and manually add any failed records\n\n`;
+    text += '3. **Fix Failed Records:**\n   Review and manually add any failed records\n\n';
 
     if (successCount > 0) {
-      text += `## 🎉 Success!\n\n`;
-      text += `Your DNS records have been imported to Akamai Edge DNS.\n\n`;
-      text += `**Akamai Nameservers:**\n`;
-      text += `- use.akadns.net\n`;
-      text += `- use4.akadns.net\n`;
-      text += `- use2.akadns.net\n`;
-      text += `- use3.akadns.net\n\n`;
-      text += `⚠️ **Important:** Don't update your domain registrar until you've verified all records are working correctly!`;
+      text += '## 🎉 Success!\n\n';
+      text += 'Your DNS records have been imported to Akamai Edge DNS.\n\n';
+      text += '**Akamai Nameservers:**\n';
+      text += '- use.akadns.net\n';
+      text += '- use4.akadns.net\n';
+      text += '- use2.akadns.net\n';
+      text += '- use3.akadns.net\n\n';
+      text += '⚠️ **Important:** Don\'t update your domain registrar until you\'ve verified all records are working correctly!';
     }
 
     return {
@@ -447,103 +448,103 @@ export async function generateMigrationInstructions(
     const recordCount = recordsResponse.recordsets?.length || 0;
 
     let text = `# DNS Migration Instructions - ${args.zone}\n\n`;
-    text += `## Pre-Migration Checklist\n\n`;
-    text += `- [ ] Zone created in Akamai Edge DNS\n`;
+    text += '## Pre-Migration Checklist\n\n';
+    text += '- [ ] Zone created in Akamai Edge DNS\n';
     text += `- [ ] All records imported (${recordCount} records found)\n`;
-    text += `- [ ] Critical records verified (A, AAAA, CNAME, MX)\n`;
-    text += `- [ ] TTLs reviewed and adjusted if needed\n`;
-    text += `- [ ] Monitoring configured\n\n`;
+    text += '- [ ] Critical records verified (A, AAAA, CNAME, MX)\n';
+    text += '- [ ] TTLs reviewed and adjusted if needed\n';
+    text += '- [ ] Monitoring configured\n\n';
 
-    text += `## Current Configuration\n\n`;
+    text += '## Current Configuration\n\n';
     if (args.currentNameservers && args.currentNameservers.length > 0) {
-      text += `**Current Nameservers:**\n`;
+      text += '**Current Nameservers:**\n';
       args.currentNameservers.forEach((ns) => {
         text += `- ${ns}\n`;
       });
       text += '\n';
     }
 
-    text += `**Akamai Nameservers:**\n`;
-    text += `- use.akadns.net\n`;
-    text += `- use4.akadns.net\n`;
-    text += `- use2.akadns.net\n`;
-    text += `- use3.akadns.net\n\n`;
+    text += '**Akamai Nameservers:**\n';
+    text += '- use.akadns.net\n';
+    text += '- use4.akadns.net\n';
+    text += '- use2.akadns.net\n';
+    text += '- use3.akadns.net\n\n';
 
-    text += `## Migration Steps\n\n`;
-    text += `### Phase 1: Preparation (Day 1)\n\n`;
-    text += `1. **Lower TTLs** (24 hours before migration)\n`;
-    text += `   - Reduce TTL on NS records to 300 seconds\n`;
-    text += `   - Reduce TTL on critical records to 300 seconds\n\n`;
-    text += `2. **Final Sync**\n`;
-    text += `   - Import any last-minute record changes\n`;
-    text += `   - Verify all records match source\n\n`;
-    text += `3. **Testing**\n`;
-    text += `   \`\`\`bash\n`;
-    text += `   # Test resolution from Akamai nameservers\n`;
+    text += '## Migration Steps\n\n';
+    text += '### Phase 1: Preparation (Day 1)\n\n';
+    text += '1. **Lower TTLs** (24 hours before migration)\n';
+    text += '   - Reduce TTL on NS records to 300 seconds\n';
+    text += '   - Reduce TTL on critical records to 300 seconds\n\n';
+    text += '2. **Final Sync**\n';
+    text += '   - Import any last-minute record changes\n';
+    text += '   - Verify all records match source\n\n';
+    text += '3. **Testing**\n';
+    text += '   ```bash\n';
+    text += '   # Test resolution from Akamai nameservers\n';
     text += `   dig @use4-akadns.net ${args.zone} ANY\n`;
     text += `   dig @use4-akadns.net www.${args.zone} A\n`;
     text += `   dig @use4-akadns.net ${args.zone} MX\n`;
-    text += `   \`\`\`\n\n`;
+    text += '   ```\n\n';
 
-    text += `### Phase 2: Migration (Day 2)\n\n`;
-    text += `1. **Update Domain Registrar**\n`;
-    text += `   - Log into your domain registrar\n`;
-    text += `   - Replace nameservers with Akamai nameservers\n`;
-    text += `   - Save changes\n\n`;
-    text += `2. **Monitor Propagation**\n`;
-    text += `   \`\`\`bash\n`;
-    text += `   # Check nameserver propagation\n`;
+    text += '### Phase 2: Migration (Day 2)\n\n';
+    text += '1. **Update Domain Registrar**\n';
+    text += '   - Log into your domain registrar\n';
+    text += '   - Replace nameservers with Akamai nameservers\n';
+    text += '   - Save changes\n\n';
+    text += '2. **Monitor Propagation**\n';
+    text += '   ```bash\n';
+    text += '   # Check nameserver propagation\n';
     text += `   dig ${args.zone} NS +trace\n`;
-    text += `   \n`;
-    text += `   # Monitor from multiple locations\n`;
-    text += `   # Use online tools like whatsmydns.net\n`;
-    text += `   \`\`\`\n\n`;
+    text += '   \n';
+    text += '   # Monitor from multiple locations\n';
+    text += '   # Use online tools like whatsmydns.net\n';
+    text += '   ```\n\n';
 
-    text += `### Phase 3: Validation (Day 2-3)\n\n`;
-    text += `1. **Verify Services**\n`;
-    text += `   - [ ] Website loads correctly\n`;
-    text += `   - [ ] Email delivery working\n`;
-    text += `   - [ ] All subdomains resolving\n`;
-    text += `   - [ ] API endpoints accessible\n\n`;
-    text += `2. **Check Logs**\n`;
-    text += `   - Monitor application logs for DNS errors\n`;
-    text += `   - Check email delivery logs\n`;
-    text += `   - Review CDN hit rates\n\n`;
+    text += '### Phase 3: Validation (Day 2-3)\n\n';
+    text += '1. **Verify Services**\n';
+    text += '   - [ ] Website loads correctly\n';
+    text += '   - [ ] Email delivery working\n';
+    text += '   - [ ] All subdomains resolving\n';
+    text += '   - [ ] API endpoints accessible\n\n';
+    text += '2. **Check Logs**\n';
+    text += '   - Monitor application logs for DNS errors\n';
+    text += '   - Check email delivery logs\n';
+    text += '   - Review CDN hit rates\n\n';
 
-    text += `### Phase 4: Cleanup (Day 7)\n\n`;
-    text += `1. **Restore TTLs**\n`;
-    text += `   - Increase TTLs back to normal values\n`;
-    text += `   - Typical: 3600 (1 hour) or 86400 (24 hours)\n\n`;
-    text += `2. **Decommission Old DNS**\n`;
-    text += `   - Keep old nameservers active for 7 days\n`;
-    text += `   - Monitor query logs for stragglers\n`;
-    text += `   - Safely decommission after no queries\n\n`;
+    text += '### Phase 4: Cleanup (Day 7)\n\n';
+    text += '1. **Restore TTLs**\n';
+    text += '   - Increase TTLs back to normal values\n';
+    text += '   - Typical: 3600 (1 hour) or 86400 (24 hours)\n\n';
+    text += '2. **Decommission Old DNS**\n';
+    text += '   - Keep old nameservers active for 7 days\n';
+    text += '   - Monitor query logs for stragglers\n';
+    text += '   - Safely decommission after no queries\n\n';
 
     if (args.estimateDowntime) {
-      text += `## Downtime Estimation\n\n`;
-      text += `**Expected Downtime:** ZERO\n\n`;
-      text += `When done correctly, DNS migration has no downtime:\n`;
-      text += `- Both old and new nameservers serve identical records\n`;
-      text += `- Clients gradually switch to new nameservers\n`;
-      text += `- No service interruption\n\n`;
-      text += `**Propagation Timeline:**\n`;
-      text += `- 50% of clients: 1-4 hours\n`;
-      text += `- 90% of clients: 4-24 hours\n`;
-      text += `- 99% of clients: 24-48 hours\n`;
-      text += `- Complete: up to 72 hours\n\n`;
+      text += '## Downtime Estimation\n\n';
+      text += '**Expected Downtime:** ZERO\n\n';
+      text += 'When done correctly, DNS migration has no downtime:\n';
+      text += '- Both old and new nameservers serve identical records\n';
+      text += '- Clients gradually switch to new nameservers\n';
+      text += '- No service interruption\n\n';
+      text += '**Propagation Timeline:**\n';
+      text += '- 50% of clients: 1-4 hours\n';
+      text += '- 90% of clients: 4-24 hours\n';
+      text += '- 99% of clients: 24-48 hours\n';
+      text += '- Complete: up to 72 hours\n\n';
     }
 
-    text += `## Emergency Rollback\n\n`;
-    text += `If issues arise:\n\n`;
-    text += `1. **Immediate:** Change nameservers back at registrar\n`;
-    text += `2. **Wait:** 5-15 minutes for registrar update\n`;
-    text += `3. **Force:** Flush DNS caches if critical\n\n`;
-    text += `⚠️ **Keep old nameservers active for at least 7 days!**\n\n`;
+    text += '## Emergency Rollback\n\n';
+    text += 'If issues arise:\n\n';
+    text += '1. **Immediate:** Change nameservers back at registrar\n';
+    text += '2. **Wait:** 5-15 minutes for registrar update\n';
+    text += '3. **Force:** Flush DNS caches if critical\n\n';
+    text += '⚠️ **Keep old nameservers active for at least 7 days!**\n\n';
 
-    text += `## Support Contacts\n\n`;
-    text += `- **Akamai Support:** support@akamai.com\n`;
-    text += `- **Domain Registrar:** Check your registrar's support page\n`;
-    text += `- **Your Team:** Define escalation contacts\n`;
+    text += '## Support Contacts\n\n';
+    text += '- **Akamai Support:** support@akamai.com\n';
+    text += '- **Domain Registrar:** Check your registrar\'s support page\n';
+    text += '- **Your Team:** Define escalation contacts\n';
 
     return {
       content: [
@@ -689,35 +690,35 @@ export async function importFromCloudflare(
 
     // Format results
     let text = `# Cloudflare Import Results - ${args.zone}\n\n`;
-    text += `## Summary\n\n`;
+    text += '## Summary\n\n';
     text += `- **Cloudflare Zone ID:** ${zoneId}\n`;
     text += `- **Total Records Found:** ${allRecords.length}\n`;
     text += `- **Records Imported:** ${records.length}\n`;
     text += `- **Records Skipped:** ${skippedRecords.length}\n\n`;
 
     if (skippedRecords.length > 0) {
-      text += `## Skipped Records\n\n`;
+      text += '## Skipped Records\n\n';
       skippedRecords.forEach((record) => {
         text += `- ${record}\n`;
       });
-      text += `\n`;
+      text += '\n';
     }
 
-    text += `## Next Steps\n\n`;
-    text += `1. **Review imported records:**\n`;
+    text += '## Next Steps\n\n';
+    text += '1. **Review imported records:**\n';
     text += `   "List records in zone ${args.zone}"\n\n`;
-    text += `2. **Update nameservers at registrar:**\n`;
-    text += `   - Remove Cloudflare nameservers\n`;
-    text += `   - Add Akamai nameservers:\n`;
-    text += `     - use.akadns.net\n`;
-    text += `     - use4.akadns.net\n\n`;
-    text += `3. **Configure CDN if needed:**\n`;
+    text += '2. **Update nameservers at registrar:**\n';
+    text += '   - Remove Cloudflare nameservers\n';
+    text += '   - Add Akamai nameservers:\n';
+    text += '     - use.akadns.net\n';
+    text += '     - use4.akadns.net\n\n';
+    text += '3. **Configure CDN if needed:**\n';
     text += `   - Create property for ${args.zone}\n`;
-    text += `   - Add CNAME records for CDN delivery\n\n`;
+    text += '   - Add CNAME records for CDN delivery\n\n';
 
     if (allRecords.some((r: any) => r.proxied)) {
-      text += `⚠️ **Note:** Some records were proxied through Cloudflare.\n`;
-      text += `You may need to configure similar security features in Akamai.\n`;
+      text += '⚠️ **Note:** Some records were proxied through Cloudflare.\n';
+      text += 'You may need to configure similar security features in Akamai.\n';
     }
 
     return {
@@ -749,7 +750,9 @@ function parseBindZoneFile(content: string, zone: string): ZoneFileRecord[] {
     // Skip comments and empty lines
     const lineParts = line.split(';');
     const cleanLine = lineParts[0] ? lineParts[0].trim() : '';
-    if (!cleanLine) continue;
+    if (!cleanLine) {
+continue;
+}
 
     // Handle $TTL directive
     if (cleanLine.startsWith('$TTL')) {
@@ -761,11 +764,15 @@ function parseBindZoneFile(content: string, zone: string): ZoneFileRecord[] {
     }
 
     // Skip other directives
-    if (cleanLine.startsWith('$')) continue;
+    if (cleanLine.startsWith('$')) {
+continue;
+}
 
     // Parse record
     const parts = cleanLine.split(/\s+/);
-    if (parts.length < 3) continue;
+    if (parts.length < 3) {
+continue;
+}
 
     let name: string;
     let ttl: number;
@@ -816,7 +823,9 @@ function parseBindZoneFile(content: string, zone: string): ZoneFileRecord[] {
     // Type
     const typeField = fieldIndex < parts.length ? parts[fieldIndex] : undefined;
     type = typeField ? typeField.toUpperCase() : '';
-    if (!type) continue;
+    if (!type) {
+continue;
+}
     fieldIndex++;
 
     // Rest is RDATA
@@ -875,7 +884,9 @@ function convertToAkamaiFormat(records: ZoneFileRecord[], _zone: string): DNSRec
     const [name, type] = key.split('|');
     const firstRecord = groupedRecords[0];
 
-    if (!firstRecord || !name || !type) continue;
+    if (!firstRecord || !name || !type) {
+continue;
+}
 
     // Combine rdata from all records in group
     const rdata: string[] = [];

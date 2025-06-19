@@ -3,14 +3,15 @@
  * Provides streamlined property onboarding workflow
  */
 
+import { onboardProperty, type OnboardingConfig } from '../agents/property-onboarding.agent';
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { onboardProperty, type OnboardingConfig } from '../agents/property-onboarding.agent';
 import { withToolErrorHandling, type ErrorContext } from '../utils/tool-error-handling';
-import { listProperties } from './property-tools';
+
+import { listRecords } from './dns-tools';
 import { listEdgeHostnames } from './property-manager-advanced-tools';
 import { listPropertyActivations } from './property-manager-tools';
-import { listRecords } from './dns-tools';
+import { listProperties } from './property-tools';
 
 /**
  * Onboard a new property to Akamai CDN
@@ -209,40 +210,40 @@ export async function checkOnboardingStatus(
     let responseText = `# Onboarding Status for ${args.hostname}\n\n`;
 
     if (status.property?.found) {
-      responseText += `✅ **Property:** Found\n`;
+      responseText += '✅ **Property:** Found\n';
       if (args.propertyId) {
         responseText += `   - Property ID: ${args.propertyId}\n`;
       }
     } else {
-      responseText += `❌ **Property:** Not found\n`;
+      responseText += '❌ **Property:** Not found\n';
     }
 
     if (status.edgeHostname?.found) {
-      responseText += `✅ **Edge Hostname:** Configured\n`;
+      responseText += '✅ **Edge Hostname:** Configured\n';
     } else {
-      responseText += `⚠️  **Edge Hostname:** Not found\n`;
+      responseText += '⚠️  **Edge Hostname:** Not found\n';
     }
 
     if (status.dnsRecord?.found) {
-      responseText += `✅ **DNS Record:** Found in Edge DNS\n`;
+      responseText += '✅ **DNS Record:** Found in Edge DNS\n';
     } else {
-      responseText += `⚠️  **DNS Record:** Not in Edge DNS (may be with external provider)\n`;
+      responseText += '⚠️  **DNS Record:** Not in Edge DNS (may be with external provider)\n';
     }
 
     if (status.activations) {
-      responseText += `\n## Activation Status\n`;
+      responseText += '\n## Activation Status\n';
       responseText += status.activations.content[0].text;
     }
 
     if (status.errors.length > 0) {
-      responseText += `\n## Errors\n`;
+      responseText += '\n## Errors\n';
       status.errors.forEach((error) => {
         responseText += `- ${error}\n`;
       });
     }
 
     if (status.warnings.length > 0) {
-      responseText += `\n## Warnings\n`;
+      responseText += '\n## Warnings\n';
       status.warnings.forEach((warning) => {
         responseText += `- ${warning}\n`;
       });

@@ -1,7 +1,8 @@
+import { EventEmitter } from 'events';
+
 import { EdgeGridClient } from '@utils/edgegrid-client';
 import { logger } from '@utils/logger';
 import { PerformanceMonitor } from '@utils/performance-monitor';
-import { EventEmitter } from 'events';
 
 export interface RealTimeMetric {
   metric: string;
@@ -392,7 +393,9 @@ export class RealTimeMonitoringService extends EventEmitter {
       const evaluatedRules = [];
 
       for (const rule of this.alertRules.values()) {
-        if (!rule.enabled) continue;
+        if (!rule.enabled) {
+continue;
+}
 
         // Check cooldown period
         if (rule.lastTriggered) {
@@ -484,7 +487,9 @@ export class RealTimeMonitoringService extends EventEmitter {
 
   private async resolveAlert(alertId: string): Promise<void> {
     const alert = this.activeAlerts.get(alertId);
-    if (!alert) return;
+    if (!alert) {
+return;
+}
 
     alert.resolved = true;
     alert.resolvedAt = new Date().toISOString();

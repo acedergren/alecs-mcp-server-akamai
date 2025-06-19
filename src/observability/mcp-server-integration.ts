@@ -121,7 +121,9 @@ export class InstrumentedMCPServer {
   }
 
   private setupCustomHealthChecks(): void {
-    if (!this.observability) return;
+    if (!this.observability) {
+return;
+}
 
     // MCP Server connectivity health check
     this.observability.diagnostics.registerHealthCheck({
@@ -188,7 +190,9 @@ export class InstrumentedMCPServer {
   }
 
   private setupCustomAlerts(): void {
-    if (!this.observability) return;
+    if (!this.observability) {
+return;
+}
 
     // High error rate alert
     this.observability.diagnostics.registerAlertRule({

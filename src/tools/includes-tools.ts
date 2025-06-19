@@ -3,9 +3,10 @@
  * Comprehensive tools for managing PAPI includes - essential for modular property management
  */
 
+import { handleApiError } from '@utils/error-handling';
+
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { handleApiError } from '@utils/error-handling';
 
 /**
  * List available includes
@@ -36,7 +37,7 @@ export async function listIncludes(
 
     const includes = response.includes?.items || [];
 
-    let responseText = `# Includes List\n\n`;
+    let responseText = '# Includes List\n\n';
     responseText += `**Contract:** ${args.contractId}\n`;
     responseText += `**Group:** ${args.groupId}\n`;
     if (args.includeType) {
@@ -45,7 +46,7 @@ export async function listIncludes(
     responseText += `**Total Includes:** ${includes.length}\n\n`;
 
     if (includes.length === 0) {
-      responseText += `No includes found.\n`;
+      responseText += 'No includes found.\n';
       return {
         content: [{ type: 'text', text: responseText }],
       };
@@ -80,12 +81,12 @@ export async function listIncludes(
         if (include.ruleFormat) {
           responseText += `- **Rule Format:** ${include.ruleFormat}\n`;
         }
-        responseText += `\n`;
+        responseText += '\n';
       });
     }
 
     // Summary statistics
-    responseText += `## Summary\n\n`;
+    responseText += '## Summary\n\n';
     for (const [type, typeIncludes] of Object.entries(groupedIncludes)) {
       responseText += `- **${type}:** ${(typeIncludes as any[]).length} includes\n`;
     }
@@ -136,7 +137,7 @@ export async function getInclude(
       };
     }
 
-    let responseText = `# Include Details\n\n`;
+    let responseText = '# Include Details\n\n';
     responseText += `**Name:** ${include.includeName}\n`;
     responseText += `**ID:** ${include.includeId}\n`;
     responseText += `**Type:** ${include.includeType}\n`;
@@ -162,7 +163,7 @@ export async function getInclude(
       responseText += `**Staging Version:** ${include.stagingVersion}\n`;
     }
 
-    responseText += `\n`;
+    responseText += '\n';
 
     // Include note if available
     if (include.note) {
@@ -171,7 +172,7 @@ export async function getInclude(
 
     // Version information
     if (include.versions) {
-      responseText += `## Available Versions\n\n`;
+      responseText += '## Available Versions\n\n';
       include.versions.items?.forEach((version: any) => {
         responseText += `- **Version ${version.includeVersion}**`;
         if (version.note) {
@@ -179,12 +180,12 @@ export async function getInclude(
         }
         responseText += ` (${new Date(version.updatedDate).toISOString()})\n`;
       });
-      responseText += `\n`;
+      responseText += '\n';
     }
 
     // Rules information if available
     if (include.rules) {
-      responseText += `## Rule Tree Structure\n\n`;
+      responseText += '## Rule Tree Structure\n\n';
       responseText += `- **Rules:** ${JSON.stringify(include.rules, null, 2).slice(0, 500)}...\n\n`;
     }
 
@@ -239,7 +240,7 @@ export async function createInclude(
     const includeLink = response.includeLink;
     const includeId = includeLink?.split('/').pop()?.split('?')[0];
 
-    let responseText = `# Include Created Successfully\n\n`;
+    let responseText = '# Include Created Successfully\n\n';
     responseText += `**Name:** ${args.includeName}\n`;
     responseText += `**Type:** ${args.includeType}\n`;
     responseText += `**Include ID:** ${includeId}\n`;
@@ -256,13 +257,13 @@ export async function createInclude(
 
     responseText += `**Created:** ${new Date().toISOString()}\n\n`;
 
-    responseText += `## Next Steps\n\n`;
-    responseText += `1. **Configure Rules:** Update the include's rule tree\n`;
-    responseText += `2. **Create Version:** Create a new version when ready\n`;
-    responseText += `3. **Activate:** Activate to staging/production networks\n`;
-    responseText += `4. **Reference:** Use this include in property configurations\n\n`;
+    responseText += '## Next Steps\n\n';
+    responseText += '1. **Configure Rules:** Update the include\'s rule tree\n';
+    responseText += '2. **Create Version:** Create a new version when ready\n';
+    responseText += '3. **Activate:** Activate to staging/production networks\n';
+    responseText += '4. **Reference:** Use this include in property configurations\n\n';
 
-    responseText += `## API Response\n\n`;
+    responseText += '## API Response\n\n';
     responseText += `Include Link: ${includeLink}\n`;
 
     return {
@@ -309,7 +310,7 @@ export async function updateInclude(
       body: requestBody,
     });
 
-    let responseText = `# Include Updated Successfully\n\n`;
+    let responseText = '# Include Updated Successfully\n\n';
     responseText += `**Include ID:** ${args.includeId}\n`;
     if (args.version) {
       responseText += `**Version:** ${args.version}\n`;
@@ -322,20 +323,20 @@ export async function updateInclude(
       responseText += `**Note:** ${args.note}\n`;
     }
 
-    responseText += `\n`;
+    responseText += '\n';
 
     // Rules summary
-    responseText += `## Rules Summary\n\n`;
+    responseText += '## Rules Summary\n\n';
     if (args.rules?.rules?.length) {
       responseText += `- **Total Rules:** ${args.rules.rules.length}\n`;
       responseText += `- **Rule Format:** ${args.rules.ruleFormat || 'N/A'}\n`;
     }
 
-    responseText += `\n## Next Steps\n\n`;
-    responseText += `1. **Validate:** Check rule validation status\n`;
-    responseText += `2. **Create Version:** Create new version if needed\n`;
-    responseText += `3. **Test:** Test in staging environment\n`;
-    responseText += `4. **Activate:** Deploy to production when ready\n`;
+    responseText += '\n## Next Steps\n\n';
+    responseText += '1. **Validate:** Check rule validation status\n';
+    responseText += '2. **Create Version:** Create new version if needed\n';
+    responseText += '3. **Test:** Test in staging environment\n';
+    responseText += '4. **Activate:** Deploy to production when ready\n';
 
     return {
       content: [{ type: 'text', text: responseText }],
@@ -384,7 +385,7 @@ export async function createIncludeVersion(
     const versionLink = response.versionLink;
     const newVersion = versionLink?.split('/').pop()?.split('?')[0];
 
-    let responseText = `# Include Version Created\n\n`;
+    let responseText = '# Include Version Created\n\n';
     responseText += `**Include ID:** ${args.includeId}\n`;
     responseText += `**New Version:** ${newVersion}\n`;
     if (args.baseVersion) {
@@ -398,15 +399,15 @@ export async function createIncludeVersion(
       responseText += `**Note:** ${args.note}\n`;
     }
 
-    responseText += `\n`;
+    responseText += '\n';
 
-    responseText += `## Version Information\n\n`;
+    responseText += '## Version Information\n\n';
     responseText += `Version Link: ${versionLink}\n\n`;
 
-    responseText += `## Next Steps\n\n`;
-    responseText += `1. **Configure:** Update rules if needed\n`;
-    responseText += `2. **Validate:** Ensure rules are valid\n`;
-    responseText += `3. **Activate:** Deploy to staging/production\n`;
+    responseText += '## Next Steps\n\n';
+    responseText += '1. **Configure:** Update rules if needed\n';
+    responseText += '2. **Validate:** Ensure rules are valid\n';
+    responseText += '3. **Activate:** Deploy to staging/production\n';
 
     return {
       content: [{ type: 'text', text: responseText }],
@@ -458,7 +459,7 @@ export async function activateInclude(
     const activationLink = response.activationLink;
     const activationId = activationLink?.split('/').pop()?.split('?')[0];
 
-    let responseText = `# Include Activation Initiated\n\n`;
+    let responseText = '# Include Activation Initiated\n\n';
     responseText += `**Include ID:** ${args.includeId}\n`;
     responseText += `**Version:** ${args.version}\n`;
     responseText += `**Network:** ${args.network}\n`;
@@ -475,24 +476,24 @@ export async function activateInclude(
       responseText += `**Notifications:** ${args.notifyEmails.join(', ')}\n`;
     }
 
-    responseText += `\n`;
+    responseText += '\n';
 
-    responseText += `## Activation Details\n\n`;
+    responseText += '## Activation Details\n\n';
     responseText += `Activation Link: ${activationLink}\n\n`;
 
-    responseText += `## Monitoring\n\n`;
-    responseText += `Use \`getIncludeActivationStatus\` to monitor progress:\n`;
-    responseText += `\`\`\`\n`;
+    responseText += '## Monitoring\n\n';
+    responseText += 'Use `getIncludeActivationStatus` to monitor progress:\n';
+    responseText += '```\n';
     responseText += `getIncludeActivationStatus --includeId ${args.includeId} --activationId ${activationId}\n`;
-    responseText += `\`\`\`\n\n`;
+    responseText += '```\n\n';
 
-    responseText += `## Expected Timeline\n\n`;
+    responseText += '## Expected Timeline\n\n';
     if (args.network === 'STAGING') {
-      responseText += `- **Staging activations** typically complete in 1-5 minutes\n`;
+      responseText += '- **Staging activations** typically complete in 1-5 minutes\n';
     } else {
-      responseText += `- **Production activations** typically complete in 5-20 minutes\n`;
+      responseText += '- **Production activations** typically complete in 5-20 minutes\n';
     }
-    responseText += `- You will receive email notifications when activation completes\n`;
+    responseText += '- You will receive email notifications when activation completes\n';
 
     return {
       content: [{ type: 'text', text: responseText }],
@@ -539,7 +540,7 @@ export async function getIncludeActivationStatus(
       };
     }
 
-    let responseText = `# Include Activation Status\n\n`;
+    let responseText = '# Include Activation Status\n\n';
     responseText += `**Include ID:** ${args.includeId}\n`;
     responseText += `**Activation ID:** ${args.activationId}\n`;
     responseText += `**Version:** ${activation.includeVersion}\n`;
@@ -555,10 +556,10 @@ export async function getIncludeActivationStatus(
       responseText += `**Note:** ${activation.note}\n`;
     }
 
-    responseText += `\n`;
+    responseText += '\n';
 
     // Status-specific information
-    responseText += `## Status Details\n\n`;
+    responseText += '## Status Details\n\n';
     switch (activation.status) {
       case 'ACTIVE':
         responseText += `✅ **Activation Complete** - Include is now live on ${activation.network}\n`;
@@ -567,14 +568,14 @@ export async function getIncludeActivationStatus(
         }
         break;
       case 'PENDING':
-        responseText += `⏳ **Activation in Progress** - Include is being deployed\n`;
-        responseText += `This typically takes 1-20 minutes depending on network\n`;
+        responseText += '⏳ **Activation in Progress** - Include is being deployed\n';
+        responseText += 'This typically takes 1-20 minutes depending on network\n';
         break;
       case 'FAILED':
-        responseText += `❌ **Activation Failed** - Deployment encountered errors\n`;
+        responseText += '❌ **Activation Failed** - Deployment encountered errors\n';
         break;
       case 'DEACTIVATED':
-        responseText += `🔄 **Deactivated** - Include has been deactivated\n`;
+        responseText += '🔄 **Deactivated** - Include has been deactivated\n';
         break;
       default:
         responseText += `Status: ${activation.status}\n`;
@@ -582,19 +583,19 @@ export async function getIncludeActivationStatus(
 
     // Warnings and errors
     if (activation.fatalError) {
-      responseText += `\n## Fatal Error\n\n`;
+      responseText += '\n## Fatal Error\n\n';
       responseText += `❌ ${activation.fatalError}\n`;
     }
 
     if (activation.warnings && activation.warnings.length > 0) {
-      responseText += `\n## Warnings\n\n`;
+      responseText += '\n## Warnings\n\n';
       activation.warnings.forEach((warning: any) => {
         responseText += `⚠️ **${warning.title}**: ${warning.detail}\n`;
       });
     }
 
     if (activation.errors && activation.errors.length > 0) {
-      responseText += `\n## Errors\n\n`;
+      responseText += '\n## Errors\n\n';
       activation.errors.forEach((error: any) => {
         responseText += `❌ **${error.title}**: ${error.detail}\n`;
       });
@@ -633,14 +634,14 @@ export async function listIncludeActivations(
 
     const activations = response.activations?.items || [];
 
-    let responseText = `# Include Activations\n\n`;
+    let responseText = '# Include Activations\n\n';
     responseText += `**Include ID:** ${args.includeId}\n`;
     responseText += `**Contract:** ${args.contractId}\n`;
     responseText += `**Group:** ${args.groupId}\n`;
     responseText += `**Total Activations:** ${activations.length}\n\n`;
 
     if (activations.length === 0) {
-      responseText += `No activations found for this include.\n`;
+      responseText += 'No activations found for this include.\n';
       return {
         content: [{ type: 'text', text: responseText }],
       };
@@ -651,7 +652,7 @@ export async function listIncludeActivations(
     const productionActivations = activations.filter((a: any) => a.network === 'PRODUCTION');
 
     if (stagingActivations.length > 0) {
-      responseText += `## Staging Activations\n\n`;
+      responseText += '## Staging Activations\n\n';
       stagingActivations.forEach((activation: any) => {
         const statusIcon =
           activation.status === 'ACTIVE'
@@ -672,12 +673,12 @@ export async function listIncludeActivations(
         if (activation.note) {
           responseText += `- **Note:** ${activation.note}\n`;
         }
-        responseText += `\n`;
+        responseText += '\n';
       });
     }
 
     if (productionActivations.length > 0) {
-      responseText += `## Production Activations\n\n`;
+      responseText += '## Production Activations\n\n';
       productionActivations.forEach((activation: any) => {
         const statusIcon =
           activation.status === 'ACTIVE'
@@ -698,7 +699,7 @@ export async function listIncludeActivations(
         if (activation.note) {
           responseText += `- **Note:** ${activation.note}\n`;
         }
-        responseText += `\n`;
+        responseText += '\n';
       });
     }
 

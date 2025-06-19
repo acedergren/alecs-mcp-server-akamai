@@ -1,5 +1,7 @@
-import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 import * as crypto from 'crypto';
+
+import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
+
 import { CustomerConfigManager, type EdgeRcSection } from './customer-config';
 import { logger } from './logger';
 
@@ -85,7 +87,7 @@ export class EdgeGridClient {
     const authSignature = this.createAuthSignature(authData, signingKey, timestamp);
 
     return (
-      `EG1-HMAC-SHA256 ` +
+      'EG1-HMAC-SHA256 ' +
       `client_token=${this.config.client_token};` +
       `access_token=${this.config.access_token};` +
       `timestamp=${timestamp};` +
@@ -114,7 +116,7 @@ export class EdgeGridClient {
         `client_token=${this.config.client_token};` +
         `access_token=${this.config.access_token};` +
         `timestamp=${timestamp};` +
-        `nonce=`,
+        'nonce=',
     );
     return signature.digest('base64');
   }

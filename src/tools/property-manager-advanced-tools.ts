@@ -21,8 +21,12 @@ export async function listEdgeHostnames(
   try {
     // Build query parameters
     const queryParams: any = {};
-    if (args.contractId) queryParams.contractId = args.contractId;
-    if (args.groupId) queryParams.groupId = args.groupId;
+    if (args.contractId) {
+queryParams.contractId = args.contractId;
+}
+    if (args.groupId) {
+queryParams.groupId = args.groupId;
+}
 
     const response = await client.request({
       path: '/papi/v1/edgehostnames',
@@ -43,12 +47,16 @@ export async function listEdgeHostnames(
 
     let text = `# Edge Hostnames (${response.edgeHostnames.items.length} found)\n\n`;
 
-    if (args.contractId) text += `**Contract:** ${args.contractId}\n`;
-    if (args.groupId) text += `**Group:** ${args.groupId}\n`;
+    if (args.contractId) {
+text += `**Contract:** ${args.contractId}\n`;
+}
+    if (args.groupId) {
+text += `**Group:** ${args.groupId}\n`;
+}
     text += '\n';
 
-    text += `| Edge Hostname | Product | Secure | Status | Serial Number |\n`;
-    text += `|---------------|---------|--------|--------|---------------|\n`;
+    text += '| Edge Hostname | Product | Secure | Status | Serial Number |\n';
+    text += '|---------------|---------|--------|--------|---------------|\n';
 
     for (const eh of response.edgeHostnames.items) {
       const hostname = eh.edgeHostnameDomain || `${eh.domainPrefix}.${eh.domainSuffix}`;
@@ -135,7 +143,7 @@ export async function getEdgeHostname(
 
     let text = `# Edge Hostname Details: ${eh.edgeHostnameDomain || `${eh.domainPrefix}.${eh.domainSuffix}`}\n\n`;
 
-    text += `## Basic Information\n`;
+    text += '## Basic Information\n';
     text += `- **Edge Hostname ID:** ${eh.edgeHostnameId}\n`;
     text += `- **Domain:** ${eh.edgeHostnameDomain || `${eh.domainPrefix}.${eh.domainSuffix}`}\n`;
     text += `- **Product:** ${eh.productId || 'Unknown'}\n`;
@@ -144,27 +152,27 @@ export async function getEdgeHostname(
     text += `- **Status:** ${eh.status || 'Active'}\n\n`;
 
     if (eh.mapDetails) {
-      text += `## Mapping Details\n`;
+      text += '## Mapping Details\n';
       text += `- **Serial Number:** ${eh.mapDetails.serialNumber || 'N/A'}\n`;
       text += `- **Slot Number:** ${eh.mapDetails.slotNumber || 'N/A'}\n\n`;
     }
 
     if (eh.useCases && eh.useCases.length > 0) {
-      text += `## Use Cases\n`;
+      text += '## Use Cases\n';
       for (const uc of eh.useCases) {
         text += `- **${uc.useCase}**: ${uc.option} (${uc.type})\n`;
       }
       text += '\n';
     }
 
-    text += `## Usage\n`;
-    text += `This edge hostname can be used as a CNAME target for your property hostnames.\n\n`;
-    text += `Example DNS configuration:\n`;
-    text += `\`\`\`\n`;
+    text += '## Usage\n';
+    text += 'This edge hostname can be used as a CNAME target for your property hostnames.\n\n';
+    text += 'Example DNS configuration:\n';
+    text += '```\n';
     text += `www.example.com  CNAME  ${eh.edgeHostnameDomain || `${eh.domainPrefix}.${eh.domainSuffix}`}\n`;
-    text += `\`\`\`\n\n`;
+    text += '```\n\n';
 
-    text += `## Next Steps\n`;
+    text += '## Next Steps\n';
     text += `- Add to property: \`"Add hostname www.example.com to property prp_XXX using edge hostname ${eh.edgeHostnameDomain}"\`\n`;
     text += `- List properties using this: \`"Search properties using edge hostname ${eh.edgeHostnameDomain}"\`\n`;
 
@@ -242,8 +250,8 @@ export async function cloneProperty(
 
     const newPropertyId = cloneResponse.propertyLink?.split('/').pop()?.split('?')[0];
 
-    let text = `✅ **Property Cloned Successfully!**\n\n`;
-    text += `## Clone Details\n`;
+    let text = '✅ **Property Cloned Successfully!**\n\n';
+    text += '## Clone Details\n';
     text += `- **New Property Name:** ${args.propertyName}\n`;
     text += `- **New Property ID:** ${newPropertyId}\n`;
     text += `- **Cloned From:** ${sourceProperty.propertyName} (${args.sourcePropertyId})\n`;
@@ -252,20 +260,20 @@ export async function cloneProperty(
     text += `- **Group:** ${groupId}\n`;
     text += `- **Hostnames Cloned:** ${args.cloneHostnames ? 'Yes' : 'No'}\n\n`;
 
-    text += `## What Was Cloned\n`;
-    text += `✅ Property configuration and rules\n`;
-    text += `✅ Origin server settings\n`;
-    text += `✅ Caching behaviors\n`;
-    text += `✅ Performance optimizations\n`;
+    text += '## What Was Cloned\n';
+    text += '✅ Property configuration and rules\n';
+    text += '✅ Origin server settings\n';
+    text += '✅ Caching behaviors\n';
+    text += '✅ Performance optimizations\n';
     if (args.cloneHostnames) {
-      text += `✅ Property hostnames\n`;
+      text += '✅ Property hostnames\n';
     } else {
-      text += `❌ Property hostnames (need to be added manually)\n`;
+      text += '❌ Property hostnames (need to be added manually)\n';
     }
-    text += `❌ SSL certificates (need separate enrollment)\n`;
-    text += `❌ Activation status (starts as NEW)\n\n`;
+    text += '❌ SSL certificates (need separate enrollment)\n';
+    text += '❌ Activation status (starts as NEW)\n\n';
 
-    text += `## Next Steps\n`;
+    text += '## Next Steps\n';
     text += `1. Review configuration: \`"Get property ${newPropertyId}"\`\n`;
     text += `2. Update settings if needed: \`"Update property ${newPropertyId} rules"\`\n`;
     if (!args.cloneHostnames) {
@@ -398,8 +406,8 @@ export async function listPropertyVersions(
     }
     text += '\n\n';
 
-    text += `| Version | Status | Updated By | Updated Date | Note |\n`;
-    text += `|---------|--------|------------|--------------|------|\n`;
+    text += '| Version | Status | Updated By | Updated Date | Note |\n';
+    text += '|---------|--------|------------|--------------|------|\n';
 
     for (const version of response.versions.items) {
       const versionNum = version.propertyVersion;
@@ -482,7 +490,7 @@ export async function getPropertyVersion(
     let text = `# Property Version Details: v${version.propertyVersion}\n\n`;
     text += `**Property:** ${property?.propertyName || args.propertyId}\n\n`;
 
-    text += `## Version Information\n`;
+    text += '## Version Information\n';
     text += `- **Version Number:** ${version.propertyVersion}\n`;
     text += `- **Created From:** v${version.createdFromVersion || 'N/A'}\n`;
     text += `- **Updated By:** ${version.updatedByUser || 'Unknown'}\n`;
@@ -494,24 +502,24 @@ export async function getPropertyVersion(
     }
     text += '\n';
 
-    text += `## Activation Status\n`;
+    text += '## Activation Status\n';
     const versionNum = version.propertyVersion;
     if (property?.productionVersion === versionNum) {
-      text += `- ✅ **Currently active in PRODUCTION**\n`;
+      text += '- ✅ **Currently active in PRODUCTION**\n';
       text += `- Production Status: ${version.productionStatus || 'ACTIVE'}\n`;
     } else {
-      text += `- ❌ Not active in production\n`;
+      text += '- ❌ Not active in production\n';
     }
 
     if (property?.stagingVersion === versionNum) {
-      text += `- ✅ **Currently active in STAGING**\n`;
+      text += '- ✅ **Currently active in STAGING**\n';
       text += `- Staging Status: ${version.stagingStatus || 'ACTIVE'}\n`;
     } else {
-      text += `- ❌ Not active in staging\n`;
+      text += '- ❌ Not active in staging\n';
     }
     text += '\n';
 
-    text += `## Available Actions\n`;
+    text += '## Available Actions\n';
     text += `- View rules: \`"Get property ${args.propertyId} version ${args.version} rules"\`\n`;
     text += `- View hostnames: \`"List hostnames for property ${args.propertyId} version ${args.version}"\`\n`;
     text += `- Create new version based on this: \`"Create property version for ${args.propertyId} based on version ${args.version}"\`\n`;
@@ -606,7 +614,7 @@ export async function getLatestPropertyVersion(
     let text = `# ${versionType} Version: v${targetVersion}\n\n`;
     text += `**Property:** ${property.propertyName} (${args.propertyId})\n\n`;
 
-    text += `## Version Details\n`;
+    text += '## Version Details\n';
     text += `- **Version Number:** ${version.propertyVersion}\n`;
     text += `- **Updated By:** ${version.updatedByUser || 'Unknown'}\n`;
     text += `- **Updated Date:** ${version.updatedDate ? new Date(version.updatedDate).toLocaleString() : 'Unknown'}\n`;
@@ -617,12 +625,12 @@ export async function getLatestPropertyVersion(
     }
     text += '\n';
 
-    text += `## Status Summary\n`;
+    text += '## Status Summary\n';
     text += `- **Latest Version:** v${property.latestVersion}${targetVersion === property.latestVersion ? ' ✅ (this version)' : ''}\n`;
     text += `- **Production Version:** ${property.productionVersion ? `v${property.productionVersion}` : 'None'}${targetVersion === property.productionVersion ? ' ✅ (this version)' : ''}\n`;
     text += `- **Staging Version:** ${property.stagingVersion ? `v${property.stagingVersion}` : 'None'}${targetVersion === property.stagingVersion ? ' ✅ (this version)' : ''}\n\n`;
 
-    text += `## Next Steps\n`;
+    text += '## Next Steps\n';
     text += `- View rules: \`"Get property ${args.propertyId} version ${targetVersion} rules"\`\n`;
     text += `- View all versions: \`"List versions for property ${args.propertyId}"\`\n`;
 
@@ -797,7 +805,7 @@ export async function searchProperties(
         content: [
           {
             type: 'text',
-            text: `❌ **No search criteria provided**\n\nPlease specify at least one of:\n- propertyName\n- hostname\n- edgeHostname\n- contractId\n- groupId\n- productId\n- activationStatus\n\nOr use legacy format with searchTerm parameter.`,
+            text: '❌ **No search criteria provided**\n\nPlease specify at least one of:\n- propertyName\n- hostname\n- edgeHostname\n- contractId\n- groupId\n- productId\n- activationStatus\n\nOr use legacy format with searchTerm parameter.',
           },
         ],
       };
@@ -831,7 +839,9 @@ export async function searchProperties(
 
     // Search through properties in each group
     for (const group of searchGroups) {
-      if (!group.contractIds?.length) continue;
+      if (!group.contractIds?.length) {
+continue;
+}
 
       // Filter contracts if contractId is specified
       let searchContracts = group.contractIds;
@@ -997,27 +1007,41 @@ function formatSearchResults(
   criteria: SearchCriteria,
   searchTime: string,
 ): string {
-  let text = `# Property Search Results\n\n`;
+  let text = '# Property Search Results\n\n';
   text += `Found **${results.length}** propert${results.length !== 1 ? 'ies' : 'y'} `;
   text += `(search completed in ${searchTime}s)\n\n`;
 
   // Show search criteria
-  text += `## Search Criteria\n`;
-  if (criteria.propertyName) text += `- Property Name: *${criteria.propertyName}*\n`;
-  if (criteria.hostname) text += `- Hostname: *${criteria.hostname}*\n`;
-  if (criteria.edgeHostname) text += `- Edge Hostname: *${criteria.edgeHostname}*\n`;
-  if (criteria.contractId) text += `- Contract: ${criteria.contractId}\n`;
-  if (criteria.groupId) text += `- Group: ${criteria.groupId}\n`;
-  if (criteria.productId) text += `- Product: ${criteria.productId}\n`;
-  if (criteria.activationStatus) text += `- Activation Status: ${criteria.activationStatus}\n`;
+  text += '## Search Criteria\n';
+  if (criteria.propertyName) {
+text += `- Property Name: *${criteria.propertyName}*\n`;
+}
+  if (criteria.hostname) {
+text += `- Hostname: *${criteria.hostname}*\n`;
+}
+  if (criteria.edgeHostname) {
+text += `- Edge Hostname: *${criteria.edgeHostname}*\n`;
+}
+  if (criteria.contractId) {
+text += `- Contract: ${criteria.contractId}\n`;
+}
+  if (criteria.groupId) {
+text += `- Group: ${criteria.groupId}\n`;
+}
+  if (criteria.productId) {
+text += `- Product: ${criteria.productId}\n`;
+}
+  if (criteria.activationStatus) {
+text += `- Activation Status: ${criteria.activationStatus}\n`;
+}
   text += '\n';
 
   // Show results
-  text += `## Results\n\n`;
+  text += '## Results\n\n';
 
   // Summary table
-  text += `| Property Name | ID | Product | Status | Matched On |\n`;
-  text += `|---------------|-----|---------|--------|------------|\n`;
+  text += '| Property Name | ID | Product | Status | Matched On |\n';
+  text += '|---------------|-----|---------|--------|------------|\n';
 
   for (const result of results) {
     const status = result.productionVersion
@@ -1034,7 +1058,7 @@ function formatSearchResults(
   // Detailed view for properties with hostname matches
   const hostnameMatches = results.filter((r) => r.hostnames && r.hostnames.length > 0);
   if (hostnameMatches.length > 0) {
-    text += `\n### Hostname Details\n\n`;
+    text += '\n### Hostname Details\n\n';
     for (const result of hostnameMatches) {
       text += `**${result.propertyName}** (${result.propertyId})\n`;
       if (result.hostnames) {
@@ -1046,15 +1070,15 @@ function formatSearchResults(
     }
   }
 
-  text += `## Next Steps\n`;
+  text += '## Next Steps\n';
   if (results.length === 1) {
     const propId = results[0].propertyId;
     text += `- View details: \`"Get property ${propId}"\`\n`;
     text += `- View rules: \`"Get property ${propId} rules"\`\n`;
     text += `- View hostnames: \`"List hostnames for property ${propId}"\`\n`;
   } else {
-    text += `- View property details: \`"Get property [propertyId]"\`\n`;
-    text += `- Refine search by adding more criteria\n`;
+    text += '- View property details: `"Get property [propertyId]"`\n';
+    text += '- Refine search by adding more criteria\n';
   }
 
   return text;
@@ -1064,24 +1088,38 @@ function formatSearchResults(
  * Format no results message
  */
 function formatNoResults(criteria: SearchCriteria, searchTime: string): string {
-  let text = `# No Properties Found\n\n`;
+  let text = '# No Properties Found\n\n';
   text += `Search completed in ${searchTime}s\n\n`;
 
-  text += `## Search Criteria Used\n`;
-  if (criteria.propertyName) text += `- Property Name: *${criteria.propertyName}*\n`;
-  if (criteria.hostname) text += `- Hostname: *${criteria.hostname}*\n`;
-  if (criteria.edgeHostname) text += `- Edge Hostname: *${criteria.edgeHostname}*\n`;
-  if (criteria.contractId) text += `- Contract: ${criteria.contractId}\n`;
-  if (criteria.groupId) text += `- Group: ${criteria.groupId}\n`;
-  if (criteria.productId) text += `- Product: ${criteria.productId}\n`;
-  if (criteria.activationStatus) text += `- Activation Status: ${criteria.activationStatus}\n`;
+  text += '## Search Criteria Used\n';
+  if (criteria.propertyName) {
+text += `- Property Name: *${criteria.propertyName}*\n`;
+}
+  if (criteria.hostname) {
+text += `- Hostname: *${criteria.hostname}*\n`;
+}
+  if (criteria.edgeHostname) {
+text += `- Edge Hostname: *${criteria.edgeHostname}*\n`;
+}
+  if (criteria.contractId) {
+text += `- Contract: ${criteria.contractId}\n`;
+}
+  if (criteria.groupId) {
+text += `- Group: ${criteria.groupId}\n`;
+}
+  if (criteria.productId) {
+text += `- Product: ${criteria.productId}\n`;
+}
+  if (criteria.activationStatus) {
+text += `- Activation Status: ${criteria.activationStatus}\n`;
+}
   text += '\n';
 
-  text += `## Suggestions\n`;
-  text += `- Check spelling and try partial names\n`;
-  text += `- Remove some criteria to broaden the search\n`;
-  text += `- Verify you have access to the contract/group\n`;
-  text += `- Use "List all properties" to see available properties\n`;
+  text += '## Suggestions\n';
+  text += '- Check spelling and try partial names\n';
+  text += '- Remove some criteria to broaden the search\n';
+  text += '- Verify you have access to the contract/group\n';
+  text += '- Use "List all properties" to see available properties\n';
 
   return text;
 }
@@ -1128,11 +1166,17 @@ export async function listAllHostnames(
 
     // Collect hostnames from all properties
     for (const group of groupsResponse.groups.items) {
-      if (args.groupId && group.groupId !== args.groupId) continue;
-      if (!group.contractIds?.length) continue;
+      if (args.groupId && group.groupId !== args.groupId) {
+continue;
+}
+      if (!group.contractIds?.length) {
+continue;
+}
 
       for (const contractId of group.contractIds) {
-        if (args.contractId && contractId !== args.contractId) continue;
+        if (args.contractId && contractId !== args.contractId) {
+continue;
+}
 
         try {
           const propertiesResponse = await client.request({
@@ -1178,8 +1222,12 @@ export async function listAllHostnames(
 
     if (allHostnames.length === 0) {
       let message = 'No hostnames found';
-      if (args.contractId) message += ` for contract ${args.contractId}`;
-      if (args.groupId) message += ` in group ${args.groupId}`;
+      if (args.contractId) {
+message += ` for contract ${args.contractId}`;
+}
+      if (args.groupId) {
+message += ` in group ${args.groupId}`;
+}
       message += '.';
 
       return {
@@ -1197,13 +1245,17 @@ export async function listAllHostnames(
 
     let text = `# All Property Hostnames (${allHostnames.length} found)\n\n`;
 
-    if (args.contractId) text += `**Contract:** ${args.contractId}\n`;
-    if (args.groupId) text += `**Group:** ${args.groupId}\n`;
+    if (args.contractId) {
+text += `**Contract:** ${args.contractId}\n`;
+}
+    if (args.groupId) {
+text += `**Group:** ${args.groupId}\n`;
+}
     text += '\n';
 
     if (args.includeDetails) {
-      text += `| Hostname | Property | Edge Hostname | Cert Status |\n`;
-      text += `|----------|----------|---------------|-------------|\n`;
+      text += '| Hostname | Property | Edge Hostname | Cert Status |\n';
+      text += '|----------|----------|---------------|-------------|\n';
 
       for (const h of allHostnames) {
         text += `| ${h.hostname} | ${h.propertyName} | ${h.edgeHostname} | ${h.certStatus} |\n`;
@@ -1229,14 +1281,14 @@ export async function listAllHostnames(
       }
     }
 
-    text += `## Summary\n`;
+    text += '## Summary\n';
     text += `- Total hostnames: ${allHostnames.length}\n`;
     text += `- Unique properties: ${new Set(allHostnames.map((h) => h.propertyId)).size}\n\n`;
 
-    text += `## Next Steps\n`;
-    text += `- View with details: \`"List all hostnames with details"\`\n`;
-    text += `- Search for specific hostname: \`"Search properties by hostname example.com"\`\n`;
-    text += `- Add new hostname: \`"Add hostname www.newsite.com to property prp_XXX"\`\n`;
+    text += '## Next Steps\n';
+    text += '- View with details: `"List all hostnames with details"`\n';
+    text += '- Search for specific hostname: `"Search properties by hostname example.com"`\n';
+    text += '- Add new hostname: `"Add hostname www.newsite.com to property prp_XXX"`\n';
 
     return {
       content: [
@@ -1308,8 +1360,8 @@ export async function listPropertyVersionHostnames(
     let text = `# Hostnames for Property ${args.propertyId} (v${version})\n\n`;
     text += `Found ${response.hostnames.items.length} hostname(s):\n\n`;
 
-    text += `| Hostname | Edge Hostname | Type | Cert Status |\n`;
-    text += `|----------|---------------|------|-------------|\n`;
+    text += '| Hostname | Edge Hostname | Type | Cert Status |\n';
+    text += '|----------|---------------|------|-------------|\n';
 
     for (const hostname of response.hostnames.items) {
       const certStatus =

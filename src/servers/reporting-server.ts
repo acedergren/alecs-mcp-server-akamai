@@ -14,38 +14,27 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
+
 import { AkamaiClient } from '../akamai-client';
 
 // Reporting Tools
-import { reportingTools } from '../tools/reporting-tools';
 
 // Fast Purge Tools (for purge reporting)
-import { fastPurgeTools } from '../tools/fastpurge-tools';
 
 // Performance Tools
-import {
-  getPerformanceAnalysis,
-  profilePerformance,
-  getRealtimeMetrics,
-} from '../tools/performance-tools';
 
 // Resilience Tools (for system health)
-import { getSystemHealth, getOperationMetrics } from '../tools/resilience-tools';
 
 // Integration Testing Tools (for API health)
-import { checkAPIHealth } from '../tools/integration-testing-tools';
 
 // Documentation Tools (for report generation)
-import { generateDocumentationIndex, generateChangelog } from '../tools/documentation-tools';
 
 // Property Operations (for property health reports)
-import {
-  checkPropertyHealth,
-  detectConfigurationDrift,
-} from '../tools/property-operations-advanced';
 
 // Bulk Operations Status
 import { getBulkOperationStatus } from '../tools/bulk-operations-manager';
+import { generateDocumentationIndex, generateChangelog } from '../tools/documentation-tools';
+import { fastPurgeTools } from '../tools/fastpurge-tools';
 
 // Hostname Discovery (for analytics)
 import {
@@ -55,6 +44,18 @@ import {
 
 // Hostname Management Analytics
 import { analyzeHostnameOwnership } from '../tools/hostname-management-advanced';
+import { checkAPIHealth } from '../tools/integration-testing-tools';
+import {
+  getPerformanceAnalysis,
+  profilePerformance,
+  getRealtimeMetrics,
+} from '../tools/performance-tools';
+import {
+  checkPropertyHealth,
+  detectConfigurationDrift,
+} from '../tools/property-operations-advanced';
+import { reportingTools } from '../tools/reporting-tools';
+import { getSystemHealth, getOperationMetrics } from '../tools/resilience-tools';
 
 // Rule Tree Performance
 import { analyzeRuleTreePerformance } from '../tools/rule-tree-advanced';

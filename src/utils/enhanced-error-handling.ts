@@ -143,13 +143,27 @@ export class EnhancedErrorHandler {
    * Extract HTTP status from various error formats
    */
   private extractHttpStatus(error: any): number {
-    if (error.response?.status) return error.response.status;
-    if (error.status) return error.status;
-    if (error.statusCode) return error.statusCode;
-    if (error.code === 'ECONNREFUSED') return 503;
-    if (error.code === 'ETIMEDOUT') return 408;
-    if (error.code === 'ENOTFOUND') return 503;
-    if (error.code === 'ECONNRESET') return 503;
+    if (error.response?.status) {
+return error.response.status;
+}
+    if (error.status) {
+return error.status;
+}
+    if (error.statusCode) {
+return error.statusCode;
+}
+    if (error.code === 'ECONNREFUSED') {
+return 503;
+}
+    if (error.code === 'ETIMEDOUT') {
+return 408;
+}
+    if (error.code === 'ENOTFOUND') {
+return 503;
+}
+    if (error.code === 'ECONNRESET') {
+return 503;
+}
     return 500;
   }
 
@@ -222,10 +236,18 @@ export class EnhancedErrorHandler {
 
     // Check error type from Akamai error response
     if (akamaiError?.type) {
-      if (akamaiError.type.includes('authentication')) return ErrorType.AUTHENTICATION;
-      if (akamaiError.type.includes('authorization')) return ErrorType.AUTHORIZATION;
-      if (akamaiError.type.includes('validation')) return ErrorType.VALIDATION;
-      if (akamaiError.type.includes('rate-limit')) return ErrorType.RATE_LIMIT;
+      if (akamaiError.type.includes('authentication')) {
+return ErrorType.AUTHENTICATION;
+}
+      if (akamaiError.type.includes('authorization')) {
+return ErrorType.AUTHORIZATION;
+}
+      if (akamaiError.type.includes('validation')) {
+return ErrorType.VALIDATION;
+}
+      if (akamaiError.type.includes('rate-limit')) {
+return ErrorType.RATE_LIMIT;
+}
     }
 
     // Check for validation errors in errors array
@@ -233,7 +255,9 @@ export class EnhancedErrorHandler {
       const hasFieldErrors = akamaiError.errors.some(
         (err: any) => err.field || err.type === 'field-error',
       );
-      if (hasFieldErrors) return ErrorType.VALIDATION;
+      if (hasFieldErrors) {
+return ErrorType.VALIDATION;
+}
     }
 
     return ErrorType.UNKNOWN;

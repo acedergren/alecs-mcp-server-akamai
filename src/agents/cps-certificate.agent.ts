@@ -1,5 +1,3 @@
-import { EdgeGridAuth } from '../auth/EdgeGridAuth';
-import { type CpsResultsResponse, type CpsLocationResponse } from './types';
 import {
   ProgressBar,
   Spinner,
@@ -10,6 +8,10 @@ import {
   trackProgress,
 } from '@utils/progress';
 import axios from 'axios';
+
+import { EdgeGridAuth } from '../auth/EdgeGridAuth';
+
+import { type CpsResultsResponse, type CpsLocationResponse } from './types';
 
 interface Certificate {
   enrollmentId: number;
@@ -797,9 +799,9 @@ export class CPSCertificateAgent {
 
       console.log(`\n${icons.success} ${format.bold('Certificate Provisioning Complete!')}`);
       console.log(`\n${icons.info} Next Steps:`);
-      console.log(`  1. Verify certificate in Control Center`);
-      console.log(`  2. Test HTTPS connectivity on your domains`);
-      console.log(`  3. Monitor certificate expiry and renewal status`);
+      console.log('  1. Verify certificate in Control Center');
+      console.log('  2. Test HTTPS connectivity on your domains');
+      console.log('  3. Monitor certificate expiry and renewal status');
     } catch (error) {
       console.error(`\n${icons.error} ${format.red('Certificate provisioning failed:')}`);
       console.error(format.red(error instanceof Error ? error.message : String(error)));

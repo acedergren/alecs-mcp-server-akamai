@@ -2,8 +2,8 @@ import { FastPurgeService } from '@services/FastPurgeService';
 import { PurgeQueueManager } from '@services/PurgeQueueManager';
 import { PurgeStatusTracker } from '@services/PurgeStatusTracker';
 import { CustomerConfigManager } from '@utils/customer-config';
-import { logger } from '@utils/logger';
 import { AkamaiError } from '@utils/errors';
+import { logger } from '@utils/logger';
 
 const fastPurgeService = FastPurgeService.getInstance();
 const queueManager = PurgeQueueManager.getInstance();

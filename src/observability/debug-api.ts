@@ -259,10 +259,14 @@ export class DebugAPI extends EventEmitter {
     finalTags: Record<string, any> = {},
   ): void {
     const trace = this.traces.get(traceId);
-    if (!trace) return;
+    if (!trace) {
+return;
+}
 
     const span = trace.spans.find((s) => s.spanId === spanId);
-    if (!span) return;
+    if (!span) {
+return;
+}
 
     span.endTime = performance.now();
     span.duration = span.endTime - span.startTime;
@@ -278,10 +282,14 @@ export class DebugAPI extends EventEmitter {
    */
   logToSpan(traceId: string, spanId: string, fields: Record<string, any>): void {
     const trace = this.traces.get(traceId);
-    if (!trace) return;
+    if (!trace) {
+return;
+}
 
     const span = trace.spans.find((s) => s.spanId === spanId);
-    if (!span) return;
+    if (!span) {
+return;
+}
 
     span.logs.push({
       timestamp: performance.now(),
@@ -566,13 +574,17 @@ export class DebugAPI extends EventEmitter {
   }
 
   private sanitizeData(data: any): any {
-    if (data === null || data === undefined) return data;
+    if (data === null || data === undefined) {
+return data;
+}
 
     // Remove circular references and limit depth
     try {
       return JSON.parse(
         JSON.stringify(data, (_key, value) => {
-          if (typeof value === 'function') return '[Function]';
+          if (typeof value === 'function') {
+return '[Function]';
+}
           if (value instanceof Error) {
             return {
               name: value.name,
@@ -590,7 +602,9 @@ export class DebugAPI extends EventEmitter {
 
   private notifySubscribers(event: DebugEvent): void {
     for (const subscription of this.subscriptions.values()) {
-      if (!subscription.active) continue;
+      if (!subscription.active) {
+continue;
+}
 
       if (this.matchesFilters(event, subscription.filters)) {
         try {
@@ -607,7 +621,9 @@ export class DebugAPI extends EventEmitter {
     const promises = [];
 
     for (const connection of this.streamingConnections.values()) {
-      if (!connection.active) continue;
+      if (!connection.active) {
+continue;
+}
 
       if (this.matchesFilters(event, connection.filters)) {
         connection.lastActivity = now;

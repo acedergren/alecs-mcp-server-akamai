@@ -6,8 +6,8 @@
  */
 
 import { spawn } from 'child_process';
-import * as readline from 'readline';
 import * as path from 'path';
+import * as readline from 'readline';
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -322,9 +322,9 @@ function showClaudeDesktopInstructions(configs: SetupConfig[]) {
 
   console.log('\n\n💻 Method 2: Manual Configuration');
   console.log('─'.repeat(40));
-  console.log(`\n1. Open your Claude Desktop configuration file:`);
+  console.log('\n1. Open your Claude Desktop configuration file:');
   console.log(`   ${userHome}/Library/Application Support/Claude/claude_desktop_config.json`);
-  console.log(`   (On Windows: %APPDATA%\\Claude\\claude_desktop_config.json)`);
+  console.log('   (On Windows: %APPDATA%\\Claude\\claude_desktop_config.json)');
 
   console.log('\n2. Add these entries to the "mcpServers" section:\n');
 
@@ -335,7 +335,7 @@ function showClaudeDesktopInstructions(configs: SetupConfig[]) {
   configs.forEach((config, index) => {
     const comma = index < configs.length - 1 ? ',' : '';
     console.log(`    "${config.name}": {`);
-    console.log(`      "command": "node",`);
+    console.log('      "command": "node",');
     console.log(`      "args": ["${config.path}"]`);
     console.log(`    }${comma}`);
   });
