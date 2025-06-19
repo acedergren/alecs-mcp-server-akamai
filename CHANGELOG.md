@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.5.1] - 2025-01-18
+## [1.3.5.1] - 2025-06-18
 
 ### Added
 - **Comprehensive Documentation**: Created extensive guides for property onboarding
@@ -66,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automatic Default DV certificate provisioning
   - DNS automation with ACME challenge record creation for Edge DNS zones
 
-## [1.3.3] - 2025-01-18
+## [1.3.3] - 2025-06-18
 
 ### Added
 - **Valkey Caching Implementation**: High-performance Redis-compatible caching system
@@ -118,7 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Integrated with existing property, DNS, and certificate management tools
 - Maintains security best practices with HTTPS-only and Enhanced TLS defaults
 
-## [1.3.2] - 2025-01-18
+## [1.3.2] - 2025-06-18
 
 ### Added
 - **Tree View for Properties**: New hierarchical tree view display for group properties and subgroups

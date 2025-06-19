@@ -7,11 +7,9 @@ export * from './certificate-enrollment-service';
 export * from './certificate-validation-monitor';
 export { 
   FastPurgeService,
-  type PurgeRequest,
-  type PurgeResponse,
-  type PurgeStatus,
-  type PurgeStatistics,
-  type PurgeQueueConfig
+  type FastPurgeRequest,
+  type FastPurgeResponse,
+  type PurgeStatus
 } from './FastPurgeService';
 export * from './PurgeQueueManager';
 export * from './PurgeStatusTracker';

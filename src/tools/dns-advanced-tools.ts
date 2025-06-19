@@ -236,7 +236,7 @@ export async function getZoneContract(
 
     if (response.features && response.features.length > 0) {
       text += `\nEnabled Features:\n`;
-      response.features.forEach((feature) => {
+      response.features.forEach((feature: any) => {
         text += `  ${icons.check} ${feature}\n`;
       });
     }

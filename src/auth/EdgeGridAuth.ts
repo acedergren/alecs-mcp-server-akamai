@@ -16,7 +16,7 @@ import {
   ConfigurationError,
   ConfigErrorType,
   type NetworkEnvironment,
-} from '@types/config';
+} from '../types/config';
 import { logger } from '@utils/logger';
 
 /**

@@ -298,7 +298,7 @@ export async function listPropertiesTreeView(
     }
 
     // Find the target group and its hierarchy
-    const targetGroup = groupsResponse.groups.items.find((g) => g.groupId === groupId);
+    const targetGroup = groupsResponse.groups.items.find((g: any) => g.groupId === groupId);
     if (!targetGroup) {
       return {
         content: [
@@ -318,8 +318,8 @@ export async function listPropertiesTreeView(
     const allGroupsInHierarchy = new Set<string>();
     const collectGroupStats = (groupId: string) => {
       allGroupsInHierarchy.add(groupId);
-      const children = groupsResponse.groups.items.filter((g) => g.parentGroupId === groupId);
-      children.forEach((child) => collectGroupStats(child.groupId));
+      const children = groupsResponse.groups.items.filter((g: any) => g.parentGroupId === groupId);
+      children.forEach((child: any) => collectGroupStats(child.groupId));
     };
     collectGroupStats(targetGroup.groupId);
 
@@ -352,7 +352,7 @@ export async function listPropertiesTreeView(
           // If including subgroups, find and add them
           if (args.includeSubgroups !== false) {
             const childGroups = groupsResponse.groups.items.filter(
-              (g) => g.parentGroupId === targetGroup.groupId,
+              (g: any) => g.parentGroupId === targetGroup.groupId,
             );
 
             for (const childGroup of childGroups) {
@@ -395,7 +395,7 @@ export async function listPropertiesTreeView(
 
               // Check for grandchildren
               const grandchildGroups = groupsResponse.groups.items.filter(
-                (g) => g.parentGroupId === childGroup.groupId,
+                (g: any) => g.parentGroupId === childGroup.groupId,
               );
 
               for (const grandchild of grandchildGroups) {
@@ -577,7 +577,7 @@ export async function getProperty(
 
               // Search by property name (exact and partial match)
               const exactMatch = propertiesToSearch.find(
-                (prop) => prop.propertyName.toLowerCase() === searchTerm,
+                (prop: any) => prop.propertyName.toLowerCase() === searchTerm,
               );
 
               if (exactMatch) {
@@ -587,11 +587,11 @@ export async function getProperty(
               }
 
               // Collect partial matches
-              const partialMatches = propertiesToSearch.filter((prop) =>
+              const partialMatches = propertiesToSearch.filter((prop: any) =>
                 prop.propertyName.toLowerCase().includes(searchTerm),
               );
 
-              partialMatches.forEach((prop) => {
+              partialMatches.forEach((prop: any) => {
                 foundProperties.push({ property: prop, group });
               });
             } catch (err) {
@@ -745,7 +745,7 @@ async function getPropertyById(
           });
 
           const found = propertiesResponse.properties?.items?.find(
-            (p) => p.propertyId === propertyId,
+            (p: any) => p.propertyId === propertyId,
           );
 
           if (found) {
@@ -1211,7 +1211,7 @@ export async function listGroups(
     if (args.searchTerm) {
       const searchLower = args.searchTerm.toLowerCase();
       groups = groups.filter(
-        (g) =>
+        (g: any) =>
           g.groupName.toLowerCase().includes(searchLower) ||
           g.groupId.toLowerCase().includes(searchLower),
       );
@@ -1228,9 +1228,9 @@ export async function listGroups(
       }
     }
 
-    const topLevelGroups = groups.filter((g) => !g.parentGroupId);
+    const topLevelGroups = groups.filter((g: any) => !g.parentGroupId);
     const groupsByParent = groups.reduce(
-      (acc, group) => {
+      (acc: any, group: any) => {
         if (group.parentGroupId) {
           if (!acc[group.parentGroupId]) acc[group.parentGroupId] = [];
           acc[group.parentGroupId].push(group);
@@ -1248,7 +1248,7 @@ export async function listGroups(
       output += `${indent}   Group ID: ${formatGroupDisplay(group.groupId, undefined, true)}\n`;
 
       if (group.contractIds && group.contractIds.length > 0) {
-        const contractDisplays = group.contractIds.map((cid) => formatContractDisplay(cid));
+        const contractDisplays = group.contractIds.map((cid: any) => formatContractDisplay(cid));
         output += `${indent}   Contracts: ${contractDisplays.join(', ')}\n`;
       } else {
         output += `${indent}   Contracts: None\n`;
@@ -1275,9 +1275,9 @@ export async function listGroups(
 
     // List all contracts for easy reference
     const allContracts = new Set<string>();
-    groups.forEach((g) => {
+    groups.forEach((g: any) => {
       if (g.contractIds) {
-        g.contractIds.forEach((c) => allContracts.add(c));
+        g.contractIds.forEach((c: any) => allContracts.add(c));
       }
     });
 
@@ -1303,7 +1303,7 @@ export async function listGroups(
 
     for (const group of sortedGroups) {
       const contracts = group.contractIds
-        ? group.contractIds.map((cid) => formatContractDisplay(cid)).join(', ')
+        ? group.contractIds.map((cid: any) => formatContractDisplay(cid)).join(', ')
         : 'None';
       text += `| ${group.groupName} | ${formatGroupDisplay(group.groupId)} | ${contracts} |\n`;
     }

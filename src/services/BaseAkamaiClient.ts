@@ -3,7 +3,7 @@
  */
 
 import { EdgeGridAuth, EdgeGridRequestConfig, EdgeGridAuthError } from '../auth/EdgeGridAuth';
-import { type NetworkEnvironment, ConfigurationError, ConfigErrorType } from '@types/config';
+import { type NetworkEnvironment, ConfigurationError, ConfigErrorType } from '../types/config';
 import { logger } from '@utils/logger';
 import { z, type ZodSchema } from 'zod';
 
