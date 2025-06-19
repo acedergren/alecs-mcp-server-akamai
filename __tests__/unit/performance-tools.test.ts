@@ -2,14 +2,14 @@
  * Tests for Performance Optimization and Monitoring Tools
  */
 
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 import {
   getPerformanceAnalysis,
   optimizeCache,
   profilePerformance,
   getRealtimeMetrics,
   resetPerformanceMonitoring
-} from '../tools/performance-tools';
+} from '../../src/tools/performance-tools';
 import { globalPerformanceMonitor, responseCache, metadataCache } from '@utils/performance-monitor';
 
 // Mock the AkamaiClient

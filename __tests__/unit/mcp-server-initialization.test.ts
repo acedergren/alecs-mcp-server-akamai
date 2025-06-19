@@ -18,7 +18,7 @@ jest.mock('../akamai-client', () => ({
 
 import { Server } from '@modelcontextprotocol/sdk/server/index';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 
 describe.skip('MCP Server Initialization', () => {
   let mockServer: jest.Mocked<Server>;

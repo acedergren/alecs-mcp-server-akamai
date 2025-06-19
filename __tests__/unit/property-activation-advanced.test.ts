@@ -9,9 +9,9 @@ import {
   getActivationProgress,
   cancelPropertyActivation,
   createActivationPlan,
-} from '../tools/property-activation-advanced';
-import { AkamaiClient } from '../akamai-client';
-import { validateMCPResponse } from '../testing/test-utils';
+} from '../../src/tools/property-activation-advanced';
+import { AkamaiClient } from '../../src/akamai-client';
+import { validateMCPResponse } from '../../src/testing/test-utils';
 
 // Mock the AkamaiClient
 jest.mock('../akamai-client');

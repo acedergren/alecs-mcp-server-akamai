@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from '@jest/globals';
-import { listCommonGeographicCodes, validateGeographicCodes, getASNInformation } from '../tools/security/network-lists-geo-asn';
+import { listCommonGeographicCodes, validateGeographicCodes, getASNInformation } from '../../src/tools/security/network-lists-geo-asn';
 
 describe('Network Lists - Geographic and ASN Tools', () => {
   describe('listCommonGeographicCodes', () => {

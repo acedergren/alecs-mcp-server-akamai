@@ -2,14 +2,14 @@
  * Tests for Integration Testing Tools
  */
 
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 import {
   runIntegrationTestSuite,
   checkAPIHealth,
   generateTestData,
   validateToolResponses,
   runLoadTest
-} from '../tools/integration-testing-tools';
+} from '../../src/tools/integration-testing-tools';
 
 // Mock the AkamaiClient
 jest.mock('../akamai-client');

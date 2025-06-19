@@ -8,8 +8,8 @@ import {
   analyzeRuleTreePerformance,
   detectRuleConflicts,
   listRuleTemplates
-} from '../tools/rule-tree-advanced';
-import { AkamaiClient } from '../akamai-client';
+} from '../../src/tools/rule-tree-advanced';
+import { AkamaiClient } from '../../src/akamai-client';
 
 // Mock AkamaiClient
 jest.mock('../akamai-client');

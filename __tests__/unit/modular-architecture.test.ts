@@ -5,7 +5,7 @@
 
 import { spawn } from 'child_process';
 import { jest } from '@jest/globals';
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 
 jest.mock('../akamai-client');
 

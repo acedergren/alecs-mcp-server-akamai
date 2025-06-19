@@ -7,10 +7,10 @@ import {
   listAppSecConfigurations,
   getAppSecConfiguration,
   createWAFPolicy
-} from '../tools/security/appsec-basic-tools-v2';
+} from '../../src/tools/security/appsec-basic-tools-v2';
 
 // Import AkamaiClient for mocking
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 
 // Mock AkamaiClient
 jest.mock('../akamai-client', () => ({

@@ -1,12 +1,12 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 import {
   createDVEnrollment,
   getDVValidationChallenges,
   checkDVEnrollmentStatus,
   listCertificateEnrollments,
   linkCertificateToProperty
-} from '../tools/cps-tools';
+} from '../../src/tools/cps-tools';
 
 // Mock the AkamaiClient
 jest.mock('../akamai-client');

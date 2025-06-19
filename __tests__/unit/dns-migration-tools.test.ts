@@ -1,18 +1,18 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 import {
   importZoneViaAXFR,
   parseZoneFile,
   bulkImportRecords,
   convertZoneToPrimary,
   generateMigrationInstructions
-} from '../tools/dns-migration-tools';
+} from '../../src/tools/dns-migration-tools';
 
 // Mock the AkamaiClient
-jest.mock('../akamai-client');
+jest.mock('../../src/akamai-client');
 
 // Mock the dns-tools module
-jest.mock('../tools/dns-tools', () => ({
+jest.mock('../../src/tools/dns-tools', () => ({
   createZone: jest.fn(() => Promise.resolve({
     content: [{ type: 'text', text: 'Zone created' }],
   })),

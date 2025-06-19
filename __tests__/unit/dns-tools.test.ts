@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
-import { listZones, getZone, createZone, listRecords, upsertRecord, deleteRecord } from '../tools/dns-tools';
-import { AkamaiClient } from '../akamai-client';
+import { listZones, getZone, createZone, listRecords, upsertRecord, deleteRecord } from '../../src/tools/dns-tools';
+import { AkamaiClient } from '../../src/akamai-client';
 
 // Mock the AkamaiClient
 jest.mock('../akamai-client');

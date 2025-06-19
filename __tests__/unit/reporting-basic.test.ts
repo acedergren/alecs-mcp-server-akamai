@@ -1,5 +1,5 @@
 import { describe, test, expect } from '@jest/globals';
-import { reportingTools } from '../tools/reporting-tools';
+import { reportingTools } from '../../src/tools/reporting-tools';
 
 describe('Reporting Tools - Basic Tests', () => {
   test('should export reporting tools array', () => {

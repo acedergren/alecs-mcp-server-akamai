@@ -2,14 +2,14 @@
  * Tests for Advanced Hostname Management Tools
  */
 
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 import {
   analyzeHostnameOwnership,
   generateEdgeHostnameRecommendations,
   validateHostnamesBulk,
   findOptimalPropertyAssignment,
   createHostnameProvisioningPlan
-} from '../tools/hostname-management-advanced';
+} from '../../src/tools/hostname-management-advanced';
 
 // Mock the AkamaiClient
 jest.mock('../akamai-client');

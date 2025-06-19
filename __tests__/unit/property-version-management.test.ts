@@ -9,8 +9,8 @@ import {
   rollbackPropertyVersion,
   updateVersionMetadata,
   mergePropertyVersions
-} from '../tools/property-version-management';
-import { AkamaiClient } from '../akamai-client';
+} from '../../src/tools/property-version-management';
+import { AkamaiClient } from '../../src/akamai-client';
 
 // Mock AkamaiClient
 jest.mock('../akamai-client');

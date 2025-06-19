@@ -4,7 +4,7 @@
  */
 
 import { jest } from '@jest/globals';
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 
 // Import the actual functions we fixed
 import {
@@ -18,7 +18,7 @@ import {
   getASNInformation,
   generateGeographicBlockingRecommendations,
   generateASNSecurityRecommendations
-} from '../tools/security/network-lists-integration';
+} from '../../src/tools/security/network-lists-integration';
 
 jest.mock('../akamai-client');
 

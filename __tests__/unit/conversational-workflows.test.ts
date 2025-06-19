@@ -7,12 +7,12 @@ import {
   createMockAkamaiClient,
   TestDataGenerators as TestData,
   createCorrelationId,
-} from '../testing/test-utils';
-import * as propertyTools from '../tools/property-tools';
-import * as dnsTools from '../tools/dns-tools';
-import * as cpsTools from '../tools/cps-tools';
-import * as propertyManagerTools from '../tools/property-manager-tools';
-import * as propertyManagerAdvancedTools from '../tools/property-manager-advanced-tools';
+} from '../../src/testing/test-utils';
+import * as propertyTools from '../../src/tools/property-tools';
+import * as dnsTools from '../../src/tools/dns-tools';
+import * as cpsTools from '../../src/tools/cps-tools';
+import * as propertyManagerTools from '../../src/tools/property-manager-tools';
+import * as propertyManagerAdvancedTools from '../../src/tools/property-manager-advanced-tools';
 
 // Simple operation tracker for testing
 class OperationTracker {

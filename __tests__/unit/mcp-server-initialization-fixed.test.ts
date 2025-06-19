@@ -6,7 +6,7 @@
 
 // import { Server } from '@modelcontextprotocol/sdk/server/index';
 // import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 import { jest } from '@jest/globals';
 
 // Mock the MCP SDK

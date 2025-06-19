@@ -2,14 +2,14 @@
  * Tests for Advanced Property Operations Tools
  */
 
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 import {
   searchPropertiesAdvanced,
   compareProperties,
   checkPropertyHealth,
   detectConfigurationDrift,
   bulkUpdateProperties
-} from '../tools/property-operations-advanced';
+} from '../../src/tools/property-operations-advanced';
 
 // Mock the AkamaiClient
 jest.mock('../akamai-client');

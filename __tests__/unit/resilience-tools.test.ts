@@ -2,14 +2,14 @@
  * Tests for Resilience and Error Recovery Tools
  */
 
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 import {
   getSystemHealth,
   resetCircuitBreaker,
   getOperationMetrics,
   testOperationResilience,
   getErrorRecoverySuggestions
-} from '../tools/resilience-tools';
+} from '../../src/tools/resilience-tools';
 import { globalResilienceManager, OperationType } from '@utils/resilience-manager';
 
 // Mock the AkamaiClient

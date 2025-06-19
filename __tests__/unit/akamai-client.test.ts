@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import fs from 'fs';
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 
 // Mock the fs module
 jest.mock('fs');

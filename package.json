@@ -7,7 +7,7 @@
     "alecs": "dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "npm run clean && npm run build:ts",
     "build:ts": "tsc --project tsconfig.json",
     "build:strict": "tsc --project tsconfig.build.json",
     "build:watch": "tsc --watch --project tsconfig.json",
@@ -23,27 +23,27 @@
     "start:certs": "node dist/servers/certs-server.js",
     "start:reporting": "node dist/servers/reporting-server.js",
     "start:security": "node dist/servers/security-server.js",
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx src/index.ts",
     "dev:interactive": "tsx src/interactive-launcher.ts",
     "prepublishOnly": "npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:unit": "jest __tests__/unit",
-    "test:integration": "jest __tests__/integration",
-    "test:e2e": "jest __tests__/e2e",
-    "test:type": "jest __tests__/type",
-    "test:mcp": "jest __tests__/unit/mcp-*.test.ts",
-    "lint": "eslint src __tests__",
+    "test:modular": "jest src/__tests__/modular-servers",
+    "test:property": "jest src/__tests__/modular-servers/property-server.test.ts",
+    "test:dns": "jest src/__tests__/modular-servers/dns-server.test.ts",
+    "test:essentials": "jest src/__tests__/modular-servers/essentials-server.test.ts",
+    "test:workflows": "jest src/__tests__/modular-servers/workflow-integration.test.ts",
+    "lint": "eslint 'src/**/*.ts' --fix",
     "lint:check": "eslint 'src/**/*.ts'",
     "format": "prettier --write 'src/**/*.{ts,json,md}'",
     "format:check": "prettier --check 'src/**/*.{ts,json,md}'",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit --project tsconfig.build.json",
     "typecheck:strict": "tsc --noEmit --project tsconfig.build.json",
     "typecheck:dev": "tsc --noEmit --project tsconfig.json",
     "typecheck:watch": "tsc --noEmit --watch --project tsconfig.json",
     "postinstall": "npm run build:check || true",
-    "prepare": "husky",
+    "prepare": "npm run build",
     "demo:agents": "tsx examples/agent-demo.ts",
     "cleanup": "tsx src/agents/cleanup-agent.ts",
     "cleanup:dry": "tsx src/agents/cleanup-agent.ts --dry-run",
@@ -51,11 +51,11 @@
     "sbom": "./scripts/generate-sbom.sh",
     "licenses": "npx license-checker --summary",
     "audit": "npm audit",
-    "validate": "npm run lint && npm run typecheck && npm run test",
-    "build:clean": "rm -rf dist && tsc",
-    "lint:fix": "eslint src __tests__ --fix",
-    "docs:build": "echo \"Documentation build placeholder\"",
-    "precommit": "npm run validate"
+    "test:validate": "node tests/run-comprehensive-validation.js",
+    "test:health": "node tests/diagnostics/mcp-health-check.js",
+    "test:journey": "node tests/workflows/customer-journey.js",
+    "test:errors": "node tests/edge-cases/error-scenarios.js",
+    "test:performance": "node --expose-gc tests/performance/load-testing.js"
   },
   "keywords": [
     "mcp",
@@ -74,15 +74,15 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0",
+    "@types/commander": "^2.12.0",
+    "@types/ioredis": "^4.28.10",
     "akamai-edgegrid": "^3.4.0",
     "commander": "^14.0.0",
-    "minimatch": "^10.0.3",
-    "simple-git": "^3.28.0",
-    "zod": "^3.25.67"
+    "ioredis": "^5.6.1",
+    "zod": "^3.22.0"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
-    "@types/commander": "^2.12.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -91,16 +91,11 @@
     "eslint-plugin-import": "^2.28.0",
     "eslint-plugin-jest": "^27.2.0",
     "fast-check": "^3.15.0",
-    "husky": "^9.1.7",
     "jest": "^29.7.0",
     "jest-junit": "^16.0.0",
     "jest-watch-typeahead": "^2.2.2",
-    "lint-staged": "^16.1.2",
     "prettier": "^3.0.0",
     "ts-jest": "^29.4.0",
-    "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
-    "tslib": "^2.6.2",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   },
@@ -114,14 +109,5 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "lint-staged": {
-    "*.ts": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
-    ]
   }
 }

@@ -11,7 +11,7 @@ import {
   ConversationalContextTracker,
   WorkflowSimulator,
   PerformanceTracker
-} from '../testing/test-utils';
+} from '../../src/testing/test-utils';
 
 describe('Conversational Workflows', () => {
   const mockClient = createMockAkamaiClient();
@@ -758,7 +758,7 @@ describe('Conversational Workflows', () => {
       // Parallel operations should complete faster than sequential
       expect(duration).toBeLessThan(1000);
       expect(results).toHaveLength(5);
-      results.forEach(result => validateMCPResponse(result));
+      results.forEach((result: any) => validateMCPResponse(result));
     });
   });
 

@@ -2,14 +2,14 @@
  * Tests for Property Error Handling Tools
  */
 
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 import {
   getValidationErrors,
   acknowledgeWarnings,
   overrideErrors,
   getErrorRecoveryHelp,
   validatePropertyConfiguration
-} from '../tools/property-error-handling-tools';
+} from '../../src/tools/property-error-handling-tools';
 
 // Mock the AkamaiClient
 jest.mock('../akamai-client');

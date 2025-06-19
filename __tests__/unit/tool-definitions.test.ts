@@ -3,11 +3,11 @@
  * Validates all tool schemas, parameter validation, and error handling
  */
 
-import { createMockAkamaiClient, validateMCPResponse, ErrorScenarios } from '../testing/test-utils';
-import * as propertyTools from '../tools/property-tools';
-import * as dnsTools from '../tools/dns-tools';
-import * as cpsTools from '../tools/cps-tools';
-import * as productTools from '../tools/product-tools';
+import { createMockAkamaiClient, validateMCPResponse, ErrorScenarios } from '../../src/testing/test-utils';
+import * as propertyTools from '../../src/tools/property-tools';
+import * as dnsTools from '../../src/tools/dns-tools';
+import * as cpsTools from '../../src/tools/cps-tools';
+import * as productTools from '../../src/tools/product-tools';
 
 describe('Tool Definitions', () => {
   const mockClient = createMockAkamaiClient();

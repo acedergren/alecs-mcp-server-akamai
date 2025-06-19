@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
-import { listGroups } from '../tools/property-tools';
-import { AkamaiClient } from '../akamai-client';
+import { listGroups } from '../../src/tools/property-tools';
+import { AkamaiClient } from '../../src/akamai-client';
 
 // Mock the AkamaiClient
 jest.mock('../akamai-client');

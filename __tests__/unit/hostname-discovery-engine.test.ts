@@ -3,13 +3,13 @@
  */
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 import {
   discoverHostnamesIntelligent,
   analyzeHostnameConflicts,
   analyzeWildcardCoverage,
   identifyOwnershipPatterns
-} from '../tools/hostname-discovery-engine';
+} from '../../src/tools/hostname-discovery-engine';
 
 // Mock the AkamaiClient
 jest.mock('../akamai-client');

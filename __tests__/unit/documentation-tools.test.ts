@@ -9,8 +9,8 @@ import {
   updateDocumentation,
   generateChangelog,
   createKnowledgeArticle
-} from '../tools/documentation-tools';
-import { AkamaiClient } from '../akamai-client';
+} from '../../src/tools/documentation-tools';
+import { AkamaiClient } from '../../src/akamai-client';
 import * as fs from 'fs/promises';
 
 // Mock dependencies

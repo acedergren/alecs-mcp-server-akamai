@@ -1,5 +1,5 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 import {
   createPropertyVersion,
   getPropertyRules,
@@ -8,7 +8,7 @@ import {
   activateProperty,
   getActivationStatus,
   listPropertyActivations
-} from '../tools/property-manager-tools';
+} from '../../src/tools/property-manager-tools';
 
 // Mock the AkamaiClient
 jest.mock('../akamai-client');

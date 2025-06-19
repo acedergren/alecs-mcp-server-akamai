@@ -2,14 +2,14 @@
  * Tests for Bulk Operations and Multi-Property Management
  */
 
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient } from '../../src/akamai-client';
 import {
   bulkCloneProperties,
   bulkActivateProperties,
   bulkUpdatePropertyRules,
   bulkManageHostnames,
   getBulkOperationStatus
-} from '../tools/bulk-operations-manager';
+} from '../../src/tools/bulk-operations-manager';
 
 // Mock the AkamaiClient
 jest.mock('../akamai-client');
