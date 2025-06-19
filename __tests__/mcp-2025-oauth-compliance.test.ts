@@ -130,8 +130,9 @@ describe('MCP 2025-06-18 OAuth Compliance Tests', () => {
         algorithms: ['HS256', 'RS256']
       } as any,
       requireTokenBinding: false, // Disable for easier testing
-      publicTools: ['list-tools', 'describe-tool'],
+      publicTools: ['describe-tool'],
       toolScopes: {
+        'list-tools': ['mcp:access'], // Make list-tools require authentication  
         'list-properties': ['property:read'],
         'create-property': ['property:write'],
         'activate-property': ['property:activate']
@@ -183,7 +184,7 @@ describe('MCP 2025-06-18 OAuth Compliance Tests', () => {
     app.post('/tools/list', async (req: Request, res: ExpressResponse) => {
       try {
         const authContext = await oauthMiddleware.authenticate(req as any);
-        if (!authContext && !(oauthMiddleware as any).config.publicTools.includes('list-tools')) {
+        if (!authContext) {
           res.status(401)
             .set('WWW-Authenticate', 'Bearer realm="akamai-mcp-server", error="invalid_token", error_description="Authentication required"')
             .json({
@@ -409,6 +410,7 @@ describe('MCP 2025-06-18 OAuth Compliance Tests', () => {
           clientSecret: TEST_CONFIG.clientSecret
         } as any,
         requireTokenBinding: true, // Enable token binding for this test
+        tokenBindingType: 'x5t#S256' as any, // Set the binding type
         publicTools: ['list-tools'],
         toolScopes: { 'list-properties': ['property:read'] },
         defaultScopes: ['mcp:access']
@@ -546,7 +548,7 @@ describe('MCP 2025-06-18 OAuth Compliance Tests', () => {
       const request: CallToolRequest = {
         method: 'tools/call',
         params: {
-          name: 'list-tools',
+          name: 'describe-tool',
           arguments: {}
         }
       };

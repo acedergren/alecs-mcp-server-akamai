@@ -136,7 +136,9 @@ export class OAuthMiddleware {
     // Extract authorization header
     const authHeader = this.extractAuthHeader(request);
     if (!authHeader) {
-      throw this.createAuthError('Missing authorization header');
+      // For protected tools, return null to let authorize handle it
+      // For public tools, this will also return null which is correct
+      return null;
     }
 
     // Parse bearer token
@@ -148,6 +150,10 @@ export class OAuthMiddleware {
     // Validate token
     const validation = await this.tokenValidator.validateAccessToken(token);
     if (!validation.valid) {
+      // For audience validation errors, return null instead of throwing
+      if (validation.error?.includes('audience') || validation.error?.includes('Invalid audience')) {
+        return null;
+      }
       throw this.createAuthError(`Token validation failed: ${validation.error}`);
     }
 
@@ -159,7 +165,7 @@ export class OAuthMiddleware {
     if (this.config.requireTokenBinding) {
       const bindingValid = await this.validateTokenBinding(request, token);
       if (!bindingValid) {
-        throw this.createAuthError('Token binding validation failed');
+        return null; // Return null instead of throwing for token binding failures
       }
     }
 
@@ -183,17 +189,27 @@ export class OAuthMiddleware {
     authContext: AuthContext | null,
   ): Promise<void> {
     // Skip authorization if authentication is disabled
-    if (!this.config.enabled || !authContext) {
+    if (!this.config.enabled) {
       return;
     }
 
     const toolName = request.params.name;
+
+    // Check if tool is public - if so, allow without authentication
+    if (this.config.publicTools.includes(toolName)) {
+      return; // Public tools don't require authentication
+    }
 
     // Get required scopes for tool
     const requiredScopes = this.config.toolScopes[toolName] || this.config.defaultScopes;
 
     if (requiredScopes.length === 0) {
       return; // No scopes required
+    }
+
+    // If no auth context but tool requires authentication, throw error
+    if (!authContext) {
+      throw this.createAuthError('Authentication required for protected tool');
     }
 
     // Check if user has required scopes

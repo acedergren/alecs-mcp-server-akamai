@@ -1,7 +1,7 @@
 {
   "name": "alecs-mcp-server-akamai",
-  "version": "1.3.5.1",
-  "description": "An MCP (Model Context Protocol) server that enables management of Akamai through AI",
+  "version": "1.4.0",
+  "description": "Enterprise MCP server for Akamai with OAuth 2.1 authentication and MCP 2025-06-18 compliance",
   "main": "dist/index.js",
   "bin": {
     "alecs": "dist/index.js"
