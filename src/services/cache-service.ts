@@ -4,26 +4,26 @@
  */
 
 import Redis from 'ioredis';
-import { AkamaiClient } from '../akamai-client';
+import { type AkamaiClient } from '../akamai-client';
 
 export interface CacheConfig {
   host?: string;
   port?: number;
   password?: string;
   ttl?: {
-    properties?: number;      // Default: 300 (5 minutes)
+    properties?: number; // Default: 300 (5 minutes)
     propertyDetails?: number; // Default: 3600 (1 hour)
-    hostnames?: number;       // Default: 900 (15 minutes)
-    search?: number;          // Default: 300 (5 minutes)
-    contracts?: number;       // Default: 86400 (24 hours)
-    groups?: number;          // Default: 86400 (24 hours)
+    hostnames?: number; // Default: 900 (15 minutes)
+    search?: number; // Default: 300 (5 minutes)
+    contracts?: number; // Default: 86400 (24 hours)
+    groups?: number; // Default: 86400 (24 hours)
   };
 }
 
 export class AkamaiCacheService {
   private redis: Redis | null = null;
   private config: CacheConfig;
-  private enabled: boolean = false;
+  private enabled = false;
 
   constructor(config: CacheConfig = {}) {
     this.config = {
@@ -31,14 +31,14 @@ export class AkamaiCacheService {
       port: config.port || parseInt(process.env.VALKEY_PORT || '6379'),
       password: config.password || process.env.VALKEY_PASSWORD,
       ttl: {
-        properties: 300,      // 5 minutes
-        propertyDetails: 3600,// 1 hour
-        hostnames: 900,       // 15 minutes
-        search: 300,          // 5 minutes
-        contracts: 86400,     // 24 hours
-        groups: 86400,        // 24 hours
-        ...config.ttl
-      }
+        properties: 300, // 5 minutes
+        propertyDetails: 3600, // 1 hour
+        hostnames: 900, // 15 minutes
+        search: 300, // 5 minutes
+        contracts: 86400, // 24 hours
+        groups: 86400, // 24 hours
+        ...config.ttl,
+      },
     };
 
     this.initializeRedis();
@@ -57,7 +57,7 @@ export class AkamaiCacheService {
             return null;
           }
           return Math.min(times * 200, 2000);
-        }
+        },
       });
 
       this.redis.on('connect', () => {
@@ -78,9 +78,9 @@ export class AkamaiCacheService {
   /**
    * Get cached properties list or fetch from API
    */
-  async getProperties(client: AkamaiClient, customer: string = 'default'): Promise<any> {
+  async getProperties(client: AkamaiClient, customer = 'default'): Promise<any> {
     const cacheKey = `akamai:${customer}:properties:all`;
-    
+
     if (this.enabled && this.redis) {
       try {
         // Try to get from cache
@@ -106,12 +106,8 @@ export class AkamaiCacheService {
     // Store in cache
     if (this.enabled && this.redis && properties.length > 0) {
       try {
-        await this.redis.setex(
-          cacheKey,
-          this.config.ttl!.properties!,
-          JSON.stringify(properties)
-        );
-        
+        await this.redis.setex(cacheKey, this.config.ttl!.properties!, JSON.stringify(properties));
+
         // Also create hostname mapping for quick lookups
         await this.createHostnameMapping(client, customer, properties);
       } catch (err) {
@@ -126,20 +122,20 @@ export class AkamaiCacheService {
    * Create hostname to property mapping for fast lookups
    */
   private async createHostnameMapping(
-    client: AkamaiClient, 
-    customer: string, 
-    properties: any[]
+    client: AkamaiClient,
+    customer: string,
+    properties: any[],
   ): Promise<void> {
     if (!this.enabled || !this.redis) return;
 
     const hostnameMap: Record<string, any> = {};
-    
+
     // Batch process properties to get hostnames
     for (const property of properties) {
       try {
         const cacheKey = `akamai:${customer}:property:${property.propertyId}:hostnames`;
         let hostnames;
-        
+
         // Check if hostnames are cached
         const cached = await this.redis.get(cacheKey);
         if (cached) {
@@ -154,23 +150,19 @@ export class AkamaiCacheService {
               groupId: property.groupId,
             },
           });
-          
+
           hostnames = response.hostnames?.items || [];
-          
+
           // Cache hostnames
-          await this.redis.setex(
-            cacheKey,
-            this.config.ttl!.hostnames!,
-            JSON.stringify(hostnames)
-          );
+          await this.redis.setex(cacheKey, this.config.ttl!.hostnames!, JSON.stringify(hostnames));
         }
-        
+
         // Map each hostname to property
         for (const hostname of hostnames) {
           if (hostname.cnameFrom) {
             hostnameMap[hostname.cnameFrom.toLowerCase()] = {
               property,
-              hostname
+              hostname,
             };
           }
         }
@@ -178,28 +170,26 @@ export class AkamaiCacheService {
         console.error(`[Cache] Error processing property ${property.propertyId}:`, err);
       }
     }
-    
+
     // Store the complete mapping
     if (Object.keys(hostnameMap).length > 0) {
       await this.redis.setex(
         `akamai:${customer}:hostnames:map`,
         this.config.ttl!.hostnames!,
-        JSON.stringify(hostnameMap)
+        JSON.stringify(hostnameMap),
       );
-      console.error(`[Cache] Created hostname mapping with ${Object.keys(hostnameMap).length} entries`);
+      console.error(
+        `[Cache] Created hostname mapping with ${Object.keys(hostnameMap).length} entries`,
+      );
     }
   }
 
   /**
    * Search with caching
    */
-  async search(
-    client: AkamaiClient,
-    query: string,
-    customer: string = 'default'
-  ): Promise<any> {
+  async search(client: AkamaiClient, query: string, customer = 'default'): Promise<any> {
     const searchKey = `akamai:${customer}:search:${query.toLowerCase()}`;
-    
+
     // Check cache first
     if (this.enabled && this.redis) {
       try {
@@ -214,11 +204,11 @@ export class AkamaiCacheService {
     }
 
     console.error(`[Cache] MISS: Searching for "${query}"`);
-    
+
     // Get properties (from cache if available)
     const properties = await this.getProperties(client, customer);
     const results: any[] = [];
-    
+
     // Quick hostname lookup
     if (this.enabled && this.redis) {
       try {
@@ -226,28 +216,28 @@ export class AkamaiCacheService {
         if (hostnameMapStr) {
           const hostnameMap = JSON.parse(hostnameMapStr);
           const queryLower = query.toLowerCase();
-          
+
           // Direct hostname match
           if (hostnameMap[queryLower]) {
             results.push({
               type: 'exact_hostname',
-              ...hostnameMap[queryLower]
+              ...hostnameMap[queryLower],
             });
           }
-          
+
           // Check with www prefix
           if (hostnameMap[`www.${queryLower}`]) {
             results.push({
               type: 'hostname_with_www',
-              ...hostnameMap[`www.${queryLower}`]
+              ...hostnameMap[`www.${queryLower}`],
             });
           }
-          
+
           // Check without www prefix
           if (queryLower.startsWith('www.') && hostnameMap[queryLower.substring(4)]) {
             results.push({
               type: 'hostname_without_www',
-              ...hostnameMap[queryLower.substring(4)]
+              ...hostnameMap[queryLower.substring(4)],
             });
           }
         }
@@ -255,7 +245,7 @@ export class AkamaiCacheService {
         console.error('[Cache] Error checking hostname map:', err);
       }
     }
-    
+
     // Search through properties if no exact match
     if (results.length === 0) {
       const queryLower = query.toLowerCase();
@@ -263,42 +253,38 @@ export class AkamaiCacheService {
         if (property.propertyName?.toLowerCase().includes(queryLower)) {
           results.push({
             type: 'property_name',
-            property
+            property,
           });
         }
       }
     }
-    
+
     // Cache the results
     if (this.enabled && this.redis && results.length > 0) {
       try {
-        await this.redis.setex(
-          searchKey,
-          this.config.ttl!.search!,
-          JSON.stringify(results)
-        );
+        await this.redis.setex(searchKey, this.config.ttl!.search!, JSON.stringify(results));
       } catch (err) {
         console.error('[Cache] Error caching search results:', err);
       }
     }
-    
+
     return results;
   }
 
   /**
    * Invalidate cache for a specific property
    */
-  async invalidateProperty(propertyId: string, customer: string = 'default'): Promise<void> {
+  async invalidateProperty(propertyId: string, customer = 'default'): Promise<void> {
     if (!this.enabled || !this.redis) return;
-    
+
     try {
       const keys = [
         `akamai:${customer}:properties:all`,
         `akamai:${customer}:property:${propertyId}:*`,
         `akamai:${customer}:hostnames:map`,
-        `akamai:${customer}:search:*`
+        `akamai:${customer}:search:*`,
       ];
-      
+
       for (const pattern of keys) {
         if (pattern.includes('*')) {
           const matchingKeys = await this.redis.keys(pattern);
@@ -309,7 +295,7 @@ export class AkamaiCacheService {
           await this.redis.del(pattern);
         }
       }
-      
+
       console.error(`[Cache] Invalidated cache for property ${propertyId}`);
     } catch (err) {
       console.error('[Cache] Error invalidating cache:', err);
@@ -323,18 +309,18 @@ export class AkamaiCacheService {
     if (!this.enabled || !this.redis) {
       return { enabled: false };
     }
-    
+
     try {
       const info = await this.redis.info('stats');
       const dbSize = await this.redis.dbsize();
       const keys = await this.redis.keys('akamai:*');
-      
+
       return {
         enabled: true,
         connected: this.redis.status === 'ready',
         totalKeys: dbSize,
         akamaiKeys: keys.length,
-        stats: info
+        stats: info,
       };
     } catch (err) {
       console.error('[Cache] Error getting stats:', err);

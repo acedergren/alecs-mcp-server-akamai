@@ -7,7 +7,7 @@ import EdgeGrid = require('akamai-edgegrid');
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
-import { AkamaiError } from './types';
+import { type AkamaiError } from './types';
 
 export class AkamaiClient {
   private edgeGrid: EdgeGrid;
@@ -15,38 +15,37 @@ export class AkamaiClient {
   private debug: boolean;
   private section: string;
 
-  constructor(section: string = 'default', accountSwitchKey?: string) {
+  constructor(section = 'default', accountSwitchKey?: string) {
     this.section = section;
     const edgercPath = this.getEdgeRcPath();
     this.debug = process.env.DEBUG === '1' || process.env.DEBUG === 'true';
-    
+
     try {
       // Initialize EdgeGrid client using the SDK
       // The SDK handles all .edgerc parsing automatically
       this.edgeGrid = new EdgeGrid({
         path: edgercPath,
-        section: section
+        section: section,
       });
-      
+
       // If no account switch key provided, try to read it from .edgerc
       if (!accountSwitchKey) {
         accountSwitchKey = this.extractAccountSwitchKey(edgercPath, section);
       }
-      
+
       // Store account switch key for API requests
       this.accountSwitchKey = accountSwitchKey;
-      
     } catch (error) {
       if (error instanceof Error && error.message.includes('ENOENT')) {
         throw new Error(
           `EdgeGrid configuration not found at ${edgercPath}\n` +
-          `Please create this file with your Akamai API credentials.\n` +
-          `See: https://techdocs.akamai.com/developer/docs/set-up-authentication-credentials`
+            `Please create this file with your Akamai API credentials.\n` +
+            `See: https://techdocs.akamai.com/developer/docs/set-up-authentication-credentials`,
         );
       } else if (error instanceof Error && error.message.includes('section')) {
         throw new Error(
           `Section [${section}] not found in ${edgercPath}\n` +
-          `Please ensure your .edgerc file contains the [${section}] section.`
+            `Please ensure your .edgerc file contains the [${section}] section.`,
         );
       }
       throw error;
@@ -62,7 +61,7 @@ export class AkamaiClient {
     if (envPath) {
       return path.resolve(envPath);
     }
-    
+
     // Default to ~/.edgerc
     return path.join(os.homedir(), '.edgerc');
   }
@@ -80,32 +79,32 @@ export class AkamaiClient {
     try {
       // Ensure path starts with /
       const requestPath = options.path.startsWith('/') ? options.path : `/${options.path}`;
-      
+
       // Build query parameters object
       const queryParams: Record<string, string> = {};
-      
+
       // Add account switch key if available
       if (this.accountSwitchKey) {
         queryParams.accountSwitchKey = this.accountSwitchKey;
       }
-      
+
       // Add any additional query parameters
       if (options.queryParams) {
         Object.assign(queryParams, options.queryParams);
       }
-      
+
       // Prepare request options for EdgeGrid
       const requestOptions: any = {
         path: requestPath,
         method: options.method || 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          ...options.headers
+          Accept: 'application/json',
+          ...options.headers,
         },
-        body: options.body ? JSON.stringify(options.body) : undefined
+        body: options.body ? JSON.stringify(options.body) : undefined,
       };
-      
+
       // Add query parameters using qs property if any exist
       if (Object.keys(queryParams).length > 0) {
         requestOptions.qs = queryParams;
@@ -114,15 +113,22 @@ export class AkamaiClient {
       // Debug logging
       if (this.debug) {
         console.error(`[AkamaiClient] Making request: ${options.method || 'GET'} ${requestPath}`);
-        console.error(`[AkamaiClient] Request options:`, JSON.stringify({
-          ...requestOptions,
-          body: requestOptions.body ? '[BODY]' : undefined
-        }, null, 2));
+        console.error(
+          `[AkamaiClient] Request options:`,
+          JSON.stringify(
+            {
+              ...requestOptions,
+              body: requestOptions.body ? '[BODY]' : undefined,
+            },
+            null,
+            2,
+          ),
+        );
       }
 
       // Use EdgeGrid's auth method to sign the request
       this.edgeGrid.auth(requestOptions);
-      
+
       // Make the request using EdgeGrid's send method
       return new Promise((resolve, reject) => {
         this.edgeGrid.send((error: any, response: any, body: any) => {
@@ -134,14 +140,14 @@ export class AkamaiClient {
             }
             return;
           }
-          
+
           // Check for HTTP errors
           if (response && response.statusCode >= 400) {
             const akamaiError = this.parseErrorResponse(body, response.statusCode);
             reject(akamaiError);
             return;
           }
-          
+
           // Parse JSON response
           if (body) {
             try {
@@ -165,7 +171,7 @@ export class AkamaiClient {
    */
   private parseErrorResponse(body: string, statusCode: number): Error {
     let errorData: AkamaiError;
-    
+
     try {
       errorData = JSON.parse(body);
     } catch {
@@ -174,11 +180,11 @@ export class AkamaiClient {
 
     // Format user-friendly error message
     let message = `Akamai API Error (${statusCode}): ${errorData.title || 'Request failed'}`;
-    
+
     if (errorData.detail) {
       message += `\n${errorData.detail}`;
     }
-    
+
     if (errorData.errors && errorData.errors.length > 0) {
       message += '\n\nErrors:';
       for (const err of errorData.errors) {
@@ -195,9 +201,11 @@ export class AkamaiClient {
     if (statusCode === 401) {
       message += '\n\nSolution: Check your .edgerc credentials are valid and not expired.';
     } else if (statusCode === 403) {
-      message += '\n\nSolution: Ensure your API client has the required permissions for this operation.';
+      message +=
+        '\n\nSolution: Ensure your API client has the required permissions for this operation.';
       if (this.accountSwitchKey) {
-        message += '\nNote: You are using account switch key. Verify you have access to the target account.';
+        message +=
+          '\nNote: You are using account switch key. Verify you have access to the target account.';
       }
     } else if (statusCode === 429) {
       message += '\n\nSolution: Rate limit exceeded. Please wait a moment before retrying.';
@@ -217,15 +225,13 @@ export class AkamaiClient {
       // Check for specific error types
       if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
         throw new Error(
-          'Network connectivity issue. Check your internet connection and verify the API host in ~/.edgerc is correct.'
+          'Network connectivity issue. Check your internet connection and verify the API host in ~/.edgerc is correct.',
         );
       } else if (error.message.includes('ETIMEDOUT')) {
-        throw new Error(
-          'Request timed out. The Akamai API might be slow. Try again in a moment.'
-        );
+        throw new Error('Request timed out. The Akamai API might be slow. Try again in a moment.');
       }
     }
-    
+
     throw error;
   }
 
@@ -238,7 +244,7 @@ export class AkamaiClient {
   } {
     return {
       edgercPath: this.getEdgeRcPath(),
-      accountSwitchKey: this.accountSwitchKey
+      accountSwitchKey: this.accountSwitchKey,
     };
   }
 
@@ -257,26 +263,30 @@ export class AkamaiClient {
     try {
       const edgercContent = fs.readFileSync(edgercPath, 'utf-8');
       const lines = edgercContent.split('\n');
-      
+
       let inSection = false;
       let accountSwitchKey: string | undefined;
-      
+
       for (const line of lines) {
         const trimmedLine = line.trim();
-        
+
         // Check if we're entering a section
         if (trimmedLine.startsWith('[') && trimmedLine.endsWith(']')) {
           const currentSection = trimmedLine.slice(1, -1);
           inSection = currentSection === section;
           continue;
         }
-        
+
         // If we're in the right section, look for account_key (or account-switch-key for compatibility)
         if (inSection && trimmedLine.includes('=')) {
           const [key, ...valueParts] = trimmedLine.split('=');
           const trimmedKey = key?.trim();
-          
-          if (trimmedKey === 'account-switch-key' || trimmedKey === 'account_switch_key' || trimmedKey === 'account_key') {
+
+          if (
+            trimmedKey === 'account-switch-key' ||
+            trimmedKey === 'account_switch_key' ||
+            trimmedKey === 'account_key'
+          ) {
             const value = valueParts.join('=').trim();
             // Remove quotes if present
             accountSwitchKey = value.replace(/^["']|["']$/g, '');
@@ -284,11 +294,13 @@ export class AkamaiClient {
           }
         }
       }
-      
+
       if (accountSwitchKey && this.debug) {
-        console.error(`[AkamaiClient] Found account_key in section [${section}]: ${accountSwitchKey}`);
+        console.error(
+          `[AkamaiClient] Found account_key in section [${section}]: ${accountSwitchKey}`,
+        );
       }
-      
+
       return accountSwitchKey;
     } catch (error) {
       if (this.debug) {

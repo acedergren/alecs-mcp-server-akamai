@@ -12,11 +12,8 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types';
 
-import ObservabilityStack, { 
-  ObservabilityFactory, 
-  DestinationFactory,
- 
-} from './index';
+import type ObservabilityStack from './index';
+import { ObservabilityFactory, DestinationFactory } from './index';
 
 export interface InstrumentedServerConfig {
   observability: {
@@ -48,7 +45,7 @@ export class InstrumentedMCPServer {
       },
       {
         capabilities: config.server.capabilities,
-      }
+      },
     );
 
     this.initializeObservability();
@@ -80,7 +77,9 @@ export class InstrumentedMCPServer {
       this.setupCustomHealthChecks();
       this.setupCustomAlerts();
 
-      console.log(`📊 Observability initialized for ${this.config.observability.environment} environment`);
+      console.log(
+        `📊 Observability initialized for ${this.config.observability.environment} environment`,
+      );
     } catch (error) {
       console.error('❌ Failed to initialize observability:', error);
     }
@@ -91,33 +90,29 @@ export class InstrumentedMCPServer {
       return [];
     }
 
-    return this.config.observability.destinations.map(dest => {
+    return this.config.observability.destinations.map((dest) => {
       switch (dest.type) {
         case 'prometheus':
           return DestinationFactory.createPrometheus(
             dest.name,
             dest.config.url,
             dest.config.job || 'alecs-mcp-akamai',
-            dest.config.instance
+            dest.config.instance,
           );
         case 'datadog':
-          return DestinationFactory.createDataDog(
-            dest.name,
-            dest.config.apiKey,
-            dest.config.site
-          );
+          return DestinationFactory.createDataDog(dest.name, dest.config.apiKey, dest.config.site);
         case 'newrelic':
           return DestinationFactory.createNewRelic(
             dest.name,
             dest.config.licenseKey,
-            dest.config.region
+            dest.config.region,
           );
         case 'webhook':
           return DestinationFactory.createWebhook(
             dest.name,
             dest.config.url,
             dest.config.authentication,
-            dest.config.format
+            dest.config.format,
           );
         default:
           throw new Error(`Unknown destination type: ${dest.type}`);
@@ -136,7 +131,7 @@ export class InstrumentedMCPServer {
         try {
           // Test basic server responsiveness
           const isResponsive = true; // Would implement actual connectivity test
-          
+
           return {
             name: 'mcp_server_connectivity',
             status: isResponsive ? 'healthy' : 'critical',
@@ -164,7 +159,9 @@ export class InstrumentedMCPServer {
       execute: async () => {
         // Check for recent tool execution errors
         const recentEvents = this.observability!.debug.getRecentEvents(100);
-        const errorEvents = recentEvents.filter(e => e.level === 'error' && e.category === 'tool-execution');
+        const errorEvents = recentEvents.filter(
+          (e) => e.level === 'error' && e.category === 'tool-execution',
+        );
         const errorRate = errorEvents.length / Math.max(recentEvents.length, 1);
 
         let status: 'healthy' | 'warning' | 'critical' = 'healthy';
@@ -198,7 +195,7 @@ export class InstrumentedMCPServer {
       name: 'high_tool_error_rate',
       condition: () => {
         const recentEvents = this.observability!.debug.getRecentEvents(50);
-        const errorEvents = recentEvents.filter(e => e.level === 'error');
+        const errorEvents = recentEvents.filter((e) => e.level === 'error');
         return errorEvents.length / Math.max(recentEvents.length, 1) > 0.15;
       },
       severity: 'warning',
@@ -223,9 +220,10 @@ export class InstrumentedMCPServer {
       name: 'request_timeouts',
       condition: () => {
         const recentEvents = this.observability!.debug.getRecentEvents(100);
-        const timeoutEvents = recentEvents.filter(e => 
-          e.message.toLowerCase().includes('timeout') || 
-          e.message.toLowerCase().includes('timed out')
+        const timeoutEvents = recentEvents.filter(
+          (e) =>
+            e.message.toLowerCase().includes('timeout') ||
+            e.message.toLowerCase().includes('timed out'),
         );
         return timeoutEvents.length > 5;
       },
@@ -243,17 +241,15 @@ export class InstrumentedMCPServer {
 
     // Instrument list tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      const instrumentation = this.observability!.instrumentMCPRequest(
-        'list_tools',
-        undefined,
-        { requestId: this.generateRequestId() }
-      );
+      const instrumentation = this.observability!.instrumentMCPRequest('list_tools', undefined, {
+        requestId: this.generateRequestId(),
+      });
 
       try {
         const tools = await this.getAvailableTools();
-        
+
         instrumentation.finish(undefined, { toolCount: tools.length });
-        
+
         return { tools };
       } catch (error) {
         instrumentation.finish(error as Error);
@@ -265,15 +261,11 @@ export class InstrumentedMCPServer {
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name: toolName, arguments: toolArgs } = request.params;
       const customer = (toolArgs as any)?.customer || 'default';
-      
-      const instrumentation = this.observability!.instrumentMCPRequest(
-        toolName,
-        customer,
-        { 
-          requestId: this.generateRequestId(),
-          toolArgs: Object.keys(toolArgs || {}),
-        }
-      );
+
+      const instrumentation = this.observability!.instrumentMCPRequest(toolName, customer, {
+        requestId: this.generateRequestId(),
+        toolArgs: Object.keys(toolArgs || {}),
+      });
 
       try {
         this.observability!.debug.logEvent(
@@ -283,7 +275,7 @@ export class InstrumentedMCPServer {
           { toolName, customer, argsKeys: Object.keys(toolArgs || {}) },
           'mcp-server',
           instrumentation.traceId,
-          instrumentation.spanId
+          instrumentation.spanId,
         );
 
         // Execute the tool with instrumentation
@@ -291,15 +283,15 @@ export class InstrumentedMCPServer {
           toolName,
           toolArgs,
           customer,
-          instrumentation
+          instrumentation,
         );
 
         // Record successful tool execution
-        this.observability!.metrics.incrementCounter(
-          'akamai_mcp_tool_executions_total',
-          1,
-          { tool: toolName, customer, status: 'success' }
-        );
+        this.observability!.metrics.incrementCounter('akamai_mcp_tool_executions_total', 1, {
+          tool: toolName,
+          customer,
+          status: 'success',
+        });
 
         instrumentation.finish(undefined, result);
 
@@ -311,32 +303,31 @@ export class InstrumentedMCPServer {
             },
           ],
         };
-
       } catch (error) {
         // Record failed tool execution
-        this.observability!.metrics.incrementCounter(
-          'akamai_mcp_tool_executions_total',
-          1,
-          { tool: toolName, customer, status: 'error' }
-        );
+        this.observability!.metrics.incrementCounter('akamai_mcp_tool_executions_total', 1, {
+          tool: toolName,
+          customer,
+          status: 'error',
+        });
 
         this.observability!.debug.logEvent(
           'error',
           'tool-execution',
           `Tool execution failed: ${toolName}`,
-          { 
-            toolName, 
-            customer, 
+          {
+            toolName,
+            customer,
             error: (error as Error).message,
             stack: (error as Error).stack,
           },
           'mcp-server',
           instrumentation.traceId,
-          instrumentation.spanId
+          instrumentation.spanId,
         );
 
         instrumentation.finish(error as Error);
-        
+
         // Re-throw to maintain MCP error handling
         throw error;
       }
@@ -353,9 +344,9 @@ export class InstrumentedMCPServer {
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name: toolName, arguments: toolArgs } = request.params;
       const customer = (toolArgs as any)?.customer || 'default';
-      
+
       const result = await this.executeToolWithoutInstrumentation(toolName, toolArgs, customer);
-      
+
       return {
         content: [
           {
@@ -371,40 +362,36 @@ export class InstrumentedMCPServer {
     toolName: string,
     toolArgs: any,
     customer: string,
-    instrumentation: { traceId: string; spanId: string }
+    instrumentation: { traceId: string; spanId: string },
   ): Promise<any> {
     // This would integrate with your existing tool implementations
     // For now, we'll simulate the execution
-    
+
     if (toolName.includes('akamai') || toolName.includes('property') || toolName.includes('dns')) {
       // Instrument Akamai API calls
       const [service, operation] = this.parseToolName(toolName);
-      
+
       const apiInstrumentation = this.observability!.instrumentAkamaiAPIRequest(
         service,
         operation,
         customer,
-        { originalTool: toolName }
+        { originalTool: toolName },
       );
 
       try {
         // Log API call details
-        this.observability!.debug.logToSpan(
-          instrumentation.traceId,
-          instrumentation.spanId,
-          {
-            action: 'calling_akamai_api',
-            service,
-            operation,
-            customer,
-          }
-        );
+        this.observability!.debug.logToSpan(instrumentation.traceId, instrumentation.spanId, {
+          action: 'calling_akamai_api',
+          service,
+          operation,
+          customer,
+        });
 
         // Execute the actual tool (would call your existing tool functions)
         const result = await this.simulateToolExecution(toolName, toolArgs, customer);
-        
+
         apiInstrumentation.finish(undefined, result);
-        
+
         return result;
       } catch (error) {
         apiInstrumentation.finish(error as Error);
@@ -419,7 +406,7 @@ export class InstrumentedMCPServer {
   private async executeToolWithoutInstrumentation(
     toolName: string,
     toolArgs: any,
-    customer: string
+    customer: string,
   ): Promise<any> {
     return await this.simulateToolExecution(toolName, toolArgs, customer);
   }
@@ -435,30 +422,32 @@ export class InstrumentedMCPServer {
     } else if (toolName.startsWith('cps.')) {
       return ['cps', toolName.substring(4)];
     }
-    
+
     return ['unknown', toolName];
   }
 
-  private async simulateToolExecution(toolName: string, toolArgs: any, customer: string): Promise<any> {
+  private async simulateToolExecution(
+    toolName: string,
+    toolArgs: any,
+    customer: string,
+  ): Promise<any> {
     // Simulate execution time
     const executionTime = Math.random() * 2000 + 500; // 500-2500ms
-    await new Promise(resolve => setTimeout(resolve, executionTime));
+    await new Promise((resolve) => setTimeout(resolve, executionTime));
 
     // Record tool execution metrics
     if (this.observability) {
       this.observability.metrics.recordHistogram(
         'akamai_mcp_tool_duration_seconds',
         executionTime / 1000,
-        { tool: toolName, customer }
+        { tool: toolName, customer },
       );
     }
 
     // Simulate occasional failures
-    if (Math.random() < 0.03) { // 3% failure rate
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Simulated failure for tool ${toolName}`
-      );
+    if (Math.random() < 0.03) {
+      // 3% failure rate
+      throw new McpError(ErrorCode.InternalError, `Simulated failure for tool ${toolName}`);
     }
 
     // Return mock result
@@ -509,7 +498,7 @@ export class InstrumentedMCPServer {
 
   async start(): Promise<void> {
     const transport = new StdioServerTransport();
-    
+
     if (this.observability) {
       // Wait for observability initialization
       await new Promise<void>((resolve) => {
@@ -520,17 +509,19 @@ export class InstrumentedMCPServer {
         'info',
         'server',
         'MCP Server starting with observability',
-        { 
+        {
           environment: this.config.observability.environment,
           observabilityEnabled: true,
         },
-        'mcp-server'
+        'mcp-server',
       );
     }
 
     await this.server.connect(transport);
-    
-    console.log(`🚀 Akamai MCP Server started with ${this.observability ? 'full' : 'basic'} observability`);
+
+    console.log(
+      `🚀 Akamai MCP Server started with ${this.observability ? 'full' : 'basic'} observability`,
+    );
 
     if (this.observability) {
       this.observability.debug.logEvent(
@@ -538,26 +529,20 @@ export class InstrumentedMCPServer {
         'server',
         'MCP Server started successfully',
         { transport: 'stdio' },
-        'mcp-server'
+        'mcp-server',
       );
     }
   }
 
   async stop(): Promise<void> {
     if (this.observability) {
-      this.observability.debug.logEvent(
-        'info',
-        'server',
-        'MCP Server stopping',
-        {},
-        'mcp-server'
-      );
+      this.observability.debug.logEvent('info', 'server', 'MCP Server stopping', {}, 'mcp-server');
 
       // Export final metrics before shutdown
       try {
         await this.observability.generateHealthReport();
         console.log('📊 Final observability report generated');
-        
+
         // Optionally export to file or send to monitoring
         if (process.env.EXPORT_ON_SHUTDOWN === 'true') {
           await this.observability.exportObservabilityData();
@@ -611,7 +596,7 @@ export class ServerFactory {
       observability: {
         enabled: true,
         environment: 'production',
-        destinations: destinations.map(dest => ({
+        destinations: destinations.map((dest) => ({
           type: dest.type,
           name: dest.name,
           config: dest.config,

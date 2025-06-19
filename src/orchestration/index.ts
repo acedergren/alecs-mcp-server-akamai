@@ -2,10 +2,16 @@
  * Orchestration module that coordinates multiple agents for complex workflows
  */
 
-import { CDNProvisioningAgent, createCDNProvisioningAgent } from '../agents/cdn-provisioning.agent';
-import { CPSCertificateAgent, createCPSCertificateAgent } from '../agents/cps-certificate.agent';
-import { DNSMigrationAgent, createDNSMigrationAgent } from '../agents/dns-migration.agent';
-import { format, icons, ProgressBar, MultiProgress } from '../utils/progress';
+import {
+  type CDNProvisioningAgent,
+  createCDNProvisioningAgent,
+} from '@agents/cdn-provisioning.agent';
+import {
+  type CPSCertificateAgent,
+  createCPSCertificateAgent,
+} from '@agents/cps-certificate.agent';
+import { type DNSMigrationAgent, createDNSMigrationAgent } from '@agents/dns-migration.agent';
+import { format, icons, ProgressBar, MultiProgress } from '@utils/progress';
 
 export interface OrchestrationOptions {
   customer?: string;
@@ -38,7 +44,7 @@ export class AkamaiOrchestrator {
       this.cdnAgent = await createCDNProvisioningAgent(
         this.options.customer,
         this.options.contractId,
-        this.options.groupId
+        this.options.groupId,
       );
 
       // Initialize DNS Agent
@@ -47,17 +53,14 @@ export class AkamaiOrchestrator {
 
       // Initialize CPS Agent with DNS integration
       progress.update({ current: 3, message: 'Initializing Certificate Agent' });
-      this.cpsAgent = await createCPSCertificateAgent(
-        this.options.customer,
-        this.dnsAgent
-      );
+      this.cpsAgent = await createCPSCertificateAgent(this.options.customer, this.dnsAgent);
 
       progress.finish('All agents initialized');
     } catch (error) {
-      progress.update({ 
-        current: progress['current'], 
-        status: 'error', 
-        message: `Initialization failed: ${error instanceof Error ? error.message : String(error)}` 
+      progress.update({
+        current: progress['current'],
+        status: 'error',
+        message: `Initialization failed: ${error instanceof Error ? error.message : String(error)}`,
       });
       throw error;
     }
@@ -103,20 +106,16 @@ export class AkamaiOrchestrator {
     try {
       // Step 1: Migrate DNS zone
       progress.update({ current: 1, message: steps[0] });
-      await this.dnsAgent!.migrateZoneComplete(
-        options.domain,
-        options.domain,
-        {
-          source: options.sourceProvider === 'cloudflare' ? 'cloudflare' : 'axfr',
-          sourceConfig: options.sourceConfig,
-          autoActivate: true,
-        }
-      );
+      await this.dnsAgent!.migrateZoneComplete(options.domain, options.domain, {
+        source: options.sourceProvider === 'cloudflare' ? 'cloudflare' : 'axfr',
+        sourceConfig: options.sourceConfig,
+        autoActivate: true,
+      });
 
       // Step 2: Create CDN property
       progress.update({ current: 2, message: steps[1] });
       const propertyName = options.domain.replace(/\./g, '-');
-      
+
       // Use CDN agent's complete provisioning
       await this.cdnAgent!.provisionCompleteProperty(
         propertyName,
@@ -127,7 +126,7 @@ export class AkamaiOrchestrator {
           activateStaging: options.activateStaging,
           activateProduction: false, // We'll do this after validation
           notifyEmails: options.notifyEmails,
-        }
+        },
       );
 
       // The CDN agent handles steps 3-6 internally
@@ -158,19 +157,20 @@ export class AkamaiOrchestrator {
       console.log(`${icons.success} DNS zone migrated with all records`);
       console.log(`${icons.success} CDN property created and configured`);
       console.log(`${icons.success} SSL certificates provisioned`);
-      console.log(`${icons.success} Property activated to ${options.activateStaging ? 'staging' : 'ready for activation'}`);
-      
+      console.log(
+        `${icons.success} Property activated to ${options.activateStaging ? 'staging' : 'ready for activation'}`,
+      );
+
       console.log(`\n${icons.info} Next Steps:`);
       console.log(`  1. Update nameservers at domain registrar`);
       console.log(`  2. Test thoroughly on staging`);
       console.log(`  3. Activate to production when ready`);
       console.log(`  4. Monitor traffic and performance`);
-
     } catch (error) {
-      progress.update({ 
-        current: progress['current'], 
-        status: 'error', 
-        message: `Migration failed: ${error instanceof Error ? error.message : String(error)}` 
+      progress.update({
+        current: progress['current'],
+        status: 'error',
+        message: `Migration failed: ${error instanceof Error ? error.message : String(error)}`,
       });
       throw error;
     }
@@ -190,9 +190,13 @@ export class AkamaiOrchestrator {
   }): Promise<void> {
     console.log(`\n${format.bold('Secure Website Provisioning')}`);
     console.log(format.dim('═'.repeat(60)));
-    console.log(`${icons.globe} Domains: ${options.domains.map(d => format.cyan(d)).join(', ')}`);
-    console.log(`${icons.lock} Certificate: ${format.green(options.certificateType || 'default-dv')}`);
-    console.log(`${icons.shield} Security: WAF ${options.enableWAF ? '✓' : '✗'} | DDoS ${options.enableDDoS ? '✓' : '✗'}`);
+    console.log(`${icons.globe} Domains: ${options.domains.map((d) => format.cyan(d)).join(', ')}`);
+    console.log(
+      `${icons.lock} Certificate: ${format.green(options.certificateType || 'default-dv')}`,
+    );
+    console.log(
+      `${icons.shield} Security: WAF ${options.enableWAF ? '✓' : '✗'} | DDoS ${options.enableDDoS ? '✓' : '✗'}`,
+    );
     console.log(format.dim('═'.repeat(60)));
 
     const progress = new ProgressBar({
@@ -214,19 +218,16 @@ export class AkamaiOrchestrator {
 
       // Step 2: Provision SSL certificates
       progress.update({ current: 2, message: 'Provisioning SSL certificates' });
-      await this.cpsAgent!.provisionAndDeployCertificate(
-        options.domains,
-        {
-          type: options.certificateType || 'default-dv',
-          network: 'production',
-          autoRenewal: true,
-        }
-      );
+      await this.cpsAgent!.provisionAndDeployCertificate(options.domains, {
+        type: options.certificateType || 'default-dv',
+        network: 'production',
+        autoRenewal: true,
+      });
 
       // Step 3-7: Create and configure CDN property
       progress.update({ current: 3, message: 'Creating CDN property' });
       const propertyName = options.domains[0].replace(/\./g, '-');
-      
+
       await this.cdnAgent!.provisionCompleteProperty(
         propertyName,
         options.domains,
@@ -234,7 +235,7 @@ export class AkamaiOrchestrator {
         {
           activateStaging: true,
           notifyEmails: options.notifyEmails,
-        }
+        },
       );
 
       // Step 8: Apply security configurations
@@ -245,12 +246,11 @@ export class AkamaiOrchestrator {
       }
 
       progress.finish('Secure website provisioned successfully!');
-
     } catch (error) {
-      progress.update({ 
-        current: progress['current'], 
-        status: 'error', 
-        message: error instanceof Error ? error.message : String(error) 
+      progress.update({
+        current: progress['current'],
+        status: 'error',
+        message: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -288,31 +288,29 @@ export class AkamaiOrchestrator {
       const parallel = options.parallel || 1;
       for (let i = 0; i < options.zones.length; i += parallel) {
         const batch = options.zones.slice(i, i + parallel);
-        
+
         await Promise.all(
           batch.map(async (zone) => {
             const targetZone = zone.target || zone.source;
-            progress.update({ 
-              current: i + 1, 
-              message: `Migrating ${zone.source}` 
+            progress.update({
+              current: i + 1,
+              message: `Migrating ${zone.source}`,
             });
 
             try {
-              await this.dnsAgent!.migrateZoneComplete(
-                zone.source,
-                targetZone,
-                {
-                  source: options.sourceType,
-                  sourceConfig: options.sourceConfig,
-                  autoActivate: true,
-                }
-              );
+              await this.dnsAgent!.migrateZoneComplete(zone.source, targetZone, {
+                source: options.sourceType,
+                sourceConfig: options.sourceConfig,
+                autoActivate: true,
+              });
               results.success++;
             } catch (error) {
               results.failed++;
-              results.errors.push(`${zone.source}: ${error instanceof Error ? error.message : String(error)}`);
+              results.errors.push(
+                `${zone.source}: ${error instanceof Error ? error.message : String(error)}`,
+              );
             }
-          })
+          }),
         );
       }
 
@@ -323,10 +321,10 @@ export class AkamaiOrchestrator {
       console.log(format.dim('─'.repeat(50)));
       console.log(`${icons.success} Successful: ${format.green(results.success.toString())}`);
       console.log(`${icons.error} Failed: ${format.red(results.failed.toString())}`);
-      
+
       if (results.errors.length > 0) {
         console.log(`\n${icons.warning} Errors:`);
-        results.errors.forEach(err => console.log(`  ${icons.cross} ${err}`));
+        results.errors.forEach((err) => console.log(`  ${icons.cross} ${err}`));
       }
 
       // Generate nameserver migration instructions
@@ -334,12 +332,11 @@ export class AkamaiOrchestrator {
         console.log(`\n${icons.info} ${format.bold('Nameserver Update Required')}`);
         console.log('Update nameservers for all migrated zones at your domain registrar');
       }
-
     } catch (error) {
-      progress.update({ 
-        current: progress['current'], 
-        status: 'error', 
-        message: error instanceof Error ? error.message : String(error) 
+      progress.update({
+        current: progress['current'],
+        status: 'error',
+        message: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -348,7 +345,7 @@ export class AkamaiOrchestrator {
   // Helper methods
   private async runValidationTests(domain: string): Promise<void> {
     console.log(`\n${icons.check} Running validation tests for ${domain}...`);
-    
+
     // Simulate validation tests
     const tests = [
       'DNS resolution',
@@ -359,14 +356,14 @@ export class AkamaiOrchestrator {
     ];
 
     for (const test of tests) {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       console.log(`  ${icons.success} ${test}`);
     }
   }
 
   private async generateMigrationReport(options: any): Promise<void> {
     console.log(`\n${icons.document} Generating migration report...`);
-    
+
     // This would generate a detailed report
     const reportPath = `/tmp/migration-report-${options.domain}-${Date.now()}.json`;
     console.log(`  ${icons.success} Report saved to: ${reportPath}`);
@@ -386,7 +383,7 @@ export class AkamaiOrchestrator {
 
 // Export factory function
 export async function createOrchestrator(
-  options?: OrchestrationOptions
+  options?: OrchestrationOptions,
 ): Promise<AkamaiOrchestrator> {
   const orchestrator = new AkamaiOrchestrator(options);
   await orchestrator.initialize();
@@ -399,7 +396,8 @@ export async function exampleUsage() {
   console.log(format.dim('═'.repeat(60)));
 
   console.log(`\n${icons.rocket} Example 1: Migrate website from Cloudflare`);
-  console.log(format.gray(`
+  console.log(
+    format.gray(`
 const orchestrator = await createOrchestrator({
   customer: 'default',
   contractId: 'ctr_123456',
@@ -417,10 +415,12 @@ await orchestrator.migrateWebsite({
   activateStaging: true,
   notifyEmails: ['ops@example.com']
 });
-  `));
+  `),
+  );
 
   console.log(`\n${icons.rocket} Example 2: Provision secure website`);
-  console.log(format.gray(`
+  console.log(
+    format.gray(`
 await orchestrator.provisionSecureWebsite({
   domains: ['example.com', 'www.example.com'],
   originHostname: 'origin.example.com',
@@ -430,10 +430,12 @@ await orchestrator.provisionSecureWebsite({
   cacheStrategy: 'moderate',
   notifyEmails: ['security@example.com']
 });
-  `));
+  `),
+  );
 
   console.log(`\n${icons.rocket} Example 3: Bulk DNS migration`);
-  console.log(format.gray(`
+  console.log(
+    format.gray(`
 await orchestrator.bulkDNSMigration({
   zones: [
     { source: 'example.com' },
@@ -446,10 +448,12 @@ await orchestrator.bulkDNSMigration({
   },
   parallel: 3
 });
-  `));
+  `),
+  );
 
   console.log(`\n${icons.rocket} Example 4: Direct agent access`);
-  console.log(format.gray(`
+  console.log(
+    format.gray(`
 const { cdn, cps, dns } = orchestrator.getAgents();
 
 // Use CDN agent directly
@@ -465,7 +469,8 @@ await dns.createRecord('example.com', {
   ttl: 300,
   rdata: ['192.0.2.1']
 });
-  `));
+  `),
+  );
 
   console.log(format.dim('\n═'.repeat(60)));
 }

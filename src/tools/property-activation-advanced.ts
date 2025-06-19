@@ -3,9 +3,9 @@
  * Production-ready property activation with validation, monitoring, and rollback capabilities
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { ErrorTranslator, ErrorRecovery } from '../utils/errors';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import { ErrorTranslator, ErrorRecovery } from '@utils/errors';
 
 // Enhanced activation types
 export interface ActivationProgress {
@@ -24,7 +24,15 @@ export interface ActivationProgress {
 }
 
 export interface ActivationStatus {
-  state: 'PENDING' | 'ZONE_1' | 'ZONE_2' | 'ZONE_3' | 'ACTIVE' | 'FAILED' | 'ABORTED' | 'DEACTIVATED';
+  state:
+    | 'PENDING'
+    | 'ZONE_1'
+    | 'ZONE_2'
+    | 'ZONE_3'
+    | 'ACTIVE'
+    | 'FAILED'
+    | 'ABORTED'
+    | 'DEACTIVATED';
   message: string;
   details?: string;
 }
@@ -95,21 +103,21 @@ export async function validatePropertyActivation(
     propertyId: string;
     version?: number;
     network: 'STAGING' | 'PRODUCTION';
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     // Get property details
     const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
-    
+
     if (!propertyResponse.properties?.items?.[0]) {
       throw new Error('Property not found');
     }
-    
+
     const property = propertyResponse.properties.items[0];
     const version = args.version || property.latestVersion || 1;
     const validation: ValidationResult = {
@@ -157,21 +165,20 @@ export async function validatePropertyActivation(
     });
 
     const hostnames = hostnamesResponse.hostnames?.items || [];
-    
+
     validation.preflightChecks.push({
       name: 'Hostname Configuration',
       status: hostnames.length > 0 ? 'PASSED' : 'FAILED',
-      message: hostnames.length > 0 
-        ? `${hostnames.length} hostname(s) configured`
-        : 'No hostnames configured',
-      details: hostnames.length === 0 
-        ? 'Add at least one hostname before activation'
-        : undefined,
+      message:
+        hostnames.length > 0
+          ? `${hostnames.length} hostname(s) configured`
+          : 'No hostnames configured',
+      details: hostnames.length === 0 ? 'Add at least one hostname before activation' : undefined,
     });
 
     // 3. Check certificate status for HTTPS hostnames
-    const httpsHostnames = hostnames.filter((h: any) => 
-      h.cnameTo && (h.cnameTo.includes('edgekey') || h.cnameTo.includes('edgesuite'))
+    const httpsHostnames = hostnames.filter(
+      (h: any) => h.cnameTo && (h.cnameTo.includes('edgekey') || h.cnameTo.includes('edgesuite')),
     );
 
     if (httpsHostnames.length > 0) {
@@ -185,8 +192,9 @@ export async function validatePropertyActivation(
       method: 'GET',
     });
 
-    const pendingActivations = (activationsResponse.activations?.items || [])
-      .filter((a: any) => a.status === 'PENDING' && a.network === args.network);
+    const pendingActivations = (activationsResponse.activations?.items || []).filter(
+      (a: any) => a.status === 'PENDING' && a.network === args.network,
+    );
 
     if (pendingActivations.length > 0) {
       validation.valid = false;
@@ -199,9 +207,8 @@ export async function validatePropertyActivation(
     }
 
     // 5. Version comparison check
-    const currentVersion = args.network === 'PRODUCTION' 
-      ? property.productionVersion 
-      : property.stagingVersion;
+    const currentVersion =
+      args.network === 'PRODUCTION' ? property.productionVersion : property.stagingVersion;
 
     if (currentVersion && currentVersion === version) {
       validation.warnings.push({
@@ -249,7 +256,7 @@ export async function validatePropertyActivation(
 
     if (validation.preflightChecks.length > 0) {
       responseText += `### Preflight Checks\n`;
-      validation.preflightChecks.forEach(check => {
+      validation.preflightChecks.forEach((check) => {
         const icon = check.status === 'PASSED' ? '✅' : check.status === 'FAILED' ? '❌' : '⚠️';
         responseText += `- ${icon} **${check.name}**: ${check.message}\n`;
         if (check.details) responseText += `  - ${check.details}\n`;
@@ -265,21 +272,25 @@ export async function validatePropertyActivation(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'validate property activation',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'validate property activation',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -295,11 +306,11 @@ export async function activatePropertyWithMonitoring(
     network: 'STAGING' | 'PRODUCTION';
     note?: string;
     options?: ActivationOptions;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
   const options = args.options || {};
-  
+
   try {
     // Validate first if requested
     if (options.validateFirst) {
@@ -313,10 +324,12 @@ export async function activatePropertyWithMonitoring(
       const validationText = validationResult.content[0]?.text || '';
       if (validationText.includes('❌ FAILED')) {
         return {
-          content: [{
-            type: 'text',
-            text: `❌ Activation blocked due to validation failures\n\n${validationText}\n\nFix the errors above before proceeding with activation.`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `❌ Activation blocked due to validation failures\n\n${validationText}\n\nFix the errors above before proceeding with activation.`,
+            },
+          ],
         };
       }
     }
@@ -326,7 +339,7 @@ export async function activatePropertyWithMonitoring(
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
-    
+
     const property = propertyResponse.properties.items[0];
     const version = args.version || property.latestVersion || 1;
 
@@ -350,7 +363,7 @@ export async function activatePropertyWithMonitoring(
       3,
       (attempt, _error) => {
         console.log(`Activation attempt ${attempt} failed, retrying...`);
-      }
+      },
     );
 
     const activationId = activationResponse.activationLink?.split('/').pop();
@@ -358,10 +371,12 @@ export async function activatePropertyWithMonitoring(
     // If not waiting for completion, return immediately
     if (!options.waitForCompletion) {
       return {
-        content: [{
-          type: 'text',
-          text: `✅ Started activation of property ${property.propertyName} (v${version}) to ${args.network}\n\n**Activation ID:** ${activationId}\n**Status:** In Progress\n\nTo monitor progress:\n\`\`\`\nGet activation progress ${activationId} for property ${args.propertyId}\n\`\`\``,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `✅ Started activation of property ${property.propertyName} (v${version}) to ${args.network}\n\n**Activation ID:** ${activationId}\n**Status:** In Progress\n\nTo monitor progress:\n\`\`\`\nGet activation progress ${activationId} for property ${args.propertyId}\n\`\`\``,
+          },
+        ],
       };
     }
 
@@ -394,10 +409,12 @@ export async function activatePropertyWithMonitoring(
       // Check for completion
       if (progress.status.state === 'ACTIVE') {
         return {
-          content: [{
-            type: 'text',
-            text: formatActivationSuccess(property, version, args.network, progress),
-          }],
+          content: [
+            {
+              type: 'text',
+              text: formatActivationSuccess(property, version, args.network, progress),
+            },
+          ],
         };
       }
 
@@ -407,12 +424,14 @@ export async function activatePropertyWithMonitoring(
           // Attempt rollback
           await rollbackActivation(client, args.propertyId, args.network);
         }
-        
+
         return {
-          content: [{
-            type: 'text',
-            text: formatActivationFailure(property, version, args.network, progress),
-          }],
+          content: [
+            {
+              type: 'text',
+              text: formatActivationFailure(property, version, args.network, progress),
+            },
+          ],
         };
       }
 
@@ -423,26 +442,30 @@ export async function activatePropertyWithMonitoring(
 
       // Progressive delay
       const delay = getProgressiveDelay(Date.now() - startTime);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
     // Timeout reached
     return {
-      content: [{
-        type: 'text',
-        text: `⏱️ Activation timeout reached\n\n**Property:** ${property.propertyName}\n**Version:** ${version}\n**Network:** ${args.network}\n**Activation ID:** ${activationId}\n\nThe activation is still in progress. Continue monitoring with:\n\`\`\`\nGet activation progress ${activationId} for property ${args.propertyId}\n\`\`\``,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `⏱️ Activation timeout reached\n\n**Property:** ${property.propertyName}\n**Version:** ${version}\n**Network:** ${args.network}\n**Activation ID:** ${activationId}\n\nThe activation is still in progress. Continue monitoring with:\n\`\`\`\nGet activation progress ${activationId} for property ${args.propertyId}\n\`\`\``,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'activate property with monitoring',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'activate property with monitoring',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -455,10 +478,10 @@ export async function getActivationProgress(
   args: {
     propertyId: string;
     activationId: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/activations/${args.activationId}`,
@@ -530,21 +553,25 @@ export async function getActivationProgress(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'get activation progress',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'get activation progress',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -553,11 +580,11 @@ export async function getActivationProgress(
 
 function getErrorResolution(error: any): string {
   const resolutions: Record<string, string> = {
-    'missing_required_behavior': 'Add the required behavior to your rule tree',
-    'invalid_criteria': 'Update the criteria to use valid values',
-    'deprecated_behavior': 'Replace with the recommended alternative behavior',
-    'origin_not_reachable': 'Verify origin server is accessible and configured correctly',
-    'certificate_not_ready': 'Wait for certificate validation to complete',
+    missing_required_behavior: 'Add the required behavior to your rule tree',
+    invalid_criteria: 'Update the criteria to use valid values',
+    deprecated_behavior: 'Replace with the recommended alternative behavior',
+    origin_not_reachable: 'Verify origin server is accessible and configured correctly',
+    certificate_not_ready: 'Wait for certificate validation to complete',
   };
 
   return resolutions[error.type] || 'Review the error details and update configuration';
@@ -565,8 +592,8 @@ function getErrorResolution(error: any): string {
 
 async function checkCertificateStatus(hostnames: any[], network: string): Promise<PreflightCheck> {
   // In a real implementation, this would check actual certificate status
-  const httpsHostnames = hostnames.filter(h => h.cnameTo?.includes('edgekey'));
-  
+  const httpsHostnames = hostnames.filter((h) => h.cnameTo?.includes('edgekey'));
+
   if (httpsHostnames.length === 0) {
     return {
       name: 'HTTPS Certificate Status',
@@ -576,7 +603,7 @@ async function checkCertificateStatus(hostnames: any[], network: string): Promis
   }
 
   // Check for certificate status in hostname data
-  const missingCerts = httpsHostnames.filter(h => {
+  const missingCerts = httpsHostnames.filter((h) => {
     const certStatus = h.certStatus?.[network.toLowerCase()];
     return !certStatus || certStatus.length === 0 || certStatus[0].status !== 'DEPLOYED';
   });
@@ -586,7 +613,7 @@ async function checkCertificateStatus(hostnames: any[], network: string): Promis
       name: 'HTTPS Certificate Status',
       status: 'WARNING',
       message: `${missingCerts.length} hostname(s) missing valid certificates`,
-      details: `Hostnames without certificates: ${missingCerts.map(h => h.cnameFrom).join(', ')}`,
+      details: `Hostnames without certificates: ${missingCerts.map((h) => h.cnameFrom).join(', ')}`,
     };
   }
 
@@ -597,7 +624,11 @@ async function checkCertificateStatus(hostnames: any[], network: string): Promis
   };
 }
 
-async function checkOriginConnectivity(client: AkamaiClient, propertyId: string, version: number): Promise<PreflightCheck> {
+async function checkOriginConnectivity(
+  client: AkamaiClient,
+  propertyId: string,
+  version: number,
+): Promise<PreflightCheck> {
   try {
     // Get property rules to find origin configuration
     const rulesResponse = await client.request({
@@ -654,12 +685,12 @@ function generateActivationSuggestions(validation: ValidationResult): string[] {
   const suggestions: string[] = [];
 
   // Check for common issues
-  const hasRuleErrors = validation.errors.some(e => e.location?.includes('/rules'));
-  const hasHostnameErrors = validation.preflightChecks.some(c => 
-    c.name.includes('Hostname') && c.status === 'FAILED'
+  const hasRuleErrors = validation.errors.some((e) => e.location?.includes('/rules'));
+  const hasHostnameErrors = validation.preflightChecks.some(
+    (c) => c.name.includes('Hostname') && c.status === 'FAILED',
   );
-  const hasCertErrors = validation.preflightChecks.some(c => 
-    c.name.includes('Certificate') && c.status !== 'PASSED'
+  const hasCertErrors = validation.preflightChecks.some(
+    (c) => c.name.includes('Certificate') && c.status !== 'PASSED',
   );
 
   if (hasRuleErrors) {
@@ -677,7 +708,7 @@ function generateActivationSuggestions(validation: ValidationResult): string[] {
     suggestions.push('Use "Create DV enrollment" to request new certificates');
   }
 
-  if (validation.errors.some(e => e.type === 'CONCURRENT_ACTIVATION')) {
+  if (validation.errors.some((e) => e.type === 'CONCURRENT_ACTIVATION')) {
     suggestions.push('Wait for current activation to complete');
     suggestions.push('Or cancel the pending activation if needed');
   }
@@ -688,17 +719,17 @@ function generateActivationSuggestions(validation: ValidationResult): string[] {
 function buildActivationProgress(activation: any, startTime: number): ActivationProgress {
   const now = Date.now();
   const elapsed = now - startTime;
-  
+
   // Calculate percentage based on status
   const statusPercentages: Record<string, number> = {
-    'PENDING': 5,
-    'ZONE_1': 25,
-    'ZONE_2': 50,
-    'ZONE_3': 75,
-    'ACTIVE': 100,
-    'FAILED': 0,
-    'ABORTED': 0,
-    'DEACTIVATED': 0,
+    PENDING: 5,
+    ZONE_1: 25,
+    ZONE_2: 50,
+    ZONE_3: 75,
+    ACTIVE: 100,
+    FAILED: 0,
+    ABORTED: 0,
+    DEACTIVATED: 0,
   };
 
   const percentComplete = statusPercentages[activation.status] || 0;
@@ -709,14 +740,14 @@ function buildActivationProgress(activation: any, startTime: number): Activation
 
   // Build status message
   const statusMessages: Record<string, string> = {
-    'PENDING': 'Preparing activation',
-    'ZONE_1': 'Deploying to first zone',
-    'ZONE_2': 'Deploying to second zone',
-    'ZONE_3': 'Deploying to third zone',
-    'ACTIVE': 'Activation complete',
-    'FAILED': 'Activation failed',
-    'ABORTED': 'Activation aborted',
-    'DEACTIVATED': 'Property deactivated',
+    PENDING: 'Preparing activation',
+    ZONE_1: 'Deploying to first zone',
+    ZONE_2: 'Deploying to second zone',
+    ZONE_3: 'Deploying to third zone',
+    ACTIVE: 'Activation complete',
+    FAILED: 'Activation failed',
+    ABORTED: 'Activation aborted',
+    DEACTIVATED: 'Property deactivated',
   };
 
   return {
@@ -740,10 +771,10 @@ function buildActivationProgress(activation: any, startTime: number): Activation
 }
 
 function getProgressiveDelay(elapsedTime: number): number {
-  if (elapsedTime < 120000) return 5000;      // First 2 minutes: 5 seconds
-  if (elapsedTime < 420000) return 10000;     // Next 5 minutes: 10 seconds
-  if (elapsedTime < 1020000) return 30000;    // Next 10 minutes: 30 seconds
-  return 60000;                                // After 17 minutes: 60 seconds
+  if (elapsedTime < 120000) return 5000; // First 2 minutes: 5 seconds
+  if (elapsedTime < 420000) return 10000; // Next 5 minutes: 10 seconds
+  if (elapsedTime < 1020000) return 30000; // Next 10 minutes: 30 seconds
+  return 60000; // After 17 minutes: 60 seconds
 }
 
 function generateProgressBar(percentage: number): string {
@@ -752,11 +783,17 @@ function generateProgressBar(percentage: number): string {
   return `[${'█'.repeat(filled)}${'░'.repeat(empty)}]`;
 }
 
-function formatActivationSuccess(property: any, version: number, network: string, progress: ActivationProgress): string {
+function formatActivationSuccess(
+  property: any,
+  version: number,
+  network: string,
+  progress: ActivationProgress,
+): string {
   const duration = Date.now() - progress.startTime.getTime();
   const minutes = Math.round(duration / 60000);
 
-  return `✅ **Activation Completed Successfully!**\n\n` +
+  return (
+    `✅ **Activation Completed Successfully!**\n\n` +
     `**Property:** ${property.propertyName}\n` +
     `**Version:** ${version}\n` +
     `**Network:** ${network}\n` +
@@ -765,11 +802,18 @@ function formatActivationSuccess(property: any, version: number, network: string
     `1. **Test your property**: Visit your website to verify changes\n` +
     `2. **Monitor performance**: Check Control Center for metrics\n` +
     `3. **Clear cache if needed**: Use Fast Purge for immediate updates\n\n` +
-    `${network === 'STAGING' ? '💡 **Tip**: Test thoroughly before activating to PRODUCTION' : '🎉 **Congratulations!** Your property is now live in production.'}`;
+    `${network === 'STAGING' ? '💡 **Tip**: Test thoroughly before activating to PRODUCTION' : '🎉 **Congratulations!** Your property is now live in production.'}`
+  );
 }
 
-function formatActivationFailure(property: any, version: number, network: string, progress: ActivationProgress): string {
-  let response = `❌ **Activation Failed**\n\n` +
+function formatActivationFailure(
+  property: any,
+  version: number,
+  network: string,
+  progress: ActivationProgress,
+): string {
+  let response =
+    `❌ **Activation Failed**\n\n` +
     `**Property:** ${property.propertyName}\n` +
     `**Version:** ${version}\n` +
     `**Network:** ${network}\n` +
@@ -796,7 +840,11 @@ function formatActivationFailure(property: any, version: number, network: string
   return response;
 }
 
-async function rollbackActivation(client: AkamaiClient, propertyId: string, network: string): Promise<void> {
+async function rollbackActivation(
+  client: AkamaiClient,
+  propertyId: string,
+  network: string,
+): Promise<void> {
   try {
     // Get previous stable version
     const activationsResponse = await client.request({
@@ -806,7 +854,9 @@ async function rollbackActivation(client: AkamaiClient, propertyId: string, netw
 
     const previousActivation = activationsResponse.activations?.items
       ?.filter((a: any) => a.network === network && a.status === 'ACTIVE')
-      ?.sort((a: any, b: any) => new Date(b.updateDate).getTime() - new Date(a.updateDate).getTime())[1];
+      ?.sort(
+        (a: any, b: any) => new Date(b.updateDate).getTime() - new Date(a.updateDate).getTime(),
+      )[1];
 
     if (previousActivation) {
       // Attempt to reactivate previous version
@@ -835,10 +885,10 @@ export async function cancelPropertyActivation(
   args: {
     propertyId: string;
     activationId: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     // Check activation status first
     const statusResponse = await client.request({
@@ -853,10 +903,12 @@ export async function cancelPropertyActivation(
 
     if (activation.status !== 'PENDING') {
       return {
-        content: [{
-          type: 'text',
-          text: `⚠️ Cannot cancel activation\n\n**Activation ID:** ${args.activationId}\n**Current Status:** ${activation.status}\n\nOnly PENDING activations can be cancelled. This activation has already progressed beyond the cancellable stage.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `⚠️ Cannot cancel activation\n\n**Activation ID:** ${args.activationId}\n**Current Status:** ${activation.status}\n\nOnly PENDING activations can be cancelled. This activation has already progressed beyond the cancellable stage.`,
+          },
+        ],
       };
     }
 
@@ -867,21 +919,25 @@ export async function cancelPropertyActivation(
     });
 
     return {
-      content: [{
-        type: 'text',
-        text: `✅ Activation cancelled successfully\n\n**Activation ID:** ${args.activationId}\n**Property:** ${activation.propertyName}\n**Version:** ${activation.propertyVersion}\n**Network:** ${activation.network}\n\nThe activation has been cancelled and will not proceed.`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `✅ Activation cancelled successfully\n\n**Activation ID:** ${args.activationId}\n**Property:** ${activation.propertyName}\n**Version:** ${activation.propertyVersion}\n**Network:** ${activation.network}\n\nThe activation has been cancelled and will not proceed.`,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'cancel property activation',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'cancel property activation',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -899,11 +955,11 @@ export async function createActivationPlan(
     }>;
     strategy?: 'PARALLEL' | 'SEQUENTIAL' | 'DEPENDENCY_ORDERED';
     dependencies?: Record<string, string[]>;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
   const strategy = args.strategy || 'SEQUENTIAL';
-  
+
   try {
     // Validate all properties exist and get details
     const propertyDetails = await Promise.all(
@@ -912,16 +968,16 @@ export async function createActivationPlan(
           path: `/papi/v1/properties/${prop.propertyId}`,
           method: 'GET',
         });
-        
+
         if (!response.properties?.items?.[0]) {
           throw new Error(`Property ${prop.propertyId} not found`);
         }
-        
+
         return {
           ...prop,
           details: response.properties.items[0],
         };
-      })
+      }),
     );
 
     // Build activation plan
@@ -962,21 +1018,25 @@ export async function createActivationPlan(
     responseText += `\`\`\`\nExecute activation plan for ${propertyDetails.length} properties\n\`\`\``;
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'create activation plan',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'create activation plan',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -985,19 +1045,19 @@ function topologicalSort(properties: any[], dependencies: Record<string, string[
   // Simple topological sort for dependency ordering
   const sorted: any[] = [];
   const visited = new Set<string>();
-  
+
   const visit = (propId: string) => {
     if (visited.has(propId)) return;
     visited.add(propId);
-    
+
     const deps = dependencies[propId] || [];
-    deps.forEach(dep => visit(dep));
-    
-    const prop = properties.find(p => p.propertyId === propId);
+    deps.forEach((dep) => visit(dep));
+
+    const prop = properties.find((p) => p.propertyId === propId);
     if (prop) sorted.push(prop);
   };
-  
-  properties.forEach(prop => visit(prop.propertyId));
+
+  properties.forEach((prop) => visit(prop.propertyId));
   return sorted;
 }
 
@@ -1017,13 +1077,13 @@ function calculateEstimatedTime(properties: any[], strategy: string): { total: n
   const baseTime = properties.reduce((sum, prop) => {
     return sum + (prop.network === 'PRODUCTION' ? 30 : 10);
   }, 0);
-  
+
   if (strategy === 'PARALLEL') {
     // Max time of any single activation
-    return { 
-      total: Math.max(...properties.map(p => p.network === 'PRODUCTION' ? 30 : 10))
+    return {
+      total: Math.max(...properties.map((p) => (p.network === 'PRODUCTION' ? 30 : 10))),
     };
   }
-  
+
   return { total: baseTime };
 }

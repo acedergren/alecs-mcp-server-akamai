@@ -4,6 +4,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Temporary files
+.temp.md
+*.temp.md
+
 # Build outputs
 dist/
 .tsbuildinfo
@@ -77,3 +81,14 @@ akamai-api-memory.md
 sbom/
 *.sbom.json
 *.sbom.xml
+
+#Akamai API Credentials
+.edgerc*.bak
+*.backup
+.archive/
+*.d.ts.map
+
+# Personalized Claude Desktop configs
+claude_desktop_config.json
+claude_desktop_config_*.json
+\!examples/claude_desktop_config*.example.json

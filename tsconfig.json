@@ -1,20 +1,40 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "module": "commonjs",
     "rootDir": "./src",
     "moduleResolution": "node",
-    "baseUrl": "./",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@utils/*": ["src/utils/*"],
-      "@tools/*": ["src/tools/*"],
-      "@types/*": ["src/types/*"],
-      "@services/*": ["src/services/*"],
-      "@agents/*": ["src/agents/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "@agents/*": [
+        "src/agents/*"
+      ],
+      "@services/*": [
+        "src/services/*"
+      ],
+      "@types/*": [
+        "src/types/*"
+      ],
+      "@utils/*": [
+        "src/utils/*"
+      ],
+      "@config/*": [
+        "src/config/*"
+      ],
+      "@constants/*": [
+        "src/constants/*"
+      ],
+      "@middleware/*": [
+        "src/middleware/*"
+      ]
     },
     "resolveJsonModule": true,
     "allowJs": true,
@@ -56,13 +76,17 @@
   "exclude": [
     "node_modules",
     "dist",
+    "__tests__/**/*",
     "**/*.test.ts",
     "**/*.spec.ts",
-    "test/**/*",
-    "src/__tests__/**/*"
+    "coverage/**/*",
+    "examples/**/*",
+    "docs/**/*"
   ],
   "ts-node": {
-    "require": ["tsconfig-paths/register"],
+    "require": [
+      "tsconfig-paths/register"
+    ],
     "transpileOnly": true,
     "files": true,
     "compilerOptions": {

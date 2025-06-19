@@ -3,18 +3,18 @@
  * Handles bulk hostname provisioning, DNS validation, and property assignment
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { ErrorTranslator } from '../utils/errors';
-import { 
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import { ErrorTranslator } from '@utils/errors';
+import {
   createBulkEdgeHostnames,
-  EdgeHostnameRecommendation,
-  generateEdgeHostnameRecommendations 
+  type EdgeHostnameRecommendation,
+  generateEdgeHostnameRecommendations,
 } from './edge-hostname-management';
 import {
   analyzeHostnameOwnership,
   validateHostnamesBulk,
-  findOptimalPropertyAssignment
+  findOptimalPropertyAssignment,
 } from './hostname-management-advanced';
 
 // Bulk operation types
@@ -82,10 +82,10 @@ export async function createBulkProvisioningPlan(
     propertyStrategy?: 'single' | 'grouped' | 'per-hostname';
     certificateStrategy?: 'default-dv' | 'cps' | 'existing';
     validationLevel?: 'basic' | 'comprehensive';
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     // Step 1: Validate all hostnames
     const validationResult = await validateHostnamesBulk(client, {
@@ -100,10 +100,12 @@ export async function createBulkProvisioningPlan(
 
     if (validHostnames.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ No valid hostnames found. All ${args.hostnames.length} hostnames failed validation.\n\nPlease fix the validation errors and try again.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ No valid hostnames found. All ${args.hostnames.length} hostnames failed validation.\n\nPlease fix the validation errors and try again.`,
+          },
+        ],
       };
     }
 
@@ -134,7 +136,7 @@ export async function createBulkProvisioningPlan(
       propertyStrategy: args.propertyStrategy || 'grouped',
       certificateStrategy: args.certificateStrategy || 'default-dv',
       estimatedDuration: estimateProvisioningDuration(validHostnames.length),
-      phases: []
+      phases: [],
     };
 
     // Define provisioning phases
@@ -147,7 +149,7 @@ export async function createBulkProvisioningPlan(
           `Validate ${validHostnames.length} hostnames`,
           'Check for existing hostname conflicts',
           'Analyze wildcard certificate coverage',
-          'Generate edge hostname recommendations'
+          'Generate edge hostname recommendations',
         ],
         estimatedDuration: '5-10 minutes',
       },
@@ -159,40 +161,41 @@ export async function createBulkProvisioningPlan(
           `Create ${validHostnames.length} edge hostnames`,
           'Configure IP version settings',
           'Set up secure/non-secure configurations',
-          'Generate edge hostname mappings'
+          'Generate edge hostname mappings',
         ],
         estimatedDuration: '10-15 minutes',
-        dependencies: [1]
+        dependencies: [1],
       },
       {
         phase: 3,
         name: 'Certificate Provisioning',
         description: 'Provision and validate SSL certificates',
         tasks: [
-          args.certificateStrategy === 'default-dv' 
+          args.certificateStrategy === 'default-dv'
             ? 'Create DefaultDV certificate enrollments'
             : 'Create CPS certificate enrollments',
           'Complete domain validation',
           'Deploy certificates to edge network',
-          'Verify certificate coverage'
+          'Verify certificate coverage',
         ],
-        estimatedDuration: args.certificateStrategy === 'default-dv' ? '30-60 minutes' : '2-4 hours',
-        dependencies: [2]
+        estimatedDuration:
+          args.certificateStrategy === 'default-dv' ? '30-60 minutes' : '2-4 hours',
+        dependencies: [2],
       },
       {
         phase: 4,
         name: 'Property Configuration',
         description: 'Create or update properties with hostnames',
         tasks: [
-          args.propertyStrategy === 'single' 
+          args.propertyStrategy === 'single'
             ? 'Add all hostnames to single property'
             : `Configure ${estimatePropertyCount(validHostnames, args.propertyStrategy)} properties`,
           'Set up property rules and behaviors',
           'Configure origin servers',
-          'Apply caching and performance settings'
+          'Apply caching and performance settings',
         ],
         estimatedDuration: '15-30 minutes',
-        dependencies: [2]
+        dependencies: [2],
       },
       {
         phase: 5,
@@ -202,10 +205,10 @@ export async function createBulkProvisioningPlan(
           'Generate DNS change instructions',
           'Create CNAME records',
           'Validate DNS propagation',
-          'Verify hostname resolution'
+          'Verify hostname resolution',
         ],
         estimatedDuration: '5-60 minutes (depends on DNS provider)',
-        dependencies: [2]
+        dependencies: [2],
       },
       {
         phase: 6,
@@ -215,11 +218,11 @@ export async function createBulkProvisioningPlan(
           'Activate properties to staging',
           'Perform functional testing',
           'Validate SSL certificates',
-          'Activate to production'
+          'Activate to production',
         ],
         estimatedDuration: '30-60 minutes',
-        dependencies: [3, 4, 5]
-      }
+        dependencies: [3, 4, 5],
+      },
     ];
 
     // Format response
@@ -242,7 +245,7 @@ export async function createBulkProvisioningPlan(
     if (invalidHostnames.length > 0) {
       responseText += `## ❌ Invalid Hostnames (${invalidHostnames.length})\n`;
       responseText += `The following hostnames failed validation and will be excluded:\n`;
-      invalidHostnames.slice(0, 5).forEach(h => {
+      invalidHostnames.slice(0, 5).forEach((h) => {
         responseText += `- ${h.hostname}: ${h.reason}\n`;
       });
       if (invalidHostnames.length > 5) {
@@ -253,12 +256,12 @@ export async function createBulkProvisioningPlan(
 
     // Provisioning phases
     responseText += `## Provisioning Phases\n\n`;
-    plan.phases.forEach(phase => {
+    plan.phases.forEach((phase) => {
       responseText += `### Phase ${phase.phase}: ${phase.name}\n`;
       responseText += `**Duration:** ${phase.estimatedDuration}\n`;
       responseText += `**Description:** ${phase.description}\n`;
       responseText += `**Tasks:**\n`;
-      phase.tasks.forEach(task => {
+      phase.tasks.forEach((task) => {
         responseText += `- ${task}\n`;
       });
       if (phase.dependencies && phase.dependencies.length > 0) {
@@ -272,9 +275,9 @@ export async function createBulkProvisioningPlan(
     responseText += `### Edge Hostnames (First 5)\n`;
     responseText += `| Hostname | Edge Hostname | Type |\n`;
     responseText += `|----------|---------------|------|\n`;
-    
+
     const edgeHostnameRecommendations = extractRecommendationsFromResult(edgeHostnameRecs);
-    edgeHostnameRecommendations.slice(0, 5).forEach(rec => {
+    edgeHostnameRecommendations.slice(0, 5).forEach((rec) => {
       responseText += `| ${rec.hostname} | ${rec.recommendedPrefix}${rec.recommendedSuffix} | ${rec.secure ? 'Secure' : 'Non-secure'} |\n`;
     });
     if (validHostnames.length > 5) {
@@ -285,7 +288,7 @@ export async function createBulkProvisioningPlan(
     // DNS configuration preview
     responseText += `### DNS Configuration Required\n`;
     responseText += `\`\`\`\n`;
-    edgeHostnameRecommendations.slice(0, 3).forEach(rec => {
+    edgeHostnameRecommendations.slice(0, 3).forEach((rec) => {
       responseText += `${rec.hostname}  CNAME  ${rec.recommendedPrefix}${rec.recommendedSuffix}\n`;
     });
     if (validHostnames.length > 3) {
@@ -308,7 +311,7 @@ export async function createBulkProvisioningPlan(
 
     responseText += `### Option 2: Phase-by-Phase Execution\n`;
     responseText += `Execute each phase manually for more control:\n`;
-    plan.phases.forEach(phase => {
+    plan.phases.forEach((phase) => {
       responseText += `- Phase ${phase.phase}: \`Execute provisioning phase ${phase.phase}\`\n`;
     });
     responseText += '\n';
@@ -325,21 +328,25 @@ export async function createBulkProvisioningPlan(
     responseText += `**Type one of the execution options above to begin.**`;
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'create bulk provisioning plan',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'create bulk provisioning plan',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -358,10 +365,10 @@ export async function executeBulkProvisioning(
     propertyStrategy?: 'single' | 'grouped' | 'per-hostname';
     certificateStrategy?: 'default-dv' | 'cps' | 'existing';
     dryRun?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     const operation: BulkHostnameOperation = {
       operationId: `bulk-provision-${Date.now()}`,
@@ -372,7 +379,7 @@ export async function executeBulkProvisioning(
       successfulHostnames: 0,
       failedHostnames: 0,
       startTime: new Date(),
-      results: []
+      results: [],
     };
 
     let responseText = `# Bulk Hostname Provisioning ${args.dryRun ? '(Dry Run)' : 'Execution'}\n\n`;
@@ -391,7 +398,7 @@ export async function executeBulkProvisioning(
       hostnames: args.hostnames,
     });
     const validHostnames = extractValidHostnamesFromResult(validationResult);
-    
+
     responseText += `- Validated ${args.hostnames.length} hostnames\n`;
     responseText += `- Valid: ${validHostnames.length} ✅\n`;
     responseText += `- Invalid: ${args.hostnames.length - validHostnames.length} ❌\n\n`;
@@ -400,18 +407,20 @@ export async function executeBulkProvisioning(
       operation.status = 'failed';
       operation.endTime = new Date();
       responseText += `\n❌ Operation failed: No valid hostnames to provision.\n`;
-      
+
       return {
-        content: [{
-          type: 'text',
-          text: responseText,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: responseText,
+          },
+        ],
       };
     }
 
     // Phase 2: Edge Hostname Creation
     responseText += `## Phase 2: Edge Hostname Creation\n`;
-    
+
     if (!args.dryRun) {
       const edgeHostnameResult = await createBulkEdgeHostnames(client, {
         hostnames: validHostnames,
@@ -421,13 +430,13 @@ export async function executeBulkProvisioning(
         secure: args.certificateStrategy !== 'existing',
         domainSuffix: '.edgekey.net',
       });
-      
+
       const edgeHostnameData = extractBulkEdgeHostnameResults(edgeHostnameResult);
       responseText += `- Created ${edgeHostnameData.successful.length} edge hostnames ✅\n`;
       responseText += `- Failed ${edgeHostnameData.failed.length} edge hostnames ❌\n\n`;
-      
+
       // Update operation results
-      edgeHostnameData.successful.forEach(eh => {
+      edgeHostnameData.successful.forEach((eh) => {
         operation.results.push({
           hostname: eh.hostname,
           status: 'success',
@@ -435,8 +444,8 @@ export async function executeBulkProvisioning(
         });
         operation.successfulHostnames++;
       });
-      
-      edgeHostnameData.failed.forEach(eh => {
+
+      edgeHostnameData.failed.forEach((eh) => {
         operation.results.push({
           hostname: eh.hostname,
           status: 'failed',
@@ -452,7 +461,7 @@ export async function executeBulkProvisioning(
 
     // Phase 3: Property Assignment
     responseText += `## Phase 3: Property Assignment\n`;
-    
+
     if (args.propertyStrategy === 'single') {
       responseText += `- Strategy: Single property for all hostnames\n`;
       responseText += `- Hostnames per property: ${validHostnames.length}\n`;
@@ -464,7 +473,7 @@ export async function executeBulkProvisioning(
       responseText += `- Strategy: One property per hostname\n`;
       responseText += `- Property count: ${validHostnames.length}\n`;
     }
-    
+
     if (!args.dryRun) {
       // In a real implementation, we would create/update properties here
       responseText += `- Property configuration completed\n`;
@@ -498,7 +507,7 @@ export async function executeBulkProvisioning(
     responseText += `**Operation ID:** ${operation.operationId}\n`;
     responseText += `**Status:** ${operation.status}\n`;
     responseText += `**Duration:** ${((operation.endTime.getTime() - operation.startTime.getTime()) / 1000).toFixed(2)} seconds\n\n`;
-    
+
     responseText += `### Results\n`;
     responseText += `- **Total Hostnames:** ${operation.totalHostnames}\n`;
     responseText += `- **Processed:** ${operation.processedHostnames}\n`;
@@ -507,20 +516,25 @@ export async function executeBulkProvisioning(
 
     if (operation.results.length > 0 && !args.dryRun) {
       responseText += `### Successful Provisions (First 10)\n`;
-      operation.results.filter(r => r.status === 'success').slice(0, 10).forEach(result => {
-        responseText += `- ${result.hostname} → ${result.edgeHostname}\n`;
-      });
-      
+      operation.results
+        .filter((r) => r.status === 'success')
+        .slice(0, 10)
+        .forEach((result) => {
+          responseText += `- ${result.hostname} → ${result.edgeHostname}\n`;
+        });
+
       if (operation.successfulHostnames > 10) {
         responseText += `- ... and ${operation.successfulHostnames - 10} more\n`;
       }
       responseText += '\n';
-      
+
       if (operation.failedHostnames > 0) {
         responseText += `### Failed Provisions\n`;
-        operation.results.filter(r => r.status === 'failed').forEach(result => {
-          responseText += `- ${result.hostname}: ${result.errorMessage}\n`;
-        });
+        operation.results
+          .filter((r) => r.status === 'failed')
+          .forEach((result) => {
+            responseText += `- ${result.hostname}: ${result.errorMessage}\n`;
+          });
         responseText += '\n';
       }
     }
@@ -537,21 +551,25 @@ export async function executeBulkProvisioning(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'execute bulk provisioning',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'execute bulk provisioning',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -567,10 +585,10 @@ export async function validateBulkDNS(
       expectedCNAME: string;
     }>;
     checkPropagation?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     const results: Array<{
       hostname: string;
@@ -585,15 +603,13 @@ export async function validateBulkDNS(
     for (const entry of args.hostnames) {
       // Simulate DNS lookup
       const isValid = Math.random() > 0.2; // 80% success rate for demo
-      
+
       results.push({
         hostname: entry.hostname,
         expectedCNAME: entry.expectedCNAME,
         status: isValid ? 'valid' : 'invalid',
         currentCNAME: isValid ? entry.expectedCNAME : 'not-configured',
-        message: isValid 
-          ? 'DNS configured correctly' 
-          : 'CNAME record not found or incorrect'
+        message: isValid ? 'DNS configured correctly' : 'CNAME record not found or incorrect',
       });
     }
 
@@ -602,9 +618,9 @@ export async function validateBulkDNS(
     responseText += `**Total Hostnames:** ${args.hostnames.length}\n`;
     responseText += `**Check Propagation:** ${args.checkPropagation ? 'Yes' : 'No'}\n\n`;
 
-    const validCount = results.filter(r => r.status === 'valid').length;
-    const invalidCount = results.filter(r => r.status === 'invalid').length;
-    const pendingCount = results.filter(r => r.status === 'pending').length;
+    const validCount = results.filter((r) => r.status === 'valid').length;
+    const invalidCount = results.filter((r) => r.status === 'invalid').length;
+    const pendingCount = results.filter((r) => r.status === 'pending').length;
 
     responseText += `## Summary\n`;
     responseText += `- **Valid:** ${validCount} ✅\n`;
@@ -614,9 +630,12 @@ export async function validateBulkDNS(
     // Group by status
     if (validCount > 0) {
       responseText += `## ✅ Valid DNS Configuration (${validCount})\n`;
-      results.filter(r => r.status === 'valid').slice(0, 10).forEach(result => {
-        responseText += `- **${result.hostname}** → ${result.currentCNAME}\n`;
-      });
+      results
+        .filter((r) => r.status === 'valid')
+        .slice(0, 10)
+        .forEach((result) => {
+          responseText += `- **${result.hostname}** → ${result.currentCNAME}\n`;
+        });
       if (validCount > 10) {
         responseText += `- ... and ${validCount - 10} more\n`;
       }
@@ -625,20 +644,24 @@ export async function validateBulkDNS(
 
     if (invalidCount > 0) {
       responseText += `## ❌ Invalid DNS Configuration (${invalidCount})\n`;
-      results.filter(r => r.status === 'invalid').forEach(result => {
-        responseText += `- **${result.hostname}**\n`;
-        responseText += `  - Expected: ${result.expectedCNAME}\n`;
-        responseText += `  - Current: ${result.currentCNAME}\n`;
-        responseText += `  - Issue: ${result.message}\n`;
-      });
+      results
+        .filter((r) => r.status === 'invalid')
+        .forEach((result) => {
+          responseText += `- **${result.hostname}**\n`;
+          responseText += `  - Expected: ${result.expectedCNAME}\n`;
+          responseText += `  - Current: ${result.currentCNAME}\n`;
+          responseText += `  - Issue: ${result.message}\n`;
+        });
       responseText += '\n';
     }
 
     if (pendingCount > 0) {
       responseText += `## ⏳ Pending Propagation (${pendingCount})\n`;
-      results.filter(r => r.status === 'pending').forEach(result => {
-        responseText += `- **${result.hostname}** - DNS changes detected, waiting for propagation\n`;
-      });
+      results
+        .filter((r) => r.status === 'pending')
+        .forEach((result) => {
+          responseText += `- **${result.hostname}** - DNS changes detected, waiting for propagation\n`;
+        });
       responseText += '\n';
     }
 
@@ -647,9 +670,12 @@ export async function validateBulkDNS(
       responseText += `## Required DNS Changes\n`;
       responseText += `Configure the following CNAME records:\n\n`;
       responseText += `\`\`\`\n`;
-      results.filter(r => r.status === 'invalid').slice(0, 5).forEach(result => {
-        responseText += `${result.hostname}  CNAME  ${result.expectedCNAME}\n`;
-      });
+      results
+        .filter((r) => r.status === 'invalid')
+        .slice(0, 5)
+        .forEach((result) => {
+          responseText += `${result.hostname}  CNAME  ${result.expectedCNAME}\n`;
+        });
       if (invalidCount > 5) {
         responseText += `# ... and ${invalidCount - 5} more\n`;
       }
@@ -669,21 +695,25 @@ export async function validateBulkDNS(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'validate bulk DNS',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'validate bulk DNS',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -702,10 +732,10 @@ export async function bulkUpdateHostnameProperties(
     }>;
     createNewVersion?: boolean;
     versionNote?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     const results = {
       successful: [] as Array<{ hostname: string; propertyId: string; action: string }>,
@@ -713,11 +743,14 @@ export async function bulkUpdateHostnameProperties(
     };
 
     // Group operations by property
-    const operationsByProperty = args.operations.reduce((acc, op) => {
-      if (!acc[op.propertyId]) acc[op.propertyId] = [];
-      acc[op.propertyId]!.push(op);
-      return acc;
-    }, {} as Record<string, any[]>);
+    const operationsByProperty = args.operations.reduce(
+      (acc, op) => {
+        if (!acc[op.propertyId]) acc[op.propertyId] = [];
+        acc[op.propertyId].push(op);
+        return acc;
+      },
+      {} as Record<string, any[]>,
+    );
 
     // Process each property
     for (const [propertyId, operations] of Object.entries(operationsByProperty)) {
@@ -727,10 +760,10 @@ export async function bulkUpdateHostnameProperties(
           path: `/papi/v1/properties/${propertyId}`,
           method: 'GET',
         });
-        
+
         const property = propertyResponse.properties?.items?.[0];
         if (!property) {
-          operations.forEach(op => {
+          operations.forEach((op) => {
             results.failed.push({
               hostname: op.hostname,
               error: `Property ${propertyId} not found`,
@@ -758,7 +791,7 @@ export async function bulkUpdateHostnameProperties(
               createFromVersionEtag: property.latestVersionEtag,
             },
           });
-          
+
           version = versionResponse.versionLink?.split('/').pop();
         }
 
@@ -822,9 +855,8 @@ export async function bulkUpdateHostnameProperties(
           },
           body: hostnames,
         });
-
       } catch (error) {
-        operations.forEach(op => {
+        operations.forEach((op) => {
           results.failed.push({
             hostname: op.hostname,
             error: error instanceof Error ? error.message : 'Unknown error',
@@ -842,17 +874,20 @@ export async function bulkUpdateHostnameProperties(
 
     if (results.successful.length > 0) {
       responseText += `## ✅ Successful Updates (${results.successful.length})\n`;
-      
+
       // Group by action
-      const byAction = results.successful.reduce((acc, r) => {
-        if (!acc[r.action]) acc[r.action] = [];
-        acc[r.action]!.push(r);
-        return acc;
-      }, {} as Record<string, any[]>);
+      const byAction = results.successful.reduce(
+        (acc, r) => {
+          if (!acc[r.action]) acc[r.action] = [];
+          acc[r.action].push(r);
+          return acc;
+        },
+        {} as Record<string, any[]>,
+      );
 
       Object.entries(byAction).forEach(([action, items]) => {
         responseText += `\n### ${action.charAt(0).toUpperCase() + action.slice(1)} (${items.length})\n`;
-        items.slice(0, 10).forEach(item => {
+        items.slice(0, 10).forEach((item) => {
           responseText += `- ${item.hostname} → Property ${item.propertyId}\n`;
         });
         if (items.length > 10) {
@@ -864,7 +899,7 @@ export async function bulkUpdateHostnameProperties(
 
     if (results.failed.length > 0) {
       responseText += `## ❌ Failed Updates (${results.failed.length})\n`;
-      results.failed.forEach(result => {
+      results.failed.forEach((result) => {
         responseText += `- **${result.hostname}**: ${result.error}\n`;
       });
       responseText += '\n';
@@ -882,21 +917,25 @@ export async function bulkUpdateHostnameProperties(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'bulk update hostname properties',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'bulk update hostname properties',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -906,8 +945,8 @@ export async function bulkUpdateHostnameProperties(
 function estimateProvisioningDuration(hostnameCount: number): string {
   const baseTime = 60; // Base 60 minutes
   const perHostnameTime = 2; // 2 minutes per hostname
-  const totalMinutes = baseTime + (hostnameCount * perHostnameTime);
-  
+  const totalMinutes = baseTime + hostnameCount * perHostnameTime;
+
   if (totalMinutes < 120) {
     return `${totalMinutes} minutes`;
   } else {
@@ -920,31 +959,33 @@ function estimateProvisioningDuration(hostnameCount: number): string {
 function estimatePropertyCount(hostnames: string[], strategy?: string): number {
   if (strategy === 'single') return 1;
   if (strategy === 'per-hostname') return hostnames.length;
-  
+
   // For grouped strategy, estimate based on domains
-  const domains = new Set(hostnames.map(h => h.split('.').slice(-2).join('.')));
+  const domains = new Set(hostnames.map((h) => h.split('.').slice(-2).join('.')));
   return Math.max(1, Math.ceil(domains.size / 2));
 }
 
 function extractValidHostnamesFromResult(result: MCPToolResponse): string[] {
   const text = result.content[0]?.text || '';
   const validSection = text.split('## ✅ Valid Hostnames')[1]?.split('##')[0] || '';
-  
+
   return validSection
     .split('\n')
-    .filter(line => line.startsWith('- '))
-    .map(line => line.substring(2).trim())
-    .filter(h => h.length > 0);
+    .filter((line) => line.startsWith('- '))
+    .map((line) => line.substring(2).trim())
+    .filter((h) => h.length > 0);
 }
 
-function extractInvalidHostnamesFromResult(result: MCPToolResponse): Array<{ hostname: string; reason: string }> {
+function extractInvalidHostnamesFromResult(
+  result: MCPToolResponse,
+): Array<{ hostname: string; reason: string }> {
   const text = result.content[0]?.text || '';
   const invalidSection = text.split('## ❌ Invalid Hostnames')[1]?.split('##')[0] || '';
-  
+
   const invalid: Array<{ hostname: string; reason: string }> = [];
-  const lines = invalidSection.split('\n').filter(line => line.startsWith('- **'));
-  
-  lines.forEach(line => {
+  const lines = invalidSection.split('\n').filter((line) => line.startsWith('- **'));
+
+  lines.forEach((line) => {
     const match = line.match(/- \*\*(.+?)\*\*: (.+)/);
     if (match && match[1] && match[2]) {
       invalid.push({
@@ -953,14 +994,14 @@ function extractInvalidHostnamesFromResult(result: MCPToolResponse): Array<{ hos
       });
     }
   });
-  
+
   return invalid;
 }
 
 function extractRecommendationsFromResult(_result: MCPToolResponse): EdgeHostnameRecommendation[] {
   // This is a simplified extraction - in real implementation would parse the structured data
   const recommendations: EdgeHostnameRecommendation[] = [];
-  
+
   // Parse recommendations from the formatted text
   // This is a placeholder - actual implementation would be more robust
   return recommendations;
@@ -974,7 +1015,7 @@ function extractBulkEdgeHostnameResults(_result: MCPToolResponse): {
   // This is a placeholder - actual implementation would parse the structured response
   return {
     successful: [],
-    failed: []
+    failed: [],
   };
 }
 

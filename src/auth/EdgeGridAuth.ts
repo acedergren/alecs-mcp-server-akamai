@@ -3,11 +3,21 @@
  * Provides type-safe authentication with account switching support
  */
 
-import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, {
+  type AxiosInstance,
+  type AxiosError,
+  type InternalAxiosRequestConfig,
+  type AxiosResponse,
+} from 'axios';
 import * as crypto from 'crypto';
-import { CustomerConfigManager } from '../utils/customer-config';
-import { EdgeGridCredentials, ConfigurationError, ConfigErrorType, NetworkEnvironment } from '../types/config';
-import { logger } from '../utils/logger';
+import { CustomerConfigManager } from '@utils/customer-config';
+import {
+  type EdgeGridCredentials,
+  ConfigurationError,
+  ConfigErrorType,
+  type NetworkEnvironment,
+} from '@types/config';
+import { logger } from '@utils/logger';
 
 /**
  * EdgeGrid authentication header components
@@ -65,7 +75,7 @@ export class EdgeGridAuthError extends Error {
     message: string,
     public readonly code: string,
     public readonly statusCode?: number,
-    public readonly details?: EdgeGridErrorResponse
+    public readonly details?: EdgeGridErrorResponse,
   ) {
     super(message);
     this.name = 'EdgeGridAuthError';
@@ -98,9 +108,9 @@ export class EdgeGridAuth {
 
   private constructor(options: EdgeGridClientOptions = {}) {
     const { customer = 'default', timeout = 30000, validateOnInit = true } = options;
-    
+
     this.customerName = customer;
-    
+
     // Get credentials with validation
     try {
       this.credentials = CustomerConfigManager.getInstance().getSection(customer);
@@ -108,7 +118,7 @@ export class EdgeGridAuth {
       throw new ConfigurationError(
         ConfigErrorType.SECTION_NOT_FOUND,
         `Customer section '${customer}' not found`,
-        customer
+        customer,
       );
     }
 
@@ -125,21 +135,21 @@ export class EdgeGridAuth {
       timeout,
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'Akamai-MCP-Server/1.0'
+        'User-Agent': 'Akamai-MCP-Server/1.0',
       },
-      validateStatus: (status) => status < 500 // Don't throw on 4xx errors
+      validateStatus: (status) => status < 500, // Don't throw on 4xx errors
     });
 
     // Add request interceptor for EdgeGrid authentication
     this.axiosInstance.interceptors.request.use(
       (config) => this.addAuthHeaders(config),
-      (error) => Promise.reject(this.createAuthError(error))
+      (error) => Promise.reject(this.createAuthError(error)),
     );
 
     // Add response interceptor for error handling
     this.axiosInstance.interceptors.response.use(
       (response) => this.handleResponse(response),
-      (error) => this.handleError(error)
+      (error) => this.handleError(error),
     );
   }
 
@@ -148,11 +158,11 @@ export class EdgeGridAuth {
    */
   static getInstance(options: EdgeGridClientOptions = {}): EdgeGridAuth {
     const key = options.customer || 'default';
-    
+
     if (!EdgeGridAuth.instances.has(key)) {
       EdgeGridAuth.instances.set(key, new EdgeGridAuth(options));
     }
-    
+
     return EdgeGridAuth.instances.get(key)!;
   }
 
@@ -167,15 +177,20 @@ export class EdgeGridAuth {
    * Validate EdgeGrid credentials
    */
   private validateCredentials(): void {
-    const required: (keyof EdgeGridCredentials)[] = ['host', 'client_token', 'client_secret', 'access_token'];
-    const missing = required.filter(key => !this.credentials[key]);
+    const required: Array<keyof EdgeGridCredentials> = [
+      'host',
+      'client_token',
+      'client_secret',
+      'access_token',
+    ];
+    const missing = required.filter((key) => !this.credentials[key]);
 
     if (missing.length > 0) {
       throw new ConfigurationError(
         ConfigErrorType.MISSING_CREDENTIALS,
         `Missing required credentials: ${missing.join(', ')}`,
         this.customerName,
-        { missing }
+        { missing },
       );
     }
 
@@ -185,7 +200,7 @@ export class EdgeGridAuth {
         ConfigErrorType.INVALID_CREDENTIALS,
         `Invalid host format: ${this.credentials.host}`,
         this.customerName,
-        { host: this.credentials.host }
+        { host: this.credentials.host },
       );
     }
   }
@@ -208,7 +223,7 @@ export class EdgeGridAuth {
       config.url || '',
       config.data ? this.serializeBody(config.data) : '',
       timestamp,
-      nonce
+      nonce,
     );
 
     // Set authentication headers
@@ -217,9 +232,9 @@ export class EdgeGridAuth {
     // Add account switch key if available and not already set
     if (this.hasAccountSwitching && this.credentials.account_switch_key) {
       config.headers.set('AKAMAI-ACCOUNT-SWITCH-KEY', this.credentials.account_switch_key);
-      logger.debug('Added account switch key', { 
+      logger.debug('Added account switch key', {
         customer: this.customerName,
-        key: this.credentials.account_switch_key 
+        key: this.credentials.account_switch_key,
       });
     }
 
@@ -234,19 +249,19 @@ export class EdgeGridAuth {
     url: string,
     body: string,
     timestamp: string,
-    nonce: string
+    nonce: string,
   ): string {
     const contentHash = body ? this.createContentHash(body) : '';
     const authData = `${method}\thttps\t${this.credentials.host}\t${url}\t\t${contentHash}\t`;
     const signingKey = this.createSigningKey(timestamp);
     const authSignature = this.createAuthSignature(authData, signingKey, timestamp, nonce);
-    
+
     const header: EdgeGridAuthHeader = {
       client_token: this.credentials.client_token,
       access_token: this.credentials.access_token,
       timestamp,
       nonce,
-      signature: authSignature
+      signature: authSignature,
     };
 
     return this.formatAuthHeader(header);
@@ -256,12 +271,14 @@ export class EdgeGridAuth {
    * Format authentication header
    */
   private formatAuthHeader(header: EdgeGridAuthHeader): string {
-    return `EG1-HMAC-SHA256 ` +
+    return (
+      `EG1-HMAC-SHA256 ` +
       `client_token=${header.client_token};` +
       `access_token=${header.access_token};` +
       `timestamp=${header.timestamp};` +
       `nonce=${header.nonce};` +
-      `signature=${header.signature}`;
+      `signature=${header.signature}`
+    );
   }
 
   /**
@@ -292,10 +309,7 @@ export class EdgeGridAuth {
    * Create content hash for request body
    */
   private createContentHash(content: string): string {
-    return crypto
-      .createHash('sha256')
-      .update(content, 'utf8')
-      .digest('base64');
+    return crypto.createHash('sha256').update(content, 'utf8').digest('base64');
   }
 
   /**
@@ -315,19 +329,17 @@ export class EdgeGridAuth {
     authData: string,
     signingKey: string,
     timestamp: string,
-    nonce: string
+    nonce: string,
   ): string {
-    const dataToSign = authData + 
+    const dataToSign =
+      authData +
       `EG1-HMAC-SHA256 ` +
       `client_token=${this.credentials.client_token};` +
       `access_token=${this.credentials.access_token};` +
       `timestamp=${timestamp};` +
       `nonce=${nonce};`;
-    
-    return crypto
-      .createHmac('sha256', signingKey)
-      .update(dataToSign)
-      .digest('base64');
+
+    return crypto.createHmac('sha256', signingKey).update(dataToSign).digest('base64');
   }
 
   /**
@@ -335,11 +347,14 @@ export class EdgeGridAuth {
    */
   private handleResponse<T>(response: AxiosResponse<T>): AxiosResponse<T> {
     // Log successful requests at debug level
-    logger.debug(`${response.config.method?.toUpperCase()} ${response.config.url} [${response.status}]`, {
-      customer: this.customerName,
-      status: response.status,
-      headers: response.headers
-    });
+    logger.debug(
+      `${response.config.method?.toUpperCase()} ${response.config.url} [${response.status}]`,
+      {
+        customer: this.customerName,
+        status: response.status,
+        headers: response.headers,
+      },
+    );
 
     return response;
   }
@@ -351,40 +366,34 @@ export class EdgeGridAuth {
     if (error.response) {
       const errorResponse = error.response.data as EdgeGridErrorResponse;
       const errorMessage = this.extractErrorMessage(errorResponse, error.response.status);
-      
+
       logger.error(`API Error [${error.response.status}]`, {
         customer: this.customerName,
         status: error.response.status,
         path: error.config?.url,
-        error: errorResponse
+        error: errorResponse,
       });
 
       throw new EdgeGridAuthError(
         errorMessage,
         `API_ERROR_${error.response.status}`,
         error.response.status,
-        errorResponse
+        errorResponse,
       );
     } else if (error.request) {
       logger.error('No response from API', {
         customer: this.customerName,
-        error: error.message
+        error: error.message,
       });
-      
-      throw new EdgeGridAuthError(
-        'No response from Akamai API',
-        'NO_RESPONSE'
-      );
+
+      throw new EdgeGridAuthError('No response from Akamai API', 'NO_RESPONSE');
     } else {
       logger.error('Request error', {
         customer: this.customerName,
-        error: error.message
+        error: error.message,
       });
-      
-      throw new EdgeGridAuthError(
-        error.message,
-        'REQUEST_ERROR'
-      );
+
+      throw new EdgeGridAuthError(error.message, 'REQUEST_ERROR');
     }
   }
 
@@ -405,17 +414,15 @@ export class EdgeGridAuth {
     if (data.detail) {
       return data.detail;
     }
-    
+
     if (data.title) {
       return data.title;
     }
-    
+
     if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
-      return data.errors
-        .map(e => e.detail || e.title || e.error || 'Unknown error')
-        .join(', ');
+      return data.errors.map((e) => e.detail || e.title || e.error || 'Unknown error').join(', ');
     }
-    
+
     return `API Error [${status}]`;
   }
 
@@ -424,12 +431,12 @@ export class EdgeGridAuth {
    */
   async request<T = unknown>(config: EdgeGridRequestConfig): Promise<T> {
     const { path, method = 'GET', body, headers = {}, queryParams = {} } = config;
-    
+
     logger.info(`${method} ${path}`, {
       customer: this.customerName,
       queryParams,
       hasBody: !!body,
-      hasAccountSwitching: this.hasAccountSwitching
+      hasAccountSwitching: this.hasAccountSwitching,
     });
 
     try {
@@ -438,7 +445,7 @@ export class EdgeGridAuth {
         url: path,
         data: body,
         headers,
-        params: queryParams
+        params: queryParams,
       });
 
       return response.data;
@@ -451,7 +458,10 @@ export class EdgeGridAuth {
   /**
    * GET request
    */
-  async get<T = unknown>(path: string, queryParams?: Record<string, string | number | boolean>): Promise<T> {
+  async get<T = unknown>(
+    path: string,
+    queryParams?: Record<string, string | number | boolean>,
+  ): Promise<T> {
     return this.request<T>({ path, method: 'GET', queryParams });
   }
 
@@ -461,7 +471,7 @@ export class EdgeGridAuth {
   async post<T = unknown>(
     path: string,
     body?: unknown,
-    queryParams?: Record<string, string | number | boolean>
+    queryParams?: Record<string, string | number | boolean>,
   ): Promise<T> {
     return this.request<T>({ path, method: 'POST', body, queryParams });
   }
@@ -472,7 +482,7 @@ export class EdgeGridAuth {
   async put<T = unknown>(
     path: string,
     body?: unknown,
-    queryParams?: Record<string, string | number | boolean>
+    queryParams?: Record<string, string | number | boolean>,
   ): Promise<T> {
     return this.request<T>({ path, method: 'PUT', body, queryParams });
   }
@@ -480,7 +490,10 @@ export class EdgeGridAuth {
   /**
    * DELETE request
    */
-  async delete<T = unknown>(path: string, queryParams?: Record<string, string | number | boolean>): Promise<T> {
+  async delete<T = unknown>(
+    path: string,
+    queryParams?: Record<string, string | number | boolean>,
+  ): Promise<T> {
     return this.request<T>({ path, method: 'DELETE', queryParams });
   }
 
@@ -490,7 +503,7 @@ export class EdgeGridAuth {
   async patch<T = unknown>(
     path: string,
     body?: unknown,
-    queryParams?: Record<string, string | number | boolean>
+    queryParams?: Record<string, string | number | boolean>,
   ): Promise<T> {
     return this.request<T>({ path, method: 'PATCH', body, queryParams });
   }

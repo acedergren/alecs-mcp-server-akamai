@@ -5,21 +5,17 @@
  * Testing with minimal tools to diagnose Claude Desktop issues
  */
 
-import { Server } from '@modelcontextprotocol/sdk/server/index';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
   CallToolRequestSchema,
   ErrorCode,
   ListToolsRequestSchema,
   McpError,
-} from '@modelcontextprotocol/sdk/types';
+} from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { AkamaiClient } from './akamai-client';
-import {
-  listProperties,
-  getProperty,
-  listGroups,
-} from './tools/property-tools';
+import { listProperties, getProperty, listGroups } from './tools/property-tools';
 
 const ListPropertiesSchema = z.object({
   customer: z.string().optional(),
@@ -43,15 +39,18 @@ class MinimalALECSServer {
 
   constructor() {
     console.error('🚀 ALECS Minimal Server starting...');
-    
-    this.server = new Server({
-      name: 'alecs-minimal',
-      version: '1.0.0',
-    }, {
-      capabilities: {
-        tools: {},
+
+    this.server = new Server(
+      {
+        name: 'alecs-minimal',
+        version: '1.0.0',
       },
-    });
+      {
+        capabilities: {
+          tools: {},
+        },
+      },
+    );
 
     this.client = new AkamaiClient();
     this.setupHandlers();
@@ -122,10 +121,10 @@ class MinimalALECSServer {
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> => {
       const { name, arguments: args } = request.params;
-      
+
       console.error(`🔧 Tool called: ${name}`);
       console.error(`📝 Arguments:`, JSON.stringify(args, null, 2));
-      
+
       const client = this.client;
 
       try {
@@ -143,28 +142,25 @@ class MinimalALECSServer {
             return await listGroups(client, listGroupsArgs);
 
           default:
-            throw new McpError(
-              ErrorCode.MethodNotFound,
-              `Tool not found: ${name}`
-            );
+            throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
         }
       } catch (error) {
         console.error(`❌ Tool error:`, error);
-        
+
         if (error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`
+            `Invalid parameters: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
           );
         }
-        
+
         if (error instanceof McpError) {
           throw error;
         }
-        
+
         throw new McpError(
           ErrorCode.InternalError,
-          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`
+          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     });
@@ -172,21 +168,21 @@ class MinimalALECSServer {
 
   async start() {
     console.error('📍 Looking for credentials in ~/.edgerc');
-    
+
     const transport = new StdioServerTransport();
-    
+
     // Add error handling for transport
     transport.onerror = (error: Error) => {
       console.error('❌ Transport error:', error);
     };
-    
+
     transport.onclose = () => {
       console.error('🔌 Transport closed');
       process.exit(0);
     };
-    
+
     await this.server.connect(transport);
-    
+
     console.error('✅ Server ready, waiting for connections...');
   }
 }

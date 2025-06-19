@@ -4,9 +4,9 @@
  * wildcard coverage analysis, and property ownership pattern recognition
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { handleApiError } from '../utils/error-handling';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import { handleApiError } from '@utils/error-handling';
 
 export interface HostnameConflict {
   hostname: string;
@@ -89,7 +89,7 @@ export async function discoverHostnamesIntelligent(
     detectConflicts?: boolean;
     findOptimizations?: boolean;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     let responseText = `# Intelligent Hostname Discovery Analysis\n\n`;
@@ -101,26 +101,30 @@ export async function discoverHostnamesIntelligent(
     const allHostnames = extractAllHostnames(properties);
 
     // Step 2: Analyze conflicts
-    const conflicts = args.detectConflicts !== false ? 
-      await analyzeConflictsBetweenHostnames(allHostnames, allHostnames, properties, {
-        includeWildcards: true,
-        includeCertificates: true
-      }) : [];
+    const conflicts =
+      args.detectConflicts !== false
+        ? await analyzeConflictsBetweenHostnames(allHostnames, allHostnames, properties, {
+            includeWildcards: true,
+            includeCertificates: true,
+          })
+        : [];
 
     // Step 3: Analyze wildcard coverage
-    const wildcardCoverage = args.analyzeWildcards !== false ?
-      await analyzeWildcardEfficiency(allHostnames, properties) : [];
+    const wildcardCoverage =
+      args.analyzeWildcards !== false
+        ? await analyzeWildcardEfficiency(allHostnames, properties)
+        : [];
 
     // Step 4: Identify ownership patterns
     const ownershipPatterns = findOwnershipPatterns(properties);
 
     // Step 5: Generate recommendations
     const recommendations = generateOptimizationRecommendations(
-      allHostnames, 
-      properties, 
-      conflicts, 
-      wildcardCoverage, 
-      ownershipPatterns
+      allHostnames,
+      properties,
+      conflicts,
+      wildcardCoverage,
+      ownershipPatterns,
     );
 
     // Step 6: Calculate analytics
@@ -133,11 +137,11 @@ export async function discoverHostnamesIntelligent(
       wildcardCoverage,
       ownershipPatterns,
       recommendations,
-      analytics
+      analytics,
     });
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'discovering hostnames intelligently');
@@ -156,7 +160,7 @@ export async function analyzeHostnameConflicts(
     includeWildcardAnalysis?: boolean;
     includeCertificateAnalysis?: boolean;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Get all existing properties and hostnames
@@ -170,8 +174,8 @@ export async function analyzeHostnameConflicts(
       properties,
       {
         includeWildcards: args.includeWildcardAnalysis !== false,
-        includeCertificates: args.includeCertificateAnalysis !== false
-      }
+        includeCertificates: args.includeCertificateAnalysis !== false,
+      },
     );
 
     let responseText = `# Hostname Conflict Analysis\n\n`;
@@ -185,10 +189,10 @@ export async function analyzeHostnameConflicts(
       responseText += `All target hostnames are available for configuration.\n\n`;
     } else {
       responseText += `## ⚠️ Conflicts Detected\n\n`;
-      
-      const criticalConflicts = conflicts.filter(c => c.severity === 'critical');
-      const warningConflicts = conflicts.filter(c => c.severity === 'warning');
-      const infoConflicts = conflicts.filter(c => c.severity === 'info');
+
+      const criticalConflicts = conflicts.filter((c) => c.severity === 'critical');
+      const warningConflicts = conflicts.filter((c) => c.severity === 'warning');
+      const infoConflicts = conflicts.filter((c) => c.severity === 'info');
 
       if (criticalConflicts.length > 0) {
         responseText += `### ❌ Critical Conflicts (${criticalConflicts.length})\n\n`;
@@ -216,7 +220,7 @@ export async function analyzeHostnameConflicts(
     responseText += buildConflictResolutionGuidance(conflicts);
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'analyzing hostname conflicts');
@@ -233,7 +237,7 @@ export async function analyzeWildcardCoverage(
     groupId?: string;
     includeOptimizationSuggestions?: boolean;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const properties = await getAllPropertiesWithHostnames(client, args);
@@ -266,7 +270,7 @@ export async function analyzeWildcardCoverage(
     }
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'analyzing wildcard coverage');
@@ -284,12 +288,12 @@ export async function identifyOwnershipPatterns(
     minPropertiesForPattern?: number;
     includeConsolidationPlan?: boolean;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const properties = await getAllPropertiesWithHostnames(client, args);
     const patterns = findOwnershipPatterns(properties, {
-      minPropertiesForPattern: args.minPropertiesForPattern || 3
+      minPropertiesForPattern: args.minPropertiesForPattern || 3,
     });
 
     let responseText = `# Property Ownership Pattern Analysis\n\n`;
@@ -317,7 +321,7 @@ export async function identifyOwnershipPatterns(
     }
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'identifying ownership patterns');
@@ -330,37 +334,37 @@ async function getAllPropertiesWithHostnames(client: AkamaiClient, args: any): P
   // Implementation would fetch all properties and their hostnames
   // This is a simplified version - real implementation would paginate through all properties
   const params = new URLSearchParams();
-  
+
   if (args.contractId) params.append('contractId', args.contractId);
   if (args.groupId) params.append('groupId', args.groupId);
 
   const response = await client.request({
     path: `/papi/v1/properties?${params.toString()}`,
-    method: 'GET'
+    method: 'GET',
   });
 
   const properties = response.properties?.items || [];
-  
+
   // Fetch hostnames for each property
   const propertiesWithHostnames = await Promise.all(
     properties.map(async (property: any) => {
       try {
         const hostnameResponse = await client.request({
           path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames?contractId=${property.contractId}&groupId=${property.groupId}`,
-          method: 'GET'
+          method: 'GET',
         });
-        
+
         return {
           ...property,
-          hostnames: hostnameResponse.hostnames?.items || []
+          hostnames: hostnameResponse.hostnames?.items || [],
         };
       } catch (error) {
         return {
           ...property,
-          hostnames: []
+          hostnames: [],
         };
       }
-    })
+    }),
   );
 
   return propertiesWithHostnames;
@@ -368,15 +372,15 @@ async function getAllPropertiesWithHostnames(client: AkamaiClient, args: any): P
 
 function extractAllHostnames(properties: any[]): string[] {
   const hostnames = new Set<string>();
-  
-  properties.forEach(property => {
+
+  properties.forEach((property) => {
     if (property.hostnames) {
       property.hostnames.forEach((hostname: any) => {
         hostnames.add(hostname.cnameFrom || hostname.hostname);
       });
     }
   });
-  
+
   return Array.from(hostnames);
 }
 
@@ -384,13 +388,13 @@ async function analyzeConflictsBetweenHostnames(
   targetHostnames: string[],
   existingHostnames: string[],
   properties: any[],
-  options: any
+  options: any,
 ): Promise<HostnameConflict[]> {
   const conflicts: HostnameConflict[] = [];
-  
-  targetHostnames.forEach(targetHostname => {
+
+  targetHostnames.forEach((targetHostname) => {
     // Check for exact matches
-    existingHostnames.forEach(existingHostname => {
+    existingHostnames.forEach((existingHostname) => {
       if (targetHostname === existingHostname) {
         const property = findPropertyByHostname(properties, existingHostname);
         conflicts.push({
@@ -402,8 +406,8 @@ async function analyzeConflictsBetweenHostnames(
           resolutionSuggestions: [
             'Use a different hostname',
             'Remove hostname from existing property',
-            'Use subdomain variation'
-          ]
+            'Use subdomain variation',
+          ],
         });
       }
     });
@@ -413,47 +417,50 @@ async function analyzeConflictsBetweenHostnames(
       // Implementation for wildcard conflict detection
     }
   });
-  
+
   return conflicts;
 }
 
-async function analyzeWildcardEfficiency(hostnames: string[], properties: any[]): Promise<WildcardCoverage[]> {
+async function analyzeWildcardEfficiency(
+  hostnames: string[],
+  properties: any[],
+): Promise<WildcardCoverage[]> {
   const wildcardCoverage: WildcardCoverage[] = [];
-  
+
   // Find existing wildcard hostnames
-  const wildcards = hostnames.filter(hostname => hostname.startsWith('*.'));
-  
-  wildcards.forEach(wildcard => {
+  const wildcards = hostnames.filter((hostname) => hostname.startsWith('*.'));
+
+  wildcards.forEach((wildcard) => {
     const domain = wildcard.substring(2); // Remove *.
-    const coveredHostnames = hostnames.filter(hostname => 
-      hostname.endsWith(`.${domain}`) && !hostname.startsWith('*.')
+    const coveredHostnames = hostnames.filter(
+      (hostname) => hostname.endsWith(`.${domain}`) && !hostname.startsWith('*.'),
     );
-    
+
     const property = findPropertyByHostname(properties, wildcard);
-    
+
     wildcardCoverage.push({
       wildcardHostname: wildcard,
       propertyId: property?.propertyId || 'unknown',
       propertyName: property?.propertyName || 'unknown',
       coveredHostnames,
       potentialConflicts: [],
-      coverage: coveredHostnames.length > 5 ? 'complete' : 
-               coveredHostnames.length > 2 ? 'partial' : 'none',
-      recommendations: generateWildcardRecommendations(wildcard, coveredHostnames)
+      coverage:
+        coveredHostnames.length > 5 ? 'complete' : coveredHostnames.length > 2 ? 'partial' : 'none',
+      recommendations: generateWildcardRecommendations(wildcard, coveredHostnames),
     });
   });
-  
+
   return wildcardCoverage;
 }
 
 function findOwnershipPatterns(properties: any[], options: any = {}): PropertyOwnershipPattern[] {
   const patterns: PropertyOwnershipPattern[] = [];
   const minProperties = options.minPropertiesForPattern || 3;
-  
+
   // Group properties by domain patterns
   const domainGroups = new Map<string, any[]>();
-  
-  properties.forEach(property => {
+
+  properties.forEach((property) => {
     if (property.hostnames) {
       property.hostnames.forEach((hostname: any) => {
         const domain = extractDomain(hostname.cnameFrom || hostname.hostname);
@@ -466,23 +473,23 @@ function findOwnershipPatterns(properties: any[], options: any = {}): PropertyOw
       });
     }
   });
-  
+
   // Identify patterns with sufficient properties
   domainGroups.forEach((properties, domain) => {
     if (properties.length >= minProperties) {
       patterns.push({
         pattern: domain,
         patternType: 'domain',
-        properties: properties.map(p => ({
+        properties: properties.map((p) => ({
           propertyId: p.propertyId,
           propertyName: p.propertyName,
           hostnames: p.hostnames.map((h: any) => h.cnameFrom || h.hostname),
-          confidence: calculatePatternConfidence(domain, p.hostnames)
-        }))
+          confidence: calculatePatternConfidence(domain, p.hostnames),
+        })),
       });
     }
   });
-  
+
   return patterns;
 }
 
@@ -537,14 +544,14 @@ function buildConflictReport(conflict: HostnameConflict, index: number): string 
   report += `- **Severity:** ${conflict.severity.toUpperCase()}\n`;
   report += `- **Existing Property:** ${conflict.existingProperty.propertyName} (${conflict.existingProperty.propertyId})\n`;
   report += `- **Details:** ${conflict.conflictDetails}\n`;
-  
+
   if (conflict.resolutionSuggestions.length > 0) {
     report += `- **Resolution Options:**\n`;
-    conflict.resolutionSuggestions.forEach(suggestion => {
+    conflict.resolutionSuggestions.forEach((suggestion) => {
       report += `  - ${suggestion}\n`;
     });
   }
-  
+
   report += `\n`;
   return report;
 }
@@ -554,7 +561,7 @@ function buildWildcardCoverageReport(coverage: WildcardCoverage, index: number):
   report += `- **Property:** ${coverage.propertyName} (${coverage.propertyId})\n`;
   report += `- **Coverage:** ${coverage.coverage.toUpperCase()}\n`;
   report += `- **Covered Hostnames:** ${coverage.coveredHostnames.length}\n`;
-  
+
   if (coverage.coveredHostnames.length > 0) {
     report += `  - ${coverage.coveredHostnames.slice(0, 5).join(', ')}`;
     if (coverage.coveredHostnames.length > 5) {
@@ -562,14 +569,14 @@ function buildWildcardCoverageReport(coverage: WildcardCoverage, index: number):
     }
     report += `\n`;
   }
-  
+
   if (coverage.recommendations.length > 0) {
     report += `- **Recommendations:**\n`;
-    coverage.recommendations.forEach(rec => {
+    coverage.recommendations.forEach((rec) => {
       report += `  - ${rec}\n`;
     });
   }
-  
+
   report += `\n`;
   return report;
 }
@@ -578,23 +585,23 @@ function buildOwnershipPatternReport(pattern: PropertyOwnershipPattern, index: n
   let report = `### ${index}. ${pattern.pattern}\n`;
   report += `- **Pattern Type:** ${pattern.patternType.toUpperCase()}\n`;
   report += `- **Properties:** ${pattern.properties.length}\n`;
-  
-  pattern.properties.forEach(prop => {
+
+  pattern.properties.forEach((prop) => {
     report += `  - ${prop.propertyName} (${prop.propertyId}) - Confidence: ${(prop.confidence * 100).toFixed(0)}%\n`;
   });
-  
+
   if (pattern.suggestedConsolidation) {
     report += `- **Consolidation Opportunity:** Target ${pattern.suggestedConsolidation.targetProperty}\n`;
   }
-  
+
   report += `\n`;
   return report;
 }
 
 function buildConflictResolutionGuidance(conflicts: HostnameConflict[]): string {
   let guidance = `## Resolution Guidance\n\n`;
-  
-  const criticalConflicts = conflicts.filter(c => c.severity === 'critical');
+
+  const criticalConflicts = conflicts.filter((c) => c.severity === 'critical');
   if (criticalConflicts.length > 0) {
     guidance += `### Critical Actions Required\n\n`;
     guidance += `${criticalConflicts.length} critical conflicts must be resolved before proceeding:\n\n`;
@@ -603,16 +610,19 @@ function buildConflictResolutionGuidance(conflicts: HostnameConflict[]): string 
     guidance += `3. **Update DNS configuration accordingly**\n`;
     guidance += `4. **Test all changes in staging environment**\n\n`;
   }
-  
+
   return guidance;
 }
 
-function buildWildcardOptimizationSuggestions(coverage: WildcardCoverage[], allHostnames: string[]): string {
+function buildWildcardOptimizationSuggestions(
+  coverage: WildcardCoverage[],
+  allHostnames: string[],
+): string {
   let suggestions = `## Optimization Opportunities\n\n`;
-  
+
   // Find domains that could benefit from wildcard consolidation
   const domainCounts = new Map<string, string[]>();
-  allHostnames.forEach(hostname => {
+  allHostnames.forEach((hostname) => {
     if (!hostname.startsWith('*.')) {
       const domain = extractDomain(hostname);
       if (domain) {
@@ -623,10 +633,10 @@ function buildWildcardOptimizationSuggestions(coverage: WildcardCoverage[], allH
       }
     }
   });
-  
+
   domainCounts.forEach((hostnames, domain) => {
     if (hostnames.length >= 3) {
-      const hasWildcard = coverage.some(c => c.wildcardHostname === `*.${domain}`);
+      const hasWildcard = coverage.some((c) => c.wildcardHostname === `*.${domain}`);
       if (!hasWildcard) {
         suggestions += `### Consider Wildcard for ${domain}\n`;
         suggestions += `- **Current Hostnames:** ${hostnames.length}\n`;
@@ -639,18 +649,18 @@ function buildWildcardOptimizationSuggestions(coverage: WildcardCoverage[], allH
       }
     }
   });
-  
+
   return suggestions;
 }
 
 function buildConsolidationRecommendations(patterns: PropertyOwnershipPattern[]): string {
   let recommendations = `## Consolidation Recommendations\n\n`;
-  
+
   patterns.forEach((pattern, index) => {
     if (pattern.properties.length >= 3) {
       recommendations += `### ${index + 1}. ${pattern.pattern} Domain Family\n`;
       recommendations += `Consider consolidating ${pattern.properties.length} properties:\n`;
-      pattern.properties.forEach(prop => {
+      pattern.properties.forEach((prop) => {
         recommendations += `- ${prop.propertyName} (${prop.hostnames.length} hostnames)\n`;
       });
       recommendations += `\n**Benefits:**\n`;
@@ -659,7 +669,7 @@ function buildConsolidationRecommendations(patterns: PropertyOwnershipPattern[])
       recommendations += `- Consistent behavior across domain family\n\n`;
     }
   });
-  
+
   return recommendations;
 }
 
@@ -674,7 +684,7 @@ function findPropertyByHostname(properties: any[], hostname: string): any {
             propertyId: property.propertyId,
             propertyName: property.propertyName,
             groupId: property.groupId,
-            contractId: property.contractId
+            contractId: property.contractId,
           };
         }
       }
@@ -685,7 +695,7 @@ function findPropertyByHostname(properties: any[], hostname: string): any {
 
 function extractDomain(hostname: string): string | null {
   if (!hostname || hostname.startsWith('*.')) return null;
-  
+
   const parts = hostname.split('.');
   if (parts.length >= 2) {
     return parts.slice(-2).join('.');
@@ -695,7 +705,7 @@ function extractDomain(hostname: string): string | null {
 
 function generateWildcardRecommendations(_wildcard: string, coveredHostnames: string[]): string[] {
   const recommendations: string[] = [];
-  
+
   if (coveredHostnames.length === 0) {
     recommendations.push('Consider removing unused wildcard configuration');
   } else if (coveredHostnames.length < 3) {
@@ -703,13 +713,13 @@ function generateWildcardRecommendations(_wildcard: string, coveredHostnames: st
   } else {
     recommendations.push('Well-utilized wildcard configuration');
   }
-  
+
   return recommendations;
 }
 
 function calculatePatternConfidence(domain: string, hostnames: any[]): number {
-  const domainHostnames = hostnames.filter((h: any) => 
-    (h.cnameFrom || h.hostname).includes(domain)
+  const domainHostnames = hostnames.filter((h: any) =>
+    (h.cnameFrom || h.hostname).includes(domain),
   );
   return domainHostnames.length / hostnames.length;
 }
@@ -719,7 +729,7 @@ function generateOptimizationRecommendations(
   _properties: any[],
   _conflicts: HostnameConflict[],
   _wildcardCoverage: WildcardCoverage[],
-  _ownershipPatterns: PropertyOwnershipPattern[]
+  _ownershipPatterns: PropertyOwnershipPattern[],
 ): any {
   return {
     newPropertySuggestions: [],
@@ -727,8 +737,8 @@ function generateOptimizationRecommendations(
     optimizationRecommendations: [
       'Regular hostname auditing recommended',
       'Consider wildcard consolidation for domain families',
-      'Monitor for hostname conflicts during provisioning'
-    ]
+      'Monitor for hostname conflicts during provisioning',
+    ],
   };
 }
 
@@ -736,13 +746,15 @@ function calculateAnalytics(
   hostnames: string[],
   properties: any[],
   conflicts: HostnameConflict[],
-  wildcardCoverage: WildcardCoverage[]
+  wildcardCoverage: WildcardCoverage[],
 ): any {
   return {
     totalHostnamesAnalyzed: hostnames.length,
     totalProperties: properties.length,
     conflictRate: conflicts.length / hostnames.length,
-    wildcardEfficiency: wildcardCoverage.filter(w => w.coverage === 'complete').length / Math.max(wildcardCoverage.length, 1),
-    consolidationPotential: 0.25 // Placeholder calculation
+    wildcardEfficiency:
+      wildcardCoverage.filter((w) => w.coverage === 'complete').length /
+      Math.max(wildcardCoverage.length, 1),
+    consolidationPotential: 0.25, // Placeholder calculation
   };
 }

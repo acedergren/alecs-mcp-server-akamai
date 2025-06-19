@@ -1,23 +1,40 @@
 version: 2
 updates:
-  # Keep npm dependencies up to date
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 5
+      time: "09:00"
+    open-pull-requests-limit: 10
     groups:
-      development:
+      typescript-eslint:
         patterns:
-          - "@types/*"
-          - "eslint*"
+          - "@typescript-eslint/*"
+        update-types:
+          - "minor"
+          - "patch"
+          - "major"
+      testing-tools:
+        patterns:
           - "jest*"
+          - "@jest/*"
+          - "fast-check"
+          - "*test*"
+      build-tools:
+        patterns:
           - "typescript"
-      
-  # Keep GitHub Actions up to date
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
+          - "tsx"
+          - "ts-*"
+          - "eslint*"
+          - "prettier"
+      mcp-sdk:
+        patterns:
+          - "@modelcontextprotocol/*"
+    labels:
+      - "dependencies"
+      - "automated"
+    assignees:
+      - "acedergren"
+    reviewers:
+      - "acedergren"

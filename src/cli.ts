@@ -18,7 +18,7 @@ const CONFIG_PATH = path.join(
   'Library',
   'Application Support',
   'Claude',
-  'claude_desktop_config.json'
+  'claude_desktop_config.json',
 );
 
 // Colors for console output
@@ -40,11 +40,14 @@ const log = {
 };
 
 interface ClaudeConfig {
-  mcpServers: Record<string, {
-    command: string;
-    args: string[];
-    env?: Record<string, string>;
-  }>;
+  mcpServers: Record<
+    string,
+    {
+      command: string;
+      args: string[];
+      env?: Record<string, string>;
+    }
+  >;
 }
 
 interface ServerDefinition {
@@ -104,7 +107,7 @@ function loadConfig(): ClaudeConfig {
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(defaultConfig, null, 2));
     return defaultConfig;
   }
-  
+
   return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
 }
 
@@ -114,7 +117,7 @@ function saveConfig(config: ClaudeConfig): void {
   if (fs.existsSync(CONFIG_PATH)) {
     fs.copyFileSync(CONFIG_PATH, backupPath);
   }
-  
+
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 }
 
@@ -144,9 +147,9 @@ program
   .action((servers: string[], options) => {
     const config = loadConfig();
     const projectRoot = getProjectRoot();
-    
+
     let serversToInstall: string[] = [];
-    
+
     if (servers.length > 0) {
       serversToInstall = servers;
     } else {
@@ -166,7 +169,7 @@ program
           break;
       }
     }
-    
+
     let installed = 0;
     for (const serverKey of serversToInstall) {
       const server = SERVERS[serverKey];
@@ -174,14 +177,14 @@ program
         log.error(`Unknown server: ${serverKey}`);
         continue;
       }
-      
+
       const serverPath = path.join(projectRoot, server.path);
       if (!fs.existsSync(serverPath)) {
         log.error(`Server not found: ${serverPath}`);
         log.warning('Run "npm run build" first');
         continue;
       }
-      
+
       config.mcpServers[server.name] = {
         command: 'node',
         args: [serverPath],
@@ -189,11 +192,11 @@ program
           AKAMAI_EDGERC_PATH: path.join(os.homedir(), '.edgerc'),
         },
       };
-      
+
       log.success(`Installed ${server.name} - ${server.description} (${server.toolCount} tools)`);
       installed++;
     }
-    
+
     if (installed > 0) {
       saveConfig(config);
       log.success(`\nInstalled ${installed} server(s)`);
@@ -209,14 +212,13 @@ program
   .option('-a, --all', 'Remove all ALECS servers')
   .action((servers: string[], options) => {
     const config = loadConfig();
-    
+
     let serversToRemove: string[] = [];
-    
+
     if (options.all) {
-      serversToRemove = Object.keys(config.mcpServers)
-        .filter(key => key.startsWith('alecs-'));
+      serversToRemove = Object.keys(config.mcpServers).filter((key) => key.startsWith('alecs-'));
     } else if (servers.length > 0) {
-      serversToRemove = servers.map(s => {
+      serversToRemove = servers.map((s) => {
         const server = SERVERS[s];
         return server ? server.name : s;
       });
@@ -224,7 +226,7 @@ program
       log.error('Please specify servers to remove or use --all');
       return;
     }
-    
+
     let removed = 0;
     for (const serverName of serversToRemove) {
       if (config.mcpServers[serverName]) {
@@ -235,7 +237,7 @@ program
         log.warning(`${serverName} not found in config`);
       }
     }
-    
+
     if (removed > 0) {
       saveConfig(config);
       log.success(`\nRemoved ${removed} server(s)`);
@@ -250,18 +252,19 @@ program
   .description('List installed ALECS servers')
   .action(() => {
     const config = loadConfig();
-    const alecsServers = Object.entries(config.mcpServers)
-      .filter(([key]) => key.startsWith('alecs-'));
-    
+    const alecsServers = Object.entries(config.mcpServers).filter(([key]) =>
+      key.startsWith('alecs-'),
+    );
+
     if (alecsServers.length === 0) {
       log.info('No ALECS servers installed');
       log.info('Run "alecs install" to get started');
       return;
     }
-    
+
     console.log('\n📋 Installed ALECS Servers:\n');
     for (const [name, serverConfig] of alecsServers) {
-      const serverDef = Object.values(SERVERS).find(s => s.name === name);
+      const serverDef = Object.values(SERVERS).find((s) => s.name === name);
       const desc = serverDef ? `- ${serverDef.description} (${serverDef.toolCount} tools)` : '';
       console.log(`  ${colors.green}●${colors.reset} ${name} ${desc}`);
     }
@@ -275,16 +278,16 @@ program
   .action(() => {
     const projectRoot = getProjectRoot();
     const launcherPath = path.join(projectRoot, 'dist', 'interactive-launcher.js');
-    
+
     if (!fs.existsSync(launcherPath)) {
       log.error('Interactive launcher not found. Run "npm run build" first');
       return;
     }
-    
+
     const child = spawn('node', [launcherPath], {
       stdio: 'inherit',
     });
-    
+
     child.on('error', (err) => {
       log.error(`Failed to start: ${err.message}`);
     });
@@ -300,17 +303,16 @@ program
       log.error('Claude Desktop not found');
       return;
     }
-    
+
     // Check installed servers
     const config = loadConfig();
-    const alecsServers = Object.keys(config.mcpServers)
-      .filter(key => key.startsWith('alecs-'));
-    
+    const alecsServers = Object.keys(config.mcpServers).filter((key) => key.startsWith('alecs-'));
+
     console.log('\n🔍 ALECS Status Check:\n');
     console.log(`Claude Desktop: ${colors.green}✓ Installed${colors.reset}`);
     console.log(`Config path: ${CONFIG_PATH}`);
     console.log(`ALECS servers: ${alecsServers.length} installed`);
-    
+
     // Check if .edgerc exists
     const edgercPath = path.join(os.homedir(), '.edgerc');
     if (fs.existsSync(edgercPath)) {
@@ -319,7 +321,7 @@ program
       console.log(`Akamai credentials: ${colors.red}✗ Not found${colors.reset}`);
       log.warning('\nCreate ~/.edgerc with your Akamai credentials');
     }
-    
+
     // Check if project is built
     const projectRoot = getProjectRoot();
     if (fs.existsSync(path.join(projectRoot, 'dist'))) {
@@ -328,7 +330,7 @@ program
       console.log(`Project build: ${colors.red}✗ Not found${colors.reset}`);
       log.warning('\nRun "npm run build" to build the project');
     }
-    
+
     console.log('');
   });
 
@@ -342,7 +344,7 @@ program
       console.log(CONFIG_PATH);
       return;
     }
-    
+
     const config = loadConfig();
     console.log(JSON.stringify(config, null, 2));
   });

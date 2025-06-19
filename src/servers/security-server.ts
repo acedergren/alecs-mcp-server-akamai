@@ -37,7 +37,7 @@ import {
   generateASNSecurityRecommendations,
   listCommonGeographicCodes,
   getSecurityPolicyIntegrationGuidance,
-  generateDeploymentChecklist
+  generateDeploymentChecklist,
 } from '../tools/security/network-lists-integration';
 
 // Application Security Tools
@@ -60,26 +60,29 @@ class SecurityALECSServer {
     log('INFO', '🔒 ALECS Security Server starting...');
     log('INFO', 'Node version:', { version: process.version });
     log('INFO', 'Working directory:', { cwd: process.cwd() });
-    
-    this.server = new Server({
-      name: 'alecs-security',
-      version: '1.0.0',
-    }, {
-      capabilities: {
-        tools: {},
+
+    this.server = new Server(
+      {
+        name: 'alecs-security',
+        version: '1.0.0',
       },
-    });
+      {
+        capabilities: {
+          tools: {},
+        },
+      },
+    );
 
     this.setupHandlers();
   }
 
   private setupHandlers() {
     log('INFO', 'Setting up request handlers...');
-    
+
     // List all security tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       log('INFO', '📋 Tools list requested');
-      
+
       // Network Lists tools
       const networkListTools = [
         {
@@ -90,7 +93,11 @@ class SecurityALECSServer {
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
               search: { type: 'string', description: 'Optional: Search term' },
-              type: { type: 'string', enum: ['IP', 'GEO'], description: 'Optional: List type filter' },
+              type: {
+                type: 'string',
+                enum: ['IP', 'GEO'],
+                description: 'Optional: List type filter',
+              },
               includeElements: { type: 'boolean', description: 'Optional: Include list elements' },
             },
           },
@@ -118,7 +125,11 @@ class SecurityALECSServer {
               name: { type: 'string', description: 'List name' },
               type: { type: 'string', enum: ['IP', 'GEO'], description: 'List type' },
               description: { type: 'string', description: 'Optional: Description' },
-              elements: { type: 'array', items: { type: 'string' }, description: 'Initial elements' },
+              elements: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Initial elements',
+              },
               contractId: { type: 'string', description: 'Contract ID' },
               groupId: { type: 'number', description: 'Group ID' },
             },
@@ -134,7 +145,11 @@ class SecurityALECSServer {
               customer: { type: 'string', description: 'Optional: Customer section name' },
               networkListId: { type: 'string', description: 'Network list ID' },
               elements: { type: 'array', items: { type: 'string' }, description: 'New elements' },
-              mode: { type: 'string', enum: ['append', 'replace', 'remove'], description: 'Update mode' },
+              mode: {
+                type: 'string',
+                enum: ['append', 'replace', 'remove'],
+                description: 'Update mode',
+              },
               description: { type: 'string', description: 'Optional: Updated description' },
             },
             required: ['networkListId', 'elements', 'mode'],
@@ -160,9 +175,17 @@ class SecurityALECSServer {
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
               networkListId: { type: 'string', description: 'Network list ID' },
-              network: { type: 'string', enum: ['STAGING', 'PRODUCTION'], description: 'Target network' },
+              network: {
+                type: 'string',
+                enum: ['STAGING', 'PRODUCTION'],
+                description: 'Target network',
+              },
               comment: { type: 'string', description: 'Optional: Activation comment' },
-              notificationRecipients: { type: 'array', items: { type: 'string' }, description: 'Optional: Email recipients' },
+              notificationRecipients: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Email recipients',
+              },
             },
             required: ['networkListId', 'network'],
           },
@@ -200,7 +223,11 @@ class SecurityALECSServer {
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
               networkListId: { type: 'string', description: 'Network list ID' },
-              network: { type: 'string', enum: ['STAGING', 'PRODUCTION'], description: 'Target network' },
+              network: {
+                type: 'string',
+                enum: ['STAGING', 'PRODUCTION'],
+                description: 'Target network',
+              },
               comment: { type: 'string', description: 'Optional: Deactivation comment' },
             },
             required: ['networkListId', 'network'],
@@ -213,8 +240,16 @@ class SecurityALECSServer {
             type: 'object',
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
-              networkListIds: { type: 'array', items: { type: 'string' }, description: 'Network list IDs' },
-              network: { type: 'string', enum: ['STAGING', 'PRODUCTION'], description: 'Target network' },
+              networkListIds: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Network list IDs',
+              },
+              network: {
+                type: 'string',
+                enum: ['STAGING', 'PRODUCTION'],
+                description: 'Target network',
+              },
               comment: { type: 'string', description: 'Optional: Activation comment' },
             },
             required: ['networkListIds', 'network'],
@@ -255,17 +290,17 @@ class SecurityALECSServer {
             type: 'object',
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
-              updates: { 
-                type: 'array', 
+              updates: {
+                type: 'array',
                 items: {
                   type: 'object',
                   properties: {
                     networkListId: { type: 'string' },
                     elements: { type: 'array', items: { type: 'string' } },
                     mode: { type: 'string', enum: ['append', 'replace', 'remove'] },
-                  }
+                  },
                 },
-                description: 'List of updates' 
+                description: 'List of updates',
               },
             },
             required: ['updates'],
@@ -278,9 +313,17 @@ class SecurityALECSServer {
             type: 'object',
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
-              sourceListIds: { type: 'array', items: { type: 'string' }, description: 'Source list IDs' },
+              sourceListIds: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Source list IDs',
+              },
               targetListId: { type: 'string', description: 'Target list ID' },
-              mode: { type: 'string', enum: ['union', 'intersection', 'difference'], description: 'Merge mode' },
+              mode: {
+                type: 'string',
+                enum: ['union', 'intersection', 'difference'],
+                description: 'Merge mode',
+              },
             },
             required: ['sourceListIds', 'targetListId', 'mode'],
           },
@@ -292,7 +335,11 @@ class SecurityALECSServer {
             type: 'object',
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
-              codes: { type: 'array', items: { type: 'string' }, description: 'Geographic codes to validate' },
+              codes: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Geographic codes to validate',
+              },
             },
             required: ['codes'],
           },
@@ -317,7 +364,11 @@ class SecurityALECSServer {
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
               propertyId: { type: 'string', description: 'Property ID' },
-              analysisType: { type: 'string', enum: ['threat', 'traffic', 'compliance'], description: 'Analysis type' },
+              analysisType: {
+                type: 'string',
+                enum: ['threat', 'traffic', 'compliance'],
+                description: 'Analysis type',
+              },
             },
             required: ['propertyId', 'analysisType'],
           },
@@ -366,28 +417,37 @@ class SecurityALECSServer {
             type: 'object',
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
-              networkListIds: { type: 'array', items: { type: 'string' }, description: 'Network list IDs to deploy' },
-              targetNetwork: { type: 'string', enum: ['STAGING', 'PRODUCTION'], description: 'Target network' },
-              securityLevel: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH'], description: 'Security level' },
+              networkListIds: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Network list IDs to deploy',
+              },
+              targetNetwork: {
+                type: 'string',
+                enum: ['STAGING', 'PRODUCTION'],
+                description: 'Target network',
+              },
+              securityLevel: {
+                type: 'string',
+                enum: ['LOW', 'MEDIUM', 'HIGH'],
+                description: 'Security level',
+              },
               includeRollbackPlan: { type: 'boolean', description: 'Include rollback plan' },
             },
             required: ['networkListIds'],
           },
         },
       ];
-      
+
       // Get all application security tools from the imported module
-      const appSecToolsList = basicAppSecTools.map(tool => ({
+      const appSecToolsList = basicAppSecTools.map((tool) => ({
         name: tool.name,
         description: tool.description,
-        inputSchema: tool.inputSchema
+        inputSchema: tool.inputSchema,
       }));
-      
-      const tools = [
-        ...networkListTools,
-        ...appSecToolsList
-      ];
-      
+
+      const tools = [...networkListTools, ...appSecToolsList];
+
       log('INFO', `✅ Returning ${tools.length} tools`);
       return { tools };
     });
@@ -395,17 +455,17 @@ class SecurityALECSServer {
     // Handle tool calls
     this.server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> => {
       const { name, arguments: args } = request.params;
-      
+
       log('INFO', `🔧 Tool called: ${name}`, { args });
-      
+
       const startTime = Date.now();
 
       try {
         let result;
         const typedArgs = args as any;
-        
+
         // Check if it's an app sec tool
-        const appSecTool = basicAppSecTools.find(t => t.name === name);
+        const appSecTool = basicAppSecTools.find((t) => t.name === name);
         if (appSecTool) {
           result = await appSecTool.handler(args);
         } else {
@@ -418,7 +478,13 @@ class SecurityALECSServer {
               result = await getNetworkList(typedArgs.networkListId, typedArgs.customer, typedArgs);
               break;
             case 'create-network-list':
-              result = await createNetworkList(typedArgs.name, typedArgs.type, typedArgs.elements || [], typedArgs.customer, typedArgs);
+              result = await createNetworkList(
+                typedArgs.name,
+                typedArgs.type,
+                typedArgs.elements || [],
+                typedArgs.customer,
+                typedArgs,
+              );
               break;
             case 'update-network-list':
               const updateOptions: any = {};
@@ -430,7 +496,11 @@ class SecurityALECSServer {
                 updateOptions.replaceElements = typedArgs.elements;
               }
               if (typedArgs.description) updateOptions.description = typedArgs.description;
-              result = await updateNetworkList(typedArgs.networkListId, typedArgs.customer, updateOptions);
+              result = await updateNetworkList(
+                typedArgs.networkListId,
+                typedArgs.customer,
+                updateOptions,
+              );
               break;
             case 'delete-network-list':
               result = await deleteNetworkList(typedArgs.networkListId, typedArgs.customer);
@@ -438,47 +508,68 @@ class SecurityALECSServer {
             case 'activate-network-list':
               const activateOptions: any = {};
               if (typedArgs.comment) activateOptions.comments = typedArgs.comment;
-              if (typedArgs.notificationRecipients) activateOptions.notificationEmails = typedArgs.notificationRecipients;
-              result = await activateNetworkList(typedArgs.networkListId, typedArgs.network, typedArgs.customer, activateOptions);
+              if (typedArgs.notificationRecipients)
+                activateOptions.notificationEmails = typedArgs.notificationRecipients;
+              result = await activateNetworkList(
+                typedArgs.networkListId,
+                typedArgs.network,
+                typedArgs.customer,
+                activateOptions,
+              );
               break;
             case 'get-network-list-activation-status':
-              result = await getNetworkListActivationStatus(typedArgs.activationId, typedArgs.customer);
+              result = await getNetworkListActivationStatus(
+                typedArgs.activationId,
+                typedArgs.customer,
+              );
               break;
             case 'list-network-list-activations':
-              result = await listNetworkListActivations(typedArgs.networkListId, typedArgs.customer);
+              result = await listNetworkListActivations(
+                typedArgs.networkListId,
+                typedArgs.customer,
+              );
               break;
             case 'deactivate-network-list':
               const deactivateOptions: any = {};
               if (typedArgs.comment) deactivateOptions.comments = typedArgs.comment;
-              result = await deactivateNetworkList(typedArgs.networkListId, typedArgs.network, typedArgs.customer, deactivateOptions);
+              result = await deactivateNetworkList(
+                typedArgs.networkListId,
+                typedArgs.network,
+                typedArgs.customer,
+                deactivateOptions,
+              );
               break;
             case 'bulk-activate-network-lists':
               const bulkActivations = typedArgs.networkListIds.map((id: string) => ({
                 uniqueId: id,
-                network: typedArgs.network
+                network: typedArgs.network,
               }));
               const bulkOptions: any = {};
               if (typedArgs.comment) bulkOptions.comments = typedArgs.comment;
-              result = await bulkActivateNetworkLists(bulkActivations, typedArgs.customer, bulkOptions);
+              result = await bulkActivateNetworkLists(
+                bulkActivations,
+                typedArgs.customer,
+                bulkOptions,
+              );
               break;
             case 'import-network-list-from-csv':
               // First create the list, then import
               const createResult = await createNetworkList(
-                typedArgs.name, 
-                typedArgs.type, 
-                [], 
-                typedArgs.customer, 
-                { contractId: typedArgs.contractId, groupId: typedArgs.groupId }
+                typedArgs.name,
+                typedArgs.type,
+                [],
+                typedArgs.customer,
+                { contractId: typedArgs.contractId, groupId: typedArgs.groupId },
               );
               // Extract the uniqueId from the response
               const responseText = createResult.content[0]?.text || '';
               const uniqueIdMatch = responseText.match(/ID:\s*([^\s\n]+)/);
               if (uniqueIdMatch && uniqueIdMatch[1]) {
                 result = await importNetworkListFromCSV(
-                  uniqueIdMatch[1], 
-                  typedArgs.csvContent, 
-                  typedArgs.customer, 
-                  { operation: 'replace' }
+                  uniqueIdMatch[1],
+                  typedArgs.csvContent,
+                  typedArgs.customer,
+                  { operation: 'replace' },
                 );
               } else {
                 result = createResult;
@@ -491,7 +582,12 @@ class SecurityALECSServer {
               result = await bulkUpdateNetworkLists(typedArgs.updates, typedArgs.customer);
               break;
             case 'merge-network-lists':
-              result = await mergeNetworkLists(typedArgs.sourceListIds, typedArgs.targetListId, typedArgs.mode, typedArgs.customer);
+              result = await mergeNetworkLists(
+                typedArgs.sourceListIds,
+                typedArgs.targetListId,
+                typedArgs.mode,
+                typedArgs.customer,
+              );
               break;
             case 'validate-geographic-codes':
               result = await validateGeographicCodes(typedArgs.codes, typedArgs.customer);
@@ -500,8 +596,8 @@ class SecurityALECSServer {
               result = await getASNInformation(typedArgs.asns, typedArgs.customer);
               break;
             case 'generate-geographic-blocking-recommendations':
-              result = await generateGeographicBlockingRecommendations(typedArgs.customer, { 
-                purpose: typedArgs.analysisType 
+              result = await generateGeographicBlockingRecommendations(typedArgs.customer, {
+                purpose: typedArgs.analysisType,
               });
               break;
             case 'generate-asn-security-recommendations':
@@ -514,84 +610,90 @@ class SecurityALECSServer {
               result = await getSecurityPolicyIntegrationGuidance(typedArgs.customer, typedArgs);
               break;
             case 'generate-deployment-checklist':
-              result = await generateDeploymentChecklist(typedArgs.networkListIds || [], typedArgs.customer, typedArgs);
+              result = await generateDeploymentChecklist(
+                typedArgs.networkListIds || [],
+                typedArgs.customer,
+                typedArgs,
+              );
               break;
 
             default:
-              throw new McpError(
-                ErrorCode.MethodNotFound,
-                `Tool not found: ${name}`
-              );
+              throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
           }
         }
-        
+
         const duration = Date.now() - startTime;
         log('INFO', `✅ Tool ${name} completed in ${duration}ms`);
-        
+
         return result;
-        
       } catch (error) {
         const duration = Date.now() - startTime;
         log('ERROR', `❌ Tool ${name} failed after ${duration}ms`, {
-          error: error instanceof Error ? {
-            message: error.message,
-            stack: error.stack
-          } : String(error)
+          error:
+            error instanceof Error
+              ? {
+                  message: error.message,
+                  stack: error.stack,
+                }
+              : String(error),
         });
-        
+
         if (error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`
+            `Invalid parameters: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
           );
         }
-        
+
         if (error instanceof McpError) {
           throw error;
         }
-        
+
         throw new McpError(
           ErrorCode.InternalError,
-          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`
+          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     });
-    
+
     log('INFO', '✅ Request handlers set up successfully');
   }
 
   async start() {
     log('INFO', '📍 Starting server connection...');
-    
+
     const transport = new StdioServerTransport();
-    
+
     // Add error handling for transport
     transport.onerror = (error: Error) => {
       log('ERROR', '❌ Transport error', {
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
     };
-    
+
     transport.onclose = () => {
       log('INFO', '🔌 Transport closed, shutting down...');
       process.exit(0);
     };
-    
+
     try {
       await this.server.connect(transport);
       log('INFO', '✅ Server connected and ready for MCP connections');
       log('INFO', '📊 Server stats', {
         toolCount: 95,
         memoryUsage: process.memoryUsage(),
-        uptime: process.uptime()
+        uptime: process.uptime(),
       });
     } catch (error) {
       log('ERROR', '❌ Failed to connect server', {
-        error: error instanceof Error ? {
-          message: error.message,
-          stack: error.stack
-        } : String(error)
+        error:
+          error instanceof Error
+            ? {
+                message: error.message,
+                stack: error.stack,
+              }
+            : String(error),
       });
       throw error;
     }
@@ -601,26 +703,28 @@ class SecurityALECSServer {
 // Main entry point
 async function main() {
   log('INFO', '🎯 ALECS Security Server main() started');
-  
+
   try {
     const server = new SecurityALECSServer();
     await server.start();
-    
+
     // Set up periodic status logging
     setInterval(() => {
       log('DEBUG', '💓 Server heartbeat', {
         uptime: process.uptime(),
         memory: process.memoryUsage(),
-        pid: process.pid
+        pid: process.pid,
       });
     }, 30000); // Every 30 seconds
-    
   } catch (error) {
     log('ERROR', '❌ Failed to start server', {
-      error: error instanceof Error ? {
-        message: error.message,
-        stack: error.stack
-      } : String(error)
+      error:
+        error instanceof Error
+          ? {
+              message: error.message,
+              stack: error.stack,
+            }
+          : String(error),
     });
     process.exit(1);
   }
@@ -631,19 +735,22 @@ process.on('uncaughtException', (error) => {
   log('ERROR', '❌ Uncaught exception', {
     error: {
       message: error.message,
-      stack: error.stack
-    }
+      stack: error.stack,
+    },
   });
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   log('ERROR', '❌ Unhandled rejection', {
-    reason: reason instanceof Error ? {
-      message: reason.message,
-      stack: reason.stack
-    } : String(reason),
-    promise: String(promise)
+    reason:
+      reason instanceof Error
+        ? {
+            message: reason.message,
+            stack: reason.stack,
+          }
+        : String(reason),
+    promise: String(promise),
   });
   process.exit(1);
 });

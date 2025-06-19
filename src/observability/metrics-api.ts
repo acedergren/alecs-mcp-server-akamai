@@ -70,7 +70,7 @@ export class MetricsAPI extends EventEmitter {
       maxMetricHistory?: number;
       enableCompression?: boolean;
       retryAttempts?: number;
-    } = {}
+    } = {},
   ) {
     super();
     this.config = {
@@ -90,7 +90,7 @@ export class MetricsAPI extends EventEmitter {
    */
   registerMetric(definition: MetricDefinition): void {
     this.definitions.set(definition.name, definition);
-    
+
     if (!this.metrics.has(definition.name)) {
       this.metrics.set(definition.name, []);
     }
@@ -120,7 +120,7 @@ export class MetricsAPI extends EventEmitter {
   /**
    * Increment a counter metric
    */
-  incrementCounter(name: string, increment: number = 1, labels: Record<string, string> = {}): void {
+  incrementCounter(name: string, increment = 1, labels: Record<string, string> = {}): void {
     const current = this.getLatestMetricValue(name, labels) || 0;
     this.recordMetric(name, current + increment, labels);
   }
@@ -138,7 +138,7 @@ export class MetricsAPI extends EventEmitter {
   recordHistogram(name: string, value: number, labels: Record<string, string> = {}): void {
     // For histogram, we record the raw value and let the export format handle bucketing
     this.recordMetric(name, value, { ...labels, _type: 'histogram' });
-    
+
     // Also record count and sum for convenience
     this.incrementCounter(`${name}_count`, 1, labels);
     this.incrementCounter(`${name}_sum`, value, labels);
@@ -182,7 +182,7 @@ export class MetricsAPI extends EventEmitter {
         name: name.replace(/[^a-zA-Z0-9_]/g, '_'),
         type: definition.type,
         help: definition.help,
-        values: values.map(v => ({
+        values: values.map((v) => ({
           value: v.value,
           labels: v.labels,
           timestamp: v.timestamp,
@@ -209,12 +209,15 @@ export class MetricsAPI extends EventEmitter {
         name,
         description: definition.help,
         type: definition.type === 'summary' ? 'histogram' : definition.type,
-        dataPoints: values.map(v => ({
+        dataPoints: values.map((v) => ({
           value: v.value,
-          attributes: Object.entries(v.labels).reduce((acc, [k, v]) => {
-            acc[k] = v;
-            return acc;
-          }, {} as Record<string, string | number>),
+          attributes: Object.entries(v.labels).reduce(
+            (acc, [k, v]) => {
+              acc[k] = v;
+              return acc;
+            },
+            {} as Record<string, string | number>,
+          ),
           timeUnixNano: (v.timestamp * 1000000).toString(),
         })),
       };
@@ -258,11 +261,11 @@ export class MetricsAPI extends EventEmitter {
    */
   getMetricsSnapshot(): Record<string, MetricValue[]> {
     const snapshot: Record<string, MetricValue[]> = {};
-    
+
     for (const [name, values] of this.metrics.entries()) {
       snapshot[name] = [...values];
     }
-    
+
     return snapshot;
   }
 
@@ -271,13 +274,13 @@ export class MetricsAPI extends EventEmitter {
    */
   getMetricsByPattern(pattern: RegExp): Record<string, MetricValue[]> {
     const filtered: Record<string, MetricValue[]> = {};
-    
+
     for (const [name, values] of this.metrics.entries()) {
       if (pattern.test(name)) {
         filtered[name] = [...values];
       }
     }
-    
+
     return filtered;
   }
 
@@ -294,17 +297,17 @@ export class MetricsAPI extends EventEmitter {
    */
   clearMetricsByPattern(pattern: RegExp): void {
     const toDelete = [];
-    
+
     for (const name of this.metrics.keys()) {
       if (pattern.test(name)) {
         toDelete.push(name);
       }
     }
-    
+
     for (const name of toDelete) {
       this.metrics.delete(name);
     }
-    
+
     this.emit('metricsCleared', toDelete);
   }
 
@@ -315,11 +318,11 @@ export class MetricsAPI extends EventEmitter {
     for (const [name, collector] of this.collectors.entries()) {
       try {
         const collectedMetrics = await collector.collect();
-        
+
         for (const metric of collectedMetrics) {
           this.recordMetric(metric.name, metric.value, metric.labels);
         }
-        
+
         this.emit('metricsCollected', name, collectedMetrics.length);
       } catch (error) {
         this.emit('collectionError', name, error);
@@ -341,13 +344,13 @@ export class MetricsAPI extends EventEmitter {
     }
 
     const results = await Promise.allSettled(pushPromises);
-    
+
     for (let i = 0; i < results.length; i++) {
       const result = results[i];
       const targetName = Array.from(this.pushTargets.keys())[i];
-      
+
       if (result && result.status === 'rejected') {
-        this.emit('pushError', targetName, (result as PromiseRejectedResult).reason);
+        this.emit('pushError', targetName, result.reason);
       } else {
         this.emit('pushSuccess', targetName);
       }
@@ -362,7 +365,7 @@ export class MetricsAPI extends EventEmitter {
       clearInterval(this.pushInterval);
       this.pushInterval = null;
     }
-    
+
     this.emit('stopped');
   }
 
@@ -428,7 +431,7 @@ export class MetricsAPI extends EventEmitter {
   private startPushScheduler(): void {
     if (this.config.pushIntervalMs && this.config.pushIntervalMs > 0) {
       this.pushInterval = setInterval(() => {
-        this.pushMetrics().catch(error => {
+        this.pushMetrics().catch((error) => {
           this.emit('scheduledPushError', error);
         });
       }, this.config.pushIntervalMs);
@@ -472,10 +475,10 @@ export class MetricsAPI extends EventEmitter {
         const labelStr = Object.entries(value.labels)
           .map(([k, v]) => `${k}="${v}"`)
           .join(',');
-        
+
         const labelPart = labelStr ? `{${labelStr}}` : '';
         const timestampPart = value.timestamp ? ` ${value.timestamp}` : '';
-        
+
         lines.push(`${metric.name}${labelPart} ${value.value}${timestampPart}`);
       }
 
@@ -520,11 +523,13 @@ export interface PushTarget {
 
 export interface MetricCollector {
   name: string;
-  collect(): Promise<Array<{
-    name: string;
-    value: number;
-    labels: Record<string, string>;
-  }>>;
+  collect(): Promise<
+    Array<{
+      name: string;
+      value: number;
+      labels: Record<string, string>;
+    }>
+  >;
 }
 
 /**
@@ -543,7 +548,7 @@ export class HTTPPushTarget implements PushTarget {
       password?: string;
       apiKey?: string;
       apiKeyHeader?: string;
-    }
+    },
   ) {}
 
   async push(data: string | object, contentType: string): Promise<void> {
@@ -560,7 +565,7 @@ export class HTTPPushTarget implements PushTarget {
           break;
         case 'basic':
           const credentials = Buffer.from(
-            `${this.authentication.username}:${this.authentication.password}`
+            `${this.authentication.username}:${this.authentication.password}`,
           ).toString('base64');
           headers['Authorization'] = `Basic ${credentials}`;
           break;
@@ -597,25 +602,25 @@ export class SystemMetricsCollector implements MetricCollector {
     // Memory usage
     if (typeof process !== 'undefined' && process.memoryUsage) {
       const memUsage = process.memoryUsage();
-      
+
       metrics.push({
         name: 'nodejs_memory_usage_bytes',
         value: memUsage.heapUsed,
         labels: { type: 'heap_used' },
       });
-      
+
       metrics.push({
         name: 'nodejs_memory_usage_bytes',
         value: memUsage.heapTotal,
         labels: { type: 'heap_total' },
       });
-      
+
       metrics.push({
         name: 'nodejs_memory_usage_bytes',
         value: memUsage.external,
         labels: { type: 'external' },
       });
-      
+
       metrics.push({
         name: 'nodejs_memory_usage_bytes',
         value: memUsage.rss,

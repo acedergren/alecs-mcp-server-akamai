@@ -3,8 +3,8 @@
  * Implements Default DV certificate management with automated DNS validation
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
 
 // CPS API Types
 export interface CPSEnrollment {
@@ -120,15 +120,19 @@ export async function createDVEnrollment(
     contractId: string;
     enhancedTLS?: boolean;
     quicEnabled?: boolean;
-  }
+    geography?: 'core' | 'china' | 'russia';
+    signatureAlgorithm?: 'SHA256withRSA' | 'SHA384withECDSA';
+    autoRenewal?: boolean;
+    sniOnly?: boolean;
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Validate inputs
-    if (!args.commonName || !args.commonName.includes('.')) {
+    if (!args.commonName?.includes('.')) {
       throw new Error('Common name must be a valid domain (e.g., www.example.com)');
     }
 
-    // Prepare enrollment request
+    // Prepare enrollment request with enhanced configuration options
     const enrollment: CPSEnrollment = {
       id: 0, // Will be assigned by API
       ra: 'lets-encrypt',
@@ -136,13 +140,13 @@ export async function createDVEnrollment(
       certificateType: args.sans && args.sans.length > 0 ? 'san' : 'single',
       certificateChainType: 'default',
       networkConfiguration: {
-        geography: 'core',
-        quicEnabled: args.quicEnabled || false,
+        geography: args.geography || 'core',
+        quicEnabled: args.quicEnabled !== false, // Default to true for modern performance
         secureNetwork: args.enhancedTLS !== false ? 'enhanced-tls' : 'standard-tls',
-        sniOnly: true,
+        sniOnly: args.sniOnly !== false, // Default to true for most use cases
       },
-      signatureAlgorithm: 'SHA256withRSA',
-      changeManagement: false,
+      signatureAlgorithm: args.signatureAlgorithm || 'SHA256withRSA',
+      changeManagement: args.autoRenewal !== false, // Default to true for auto-renewal
       csr: {
         cn: args.commonName,
         sans: args.sans,
@@ -156,11 +160,14 @@ export async function createDVEnrollment(
 
     // Create enrollment
     const response = await client.request({
-      path: `/cps/v2/enrollments?contractId=${args.contractId}`,
+      path: `/cps/v2/enrollments`,
       method: 'POST',
       headers: {
         'Content-Type': 'application/vnd.akamai.cps.enrollment.v11+json',
-        'Accept': 'application/vnd.akamai.cps.enrollment-status.v1+json',
+        Accept: 'application/vnd.akamai.cps.enrollment-status.v1+json',
+      },
+      queryParams: {
+        contractId: args.contractId,
       },
       body: enrollment,
     });
@@ -168,10 +175,12 @@ export async function createDVEnrollment(
     const enrollmentId = response.enrollment?.split('/').pop() || 'unknown';
 
     return {
-      content: [{
-        type: 'text',
-        text: `✅ Created Default DV certificate enrollment!\n\n**Enrollment ID:** ${enrollmentId}\n**Common Name:** ${args.commonName}\n**SANs:** ${args.sans?.join(', ') || 'None'}\n**Network:** ${args.enhancedTLS !== false ? 'Enhanced TLS' : 'Standard TLS'}\n**QUIC:** ${args.quicEnabled ? 'Enabled' : 'Disabled'}\n\n## Next Steps\n\n1. **Complete DNS Validation:**\n   "Get DV validation challenges for enrollment ${enrollmentId}"\n\n2. **Check Validation Status:**\n   "Check DV enrollment status ${enrollmentId}"\n\n3. **Deploy Certificate:**\n   Once validated, the certificate will be automatically deployed.\n\n⏱️ **Timeline:**\n- DNS validation: 5-10 minutes after DNS records are created\n- Certificate issuance: 10-15 minutes after validation\n- Deployment: 30-60 minutes after issuance`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `✅ Created Default DV certificate enrollment!\n\n**Enrollment ID:** ${enrollmentId}\n**Common Name:** ${args.commonName}\n**SANs:** ${args.sans?.join(', ') || 'None'}\n**Network:** ${args.enhancedTLS !== false ? 'Enhanced TLS' : 'Standard TLS'}\n**QUIC:** ${args.quicEnabled ? 'Enabled' : 'Disabled'}\n\n## Next Steps\n\n1. **Complete DNS Validation:**\n   "Get DV validation challenges for enrollment ${enrollmentId}"\n\n2. **Check Validation Status:**\n   "Check DV enrollment status ${enrollmentId}"\n\n3. **Deploy Certificate:**\n   Once validated, the certificate will be automatically deployed.\n\n⏱️ **Timeline:**\n- DNS validation: 5-10 minutes after DNS records are created\n- Certificate issuance: 10-15 minutes after validation\n- Deployment: 30-60 minutes after issuance`,
+        },
+      ],
     };
   } catch (error) {
     return formatError('create DV enrollment', error);
@@ -185,7 +194,7 @@ export async function getDVValidationChallenges(
   client: AkamaiClient,
   args: {
     enrollmentId: number;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Get enrollment status with validation details
@@ -193,9 +202,9 @@ export async function getDVValidationChallenges(
       path: `/cps/v2/enrollments/${args.enrollmentId}`,
       method: 'GET',
       headers: {
-        'Accept': 'application/vnd.akamai.cps.enrollment-status.v1+json',
+        Accept: 'application/vnd.akamai.cps.enrollment-status.v1+json',
       },
-    }) as CPSEnrollmentStatus;
+    });
 
     if (!response.allowedDomains || response.allowedDomains.length === 0) {
       throw new Error('No domains found in enrollment');
@@ -206,18 +215,20 @@ export async function getDVValidationChallenges(
     text += `**Certificate Type:** ${response.certificateType}\n\n`;
 
     let hasPendingValidations = false;
-    let dnsRecordsToCreate: Array<{ domain: string; recordName: string; recordValue: string }> = [];
+    const dnsRecordsToCreate: Array<{ domain: string; recordName: string; recordValue: string }> =
+      [];
 
     text += '## Domain Validation Status\n\n';
-    
+
     for (const domain of response.allowedDomains) {
-      const statusEmoji = {
-        'VALIDATED': '✅',
-        'PENDING': '⏳',
-        'IN_PROGRESS': '🔄',
-        'ERROR': '❌',
-        'EXPIRED': '⚠️',
-      }[domain.validationStatus] || '❓';
+      const statusEmoji =
+        {
+          VALIDATED: '✅',
+          PENDING: '⏳',
+          IN_PROGRESS: '🔄',
+          ERROR: '❌',
+          EXPIRED: '⚠️',
+        }[domain.validationStatus] || '❓';
 
       text += `### ${statusEmoji} ${domain.name}\n`;
       text += `- **Status:** ${domain.status}\n`;
@@ -225,22 +236,22 @@ export async function getDVValidationChallenges(
 
       if (domain.validationDetails?.challenges) {
         text += '- **Challenges:**\n';
-        
+
         for (const challenge of domain.validationDetails.challenges) {
           if (challenge.type === 'dns-01' && challenge.status !== 'VALIDATED') {
             hasPendingValidations = true;
-            
+
             // Parse DNS challenge details
             if (challenge.token && challenge.responseBody) {
               const recordName = `_acme-challenge.${domain.name}`;
               const recordValue = challenge.responseBody;
-              
+
               dnsRecordsToCreate.push({
                 domain: domain.name,
                 recordName,
                 recordValue,
               });
-              
+
               text += `  - **DNS Challenge (${challenge.status}):**\n`;
               text += `    - Record Name: \`${recordName}\`\n`;
               text += `    - Record Type: \`TXT\`\n`;
@@ -251,7 +262,7 @@ export async function getDVValidationChallenges(
             text += `    - Path: \`${challenge.fullPath}\`\n`;
             text += `    - Response: \`${challenge.responseBody}\`\n`;
           }
-          
+
           if (challenge.error) {
             text += `    - ⚠️ Error: ${challenge.error}\n`;
           }
@@ -263,7 +274,7 @@ export async function getDVValidationChallenges(
     if (dnsRecordsToCreate.length > 0) {
       text += '## 🚨 Required DNS Records\n\n';
       text += 'Create the following TXT records to complete validation:\n\n';
-      
+
       for (const record of dnsRecordsToCreate) {
         text += `### ${record.domain}\n`;
         text += '```\n';
@@ -272,28 +283,32 @@ export async function getDVValidationChallenges(
         text += `Value: ${record.recordValue}\n`;
         text += `TTL:   300\n`;
         text += '```\n\n';
-        
+
         // Generate MCP command
         const zone = record.domain.split('.').slice(-2).join('.');
         text += `**Quick Command:**\n`;
         text += `"Create TXT record ${record.recordName} with value ${record.recordValue} in zone ${zone}"\n\n`;
       }
-      
+
       text += '## After Creating DNS Records\n\n';
       text += '1. Wait 5-10 minutes for DNS propagation\n';
-      text += '2. Check validation status: "Check DV enrollment status ' + args.enrollmentId + '"\n';
+      text +=
+        '2. Check validation status: "Check DV enrollment status ' + args.enrollmentId + '"\n';
       text += '3. Certificate will be issued automatically once all domains are validated\n';
     } else if (response.status === 'VALIDATED' || !hasPendingValidations) {
       text += '## ✅ All Domains Validated!\n\n';
       text += 'The certificate has been issued or is being issued.\n';
-      text += 'Check deployment status: "Get certificate deployment status ' + args.enrollmentId + '"';
+      text +=
+        'Check deployment status: "Get certificate deployment status ' + args.enrollmentId + '"';
     }
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('get DV validation challenges', error);
@@ -307,27 +322,28 @@ export async function checkDVEnrollmentStatus(
   client: AkamaiClient,
   args: {
     enrollmentId: number;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const response = await client.request({
       path: `/cps/v2/enrollments/${args.enrollmentId}`,
       method: 'GET',
       headers: {
-        'Accept': 'application/vnd.akamai.cps.enrollment-status.v1+json',
+        Accept: 'application/vnd.akamai.cps.enrollment-status.v1+json',
       },
-    }) as CPSEnrollmentStatus;
+    });
 
-    const statusEmoji = {
-      'active': '✅',
-      'new': '🆕',
-      'modified': '📝',
-      'renewal-in-progress': '🔄',
-      'expiring-soon': '⚠️',
-      'expired': '❌',
-      'pending': '⏳',
-      'cancelled': '🚫',
-    }[response.status.toLowerCase()] || '❓';
+    const statusEmoji =
+      {
+        active: '✅',
+        new: '🆕',
+        modified: '📝',
+        'renewal-in-progress': '🔄',
+        'expiring-soon': '⚠️',
+        expired: '❌',
+        pending: '⏳',
+        cancelled: '🚫',
+      }[response.status.toLowerCase()] || '❓';
 
     let text = `# Certificate Enrollment Status\n\n`;
     text += `**Enrollment ID:** ${response.enrollmentId}\n`;
@@ -340,21 +356,22 @@ export async function checkDVEnrollmentStatus(
     }
 
     text += '\n## Domain Status\n\n';
-    
+
     let allValidated = true;
     let hasErrors = false;
-    
+
     for (const domain of response.allowedDomains) {
-      const emoji = {
-        'VALIDATED': '✅',
-        'PENDING': '⏳',
-        'IN_PROGRESS': '🔄',
-        'ERROR': '❌',
-        'EXPIRED': '⚠️',
-      }[domain.validationStatus] || '❓';
+      const emoji =
+        {
+          VALIDATED: '✅',
+          PENDING: '⏳',
+          IN_PROGRESS: '🔄',
+          ERROR: '❌',
+          EXPIRED: '⚠️',
+        }[domain.validationStatus] || '❓';
 
       text += `- ${emoji} **${domain.name}**: ${domain.validationStatus}\n`;
-      
+
       if (domain.validationStatus !== 'VALIDATED') {
         allValidated = false;
       }
@@ -365,21 +382,27 @@ export async function checkDVEnrollmentStatus(
 
     if (response.pendingChanges && response.pendingChanges.length > 0) {
       text += '\n## ⚠️ Pending Changes\n\n';
-      response.pendingChanges.forEach(change => {
+      response.pendingChanges.forEach((change) => {
         text += `- ${change}\n`;
       });
     }
 
     text += '\n## Next Steps\n\n';
-    
+
     if (hasErrors) {
       text += '❌ **Validation Errors Detected**\n\n';
-      text += '1. Get validation details: "Get DV validation challenges for enrollment ' + args.enrollmentId + '"\n';
+      text +=
+        '1. Get validation details: "Get DV validation challenges for enrollment ' +
+        args.enrollmentId +
+        '"\n';
       text += '2. Fix any DNS record issues\n';
       text += '3. Retry validation if needed\n';
     } else if (!allValidated) {
       text += '⏳ **Validation In Progress**\n\n';
-      text += '1. Check validation requirements: "Get DV validation challenges for enrollment ' + args.enrollmentId + '"\n';
+      text +=
+        '1. Check validation requirements: "Get DV validation challenges for enrollment ' +
+        args.enrollmentId +
+        '"\n';
       text += '2. Ensure all DNS records are created\n';
       text += '3. Wait for validation to complete (usually 5-15 minutes)\n';
     } else if (response.status.toLowerCase() === 'active') {
@@ -394,10 +417,12 @@ export async function checkDVEnrollmentStatus(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('check DV enrollment status', error);
@@ -411,7 +436,7 @@ export async function listCertificateEnrollments(
   client: AkamaiClient,
   args: {
     contractId?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const queryParams: any = {};
@@ -423,29 +448,36 @@ export async function listCertificateEnrollments(
       path: '/cps/v2/enrollments',
       method: 'GET',
       headers: {
-        'Accept': 'application/vnd.akamai.cps.enrollments.v7+json',
+        Accept: 'application/vnd.akamai.cps.enrollments.v7+json',
       },
       queryParams,
-    }) as { enrollments: CPSEnrollmentStatus[] };
+    });
 
     if (!response.enrollments || response.enrollments.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: 'No certificate enrollments found' + (args.contractId ? ` for contract ${args.contractId}` : ''),
-        }],
+        content: [
+          {
+            type: 'text',
+            text:
+              'No certificate enrollments found' +
+              (args.contractId ? ` for contract ${args.contractId}` : ''),
+          },
+        ],
       };
     }
 
     let text = `# Certificate Enrollments (${response.enrollments.length} found)\n\n`;
 
     // Group by status
-    const byStatus = response.enrollments.reduce((acc, enrollment) => {
-      const status = enrollment.status.toLowerCase();
-      if (!acc[status]) acc[status] = [];
-      acc[status].push(enrollment);
-      return acc;
-    }, {} as Record<string, CPSEnrollmentStatus[]>);
+    const byStatus = response.enrollments.reduce(
+      (acc, enrollment) => {
+        const status = enrollment.status.toLowerCase();
+        if (!acc[status]) acc[status] = [];
+        acc[status].push(enrollment);
+        return acc;
+      },
+      {} as Record<string, CPSEnrollmentStatus[]>,
+    );
 
     // Display active certificates first
     if (byStatus['active']) {
@@ -474,9 +506,9 @@ export async function listCertificateEnrollments(
 
     // Other statuses
     const otherStatuses = Object.keys(byStatus).filter(
-      s => !['active', 'pending', 'renewal-in-progress', 'expiring-soon'].includes(s)
+      (s) => !['active', 'pending', 'renewal-in-progress', 'expiring-soon'].includes(s),
     );
-    
+
     if (otherStatuses.length > 0) {
       text += '## Other Statuses\n\n';
       for (const status of otherStatuses) {
@@ -492,10 +524,12 @@ export async function listCertificateEnrollments(
     text += '- Create new: "Create DV certificate for www.example.com"\n';
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('list certificate enrollments', error);
@@ -511,7 +545,7 @@ export async function linkCertificateToProperty(
     enrollmentId: number;
     propertyId: string;
     propertyVersion?: number;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Get property details
@@ -519,11 +553,11 @@ export async function linkCertificateToProperty(
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
-    
+
     if (!propertyResponse.properties?.items?.[0]) {
       throw new Error('Property not found');
     }
-    
+
     const property = propertyResponse.properties.items[0];
     const version = args.propertyVersion || property.latestVersion || 1;
 
@@ -553,10 +587,12 @@ export async function linkCertificateToProperty(
     });
 
     return {
-      content: [{
-        type: 'text',
-        text: `✅ Linked certificate enrollment ${args.enrollmentId} to property ${property.propertyName} (v${version})\n\n## Next Steps\n\n1. **Activate Property:**\n   "Activate property ${args.propertyId} to staging"\n\n2. **Verify HTTPS:**\n   Once activated, test HTTPS access to your domains\n\n3. **Monitor Certificate:**\n   "Check DV enrollment status ${args.enrollmentId}"\n\n⚠️ **Important:** The property must be activated for the certificate to take effect.`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `✅ Linked certificate enrollment ${args.enrollmentId} to property ${property.propertyName} (v${version})\n\n## Next Steps\n\n1. **Activate Property:**\n   "Activate property ${args.propertyId} to staging"\n\n2. **Verify HTTPS:**\n   Once activated, test HTTPS access to your domains\n\n3. **Monitor Certificate:**\n   "Check DV enrollment status ${args.enrollmentId}"\n\n⚠️ **Important:** The property must be activated for the certificate to take effect.`,
+        },
+      ],
     };
   } catch (error) {
     return formatError('link certificate to property', error);
@@ -567,28 +603,31 @@ export async function linkCertificateToProperty(
  * Helper function to format enrollment summary
  */
 function formatEnrollmentSummary(enrollment: CPSEnrollmentStatus): string {
-  const statusEmoji = {
-    'active': '✅',
-    'new': '🆕',
-    'modified': '📝',
-    'renewal-in-progress': '🔄',
-    'expiring-soon': '⚠️',
-    'expired': '❌',
-    'pending': '⏳',
-    'cancelled': '🚫',
-  }[enrollment.status.toLowerCase()] || '❓';
+  const statusEmoji =
+    {
+      active: '✅',
+      new: '🆕',
+      modified: '📝',
+      'renewal-in-progress': '🔄',
+      'expiring-soon': '⚠️',
+      expired: '❌',
+      pending: '⏳',
+      cancelled: '🚫',
+    }[enrollment.status.toLowerCase()] || '❓';
 
   let text = `### ${statusEmoji} Enrollment ${enrollment.enrollmentId}\n`;
   text += `- **Type:** ${enrollment.certificateType} (${enrollment.validationType.toUpperCase()})\n`;
   text += `- **Status:** ${enrollment.status}\n`;
-  text += `- **Domains:** ${enrollment.allowedDomains.map(d => d.name).join(', ')}\n`;
-  
+  text += `- **Domains:** ${enrollment.allowedDomains.map((d) => d.name).join(', ')}\n`;
+
   if (enrollment.autoRenewalStartTime) {
     const renewalDate = new Date(enrollment.autoRenewalStartTime);
-    const daysUntilRenewal = Math.ceil((renewalDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    const daysUntilRenewal = Math.ceil(
+      (renewalDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+    );
     text += `- **Auto-Renewal:** ${renewalDate.toLocaleDateString()} (${daysUntilRenewal} days)\n`;
   }
-  
+
   text += '\n';
   return text;
 }
@@ -599,35 +638,42 @@ function formatEnrollmentSummary(enrollment: CPSEnrollmentStatus): string {
 function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
-  
+
   if (error instanceof Error) {
     errorMessage += `: ${error.message}`;
-    
+
     // Provide specific solutions based on error type
     if (error.message.includes('401') || error.message.includes('credentials')) {
-      solution = '**Solution:** Check your ~/.edgerc file has valid credentials with CPS permissions.';
+      solution =
+        '**Solution:** Check your ~/.edgerc file has valid credentials with CPS permissions.';
     } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
-      solution = '**Solution:** Your API credentials need CPS read/write permissions. Contact your account team.';
+      solution =
+        '**Solution:** Your API credentials need CPS read/write permissions. Contact your account team.';
     } else if (error.message.includes('404') || error.message.includes('not found')) {
-      solution = '**Solution:** The enrollment was not found. Use "List certificate enrollments" to see available certificates.';
+      solution =
+        '**Solution:** The enrollment was not found. Use "List certificate enrollments" to see available certificates.';
     } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
-      solution = '**Solution:** Invalid request parameters. Check domain names and contact information.';
+      solution =
+        '**Solution:** Invalid request parameters. Check domain names and contact information.';
     } else if (error.message.includes('contract')) {
-      solution = '**Solution:** Specify a valid contract ID. Use "List groups" to find available contracts.';
+      solution =
+        '**Solution:** Specify a valid contract ID. Use "List groups" to find available contracts.';
     }
   } else {
     errorMessage += `: ${String(error)}`;
   }
-  
+
   let text = errorMessage;
   if (solution) {
     text += `\n\n${solution}`;
   }
 
   return {
-    content: [{
-      type: 'text',
-      text,
-    }],
+    content: [
+      {
+        type: 'text',
+        text,
+      },
+    ],
   };
 }

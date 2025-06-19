@@ -1,6 +1,6 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 import * as crypto from 'crypto';
-import { CustomerConfigManager, EdgeRcSection } from './customer-config';
+import { CustomerConfigManager, type EdgeRcSection } from './customer-config';
 import { logger } from './logger';
 
 export interface EdgeGridRequestOptions {
@@ -18,32 +18,32 @@ export class EdgeGridClient {
   private config: EdgeRcSection;
   private customerName: string;
 
-  private constructor(customer: string = 'default') {
+  private constructor(customer = 'default') {
     this.customerName = customer;
     this.config = CustomerConfigManager.getInstance().getSection(customer);
-    
+
     this.axiosInstance = axios.create({
       baseURL: `https://${this.config.host}`,
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
-      }
+      },
     });
 
     // Add request interceptor for EdgeGrid authentication
     this.axiosInstance.interceptors.request.use(
       (config) => this.addAuthHeaders(config),
-      (error) => Promise.reject(error)
+      (error) => Promise.reject(error),
     );
 
     // Add response interceptor for error handling
     this.axiosInstance.interceptors.response.use(
       (response) => response,
-      (error) => this.handleError(error)
+      (error) => this.handleError(error),
     );
   }
 
-  static getInstance(customer: string = 'default'): EdgeGridClient {
+  static getInstance(customer = 'default'): EdgeGridClient {
     if (!EdgeGridClient.instances.has(customer)) {
       EdgeGridClient.instances.set(customer, new EdgeGridClient(customer));
     }
@@ -58,7 +58,7 @@ export class EdgeGridClient {
       config.url || '',
       config.data ? JSON.stringify(config.data) : '',
       timestamp,
-      nonce
+      nonce,
     );
 
     // Use headers.set for proper AxiosHeaders manipulation
@@ -73,17 +73,25 @@ export class EdgeGridClient {
     return config;
   }
 
-  private createAuthHeader(method: string, url: string, body: string, timestamp: string, nonce: string): string {
+  private createAuthHeader(
+    method: string,
+    url: string,
+    body: string,
+    timestamp: string,
+    nonce: string,
+  ): string {
     const authData = `${method}\thttps\t${this.config.host}\t${url}\t\t${body ? this.createContentHash(body) : ''}\t`;
     const signingKey = this.createSigningKey(timestamp);
     const authSignature = this.createAuthSignature(authData, signingKey, timestamp);
-    
-    return `EG1-HMAC-SHA256 ` +
+
+    return (
+      `EG1-HMAC-SHA256 ` +
       `client_token=${this.config.client_token};` +
       `access_token=${this.config.access_token};` +
       `timestamp=${timestamp};` +
       `nonce=${nonce};` +
-      `signature=${authSignature}`;
+      `signature=${authSignature}`
+    );
   }
 
   private createContentHash(content: string): string {
@@ -100,24 +108,27 @@ export class EdgeGridClient {
 
   private createAuthSignature(authData: string, signingKey: string, timestamp: string): string {
     const signature = crypto.createHmac('sha256', signingKey);
-    signature.update(authData + 'EG1-HMAC-SHA256 ' + 
-      `client_token=${this.config.client_token};` +
-      `access_token=${this.config.access_token};` +
-      `timestamp=${timestamp};` +
-      `nonce=`);
+    signature.update(
+      authData +
+        'EG1-HMAC-SHA256 ' +
+        `client_token=${this.config.client_token};` +
+        `access_token=${this.config.access_token};` +
+        `timestamp=${timestamp};` +
+        `nonce=`,
+    );
     return signature.digest('base64');
   }
 
   private async handleError(error: any): Promise<never> {
     if (error.response) {
       const { status, data } = error.response;
-      logger.error(`API Error [${status}]`, { 
+      logger.error(`API Error [${status}]`, {
         customer: this.customerName,
         status,
         data,
-        path: error.config?.url 
+        path: error.config?.url,
       });
-      
+
       // Extract error message from Akamai API response
       let errorMessage = `API Error [${status}]`;
       if (data) {
@@ -131,18 +142,18 @@ export class EdgeGridClient {
           errorMessage = data.errors.map((e: any) => e.detail || e.error || e).join(', ');
         }
       }
-      
+
       throw new Error(errorMessage);
     } else if (error.request) {
-      logger.error('No response from API', { 
+      logger.error('No response from API', {
         customer: this.customerName,
-        error: error.message 
+        error: error.message,
       });
       throw new Error('No response from Akamai API');
     } else {
-      logger.error('Request error', { 
+      logger.error('Request error', {
         customer: this.customerName,
-        error: error.message 
+        error: error.message,
       });
       throw new Error(error.message);
     }
@@ -150,11 +161,11 @@ export class EdgeGridClient {
 
   async request<T = any>(options: EdgeGridRequestOptions): Promise<T> {
     const { path, method = 'GET', body, headers = {}, queryParams = {} } = options;
-    
-    logger.debug(`${method} ${path}`, { 
+
+    logger.debug(`${method} ${path}`, {
       customer: this.customerName,
       queryParams,
-      hasBody: !!body 
+      hasBody: !!body,
     });
 
     try {
@@ -163,7 +174,7 @@ export class EdgeGridClient {
         url: path,
         data: body,
         headers,
-        params: queryParams
+        params: queryParams,
       });
 
       return response.data;

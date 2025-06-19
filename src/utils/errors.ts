@@ -73,7 +73,9 @@ export class ErrorTranslator {
 
       // Add specific suggestions based on error type
       if (error.type === 'missing_required_field') {
-        suggestions.push(`Please provide the required field: ${error.errorLocation || error.field}`);
+        suggestions.push(
+          `Please provide the required field: ${error.errorLocation || error.field}`,
+        );
       } else if (error.type === 'invalid_format') {
         suggestions.push(this.getFormatSuggestion(error));
       } else if (error.type === 'value_out_of_range') {
@@ -90,11 +92,11 @@ export class ErrorTranslator {
 
   private translateAuthenticationError(data: any, context?: ErrorContext): TranslatedError {
     const message = data.detail || data.message || 'Authentication failed';
-    
+
     const suggestions = [
       'Check your .edgerc file configuration',
       'Verify your client credentials are correct',
-      'Ensure your authentication token hasn\'t expired',
+      "Ensure your authentication token hasn't expired",
     ];
 
     if (context?.customer && context.customer !== 'default') {
@@ -105,7 +107,7 @@ export class ErrorTranslator {
   }
 
   private translatePermissionError(data: any, _context?: ErrorContext): TranslatedError {
-    const message = data.detail || 'You don\'t have permission to perform this action';
+    const message = data.detail || "You don't have permission to perform this action";
     const suggestions = ['Contact your administrator to request access'];
 
     if (data.requiredPermissions) {
@@ -175,8 +177,8 @@ export class ErrorTranslator {
       suggestions.push(`Reference for support: ${data.reference}`);
     }
 
-    return { 
-      message, 
+    return {
+      message,
       suggestions,
       supportReference: data.reference,
     };
@@ -210,10 +212,12 @@ export class ErrorTranslator {
       },
     };
 
-    return errorMap[error.code] || {
-      message: error.message || 'System error occurred',
-      suggestions: ['Check your system configuration', 'Try again'],
-    };
+    return (
+      errorMap[error.code] || {
+        message: error.message || 'System error occurred',
+        suggestions: ['Check your system configuration', 'Try again'],
+      }
+    );
   }
 
   private translateGenericError(error: any, _context?: ErrorContext): TranslatedError {
@@ -223,7 +227,11 @@ export class ErrorTranslator {
     };
   }
 
-  private translateGenericHTTPError(status: number, _data: any, _context?: ErrorContext): TranslatedError {
+  private translateGenericHTTPError(
+    status: number,
+    _data: any,
+    _context?: ErrorContext,
+  ): TranslatedError {
     const statusMessages: Record<number, string> = {
       408: 'Request timeout',
       413: 'Request too large',
@@ -288,9 +296,9 @@ export class ErrorTranslator {
    */
   formatConversationalError(error: any, context?: ErrorContext): string {
     const translated = this.translateError(error, context);
-    
+
     let response = `Error: ${translated.message}\n\n`;
-    
+
     if (translated.suggestions.length > 0) {
       response += 'What you can do:\n';
       translated.suggestions.forEach((suggestion, index) => {
@@ -318,14 +326,14 @@ export class ErrorTranslator {
  * Helper to format bulk operation results with errors
  */
 export function formatBulkOperationResults(results: any[]): string {
-  const successful = results.filter(r => r.status === 'success');
-  const failed = results.filter(r => r.status === 'failed');
+  const successful = results.filter((r) => r.status === 'success');
+  const failed = results.filter((r) => r.status === 'failed');
 
   let response = `Completed: ${successful.length} successful, ${failed.length} failed\n\n`;
 
   if (successful.length > 0) {
     response += 'Successful:\n';
-    successful.forEach(result => {
+    successful.forEach((result) => {
       response += `✓ ${result.resource || result.name}\n`;
     });
     response += '\n';
@@ -333,14 +341,14 @@ export function formatBulkOperationResults(results: any[]): string {
 
   if (failed.length > 0) {
     response += 'Failed:\n';
-    failed.forEach(result => {
+    failed.forEach((result) => {
       response += `✗ ${result.resource || result.name}: ${result.error}\n`;
     });
     response += '\n';
 
     if (failed.length <= 5) {
       response += 'To fix these errors:\n';
-      const uniqueErrors = [...new Set(failed.map(r => r.error))];
+      const uniqueErrors = [...new Set(failed.map((r) => r.error))];
       uniqueErrors.forEach((error, index) => {
         response += `${index + 1}. ${getFixSuggestion(error)}\n`;
       });
@@ -359,9 +367,9 @@ function getFixSuggestion(error: string): string {
   const fixMap: Record<string, string> = {
     'already exists': 'Use a different name or skip existing resources',
     'not found': 'Verify the resource ID is correct',
-    'permission': 'Request access from your administrator',
-    'invalid': 'Check the format and try again',
-    'required': 'Provide all required fields',
+    permission: 'Request access from your administrator',
+    invalid: 'Check the format and try again',
+    required: 'Provide all required fields',
   };
 
   for (const [key, suggestion] of Object.entries(fixMap)) {
@@ -390,7 +398,7 @@ export class AkamaiError extends Error {
     this.errorCode = errorCode;
     this.code = errorCode; // Alias for compatibility
     this.details = details;
-    
+
     // Extract reference if present in details
     if (details?.reference) {
       this.reference = details.reference;
@@ -429,15 +437,15 @@ export class ErrorRecovery {
     const baseDelay = 1000; // 1 second
     const maxDelay = 30000; // 30 seconds
     const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
-    
+
     // Add jitter
     return delay + Math.random() * 1000;
   }
 
   static async withRetry<T>(
     operation: () => Promise<T>,
-    maxAttempts: number = 3,
-    onRetry?: (attempt: number, error: any) => void
+    maxAttempts = 3,
+    onRetry?: (attempt: number, error: any) => void,
   ): Promise<T> {
     let lastError: any;
 
@@ -452,12 +460,12 @@ export class ErrorRecovery {
         }
 
         const delay = this.getRetryDelay(attempt, error);
-        
+
         if (onRetry) {
           onRetry(attempt + 1, error);
         }
 
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 

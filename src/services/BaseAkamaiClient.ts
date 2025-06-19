@@ -3,9 +3,9 @@
  */
 
 import { EdgeGridAuth, EdgeGridRequestConfig, EdgeGridAuthError } from '../auth/EdgeGridAuth';
-import { NetworkEnvironment, ConfigurationError, ConfigErrorType } from '../types/config';
-import { logger } from '../utils/logger';
-import { z, ZodSchema } from 'zod';
+import { type NetworkEnvironment, ConfigurationError, ConfigErrorType } from '@types/config';
+import { logger } from '@utils/logger';
+import { z, type ZodSchema } from 'zod';
 
 /**
  * Generic API response wrapper
@@ -105,7 +105,7 @@ export enum HttpStatusCategory {
   SUCCESS = '2xx',
   REDIRECTION = '3xx',
   CLIENT_ERROR = '4xx',
-  SERVER_ERROR = '5xx'
+  SERVER_ERROR = '5xx',
 }
 
 /**
@@ -117,7 +117,7 @@ export class HttpError extends Error {
     public readonly statusCode: number,
     public readonly statusText: string,
     public readonly response?: ApiErrorResponse,
-    public readonly requestId?: string
+    public readonly requestId?: string,
   ) {
     super(message);
     this.name = this.constructor.name;
@@ -168,7 +168,7 @@ export class RateLimitError extends HttpError {
     message: string,
     public readonly rateLimit: RateLimitInfo,
     response?: ApiErrorResponse,
-    requestId?: string
+    requestId?: string,
   ) {
     super(message, 429, 'Too Many Requests', response, requestId);
   }
@@ -208,7 +208,7 @@ export class BaseAkamaiClient {
   protected readonly customer: string;
   private requestCounter = 0;
 
-  constructor(customer: string = 'default') {
+  constructor(customer = 'default') {
     this.customer = customer;
     this.auth = EdgeGridAuth.getInstance({ customer });
   }
@@ -236,7 +236,7 @@ export class BaseAkamaiClient {
         limit: parseInt(limit, 10),
         remaining: parseInt(remaining, 10),
         reset: parseInt(reset, 10),
-        window: window ? parseInt(window, 10) : 3600
+        window: window ? parseInt(window, 10) : 3600,
       };
     }
 
@@ -250,7 +250,7 @@ export class BaseAkamaiClient {
     status: number,
     message: string,
     response?: ApiErrorResponse,
-    requestId?: string
+    requestId?: string,
   ): HttpError {
     switch (status) {
       case 400:
@@ -268,7 +268,7 @@ export class BaseAkamaiClient {
           limit: 0,
           remaining: 0,
           reset: Date.now() / 1000 + 60,
-          window: 60
+          window: 60,
         };
         return new RateLimitError(message, rateLimit, response, requestId);
       case 500:
@@ -325,7 +325,9 @@ export class BaseAkamaiClient {
       return schema.parse(data);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(`Response validation failed: ${error.errors.map(e => e.message).join(', ')}`);
+        throw new Error(
+          `Response validation failed: ${error.errors.map((e) => e.message).join(', ')}`,
+        );
       }
       throw error;
     }
@@ -345,7 +347,7 @@ export class BaseAkamaiClient {
       maxRetries = 3,
       retryDelay = 1000,
       parseJson = true,
-      schema
+      schema,
     } = config;
 
     const requestId = this.generateRequestId();
@@ -357,7 +359,7 @@ export class BaseAkamaiClient {
       requestId,
       customer: this.customer,
       method,
-      path
+      path,
     };
 
     logger.info('Starting API request', logContext);
@@ -372,8 +374,8 @@ export class BaseAkamaiClient {
           queryParams,
           headers: {
             ...headers,
-            'X-Request-ID': requestId
-          }
+            'X-Request-ID': requestId,
+          },
         });
 
         // Calculate duration
@@ -388,7 +390,7 @@ export class BaseAkamaiClient {
           duration,
           status: 200,
           retryCount,
-          rateLimit: rateLimitInfo
+          rateLimit: rateLimitInfo,
         });
 
         // Validate response if schema provided
@@ -402,8 +404,8 @@ export class BaseAkamaiClient {
             requestId,
             duration,
             retryCount,
-            customer: this.customer
-          }
+            customer: this.customer,
+          },
         };
       } catch (error) {
         lastError = error as Error;
@@ -413,39 +415,41 @@ export class BaseAkamaiClient {
           ...logContext,
           duration,
           retryCount,
-          error: lastError
+          error: lastError,
         });
 
         // Check if error is retryable
         if (retryCount < maxRetries && this.isRetryableError(lastError)) {
           const delay = this.calculateRetryDelay(retryCount, retryDelay, lastError);
-          
+
           logger.info(`Retrying request after ${delay}ms`, {
             ...logContext,
             retryCount: retryCount + 1,
-            delay
+            delay,
           });
 
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
           retryCount++;
           continue;
         }
 
         // Transform error to appropriate HTTP error
         if (lastError instanceof EdgeGridAuthError) {
-          const errorDetails = lastError.details ? {
-            type: lastError.details.type || 'EdgeGrid Error',
-            title: lastError.details.title || 'Authentication Error',
-            detail: lastError.details.detail || lastError.message,
-            instance: lastError.details.instance,
-            status: lastError.statusCode || 500
-          } : undefined;
-          
+          const errorDetails = lastError.details
+            ? {
+                type: lastError.details.type || 'EdgeGrid Error',
+                title: lastError.details.title || 'Authentication Error',
+                detail: lastError.details.detail || lastError.message,
+                instance: lastError.details.instance,
+                status: lastError.statusCode || 500,
+              }
+            : undefined;
+
           const httpError = this.createHttpError(
             lastError.statusCode || 500,
             lastError.message,
             errorDetails,
-            requestId
+            requestId,
           );
           throw httpError;
         }
@@ -463,12 +467,12 @@ export class BaseAkamaiClient {
    */
   async get<T = unknown>(
     path: string,
-    config?: Omit<RequestConfig<T>, 'path' | 'method'>
+    config?: Omit<RequestConfig<T>, 'path' | 'method'>,
   ): Promise<ApiResponse<T>> {
     return this.request<T>({
       ...config,
       path,
-      method: 'GET'
+      method: 'GET',
     });
   }
 
@@ -478,13 +482,13 @@ export class BaseAkamaiClient {
   async post<T = unknown>(
     path: string,
     body?: unknown,
-    config?: Omit<RequestConfig<T>, 'path' | 'method' | 'body'>
+    config?: Omit<RequestConfig<T>, 'path' | 'method' | 'body'>,
   ): Promise<ApiResponse<T>> {
     return this.request<T>({
       ...config,
       path,
       method: 'POST',
-      body
+      body,
     });
   }
 
@@ -494,13 +498,13 @@ export class BaseAkamaiClient {
   async put<T = unknown>(
     path: string,
     body?: unknown,
-    config?: Omit<RequestConfig<T>, 'path' | 'method' | 'body'>
+    config?: Omit<RequestConfig<T>, 'path' | 'method' | 'body'>,
   ): Promise<ApiResponse<T>> {
     return this.request<T>({
       ...config,
       path,
       method: 'PUT',
-      body
+      body,
     });
   }
 
@@ -509,12 +513,12 @@ export class BaseAkamaiClient {
    */
   async delete<T = unknown>(
     path: string,
-    config?: Omit<RequestConfig<T>, 'path' | 'method'>
+    config?: Omit<RequestConfig<T>, 'path' | 'method'>,
   ): Promise<ApiResponse<T>> {
     return this.request<T>({
       ...config,
       path,
-      method: 'DELETE'
+      method: 'DELETE',
     });
   }
 
@@ -524,13 +528,13 @@ export class BaseAkamaiClient {
   async patch<T = unknown>(
     path: string,
     body?: unknown,
-    config?: Omit<RequestConfig<T>, 'path' | 'method' | 'body'>
+    config?: Omit<RequestConfig<T>, 'path' | 'method' | 'body'>,
   ): Promise<ApiResponse<T>> {
     return this.request<T>({
       ...config,
       path,
       method: 'PATCH',
-      body
+      body,
     });
   }
 

@@ -48,7 +48,7 @@ class StructuredLogger {
 
   private getLogLevelFromEnv(): LogLevel {
     const envLevel = process.env.ALECS_LOG_LEVEL?.toUpperCase();
-    return (LogLevel[envLevel as keyof typeof LogLevel]) || LogLevel.INFO;
+    return LogLevel[envLevel as keyof typeof LogLevel] || LogLevel.INFO;
   }
 
   private shouldLog(level: LogLevel): boolean {
@@ -58,12 +58,12 @@ class StructuredLogger {
 
   private sanitizeContext(context: LogContext): LogContext {
     const sanitized = { ...context };
-    
+
     // Sanitize sensitive fields
     const sensitiveFields = ['client_secret', 'access_token', 'password', 'key'];
-    
-    Object.keys(sanitized).forEach(key => {
-      if (sensitiveFields.some(field => key.toLowerCase().includes(field))) {
+
+    Object.keys(sanitized).forEach((key) => {
+      if (sensitiveFields.some((field) => key.toLowerCase().includes(field))) {
         sanitized[key] = '***REDACTED***';
       }
     });
@@ -83,8 +83,8 @@ class StructuredLogger {
     const { timestamp, level, message, context } = entry;
     const sanitizedContext = this.sanitizeContext(context);
     const contextStr = Object.keys(sanitizedContext)
-      .filter(k => k !== 'correlationId')
-      .map(k => `${k}=${JSON.stringify(sanitizedContext[k])}`)
+      .filter((k) => k !== 'correlationId')
+      .map((k) => `${k}=${JSON.stringify(sanitizedContext[k])}`)
       .join(' ');
 
     return `[${timestamp}] ${level} [${context.correlationId}] ${message} ${contextStr}`.trim();
@@ -117,7 +117,7 @@ class StructuredLogger {
       this.metricsCollector.recordToolExecution(
         context.toolName,
         context.duration,
-        context.error || false
+        context.error || false,
       );
     }
   }
@@ -146,14 +146,14 @@ class StructuredLogger {
     return this.metricsCollector.getSummary();
   }
 
-  clearOldCorrelations(maxAgeMs: number = 3600000): void {
+  clearOldCorrelations(maxAgeMs = 3600000): void {
     const cutoff = Date.now() - maxAgeMs;
-    
+
     for (const [correlationId, entries] of this.correlations.entries()) {
       const lastEntry = entries[entries.length - 1];
       if (!lastEntry) continue;
       const lastTimestamp = new Date(lastEntry.timestamp).getTime();
-      
+
       if (lastTimestamp < cutoff) {
         this.correlations.delete(correlationId);
       }
@@ -165,13 +165,16 @@ class StructuredLogger {
  * Lightweight metrics collection
  */
 class MetricsCollector {
-  private toolMetrics = new Map<string, {
-    count: number;
-    totalDuration: number;
-    errors: number;
-    minDuration: number;
-    maxDuration: number;
-  }>();
+  private toolMetrics = new Map<
+    string,
+    {
+      count: number;
+      totalDuration: number;
+      errors: number;
+      minDuration: number;
+      maxDuration: number;
+    }
+  >();
 
   recordToolExecution(toolName: string, duration: number, error: boolean): void {
     const existing = this.toolMetrics.get(toolName) || {
@@ -193,7 +196,7 @@ class MetricsCollector {
 
   getSummary(): any {
     const summary: any = {};
-    
+
     for (const [tool, metrics] of this.toolMetrics.entries()) {
       summary[tool] = {
         count: metrics.count,
@@ -234,7 +237,7 @@ export function createChildCorrelationId(parentId: string): string {
  */
 export function withLogging<T extends (...args: any[]) => Promise<any>>(
   toolName: string,
-  fn: T
+  fn: T,
 ): T {
   return (async (...args: any[]) => {
     const correlationId = args[args.length - 1]?.correlationId || createCorrelationId();
@@ -279,7 +282,11 @@ export function withLogging<T extends (...args: any[]) => Promise<any>>(
 /**
  * Performance tracking decorator
  */
-export function trackPerformance(_target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+export function trackPerformance(
+  _target: any,
+  propertyKey: string,
+  descriptor: PropertyDescriptor,
+) {
   const originalMethod = descriptor.value;
 
   descriptor.value = async function (...args: any[]) {

@@ -1,6 +1,6 @@
-import { EdgeGridClient } from '../utils/edgegrid-client';
-import { logger } from '../utils/logger';
-import { PerformanceMonitor } from '../utils/performance-monitor';
+import { EdgeGridClient } from '@utils/edgegrid-client';
+import { logger } from '@utils/logger';
+import { PerformanceMonitor } from '@utils/performance-monitor';
 
 export interface TrafficPattern {
   type: 'peak' | 'valley' | 'spike' | 'trend' | 'seasonality';
@@ -24,21 +24,21 @@ export interface BandwidthAnalysis {
   peakBandwidth: number;
   averageBandwidth: number;
   patterns: TrafficPattern[];
-  topConsumers: {
+  topConsumers: Array<{
     hostname: string;
     bandwidth: number;
     percentage: number;
-  }[];
-  regionBreakdown: {
+  }>;
+  regionBreakdown: Array<{
     region: string;
     bandwidth: number;
     percentage: number;
-  }[];
-  contentTypeBreakdown: {
+  }>;
+  contentTypeBreakdown: Array<{
     contentType: string;
     bandwidth: number;
     percentage: number;
-  }[];
+  }>;
   recommendations: string[];
 }
 
@@ -46,21 +46,21 @@ export interface RequestAnalysis {
   totalRequests: number;
   peakRequests: number;
   averageRequests: number;
-  requestTypes: {
+  requestTypes: Array<{
     method: string;
     count: number;
     percentage: number;
-  }[];
-  statusCodeDistribution: {
+  }>;
+  statusCodeDistribution: Array<{
     statusCode: string;
     count: number;
     percentage: number;
-  }[];
-  topEndpoints: {
+  }>;
+  topEndpoints: Array<{
     endpoint: string;
     requests: number;
     percentage: number;
-  }[];
+  }>;
   botTraffic: {
     percentage: number;
     requests: number;
@@ -72,41 +72,41 @@ export interface CacheAnalysisDetailed {
   hitRatio: number;
   missRatio: number;
   refreshHitRatio: number;
-  missReasons: {
+  missReasons: Array<{
     reason: string;
     count: number;
     percentage: number;
-  }[];
-  cacheableContent: {
+  }>;
+  cacheableContent: Array<{
     contentType: string;
     hitRatio: number;
     volume: number;
-  }[];
-  optimizationOpportunities: {
+  }>;
+  optimizationOpportunities: Array<{
     type: 'ttl_increase' | 'cache_headers' | 'content_optimization';
     description: string;
     potentialImprovement: number;
     effort: 'low' | 'medium' | 'high';
-  }[];
+  }>;
 }
 
 export interface SecurityAnalysis {
-  threatEvents: {
+  threatEvents: Array<{
     type: string;
     count: number;
     severity: 'low' | 'medium' | 'high' | 'critical';
-  }[];
-  attackPatterns: {
+  }>;
+  attackPatterns: Array<{
     pattern: string;
     frequency: number;
     blocked: number;
     allowed: number;
-  }[];
-  geoThreats: {
+  }>;
+  geoThreats: Array<{
     country: string;
     threatScore: number;
     events: number;
-  }[];
+  }>;
   recommendations: string[];
 }
 
@@ -114,7 +114,7 @@ export class TrafficAnalyticsService {
   private client: EdgeGridClient;
   private performanceMonitor: PerformanceMonitor;
 
-  constructor(customer: string = 'default') {
+  constructor(customer = 'default') {
     this.client = EdgeGridClient.getInstance(customer);
     this.performanceMonitor = new PerformanceMonitor();
   }
@@ -125,28 +125,24 @@ export class TrafficAnalyticsService {
   async analyzeBandwidthUsage(
     period: { start: string; end: string; granularity: string },
     filter?: any,
-    includeProjections: boolean = false
+    includeProjections = false,
   ): Promise<BandwidthAnalysis> {
     const operationId = this.performanceMonitor.startOperation('analytics_bandwidth_analysis');
-    
+
     try {
       logger.info('Analyzing bandwidth usage', { period, filter, includeProjections });
 
       // Fetch bandwidth data with different dimensions
-      const [
-        timeSeriesData,
-        hostnameBreakdown,
-        regionBreakdown,
-        contentTypeBreakdown
-      ] = await Promise.all([
-        this.fetchBandwidthTimeSeries(period, filter),
-        this.fetchBandwidthByHostname(period, filter),
-        this.fetchBandwidthByRegion(period, filter),
-        this.fetchBandwidthByContentType(period, filter)
-      ]);
+      const [timeSeriesData, hostnameBreakdown, regionBreakdown, contentTypeBreakdown] =
+        await Promise.all([
+          this.fetchBandwidthTimeSeries(period, filter),
+          this.fetchBandwidthByHostname(period, filter),
+          this.fetchBandwidthByRegion(period, filter),
+          this.fetchBandwidthByContentType(period, filter),
+        ]);
 
       // Calculate basic metrics
-      const values = timeSeriesData.map(d => d.value);
+      const values = timeSeriesData.map((d) => d.value);
       const totalBandwidth = values.reduce((sum, val) => sum + val, 0);
       const peakBandwidth = Math.max(...values);
       const averageBandwidth = totalBandwidth / values.length;
@@ -158,24 +154,24 @@ export class TrafficAnalyticsService {
       const topConsumers = hostnameBreakdown
         .sort((a, b) => b.bandwidth - a.bandwidth)
         .slice(0, 10)
-        .map(item => ({
+        .map((item) => ({
           hostname: item.hostname,
           bandwidth: item.bandwidth,
-          percentage: (item.bandwidth / totalBandwidth) * 100
+          percentage: (item.bandwidth / totalBandwidth) * 100,
         }));
 
       // Process region breakdown
-      const regionData = regionBreakdown.map(item => ({
+      const regionData = regionBreakdown.map((item) => ({
         region: item.region,
         bandwidth: item.bandwidth,
-        percentage: (item.bandwidth / totalBandwidth) * 100
+        percentage: (item.bandwidth / totalBandwidth) * 100,
       }));
 
       // Process content type breakdown
-      const contentTypeData = contentTypeBreakdown.map(item => ({
+      const contentTypeData = contentTypeBreakdown.map((item) => ({
         contentType: item.contentType,
         bandwidth: item.bandwidth,
-        percentage: (item.bandwidth / totalBandwidth) * 100
+        percentage: (item.bandwidth / totalBandwidth) * 100,
       }));
 
       // Generate recommendations
@@ -185,7 +181,7 @@ export class TrafficAnalyticsService {
         regionData,
         contentTypeData,
         peakBandwidth,
-        averageBandwidth
+        averageBandwidth,
       });
 
       const analysis: BandwidthAnalysis = {
@@ -196,22 +192,23 @@ export class TrafficAnalyticsService {
         topConsumers,
         regionBreakdown: regionData,
         contentTypeBreakdown: contentTypeData,
-        recommendations
+        recommendations,
       };
 
       logger.info('Bandwidth analysis completed', {
         totalBandwidth,
         patternCount: patterns.length,
         topConsumerCount: topConsumers.length,
-        recommendationCount: recommendations.length
+        recommendationCount: recommendations.length,
       });
 
       return analysis;
-
     } catch (error) {
       logger.error('Failed to analyze bandwidth usage', { error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
-      throw new Error(`Failed to analyze bandwidth usage: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to analyze bandwidth usage: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     } finally {
       this.performanceMonitor.endOperation(operationId);
     }
@@ -223,16 +220,16 @@ export class TrafficAnalyticsService {
   async analyzeTrafficTrends(
     period: { start: string; end: string; granularity: string },
     comparisonPeriod?: { start: string; end: string },
-    includeForecasting: boolean = false
+    includeForecasting = false,
   ): Promise<{
     trends: TrafficPattern[];
-    growth: { metric: string; rate: number; trend: 'increasing' | 'decreasing' | 'stable' }[];
-    seasonality: { pattern: string; strength: number; period: string }[];
-    anomalies: { timestamp: string; metric: string; deviation: number; severity: string }[];
+    growth: Array<{ metric: string; rate: number; trend: 'increasing' | 'decreasing' | 'stable' }>;
+    seasonality: Array<{ pattern: string; strength: number; period: string }>;
+    anomalies: Array<{ timestamp: string; metric: string; deviation: number; severity: string }>;
     forecasts?: TrafficForecast[];
   }> {
     const operationId = this.performanceMonitor.startOperation('analytics_traffic_trends');
-    
+
     try {
       logger.info('Analyzing traffic trends', { period, comparisonPeriod, includeForecasting });
 
@@ -240,14 +237,14 @@ export class TrafficAnalyticsService {
       const [bandwidthData, requestData, errorData] = await Promise.all([
         this.fetchBandwidthTimeSeries(period),
         this.fetchRequestTimeSeries(period),
-        this.fetchErrorTimeSeries(period)
+        this.fetchErrorTimeSeries(period),
       ]);
 
       // Detect patterns and trends
       const trends = [
         ...this.detectTrafficPatterns(bandwidthData),
         ...this.detectTrafficPatterns(requestData),
-        ...this.detectTrafficPatterns(errorData)
+        ...this.detectTrafficPatterns(errorData),
       ];
 
       // Calculate growth rates
@@ -256,12 +253,12 @@ export class TrafficAnalyticsService {
         const [prevBandwidth, prevRequests, prevErrors] = await Promise.all([
           this.fetchBandwidthTimeSeries(comparisonPeriod),
           this.fetchRequestTimeSeries(comparisonPeriod),
-          this.fetchErrorTimeSeries(comparisonPeriod)
+          this.fetchErrorTimeSeries(comparisonPeriod),
         ]);
 
         growth = this.calculateGrowthRates({
           current: { bandwidth: bandwidthData, requests: requestData, errors: errorData },
-          previous: { bandwidth: prevBandwidth, requests: prevRequests, errors: prevErrors }
+          previous: { bandwidth: prevBandwidth, requests: prevRequests, errors: prevErrors },
         });
       }
 
@@ -282,7 +279,7 @@ export class TrafficAnalyticsService {
         growthMetrics: growth.length,
         seasonalityPatterns: seasonality.length,
         anomalyCount: anomalies.length,
-        forecastPoints: 0
+        forecastPoints: 0,
       });
 
       return {
@@ -290,13 +287,14 @@ export class TrafficAnalyticsService {
         growth,
         seasonality,
         anomalies,
-        forecasts
+        forecasts,
       };
-
     } catch (error) {
       logger.error('Failed to analyze traffic trends', { error, period });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
-      throw new Error(`Failed to analyze traffic trends: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to analyze traffic trends: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     } finally {
       this.performanceMonitor.endOperation(operationId);
     }
@@ -308,22 +306,18 @@ export class TrafficAnalyticsService {
   async analyzeCachePerformance(
     period: { start: string; end: string; granularity: string },
     filter?: any,
-    includeRecommendations: boolean = true
+    includeRecommendations = true,
   ): Promise<CacheAnalysisDetailed> {
     const operationId = this.performanceMonitor.startOperation('analytics_cache_performance');
-    
+
     try {
       logger.info('Analyzing cache performance', { period, filter, includeRecommendations });
 
       // Fetch cache-related data
-      const [
-        cacheMetrics,
-        missReasonData,
-        contentTypeCache
-      ] = await Promise.all([
+      const [cacheMetrics, missReasonData, contentTypeCache] = await Promise.all([
         this.fetchCacheMetrics(period, filter),
         this.fetchCacheMissReasons(period, filter),
-        this.fetchCacheByContentType(period, filter)
+        this.fetchCacheByContentType(period, filter),
       ]);
 
       // Calculate hit ratios
@@ -333,17 +327,17 @@ export class TrafficAnalyticsService {
       const refreshHitRatio = (cacheMetrics.refreshHits / totalRequests) * 100;
 
       // Process miss reasons
-      const missReasons = missReasonData.map(item => ({
+      const missReasons = missReasonData.map((item) => ({
         reason: item.reason,
         count: item.count,
-        percentage: (item.count / cacheMetrics.misses) * 100
+        percentage: (item.count / cacheMetrics.misses) * 100,
       }));
 
       // Process content type cache performance
-      const cacheableContent = contentTypeCache.map(item => ({
+      const cacheableContent = contentTypeCache.map((item) => ({
         contentType: item.contentType,
         hitRatio: (item.hits / (item.hits + item.misses)) * 100,
-        volume: item.hits + item.misses
+        volume: item.hits + item.misses,
       }));
 
       // Generate optimization opportunities
@@ -352,7 +346,7 @@ export class TrafficAnalyticsService {
         optimizationOpportunities = this.generateCacheOptimizations({
           hitRatio,
           missReasons,
-          cacheableContent
+          cacheableContent,
         });
       }
 
@@ -362,22 +356,23 @@ export class TrafficAnalyticsService {
         refreshHitRatio,
         missReasons,
         cacheableContent,
-        optimizationOpportunities
+        optimizationOpportunities,
       };
 
       logger.info('Cache performance analysis completed', {
         hitRatio,
         missReasonCount: missReasons.length,
         contentTypes: cacheableContent.length,
-        optimizationCount: optimizationOpportunities.length
+        optimizationCount: optimizationOpportunities.length,
       });
 
       return analysis;
-
     } catch (error) {
       logger.error('Failed to analyze cache performance', { error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
-      throw new Error(`Failed to analyze cache performance: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to analyze cache performance: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     } finally {
       this.performanceMonitor.endOperation(operationId);
     }
@@ -388,58 +383,53 @@ export class TrafficAnalyticsService {
    */
   async analyzeRequestPatterns(
     period: { start: string; end: string; granularity: string },
-    filter?: any
+    filter?: any,
   ): Promise<RequestAnalysis> {
     const operationId = this.performanceMonitor.startOperation('analytics_request_patterns');
-    
+
     try {
       logger.info('Analyzing request patterns', { period, filter });
 
       // Fetch request data
-      const [
-        requestMetrics,
-        methodBreakdown,
-        statusCodeData,
-        endpointData,
-        botData
-      ] = await Promise.all([
-        this.fetchRequestMetrics(period, filter),
-        this.fetchRequestsByMethod(period, filter),
-        this.fetchRequestsByStatusCode(period, filter),
-        this.fetchTopEndpoints(period, filter),
-        this.fetchBotTraffic(period, filter)
-      ]);
+      const [requestMetrics, methodBreakdown, statusCodeData, endpointData, botData] =
+        await Promise.all([
+          this.fetchRequestMetrics(period, filter),
+          this.fetchRequestsByMethod(period, filter),
+          this.fetchRequestsByStatusCode(period, filter),
+          this.fetchTopEndpoints(period, filter),
+          this.fetchBotTraffic(period, filter),
+        ]);
 
       const totalRequests = requestMetrics.total;
       const peakRequests = requestMetrics.peak;
       const averageRequests = requestMetrics.average;
 
       // Process request types
-      const requestTypes = methodBreakdown.map(item => ({
+      const requestTypes = methodBreakdown.map((item) => ({
         method: item.method,
         count: item.count,
-        percentage: (item.count / totalRequests) * 100
+        percentage: (item.count / totalRequests) * 100,
       }));
 
       // Process status codes
-      const statusCodeDistribution = statusCodeData.map(item => ({
+      const statusCodeDistribution = statusCodeData.map((item) => ({
         statusCode: item.statusCode,
         count: item.count,
-        percentage: (item.count / totalRequests) * 100
+        percentage: (item.count / totalRequests) * 100,
       }));
 
       // Process top endpoints
-      const topEndpoints = endpointData.map(item => ({
+      const topEndpoints = endpointData.map((item) => ({
         endpoint: item.endpoint,
         requests: item.requests,
-        percentage: (item.requests / totalRequests) * 100
+        percentage: (item.requests / totalRequests) * 100,
       }));
 
       // Process bot traffic
       const botTraffic = {
         percentage: (botData.total / totalRequests) * 100,
         requests: botData.total,
-        topBots: botData.topBots
+        topBots: botData.topBots,
       };
 
       const analysis: RequestAnalysis = {
@@ -449,7 +439,7 @@ export class TrafficAnalyticsService {
         requestTypes,
         statusCodeDistribution,
         topEndpoints,
-        botTraffic
+        botTraffic,
       };
 
       logger.info('Request pattern analysis completed', {
@@ -457,15 +447,16 @@ export class TrafficAnalyticsService {
         methodTypes: requestTypes.length,
         statusCodes: statusCodeDistribution.length,
         topEndpointsCount: topEndpoints.length,
-        botPercentage: botTraffic.percentage
+        botPercentage: botTraffic.percentage,
       });
 
       return analysis;
-
     } catch (error) {
       logger.error('Failed to analyze request patterns', { error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
-      throw new Error(`Failed to analyze request patterns: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to analyze request patterns: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     } finally {
       this.performanceMonitor.endOperation(operationId);
     }
@@ -478,7 +469,7 @@ export class TrafficAnalyticsService {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/bandwidth',
-      queryParams: { ...period, ...filter }
+      queryParams: { ...period, ...filter },
     });
     return response.data;
   }
@@ -487,7 +478,7 @@ export class TrafficAnalyticsService {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/bandwidth-by-hostname',
-      queryParams: { ...period, ...filter }
+      queryParams: { ...period, ...filter },
     });
     return response.data;
   }
@@ -496,7 +487,7 @@ export class TrafficAnalyticsService {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/bandwidth-by-region',
-      queryParams: { ...period, ...filter }
+      queryParams: { ...period, ...filter },
     });
     return response.data;
   }
@@ -505,7 +496,7 @@ export class TrafficAnalyticsService {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/bandwidth-by-content-type',
-      queryParams: { ...period, ...filter }
+      queryParams: { ...period, ...filter },
     });
     return response.data;
   }
@@ -514,7 +505,7 @@ export class TrafficAnalyticsService {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/requests',
-      queryParams: { ...period, ...filter }
+      queryParams: { ...period, ...filter },
     });
     return response.data;
   }
@@ -523,7 +514,7 @@ export class TrafficAnalyticsService {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/errors',
-      queryParams: { ...period, ...filter }
+      queryParams: { ...period, ...filter },
     });
     return response.data;
   }
@@ -532,7 +523,7 @@ export class TrafficAnalyticsService {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/cache-metrics',
-      queryParams: { ...period, ...filter }
+      queryParams: { ...period, ...filter },
     });
     return response.data;
   }
@@ -541,7 +532,7 @@ export class TrafficAnalyticsService {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/cache-miss-reasons',
-      queryParams: { ...period, ...filter }
+      queryParams: { ...period, ...filter },
     });
     return response.data;
   }
@@ -550,7 +541,7 @@ export class TrafficAnalyticsService {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/cache-by-content-type',
-      queryParams: { ...period, ...filter }
+      queryParams: { ...period, ...filter },
     });
     return response.data;
   }
@@ -559,7 +550,7 @@ export class TrafficAnalyticsService {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/request-metrics',
-      queryParams: { ...period, ...filter }
+      queryParams: { ...period, ...filter },
     });
     return response.data;
   }
@@ -568,7 +559,7 @@ export class TrafficAnalyticsService {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/requests-by-method',
-      queryParams: { ...period, ...filter }
+      queryParams: { ...period, ...filter },
     });
     return response.data;
   }
@@ -577,7 +568,7 @@ export class TrafficAnalyticsService {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/requests-by-status',
-      queryParams: { ...period, ...filter }
+      queryParams: { ...period, ...filter },
     });
     return response.data;
   }
@@ -586,7 +577,7 @@ export class TrafficAnalyticsService {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/top-endpoints',
-      queryParams: { ...period, ...filter }
+      queryParams: { ...period, ...filter },
     });
     return response.data;
   }
@@ -595,7 +586,7 @@ export class TrafficAnalyticsService {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/bot-traffic',
-      queryParams: { ...period, ...filter }
+      queryParams: { ...period, ...filter },
     });
     return response.data;
   }
@@ -603,12 +594,14 @@ export class TrafficAnalyticsService {
   private detectTrafficPatterns(timeSeriesData: any[]): TrafficPattern[] {
     // Simplified pattern detection algorithm
     const patterns: TrafficPattern[] = [];
-    
+
     if (timeSeriesData.length === 0) return patterns;
 
-    const values = timeSeriesData.map(d => d.value);
+    const values = timeSeriesData.map((d) => d.value);
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-    const stdDev = Math.sqrt(values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length);
+    const stdDev = Math.sqrt(
+      values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length,
+    );
 
     // Detect spikes (values > mean + 2 * stdDev)
     timeSeriesData.forEach((dataPoint) => {
@@ -618,8 +611,8 @@ export class TrafficAnalyticsService {
           startTime: dataPoint.timestamp,
           endTime: dataPoint.timestamp,
           magnitude: (dataPoint.value - mean) / stdDev,
-          description: `Traffic spike detected: ${((dataPoint.value - mean) / mean * 100).toFixed(1)}% above average`,
-          confidence: 0.8
+          description: `Traffic spike detected: ${(((dataPoint.value - mean) / mean) * 100).toFixed(1)}% above average`,
+          confidence: 0.8,
         });
       }
     });
@@ -630,16 +623,16 @@ export class TrafficAnalyticsService {
   private calculateGrowthRates(data: any): any[] {
     // Simplified growth rate calculation
     const growth = [];
-    
+
     const currentTotal = data.current.bandwidth.reduce((sum: number, d: any) => sum + d.value, 0);
     const previousTotal = data.previous.bandwidth.reduce((sum: number, d: any) => sum + d.value, 0);
-    
+
     const bandwidthGrowth = ((currentTotal - previousTotal) / previousTotal) * 100;
-    
+
     growth.push({
       metric: 'bandwidth',
       rate: bandwidthGrowth,
-      trend: bandwidthGrowth > 5 ? 'increasing' : bandwidthGrowth < -5 ? 'decreasing' : 'stable'
+      trend: bandwidthGrowth > 5 ? 'increasing' : bandwidthGrowth < -5 ? 'decreasing' : 'stable',
     });
 
     return growth;
@@ -651,26 +644,29 @@ export class TrafficAnalyticsService {
       {
         pattern: 'Daily peak hours',
         strength: 0.7,
-        period: '24h'
-      }
+        period: '24h',
+      },
     ];
   }
 
   private detectAnomalies(bandwidthData: any[], _requestData: any[], _errorData: any[]): any[] {
     // Simplified anomaly detection
     const anomalies: any[] = [];
-    
-    const bandwidthMean = bandwidthData.reduce((sum, d) => sum + d.value, 0) / bandwidthData.length;
-    const bandwidthStdDev = Math.sqrt(bandwidthData.reduce((sum, d) => sum + Math.pow(d.value - bandwidthMean, 2), 0) / bandwidthData.length);
 
-    bandwidthData.forEach(dataPoint => {
+    const bandwidthMean = bandwidthData.reduce((sum, d) => sum + d.value, 0) / bandwidthData.length;
+    const bandwidthStdDev = Math.sqrt(
+      bandwidthData.reduce((sum, d) => sum + Math.pow(d.value - bandwidthMean, 2), 0) /
+        bandwidthData.length,
+    );
+
+    bandwidthData.forEach((dataPoint) => {
       const deviation = Math.abs(dataPoint.value - bandwidthMean) / bandwidthStdDev;
       if (deviation > 3) {
         anomalies.push({
           timestamp: dataPoint.timestamp,
           metric: 'bandwidth',
           deviation: deviation,
-          severity: deviation > 4 ? 'high' : 'medium'
+          severity: deviation > 4 ? 'high' : 'medium',
         });
       }
     });
@@ -678,13 +674,16 @@ export class TrafficAnalyticsService {
     return anomalies;
   }
 
-  private async generateTrafficForecasts(timeSeriesData: any[], _period: any): Promise<TrafficForecast[]> {
+  private async generateTrafficForecasts(
+    timeSeriesData: any[],
+    _period: any,
+  ): Promise<TrafficForecast[]> {
     // Simplified forecasting - would use proper time series forecasting algorithms
     const forecasts: TrafficForecast[] = [];
-    
+
     if (timeSeriesData.length === 0) return forecasts;
 
-    const values = timeSeriesData.map(d => d.value);
+    const values = timeSeriesData.map((d) => d.value);
     const trend = this.calculateLinearTrend(values);
     const lastValue = values[values.length - 1];
     const lastTimestamp = new Date(timeSeriesData[timeSeriesData.length - 1].timestamp);
@@ -692,15 +691,15 @@ export class TrafficAnalyticsService {
     // Generate forecasts for next 24 hours
     for (let i = 1; i <= 24; i++) {
       const forecastTimestamp = new Date(lastTimestamp.getTime() + i * 60 * 60 * 1000);
-      const predictedValue = lastValue + (trend * i);
-      const confidence = Math.max(0.5, 0.9 - (i * 0.02)); // Confidence decreases over time
-      
+      const predictedValue = lastValue + trend * i;
+      const confidence = Math.max(0.5, 0.9 - i * 0.02); // Confidence decreases over time
+
       forecasts.push({
         timestamp: forecastTimestamp.toISOString(),
         predictedValue,
         confidence,
         upperBound: predictedValue * (1 + (1 - confidence)),
-        lowerBound: predictedValue * (1 - (1 - confidence))
+        lowerBound: predictedValue * (1 - (1 - confidence)),
       });
     }
 
@@ -726,13 +725,18 @@ export class TrafficAnalyticsService {
 
     // Check for high peak variance
     if (analysisData.peakBandwidth > analysisData.averageBandwidth * 3) {
-      recommendations.push('Consider implementing adaptive caching during peak hours to reduce bandwidth spikes');
+      recommendations.push(
+        'Consider implementing adaptive caching during peak hours to reduce bandwidth spikes',
+      );
     }
 
     // Check for content type optimization
-    const imagePercentage = analysisData.contentTypeData.find((ct: any) => ct.contentType === 'image')?.percentage || 0;
+    const imagePercentage =
+      analysisData.contentTypeData.find((ct: any) => ct.contentType === 'image')?.percentage || 0;
     if (imagePercentage > 40) {
-      recommendations.push('Implement image optimization and compression to reduce bandwidth usage');
+      recommendations.push(
+        'Implement image optimization and compression to reduce bandwidth usage',
+      );
     }
 
     // Check for geographic optimization
@@ -751,8 +755,8 @@ export class TrafficAnalyticsService {
       optimizations.push({
         type: 'ttl_increase',
         description: 'Increase TTL for static content to improve cache hit ratio',
-        potentialImprovement: (85 - cacheData.hitRatio),
-        effort: 'low'
+        potentialImprovement: 85 - cacheData.hitRatio,
+        effort: 'low',
       });
     }
 
@@ -762,7 +766,7 @@ export class TrafficAnalyticsService {
         type: 'cache_headers',
         description: 'Review and optimize cache control headers to reduce no-cache responses',
         potentialImprovement: nocacheReason.percentage * 0.7,
-        effort: 'medium'
+        effort: 'medium',
       });
     }
 

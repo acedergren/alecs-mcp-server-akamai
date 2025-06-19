@@ -26,52 +26,38 @@ import { fastPurgeTools } from '../tools/fastpurge-tools';
 import {
   getPerformanceAnalysis,
   profilePerformance,
-  getRealtimeMetrics
+  getRealtimeMetrics,
 } from '../tools/performance-tools';
 
 // Resilience Tools (for system health)
-import {
-  getSystemHealth,
-  getOperationMetrics
-} from '../tools/resilience-tools';
+import { getSystemHealth, getOperationMetrics } from '../tools/resilience-tools';
 
 // Integration Testing Tools (for API health)
-import {
-  checkAPIHealth
-} from '../tools/integration-testing-tools';
+import { checkAPIHealth } from '../tools/integration-testing-tools';
 
 // Documentation Tools (for report generation)
-import {
-  generateDocumentationIndex,
-  generateChangelog
-} from '../tools/documentation-tools';
+import { generateDocumentationIndex, generateChangelog } from '../tools/documentation-tools';
 
 // Property Operations (for property health reports)
 import {
   checkPropertyHealth,
-  detectConfigurationDrift
+  detectConfigurationDrift,
 } from '../tools/property-operations-advanced';
 
 // Bulk Operations Status
-import {
-  getBulkOperationStatus
-} from '../tools/bulk-operations-manager';
+import { getBulkOperationStatus } from '../tools/bulk-operations-manager';
 
 // Hostname Discovery (for analytics)
 import {
   analyzeHostnameConflicts,
-  identifyOwnershipPatterns
+  identifyOwnershipPatterns,
 } from '../tools/hostname-discovery-engine';
 
 // Hostname Management Analytics
-import {
-  analyzeHostnameOwnership
-} from '../tools/hostname-management-advanced';
+import { analyzeHostnameOwnership } from '../tools/hostname-management-advanced';
 
 // Rule Tree Performance
-import {
-  analyzeRuleTreePerformance
-} from '../tools/rule-tree-advanced';
+import { analyzeRuleTreePerformance } from '../tools/rule-tree-advanced';
 
 const log = (level: string, message: string, data?: any) => {
   const timestamp = new Date().toISOString();
@@ -91,23 +77,26 @@ class ReportingALECSServer {
     log('INFO', '📊 ALECS Reporting Server starting...');
     log('INFO', 'Node version:', { version: process.version });
     log('INFO', 'Working directory:', { cwd: process.cwd() });
-    
-    this.server = new Server({
-      name: 'alecs-reporting',
-      version: '1.0.0',
-    }, {
-      capabilities: {
-        tools: {},
+
+    this.server = new Server(
+      {
+        name: 'alecs-reporting',
+        version: '1.0.0',
       },
-    });
+      {
+        capabilities: {
+          tools: {},
+        },
+      },
+    );
 
     try {
       log('INFO', 'Initializing Akamai client...');
       this.client = new AkamaiClient();
       log('INFO', '✅ Akamai client initialized successfully');
     } catch (error) {
-      log('ERROR', '❌ Failed to initialize Akamai client', { 
-        error: error instanceof Error ? error.message : String(error) 
+      log('ERROR', '❌ Failed to initialize Akamai client', {
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -117,27 +106,27 @@ class ReportingALECSServer {
 
   private setupHandlers() {
     log('INFO', 'Setting up request handlers...');
-    
+
     // List all reporting and analytics tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       log('INFO', '📋 Tools list requested');
-      
+
       // Get all reporting tools from the imported module
-      const reportingToolsList = reportingTools.map(tool => ({
+      const reportingToolsList = reportingTools.map((tool) => ({
         name: tool.name,
         description: tool.description,
-        inputSchema: tool.inputSchema
+        inputSchema: tool.inputSchema,
       }));
-      
+
       // Get fast purge reporting tools
       const purgeReportingTools = fastPurgeTools
-        .filter(tool => tool.name.includes('status') || tool.name.includes('history'))
-        .map(tool => ({
+        .filter((tool) => tool.name.includes('status') || tool.name.includes('history'))
+        .map((tool) => ({
           name: tool.name,
           description: tool.description,
-          inputSchema: tool.inputSchema
+          inputSchema: tool.inputSchema,
         }));
-      
+
       // Add other analytics and monitoring tools
       const additionalTools = [
         // Performance Analytics
@@ -340,13 +329,9 @@ class ReportingALECSServer {
           },
         },
       ];
-      
-      const tools = [
-        ...reportingToolsList,
-        ...purgeReportingTools,
-        ...additionalTools
-      ];
-      
+
+      const tools = [...reportingToolsList, ...purgeReportingTools, ...additionalTools];
+
       log('INFO', `✅ Returning ${tools.length} tools`);
       return { tools };
     });
@@ -354,22 +339,22 @@ class ReportingALECSServer {
     // Handle tool calls
     this.server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> => {
       const { name, arguments: args } = request.params;
-      
+
       log('INFO', `🔧 Tool called: ${name}`, { args });
-      
+
       const startTime = Date.now();
       const client = this.client;
 
       try {
         let result;
-        
+
         // Check if it's a reporting tool
-        const reportingTool = reportingTools.find(t => t.name === name);
+        const reportingTool = reportingTools.find((t) => t.name === name);
         if (reportingTool) {
           result = await reportingTool.handler(args);
         } else {
           // Check if it's a fast purge reporting tool
-          const purgeTool = fastPurgeTools.find(t => t.name === name);
+          const purgeTool = fastPurgeTools.find((t) => t.name === name);
           if (purgeTool) {
             result = await purgeTool.handler(args);
           } else {
@@ -385,7 +370,7 @@ class ReportingALECSServer {
               case 'profile-performance':
                 result = await profilePerformance(client, args as any);
                 break;
-              
+
               // System Health
               case 'get-system-health':
                 result = await getSystemHealth(client, args as any);
@@ -396,7 +381,7 @@ class ReportingALECSServer {
               case 'check-api-health':
                 result = await checkAPIHealth(client, args as any);
                 break;
-              
+
               // Property Analytics
               case 'check-property-health':
                 result = await checkPropertyHealth(client, args as any);
@@ -407,7 +392,7 @@ class ReportingALECSServer {
               case 'analyze-rule-tree-performance':
                 result = await analyzeRuleTreePerformance(client, args as any);
                 break;
-              
+
               // Hostname Analytics
               case 'analyze-hostname-ownership':
                 result = await analyzeHostnameOwnership(client, args as any);
@@ -418,12 +403,12 @@ class ReportingALECSServer {
               case 'identify-ownership-patterns':
                 result = await identifyOwnershipPatterns(client, args as any);
                 break;
-              
+
               // Bulk Operation Status
               case 'get-bulk-operation-status':
                 result = await getBulkOperationStatus(client, args as any);
                 break;
-              
+
               // Report Generation
               case 'generate-changelog':
                 result = await generateChangelog(client, args as any);
@@ -433,81 +418,83 @@ class ReportingALECSServer {
                 break;
 
               default:
-                throw new McpError(
-                  ErrorCode.MethodNotFound,
-                  `Tool not found: ${name}`
-                );
+                throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
             }
           }
         }
-        
+
         const duration = Date.now() - startTime;
         log('INFO', `✅ Tool ${name} completed in ${duration}ms`);
-        
+
         return result;
-        
       } catch (error) {
         const duration = Date.now() - startTime;
         log('ERROR', `❌ Tool ${name} failed after ${duration}ms`, {
-          error: error instanceof Error ? {
-            message: error.message,
-            stack: error.stack
-          } : String(error)
+          error:
+            error instanceof Error
+              ? {
+                  message: error.message,
+                  stack: error.stack,
+                }
+              : String(error),
         });
-        
+
         if (error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`
+            `Invalid parameters: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
           );
         }
-        
+
         if (error instanceof McpError) {
           throw error;
         }
-        
+
         throw new McpError(
           ErrorCode.InternalError,
-          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`
+          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     });
-    
+
     log('INFO', '✅ Request handlers set up successfully');
   }
 
   async start() {
     log('INFO', '📍 Starting server connection...');
-    
+
     const transport = new StdioServerTransport();
-    
+
     // Add error handling for transport
     transport.onerror = (error: Error) => {
       log('ERROR', '❌ Transport error', {
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
     };
-    
+
     transport.onclose = () => {
       log('INFO', '🔌 Transport closed, shutting down...');
       process.exit(0);
     };
-    
+
     try {
       await this.server.connect(transport);
       log('INFO', '✅ Server connected and ready for MCP connections');
       log('INFO', '📊 Server stats', {
         toolCount: 25,
         memoryUsage: process.memoryUsage(),
-        uptime: process.uptime()
+        uptime: process.uptime(),
       });
     } catch (error) {
       log('ERROR', '❌ Failed to connect server', {
-        error: error instanceof Error ? {
-          message: error.message,
-          stack: error.stack
-        } : String(error)
+        error:
+          error instanceof Error
+            ? {
+                message: error.message,
+                stack: error.stack,
+              }
+            : String(error),
       });
       throw error;
     }
@@ -517,26 +504,28 @@ class ReportingALECSServer {
 // Main entry point
 async function main() {
   log('INFO', '🎯 ALECS Reporting Server main() started');
-  
+
   try {
     const server = new ReportingALECSServer();
     await server.start();
-    
+
     // Set up periodic status logging
     setInterval(() => {
       log('DEBUG', '💓 Server heartbeat', {
         uptime: process.uptime(),
         memory: process.memoryUsage(),
-        pid: process.pid
+        pid: process.pid,
       });
     }, 30000); // Every 30 seconds
-    
   } catch (error) {
     log('ERROR', '❌ Failed to start server', {
-      error: error instanceof Error ? {
-        message: error.message,
-        stack: error.stack
-      } : String(error)
+      error:
+        error instanceof Error
+          ? {
+              message: error.message,
+              stack: error.stack,
+            }
+          : String(error),
     });
     process.exit(1);
   }
@@ -547,19 +536,22 @@ process.on('uncaughtException', (error) => {
   log('ERROR', '❌ Uncaught exception', {
     error: {
       message: error.message,
-      stack: error.stack
-    }
+      stack: error.stack,
+    },
   });
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   log('ERROR', '❌ Unhandled rejection', {
-    reason: reason instanceof Error ? {
-      message: reason.message,
-      stack: reason.stack
-    } : String(reason),
-    promise: String(promise)
+    reason:
+      reason instanceof Error
+        ? {
+            message: reason.message,
+            stack: reason.stack,
+          }
+        : String(reason),
+    promise: String(promise),
   });
   process.exit(1);
 });

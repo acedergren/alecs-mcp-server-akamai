@@ -3,17 +3,14 @@
  * MCP tools for running integration tests and validation frameworks
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { 
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import {
   IntegrationTestFramework,
   APIHealthChecker,
-  LoadTestRunner
+  LoadTestRunner,
 } from '../testing/integration-test-framework';
-import { 
-  TestOrchestrator,
-  TestDataGenerator
-} from '../testing/test-suites';
+import { TestOrchestrator, TestDataGenerator } from '../testing/test-suites';
 
 /**
  * Run integration test suite
@@ -26,15 +23,15 @@ export async function runIntegrationTestSuite(
     priority?: 'high' | 'medium' | 'low';
     includeSetup?: boolean;
     generateReport?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const framework = new IntegrationTestFramework(client);
     const orchestrator = new TestOrchestrator(client);
-    
+
     let responseText = `# Integration Test Execution\n\n`;
     responseText += `**Started:** ${new Date().toISOString()}\n`;
-    
+
     if (args.suiteName) {
       responseText += `**Suite:** ${args.suiteName}\n`;
     }
@@ -45,46 +42,50 @@ export async function runIntegrationTestSuite(
       responseText += `**Priority:** ${args.priority}\n`;
     }
     responseText += `\n`;
-    
+
     // Test results will be collected from framework
-    
+
     if (args.suiteName) {
       // Run specific suite
       const suite = orchestrator.getSuite(args.suiteName);
       if (!suite) {
         return {
-          content: [{
-            type: 'text',
-            text: `Error: Test suite '${args.suiteName}' not found. Available suites: ${orchestrator.getAllSuites().map(s => s.name).join(', ')}`
-          }]
+          content: [
+            {
+              type: 'text',
+              text: `Error: Test suite '${args.suiteName}' not found. Available suites: ${orchestrator
+                .getAllSuites()
+                .map((s) => s.name)
+                .join(', ')}`,
+            },
+          ],
         };
       }
-      
+
       framework.registerSuite(suite);
       await framework.runSuite(args.suiteName);
-      
     } else {
       // Run by category or priority
-      let scenarios = orchestrator.getAllSuites().flatMap(s => s.scenarios);
-      
+      let scenarios = orchestrator.getAllSuites().flatMap((s) => s.scenarios);
+
       if (args.category) {
         scenarios = orchestrator.getScenariosByCategory(args.category);
       }
-      
+
       if (args.priority) {
-        scenarios = scenarios.filter(s => s.priority === args.priority);
+        scenarios = scenarios.filter((s) => s.priority === args.priority);
       }
-      
+
       responseText += `## Test Scenarios\n\n`;
       responseText += `Found ${scenarios.length} scenarios to execute:\n\n`;
-      
+
       for (const scenario of scenarios) {
         responseText += `- **${scenario.name}** (${scenario.category}, ${scenario.priority})\n`;
         responseText += `  ${scenario.description}\n`;
       }
       responseText += `\n`;
     }
-    
+
     // Generate summary
     const summary = framework.getTestSummary();
     responseText += `## Test Summary\n\n`;
@@ -95,13 +96,13 @@ export async function runIntegrationTestSuite(
     responseText += `- **Error:** ${summary.error} 💥\n`;
     responseText += `- **Success Rate:** ${summary.successRate.toFixed(1)}%\n`;
     responseText += `- **Average Duration:** ${summary.averageDuration.toFixed(0)}ms\n\n`;
-    
+
     // Generate full report if requested
     if (args.generateReport) {
       responseText += `## Detailed Test Report\n\n`;
       responseText += framework.generateReport();
     }
-    
+
     // Recommendations
     responseText += `## Recommendations\n\n`;
     if (summary.failed > 0) {
@@ -119,19 +120,23 @@ export async function runIntegrationTestSuite(
     if (summary.passed === summary.total && summary.total > 0) {
       responseText += `✅ **All tests passed!** - System is functioning correctly\n`;
     }
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: `Error running integration tests: ${(error as Error).message}`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `Error running integration tests: ${(error as Error).message}`,
+        },
+      ],
     };
   }
 }
@@ -145,52 +150,53 @@ export async function checkAPIHealth(
     endpoints?: string[];
     includeLoadTest?: boolean;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const healthChecker = new APIHealthChecker(client);
-    
+
     const defaultEndpoints = [
       '/papi/v1/properties',
       '/papi/v1/groups',
       '/papi/v1/contracts',
       '/config-dns/v2/zones',
-      '/cps/v2/enrollments'
+      '/cps/v2/enrollments',
     ];
-    
+
     const endpoints = args.endpoints || defaultEndpoints;
-    
+
     let responseText = `# API Health Check\n\n`;
     responseText += `**Timestamp:** ${new Date().toISOString()}\n`;
     if (args.customer) {
       responseText += `**Customer:** ${args.customer}\n`;
     }
     responseText += `**Endpoints Tested:** ${endpoints.length}\n\n`;
-    
+
     // Perform health checks
     const healthResults = await healthChecker.checkMultipleEndpoints(endpoints);
-    
+
     // Calculate summary
-    const healthy = healthResults.filter(r => r.status === 'healthy').length;
-    const unhealthy = healthResults.filter(r => r.status === 'unhealthy').length;
-    const timeout = healthResults.filter(r => r.status === 'timeout').length;
-    const averageResponseTime = healthResults
-      .filter(r => r.status === 'healthy')
-      .reduce((sum, r) => sum + r.responseTime, 0) / (healthy || 1);
-    
+    const healthy = healthResults.filter((r) => r.status === 'healthy').length;
+    const unhealthy = healthResults.filter((r) => r.status === 'unhealthy').length;
+    const timeout = healthResults.filter((r) => r.status === 'timeout').length;
+    const averageResponseTime =
+      healthResults
+        .filter((r) => r.status === 'healthy')
+        .reduce((sum, r) => sum + r.responseTime, 0) / (healthy || 1);
+
     responseText += `## Health Summary\n\n`;
     responseText += `- **Healthy:** ${healthy}/${endpoints.length} ✅\n`;
     responseText += `- **Unhealthy:** ${unhealthy}/${endpoints.length} ❌\n`;
     responseText += `- **Timeout:** ${timeout}/${endpoints.length} ⏱️\n`;
     responseText += `- **Overall Status:** ${healthy === endpoints.length ? 'HEALTHY' : 'DEGRADED'}\n`;
     responseText += `- **Average Response Time:** ${averageResponseTime.toFixed(0)}ms\n\n`;
-    
+
     // Detailed results
     responseText += `## Endpoint Details\n\n`;
     for (const result of healthResults) {
-      const statusIcon = result.status === 'healthy' ? '✅' : 
-                        result.status === 'timeout' ? '⏱️' : '❌';
-      
+      const statusIcon =
+        result.status === 'healthy' ? '✅' : result.status === 'timeout' ? '⏱️' : '❌';
+
       responseText += `### ${result.endpoint}\n`;
       responseText += `- **Status:** ${statusIcon} ${result.status.toUpperCase()}\n`;
       responseText += `- **Response Time:** ${result.responseTime}ms\n`;
@@ -202,25 +208,25 @@ export async function checkAPIHealth(
       }
       responseText += `\n`;
     }
-    
+
     // Load test if requested
     if (args.includeLoadTest && healthy > 0) {
       responseText += `## Load Test Results\n\n`;
       const loadTestRunner = new LoadTestRunner(client);
-      
+
       // Test the fastest healthy endpoint
       const fastestEndpoint = healthResults
-        .filter(r => r.status === 'healthy')
+        .filter((r) => r.status === 'healthy')
         .sort((a, b) => a.responseTime - b.responseTime)[0];
-      
+
       if (fastestEndpoint) {
         const loadTestResult = await loadTestRunner.runLoadTest({
           endpoint: fastestEndpoint.endpoint,
           concurrency: 3,
           duration: 2000, // 2 seconds for faster testing
-          rampUp: 500    // 0.5 seconds
+          rampUp: 500, // 0.5 seconds
         });
-        
+
         responseText += `**Endpoint:** ${fastestEndpoint.endpoint}\n`;
         responseText += `**Duration:** 2 seconds\n`;
         responseText += `**Concurrency:** 3 workers\n\n`;
@@ -232,16 +238,16 @@ export async function checkAPIHealth(
         responseText += `- **Avg Response Time:** ${loadTestResult.averageResponseTime.toFixed(0)}ms\n`;
         responseText += `- **Min Response Time:** ${loadTestResult.minResponseTime}ms\n`;
         responseText += `- **Max Response Time:** ${loadTestResult.maxResponseTime}ms\n`;
-        
+
         if (loadTestResult.errors.length > 0) {
           responseText += `\n**Errors Encountered:**\n`;
-          loadTestResult.errors.forEach(error => {
+          loadTestResult.errors.forEach((error) => {
             responseText += `- ${error}\n`;
           });
         }
       }
     }
-    
+
     // Health recommendations
     responseText += `## Recommendations\n\n`;
     if (unhealthy > 0) {
@@ -256,19 +262,23 @@ export async function checkAPIHealth(
     if (healthy === endpoints.length) {
       responseText += `✅ **All endpoints healthy** - API services are functioning normally\n`;
     }
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: `Error checking API health: ${(error as Error).message}`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `Error checking API health: ${(error as Error).message}`,
+        },
+      ],
     };
   }
 }
@@ -282,61 +292,61 @@ export async function generateTestData(
     dataType: 'property' | 'zone' | 'hostname' | 'contact' | 'all';
     count?: number;
     prefix?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const count = args.count || 5;
     const prefix = args.prefix || 'test';
-    
+
     let responseText = `# Test Data Generation\n\n`;
     responseText += `**Data Type:** ${args.dataType}\n`;
     responseText += `**Count:** ${count}\n`;
     responseText += `**Prefix:** ${prefix}\n`;
     responseText += `**Generated:** ${new Date().toISOString()}\n\n`;
-    
+
     const generateData = (type: string): any[] => {
       switch (type) {
         case 'property':
           return Array.from({ length: count }, () => ({
             name: TestDataGenerator.generatePropertyName(),
-            type: 'property'
+            type: 'property',
           }));
-        
+
         case 'zone':
           return Array.from({ length: count }, () => ({
             name: TestDataGenerator.generateZoneName(),
-            type: 'dns-zone'
+            type: 'dns-zone',
           }));
-        
+
         case 'hostname':
           return Array.from({ length: count }, () => ({
             name: TestDataGenerator.generateHostname(),
-            type: 'hostname'
+            type: 'hostname',
           }));
-        
+
         case 'contact':
           return Array.from({ length: count }, () => ({
             ...TestDataGenerator.generateContactInfo(),
-            type: 'contact'
+            type: 'contact',
           }));
-        
+
         case 'all':
           return [
             ...generateData('property').slice(0, Math.ceil(count / 4)),
             ...generateData('zone').slice(0, Math.ceil(count / 4)),
             ...generateData('hostname').slice(0, Math.ceil(count / 4)),
-            ...generateData('contact').slice(0, Math.ceil(count / 4))
+            ...generateData('contact').slice(0, Math.ceil(count / 4)),
           ];
-        
+
         default:
           return [];
       }
     };
-    
+
     const testData = generateData(args.dataType);
-    
+
     responseText += `## Generated Test Data\n\n`;
-    
+
     const groupedData = testData.reduce((groups: any, item: any) => {
       const type = item.type;
       if (!groups[type]) {
@@ -345,13 +355,13 @@ export async function generateTestData(
       groups[type].push(item);
       return groups;
     }, {});
-    
+
     for (const [type, items] of Object.entries(groupedData)) {
       responseText += `### ${type.toUpperCase()}\n\n`;
-      
+
       (items as any[]).forEach((item, index) => {
         responseText += `${index + 1}. `;
-        
+
         if (item.type === 'contact') {
           responseText += `**${item.firstName} ${item.lastName}**\n`;
           responseText += `   - Email: ${item.email}\n`;
@@ -360,10 +370,10 @@ export async function generateTestData(
           responseText += `**${item.name}**\n`;
         }
       });
-      
+
       responseText += `\n`;
     }
-    
+
     // Usage examples
     responseText += `## Usage Examples\n\n`;
     responseText += `### Property Creation\n`;
@@ -373,7 +383,7 @@ export async function generateTestData(
       responseText += `createProperty --name "${testData.find((d: any) => d.type === 'property')?.name}"\n`;
     }
     responseText += `\`\`\`\n\n`;
-    
+
     responseText += `### DNS Zone Creation\n`;
     responseText += `\`\`\`bash\n`;
     responseText += `# Use generated zone name\n`;
@@ -381,7 +391,7 @@ export async function generateTestData(
       responseText += `createZone --zone "${testData.find((d: any) => d.type === 'dns-zone')?.name}"\n`;
     }
     responseText += `\`\`\`\n\n`;
-    
+
     responseText += `### Hostname Configuration\n`;
     responseText += `\`\`\`bash\n`;
     responseText += `# Use generated hostname\n`;
@@ -389,25 +399,29 @@ export async function generateTestData(
       responseText += `addPropertyHostname --hostname "${testData.find((d: any) => d.type === 'hostname')?.name}"\n`;
     }
     responseText += `\`\`\`\n\n`;
-    
+
     // JSON export option
     responseText += `## JSON Export\n\n`;
     responseText += `\`\`\`json\n`;
     responseText += JSON.stringify(testData, null, 2);
     responseText += `\n\`\`\`\n`;
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: `Error generating test data: ${(error as Error).message}`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `Error generating test data: ${(error as Error).message}`,
+        },
+      ],
     };
   }
 }
@@ -422,11 +436,11 @@ export async function validateToolResponses(
     category?: string;
     sampleSize?: number;
     includePerformance?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Create integration test framework for validation
-    
+
     let responseText = `# MCP Tool Response Validation\n\n`;
     responseText += `**Started:** ${new Date().toISOString()}\n`;
     if (args.toolName) {
@@ -436,7 +450,7 @@ export async function validateToolResponses(
       responseText += `**Category:** ${args.category}\n`;
     }
     responseText += `**Sample Size:** ${args.sampleSize || 3}\n\n`;
-    
+
     // Define validation scenarios
     const validationScenarios = [
       {
@@ -445,50 +459,50 @@ export async function validateToolResponses(
           // Test basic response structure
           // Simulate tool responses
           return { status: 'passed', details: 'Response structure is valid' };
-        }
+        },
       },
       {
         name: 'Error Handling Validation',
         test: async () => {
           // Test error response handling
           return { status: 'passed', details: 'Error handling is appropriate' };
-        }
+        },
       },
       {
         name: 'Data Format Validation',
         test: async () => {
           // Test data format consistency
           return { status: 'passed', details: 'Data formats are consistent' };
-        }
-      }
+        },
+      },
     ];
-    
+
     const results: any[] = [];
-    
+
     for (const scenario of validationScenarios) {
       try {
         const result = await scenario.test();
         results.push({
           scenario: scenario.name,
-          ...result
+          ...result,
         });
       } catch (error) {
         results.push({
           scenario: scenario.name,
           status: 'failed',
-          error: (error as Error).message
+          error: (error as Error).message,
         });
       }
     }
-    
+
     // Generate validation report
     responseText += `## Validation Results\n\n`;
-    
-    const passed = results.filter(r => r.status === 'passed').length;
+
+    const passed = results.filter((r) => r.status === 'passed').length;
     const total = results.length;
-    
+
     responseText += `**Summary:** ${passed}/${total} validations passed\n\n`;
-    
+
     for (const result of results) {
       const statusIcon = result.status === 'passed' ? '✅' : '❌';
       responseText += `${statusIcon} **${result.scenario}**\n`;
@@ -500,7 +514,7 @@ export async function validateToolResponses(
       }
       responseText += `\n`;
     }
-    
+
     // Recommendations
     responseText += `## Recommendations\n\n`;
     if (passed === total) {
@@ -508,19 +522,23 @@ export async function validateToolResponses(
     } else {
       responseText += `⚠️ **${total - passed} validation(s) failed** - Review tool response formats\n`;
     }
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: `Error validating tool responses: ${(error as Error).message}`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `Error validating tool responses: ${(error as Error).message}`,
+        },
+      ],
     };
   }
 }
@@ -537,38 +555,38 @@ export async function runLoadTest(
     duration?: number;
     rampUp?: number;
     includeAnalysis?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const loadTestRunner = new LoadTestRunner(client);
-    
+
     const endpoint = args.endpoint || '/papi/v1/properties';
     const concurrency = args.concurrency || 10;
     const duration = args.duration || 30000; // 30 seconds
     const rampUp = args.rampUp || 5000; // 5 seconds
-    
+
     let responseText = `# Load Test Execution\n\n`;
     responseText += `**Started:** ${new Date().toISOString()}\n`;
     responseText += `**Endpoint:** ${endpoint}\n`;
     responseText += `**Concurrency:** ${concurrency} workers\n`;
     responseText += `**Duration:** ${duration / 1000} seconds\n`;
     responseText += `**Ramp-up:** ${rampUp / 1000} seconds\n\n`;
-    
+
     responseText += `## Test Execution\n\n`;
     responseText += `Running load test...\n\n`;
-    
+
     const startTime = Date.now();
     const result = await loadTestRunner.runLoadTest({
       endpoint,
       concurrency,
       duration,
-      rampUp
+      rampUp,
     });
     const totalTime = Date.now() - startTime;
-    
+
     responseText += `## Results\n\n`;
     responseText += `**Test completed in ${(totalTime / 1000).toFixed(1)} seconds**\n\n`;
-    
+
     responseText += `### Performance Metrics\n\n`;
     responseText += `- **Total Requests:** ${result.totalRequests}\n`;
     responseText += `- **Successful Requests:** ${result.successfulRequests}\n`;
@@ -578,14 +596,14 @@ export async function runLoadTest(
     responseText += `- **Average Response Time:** ${result.averageResponseTime.toFixed(0)}ms\n`;
     responseText += `- **Min Response Time:** ${result.minResponseTime}ms\n`;
     responseText += `- **Max Response Time:** ${result.maxResponseTime}ms\n\n`;
-    
+
     // Performance analysis
     if (args.includeAnalysis) {
       responseText += `### Performance Analysis\n\n`;
-      
+
       const successRate = (result.successfulRequests / result.totalRequests) * 100;
       const responseTimeVariance = result.maxResponseTime - result.minResponseTime;
-      
+
       if (successRate >= 99) {
         responseText += `✅ **Excellent reliability** - ${successRate.toFixed(1)}% success rate\n`;
       } else if (successRate >= 95) {
@@ -593,7 +611,7 @@ export async function runLoadTest(
       } else {
         responseText += `❌ **Poor reliability** - ${successRate.toFixed(1)}% success rate\n`;
       }
-      
+
       if (result.averageResponseTime < 1000) {
         responseText += `✅ **Good performance** - ${result.averageResponseTime.toFixed(0)}ms average response time\n`;
       } else if (result.averageResponseTime < 3000) {
@@ -601,62 +619,66 @@ export async function runLoadTest(
       } else {
         responseText += `❌ **Poor performance** - ${result.averageResponseTime.toFixed(0)}ms average response time\n`;
       }
-      
+
       if (responseTimeVariance < 2000) {
         responseText += `✅ **Consistent performance** - ${responseTimeVariance}ms variance\n`;
       } else {
         responseText += `⚠️ **Variable performance** - ${responseTimeVariance}ms variance\n`;
       }
-      
+
       if (result.requestsPerSecond > 5) {
         responseText += `✅ **Good throughput** - ${result.requestsPerSecond.toFixed(2)} requests/second\n`;
       } else {
         responseText += `⚠️ **Low throughput** - ${result.requestsPerSecond.toFixed(2)} requests/second\n`;
       }
     }
-    
+
     // Error analysis
     if (result.errors.length > 0) {
       responseText += `### Error Analysis\n\n`;
       responseText += `**Unique errors encountered:** ${result.errors.length}\n\n`;
-      
+
       result.errors.forEach((error, index) => {
         responseText += `${index + 1}. ${error}\n`;
       });
       responseText += `\n`;
     }
-    
+
     // Recommendations
     responseText += `## Recommendations\n\n`;
-    
+
     if (result.failedRequests > 0) {
       responseText += `⚠️ **${result.failedRequests} requests failed** - Review error handling and retry logic\n`;
     }
-    
+
     if (result.averageResponseTime > 2000) {
       responseText += `⚠️ **High response times** - Consider caching or API optimization\n`;
     }
-    
+
     if (result.requestsPerSecond < 2) {
       responseText += `⚠️ **Low throughput** - API may need performance tuning\n`;
     }
-    
+
     if (result.successfulRequests === result.totalRequests && result.averageResponseTime < 1000) {
       responseText += `✅ **Excellent performance** - API is handling load well\n`;
     }
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: `Error running load test: ${(error as Error).message}`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `Error running load test: ${(error as Error).message}`,
+        },
+      ],
     };
   }
 }

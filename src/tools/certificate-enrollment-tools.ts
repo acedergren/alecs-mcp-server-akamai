@@ -3,9 +3,9 @@
  * Enhanced tools for certificate enrollment automation and management
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { createCertificateEnrollmentService } from '../services/certificate-enrollment-service';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import { createCertificateEnrollmentService } from '@services/certificate-enrollment-service';
 import { checkDVEnrollmentStatus } from './cps-tools';
 
 /**
@@ -34,18 +34,18 @@ export async function enrollCertificateWithValidation(
     quicEnabled?: boolean;
     autoDeploy?: boolean;
     targetNetwork?: 'staging' | 'production';
-  }
+  },
 ): Promise<MCPToolResponse> {
   const service = createCertificateEnrollmentService(client, {
     customer: args.customer,
     autoCreateDNSRecords: true,
     autoActivateDNS: true,
-    enableNotifications: true
+    enableNotifications: true,
   });
 
   return service.enrollDefaultDVCertificate({
     ...args,
-    autoValidate: true
+    autoValidate: true,
   });
 }
 
@@ -57,10 +57,10 @@ export async function validateCertificateEnrollment(
   args: {
     customer?: string;
     enrollmentId: number;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const service = createCertificateEnrollmentService(client, {
-    customer: args.customer
+    customer: args.customer,
   });
 
   return service.validateCertificateEnrollment(args.enrollmentId);
@@ -75,10 +75,10 @@ export async function deployCertificateToNetwork(
     customer?: string;
     enrollmentId: number;
     network: 'staging' | 'production';
-  }
+  },
 ): Promise<MCPToolResponse> {
   const service = createCertificateEnrollmentService(client, {
-    customer: args.customer
+    customer: args.customer,
   });
 
   return service.deployCertificate(args.enrollmentId, args.network);
@@ -92,10 +92,10 @@ export async function monitorCertificateEnrollment(
   args: {
     customer?: string;
     enrollmentId: number;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const service = createCertificateEnrollmentService(client, {
-    customer: args.customer
+    customer: args.customer,
   });
 
   return service.monitorCertificateLifecycle(args.enrollmentId);
@@ -109,7 +109,7 @@ export async function getCertificateDeploymentStatus(
   args: {
     customer?: string;
     enrollmentId: number;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Get deployments
@@ -117,7 +117,7 @@ export async function getCertificateDeploymentStatus(
       path: `/cps/v2/enrollments/${args.enrollmentId}/deployments`,
       method: 'GET',
       headers: {
-        'Accept': 'application/vnd.akamai.cps.deployments.v3+json',
+        Accept: 'application/vnd.akamai.cps.deployments.v3+json',
       },
     });
 
@@ -125,10 +125,12 @@ export async function getCertificateDeploymentStatus(
 
     if (deployments.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: `No deployments found for enrollment ${args.enrollmentId}\n\nThe certificate may not be deployed yet or validation may still be pending.`
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `No deployments found for enrollment ${args.enrollmentId}\n\nThe certificate may not be deployed yet or validation may still be pending.`,
+          },
+        ],
       };
     }
 
@@ -146,38 +148,38 @@ export async function getCertificateDeploymentStatus(
     // Display deployments by network
     Object.entries(byNetwork).forEach(([network, deps]) => {
       text += `## ${network.toUpperCase()} Network\n\n`;
-      
+
       deps.forEach((dep: any) => {
         const statusEmoji = (() => {
           const statusMap: Record<string, string> = {
-            'active': '✅',
-            'pending': '⏳',
+            active: '✅',
+            pending: '⏳',
             'in-progress': '🔄',
-            'failed': '❌',
-            'expired': '⚠️'
+            failed: '❌',
+            expired: '⚠️',
           };
           return statusMap[dep.deploymentStatus] || '❓';
         })();
 
         text += `### ${statusEmoji} Deployment ${dep.deploymentId || 'Current'}\n`;
-        
+
         if (dep.deploymentStatus) {
           text += `- **Status:** ${dep.deploymentStatus}\n`;
         }
-        
+
         if (dep.primaryCertificate) {
           text += `- **Certificate Expiry:** ${new Date(dep.primaryCertificate.expiry).toLocaleDateString()}\n`;
           text += `- **Serial Number:** ${dep.primaryCertificate.serialNumber}\n`;
         }
-        
+
         if (dep.deploymentDate) {
           text += `- **Deployed:** ${new Date(dep.deploymentDate).toLocaleString()}\n`;
         }
-        
+
         if (dep.properties && dep.properties.length > 0) {
           text += `- **Linked Properties:** ${dep.properties.length}\n`;
         }
-        
+
         text += '\n';
       });
     });
@@ -188,17 +190,21 @@ export async function getCertificateDeploymentStatus(
     text += `- Deploy to production: "Deploy certificate ${args.enrollmentId} to production"\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: `❌ Failed to get deployment status: ${error instanceof Error ? error.message : String(error)}`
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `❌ Failed to get deployment status: ${error instanceof Error ? error.message : String(error)}`,
+        },
+      ],
     };
   }
 }
@@ -213,34 +219,36 @@ export async function renewCertificate(
     enrollmentId: number;
     autoValidate?: boolean;
     autoDeploy?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     let steps = `# Certificate Renewal Process\n\n`;
     steps += `**Enrollment ID:** ${args.enrollmentId}\n\n`;
 
     // Step 1: Check current status
-    const statusResponse = await checkDVEnrollmentStatus(client, { 
-      enrollmentId: args.enrollmentId
+    const statusResponse = await checkDVEnrollmentStatus(client, {
+      enrollmentId: args.enrollmentId,
     });
 
-    const statusText = Array.isArray(statusResponse.content) 
+    const statusText = Array.isArray(statusResponse.content)
       ? statusResponse.content[0]?.text || ''
       : statusResponse.content || '';
 
     // Check if renewal is needed
     if (!statusText.includes('expiring-soon') && !statusText.includes('expired')) {
       return {
-        content: [{
-          type: 'text',
-          text: `ℹ️ Certificate renewal not needed yet\n\n${statusText}`
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `ℹ️ Certificate renewal not needed yet\n\n${statusText}`,
+          },
+        ],
       };
     }
 
     // Step 2: Initiate renewal
     steps += `## Initiating Renewal\n\n`;
-    
+
     await client.request({
       method: 'POST',
       path: `/cps/v2/enrollments/${args.enrollmentId}/renewals`,
@@ -248,8 +256,8 @@ export async function renewCertificate(
         'Content-Type': 'application/json',
       },
       body: {
-        changeManagement: false
-      }
+        changeManagement: false,
+      },
     });
 
     steps += `✅ Renewal initiated\n\n`;
@@ -258,9 +266,9 @@ export async function renewCertificate(
     if (args.autoValidate) {
       steps += `## Auto-Validation\n\n`;
       const service = createCertificateEnrollmentService(client, {
-        customer: args.customer
+        customer: args.customer,
       });
-      
+
       const validationResult = await service.validateCertificateEnrollment(args.enrollmentId);
       steps += Array.isArray(validationResult.content)
         ? validationResult.content[0]?.text || ''
@@ -272,9 +280,9 @@ export async function renewCertificate(
     if (args.autoDeploy) {
       steps += `## Auto-Deployment\n\n`;
       const service = createCertificateEnrollmentService(client, {
-        customer: args.customer
+        customer: args.customer,
       });
-      
+
       const deployResult = await service.deployCertificate(args.enrollmentId, 'production');
       steps += Array.isArray(deployResult.content)
         ? deployResult.content[0]?.text || ''
@@ -286,17 +294,21 @@ export async function renewCertificate(
     steps += `2. Check deployment: "Get certificate deployment status ${args.enrollmentId}"\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text: steps
-      }],
+      content: [
+        {
+          type: 'text',
+          text: steps,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: `❌ Failed to renew certificate: ${error instanceof Error ? error.message : String(error)}`
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `❌ Failed to renew certificate: ${error instanceof Error ? error.message : String(error)}`,
+        },
+      ],
     };
   }
 }
@@ -309,7 +321,7 @@ export async function cleanupValidationRecords(
   args: {
     customer?: string;
     enrollmentId: number;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // Get validation challenges to find DNS records
@@ -317,7 +329,7 @@ export async function cleanupValidationRecords(
       path: `/cps/v2/enrollments/${args.enrollmentId}`,
       method: 'GET',
       headers: {
-        'Accept': 'application/vnd.akamai.cps.enrollment-status.v1+json',
+        Accept: 'application/vnd.akamai.cps.enrollment-status.v1+json',
       },
     });
 
@@ -341,10 +353,12 @@ export async function cleanupValidationRecords(
 
     if (recordsToDelete.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: `No validation records found to cleanup for enrollment ${args.enrollmentId}`
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `No validation records found to cleanup for enrollment ${args.enrollmentId}`,
+          },
+        ],
       };
     }
 
@@ -363,7 +377,7 @@ export async function cleanupValidationRecords(
           zone: record.zone,
           name: record.recordName,
           type: 'TXT',
-          comment: `Cleanup ACME validation for enrollment ${args.enrollmentId}`
+          comment: `Cleanup ACME validation for enrollment ${args.enrollmentId}`,
         });
         text += `✅ Deleted: ${record.recordName} from ${record.zone}\n`;
         deleted++;
@@ -382,17 +396,21 @@ export async function cleanupValidationRecords(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: `❌ Failed to cleanup validation records: ${error instanceof Error ? error.message : String(error)}`
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `❌ Failed to cleanup validation records: ${error instanceof Error ? error.message : String(error)}`,
+        },
+      ],
     };
   }
 }
@@ -405,14 +423,14 @@ export async function getCertificateValidationHistory(
   args: {
     customer?: string;
     enrollmentId: number;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const response = await client.request({
       path: `/cps/v2/enrollments/${args.enrollmentId}/dv-history`,
       method: 'GET',
       headers: {
-        'Accept': 'application/vnd.akamai.cps.dv-history.v2+json',
+        Accept: 'application/vnd.akamai.cps.dv-history.v2+json',
       },
     });
 
@@ -420,10 +438,12 @@ export async function getCertificateValidationHistory(
 
     if (history.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: `No validation history found for enrollment ${args.enrollmentId}`
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `No validation history found for enrollment ${args.enrollmentId}`,
+          },
+        ],
       };
     }
 
@@ -441,58 +461,62 @@ export async function getCertificateValidationHistory(
     // Display history by domain
     Object.entries(byDomain).forEach(([domain, entries]) => {
       text += `## ${domain}\n\n`;
-      
-      entries.sort((a, b) => 
-        new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime()
+
+      entries.sort(
+        (a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime(),
       );
 
       entries.forEach((entry: any) => {
         const statusEmoji = (() => {
           const statusMap: Record<string, string> = {
-            'completed': '✅',
-            'pending': '⏳',
+            completed: '✅',
+            pending: '⏳',
             'in-progress': '🔄',
-            'failed': '❌',
-            'expired': '⚠️'
+            failed: '❌',
+            expired: '⚠️',
           };
           return statusMap[entry.status] || '❓';
         })();
 
         text += `### ${statusEmoji} ${entry.validationMethod || 'dns-01'} - ${entry.status}\n`;
-        
+
         if (entry.timestamp) {
           text += `- **Time:** ${new Date(entry.timestamp).toLocaleString()}\n`;
         }
-        
+
         if (entry.expires) {
           text += `- **Expires:** ${new Date(entry.expires).toLocaleString()}\n`;
         }
-        
+
         if (entry.error) {
           text += `- **Error:** ${entry.error}\n`;
         }
-        
+
         if (entry.dnsTarget) {
           text += `- **DNS Record:** ${entry.dnsTarget.recordName}\n`;
           text += `- **Value:** \`${entry.dnsTarget.recordValue}\`\n`;
         }
-        
+
         text += '\n';
       });
     });
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: `❌ Failed to get validation history: ${error instanceof Error ? error.message : String(error)}`
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `❌ Failed to get validation history: ${error instanceof Error ? error.message : String(error)}`,
+        },
+      ],
     };
   }
 }

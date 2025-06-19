@@ -3,12 +3,15 @@
  * Comprehensive service for managing certificate enrollment lifecycle with DefaultDV focus
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { createACMEValidationRecords, monitorCertificateValidation } from '../tools/cps-dns-integration';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import {
+  createACMEValidationRecords,
+  monitorCertificateValidation,
+} from '../tools/cps-dns-integration';
 import { checkDVEnrollmentStatus, getDVValidationChallenges } from '../tools/cps-tools';
 import { activateZoneChanges } from '../tools/dns-tools';
-import { PerformanceMonitor } from '../utils/performance-monitor';
+import { PerformanceMonitor } from '@utils/performance-monitor';
 
 // Service Configuration
 interface CertificateEnrollmentConfig {
@@ -55,9 +58,16 @@ interface DeploymentState {
 
 // Workflow Events
 interface WorkflowEvent {
-  type: 'enrollment_created' | 'validation_started' | 'dns_record_created' | 
-        'domain_validated' | 'all_domains_validated' | 'deployment_started' | 
-        'deployment_completed' | 'workflow_completed' | 'workflow_failed';
+  type:
+    | 'enrollment_created'
+    | 'validation_started'
+    | 'dns_record_created'
+    | 'domain_validated'
+    | 'all_domains_validated'
+    | 'deployment_started'
+    | 'deployment_completed'
+    | 'workflow_completed'
+    | 'workflow_failed';
   timestamp: Date;
   data: any;
 }
@@ -78,7 +88,7 @@ export class CertificateEnrollmentService {
       validationCheckInterval: 30,
       deploymentTimeout: 60,
       enableNotifications: false,
-      ...config
+      ...config,
     };
     this.performanceMonitor = new PerformanceMonitor();
   }
@@ -127,15 +137,20 @@ export class CertificateEnrollmentService {
         enrollmentId,
         domains,
         status: 'created',
-        validationStatus: new Map(domains.map(d => [d, {
-          domain: d,
-          status: 'pending',
-          validationMethod: 'dns-01',
-          attempts: 0
-        }])),
+        validationStatus: new Map(
+          domains.map((d) => [
+            d,
+            {
+              domain: d,
+              status: 'pending',
+              validationMethod: 'dns-01',
+              attempts: 0,
+            },
+          ]),
+        ),
         createdAt: new Date(),
         lastUpdated: new Date(),
-        errors: []
+        errors: [],
       };
 
       this.activeEnrollments.set(enrollmentId, enrollmentState);
@@ -157,9 +172,9 @@ export class CertificateEnrollmentService {
       // Step 3: Auto-deployment if requested and validated
       if (args.autoDeploy && enrollmentState.status === 'validated') {
         workflowSteps += await this.performAutoDeployment(
-          enrollmentId, 
+          enrollmentId,
           args.targetNetwork || 'production',
-          enrollmentState
+          enrollmentState,
         );
       }
 
@@ -172,7 +187,7 @@ export class CertificateEnrollmentService {
 
       if (enrollmentState.errors.length > 0) {
         workflowSteps += `\n### Errors Encountered:\n`;
-        enrollmentState.errors.forEach(err => {
+        enrollmentState.errors.forEach((err) => {
           workflowSteps += `- ${err}\n`;
         });
       }
@@ -194,23 +209,26 @@ export class CertificateEnrollmentService {
       this.performanceMonitor.endOperation('CERTIFICATE_ENROLLMENT');
 
       return {
-        content: [{
-          type: 'text',
-          text: workflowSteps
-        }],
+        content: [
+          {
+            type: 'text',
+            text: workflowSteps,
+          },
+        ],
       };
-
     } catch (error) {
       this.performanceMonitor.endOperation('CERTIFICATE_ENROLLMENT');
-      
+
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logWorkflowEvent('workflow_failed', { error: errorMessage });
 
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Certificate enrollment failed: ${errorMessage}\n\nCheck the logs for more details.`
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ Certificate enrollment failed: ${errorMessage}\n\nCheck the logs for more details.`,
+          },
+        ],
       };
     }
   }
@@ -226,24 +244,28 @@ export class CertificateEnrollmentService {
       validationStatus: new Map(),
       createdAt: new Date(),
       lastUpdated: new Date(),
-      errors: [] as string[]
+      errors: [] as string[],
     };
 
     try {
       const validationResult = await this.performAutoValidation(enrollmentId, enrollmentState);
-      
+
       return {
-        content: [{
-          type: 'text',
-          text: validationResult
-        }],
+        content: [
+          {
+            type: 'text',
+            text: validationResult,
+          },
+        ],
       };
     } catch (error) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Validation failed: ${error instanceof Error ? error.message : String(error)}`
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ Validation failed: ${error instanceof Error ? error.message : String(error)}`,
+          },
+        ],
       };
     }
   }
@@ -252,24 +274,26 @@ export class CertificateEnrollmentService {
    * Deploy validated certificate
    */
   async deployCertificate(
-    enrollmentId: number, 
-    network: 'staging' | 'production' = 'production'
+    enrollmentId: number,
+    network: 'staging' | 'production' = 'production',
   ): Promise<MCPToolResponse> {
     const enrollmentState = this.activeEnrollments.get(enrollmentId);
-    
+
     if (!enrollmentState) {
       // Fetch current state
       const statusResponse = await checkDVEnrollmentStatus(this.client, { enrollmentId });
-      const statusText = Array.isArray(statusResponse.content) 
+      const statusText = Array.isArray(statusResponse.content)
         ? statusResponse.content[0]?.text || ''
         : '';
 
       if (!statusText.includes('✅') || !statusText.includes('validated')) {
         return {
-          content: [{
-            type: 'text',
-            text: `❌ Certificate must be validated before deployment\n\nCurrent status:\n${statusText}`
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `❌ Certificate must be validated before deployment\n\nCurrent status:\n${statusText}`,
+            },
+          ],
         };
       }
     }
@@ -278,21 +302,25 @@ export class CertificateEnrollmentService {
       const deploymentResult = await this.performAutoDeployment(
         enrollmentId,
         network,
-        enrollmentState || {} as EnrollmentState
+        enrollmentState || ({} as EnrollmentState),
       );
 
       return {
-        content: [{
-          type: 'text',
-          text: deploymentResult
-        }],
+        content: [
+          {
+            type: 'text',
+            text: deploymentResult,
+          },
+        ],
       };
     } catch (error) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Deployment failed: ${error instanceof Error ? error.message : String(error)}`
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ Deployment failed: ${error instanceof Error ? error.message : String(error)}`,
+          },
+        ],
       };
     }
   }
@@ -312,9 +340,7 @@ export class CertificateEnrollmentService {
 
       // Current Status
       report += `## Current Status\n\n`;
-      report += Array.isArray(statusResponse.content) 
-        ? statusResponse.content[0]?.text || ''
-        : '';
+      report += Array.isArray(statusResponse.content) ? statusResponse.content[0]?.text || '' : '';
       report += '\n\n';
 
       // Validation Details
@@ -326,13 +352,11 @@ export class CertificateEnrollmentService {
       }
 
       // Workflow Events
-      const events = this.workflowEvents.filter(e => 
-        e.data.enrollmentId === enrollmentId
-      );
+      const events = this.workflowEvents.filter((e) => e.data.enrollmentId === enrollmentId);
 
       if (events.length > 0) {
         report += `\n\n## Workflow Timeline\n\n`;
-        events.forEach(event => {
+        events.forEach((event) => {
           const time = event.timestamp.toLocaleTimeString();
           report += `- **${time}** - ${this.formatEventType(event.type)}\n`;
         });
@@ -340,8 +364,8 @@ export class CertificateEnrollmentService {
 
       // Performance Metrics
       const metrics = this.performanceMonitor.getMetrics();
-      const enrollmentMetrics = metrics.filter((metric: any) => 
-        metric.operation === 'CERTIFICATE_ENROLLMENT'
+      const enrollmentMetrics = metrics.filter(
+        (metric: any) => metric.operation === 'CERTIFICATE_ENROLLMENT',
       );
 
       if (enrollmentMetrics.length > 0) {
@@ -353,18 +377,21 @@ export class CertificateEnrollmentService {
       }
 
       return {
-        content: [{
-          type: 'text',
-          text: report
-        }],
+        content: [
+          {
+            type: 'text',
+            text: report,
+          },
+        ],
       };
-
     } catch (error) {
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Failed to monitor certificate: ${error instanceof Error ? error.message : String(error)}`
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ Failed to monitor certificate: ${error instanceof Error ? error.message : String(error)}`,
+          },
+        ],
       };
     }
   }
@@ -377,7 +404,7 @@ export class CertificateEnrollmentService {
       method: 'POST',
       headers: {
         'Content-Type': 'application/vnd.akamai.cps.enrollment.v11+json',
-        'Accept': 'application/vnd.akamai.cps.enrollment-status.v1+json',
+        Accept: 'application/vnd.akamai.cps.enrollment-status.v1+json',
       },
       body: {
         ra: 'lets-encrypt',
@@ -413,8 +440,8 @@ export class CertificateEnrollmentService {
   }
 
   private async performAutoValidation(
-    enrollmentId: number, 
-    enrollmentState: EnrollmentState
+    enrollmentId: number,
+    enrollmentState: EnrollmentState,
   ): Promise<string> {
     let validationSteps = `## 🔐 Automated DNS Validation\n\n`;
 
@@ -425,11 +452,11 @@ export class CertificateEnrollmentService {
       // Step 1: Create DNS records
       if (this.config.autoCreateDNSRecords) {
         validationSteps += `### Creating DNS Records\n\n`;
-        
+
         const recordsResult = await createACMEValidationRecords(this.client, {
           enrollmentId,
           customer: this.config.customer,
-          autoDetectZones: true
+          autoDetectZones: true,
         });
 
         validationSteps += Array.isArray(recordsResult.content)
@@ -438,7 +465,7 @@ export class CertificateEnrollmentService {
         validationSteps += '\n\n';
 
         // Update validation states
-        enrollmentState.domains.forEach(domain => {
+        enrollmentState.domains.forEach((domain) => {
           const state = enrollmentState.validationStatus.get(domain);
           if (state) {
             state.status = 'dns-record-created';
@@ -446,19 +473,22 @@ export class CertificateEnrollmentService {
           }
         });
 
-        this.logWorkflowEvent('dns_record_created', { enrollmentId, domains: enrollmentState.domains });
+        this.logWorkflowEvent('dns_record_created', {
+          enrollmentId,
+          domains: enrollmentState.domains,
+        });
       }
 
       // Step 2: Activate DNS zones if needed
       if (this.config.autoActivateDNS) {
         validationSteps += `### Activating DNS Zones\n\n`;
-        
+
         const zones = this.extractZonesFromDomains(enrollmentState.domains);
         for (const zone of zones) {
           try {
             await activateZoneChanges(this.client, {
               zone,
-              comment: `ACME validation for certificate ${enrollmentId}`
+              comment: `ACME validation for certificate ${enrollmentId}`,
             });
             validationSteps += `✅ Activated zone: ${zone}\n`;
           } catch (error) {
@@ -470,12 +500,12 @@ export class CertificateEnrollmentService {
 
       // Step 3: Monitor validation
       validationSteps += `### Monitoring Validation Progress\n\n`;
-      
+
       const monitorResult = await monitorCertificateValidation(this.client, {
         enrollmentId,
         customer: this.config.customer,
         maxWaitMinutes: 15,
-        checkIntervalSeconds: this.config.validationCheckInterval
+        checkIntervalSeconds: this.config.validationCheckInterval,
       });
 
       validationSteps += Array.isArray(monitorResult.content)
@@ -486,7 +516,7 @@ export class CertificateEnrollmentService {
       const isValidated = validationSteps.includes('✅') && !validationSteps.includes('Failed');
       if (isValidated) {
         enrollmentState.status = 'validated';
-        enrollmentState.domains.forEach(domain => {
+        enrollmentState.domains.forEach((domain) => {
           const state = enrollmentState.validationStatus.get(domain);
           if (state) {
             state.status = 'validated';
@@ -497,7 +527,6 @@ export class CertificateEnrollmentService {
         enrollmentState.status = 'failed';
         enrollmentState.errors.push('Validation monitoring failed');
       }
-
     } catch (error) {
       enrollmentState.status = 'failed';
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -512,7 +541,7 @@ export class CertificateEnrollmentService {
   private async performAutoDeployment(
     enrollmentId: number,
     network: 'staging' | 'production',
-    enrollmentState: EnrollmentState
+    enrollmentState: EnrollmentState,
   ): Promise<string> {
     let deploymentSteps = `## 🚀 Automated Certificate Deployment\n\n`;
     deploymentSteps += `**Target Network:** ${network.toUpperCase()}\n\n`;
@@ -522,7 +551,7 @@ export class CertificateEnrollmentService {
       enrollmentState.deploymentStatus = {
         network,
         status: 'pending',
-        startedAt: new Date()
+        startedAt: new Date(),
       };
       this.logWorkflowEvent('deployment_started', { enrollmentId, network });
 
@@ -532,14 +561,14 @@ export class CertificateEnrollmentService {
         path: `/cps/v2/enrollments/${enrollmentId}/deployments`,
         headers: {
           'Content-Type': 'application/vnd.akamai.cps.deployment-schedule.v1+json',
-          'Accept': 'application/vnd.akamai.cps.deployment.v3+json'
+          Accept: 'application/vnd.akamai.cps.deployment.v3+json',
         },
         body: {
           ra: 'lets-encrypt',
           targetEnvironment: network,
           notAfter: null,
-          allowCancel: true
-        }
+          allowCancel: true,
+        },
       });
 
       deploymentSteps += `✅ Deployment initiated\n`;
@@ -547,10 +576,10 @@ export class CertificateEnrollmentService {
 
       // Update state
       enrollmentState.deploymentStatus.status = 'in-progress';
-      
+
       // Note: In a real implementation, we would monitor deployment progress
       // For now, we'll just indicate it's in progress
-      
+
       deploymentSteps += `### Deployment Status\n\n`;
       deploymentSteps += `To check deployment progress:\n`;
       deploymentSteps += `"Check certificate deployment status ${enrollmentId}"\n\n`;
@@ -564,12 +593,11 @@ export class CertificateEnrollmentService {
       enrollmentState.status = 'deployed';
       enrollmentState.deploymentStatus.status = 'completed';
       enrollmentState.deploymentStatus.completedAt = new Date();
-
     } catch (error) {
       enrollmentState.status = 'failed';
       const errorMsg = error instanceof Error ? error.message : String(error);
       enrollmentState.errors.push(`Deployment error: ${errorMsg}`);
-      
+
       if (enrollmentState.deploymentStatus) {
         enrollmentState.deploymentStatus.status = 'failed';
         enrollmentState.deploymentStatus.error = errorMsg;
@@ -584,8 +612,8 @@ export class CertificateEnrollmentService {
 
   private extractZonesFromDomains(domains: string[]): string[] {
     const zones = new Set<string>();
-    
-    domains.forEach(domain => {
+
+    domains.forEach((domain) => {
       // Extract base domain (assumes standard TLD)
       const parts = domain.split('.');
       if (parts.length >= 2) {
@@ -601,21 +629,21 @@ export class CertificateEnrollmentService {
     this.workflowEvents.push({
       type,
       timestamp: new Date(),
-      data
+      data,
     });
   }
 
   private formatEventType(type: WorkflowEvent['type']): string {
     const eventLabels: Record<WorkflowEvent['type'], string> = {
-      'enrollment_created': '📋 Enrollment Created',
-      'validation_started': '🔐 Validation Started',
-      'dns_record_created': '📝 DNS Records Created',
-      'domain_validated': '✅ Domain Validated',
-      'all_domains_validated': '✅ All Domains Validated',
-      'deployment_started': '🚀 Deployment Started',
-      'deployment_completed': '✅ Deployment Completed',
-      'workflow_completed': '🎉 Workflow Completed',
-      'workflow_failed': '❌ Workflow Failed'
+      enrollment_created: '📋 Enrollment Created',
+      validation_started: '🔐 Validation Started',
+      dns_record_created: '📝 DNS Records Created',
+      domain_validated: '✅ Domain Validated',
+      all_domains_validated: '✅ All Domains Validated',
+      deployment_started: '🚀 Deployment Started',
+      deployment_completed: '✅ Deployment Completed',
+      workflow_completed: '🎉 Workflow Completed',
+      workflow_failed: '❌ Workflow Failed',
     };
 
     return eventLabels[type] || type;
@@ -625,7 +653,7 @@ export class CertificateEnrollmentService {
 // Factory function for creating service instance
 export function createCertificateEnrollmentService(
   client: AkamaiClient,
-  config?: CertificateEnrollmentConfig
+  config?: CertificateEnrollmentConfig,
 ): CertificateEnrollmentService {
   return new CertificateEnrollmentService(client, config);
 }

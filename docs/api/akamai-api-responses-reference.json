@@ -1,0 +1,933 @@
+{
+  "metadata": {
+    "title": "Akamai API Response Documentation",
+    "description": "Comprehensive response schemas and validation patterns for all Akamai APIs used in ALECS MCP Server",
+    "version": "1.0.0",
+    "created": "2025-01-18",
+    "apis_covered": [
+      "Property Manager API (PAPI) v1",
+      "Edge DNS API v2", 
+      "Certificate Provisioning System (CPS) v2",
+      "Application Security (APPSEC) v1",
+      "Network Lists API v2",
+      "Fast Purge API (CCU) v3",
+      "Reporting API v1"
+    ]
+  },
+  "response_patterns": {
+    "common_structures": {
+      "base_response": {
+        "description": "All Akamai API responses inherit from this base structure",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "links": {
+              "type": "object",
+              "description": "HATEOAS navigation links",
+              "properties": {
+                "self": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "Self-referencing URL"
+                }
+              },
+              "additionalProperties": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          }
+        }
+      },
+      "list_response": {
+        "description": "Standard pagination pattern for list operations",
+        "schema": {
+          "type": "object",
+          "allOf": [
+            {"$ref": "#/response_patterns/common_structures/base_response"},
+            {
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "description": "Array of resources"
+                },
+                "totalItems": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Total number of items across all pages"
+                },
+                "pageSize": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000,
+                  "description": "Number of items per page"
+                },
+                "currentPage": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Current page number"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "error_response": {
+        "description": "RFC 7807 Problem Details format",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "format": "uri",
+              "description": "Error type identifier"
+            },
+            "title": {
+              "type": "string",
+              "description": "Human-readable error summary"
+            },
+            "detail": {
+              "type": "string",
+              "description": "Detailed error explanation"
+            },
+            "instance": {
+              "type": "string",
+              "format": "uri",
+              "description": "URI reference identifying the specific occurrence"
+            },
+            "status": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 599,
+              "description": "HTTP status code"
+            },
+            "errors": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {"type": "string"},
+                  "title": {"type": "string"},
+                  "detail": {"type": "string"}
+                }
+              }
+            }
+          },
+          "required": ["type", "title"]
+        }
+      }
+    }
+  },
+  "api_responses": {
+    "property_manager": {
+      "list_properties": {
+        "endpoint": "GET /papi/v1/properties",
+        "success_responses": {
+          "200": {
+            "description": "Properties retrieved successfully",
+            "schema": {
+              "type": "object",
+              "allOf": [
+                {"$ref": "#/response_patterns/common_structures/list_response"},
+                {
+                  "properties": {
+                    "properties": {
+                      "type": "object",
+                      "properties": {
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/schemas/property_summary"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "pagination": {
+          "supported": true,
+          "max_page_size": 500,
+          "default_page_size": 50
+        },
+        "business_context": {
+          "critical_fields": ["propertyId", "propertyName", "contractId", "groupId"],
+          "filtering_supported": ["contractId", "groupId"],
+          "sorting_supported": false
+        }
+      },
+      "get_property": {
+        "endpoint": "GET /papi/v1/properties/{propertyId}",
+        "success_responses": {
+          "200": {
+            "description": "Property details retrieved",
+            "schema": {
+              "type": "object",
+              "allOf": [
+                {"$ref": "#/response_patterns/common_structures/base_response"},
+                {
+                  "properties": {
+                    "properties": {
+                      "type": "object",
+                      "properties": {
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/schemas/property_detail"
+                          },
+                          "minItems": 1,
+                          "maxItems": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "business_context": {
+          "critical_fields": ["latestVersion", "productionVersion", "stagingVersion"],
+          "version_handling": "Latest version returned by default"
+        }
+      },
+      "property_rules": {
+        "endpoint": "GET /papi/v1/properties/{propertyId}/versions/{version}/rules",
+        "success_responses": {
+          "200": {
+            "description": "Property rule tree retrieved",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "rules": {
+                  "$ref": "#/schemas/rule_tree"
+                },
+                "ruleFormat": {
+                  "type": "string",
+                  "pattern": "^v\\d{4}-\\d{2}-\\d{2}$",
+                  "description": "Rule format version (e.g., v2023-10-30)"
+                }
+              }
+            }
+          }
+        },
+        "business_context": {
+          "critical_fields": ["rules", "ruleFormat"],
+          "rule_validation": "Rules must validate against specified format version",
+          "size_limits": "Rule tree size limited to 1MB"
+        }
+      },
+      "activation_status": {
+        "endpoint": "GET /papi/v1/properties/{propertyId}/activations/{activationId}",
+        "success_responses": {
+          "200": {
+            "description": "Activation status retrieved",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "activations": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/schemas/activation_detail"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "polling_required": true,
+        "typical_completion_time": "5-15 minutes",
+        "business_context": {
+          "status_progression": ["PENDING", "ACTIVE", "FAILED", "DEACTIVATED"],
+          "critical_fields": ["status", "network", "note"]
+        }
+      }
+    },
+    "edge_dns": {
+      "list_zones": {
+        "endpoint": "GET /config-dns/v2/zones",
+        "success_responses": {
+          "200": {
+            "description": "DNS zones retrieved",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "zones": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/schemas/dns_zone"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "business_context": {
+          "zone_types": ["PRIMARY", "SECONDARY", "ALIAS"],
+          "critical_fields": ["zone", "type", "contractId", "activationState"]
+        }
+      },
+      "list_records": {
+        "endpoint": "GET /config-dns/v2/zones/{zone}/recordsets",
+        "success_responses": {
+          "200": {
+            "description": "DNS records retrieved",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "recordsets": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/schemas/dns_record"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "business_context": {
+          "record_types": ["A", "AAAA", "CNAME", "MX", "TXT", "NS", "SRV", "CAA"],
+          "critical_fields": ["name", "type", "rdata", "ttl"]
+        }
+      }
+    },
+    "certificate_provisioning": {
+      "list_enrollments": {
+        "endpoint": "GET /cps/v2/enrollments",
+        "success_responses": {
+          "200": {
+            "description": "Certificate enrollments retrieved",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "enrollments": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/schemas/cps_enrollment"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "business_context": {
+          "enrollment_types": ["dv", "ov", "ev", "third-party"],
+          "critical_fields": ["id", "validationType", "certificateType", "status"]
+        }
+      },
+      "dv_validation_challenges": {
+        "endpoint": "GET /cps/v2/enrollments/{enrollmentId}/dv-history",
+        "success_responses": {
+          "200": {
+            "description": "Domain validation challenges",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "domainHistory": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/schemas/dv_challenge"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "business_context": {
+          "validation_methods": ["dns-01", "http-01"],
+          "challenge_lifecycle": ["pending", "processing", "valid", "invalid"],
+          "critical_fields": ["domain", "validationStatus", "challenges"]
+        }
+      }
+    },
+    "application_security": {
+      "list_configurations": {
+        "endpoint": "GET /appsec/v1/configs",
+        "success_responses": {
+          "200": {
+            "description": "Security configurations retrieved",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "configurations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/schemas/security_config"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "business_context": {
+          "critical_fields": ["id", "name", "description", "latestVersion"],
+          "version_management": "Similar to property versions"
+        }
+      },
+      "security_events": {
+        "endpoint": "GET /appsec/v1/configs/{configId}/security-events",
+        "success_responses": {
+          "200": {
+            "description": "Security events retrieved",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "events": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/schemas/security_event"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "business_context": {
+          "event_types": ["attack", "policy_violation", "rate_limit"],
+          "real_time_data": "Events available within 5 minutes",
+          "critical_fields": ["timestamp", "eventType", "riskScore", "clientIP"]
+        }
+      }
+    },
+    "network_lists": {
+      "list_network_lists": {
+        "endpoint": "GET /network-list/v2/network-lists",
+        "success_responses": {
+          "200": {
+            "description": "Network lists retrieved",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/schemas/network_list"
+              }
+            }
+          }
+        },
+        "business_context": {
+          "list_types": ["IP", "GEO", "ASN"],
+          "critical_fields": ["uniqueId", "name", "type", "elements"],
+          "element_limits": {
+            "IP": 10000,
+            "GEO": 1000,
+            "ASN": 1000
+          }
+        }
+      }
+    },
+    "fast_purge": {
+      "purge_request": {
+        "endpoint": "POST /ccu/v3/invalidate/{type}/{network}",
+        "success_responses": {
+          "201": {
+            "description": "Purge request submitted",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "httpStatus": {
+                  "type": "integer",
+                  "enum": [201]
+                },
+                "detail": {
+                  "type": "string",
+                  "description": "Human-readable status message"
+                },
+                "estimatedSeconds": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Estimated completion time"
+                },
+                "purgeId": {
+                  "type": "string",
+                  "description": "Unique purge request identifier"
+                },
+                "supportId": {
+                  "type": "string",
+                  "description": "Support case identifier"
+                }
+              }
+            }
+          }
+        },
+        "business_context": {
+          "purge_types": ["url", "cpcode", "tag"],
+          "networks": ["staging", "production"],
+          "typical_completion": "5-10 seconds for URLs, 5 minutes for CP codes",
+          "critical_fields": ["purgeId", "estimatedSeconds"]
+        }
+      }
+    }
+  },
+  "schemas": {
+    "property_summary": {
+      "type": "object",
+      "properties": {
+        "accountId": {"type": "string"},
+        "contractId": {"type": "string", "pattern": "^ctr_"},
+        "groupId": {"type": "string", "pattern": "^grp_"},
+        "propertyId": {"type": "string", "pattern": "^prp_"},
+        "propertyName": {"type": "string", "minLength": 1, "maxLength": 85},
+        "latestVersion": {"type": "integer", "minimum": 1},
+        "stagingVersion": {"type": "integer", "minimum": 0},
+        "productionVersion": {"type": "integer", "minimum": 0},
+        "assetId": {"type": "string"},
+        "note": {"type": "string"}
+      },
+      "required": ["propertyId", "propertyName", "contractId", "groupId"]
+    },
+    "property_detail": {
+      "allOf": [
+        {"$ref": "#/schemas/property_summary"},
+        {
+          "properties": {
+            "productId": {"type": "string", "pattern": "^prd_"},
+            "ruleFormat": {"type": "string"},
+            "hostnames": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        }
+      ]
+    },
+    "rule_tree": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string", "const": "default"},
+        "children": {
+          "type": "array",
+          "items": {"$ref": "#/schemas/rule"}
+        },
+        "behaviors": {
+          "type": "array",
+          "items": {"$ref": "#/schemas/behavior"}
+        },
+        "options": {
+          "type": "object",
+          "properties": {
+            "is_secure": {"type": "boolean"}
+          }
+        }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "criteria": {
+          "type": "array",
+          "items": {"$ref": "#/schemas/criterion"}
+        },
+        "behaviors": {
+          "type": "array",
+          "items": {"$ref": "#/schemas/behavior"}
+        },
+        "children": {
+          "type": "array",
+          "items": {"$ref": "#/schemas/rule"}
+        }
+      }
+    },
+    "behavior": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "options": {"type": "object"}
+      },
+      "required": ["name"]
+    },
+    "criterion": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "options": {"type": "object"}
+      },
+      "required": ["name"]
+    },
+    "activation_detail": {
+      "type": "object",
+      "properties": {
+        "activationId": {"type": "string", "pattern": "^act_"},
+        "propertyName": {"type": "string"},
+        "propertyId": {"type": "string", "pattern": "^prp_"},
+        "propertyVersion": {"type": "integer", "minimum": 1},
+        "network": {"type": "string", "enum": ["STAGING", "PRODUCTION"]},
+        "activationType": {"type": "string", "enum": ["ACTIVATE", "DEACTIVATE"]},
+        "status": {"type": "string", "enum": ["PENDING", "ACTIVE", "FAILED", "DEACTIVATED"]},
+        "submittedBy": {"type": "string"},
+        "submittedDate": {"type": "string", "format": "date-time"},
+        "activationDate": {"type": "string", "format": "date-time"},
+        "note": {"type": "string"},
+        "notifyEmails": {
+          "type": "array",
+          "items": {"type": "string", "format": "email"}
+        }
+      },
+      "required": ["activationId", "status", "network"]
+    },
+    "dns_zone": {
+      "type": "object",
+      "properties": {
+        "zone": {"type": "string", "format": "hostname"},
+        "type": {"type": "string", "enum": ["PRIMARY", "SECONDARY", "ALIAS"]},
+        "masters": {
+          "type": "array",
+          "items": {"type": "string", "format": "ipv4"}
+        },
+        "comment": {"type": "string", "maxLength": 2048},
+        "signAndServe": {"type": "boolean"},
+        "signAndServeAlgorithm": {"type": "string"},
+        "tsigKey": {
+          "type": "object",
+          "properties": {
+            "name": {"type": "string"},
+            "algorithm": {"type": "string"},
+            "secret": {"type": "string"}
+          }
+        },
+        "target": {"type": "string"},
+        "endCustomerId": {"type": "string"},
+        "contractId": {"type": "string", "pattern": "^ctr_"},
+        "activationState": {"type": "string", "enum": ["ACTIVE", "INACTIVE", "PENDING"]},
+        "lastActivationDate": {"type": "string", "format": "date-time"},
+        "versionId": {"type": "string"}
+      },
+      "required": ["zone", "type"]
+    },
+    "dns_record": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "type": {"type": "string", "enum": ["A", "AAAA", "CNAME", "MX", "TXT", "NS", "SRV", "CAA", "PTR"]},
+        "ttl": {"type": "integer", "minimum": 30, "maximum": 2147483647},
+        "rdata": {
+          "type": "array",
+          "items": {"type": "string"},
+          "minItems": 1
+        }
+      },
+      "required": ["name", "type", "ttl", "rdata"]
+    },
+    "cps_enrollment": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "integer"},
+        "productionSlots": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "stagingSlots": {
+          "type": "array", 
+          "items": {"type": "string"}
+        },
+        "assignedSlots": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "location": {"type": "string"},
+        "ra": {"type": "string"},
+        "validationType": {"type": "string", "enum": ["dv", "ov", "ev", "third-party"]},
+        "certificateType": {"type": "string", "enum": ["san", "single", "wildcard"]},
+        "networkConfiguration": {
+          "type": "object",
+          "properties": {
+            "geography": {"type": "string", "enum": ["core", "china", "russia"]},
+            "secureNetwork": {"type": "string", "enum": ["standard-tls", "enhanced-tls", "shared-cert"]},
+            "sni": {
+              "type": "object",
+              "properties": {
+                "cloneDnsNames": {"type": "boolean"},
+                "dnsNames": {
+                  "type": "array",
+                  "items": {"type": "string", "format": "hostname"}
+                }
+              }
+            },
+            "disallowedTlsVersions": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "clientMutualAuthentication": {
+              "type": "object",
+              "properties": {
+                "setId": {"type": "string"},
+                "sendCaListToClient": {"type": "boolean"},
+                "ocspEnabled": {"type": "boolean"}
+              }
+            },
+            "preferredCiphers": {"type": "string", "enum": ["ak-akamai-default", "ak-akamai-2020", "ak-performance", "ak-security"]},
+            "mustHaveCiphers": {"type": "string", "enum": ["ak-akamai-default", "ak-akamai-2020", "ak-performance", "ak-security"]},
+            "quicEnabled": {"type": "boolean"}
+          }
+        },
+        "org": {
+          "type": "object",
+          "properties": {
+            "name": {"type": "string"},
+            "addressLineOne": {"type": "string"},
+            "addressLineTwo": {"type": "string"},
+            "city": {"type": "string"},
+            "region": {"type": "string"},
+            "postalCode": {"type": "string"},
+            "country": {"type": "string"},
+            "phone": {"type": "string"}
+          }
+        },
+        "csr": {
+          "type": "object",
+          "properties": {
+            "cn": {"type": "string", "format": "hostname"},
+            "c": {"type": "string"},
+            "st": {"type": "string"},
+            "l": {"type": "string"},
+            "o": {"type": "string"},
+            "ou": {"type": "string"},
+            "sans": {
+              "type": "array",
+              "items": {"type": "string", "format": "hostname"}
+            }
+          }
+        },
+        "adminContact": {
+          "$ref": "#/schemas/contact_info"
+        },
+        "techContact": {
+          "$ref": "#/schemas/contact_info"
+        },
+        "thirdParty": {
+          "type": "object",
+          "properties": {
+            "excludeSans": {"type": "boolean"}
+          }
+        },
+        "maxAllowedSanNames": {"type": "integer"},
+        "maxAllowedWildcardSanNames": {"type": "integer"},
+        "enableMultiStackedCertificates": {"type": "boolean"},
+        "certificateChainType": {"type": "string", "enum": ["default", "trusted-root"]},
+        "pendingChanges": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      },
+      "required": ["id", "validationType", "csr"]
+    },
+    "contact_info": {
+      "type": "object",
+      "properties": {
+        "firstName": {"type": "string"},
+        "lastName": {"type": "string"},
+        "phone": {"type": "string"},
+        "email": {"type": "string", "format": "email"},
+        "addressLineOne": {"type": "string"},
+        "addressLineTwo": {"type": "string"},
+        "city": {"type": "string"},
+        "region": {"type": "string"},
+        "postalCode": {"type": "string"},
+        "country": {"type": "string"},
+        "organizationName": {"type": "string"},
+        "title": {"type": "string"}
+      },
+      "required": ["firstName", "lastName", "email", "phone"]
+    },
+    "dv_challenge": {
+      "type": "object",
+      "properties": {
+        "domain": {"type": "string", "format": "hostname"},
+        "validationStatus": {"type": "string", "enum": ["pending", "processing", "valid", "invalid"]},
+        "validationRecords": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "hostname": {"type": "string"},
+              "recordType": {"type": "string", "enum": ["CNAME", "TXT"]},
+              "target": {"type": "string"}
+            }
+          }
+        },
+        "challenges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {"type": "string", "enum": ["dns-01", "http-01"]},
+              "status": {"type": "string", "enum": ["pending", "processing", "valid", "invalid"]},
+              "token": {"type": "string"},
+              "keyAuthorization": {"type": "string"}
+            }
+          }
+        },
+        "expires": {"type": "string", "format": "date-time"}
+      }
+    },
+    "security_config": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "integer"},
+        "name": {"type": "string"},
+        "description": {"type": "string"},
+        "contractId": {"type": "string", "pattern": "^ctr_"},
+        "groupId": {"type": "string", "pattern": "^grp_"},
+        "latestVersion": {"type": "integer", "minimum": 1},
+        "productionVersion": {"type": "integer", "minimum": 0},
+        "stagingVersion": {"type": "integer", "minimum": 0}
+      }
+    },
+    "security_event": {
+      "type": "object", 
+      "properties": {
+        "attackId": {"type": "string"},
+        "eventId": {"type": "string"},
+        "configId": {"type": "integer"},
+        "policyId": {"type": "string"},
+        "timestamp": {"type": "string", "format": "date-time"},
+        "clientIP": {"type": "string", "format": "ipv4"},
+        "userAgent": {"type": "string"},
+        "requestId": {"type": "string"},
+        "geo": {
+          "type": "object",
+          "properties": {
+            "continent": {"type": "string"},
+            "country": {"type": "string"},
+            "city": {"type": "string"},
+            "regionCode": {"type": "string"}
+          }
+        },
+        "httpMessage": {
+          "type": "object",
+          "properties": {
+            "requestUri": {"type": "string"},
+            "requestMethod": {"type": "string"},
+            "responseCode": {"type": "integer"},
+            "bytes": {"type": "integer"}
+          }
+        },
+        "ruleActions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ruleId": {"type": "string"},
+              "action": {"type": "string", "enum": ["alert", "deny", "none"]},
+              "riskScore": {"type": "integer", "minimum": 0, "maximum": 100}
+            }
+          }
+        }
+      }
+    },
+    "network_list": {
+      "type": "object",
+      "properties": {
+        "uniqueId": {"type": "string"},
+        "name": {"type": "string"},
+        "type": {"type": "string", "enum": ["IP", "GEO", "ASN"]},
+        "description": {"type": "string"},
+        "readOnly": {"type": "boolean"},
+        "shared": {"type": "boolean"},
+        "syncPoint": {"type": "integer"},
+        "elementCount": {"type": "integer", "minimum": 0},
+        "elements": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "links": {
+          "type": "object",
+          "properties": {
+            "activateInProduction": {"type": "string"},
+            "activateInStaging": {"type": "string"},
+            "appendItems": {"type": "string"},
+            "retrieve": {"type": "string"},
+            "statusInProduction": {"type": "string"},
+            "statusInStaging": {"type": "string"},
+            "update": {"type": "string"}
+          }
+        }
+      }
+    }
+  },
+  "status_codes": {
+    "success_codes": {
+      "200": "OK - Request successful",
+      "201": "Created - Resource created successfully", 
+      "202": "Accepted - Request accepted for processing",
+      "204": "No Content - Request successful, no response body"
+    },
+    "client_error_codes": {
+      "400": "Bad Request - Invalid request syntax or parameters",
+      "401": "Unauthorized - Authentication required or failed",
+      "403": "Forbidden - Insufficient permissions",
+      "404": "Not Found - Resource not found",
+      "405": "Method Not Allowed - HTTP method not supported",
+      "409": "Conflict - Resource conflict or already exists",
+      "422": "Unprocessable Entity - Request valid but semantically incorrect",
+      "429": "Too Many Requests - Rate limit exceeded"
+    },
+    "server_error_codes": {
+      "500": "Internal Server Error - Unexpected server error",
+      "502": "Bad Gateway - Invalid response from upstream",
+      "503": "Service Unavailable - Service temporarily unavailable",
+      "504": "Gateway Timeout - Upstream timeout"
+    }
+  },
+  "validation_rules": {
+    "string_patterns": {
+      "property_id": "^prp_[0-9]+$",
+      "contract_id": "^ctr_[A-Z0-9-]+$", 
+      "group_id": "^grp_[0-9]+$",
+      "product_id": "^prd_[A-Z0-9_]+$",
+      "activation_id": "^act_[0-9]+$",
+      "hostname": "^[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?)*$",
+      "email": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+      "ipv4": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+      "ipv6": "^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::$",
+      "cidr": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\/(?:[0-9]|[1-2][0-9]|3[0-2])$"
+    },
+    "numeric_ranges": {
+      "ttl": {"min": 30, "max": 2147483647},
+      "port": {"min": 1, "max": 65535},
+      "property_version": {"min": 1, "max": 999999},
+      "page_size": {"min": 1, "max": 1000},
+      "risk_score": {"min": 0, "max": 100}
+    },
+    "enumerated_values": {
+      "networks": ["STAGING", "PRODUCTION"],
+      "activation_status": ["PENDING", "ACTIVE", "FAILED", "DEACTIVATED"],
+      "dns_record_types": ["A", "AAAA", "CNAME", "MX", "TXT", "NS", "SRV", "CAA", "PTR"],
+      "zone_types": ["PRIMARY", "SECONDARY", "ALIAS"],
+      "certificate_types": ["san", "single", "wildcard"],
+      "validation_types": ["dv", "ov", "ev", "third-party"],
+      "network_list_types": ["IP", "GEO", "ASN"],
+      "security_actions": ["alert", "deny", "none"]
+    }
+  },
+  "field_criticality": {
+    "essential_fields": {
+      "description": "Fields required for basic operation",
+      "property_management": ["propertyId", "contractId", "groupId", "latestVersion"],
+      "dns_management": ["zone", "type", "name", "rdata", "ttl"],
+      "certificate_management": ["id", "validationType", "csr.cn", "status"],
+      "security_management": ["configId", "policyId", "status"],
+      "network_lists": ["uniqueId", "type", "elements"]
+    },
+    "business_critical": {
+      "description": "Fields essential for business logic",
+      "activation_tracking": ["activationId", "status", "network", "submittedDate"],
+      "certificate_validation": ["domain", "validationStatus", "challenges"],
+      "security_events": ["timestamp", "clientIP", "riskScore", "ruleActions"],
+      "dns_changes": ["changeId", "status", "submittedDate"]
+    },
+    "deprecated_fields": {
+      "description": "Fields to avoid in new implementations",
+      "legacy_identifiers": ["assetId", "cpcode", "edgeHostnameId"],
+      "deprecated_options": ["useCache", "enableGzip"],
+      "obsolete_formats": ["v1RuleFormat", "legacyHostnames"]
+    }
+  }
+}

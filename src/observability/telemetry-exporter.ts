@@ -5,9 +5,11 @@
 
 import { EventEmitter } from 'events';
 import { performance } from 'perf_hooks';
-import MetricsAPI from './metrics-api';
-import DebugAPI, { DebugEvent, RequestTrace } from './debug-api';
-import DiagnosticsAPI, { SystemDiagnostics, HealthCheck, DiagnosticAlert } from './diagnostics-api';
+import type MetricsAPI from './metrics-api';
+import { type DebugEvent, type RequestTrace } from './debug-api';
+import type DebugAPI from './debug-api';
+import { type SystemDiagnostics, type HealthCheck, type DiagnosticAlert } from './diagnostics-api';
+import type DiagnosticsAPI from './diagnostics-api';
 
 export interface TelemetryDestination {
   name: string;
@@ -68,14 +70,17 @@ export interface TelemetryStats {
   totalRecords: number;
   averageLatency: number;
   lastExport?: number;
-  destinations: Record<string, {
-    exports: number;
-    successes: number;
-    failures: number;
-    lastSuccess?: number;
-    lastFailure?: number;
-    averageLatency: number;
-  }>;
+  destinations: Record<
+    string,
+    {
+      exports: number;
+      successes: number;
+      failures: number;
+      lastSuccess?: number;
+      lastFailure?: number;
+      averageLatency: number;
+    }
+  >;
 }
 
 export class TelemetryExporter extends EventEmitter {
@@ -104,7 +109,7 @@ export class TelemetryExporter extends EventEmitter {
       processingIntervalMs?: number;
       maxRetryAttempts?: number;
       enableCompression?: boolean;
-    } = {}
+    } = {},
   ) {
     super();
     this.config = {
@@ -125,7 +130,7 @@ export class TelemetryExporter extends EventEmitter {
    */
   addDestination(destination: TelemetryDestination): void {
     this.destinations.set(destination.name, destination);
-    
+
     if (!this.stats.destinations[destination.name]) {
       this.stats.destinations[destination.name] = {
         exports: 0,
@@ -175,8 +180,7 @@ export class TelemetryExporter extends EventEmitter {
    */
   async exportAll(): Promise<ExportResult[]> {
     const results: ExportResult[] = [];
-    const enabledDestinations = Array.from(this.destinations.values())
-      .filter(d => d.enabled);
+    const enabledDestinations = Array.from(this.destinations.values()).filter((d) => d.enabled);
 
     for (const destination of enabledDestinations) {
       try {
@@ -235,8 +239,12 @@ export class TelemetryExporter extends EventEmitter {
       await this.sendToDestination(transformedData, destination);
 
       const duration = performance.now() - startTime;
-      const recordsExported = metrics.length + events.length + traces.length + 
-                            (healthChecks?.length || 0) + (alerts?.length || 0);
+      const recordsExported =
+        metrics.length +
+        events.length +
+        traces.length +
+        (healthChecks?.length || 0) +
+        (alerts?.length || 0);
 
       // Update stats
       this.updateStats(destination.name, true, duration, recordsExported);
@@ -251,7 +259,6 @@ export class TelemetryExporter extends EventEmitter {
 
       this.emit('exportSuccess', result);
       return result;
-
     } catch (error) {
       const duration = performance.now() - startTime;
       this.updateStats(destination.name, false, duration, 0);
@@ -279,7 +286,7 @@ export class TelemetryExporter extends EventEmitter {
     }
 
     const interval = intervalMs || this.config.defaultFlushIntervalMs || 30000;
-    
+
     this.flushInterval = setInterval(async () => {
       try {
         await this.exportAll();
@@ -350,13 +357,15 @@ export class TelemetryExporter extends EventEmitter {
         id: 'test-' + this.generateId(),
         destination: name,
         timestamp: Date.now(),
-        metrics: [{
-          name: 'test_metric',
-          value: 1,
-          timestamp: Date.now(),
-          tags: { test: 'true' },
-          type: 'gauge',
-        }],
+        metrics: [
+          {
+            name: 'test_metric',
+            value: 1,
+            timestamp: Date.now(),
+            tags: { test: 'true' },
+            type: 'gauge',
+          },
+        ],
         events: [],
         traces: [],
       };
@@ -452,7 +461,10 @@ export class TelemetryExporter extends EventEmitter {
     return this.diagnosticsAPI.getAlerts({ acknowledged: false });
   }
 
-  private async transformData(batch: TelemetryBatch, destination: TelemetryDestination): Promise<any> {
+  private async transformData(
+    batch: TelemetryBatch,
+    destination: TelemetryDestination,
+  ): Promise<any> {
     const format = destination.config.format || 'json';
 
     switch (destination.type) {
@@ -482,7 +494,7 @@ export class TelemetryExporter extends EventEmitter {
       const labelStr = Object.entries(metric.tags)
         .map(([k, v]) => `${k}="${v}"`)
         .join(',');
-      
+
       const labelPart = labelStr ? `{${labelStr}}` : '';
       lines.push(`${metric.name}${labelPart} ${metric.value} ${metric.timestamp}`);
     }
@@ -492,13 +504,13 @@ export class TelemetryExporter extends EventEmitter {
 
   private transformForDataDog(batch: TelemetryBatch): any {
     return {
-      series: batch.metrics.map(metric => ({
+      series: batch.metrics.map((metric) => ({
         metric: metric.name,
         points: [[Math.floor(metric.timestamp / 1000), metric.value]],
         type: metric.type,
         tags: Object.entries(metric.tags).map(([k, v]) => `${k}:${v}`),
       })),
-      events: batch.events.map(event => ({
+      events: batch.events.map((event) => ({
         title: event.category,
         text: event.message,
         date_happened: Math.floor(event.timestamp / 1000),
@@ -519,7 +531,7 @@ export class TelemetryExporter extends EventEmitter {
             version: '1.0.0',
           },
         },
-        metrics: batch.metrics.map(metric => ({
+        metrics: batch.metrics.map((metric) => ({
           name: metric.name,
           type: metric.type,
           value: metric.value,
@@ -531,7 +543,7 @@ export class TelemetryExporter extends EventEmitter {
   }
 
   private transformForGrafana(batch: TelemetryBatch): any {
-    return batch.metrics.map(metric => ({
+    return batch.metrics.map((metric) => ({
       target: metric.name,
       datapoints: [[metric.value, metric.timestamp]],
       tags: metric.tags,
@@ -541,41 +553,49 @@ export class TelemetryExporter extends EventEmitter {
   private transformForGeneric(batch: TelemetryBatch, format: string): any {
     switch (format) {
       case 'statsd':
-        return batch.metrics.map(metric => {
-          const tags = Object.entries(metric.tags)
-            .map(([k, v]) => `${k}:${v}`)
-            .join(',');
-          return `${metric.name}:${metric.value}|g|#${tags}`;
-        }).join('\n');
-      
+        return batch.metrics
+          .map((metric) => {
+            const tags = Object.entries(metric.tags)
+              .map(([k, v]) => `${k}:${v}`)
+              .join(',');
+            return `${metric.name}:${metric.value}|g|#${tags}`;
+          })
+          .join('\n');
+
       case 'opentelemetry':
         return {
-          resourceMetrics: [{
-            resource: {
-              attributes: [
-                { key: 'service.name', value: { stringValue: 'alecs-mcp-akamai-server' } },
-                { key: 'service.version', value: { stringValue: '1.0.0' } },
+          resourceMetrics: [
+            {
+              resource: {
+                attributes: [
+                  { key: 'service.name', value: { stringValue: 'alecs-mcp-akamai-server' } },
+                  { key: 'service.version', value: { stringValue: '1.0.0' } },
+                ],
+              },
+              scopeMetrics: [
+                {
+                  metrics: batch.metrics.map((metric) => ({
+                    name: metric.name,
+                    description: `Metric ${metric.name}`,
+                    gauge: {
+                      dataPoints: [
+                        {
+                          attributes: Object.entries(metric.tags).map(([k, v]) => ({
+                            key: k,
+                            value: { stringValue: v },
+                          })),
+                          timeUnixNano: (metric.timestamp * 1000000).toString(),
+                          asDouble: metric.value,
+                        },
+                      ],
+                    },
+                  })),
+                },
               ],
             },
-            scopeMetrics: [{
-              metrics: batch.metrics.map(metric => ({
-                name: metric.name,
-                description: `Metric ${metric.name}`,
-                gauge: {
-                  dataPoints: [{
-                    attributes: Object.entries(metric.tags).map(([k, v]) => ({
-                      key: k,
-                      value: { stringValue: v },
-                    })),
-                    timeUnixNano: (metric.timestamp * 1000000).toString(),
-                    asDouble: metric.value,
-                  }],
-                },
-              })),
-            }],
-          }],
+          ],
         };
-      
+
       default:
         return batch;
     }
@@ -655,11 +675,11 @@ export class TelemetryExporter extends EventEmitter {
     destinationName: string,
     success: boolean,
     duration: number,
-    recordCount: number
+    recordCount: number,
   ): void {
     this.stats.totalExports++;
     this.stats.totalRecords += recordCount;
-    
+
     if (success) {
       this.stats.successfulExports++;
       this.stats.lastExport = Date.now();
@@ -683,7 +703,7 @@ export class TelemetryExporter extends EventEmitter {
 
     const destStats = this.stats.destinations[destinationName];
     destStats.exports++;
-    
+
     if (success) {
       destStats.successes++;
       destStats.lastSuccess = Date.now();
@@ -713,7 +733,7 @@ export class TelemetryExporter extends EventEmitter {
     if (!batch) return;
 
     const destination = this.destinations.get(batch.destination);
-    if (!destination || !destination.enabled) {
+    if (!destination?.enabled) {
       this.batches.delete(item.batchId);
       return;
     }
@@ -724,12 +744,15 @@ export class TelemetryExporter extends EventEmitter {
     } catch (error) {
       if (item.retryCount < (this.config.maxRetryAttempts || 3)) {
         // Retry with exponential backoff
-        setTimeout(() => {
-          this.exportQueue.push({
-            batchId: item.batchId,
-            retryCount: item.retryCount + 1,
-          });
-        }, Math.pow(2, item.retryCount) * 1000);
+        setTimeout(
+          () => {
+            this.exportQueue.push({
+              batchId: item.batchId,
+              retryCount: item.retryCount + 1,
+            });
+          },
+          Math.pow(2, item.retryCount) * 1000,
+        );
       } else {
         // Max retries exceeded
         this.batches.delete(item.batchId);
@@ -739,8 +762,9 @@ export class TelemetryExporter extends EventEmitter {
   }
 
   private generateId(): string {
-    return Math.random().toString(36).substring(2, 15) + 
-           Math.random().toString(36).substring(2, 15);
+    return (
+      Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    );
   }
 }
 
@@ -754,11 +778,11 @@ export class DestinationFactory {
   static createPrometheus(
     name: string,
     pushGatewayUrl: string,
-    job: string = 'alecs-mcp-akamai',
-    instance?: string
+    job = 'alecs-mcp-akamai',
+    instance?: string,
   ): TelemetryDestination {
     const url = `${pushGatewayUrl}/metrics/job/${job}${instance ? `/instance/${instance}` : ''}`;
-    
+
     return {
       name,
       type: 'prometheus',
@@ -775,11 +799,7 @@ export class DestinationFactory {
   /**
    * Create DataDog destination
    */
-  static createDataDog(
-    name: string,
-    apiKey: string,
-    site: string = 'datadoghq.com'
-  ): TelemetryDestination {
+  static createDataDog(name: string, apiKey: string, site = 'datadoghq.com'): TelemetryDestination {
     return {
       name,
       type: 'datadog',
@@ -803,10 +823,10 @@ export class DestinationFactory {
   static createNewRelic(
     name: string,
     licenseKey: string,
-    region: 'US' | 'EU' = 'US'
+    region: 'US' | 'EU' = 'US',
   ): TelemetryDestination {
     const baseUrl = region === 'EU' ? 'metric-api.eu.newrelic.com' : 'metric-api.newrelic.com';
-    
+
     return {
       name,
       type: 'newrelic',
@@ -831,7 +851,7 @@ export class DestinationFactory {
     name: string,
     userId: string,
     apiKey: string,
-    instanceUrl: string
+    instanceUrl: string,
   ): TelemetryDestination {
     return {
       name,
@@ -858,7 +878,7 @@ export class DestinationFactory {
     name: string,
     url: string,
     authentication?: TelemetryDestination['config']['authentication'],
-    format: 'json' | 'prometheus' | 'statsd' = 'json'
+    format: 'json' | 'prometheus' | 'statsd' = 'json',
   ): TelemetryDestination {
     return {
       name,

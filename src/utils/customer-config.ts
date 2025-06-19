@@ -12,7 +12,7 @@ export interface EdgeRcSection {
 
 export class CustomerConfigManager {
   private static instance: CustomerConfigManager;
-  private edgercPath: string = '';
+  private edgercPath = '';
   private sections: Map<string, EdgeRcSection> = new Map();
 
   private constructor() {
@@ -20,7 +20,7 @@ export class CustomerConfigManager {
     const locations = [
       process.env.EDGERC_PATH,
       path.join(process.cwd(), '.edgerc'),
-      path.join(os.homedir(), '.edgerc')
+      path.join(os.homedir(), '.edgerc'),
     ];
 
     for (const location of locations) {
@@ -31,7 +31,9 @@ export class CustomerConfigManager {
     }
 
     if (!this.edgercPath) {
-      throw new Error('No .edgerc file found. Please create one or set EDGERC_PATH environment variable.');
+      throw new Error(
+        'No .edgerc file found. Please create one or set EDGERC_PATH environment variable.',
+      );
     }
 
     this.loadConfig();
@@ -52,7 +54,7 @@ export class CustomerConfigManager {
 
     for (const line of lines) {
       const trimmedLine = line.trim();
-      
+
       // Skip empty lines and comments
       if (!trimmedLine || trimmedLine.startsWith('#')) {
         continue;
@@ -65,7 +67,7 @@ export class CustomerConfigManager {
         if (currentSection && this.isCompleteSection(currentConfig)) {
           this.sections.set(currentSection, currentConfig as EdgeRcSection);
         }
-        
+
         currentSection = sectionMatch[1] || null;
         currentConfig = {};
         continue;
@@ -76,7 +78,7 @@ export class CustomerConfigManager {
       if (keyValueMatch && currentSection) {
         const key = keyValueMatch[1]?.trim() || '';
         const value = keyValueMatch[2]?.trim() || '';
-        
+
         switch (key) {
           case 'host':
             currentConfig.host = value;
@@ -107,10 +109,12 @@ export class CustomerConfigManager {
     return !!(config.host && config.client_token && config.client_secret && config.access_token);
   }
 
-  getSection(sectionName: string = 'default'): EdgeRcSection {
+  getSection(sectionName = 'default'): EdgeRcSection {
     const section = this.sections.get(sectionName);
     if (!section) {
-      throw new Error(`Section '${sectionName}' not found in .edgerc file. Available sections: ${Array.from(this.sections.keys()).join(', ')}`);
+      throw new Error(
+        `Section '${sectionName}' not found in .edgerc file. Available sections: ${Array.from(this.sections.keys()).join(', ')}`,
+      );
     }
     return section;
   }
@@ -122,13 +126,13 @@ export class CustomerConfigManager {
   hasSection(sectionName: string): boolean {
     return this.sections.has(sectionName);
   }
-  
+
   getCustomers(): string[] {
     return this.listSections();
   }
 }
 
-export function getCustomerConfig(customer: string = 'default'): EdgeRcSection {
+export function getCustomerConfig(customer = 'default'): EdgeRcSection {
   return CustomerConfigManager.getInstance().getSection(customer);
 }
 

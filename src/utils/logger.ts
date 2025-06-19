@@ -42,7 +42,7 @@ export class Logger {
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
-      message
+      message,
     };
 
     if (data !== undefined) {
@@ -52,7 +52,7 @@ export class Logger {
     // In production, you might want to send this to a logging service
     // For now, we'll just use console with appropriate formatting
     const logMessage = `[${entry.timestamp}] ${entry.level}: ${entry.message}`;
-    
+
     if (entry.data) {
       console.error(logMessage, entry.data);
     } else {
