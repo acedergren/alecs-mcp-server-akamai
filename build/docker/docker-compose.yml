@@ -25,15 +25,15 @@ services:
     # For MCP stdio communication
     stdin_open: true
     tty: true
-    # Resource limits
+    # Resource limits (reduced for modular architecture)
     deploy:
       resources:
         limits:
           cpus: '1'
-          memory: 512M
-        reservations:
-          cpus: '0.5'
           memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
 
   # Development service with hot reload
   alecs-dev:

@@ -7,6 +7,10 @@ import { AkamaiClient } from '../akamai-client';
 import { MCPToolResponse } from '../types';
 import { onboardProperty, OnboardingConfig } from '../agents/property-onboarding.agent';
 import { withToolErrorHandling, ErrorContext } from '../utils/tool-error-handling';
+import { listProperties } from './property-tools';
+import { listEdgeHostnames } from './property-manager-advanced-tools';
+import { listPropertyActivations } from './property-manager-tools';
+import { listRecords } from './dns-tools';
 
 /**
  * Onboard a new property to Akamai CDN
@@ -161,19 +165,155 @@ export async function checkOnboardingStatus(
   };
 
   return withToolErrorHandling(async () => {
-    // This would check various aspects of the onboarding
     let responseText = `# Onboarding Status for ${args.hostname}\n\n`;
+    const status = {
+      propertyExists: false,
+      propertyId: '',
+      edgeHostnameCreated: false,
+      edgeHostname: '',
+      dnsCnameConfigured: false,
+      certificateProvisioned: false,
+      stagingActivated: false,
+      productionActivated: false
+    };
+
+    // Step 1: Check if property exists
+    responseText += `## 1. Property Status\n`;
+    try {
+      const propertiesResponse = await listProperties(client, { customer: args.customer });
+      const propertiesText = propertiesResponse.content[0]?.text || '';
+      
+      // Search for the hostname in the properties list
+      const propertyMatch = propertiesText.match(new RegExp(`(prp_\\d+).*${args.hostname.replace('.', '\\.')}`, 'i'));
+      
+      if (propertyMatch || args.propertyId) {
+        status.propertyExists = true;
+        status.propertyId = args.propertyId || propertyMatch?.[1] || '';
+        responseText += `✅ Property found: ${status.propertyId}\n\n`;
+      } else {
+        responseText += `❌ Property not found for hostname: ${args.hostname}\n\n`;
+      }
+    } catch (error) {
+      responseText += `⚠️ Error checking property: ${error instanceof Error ? error.message : 'Unknown error'}\n\n`;
+    }
+
+    // Step 2: Check edge hostname
+    if (status.propertyExists && status.propertyId) {
+      responseText += `## 2. Edge Hostname Status\n`;
+      try {
+        const edgeHostnamesResponse = await listEdgeHostnames(client, { 
+          propertyId: status.propertyId,
+          customer: args.customer 
+        });
+        const edgeHostnamesText = edgeHostnamesResponse.content[0]?.text || '';
+        
+        // Check if edge hostname exists for the property hostname
+        const edgeHostnameMatch = edgeHostnamesText.match(new RegExp(`${args.hostname}.*→.*([\\w.-]+\\.edgekey\\.net)`, 'i'));
+        
+        if (edgeHostnameMatch) {
+          status.edgeHostnameCreated = true;
+          status.edgeHostname = edgeHostnameMatch[1];
+          responseText += `✅ Edge hostname configured: ${args.hostname} → ${status.edgeHostname}\n`;
+          
+          // Check certificate status from the edge hostname output
+          if (edgeHostnamesText.includes('DEFAULT') || edgeHostnamesText.includes('ENHANCED_TLS')) {
+            status.certificateProvisioned = true;
+            responseText += `✅ Certificate provisioned (DEFAULT DV)\n\n`;
+          } else {
+            responseText += `⚠️ Certificate not yet provisioned\n\n`;
+          }
+        } else {
+          responseText += `❌ Edge hostname not found for ${args.hostname}\n\n`;
+        }
+      } catch (error) {
+        responseText += `⚠️ Error checking edge hostname: ${error instanceof Error ? error.message : 'Unknown error'}\n\n`;
+      }
+    }
+
+    // Step 3: Check DNS CNAME
+    if (status.edgeHostnameCreated && status.edgeHostname) {
+      responseText += `## 3. DNS Configuration\n`;
+      try {
+        // Extract zone from hostname
+        const parts = args.hostname.split('.');
+        const zone = parts.slice(-2).join('.');
+        const recordName = parts.slice(0, -2).join('.') || '@';
+        
+        const dnsResponse = await listRecords(client, {
+          zone,
+          customer: args.customer
+        });
+        const dnsText = dnsResponse.content[0]?.text || '';
+        
+        // Check if CNAME exists pointing to edge hostname
+        if (dnsText.includes(args.hostname) && dnsText.includes(status.edgeHostname)) {
+          status.dnsCnameConfigured = true;
+          responseText += `✅ DNS CNAME configured: ${args.hostname} → ${status.edgeHostname}\n\n`;
+        } else {
+          responseText += `❌ DNS CNAME not configured\n`;
+          responseText += `   Required: ${args.hostname} CNAME ${status.edgeHostname}\n\n`;
+        }
+      } catch (error) {
+        // DNS might be external, so this is not necessarily an error
+        responseText += `ℹ️ Could not verify DNS (may be external): ${error instanceof Error ? error.message : 'Unknown error'}\n\n`;
+      }
+    }
+
+    // Step 4: Check activation status
+    if (status.propertyExists && status.propertyId) {
+      responseText += `## 4. Activation Status\n`;
+      try {
+        const activationsResponse = await listPropertyActivations(client, {
+          propertyId: status.propertyId,
+          customer: args.customer
+        });
+        const activationsText = activationsResponse.content[0]?.text || '';
+        
+        // Check for staging activation
+        if (activationsText.includes('STAGING') && activationsText.includes('ACTIVE')) {
+          status.stagingActivated = true;
+          responseText += `✅ Staging activation: ACTIVE\n`;
+        } else {
+          responseText += `❌ Staging activation: NOT ACTIVE\n`;
+        }
+        
+        // Check for production activation
+        if (activationsText.includes('PRODUCTION') && activationsText.includes('ACTIVE')) {
+          status.productionActivated = true;
+          responseText += `✅ Production activation: ACTIVE\n\n`;
+        } else {
+          responseText += `⚠️ Production activation: NOT ACTIVE\n\n`;
+        }
+      } catch (error) {
+        responseText += `⚠️ Error checking activation status: ${error instanceof Error ? error.message : 'Unknown error'}\n\n`;
+      }
+    }
+
+    // Summary
+    responseText += `## Summary\n\n`;
+    responseText += `- [${status.propertyExists ? 'x' : ' '}] Property exists${status.propertyId ? ` (${status.propertyId})` : ''}\n`;
+    responseText += `- [${status.edgeHostnameCreated ? 'x' : ' '}] Edge hostname created${status.edgeHostname ? ` (${status.edgeHostname})` : ''}\n`;
+    responseText += `- [${status.dnsCnameConfigured ? 'x' : ' '}] DNS CNAME configured\n`;
+    responseText += `- [${status.certificateProvisioned ? 'x' : ' '}] Certificate provisioned\n`;
+    responseText += `- [${status.stagingActivated ? 'x' : ' '}] Staging activation\n`;
+    responseText += `- [${status.productionActivated ? 'x' : ' '}] Production activation\n\n`;
     
-    // TODO: Implement actual status checks
-    responseText += `## Checks to Perform\n\n`;
-    responseText += `- [ ] Property exists\n`;
-    responseText += `- [ ] Edge hostname created\n`;
-    responseText += `- [ ] DNS CNAME configured\n`;
-    responseText += `- [ ] Certificate provisioned\n`;
-    responseText += `- [ ] Staging activation status\n`;
-    responseText += `- [ ] Production activation status\n\n`;
-    
-    responseText += `To implement: Query property, edge hostname, DNS, and activation status.`;
+    // Next steps
+    if (!status.propertyExists) {
+      responseText += `**Next Step:** Run the onboarding process to create the property.\n`;
+    } else if (!status.edgeHostnameCreated) {
+      responseText += `**Next Step:** Create edge hostname for the property.\n`;
+    } else if (!status.certificateProvisioned) {
+      responseText += `**Next Step:** Wait for certificate provisioning to complete.\n`;
+    } else if (!status.dnsCnameConfigured) {
+      responseText += `**Next Step:** Configure DNS CNAME record.\n`;
+    } else if (!status.stagingActivated) {
+      responseText += `**Next Step:** Activate property on staging network.\n`;
+    } else if (!status.productionActivated) {
+      responseText += `**Next Step:** Activate property on production network.\n`;
+    } else {
+      responseText += `✨ **Property is fully onboarded and active!**\n`;
+    }
 
     return {
       content: [{

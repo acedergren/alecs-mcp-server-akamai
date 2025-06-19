@@ -1,159 +1,78 @@
-# Git
-.git
-.gitignore
-.github
-
-# Dependencies
-node_modules
+# Node modules
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-.pnpm-store
 
 # Build outputs
-dist
-build
-out
-.next
-.nuxt
-.cache
+dist/
+build/
 *.tsbuildinfo
 
-# Test coverage
-coverage
-.nyc_output
-test-results
-junit.xml
-
-# Documentation
-docs
-*.md
-LICENSE
-CHANGELOG.md
-CONTRIBUTING.md
-CODE_OF_CONDUCT.md
-
-# Development files
-.vscode
-.idea
+# IDE files
+.vscode/
+.idea/
 *.swp
 *.swo
 *~
+
+# OS files
 .DS_Store
 Thumbs.db
 
-# Environment files
-.env
-.env.*
-!.env.example
-.env.local
-.env.development
-.env.test
-.env.production
+# Git
+.git/
+.gitignore
+.gitattributes
 
-# Logs
-logs
-*.log
-lerna-debug.log*
+# Documentation
+*.md
+docs/
+LICENSE
 
-# Testing
-tests
-test
-spec
-__tests__
-__mocks__
+# Tests
+tests/
+coverage/
+.nyc_output/
 *.test.ts
 *.spec.ts
-*.test.js
-*.spec.js
-jest.config.*
-vitest.config.*
-cypress
-playwright
+__tests__/
 
 # CI/CD
+.github/
+.circleci/
 .travis.yml
-.circleci
 .gitlab-ci.yml
-azure-pipelines.yml
-.buildkite
-.drone.yml
-Jenkinsfile
 
-# Examples and demos
-examples
-demo
-samples
-
-# Temporary files
-*.tmp
-*.temp
-.temp.md
-tmp
-temp
-
-# Archives
-*.zip
-*.tar.gz
-*.tgz
-*.rar
-*.7z
-
-# Editor configs
-.editorconfig
+# Development files
+.env*
+!.env.example
+.edgerc
 .eslintrc*
 .prettierrc*
-.stylelintrc*
+.npmignore
+scripts/
+examples/
+*.log
 
-# Scripts (except essential ones)
-scripts
-!scripts/docker-entrypoint.sh
+# Archives and backups
+*.zip
+*.tar.gz
+*.rar
+.archive/
+backup/
 
-# Performance reports
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+.cache/
+
+# Large analysis outputs
 PERFORMANCE_AUDIT_REPORT.md
-performance-*.json
-benchmarks
-
-# Local development
-.local
-.cache
-.parcel-cache
-.turbo
-
-# OS files
-Desktop.ini
-.Spotlight-V100
-.Trashes
-
-# Package manager files
-.yarn
-.pnp.*
-yarn.lock
-package-lock.json
-pnpm-lock.yaml
-!package.json
-
-# TypeScript
-*.tsbuildinfo
-tsconfig.tsbuildinfo
-
-# Source maps
-*.map
-*.js.map
-*.css.map
-
-# Miscellaneous
-*.bak
-*.orig
-*.rej
-*.patch
-.history
-.vscode-test
-*.pid
-*.seed
-*.pid.lock
-
-# Keep only essential config files
-!tsconfig.json
-!.npmrc
+CACHE_OPPORTUNITY_ANALYSIS.md
+VALKEY_OPTIMIZATION_PLAN.md
+ISSUE_RESOLUTION_PLAN.md
+SECURITY_SERVER_TEST_REPORT.md
+PARAMETER_ANALYSIS_REPORT.md
