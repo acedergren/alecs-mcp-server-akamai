@@ -3,10 +3,10 @@
  * This version provides detailed error information and step-by-step feedback
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
 import { createProperty } from './property-tools';
-import { selectBestProduct, formatProductDisplay } from '../utils/product-mapping';
+import { selectBestProduct, formatProductDisplay } from '@utils/product-mapping';
 
 /**
  * Debug version of secure property onboarding with detailed error reporting
@@ -21,7 +21,7 @@ export async function debugSecurePropertyOnboarding(
     groupId: string;
     productId?: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   let text = `# 🔍 Debug: Secure Property Onboarding\n\n`;
   text += `**Target:** ${args.propertyName}\n`;
@@ -34,7 +34,7 @@ export async function debugSecurePropertyOnboarding(
     // Step 1: Validate inputs
     text += `## Step 1: Input Validation\n`;
     const validationErrors: string[] = [];
-    
+
     if (!args.propertyName || args.propertyName.trim().length === 0) {
       validationErrors.push('Property name is required');
     }
@@ -44,28 +44,30 @@ export async function debugSecurePropertyOnboarding(
     if (!args.originHostname || args.originHostname.trim().length === 0) {
       validationErrors.push('Origin hostname is required');
     }
-    if (!args.contractId || !args.contractId.startsWith('ctr_')) {
+    if (!args.contractId?.startsWith('ctr_')) {
       validationErrors.push('Valid contract ID is required (should start with ctr_)');
     }
-    if (!args.groupId || !args.groupId.startsWith('grp_')) {
+    if (!args.groupId?.startsWith('grp_')) {
       validationErrors.push('Valid group ID is required (should start with grp_)');
     }
 
     if (validationErrors.length > 0) {
       text += `❌ **Validation Failed:**\n`;
-      validationErrors.forEach(error => {
+      validationErrors.forEach((error) => {
         text += `- ${error}\n`;
       });
       text += `\n`;
-      
+
       return {
-        content: [{
-          type: 'text',
-          text,
-        }],
+        content: [
+          {
+            type: 'text',
+            text,
+          },
+        ],
       };
     }
-    
+
     text += `✅ **Input validation passed**\n\n`;
 
     // Step 2: Test API connectivity
@@ -75,12 +77,14 @@ export async function debugSecurePropertyOnboarding(
         path: '/papi/v1/groups',
         method: 'GET',
       });
-      
+
       if (groupsResponse.groups?.items) {
         text += `✅ **API connectivity working** (found ${groupsResponse.groups.items.length} groups)\n`;
-        
+
         // Verify the specified group exists
-        const targetGroup = groupsResponse.groups.items.find((g: any) => g.groupId === args.groupId);
+        const targetGroup = groupsResponse.groups.items.find(
+          (g: any) => g.groupId === args.groupId,
+        );
         if (targetGroup) {
           text += `✅ **Target group found:** ${targetGroup.groupName}\n`;
         } else {
@@ -97,12 +101,14 @@ export async function debugSecurePropertyOnboarding(
     } catch (apiError: any) {
       text += `❌ **API connectivity failed:** ${apiError.message}\n`;
       text += `\n`;
-      
+
       return {
-        content: [{
-          type: 'text',
-          text,
-        }],
+        content: [
+          {
+            type: 'text',
+            text,
+          },
+        ],
       };
     }
     text += `\n`;
@@ -110,7 +116,7 @@ export async function debugSecurePropertyOnboarding(
     // Step 3: Product selection
     text += `## Step 3: Product Selection\n`;
     let productId = args.productId;
-    
+
     if (!productId) {
       try {
         const productsResponse = await client.request({
@@ -143,11 +149,11 @@ export async function debugSecurePropertyOnboarding(
       text += `✅ **Using specified product:** ${formatProductDisplay(productId)}\n`;
     }
     text += `\n`;
-    
+
     // Step 4: Create property
     text += `## Step 4: Property Creation\n`;
     let propertyId: string | null = null;
-    
+
     try {
       const createPropResult = await createProperty(client, {
         propertyName: args.propertyName,
@@ -169,22 +175,26 @@ export async function debugSecurePropertyOnboarding(
       } else {
         text += `❌ **Property creation failed**\n`;
         text += `Response: ${createPropResult.content[0]?.text || 'No response'}\n`;
-        
+
         return {
-          content: [{
-            type: 'text',
-            text,
-          }],
+          content: [
+            {
+              type: 'text',
+              text,
+            },
+          ],
         };
       }
     } catch (propError: any) {
       text += `❌ **Property creation exception:** ${propError.message}\n`;
-      
+
       return {
-        content: [{
-          type: 'text',
-          text,
-        }],
+        content: [
+          {
+            type: 'text',
+            text,
+          },
+        ],
       };
     }
     text += `\n`;
@@ -198,7 +208,7 @@ export async function debugSecurePropertyOnboarding(
           path: `/papi/v1/properties/${propertyId}`,
           method: 'GET',
         });
-        
+
         if (!propertyResponse.properties?.items?.[0]) {
           text += `❌ **Cannot retrieve property details for ${propertyId}**\n`;
         } else {
@@ -207,11 +217,11 @@ export async function debugSecurePropertyOnboarding(
           text += `- Contract: ${property.contractId}\n`;
           text += `- Group: ${property.groupId}\n`;
           text += `- Product: ${formatProductDisplay(property.productId)}\n`;
-          
+
           // Generate edge hostname prefix
           const edgeHostnamePrefix = args.propertyName.toLowerCase().replace(/[^a-z0-9-]/g, '-');
           text += `- Edge hostname prefix: ${edgeHostnamePrefix}\n`;
-          
+
           // Test edge hostname creation with minimal parameters
           try {
             const edgeResponse = await client.request({
@@ -228,7 +238,7 @@ export async function debugSecurePropertyOnboarding(
                 ipVersionBehavior: 'IPV4_IPV6',
               },
             });
-            
+
             if (edgeResponse.edgeHostnameLink) {
               const edgeHostnameId = edgeResponse.edgeHostnameLink.split('/').pop();
               const edgeHostnameDomain = `${edgeHostnamePrefix}.edgekey.net`;
@@ -268,22 +278,25 @@ export async function debugSecurePropertyOnboarding(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
-
   } catch (error: any) {
     text += `\n## ❌ Unexpected Error\n`;
     text += `**Message:** ${error.message}\n`;
     text += `**Stack:** ${error.stack}\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   }
 }
@@ -298,11 +311,11 @@ export async function testBasicPropertyCreation(
     contractId: string;
     groupId: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     let text = `# 🧪 Basic Property Creation Test\n\n`;
-    
+
     // Test 1: API connectivity
     text += `## Test 1: API Connectivity\n`;
     try {
@@ -314,10 +327,12 @@ export async function testBasicPropertyCreation(
     } catch (apiError: any) {
       text += `❌ API not accessible: ${apiError.message}\n\n`;
       return {
-        content: [{
-          type: 'text',
-          text,
-        }],
+        content: [
+          {
+            type: 'text',
+            text,
+          },
+        ],
       };
     }
 
@@ -345,7 +360,7 @@ export async function testBasicPropertyCreation(
     } catch (productError: any) {
       text += `⚠️ Product lookup failed, using default: Ion (prd_fresca)\n\n`;
     }
-    
+
     // Test 3: Property creation
     text += `## Test 3: Property Creation\n`;
     const result = await createProperty(client, {
@@ -359,18 +374,21 @@ export async function testBasicPropertyCreation(
     text += result.content[0]?.text || 'No response';
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
-
   } catch (error: any) {
     return {
-      content: [{
-        type: 'text',
-        text: `❌ Test failed: ${error.message}`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `❌ Test failed: ${error.message}`,
+        },
+      ],
     };
   }
 }

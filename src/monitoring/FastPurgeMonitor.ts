@@ -1,8 +1,8 @@
-import { FastPurgeService } from '../services/FastPurgeService';
-import { PurgeQueueManager } from '../services/PurgeQueueManager';
-import { PurgeStatusTracker } from '../services/PurgeStatusTracker';
-import { CustomerConfigManager } from '../utils/customer-config';
-import { logger } from '../utils/logger';
+import { FastPurgeService } from '@services/FastPurgeService';
+import { PurgeQueueManager } from '@services/PurgeQueueManager';
+import { PurgeStatusTracker } from '@services/PurgeStatusTracker';
+import { CustomerConfigManager } from '@utils/customer-config';
+import { logger } from '@utils/logger';
 
 export interface FastPurgeMetrics {
   timestamp: Date;
@@ -75,7 +75,7 @@ export class FastPurgeMonitor {
   private configManager: CustomerConfigManager;
   private metrics: Map<string, FastPurgeMetrics[]> = new Map();
   private alertConditions: AlertCondition[] = [];
-  private isCollecting: boolean = false;
+  private isCollecting = false;
   private collectionInterval?: NodeJS.Timeout;
 
   private constructor() {
@@ -101,7 +101,7 @@ export class FastPurgeMonitor {
         condition: (metrics) => metrics.successRate < 95,
         severity: 'critical',
         message: 'FastPurge success rate below 95%',
-        cooldownMinutes: 15
+        cooldownMinutes: 15,
       },
       {
         id: 'queue_backup',
@@ -109,7 +109,7 @@ export class FastPurgeMonitor {
         condition: (metrics) => metrics.queueDepth > 1000,
         severity: 'warning',
         message: 'FastPurge queue backup exceeding 1000 operations',
-        cooldownMinutes: 10
+        cooldownMinutes: 10,
       },
       {
         id: 'rate_limit_high',
@@ -117,7 +117,7 @@ export class FastPurgeMonitor {
         condition: (metrics) => metrics.rateLimitUtilization > 80,
         severity: 'warning',
         message: 'Rate limit consumption above 80%',
-        cooldownMinutes: 5
+        cooldownMinutes: 5,
       },
       {
         id: 'error_rate_high',
@@ -125,7 +125,7 @@ export class FastPurgeMonitor {
         condition: (metrics) => metrics.errorRate > 10,
         severity: 'critical',
         message: 'FastPurge error rate above 10%',
-        cooldownMinutes: 10
+        cooldownMinutes: 10,
       },
       {
         id: 'api_degradation',
@@ -133,12 +133,12 @@ export class FastPurgeMonitor {
         condition: (metrics) => metrics.averageCompletionTime > 15,
         severity: 'warning',
         message: 'Average completion time exceeding 15 seconds',
-        cooldownMinutes: 15
-      }
+        cooldownMinutes: 15,
+      },
     ];
   }
 
-  async startCollection(intervalMs: number = 60000): Promise<void> {
+  async startCollection(intervalMs = 60000): Promise<void> {
     if (this.isCollecting) {
       return;
     }
@@ -166,22 +166,25 @@ export class FastPurgeMonitor {
   private async collectMetrics(): Promise<void> {
     try {
       const customers = await this.configManager.getCustomers();
-      
+
       for (const customer of customers) {
         const metrics = await this.generateMetrics(customer);
-        
+
         // Store metrics
         if (!this.metrics.has(customer)) {
           this.metrics.set(customer, []);
         }
-        
+
         const customerMetrics = this.metrics.get(customer)!;
         customerMetrics.push(metrics);
-        
+
         // Keep only last 24 hours of metrics
-        const cutoff = Date.now() - (24 * 60 * 60 * 1000);
-        this.metrics.set(customer, customerMetrics.filter(m => m.timestamp.getTime() > cutoff));
-        
+        const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+        this.metrics.set(
+          customer,
+          customerMetrics.filter((m) => m.timestamp.getTime() > cutoff),
+        );
+
         // Check alerts
         await this.checkAlerts(metrics);
       }
@@ -214,8 +217,8 @@ export class FastPurgeMonitor {
       costMetrics: {
         operationsToday,
         projectedMonthly,
-        efficiency: this.calculateEfficiency(dashboard)
-      }
+        efficiency: this.calculateEfficiency(dashboard),
+      },
     };
   }
 
@@ -224,8 +227,8 @@ export class FastPurgeMonitor {
     const successWeight = dashboard.performance.successRate;
     const throughputWeight = Math.min(100, dashboard.performance.throughput);
     const latencyWeight = Math.max(0, 100 - dashboard.averageCompletionTime);
-    
-    return (successWeight * 0.5 + throughputWeight * 0.3 + latencyWeight * 0.2);
+
+    return successWeight * 0.5 + throughputWeight * 0.3 + latencyWeight * 0.2;
   }
 
   private async checkAlerts(metrics: FastPurgeMetrics): Promise<void> {
@@ -233,8 +236,11 @@ export class FastPurgeMonitor {
       if (condition.condition(metrics)) {
         const now = new Date();
         const lastTriggered = condition.lastTriggered;
-        
-        if (!lastTriggered || now.getTime() - lastTriggered.getTime() > condition.cooldownMinutes * 60 * 1000) {
+
+        if (
+          !lastTriggered ||
+          now.getTime() - lastTriggered.getTime() > condition.cooldownMinutes * 60 * 1000
+        ) {
           condition.lastTriggered = now;
           await this.triggerAlert(condition, metrics);
         }
@@ -253,27 +259,32 @@ export class FastPurgeMonitor {
         successRate: metrics.successRate,
         queueDepth: metrics.queueDepth,
         rateLimitUtilization: metrics.rateLimitUtilization,
-        errorRate: metrics.errorRate
-      }
+        errorRate: metrics.errorRate,
+      },
     };
 
-    logger.warn(`FastPurge Alert [${condition.severity.toUpperCase()}] ${metrics.customer}: ${condition.message}`, alert);
-    
+    logger.warn(
+      `FastPurge Alert [${condition.severity.toUpperCase()}] ${metrics.customer}: ${condition.message}`,
+      alert,
+    );
+
     // In a production environment, you would send this to your alerting system
     // Examples: PagerDuty, Slack, email, etc.
   }
 
-  async getHealthCheck(customer?: string): Promise<HealthCheckResult | Map<string, HealthCheckResult>> {
+  async getHealthCheck(
+    customer?: string,
+  ): Promise<HealthCheckResult | Map<string, HealthCheckResult>> {
     if (customer) {
       return this.performHealthCheck(customer);
     } else {
       const customers = await this.configManager.getCustomers();
       const results = new Map<string, HealthCheckResult>();
-      
+
       for (const cust of customers) {
         results.set(cust, await this.performHealthCheck(cust));
       }
-      
+
       return results;
     }
   }
@@ -286,12 +297,12 @@ export class FastPurgeMonitor {
     // Test API connectivity
     let apiLatency = 0;
     let apiHealth: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
-    
+
     try {
       const start = Date.now();
       await this.fastPurgeService.getRateLimitStatus(customer);
       apiLatency = Date.now() - start;
-      
+
       if (apiLatency > 5000) apiHealth = 'unhealthy';
       else if (apiLatency > 2000) apiHealth = 'degraded';
     } catch (error) {
@@ -300,28 +311,34 @@ export class FastPurgeMonitor {
     }
 
     // Assess queue health
-    const queueHealth: 'healthy' | 'unhealthy' | 'degraded' = queueStats.failed > queueStats.completed * 0.1 ? 'degraded' : 'healthy';
-    
+    const queueHealth: 'healthy' | 'unhealthy' | 'degraded' =
+      queueStats.failed > queueStats.completed * 0.1 ? 'degraded' : 'healthy';
+
     // Assess status tracker health
-    const statusHealth: 'healthy' | 'unhealthy' | 'degraded' = dashboard.performance.successRate < 95 ? 'degraded' : 'healthy';
-    
+    const statusHealth: 'healthy' | 'unhealthy' | 'degraded' =
+      dashboard.performance.successRate < 95 ? 'degraded' : 'healthy';
+
     // Assess rate limiting health
-    const rateLimitHealth: 'healthy' | 'unhealthy' | 'degraded' = rateLimitStatus.available < 10 ? 'degraded' : 'healthy';
+    const rateLimitHealth: 'healthy' | 'unhealthy' | 'degraded' =
+      rateLimitStatus.available < 10 ? 'degraded' : 'healthy';
 
     const components = {
       fastPurgeApi: apiHealth,
       queueManager: queueHealth,
       statusTracker: statusHealth,
-      rateLimiting: rateLimitHealth
+      rateLimiting: rateLimitHealth,
     };
 
     // Determine overall health
     const healthScores = Object.values(components);
-    const overall = healthScores.includes('unhealthy') ? 'unhealthy' :
-                   healthScores.includes('degraded') ? 'degraded' : 'healthy';
+    const overall = healthScores.includes('unhealthy')
+      ? 'unhealthy'
+      : healthScores.includes('degraded')
+        ? 'degraded'
+        : 'healthy';
 
     const recommendations: string[] = [];
-    
+
     if (apiHealth === 'degraded') {
       recommendations.push('API response times are elevated - consider reducing batch sizes');
     }
@@ -342,29 +359,31 @@ export class FastPurgeMonitor {
         apiLatency,
         queueProcessingRate: queueStats.throughputRate,
         errorRate: 100 - dashboard.performance.successRate,
-        rateLimitHealth: rateLimitStatus.available
+        rateLimitHealth: rateLimitStatus.available,
       },
-      recommendations
+      recommendations,
     };
   }
 
-  async getMetricsSummary(customer: string, hoursBack: number = 24): Promise<any> {
+  async getMetricsSummary(customer: string, hoursBack = 24): Promise<any> {
     const customerMetrics = this.metrics.get(customer) || [];
-    const cutoff = Date.now() - (hoursBack * 60 * 60 * 1000);
-    const recentMetrics = customerMetrics.filter(m => m.timestamp.getTime() > cutoff);
+    const cutoff = Date.now() - hoursBack * 60 * 60 * 1000;
+    const recentMetrics = customerMetrics.filter((m) => m.timestamp.getTime() > cutoff);
 
     if (recentMetrics.length === 0) {
       return {
         customer,
         message: 'No metrics available for the specified time period',
-        hoursBack
+        hoursBack,
       };
     }
 
     // Calculate aggregated metrics
-    const avgSuccessRate = recentMetrics.reduce((sum, m) => sum + m.successRate, 0) / recentMetrics.length;
-    const avgCompletionTime = recentMetrics.reduce((sum, m) => sum + m.averageCompletionTime, 0) / recentMetrics.length;
-    const maxQueueDepth = Math.max(...recentMetrics.map(m => m.queueDepth));
+    const avgSuccessRate =
+      recentMetrics.reduce((sum, m) => sum + m.successRate, 0) / recentMetrics.length;
+    const avgCompletionTime =
+      recentMetrics.reduce((sum, m) => sum + m.averageCompletionTime, 0) / recentMetrics.length;
+    const maxQueueDepth = Math.max(...recentMetrics.map((m) => m.queueDepth));
     const totalThroughput = recentMetrics.reduce((sum, m) => sum + m.throughput, 0);
 
     return {
@@ -375,33 +394,34 @@ export class FastPurgeMonitor {
         averageCompletionTime: Math.round(avgCompletionTime * 100) / 100,
         maxQueueDepth,
         totalThroughput,
-        dataPoints: recentMetrics.length
+        dataPoints: recentMetrics.length,
       },
       trends: {
-        successRateTrend: this.calculateTrend(recentMetrics.map(m => m.successRate)),
-        throughputTrend: this.calculateTrend(recentMetrics.map(m => m.throughput)),
-        latencyTrend: this.calculateTrend(recentMetrics.map(m => m.averageCompletionTime))
+        successRateTrend: this.calculateTrend(recentMetrics.map((m) => m.successRate)),
+        throughputTrend: this.calculateTrend(recentMetrics.map((m) => m.throughput)),
+        latencyTrend: this.calculateTrend(recentMetrics.map((m) => m.averageCompletionTime)),
       },
       costAnalysis: {
         totalOperations: recentMetrics[recentMetrics.length - 1]?.costMetrics.operationsToday || 0,
-        projectedMonthly: recentMetrics[recentMetrics.length - 1]?.costMetrics.projectedMonthly || 0,
-        efficiency: recentMetrics[recentMetrics.length - 1]?.costMetrics.efficiency || 0
-      }
+        projectedMonthly:
+          recentMetrics[recentMetrics.length - 1]?.costMetrics.projectedMonthly || 0,
+        efficiency: recentMetrics[recentMetrics.length - 1]?.costMetrics.efficiency || 0,
+      },
     };
   }
 
   private calculateTrend(values: number[]): 'increasing' | 'decreasing' | 'stable' {
     if (values.length < 2) return 'stable';
-    
+
     const first = values.slice(0, Math.ceil(values.length / 2));
     const second = values.slice(Math.floor(values.length / 2));
-    
+
     const firstAvg = first.reduce((a, b) => a + b, 0) / first.length;
     const secondAvg = second.reduce((a, b) => a + b, 0) / second.length;
-    
+
     const diff = secondAvg - firstAvg;
     const threshold = firstAvg * 0.05; // 5% threshold
-    
+
     if (diff > threshold) return 'increasing';
     if (diff < -threshold) return 'decreasing';
     return 'stable';
@@ -410,14 +430,14 @@ export class FastPurgeMonitor {
   async generateCapacityPlan(customer: string): Promise<CapacityPlan> {
     const dashboard = await this.statusTracker.getCustomerDashboard(customer);
     const customerMetrics = this.metrics.get(customer) || [];
-    
+
     // Calculate usage patterns
     const daily = dashboard.completedToday;
     const weekly = customerMetrics
-      .filter(m => Date.now() - m.timestamp.getTime() < 7 * 24 * 60 * 60 * 1000)
+      .filter((m) => Date.now() - m.timestamp.getTime() < 7 * 24 * 60 * 60 * 1000)
       .reduce((sum, m) => sum + m.costMetrics.operationsToday, 0);
     const monthly = customerMetrics
-      .filter(m => Date.now() - m.timestamp.getTime() < 30 * 24 * 60 * 60 * 1000)
+      .filter((m) => Date.now() - m.timestamp.getTime() < 30 * 24 * 60 * 60 * 1000)
       .reduce((sum, m) => sum + m.costMetrics.operationsToday, 0);
 
     // Project future usage based on trends
@@ -429,24 +449,32 @@ export class FastPurgeMonitor {
     const recommendations = {
       rateLimitOptimization: [] as string[],
       batchingImprovements: [] as string[],
-      costOptimization: [] as string[]
+      costOptimization: [] as string[],
     };
 
     const alerts: string[] = [];
 
     // Generate recommendations
     if (dashboard.rateLimitUtilization > 70) {
-      recommendations.rateLimitOptimization.push('Implement queue-based processing to handle rate limits');
-      recommendations.rateLimitOptimization.push('Consider spreading operations across multiple time periods');
+      recommendations.rateLimitOptimization.push(
+        'Implement queue-based processing to handle rate limits',
+      );
+      recommendations.rateLimitOptimization.push(
+        'Consider spreading operations across multiple time periods',
+      );
     }
 
     if (dashboard.performance.averageLatency > 10) {
       recommendations.batchingImprovements.push('Optimize batch sizes for better throughput');
-      recommendations.batchingImprovements.push('Review object size distribution for batching efficiency');
+      recommendations.batchingImprovements.push(
+        'Review object size distribution for batching efficiency',
+      );
     }
 
     if (growthRate > 0.5) {
-      recommendations.costOptimization.push('High growth rate detected - consider cache tag optimization');
+      recommendations.costOptimization.push(
+        'High growth rate detected - consider cache tag optimization',
+      );
       alerts.push('Rapid usage growth may impact costs');
     }
 
@@ -455,21 +483,23 @@ export class FastPurgeMonitor {
       currentUsage: { daily, weekly, monthly },
       projectedUsage: { nextWeek, nextMonth, nextQuarter },
       recommendations,
-      alerts
+      alerts,
     };
   }
 
   private calculateGrowthRate(metrics: FastPurgeMetrics[]): number {
     if (metrics.length < 2) return 0;
-    
+
     const recent = metrics.slice(-7); // Last 7 data points
     const older = metrics.slice(-14, -7); // Previous 7 data points
-    
+
     if (older.length === 0) return 0;
-    
-    const recentAvg = recent.reduce((sum, m) => sum + m.costMetrics.operationsToday, 0) / recent.length;
-    const olderAvg = older.reduce((sum, m) => sum + m.costMetrics.operationsToday, 0) / older.length;
-    
+
+    const recentAvg =
+      recent.reduce((sum, m) => sum + m.costMetrics.operationsToday, 0) / recent.length;
+    const olderAvg =
+      older.reduce((sum, m) => sum + m.costMetrics.operationsToday, 0) / older.length;
+
     return olderAvg > 0 ? (recentAvg - olderAvg) / olderAvg : 0;
   }
 
@@ -485,15 +515,23 @@ export class FastPurgeMonitor {
 
   async exportMetrics(customer: string, format: 'json' | 'csv' = 'json'): Promise<string> {
     const customerMetrics = this.metrics.get(customer) || [];
-    
+
     if (format === 'csv') {
       const headers = [
-        'timestamp', 'customer', 'successRate', 'averageCompletionTime',
-        'rateLimitUtilization', 'queueDepth', 'throughput', 'errorRate',
-        'operationsToday', 'projectedMonthly', 'efficiency'
+        'timestamp',
+        'customer',
+        'successRate',
+        'averageCompletionTime',
+        'rateLimitUtilization',
+        'queueDepth',
+        'throughput',
+        'errorRate',
+        'operationsToday',
+        'projectedMonthly',
+        'efficiency',
       ];
-      
-      const rows = customerMetrics.map(m => [
+
+      const rows = customerMetrics.map((m) => [
         m.timestamp.toISOString(),
         m.customer,
         m.successRate,
@@ -504,10 +542,10 @@ export class FastPurgeMonitor {
         m.errorRate,
         m.costMetrics.operationsToday,
         m.costMetrics.projectedMonthly,
-        m.costMetrics.efficiency
+        m.costMetrics.efficiency,
       ]);
-      
-      return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+
+      return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
     } else {
       return JSON.stringify(customerMetrics, null, 2);
     }

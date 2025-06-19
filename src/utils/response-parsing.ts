@@ -1,6 +1,6 @@
 /**
  * Response Parsing Utilities
- * 
+ *
  * Comprehensive response parsing and validation for all Akamai API responses
  * based on documented response schemas.
  */
@@ -52,9 +52,9 @@ export const PropertyResponseSchemas = {
     note: z.string().optional(),
     productId: z.string().optional(),
     ruleFormat: z.string().optional(),
-    hostnames: z.array(z.string()).optional()
+    hostnames: z.array(z.string()).optional(),
   }),
-  
+
   propertyVersion: z.object({
     propertyVersion: z.number(),
     updatedByUser: z.string().optional(),
@@ -62,9 +62,9 @@ export const PropertyResponseSchemas = {
     productionStatus: z.enum(['ACTIVE', 'INACTIVE', 'PENDING', 'ABORTED']).optional(),
     stagingStatus: z.enum(['ACTIVE', 'INACTIVE', 'PENDING', 'ABORTED']).optional(),
     etag: z.string().optional(),
-    note: z.string().optional()
+    note: z.string().optional(),
   }),
-  
+
   activation: z.object({
     activationId: z.string(),
     propertyName: z.string(),
@@ -82,32 +82,48 @@ export const PropertyResponseSchemas = {
     acknowledgeAllWarnings: z.boolean().optional(),
     useFastFallback: z.boolean().optional(),
     fastPush: z.boolean().optional(),
-    warnings: z.array(z.object({
-      type: z.string(),
-      title: z.string(),
-      detail: z.string().optional()
-    })).optional()
+    warnings: z
+      .array(
+        z.object({
+          type: z.string(),
+          title: z.string(),
+          detail: z.string().optional(),
+        }),
+      )
+      .optional(),
   }),
-  
+
   hostname: z.object({
     cnameFrom: z.string(),
     cnameTo: z.string(),
     cnameType: z.enum(['EDGE_HOSTNAME']).optional(),
     edgeHostnameId: z.string().optional(),
     certProvisioningType: z.enum(['DEFAULT', 'CPS_MANAGED']).optional(),
-    certStatus: z.object({
-      validationCname: z.object({
-        hostname: z.string(),
-        target: z.string()
-      }).optional(),
-      staging: z.array(z.object({
-        status: z.string()
-      })).optional(),
-      production: z.array(z.object({
-        status: z.string()
-      })).optional()
-    }).optional()
-  })
+    certStatus: z
+      .object({
+        validationCname: z
+          .object({
+            hostname: z.string(),
+            target: z.string(),
+          })
+          .optional(),
+        staging: z
+          .array(
+            z.object({
+              status: z.string(),
+            }),
+          )
+          .optional(),
+        production: z
+          .array(
+            z.object({
+              status: z.string(),
+            }),
+          )
+          .optional(),
+      })
+      .optional(),
+  }),
 };
 
 // DNS response schemas
@@ -119,33 +135,35 @@ export const DNSResponseSchemas = {
     comment: z.string().optional(),
     signAndServe: z.boolean().optional(),
     signAndServeAlgorithm: z.string().optional(),
-    tsigKey: z.object({
-      name: z.string(),
-      algorithm: z.string(),
-      secret: z.string()
-    }).optional(),
+    tsigKey: z
+      .object({
+        name: z.string(),
+        algorithm: z.string(),
+        secret: z.string(),
+      })
+      .optional(),
     target: z.string().optional(),
     endCustomerId: z.string().optional(),
     contractId: z.string(),
     activationState: z.enum(['ACTIVE', 'INACTIVE', 'PENDING']).optional(),
     lastActivationDate: z.string().optional(),
-    versionId: z.string().optional()
+    versionId: z.string().optional(),
   }),
-  
+
   record: z.object({
     name: z.string(),
     type: z.string(),
     ttl: z.number(),
-    rdata: z.array(z.string())
+    rdata: z.array(z.string()),
   }),
-  
+
   changelist: z.object({
     zone: z.string(),
     changeId: z.string().optional(),
     status: z.enum(['PENDING', 'ACTIVE', 'FAILED']).optional(),
     submittedDate: z.string().optional(),
-    submittedBy: z.string().optional()
-  })
+    submittedBy: z.string().optional(),
+  }),
 };
 
 // Certificate response schemas
@@ -162,7 +180,7 @@ export const CertificateResponseSchemas = {
     networkConfiguration: z.object({
       geography: z.enum(['core', 'china', 'russia']),
       secureNetwork: z.enum(['standard-tls', 'enhanced-tls', 'shared-cert']),
-      quicEnabled: z.boolean().optional()
+      quicEnabled: z.boolean().optional(),
     }),
     csr: z.object({
       cn: z.string(),
@@ -171,42 +189,54 @@ export const CertificateResponseSchemas = {
       st: z.string().optional(),
       l: z.string().optional(),
       o: z.string().optional(),
-      ou: z.string().optional()
+      ou: z.string().optional(),
     }),
-    adminContact: z.object({
-      firstName: z.string(),
-      lastName: z.string(),
-      email: z.string(),
-      phone: z.string()
-    }).optional(),
-    techContact: z.object({
-      firstName: z.string(),
-      lastName: z.string(),
-      email: z.string(),
-      phone: z.string()
-    }).optional(),
+    adminContact: z
+      .object({
+        firstName: z.string(),
+        lastName: z.string(),
+        email: z.string(),
+        phone: z.string(),
+      })
+      .optional(),
+    techContact: z
+      .object({
+        firstName: z.string(),
+        lastName: z.string(),
+        email: z.string(),
+        phone: z.string(),
+      })
+      .optional(),
     pendingChanges: z.array(z.string()).optional(),
     maxAllowedSanNames: z.number().optional(),
     maxAllowedWildcardSanNames: z.number().optional(),
-    autoRenewalStartTime: z.string().optional()
+    autoRenewalStartTime: z.string().optional(),
   }),
-  
+
   dvChallenge: z.object({
     domain: z.string(),
     validationStatus: z.enum(['pending', 'processing', 'valid', 'invalid']),
-    validationRecords: z.array(z.object({
-      hostname: z.string(),
-      recordType: z.enum(['CNAME', 'TXT']),
-      target: z.string()
-    })).optional(),
-    challenges: z.array(z.object({
-      type: z.enum(['dns-01', 'http-01']),
-      status: z.enum(['pending', 'processing', 'valid', 'invalid']),
-      token: z.string().optional(),
-      keyAuthorization: z.string().optional()
-    })).optional(),
-    expires: z.string().optional()
-  })
+    validationRecords: z
+      .array(
+        z.object({
+          hostname: z.string(),
+          recordType: z.enum(['CNAME', 'TXT']),
+          target: z.string(),
+        }),
+      )
+      .optional(),
+    challenges: z
+      .array(
+        z.object({
+          type: z.enum(['dns-01', 'http-01']),
+          status: z.enum(['pending', 'processing', 'valid', 'invalid']),
+          token: z.string().optional(),
+          keyAuthorization: z.string().optional(),
+        }),
+      )
+      .optional(),
+    expires: z.string().optional(),
+  }),
 };
 
 // Fast Purge response schemas
@@ -216,17 +246,17 @@ export const FastPurgeResponseSchemas = {
     detail: z.string(),
     estimatedSeconds: z.number(),
     purgeId: z.string(),
-    supportId: z.string().optional()
+    supportId: z.string().optional(),
   }),
-  
+
   purgeStatus: z.object({
     httpStatus: z.number(),
     detail: z.string(),
     status: z.enum(['In-Progress', 'Done', 'Error']),
     submittedBy: z.string().optional(),
     submissionTime: z.string().optional(),
-    completionTime: z.string().optional()
-  })
+    completionTime: z.string().optional(),
+  }),
 };
 
 // Network Lists response schemas
@@ -241,16 +271,18 @@ export const NetworkListResponseSchemas = {
     syncPoint: z.number().optional(),
     elementCount: z.number(),
     elements: z.array(z.string()).optional(),
-    links: z.object({
-      activateInProduction: z.string().optional(),
-      activateInStaging: z.string().optional(),
-      appendItems: z.string().optional(),
-      retrieve: z.string().optional(),
-      statusInProduction: z.string().optional(),
-      statusInStaging: z.string().optional(),
-      update: z.string().optional()
-    }).optional()
-  })
+    links: z
+      .object({
+        activateInProduction: z.string().optional(),
+        activateInStaging: z.string().optional(),
+        appendItems: z.string().optional(),
+        retrieve: z.string().optional(),
+        statusInProduction: z.string().optional(),
+        statusInStaging: z.string().optional(),
+        update: z.string().optional(),
+      })
+      .optional(),
+  }),
 };
 
 /**
@@ -262,7 +294,7 @@ export class ResponseParser {
    */
   static parsePropertyResponse(response: any): any {
     if (!response) return response;
-    
+
     if (response.properties?.items) {
       return {
         properties: response.properties.items.map((item: any) => {
@@ -273,65 +305,61 @@ export class ResponseParser {
             return item;
           }
         }),
-        pagination: ResponseParser.extractPaginationInfo(response)
+        pagination: ResponseParser.extractPaginationInfo(response),
       };
     }
-    
+
     if (response.versions?.items) {
       return {
         versions: response.versions.items.map((item: any) =>
-          PropertyResponseSchemas.propertyVersion.parse(item)
+          PropertyResponseSchemas.propertyVersion.parse(item),
         ),
-        pagination: ResponseParser.extractPaginationInfo(response)
+        pagination: ResponseParser.extractPaginationInfo(response),
       };
     }
-    
+
     if (response.activations?.items) {
       return {
         activations: response.activations.items.map((item: any) =>
-          PropertyResponseSchemas.activation.parse(item)
+          PropertyResponseSchemas.activation.parse(item),
         ),
-        pagination: ResponseParser.extractPaginationInfo(response)
+        pagination: ResponseParser.extractPaginationInfo(response),
       };
     }
-    
+
     if (response.hostnames?.items) {
       return {
         hostnames: response.hostnames.items.map((item: any) =>
-          PropertyResponseSchemas.hostname.parse(item)
-        )
+          PropertyResponseSchemas.hostname.parse(item),
+        ),
       };
     }
-    
+
     return response;
   }
-  
+
   /**
    * Parse DNS responses
    */
   static parseDNSResponse(response: any): any {
     if (!response) return response;
-    
+
     if (response.zones) {
       return {
-        zones: response.zones.map((item: any) =>
-          DNSResponseSchemas.zone.parse(item)
-        ),
-        pagination: ResponseParser.extractPaginationInfo(response)
+        zones: response.zones.map((item: any) => DNSResponseSchemas.zone.parse(item)),
+        pagination: ResponseParser.extractPaginationInfo(response),
       };
     }
-    
+
     if (response.recordsets) {
       return {
-        records: response.recordsets.map((item: any) =>
-          DNSResponseSchemas.record.parse(item)
-        )
+        records: response.recordsets.map((item: any) => DNSResponseSchemas.record.parse(item)),
       };
     }
-    
+
     return response;
   }
-  
+
   /**
    * Parse Certificate responses
    */
@@ -339,22 +367,22 @@ export class ResponseParser {
     if (response.enrollments) {
       return {
         enrollments: response.enrollments.map((item: any) =>
-          CertificateResponseSchemas.enrollment.parse(item)
-        )
+          CertificateResponseSchemas.enrollment.parse(item),
+        ),
       };
     }
-    
+
     if (response.domainHistory) {
       return {
         validationHistory: response.domainHistory.map((item: any) =>
-          CertificateResponseSchemas.dvChallenge.parse(item)
-        )
+          CertificateResponseSchemas.dvChallenge.parse(item),
+        ),
       };
     }
-    
+
     return response;
   }
-  
+
   /**
    * Parse Fast Purge responses
    */
@@ -362,14 +390,19 @@ export class ResponseParser {
     if (response.httpStatus && response.purgeId) {
       return FastPurgeResponseSchemas.purgeResponse.parse(response);
     }
-    
-    if (response.status && (response.status === 'In-Progress' || response.status === 'Done' || response.status === 'Error')) {
+
+    if (
+      response.status &&
+      (response.status === 'In-Progress' ||
+        response.status === 'Done' ||
+        response.status === 'Error')
+    ) {
       return FastPurgeResponseSchemas.purgeStatus.parse(response);
     }
-    
+
     return response;
   }
-  
+
   /**
    * Parse Network Lists responses
    */
@@ -377,49 +410,52 @@ export class ResponseParser {
     if (Array.isArray(response)) {
       return {
         networkLists: response.map((item: any) =>
-          NetworkListResponseSchemas.networkList.parse(item)
-        )
+          NetworkListResponseSchemas.networkList.parse(item),
+        ),
       };
     }
-    
+
     if (response.uniqueId) {
       return NetworkListResponseSchemas.networkList.parse(response);
     }
-    
+
     return response;
   }
-  
+
   /**
    * Extract pagination information from responses
    */
   static extractPaginationInfo(response: any): any {
     const pagination: any = {};
-    
+
     if (response.totalItems !== undefined) {
       pagination.totalItems = response.totalItems;
     }
-    
+
     if (response.pageSize !== undefined) {
       pagination.pageSize = response.pageSize;
     }
-    
+
     if (response.currentPage !== undefined) {
       pagination.currentPage = response.currentPage;
     }
-    
+
     if (response.links) {
       pagination.links = response.links;
     }
-    
+
     return Object.keys(pagination).length > 0 ? pagination : undefined;
   }
-  
+
   /**
    * Parse error responses with enhanced context
    */
-  static parseErrorResponse(error: any, context?: { endpoint?: string; operation?: string }): AkamaiErrorResponse {
+  static parseErrorResponse(
+    error: any,
+    context?: { endpoint?: string; operation?: string },
+  ): AkamaiErrorResponse {
     let errorData: any = error.response?.data || error.data || error;
-    
+
     // Handle string responses
     if (typeof errorData === 'string') {
       try {
@@ -428,11 +464,11 @@ export class ResponseParser {
         return {
           title: 'API Error',
           detail: errorData,
-          status: error.response?.status || error.status || 500
+          status: error.response?.status || error.status || 500,
         };
       }
     }
-    
+
     // Extract error information
     const parsedError: AkamaiErrorResponse = {
       title: errorData.title || errorData.error || 'Unknown Error',
@@ -440,22 +476,22 @@ export class ResponseParser {
       status: errorData.status || error.response?.status || error.status,
       type: errorData.type,
       instance: errorData.instance,
-      requestId: errorData.requestId || error.response?.headers?.['x-request-id']
+      requestId: errorData.requestId || error.response?.headers?.['x-request-id'],
     };
-    
+
     // Extract detailed error information
     if (errorData.errors && Array.isArray(errorData.errors)) {
       parsedError.errors = errorData.errors.map((err: any) => ({
         type: err.type,
         title: err.title || err.message,
         detail: err.detail || err.description,
-        field: err.field || err.path
+        field: err.field || err.path,
       }));
     }
-    
+
     return parsedError;
   }
-  
+
   /**
    * Validate response against expected schema
    */
@@ -466,79 +502,81 @@ export class ResponseParser {
       if (error instanceof z.ZodError) {
         console.warn('Response validation failed:', {
           errors: error.errors,
-          response: JSON.stringify(response, null, 2)
+          response: JSON.stringify(response, null, 2),
         });
       }
       // Return original response if validation fails (for backward compatibility)
       return response;
     }
   }
-  
+
   /**
    * Extract all metadata from response headers
    */
   static extractResponseMetadata(response: any): any {
     const metadata: any = {};
-    
+
     if (response.headers) {
       // Rate limiting information
       if (response.headers['x-ratelimit-limit']) {
         metadata.rateLimit = {
           limit: parseInt(response.headers['x-ratelimit-limit']),
           remaining: parseInt(response.headers['x-ratelimit-remaining']),
-          reset: parseInt(response.headers['x-ratelimit-reset'])
+          reset: parseInt(response.headers['x-ratelimit-reset']),
         };
       }
-      
+
       // Request tracking
       if (response.headers['x-request-id']) {
         metadata.requestId = response.headers['x-request-id'];
       }
-      
+
       // ETag for caching
       if (response.headers['etag']) {
         metadata.etag = response.headers['etag'];
       }
-      
+
       // Last modified
       if (response.headers['last-modified']) {
         metadata.lastModified = response.headers['last-modified'];
       }
-      
+
       // Cache control
       if (response.headers['cache-control']) {
         metadata.cacheControl = response.headers['cache-control'];
       }
     }
-    
+
     return metadata;
   }
-  
+
   /**
    * Handle async operation responses (activations, etc.)
    */
   static parseAsyncOperationResponse(response: any): any {
     const result: any = {
-      ...response
+      ...response,
     };
-    
+
     // Extract operation tracking information
     if (response.activationId || response.changeId || response.purgeId) {
       result.operationId = response.activationId || response.changeId || response.purgeId;
     }
-    
+
     // Extract estimated completion time
     if (response.estimatedSeconds) {
-      result.estimatedCompletion = new Date(Date.now() + response.estimatedSeconds * 1000).toISOString();
+      result.estimatedCompletion = new Date(
+        Date.now() + response.estimatedSeconds * 1000,
+      ).toISOString();
     }
-    
+
     // Extract status information
     if (response.status) {
       result.operationStatus = response.status;
       result.isComplete = ['ACTIVE', 'Done', 'COMPLETED'].includes(response.status);
       result.isFailed = ['FAILED', 'Error', 'ABORTED'].includes(response.status);
     }
-    
+
     return result;
   }
 }
@@ -546,13 +584,16 @@ export class ResponseParser {
 /**
  * Utility function to safely parse any Akamai API response
  */
-export function parseAkamaiResponse(response: any, apiType?: 'papi' | 'dns' | 'cps' | 'purge' | 'network-lists'): any {
+export function parseAkamaiResponse(
+  response: any,
+  apiType?: 'papi' | 'dns' | 'cps' | 'purge' | 'network-lists',
+): any {
   try {
     // Add response metadata
     const metadata = ResponseParser.extractResponseMetadata(response);
-    
+
     let parsedData;
-    
+
     switch (apiType) {
       case 'papi':
         parsedData = ResponseParser.parsePropertyResponse(response.data || response);
@@ -572,11 +613,11 @@ export function parseAkamaiResponse(response: any, apiType?: 'papi' | 'dns' | 'c
       default:
         parsedData = response.data || response;
     }
-    
+
     if (Object.keys(metadata).length > 0) {
       parsedData._metadata = metadata;
     }
-    
+
     return parsedData;
   } catch (error) {
     console.warn('Failed to parse response:', error);

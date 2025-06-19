@@ -1,17 +1,17 @@
 /**
  * Template Engine for Akamai Property Provisioning
- * 
+ *
  * This engine processes property templates with contextual inputs
  * to generate complete PAPI rule trees and configurations.
  */
 
 import { z } from 'zod';
 import {
-  PropertyTemplate,
+  type PropertyTemplate,
   getTemplateById,
   validateTemplateInputs,
   applyTemplateInputs,
-  propertyTemplates
+  propertyTemplates,
 } from './property-templates';
 
 export interface TemplateContext {
@@ -58,11 +58,11 @@ export interface ProvisioningPlan {
     value: string;
     ttl: number;
   }>;
-  activationSteps: {
+  activationSteps: Array<{
     network: 'STAGING' | 'PRODUCTION';
     notifyEmails: string[];
     note: string;
-  }[];
+  }>;
 }
 
 /**
@@ -92,7 +92,7 @@ export async function selectTemplate(): Promise<PropertyTemplate> {
  */
 export async function collectTemplateInputs(
   template: PropertyTemplate,
-  providedInputs?: Record<string, any>
+  providedInputs?: Record<string, any>,
 ): Promise<Record<string, any>> {
   const inputs: Record<string, any> = { ...providedInputs };
 
@@ -104,7 +104,7 @@ export async function collectTemplateInputs(
       if (input.placeholder) {
         console.log(`Example: ${input.placeholder}`);
       }
-      
+
       // For now, we'll use a placeholder
       inputs[input.key] = input.placeholder || `example-${input.key}`;
     }
@@ -142,7 +142,7 @@ export function generateProvisioningPlan(context: TemplateContext): Provisioning
     domainPrefix: edgeHostnamePrefix,
     domainSuffix: template.edgeHostnameConfig.domainSuffix,
     ipVersionBehavior: template.edgeHostnameConfig.ipVersionBehavior,
-    certificateType: template.edgeHostnameConfig.certificateType
+    certificateType: template.edgeHostnameConfig.certificateType,
   };
 
   // Collect all hostnames
@@ -155,30 +155,31 @@ export function generateProvisioningPlan(context: TemplateContext): Provisioning
   const ruleTreeWithInputs = applyTemplateInputs(template, {
     ...inputs,
     cpCode: cpCode || 'GENERATED_CP_CODE',
-    edgeHostname: edgeHostname.hostname
+    edgeHostname: edgeHostname.hostname,
   });
 
   // Generate DNS records
-  const dnsRecords = template.recommendedDNSRecords?.map(record => ({
-    type: record.type,
-    name: record.name.replace('{{hostname}}', inputs.hostname),
-    value: record.value.replace('{{edgeHostname}}', edgeHostname.hostname),
-    ttl: record.ttl
-  })) || [];
+  const dnsRecords =
+    template.recommendedDNSRecords?.map((record) => ({
+      type: record.type,
+      name: record.name.replace('{{hostname}}', inputs.hostname),
+      value: record.value.replace('{{edgeHostname}}', edgeHostname.hostname),
+      ttl: record.ttl,
+    })) || [];
 
   // Prepare certificate enrollment if HTTPS is required
   let certificateEnrollment;
   if (template.certificateRequirements) {
     certificateEnrollment = {
       commonName: inputs.hostname,
-      sans: hostnames.filter(h => h !== inputs.hostname),
+      sans: hostnames.filter((h) => h !== inputs.hostname),
       validationType: template.certificateRequirements.type as 'DV' | 'OV' | 'EV',
       networkConfiguration: {
         geography: 'CORE' as const,
         secureNetwork: template.certificateRequirements.networkDeployment,
         sniOnly: template.certificateRequirements.sniOnly,
-        quicEnabled: template.certificateRequirements.quicEnabled
-      }
+        quicEnabled: template.certificateRequirements.quicEnabled,
+      },
     };
   }
 
@@ -187,13 +188,13 @@ export function generateProvisioningPlan(context: TemplateContext): Provisioning
     {
       network: 'STAGING' as const,
       notifyEmails: [inputs.notificationEmail || 'devops@example.com'],
-      note: `Initial deployment of ${propertyName} to staging`
+      note: `Initial deployment of ${propertyName} to staging`,
     },
     {
       network: 'PRODUCTION' as const,
       notifyEmails: [inputs.notificationEmail || 'devops@example.com'],
-      note: `Production deployment of ${propertyName} after staging validation`
-    }
+      note: `Production deployment of ${propertyName} after staging validation`,
+    },
   ];
 
   return {
@@ -202,21 +203,24 @@ export function generateProvisioningPlan(context: TemplateContext): Provisioning
       contractId,
       groupId,
       productId: productId || 'prd_Web_Accel',
-      ruleFormat: 'v2023-01-05'
+      ruleFormat: 'v2023-01-05',
     },
     hostnames,
     edgeHostname,
     ruleTree: ruleTreeWithInputs,
     certificateEnrollment,
     dnsRecords,
-    activationSteps
+    activationSteps,
   };
 }
 
 /**
  * Validate a provisioning plan before execution
  */
-export function validateProvisioningPlan(plan: ProvisioningPlan): { valid: boolean; warnings: string[] } {
+export function validateProvisioningPlan(plan: ProvisioningPlan): {
+  valid: boolean;
+  warnings: string[];
+} {
   const warnings: string[] = [];
 
   // Check for common issues
@@ -233,13 +237,17 @@ export function validateProvisioningPlan(plan: ProvisioningPlan): { valid: boole
   }
 
   // Check for production deployment without staging
-  if (plan.activationSteps.length === 1 && plan.activationSteps[0] && plan.activationSteps[0].network === 'PRODUCTION') {
+  if (
+    plan.activationSteps.length === 1 &&
+    plan.activationSteps[0] &&
+    plan.activationSteps[0].network === 'PRODUCTION'
+  ) {
     warnings.push('Deploying directly to production without staging test');
   }
 
   return {
     valid: true,
-    warnings
+    warnings,
   };
 }
 
@@ -247,7 +255,8 @@ export function validateProvisioningPlan(plan: ProvisioningPlan): { valid: boole
  * Generate a human-readable summary of the provisioning plan
  */
 export function generatePlanSummary(plan: ProvisioningPlan): string {
-  const summary = [`
+  const summary = [
+    `
 # Akamai CDN Provisioning Plan
 ================================
 
@@ -259,13 +268,17 @@ export function generatePlanSummary(plan: ProvisioningPlan): string {
 
 ## Hostnames
 - **Primary**: ${plan.hostnames[0]}
-${plan.hostnames.slice(1).map(h => `- ${h}`).join('\n')}
+${plan.hostnames
+  .slice(1)
+  .map((h) => `- ${h}`)
+  .join('\n')}
 
 ## Edge Hostname
 - **Hostname**: ${plan.edgeHostname.hostname}
 - **IP Version**: ${plan.edgeHostname.ipVersionBehavior}
 - **Certificate Type**: ${plan.edgeHostname.certificateType}
-`];
+`,
+  ];
 
   if (plan.certificateEnrollment) {
     summary.push(`
@@ -281,7 +294,7 @@ ${plan.certificateEnrollment.sans.length > 0 ? `- **SANs**: ${plan.certificateEn
   if (plan.dnsRecords.length > 0) {
     summary.push(`
 ## Required DNS Records
-${plan.dnsRecords.map(r => `- **${r.type}** ${r.name} → ${r.value} (TTL: ${r.ttl}s)`).join('\n')}
+${plan.dnsRecords.map((r) => `- **${r.type}** ${r.name} → ${r.value} (TTL: ${r.ttl}s)`).join('\n')}
 `);
   }
 
@@ -299,7 +312,7 @@ ${plan.activationSteps.map((step, i) => `${i + 1}. Deploy to **${step.network}**
 export async function provisionPropertyFromTemplate(
   templateId: string,
   inputs: Record<string, any>,
-  context: Partial<TemplateContext>
+  context: Partial<TemplateContext>,
 ): Promise<ProvisioningPlan> {
   // Get template
   const template = getTemplateById(templateId);
@@ -318,7 +331,7 @@ export async function provisionPropertyFromTemplate(
     contractId: context.contractId || 'ctr_C-1234567',
     groupId: context.groupId || 'grp_12345',
     productId: context.productId,
-    cpCode: context.cpCode
+    cpCode: context.cpCode,
   };
 
   const plan = generateProvisioningPlan(fullContext);
@@ -327,7 +340,7 @@ export async function provisionPropertyFromTemplate(
   const validation = validateProvisioningPlan(plan);
   if (validation.warnings.length > 0) {
     console.log('\nWarnings:');
-    validation.warnings.forEach(w => console.log(`- ${w}`));
+    validation.warnings.forEach((w) => console.log(`- ${w}`));
   }
 
   return plan;
@@ -343,30 +356,30 @@ export const TemplateInputSchema = z.object({
   contractId: z.string(),
   groupId: z.string(),
   productId: z.string().optional(),
-  cpCode: z.string().optional()
+  cpCode: z.string().optional(),
 });
 
 /**
  * Export template metadata for UI/CLI
  */
 export function getTemplateMetadata() {
-  return propertyTemplates.map(template => ({
+  return propertyTemplates.map((template) => ({
     id: template.id,
     name: template.name,
     description: template.description,
     category: template.category,
-    requiredInputs: template.requiredInputs.map(input => ({
+    requiredInputs: template.requiredInputs.map((input) => ({
       key: input.key,
       label: input.label,
       type: input.type,
-      required: true
+      required: true,
     })),
-    optionalInputs: template.optionalInputs.map(input => ({
+    optionalInputs: template.optionalInputs.map((input) => ({
       key: input.key,
       label: input.label,
       type: input.type,
       required: false,
-      defaultValue: input.defaultValue
-    }))
+      defaultValue: input.defaultValue,
+    })),
   }));
 }

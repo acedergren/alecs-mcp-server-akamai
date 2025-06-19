@@ -115,9 +115,7 @@ export interface CpsLocationResponse {
 
 // Helper type guard
 export function isApiResponse(obj: unknown): obj is ApiResponse {
-  return obj !== null && 
-         typeof obj === 'object' && 
-         'data' in obj;
+  return obj !== null && typeof obj === 'object' && 'data' in obj;
 }
 
 // Type assertion helper

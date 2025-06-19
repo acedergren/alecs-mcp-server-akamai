@@ -3,7 +3,7 @@
  * Provides mock clients, data generators, and testing helpers
  */
 
-import { AkamaiClient } from '../akamai-client';
+import { type AkamaiClient } from '../akamai-client';
 
 // Mock Akamai Client
 export function createMockAkamaiClient(): jest.Mocked<AkamaiClient> {
@@ -44,9 +44,10 @@ const callTracker: Record<string, number> = {};
 function getRealisticMockResponse(toolName: string, args: any): any {
   const responses: Record<string, (args: any) => any> = {
     'agent.property.analysis': (args) => ({
-      content: [{
-        type: 'text',
-        text: `# Property Analysis for ${args.context?.domain || 'domain'}
+      content: [
+        {
+          type: 'text',
+          text: `# Property Analysis for ${args.context?.domain || 'domain'}
 
 ## Recommended Product
 **Ion Standard** (prd_Fresca) - Best for general web acceleration
@@ -62,16 +63,18 @@ function getRealisticMockResponse(toolName: string, args: any): any {
 2. Configure origin and hostnames
 3. Test on staging network
 4. Activate to production`,
-      }],
+        },
+      ],
     }),
 
     'property.create': (args) => {
       // Handle retry with corrected name first
       if (args.propertyName === 'invalid-domain.com') {
         return {
-          content: [{
-            type: 'text',
-            text: `✅ **Property Created Successfully!**
+          content: [
+            {
+              type: 'text',
+              text: `✅ **Property Created Successfully!**
 
 ## Property Details
 - **Name:** ${args.propertyName}
@@ -82,28 +85,32 @@ function getRealisticMockResponse(toolName: string, args: any): any {
 - **Status:** 🔵 NEW (Not yet activated)
 
 Successfully created property with corrected name.`,
-          }],
+            },
+          ],
         };
       }
       // Handle validation errors for invalid names
       if (args.propertyName?.includes(' ') || args.propertyName?.includes('!@#')) {
         return {
-          content: [{
-            type: 'text',
-            text: `❌ Cannot create property - validation errors:
+          content: [
+            {
+              type: 'text',
+              text: `❌ Cannot create property - validation errors:
 
 - Property name contains invalid characters
 
 Property name can only contain letters, numbers, hyphens, dots, and underscores
 
 **Suggestion:** Try using a valid name instead, such as "${args.propertyName?.replace(/[^a-zA-Z0-9.-_]/g, '-')}"`,
-          }],
+            },
+          ],
         };
       }
       return {
-        content: [{
-          type: 'text',
-          text: `✅ **Property Created Successfully!**
+        content: [
+          {
+            type: 'text',
+            text: `✅ **Property Created Successfully!**
 
 ## Property Details
 - **Name:** ${args.propertyName}
@@ -112,14 +119,15 @@ Property name can only contain letters, numbers, hyphens, dots, and underscores
 - **Contract:** Contract ${args.contractId}
 - **Group:** Group ${args.groupId}
 - **Status:** 🔵 NEW (Not yet activated)`,
-        }],
+          },
+        ],
       };
     },
 
     'property.search': (args) => {
       const searchTerm = args.searchTerm || args.propertyName || 'main-site';
       let propertyId = 'prp_999';
-      
+
       // Map specific search terms to expected property IDs
       if (searchTerm.includes('main') || searchTerm === 'main-site') {
         propertyId = searchTerm === 'main-site' ? 'prp_999' : 'prp_main'; // main-site should return prp_999
@@ -128,11 +136,12 @@ Property name can only contain letters, numbers, hyphens, dots, and underscores
       } else if (searchTerm.includes('ctx') || searchTerm === 'example.com') {
         propertyId = 'prp_ctx';
       }
-      
+
       return {
-        content: [{
-          type: 'text',
-          text: `🔍 Found existing property matching "${searchTerm}":
+        content: [
+          {
+            type: 'text',
+            text: `🔍 Found existing property matching "${searchTerm}":
 
 **${searchTerm}**
 - Property ID: \`${propertyId}\`
@@ -141,7 +150,8 @@ Property name can only contain letters, numbers, hyphens, dots, and underscores
 - Staging: 🟡 PENDING
 
 Found existing property ${propertyId} with staging is ahead of production.`,
-        }],
+          },
+        ],
       };
     },
 
@@ -149,17 +159,18 @@ Found existing property ${propertyId} with staging is ahead of production.`,
       // For property.get calls, determine the property ID based on the search
       const searchTerm = args.propertyId || args.propertyName || 'example.com';
       let propertyId = 'prp_999';
-      
+
       if (searchTerm === 'example.com') {
         propertyId = 'prp_ctx';
       } else if (searchTerm.includes('main')) {
         propertyId = 'prp_main';
       }
-      
+
       return {
-        content: [{
-          type: 'text',
-          text: `# Property Details: ${searchTerm}
+        content: [
+          {
+            type: 'text',
+            text: `# Property Details: ${searchTerm}
 
 ## Basic Information
 - **Property ID:** Property ID: \`${propertyId}\`
@@ -168,14 +179,16 @@ Found existing property ${propertyId} with staging is ahead of production.`,
 
 ## Current Configuration
 Property is active and ready for management.`,
-        }],
+          },
+        ],
       };
     },
 
     'dns.zone.analyze': (args) => ({
-      content: [{
-        type: 'text',
-        text: `# DNS Zone Analysis: ${args.zone || 'example.com'}
+      content: [
+        {
+          type: 'text',
+          text: `# DNS Zone Analysis: ${args.zone || 'example.com'}
 
 ## Current Zone Configuration
 - **Records Found:** 42 records
@@ -192,13 +205,15 @@ Property is active and ready for management.`,
 
 ## Migration Recommendations
 All 42 records can be migrated to Akamai Edge DNS.`,
-      }],
+        },
+      ],
     }),
 
     'dns.records.list': (args) => ({
-      content: [{
-        type: 'text',
-        text: `# DNS Records for ${args.zone || 'example.com'}
+      content: [
+        {
+          type: 'text',
+          text: `# DNS Records for ${args.zone || 'example.com'}
 
 ## Current records in the zone:
 
@@ -209,13 +224,15 @@ All 42 records can be migrated to Akamai Edge DNS.`,
 | mail | A | 3600 | 192.168.1.200 |
 
 Current records show standard web and email configuration.`,
-      }],
+        },
+      ],
     }),
 
     'property.rules.update': (args) => ({
-      content: [{
-        type: 'text',
-        text: `✅ **Property rules updated successfully**
+      content: [
+        {
+          type: 'text',
+          text: `✅ **Property rules updated successfully**
 
 ## Configuration Applied
 - Origin server: ${args.updates?.origin || 'configured'}
@@ -223,13 +240,15 @@ Current records show standard web and email configuration.`,
 - Property ID: ${args.propertyId}
 
 The property has been configured with the requested settings.`,
-      }],
+        },
+      ],
     }),
 
     'property.hostname.add': (args) => ({
-      content: [{
-        type: 'text',
-        text: `✅ **Hostname added successfully**
+      content: [
+        {
+          type: 'text',
+          text: `✅ **Hostname added successfully**
 
 ## Hostname Configuration
 - Domain: ${args.hostname || 'www.example.com'}
@@ -237,13 +256,15 @@ The property has been configured with the requested settings.`,
 - Edge Hostname: ${args.hostname || 'www.example.com'}.edgesuite.net
 
 The hostname added and mapped to the edge hostname.`,
-      }],
+        },
+      ],
     }),
 
     'dns.zone.create': (args) => ({
-      content: [{
-        type: 'text',
-        text: `✅ **DNS Zone Created Successfully**
+      content: [
+        {
+          type: 'text',
+          text: `✅ **DNS Zone Created Successfully**
 
 ## Zone Details
 - Zone: ${args.zone || 'example.com'}
@@ -252,15 +273,17 @@ The hostname added and mapped to the edge hostname.`,
 - Nameservers: 4 configured
 
 Created zone ${args.zone || 'example.com'} ready for record management.`,
-      }],
+        },
+      ],
     }),
 
     'dns.records.bulk.upsert': (args) => {
       const recordCount = args.records?.length || 3;
       return {
-        content: [{
-          type: 'text',
-          text: `✅ **Bulk DNS Update Complete**
+        content: [
+          {
+            type: 'text',
+            text: `✅ **Bulk DNS Update Complete**
 
 ## Records Updated
 - Total records: ${recordCount} records
@@ -268,14 +291,16 @@ Created zone ${args.zone || 'example.com'} ready for record management.`,
 - Zone: ${args.zone || 'example.com'}
 
 All ${recordCount} records have been successfully updated for ${args.operation || 'load balancing'}.`,
-        }],
+          },
+        ],
       };
     },
 
     'certificate.dv.create': (args) => ({
-      content: [{
-        type: 'text',
-        text: `✅ **DV Certificate Enrollment Started**
+      content: [
+        {
+          type: 'text',
+          text: `✅ **DV Certificate Enrollment Started**
 
 ## Certificate Details
 - Domains: ${args.hostnames?.join(', ') || 'example.com'}
@@ -284,13 +309,15 @@ All ${recordCount} records have been successfully updated for ${args.operation |
 - Status: Pending validation
 
 Domain validation required - check DNS for validation records.`,
-      }],
+        },
+      ],
     }),
 
     'property.activation.status': (args) => ({
-      content: [{
-        type: 'text',
-        text: `# Activation Status: ${args.propertyId}
+      content: [
+        {
+          type: 'text',
+          text: `# Activation Status: ${args.propertyId}
 
 ## Current Status
 - Staging: 🟡 PENDING (activation in progress)
@@ -300,19 +327,21 @@ Domain validation required - check DNS for validation records.`,
 Staging is ahead of production with recent configuration changes.
 
 The property prp_main is ready for production activation.`,
-      }],
+        },
+      ],
     }),
 
     'property.activate': (args) => {
       const callKey = `property.activate:${args.propertyId}:${args.network}`;
       callTracker[callKey] = (callTracker[callKey] || 0) + 1;
-      
+
       // Handle retry scenario
       if (args.activationId === 'atv_retry' || args.isRetry) {
         return {
-          content: [{
-            type: 'text',
-            text: `✅ **Activation Retry Successful**
+          content: [
+            {
+              type: 'text',
+              text: `✅ **Activation Retry Successful**
 
 ## Activation Details
 - Property ID: ${args.propertyId}
@@ -321,32 +350,36 @@ The property prp_main is ready for production activation.`,
 - Status: successfully initiated
 
 Retry activation atv_retry is now processing.`,
-          }],
+            },
+          ],
         };
       }
-      
+
       // First call to prp_123 PRODUCTION fails, second call succeeds (retry)
       if (args.propertyId === 'prp_123' && args.network === 'PRODUCTION') {
         if (callTracker[callKey] === 1) {
           // First call - fail
           return {
-            content: [{
-              type: 'text',
-              text: `❌ **Activation Failed**
+            content: [
+              {
+                type: 'text',
+                text: `❌ **Activation Failed**
 
 ## Validation Errors
 - Origin behavior missing required configuration
 - Property validation failed due to missing configuration
 
 **Resolution:** Fix the Origin behavior configuration before activation.`,
-            }],
+              },
+            ],
           };
         } else {
           // Second call - retry success
           return {
-            content: [{
-              type: 'text',
-              text: `✅ **Activation Retry Successful**
+            content: [
+              {
+                type: 'text',
+                text: `✅ **Activation Retry Successful**
 
 ## Activation Details
 - Property ID: ${args.propertyId}
@@ -355,14 +388,16 @@ Retry activation atv_retry is now processing.`,
 - Status: successfully initiated
 
 Retry activation atv_retry is now processing.`,
-            }],
+              },
+            ],
           };
         }
       }
       return {
-        content: [{
-          type: 'text',
-          text: `✅ **Activation Started**
+        content: [
+          {
+            type: 'text',
+            text: `✅ **Activation Started**
 
 ## Activation Details
 - Property ID: ${args.propertyId}
@@ -371,14 +406,16 @@ Retry activation atv_retry is now processing.`,
 - ETA: 5-10 minutes
 
 Activation ${args.activationId || (args.propertyId === 'prp_ctx' ? 'atv_ctx' : 'atv_789')} is now processing.`,
-        }],
+          },
+        ],
       };
     },
 
     'dns.zone.import': (args) => ({
-      content: [{
-        type: 'text',
-        text: `✅ **DNS Zone Import Complete**
+      content: [
+        {
+          type: 'text',
+          text: `✅ **DNS Zone Import Complete**
 
 ## Import Results
 - Zone: ${args.zone || 'example.com'}
@@ -387,13 +424,15 @@ Activation ${args.activationId || (args.propertyId === 'prp_ctx' ? 'atv_ctx' : '
 - Time taken: 2.3 seconds
 
 All 42 records have been successfully imported via AXFR transfer.`,
-      }],
+        },
+      ],
     }),
 
     'certificate.dv.challenges': (args) => ({
-      content: [{
-        type: 'text',
-        text: `# DV Certificate Validation Challenges
+      content: [
+        {
+          type: 'text',
+          text: `# DV Certificate Validation Challenges
 
 ## DNS Validation Required
 - Challenge Type: DNS validation
@@ -407,13 +446,15 @@ All 42 records have been successfully imported via AXFR transfer.`,
 3. Validation will complete automatically
 
 DNS validation records must be configured for certificate issuance.`,
-      }],
+        },
+      ],
     }),
 
     'dns.zone.validate': (args) => ({
-      content: [{
-        type: 'text',
-        text: `✅ **DNS Zone Validation Complete**
+      content: [
+        {
+          type: 'text',
+          text: `✅ **DNS Zone Validation Complete**
 
 ## Validation Results
 - Zone: ${args.zone || 'example.com'}
@@ -428,13 +469,15 @@ DNS validation records must be configured for certificate issuance.`,
 - DMARC: Present
 
 All DNS records passed validation checks.`,
-      }],
+        },
+      ],
     }),
 
     'dns.records.bulk.create': (args) => ({
-      content: [{
-        type: 'text',
-        text: `✅ **DNS Records Created Successfully**
+      content: [
+        {
+          type: 'text',
+          text: `✅ **DNS Records Created Successfully**
 
 ## Creation Results
 - Records created: ${args.records?.length || 3}
@@ -442,13 +485,15 @@ All DNS records passed validation checks.`,
 - Type: ${args.recordType || 'TXT'}
 
 The validation records created for certificate verification.`,
-      }],
+        },
+      ],
     }),
 
     'dns.migration.instructions': (args) => ({
-      content: [{
-        type: 'text',
-        text: `# DNS Migration Instructions
+      content: [
+        {
+          type: 'text',
+          text: `# DNS Migration Instructions
 
 ## Final Migration Steps
 To complete the migration of ${args.zone || 'example.com'}:
@@ -464,15 +509,17 @@ To complete the migration of ${args.zone || 'example.com'}:
 3. Monitor DNS resolution
 
 Once nameservers are updated, your DNS will be fully managed by Akamai.`,
-      }],
+        },
+      ],
     }),
 
     'property.rules.get': (args) => {
       const origin = args.propertyId === 'prp_main' ? 'origin.company.com' : 'origin.example.com';
       return {
-        content: [{
-          type: 'text',
-          text: `# Property Rules Configuration
+        content: [
+          {
+            type: 'text',
+            text: `# Property Rules Configuration
 
 ## Current configuration for ${args.propertyId}
 
@@ -487,14 +534,16 @@ Once nameservers are updated, your DNS will be fully managed by Akamai.`,
 - Performance optimizations: Applied
 
 Current configuration shows standard web delivery setup.`,
-        }],
+          },
+        ],
       };
     },
 
     'property.rules.patch': (args) => ({
-      content: [{
-        type: 'text',
-        text: `✅ **Property Rules Updated Successfully**
+      content: [
+        {
+          type: 'text',
+          text: `✅ **Property Rules Updated Successfully**
 
 ## Updates Applied
 - Property ID: ${args.propertyId}
@@ -502,13 +551,15 @@ Current configuration shows standard web delivery setup.`,
 - Version: ${args.version || 'latest'}
 
 Updated origin configuration and caching behaviors as requested.`,
-      }],
+        },
+      ],
     }),
 
     'certificate.dv.status': (args) => ({
-      content: [{
-        type: 'text',
-        text: `# DV Certificate Status
+      content: [
+        {
+          type: 'text',
+          text: `# DV Certificate Status
 
 ## Certificate Details
 - Enrollment ID: ${args.enrollmentId || '12345'}
@@ -518,13 +569,15 @@ Updated origin configuration and caching behaviors as requested.`,
 - Expires: 2026-01-01
 
 Certificate validation completed successfully.`,
-      }],
+        },
+      ],
     }),
 
     'property.activations.list': (args) => ({
-      content: [{
-        type: 'text',
-        text: `# Property Activation History
+      content: [
+        {
+          type: 'text',
+          text: `# Property Activation History
 
 ## Recent activations for ${args.propertyId}
 
@@ -536,13 +589,15 @@ Certificate validation completed successfully.`,
 Production version v12 is active, staging version v15 is pending.
 
 Recent activations show active staging version ahead of production.`,
-      }],
+        },
+      ],
     }),
 
     'property.activate.retry': (args) => ({
-      content: [{
-        type: 'text',
-        text: `✅ **Activation Retry Successful**
+      content: [
+        {
+          type: 'text',
+          text: `✅ **Activation Retry Successful**
 
 ## Activation Details
 - Property ID: ${args.propertyId}
@@ -551,13 +606,15 @@ Recent activations show active staging version ahead of production.`,
 - Status: successfully initiated
 
 Retry activation atv_retry is now processing.`,
-      }],
+        },
+      ],
     }),
 
     'property.certificate.link': (args) => ({
-      content: [{
-        type: 'text',
-        text: `✅ **Certificate Successfully Linked**
+      content: [
+        {
+          type: 'text',
+          text: `✅ **Certificate Successfully Linked**
 
 ## Link Details
 - Property ID: ${args.propertyId}
@@ -566,13 +623,15 @@ Retry activation atv_retry is now processing.`,
 - Status: linked
 
 Certificate linked to property and edge hostname configured.`,
-      }],
+        },
+      ],
     }),
 
     'property.versions.diff': (args) => ({
-      content: [{
-        type: 'text',
-        text: `# Property Version Comparison
+      content: [
+        {
+          type: 'text',
+          text: `# Property Version Comparison
 
 ## Changes between versions ${args.fromVersion || '14'} and ${args.toVersion || '15'}
 
@@ -586,13 +645,15 @@ Certificate linked to property and edge hostname configured.`,
 - Security headers enhancement
 
 Changes between versions show performance and security improvements.`,
-      }],
+        },
+      ],
     }),
 
     'agent.performance.analyze': (args) => ({
-      content: [{
-        type: 'text',
-        text: `# Performance Analysis Report
+      content: [
+        {
+          type: 'text',
+          text: `# Performance Analysis Report
 
 ## Property Analysis: ${args.propertyId || 'prp_main'}
 
@@ -607,7 +668,8 @@ Changes between versions show performance and security improvements.`,
 3. **HTTP/2 push**: Configure for critical resources
 
 Performance analysis shows good baseline with optimization opportunities.`,
-      }],
+        },
+      ],
     }),
   };
 
@@ -618,10 +680,12 @@ Performance analysis shows good baseline with optimization opportunities.`,
 
   // Fallback for unrecognized tools
   return {
-    content: [{
-      type: 'text',
-      text: `Mock response for ${toolName}`,
-    }],
+    content: [
+      {
+        type: 'text',
+        text: `Mock response for ${toolName}`,
+      },
+    ],
   };
 }
 
@@ -631,11 +695,11 @@ export function validateMCPResponse(response: any): void {
   expect(response.content).toBeDefined();
   expect(Array.isArray(response.content)).toBe(true);
   expect(response.content.length).toBeGreaterThan(0);
-  
+
   response.content.forEach((item: any) => {
     expect(item.type).toBeDefined();
     expect(['text', 'image', 'resource']).toContain(item.type);
-    
+
     if (item.type === 'text') {
       expect(typeof item.text).toBe('string');
       expect(item.text.length).toBeGreaterThan(0);
@@ -675,11 +739,13 @@ export const ErrorScenarios = {
       data: {
         type: 'validation_error',
         title: 'Validation failed',
-        errors: [{
-          type: 'invalid_field',
-          detail: `Invalid value for ${field}`,
-          field,
-        }],
+        errors: [
+          {
+            type: 'invalid_field',
+            detail: `Invalid value for ${field}`,
+            field,
+          },
+        ],
       },
     },
   }),
@@ -727,7 +793,7 @@ export const ErrorScenarios = {
 
 // Test Data Generators
 export const TestDataGenerators = {
-  generateProperties: (count: number = 5) => {
+  generateProperties: (count = 5) => {
     return Array.from({ length: count }, (_, i) => ({
       propertyId: `prp_${1000 + i}`,
       propertyName: `property-${i}.example.com`,
@@ -740,38 +806,40 @@ export const TestDataGenerators = {
     }));
   },
 
-  generateDNSRecords: (count: number = 10) => {
+  generateDNSRecords: (count = 10) => {
     const types = ['A', 'AAAA', 'CNAME', 'MX', 'TXT'];
     return Array.from({ length: count }, (_, i) => ({
       name: i === 0 ? '@' : `record${i}`,
       type: types[i % types.length],
       ttl: 300,
-      rdata: types[i % types.length] === 'A' 
-        ? [`192.0.2.${i + 1}`]
-        : types[i % types.length] === 'CNAME'
-        ? [`target${i}.example.com`]
-        : [`value${i}`],
+      rdata:
+        types[i % types.length] === 'A'
+          ? [`192.0.2.${i + 1}`]
+          : types[i % types.length] === 'CNAME'
+            ? [`target${i}.example.com`]
+            : [`value${i}`],
     }));
   },
 
-  generatePropertyRules: (behaviorCount: number = 5) => {
+  generatePropertyRules: (behaviorCount = 5) => {
     const behaviors = ['origin', 'caching', 'gzipResponse', 'http2', 'cpCode'];
     return {
       name: 'default',
       criteria: [] as any[],
       behaviors: behaviors.slice(0, behaviorCount).map((name, i) => ({
         name,
-        options: name === 'origin' 
-          ? { hostname: `origin${i}.example.com` }
-          : name === 'caching'
-          ? { behavior: 'MAX_AGE', ttl: '1d' }
-          : {},
+        options:
+          name === 'origin'
+            ? { hostname: `origin${i}.example.com` }
+            : name === 'caching'
+              ? { behavior: 'MAX_AGE', ttl: '1d' }
+              : {},
       })),
       children: [] as any[],
     };
   },
 
-  generateProducts: (count: number = 3) => {
+  generateProducts: (count = 3) => {
     return Array.from({ length: count }, (_, i) => ({
       productId: `prd_${['Fresca', 'Site_Accel', 'Web_Accel'][i]}`,
       productName: ['Ion Standard', 'Dynamic Site Accelerator', 'Web Application Accelerator'][i],
@@ -783,14 +851,14 @@ export const TestDataGenerators = {
     sans: ['www.secure.example.com', 'api.secure.example.com'],
     adminContact: {
       firstName: 'John',
-      lastName: 'Doe', 
+      lastName: 'Doe',
       email: 'john@example.com',
       phone: '+1-555-1234',
     },
     techContact: {
       firstName: 'Jane',
       lastName: 'Doe',
-      email: 'jane@example.com', 
+      email: 'jane@example.com',
       phone: '+1-555-5678',
     },
     contractId: 'C-123',
@@ -819,24 +887,22 @@ export const MockAPIResponses = {
     properties: { items: [] as any[] },
   }),
 
-  propertyList: (count: number = 5) => ({
-    properties: { 
+  propertyList: (count = 5) => ({
+    properties: {
       items: TestDataGenerators.generateProperties(count),
     },
   }),
 
-  paginatedPropertyList: (page: number, perPage: number = 10) => {
+  paginatedPropertyList: (page: number, perPage = 10) => {
     const allProperties = TestDataGenerators.generateProperties(50);
     const start = (page - 1) * perPage;
     const end = start + perPage;
     const items = allProperties.slice(start, end);
-    
+
     return {
       properties: {
         items,
-        nextLink: end < allProperties.length 
-          ? `/papi/v1/properties?offset=${end}`
-          : null,
+        nextLink: end < allProperties.length ? `/papi/v1/properties?offset=${end}` : null,
       },
     };
   },
@@ -853,12 +919,12 @@ export const MockAPIResponses = {
     },
   }),
 
-  activationResponse: (activationId: string = 'atv_123') => ({
+  activationResponse: (activationId = 'atv_123') => ({
     activationLink: `/papi/v1/properties/prp_123/activations/${activationId}`,
     activationId,
   }),
 
-  dnsZoneList: (count: number = 3) => ({
+  dnsZoneList: (count = 3) => ({
     zones: Array.from({ length: count }, (_, i) => ({
       zone: `zone${i}.example.com`,
       type: 'PRIMARY',
@@ -866,7 +932,7 @@ export const MockAPIResponses = {
     })),
   }),
 
-  certificateEnrollment: (enrollmentId: number = 12345) => ({
+  certificateEnrollment: (enrollmentId = 12345) => ({
     enrollment: `/cps/v2/enrollments/${enrollmentId}`,
     enrollmentId,
   }),
@@ -898,13 +964,16 @@ export class PerformanceTracker {
     return duration;
   }
 
-  getMetrics(): Record<string, { 
-    count: number; 
-    avg: number; 
-    min: number; 
-    max: number; 
-    totalDuration: number;
-  }> {
+  getMetrics(): Record<
+    string,
+    {
+      count: number;
+      avg: number;
+      min: number;
+      max: number;
+      totalDuration: number;
+    }
+  > {
     const result: any = {};
 
     for (const [operation, durations] of this.metrics.entries()) {
@@ -949,7 +1018,7 @@ export class ConversationalContextTracker {
       content,
       timestamp: new Date().toISOString(),
     });
-    
+
     // Extract domain from user message for onboarding workflows
     const domainMatch = content.match(/(?:for|property for|set up)\s+([a-zA-Z0-9.-]+\.com)/);
     if (domainMatch && domainMatch[1]) {
@@ -959,11 +1028,11 @@ export class ConversationalContextTracker {
 
   addAssistantResponse(content: string): void {
     this.context.messages.push({
-      role: 'assistant', 
+      role: 'assistant',
       content,
       timestamp: new Date().toISOString(),
     });
-    
+
     // Extract entities from assistant responses
     this.extractEntitiesFromResponse(content);
   }
@@ -974,50 +1043,50 @@ export class ConversationalContextTracker {
     if (propertyMatch) {
       this.context.entities.propertyId = propertyMatch[1] || propertyMatch[2];
     }
-    
+
     // Extract activation IDs
     const activationMatch = content.match(/Activation\s+(atv_\w+|act_\w+)/);
     if (activationMatch) {
       this.context.entities.activationId = activationMatch[1];
     }
-    
+
     // Extract certificate IDs
     const certMatch = content.match(/Enrollment ID:\s+(\d+)/);
     if (certMatch && certMatch[1]) {
       this.context.entities.enrollmentId = parseInt(certMatch[1]);
     }
-    
+
     // Extract zone names
     const zoneMatch = content.match(/Zone:\s+([a-zA-Z0-9.-]+)/);
     if (zoneMatch) {
       this.context.entities.zone = zoneMatch[1];
     }
-    
+
     // Extract version information
     const prodVersionMatch = content.match(/Production version v(\d+)/);
     if (prodVersionMatch && prodVersionMatch[1]) {
       this.context.entities.productionVersion = parseInt(prodVersionMatch[1]);
     }
-    
+
     const stagingVersionMatch = content.match(/staging version v(\d+)/);
     if (stagingVersionMatch && stagingVersionMatch[1]) {
       this.context.entities.stagingVersion = parseInt(stagingVersionMatch[1]);
     }
-    
+
     // Extract insights about version mismatches
     if (content.includes('staging is ahead') || content.includes('staging version ahead')) {
       if (!this.context.insights.includes('version_mismatch')) {
         this.context.insights.push('version_mismatch');
       }
     }
-    
+
     // Track errors and resolutions
     if (content.includes('validation failed') || content.includes('Validation Errors')) {
       if (!this.context.errors.includes('validation_error')) {
         this.context.errors.push('validation_error');
       }
     }
-    
+
     if (content.includes('Added origin behavior') || content.includes('Updated origin')) {
       if (!this.context.resolutions.includes('added_origin_behavior')) {
         this.context.resolutions.push('added_origin_behavior');
@@ -1032,7 +1101,7 @@ export class ConversationalContextTracker {
   setWorkflowState(workflow: any): void {
     this.context.workflow = workflow.type;
     this.context.entities = { ...this.context.entities, ...workflow };
-    
+
     // Initialize default workflow steps if not provided
     if (!this.context.entities.steps) {
       this.context.entities.steps = [
@@ -1103,14 +1172,12 @@ export class MemoryMonitor {
     peak: number;
   } {
     const current = process.memoryUsage();
-    
+
     if (this.monitoring) {
       this.samples.push(current);
     }
 
-    const peak = this.samples.reduce((max, sample) => 
-      Math.max(max, sample.heapUsed), 0
-    );
+    const peak = this.samples.reduce((max, sample) => Math.max(max, sample.heapUsed), 0);
 
     return {
       current,
@@ -1129,7 +1196,7 @@ export class LoadTestRunner {
       duration: number; // ms
       concurrency: number;
       rampUp?: number; // ms
-    }
+    },
   ): Promise<{
     totalRequests: number;
     successfulRequests: number;
@@ -1140,19 +1207,19 @@ export class LoadTestRunner {
   }> {
     const results: Array<{ success: boolean; duration: number; error?: Error }> = [];
     const startTime = Date.now();
-    const promises: Promise<void>[] = [];
+    const promises: Array<Promise<void>> = [];
 
     // Create concurrent workers
     for (let i = 0; i < options.concurrency; i++) {
       const delay = options.rampUp ? (i * options.rampUp) / options.concurrency : 0;
-      
+
       promises.push(
         new Promise<void>(async (resolve) => {
-          await new Promise(r => setTimeout(r, delay));
-          
+          await new Promise((r) => setTimeout(r, delay));
+
           while (Date.now() - startTime < options.duration) {
             const requestStart = performance.now();
-            
+
             try {
               await operation();
               results.push({
@@ -1166,20 +1233,20 @@ export class LoadTestRunner {
                 error: error as Error,
               });
             }
-            
+
             // Small delay between requests
-            await new Promise(r => setTimeout(r, 10));
+            await new Promise((r) => setTimeout(r, 10));
           }
-          
+
           resolve();
-        })
+        }),
       );
     }
 
     await Promise.all(promises);
-    
-    const successful = results.filter(r => r.success);
-    const failed = results.filter(r => !r.success);
+
+    const successful = results.filter((r) => r.success);
+    const failed = results.filter((r) => !r.success);
     const totalDuration = Date.now() - startTime;
 
     return {
@@ -1188,7 +1255,7 @@ export class LoadTestRunner {
       failedRequests: failed.length,
       averageResponseTime: results.reduce((sum, r) => sum + r.duration, 0) / results.length,
       requestsPerSecond: results.length / (totalDuration / 1000),
-      errors: failed.map(f => f.error!),
+      errors: failed.map((f) => f.error!),
     };
   }
 }
@@ -1198,14 +1265,14 @@ export class ConcurrencyController {
   private activeOperations = new Set<string>();
   private maxConcurrency: number;
 
-  constructor(maxConcurrency: number = 10) {
+  constructor(maxConcurrency = 10) {
     this.maxConcurrency = maxConcurrency;
   }
 
   async execute<T>(id: string, operation: () => Promise<T>): Promise<T> {
     // Wait for available slot
     while (this.activeOperations.size >= this.maxConcurrency) {
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
     }
 
     this.activeOperations.add(id);
@@ -1235,18 +1302,20 @@ export { createCorrelationId } from '../observability/logger';
 export class WorkflowSimulator {
   constructor(
     private testServer: ReturnType<typeof createTestServer>,
-    private mockClient: jest.Mocked<AkamaiClient>
+    private mockClient: jest.Mocked<AkamaiClient>,
   ) {}
 
   async runTool(toolName: string, parameters: any): Promise<any> {
     return this.testServer.callTool(toolName, parameters);
   }
 
-  async simulateWorkflow(steps: Array<{
-    toolName: string;
-    parameters: any;
-    mockResponse?: any;
-  }>): Promise<any[]> {
+  async simulateWorkflow(
+    steps: Array<{
+      toolName: string;
+      parameters: any;
+      mockResponse?: any;
+    }>,
+  ): Promise<any[]> {
     const results = [];
 
     for (const step of steps) {

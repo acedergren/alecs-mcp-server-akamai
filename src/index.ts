@@ -8,22 +8,22 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
-  CallToolRequest,
+  type CallToolRequest,
   CallToolRequestSchema,
-  CallToolResult,
+  type CallToolResult,
   ErrorCode,
-  ListToolsRequest,
+  type ListToolsRequest,
   ListToolsRequestSchema,
   McpError,
-  Tool,
+  type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
-import { z, ZodSchema } from 'zod';
+import { z, type ZodSchema } from 'zod';
 import { CustomerConfigManager } from './utils/customer-config';
 import { logger } from './utils/logger';
-import { 
-  BaseMcpParams, 
-  McpToolResponse, 
-  McpToolMetadata,
+import {
+  type BaseMcpParams,
+  type McpToolResponse,
+  type McpToolMetadata,
   ListPropertiesSchema,
   GetPropertySchema,
   CreatePropertySchema,
@@ -31,7 +31,7 @@ import {
   CreateZoneSchema,
   CreateRecordSchema,
   PurgeByUrlSchema,
-  CreateNetworkListSchema
+  CreateNetworkListSchema,
 } from './types/mcp';
 import { ConfigurationError, ConfigErrorType } from './types/config';
 
@@ -41,12 +41,9 @@ import {
   getProperty,
   createProperty,
   listGroups,
-  listContracts
+  listContracts,
 } from './tools/property-tools';
-import {
-  listProducts,
-  getProduct
-} from './tools/product-tools';
+import { listProducts, getProduct } from './tools/product-tools';
 import {
   listZones,
   getZone,
@@ -54,14 +51,14 @@ import {
   listRecords,
   upsertRecord,
   deleteRecord,
-  activateZoneChanges
+  activateZoneChanges,
 } from './tools/dns-tools';
 import {
   createPropertyVersion,
   getPropertyRules,
   updatePropertyRules,
   activateProperty,
-  getActivationStatus
+  getActivationStatus,
 } from './tools/property-manager-tools';
 
 /**
@@ -110,14 +107,14 @@ export class ALECSServer {
       version: config?.version || '1.3.0',
       capabilities: {
         tools: {},
-        ...config?.capabilities
-      }
+        ...config?.capabilities,
+      },
     };
 
     logger.info('Initializing ALECS MCP Server', serverConfig);
-    
+
     this.server = new Server(serverConfig as any, {
-      capabilities: serverConfig.capabilities || { tools: {} }
+      capabilities: serverConfig.capabilities || { tools: {} },
     });
 
     this.configManager = CustomerConfigManager.getInstance();
@@ -159,7 +156,7 @@ export class ALECSServer {
       requestId: this.generateRequestId(),
       toolName,
       customer,
-      startTime: Date.now()
+      startTime: Date.now(),
     };
   }
 
@@ -178,12 +175,12 @@ export class ALECSServer {
    */
   private validateCustomerContext(customer?: string): void {
     const customerName = customer || 'default';
-    
+
     if (!this.configManager.hasSection(customerName)) {
       throw new ConfigurationError(
         ConfigErrorType.SECTION_NOT_FOUND,
         `Customer section '${customerName}' not found in configuration`,
-        customerName
+        customerName,
       );
     }
   }
@@ -195,17 +192,17 @@ export class ALECSServer {
     name: string,
     description: string,
     inputSchema: ZodSchema,
-    handler: (params: unknown) => Promise<McpToolResponse>
+    handler: (params: unknown) => Promise<McpToolResponse>,
   ): void {
     const metadata: McpToolMetadata = {
       name,
       description,
       inputSchema,
-      handler
+      handler,
     };
 
     this.toolRegistry.set(name, { metadata, handler });
-    
+
     logger.debug('Registered tool', { name, description });
   }
 
@@ -218,47 +215,41 @@ export class ALECSServer {
       'list-properties',
       'List all Akamai CDN properties in your account',
       ListPropertiesSchema,
-      async (params) => this.wrapToolHandler('list-properties', params, listProperties)
+      async (params) => this.wrapToolHandler('list-properties', params, listProperties),
     );
 
     this.registerTool(
       'get-property',
       'Get details of a specific property',
       GetPropertySchema,
-      async (params) => this.wrapToolHandler('get-property', params, getProperty)
+      async (params) => this.wrapToolHandler('get-property', params, getProperty),
     );
 
     this.registerTool(
       'create-property',
       'Create a new property',
       CreatePropertySchema,
-      async (params) => this.wrapToolHandler('create-property', params, createProperty)
+      async (params) => this.wrapToolHandler('create-property', params, createProperty),
     );
 
     this.registerTool(
       'activate-property',
       'Activate a property version',
       ActivatePropertySchema,
-      async (params) => this.wrapToolHandler('activate-property', params, activateProperty)
+      async (params) => this.wrapToolHandler('activate-property', params, activateProperty),
     );
 
     // DNS Tools
-    this.registerTool(
-      'create-zone',
-      'Create a new DNS zone',
-      CreateZoneSchema,
-      async (params) => this.wrapToolHandler('create-zone', params, createZone)
+    this.registerTool('create-zone', 'Create a new DNS zone', CreateZoneSchema, async (params) =>
+      this.wrapToolHandler('create-zone', params, createZone),
     );
 
-    this.registerTool(
-      'create-record',
-      'Create a DNS record',
-      CreateRecordSchema,
-      async (params) => this.wrapToolHandler('create-record', params, upsertRecord)
+    this.registerTool('create-record', 'Create a DNS record', CreateRecordSchema, async (params) =>
+      this.wrapToolHandler('create-record', params, upsertRecord),
     );
 
     // Add more tools as needed...
-    
+
     logger.info(`Registered ${this.toolRegistry.size} tools`);
   }
 
@@ -268,13 +259,13 @@ export class ALECSServer {
   private async wrapToolHandler(
     toolName: string,
     params: unknown,
-    handler: (client: any, params: any) => Promise<any>
+    handler: (client: any, params: any) => Promise<any>,
   ): Promise<McpToolResponse> {
     const context = this.createRequestContext(toolName, params);
-    
+
     logger.info('Tool request received', {
       ...context,
-      params: JSON.stringify(params)
+      params: JSON.stringify(params),
     });
 
     try {
@@ -290,11 +281,11 @@ export class ALECSServer {
       const result = await handler(client, params);
 
       const duration = Date.now() - context.startTime;
-      
+
       logger.info('Tool request completed', {
         ...context,
         duration,
-        success: true
+        success: true,
       });
 
       return {
@@ -303,17 +294,17 @@ export class ALECSServer {
         metadata: {
           customer,
           duration,
-          tool: toolName
-        }
+          tool: toolName,
+        },
       };
     } catch (error) {
       const duration = Date.now() - context.startTime;
-      
+
       logger.error('Tool request failed', {
         ...context,
         duration,
         error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
+        stack: error instanceof Error ? error.stack : undefined,
       });
 
       return {
@@ -322,8 +313,8 @@ export class ALECSServer {
         metadata: {
           customer: context.customer || 'default',
           duration,
-          tool: toolName
-        }
+          tool: toolName,
+        },
       };
     }
   }
@@ -335,15 +326,15 @@ export class ALECSServer {
     if (error instanceof ConfigurationError) {
       return `Configuration error: ${error.message}`;
     }
-    
+
     if (error instanceof z.ZodError) {
-      return `Validation error: ${error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`;
+      return `Validation error: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`;
     }
-    
+
     if (error instanceof Error) {
       return error.message;
     }
-    
+
     return String(error);
   }
 
@@ -359,10 +350,10 @@ export class ALECSServer {
 
       for (const [key, value] of Object.entries(shape)) {
         const zodType = (value as any)._def?.typeName;
-        
+
         properties[key] = {
           type: this.zodTypeToJsonType(zodType),
-          description: (value as any)._def?.description
+          description: (value as any)._def?.description,
         };
 
         if (!(value as any).isOptional()) {
@@ -373,14 +364,14 @@ export class ALECSServer {
       return {
         type: 'object',
         properties,
-        required: required.length > 0 ? required : undefined
+        required: required.length > 0 ? required : undefined,
       };
     };
 
     return {
       name: metadata.name,
       description: metadata.description,
-      inputSchema: zodSchemaToJsonSchema(metadata.inputSchema)
+      inputSchema: zodSchemaToJsonSchema(metadata.inputSchema),
     };
   }
 
@@ -409,78 +400,66 @@ export class ALECSServer {
    */
   private setupHandlers(): void {
     // Handle list tools request
-    this.server.setRequestHandler(
-      ListToolsRequestSchema,
-      async (request: ListToolsRequest) => {
-        logger.debug('List tools request received');
-        
-        const tools: Tool[] = [];
-        
-        for (const [name, entry] of this.toolRegistry) {
-          tools.push(this.toolMetadataToMcpTool(entry.metadata));
-        }
-        
-        logger.debug(`Returning ${tools.length} tools`);
-        
-        return { tools };
+    this.server.setRequestHandler(ListToolsRequestSchema, async (request: ListToolsRequest) => {
+      logger.debug('List tools request received');
+
+      const tools: Tool[] = [];
+
+      for (const [name, entry] of this.toolRegistry) {
+        tools.push(this.toolMetadataToMcpTool(entry.metadata));
       }
-    );
+
+      logger.debug(`Returning ${tools.length} tools`);
+
+      return { tools };
+    });
 
     // Handle call tool request
     this.server.setRequestHandler(
       CallToolRequestSchema,
       async (request: CallToolRequest): Promise<CallToolResult> => {
         const { name, arguments: args } = request.params;
-        
+
         const entry = this.toolRegistry.get(name);
-        
+
         if (!entry) {
-          throw new McpError(
-            ErrorCode.MethodNotFound,
-            `Tool not found: ${name}`
-          );
+          throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
         }
 
         try {
           // Validate parameters
           const validatedParams = entry.metadata.inputSchema.parse(args);
-          
+
           // Execute handler
           const result = await entry.handler(validatedParams);
-          
+
           if (!result.success) {
-            throw new McpError(
-              ErrorCode.InternalError,
-              result.error || 'Tool execution failed'
-            );
+            throw new McpError(ErrorCode.InternalError, result.error || 'Tool execution failed');
           }
-          
+
           return {
             content: [
               {
                 type: 'text',
-                text: JSON.stringify(result.data, null, 2)
-              }
-            ]
+                text: JSON.stringify(result.data, null, 2),
+              },
+            ],
           };
         } catch (error) {
           if (error instanceof z.ZodError) {
             throw new McpError(
               ErrorCode.InvalidParams,
-              `Invalid parameters: ${error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`
+              `Invalid parameters: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
             );
           }
-          
+
           if (error instanceof McpError) {
             throw error;
           }
-          
-          throw new McpError(
-            ErrorCode.InternalError,
-            this.formatError(error)
-          );
+
+          throw new McpError(ErrorCode.InternalError, this.formatError(error));
         }
-      }
+      },
     );
   }
 
@@ -489,32 +468,32 @@ export class ALECSServer {
    */
   async start(): Promise<void> {
     logger.info('Starting ALECS MCP Server');
-    
+
     try {
       // Validate configuration
       const customers = this.configManager.listSections();
       logger.info(`Found ${customers.length} customer configurations`, { customers });
-      
+
       // Create and configure transport
       const transport = new StdioServerTransport();
-      
+
       transport.onerror = (error: Error) => {
         logger.error('Transport error', { error: error.message, stack: error.stack });
       };
-      
+
       transport.onclose = () => {
         logger.info('Transport closed, shutting down');
         process.exit(0);
       };
-      
+
       // Connect server to transport
       await this.server.connect(transport);
-      
+
       logger.info('ALECS MCP Server ready and listening');
     } catch (error) {
       logger.error('Failed to start server', {
         error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
+        stack: error instanceof Error ? error.stack : undefined,
       });
       throw error;
     }
@@ -531,7 +510,7 @@ async function main(): Promise<void> {
   } catch (error) {
     logger.error('Server initialization failed', {
       error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined
+      stack: error instanceof Error ? error.stack : undefined,
     });
     process.exit(1);
   }

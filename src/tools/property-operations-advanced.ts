@@ -3,10 +3,10 @@
  * Comprehensive property management including search, comparison, health checks, and bulk updates
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { ErrorTranslator } from '../utils/errors';
-import { formatPropertyDisplay } from '../utils/formatting';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import { ErrorTranslator } from '@utils/errors';
+import { formatPropertyDisplay } from '@utils/formatting';
 
 // Property search types
 export interface PropertySearchCriteria {
@@ -164,46 +164,48 @@ export async function searchPropertiesAdvanced(
     limit?: number;
     sortBy?: 'relevance' | 'name' | 'lastModified' | 'size';
     includeDetails?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     const limit = args.limit || 50;
-    
+
     // Get all properties
     const propertiesResponse = await client.request({
       path: '/papi/v1/properties',
       method: 'GET',
     });
-    
+
     const properties = propertiesResponse.properties?.items || [];
     const searchResults: PropertySearchResult[] = [];
-    
+
     // Search and score each property
     for (const property of properties) {
       let score = 0;
       const matchReasons: string[] = [];
-      
+
       // Name matching
       if (args.criteria.name) {
         const nameScore = calculateStringMatch(property.propertyName, args.criteria.name);
         if (nameScore > 0) {
           score += nameScore * 10;
-          matchReasons.push(`Name matches "${args.criteria.name}" (${Math.round(nameScore * 100)}%)`);
+          matchReasons.push(
+            `Name matches "${args.criteria.name}" (${Math.round(nameScore * 100)}%)`,
+          );
         }
       }
-      
+
       // Contract/Group/Product filtering
       if (args.criteria.contractId && property.contractId !== args.criteria.contractId) continue;
       if (args.criteria.groupId && property.groupId !== args.criteria.groupId) continue;
       if (args.criteria.productId && property.productId !== args.criteria.productId) continue;
-      
+
       // Activation status filtering
       if (args.criteria.activationStatus) {
         const hasProduction = property.productionVersion > 0;
         const hasStaging = property.stagingVersion > 0;
-        
+
         switch (args.criteria.activationStatus) {
           case 'production':
             if (!hasProduction) continue;
@@ -223,26 +225,28 @@ export async function searchPropertiesAdvanced(
             break;
         }
       }
-      
+
       // Get additional details if needed
       let hostnames: string[] = [];
       let edgeHostnames: string[] = [];
-      
+
       if (args.includeDetails || args.criteria.hostname || args.criteria.edgeHostname) {
         try {
           const hostnamesResponse = await client.request({
             path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames`,
             method: 'GET',
           });
-          
+
           const hostnameItems = hostnamesResponse.hostnames?.items || [];
           hostnames = hostnameItems.map((h: any) => String(h.cnameFrom));
-          edgeHostnames = [...new Set(hostnameItems.map((h: any) => String(h.cnameTo)).filter((h: string) => h))] as string[];
-          
+          edgeHostnames = [
+            ...new Set(hostnameItems.map((h: any) => String(h.cnameTo)).filter((h: string) => h)),
+          ] as string[];
+
           // Hostname matching
           if (args.criteria.hostname) {
-            const hostnameMatches = hostnames.filter(h => 
-              h.toLowerCase().includes(args.criteria.hostname!.toLowerCase())
+            const hostnameMatches = hostnames.filter((h) =>
+              h.toLowerCase().includes(args.criteria.hostname!.toLowerCase()),
             );
             if (hostnameMatches.length > 0) {
               score += 15;
@@ -251,11 +255,11 @@ export async function searchPropertiesAdvanced(
               continue;
             }
           }
-          
+
           // Edge hostname matching
           if (args.criteria.edgeHostname) {
-            const edgeMatches = edgeHostnames.filter(h =>
-              h.toLowerCase().includes(args.criteria.edgeHostname!.toLowerCase())
+            const edgeMatches = edgeHostnames.filter((h) =>
+              h.toLowerCase().includes(args.criteria.edgeHostname!.toLowerCase()),
             );
             if (edgeMatches.length > 0) {
               score += 10;
@@ -268,12 +272,14 @@ export async function searchPropertiesAdvanced(
           // Continue without hostname data
         }
       }
-      
+
       // Last modified filtering
       const lastModified = new Date(property.lastModified || property.updateDate);
-      if (args.criteria.lastModifiedAfter && lastModified < args.criteria.lastModifiedAfter) continue;
-      if (args.criteria.lastModifiedBefore && lastModified > args.criteria.lastModifiedBefore) continue;
-      
+      if (args.criteria.lastModifiedAfter && lastModified < args.criteria.lastModifiedAfter)
+        continue;
+      if (args.criteria.lastModifiedBefore && lastModified > args.criteria.lastModifiedBefore)
+        continue;
+
       // Add to results if matches criteria
       if (score > 0 || matchReasons.length > 0 || !hasAnyCriteria(args.criteria)) {
         searchResults.push({
@@ -289,11 +295,11 @@ export async function searchPropertiesAdvanced(
           hostnames,
           edgeHostnames,
           score,
-          matchReasons
+          matchReasons,
         });
       }
     }
-    
+
     // Sort results
     switch (args.sortBy) {
       case 'name':
@@ -306,10 +312,10 @@ export async function searchPropertiesAdvanced(
       default:
         searchResults.sort((a, b) => b.score - a.score);
     }
-    
+
     // Apply limit
     const limitedResults = searchResults.slice(0, limit);
-    
+
     // Format response
     let responseText = `# Advanced Property Search Results\n\n`;
     responseText += `**Total Matches:** ${searchResults.length}`;
@@ -317,18 +323,21 @@ export async function searchPropertiesAdvanced(
       responseText += ` (showing top ${limit})`;
     }
     responseText += '\n\n';
-    
+
     // Search criteria summary
     responseText += `## Search Criteria\n`;
     if (args.criteria.name) responseText += `- **Name contains:** ${args.criteria.name}\n`;
-    if (args.criteria.hostname) responseText += `- **Hostname contains:** ${args.criteria.hostname}\n`;
-    if (args.criteria.edgeHostname) responseText += `- **Edge hostname contains:** ${args.criteria.edgeHostname}\n`;
+    if (args.criteria.hostname)
+      responseText += `- **Hostname contains:** ${args.criteria.hostname}\n`;
+    if (args.criteria.edgeHostname)
+      responseText += `- **Edge hostname contains:** ${args.criteria.edgeHostname}\n`;
     if (args.criteria.contractId) responseText += `- **Contract:** ${args.criteria.contractId}\n`;
     if (args.criteria.groupId) responseText += `- **Group:** ${args.criteria.groupId}\n`;
     if (args.criteria.productId) responseText += `- **Product:** ${args.criteria.productId}\n`;
-    if (args.criteria.activationStatus) responseText += `- **Activation status:** ${args.criteria.activationStatus}\n`;
+    if (args.criteria.activationStatus)
+      responseText += `- **Activation status:** ${args.criteria.activationStatus}\n`;
     responseText += '\n';
-    
+
     // Results
     if (limitedResults.length === 0) {
       responseText += '❌ No properties found matching the search criteria.\n';
@@ -337,18 +346,18 @@ export async function searchPropertiesAdvanced(
         responseText += `## ${index + 1}. ${result.propertyName}\n`;
         responseText += `**Property ID:** ${result.propertyId}\n`;
         responseText += `**Score:** ${result.score}\n`;
-        
+
         if (result.matchReasons.length > 0) {
           responseText += `**Match Reasons:**\n`;
-          result.matchReasons.forEach(reason => {
+          result.matchReasons.forEach((reason) => {
             responseText += `- ${reason}\n`;
           });
         }
-        
+
         responseText += `**Contract:** ${result.contractId} | **Group:** ${result.groupId}\n`;
         responseText += `**Product:** ${formatPropertyDisplay(result.productId)}\n`;
         responseText += `**Latest Version:** ${result.latestVersion}`;
-        
+
         if (result.productionVersion) {
           responseText += ` | **Production:** v${result.productionVersion}`;
         }
@@ -356,9 +365,9 @@ export async function searchPropertiesAdvanced(
           responseText += ` | **Staging:** v${result.stagingVersion}`;
         }
         responseText += '\n';
-        
+
         responseText += `**Last Modified:** ${result.lastModified.toISOString()}\n`;
-        
+
         if (args.includeDetails && result.hostnames.length > 0) {
           responseText += `**Hostnames:** ${result.hostnames.slice(0, 3).join(', ')}`;
           if (result.hostnames.length > 3) {
@@ -366,27 +375,31 @@ export async function searchPropertiesAdvanced(
           }
           responseText += '\n';
         }
-        
+
         responseText += '\n';
       });
     }
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'search properties advanced',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'search properties advanced',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -404,10 +417,10 @@ export async function compareProperties(
     compareRules?: boolean;
     compareHostnames?: boolean;
     compareBehaviors?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     // Get property details
     const [propAResponse, propBResponse] = await Promise.all([
@@ -418,66 +431,66 @@ export async function compareProperties(
       client.request({
         path: `/papi/v1/properties/${args.propertyIdB}`,
         method: 'GET',
-      })
+      }),
     ]);
-    
+
     const propA = propAResponse.properties?.items?.[0];
     const propB = propBResponse.properties?.items?.[0];
-    
+
     if (!propA || !propB) {
       throw new Error('One or both properties not found');
     }
-    
+
     const versionA = args.versionA || propA.latestVersion;
     const versionB = args.versionB || propB.latestVersion;
-    
+
     const comparison: PropertyComparisonResult = {
       propertyA: {
         propertyId: propA.propertyId,
         propertyName: propA.propertyName,
         version: versionA,
         productId: propA.productId,
-        ruleFormat: propA.ruleFormat
+        ruleFormat: propA.ruleFormat,
       },
       propertyB: {
         propertyId: propB.propertyId,
         propertyName: propB.propertyName,
         version: versionB,
         productId: propB.productId,
-        ruleFormat: propB.ruleFormat
+        ruleFormat: propB.ruleFormat,
       },
       differences: {
         metadata: [],
         hostnames: [],
         rules: [],
         behaviors: [],
-        activations: []
+        activations: [],
       },
       similarity: {
         overall: 0,
         rules: 0,
         behaviors: 0,
-        hostnames: 0
-      }
+        hostnames: 0,
+      },
     };
-    
+
     // Compare metadata
     if (propA.productId !== propB.productId) {
       comparison.differences.metadata.push({
         field: 'productId',
         valueA: propA.productId,
-        valueB: propB.productId
+        valueB: propB.productId,
       });
     }
-    
+
     if (propA.ruleFormat !== propB.ruleFormat) {
       comparison.differences.metadata.push({
         field: 'ruleFormat',
         valueA: propA.ruleFormat,
-        valueB: propB.ruleFormat
+        valueB: propB.ruleFormat,
       });
     }
-    
+
     // Compare hostnames
     if (args.compareHostnames !== false) {
       const [hostnamesA, hostnamesB] = await Promise.all([
@@ -488,39 +501,40 @@ export async function compareProperties(
         client.request({
           path: `/papi/v1/properties/${args.propertyIdB}/versions/${versionB}/hostnames`,
           method: 'GET',
-        })
+        }),
       ]);
-      
+
       const hostSetA = new Set(hostnamesA.hostnames?.items?.map((h: any) => h.cnameFrom) || []);
       const hostSetB = new Set(hostnamesB.hostnames?.items?.map((h: any) => h.cnameFrom) || []);
-      
+
       // Find differences
       hostSetA.forEach((hostname: unknown) => {
         if (!hostSetB.has(hostname)) {
           comparison.differences.hostnames.push({
             type: 'removed',
             hostname: String(hostname),
-            details: `Present in ${propA.propertyName} but not in ${propB.propertyName}`
+            details: `Present in ${propA.propertyName} but not in ${propB.propertyName}`,
           });
         }
       });
-      
+
       hostSetB.forEach((hostname: unknown) => {
         if (!hostSetA.has(hostname)) {
           comparison.differences.hostnames.push({
             type: 'added',
             hostname: String(hostname),
-            details: `Present in ${propB.propertyName} but not in ${propA.propertyName}`
+            details: `Present in ${propB.propertyName} but not in ${propA.propertyName}`,
           });
         }
       });
-      
+
       // Calculate hostname similarity
-      const commonHostnames = [...hostSetA].filter(h => hostSetB.has(h)).length;
+      const commonHostnames = [...hostSetA].filter((h) => hostSetB.has(h)).length;
       const totalHostnames = new Set([...hostSetA, ...hostSetB]).size;
-      comparison.similarity.hostnames = totalHostnames > 0 ? (commonHostnames / totalHostnames) * 100 : 100;
+      comparison.similarity.hostnames =
+        totalHostnames > 0 ? (commonHostnames / totalHostnames) * 100 : 100;
     }
-    
+
     // Compare rules
     if (args.compareRules !== false) {
       const [rulesA, rulesB] = await Promise.all([
@@ -528,66 +542,67 @@ export async function compareProperties(
           path: `/papi/v1/properties/${args.propertyIdA}/versions/${versionA}/rules`,
           method: 'GET',
           headers: {
-            'Accept': 'application/vnd.akamai.papirules.v2024-02-12+json'
-          }
+            Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
+          },
         }),
         client.request({
           path: `/papi/v1/properties/${args.propertyIdB}/versions/${versionB}/rules`,
           method: 'GET',
           headers: {
-            'Accept': 'application/vnd.akamai.papirules.v2024-02-12+json'
-          }
-        })
+            Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
+          },
+        }),
       ]);
-      
+
       // Compare rule structures
       const ruleDiffs = compareRuleStructures(rulesA.rules, rulesB.rules);
       comparison.differences.rules = ruleDiffs;
-      
+
       // Compare behaviors
       if (args.compareBehaviors !== false) {
         const behaviorDiffs = compareBehaviors(rulesA.rules, rulesB.rules);
         comparison.differences.behaviors = behaviorDiffs;
-        
+
         // Calculate behavior similarity
         const allBehaviors = new Set([
           ...extractAllBehaviors(rulesA.rules),
-          ...extractAllBehaviors(rulesB.rules)
+          ...extractAllBehaviors(rulesB.rules),
         ]);
-        const commonBehaviors = [...extractAllBehaviors(rulesA.rules)]
-          .filter(b => extractAllBehaviors(rulesB.rules).has(b)).length;
-        comparison.similarity.behaviors = allBehaviors.size > 0 ? (commonBehaviors / allBehaviors.size) * 100 : 100;
+        const commonBehaviors = [...extractAllBehaviors(rulesA.rules)].filter((b) =>
+          extractAllBehaviors(rulesB.rules).has(b),
+        ).length;
+        comparison.similarity.behaviors =
+          allBehaviors.size > 0 ? (commonBehaviors / allBehaviors.size) * 100 : 100;
       }
-      
+
       // Calculate rule similarity (simplified)
-      comparison.similarity.rules = 100 - (ruleDiffs.length * 5); // Each diff reduces similarity by 5%
+      comparison.similarity.rules = 100 - ruleDiffs.length * 5; // Each diff reduces similarity by 5%
       comparison.similarity.rules = Math.max(0, comparison.similarity.rules);
     }
-    
+
     // Compare activations
     comparison.differences.activations.push({
       network: 'PRODUCTION',
       versionA: propA.productionVersion,
       versionB: propB.productionVersion,
       statusA: propA.productionVersion ? 'ACTIVE' : 'INACTIVE',
-      statusB: propB.productionVersion ? 'ACTIVE' : 'INACTIVE'
+      statusB: propB.productionVersion ? 'ACTIVE' : 'INACTIVE',
     });
-    
+
     comparison.differences.activations.push({
       network: 'STAGING',
       versionA: propA.stagingVersion,
       versionB: propB.stagingVersion,
       statusA: propA.stagingVersion ? 'ACTIVE' : 'INACTIVE',
-      statusB: propB.stagingVersion ? 'ACTIVE' : 'INACTIVE'
+      statusB: propB.stagingVersion ? 'ACTIVE' : 'INACTIVE',
     });
-    
+
     // Calculate overall similarity
-    comparison.similarity.overall = (
+    comparison.similarity.overall =
       comparison.similarity.hostnames * 0.3 +
       comparison.similarity.rules * 0.4 +
-      comparison.similarity.behaviors * 0.3
-    );
-    
+      comparison.similarity.behaviors * 0.3;
+
     // Format response
     let responseText = `# Property Comparison Report\n\n`;
     responseText += `## Properties Being Compared\n\n`;
@@ -596,50 +611,50 @@ export async function compareProperties(
     responseText += `- **Version:** ${comparison.propertyA.version}\n`;
     responseText += `- **Product:** ${formatPropertyDisplay(comparison.propertyA.productId)}\n`;
     responseText += `- **Rule Format:** ${comparison.propertyA.ruleFormat}\n\n`;
-    
+
     responseText += `### Property B: ${comparison.propertyB.propertyName}\n`;
     responseText += `- **ID:** ${comparison.propertyB.propertyId}\n`;
     responseText += `- **Version:** ${comparison.propertyB.version}\n`;
     responseText += `- **Product:** ${formatPropertyDisplay(comparison.propertyB.productId)}\n`;
     responseText += `- **Rule Format:** ${comparison.propertyB.ruleFormat}\n\n`;
-    
+
     responseText += `## Similarity Scores\n`;
     responseText += `- **Overall Similarity:** ${Math.round(comparison.similarity.overall)}%\n`;
     responseText += `- **Hostname Similarity:** ${Math.round(comparison.similarity.hostnames)}%\n`;
     responseText += `- **Rule Similarity:** ${Math.round(comparison.similarity.rules)}%\n`;
     responseText += `- **Behavior Similarity:** ${Math.round(comparison.similarity.behaviors)}%\n\n`;
-    
+
     // Metadata differences
     if (comparison.differences.metadata.length > 0) {
       responseText += `## Metadata Differences\n`;
-      comparison.differences.metadata.forEach(diff => {
+      comparison.differences.metadata.forEach((diff) => {
         responseText += `- **${diff.field}:** ${diff.valueA} → ${diff.valueB}\n`;
       });
       responseText += '\n';
     }
-    
+
     // Hostname differences
     if (comparison.differences.hostnames.length > 0) {
       responseText += `## Hostname Differences (${comparison.differences.hostnames.length})\n`;
-      const added = comparison.differences.hostnames.filter(h => h.type === 'added');
-      const removed = comparison.differences.hostnames.filter(h => h.type === 'removed');
-      
+      const added = comparison.differences.hostnames.filter((h) => h.type === 'added');
+      const removed = comparison.differences.hostnames.filter((h) => h.type === 'removed');
+
       if (added.length > 0) {
         responseText += `### Added in Property B:\n`;
-        added.forEach(h => responseText += `- ${h.hostname}\n`);
+        added.forEach((h) => (responseText += `- ${h.hostname}\n`));
       }
-      
+
       if (removed.length > 0) {
         responseText += `### Removed from Property B:\n`;
-        removed.forEach(h => responseText += `- ${h.hostname}\n`);
+        removed.forEach((h) => (responseText += `- ${h.hostname}\n`));
       }
       responseText += '\n';
     }
-    
+
     // Rule differences
     if (comparison.differences.rules.length > 0) {
       responseText += `## Rule Differences (${comparison.differences.rules.length})\n`;
-      comparison.differences.rules.slice(0, 10).forEach(diff => {
+      comparison.differences.rules.slice(0, 10).forEach((diff) => {
         responseText += `- **${diff.type}** at ${diff.path}\n`;
       });
       if (comparison.differences.rules.length > 10) {
@@ -647,11 +662,11 @@ export async function compareProperties(
       }
       responseText += '\n';
     }
-    
+
     // Behavior differences
     if (comparison.differences.behaviors.length > 0) {
       responseText += `## Behavior Differences (${comparison.differences.behaviors.length})\n`;
-      comparison.differences.behaviors.slice(0, 10).forEach(diff => {
+      comparison.differences.behaviors.slice(0, 10).forEach((diff) => {
         responseText += `- **${diff.behavior}** (${diff.type}) at ${diff.path}\n`;
       });
       if (comparison.differences.behaviors.length > 10) {
@@ -659,10 +674,10 @@ export async function compareProperties(
       }
       responseText += '\n';
     }
-    
+
     // Activation differences
     responseText += `## Activation Status\n`;
-    comparison.differences.activations.forEach(diff => {
+    comparison.differences.activations.forEach((diff) => {
       responseText += `- **${diff.network}:** `;
       if (diff.versionA === diff.versionB) {
         responseText += `Both at v${diff.versionA || 'none'}\n`;
@@ -670,23 +685,27 @@ export async function compareProperties(
         responseText += `v${diff.versionA || 'none'} → v${diff.versionB || 'none'}\n`;
       }
     });
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'compare properties',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'compare properties',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -701,24 +720,24 @@ export async function checkPropertyHealth(
     version?: number;
     includePerformance?: boolean;
     includeSecurity?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     // Get property details
     const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
-    
+
     const property = propertyResponse.properties?.items?.[0];
     if (!property) {
       throw new Error('Property not found');
     }
-    
+
     const version = args.version || property.latestVersion;
-    
+
     const healthCheck: PropertyHealthCheck = {
       propertyId: property.propertyId,
       propertyName: property.propertyName,
@@ -730,23 +749,23 @@ export async function checkPropertyHealth(
         hostnames: { status: 'pass', message: 'Hostnames are properly configured' },
         rules: { status: 'pass', message: 'Rules are valid' },
         performance: { status: 'pass', message: 'Performance optimizations in place' },
-        security: { status: 'pass', message: 'Security best practices followed' }
+        security: { status: 'pass', message: 'Security best practices followed' },
       },
       recommendations: [],
-      issues: []
+      issues: [],
     };
-    
+
     // Get rule tree for analysis
     const rulesResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
       method: 'GET',
       headers: {
-        'Accept': 'application/vnd.akamai.papirules.v2024-02-12+json'
-      }
+        Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
+      },
     });
-    
+
     const rules = rulesResponse.rules;
-    
+
     // Configuration checks
     if (!property.productionVersion && !property.stagingVersion) {
       healthCheck.checks.configuration.status = 'warning';
@@ -756,18 +775,18 @@ export async function checkPropertyHealth(
         category: 'configuration',
         issue: 'Property is not activated',
         recommendation: 'Activate property to staging for testing',
-        impact: 'Property is not serving traffic'
+        impact: 'Property is not serving traffic',
       });
     }
-    
+
     // Get hostnames for certificate checks
     const hostnamesResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'GET',
     });
-    
+
     const hostnames = hostnamesResponse.hostnames?.items || [];
-    
+
     // Certificate checks
     let hasInvalidCerts = false;
     hostnames.forEach((hostname: any) => {
@@ -778,43 +797,45 @@ export async function checkPropertyHealth(
           category: 'certificates',
           issue: `Certificate not activated for ${hostname.cnameFrom}`,
           recommendation: 'Activate certificate for production use',
-          impact: 'HTTPS traffic will fail'
+          impact: 'HTTPS traffic will fail',
         });
       }
     });
-    
+
     if (hasInvalidCerts) {
       healthCheck.checks.certificates.status = 'fail';
       healthCheck.checks.certificates.message = 'One or more certificates need activation';
     }
-    
+
     // Hostname checks
     const edgeHostnames = new Set(hostnames.map((h: any) => h.cnameTo));
     if (edgeHostnames.size > 5) {
       healthCheck.checks.hostnames.status = 'warning';
       healthCheck.checks.hostnames.message = 'Multiple edge hostnames detected';
-      healthCheck.recommendations.push('Consider consolidating edge hostnames for easier management');
+      healthCheck.recommendations.push(
+        'Consider consolidating edge hostnames for easier management',
+      );
     }
-    
+
     // Rule tree analysis
     const ruleAnalysis = analyzeRuleTree(rules);
-    
+
     if (ruleAnalysis.warnings.length > 0) {
       healthCheck.checks.rules.status = 'warning';
       healthCheck.checks.rules.message = `${ruleAnalysis.warnings.length} rule warnings found`;
       healthCheck.checks.rules.details = ruleAnalysis.warnings;
     }
-    
+
     // Performance checks
     if (args.includePerformance) {
       const perfAnalysis = analyzePerformance(rules);
-      
+
       if (!perfAnalysis.hasHttp2) {
         healthCheck.checks.performance.status = 'warning';
         healthCheck.checks.performance.message = 'HTTP/2 not enabled';
         healthCheck.recommendations.push('Enable HTTP/2 for better performance');
       }
-      
+
       if (!perfAnalysis.hasCaching) {
         healthCheck.checks.performance.status = 'warning';
         healthCheck.checks.performance.message = 'Caching not properly configured';
@@ -823,15 +844,15 @@ export async function checkPropertyHealth(
           category: 'performance',
           issue: 'No caching rules found',
           recommendation: 'Add caching behaviors for static content',
-          impact: 'Higher origin load and slower performance'
+          impact: 'Higher origin load and slower performance',
         });
       }
     }
-    
+
     // Security checks
     if (args.includeSecurity) {
       const securityAnalysis = analyzeSecurity(rules);
-      
+
       if (!securityAnalysis.hasHttpsRedirect) {
         healthCheck.checks.security.status = 'warning';
         healthCheck.checks.security.message = 'HTTPS redirect not configured';
@@ -840,29 +861,31 @@ export async function checkPropertyHealth(
           category: 'security',
           issue: 'No HTTP to HTTPS redirect',
           recommendation: 'Add redirect behavior to force HTTPS',
-          impact: 'Users may access site over insecure HTTP'
+          impact: 'Users may access site over insecure HTTP',
         });
       }
-      
+
       if (!securityAnalysis.hasSecurityHeaders) {
-        healthCheck.recommendations.push('Consider adding security headers (HSTS, X-Frame-Options, etc.)');
+        healthCheck.recommendations.push(
+          'Consider adding security headers (HSTS, X-Frame-Options, etc.)',
+        );
       }
     }
-    
+
     // Determine overall health
-    const statuses = Object.values(healthCheck.checks).map(c => c.status);
+    const statuses = Object.values(healthCheck.checks).map((c) => c.status);
     if (statuses.includes('fail')) {
       healthCheck.overallHealth = 'critical';
     } else if (statuses.includes('warning')) {
       healthCheck.overallHealth = 'warning';
     }
-    
+
     // Format response
     let responseText = `# Property Health Check Report\n\n`;
     responseText += `**Property:** ${healthCheck.propertyName} (${healthCheck.propertyId})\n`;
     responseText += `**Version:** ${healthCheck.version}\n`;
     responseText += `**Overall Health:** ${getHealthEmoji(healthCheck.overallHealth)} ${healthCheck.overallHealth.toUpperCase()}\n\n`;
-    
+
     responseText += `## Health Check Results\n\n`;
     Object.entries(healthCheck.checks).forEach(([category, result]) => {
       responseText += `### ${category.charAt(0).toUpperCase() + category.slice(1)}\n`;
@@ -870,59 +893,59 @@ export async function checkPropertyHealth(
       responseText += `**Message:** ${result.message}\n`;
       if (result.details && result.details.length > 0) {
         responseText += `**Details:**\n`;
-        result.details.forEach(detail => {
+        result.details.forEach((detail) => {
           responseText += `- ${detail}\n`;
         });
       }
       responseText += '\n';
     });
-    
+
     // Issues
     if (healthCheck.issues.length > 0) {
       responseText += `## Issues Found (${healthCheck.issues.length})\n\n`;
-      
-      const criticalIssues = healthCheck.issues.filter(i => i.severity === 'critical');
-      const highIssues = healthCheck.issues.filter(i => i.severity === 'high');
-      const mediumIssues = healthCheck.issues.filter(i => i.severity === 'medium');
-      const lowIssues = healthCheck.issues.filter(i => i.severity === 'low');
-      
+
+      const criticalIssues = healthCheck.issues.filter((i) => i.severity === 'critical');
+      const highIssues = healthCheck.issues.filter((i) => i.severity === 'high');
+      const mediumIssues = healthCheck.issues.filter((i) => i.severity === 'medium');
+      const lowIssues = healthCheck.issues.filter((i) => i.severity === 'low');
+
       if (criticalIssues.length > 0) {
         responseText += `### 🔴 Critical Issues\n`;
-        criticalIssues.forEach(issue => {
+        criticalIssues.forEach((issue) => {
           responseText += formatIssue(issue);
         });
       }
-      
+
       if (highIssues.length > 0) {
         responseText += `### 🟠 High Priority Issues\n`;
-        highIssues.forEach(issue => {
+        highIssues.forEach((issue) => {
           responseText += formatIssue(issue);
         });
       }
-      
+
       if (mediumIssues.length > 0) {
         responseText += `### 🟡 Medium Priority Issues\n`;
-        mediumIssues.forEach(issue => {
+        mediumIssues.forEach((issue) => {
           responseText += formatIssue(issue);
         });
       }
-      
+
       if (lowIssues.length > 0) {
         responseText += `### 🟢 Low Priority Issues\n`;
-        lowIssues.forEach(issue => {
+        lowIssues.forEach((issue) => {
           responseText += formatIssue(issue);
         });
       }
     }
-    
+
     // Recommendations
     if (healthCheck.recommendations.length > 0) {
       responseText += `## 💡 Recommendations\n\n`;
-      healthCheck.recommendations.forEach(rec => {
+      healthCheck.recommendations.forEach((rec) => {
         responseText += `- ${rec}\n`;
       });
     }
-    
+
     // Next steps
     responseText += `\n## Next Steps\n`;
     if (healthCheck.overallHealth === 'critical') {
@@ -938,23 +961,27 @@ export async function checkPropertyHealth(
       responseText += `2. Consider implementing recommendations for optimization\n`;
       responseText += `3. Schedule regular health checks\n`;
     }
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'check property health',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'check property health',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -971,57 +998,57 @@ export async function detectConfigurationDrift(
     checkBehaviors?: boolean;
     checkHostnames?: boolean;
     checkSettings?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     // Get property details
     const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
-    
+
     const property = propertyResponse.properties?.items?.[0];
     if (!property) {
       throw new Error('Property not found');
     }
-    
+
     const compareVersion = args.compareVersion || property.latestVersion;
-    
+
     const drift: ConfigurationDrift = {
       propertyId: property.propertyId,
       propertyName: property.propertyName,
       driftDetected: false,
       driftScore: 0,
       drifts: [],
-      recommendations: []
+      recommendations: [],
     };
-    
+
     // Get rules for both versions
     const [baselineRules, compareRules] = await Promise.all([
       client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${args.baselineVersion}/rules`,
         method: 'GET',
         headers: {
-          'Accept': 'application/vnd.akamai.papirules.v2024-02-12+json'
-        }
+          Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
+        },
       }),
       client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${compareVersion}/rules`,
         method: 'GET',
         headers: {
-          'Accept': 'application/vnd.akamai.papirules.v2024-02-12+json'
-        }
-      })
+          Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
+        },
+      }),
     ]);
-    
+
     // Check behaviors
     if (args.checkBehaviors !== false) {
       const behaviorDrifts = detectBehaviorDrifts(baselineRules.rules, compareRules.rules);
       drift.drifts.push(...behaviorDrifts);
     }
-    
+
     // Check hostnames
     if (args.checkHostnames !== false) {
       const [baselineHostnames, compareHostnames] = await Promise.all([
@@ -1032,20 +1059,20 @@ export async function detectConfigurationDrift(
         client.request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${compareVersion}/hostnames`,
           method: 'GET',
-        })
+        }),
       ]);
-      
+
       const hostnameDrifts = detectHostnameDrifts(
         baselineHostnames.hostnames?.items || [],
-        compareHostnames.hostnames?.items || []
+        compareHostnames.hostnames?.items || [],
       );
       drift.drifts.push(...hostnameDrifts);
     }
-    
+
     // Calculate drift score
     drift.driftScore = calculateDriftScore(drift.drifts);
     drift.driftDetected = drift.driftScore > 0;
-    
+
     // Generate recommendations
     if (drift.driftScore > 50) {
       drift.recommendations.push('Significant drift detected - review all changes carefully');
@@ -1053,11 +1080,13 @@ export async function detectConfigurationDrift(
     } else if (drift.driftScore > 20) {
       drift.recommendations.push('Moderate drift detected - verify changes are intentional');
     }
-    
-    if (drift.drifts.some(d => d.type === 'behavior' && d.impact === 'high')) {
-      drift.recommendations.push('High-impact behavior changes detected - test thoroughly before activation');
+
+    if (drift.drifts.some((d) => d.type === 'behavior' && d.impact === 'high')) {
+      drift.recommendations.push(
+        'High-impact behavior changes detected - test thoroughly before activation',
+      );
     }
-    
+
     // Format response
     let responseText = `# Configuration Drift Analysis\n\n`;
     responseText += `**Property:** ${drift.propertyName} (${drift.propertyId})\n`;
@@ -1065,32 +1094,32 @@ export async function detectConfigurationDrift(
     responseText += `**Compare Version:** ${compareVersion}\n`;
     responseText += `**Drift Score:** ${drift.driftScore}/100\n`;
     responseText += `**Drift Status:** ${drift.driftDetected ? '⚠️ DRIFT DETECTED' : '✅ NO DRIFT'}\n\n`;
-    
+
     if (drift.drifts.length > 0) {
       responseText += `## Drift Details (${drift.drifts.length} items)\n\n`;
-      
+
       // Group by impact
-      const highImpact = drift.drifts.filter(d => d.impact === 'high');
-      const mediumImpact = drift.drifts.filter(d => d.impact === 'medium');
-      const lowImpact = drift.drifts.filter(d => d.impact === 'low');
-      
+      const highImpact = drift.drifts.filter((d) => d.impact === 'high');
+      const mediumImpact = drift.drifts.filter((d) => d.impact === 'medium');
+      const lowImpact = drift.drifts.filter((d) => d.impact === 'low');
+
       if (highImpact.length > 0) {
         responseText += `### 🔴 High Impact Changes\n`;
-        highImpact.forEach(drift => {
+        highImpact.forEach((drift) => {
           responseText += formatDrift(drift);
         });
       }
-      
+
       if (mediumImpact.length > 0) {
         responseText += `### 🟡 Medium Impact Changes\n`;
-        mediumImpact.forEach(drift => {
+        mediumImpact.forEach((drift) => {
           responseText += formatDrift(drift);
         });
       }
-      
+
       if (lowImpact.length > 0) {
         responseText += `### 🟢 Low Impact Changes\n`;
-        lowImpact.forEach(drift => {
+        lowImpact.forEach((drift) => {
           responseText += formatDrift(drift);
         });
       }
@@ -1098,15 +1127,15 @@ export async function detectConfigurationDrift(
       responseText += `## No Configuration Drift Detected\n\n`;
       responseText += `The configuration in version ${compareVersion} matches the baseline version ${args.baselineVersion}.\n`;
     }
-    
+
     // Recommendations
     if (drift.recommendations.length > 0) {
       responseText += `\n## Recommendations\n\n`;
-      drift.recommendations.forEach(rec => {
+      drift.recommendations.forEach((rec) => {
         responseText += `- ${rec}\n`;
       });
     }
-    
+
     // Next steps
     responseText += `\n## Next Steps\n`;
     if (drift.driftDetected) {
@@ -1118,23 +1147,27 @@ export async function detectConfigurationDrift(
       responseText += `1. No action required - configuration is stable\n`;
       responseText += `2. Continue monitoring for future changes\n`;
     }
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'detect configuration drift',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'detect configuration drift',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -1164,10 +1197,10 @@ export async function bulkUpdateProperties(
     };
     createNewVersion?: boolean;
     note?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     const results: Array<{
       propertyId: string;
@@ -1176,7 +1209,7 @@ export async function bulkUpdateProperties(
       message: string;
       newVersion?: number;
     }> = [];
-    
+
     // Process each property
     for (const propertyId of args.propertyIds) {
       try {
@@ -1185,20 +1218,20 @@ export async function bulkUpdateProperties(
           path: `/papi/v1/properties/${propertyId}`,
           method: 'GET',
         });
-        
+
         const property = propertyResponse.properties?.items?.[0];
         if (!property) {
           results.push({
             propertyId,
             propertyName: 'Unknown',
             success: false,
-            message: 'Property not found'
+            message: 'Property not found',
           });
           continue;
         }
-        
+
         let version = property.latestVersion;
-        
+
         // Create new version if requested
         if (args.createNewVersion) {
           const versionResponse = await client.request({
@@ -1213,52 +1246,52 @@ export async function bulkUpdateProperties(
             },
             body: {
               createFromVersion: version,
-              createFromVersionEtag: property.etag
-            }
+              createFromVersionEtag: property.etag,
+            },
           });
-          
+
           version = parseInt(versionResponse.versionLink.split('/').pop());
         }
-        
+
         // Apply updates
         let updateApplied = false;
-        
+
         // Update rules if behavior changes requested
         if (args.updates.addBehavior || args.updates.updateBehavior) {
           const rulesResponse = await client.request({
             path: `/papi/v1/properties/${propertyId}/versions/${version}/rules`,
             method: 'GET',
             headers: {
-              'Accept': 'application/vnd.akamai.papirules.v2024-02-12+json'
-            }
+              Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
+            },
           });
-          
+
           const rules = rulesResponse.rules;
-          
+
           // Add behavior
           if (args.updates.addBehavior) {
             if (!rules.behaviors) rules.behaviors = [];
             rules.behaviors.push({
               name: args.updates.addBehavior.name,
-              options: args.updates.addBehavior.options
+              options: args.updates.addBehavior.options,
             });
             updateApplied = true;
           }
-          
+
           // Update behavior
           if (args.updates.updateBehavior) {
             const behaviorIndex = rules.behaviors?.findIndex(
-              (b: any) => b.name === args.updates.updateBehavior!.name
+              (b: any) => b.name === args.updates.updateBehavior!.name,
             );
             if (behaviorIndex !== undefined && behaviorIndex >= 0) {
               rules.behaviors[behaviorIndex].options = {
                 ...rules.behaviors[behaviorIndex].options,
-                ...args.updates.updateBehavior.options
+                ...args.updates.updateBehavior.options,
               };
               updateApplied = true;
             }
           }
-          
+
           // Save updated rules
           if (updateApplied) {
             await client.request({
@@ -1273,12 +1306,12 @@ export async function bulkUpdateProperties(
                 validateRules: 'true',
               },
               body: {
-                rules: rules
-              }
+                rules: rules,
+              },
             });
           }
         }
-        
+
         // Update hostnames
         if (args.updates.addHostname || args.updates.removeHostname) {
           // Add hostname
@@ -1293,30 +1326,32 @@ export async function bulkUpdateProperties(
                 contractId: property.contractId,
                 groupId: property.groupId,
               },
-              body: [{
-                op: 'add',
-                path: '/hostnames/-',
-                value: {
-                  cnameType: 'EDGE_HOSTNAME',
-                  cnameFrom: args.updates.addHostname.hostname,
-                  cnameTo: args.updates.addHostname.edgeHostname
-                }
-              }]
+              body: [
+                {
+                  op: 'add',
+                  path: '/hostnames/-',
+                  value: {
+                    cnameType: 'EDGE_HOSTNAME',
+                    cnameFrom: args.updates.addHostname.hostname,
+                    cnameTo: args.updates.addHostname.edgeHostname,
+                  },
+                },
+              ],
             });
             updateApplied = true;
           }
-          
+
           // Remove hostname
           if (args.updates.removeHostname) {
             const hostnamesResponse = await client.request({
               path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames`,
               method: 'GET',
             });
-            
+
             const hostnameIndex = hostnamesResponse.hostnames?.items?.findIndex(
-              (h: any) => h.cnameFrom === args.updates.removeHostname
+              (h: any) => h.cnameFrom === args.updates.removeHostname,
             );
-            
+
             if (hostnameIndex !== undefined && hostnameIndex >= 0) {
               await client.request({
                 path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames`,
@@ -1328,40 +1363,41 @@ export async function bulkUpdateProperties(
                   contractId: property.contractId,
                   groupId: property.groupId,
                 },
-                body: [{
-                  op: 'remove',
-                  path: `/hostnames/${hostnameIndex}`
-                }]
+                body: [
+                  {
+                    op: 'remove',
+                    path: `/hostnames/${hostnameIndex}`,
+                  },
+                ],
               });
               updateApplied = true;
             }
           }
         }
-        
+
         results.push({
           propertyId,
           propertyName: property.propertyName,
           success: true,
           message: updateApplied ? 'Updates applied successfully' : 'No updates applied',
-          newVersion: args.createNewVersion ? version : undefined
+          newVersion: args.createNewVersion ? version : undefined,
         });
-        
       } catch (error) {
         results.push({
           propertyId,
           propertyName: 'Unknown',
           success: false,
-          message: error instanceof Error ? error.message : 'Update failed'
+          message: error instanceof Error ? error.message : 'Update failed',
         });
       }
     }
-    
+
     // Format response
     let responseText = `# Bulk Property Update Results\n\n`;
     responseText += `**Total Properties:** ${args.propertyIds.length}\n`;
-    responseText += `**Successful:** ${results.filter(r => r.success).length}\n`;
-    responseText += `**Failed:** ${results.filter(r => !r.success).length}\n\n`;
-    
+    responseText += `**Successful:** ${results.filter((r) => r.success).length}\n`;
+    responseText += `**Failed:** ${results.filter((r) => !r.success).length}\n\n`;
+
     // Update summary
     responseText += `## Updates Applied\n`;
     if (args.updates.addBehavior) {
@@ -1377,16 +1413,16 @@ export async function bulkUpdateProperties(
       responseText += `- **Remove Hostname:** ${args.updates.removeHostname}\n`;
     }
     responseText += '\n';
-    
+
     // Results by property
     responseText += `## Results by Property\n\n`;
-    
-    const successful = results.filter(r => r.success);
-    const failed = results.filter(r => !r.success);
-    
+
+    const successful = results.filter((r) => r.success);
+    const failed = results.filter((r) => !r.success);
+
     if (successful.length > 0) {
       responseText += `### ✅ Successful Updates (${successful.length})\n`;
-      successful.forEach(result => {
+      successful.forEach((result) => {
         responseText += `- **${result.propertyName}** (${result.propertyId})`;
         if (result.newVersion) {
           responseText += ` - New version: ${result.newVersion}`;
@@ -1395,16 +1431,16 @@ export async function bulkUpdateProperties(
       });
       responseText += '\n';
     }
-    
+
     if (failed.length > 0) {
       responseText += `### ❌ Failed Updates (${failed.length})\n`;
-      failed.forEach(result => {
+      failed.forEach((result) => {
         responseText += `- **${result.propertyName}** (${result.propertyId})\n`;
         responseText += `  Error: ${result.message}\n`;
       });
       responseText += '\n';
     }
-    
+
     // Next steps
     responseText += `## Next Steps\n`;
     if (successful.length > 0) {
@@ -1417,23 +1453,27 @@ export async function bulkUpdateProperties(
       responseText += `2. Fix any permission or validation issues\n`;
       responseText += `3. Retry updates for failed properties\n`;
     }
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'bulk update properties',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'bulk update properties',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -1443,10 +1483,10 @@ export async function bulkUpdateProperties(
 function calculateStringMatch(str1: string, str2: string): number {
   const s1 = str1.toLowerCase();
   const s2 = str2.toLowerCase();
-  
+
   if (s1 === s2) return 1;
   if (s1.includes(s2) || s2.includes(s1)) return 0.8;
-  
+
   // Simple similarity score
   const maxLen = Math.max(s1.length, s2.length);
   let matches = 0;
@@ -1472,41 +1512,41 @@ function hasAnyCriteria(criteria: PropertySearchCriteria): boolean {
 
 function compareRuleStructures(rulesA: any, rulesB: any): RuleDifference[] {
   const differences: RuleDifference[] = [];
-  
+
   // Compare children recursively
   const compareChildren = (childrenA: any[], childrenB: any[], path: string) => {
-    const namesA = childrenA.map(c => c.name);
-    const namesB = childrenB.map(c => c.name);
-    
+    const namesA = childrenA.map((c) => c.name);
+    const namesB = childrenB.map((c) => c.name);
+
     // Find added rules
     namesB.forEach((name, index) => {
       if (!namesA.includes(name)) {
         differences.push({
           path: `${path}/children/${name}`,
           type: 'added',
-          ruleB: childrenB[index]
+          ruleB: childrenB[index],
         });
       }
     });
-    
+
     // Find removed rules
     namesA.forEach((name, index) => {
       if (!namesB.includes(name)) {
         differences.push({
           path: `${path}/children/${name}`,
           type: 'removed',
-          ruleA: childrenA[index]
+          ruleA: childrenA[index],
         });
       }
     });
-    
+
     // Compare common rules
     namesA.forEach((name, indexA) => {
       const indexB = namesB.indexOf(name);
       if (indexB >= 0) {
         const childA = childrenA[indexA];
         const childB = childrenB[indexB];
-        
+
         // Recursively compare children
         if (childA.children && childB.children) {
           compareChildren(childA.children, childB.children, `${path}/children/${name}`);
@@ -1514,48 +1554,48 @@ function compareRuleStructures(rulesA: any, rulesB: any): RuleDifference[] {
       }
     });
   };
-  
+
   if (rulesA.children && rulesB.children) {
     compareChildren(rulesA.children, rulesB.children, 'rules');
   }
-  
+
   return differences;
 }
 
 function compareBehaviors(rulesA: any, rulesB: any): BehaviorDifference[] {
   const differences: BehaviorDifference[] = [];
-  
+
   const extractBehaviors = (rule: any, path: string, behaviors: Map<string, any>) => {
     if (rule.behaviors) {
       rule.behaviors.forEach((behavior: any) => {
         behaviors.set(`${path}:${behavior.name}`, {
           behavior: behavior.name,
           path,
-          options: behavior.options
+          options: behavior.options,
         });
       });
     }
-    
+
     if (rule.children) {
       rule.children.forEach((child: any) => {
         extractBehaviors(child, `${path}/children/${child.name}`, behaviors);
       });
     }
   };
-  
+
   const behaviorsA = new Map();
   const behaviorsB = new Map();
-  
+
   extractBehaviors(rulesA, 'rules', behaviorsA);
   extractBehaviors(rulesB, 'rules', behaviorsB);
-  
+
   // Find differences
   behaviorsA.forEach((behaviorA, key) => {
     if (!behaviorsB.has(key)) {
       differences.push({
         ...behaviorA,
         type: 'removed',
-        optionsA: behaviorA.options
+        optionsA: behaviorA.options,
       });
     } else {
       const behaviorB = behaviorsB.get(key);
@@ -1565,28 +1605,28 @@ function compareBehaviors(rulesA: any, rulesB: any): BehaviorDifference[] {
           ...behaviorA,
           type: 'modified',
           optionsA: behaviorA.options,
-          optionsB: behaviorB.options
+          optionsB: behaviorB.options,
         });
       }
     }
   });
-  
+
   behaviorsB.forEach((behaviorB, key) => {
     if (!behaviorsA.has(key)) {
       differences.push({
         ...behaviorB,
         type: 'added',
-        optionsB: behaviorB.options
+        optionsB: behaviorB.options,
       });
     }
   });
-  
+
   return differences;
 }
 
 function extractAllBehaviors(rules: any): Set<string> {
   const behaviors = new Set<string>();
-  
+
   const extract = (rule: any) => {
     if (rule.behaviors) {
       rule.behaviors.forEach((b: any) => behaviors.add(b.name));
@@ -1595,45 +1635,45 @@ function extractAllBehaviors(rules: any): Set<string> {
       rule.children.forEach((child: any) => extract(child));
     }
   };
-  
+
   extract(rules);
   return behaviors;
 }
 
 function analyzeRuleTree(rules: any): { warnings: string[] } {
   const warnings: string[] = [];
-  
+
   // Check for empty rules
   if (!rules.behaviors || rules.behaviors.length === 0) {
     warnings.push('No behaviors defined in default rule');
   }
-  
+
   // Check for missing origin
   const hasOrigin = rules.behaviors?.some((b: any) => b.name === 'origin');
   if (!hasOrigin) {
     warnings.push('No origin behavior found');
   }
-  
+
   // Check for duplicate behaviors
   const behaviorCounts = new Map<string, number>();
   rules.behaviors?.forEach((b: any) => {
     const count = behaviorCounts.get(b.name) || 0;
     behaviorCounts.set(b.name, count + 1);
   });
-  
+
   behaviorCounts.forEach((count, name) => {
     if (count > 1) {
       warnings.push(`Duplicate behavior found: ${name}`);
     }
   });
-  
+
   return { warnings };
 }
 
 function analyzePerformance(rules: any): { hasHttp2: boolean; hasCaching: boolean } {
   let hasHttp2 = false;
   let hasCaching = false;
-  
+
   const analyze = (rule: any) => {
     if (rule.behaviors) {
       rule.behaviors.forEach((b: any) => {
@@ -1649,7 +1689,7 @@ function analyzePerformance(rules: any): { hasHttp2: boolean; hasCaching: boolea
       rule.children.forEach((child: any) => analyze(child));
     }
   };
-  
+
   analyze(rules);
   return { hasHttp2, hasCaching };
 }
@@ -1657,16 +1697,18 @@ function analyzePerformance(rules: any): { hasHttp2: boolean; hasCaching: boolea
 function analyzeSecurity(rules: any): { hasHttpsRedirect: boolean; hasSecurityHeaders: boolean } {
   let hasHttpsRedirect = false;
   let hasSecurityHeaders = false;
-  
+
   const analyze = (rule: any) => {
     if (rule.behaviors) {
       rule.behaviors.forEach((b: any) => {
         if (b.name === 'redirectPlus' && b.options?.destination?.includes('https://')) {
           hasHttpsRedirect = true;
         }
-        if (b.name === 'modifyOutgoingResponseHeader' && 
-            (b.options?.standardAddHeaderName === 'STRICT_TRANSPORT_SECURITY' ||
-             b.options?.standardAddHeaderName === 'X_FRAME_OPTIONS')) {
+        if (
+          b.name === 'modifyOutgoingResponseHeader' &&
+          (b.options?.standardAddHeaderName === 'STRICT_TRANSPORT_SECURITY' ||
+            b.options?.standardAddHeaderName === 'X_FRAME_OPTIONS')
+        ) {
           hasSecurityHeaders = true;
         }
       });
@@ -1675,7 +1717,7 @@ function analyzeSecurity(rules: any): { hasHttpsRedirect: boolean; hasSecurityHe
       rule.children.forEach((child: any) => analyze(child));
     }
   };
-  
+
   analyze(rules);
   return { hasHttpsRedirect, hasSecurityHeaders };
 }
@@ -1708,45 +1750,46 @@ function formatIssue(issue: HealthIssue): string {
 
 function detectBehaviorDrifts(baselineRules: any, compareRules: any): DriftItem[] {
   const drifts: DriftItem[] = [];
-  
+
   const behaviorDiffs = compareBehaviors(baselineRules, compareRules);
-  
-  behaviorDiffs.forEach(diff => {
+
+  behaviorDiffs.forEach((diff) => {
     let impact: 'low' | 'medium' | 'high' = 'low';
-    
+
     // Determine impact based on behavior type
     const criticalBehaviors = ['origin', 'caching', 'cpCode', 'allowTransferEncoding'];
     const importantBehaviors = ['http2', 'sureRoute', 'tieredDistribution'];
-    
+
     if (criticalBehaviors.includes(diff.behavior)) {
       impact = 'high';
     } else if (importantBehaviors.includes(diff.behavior)) {
       impact = 'medium';
     }
-    
+
     drifts.push({
       type: 'behavior',
       description: `Behavior '${diff.behavior}' ${diff.type} at ${diff.path}`,
       expectedValue: diff.optionsA || 'Not present',
       actualValue: diff.optionsB || 'Not present',
       impact,
-      recommendation: impact === 'high' 
-        ? 'Review this critical change carefully' 
-        : 'Verify this change is intentional'
+      recommendation:
+        impact === 'high'
+          ? 'Review this critical change carefully'
+          : 'Verify this change is intentional',
     });
   });
-  
+
   return drifts;
 }
 
 function detectHostnameDrifts(baselineHostnames: any[], compareHostnames: any[]): DriftItem[] {
   const drifts: DriftItem[] = [];
-  
-  const baselineSet = new Set(baselineHostnames.map(h => h.cnameFrom));
-  const compareSet = new Set(compareHostnames.map(h => h.cnameFrom));
-  
+
+  const baselineSet = new Set(baselineHostnames.map((h) => h.cnameFrom));
+  const compareSet = new Set(compareHostnames.map((h) => h.cnameFrom));
+
   // Added hostnames
-  compareSet.forEach(hostname => {
+  compareSet.forEach((hostname) => {
     if (!baselineSet.has(hostname)) {
       drifts.push({
         type: 'hostname',
@@ -1754,13 +1797,13 @@ function detectHostnameDrifts(baselineHostnames: any[], compareHostnames: any[])
         expectedValue: 'Not present',
         actualValue: hostname,
         impact: 'medium',
-        recommendation: 'Ensure DNS is properly configured for new hostname'
+        recommendation: 'Ensure DNS is properly configured for new hostname',
       });
     }
   });
-  
+
   // Removed hostnames
-  baselineSet.forEach(hostname => {
+  baselineSet.forEach((hostname) => {
     if (!compareSet.has(hostname)) {
       drifts.push({
         type: 'hostname',
@@ -1768,18 +1811,18 @@ function detectHostnameDrifts(baselineHostnames: any[], compareHostnames: any[])
         expectedValue: hostname,
         actualValue: 'Not present',
         impact: 'high',
-        recommendation: 'Verify hostname removal is intentional - may impact live traffic'
+        recommendation: 'Verify hostname removal is intentional - may impact live traffic',
       });
     }
   });
-  
+
   return drifts;
 }
 
 function calculateDriftScore(drifts: DriftItem[]): number {
   let score = 0;
-  
-  drifts.forEach(drift => {
+
+  drifts.forEach((drift) => {
     switch (drift.impact) {
       case 'high':
         score += 10;
@@ -1792,7 +1835,7 @@ function calculateDriftScore(drifts: DriftItem[]): number {
         break;
     }
   });
-  
+
   return Math.min(100, score);
 }
 

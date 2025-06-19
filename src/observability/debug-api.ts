@@ -74,17 +74,23 @@ export interface SystemState {
     size: number;
     maxSize: number;
   };
-  rateLimits: Record<string, {
-    remaining: number;
-    limit: number;
-    resetTime: number;
-  }>;
-  circuits: Record<string, {
-    state: 'closed' | 'open' | 'half-open';
-    failures: number;
-    successRate: number;
-    lastFailure?: number;
-  }>;
+  rateLimits: Record<
+    string,
+    {
+      remaining: number;
+      limit: number;
+      resetTime: number;
+    }
+  >;
+  circuits: Record<
+    string,
+    {
+      state: 'closed' | 'open' | 'half-open';
+      failures: number;
+      successRate: number;
+      lastFailure?: number;
+    }
+  >;
 }
 
 export interface DebugSubscription {
@@ -129,7 +135,7 @@ export class DebugAPI extends EventEmitter {
       stateUpdateIntervalMs?: number;
       enableStackTraces?: boolean;
       enablePerformanceMonitoring?: boolean;
-    } = {}
+    } = {},
   ) {
     super();
     this.config = {
@@ -154,10 +160,10 @@ export class DebugAPI extends EventEmitter {
     category: string,
     message: string,
     data?: any,
-    source: string = 'unknown',
+    source = 'unknown',
     traceId?: string,
     spanId?: string,
-    context?: Record<string, any>
+    context?: Record<string, any>,
   ): void {
     const event: DebugEvent = {
       id: this.generateId(),
@@ -194,7 +200,7 @@ export class DebugAPI extends EventEmitter {
   startTrace(
     traceId: string,
     metadata: RequestTrace['metadata'],
-    parentSpanId?: string
+    parentSpanId?: string,
   ): RequestTrace {
     const trace: RequestTrace = {
       traceId,
@@ -216,7 +222,7 @@ export class DebugAPI extends EventEmitter {
     traceId: string,
     operationName: string,
     parentSpanId?: string,
-    tags: Record<string, any> = {}
+    tags: Record<string, any> = {},
   ): string {
     const trace = this.traces.get(traceId);
     if (!trace) {
@@ -250,12 +256,12 @@ export class DebugAPI extends EventEmitter {
     traceId: string,
     spanId: string,
     error?: Error,
-    finalTags: Record<string, any> = {}
+    finalTags: Record<string, any> = {},
   ): void {
     const trace = this.traces.get(traceId);
     if (!trace) return;
 
-    const span = trace.spans.find(s => s.spanId === spanId);
+    const span = trace.spans.find((s) => s.spanId === spanId);
     if (!span) return;
 
     span.endTime = performance.now();
@@ -270,15 +276,11 @@ export class DebugAPI extends EventEmitter {
   /**
    * Add log to span
    */
-  logToSpan(
-    traceId: string,
-    spanId: string,
-    fields: Record<string, any>
-  ): void {
+  logToSpan(traceId: string, spanId: string, fields: Record<string, any>): void {
     const trace = this.traces.get(traceId);
     if (!trace) return;
 
-    const span = trace.spans.find(s => s.spanId === spanId);
+    const span = trace.spans.find((s) => s.spanId === spanId);
     if (!span) return;
 
     span.logs.push({
@@ -292,10 +294,7 @@ export class DebugAPI extends EventEmitter {
   /**
    * Subscribe to debug events
    */
-  subscribe(
-    filters: DebugSubscription['filters'],
-    callback: (event: DebugEvent) => void
-  ): string {
+  subscribe(filters: DebugSubscription['filters'], callback: (event: DebugEvent) => void): string {
     const subscription: DebugSubscription = {
       id: this.generateId(),
       filters,
@@ -325,7 +324,9 @@ export class DebugAPI extends EventEmitter {
   /**
    * Add streaming connection
    */
-  addStreamingConnection(connection: Omit<StreamingConnection, 'id' | 'lastActivity' | 'active'>): string {
+  addStreamingConnection(
+    connection: Omit<StreamingConnection, 'id' | 'lastActivity' | 'active'>,
+  ): string {
     const id = this.generateId();
     const streamingConnection: StreamingConnection = {
       id,
@@ -356,14 +357,11 @@ export class DebugAPI extends EventEmitter {
   /**
    * Get recent events
    */
-  getRecentEvents(
-    limit: number = 100,
-    filters?: DebugSubscription['filters']
-  ): DebugEvent[] {
+  getRecentEvents(limit = 100, filters?: DebugSubscription['filters']): DebugEvent[] {
     let events = [...this.events];
 
     if (filters) {
-      events = events.filter(event => this.matchesFilters(event, filters));
+      events = events.filter((event) => this.matchesFilters(event, filters));
     }
 
     return events.slice(-limit);
@@ -386,39 +384,37 @@ export class DebugAPI extends EventEmitter {
   /**
    * Get recent traces
    */
-  getRecentTraces(limit: number = 50): RequestTrace[] {
+  getRecentTraces(limit = 50): RequestTrace[] {
     const traces = Array.from(this.traces.values());
     traces.sort((a, b) => {
-      const aLatest = Math.max(...a.spans.map(s => s.startTime));
-      const bLatest = Math.max(...b.spans.map(s => s.startTime));
+      const aLatest = Math.max(...a.spans.map((s) => s.startTime));
+      const bLatest = Math.max(...b.spans.map((s) => s.startTime));
       return bLatest - aLatest;
     });
-    
+
     return traces.slice(0, limit);
   }
 
   /**
    * Search events
    */
-  searchEvents(
-    query: string,
-    filters?: DebugSubscription['filters'],
-    limit: number = 100
-  ): DebugEvent[] {
+  searchEvents(query: string, filters?: DebugSubscription['filters'], limit = 100): DebugEvent[] {
     const lowerQuery = query.toLowerCase();
-    let events = this.events.filter(event => {
+    let events = this.events.filter((event) => {
       const searchableText = [
         event.message,
         event.category,
         event.source,
         JSON.stringify(event.data || {}),
-      ].join(' ').toLowerCase();
-      
+      ]
+        .join(' ')
+        .toLowerCase();
+
       return searchableText.includes(lowerQuery);
     });
 
     if (filters) {
-      events = events.filter(event => this.matchesFilters(event, filters));
+      events = events.filter((event) => this.matchesFilters(event, filters));
     }
 
     return events.slice(-limit);
@@ -472,9 +468,9 @@ export class DebugAPI extends EventEmitter {
     let erroredTraces = 0;
 
     for (const trace of this.traces.values()) {
-      const hasActiveSpans = trace.spans.some(s => s.status === 'active');
-      const hasErrors = trace.spans.some(s => s.status === 'error');
-      
+      const hasActiveSpans = trace.spans.some((s) => s.status === 'active');
+      const hasErrors = trace.spans.some((s) => s.status === 'error');
+
       if (hasActiveSpans) {
         activeTraces++;
       } else if (hasErrors) {
@@ -484,11 +480,13 @@ export class DebugAPI extends EventEmitter {
       }
     }
 
-    const activeSubscriptions = Array.from(this.subscriptions.values())
-      .filter(s => s.active).length;
+    const activeSubscriptions = Array.from(this.subscriptions.values()).filter(
+      (s) => s.active,
+    ).length;
 
-    const activeConnections = Array.from(this.streamingConnections.values())
-      .filter(c => c.active).length;
+    const activeConnections = Array.from(this.streamingConnections.values()).filter(
+      (c) => c.active,
+    ).length;
 
     const connectionsByType: Record<string, number> = {};
     for (const connection of this.streamingConnections.values()) {
@@ -526,12 +524,12 @@ export class DebugAPI extends EventEmitter {
   clearOldEvents(olderThanMs: number): number {
     const cutoff = Date.now() - olderThanMs;
     const initialLength = this.events.length;
-    
-    this.events = this.events.filter(event => event.timestamp > cutoff);
-    
+
+    this.events = this.events.filter((event) => event.timestamp > cutoff);
+
     const removed = initialLength - this.events.length;
     this.emit('eventsCleared', removed);
-    
+
     return removed;
   }
 
@@ -562,26 +560,29 @@ export class DebugAPI extends EventEmitter {
   }
 
   private generateId(): string {
-    return Math.random().toString(36).substring(2, 15) + 
-           Math.random().toString(36).substring(2, 15);
+    return (
+      Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    );
   }
 
   private sanitizeData(data: any): any {
     if (data === null || data === undefined) return data;
-    
+
     // Remove circular references and limit depth
     try {
-      return JSON.parse(JSON.stringify(data, (_key, value) => {
-        if (typeof value === 'function') return '[Function]';
-        if (value instanceof Error) {
-          return {
-            name: value.name,
-            message: value.message,
-            stack: this.config.enableStackTraces ? value.stack : undefined,
-          };
-        }
-        return value;
-      }));
+      return JSON.parse(
+        JSON.stringify(data, (_key, value) => {
+          if (typeof value === 'function') return '[Function]';
+          if (value instanceof Error) {
+            return {
+              name: value.name,
+              message: value.message,
+              stack: this.config.enableStackTraces ? value.stack : undefined,
+            };
+          }
+          return value;
+        }),
+      );
     } catch (error) {
       return '[Non-serializable data]';
     }
@@ -590,7 +591,7 @@ export class DebugAPI extends EventEmitter {
   private notifySubscribers(event: DebugEvent): void {
     for (const subscription of this.subscriptions.values()) {
       if (!subscription.active) continue;
-      
+
       if (this.matchesFilters(event, subscription.filters)) {
         try {
           subscription.callback(event);
@@ -607,16 +608,15 @@ export class DebugAPI extends EventEmitter {
 
     for (const connection of this.streamingConnections.values()) {
       if (!connection.active) continue;
-      
+
       if (this.matchesFilters(event, connection.filters)) {
         connection.lastActivity = now;
         promises.push(
-          connection.send({ type: 'debug-event', data: event })
-            .catch(error => {
-              this.emit('streamingError', connection.id, error);
-              // Deactivate connection on error
-              connection.active = false;
-            })
+          connection.send({ type: 'debug-event', data: event }).catch((error) => {
+            this.emit('streamingError', connection.id, error);
+            // Deactivate connection on error
+            connection.active = false;
+          }),
         );
       }
     }
@@ -647,12 +647,14 @@ export class DebugAPI extends EventEmitter {
         event.category,
         event.source,
         JSON.stringify(event.data || {}),
-      ].join(' ').toLowerCase();
-      
-      const hasKeyword = filters.keywords.some(keyword => 
-        searchableText.includes(keyword.toLowerCase())
+      ]
+        .join(' ')
+        .toLowerCase();
+
+      const hasKeyword = filters.keywords.some((keyword) =>
+        searchableText.includes(keyword.toLowerCase()),
       );
-      
+
       if (!hasKeyword) {
         return false;
       }
@@ -663,19 +665,22 @@ export class DebugAPI extends EventEmitter {
 
   private updateSystemState(): void {
     const now = Date.now();
-    
+
     // Calculate system metrics
-    const memUsage = typeof process !== 'undefined' ? process.memoryUsage() : {
-      heapUsed: 0,
-      heapTotal: 0,
-      external: 0,
-      rss: 0,
-    };
+    const memUsage =
+      typeof process !== 'undefined'
+        ? process.memoryUsage()
+        : {
+            heapUsed: 0,
+            heapTotal: 0,
+            external: 0,
+            rss: 0,
+          };
 
     // Simple performance metrics (would be enhanced with actual monitoring)
-    const recentEvents = this.events.filter(e => now - e.timestamp < 60000);
-    const errorEvents = recentEvents.filter(e => e.level === 'error');
-    
+    const recentEvents = this.events.filter((e) => now - e.timestamp < 60000);
+    const errorEvents = recentEvents.filter((e) => e.level === 'error');
+
     this.systemState = {
       timestamp: now,
       uptime: typeof process !== 'undefined' ? process.uptime() * 1000 : 0,
@@ -707,7 +712,7 @@ export class DebugAPI extends EventEmitter {
 
   private startSystemStateUpdates(): void {
     this.updateSystemState();
-    
+
     this.stateUpdateInterval = setInterval(() => {
       this.updateSystemState();
     }, this.config.stateUpdateIntervalMs || 5000);
@@ -718,23 +723,22 @@ export class DebugAPI extends EventEmitter {
       const now = Date.now();
       const retentionMs = this.config.traceRetentionMs || 3600000;
       const cutoff = now - retentionMs;
-      
+
       for (const [traceId, trace] of this.traces.entries()) {
-        const latestSpanTime = Math.max(...trace.spans.map(s => s.startTime));
+        const latestSpanTime = Math.max(...trace.spans.map((s) => s.startTime));
         if (latestSpanTime < cutoff) {
           this.traces.delete(traceId);
         }
       }
-      
+
       // Also limit total number of traces
       if (this.traces.size > (this.config.maxTraces || 1000)) {
-        const sortedTraces = Array.from(this.traces.entries())
-          .sort(([, a], [, b]) => {
-            const aLatest = Math.max(...a.spans.map(s => s.startTime));
-            const bLatest = Math.max(...b.spans.map(s => s.startTime));
-            return aLatest - bLatest;
-          });
-        
+        const sortedTraces = Array.from(this.traces.entries()).sort(([, a], [, b]) => {
+          const aLatest = Math.max(...a.spans.map((s) => s.startTime));
+          const bLatest = Math.max(...b.spans.map((s) => s.startTime));
+          return aLatest - bLatest;
+        });
+
         const toRemove = sortedTraces.slice(0, sortedTraces.length - this.config.maxTraces!);
         for (const [traceId] of toRemove) {
           this.traces.delete(traceId);

@@ -1,5 +1,9 @@
-import { FastPurgeService, FastPurgeRequest, FastPurgeResponse } from './FastPurgeService';
-import { logger } from '../utils/logger';
+import {
+  FastPurgeService,
+  type FastPurgeRequest,
+  type FastPurgeResponse,
+} from './FastPurgeService';
+import { logger } from '@utils/logger';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
@@ -43,10 +47,10 @@ export interface ConsolidationSuggestion {
 
 // Priority levels
 export enum PurgePriority {
-  CACHE_TAG = 0,    // Highest priority - most efficient
-  CP_CODE = 1,      // Medium priority
-  URL = 2,          // Standard priority
-  BULK = 3          // Low priority for bulk operations
+  CACHE_TAG = 0, // Highest priority - most efficient
+  CP_CODE = 1, // Medium priority
+  URL = 2, // Standard priority
+  BULK = 3, // Low priority for bulk operations
 }
 
 // Sliding window rate limiter
@@ -55,7 +59,7 @@ class SlidingWindowRateLimiter {
   private readonly windowSize: number;
   private readonly limit: number;
 
-  constructor(windowSizeMs: number = 60000, limit: number = 100) {
+  constructor(windowSizeMs = 60000, limit = 100) {
     this.windowSize = windowSizeMs;
     this.limit = limit;
   }
@@ -66,7 +70,7 @@ class SlidingWindowRateLimiter {
     return total < this.limit;
   }
 
-  record(count: number = 1): void {
+  record(count = 1): void {
     const now = Date.now();
     const bucket = Math.floor(now / 1000);
     this.window.set(bucket, (this.window.get(bucket) || 0) + count);
@@ -116,11 +120,11 @@ export class PurgeQueueManager {
     try {
       await fs.mkdir(this.queueDir, { recursive: true });
       await this.loadQueues();
-      
+
       // Start persistence timer
       this.persistenceTimer = setInterval(() => {
-        this.persistQueues().catch(err => 
-          logger.error(`Failed to persist queues: ${err.message}`)
+        this.persistQueues().catch((err) =>
+          logger.error(`Failed to persist queues: ${err.message}`),
         );
       }, this.PERSISTENCE_INTERVAL);
     } catch (error: any) {
@@ -131,20 +135,20 @@ export class PurgeQueueManager {
   private async loadQueues(): Promise<void> {
     try {
       const files = await fs.readdir(this.queueDir);
-      
+
       for (const file of files) {
         if (file.endsWith('.json')) {
           const customer = file.replace('.json', '');
           const filePath = path.join(this.queueDir, file);
-          
+
           try {
             const data = await fs.readFile(filePath, 'utf-8');
             const items = JSON.parse(data).map((item: any) => ({
               ...item,
               createdAt: new Date(item.createdAt),
-              lastAttempt: item.lastAttempt ? new Date(item.lastAttempt) : undefined
+              lastAttempt: item.lastAttempt ? new Date(item.lastAttempt) : undefined,
             }));
-            
+
             this.queues.set(customer, items);
             logger.info(`Loaded ${items.length} queue items for customer ${customer}`);
           } catch (err: any) {
@@ -161,7 +165,7 @@ export class PurgeQueueManager {
     for (const [customer, items] of this.queues) {
       const filePath = path.join(this.queueDir, `${customer}.json`);
       const tempPath = `${filePath}.tmp`;
-      
+
       try {
         // Write to temp file first for atomic operation
         await fs.writeFile(tempPath, JSON.stringify(items, null, 2));
@@ -196,18 +200,18 @@ export class PurgeQueueManager {
   private isDuplicate(dedupKey: string): boolean {
     const lastSeen = this.dedupWindow.get(dedupKey);
     const now = Date.now();
-    
+
     // Clean old entries
     for (const [key, time] of this.dedupWindow) {
       if (now - time > this.DEDUP_WINDOW_MS) {
         this.dedupWindow.delete(key);
       }
     }
-    
+
     if (lastSeen && now - lastSeen < this.DEDUP_WINDOW_MS) {
       return true;
     }
-    
+
     this.dedupWindow.set(dedupKey, now);
     return false;
   }
@@ -227,17 +231,17 @@ export class PurgeQueueManager {
 
   private analyzeConsolidation(items: QueueItem[]): ConsolidationSuggestion | null {
     // Group URLs by domain
-    const urlItems = items.filter(item => item.type === 'url' && item.status === 'pending');
+    const urlItems = items.filter((item) => item.type === 'url' && item.status === 'pending');
     if (urlItems.length === 0) return null;
 
     const domainMap = new Map<string, Set<string>>();
-    
+
     for (const item of urlItems) {
       for (const url of item.objects) {
         try {
           const urlObj = new URL(url);
           const domain = urlObj.hostname;
-          
+
           if (!domainMap.has(domain)) {
             domainMap.set(domain, new Set());
           }
@@ -256,7 +260,7 @@ export class PurgeQueueManager {
           reason: `${urls.size} URLs under domain ${domain} could be purged more efficiently using CP code`,
           originalCount: urls.size,
           consolidatedCount: 1,
-          estimatedTimeSaving: Math.floor((urls.size / 50) * 5) // 5 seconds per batch
+          estimatedTimeSaving: Math.floor((urls.size / 50) * 5), // 5 seconds per batch
         };
       }
     }
@@ -266,7 +270,7 @@ export class PurgeQueueManager {
 
   async enqueue(request: FastPurgeRequest & { customer: string }): Promise<QueueItem> {
     const dedupKey = this.generateDedupKey(request.type || 'url', request.objects);
-    
+
     // Check for duplicates
     if (this.isDuplicate(dedupKey)) {
       logger.info(`Duplicate purge request detected for ${request.customer}, skipping`);
@@ -284,12 +288,12 @@ export class PurgeQueueManager {
       status: 'pending',
       attempts: 0,
       dedupKey,
-      estimatedSize: request.objects.reduce((sum, obj) => sum + Buffer.byteLength(obj, 'utf8'), 0)
+      estimatedSize: request.objects.reduce((sum, obj) => sum + Buffer.byteLength(obj, 'utf8'), 0),
     };
 
     const queue = this.getCustomerQueue(request.customer);
     queue.push(item);
-    
+
     // Sort by priority
     queue.sort((a, b) => a.priority - b.priority);
 
@@ -315,8 +319,8 @@ export class PurgeQueueManager {
     try {
       while (true) {
         const queue = this.getCustomerQueue(customer);
-        const pendingItems = queue.filter(item => item.status === 'pending');
-        
+        const pendingItems = queue.filter((item) => item.status === 'pending');
+
         if (pendingItems.length === 0) {
           break;
         }
@@ -324,7 +328,7 @@ export class PurgeQueueManager {
         const rateLimiter = this.getRateLimiter(customer);
         if (!rateLimiter.canProceed()) {
           // Wait before checking again
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setTimeout(resolve, 1000));
           continue;
         }
 
@@ -333,7 +337,7 @@ export class PurgeQueueManager {
         if (item) {
           await this.processItem(item);
         }
-        
+
         rateLimiter.record(1);
       }
     } finally {
@@ -354,21 +358,21 @@ export class PurgeQueueManager {
           response = await this.fastPurgeService.purgeByUrl(
             item.customer,
             item.network,
-            item.objects
+            item.objects,
           );
           break;
         case 'cpcode':
           response = await this.fastPurgeService.purgeByCpCode(
             item.customer,
             item.network,
-            item.objects
+            item.objects,
           );
           break;
         case 'tag':
           response = await this.fastPurgeService.purgeByCacheTag(
             item.customer,
             item.network,
-            item.objects
+            item.objects,
           );
           break;
         default:
@@ -377,11 +381,13 @@ export class PurgeQueueManager {
 
       item.status = 'completed';
       item.response = response;
-      
-      logger.info(`Completed purge ${item.id} for ${item.customer}: ${item.objects.length} objects`);
+
+      logger.info(
+        `Completed purge ${item.id} for ${item.customer}: ${item.objects.length} objects`,
+      );
     } catch (error: any) {
       item.error = error.message;
-      
+
       if (item.attempts >= 3) {
         item.status = 'failed';
         logger.error(`Failed purge ${item.id} after ${item.attempts} attempts: ${error.message}`);
@@ -395,13 +401,13 @@ export class PurgeQueueManager {
   async getQueueStatus(customer: string): Promise<QueueStats> {
     const queue = this.getCustomerQueue(customer);
     const rateLimiter = this.getRateLimiter(customer);
-    
+
     const stats = {
       pending: 0,
       processing: 0,
       completed: 0,
       failed: 0,
-      totalSize: 0
+      totalSize: 0,
     };
 
     for (const item of queue) {
@@ -412,20 +418,20 @@ export class PurgeQueueManager {
     }
 
     // Calculate throughput
-    const recentCompleted = queue.filter(item => 
-      item.status === 'completed' && 
-      item.lastAttempt && 
-      Date.now() - item.lastAttempt.getTime() < 60000
+    const recentCompleted = queue.filter(
+      (item) =>
+        item.status === 'completed' &&
+        item.lastAttempt &&
+        Date.now() - item.lastAttempt.getTime() < 60000,
     );
-    
+
     const throughputRate = recentCompleted.length;
     const currentUsage = rateLimiter.getCurrentUsage();
     const availableCapacity = Math.max(0, 100 - currentUsage);
-    
+
     // Estimate completion time
-    const estimatedCompletionTime = stats.pending > 0 
-      ? Math.ceil((stats.pending / Math.max(1, availableCapacity)) * 60)
-      : 0;
+    const estimatedCompletionTime =
+      stats.pending > 0 ? Math.ceil((stats.pending / Math.max(1, availableCapacity)) * 60) : 0;
 
     return {
       customer,
@@ -435,21 +441,15 @@ export class PurgeQueueManager {
       failed: stats.failed,
       estimatedCompletionTime,
       throughputRate,
-      queueDepth: queue.length
+      queueDepth: queue.length,
     };
   }
 
-  async getQueueItems(
-    customer: string,
-    status?: string,
-    limit: number = 100
-  ): Promise<QueueItem[]> {
+  async getQueueItems(customer: string, status?: string, limit = 100): Promise<QueueItem[]> {
     const queue = this.getCustomerQueue(customer);
-    
-    let items = status 
-      ? queue.filter(item => item.status === status)
-      : queue;
-    
+
+    const items = status ? queue.filter((item) => item.status === status) : queue;
+
     return items.slice(0, limit);
   }
 
@@ -457,32 +457,31 @@ export class PurgeQueueManager {
     const queue = this.getCustomerQueue(customer);
     const cutoff = Date.now() - olderThan;
     const originalLength = queue.length;
-    
-    const filtered = queue.filter(item => 
-      item.status !== 'completed' || 
-      !item.lastAttempt ||
-      item.lastAttempt.getTime() > cutoff
+
+    const filtered = queue.filter(
+      (item) =>
+        item.status !== 'completed' || !item.lastAttempt || item.lastAttempt.getTime() > cutoff,
     );
-    
+
     this.queues.set(customer, filtered);
-    
+
     const removed = originalLength - filtered.length;
     if (removed > 0) {
       logger.info(`Cleared ${removed} completed items for ${customer}`);
     }
-    
+
     return removed;
   }
 
   async getConsolidationSuggestions(customer: string): Promise<ConsolidationSuggestion[]> {
     const queue = this.getCustomerQueue(customer);
     const suggestions: ConsolidationSuggestion[] = [];
-    
+
     const suggestion = this.analyzeConsolidation(queue);
     if (suggestion) {
       suggestions.push(suggestion);
     }
-    
+
     return suggestions;
   }
 
@@ -491,7 +490,7 @@ export class PurgeQueueManager {
     if (this.persistenceTimer) {
       clearInterval(this.persistenceTimer);
     }
-    
+
     await this.persistQueues();
     logger.info('PurgeQueueManager shutdown complete');
   }

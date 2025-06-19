@@ -3,9 +3,9 @@
  * Implements Akamai Edge DNS API v2 with change-list workflow
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { Spinner, format, icons } from '../utils/progress';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import { Spinner, format, icons } from '@utils/progress';
 import { createHash } from 'crypto';
 
 // Operational logging utilities
@@ -100,22 +100,22 @@ export interface ZoneActivationStatus {
  */
 export async function listZones(
   client: AkamaiClient,
-  args: { 
-    contractIds?: string[]; 
-    includeAliases?: boolean; 
+  args: {
+    contractIds?: string[];
+    includeAliases?: boolean;
     search?: string;
     sortBy?: 'zone' | 'type' | 'lastModified';
     order?: 'ASC' | 'DESC';
     limit?: number;
     offset?: number;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const spinner = new Spinner();
   spinner.start('Fetching DNS zones...');
-  
+
   try {
     const queryParams: any = {};
-    
+
     if (args.contractIds?.length) {
       queryParams.contractIds = args.contractIds.join(',');
     }
@@ -140,36 +140,57 @@ export async function listZones(
       queryParams.offset = args.offset;
     }
 
+    // Enhanced pagination and sorting parameters
+    if (args.sortBy) {
+      queryParams.sortBy = args.sortBy;
+    }
+    if (args.order) {
+      queryParams.order = args.order;
+    }
+    if (args.limit !== undefined) {
+      queryParams.limit = Math.min(args.limit, 1000); // API limit of 1000
+    }
+    if (args.offset !== undefined) {
+      queryParams.offset = args.offset;
+    }
+
     const response = await client.request({
       path: '/config-dns/v2/zones',
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        Accept: 'application/json',
       },
-      queryParams
-    }) as DNSZoneList;
+      queryParams,
+    });
 
     spinner.stop();
 
     if (!response.zones || response.zones.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: `${icons.info} No DNS zones found`
-        }]
+        content: [
+          {
+            type: 'text',
+            text: `${icons.info} No DNS zones found`,
+          },
+        ],
       };
     }
 
-    const zonesList = response.zones.map(zone => 
-      `${icons.dns} ${format.cyan(zone.zone)} (${format.green(zone.type)})${zone.comment ? ` - ${format.dim(zone.comment)}` : ''}`
-    ).join('\n');
+    const zonesList = response.zones
+      .map(
+        (zone: any) =>
+          `${icons.dns} ${format.cyan(zone.zone)} (${format.green(zone.type)})${zone.comment ? ` - ${format.dim(zone.comment)}` : ''}`,
+      )
+      .join('\n');
 
     return {
-      content: [{
-        type: 'text',
-        text: `${icons.success} Found ${format.bold(response.zones.length.toString())} DNS zones:\n\n${zonesList}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `${icons.success} Found ${format.bold(response.zones.length.toString())} DNS zones:\n\n${zonesList}`,
+        },
+      ],
     };
   } catch (error) {
     spinner.fail('Failed to fetch DNS zones');
@@ -183,7 +204,7 @@ export async function listZones(
  */
 export async function getZone(
   client: AkamaiClient,
-  args: { zone: string }
+  args: { zone: string },
 ): Promise<MCPToolResponse> {
   try {
     const response = await client.request({
@@ -191,13 +212,13 @@ export async function getZone(
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      }
-    }) as DNSZone;
+        Accept: 'application/json',
+      },
+    });
 
     let details = `DNS Zone: ${response.zone}\n`;
     details += `Type: ${response.type}\n`;
-    
+
     if (response.comment) {
       details += `Comment: ${response.comment}\n`;
     }
@@ -209,10 +230,12 @@ export async function getZone(
     }
 
     return {
-      content: [{
-        type: 'text',
-        text: details
-      }]
+      content: [
+        {
+          type: 'text',
+          text: details,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error getting DNS zone:', error);
@@ -225,7 +248,7 @@ export async function getZone(
  */
 export async function createZone(
   client: AkamaiClient,
-  args: { 
+  args: {
     zone: string;
     type: 'PRIMARY' | 'SECONDARY' | 'ALIAS';
     comment?: string;
@@ -233,16 +256,16 @@ export async function createZone(
     groupId?: string;
     masters?: string[];
     target?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const spinner = new Spinner();
   spinner.start(`Creating ${args.type} zone: ${args.zone}`);
-  
+
   try {
     const body: any = {
       zone: args.zone,
       type: args.type,
-      comment: args.comment
+      comment: args.comment,
     };
 
     // Add type-specific fields
@@ -262,19 +285,21 @@ export async function createZone(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        Accept: 'application/json',
       },
       body,
-      queryParams
+      queryParams,
     });
 
     spinner.succeed(`Zone created: ${args.zone}`);
 
     return {
-      content: [{
-        type: 'text',
-        text: `${icons.success} Successfully created DNS zone: ${format.cyan(args.zone)} (Type: ${format.green(args.type)})`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `${icons.success} Successfully created DNS zone: ${format.cyan(args.zone)} (Type: ${format.green(args.type)})`,
+        },
+      ],
     };
   } catch (error) {
     spinner.fail(`Failed to create zone: ${args.zone}`);
@@ -288,7 +313,7 @@ export async function createZone(
  */
 export async function listRecords(
   client: AkamaiClient,
-  args: { zone: string; search?: string; types?: string[] }
+  args: { zone: string; search?: string; types?: string[] },
 ): Promise<MCPToolResponse> {
   try {
     const queryParams: any = {};
@@ -300,30 +325,36 @@ export async function listRecords(
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        Accept: 'application/json',
       },
-      queryParams
-    }) as { recordsets: DNSRecordSet[] };
+      queryParams,
+    });
 
     if (!response.recordsets || response.recordsets.length === 0) {
       return {
-        content: [{
-          type: 'text',
-          text: `No DNS records found for zone: ${args.zone}`
-        }]
+        content: [
+          {
+            type: 'text',
+            text: `No DNS records found for zone: ${args.zone}`,
+          },
+        ],
       };
     }
 
-    const recordsList = response.recordsets.map(record => {
-      const rdataStr = record.rdata.join(', ');
-      return `• ${record.name} ${record.ttl} ${record.type} ${rdataStr}`;
-    }).join('\n');
+    const recordsList = response.recordsets
+      .map((record: any) => {
+        const rdataStr = record.rdata.join(', ');
+        return `• ${record.name} ${record.ttl} ${record.type} ${rdataStr}`;
+      })
+      .join('\n');
 
     return {
-      content: [{
-        type: 'text',
-        text: `Found ${response.recordsets.length} DNS records in zone ${args.zone}:\n\n${recordsList}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `Found ${response.recordsets.length} DNS records in zone ${args.zone}:\n\n${recordsList}`,
+        },
+      ],
     };
   } catch (error) {
     console.error('Error listing DNS records:', error);
@@ -336,16 +367,16 @@ export async function listRecords(
  */
 export async function getChangeList(
   client: AkamaiClient,
-  zone: string
+  zone: string,
 ): Promise<ChangeList | null> {
   try {
     const response = await client.request({
       path: `/config-dns/v2/changelists/${zone}`,
       method: 'GET',
       headers: {
-        'Accept': 'application/json'
-      }
-    }) as ChangeList;
+        Accept: 'application/json',
+      },
+    });
     return response;
   } catch (error: any) {
     if (error.message?.includes('404')) {
@@ -362,7 +393,7 @@ export async function submitChangeList(
   client: AkamaiClient,
   zone: string,
   comment?: string,
-  options?: ZoneActivationOptions
+  options?: ZoneActivationOptions,
 ): Promise<ZoneSubmitResponse> {
   const spinner = new Spinner();
   const opts = {
@@ -372,19 +403,21 @@ export async function submitChangeList(
     retryConfig: {
       maxRetries: 3,
       initialDelay: 1000,
-      maxDelay: 30000
+      maxDelay: 30000,
     },
-    ...options
+    ...options,
   };
 
   try {
     // Pre-submission validation - check if changelist exists and has content
     spinner.start('Validating changelist...');
     const changelist = await getChangeList(client, zone);
-    
+
     if (!changelist) {
       spinner.fail('No changelist found');
-      throw new Error(`No pending changelist exists for zone ${zone}. Create changes before submitting.`);
+      throw new Error(
+        `No pending changelist exists for zone ${zone}. Create changes before submitting.`,
+      );
     }
 
     if (!changelist.recordSets || changelist.recordSets.length === 0) {
@@ -394,10 +427,10 @@ export async function submitChangeList(
 
     // Submit with retry logic
     spinner.update(opts.validateOnly ? 'Validating changes...' : 'Submitting changelist...');
-    
+
     let response: ZoneSubmitResponse | null = null;
     let lastError: any = null;
-    
+
     for (let attempt = 0; attempt <= opts.retryConfig.maxRetries!; attempt++) {
       try {
         response = await client.request({
@@ -405,38 +438,45 @@ export async function submitChangeList(
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            Accept: 'application/json',
           },
           body: {
             comment: comment || `Submitting pending changes for ${zone}`,
-            validateOnly: opts.validateOnly
-          }
-        }) as ZoneSubmitResponse;
-        
+            validateOnly: opts.validateOnly,
+          },
+        });
+
         break; // Success, exit retry loop
       } catch (error: any) {
         lastError = error;
-        
+
         // Check if it's a rate limit error
         if (error.message?.includes('429') || error.statusCode === 429) {
-          const retryAfter = error.headers?.['retry-after'] || 
-                           Math.min(opts.retryConfig.initialDelay! * Math.pow(2, attempt), opts.retryConfig.maxDelay!);
-          
+          const retryAfter =
+            error.headers?.['retry-after'] ||
+            Math.min(
+              opts.retryConfig.initialDelay! * Math.pow(2, attempt),
+              opts.retryConfig.maxDelay!,
+            );
+
           if (attempt < opts.retryConfig.maxRetries!) {
             spinner.update(`Rate limited, retrying in ${retryAfter}ms...`);
-            await new Promise(resolve => setTimeout(resolve, retryAfter));
+            await new Promise((resolve) => setTimeout(resolve, retryAfter));
             continue;
           }
         }
-        
+
         // For other errors, only retry on transient failures
         if (isTransientError(error) && attempt < opts.retryConfig.maxRetries!) {
-          const delay = Math.min(opts.retryConfig.initialDelay! * Math.pow(2, attempt), opts.retryConfig.maxDelay!);
+          const delay = Math.min(
+            opts.retryConfig.initialDelay! * Math.pow(2, attempt),
+            opts.retryConfig.maxDelay!,
+          );
           spinner.update(`Transient error, retrying in ${delay}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
           continue;
         }
-        
+
         // Non-retryable error or max retries reached
         throw error;
       }
@@ -449,37 +489,37 @@ export async function submitChangeList(
     // Handle validation results
     if (opts.validateOnly && response.validationResult) {
       spinner.stop();
-      
+
       const hasErrors = response.validationResult.errors.length > 0;
       const hasWarnings = response.validationResult.warnings.length > 0;
-      
+
       if (hasErrors) {
         const errorMessages = response.validationResult.errors
-          .map(e => `  ${icons.error} ${e.field}: ${e.message}`)
+          .map((e) => `  ${icons.error} ${e.field}: ${e.message}`)
           .join('\n');
         throw new Error(`Validation failed:\n${errorMessages}`);
       }
-      
+
       if (hasWarnings) {
         console.log(`${icons.warning} Validation warnings:`);
-        response.validationResult.warnings.forEach(w => {
+        response.validationResult.warnings.forEach((w) => {
           console.log(`  ${icons.warning} ${w.field}: ${w.message}`);
         });
       }
-      
+
       spinner.succeed('Validation completed successfully');
       return response;
     }
 
     spinner.succeed(`Changelist submitted successfully (Request ID: ${response.requestId})`);
-    
+
     // Log submission success
     logOperation('CHANGELIST_SUBMITTED', {
       zone,
       requestId: response.requestId,
       recordCount: changelist.recordSets?.length || 0,
       validateOnly: opts.validateOnly,
-      comment: comment
+      comment: comment,
     });
 
     // Wait for activation if requested
@@ -488,11 +528,13 @@ export async function submitChangeList(
       try {
         const status = await waitForZoneActivation(client, zone, {
           timeout: opts.timeout,
-          requestId: response.requestId
+          requestId: response.requestId,
         });
-        
+
         if (status.activationState === 'ACTIVE') {
-          spinner.succeed(`Zone ${zone} activated successfully (${status.propagationStatus?.percentage || 100}% propagated)`);
+          spinner.succeed(
+            `Zone ${zone} activated successfully (${status.propagationStatus?.percentage || 100}% propagated)`,
+          );
         } else {
           spinner.fail(`Zone activation failed: ${status.activationState}`);
         }
@@ -518,13 +560,13 @@ function isTransientError(error: any): boolean {
   if (error.code && ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNREFUSED'].includes(error.code)) {
     return true;
   }
-  
+
   // HTTP errors that might be transient
   const statusCode = error.statusCode || error.response?.status;
   if (statusCode && [502, 503, 504].includes(statusCode)) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -537,45 +579,45 @@ export async function discardChangeList(
   retryConfig?: {
     maxRetries?: number;
     initialDelay?: number;
-  }
+  },
 ): Promise<void> {
   const config = {
     maxRetries: 3,
     initialDelay: 1000,
-    ...retryConfig
+    ...retryConfig,
   };
 
   let lastError: any = null;
-  
+
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
     try {
       await client.request({
         path: `/config-dns/v2/changelists/${zone}`,
         method: 'DELETE',
         headers: {
-          'Accept': 'application/json'
-        }
+          Accept: 'application/json',
+        },
       });
       return; // Success
     } catch (error: any) {
       lastError = error;
-      
+
       // Don't retry on 404 - changelist doesn't exist
       if (error.message?.includes('404') || error.statusCode === 404) {
         return; // Consider success - changelist is gone
       }
-      
+
       // Retry on transient errors
       if (isTransientError(error) && attempt < config.maxRetries) {
         const delay = config.initialDelay * Math.pow(2, attempt);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
-      
+
       throw error;
     }
   }
-  
+
   throw lastError || new Error('Failed to discard changelist after retries');
 }
 
@@ -589,12 +631,12 @@ export async function waitForZoneActivation(
     timeout?: number;
     pollInterval?: number;
     requestId?: string;
-  }
+  },
 ): Promise<ZoneActivationStatus> {
   const opts = {
     timeout: 300000, // 5 minutes default
     pollInterval: 3000, // 3 seconds default
-    ...options
+    ...options,
   };
 
   const startTime = Date.now();
@@ -609,9 +651,9 @@ export async function waitForZoneActivation(
         path: `/config-dns/v2/zones/${zone}/status`,
         method: 'GET',
         headers: {
-          'Accept': 'application/json'
-        }
-      }) as ZoneActivationStatus;
+          Accept: 'application/json',
+        },
+      });
 
       // Reset error counter on successful request
       consecutiveErrors = 0;
@@ -629,37 +671,38 @@ export async function waitForZoneActivation(
 
       // Still pending - wait before next poll
       const delay = opts.pollInterval * backoffMultiplier;
-      await new Promise(resolve => setTimeout(resolve, delay));
-      
+      await new Promise((resolve) => setTimeout(resolve, delay));
     } catch (error: any) {
       // Handle rate limiting with exponential backoff
       if (error.message?.includes('429') || error.statusCode === 429) {
         consecutiveErrors++;
-        
+
         if (consecutiveErrors >= maxConsecutiveErrors) {
           throw new Error(`Rate limited while monitoring zone ${zone} activation`);
         }
-        
+
         // Exponential backoff with jitter
         backoffMultiplier = Math.min(backoffMultiplier * 2, 10);
         const delay = opts.pollInterval * backoffMultiplier + Math.random() * 1000;
-        
-        await new Promise(resolve => setTimeout(resolve, delay));
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
-      
+
       // For other errors, check if transient
       if (isTransientError(error)) {
         consecutiveErrors++;
-        
+
         if (consecutiveErrors >= maxConsecutiveErrors) {
-          throw new Error(`Failed to get zone status after ${maxConsecutiveErrors} attempts: ${error.message}`);
+          throw new Error(
+            `Failed to get zone status after ${maxConsecutiveErrors} attempts: ${error.message}`,
+          );
         }
-        
-        await new Promise(resolve => setTimeout(resolve, opts.pollInterval));
+
+        await new Promise((resolve) => setTimeout(resolve, opts.pollInterval));
         continue;
       }
-      
+
       // Non-transient error
       throw error;
     }
@@ -679,46 +722,47 @@ export async function processMultipleZones(
   options?: {
     continueOnError?: boolean;
     delayBetweenZones?: number;
-  }
+  },
 ): Promise<{
   successful: string[];
   failed: Array<{ zone: string; error: string }>;
 }> {
   const opts = {
     continueOnError: options?.continueOnError ?? true,
-    delayBetweenZones: options?.delayBetweenZones ?? 1000
+    delayBetweenZones: options?.delayBetweenZones ?? 1000,
   };
 
   const result = {
     successful: [] as string[],
-    failed: [] as Array<{ zone: string; error: string }>
+    failed: [] as Array<{ zone: string; error: string }>,
   };
 
   for (let i = 0; i < zones.length; i++) {
     const zone = zones[i];
     if (!zone) continue; // TypeScript guard
-    
+
     try {
       await operation(zone);
       result.successful.push(zone);
-      
+
       // Add delay between zones to avoid rate limiting
       if (i < zones.length - 1 && opts.delayBetweenZones > 0) {
-        await new Promise(resolve => setTimeout(resolve, opts.delayBetweenZones));
+        await new Promise((resolve) => setTimeout(resolve, opts.delayBetweenZones));
       }
     } catch (error: any) {
-      const errorMessage: string = error instanceof Error ? error.message : String(error || 'Unknown error');
+      const errorMessage: string =
+        error instanceof Error ? error.message : String(error || 'Unknown error');
       result.failed.push({
         zone,
-        error: errorMessage
+        error: errorMessage,
       });
-      
+
       if (!opts.continueOnError) {
         throw new Error(`Failed processing zone ${zone}: ${errorMessage}`);
       }
     }
   }
-  
+
   return result;
 }
 
@@ -730,13 +774,13 @@ export async function ensureCleanChangeList(
   client: AkamaiClient,
   zone: string,
   spinner?: Spinner,
-  force?: boolean
+  force?: boolean,
 ): Promise<void> {
   // Check for existing change list
   if (spinner) spinner.update('Checking for existing change list...');
-  
+
   const existingChangeList = await getChangeList(client, zone);
-  
+
   if (existingChangeList) {
     // Log existing changelist detection
     logOperation('EXISTING_CHANGELIST_FOUND', {
@@ -744,20 +788,22 @@ export async function ensureCleanChangeList(
       recordCount: existingChangeList.recordSets?.length || 0,
       lastModifiedBy: existingChangeList.lastModifiedBy,
       lastModifiedDate: existingChangeList.lastModifiedDate,
-      requestId: generateRequestId()
+      requestId: generateRequestId(),
     });
-    
+
     // Stop spinner to show interactive message
     if (spinner) spinner.stop();
-    
+
     // Format pending changes
     const pendingChanges: string[] = [];
     if (existingChangeList.recordSets && existingChangeList.recordSets.length > 0) {
-      existingChangeList.recordSets.forEach(record => {
-        pendingChanges.push(`  • ${record.name} ${record.ttl} ${record.type} ${record.rdata.join(' ')}`);
+      existingChangeList.recordSets.forEach((record) => {
+        pendingChanges.push(
+          `  • ${record.name} ${record.ttl} ${record.type} ${record.rdata.join(' ')}`,
+        );
       });
     }
-    
+
     if (!force) {
       // Show error with details about existing changelist
       const errorMessage = [
@@ -766,7 +812,9 @@ export async function ensureCleanChangeList(
         `${icons.info} Last modified by: ${format.dim(existingChangeList.lastModifiedBy)}`,
         `${icons.info} Last modified: ${format.dim(existingChangeList.lastModifiedDate)}`,
         '',
-        pendingChanges.length > 0 ? `${icons.list} Pending changes:` : `${icons.info} No pending changes in the changelist`,
+        pendingChanges.length > 0
+          ? `${icons.list} Pending changes:`
+          : `${icons.info} No pending changes in the changelist`,
         ...pendingChanges.slice(0, 10),
         pendingChanges.length > 10 ? `  ... and ${pendingChanges.length - 10} more changes` : '',
         '',
@@ -776,41 +824,43 @@ export async function ensureCleanChangeList(
         '2. Discard the existing changelist and continue',
         '3. Cancel the operation',
         '',
-        `To force discard without asking, use the force option`
-      ].filter(line => line !== '').join('\n');
-      
+        `To force discard without asking, use the force option`,
+      ]
+        .filter((line) => line !== '')
+        .join('\n');
+
       throw new Error(errorMessage);
     }
-    
+
     // Force mode - discard existing changelist
     if (spinner) {
       spinner.start('Discarding existing change list...');
     }
-    
+
     const discardRequestId = generateRequestId();
     logOperation('DISCARDING_CHANGELIST', { zone, force: true, requestId: discardRequestId });
-    
+
     await discardChangeList(client, zone);
-    
+
     logOperation('CHANGELIST_DISCARDED', { zone, requestId: discardRequestId });
   }
-  
+
   // Create a new change list
   if (spinner) spinner.update('Creating change list...');
-  
+
   const createRequestId = generateRequestId();
   logOperation('CREATING_CHANGELIST', { zone, requestId: createRequestId });
-  
+
   await client.request({
     path: `/config-dns/v2/changelists`,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Accept': 'application/json'
+      Accept: 'application/json',
     },
-    queryParams: { zone }
+    queryParams: { zone },
   });
-  
+
   logOperation('CHANGELIST_CREATED', { zone, requestId: createRequestId });
 }
 
@@ -827,10 +877,10 @@ export async function upsertRecord(
     rdata: string[];
     comment?: string;
     force?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const spinner = new Spinner();
-  
+
   try {
     // Step 1: Ensure we have a clean change list
     spinner.start('Preparing DNS changes...');
@@ -842,7 +892,7 @@ export async function upsertRecord(
       name: args.name,
       type: args.type,
       ttl: args.ttl,
-      rdata: args.rdata
+      rdata: args.rdata,
     };
 
     await client.request({
@@ -850,9 +900,9 @@ export async function upsertRecord(
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        Accept: 'application/json',
       },
-      body: recordData
+      body: recordData,
     });
 
     // Step 3: Submit the change list
@@ -862,20 +912,22 @@ export async function upsertRecord(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        Accept: 'application/json',
       },
       body: {
-        comment: args.comment || `Updated ${args.type} record for ${args.name}`
-      }
-    }) as ZoneSubmitResponse;
+        comment: args.comment || `Updated ${args.type} record for ${args.name}`,
+      },
+    });
 
     spinner.succeed(`Record updated: ${args.name} ${args.type}`);
 
     return {
-      content: [{
-        type: 'text',
-        text: `${icons.success} Successfully updated DNS record:\n${icons.dns} ${format.cyan(args.name)} ${format.dim(args.ttl.toString())} ${format.green(args.type)} ${format.yellow(args.rdata.join(' '))}\n\n${icons.info} Request ID: ${format.dim(submitResponse.requestId)}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `${icons.success} Successfully updated DNS record:\n${icons.dns} ${format.cyan(args.name)} ${format.dim(args.ttl.toString())} ${format.green(args.type)} ${format.yellow(args.rdata.join(' '))}\n\n${icons.info} Request ID: ${format.dim(submitResponse.requestId)}`,
+        },
+      ],
     };
   } catch (error) {
     spinner.fail('Failed to update DNS record');
@@ -895,10 +947,10 @@ export async function deleteRecord(
     type: string;
     comment?: string;
     force?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const spinner = new Spinner();
-  
+
   try {
     // Step 1: Ensure we have a clean change list
     spinner.start('Preparing DNS changes...');
@@ -910,8 +962,8 @@ export async function deleteRecord(
       path: `/config-dns/v2/changelists/${args.zone}/recordsets/${args.name}/${args.type}`,
       method: 'DELETE',
       headers: {
-        'Accept': 'application/json'
-      }
+        Accept: 'application/json',
+      },
     });
 
     // Step 3: Submit the change list
@@ -921,20 +973,22 @@ export async function deleteRecord(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        Accept: 'application/json',
       },
       body: {
-        comment: args.comment || `Deleted ${args.type} record for ${args.name}`
-      }
-    }) as ZoneSubmitResponse;
+        comment: args.comment || `Deleted ${args.type} record for ${args.name}`,
+      },
+    });
 
     spinner.succeed(`Record deleted: ${args.name} ${args.type}`);
 
     return {
-      content: [{
-        type: 'text',
-        text: `${icons.success} Successfully deleted DNS record:\n${icons.dns} ${format.cyan(args.name)} ${format.green(args.type)}\n\n${icons.info} Request ID: ${format.dim(submitResponse.requestId)}`
-      }]
+      content: [
+        {
+          type: 'text',
+          text: `${icons.success} Successfully deleted DNS record:\n${icons.dns} ${format.cyan(args.name)} ${format.green(args.type)}\n\n${icons.info} Request ID: ${format.dim(submitResponse.requestId)}`,
+        },
+      ],
     };
   } catch (error) {
     spinner.fail('Failed to delete DNS record');
@@ -954,40 +1008,44 @@ export async function activateZoneChanges(
     validateOnly?: boolean;
     waitForCompletion?: boolean;
     timeout?: number;
-  }
+  },
 ): Promise<MCPToolResponse> {
   const spinner = new Spinner();
-  
+
   try {
     // Check if there's a changelist to submit
     spinner.start('Checking for pending changes...');
     const changelist = await getChangeList(client, args.zone);
-    
+
     if (!changelist) {
       spinner.stop();
       return {
-        content: [{
-          type: 'text',
-          text: `${icons.info} No pending changes found for zone ${format.cyan(args.zone)}`
-        }]
+        content: [
+          {
+            type: 'text',
+            text: `${icons.info} No pending changes found for zone ${format.cyan(args.zone)}`,
+          },
+        ],
       };
     }
 
     // Show pending changes summary
     spinner.stop();
     const changeCount = changelist.recordSets?.length || 0;
-    console.log(`${icons.info} Found ${format.bold(changeCount.toString())} pending changes for zone ${format.cyan(args.zone)}`);
+    console.log(
+      `${icons.info} Found ${format.bold(changeCount.toString())} pending changes for zone ${format.cyan(args.zone)}`,
+    );
     console.log(`${icons.info} Last modified by: ${format.dim(changelist.lastModifiedBy)}`);
     console.log(`${icons.info} Last modified: ${format.dim(changelist.lastModifiedDate)}`);
-    
+
     if (changeCount > 0 && changeCount <= 10) {
       console.log(`\n${icons.list} Pending changes:`);
-      changelist.recordSets.forEach(record => {
+      changelist.recordSets.forEach((record) => {
         console.log(`  • ${record.name} ${record.ttl} ${record.type} ${record.rdata.join(' ')}`);
       });
     } else if (changeCount > 10) {
       console.log(`\n${icons.list} Showing first 10 pending changes:`);
-      changelist.recordSets.slice(0, 10).forEach(record => {
+      changelist.recordSets.slice(0, 10).forEach((record) => {
         console.log(`  • ${record.name} ${record.ttl} ${record.type} ${record.rdata.join(' ')}`);
       });
       console.log(`  ... and ${changeCount - 10} more changes`);
@@ -995,59 +1053,63 @@ export async function activateZoneChanges(
     console.log(''); // Empty line for readability
 
     // Submit the changelist with options
-    const submitResponse = await submitChangeList(
-      client,
-      args.zone,
-      args.comment,
-      {
-        validateOnly: args.validateOnly,
-        waitForActivation: args.waitForCompletion,
-        timeout: args.timeout
-      }
-    );
+    const submitResponse = await submitChangeList(client, args.zone, args.comment, {
+      validateOnly: args.validateOnly,
+      waitForActivation: args.waitForCompletion,
+      timeout: args.timeout,
+    });
 
     // Format response based on operation type
     if (args.validateOnly) {
       return {
-        content: [{
-          type: 'text',
-          text: `${icons.success} Validation completed successfully for zone ${format.cyan(args.zone)}\n\n` +
-                `${icons.info} All ${changeCount} changes passed validation\n` +
-                `${icons.info} Request ID: ${format.dim(submitResponse.requestId)}`
-        }]
+        content: [
+          {
+            type: 'text',
+            text:
+              `${icons.success} Validation completed successfully for zone ${format.cyan(args.zone)}\n\n` +
+              `${icons.info} All ${changeCount} changes passed validation\n` +
+              `${icons.info} Request ID: ${format.dim(submitResponse.requestId)}`,
+          },
+        ],
       };
     } else {
-      let responseText = `${icons.success} Successfully activated ${changeCount} changes for zone ${format.cyan(args.zone)}\n\n` +
-                        `${icons.info} Request ID: ${format.dim(submitResponse.requestId)}`;
-      
+      let responseText =
+        `${icons.success} Successfully activated ${changeCount} changes for zone ${format.cyan(args.zone)}\n\n` +
+        `${icons.info} Request ID: ${format.dim(submitResponse.requestId)}`;
+
       if (!args.waitForCompletion) {
         responseText += `\n${icons.info} Zone activation is in progress. Use the request ID to track status.`;
       }
-      
+
       return {
-        content: [{
-          type: 'text',
-          text: responseText
-        }]
+        content: [
+          {
+            type: 'text',
+            text: responseText,
+          },
+        ],
       };
     }
   } catch (error: any) {
     spinner.fail('Failed to activate zone changes');
-    
+
     // Provide helpful error messages
     if (error.message?.includes('No pending changelist')) {
       return {
-        content: [{
-          type: 'text',
-          text: `${icons.error} ${error.message}\n\n` +
-                `${icons.info} To make changes:\n` +
-                `  1. Use upsertRecord to add/update records\n` +
-                `  2. Use deleteRecord to remove records\n` +
-                `  3. Then use activateZoneChanges to submit`
-        }]
+        content: [
+          {
+            type: 'text',
+            text:
+              `${icons.error} ${error.message}\n\n` +
+              `${icons.info} To make changes:\n` +
+              `  1. Use upsertRecord to add/update records\n` +
+              `  2. Use deleteRecord to remove records\n` +
+              `  3. Then use activateZoneChanges to submit`,
+          },
+        ],
       };
     }
-    
+
     throw error;
   }
 }

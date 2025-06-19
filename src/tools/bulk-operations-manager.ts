@@ -3,9 +3,9 @@
  * Enterprise-grade bulk operations with progress tracking, rollback, and coordination
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { ErrorTranslator } from '../utils/errors';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import { ErrorTranslator } from '@utils/errors';
 
 // Bulk operation types
 export interface BulkOperation {
@@ -91,7 +91,7 @@ export interface BulkHostnameOptions {
 // Operation tracker for progress monitoring
 class BulkOperationTracker {
   private operations: Map<string, BulkOperation> = new Map();
-  
+
   createOperation(type: BulkOperation['type'], totalItems: number, metadata: any): string {
     const id = `bulk-${type}-${Date.now()}`;
     const operation: BulkOperation = {
@@ -104,40 +104,46 @@ class BulkOperationTracker {
       successfulItems: 0,
       failedItems: 0,
       properties: [],
-      metadata
+      metadata,
     };
     this.operations.set(id, operation);
     return id;
   }
-  
+
   updateOperation(id: string, updates: Partial<BulkOperation>): void {
     const operation = this.operations.get(id);
     if (operation) {
       Object.assign(operation, updates);
     }
   }
-  
+
   getOperation(id: string): BulkOperation | undefined {
     return this.operations.get(id);
   }
-  
+
   addPropertyOperation(operationId: string, property: BulkPropertyOperation): void {
     const operation = this.operations.get(operationId);
     if (operation) {
       operation.properties.push(property);
     }
   }
-  
-  updatePropertyStatus(operationId: string, propertyId: string, status: BulkPropertyOperation['status'], result?: any, error?: string): void {
+
+  updatePropertyStatus(
+    operationId: string,
+    propertyId: string,
+    status: BulkPropertyOperation['status'],
+    result?: any,
+    error?: string,
+  ): void {
     const operation = this.operations.get(operationId);
     if (operation) {
-      const property = operation.properties.find(p => p.propertyId === propertyId);
+      const property = operation.properties.find((p) => p.propertyId === propertyId);
       if (property) {
         property.status = status;
         property.endTime = new Date();
         if (result) property.result = result;
         if (error) property.error = error;
-        
+
         // Update counters
         operation.processedItems++;
         if (status === 'completed') operation.successfulItems++;
@@ -154,40 +160,40 @@ const operationTracker = new BulkOperationTracker();
  */
 export async function bulkCloneProperties(
   client: AkamaiClient,
-  args: BulkCloneOptions
+  args: BulkCloneOptions,
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     const operationId = operationTracker.createOperation('clone', args.targetNames.length, {
       sourcePropertyId: args.sourcePropertyId,
       rollbackEnabled: false,
       parallelExecution: true,
-      maxConcurrency: 5
+      maxConcurrency: 5,
     });
-    
+
     operationTracker.updateOperation(operationId, { status: 'in-progress' });
-    
+
     // Get source property details
     const sourceResponse = await client.request({
       path: `/papi/v1/properties/${args.sourcePropertyId}`,
       method: 'GET',
     });
-    
+
     const sourceProperty = sourceResponse.properties?.items?.[0];
     if (!sourceProperty) {
       throw new Error('Source property not found');
     }
-    
+
     // Get source property rules
     const rulesResponse = await client.request({
       path: `/papi/v1/properties/${args.sourcePropertyId}/versions/${sourceProperty.latestVersion}/rules`,
       method: 'GET',
       headers: {
-        'Accept': 'application/vnd.akamai.papirules.v2024-02-12+json'
-      }
+        Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
+      },
     });
-    
+
     // Get source property hostnames if needed
     let sourceHostnames = [];
     if (args.cloneHostnames) {
@@ -197,18 +203,18 @@ export async function bulkCloneProperties(
       });
       sourceHostnames = hostnamesResponse.hostnames?.items || [];
     }
-    
+
     // Clone to each target
     const clonePromises = args.targetNames.map(async (targetName) => {
       const propertyOp: BulkPropertyOperation = {
         propertyId: '',
         propertyName: targetName,
         status: 'in-progress',
-        startTime: new Date()
+        startTime: new Date(),
       };
-      
+
       operationTracker.addPropertyOperation(operationId, propertyOp);
-      
+
       try {
         // Create new property
         const createResponse = await client.request({
@@ -225,12 +231,12 @@ export async function bulkCloneProperties(
             productId: args.productId || sourceProperty.productId,
             propertyName: targetName,
             ruleFormat: args.ruleFormat || sourceProperty.ruleFormat,
-          }
+          },
         });
-        
+
         const newPropertyId = createResponse.propertyLink.split('/').pop();
         propertyOp.propertyId = newPropertyId;
-        
+
         // Update rules
         await client.request({
           path: `/papi/v1/properties/${newPropertyId}/versions/1/rules`,
@@ -242,15 +248,15 @@ export async function bulkCloneProperties(
             contractId: args.contractId,
             groupId: args.groupId,
           },
-          body: rulesResponse
+          body: rulesResponse,
         });
-        
+
         // Clone hostnames if requested
         if (args.cloneHostnames && sourceHostnames.length > 0) {
           // This would need custom hostname mapping logic
           // For now, we'll skip hostname cloning in bulk
         }
-        
+
         // Activate if requested
         if (args.activateImmediately) {
           const activationResponse = await client.request({
@@ -263,38 +269,49 @@ export async function bulkCloneProperties(
               propertyVersion: 1,
               network: args.network || 'STAGING',
               note: `Bulk clone from ${sourceProperty.propertyName}`,
-              notifyEmails: []
-            }
+              notifyEmails: [],
+            },
           });
-          
+
           propertyOp.result = {
             propertyId: newPropertyId,
-            activationId: activationResponse.activationLink?.split('/').pop()
+            activationId: activationResponse.activationLink?.split('/').pop(),
           };
         } else {
           propertyOp.result = { propertyId: newPropertyId };
         }
-        
-        operationTracker.updatePropertyStatus(operationId, newPropertyId, 'completed', propertyOp.result);
+
+        operationTracker.updatePropertyStatus(
+          operationId,
+          newPropertyId,
+          'completed',
+          propertyOp.result,
+        );
       } catch (error) {
-        operationTracker.updatePropertyStatus(operationId, propertyOp.propertyId || 'unknown', 'failed', null, (error as Error).message);
+        operationTracker.updatePropertyStatus(
+          operationId,
+          propertyOp.propertyId || 'unknown',
+          'failed',
+          null,
+          (error as Error).message,
+        );
       }
     });
-    
-    // Execute with concurrency control  
+
+    // Execute with concurrency control
     const concurrencyLimit = 5;
     for (let i = 0; i < clonePromises.length; i += concurrencyLimit) {
       const batch = clonePromises.slice(i, i + concurrencyLimit);
       await Promise.allSettled(batch);
     }
-    
-    operationTracker.updateOperation(operationId, { 
+
+    operationTracker.updateOperation(operationId, {
       status: 'completed',
-      endTime: new Date()
+      endTime: new Date(),
     });
-    
+
     const operation = operationTracker.getOperation(operationId)!;
-    
+
     // Format response
     let responseText = `# Bulk Clone Operation Results\n\n`;
     responseText += `**Operation ID:** ${operationId}\n`;
@@ -302,33 +319,33 @@ export async function bulkCloneProperties(
     responseText += `**Total Clones:** ${operation.totalItems}\n`;
     responseText += `**Successful:** ${operation.successfulItems}\n`;
     responseText += `**Failed:** ${operation.failedItems}\n\n`;
-    
+
     if (operation.successfulItems > 0) {
       responseText += `## ✅ Successfully Cloned (${operation.successfulItems})\n`;
       operation.properties
-        .filter(p => p.status === 'completed')
-        .forEach(p => {
+        .filter((p) => p.status === 'completed')
+        .forEach((p) => {
           responseText += `- **${p.propertyName}** (${p.result?.propertyId})\n`;
           if (p.result?.activationId) {
             responseText += `  Activation started: ${p.result.activationId}\n`;
           }
         });
     }
-    
+
     if (operation.failedItems > 0) {
       responseText += `\n## ❌ Failed Clones (${operation.failedItems})\n`;
       operation.properties
-        .filter(p => p.status === 'failed')
-        .forEach(p => {
+        .filter((p) => p.status === 'failed')
+        .forEach((p) => {
           responseText += `- **${p.propertyName}**\n`;
           responseText += `  Error: ${p.error}\n`;
         });
     }
-    
+
     responseText += `\n## Operation Summary\n`;
     responseText += `- **Duration:** ${Math.round((operation.endTime!.getTime() - operation.startTime.getTime()) / 1000)} seconds\n`;
     responseText += `- **Average time per clone:** ${Math.round((operation.endTime!.getTime() - operation.startTime.getTime()) / operation.processedItems)} ms\n`;
-    
+
     responseText += `\n## Next Steps\n`;
     if (operation.successfulItems > 0) {
       responseText += `1. Configure hostnames for cloned properties\n`;
@@ -340,28 +357,32 @@ export async function bulkCloneProperties(
       responseText += `2. Fix permission or validation issues\n`;
       responseText += `3. Retry failed operations individually\n`;
     }
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     operationTracker.updateOperation(operationTracker.createOperation('clone', 0, {}), {
       status: 'failed',
-      endTime: new Date()
+      endTime: new Date(),
     });
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'bulk clone properties',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'bulk clone properties',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -371,63 +392,62 @@ export async function bulkCloneProperties(
  */
 export async function bulkActivateProperties(
   client: AkamaiClient,
-  args: BulkActivationOptions
+  args: BulkActivationOptions,
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     const operationId = operationTracker.createOperation('activate', args.propertyIds.length, {
       network: args.network,
       rollbackEnabled: false,
       parallelExecution: true,
-      maxConcurrency: 10
+      maxConcurrency: 10,
     });
-    
+
     operationTracker.updateOperation(operationId, { status: 'in-progress' });
-    
+
     // Process each property
     const activationPromises = args.propertyIds.map(async (propertyId) => {
       const propertyOp: BulkPropertyOperation = {
         propertyId,
         propertyName: 'Unknown',
         status: 'in-progress',
-        startTime: new Date()
+        startTime: new Date(),
       };
-      
+
       operationTracker.addPropertyOperation(operationId, propertyOp);
-      
+
       try {
         // Get property details
         const propertyResponse = await client.request({
           path: `/papi/v1/properties/${propertyId}`,
           method: 'GET',
         });
-        
+
         const property = propertyResponse.properties?.items?.[0];
         if (!property) {
           throw new Error('Property not found');
         }
-        
+
         propertyOp.propertyName = property.propertyName;
-        
+
         // Check if already activated
         await client.request({
           path: `/papi/v1/properties/${propertyId}/activations`,
           method: 'GET',
         });
-        
-        const activeVersion = args.network === 'PRODUCTION' 
-          ? property.productionVersion 
-          : property.stagingVersion;
-          
+
+        const activeVersion =
+          args.network === 'PRODUCTION' ? property.productionVersion : property.stagingVersion;
+
         if (activeVersion === property.latestVersion) {
           operationTracker.updatePropertyStatus(operationId, propertyId, 'skipped', {
             message: `Already activated on ${args.network}`,
-            version: activeVersion
+            version: activeVersion,
           });
           return;
         }
-        
+
         // Create activation
         const activationResponse = await client.request({
           path: `/papi/v1/properties/${propertyId}/activations`,
@@ -440,65 +460,87 @@ export async function bulkActivateProperties(
             network: args.network,
             note: args.note || `Bulk activation - ${new Date().toISOString()}`,
             notifyEmails: args.notifyEmails || [],
-            acknowledgeAllWarnings: args.acknowledgeAllWarnings || false
-          }
+            acknowledgeAllWarnings: args.acknowledgeAllWarnings || false,
+          },
         });
-        
+
         const activationId = activationResponse.activationLink?.split('/').pop();
-        
+
         // Wait for completion if requested
         if (args.waitForCompletion) {
           const maxWait = args.maxWaitTime || 300000; // 5 minutes default
           const startWait = Date.now();
           let status = 'PENDING';
-          
-          while (status === 'PENDING' && (Date.now() - startWait) < maxWait) {
-            await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
-            
+
+          while (status === 'PENDING' && Date.now() - startWait < maxWait) {
+            await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds
+
             const statusResponse = await client.request({
               path: `/papi/v1/properties/${propertyId}/activations/${activationId}`,
               method: 'GET',
             });
-            
+
             status = statusResponse.activations?.items?.[0]?.status;
           }
-          
+
           propertyOp.result = {
             activationId,
             status,
-            version: property.latestVersion
+            version: property.latestVersion,
           };
-          
+
           if (status === 'ACTIVE') {
-            operationTracker.updatePropertyStatus(operationId, propertyId, 'completed', propertyOp.result);
+            operationTracker.updatePropertyStatus(
+              operationId,
+              propertyId,
+              'completed',
+              propertyOp.result,
+            );
           } else {
-            operationTracker.updatePropertyStatus(operationId, propertyId, 'failed', propertyOp.result, `Activation status: ${status}`);
+            operationTracker.updatePropertyStatus(
+              operationId,
+              propertyId,
+              'failed',
+              propertyOp.result,
+              `Activation status: ${status}`,
+            );
           }
         } else {
           propertyOp.result = {
             activationId,
-            version: property.latestVersion
+            version: property.latestVersion,
           };
-          operationTracker.updatePropertyStatus(operationId, propertyId, 'completed', propertyOp.result);
+          operationTracker.updatePropertyStatus(
+            operationId,
+            propertyId,
+            'completed',
+            propertyOp.result,
+          );
         }
       } catch (error) {
-        operationTracker.updatePropertyStatus(operationId, propertyId, 'failed', null, (error as Error).message);
+        operationTracker.updatePropertyStatus(
+          operationId,
+          propertyId,
+          'failed',
+          null,
+          (error as Error).message,
+        );
       }
     });
-    
+
     // Execute with concurrency control
     const concurrencyLimit = 10;
     for (let i = 0; i < activationPromises.length; i += concurrencyLimit) {
       await Promise.allSettled(activationPromises.slice(i, i + concurrencyLimit));
     }
-    
-    operationTracker.updateOperation(operationId, { 
+
+    operationTracker.updateOperation(operationId, {
       status: 'completed',
-      endTime: new Date()
+      endTime: new Date(),
     });
-    
+
     const operation = operationTracker.getOperation(operationId)!;
-    
+
     // Format response
     let responseText = `# Bulk Activation Results\n\n`;
     responseText += `**Operation ID:** ${operationId}\n`;
@@ -506,13 +548,13 @@ export async function bulkActivateProperties(
     responseText += `**Total Properties:** ${operation.totalItems}\n`;
     responseText += `**Successful:** ${operation.successfulItems}\n`;
     responseText += `**Failed:** ${operation.failedItems}\n`;
-    responseText += `**Skipped:** ${operation.properties.filter(p => p.status === 'skipped').length}\n\n`;
-    
+    responseText += `**Skipped:** ${operation.properties.filter((p) => p.status === 'skipped').length}\n\n`;
+
     if (operation.successfulItems > 0) {
       responseText += `## ✅ Successfully Activated (${operation.successfulItems})\n`;
       operation.properties
-        .filter(p => p.status === 'completed')
-        .forEach(p => {
+        .filter((p) => p.status === 'completed')
+        .forEach((p) => {
           responseText += `- **${p.propertyName}** (${p.propertyId})\n`;
           responseText += `  Version: ${p.result?.version}, Activation: ${p.result?.activationId}\n`;
           if (p.result?.status) {
@@ -520,30 +562,30 @@ export async function bulkActivateProperties(
           }
         });
     }
-    
-    const skipped = operation.properties.filter(p => p.status === 'skipped');
+
+    const skipped = operation.properties.filter((p) => p.status === 'skipped');
     if (skipped.length > 0) {
       responseText += `\n## ⏭️ Skipped (${skipped.length})\n`;
-      skipped.forEach(p => {
+      skipped.forEach((p) => {
         responseText += `- **${p.propertyName}** (${p.propertyId})\n`;
         responseText += `  ${p.result?.message}\n`;
       });
     }
-    
+
     if (operation.failedItems > 0) {
       responseText += `\n## ❌ Failed Activations (${operation.failedItems})\n`;
       operation.properties
-        .filter(p => p.status === 'failed')
-        .forEach(p => {
+        .filter((p) => p.status === 'failed')
+        .forEach((p) => {
           responseText += `- **${p.propertyName}** (${p.propertyId})\n`;
           responseText += `  Error: ${p.error}\n`;
         });
     }
-    
+
     responseText += `\n## Operation Summary\n`;
     responseText += `- **Duration:** ${Math.round((operation.endTime!.getTime() - operation.startTime.getTime()) / 1000)} seconds\n`;
     responseText += `- **Average time per property:** ${Math.round((operation.endTime!.getTime() - operation.startTime.getTime()) / operation.processedItems)} ms\n`;
-    
+
     responseText += `\n## Next Steps\n`;
     if (operation.successfulItems > 0) {
       responseText += `1. Monitor activation progress in Control Center\n`;
@@ -555,23 +597,27 @@ export async function bulkActivateProperties(
       responseText += `2. Fix any issues and retry activation\n`;
       responseText += `3. Consider activating to staging first\n`;
     }
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'bulk activate properties',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'bulk activate properties',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -581,47 +627,47 @@ export async function bulkActivateProperties(
  */
 export async function bulkUpdatePropertyRules(
   client: AkamaiClient,
-  args: BulkRuleUpdateOptions
+  args: BulkRuleUpdateOptions,
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     const operationId = operationTracker.createOperation('update-rules', args.propertyIds.length, {
       patchCount: args.rulePatches.length,
       rollbackEnabled: true,
       parallelExecution: false, // Sequential for safety
-      maxConcurrency: 1
+      maxConcurrency: 1,
     });
-    
+
     operationTracker.updateOperation(operationId, { status: 'in-progress' });
-    
+
     // Process each property sequentially
     for (const propertyId of args.propertyIds) {
       const propertyOp: BulkPropertyOperation = {
         propertyId,
         propertyName: 'Unknown',
         status: 'in-progress',
-        startTime: new Date()
+        startTime: new Date(),
       };
-      
+
       operationTracker.addPropertyOperation(operationId, propertyOp);
-      
+
       try {
         // Get property details
         const propertyResponse = await client.request({
           path: `/papi/v1/properties/${propertyId}`,
           method: 'GET',
         });
-        
+
         const property = propertyResponse.properties?.items?.[0];
         if (!property) {
           throw new Error('Property not found');
         }
-        
+
         propertyOp.propertyName = property.propertyName;
-        
+
         let version = property.latestVersion;
-        
+
         // Create new version if requested
         if (args.createNewVersion) {
           const versionResponse = await client.request({
@@ -636,34 +682,34 @@ export async function bulkUpdatePropertyRules(
             },
             body: {
               createFromVersion: version,
-              createFromVersionEtag: property.etag
-            }
+              createFromVersionEtag: property.etag,
+            },
           });
-          
+
           version = parseInt(versionResponse.versionLink.split('/').pop());
         }
-        
+
         // Get current rules
         const rulesResponse = await client.request({
           path: `/papi/v1/properties/${propertyId}/versions/${version}/rules`,
           method: 'GET',
           headers: {
-            'Accept': 'application/vnd.akamai.papirules.v2024-02-12+json'
-          }
+            Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
+          },
         });
-        
+
         // Store original rules for rollback
         propertyOp.rollbackData = {
           originalRules: JSON.parse(JSON.stringify(rulesResponse.rules)),
-          version
+          version,
         };
-        
+
         // Apply patches
         let rules = rulesResponse.rules;
         for (const patch of args.rulePatches) {
           rules = applyJsonPatch(rules, patch);
         }
-        
+
         // Validate if requested
         if (args.validateChanges) {
           // This would call a validation endpoint
@@ -672,7 +718,7 @@ export async function bulkUpdatePropertyRules(
             throw new Error('Invalid rule structure after patches');
           }
         }
-        
+
         // Update rules
         await client.request({
           path: `/papi/v1/properties/${propertyId}/versions/${version}/rules`,
@@ -684,9 +730,9 @@ export async function bulkUpdatePropertyRules(
             contractId: property.contractId,
             groupId: property.groupId,
           },
-          body: { rules }
+          body: { rules },
         });
-        
+
         // Add version notes if provided
         if (args.note) {
           await client.request({
@@ -696,20 +742,31 @@ export async function bulkUpdatePropertyRules(
               'Content-Type': 'application/json',
             },
             body: {
-              note: args.note
-            }
+              note: args.note,
+            },
           });
         }
-        
+
         propertyOp.result = {
           version,
-          patchesApplied: args.rulePatches.length
+          patchesApplied: args.rulePatches.length,
         };
-        
-        operationTracker.updatePropertyStatus(operationId, propertyId, 'completed', propertyOp.result);
+
+        operationTracker.updatePropertyStatus(
+          operationId,
+          propertyId,
+          'completed',
+          propertyOp.result,
+        );
       } catch (error) {
-        operationTracker.updatePropertyStatus(operationId, propertyId, 'failed', null, (error as Error).message);
-        
+        operationTracker.updatePropertyStatus(
+          operationId,
+          propertyId,
+          'failed',
+          null,
+          (error as Error).message,
+        );
+
         // Attempt rollback if we have rollback data
         if (propertyOp.rollbackData) {
           try {
@@ -719,7 +776,7 @@ export async function bulkUpdatePropertyRules(
               headers: {
                 'Content-Type': 'application/vnd.akamai.papirules.v2024-02-12+json',
               },
-              body: { rules: propertyOp.rollbackData.originalRules }
+              body: { rules: propertyOp.rollbackData.originalRules },
             });
             propertyOp.error += ' (Rolled back successfully)';
           } catch (rollbackError) {
@@ -728,14 +785,14 @@ export async function bulkUpdatePropertyRules(
         }
       }
     }
-    
-    operationTracker.updateOperation(operationId, { 
+
+    operationTracker.updateOperation(operationId, {
       status: 'completed',
-      endTime: new Date()
+      endTime: new Date(),
     });
-    
+
     const operation = operationTracker.getOperation(operationId)!;
-    
+
     // Format response
     let responseText = `# Bulk Rule Update Results\n\n`;
     responseText += `**Operation ID:** ${operationId}\n`;
@@ -743,7 +800,7 @@ export async function bulkUpdatePropertyRules(
     responseText += `**Patches Applied:** ${args.rulePatches.length}\n`;
     responseText += `**Successful:** ${operation.successfulItems}\n`;
     responseText += `**Failed:** ${operation.failedItems}\n\n`;
-    
+
     // Show patch summary
     responseText += `## Patches Applied\n`;
     args.rulePatches.forEach((patch, idx) => {
@@ -753,27 +810,27 @@ export async function bulkUpdatePropertyRules(
       }
     });
     responseText += '\n';
-    
+
     if (operation.successfulItems > 0) {
       responseText += `## ✅ Successfully Updated (${operation.successfulItems})\n`;
       operation.properties
-        .filter(p => p.status === 'completed')
-        .forEach(p => {
+        .filter((p) => p.status === 'completed')
+        .forEach((p) => {
           responseText += `- **${p.propertyName}** (${p.propertyId})\n`;
           responseText += `  Version: ${p.result?.version}\n`;
         });
     }
-    
+
     if (operation.failedItems > 0) {
       responseText += `\n## ❌ Failed Updates (${operation.failedItems})\n`;
       operation.properties
-        .filter(p => p.status === 'failed')
-        .forEach(p => {
+        .filter((p) => p.status === 'failed')
+        .forEach((p) => {
           responseText += `- **${p.propertyName}** (${p.propertyId})\n`;
           responseText += `  Error: ${p.error}\n`;
         });
     }
-    
+
     responseText += `\n## Next Steps\n`;
     responseText += `1. Review the updated rules in each property\n`;
     responseText += `2. Test changes in staging environment\n`;
@@ -781,23 +838,27 @@ export async function bulkUpdatePropertyRules(
     if (operation.failedItems > 0) {
       responseText += `4. Investigate failed updates and retry if needed\n`;
     }
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'bulk update property rules',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'bulk update property rules',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -807,20 +868,20 @@ export async function bulkUpdatePropertyRules(
  */
 export async function bulkManageHostnames(
   client: AkamaiClient,
-  args: BulkHostnameOptions
+  args: BulkHostnameOptions,
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
-  
+
   try {
     const totalOperations = args.operations.reduce((sum, op) => sum + op.hostnames.length, 0);
     const operationId = operationTracker.createOperation('add-hostnames', totalOperations, {
       rollbackEnabled: true,
       parallelExecution: false,
-      maxConcurrency: 1
+      maxConcurrency: 1,
     });
-    
+
     operationTracker.updateOperation(operationId, { status: 'in-progress' });
-    
+
     const results: Array<{
       propertyId: string;
       propertyName: string;
@@ -829,7 +890,7 @@ export async function bulkManageHostnames(
       success: boolean;
       error?: string;
     }> = [];
-    
+
     // Process each operation
     for (const operation of args.operations) {
       try {
@@ -838,7 +899,7 @@ export async function bulkManageHostnames(
           path: `/papi/v1/properties/${operation.propertyId}`,
           method: 'GET',
         });
-        
+
         const property = propertyResponse.properties?.items?.[0];
         if (!property) {
           operation.hostnames.forEach((h: any) => {
@@ -848,14 +909,14 @@ export async function bulkManageHostnames(
               hostname: h.hostname,
               action: operation.action,
               success: false,
-              error: 'Property not found'
+              error: 'Property not found',
             });
           });
           continue;
         }
-        
+
         let version = property.latestVersion;
-        
+
         // Create new version if requested
         if (args.createNewVersion) {
           const versionResponse = await client.request({
@@ -870,21 +931,21 @@ export async function bulkManageHostnames(
             },
             body: {
               createFromVersion: version,
-              createFromVersionEtag: property.etag
-            }
+              createFromVersionEtag: property.etag,
+            },
           });
-          
+
           version = parseInt(versionResponse.versionLink.split('/').pop());
         }
-        
+
         // Get current hostnames
         const hostnamesResponse = await client.request({
           path: `/papi/v1/properties/${operation.propertyId}/versions/${version}/hostnames`,
           method: 'GET',
         });
-        
+
         let hostnames = hostnamesResponse.hostnames?.items || [];
-        
+
         // Process each hostname operation
         for (const hostnameOp of operation.hostnames) {
           try {
@@ -897,11 +958,11 @@ export async function bulkManageHostnames(
                   hostname: hostnameOp.hostname,
                   action: 'add',
                   success: false,
-                  error: 'Hostname already exists'
+                  error: 'Hostname already exists',
                 });
                 continue;
               }
-              
+
               // Validate DNS if requested
               if (args.validateDNS) {
                 // This would perform actual DNS validation
@@ -913,27 +974,27 @@ export async function bulkManageHostnames(
                     hostname: hostnameOp.hostname,
                     action: 'add',
                     success: false,
-                    error: 'Invalid hostname format'
+                    error: 'Invalid hostname format',
                   });
                   continue;
                 }
               }
-              
+
               hostnames.push({
                 cnameType: 'EDGE_HOSTNAME',
                 cnameFrom: hostnameOp.hostname,
-                cnameTo: hostnameOp.edgeHostname || `${hostnameOp.hostname}.edgekey.net`
+                cnameTo: hostnameOp.edgeHostname || `${hostnameOp.hostname}.edgekey.net`,
               });
             } else if (operation.action === 'remove') {
               hostnames = hostnames.filter((h: any) => h.cnameFrom !== hostnameOp.hostname);
             }
-            
+
             results.push({
               propertyId: operation.propertyId,
               propertyName: property.propertyName,
               hostname: hostnameOp.hostname,
               action: operation.action,
-              success: true
+              success: true,
             });
           } catch (error) {
             results.push({
@@ -942,11 +1003,11 @@ export async function bulkManageHostnames(
               hostname: hostnameOp.hostname,
               action: operation.action,
               success: false,
-              error: (error as Error).message
+              error: (error as Error).message,
             });
           }
         }
-        
+
         // Update hostnames
         await client.request({
           path: `/papi/v1/properties/${operation.propertyId}/versions/${version}/hostnames`,
@@ -958,9 +1019,9 @@ export async function bulkManageHostnames(
             contractId: property.contractId,
             groupId: property.groupId,
           },
-          body: { hostnames }
+          body: { hostnames },
         });
-        
+
         // Add version notes if provided
         if (args.note) {
           await client.request({
@@ -970,8 +1031,8 @@ export async function bulkManageHostnames(
               'Content-Type': 'application/json',
             },
             body: {
-              note: args.note
-            }
+              note: args.note,
+            },
           });
         }
       } catch (error) {
@@ -982,83 +1043,91 @@ export async function bulkManageHostnames(
             hostname: h.hostname,
             action: operation.action,
             success: false,
-            error: (error as Error).message
+            error: (error as Error).message,
           });
         });
       }
     }
-    
-    operationTracker.updateOperation(operationId, { 
+
+    operationTracker.updateOperation(operationId, {
       status: 'completed',
-      endTime: new Date()
+      endTime: new Date(),
     });
-    
+
     // Format response
-    const successCount = results.filter(r => r.success).length;
-    const failCount = results.filter(r => !r.success).length;
-    
+    const successCount = results.filter((r) => r.success).length;
+    const failCount = results.filter((r) => !r.success).length;
+
     let responseText = `# Bulk Hostname Management Results\n\n`;
     responseText += `**Operation ID:** ${operationId}\n`;
     responseText += `**Total Operations:** ${results.length}\n`;
     responseText += `**Successful:** ${successCount}\n`;
     responseText += `**Failed:** ${failCount}\n\n`;
-    
+
     // Group by property
     const byProperty = new Map<string, typeof results>();
-    results.forEach(r => {
+    results.forEach((r) => {
       const key = r.propertyId;
       if (!byProperty.has(key)) {
         byProperty.set(key, []);
       }
       byProperty.get(key)!.push(r);
     });
-    
+
     responseText += `## Results by Property\n`;
     byProperty.forEach((propResults, propertyId) => {
       const propName = propResults[0]?.propertyName || 'Unknown';
-      const propSuccess = propResults.filter(r => r.success).length;
-      const propFail = propResults.filter(r => !r.success).length;
-      
+      const propSuccess = propResults.filter((r) => r.success).length;
+      const propFail = propResults.filter((r) => !r.success).length;
+
       responseText += `\n### ${propName} (${propertyId})\n`;
       responseText += `Success: ${propSuccess}, Failed: ${propFail}\n\n`;
-      
+
       if (propSuccess > 0) {
         responseText += `**✅ Successful:**\n`;
-        propResults.filter(r => r.success).forEach(r => {
-          responseText += `- ${r.action === 'add' ? 'Added' : 'Removed'}: ${r.hostname}\n`;
-        });
+        propResults
+          .filter((r) => r.success)
+          .forEach((r) => {
+            responseText += `- ${r.action === 'add' ? 'Added' : 'Removed'}: ${r.hostname}\n`;
+          });
       }
-      
+
       if (propFail > 0) {
         responseText += `\n**❌ Failed:**\n`;
-        propResults.filter(r => !r.success).forEach(r => {
-          responseText += `- ${r.hostname}: ${r.error}\n`;
-        });
+        propResults
+          .filter((r) => !r.success)
+          .forEach((r) => {
+            responseText += `- ${r.hostname}: ${r.error}\n`;
+          });
       }
     });
-    
+
     responseText += `\n## Next Steps\n`;
     responseText += `1. Update DNS records for added hostnames\n`;
     responseText += `2. Configure SSL certificates as needed\n`;
     responseText += `3. Test hostname resolution\n`;
     responseText += `4. Activate properties when ready\n`;
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: errorTranslator.formatConversationalError(error, {
-          operation: 'bulk manage hostnames',
-          parameters: args,
-          timestamp: new Date(),
-        }),
-      }],
+      content: [
+        {
+          type: 'text',
+          text: errorTranslator.formatConversationalError(error, {
+            operation: 'bulk manage hostnames',
+            parameters: args,
+            timestamp: new Date(),
+          }),
+        },
+      ],
     };
   }
 }
@@ -1071,20 +1140,22 @@ export async function getBulkOperationStatus(
   args: {
     operationId: string;
     detailed?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const operation = operationTracker.getOperation(args.operationId);
-    
+
     if (!operation) {
       return {
-        content: [{
-          type: 'text',
-          text: `Operation ${args.operationId} not found. Operations are kept in memory and may be lost after server restart.`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `Operation ${args.operationId} not found. Operations are kept in memory and may be lost after server restart.`,
+          },
+        ],
       };
     }
-    
+
     let responseText = `# Bulk Operation Status\n\n`;
     responseText += `**Operation ID:** ${operation.id}\n`;
     responseText += `**Type:** ${operation.type}\n`;
@@ -1099,26 +1170,26 @@ export async function getBulkOperationStatus(
     responseText += `- Processed: ${operation.processedItems}\n`;
     responseText += `- Successful: ${operation.successfulItems}\n`;
     responseText += `- Failed: ${operation.failedItems}\n`;
-    
+
     if (operation.processedItems > 0) {
-      const successRate = (operation.successfulItems / operation.processedItems * 100).toFixed(1);
+      const successRate = ((operation.successfulItems / operation.processedItems) * 100).toFixed(1);
       responseText += `- Success Rate: ${successRate}%\n`;
     }
-    
+
     if (args.detailed && operation.properties.length > 0) {
       responseText += `\n## Detailed Property Status\n`;
-      
+
       const byStatus = new Map<string, typeof operation.properties>();
-      operation.properties.forEach(p => {
+      operation.properties.forEach((p) => {
         if (!byStatus.has(p.status)) {
           byStatus.set(p.status, []);
         }
         byStatus.get(p.status)!.push(p);
       });
-      
+
       byStatus.forEach((props, status) => {
         responseText += `\n### ${status.toUpperCase()} (${props.length})\n`;
-        props.forEach(p => {
+        props.forEach((p) => {
           responseText += `- **${p.propertyName}** (${p.propertyId})\n`;
           if (p.error) {
             responseText += `  Error: ${p.error}\n`;
@@ -1129,31 +1200,35 @@ export async function getBulkOperationStatus(
         });
       });
     }
-    
+
     if (operation.status === 'in-progress') {
       const elapsed = Date.now() - operation.startTime.getTime();
       const avgTime = elapsed / Math.max(operation.processedItems, 1);
       const remaining = operation.totalItems - operation.processedItems;
-      const eta = new Date(Date.now() + (avgTime * remaining));
-      
+      const eta = new Date(Date.now() + avgTime * remaining);
+
       responseText += `\n## Estimated Completion\n`;
       responseText += `- Remaining Items: ${remaining}\n`;
       responseText += `- Average Time per Item: ${Math.round(avgTime)} ms\n`;
       responseText += `- Estimated Completion: ${eta.toISOString()}\n`;
     }
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return {
-      content: [{
-        type: 'text',
-        text: `Error retrieving operation status: ${(error as Error).message}`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: `Error retrieving operation status: ${(error as Error).message}`,
+        },
+      ],
     };
   }
 }
@@ -1162,9 +1237,9 @@ export async function getBulkOperationStatus(
 function applyJsonPatch(obj: any, patch: any): any {
   // Simple JSON patch implementation
   const cloned = JSON.parse(JSON.stringify(obj));
-  
+
   const getValueAtPath = (obj: any, path: string): any => {
-    const parts = path.split('/').filter(p => p);
+    const parts = path.split('/').filter((p) => p);
     let current = obj;
     for (const part of parts) {
       if (part && part.includes('[') && part.includes(']')) {
@@ -1180,9 +1255,9 @@ function applyJsonPatch(obj: any, patch: any): any {
     }
     return current;
   };
-  
+
   const setValueAtPath = (obj: any, path: string, value: any): void => {
-    const parts = path.split('/').filter(p => p);
+    const parts = path.split('/').filter((p) => p);
     let current = obj;
     for (let i = 0; i < parts.length - 1; i++) {
       const part = parts[i];
@@ -1211,7 +1286,7 @@ function applyJsonPatch(obj: any, patch: any): any {
       current[lastPart] = value;
     }
   };
-  
+
   switch (patch.op) {
     case 'add':
       setValueAtPath(cloned, patch.path, patch.value);
@@ -1247,7 +1322,7 @@ function applyJsonPatch(obj: any, patch: any): any {
       }
       break;
   }
-  
+
   return cloned;
 }
 

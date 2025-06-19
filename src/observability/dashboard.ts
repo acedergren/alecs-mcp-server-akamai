@@ -3,7 +3,7 @@
  * Provides real-time visibility into operations without external dependencies
  */
 
-import { createServer, IncomingMessage, ServerResponse } from 'http';
+import { createServer, type IncomingMessage, type ServerResponse } from 'http';
 import { logger } from './logger';
 // import { healthMonitor } from './health';
 
@@ -13,7 +13,7 @@ export class DebugDashboard {
   private recentOperations: any[] = [];
   private maxOperations = 100;
 
-  constructor(port: number = 8080) {
+  constructor(port = 8080) {
     this.port = port;
   }
 
@@ -340,5 +340,5 @@ export class DebugDashboard {
 
 // Export singleton instance
 export const dashboard = new DebugDashboard(
-  parseInt(process.env.ALECS_DASHBOARD_PORT || '8080', 10)
+  parseInt(process.env.ALECS_DASHBOARD_PORT || '8080', 10),
 );

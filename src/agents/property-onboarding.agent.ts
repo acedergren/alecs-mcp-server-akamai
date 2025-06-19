@@ -4,40 +4,21 @@
  * with HTTPS-only, Enhanced TLS, and Default DV certificates
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import {
-  listProperties,
-  getProperty,
-  createProperty,
-  listGroups
-} from '../tools/property-tools';
-import {
-  searchProperties
-} from '../tools/property-manager-advanced-tools';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import { listProperties, getProperty, createProperty, listGroups } from '../tools/property-tools';
+import { searchProperties, listEdgeHostnames } from '../tools/property-manager-advanced-tools';
 import {
   createEdgeHostname,
   addPropertyHostname,
   activateProperty,
   getActivationStatus,
   updatePropertyRules,
-  getPropertyRules
+  getPropertyRules,
 } from '../tools/property-manager-tools';
-import {
-  listEdgeHostnames
-} from '../tools/property-manager-advanced-tools';
-import {
-  listZones,
-  createZone,
-  upsertRecord,
-  listRecords
-} from '../tools/dns-tools';
-import {
-  listProducts
-} from '../tools/product-tools';
-import {
-  createCPCode
-} from '../tools/cpcode-tools';
+import { listZones, createZone, upsertRecord, listRecords } from '../tools/dns-tools';
+import { listProducts } from '../tools/product-tools';
+import { createCPCode } from '../tools/cpcode-tools';
 import { formatPropertyDisplay } from '../utils/formatting';
 
 export interface OnboardingConfig {
@@ -76,10 +57,10 @@ const DNS_PROVIDER_GUIDES = {
       '3. Click "Hosted zone details"',
       '4. Note the NS records for your domain',
       '5. Enable zone transfers:',
-      '   - Create a new policy allowing Akamai\'s transfer IPs',
+      "   - Create a new policy allowing Akamai's transfer IPs",
       '   - IPs: 23.73.134.141, 23.73.134.237, 72.246.199.141, 72.246.199.237',
-      '6. Or export zone file: aws route53 list-resource-record-sets --hosted-zone-id ZONE_ID'
-    ]
+      '6. Or export zone file: aws route53 list-resource-record-sets --hosted-zone-id ZONE_ID',
+    ],
   },
   cloudflare: {
     name: 'Cloudflare',
@@ -89,9 +70,9 @@ const DNS_PROVIDER_GUIDES = {
       '3. Go to DNS settings',
       '4. Click "Advanced" → "Export DNS records"',
       '5. Download the BIND format file',
-      '6. Note: Cloudflare doesn\'t support AXFR transfers',
-      '7. You\'ll need to manually import records to Akamai'
-    ]
+      "6. Note: Cloudflare doesn't support AXFR transfers",
+      "7. You'll need to manually import records to Akamai",
+    ],
   },
   azure: {
     name: 'Azure DNS',
@@ -101,8 +82,8 @@ const DNS_PROVIDER_GUIDES = {
       '3. Select your zone',
       '4. Click "Export zone file" in the overview',
       '5. Or use Azure CLI: az network dns zone export -g ResourceGroup -n zonename -f zonefile.txt',
-      '6. Import the zone file to Akamai Edge DNS'
-    ]
+      '6. Import the zone file to Akamai Edge DNS',
+    ],
   },
   other: {
     name: 'Other DNS Provider',
@@ -115,9 +96,9 @@ const DNS_PROVIDER_GUIDES = {
       '3. Ensure you have all records including:',
       '   - A, AAAA, CNAME, MX, TXT, SRV records',
       '   - TTL values',
-      '   - Any special records (CAA, DKIM, etc.)'
-    ]
-  }
+      '   - Any special records (CAA, DKIM, etc.)',
+    ],
+  },
 };
 
 export class PropertyOnboardingAgent {
@@ -128,16 +109,18 @@ export class PropertyOnboardingAgent {
       success: false,
       errors: [],
       warnings: [],
-      nextSteps: []
+      nextSteps: [],
     };
 
     try {
       // Step 1: Validate and prepare configuration
       console.error('[PropertyOnboarding] Step 1: Validating configuration...');
       const validatedConfig = await this.validateConfig(config);
-      
+
       // Step 2: Pre-flight checks
-      console.error(`[PropertyOnboarding] Step 2: Pre-flight checks for ${validatedConfig.hostname}...`);
+      console.error(
+        `[PropertyOnboarding] Step 2: Pre-flight checks for ${validatedConfig.hostname}...`,
+      );
       const preflightResult = await this.performPreflightChecks(validatedConfig);
       if (!preflightResult.canProceed) {
         result.errors = preflightResult.errors;
@@ -176,7 +159,7 @@ export class PropertyOnboardingAgent {
       console.error('[PropertyOnboarding] Step 6: Creating edge hostname...');
       const edgeHostnameResult = await this.createEdgeHostnameWithRetry(
         propertyResult.propertyId,
-        validatedConfig
+        validatedConfig,
       );
       if (!edgeHostnameResult.success) {
         result.errors!.push('Failed to create edge hostname');
@@ -190,15 +173,12 @@ export class PropertyOnboardingAgent {
       await this.addHostnameToProperty(
         propertyResult.propertyId,
         validatedConfig.hostname,
-        edgeHostnameResult.edgeHostname!
+        edgeHostnameResult.edgeHostname!,
       );
 
       // Step 8: Configure property rules with CP Code
       console.error('[PropertyOnboarding] Step 8: Configuring property rules...');
-      await this.configurePropertyRules(
-        propertyResult.propertyId,
-        validatedConfig
-      );
+      await this.configurePropertyRules(propertyResult.propertyId, validatedConfig);
 
       // Step 9: Handle DNS setup
       console.error('[PropertyOnboarding] Step 9: Handling DNS setup...');
@@ -206,7 +186,7 @@ export class PropertyOnboardingAgent {
         const dnsResult = await this.handleDnsSetup(
           validatedConfig.hostname,
           edgeHostnameResult.edgeHostname!,
-          validatedConfig
+          validatedConfig,
         );
         result.dnsRecordCreated = dnsResult.recordCreated;
         if (dnsResult.warnings) {
@@ -221,7 +201,7 @@ export class PropertyOnboardingAgent {
       console.error('[PropertyOnboarding] Step 10: Activating to staging network...');
       const activationResult = await this.activatePropertyToStaging(
         propertyResult.propertyId,
-        validatedConfig
+        validatedConfig,
       );
       result.activationId = activationResult.activationId;
 
@@ -236,13 +216,15 @@ export class PropertyOnboardingAgent {
         '   - New hostnames take 10-60 minutes to propagate',
         '   - Test thoroughly in staging first',
         '   - Use property.activate tool to push to production when ready',
-        `   - Command: property.activate --propertyId "${result.propertyId}" --version 1 --network "PRODUCTION" --note "Production activation after staging validation"`
+        `   - Command: property.activate --propertyId "${result.propertyId}" --version 1 --network "PRODUCTION" --note "Production activation after staging validation"`,
       );
 
       return result;
     } catch (error) {
       console.error('[PropertyOnboarding] Error:', error);
-      result.errors!.push(`Unexpected error: ${error instanceof Error ? error.message : String(error)}`);
+      result.errors!.push(
+        `Unexpected error: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return result;
     }
   }
@@ -255,7 +237,7 @@ export class PropertyOnboardingAgent {
       certificateType: config.certificateType || 'DEFAULT',
       notificationEmails: config.notificationEmails || [],
       skipDnsSetup: config.skipDnsSetup || false,
-      customer: config.customer || 'default'
+      customer: config.customer || 'default',
     };
 
     // Validate hostname format
@@ -265,7 +247,9 @@ export class PropertyOnboardingAgent {
 
     // Prompt for origin hostname if not provided
     if (!validated.originHostname) {
-      throw new Error('Origin hostname is required. Please provide originHostname in the configuration.');
+      throw new Error(
+        'Origin hostname is required. Please provide originHostname in the configuration.',
+      );
     }
 
     return validated as Required<OnboardingConfig>;
@@ -289,12 +273,15 @@ export class PropertyOnboardingAgent {
       const searchResult = await searchProperties(this.client, {
         propertyName: config.hostname,
         hostname: config.hostname,
-        customer: config.customer
+        customer: config.customer,
       });
-      
+
       // Parse the response to check if property exists
       const responseText = searchResult.content[0].text;
-      if (responseText.includes('Properties found') && !responseText.includes('No properties found')) {
+      if (
+        responseText.includes('Properties found') &&
+        !responseText.includes('No properties found')
+      ) {
         errors.push(`Property with hostname ${config.hostname} already exists`);
       }
     } catch (error) {
@@ -305,9 +292,9 @@ export class PropertyOnboardingAgent {
     // Check if hostname is already in use
     try {
       const edgeHostnamesResult = await listEdgeHostnames(this.client, {
-        customer: config.customer
+        customer: config.customer,
       });
-      
+
       const responseText = edgeHostnamesResult.content[0].text;
       if (responseText.includes(config.hostname)) {
         errors.push(`Hostname ${config.hostname} is already in use by another property`);
@@ -319,7 +306,7 @@ export class PropertyOnboardingAgent {
     return {
       canProceed: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
@@ -329,20 +316,20 @@ export class PropertyOnboardingAgent {
   }> {
     // Get groups
     const groupsResult = await listGroups(this.client, {
-      searchTerm: 'default'
+      searchTerm: 'default',
     });
 
     // Use provided group ID or prompt user to specify
-    let groupId = config.groupId;
+    const groupId = config.groupId;
     if (!groupId) {
       throw new Error('Group ID is required. Use "List groups" to find available groups.');
     }
-    
+
     // Get products for the contract
-    let contractId = config.contractId || 'ctr_1-5C13O2'; // Default contract
+    const contractId = config.contractId || 'ctr_1-5C13O2'; // Default contract
     const productsResult = await listProducts(this.client, {
       contractId: contractId,
-      customer: config.customer
+      customer: config.customer,
     });
 
     // Select product based on use case
@@ -350,8 +337,9 @@ export class PropertyOnboardingAgent {
     if (!productId) {
       // Check if Ion Standard (prd_Fresca) is available
       const responseText = productsResult.content[0].text;
-      const hasIonStandard = responseText.includes('prd_Fresca') || responseText.includes('Ion Standard');
-      
+      const hasIonStandard =
+        responseText.includes('prd_Fresca') || responseText.includes('Ion Standard');
+
       // Auto-detect use case based on hostname if not specified
       let useCase = config.useCase;
       if (!useCase) {
@@ -359,7 +347,7 @@ export class PropertyOnboardingAgent {
           useCase = 'web-app'; // Default to web-app for api. and www. prefixes
         }
       }
-      
+
       switch (useCase) {
         case 'web-app':
         case 'api':
@@ -373,11 +361,13 @@ export class PropertyOnboardingAgent {
           break;
         case 'basic-web':
         default:
-          productId = 'prd_SPM'; // Standard TLS
+          productId = 'prd_SPM'; // Ion Premier
           break;
       }
-      
-      console.error(`[PropertyOnboarding] Selected product: ${productId} for use case: ${useCase || 'default'}`);
+
+      console.error(
+        `[PropertyOnboarding] Selected product: ${productId} for use case: ${useCase || 'default'}`,
+      );
     }
 
     return { groupId, productId };
@@ -390,26 +380,26 @@ export class PropertyOnboardingAgent {
     try {
       // Generate CP Code name based on hostname or property name
       const cpCodeName = config.hostname.replace(/\./g, '-');
-      
+
       console.error(`[PropertyOnboarding] Creating CP Code with name: ${cpCodeName}`);
-      
+
       const result = await createCPCode(this.client, {
-        productId: config.productId!,
+        productId: config.productId,
         contractId: config.contractId || 'ctr_1-5C13O2',
-        groupId: config.groupId!,
-        cpcodeName: cpCodeName
+        groupId: config.groupId,
+        cpcodeName: cpCodeName,
       });
 
       // Extract CP Code ID from response
       const responseText = result.content[0].text;
       // Look for patterns like "CP Code ID: 1234567" or "CP Code: cpc_1234567"
       const cpCodeMatch = responseText.match(/(?:CP Code ID:|CP Code:)\s*(?:cpc_)?(\d+)/i);
-      
+
       if (cpCodeMatch) {
         const cpCodeId = cpCodeMatch[1];
         return {
           success: true,
-          cpCodeId: cpCodeId // Just the numeric part
+          cpCodeId: cpCodeId, // Just the numeric part
         };
       }
 
@@ -428,19 +418,19 @@ export class PropertyOnboardingAgent {
     try {
       const result = await createProperty(this.client, {
         propertyName: config.hostname,
-        productId: config.productId!,
+        productId: config.productId,
         contractId: config.contractId || 'ctr_1-5C13O2',
-        groupId: config.groupId!
+        groupId: config.groupId,
       });
 
       // Extract property ID from response
       const responseText = result.content[0].text;
       const propertyIdMatch = responseText.match(/Property ID:\*\* (prp_\d+)/);
-      
+
       if (propertyIdMatch) {
         return {
           success: true,
-          propertyId: propertyIdMatch[1]
+          propertyId: propertyIdMatch[1],
         };
       }
 
@@ -453,7 +443,7 @@ export class PropertyOnboardingAgent {
 
   private async createEdgeHostnameWithRetry(
     propertyId: string,
-    config: Required<OnboardingConfig>
+    config: Required<OnboardingConfig>,
   ): Promise<{
     success: boolean;
     edgeHostname?: string;
@@ -461,20 +451,20 @@ export class PropertyOnboardingAgent {
     try {
       const domainPrefix = config.hostname;
       const domainSuffix = 'edgekey.net'; // Using .edgekey.net as default
-      
+
       const result = await createEdgeHostname(this.client, {
         propertyId,
         domainPrefix,
         domainSuffix,
-        productId: config.productId!,
+        productId: config.productId,
         secure: true, // Always secure for ENHANCED_TLS
-        ipVersion: 'IPV4'
+        ipVersion: 'IPV4',
       });
 
       const edgeHostname = `${domainPrefix}.${domainSuffix}`;
       return {
         success: true,
-        edgeHostname
+        edgeHostname,
       };
     } catch (error) {
       console.error('[PropertyOnboarding] Create edge hostname error:', error);
@@ -485,19 +475,19 @@ export class PropertyOnboardingAgent {
   private async addHostnameToProperty(
     propertyId: string,
     hostname: string,
-    edgeHostname: string
+    edgeHostname: string,
   ): Promise<void> {
     await addPropertyHostname(this.client, {
       propertyId,
       version: 1,
       hostname: hostname,
-      edgeHostname: edgeHostname
+      edgeHostname: edgeHostname,
     });
   }
 
   private async configurePropertyRules(
     propertyId: string,
-    config: Required<OnboardingConfig>
+    config: Required<OnboardingConfig>,
   ): Promise<void> {
     // Use the Ion Standard template provided by the user
     const rules = this.getIonStandardTemplate(config);
@@ -505,7 +495,7 @@ export class PropertyOnboardingAgent {
     await updatePropertyRules(this.client, {
       propertyId,
       version: 1,
-      rules
+      rules,
     });
   }
 
@@ -525,15 +515,16 @@ export class PropertyOnboardingAgent {
                   name: 'cpCode',
                   options: {
                     value: {
-                      id: parseInt(config.cpCodeId!),
-                      name: config.hostname.replace(/\./g, '-')
-                    }
-                  }
-                }
+                      id: parseInt(config.cpCodeId),
+                      name: config.hostname.replace(/\./g, '-'),
+                    },
+                  },
+                },
               ],
               criteria: [],
               criteriaMustSatisfy: 'all',
-              comments: 'Identify your main traffic segments so you can granularly zoom in your traffic statistics like hits, bandwidth, offload, response codes, and errors.'
+              comments:
+                'Identify your main traffic segments so you can granularly zoom in your traffic statistics like hits, bandwidth, offload, response codes, and errors.',
             },
             {
               name: 'mPulse RUM',
@@ -548,12 +539,12 @@ export class PropertyOnboardingAgent {
                     enabled: false, // Disabled by default
                     loaderVersion: 'V12',
                     requirePci: false,
-                    titleOptional: ''
-                  }
-                }
+                    titleOptional: '',
+                  },
+                },
               ],
               criteria: [],
-              criteriaMustSatisfy: 'all'
+              criteriaMustSatisfy: 'all',
             },
             {
               name: 'Geolocation',
@@ -562,20 +553,20 @@ export class PropertyOnboardingAgent {
                 {
                   name: 'edgeScape',
                   options: {
-                    enabled: false
-                  }
-                }
+                    enabled: false,
+                  },
+                },
               ],
               criteria: [
                 {
                   name: 'requestType',
                   options: {
                     matchOperator: 'IS',
-                    value: 'CLIENT_REQ'
-                  }
-                }
+                    value: 'CLIENT_REQ',
+                  },
+                },
               ],
-              criteriaMustSatisfy: 'all'
+              criteriaMustSatisfy: 'all',
             },
             {
               name: 'Log delivery',
@@ -591,17 +582,17 @@ export class PropertyOnboardingAgent {
                     logHost: false,
                     logReferer: false,
                     logUserAgent: false,
-                    logXForwardedFor: false
-                  }
-                }
+                    logXForwardedFor: false,
+                  },
+                },
               ],
               criteria: [],
-              criteriaMustSatisfy: 'all'
-            }
+              criteriaMustSatisfy: 'all',
+            },
           ],
           behaviors: [],
           criteria: [],
-          criteriaMustSatisfy: 'all'
+          criteriaMustSatisfy: 'all',
         },
         // Add HTTPS redirect as first rule in Strengthen security
         {
@@ -615,26 +606,26 @@ export class PropertyOnboardingAgent {
                   options: {
                     enabled: true,
                     destination: 'SAME_AS_REQUEST',
-                    responseCode: 301
-                  }
-                }
+                    responseCode: 301,
+                  },
+                },
               ],
               criteria: [
                 {
                   name: 'requestProtocol',
                   options: {
-                    value: 'HTTP'
-                  }
-                }
+                    value: 'HTTP',
+                  },
+                },
               ],
               criteriaMustSatisfy: 'all',
-              comments: 'Redirect all HTTP traffic to HTTPS'
-            }
+              comments: 'Redirect all HTTP traffic to HTTPS',
+            },
           ],
           behaviors: [],
           criteria: [],
-          criteriaMustSatisfy: 'all'
-        }
+          criteriaMustSatisfy: 'all',
+        },
       ],
       behaviors: [
         {
@@ -656,23 +647,24 @@ export class PropertyOnboardingAgent {
             trueClientIpHeader: 'True-Client-IP',
             verificationMode: 'PLATFORM_SETTINGS',
             ipVersion: 'IPV4',
-            hostname: config.originHostname
-          }
+            hostname: config.originHostname,
+          },
         },
         {
           name: 'enhancedDebug',
           options: {
-            enableDebug: false
-          }
-        }
+            enableDebug: false,
+          },
+        },
       ],
       options: {
-        is_secure: true
+        is_secure: true,
       },
       variables: [],
       criteria: [],
       criteriaMustSatisfy: 'all',
-      comments: 'Ion Standard template optimized for web applications and API delivery with Enhanced TLS'
+      comments:
+        'Ion Standard template optimized for web applications and API delivery with Enhanced TLS',
     };
 
     return template;
@@ -681,7 +673,7 @@ export class PropertyOnboardingAgent {
   private async handleDnsSetup(
     hostname: string,
     edgeHostname: string,
-    config: Required<OnboardingConfig>
+    config: Required<OnboardingConfig>,
   ): Promise<{
     recordCreated: boolean;
     warnings?: string[];
@@ -689,11 +681,11 @@ export class PropertyOnboardingAgent {
   }> {
     const domain = this.extractDomain(hostname);
     const recordName = hostname.replace(`.${domain}`, '');
-    
+
     try {
       // Check if zone exists in Edge DNS
       const zonesResult = await listZones(this.client, {
-        search: domain
+        search: domain,
       });
 
       const responseText = zonesResult.content[0].text;
@@ -706,7 +698,7 @@ export class PropertyOnboardingAgent {
           name: recordName,
           type: 'CNAME',
           ttl: 300,
-          rdata: [edgeHostname]
+          rdata: [edgeHostname],
         });
 
         // For Default DV cert, create ACME challenge records
@@ -714,14 +706,14 @@ export class PropertyOnboardingAgent {
 
         return {
           recordCreated: true,
-          warnings: ['CNAME and ACME challenge records created in Edge DNS']
+          warnings: ['CNAME and ACME challenge records created in Edge DNS'],
         };
       } else {
         // Zone doesn't exist, provide guidance
         return {
           recordCreated: false,
           warnings: [`DNS zone ${domain} not found in Edge DNS`],
-          nextSteps: await this.generateDnsGuidance(domain, hostname, edgeHostname, config)
+          nextSteps: await this.generateDnsGuidance(domain, hostname, edgeHostname, config),
         };
       }
     } catch (error) {
@@ -729,7 +721,7 @@ export class PropertyOnboardingAgent {
       return {
         recordCreated: false,
         warnings: ['Failed to setup DNS automatically'],
-        nextSteps: [`Manually create CNAME: ${hostname} → ${edgeHostname}`]
+        nextSteps: [`Manually create CNAME: ${hostname} → ${edgeHostname}`],
       };
     }
   }
@@ -737,7 +729,7 @@ export class PropertyOnboardingAgent {
   private async createAcmeChallengeRecords(
     hostname: string,
     domain: string,
-    config: Required<OnboardingConfig>
+    config: Required<OnboardingConfig>,
   ): Promise<void> {
     // Default DV certificates use predictable ACME challenge records
     const acmeRecord = `_acme-challenge.${hostname.replace(`.${domain}`, '')}`;
@@ -749,7 +741,7 @@ export class PropertyOnboardingAgent {
         name: acmeRecord,
         type: 'CNAME',
         ttl: 300,
-        rdata: [acmeTarget]
+        rdata: [acmeTarget],
       });
     } catch (error) {
       console.error('[PropertyOnboarding] ACME record creation error:', error);
@@ -760,22 +752,24 @@ export class PropertyOnboardingAgent {
     domain: string,
     hostname: string,
     edgeHostname: string,
-    config: Required<OnboardingConfig>
+    config: Required<OnboardingConfig>,
   ): Promise<string[]> {
     const steps: string[] = [];
-    
+
     steps.push(`DNS zone ${domain} is not in Akamai Edge DNS.`);
     steps.push('');
     steps.push('Option 1: Migrate DNS to Akamai Edge DNS');
-    steps.push(`  - Create zone: dns.zone.create --zone "${domain}" --type "PRIMARY" --contractId "[YOUR-CONTRACT-ID]"`);
-    
+    steps.push(
+      `  - Create zone: dns.zone.create --zone "${domain}" --type "PRIMARY" --contractId "[YOUR-CONTRACT-ID]"`,
+    );
+
     if (config.dnsProvider) {
       const providerKey = config.dnsProvider.toLowerCase() as keyof typeof DNS_PROVIDER_GUIDES;
       const guide = DNS_PROVIDER_GUIDES[providerKey] || DNS_PROVIDER_GUIDES.other;
-      
+
       steps.push('');
       steps.push(`Migration from ${guide.name}:`);
-      steps.push(...guide.exportSteps.map(step => `  ${step}`));
+      steps.push(...guide.exportSteps.map((step) => `  ${step}`));
     } else {
       steps.push('');
       steps.push('To provide specific migration steps, please specify your DNS provider:');
@@ -788,7 +782,9 @@ export class PropertyOnboardingAgent {
     steps.push('');
     steps.push('Option 2: Keep DNS with current provider');
     steps.push(`  - Create CNAME: ${hostname} → ${edgeHostname}`);
-    steps.push(`  - Create CNAME: _acme-challenge.${hostname} → ${hostname}.acme-validate.edgekey.net`);
+    steps.push(
+      `  - Create CNAME: _acme-challenge.${hostname} → ${hostname}.acme-validate.edgekey.net`,
+    );
     steps.push('  - TTL: 300 seconds recommended');
 
     return steps;
@@ -796,7 +792,7 @@ export class PropertyOnboardingAgent {
 
   private async activatePropertyToStaging(
     propertyId: string,
-    config: Required<OnboardingConfig>
+    config: Required<OnboardingConfig>,
   ): Promise<{
     success: boolean;
     activationId?: string;
@@ -807,7 +803,7 @@ export class PropertyOnboardingAgent {
         version: 1,
         network: 'STAGING',
         note: `Initial staging activation for ${config.hostname}`,
-        notifyEmails: config.notificationEmails
+        notifyEmails: config.notificationEmails,
       });
 
       // Extract activation ID from response
@@ -816,7 +812,7 @@ export class PropertyOnboardingAgent {
 
       return {
         success: true,
-        activationId: activationIdMatch ? activationIdMatch[1] : undefined
+        activationId: activationIdMatch ? activationIdMatch[1] : undefined,
       };
     } catch (error) {
       console.error('[PropertyOnboarding] Activation error:', error);
@@ -836,13 +832,13 @@ export class PropertyOnboardingAgent {
 // Export function for easy tool integration
 export async function onboardProperty(
   client: AkamaiClient,
-  args: OnboardingConfig
+  args: OnboardingConfig,
 ): Promise<MCPToolResponse> {
   const agent = new PropertyOnboardingAgent(client);
   const result = await agent.execute(args);
 
   let responseText = '';
-  
+
   if (result.success) {
     responseText = `# ✅ Property Onboarding Successful\n\n`;
     responseText += `**Property ID:** ${result.propertyId}\n`;
@@ -851,14 +847,14 @@ export async function onboardProperty(
       responseText += `**Activation ID:** ${result.activationId}\n`;
     }
     responseText += `\n## Next Steps\n\n`;
-    result.nextSteps?.forEach(step => {
+    result.nextSteps?.forEach((step) => {
       responseText += `- ${step}\n`;
     });
   } else {
     responseText = `# ❌ Property Onboarding Failed\n\n`;
     if (result.errors && result.errors.length > 0) {
       responseText += `## Errors\n\n`;
-      result.errors.forEach(error => {
+      result.errors.forEach((error) => {
         responseText += `- ${error}\n`;
       });
     }
@@ -866,15 +862,17 @@ export async function onboardProperty(
 
   if (result.warnings && result.warnings.length > 0) {
     responseText += `\n## Warnings\n\n`;
-    result.warnings.forEach(warning => {
+    result.warnings.forEach((warning) => {
       responseText += `- ${warning}\n`;
     });
   }
 
   return {
-    content: [{
-      type: 'text',
-      text: responseText
-    }]
+    content: [
+      {
+        type: 'text',
+        text: responseText,
+      },
+    ],
   };
 }

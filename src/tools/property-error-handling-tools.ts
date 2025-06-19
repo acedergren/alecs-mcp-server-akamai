@@ -3,9 +3,9 @@
  * Critical for production deployments and preventing activation failures
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { handleApiError } from '../utils/error-handling';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import { handleApiError } from '@utils/error-handling';
 
 export interface PropertyWarning {
   type: string;
@@ -48,12 +48,12 @@ export async function getValidationErrors(
     validateRules?: boolean;
     validateHostnames?: boolean;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const params = new URLSearchParams({
       contractId: args.contractId,
-      groupId: args.groupId
+      groupId: args.groupId,
     });
 
     // Add validation options
@@ -66,17 +66,19 @@ export async function getValidationErrors(
 
     const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}?${params.toString()}`,
-      method: 'GET'
+      method: 'GET',
     });
 
     const version = response.versions?.items?.[0];
-    
+
     if (!version) {
       return {
-        content: [{
-          type: 'text',
-          text: `Property version ${args.version} not found.`
-        }]
+        content: [
+          {
+            type: 'text',
+            text: `Property version ${args.version} not found.`,
+          },
+        ],
       };
     }
 
@@ -141,7 +143,7 @@ export async function getValidationErrors(
 
     // Resolution guidance
     responseText += `## Resolution Guidance\n\n`;
-    
+
     if (errors.length > 0) {
       responseText += `### Critical Actions Required\n\n`;
       responseText += `1. **Fix all errors** listed above before attempting activation\n`;
@@ -156,7 +158,7 @@ export async function getValidationErrors(
       responseText += `2. **Acknowledge warnings** if acceptable for deployment\n`;
       responseText += `3. **Document decisions** in activation notes\n`;
       responseText += `4. **Monitor performance** after activation\n\n`;
-      
+
       responseText += `To acknowledge warnings during activation:\n`;
       responseText += `\`\`\`\n`;
       responseText += `activateProperty --propertyId ${args.propertyId} --version ${args.version} --acknowledgeAllWarnings true\n`;
@@ -173,7 +175,7 @@ export async function getValidationErrors(
     }
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'getting validation errors');
@@ -193,25 +195,25 @@ export async function acknowledgeWarnings(
     contractId: string;
     groupId: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const params = new URLSearchParams({
       contractId: args.contractId,
-      groupId: args.groupId
+      groupId: args.groupId,
     });
 
     const requestBody = {
-      acknowledgedWarnings: args.warnings.map(messageId => ({
+      acknowledgedWarnings: args.warnings.map((messageId) => ({
         messageId,
-        justification: args.justification || 'Warning acknowledged by user'
-      }))
+        justification: args.justification || 'Warning acknowledged by user',
+      })),
     };
 
     await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/acknowledge-warnings?${params.toString()}`,
       method: 'POST',
-      body: requestBody
+      body: requestBody,
     });
 
     let responseText = `# Warnings Acknowledged\n\n`;
@@ -219,11 +221,11 @@ export async function acknowledgeWarnings(
     responseText += `**Version:** ${args.version}\n`;
     responseText += `**Warnings Acknowledged:** ${args.warnings.length}\n`;
     responseText += `**Acknowledged:** ${new Date().toISOString()}\n`;
-    
+
     if (args.justification) {
       responseText += `**Justification:** ${args.justification}\n`;
     }
-    
+
     responseText += `\n`;
 
     responseText += `## Acknowledged Warnings\n\n`;
@@ -240,7 +242,7 @@ export async function acknowledgeWarnings(
     responseText += `Property is now ready for activation with acknowledged warnings.\n`;
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'acknowledging warnings');
@@ -261,26 +263,26 @@ export async function overrideErrors(
     groupId: string;
     approvedBy?: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const params = new URLSearchParams({
       contractId: args.contractId,
-      groupId: args.groupId
+      groupId: args.groupId,
     });
 
     const requestBody = {
-      overriddenErrors: args.errors.map(messageId => ({
+      overriddenErrors: args.errors.map((messageId) => ({
         messageId,
         justification: args.justification,
-        approvedBy: args.approvedBy
-      }))
+        approvedBy: args.approvedBy,
+      })),
     };
 
     await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/override-errors?${params.toString()}`,
       method: 'POST',
-      body: requestBody
+      body: requestBody,
     });
 
     let responseText = `# Errors Overridden\n\n`;
@@ -288,16 +290,16 @@ export async function overrideErrors(
     responseText += `**Version:** ${args.version}\n`;
     responseText += `**Errors Overridden:** ${args.errors.length}\n`;
     responseText += `**Justification:** ${args.justification}\n`;
-    
+
     if (args.approvedBy) {
       responseText += `**Approved By:** ${args.approvedBy}\n`;
     }
-    
+
     responseText += `**Override Date:** ${new Date().toISOString()}\n\n`;
 
     responseText += `## ⚠️ WARNING: ERRORS HAVE BEEN OVERRIDDEN\n\n`;
     responseText += `The following critical errors have been forcibly overridden:\n\n`;
-    
+
     args.errors.forEach((messageId, index) => {
       responseText += `${index + 1}. **${messageId}**\n`;
     });
@@ -318,7 +320,7 @@ export async function overrideErrors(
     responseText += `Property can now be activated despite validation errors.\n`;
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'overriding errors');
@@ -337,7 +339,7 @@ export async function getErrorRecoveryHelp(
     contractId: string;
     groupId: string;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     // First get the validation errors
@@ -348,7 +350,7 @@ export async function getErrorRecoveryHelp(
       groupId: args.groupId,
       validateRules: true,
       validateHostnames: true,
-      customer: args.customer
+      customer: args.customer,
     });
 
     let responseText = `# Error Recovery Assistant\n\n`;
@@ -358,46 +360,46 @@ export async function getErrorRecoveryHelp(
 
     // Common error patterns and solutions
     const errorSolutions = {
-      'HOSTNAME_ERROR': {
+      HOSTNAME_ERROR: {
         title: 'Hostname Configuration Issues',
         solutions: [
           'Verify hostname DNS configuration',
           'Check edge hostname mapping',
           'Ensure certificate coverage for HTTPS hostnames',
-          'Validate hostname ownership'
-        ]
+          'Validate hostname ownership',
+        ],
       },
-      'RULE_ERROR': {
-        title: 'Rule Tree Configuration Issues', 
+      RULE_ERROR: {
+        title: 'Rule Tree Configuration Issues',
         solutions: [
           'Check behavior parameter values',
           'Verify criteria logic and conditions',
           'Ensure required behaviors are present',
-          'Validate rule format compatibility'
-        ]
+          'Validate rule format compatibility',
+        ],
       },
-      'BEHAVIOR_ERROR': {
+      BEHAVIOR_ERROR: {
         title: 'Behavior Configuration Issues',
         solutions: [
           'Review behavior parameter requirements',
           'Check for conflicting behaviors',
           'Verify behavior compatibility with rule format',
-          'Ensure all required fields are populated'
-        ]
+          'Ensure all required fields are populated',
+        ],
       },
-      'CERTIFICATE_ERROR': {
+      CERTIFICATE_ERROR: {
         title: 'Certificate Configuration Issues',
         solutions: [
           'Verify certificate enrollment status',
           'Check domain validation completion',
           'Ensure certificate covers all hostnames',
-          'Validate certificate deployment status'
-        ]
-      }
+          'Validate certificate deployment status',
+        ],
+      },
     };
 
     responseText += `## Common Error Resolution Patterns\n\n`;
-    
+
     for (const [, solution] of Object.entries(errorSolutions)) {
       responseText += `### ${solution.title}\n\n`;
       solution.solutions.forEach((step, index) => {
@@ -443,7 +445,7 @@ export async function getErrorRecoveryHelp(
     responseText += `3. Contact Akamai support with complete context\n`;
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'getting error recovery help');
@@ -464,7 +466,7 @@ export async function validatePropertyConfiguration(
     includeRuleValidation?: boolean;
     includeCertificateValidation?: boolean;
     customer?: string;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     let responseText = `# Comprehensive Property Validation\n\n`;
@@ -486,9 +488,9 @@ export async function validatePropertyConfiguration(
         groupId: args.groupId,
         validateRules: args.includeRuleValidation !== false,
         validateHostnames: args.includeHostnameValidation !== false,
-        customer: args.customer
+        customer: args.customer,
       });
-      
+
       validationResults.push('✅ Basic validation completed');
       responseText += `✅ Basic property validation completed\n\n`;
     } catch (error) {
@@ -503,9 +505,9 @@ export async function validatePropertyConfiguration(
       try {
         await client.request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/rules?contractId=${args.contractId}&groupId=${args.groupId}&validateRules=true`,
-          method: 'GET'
+          method: 'GET',
         });
-        
+
         validationResults.push('✅ Rule tree validation passed');
         responseText += `✅ Rule tree structure and logic validated\n\n`;
       } catch (error) {
@@ -521,9 +523,9 @@ export async function validatePropertyConfiguration(
       try {
         await client.request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/hostnames?contractId=${args.contractId}&groupId=${args.groupId}&validateHostnames=true`,
-          method: 'GET'
+          method: 'GET',
         });
-        
+
         validationResults.push('✅ Hostname validation passed');
         responseText += `✅ All hostnames properly configured and validated\n\n`;
       } catch (error) {
@@ -539,23 +541,23 @@ export async function validatePropertyConfiguration(
       try {
         const hostnameResponse = await client.request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/hostnames?contractId=${args.contractId}&groupId=${args.groupId}&includeCertStatus=true`,
-          method: 'GET'
+          method: 'GET',
         });
-        
+
         const hostnames = hostnameResponse.hostnames?.items || [];
         let certIssues = 0;
-        
+
         hostnames.forEach((hostname: any) => {
           if (hostname.certStatus) {
             const prodStatus = hostname.certStatus.production?.[0]?.status;
             const stagingStatus = hostname.certStatus.staging?.[0]?.status;
-            
+
             if (prodStatus !== 'ACTIVE' || stagingStatus !== 'ACTIVE') {
               certIssues++;
             }
           }
         });
-        
+
         if (certIssues === 0) {
           validationResults.push('✅ Certificate validation passed');
           responseText += `✅ All certificates active and properly deployed\n\n`;
@@ -578,7 +580,7 @@ export async function validatePropertyConfiguration(
     responseText += `- **Overall Status:** ${totalErrors === 0 ? 'PASS ✅' : 'FAIL ❌'}\n\n`;
 
     responseText += `### Validation Results\n\n`;
-    validationResults.forEach(result => {
+    validationResults.forEach((result) => {
       responseText += `- ${result}\n`;
     });
     responseText += `\n`;
@@ -606,7 +608,7 @@ export async function validatePropertyConfiguration(
     }
 
     return {
-      content: [{ type: 'text', text: responseText }]
+      content: [{ type: 'text', text: responseText }],
     };
   } catch (error) {
     return handleApiError(error, 'validating property configuration');

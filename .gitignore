@@ -10,7 +10,6 @@ yarn-error.log*
 
 # Archive folder
 .archive/
-
 # Build outputs
 dist/
 .tsbuildinfo
@@ -87,3 +86,10 @@ sbom/
 
 #Akamai API Credentials
 .edgerc
+.edgerc*.bak
+*.backup
+*.d.ts.map
+
+# Personalized Claude Desktop configs
+claude_desktop_config_*.json
+!examples/claude_desktop_config*.example.json

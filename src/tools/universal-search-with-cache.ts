@@ -3,10 +3,10 @@
  * Dramatically improved performance through intelligent caching
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { handleApiError } from '../utils/error-handling';
-import { AkamaiCacheService } from '../services/akamai-cache-service';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import { handleApiError } from '@utils/error-handling';
+import { AkamaiCacheService } from '@services/akamai-cache-service';
 
 // Singleton cache service
 let cacheService: AkamaiCacheService | null = null;
@@ -15,7 +15,7 @@ function getCacheService(): AkamaiCacheService {
   if (!cacheService) {
     cacheService = new AkamaiCacheService();
     // Initialize in background
-    cacheService.initialize().catch(err => {
+    cacheService.initialize().catch((err) => {
       console.error('[UniversalSearch] Failed to initialize cache:', err);
     });
   }
@@ -44,7 +44,12 @@ function detectQueryType(query: string): string[] {
   });
 
   if (types.length === 0) {
-    if (normalized.includes('.com') || normalized.includes('.net') || normalized.includes('.org') || normalized.includes('.io')) {
+    if (
+      normalized.includes('.com') ||
+      normalized.includes('.net') ||
+      normalized.includes('.org') ||
+      normalized.includes('.io')
+    ) {
       types.push('hostname');
     }
     types.push('propertyName', 'general');
@@ -55,13 +60,13 @@ function detectQueryType(query: string): string[] {
 
 export async function universalSearchWithCacheHandler(
   client: AkamaiClient,
-  args: { 
-    query: string; 
-    customer?: string; 
+  args: {
+    query: string;
+    customer?: string;
     detailed?: boolean;
     useCache?: boolean;
     warmCache?: boolean;
-  }
+  },
 ): Promise<MCPToolResponse> {
   try {
     const startTime = Date.now();
@@ -70,44 +75,44 @@ export async function universalSearchWithCacheHandler(
     const useCache = args.useCache !== false;
     const customer = args.customer || 'default';
     const cache = getCacheService();
-    
+
     console.error(`🔍 Universal search for: "${args.query}"`);
     console.error(`Detected query types: ${queryTypes.join(', ')}`);
     console.error(`Cache: ${useCache ? 'enabled' : 'disabled'}`);
-    
+
     // Warm cache if requested
     if (args.warmCache && useCache) {
       await cache.warmCache(client, customer);
     }
-    
+
     const results: any = {
       query: args.query,
       queryTypes: queryTypes,
       matches: [],
       summary: { totalMatches: 0, resourceTypes: [] },
-      performance: { searchTimeMs: 0, cacheHit: false }
+      performance: { searchTimeMs: 0, cacheHit: false },
     };
 
     // Use cache for hostname searches
     if (useCache && (queryTypes.includes('hostname') || args.query.includes('.'))) {
       const cacheResults = await cache.search(client, args.query, customer);
-      
+
       if (cacheResults.length > 0) {
         results.performance.cacheHit = true;
-        
+
         for (const result of cacheResults) {
           const property = result.property;
-          
+
           // Get detailed info if requested
           if (detailed && !property.hostnames) {
             property.hostnames = await cache.getPropertyHostnames(client, property, customer);
           }
-          
+
           results.matches.push({
             type: 'property',
             resource: property,
             matchReason: result.matchReason || 'Cache match',
-            hostname: result.hostname
+            hostname: result.hostname,
           });
         }
       }
@@ -119,12 +124,12 @@ export async function universalSearchWithCacheHandler(
       if (queryTypes.includes('propertyId')) {
         try {
           const property = await cache.getProperty(client, args.query, customer);
-          
+
           if (property) {
             if (detailed) {
               property.hostnames = await cache.getPropertyHostnames(client, property, customer);
             }
-            
+
             results.matches.push({
               type: 'property',
               resource: property,
@@ -137,46 +142,52 @@ export async function universalSearchWithCacheHandler(
       }
 
       // Search all properties for hostname/name matches
-      if (queryTypes.includes('hostname') || queryTypes.includes('propertyName') || queryTypes.includes('general')) {
+      if (
+        queryTypes.includes('hostname') ||
+        queryTypes.includes('propertyName') ||
+        queryTypes.includes('general')
+      ) {
         try {
-          const properties = useCache 
+          const properties = useCache
             ? await cache.getProperties(client, customer)
             : await fetchPropertiesDirectly(client);
-          
+
           for (const property of properties) {
             let isMatch = false;
             const matchReasons: string[] = [];
-            
+
             // Check property name
             if (property.propertyName?.toLowerCase().includes(args.query.toLowerCase())) {
               isMatch = true;
               matchReasons.push('Property name match');
             }
-            
+
             // Check hostnames if it looks like a domain
             if (!isMatch && (queryTypes.includes('hostname') || args.query.includes('.'))) {
               try {
                 const hostnames = useCache
                   ? await cache.getPropertyHostnames(client, property, customer)
                   : await fetchHostnamesDirectly(client, property);
-                
+
                 const queryLower = args.query.toLowerCase();
-                
+
                 for (const hostname of hostnames) {
                   const cnameFrom = hostname.cnameFrom?.toLowerCase() || '';
                   const cnameTo = hostname.cnameTo?.toLowerCase() || '';
-                  
-                  if (cnameFrom === queryLower || 
-                      cnameFrom === `www.${queryLower}` ||
-                      queryLower === `www.${cnameFrom}` ||
-                      cnameFrom.includes(queryLower) ||
-                      cnameTo.includes(queryLower)) {
+
+                  if (
+                    cnameFrom === queryLower ||
+                    cnameFrom === `www.${queryLower}` ||
+                    queryLower === `www.${cnameFrom}` ||
+                    cnameFrom.includes(queryLower) ||
+                    cnameTo.includes(queryLower)
+                  ) {
                     isMatch = true;
                     matchReasons.push(`Hostname match: ${hostname.cnameFrom}`);
                     break;
                   }
                 }
-                
+
                 if (isMatch && detailed) {
                   property.hostnames = hostnames;
                 }
@@ -184,7 +195,7 @@ export async function universalSearchWithCacheHandler(
                 console.error(`Error checking hostnames for ${property.propertyId}:`, err);
               }
             }
-            
+
             if (isMatch) {
               results.matches.push({
                 type: 'property',
@@ -204,9 +215,9 @@ export async function universalSearchWithCacheHandler(
           const contracts = useCache
             ? await cache.getContracts(client, customer)
             : await fetchContractsDirectly(client);
-          
+
           const contract = contracts.find((c: any) => c.contractId === args.query);
-          
+
           if (contract) {
             results.matches.push({
               type: 'contract',
@@ -225,9 +236,9 @@ export async function universalSearchWithCacheHandler(
           const groups = useCache
             ? await cache.getGroups(client, customer)
             : await fetchGroupsDirectly(client);
-          
+
           const group = groups.find((g: any) => g.groupId === args.query);
-          
+
           if (group) {
             results.matches.push({
               type: 'group',
@@ -245,16 +256,16 @@ export async function universalSearchWithCacheHandler(
     results.summary.totalMatches = results.matches.length;
     results.summary.resourceTypes = [...new Set(results.matches.map((m: any) => m.type))];
     results.performance.searchTimeMs = Date.now() - startTime;
-    
+
     // Get cache stats if enabled
     let cacheStats: any = null;
     if (useCache) {
       cacheStats = await cache.getStats();
     }
-    
+
     // Format response
     let responseText = `🔍 **Search Results for "${args.query}"**\n\n`;
-    
+
     if (results.matches.length === 0) {
       responseText += `❌ No matches found.\n\n💡 Try searching for:\n`;
       responseText += `• Full hostname (e.g., www.example.com)\n`;
@@ -265,17 +276,17 @@ export async function universalSearchWithCacheHandler(
       responseText += `✅ Found ${results.summary.totalMatches} match${results.summary.totalMatches > 1 ? 'es' : ''}\n`;
       responseText += `⏱️ Search time: ${results.performance.searchTimeMs}ms`;
       responseText += results.performance.cacheHit ? ' (from cache)\n\n' : ' (from API)\n\n';
-      
+
       for (const match of results.matches) {
         const r = match.resource;
-        
+
         if (match.type === 'property') {
           responseText += `📦 **${r.propertyName}** \`${r.propertyId}\`\n`;
           responseText += `• Contract: \`${r.contractId}\`\n`;
           responseText += `• Group: \`${r.groupId}\`\n`;
           responseText += `• Version: Latest v${r.latestVersion}, Production v${r.productionVersion || 'None'}, Staging v${r.stagingVersion || 'None'}\n`;
           responseText += `• Match: ${match.matchReason}\n`;
-          
+
           if (r.hostnames) {
             responseText += `• **Hostnames:**\n`;
             r.hostnames.slice(0, 5).forEach((h: any) => {
@@ -294,7 +305,7 @@ export async function universalSearchWithCacheHandler(
         }
       }
     }
-    
+
     // Add cache statistics if available
     if (cacheStats && useCache) {
       responseText += `\n📊 **Cache Performance:**\n`;
@@ -302,12 +313,14 @@ export async function universalSearchWithCacheHandler(
       responseText += `• API Calls Saved: ${cacheStats.apiCallsSaved}\n`;
       responseText += `• Estimated Savings: ${cacheStats.estimatedCostSavings}\n`;
     }
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: responseText,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: responseText,
+        },
+      ],
     };
   } catch (error) {
     return handleApiError(error, 'universal search');

@@ -1,0 +1,59 @@
+name: Project Board Automation
+
+on:
+  issues:
+    types: [opened, reopened, closed]
+  pull_request:
+    types: [opened, reopened, closed, converted_to_draft, ready_for_review]
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  repository-projects: write
+  projects: write
+
+jobs:
+  add-to-project:
+    name: Add to ALECS Project Board
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add to project
+        uses: actions/add-to-project@v0.5.0
+        with:
+          project-url: https://github.com/users/acedergren/projects/4
+          github-token: ${{ secrets.PROJECT_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+          
+  manage-dependabot-prs:
+    name: Manage Dependabot PRs on Project Board
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      - name: Add Dependabot PR to project
+        uses: actions/add-to-project@v0.5.0
+        with:
+          project-url: https://github.com/users/acedergren/projects/4
+          github-token: ${{ secrets.PROJECT_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+          labeled: dependencies, automated
+          label-operator: OR
+          
+      - name: Auto-label Dependabot PRs
+        uses: actions/labeler@v4
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml
+
+  move-on-review:
+    name: Move PR on Review
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request_review' }}
+    steps:
+      - name: Move to "In Review" column
+        uses: alex-page/github-project-automation-plus@v0.8.3
+        with:
+          project: ALECS
+          column: In Review
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

@@ -20,22 +20,22 @@ const config: Config = {
   projects: [
     {
       displayName: 'unit',
-      testMatch: ['<rootDir>/src/**/*.unit.test.ts'],
+      testMatch: ['<rootDir>/__tests__/unit/**/*.test.ts'],
       testEnvironment: 'node',
     },
     {
       displayName: 'integration',
-      testMatch: ['<rootDir>/src/**/*.integration.test.ts'],
+      testMatch: ['<rootDir>/__tests__/integration/**/*.test.ts'],
       testEnvironment: 'node',
     },
     {
       displayName: 'e2e',
-      testMatch: ['<rootDir>/src/**/*.e2e.test.ts'],
+      testMatch: ['<rootDir>/__tests__/e2e/**/*.test.ts'],
       testEnvironment: 'node',
     },
     {
       displayName: 'type',
-      testMatch: ['<rootDir>/src/**/*.type.test.ts'],
+      testMatch: ['<rootDir>/__tests__/type/**/*.test.ts'],
       testEnvironment: 'node',
     },
   ],
@@ -45,9 +45,8 @@ const config: Config = {
   
   // Test file patterns
   testMatch: [
-    '<rootDir>/src/**/__tests__/**/*.ts',
-    '<rootDir>/src/**/?(*.)+(spec|test).ts',
-    '<rootDir>/tests/**/*.test.ts',
+    '<rootDir>/__tests__/**/*.test.ts',
+    '<rootDir>/__tests__/**/*.spec.ts',
   ],
   
   // Setup files
@@ -139,7 +138,7 @@ const config: Config = {
   errorOnDeprecated: true,
   
   // Snapshot settings
-  snapshotSerializers: ['<rootDir>/test/utils/serializers/akamai-response.serializer.ts'],
+  snapshotSerializers: ['<rootDir>/__tests__/utils/serializers/akamai-response.serializer.ts'],
   
   // Custom reporters
   reporters: [
@@ -167,7 +166,7 @@ const config: Config = {
 const defaultConfig: Config = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  testMatch: ['<rootDir>/src/**/*.test.ts', '<rootDir>/src/__tests__/**/*.ts'],
+  testMatch: ['<rootDir>/__tests__/**/*.test.ts', '<rootDir>/__tests__/**/*.spec.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',

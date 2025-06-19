@@ -1,0 +1,625 @@
+{
+  "metadata": {
+    "title": "Akamai Error Response Documentation",
+    "description": "Comprehensive error patterns and handling strategies for all Akamai APIs",
+    "version": "1.0.0",
+    "created": "2025-01-18",
+    "error_format_standard": "RFC 7807 Problem Details for HTTP APIs"
+  },
+  "error_code_mapping": {
+    "http_status_codes": {
+      "400": {
+        "name": "Bad Request",
+        "description": "Invalid request syntax or parameters",
+        "retryable": false,
+        "common_causes": [
+          "Invalid JSON syntax in request body",
+          "Missing required parameters",
+          "Invalid parameter values or formats",
+          "Rule tree validation errors",
+          "Invalid hostname formats"
+        ],
+        "typical_resolution": "Fix request parameters and retry",
+        "example_scenarios": {
+          "property_manager": [
+            "Invalid rule tree structure",
+            "Missing contractId or groupId",
+            "Invalid property name characters"
+          ],
+          "edge_dns": [
+            "Invalid DNS record type",
+            "Malformed IP address in rdata",
+            "Invalid TTL value"
+          ],
+          "certificate_provisioning": [
+            "Invalid domain name format",
+            "Missing required contact information",
+            "Invalid certificate type"
+          ]
+        }
+      },
+      "401": {
+        "name": "Unauthorized", 
+        "description": "Authentication required or failed",
+        "retryable": false,
+        "common_causes": [
+          "Invalid EdgeGrid credentials",
+          "Expired access tokens",
+          "Incorrect authentication signature",
+          "Missing authorization header"
+        ],
+        "typical_resolution": "Check and update authentication credentials",
+        "authentication_errors": {
+          "invalid_signature": {
+            "description": "EdgeGrid signature calculation error",
+            "debug_steps": [
+              "Verify client_token, client_secret, access_token",
+              "Check timestamp synchronization",
+              "Validate nonce generation",
+              "Verify HMAC-SHA256 signature calculation"
+            ]
+          },
+          "expired_credentials": {
+            "description": "Credentials no longer valid",
+            "resolution": "Generate new API credentials in Control Center"
+          }
+        }
+      },
+      "403": {
+        "name": "Forbidden",
+        "description": "Insufficient permissions or account access",
+        "retryable": false,
+        "common_causes": [
+          "Insufficient API permissions",
+          "Account access restrictions",
+          "Resource not accessible to current user",
+          "Account switching failures"
+        ],
+        "permission_types": {
+          "api_permissions": "User lacks required API access permissions",
+          "resource_permissions": "User cannot access specific contracts/groups/properties",
+          "account_switching": "Invalid account-switch-key or unauthorized account access"
+        },
+        "resolution_strategies": [
+          "Verify API permissions in Akamai Control Center",
+          "Check contract and group access rights",
+          "Validate account-switch-key for multi-tenant operations"
+        ]
+      },
+      "404": {
+        "name": "Not Found",
+        "description": "Requested resource does not exist",
+        "retryable": false,
+        "common_causes": [
+          "Resource ID does not exist",
+          "Resource deleted or deactivated",
+          "Incorrect resource identifier format",
+          "Access to resource not permitted"
+        ],
+        "resource_types": {
+          "property_not_found": {
+            "pattern": "propertyId 'prp_123456' not found",
+            "validation": "Verify property ID format and existence"
+          },
+          "zone_not_found": {
+            "pattern": "Zone 'example.com' not found",
+            "validation": "Check zone name and contract access"
+          },
+          "enrollment_not_found": {
+            "pattern": "Enrollment ID '12345' not found",
+            "validation": "Verify enrollment ID and certificate status"
+          }
+        }
+      },
+      "405": {
+        "name": "Method Not Allowed",
+        "description": "HTTP method not supported for endpoint",
+        "retryable": false,
+        "common_causes": [
+          "Using POST instead of GET for read operations",
+          "Using PUT instead of POST for creation",
+          "Attempting unsupported operations"
+        ],
+        "resolution": "Check API documentation for correct HTTP method"
+      },
+      "409": {
+        "name": "Conflict",
+        "description": "Resource conflict or already exists",
+        "retryable": false,
+        "common_scenarios": {
+          "resource_already_exists": {
+            "description": "Attempting to create resource that already exists",
+            "examples": [
+              "Property name already in use",
+              "DNS zone already exists",
+              "Network list name conflict"
+            ]
+          },
+          "concurrent_modification": {
+            "description": "Resource modified by another process",
+            "resolution": "Refresh resource state and retry operation"
+          },
+          "state_conflict": {
+            "description": "Operation not allowed in current resource state",
+            "examples": [
+              "Cannot delete active property",
+              "Cannot modify pending activation",
+              "Cannot update DNS records during activation"
+            ]
+          }
+        }
+      },
+      "422": {
+        "name": "Unprocessable Entity",
+        "description": "Request valid but semantically incorrect",
+        "retryable": false,
+        "common_scenarios": {
+          "validation_failures": {
+            "description": "Data validation errors beyond basic format checks",
+            "examples": [
+              "Rule tree validation failures",
+              "Certificate domain validation errors",
+              "DNS record content validation"
+            ]
+          },
+          "business_rule_violations": {
+            "description": "Request violates business logic constraints",
+            "examples": [
+              "Contract limits exceeded",
+              "Insufficient product permissions",
+              "Incompatible configuration combinations"
+            ]
+          }
+        }
+      },
+      "429": {
+        "name": "Too Many Requests",
+        "description": "Rate limit exceeded",
+        "retryable": true,
+        "retry_strategy": "Exponential backoff with jitter",
+        "rate_limiting": {
+          "global_limits": {
+            "description": "Account-wide rate limits across all APIs",
+            "typical_limits": "1000 requests per minute per account"
+          },
+          "api_specific_limits": {
+            "property_manager": "200 requests per minute",
+            "edge_dns": "300 requests per minute", 
+            "fast_purge": "50 requests per minute",
+            "certificate_provisioning": "100 requests per minute"
+          },
+          "retry_after_header": {
+            "description": "Seconds to wait before retry",
+            "header_name": "Retry-After",
+            "typical_values": "60-300 seconds"
+          }
+        }
+      },
+      "500": {
+        "name": "Internal Server Error",
+        "description": "Unexpected server error",
+        "retryable": true,
+        "retry_strategy": "Linear backoff with maximum 3 retries",
+        "escalation": "Contact Akamai Support if persistent"
+      },
+      "502": {
+        "name": "Bad Gateway",
+        "description": "Invalid response from upstream server",
+        "retryable": true,
+        "retry_strategy": "Immediate retry, then exponential backoff"
+      },
+      "503": {
+        "name": "Service Unavailable",
+        "description": "Service temporarily unavailable",
+        "retryable": true,
+        "common_causes": [
+          "Scheduled maintenance",
+          "System overload",
+          "Temporary service disruption"
+        ],
+        "retry_strategy": "Check Retry-After header, use exponential backoff"
+      },
+      "504": {
+        "name": "Gateway Timeout",
+        "description": "Upstream server timeout",
+        "retryable": true,
+        "common_causes": [
+          "Long-running operations",
+          "Network connectivity issues",
+          "Server overload"
+        ],
+        "retry_strategy": "Increase timeout, use exponential backoff"
+      }
+    },
+    "akamai_specific_errors": {
+      "property_manager_errors": {
+        "rule_validation_errors": {
+          "error_type": "https://problems.akamai.com/papi/v0/rule-validation-error",
+          "description": "Rule tree validation failures",
+          "common_patterns": [
+            {
+              "title": "Behavior validation error",
+              "detail": "Behavior 'caching' has invalid options",
+              "resolution": "Check behavior catalog for valid options"
+            },
+            {
+              "title": "Criteria validation error", 
+              "detail": "Criteria 'requestHeader' missing required value",
+              "resolution": "Provide required criteria values"
+            },
+            {
+              "title": "Rule tree structure error",
+              "detail": "Invalid nesting of rules",
+              "resolution": "Fix rule hierarchy structure"
+            }
+          ]
+        },
+        "activation_errors": {
+          "error_type": "https://problems.akamai.com/papi/v0/activation-error",
+          "common_patterns": [
+            {
+              "title": "Validation failed",
+              "detail": "Property configuration validation failed",
+              "resolution": "Fix configuration issues and retry"
+            },
+            {
+              "title": "Certificate validation failed",
+              "detail": "SSL certificate validation failed for hostnames",
+              "resolution": "Ensure valid certificates for all hostnames"
+            }
+          ]
+        }
+      },
+      "edge_dns_errors": {
+        "changelist_errors": {
+          "error_type": "https://problems.akamai.com/config-dns/v2/changelist-error",
+          "common_patterns": [
+            {
+              "title": "Changelist submission failed",
+              "detail": "Changelist contains validation errors",
+              "resolution": "Fix record validation errors"
+            },
+            {
+              "title": "Zone activation conflict",
+              "detail": "Zone has pending activation",
+              "resolution": "Wait for current activation to complete"
+            }
+          ]
+        },
+        "record_validation_errors": {
+          "error_type": "https://problems.akamai.com/config-dns/v2/record-validation-error",
+          "common_patterns": [
+            {
+              "title": "Invalid record data",
+              "detail": "A record contains invalid IP address",
+              "resolution": "Provide valid IPv4 address"
+            },
+            {
+              "title": "CNAME conflict",
+              "detail": "CNAME record conflicts with existing records",
+              "resolution": "Remove conflicting records"
+            }
+          ]
+        }
+      },
+      "certificate_provisioning_errors": {
+        "validation_errors": {
+          "error_type": "https://problems.akamai.com/cps/v2/validation-error",
+          "common_patterns": [
+            {
+              "title": "Domain validation failed",
+              "detail": "Unable to validate domain ownership",
+              "resolution": "Complete DNS or HTTP validation challenges"
+            },
+            {
+              "title": "Certificate generation failed",
+              "detail": "Certificate authority rejected request",
+              "resolution": "Check domain validation and organization details"
+            }
+          ]
+        }
+      },
+      "application_security_errors": {
+        "policy_errors": {
+          "error_type": "https://problems.akamai.com/appsec/v1/policy-error",
+          "common_patterns": [
+            {
+              "title": "Policy validation failed",
+              "detail": "Security policy contains invalid rules",
+              "resolution": "Fix policy configuration errors"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "error_response_structures": {
+    "rfc7807_format": {
+      "description": "Standard Problem Details for HTTP APIs format",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI reference identifying the problem type"
+          },
+          "title": {
+            "type": "string",
+            "description": "Short, human-readable summary"
+          },
+          "detail": {
+            "type": "string", 
+            "description": "Human-readable explanation specific to occurrence"
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI reference identifying specific occurrence"
+          },
+          "status": {
+            "type": "integer",
+            "description": "HTTP status code"
+          }
+        },
+        "required": ["type", "title"]
+      }
+    },
+    "akamai_extensions": {
+      "request_id": {
+        "field": "requestId",
+        "description": "Unique identifier for support tracking",
+        "format": "UUID",
+        "usage": "Include in support cases"
+      },
+      "error_details": {
+        "field": "errors",
+        "description": "Array of detailed error information",
+        "structure": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {"type": "string"},
+              "title": {"type": "string"},
+              "detail": {"type": "string"},
+              "field": {"type": "string"},
+              "value": {"type": "string"}
+            }
+          }
+        }
+      },
+      "validation_errors": {
+        "field": "validationErrors",
+        "description": "Specific validation failure details",
+        "usage": "Rule tree and configuration validation"
+      }
+    },
+    "error_examples": {
+      "authentication_error": {
+        "status": 401,
+        "response": {
+          "type": "https://problems.akamai.com/authentication/unauthorized",
+          "title": "Unauthorized",
+          "detail": "The request lacks valid authentication credentials",
+          "status": 401,
+          "requestId": "550e8400-e29b-41d4-a716-446655440000"
+        }
+      },
+      "validation_error": {
+        "status": 422,
+        "response": {
+          "type": "https://problems.akamai.com/papi/v0/validation-error",
+          "title": "Validation Error",
+          "detail": "Property configuration contains validation errors",
+          "status": 422,
+          "errors": [
+            {
+              "type": "https://problems.akamai.com/papi/v0/behavior-validation-error",
+              "title": "Behavior validation error",
+              "detail": "Behavior 'origin' requires 'hostname' option",
+              "field": "rules.behaviors[0].options.hostname"
+            }
+          ],
+          "requestId": "550e8400-e29b-41d4-a716-446655440001"
+        }
+      },
+      "rate_limit_error": {
+        "status": 429,
+        "response": {
+          "type": "https://problems.akamai.com/rate-limiting/too-many-requests",
+          "title": "Too Many Requests",
+          "detail": "Rate limit exceeded for this API",
+          "status": 429,
+          "retryAfter": 60,
+          "requestId": "550e8400-e29b-41d4-a716-446655440002"
+        },
+        "headers": {
+          "Retry-After": "60",
+          "X-RateLimit-Limit": "1000",
+          "X-RateLimit-Remaining": "0",
+          "X-RateLimit-Reset": "1642518000"
+        }
+      }
+    }
+  },
+  "error_handling_strategies": {
+    "retry_patterns": {
+      "exponential_backoff": {
+        "description": "Exponential backoff with jitter for retryable errors",
+        "applicable_errors": [429, 500, 502, 503, 504],
+        "algorithm": {
+          "base_delay": 1000,
+          "max_delay": 30000,
+          "multiplier": 2,
+          "jitter": "random(0, 0.1 * delay)",
+          "max_attempts": 3
+        },
+        "implementation": {
+          "delay_formula": "min(base_delay * (multiplier ^ attempt) + jitter, max_delay)",
+          "jitter_purpose": "Prevent thundering herd effect"
+        }
+      },
+      "linear_backoff": {
+        "description": "Fixed delay between retries",
+        "applicable_errors": [500, 502],
+        "algorithm": {
+          "delay": 5000,
+          "max_attempts": 3
+        }
+      },
+      "immediate_retry": {
+        "description": "Single immediate retry for transient issues",
+        "applicable_errors": [502],
+        "max_attempts": 1
+      }
+    },
+    "error_categorization": {
+      "permanent_errors": {
+        "description": "Errors that will not succeed on retry",
+        "http_codes": [400, 401, 403, 404, 405, 409, 422],
+        "handling": "Log error, notify user, do not retry"
+      },
+      "transient_errors": {
+        "description": "Errors that may succeed on retry",
+        "http_codes": [429, 500, 502, 503, 504],
+        "handling": "Implement retry logic with appropriate backoff"
+      },
+      "authentication_errors": {
+        "description": "Credential or permission issues",
+        "http_codes": [401, 403],
+        "handling": "Check credentials, verify permissions, potentially refresh tokens"
+      },
+      "validation_errors": {
+        "description": "Request parameter or data validation failures",
+        "http_codes": [400, 422],
+        "handling": "Parse error details, fix parameters, provide user feedback"
+      }
+    },
+    "user_friendly_messaging": {
+      "error_translation": {
+        "401_unauthorized": {
+          "technical": "Authentication failed",
+          "user_friendly": "Please check your Akamai API credentials and try again"
+        },
+        "403_forbidden": {
+          "technical": "Insufficient permissions",
+          "user_friendly": "You don't have permission to access this resource. Please contact your Akamai administrator"
+        },
+        "404_not_found": {
+          "technical": "Resource not found",
+          "user_friendly": "The requested resource could not be found. Please verify the ID and try again"
+        },
+        "429_rate_limited": {
+          "technical": "Rate limit exceeded",
+          "user_friendly": "Too many requests. Please wait a moment and try again"
+        },
+        "validation_error": {
+          "technical": "Request validation failed",
+          "user_friendly": "There's an issue with your request. Please check the highlighted fields and try again"
+        }
+      }
+    }
+  },
+  "error_context_handling": {
+    "request_tracking": {
+      "request_id_usage": {
+        "description": "Use Akamai request IDs for support escalation",
+        "extraction": "From 'requestId' field in error response",
+        "support_inclusion": "Always include in support tickets"
+      },
+      "correlation_ids": {
+        "description": "Track request chains across multiple API calls",
+        "implementation": "Generate UUID for workflow, include in logs"
+      }
+    },
+    "contextual_information": {
+      "api_endpoint": "Include endpoint and method in error logs",
+      "request_parameters": "Log sanitized request parameters (exclude secrets)",
+      "user_context": "Include customer/account context for multi-tenant operations",
+      "timestamp": "Include precise timestamp for timing correlation"
+    },
+    "escalation_paths": {
+      "level_1": {
+        "description": "Automatic retry with backoff",
+        "applicable": "Transient errors (5xx, 429)",
+        "max_duration": "5 minutes"
+      },
+      "level_2": {
+        "description": "User notification with retry option",
+        "applicable": "Persistent transient errors",
+        "user_action": "Manual retry or wait"
+      },
+      "level_3": {
+        "description": "Support escalation",
+        "applicable": "Persistent errors, unexpected responses",
+        "requirements": ["Request ID", "Full request/response", "Account context"]
+      }
+    }
+  },
+  "monitoring_and_alerting": {
+    "error_metrics": {
+      "error_rate": {
+        "description": "Percentage of requests resulting in errors",
+        "thresholds": {
+          "warning": "5%",
+          "critical": "10%"
+        }
+      },
+      "error_types": {
+        "authentication_errors": "401, 403 errors per hour",
+        "rate_limit_errors": "429 errors per hour", 
+        "server_errors": "5xx errors per hour"
+      },
+      "response_times": {
+        "description": "Track response times including error responses",
+        "p95_threshold": "5000ms"
+      }
+    },
+    "alert_conditions": {
+      "high_error_rate": {
+        "condition": "Error rate > 10% for 5 minutes",
+        "action": "Immediate investigation"
+      },
+      "authentication_spike": {
+        "condition": "401/403 errors > 50 in 10 minutes",
+        "action": "Check credential issues"
+      },
+      "rate_limit_exceeded": {
+        "condition": "429 errors consistently for 15 minutes",
+        "action": "Review request patterns and implement throttling"
+      }
+    }
+  },
+  "testing_error_scenarios": {
+    "unit_tests": {
+      "mock_error_responses": {
+        "description": "Test error handling with mocked API responses",
+        "scenarios": [
+          "401 authentication failure",
+          "429 rate limit exceeded",
+          "500 server error",
+          "422 validation error"
+        ]
+      }
+    },
+    "integration_tests": {
+      "error_injection": {
+        "description": "Inject errors to test resilience",
+        "methods": [
+          "Invalid credentials",
+          "Malformed requests",
+          "Non-existent resources"
+        ]
+      }
+    },
+    "chaos_engineering": {
+      "description": "Test system behavior under error conditions",
+      "scenarios": [
+        "Intermittent API failures",
+        "Network timeouts",
+        "Rate limiting activation"
+      ]
+    }
+  }
+}

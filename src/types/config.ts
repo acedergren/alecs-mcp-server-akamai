@@ -7,7 +7,7 @@
  */
 export enum NetworkEnvironment {
   STAGING = 'STAGING',
-  PRODUCTION = 'PRODUCTION'
+  PRODUCTION = 'PRODUCTION',
 }
 
 /**
@@ -57,7 +57,7 @@ export enum ConfigErrorType {
   INVALID_SECTION = 'INVALID_SECTION',
   MISSING_CREDENTIALS = 'MISSING_CREDENTIALS',
   INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
-  SECTION_NOT_FOUND = 'SECTION_NOT_FOUND'
+  SECTION_NOT_FOUND = 'SECTION_NOT_FOUND',
 }
 
 /**
@@ -68,7 +68,7 @@ export class ConfigurationError extends Error {
     public readonly type: ConfigErrorType,
     message: string,
     public readonly section?: string,
-    public readonly details?: Record<string, unknown>
+    public readonly details?: Record<string, unknown>,
   ) {
     super(message);
     this.name = 'ConfigurationError';

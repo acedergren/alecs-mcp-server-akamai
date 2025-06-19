@@ -30,30 +30,30 @@ export interface CacheOptions {
 // TTL configuration in seconds
 export const CacheTTL = {
   // Frequently changing data
-  PROPERTIES_LIST: 300,        // 5 minutes
-  SEARCH_RESULTS: 300,         // 5 minutes
-  
+  PROPERTIES_LIST: 300, // 5 minutes
+  SEARCH_RESULTS: 300, // 5 minutes
+
   // Moderately stable data
-  PROPERTY_DETAILS: 900,       // 15 minutes
-  HOSTNAMES: 1800,            // 30 minutes
-  ACTIVATIONS: 600,           // 10 minutes
-  
+  PROPERTY_DETAILS: 900, // 15 minutes
+  HOSTNAMES: 1800, // 30 minutes
+  ACTIVATIONS: 600, // 10 minutes
+
   // Stable data
-  PROPERTY_RULES: 7200,       // 2 hours
-  CONTRACTS: 86400,           // 24 hours
-  GROUPS: 86400,              // 24 hours
-  CP_CODES: 43200,            // 12 hours
-  
+  PROPERTY_RULES: 7200, // 2 hours
+  CONTRACTS: 86400, // 24 hours
+  GROUPS: 86400, // 24 hours
+  CP_CODES: 43200, // 12 hours
+
   // Computed/derived data
-  HOSTNAME_MAP: 1800,         // 30 minutes
-  PROPERTY_TREE: 3600,        // 1 hour
-  SEARCH_INDEX: 600,          // 10 minutes
+  HOSTNAME_MAP: 1800, // 30 minutes
+  PROPERTY_TREE: 3600, // 1 hour
+  SEARCH_INDEX: 600, // 10 minutes
 } as const;
 
 export class ValkeyCache {
   private client: Redis | Cluster;
   private readonly prefix: string;
-  private connected: boolean = false;
+  private connected = false;
   private refreshingKeys = new Set<string>();
   private metrics = {
     hits: 0,
@@ -64,20 +64,25 @@ export class ValkeyCache {
 
   constructor(config: ValkeyConfig = {}) {
     this.prefix = config.keyPrefix || 'akamai:';
-    
+
     // Initialize based on mode
     if (config.mode === 'cluster') {
-      this.client = new Cluster(config.nodes || [{
-        host: 'localhost',
-        port: 6379
-      }], {
-        enableOfflineQueue: config.enableOfflineQueue !== false,
-        enableReadyCheck: config.enableReadyCheck !== false,
-        lazyConnect: config.lazyConnect !== false,
-        redisOptions: {
-          password: config.password,
-        }
-      });
+      this.client = new Cluster(
+        config.nodes || [
+          {
+            host: 'localhost',
+            port: 6379,
+          },
+        ],
+        {
+          enableOfflineQueue: config.enableOfflineQueue !== false,
+          enableReadyCheck: config.enableReadyCheck !== false,
+          lazyConnect: config.lazyConnect !== false,
+          redisOptions: {
+            password: config.password,
+          },
+        },
+      );
     } else if (config.mode === 'sentinel') {
       this.client = new Redis({
         sentinels: config.sentinels || [{ host: 'localhost', port: 26379 }],
@@ -103,10 +108,10 @@ export class ValkeyCache {
             return null;
           }
           return Math.min(times * 200, 2000);
-        }
+        },
       });
     }
-    
+
     this.setupEventHandlers();
   }
 
@@ -116,17 +121,17 @@ export class ValkeyCache {
       this.connected = false;
       this.metrics.errors++;
     });
-    
+
     this.client.on('connect', () => {
       console.error('[Valkey] Connected successfully');
       this.connected = true;
     });
-    
+
     this.client.on('ready', () => {
       console.error('[Valkey] Ready to accept commands');
       this.connected = true;
     });
-    
+
     this.client.on('close', () => {
       console.error('[Valkey] Connection closed');
       this.connected = false;
@@ -161,11 +166,11 @@ export class ValkeyCache {
    */
   async get<T = any>(key: string): Promise<T | null> {
     if (!this.isAvailable()) return null;
-    
+
     try {
       const fullKey = this.buildKey(key);
       const value = await this.client.get(fullKey);
-      
+
       if (value) {
         this.metrics.hits++;
         this.metrics.apiCallsSaved++;
@@ -188,16 +193,19 @@ export class ValkeyCache {
    */
   async set<T = any>(key: string, value: T, ttl: number): Promise<boolean> {
     if (!this.isAvailable()) return false;
-    
+
     try {
       const fullKey = this.buildKey(key);
       const serialized = JSON.stringify(value);
-      
+
       // Check size before storing (Redis has 512MB limit per key)
-      if (serialized.length > 50 * 1024 * 1024) { // 50MB warning threshold
-        console.error(`[Valkey] Warning: Large value for ${key}: ${(serialized.length / 1024 / 1024).toFixed(2)}MB`);
+      if (serialized.length > 50 * 1024 * 1024) {
+        // 50MB warning threshold
+        console.error(
+          `[Valkey] Warning: Large value for ${key}: ${(serialized.length / 1024 / 1024).toFixed(2)}MB`,
+        );
       }
-      
+
       await this.client.setex(fullKey, ttl, serialized);
       return true;
     } catch (err) {
@@ -212,10 +220,10 @@ export class ValkeyCache {
    */
   async del(keys: string | string[]): Promise<number> {
     if (!this.isAvailable()) return 0;
-    
+
     try {
       const keysArray = Array.isArray(keys) ? keys : [keys];
-      const fullKeys = keysArray.map(k => this.buildKey(k));
+      const fullKeys = keysArray.map((k) => this.buildKey(k));
       return await this.client.del(...fullKeys);
     } catch (err) {
       console.error('[Valkey] Error deleting keys:', err);
@@ -228,7 +236,7 @@ export class ValkeyCache {
    */
   async ttl(key: string): Promise<number> {
     if (!this.isAvailable()) return -1;
-    
+
     try {
       const fullKey = this.buildKey(key);
       return await this.client.ttl(fullKey);
@@ -245,11 +253,11 @@ export class ValkeyCache {
     key: string,
     ttl: number,
     fetchFn: () => Promise<T>,
-    options: CacheOptions = {}
+    options: CacheOptions = {},
   ): Promise<T> {
     const cached = await this.get<T>(key);
     const ttlRemaining = await this.ttl(key);
-    
+
     // Return cached if still fresh
     if (cached && ttlRemaining > 0) {
       // Trigger background refresh if approaching expiry
@@ -259,7 +267,7 @@ export class ValkeyCache {
       }
       return cached;
     }
-    
+
     // Use stale-while-revalidate pattern
     if (cached && options.softTTL && ttlRemaining > -options.softTTL) {
       if (!this.refreshingKeys.has(key)) {
@@ -267,7 +275,7 @@ export class ValkeyCache {
       }
       return cached;
     }
-    
+
     // Fetch with lock to prevent stampede
     return this.getWithLock(key, ttl, fetchFn, options.lockTimeout || 30);
   }
@@ -279,23 +287,23 @@ export class ValkeyCache {
     key: string,
     ttl: number,
     fetchFn: () => Promise<T>,
-    lockTimeout: number = 30
+    lockTimeout = 30,
   ): Promise<T> {
     const lockKey = `${key}:lock`;
-    
+
     // Try to acquire lock
     const lock = await this.set(lockKey, '1', lockTimeout);
-    
+
     if (!lock) {
       // Another process is fetching, wait and retry
       await this.sleep(100);
       const cached = await this.get<T>(key);
       if (cached) return cached;
-      
+
       // Retry with exponential backoff
       return this.getWithLock(key, ttl, fetchFn, lockTimeout);
     }
-    
+
     try {
       const data = await fetchFn();
       await this.set(key, data, ttl);
@@ -311,10 +319,10 @@ export class ValkeyCache {
   private async refreshInBackground<T>(
     key: string,
     ttl: number,
-    fetchFn: () => Promise<T>
+    fetchFn: () => Promise<T>,
   ): Promise<void> {
     this.refreshingKeys.add(key);
-    
+
     try {
       const data = await fetchFn();
       await this.set(key, data, ttl);
@@ -332,11 +340,11 @@ export class ValkeyCache {
     if (!this.isAvailable() || keys.length === 0) {
       return new Map();
     }
-    
+
     try {
-      const fullKeys = keys.map(k => this.buildKey(k));
+      const fullKeys = keys.map((k) => this.buildKey(k));
       const values = await this.client.mget(...fullKeys);
-      
+
       const result = new Map<string, T>();
       values.forEach((value, index) => {
         if (value) {
@@ -350,7 +358,7 @@ export class ValkeyCache {
           this.metrics.misses++;
         }
       });
-      
+
       return result;
     } catch (err) {
       console.error('[Valkey] Error in mget:', err);
@@ -363,18 +371,18 @@ export class ValkeyCache {
    */
   async scanAndDelete(pattern: string): Promise<number> {
     if (!this.isAvailable()) return 0;
-    
+
     let deleted = 0;
     const fullPattern = this.buildKey(pattern);
-    
+
     // For single Redis instance
     if (this.client instanceof Redis) {
       return new Promise((resolve, reject) => {
         const stream = (this.client as Redis).scanStream({
           match: fullPattern,
-          count: 100
+          count: 100,
         });
-        
+
         stream.on('data', async (keys: string[]) => {
           if (keys.length) {
             try {
@@ -384,7 +392,7 @@ export class ValkeyCache {
             }
           }
         });
-        
+
         stream.on('end', () => resolve(deleted));
         stream.on('error', reject);
       });
@@ -395,7 +403,7 @@ export class ValkeyCache {
         const result = await this.client.scan(cursor, 'MATCH', fullPattern, 'COUNT', 100);
         cursor = result[0];
         const keys = result[1];
-        
+
         if (keys.length > 0) {
           try {
             deleted += await this.client.del(...keys);
@@ -404,7 +412,7 @@ export class ValkeyCache {
           }
         }
       } while (cursor !== '0');
-      
+
       return deleted;
     }
   }
@@ -452,9 +460,10 @@ export class ValkeyCache {
   getMetrics() {
     return {
       ...this.metrics,
-      hitRate: this.metrics.hits + this.metrics.misses > 0 
-        ? (this.metrics.hits / (this.metrics.hits + this.metrics.misses)) * 100 
-        : 0
+      hitRate:
+        this.metrics.hits + this.metrics.misses > 0
+          ? (this.metrics.hits / (this.metrics.hits + this.metrics.misses)) * 100
+          : 0,
     };
   }
 
@@ -463,7 +472,7 @@ export class ValkeyCache {
    */
   async flushAll(): Promise<void> {
     if (!this.isAvailable()) return;
-    
+
     try {
       await this.client.flushdb();
       console.error('[Valkey] Cache cleared');
@@ -486,6 +495,6 @@ export class ValkeyCache {
    * Helper sleep function
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

@@ -19,6 +19,7 @@ Increment when making incompatible API changes:
 ### MINOR (1.X.0) - New Features & Improvements
 Increment when adding functionality in a backward-compatible manner:
 - Adding new MCP tools
+- Updating MCP SDK
 - Adding new optional parameters to existing tools
 - Major refactoring that maintains compatibility (e.g., JS to TypeScript)
 - Adding new service modules (DNS, Security, etc.)

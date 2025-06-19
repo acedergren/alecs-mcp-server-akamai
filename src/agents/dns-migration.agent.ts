@@ -1,15 +1,15 @@
 import { EdgeGridAuth } from '../auth/EdgeGridAuth';
-import { 
-  ProgressBar, 
-  Spinner, 
-  MultiProgress, 
-  withProgress, 
-  format, 
+import {
+  ProgressBar,
+  Spinner,
+  MultiProgress,
+  withProgress,
+  format,
   icons,
-  trackProgress
-} from '../utils/progress';
+  trackProgress,
+} from '@utils/progress';
 import axios from 'axios';
-import { DnsRecordsetsResponse, CpsLocationResponse } from './types';
+import { type DnsRecordsetsResponse, type CpsLocationResponse } from './types';
 import * as dns from 'dns';
 import { promisify } from 'util';
 
@@ -66,7 +66,7 @@ export class DNSMigrationAgent {
   private multiProgress: MultiProgress;
   private changeListCache: Map<string, string> = new Map();
 
-  constructor(private customer: string = 'default') {
+  constructor(private customer = 'default') {
     this.auth = EdgeGridAuth.getInstance({ customer: this.customer });
     this.multiProgress = new MultiProgress();
   }
@@ -99,7 +99,7 @@ export class DNSMigrationAgent {
       tsigKey?: { name: string; algorithm: string; secret: string };
       port?: number;
       timeout?: number;
-    } = {}
+    } = {},
   ): Promise<ZoneImportResult> {
     console.log(`\n${format.bold('Zone Import via AXFR')}`);
     console.log(format.dim('─'.repeat(50)));
@@ -140,11 +140,11 @@ export class DNSMigrationAgent {
         transformedRecords,
         (current, total) => {
           const percent = Math.floor((current / total) * 100);
-          progress.update({ 
-            current: 3 + (percent / 100), 
-            message: `Importing record ${current}/${total}` 
+          progress.update({
+            current: 3 + percent / 100,
+            message: `Importing record ${current}/${total}`,
           });
-        }
+        },
       );
 
       result.recordsImported = importResult.success;
@@ -160,27 +160,32 @@ export class DNSMigrationAgent {
 
       // Display summary
       console.log(`\n${icons.success} Import Summary:`);
-      console.log(`  ${icons.bullet} Records imported: ${format.green(result.recordsImported.toString())}`);
-      console.log(`  ${icons.bullet} Records failed: ${format.red(result.recordsFailed.toString())}`);
-      
+      console.log(
+        `  ${icons.bullet} Records imported: ${format.green(result.recordsImported.toString())}`,
+      );
+      console.log(
+        `  ${icons.bullet} Records failed: ${format.red(result.recordsFailed.toString())}`,
+      );
+
       if (result.warnings.length > 0) {
         console.log(`\n${icons.warning} Warnings:`);
-        result.warnings.forEach(w => console.log(`  ${icons.bullet} ${format.yellow(w)}`));
+        result.warnings.forEach((w) => console.log(`  ${icons.bullet} ${format.yellow(w)}`));
       }
 
       return result;
     } catch (error) {
-      progress.update({ current: progress['current'], status: 'error', message: error instanceof Error ? error.message : String(error) });
+      progress.update({
+        current: progress['current'],
+        status: 'error',
+        message: error instanceof Error ? error.message : String(error),
+      });
       result.errors.push(error instanceof Error ? error.message : String(error));
       throw error;
     }
   }
 
   // Parse Zone File
-  async parseZoneFile(
-    content: string,
-    zoneName: string
-  ): Promise<DNSRecord[]> {
+  async parseZoneFile(content: string, zoneName: string): Promise<DNSRecord[]> {
     console.log(`\n${format.bold('Parsing Zone File')}`);
     console.log(`${icons.dns} Zone: ${format.cyan(zoneName)}`);
 
@@ -196,20 +201,23 @@ export class DNSMigrationAgent {
       // Validate records
       spinner.start('Validating records');
       const validation = parser.validate(records);
-      
+
       if (!validation.valid) {
         spinner.fail(`Validation failed: ${validation.errors.length} errors`);
-        validation.errors.forEach(e => console.log(`  ${icons.error} ${format.red(e)}`));
+        validation.errors.forEach((e) => console.log(`  ${icons.error} ${format.red(e)}`));
         throw new Error('Zone file validation failed');
       }
 
       spinner.succeed('All records validated');
 
       // Display record type summary
-      const typeSummary = records.reduce((acc, r) => {
-        acc[r.type] = (acc[r.type] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
+      const typeSummary = records.reduce(
+        (acc, r) => {
+          acc[r.type] = (acc[r.type] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
 
       console.log(`\n${icons.info} Record Types:`);
       Object.entries(typeSummary).forEach(([type, count]) => {
@@ -231,13 +239,15 @@ export class DNSMigrationAgent {
       batchSize?: number;
       validateFirst?: boolean;
       dryRun?: boolean;
-    } = {}
+    } = {},
   ): Promise<ZoneImportResult> {
     console.log(`\n${format.bold('Bulk Record Import')}`);
     console.log(format.dim('─'.repeat(50)));
     console.log(`${icons.dns} Zone: ${format.cyan(zoneName)}`);
     console.log(`${icons.package} Records: ${format.green(records.length.toString())}`);
-    console.log(`${icons.rocket} Mode: ${options.dryRun ? format.yellow('DRY RUN') : format.green('LIVE')}`);
+    console.log(
+      `${icons.rocket} Mode: ${options.dryRun ? format.yellow('DRY RUN') : format.green('LIVE')}`,
+    );
     console.log(format.dim('─'.repeat(50)));
 
     const batchSize = options.batchSize || 100;
@@ -261,13 +271,13 @@ export class DNSMigrationAgent {
       if (options.validateFirst && !options.dryRun) {
         const spinner = new Spinner();
         spinner.start('Pre-validating all records');
-        
+
         const validation = await this.validateRecords(zoneName, records);
         if (validation.errors.length > 0) {
           spinner.fail(`Validation failed: ${validation.errors.length} errors`);
           throw new Error('Pre-validation failed');
         }
-        
+
         spinner.succeed('All records validated');
       }
 
@@ -277,9 +287,9 @@ export class DNSMigrationAgent {
         const end = Math.min((i + 1) * batchSize, records.length);
         const batch = records.slice(start, end);
 
-        progress.update({ 
-          current: start, 
-          message: `Processing batch ${i + 1}/${batches}` 
+        progress.update({
+          current: start,
+          message: `Processing batch ${i + 1}/${batches}`,
         });
 
         if (!options.dryRun) {
@@ -289,7 +299,7 @@ export class DNSMigrationAgent {
           result.errors.push(...batchResult.errors);
         } else {
           // Simulate import for dry run
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 100));
           result.recordsImported += batch.length;
         }
 
@@ -300,10 +310,10 @@ export class DNSMigrationAgent {
 
       return result;
     } catch (error) {
-      progress.update({ 
-        current: progress['current'], 
-        status: 'error', 
-        message: error instanceof Error ? error.message : String(error) 
+      progress.update({
+        current: progress['current'],
+        status: 'error',
+        message: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -312,10 +322,10 @@ export class DNSMigrationAgent {
   // Verify Record Import
   async verifyZoneImport(
     zoneName: string,
-    expectedRecords: DNSRecord[]
+    expectedRecords: DNSRecord[],
   ): Promise<{ valid: boolean; warnings: string[] }> {
     console.log(`\n${format.bold('Verifying Zone Import')}`);
-    
+
     const progress = new ProgressBar({
       total: expectedRecords.length,
       format: `${icons.check} Verifying [:bar] :percent :message`,
@@ -327,9 +337,7 @@ export class DNSMigrationAgent {
     try {
       // Get all records from EdgeDNS
       const actualRecords = await this.getAllRecords(zoneName);
-      const recordMap = new Map(
-        actualRecords.map(r => [`${r.name}:${r.type}`, r])
-      );
+      const recordMap = new Map(actualRecords.map((r) => [`${r.name}:${r.type}`, r]));
 
       // Verify each expected record
       for (let i = 0; i < expectedRecords.length; i++) {
@@ -337,9 +345,9 @@ export class DNSMigrationAgent {
         const key = `${expected.name}:${expected.type}`;
         const actual = recordMap.get(key);
 
-        progress.update({ 
-          current: i + 1, 
-          message: `Checking ${expected.name} ${expected.type}` 
+        progress.update({
+          current: i + 1,
+          message: `Checking ${expected.name} ${expected.type}`,
         });
 
         if (!actual) {
@@ -358,10 +366,10 @@ export class DNSMigrationAgent {
         warnings,
       };
     } catch (error) {
-      progress.update({ 
-        current: progress['current'], 
-        status: 'error', 
-        message: error instanceof Error ? error.message : String(error) 
+      progress.update({
+        current: progress['current'],
+        status: 'error',
+        message: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -374,7 +382,7 @@ export class DNSMigrationAgent {
       registrar?: string;
       includeTesting?: boolean;
       includeRollback?: boolean;
-    } = {}
+    } = {},
   ): Promise<NameserverMigration> {
     console.log(`\n${format.bold('Nameserver Migration Instructions')}`);
     console.log(format.dim('═'.repeat(60)));
@@ -385,7 +393,7 @@ export class DNSMigrationAgent {
     try {
       // Get current nameservers
       const currentNS = await this.getCurrentNameservers(zoneName);
-      
+
       // Get Akamai nameservers
       const zone = await this.getZone(zoneName);
       const akamaiNS = await this.getAkamaiNameservers(zone);
@@ -403,15 +411,15 @@ export class DNSMigrationAgent {
       console.log(`\n${icons.info} ${format.bold('Current Configuration')}`);
       console.log(`  ${icons.dns} Zone: ${format.cyan(zoneName)}`);
       console.log(`  ${icons.server} Current Nameservers:`);
-      currentNS.forEach(ns => console.log(`    ${icons.arrow} ${format.yellow(ns)}`));
+      currentNS.forEach((ns) => console.log(`    ${icons.arrow} ${format.yellow(ns)}`));
 
       console.log(`\n${icons.rocket} ${format.bold('Target Configuration')}`);
       console.log(`  ${icons.server} Akamai Nameservers:`);
-      akamaiNS.forEach(ns => console.log(`    ${icons.arrow} ${format.green(ns)}`));
+      akamaiNS.forEach((ns) => console.log(`    ${icons.arrow} ${format.green(ns)}`));
 
       // Migration steps
       console.log(`\n${icons.clipboard} ${format.bold('Migration Steps')}`);
-      
+
       migration.migrationSteps = [
         '1. Verify all DNS records have been imported correctly',
         '2. Test resolution using Akamai nameservers',
@@ -424,24 +432,26 @@ export class DNSMigrationAgent {
       ];
 
       if (options.registrar) {
-        migration.migrationSteps.splice(5, 0, 
-          `5a. ${this.getRegistrarInstructions(options.registrar)}`
+        migration.migrationSteps.splice(
+          5,
+          0,
+          `5a. ${this.getRegistrarInstructions(options.registrar)}`,
         );
       }
 
-      migration.migrationSteps.forEach(step => {
+      migration.migrationSteps.forEach((step) => {
         console.log(`  ${format.dim(step)}`);
       });
 
       // Verification commands
       console.log(`\n${icons.terminal} ${format.bold('Verification Commands')}`);
-      
+
       migration.verificationCommands = [
         `# Check current nameservers`,
         `dig +short NS ${zoneName}`,
         '',
         `# Test resolution with Akamai nameservers`,
-        ...akamaiNS.map(ns => `dig @${ns} ${zoneName} A +short`),
+        ...akamaiNS.map((ns) => `dig @${ns} ${zoneName} A +short`),
         '',
         `# Verify record types`,
         `dig @${akamaiNS[0]} ${zoneName} ANY +noall +answer`,
@@ -460,7 +470,7 @@ export class DNSMigrationAgent {
         );
       }
 
-      migration.verificationCommands.forEach(cmd => {
+      migration.verificationCommands.forEach((cmd) => {
         console.log(`  ${format.gray(cmd)}`);
       });
 
@@ -469,7 +479,7 @@ export class DNSMigrationAgent {
         console.log(`\n${icons.warning} ${format.bold('Rollback Procedure')}`);
         console.log(`  1. Update nameservers back to original values at registrar`);
         console.log(`  2. Original nameservers:`);
-        currentNS.forEach(ns => console.log(`     ${icons.arrow} ${ns}`));
+        currentNS.forEach((ns) => console.log(`     ${icons.arrow} ${ns}`));
         console.log(`  3. Wait for DNS propagation (monitor with dig)`);
         console.log(`  4. Verify services are restored`);
       }
@@ -478,16 +488,15 @@ export class DNSMigrationAgent {
 
       return migration;
     } catch (error) {
-      spinner.fail(`Failed to generate instructions: ${error instanceof Error ? error.message : String(error)}`);
+      spinner.fail(
+        `Failed to generate instructions: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   }
 
   // CRUD Operations with Hidden Change-List
-  async createRecord(
-    zoneName: string,
-    record: DNSRecord
-  ): Promise<void> {
+  async createRecord(zoneName: string, record: DNSRecord): Promise<void> {
     await this.withChangeList(zoneName, async () => {
       const spinner = new Spinner();
       spinner.start(`Creating ${record.type} record for ${record.name}`);
@@ -507,16 +516,15 @@ export class DNSMigrationAgent {
 
         spinner.succeed(`Created ${format.cyan(record.name)} ${format.green(record.type)}`);
       } catch (error) {
-        spinner.fail(`Failed to create record: ${error instanceof Error ? error.message : String(error)}`);
+        spinner.fail(
+          `Failed to create record: ${error instanceof Error ? error.message : String(error)}`,
+        );
         throw error;
       }
     });
   }
 
-  async updateRecord(
-    zoneName: string,
-    record: DNSRecord
-  ): Promise<void> {
+  async updateRecord(zoneName: string, record: DNSRecord): Promise<void> {
     await this.withChangeList(zoneName, async () => {
       const spinner = new Spinner();
       spinner.start(`Updating ${record.type} record for ${record.name}`);
@@ -534,17 +542,15 @@ export class DNSMigrationAgent {
 
         spinner.succeed(`Updated ${format.cyan(record.name)} ${format.green(record.type)}`);
       } catch (error) {
-        spinner.fail(`Failed to update record: ${error instanceof Error ? error.message : String(error)}`);
+        spinner.fail(
+          `Failed to update record: ${error instanceof Error ? error.message : String(error)}`,
+        );
         throw error;
       }
     });
   }
 
-  async deleteRecord(
-    zoneName: string,
-    name: string,
-    type: string
-  ): Promise<void> {
+  async deleteRecord(zoneName: string, name: string, type: string): Promise<void> {
     await this.withChangeList(zoneName, async () => {
       const spinner = new Spinner();
       spinner.start(`Deleting ${type} record for ${name}`);
@@ -557,7 +563,9 @@ export class DNSMigrationAgent {
 
         spinner.succeed(`Deleted ${format.cyan(name)} ${format.green(type)}`);
       } catch (error) {
-        spinner.fail(`Failed to delete record: ${error instanceof Error ? error.message : String(error)}`);
+        spinner.fail(
+          `Failed to delete record: ${error instanceof Error ? error.message : String(error)}`,
+        );
         throw error;
       }
     });
@@ -569,7 +577,7 @@ export class DNSMigrationAgent {
       types?: string[];
       search?: string;
       limit?: number;
-    } = {}
+    } = {},
   ): Promise<DNSRecord[]> {
     const spinner = new Spinner();
     spinner.start('Fetching records');
@@ -590,7 +598,9 @@ export class DNSMigrationAgent {
 
       return records;
     } catch (error) {
-      spinner.fail(`Failed to list records: ${error instanceof Error ? error.message : String(error)}`);
+      spinner.fail(
+        `Failed to list records: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   }
@@ -599,7 +609,7 @@ export class DNSMigrationAgent {
   async importFromCloudflare(
     cfApiToken: string,
     cfZoneId: string,
-    targetZoneName: string
+    targetZoneName: string,
   ): Promise<ZoneImportResult> {
     console.log(`\n${format.bold('Cloudflare Zone Import')}`);
     console.log(format.dim('─'.repeat(50)));
@@ -635,11 +645,9 @@ export class DNSMigrationAgent {
 
       // Step 4: Import records
       progress.update({ current: 4, message: `Importing ${akamaiRecords.length} records` });
-      const importResult = await this.bulkImportWithProgress(
-        targetZoneName,
-        akamaiRecords,
-        { batchSize: 50 }
-      );
+      const importResult = await this.bulkImportWithProgress(targetZoneName, akamaiRecords, {
+        batchSize: 50,
+      });
 
       result.recordsImported = importResult.recordsImported;
       result.recordsFailed = importResult.recordsFailed;
@@ -656,23 +664,20 @@ export class DNSMigrationAgent {
 
       return result;
     } catch (error) {
-      progress.update({ 
-        current: progress['current'], 
-        status: 'error', 
-        message: error instanceof Error ? error.message : String(error) 
+      progress.update({
+        current: progress['current'],
+        status: 'error',
+        message: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
   }
 
   // Helper methods
-  private async withChangeList<T>(
-    zoneName: string,
-    operation: () => Promise<T>
-  ): Promise<T> {
+  private async withChangeList<T>(zoneName: string, operation: () => Promise<T>): Promise<T> {
     // Hidden change-list management
     const changeListId = this.changeListCache.get(zoneName);
-    
+
     if (!changeListId) {
       // Create new change list
       const response = await this.auth.request<CpsLocationResponse>({
@@ -681,7 +686,7 @@ export class DNSMigrationAgent {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ comment: 'Automated change' }),
       });
-      
+
       const location = response.location || response.headers?.location || '';
       const newChangeListId = location.split('/').pop() || '';
       this.changeListCache.set(zoneName, newChangeListId);
@@ -690,13 +695,13 @@ export class DNSMigrationAgent {
     try {
       // Perform operation
       const result = await operation();
-      
+
       // Submit change list
       await this.auth.request({
         method: 'POST',
         path: `/config-dns/v2/zones/${zoneName}/changelists/${this.changeListCache.get(zoneName)}/submit`,
       });
-      
+
       this.changeListCache.delete(zoneName);
       return result;
     } catch (error) {
@@ -731,15 +736,16 @@ export class DNSMigrationAgent {
     }
   }
 
-  private async performAXFR(
-    zoneName: string,
-    primaryNS: string,
-    options: any
-  ): Promise<any[]> {
+  private async performAXFR(zoneName: string, primaryNS: string, options: any): Promise<any[]> {
     // This would use a DNS library that supports AXFR
     // For now, return mock data
     return [
-      { name: '@', type: 'SOA', ttl: 3600, rdata: ['ns1.example.com. admin.example.com. 2024010101 7200 3600 1209600 300'] },
+      {
+        name: '@',
+        type: 'SOA',
+        ttl: 3600,
+        rdata: ['ns1.example.com. admin.example.com. 2024010101 7200 3600 1209600 300'],
+      },
       { name: '@', type: 'NS', ttl: 3600, rdata: ['ns1.example.com.'] },
       { name: '@', type: 'NS', ttl: 3600, rdata: ['ns2.example.com.'] },
       { name: '@', type: 'A', ttl: 300, rdata: ['192.0.2.1'] },
@@ -749,7 +755,7 @@ export class DNSMigrationAgent {
   }
 
   private transformRecordsToAkamai(records: any[]): DNSRecord[] {
-    return records.map(r => ({
+    return records.map((r) => ({
       name: r.name === '@' ? r.zone || '@' : r.name,
       type: r.type,
       ttl: r.ttl,
@@ -761,7 +767,7 @@ export class DNSMigrationAgent {
   private async bulkImportRecords(
     zoneName: string,
     records: DNSRecord[],
-    progressCallback: (current: number, total: number) => void
+    progressCallback: (current: number, total: number) => void,
   ): Promise<{ success: number; failed: number; errors: string[] }> {
     const result = { success: 0, failed: 0, errors: [] as string[] };
 
@@ -771,7 +777,9 @@ export class DNSMigrationAgent {
         result.success++;
       } catch (error) {
         result.failed++;
-        result.errors.push(`${records[i].name} ${records[i].type}: ${error instanceof Error ? error.message : String(error)}`);
+        result.errors.push(
+          `${records[i].name} ${records[i].type}: ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
       progressCallback(i + 1, records.length);
     }
@@ -784,10 +792,10 @@ export class DNSMigrationAgent {
       parse: (content: string) => {
         const records: DNSRecord[] = [];
         const lines = content.split('\n');
-        
+
         for (const line of lines) {
           if (line.trim() === '' || line.startsWith(';')) continue;
-          
+
           // Simple parser - would need more robust implementation
           const parts = line.split(/\s+/);
           if (parts.length >= 4) {
@@ -799,18 +807,18 @@ export class DNSMigrationAgent {
             });
           }
         }
-        
+
         return records;
       },
       validate: (records: DNSRecord[]) => {
         const errors: string[] = [];
-        
+
         for (const record of records) {
           if (!record.name || !record.type || !record.rdata) {
             errors.push(`Invalid record: ${JSON.stringify(record)}`);
           }
         }
-        
+
         return { valid: errors.length === 0, errors };
       },
     };
@@ -825,9 +833,11 @@ export class DNSMigrationAgent {
   }
 
   private compareRecords(expected: DNSRecord, actual: DNSRecord): boolean {
-    return expected.type === actual.type &&
-           expected.ttl === actual.ttl &&
-           JSON.stringify(expected.rdata.sort()) === JSON.stringify(actual.rdata.sort());
+    return (
+      expected.type === actual.type &&
+      expected.ttl === actual.ttl &&
+      JSON.stringify(expected.rdata.sort()) === JSON.stringify(actual.rdata.sort())
+    );
   }
 
   private async getCurrentNameservers(zoneName: string): Promise<string[]> {
@@ -849,12 +859,7 @@ export class DNSMigrationAgent {
 
   private async getAkamaiNameservers(zone: DNSZone): Promise<string[]> {
     // These would be returned by the API
-    return [
-      'a1-234.akam.net',
-      'a2-234.akam.net',
-      'a3-234.akam.net',
-      'a4-234.akam.net',
-    ];
+    return ['a1-234.akam.net', 'a2-234.akam.net', 'a3-234.akam.net', 'a4-234.akam.net'];
   }
 
   private getRegistrarInstructions(registrar: string): string {
@@ -864,33 +869,36 @@ export class DNSMigrationAgent {
       namecheap: 'In Namecheap: Domain List > Manage > Nameservers > Custom DNS',
       route53: 'In Route 53: Registered domains > Select domain > Edit nameservers',
     };
-    
+
     return instructions[registrar.toLowerCase()] || 'Update nameservers at your domain registrar';
   }
 
-  private async validateRecords(zoneName: string, records: DNSRecord[]): Promise<{ errors: string[] }> {
+  private async validateRecords(
+    zoneName: string,
+    records: DNSRecord[],
+  ): Promise<{ errors: string[] }> {
     const errors: string[] = [];
-    
+
     // Validate record format and constraints
     for (const record of records) {
       if (record.type === 'CNAME' && record.name === '@') {
         errors.push('CNAME records cannot be created at zone apex');
       }
-      
+
       if (record.ttl < 30 || record.ttl > 86400) {
         errors.push(`Invalid TTL for ${record.name}: ${record.ttl}`);
       }
     }
-    
+
     return { errors };
   }
 
   private async importBatch(
     zoneName: string,
-    records: DNSRecord[]
+    records: DNSRecord[],
   ): Promise<{ success: number; failed: number; errors: string[] }> {
     const result = { success: 0, failed: 0, errors: [] as string[] };
-    
+
     await this.withChangeList(zoneName, async () => {
       for (const record of records) {
         try {
@@ -903,11 +911,13 @@ export class DNSMigrationAgent {
           result.success++;
         } catch (error) {
           result.failed++;
-          result.errors.push(`${record.name} ${record.type}: ${error instanceof Error ? error.message : String(error)}`);
+          result.errors.push(
+            `${record.name} ${record.type}: ${error instanceof Error ? error.message : String(error)}`,
+          );
         }
       }
     });
-    
+
     return result;
   }
 
@@ -918,7 +928,7 @@ export class DNSMigrationAgent {
 
   private transformCloudflareToAkamai(cfRecords: any[]): DNSRecord[] {
     // Transform Cloudflare record format to Akamai format
-    return cfRecords.map(r => ({
+    return cfRecords.map((r) => ({
       name: r.name,
       type: r.type,
       ttl: r.ttl === 1 ? 300 : r.ttl, // CF uses 1 for automatic
@@ -936,7 +946,7 @@ export class DNSMigrationAgent {
       sourceConfig?: any;
       autoActivate?: boolean;
       validateFirst?: boolean;
-    }
+    },
   ): Promise<void> {
     console.log(`\n${format.bold('Complete Zone Migration')}`);
     console.log(format.dim('═'.repeat(60)));
@@ -954,26 +964,21 @@ export class DNSMigrationAgent {
           importResult = await this.importZoneViaAXFR(
             targetZone,
             options.sourceConfig.primaryNS,
-            options.sourceConfig
+            options.sourceConfig,
           );
           break;
         case 'cloudflare':
           importResult = await this.importFromCloudflare(
             options.sourceConfig.apiToken,
             options.sourceConfig.zoneId,
-            targetZone
+            targetZone,
           );
           break;
         case 'file':
-          const records = await this.parseZoneFile(
-            options.sourceConfig.content,
-            targetZone
-          );
-          importResult = await this.bulkImportWithProgress(
-            targetZone,
-            records,
-            { validateFirst: options.validateFirst }
-          );
+          const records = await this.parseZoneFile(options.sourceConfig.content, targetZone);
+          importResult = await this.bulkImportWithProgress(targetZone, records, {
+            validateFirst: options.validateFirst,
+          });
           break;
         default:
           throw new Error(`Unsupported source: ${options.source}`);
@@ -993,7 +998,6 @@ export class DNSMigrationAgent {
 
       console.log(`\n${format.bold('Migration Complete!')}`);
       console.log(`${icons.success} Successfully migrated ${importResult.recordsImported} records`);
-
     } catch (error) {
       console.error(`\n${icons.error} ${format.red('Migration failed:')}`);
       console.error(format.red(error instanceof Error ? error.message : String(error)));
@@ -1010,19 +1014,19 @@ export class DNSMigrationAgent {
         method: 'POST',
         path: `/config-dns/v2/zones/${zoneName}/activate`,
       });
-      
+
       spinner.succeed('Zone activated');
     } catch (error) {
-      spinner.fail(`Failed to activate zone: ${error instanceof Error ? error.message : String(error)}`);
+      spinner.fail(
+        `Failed to activate zone: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   }
 }
 
 // Export factory function
-export async function createDNSMigrationAgent(
-  customer?: string
-): Promise<DNSMigrationAgent> {
+export async function createDNSMigrationAgent(customer?: string): Promise<DNSMigrationAgent> {
   const agent = new DNSMigrationAgent(customer);
   await agent.initialize();
   return agent;

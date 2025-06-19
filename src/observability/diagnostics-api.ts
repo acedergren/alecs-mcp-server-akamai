@@ -144,7 +144,7 @@ export class DiagnosticsAPI extends EventEmitter {
       enablePerformanceMonitoring?: boolean;
       enableGCStats?: boolean;
       alertCooldownMs?: number;
-    } = {}
+    } = {},
   ) {
     super();
     this.config = {
@@ -265,7 +265,7 @@ export class DiagnosticsAPI extends EventEmitter {
       uptime: process.uptime() * 1000,
       version: process.version,
       versions: Object.fromEntries(
-        Object.entries(process.versions).filter(([_, v]) => v !== undefined)
+        Object.entries(process.versions).filter(([_, v]) => v !== undefined),
       ) as Record<string, string>,
       memoryUsage: process.memoryUsage(),
       cpuUsage: process.cpuUsage(),
@@ -279,7 +279,7 @@ export class DiagnosticsAPI extends EventEmitter {
     const network = {
       hostname: os.hostname(),
       networkInterfaces: Object.fromEntries(
-        Object.entries(os.networkInterfaces()).filter(([_, value]) => value !== undefined)
+        Object.entries(os.networkInterfaces()).filter(([_, value]) => value !== undefined),
       ) as Record<string, os.NetworkInterfaceInfo[]>,
       connections: await this.getNetworkConnections(),
     };
@@ -326,13 +326,13 @@ export class DiagnosticsAPI extends EventEmitter {
     };
   } {
     const checks = Array.from(this.healthChecks.values());
-    
+
     const summary = {
       total: checks.length,
-      healthy: checks.filter(c => c.status === 'healthy').length,
-      warning: checks.filter(c => c.status === 'warning').length,
-      critical: checks.filter(c => c.status === 'critical').length,
-      unknown: checks.filter(c => c.status === 'unknown').length,
+      healthy: checks.filter((c) => c.status === 'healthy').length,
+      warning: checks.filter((c) => c.status === 'warning').length,
+      critical: checks.filter((c) => c.status === 'critical').length,
+      unknown: checks.filter((c) => c.status === 'unknown').length,
     };
 
     let overall: 'healthy' | 'warning' | 'critical' | 'unknown' = 'healthy';
@@ -357,24 +357,22 @@ export class DiagnosticsAPI extends EventEmitter {
   /**
    * Get alerts
    */
-  getAlerts(
-    filter?: {
-      severity?: 'info' | 'warning' | 'critical';
-      acknowledged?: boolean;
-      since?: number;
-    }
-  ): DiagnosticAlert[] {
+  getAlerts(filter?: {
+    severity?: 'info' | 'warning' | 'critical';
+    acknowledged?: boolean;
+    since?: number;
+  }): DiagnosticAlert[] {
     let alerts = [...this.alerts];
 
     if (filter) {
       if (filter.severity) {
-        alerts = alerts.filter(a => a.severity === filter.severity);
+        alerts = alerts.filter((a) => a.severity === filter.severity);
       }
       if (filter.acknowledged !== undefined) {
-        alerts = alerts.filter(a => a.acknowledged === filter.acknowledged);
+        alerts = alerts.filter((a) => a.acknowledged === filter.acknowledged);
       }
       if (filter.since) {
-        alerts = alerts.filter(a => a.timestamp >= filter.since!);
+        alerts = alerts.filter((a) => a.timestamp >= filter.since!);
       }
     }
 
@@ -385,7 +383,7 @@ export class DiagnosticsAPI extends EventEmitter {
    * Acknowledge an alert
    */
   acknowledgeAlert(alertId: string, acknowledgedBy: string): boolean {
-    const alert = this.alerts.find(a => a.id === alertId);
+    const alert = this.alerts.find((a) => a.id === alertId);
     if (!alert) return false;
 
     alert.acknowledged = true;
@@ -402,12 +400,12 @@ export class DiagnosticsAPI extends EventEmitter {
   clearOldAlerts(olderThanMs: number): number {
     const cutoff = Date.now() - olderThanMs;
     const initialLength = this.alerts.length;
-    
-    this.alerts = this.alerts.filter(alert => alert.timestamp > cutoff);
-    
+
+    this.alerts = this.alerts.filter((alert) => alert.timestamp > cutoff);
+
     const removed = initialLength - this.alerts.length;
     this.emit('alertsCleared', removed);
-    
+
     return removed;
   }
 
@@ -532,7 +530,7 @@ export class DiagnosticsAPI extends EventEmitter {
       execute: async (): Promise<HealthCheck> => {
         try {
           const diskUsage = await this.getDiskUsage();
-          const rootUsage = diskUsage?.find(d => d.path === '/') || diskUsage?.[0];
+          const rootUsage = diskUsage?.find((d) => d.path === '/') || diskUsage?.[0];
 
           if (!rootUsage) {
             return {
@@ -618,7 +616,7 @@ export class DiagnosticsAPI extends EventEmitter {
     this.registerAlertRule({
       name: 'health_check_failures',
       condition: (_, healthChecks) => {
-        const criticalChecks = healthChecks.filter(c => c.status === 'critical');
+        const criticalChecks = healthChecks.filter((c) => c.status === 'critical');
         return criticalChecks.length > 0;
       },
       severity: 'critical',
@@ -650,7 +648,7 @@ export class DiagnosticsAPI extends EventEmitter {
 
     for (const [name, rule] of this.alertRules.entries()) {
       // Check cooldown
-      if (rule.lastTriggered && (now - rule.lastTriggered) < rule.cooldownMs) {
+      if (rule.lastTriggered && now - rule.lastTriggered < rule.cooldownMs) {
         continue;
       }
 
@@ -665,7 +663,7 @@ export class DiagnosticsAPI extends EventEmitter {
             acknowledged: false,
             data: {
               systemDiagnostics: this.systemDiagnostics,
-              healthChecks: healthChecks.filter(c => c.status !== 'healthy'),
+              healthChecks: healthChecks.filter((c) => c.status !== 'healthy'),
             },
           };
 
@@ -704,7 +702,7 @@ export class DiagnosticsAPI extends EventEmitter {
   private getPerformanceMarks(): PerformanceMark[] {
     try {
       const marks = performance.getEntriesByType('mark') as any[];
-      return marks.map(mark => ({
+      return marks.map((mark) => ({
         name: mark.name,
         startTime: mark.startTime,
         detail: mark.detail,
@@ -717,7 +715,7 @@ export class DiagnosticsAPI extends EventEmitter {
   private getPerformanceMeasures(): PerformanceMeasure[] {
     try {
       const measures = performance.getEntriesByType('measure') as any[];
-      return measures.map(measure => ({
+      return measures.map((measure) => ({
         name: measure.name,
         startTime: measure.startTime,
         duration: measure.duration,
@@ -744,7 +742,7 @@ export class DiagnosticsAPI extends EventEmitter {
     try {
       const tmpDir = os.tmpdir();
       await fs.stat(tmpDir);
-      
+
       // This is a simplified implementation
       return {
         path: tmpDir,
@@ -760,32 +758,38 @@ export class DiagnosticsAPI extends EventEmitter {
 
   private generateRecommendations(
     diagnostics: SystemDiagnostics,
-    healthStatus: ReturnType<DiagnosticsAPI['getHealthStatus']>
+    healthStatus: ReturnType<DiagnosticsAPI['getHealthStatus']>,
   ): string[] {
     const recommendations: string[] = [];
 
     // Memory recommendations
     const memUsage = diagnostics.process.memoryUsage;
     const memUsagePercent = memUsage.heapUsed / memUsage.heapTotal;
-    
+
     if (memUsagePercent > 0.8) {
       recommendations.push('Consider increasing heap size or optimizing memory usage');
     }
 
     // Performance recommendations
     if (diagnostics.performance.eventLoopLag > 50) {
-      recommendations.push('High event loop lag detected - consider optimizing synchronous operations');
+      recommendations.push(
+        'High event loop lag detected - consider optimizing synchronous operations',
+      );
     }
 
     // Health check recommendations
-    const criticalChecks = healthStatus.checks.filter(c => c.status === 'critical');
+    const criticalChecks = healthStatus.checks.filter((c) => c.status === 'critical');
     if (criticalChecks.length > 0) {
-      recommendations.push(`Address ${criticalChecks.length} critical health check(s): ${criticalChecks.map(c => c.name).join(', ')}`);
+      recommendations.push(
+        `Address ${criticalChecks.length} critical health check(s): ${criticalChecks.map((c) => c.name).join(', ')}`,
+      );
     }
 
     // System recommendations
     if (diagnostics.system.memoryUsage > 0.9) {
-      recommendations.push('System memory usage is high - consider freeing up memory or adding more RAM');
+      recommendations.push(
+        'System memory usage is high - consider freeing up memory or adding more RAM',
+      );
     }
 
     if (recommendations.length === 0) {
@@ -795,13 +799,15 @@ export class DiagnosticsAPI extends EventEmitter {
     return recommendations;
   }
 
-  private formatTextReport(report: Awaited<ReturnType<DiagnosticsAPI['generateDiagnosticReport']>>): string {
+  private formatTextReport(
+    report: Awaited<ReturnType<DiagnosticsAPI['generateDiagnosticReport']>>,
+  ): string {
     const lines: string[] = [];
-    
+
     lines.push('=== DIAGNOSTIC REPORT ===');
     lines.push(`Generated: ${new Date(report.timestamp).toISOString()}`);
     lines.push('');
-    
+
     lines.push('--- HEALTH STATUS ---');
     lines.push(`Overall Status: ${report.healthStatus.overall.toUpperCase()}`);
     lines.push(`Total Checks: ${report.healthStatus.summary.total}`);
@@ -810,34 +816,39 @@ export class DiagnosticsAPI extends EventEmitter {
     lines.push(`Critical: ${report.healthStatus.summary.critical}`);
     lines.push(`Unknown: ${report.healthStatus.summary.unknown}`);
     lines.push('');
-    
+
     lines.push('--- SYSTEM INFORMATION ---');
-    lines.push(`Platform: ${report.systemDiagnostics.system.platform} ${report.systemDiagnostics.system.arch}`);
+    lines.push(
+      `Platform: ${report.systemDiagnostics.system.platform} ${report.systemDiagnostics.system.arch}`,
+    );
     lines.push(`Release: ${report.systemDiagnostics.system.release}`);
     lines.push(`Uptime: ${Math.round(report.systemDiagnostics.system.uptime / 1000)}s`);
     lines.push(`Memory: ${Math.round(report.systemDiagnostics.system.memoryUsage * 100)}% used`);
     lines.push(`CPU Count: ${report.systemDiagnostics.system.cpuCount}`);
     lines.push('');
-    
+
     if (report.recentAlerts.length > 0) {
       lines.push('--- RECENT ALERTS ---');
       for (const alert of report.recentAlerts.slice(0, 10)) {
-        lines.push(`[${alert.severity.toUpperCase()}] ${alert.message} (${new Date(alert.timestamp).toISOString()})`);
+        lines.push(
+          `[${alert.severity.toUpperCase()}] ${alert.message} (${new Date(alert.timestamp).toISOString()})`,
+        );
       }
       lines.push('');
     }
-    
+
     lines.push('--- RECOMMENDATIONS ---');
     for (const recommendation of report.recommendations) {
       lines.push(`- ${recommendation}`);
     }
-    
+
     return lines.join('\n');
   }
 
   private generateId(): string {
-    return Math.random().toString(36).substring(2, 15) + 
-           Math.random().toString(36).substring(2, 15);
+    return (
+      Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    );
   }
 }
 

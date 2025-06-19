@@ -3,9 +3,9 @@
  * Provides comprehensive rule tree manipulation, validation, and optimization capabilities
  */
 
-import { AkamaiClient } from '../akamai-client';
-import { MCPToolResponse } from '../types';
-import { logger } from '../utils/logger';
+import { type AkamaiClient } from '../akamai-client';
+import { type MCPToolResponse } from '../types';
+import { logger } from '@utils/logger';
 
 // Rule tree specific types
 export interface RuleValidationResult {
@@ -101,168 +101,177 @@ export interface PerformanceCategory {
 
 // Pre-defined rule templates
 const RULE_TEMPLATES = new Map<string, RuleTemplate>([
-  ['performance-basic', {
-    id: 'performance-basic',
-    name: 'Basic Performance Optimization',
-    description: 'Essential performance optimizations for web delivery',
-    category: 'performance',
-    tags: ['caching', 'compression', 'performance'],
-    variables: {
-      cacheDefaultTtl: {
-        name: 'cacheDefaultTtl',
-        type: 'number',
-        description: 'Default cache TTL in seconds',
-        default: 86400,
-        required: false,
-        validation: 'min:0,max:31536000'
-      },
-      enableGzip: {
-        name: 'enableGzip',
-        type: 'boolean',
-        description: 'Enable GZIP compression',
-        default: true,
-        required: false
-      }
-    },
-    ruleTree: {
-      name: 'Performance Optimization',
-      children: [
-        {
-          name: 'Caching',
-          behaviors: [
-            {
-              name: 'caching',
-              options: {
-                behavior: 'MAX_AGE',
-                ttl: '{{cacheDefaultTtl}}s'
-              }
-            }
-          ]
+  [
+    'performance-basic',
+    {
+      id: 'performance-basic',
+      name: 'Basic Performance Optimization',
+      description: 'Essential performance optimizations for web delivery',
+      category: 'performance',
+      tags: ['caching', 'compression', 'performance'],
+      variables: {
+        cacheDefaultTtl: {
+          name: 'cacheDefaultTtl',
+          type: 'number',
+          description: 'Default cache TTL in seconds',
+          default: 86400,
+          required: false,
+          validation: 'min:0,max:31536000',
         },
+        enableGzip: {
+          name: 'enableGzip',
+          type: 'boolean',
+          description: 'Enable GZIP compression',
+          default: true,
+          required: false,
+        },
+      },
+      ruleTree: {
+        name: 'Performance Optimization',
+        children: [
+          {
+            name: 'Caching',
+            behaviors: [
+              {
+                name: 'caching',
+                options: {
+                  behavior: 'MAX_AGE',
+                  ttl: '{{cacheDefaultTtl}}s',
+                },
+              },
+            ],
+          },
+          {
+            name: 'Compression',
+            behaviors: [
+              {
+                name: 'gzipResponse',
+                options: {
+                  behavior: '{{enableGzip ? "ALWAYS" : "NEVER"}}',
+                },
+              },
+            ],
+          },
+        ],
+      },
+      examples: [
         {
-          name: 'Compression',
-          behaviors: [
-            {
-              name: 'gzipResponse',
-              options: {
-                behavior: '{{enableGzip ? "ALWAYS" : "NEVER"}}'
-              }
-            }
-          ]
-        }
-      ]
-    },
-    examples: [
-      {
-        name: 'Standard Web',
-        description: 'Standard web application settings',
-        variables: {
-          cacheDefaultTtl: 86400,
-          enableGzip: true
-        }
-      }
-    ],
-    compatibility: {
-      products: ['prd_fresca', 'prd_Site_Accel'],
-      ruleFormats: ['v2023-01-05', 'v2023-05-30']
-    }
-  }],
-  ['security-headers', {
-    id: 'security-headers',
-    name: 'Security Headers',
-    description: 'Comprehensive security headers for web applications',
-    category: 'security',
-    tags: ['security', 'headers', 'compliance'],
-    variables: {
-      enableHsts: {
-        name: 'enableHsts',
-        type: 'boolean',
-        description: 'Enable HSTS header',
-        default: true,
-        required: false
+          name: 'Standard Web',
+          description: 'Standard web application settings',
+          variables: {
+            cacheDefaultTtl: 86400,
+            enableGzip: true,
+          },
+        },
+      ],
+      compatibility: {
+        products: ['prd_fresca', 'prd_Site_Accel'],
+        ruleFormats: ['v2023-01-05', 'v2023-05-30'],
       },
-      hstsMaxAge: {
-        name: 'hstsMaxAge',
-        type: 'number',
-        description: 'HSTS max age in seconds',
-        default: 31536000,
-        required: false
-      },
-      contentSecurityPolicy: {
-        name: 'contentSecurityPolicy',
-        type: 'string',
-        description: 'CSP header value',
-        default: "default-src 'self'",
-        required: false
-      }
     },
-    ruleTree: {
+  ],
+  [
+    'security-headers',
+    {
+      id: 'security-headers',
       name: 'Security Headers',
-      behaviors: [
-        {
-          name: 'modifyOutgoingResponseHeader',
-          options: {
-            action: 'ADD',
-            standardAddHeaderName: 'STRICT_TRANSPORT_SECURITY',
-            headerValue: 'max-age={{hstsMaxAge}}; includeSubDomains',
-            avoidDuplicateHeaders: true
-          }
+      description: 'Comprehensive security headers for web applications',
+      category: 'security',
+      tags: ['security', 'headers', 'compliance'],
+      variables: {
+        enableHsts: {
+          name: 'enableHsts',
+          type: 'boolean',
+          description: 'Enable HSTS header',
+          default: true,
+          required: false,
         },
+        hstsMaxAge: {
+          name: 'hstsMaxAge',
+          type: 'number',
+          description: 'HSTS max age in seconds',
+          default: 31536000,
+          required: false,
+        },
+        contentSecurityPolicy: {
+          name: 'contentSecurityPolicy',
+          type: 'string',
+          description: 'CSP header value',
+          default: "default-src 'self'",
+          required: false,
+        },
+      },
+      ruleTree: {
+        name: 'Security Headers',
+        behaviors: [
+          {
+            name: 'modifyOutgoingResponseHeader',
+            options: {
+              action: 'ADD',
+              standardAddHeaderName: 'STRICT_TRANSPORT_SECURITY',
+              headerValue: 'max-age={{hstsMaxAge}}; includeSubDomains',
+              avoidDuplicateHeaders: true,
+            },
+          },
+          {
+            name: 'modifyOutgoingResponseHeader',
+            options: {
+              action: 'ADD',
+              customHeaderName: 'Content-Security-Policy',
+              headerValue: '{{contentSecurityPolicy}}',
+              avoidDuplicateHeaders: true,
+            },
+          },
+        ],
+      },
+      examples: [
         {
-          name: 'modifyOutgoingResponseHeader',
-          options: {
-            action: 'ADD',
-            customHeaderName: 'Content-Security-Policy',
-            headerValue: '{{contentSecurityPolicy}}',
-            avoidDuplicateHeaders: true
-          }
-        }
-      ]
+          name: 'Strict Security',
+          description: 'Strict security settings',
+          variables: {
+            enableHsts: true,
+            hstsMaxAge: 63072000,
+            contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline'",
+          },
+        },
+      ],
+      compatibility: {
+        products: ['prd_fresca', 'prd_Site_Accel', 'prd_Web_App_Accel'],
+        ruleFormats: ['v2023-01-05', 'v2023-05-30'],
+      },
     },
-    examples: [
-      {
-        name: 'Strict Security',
-        description: 'Strict security settings',
-        variables: {
-          enableHsts: true,
-          hstsMaxAge: 63072000,
-          contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline'"
-        }
-      }
-    ],
-    compatibility: {
-      products: ['prd_fresca', 'prd_Site_Accel', 'prd_Web_App_Accel'],
-      ruleFormats: ['v2023-01-05', 'v2023-05-30']
-    }
-  }]
+  ],
 ]);
 
 /**
  * Enhanced update property rules with pre-validation and optimization
  */
-export async function updatePropertyRulesEnhanced(client: AkamaiClient, args: {
-  customer?: string;
-  propertyId: string;
-  version: number;
-  contractId: string;
-  groupId: string;
-  rules: any;
-  validateOnly?: boolean;
-  autoOptimize?: boolean;
-  dryRun?: boolean;
-}): Promise<MCPToolResponse> {
+export async function updatePropertyRulesEnhanced(
+  client: AkamaiClient,
+  args: {
+    customer?: string;
+    propertyId: string;
+    version: number;
+    contractId: string;
+    groupId: string;
+    rules: any;
+    validateOnly?: boolean;
+    autoOptimize?: boolean;
+    dryRun?: boolean;
+  },
+): Promise<MCPToolResponse> {
   try {
     // Pre-validation
     const validation = await validateRuleTreeInternal(args.rules, {
       propertyId: args.propertyId,
       version: args.version,
-      includeOptimizations: args.autoOptimize || false
+      includeOptimizations: args.autoOptimize || false,
     });
 
     if (!validation.isValid && !args.validateOnly) {
       let text = `❌ **Rule Validation Failed**\n\n`;
       text += `**Errors Found:** ${validation.errors.length}\n\n`;
-      
+
       validation.errors.slice(0, 5).forEach((error, index) => {
         text += `${index + 1}. **${error.type}** [${error.severity}]\n`;
         text += `   Path: ${error.path}\n`;
@@ -280,10 +289,12 @@ export async function updatePropertyRulesEnhanced(client: AkamaiClient, args: {
       text += `\n**Action Required:** Fix validation errors before updating rules`;
 
       return {
-        content: [{
-          type: 'text',
-          text,
-        }],
+        content: [
+          {
+            type: 'text',
+            text,
+          },
+        ],
       };
     }
 
@@ -295,7 +306,7 @@ export async function updatePropertyRulesEnhanced(client: AkamaiClient, args: {
 
     if (args.validateOnly || args.dryRun) {
       let text = `✅ **Rule Validation ${args.dryRun ? 'and Dry Run ' : ''}Successful**\n\n`;
-      
+
       text += `**Validation Summary:**\n`;
       text += `- Errors: ${validation.errors.length}\n`;
       text += `- Warnings: ${validation.warnings.length}\n`;
@@ -323,10 +334,12 @@ export async function updatePropertyRulesEnhanced(client: AkamaiClient, args: {
       }
 
       return {
-        content: [{
-          type: 'text',
-          text,
-        }],
+        content: [
+          {
+            type: 'text',
+            text,
+          },
+        ],
       };
     }
 
@@ -350,7 +363,7 @@ export async function updatePropertyRulesEnhanced(client: AkamaiClient, args: {
     let text = `✅ **Property Rules Updated Successfully**\n\n`;
     text += `Property: ${args.propertyId}\n`;
     text += `Version: ${args.version}\n`;
-    
+
     if (args.autoOptimize && validation.suggestions.length > 0) {
       text += `\n**Optimizations Applied:** ${validation.suggestions.length}\n`;
     }
@@ -365,10 +378,12 @@ export async function updatePropertyRulesEnhanced(client: AkamaiClient, args: {
     text += `- Compare with previous: "Compare property ${args.propertyId} versions ${args.version - 1} and ${args.version}"\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('update property rules with validation', error);
@@ -378,22 +393,27 @@ export async function updatePropertyRulesEnhanced(client: AkamaiClient, args: {
 /**
  * Create rule tree from template
  */
-export async function createRuleFromTemplate(_client: AkamaiClient, args: {
-  customer?: string;
-  templateId: string;
-  variables?: Record<string, any>;
-  validate?: boolean;
-}): Promise<MCPToolResponse> {
+export async function createRuleFromTemplate(
+  _client: AkamaiClient,
+  args: {
+    customer?: string;
+    templateId: string;
+    variables?: Record<string, any>;
+    validate?: boolean;
+  },
+): Promise<MCPToolResponse> {
   try {
     const template = RULE_TEMPLATES.get(args.templateId);
-    
+
     if (!template) {
       const availableTemplates = Array.from(RULE_TEMPLATES.keys());
       return {
-        content: [{
-          type: 'text',
-          text: `❌ Template '${args.templateId}' not found.\n\nAvailable templates:\n${availableTemplates.map(t => `- ${t}`).join('\n')}`,
-        }],
+        content: [
+          {
+            type: 'text',
+            text: `❌ Template '${args.templateId}' not found.\n\nAvailable templates:\n${availableTemplates.map((t) => `- ${t}`).join('\n')}`,
+          },
+        ],
       };
     }
 
@@ -402,13 +422,20 @@ export async function createRuleFromTemplate(_client: AkamaiClient, args: {
     for (const [varName, varDef] of Object.entries(template.variables)) {
       if (varDef.required && !(varName in variables)) {
         return {
-          content: [{
-            type: 'text',
-            text: `❌ Required variable '${varName}' not provided.\n\nRequired variables:\n${Object.entries(template.variables).filter(([_, v]) => v.required).map(([k, v]) => `- ${k}: ${v.description}`).join('\n')}`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `❌ Required variable '${varName}' not provided.\n\nRequired variables:\n${Object.entries(
+                template.variables,
+              )
+                .filter(([_, v]) => v.required)
+                .map(([k, v]) => `- ${k}: ${v.description}`)
+                .join('\n')}`,
+            },
+          ],
         };
       }
-      
+
       if (!(varName in variables) && varDef.default !== undefined) {
         variables[varName] = varDef.default;
       }
@@ -419,15 +446,17 @@ export async function createRuleFromTemplate(_client: AkamaiClient, args: {
 
     if (args.validate) {
       const validation = await validateRuleTreeInternal(processedRuleTree, {
-        includeOptimizations: true
+        includeOptimizations: true,
       });
 
       if (!validation.isValid) {
         return {
-          content: [{
-            type: 'text',
-            text: `❌ Generated rule tree validation failed.\n\nErrors:\n${validation.errors.map(e => `- ${e.message}`).join('\n')}`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `❌ Generated rule tree validation failed.\n\nErrors:\n${validation.errors.map((e) => `- ${e.message}`).join('\n')}`,
+            },
+          ],
         };
       }
     }
@@ -457,10 +486,12 @@ export async function createRuleFromTemplate(_client: AkamaiClient, args: {
     text += `- Validate: "Validate rule tree" with your property context\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('create rule from template', error);
@@ -470,24 +501,27 @@ export async function createRuleFromTemplate(_client: AkamaiClient, args: {
 /**
  * Validate rule tree with comprehensive analysis
  */
-export async function validateRuleTree(_client: AkamaiClient, args: {
-  customer?: string;
-  propertyId?: string;
-  version?: number;
-  rules: any;
-  includeOptimizations?: boolean;
-  includePerformance?: boolean;
-}): Promise<MCPToolResponse> {
+export async function validateRuleTree(
+  _client: AkamaiClient,
+  args: {
+    customer?: string;
+    propertyId?: string;
+    version?: number;
+    rules: any;
+    includeOptimizations?: boolean;
+    includePerformance?: boolean;
+  },
+): Promise<MCPToolResponse> {
   try {
     const validation = await validateRuleTreeInternal(args.rules, {
       propertyId: args.propertyId,
       version: args.version,
       includeOptimizations: args.includeOptimizations || false,
-      includePerformance: args.includePerformance || false
+      includePerformance: args.includePerformance || false,
     });
 
     let text = `📋 **Rule Tree Validation Report**\n\n`;
-    
+
     const statusIcon = validation.isValid ? '✅' : '❌';
     text += `**Overall Status:** ${statusIcon} ${validation.isValid ? 'Valid' : 'Invalid'}\n\n`;
 
@@ -520,7 +554,7 @@ export async function validateRuleTree(_client: AkamaiClient, args: {
         text += `   Path: ${warning.path}\n`;
         text += `   Action: ${warning.recommendation}\n\n`;
       });
-      
+
       if (validation.warnings.length > 10) {
         text += `... and ${validation.warnings.length - 10} more warnings\n\n`;
       }
@@ -537,7 +571,7 @@ export async function validateRuleTree(_client: AkamaiClient, args: {
         }
         text += '\n';
       });
-      
+
       if (validation.suggestions.length > 10) {
         text += `... and ${validation.suggestions.length - 10} more suggestions\n`;
       }
@@ -551,10 +585,12 @@ export async function validateRuleTree(_client: AkamaiClient, args: {
     text += `- Re-validate after making changes\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('validate rule tree', error);
@@ -564,23 +600,26 @@ export async function validateRuleTree(_client: AkamaiClient, args: {
 /**
  * Merge rule trees with conflict resolution
  */
-export async function mergeRuleTrees(_client: AkamaiClient, args: {
-  customer?: string;
-  sourceRules: any;
-  targetRules: any;
-  options?: RuleMergeOptions;
-  propertyContext?: {
-    propertyId: string;
-    version: number;
-  };
-}): Promise<MCPToolResponse> {
+export async function mergeRuleTrees(
+  _client: AkamaiClient,
+  args: {
+    customer?: string;
+    sourceRules: any;
+    targetRules: any;
+    options?: RuleMergeOptions;
+    propertyContext?: {
+      propertyId: string;
+      version: number;
+    };
+  },
+): Promise<MCPToolResponse> {
   try {
     const options: RuleMergeOptions = {
       strategy: 'merge',
       conflictResolution: 'manual',
       preserveOrder: true,
       validateResult: true,
-      ...args.options
+      ...args.options,
     };
 
     const mergeResult = performRuleMerge(args.sourceRules, args.targetRules, options);
@@ -589,7 +628,7 @@ export async function mergeRuleTrees(_client: AkamaiClient, args: {
       const validation = await validateRuleTreeInternal(mergeResult.mergedRules, {
         propertyId: args.propertyContext?.propertyId,
         version: args.propertyContext?.version,
-        includeOptimizations: false
+        includeOptimizations: false,
       });
 
       if (!validation.isValid) {
@@ -607,10 +646,12 @@ export async function mergeRuleTrees(_client: AkamaiClient, args: {
         text += `\n**Note:** The merge completed but resulted in an invalid rule tree. Review and fix validation errors.`;
 
         return {
-          content: [{
-            type: 'text',
-            text,
-          }],
+          content: [
+            {
+              type: 'text',
+              text,
+            },
+          ],
         };
       }
     }
@@ -634,7 +675,7 @@ export async function mergeRuleTrees(_client: AkamaiClient, args: {
         text += `   Type: ${conflict.type}\n`;
         text += `   Resolution: ${conflict.resolution}\n\n`;
       });
-      
+
       if (mergeResult.conflicts.length > 5) {
         text += `... and ${mergeResult.conflicts.length - 5} more conflicts\n`;
       }
@@ -654,10 +695,12 @@ export async function mergeRuleTrees(_client: AkamaiClient, args: {
     text += `- Apply to property with "Update property rules"\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('merge rule trees', error);
@@ -667,30 +710,33 @@ export async function mergeRuleTrees(_client: AkamaiClient, args: {
 /**
  * Optimize rule tree for performance
  */
-export async function optimizeRuleTree(_client: AkamaiClient, args: {
-  customer?: string;
-  rules: any;
-  optimizationLevel?: 'basic' | 'standard' | 'aggressive';
-  preserveCustomizations?: boolean;
-  targetMetrics?: ('speed' | 'bandwidth' | 'availability')[];
-}): Promise<MCPToolResponse> {
+export async function optimizeRuleTree(
+  _client: AkamaiClient,
+  args: {
+    customer?: string;
+    rules: any;
+    optimizationLevel?: 'basic' | 'standard' | 'aggressive';
+    preserveCustomizations?: boolean;
+    targetMetrics?: Array<'speed' | 'bandwidth' | 'availability'>;
+  },
+): Promise<MCPToolResponse> {
   try {
     const level = args.optimizationLevel || 'standard';
     const metrics = args.targetMetrics || ['speed', 'bandwidth'];
-    
+
     // Analyze current performance
     const analysis = analyzeRulePerformance(args.rules);
-    
+
     // Generate optimizations
     const optimizations = generateOptimizations(args.rules, {
       level,
       targetMetrics: metrics,
-      preserveCustomizations: args.preserveCustomizations ?? true
+      preserveCustomizations: args.preserveCustomizations ?? true,
     });
 
     // Apply optimizations
     const optimizedRules = applyOptimizations(args.rules, optimizations);
-    
+
     // Re-analyze for comparison
     const newAnalysis = analyzeRulePerformance(optimizedRules);
 
@@ -705,7 +751,7 @@ export async function optimizeRuleTree(_client: AkamaiClient, args: {
     text += `- HTTP/2: ${analysis.categories.http2.score}/100 → ${newAnalysis.categories.http2.score}/100\n\n`;
 
     text += `**Optimizations Applied:** ${optimizations.length}\n\n`;
-    
+
     optimizations.slice(0, 10).forEach((opt, index) => {
       text += `${index + 1}. **${opt.type}** [${opt.impact}]\n`;
       text += `   ${opt.description}\n`;
@@ -749,10 +795,12 @@ export async function optimizeRuleTree(_client: AkamaiClient, args: {
     text += `- Monitor performance metrics after deployment\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('optimize rule tree', error);
@@ -762,36 +810,37 @@ export async function optimizeRuleTree(_client: AkamaiClient, args: {
 /**
  * List available rule templates
  */
-export async function listRuleTemplates(_client: AkamaiClient, args: {
-  customer?: string;
-  category?: string;
-  tags?: string[];
-}): Promise<MCPToolResponse> {
+export async function listRuleTemplates(
+  _client: AkamaiClient,
+  args: {
+    customer?: string;
+    category?: string;
+    tags?: string[];
+  },
+): Promise<MCPToolResponse> {
   try {
     let templates = Array.from(RULE_TEMPLATES.values());
-    
+
     // Filter by category
     if (args.category) {
-      templates = templates.filter(t => t.category === args.category);
+      templates = templates.filter((t) => t.category === args.category);
     }
-    
+
     // Filter by tags
     if (args.tags && args.tags.length > 0) {
-      templates = templates.filter(t => 
-        args.tags!.some(tag => t.tags.includes(tag))
-      );
+      templates = templates.filter((t) => args.tags!.some((tag) => t.tags.includes(tag)));
     }
 
     let text = `📚 **Available Rule Templates**\n\n`;
-    
+
     if (templates.length === 0) {
       text += 'No templates found matching your criteria.\n';
     } else {
       text += `**Found ${templates.length} templates:**\n\n`;
-      
+
       // Group by category
       const categories = new Map<string, RuleTemplate[]>();
-      templates.forEach(t => {
+      templates.forEach((t) => {
         const list = categories.get(t.category) || [];
         list.push(t);
         categories.set(t.category, list);
@@ -799,16 +848,16 @@ export async function listRuleTemplates(_client: AkamaiClient, args: {
 
       for (const [category, categoryTemplates] of categories) {
         text += `**${category.charAt(0).toUpperCase() + category.slice(1)}:**\n`;
-        
-        categoryTemplates.forEach(template => {
+
+        categoryTemplates.forEach((template) => {
           text += `\n📋 **${template.name}** (${template.id})\n`;
           text += `   ${template.description}\n`;
           text += `   Tags: ${template.tags.join(', ')}\n`;
           text += `   Variables: ${Object.keys(template.variables).length}\n`;
           text += `   Compatible Products: ${template.compatibility.products.join(', ')}\n`;
-          
+
           if (template.examples.length > 0) {
-            text += `   Examples: ${template.examples.map(e => e.name).join(', ')}\n`;
+            text += `   Examples: ${template.examples.map((e) => e.name).join(', ')}\n`;
           }
         });
         text += '\n';
@@ -824,10 +873,12 @@ export async function listRuleTemplates(_client: AkamaiClient, args: {
     text += `- By tags: caching, compression, headers, etc.\n`;
 
     return {
-      content: [{
-        type: 'text',
-        text,
-      }],
+      content: [
+        {
+          type: 'text',
+          text,
+        },
+      ],
     };
   } catch (error) {
     return formatError('list rule templates', error);
@@ -840,7 +891,7 @@ async function validateRuleTreeInternal(rules: any, _context: any): Promise<Rule
   const errors: RuleValidationError[] = [];
   const warnings: RuleValidationWarning[] = [];
   const suggestions: RuleOptimizationSuggestion[] = [];
-  
+
   // Basic structure validation
   if (!rules || typeof rules !== 'object') {
     errors.push({
@@ -848,7 +899,7 @@ async function validateRuleTreeInternal(rules: any, _context: any): Promise<Rule
       severity: 'critical',
       path: '/',
       message: 'Rule tree must be an object',
-      fix: 'Provide a valid rule tree object with name and behaviors/children'
+      fix: 'Provide a valid rule tree object with name and behaviors/children',
     });
   }
 
@@ -858,7 +909,7 @@ async function validateRuleTreeInternal(rules: any, _context: any): Promise<Rule
       severity: 'error',
       path: '/name',
       message: 'Rule tree must have a name',
-      fix: 'Add a "name" property to the root rule'
+      fix: 'Add a "name" property to the root rule',
     });
   }
 
@@ -875,7 +926,7 @@ async function validateRuleTreeInternal(rules: any, _context: any): Promise<Rule
     warnings,
     suggestions,
     performanceScore,
-    complianceScore
+    complianceScore,
   };
 }
 
@@ -884,7 +935,7 @@ function validateRuleNode(
   path: string,
   errors: RuleValidationError[],
   warnings: RuleValidationWarning[],
-  suggestions: RuleOptimizationSuggestion[]
+  suggestions: RuleOptimizationSuggestion[],
 ): void {
   // Validate behaviors
   if (node.behaviors) {
@@ -894,7 +945,7 @@ function validateRuleNode(
         severity: 'error',
         path: `${path}/behaviors`,
         message: 'Behaviors must be an array',
-        fix: 'Convert behaviors to an array format'
+        fix: 'Convert behaviors to an array format',
       });
     } else {
       node.behaviors.forEach((behavior: any, index: number) => {
@@ -916,7 +967,7 @@ function validateRuleNode(
         severity: 'error',
         path: `${path}/children`,
         message: 'Children must be an array',
-        fix: 'Convert children to an array format'
+        fix: 'Convert children to an array format',
       });
     } else {
       node.children.forEach((child: any, index: number) => {
@@ -926,7 +977,7 @@ function validateRuleNode(
             severity: 'error',
             path: `${path}/children[${index}]/name`,
             message: 'Child rule must have a name',
-            fix: 'Add a name property to the child rule'
+            fix: 'Add a name property to the child rule',
           });
         }
         validateRuleNode(child, `${path}/children[${index}]`, errors, warnings, suggestions);
@@ -940,7 +991,7 @@ function validateBehavior(
   path: string,
   errors: RuleValidationError[],
   warnings: RuleValidationWarning[],
-  suggestions: RuleOptimizationSuggestion[]
+  suggestions: RuleOptimizationSuggestion[],
 ): void {
   if (!behavior.name) {
     errors.push({
@@ -948,7 +999,7 @@ function validateBehavior(
       severity: 'error',
       path: `${path}/name`,
       message: 'Behavior must have a name',
-      fix: 'Add a name property to the behavior'
+      fix: 'Add a name property to the behavior',
     });
     return;
   }
@@ -961,7 +1012,7 @@ function validateBehavior(
       severity: 'warning',
       path: `${path}`,
       message: `Behavior '${behavior.name}' is deprecated`,
-      recommendation: `Consider using modern alternatives or removing if not needed`
+      recommendation: `Consider using modern alternatives or removing if not needed`,
     });
   }
 
@@ -983,17 +1034,17 @@ function validateCachingBehavior(
   behavior: any,
   path: string,
   warnings: RuleValidationWarning[],
-  suggestions: RuleOptimizationSuggestion[]
+  suggestions: RuleOptimizationSuggestion[],
 ): void {
   const options = behavior.options || {};
-  
+
   if (options.behavior === 'NO_STORE') {
     warnings.push({
       type: 'performance',
       severity: 'warning',
       path: `${path}`,
       message: 'NO_STORE caching disabled - this may impact performance',
-      recommendation: 'Consider using MAX_AGE with appropriate TTL for cacheable content'
+      recommendation: 'Consider using MAX_AGE with appropriate TTL for cacheable content',
     });
   }
 
@@ -1005,8 +1056,9 @@ function validateCachingBehavior(
         impact: 'medium',
         path: `${path}`,
         description: 'Very short cache TTL detected',
-        implementation: 'Consider increasing TTL to at least 5 minutes (300s) for better cache efficiency',
-        estimatedImprovement: 'Reduce origin requests by up to 80%'
+        implementation:
+          'Consider increasing TTL to at least 5 minutes (300s) for better cache efficiency',
+        estimatedImprovement: 'Reduce origin requests by up to 80%',
       });
     }
   }
@@ -1016,10 +1068,10 @@ function validateCompressionBehavior(
   behavior: any,
   path: string,
   _warnings: RuleValidationWarning[],
-  suggestions: RuleOptimizationSuggestion[]
+  suggestions: RuleOptimizationSuggestion[],
 ): void {
   const options = behavior.options || {};
-  
+
   if (options.behavior === 'NEVER') {
     suggestions.push({
       type: 'compression',
@@ -1027,7 +1079,7 @@ function validateCompressionBehavior(
       path: `${path}`,
       description: 'Compression is disabled',
       implementation: 'Enable GZIP compression for text-based content to reduce bandwidth',
-      estimatedImprovement: 'Reduce bandwidth usage by 60-80% for text content'
+      estimatedImprovement: 'Reduce bandwidth usage by 60-80% for text content',
     });
   }
 }
@@ -1036,10 +1088,10 @@ function validateHttp2Behavior(
   behavior: any,
   path: string,
   _warnings: RuleValidationWarning[],
-  suggestions: RuleOptimizationSuggestion[]
+  suggestions: RuleOptimizationSuggestion[],
 ): void {
   const options = behavior.options || {};
-  
+
   if (!options.enabled) {
     suggestions.push({
       type: 'performance',
@@ -1047,7 +1099,7 @@ function validateHttp2Behavior(
       path: `${path}`,
       description: 'HTTP/2 is not enabled',
       implementation: 'Enable HTTP/2 for improved performance with multiplexing',
-      estimatedImprovement: 'Improve page load times by 15-30%'
+      estimatedImprovement: 'Improve page load times by 15-30%',
     });
   }
 }
@@ -1055,7 +1107,7 @@ function validateHttp2Behavior(
 function checkOptimizationOpportunities(
   node: any,
   path: string,
-  suggestions: RuleOptimizationSuggestion[]
+  suggestions: RuleOptimizationSuggestion[],
 ): void {
   const behaviors = node.behaviors || [];
   const behaviorNames = behaviors.map((b: any) => b.name);
@@ -1068,7 +1120,7 @@ function checkOptimizationOpportunities(
       path: `${path}`,
       description: 'No caching behavior found',
       implementation: 'Add caching behavior with appropriate TTL settings',
-      estimatedImprovement: 'Reduce origin load by 50-90%'
+      estimatedImprovement: 'Reduce origin load by 50-90%',
     });
   }
 
@@ -1080,7 +1132,7 @@ function checkOptimizationOpportunities(
       path: `${path}`,
       description: 'No compression behavior found',
       implementation: 'Add gzipResponse behavior for text content',
-      estimatedImprovement: 'Reduce bandwidth by 60-80% for text'
+      estimatedImprovement: 'Reduce bandwidth by 60-80% for text',
     });
   }
 
@@ -1093,49 +1145,49 @@ function checkOptimizationOpportunities(
       path: `${path}`,
       description: 'No security headers configured',
       implementation: 'Add security headers like HSTS, CSP, X-Frame-Options',
-      estimatedImprovement: 'Improve security posture'
+      estimatedImprovement: 'Improve security posture',
     });
   }
 }
 
 function calculatePerformanceScore(rules: any, warnings: RuleValidationWarning[]): number {
   let score = 100;
-  
+
   // Deduct points for performance warnings
-  const performanceWarnings = warnings.filter(w => w.type === 'performance');
+  const performanceWarnings = warnings.filter((w) => w.type === 'performance');
   score -= performanceWarnings.length * 10;
-  
+
   // Check for key performance behaviors
   const hasCaching = hasSpecificBehavior(rules, 'caching');
   const hasCompression = hasSpecificBehavior(rules, 'gzipResponse');
   const hasHttp2 = hasSpecificBehavior(rules, 'http2');
-  
+
   if (!hasCaching) score -= 20;
   if (!hasCompression) score -= 15;
   if (!hasHttp2) score -= 15;
-  
+
   return Math.max(0, Math.min(100, score));
 }
 
 function calculateComplianceScore(
   _rules: any,
   errors: RuleValidationError[],
-  warnings: RuleValidationWarning[]
+  warnings: RuleValidationWarning[],
 ): number {
   let score = 100;
-  
+
   // Critical errors
-  score -= errors.filter(e => e.severity === 'critical').length * 25;
-  
+  score -= errors.filter((e) => e.severity === 'critical').length * 25;
+
   // Regular errors
-  score -= errors.filter(e => e.severity === 'error').length * 15;
-  
+  score -= errors.filter((e) => e.severity === 'error').length * 15;
+
   // Security warnings
-  score -= warnings.filter(w => w.type === 'security').length * 10;
-  
+  score -= warnings.filter((w) => w.type === 'security').length * 10;
+
   // Best practice warnings
-  score -= warnings.filter(w => w.type === 'best-practice').length * 5;
-  
+  score -= warnings.filter((w) => w.type === 'best-practice').length * 5;
+
   return Math.max(0, Math.min(100, score));
 }
 
@@ -1145,33 +1197,33 @@ function hasSpecificBehavior(node: any, behaviorName: string): boolean {
       return true;
     }
   }
-  
+
   if (node.children) {
     return node.children.some((child: any) => hasSpecificBehavior(child, behaviorName));
   }
-  
+
   return false;
 }
 
 function processTemplate(template: any, variables: Record<string, any>): any {
   const templateStr = JSON.stringify(template);
-  
+
   // Replace variable placeholders
-  let processed = templateStr.replace(/\{\{([^}]+)\}\}/g, (match, expression) => {
+  const processed = templateStr.replace(/\{\{([^}]+)\}\}/g, (match, expression) => {
     try {
       // Simple expression evaluation (in production, use a proper expression parser)
       const trimmed = expression.trim();
-      
+
       // Handle ternary expressions
       if (trimmed.includes('?')) {
         const [condition, values] = trimmed.split('?');
         const [trueValue, falseValue] = values.split(':');
         const conditionResult = evaluateCondition(condition.trim(), variables);
-        return conditionResult ? 
-          evaluateExpression(trueValue.trim(), variables) : 
-          evaluateExpression(falseValue.trim(), variables);
+        return conditionResult
+          ? evaluateExpression(trueValue.trim(), variables)
+          : evaluateExpression(falseValue.trim(), variables);
       }
-      
+
       // Direct variable replacement
       return evaluateExpression(trimmed, variables);
     } catch (error) {
@@ -1179,7 +1231,7 @@ function processTemplate(template: any, variables: Record<string, any>): any {
       return match;
     }
   });
-  
+
   return JSON.parse(processed);
 }
 
@@ -1193,36 +1245,34 @@ function evaluateCondition(condition: string, variables: Record<string, any>): b
 
 function evaluateExpression(expression: string, variables: Record<string, any>): string {
   // Remove quotes if present
-  if ((expression.startsWith('"') && expression.endsWith('"')) ||
-      (expression.startsWith("'") && expression.endsWith("'"))) {
+  if (
+    (expression.startsWith('"') && expression.endsWith('"')) ||
+    (expression.startsWith("'") && expression.endsWith("'"))
+  ) {
     return expression.slice(1, -1);
   }
-  
+
   // Variable lookup
   if (expression in variables) {
     return String(variables[expression]);
   }
-  
+
   return expression;
 }
 
-function performRuleMerge(
-  source: any,
-  target: any,
-  options: RuleMergeOptions
-): any {
+function performRuleMerge(source: any, target: any, options: RuleMergeOptions): any {
   const result = {
     mergedRules: {},
     conflicts: [] as any[],
     rulesFromSource: 0,
     rulesFromTarget: 0,
     rulesAdded: 0,
-    conflictsResolved: 0
+    conflictsResolved: 0,
   };
 
   // Deep clone target as base
   result.mergedRules = JSON.parse(JSON.stringify(target));
-  
+
   // Merge based on strategy
   switch (options.strategy) {
     case 'merge':
@@ -1245,7 +1295,7 @@ function mergeRuleNodes(
   target: any,
   path: string,
   result: any,
-  options: RuleMergeOptions
+  options: RuleMergeOptions,
 ): void {
   // Merge behaviors
   if (source.behaviors && target.behaviors) {
@@ -1269,15 +1319,15 @@ function mergeBehaviors(
   targetBehaviors: any[],
   path: string,
   result: any,
-  options: RuleMergeOptions
+  options: RuleMergeOptions,
 ): void {
   const targetBehaviorMap = new Map(
-    targetBehaviors.map((b, index) => [b.name, { behavior: b, index }])
+    targetBehaviors.map((b, index) => [b.name, { behavior: b, index }]),
   );
 
-  sourceBehaviors.forEach(sourceBehavior => {
+  sourceBehaviors.forEach((sourceBehavior) => {
     const existing = targetBehaviorMap.get(sourceBehavior.name);
-    
+
     if (existing) {
       // Conflict detected
       result.conflicts.push({
@@ -1285,9 +1335,9 @@ function mergeBehaviors(
         type: 'behavior',
         sourceValue: sourceBehavior,
         targetValue: existing.behavior,
-        resolution: options.conflictResolution
+        resolution: options.conflictResolution,
       });
-      
+
       if (options.conflictResolution === 'source') {
         targetBehaviors[existing.index] = JSON.parse(JSON.stringify(sourceBehavior));
         result.conflictsResolved++;
@@ -1306,24 +1356,16 @@ function mergeChildren(
   targetChildren: any[],
   path: string,
   result: any,
-  options: RuleMergeOptions
+  options: RuleMergeOptions,
 ): void {
-  const targetChildMap = new Map(
-    targetChildren.map((c, index) => [c.name, { child: c, index }])
-  );
+  const targetChildMap = new Map(targetChildren.map((c, index) => [c.name, { child: c, index }]));
 
-  sourceChildren.forEach(sourceChild => {
+  sourceChildren.forEach((sourceChild) => {
     const existing = targetChildMap.get(sourceChild.name);
-    
+
     if (existing) {
       // Merge recursively
-      mergeRuleNodes(
-        sourceChild,
-        existing.child,
-        `${path}[${existing.index}]`,
-        result,
-        options
-      );
+      mergeRuleNodes(sourceChild, existing.child, `${path}[${existing.index}]`, result, options);
     } else {
       // Add new child
       targetChildren.push(JSON.parse(JSON.stringify(sourceChild)));
@@ -1336,14 +1378,14 @@ function appendRules(source: any, target: any, result: any): void {
   if (!target.children) {
     target.children = [];
   }
-  
+
   if (source.children) {
     source.children.forEach((child: any) => {
       target.children.push(JSON.parse(JSON.stringify(child)));
       result.rulesAdded += countRules(child);
     });
   }
-  
+
   if (source.behaviors) {
     if (!target.behaviors) {
       target.behaviors = [];
@@ -1357,17 +1399,17 @@ function appendRules(source: any, target: any, result: any): void {
 
 function countRules(node: any): number {
   let count = 1;
-  
+
   if (node.behaviors) {
     count += node.behaviors.length;
   }
-  
+
   if (node.children) {
     node.children.forEach((child: any) => {
       count += countRules(child);
     });
   }
-  
+
   return count;
 }
 
@@ -1377,7 +1419,7 @@ function analyzeRulePerformance(rules: any): RulePerformanceAnalysis {
     compression: analyzeCompression(rules),
     http2: analyzeHttp2(rules),
     images: analyzeImageOptimization(rules),
-    mobile: analyzeMobileOptimization(rules)
+    mobile: analyzeMobileOptimization(rules),
   };
 
   const criticalIssues: string[] = [];
@@ -1388,26 +1430,26 @@ function analyzeRulePerformance(rules: any): RulePerformanceAnalysis {
     if (category.status === 'poor') {
       criticalIssues.push(`${name} optimization is poor - immediate attention needed`);
     }
-    category.improvements.forEach(imp => {
+    category.improvements.forEach((imp) => {
       recommendations.push({
         type: name as any,
         impact: category.status === 'poor' ? 'high' : 'medium',
         path: '/',
         description: imp,
-        implementation: `Review and optimize ${name} settings`
+        implementation: `Review and optimize ${name} settings`,
       });
     });
   });
 
   // Calculate overall score
-  const scores = Object.values(categories).map(c => c.score);
+  const scores = Object.values(categories).map((c) => c.score);
   const overallScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
 
   return {
     overallScore,
     categories,
     criticalIssues,
-    recommendations
+    recommendations,
   };
 }
 
@@ -1418,13 +1460,13 @@ function analyzeCaching(rules: any): PerformanceCategory {
 
   const hasCaching = hasSpecificBehavior(rules, 'caching');
   const hasDownstreamCache = hasSpecificBehavior(rules, 'downstreamCache');
-  
+
   if (!hasCaching) {
     score -= 40;
     findings.push('No caching behavior configured');
     improvements.push('Add caching behavior with appropriate TTL');
   }
-  
+
   if (!hasDownstreamCache) {
     score -= 20;
     findings.push('No downstream cache control');
@@ -1433,9 +1475,10 @@ function analyzeCaching(rules: any): PerformanceCategory {
 
   return {
     score,
-    status: score >= 80 ? 'optimal' : score >= 60 ? 'good' : score >= 40 ? 'needs-improvement' : 'poor',
+    status:
+      score >= 80 ? 'optimal' : score >= 60 ? 'good' : score >= 40 ? 'needs-improvement' : 'poor',
     findings,
-    improvements
+    improvements,
   };
 }
 
@@ -1446,7 +1489,7 @@ function analyzeCompression(rules: any): PerformanceCategory {
 
   const hasGzip = hasSpecificBehavior(rules, 'gzipResponse');
   const hasBrotli = hasSpecificBehavior(rules, 'brotli');
-  
+
   if (!hasGzip && !hasBrotli) {
     score -= 40;
     findings.push('No compression enabled');
@@ -1459,9 +1502,10 @@ function analyzeCompression(rules: any): PerformanceCategory {
 
   return {
     score,
-    status: score >= 80 ? 'optimal' : score >= 60 ? 'good' : score >= 40 ? 'needs-improvement' : 'poor',
+    status:
+      score >= 80 ? 'optimal' : score >= 60 ? 'good' : score >= 40 ? 'needs-improvement' : 'poor',
     findings,
-    improvements
+    improvements,
   };
 }
 
@@ -1472,13 +1516,13 @@ function analyzeHttp2(rules: any): PerformanceCategory {
 
   const hasHttp2 = hasSpecificBehavior(rules, 'http2');
   const hasHttp3 = hasSpecificBehavior(rules, 'http3');
-  
+
   if (!hasHttp2) {
     score -= 30;
     findings.push('HTTP/2 not enabled');
     improvements.push('Enable HTTP/2 for multiplexing benefits');
   }
-  
+
   if (!hasHttp3) {
     score -= 10;
     findings.push('HTTP/3 not enabled');
@@ -1487,9 +1531,10 @@ function analyzeHttp2(rules: any): PerformanceCategory {
 
   return {
     score,
-    status: score >= 80 ? 'optimal' : score >= 60 ? 'good' : score >= 40 ? 'needs-improvement' : 'poor',
+    status:
+      score >= 80 ? 'optimal' : score >= 60 ? 'good' : score >= 40 ? 'needs-improvement' : 'poor',
     findings,
-    improvements
+    improvements,
   };
 }
 
@@ -1500,7 +1545,7 @@ function analyzeImageOptimization(rules: any): PerformanceCategory {
 
   const hasImageManager = hasSpecificBehavior(rules, 'imageManager');
   const hasAdaptiveImageCompression = hasSpecificBehavior(rules, 'adaptiveImageCompression');
-  
+
   if (!hasImageManager && !hasAdaptiveImageCompression) {
     score -= 35;
     findings.push('No image optimization configured');
@@ -1509,9 +1554,10 @@ function analyzeImageOptimization(rules: any): PerformanceCategory {
 
   return {
     score,
-    status: score >= 80 ? 'optimal' : score >= 60 ? 'good' : score >= 40 ? 'needs-improvement' : 'poor',
+    status:
+      score >= 80 ? 'optimal' : score >= 60 ? 'good' : score >= 40 ? 'needs-improvement' : 'poor',
     findings,
-    improvements
+    improvements,
   };
 }
 
@@ -1522,13 +1568,13 @@ function analyzeMobileOptimization(rules: any): PerformanceCategory {
 
   const hasMobileDetection = hasSpecificBehavior(rules, 'deviceCharacteristicHeader');
   const hasAdaptiveAcceleration = hasSpecificBehavior(rules, 'adaptiveAcceleration');
-  
+
   if (!hasMobileDetection) {
     score -= 25;
     findings.push('No mobile detection configured');
     improvements.push('Add device characteristic headers for mobile optimization');
   }
-  
+
   if (!hasAdaptiveAcceleration) {
     score -= 15;
     findings.push('Adaptive acceleration not enabled');
@@ -1537,9 +1583,10 @@ function analyzeMobileOptimization(rules: any): PerformanceCategory {
 
   return {
     score,
-    status: score >= 80 ? 'optimal' : score >= 60 ? 'good' : score >= 40 ? 'needs-improvement' : 'poor',
+    status:
+      score >= 80 ? 'optimal' : score >= 60 ? 'good' : score >= 40 ? 'needs-improvement' : 'poor',
     findings,
-    improvements
+    improvements,
   };
 }
 
@@ -1549,13 +1596,13 @@ function generateOptimizations(
     level: string;
     targetMetrics: string[];
     preserveCustomizations: boolean;
-  }
+  },
 ): RuleOptimizationSuggestion[] {
   const optimizations: RuleOptimizationSuggestion[] = [];
-  
+
   // Analyze current state
   analyzeRulePerformance(rules);
-  
+
   // Generate optimizations based on level and target metrics
   if (options.targetMetrics.includes('speed')) {
     if (!hasSpecificBehavior(rules, 'prefetch')) {
@@ -1565,11 +1612,11 @@ function generateOptimizations(
         path: '/behaviors',
         description: 'Add prefetching for critical resources',
         implementation: 'Add prefetch behavior for CSS, JS, and fonts',
-        estimatedImprovement: 'Reduce page load time by 20-30%'
+        estimatedImprovement: 'Reduce page load time by 20-30%',
       });
     }
   }
-  
+
   if (options.targetMetrics.includes('bandwidth')) {
     if (!hasSpecificBehavior(rules, 'adaptiveImageCompression')) {
       optimizations.push({
@@ -1578,11 +1625,11 @@ function generateOptimizations(
         path: '/behaviors',
         description: 'Enable adaptive image compression',
         implementation: 'Add adaptiveImageCompression behavior',
-        estimatedImprovement: 'Reduce image bandwidth by 40-60%'
+        estimatedImprovement: 'Reduce image bandwidth by 40-60%',
       });
     }
   }
-  
+
   if (options.targetMetrics.includes('availability')) {
     if (!hasSpecificBehavior(rules, 'sureRoute')) {
       optimizations.push({
@@ -1591,7 +1638,7 @@ function generateOptimizations(
         path: '/behaviors',
         description: 'Enable SureRoute for optimal routing',
         implementation: 'Add sureRoute behavior for dynamic content',
-        estimatedImprovement: 'Improve availability and reduce latency'
+        estimatedImprovement: 'Improve availability and reduce latency',
       });
     }
   }
@@ -1599,19 +1646,16 @@ function generateOptimizations(
   return optimizations;
 }
 
-function applyOptimizations(
-  rules: any,
-  optimizations: RuleOptimizationSuggestion[]
-): any {
+function applyOptimizations(rules: any, optimizations: RuleOptimizationSuggestion[]): any {
   const optimizedRules = JSON.parse(JSON.stringify(rules));
-  
+
   // Ensure behaviors array exists
   if (!optimizedRules.behaviors) {
     optimizedRules.behaviors = [];
   }
 
   // Apply each optimization
-  optimizations.forEach(opt => {
+  optimizations.forEach((opt) => {
     switch (opt.type) {
       case 'caching':
         applyCachingOptimization(optimizedRules, opt);
@@ -1634,15 +1678,15 @@ function applyOptimizations(
 function applyCachingOptimization(rules: any, _optimization: RuleOptimizationSuggestion): void {
   // Add or update caching behavior
   const existingCaching = rules.behaviors.find((b: any) => b.name === 'caching');
-  
+
   if (!existingCaching) {
     rules.behaviors.push({
       name: 'caching',
       options: {
         behavior: 'MAX_AGE',
         ttl: '7d',
-        tieredDistribution: true
-      }
+        tieredDistribution: true,
+      },
     });
   }
 }
@@ -1653,20 +1697,23 @@ function applyCompressionOptimization(rules: any, _optimization: RuleOptimizatio
     rules.behaviors.push({
       name: 'gzipResponse',
       options: {
-        behavior: 'ALWAYS'
-      }
+        behavior: 'ALWAYS',
+      },
     });
   }
 }
 
 function applyPerformanceOptimization(rules: any, optimization: RuleOptimizationSuggestion): void {
   // Add performance behaviors
-  if (optimization.description.includes('HTTP/2') && !rules.behaviors.find((b: any) => b.name === 'http2')) {
+  if (
+    optimization.description.includes('HTTP/2') &&
+    !rules.behaviors.find((b: any) => b.name === 'http2')
+  ) {
     rules.behaviors.push({
       name: 'http2',
       options: {
-        enabled: true
-      }
+        enabled: true,
+      },
     });
   }
 }
@@ -1679,8 +1726,8 @@ function applySecurityOptimization(rules: any, _optimization: RuleOptimizationSu
       options: {
         action: 'ADD',
         standardAddHeaderName: 'STRICT_TRANSPORT_SECURITY',
-        headerValue: 'max-age=31536000; includeSubDomains'
-      }
+        headerValue: 'max-age=31536000; includeSubDomains',
+      },
     });
   }
 }
@@ -1691,13 +1738,14 @@ function applySecurityOptimization(rules: any, _optimization: RuleOptimizationSu
 function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
-  
+
   if (error instanceof Error) {
     errorMessage += `: ${error.message}`;
-    
+
     // Provide specific solutions based on error type
     if (error.message.includes('401') || error.message.includes('credentials')) {
-      solution = '**Solution:** Check your ~/.edgerc file has valid credentials for the customer section.';
+      solution =
+        '**Solution:** Check your ~/.edgerc file has valid credentials for the customer section.';
     } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
       solution = '**Solution:** Your API credentials may lack the necessary permissions.';
     } else if (error.message.includes('404') || error.message.includes('not found')) {
@@ -1708,17 +1756,19 @@ function formatError(operation: string, error: any): MCPToolResponse {
   } else {
     errorMessage += `: ${String(error)}`;
   }
-  
+
   let text = errorMessage;
   if (solution) {
     text += `\n\n${solution}`;
   }
 
   return {
-    content: [{
-      type: 'text',
-      text,
-    }],
+    content: [
+      {
+        type: 'text',
+        text,
+      },
+    ],
   };
 }
 
@@ -1729,5 +1779,5 @@ export const ruleTreeManagementTools = [
   validateRuleTree,
   mergeRuleTrees,
   optimizeRuleTree,
-  listRuleTemplates
+  listRuleTemplates,
 ];
