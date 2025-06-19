@@ -23,6 +23,7 @@ build/**/*.d.ts
 *.js
 !jest.config.js
 !jest.setup.js
+!eslint.config.js
 !tests/**/*.js
 *.js.map
 *.d.ts
