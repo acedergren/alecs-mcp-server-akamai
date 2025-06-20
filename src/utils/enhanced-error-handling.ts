@@ -64,27 +64,27 @@ export class EnhancedErrorHandler {
   handle(_error: any, _context: ErrorContext = {}): EnhancedErrorResult {
     const httpStatus = this.extractHttpStatus(_error);
     const akamaiError = this.parseAkamaiErrorResponse(_error);
-    const errorType = this.categorizeError(httpStatus, akamaiError, context);
+    const errorType = this.categorizeError(httpStatus, akamaiError, _context);
 
     // Extract request ID and add to context for suggestions
     const requestId = akamaiError?.requestId || this.extractRequestId(_error);
-    if (requestId && !context.requestId) {
-      context.requestId = requestId;
+    if (requestId && !_context.requestId) {
+      _context.requestId = requestId;
     }
 
-    const suggestions = this.generateSuggestions(httpStatus, akamaiError, errorType, context);
+    const suggestions = this.generateSuggestions(httpStatus, akamaiError, errorType, _context);
 
     return {
       success: false,
       error: this.formatTechnicalError(akamaiError, httpStatus),
-      userMessage: this.formatUserMessage(httpStatus, akamaiError, errorType, context),
+      userMessage: this.formatUserMessage(httpStatus, akamaiError, errorType, _context),
       shouldRetry: this.isRetryable(httpStatus, errorType),
       retryAfter: this.extractRetryAfter(_error),
       requestId,
       errorCode: akamaiError?.type,
       errorType,
       suggestions,
-      context,
+      _context,
     };
   }
 

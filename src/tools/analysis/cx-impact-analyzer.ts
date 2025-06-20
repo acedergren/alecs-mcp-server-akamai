@@ -330,7 +330,7 @@ return 'GOOD';
   /**
    * Calculate customer impact score (0-100)
    */
-  calculateCustomerImpactScore(testResults: TestResults, analysisResults: any): number {
+  calculateCustomerImpactScore(testResults: TestResults, _analysisResults: any): number {
     let score = 100;
     const failures = testResults.failures || [];
 

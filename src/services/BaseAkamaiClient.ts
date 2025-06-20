@@ -310,7 +310,7 @@ export class BaseAkamaiClient {
   /**
    * Calculate retry delay with exponential backoff
    */
-  private calculateRetryDelay(attempt: number, baseDelay: number, error?: Error): number {
+  private calculateRetryDelay(attempt: number, baseDelay: number, _error?: Error): number {
     // For rate limit errors, use the reset time if available
     if (_error instanceof RateLimitError && _error.rateLimit.reset) {
       const resetTime = _error.rateLimit.reset * 1000;
@@ -355,10 +355,10 @@ export class BaseAkamaiClient {
       body,
       queryParams,
       headers = {},
-      timeout,
+      timeout: _timeout,
       maxRetries = 3,
       retryDelay = 1000,
-      parseJson = true,
+      parseJson: _parseJson = true,
       schema,
     } = config;
 
