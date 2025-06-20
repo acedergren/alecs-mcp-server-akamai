@@ -294,7 +294,7 @@ export class TokenValidator {
         body: new URLSearchParams({
           token,
           token_type_hint: 'access_token',
-        },
+        }),
         signal: AbortSignal.timeout(5000), // 5 second timeout
       });
 

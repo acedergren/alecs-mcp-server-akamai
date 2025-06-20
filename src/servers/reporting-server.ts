@@ -117,7 +117,7 @@ class ReportingALECSServer {
         name: tool.name,
         description: tool.description,
         inputSchema: tool.inputSchema,
-      ));
+      }));
 
       // Get fast purge reporting tools
       const purgeReportingTools = fastPurgeTools
@@ -126,7 +126,7 @@ class ReportingALECSServer {
           name: tool.name,
           description: tool.description,
           inputSchema: tool.inputSchema,
-        ));
+        }));
 
       // Add other analytics and monitoring tools
       const additionalTools = [

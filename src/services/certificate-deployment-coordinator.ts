@@ -171,7 +171,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
           .catch(() => {
             linkingState.failed++;
             this.updateDeploymentProgress(enrollmentId, linkingState);
-          },
+          }),
       );
 
       await Promise.allSettled(linkPromises);
@@ -414,7 +414,7 @@ progress = 25;
       const updatedHostnames = hostnames.map((h: any) => ({
         ...h,
         certEnrollmentId: enrollmentId,
-      ));
+      }));
 
       // Update property
       await this.client._request({

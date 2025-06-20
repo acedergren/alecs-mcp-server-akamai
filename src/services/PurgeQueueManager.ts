@@ -149,7 +149,7 @@ export class PurgeQueueManager {
               ...item,
               createdAt: new Date(item.createdAt),
               lastAttempt: item.lastAttempt ? new Date(item.lastAttempt) : undefined,
-            ));
+            }));
 
             this.queues.set(customer, items);
             logger.info(`Loaded ${items.length} queue items for customer ${customer}`);

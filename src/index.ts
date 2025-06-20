@@ -239,7 +239,7 @@ export class ALECSServer {
       z.object({
         customer: z.string().optional(),
         searchTerm: z.string().optional(),
-      },
+      }),
       async (params) => this.wrapToolHandler('list-contracts', params, listContracts),
     );
 

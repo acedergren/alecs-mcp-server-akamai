@@ -710,7 +710,7 @@ return;
         name: mark.name,
         startTime: mark.startTime,
         detail: mark.detail,
-      ));
+      }));
     } catch {
       return [];
     }
@@ -724,7 +724,7 @@ return;
         startTime: measure.startTime,
         duration: measure.duration,
         detail: measure.detail,
-      ));
+      }));
     } catch {
       return [];
     }

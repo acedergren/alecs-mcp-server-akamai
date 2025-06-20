@@ -178,7 +178,7 @@ async function launchModular() {
     name: module.name,
     path: path.join(__dirname, 'servers', module.file),
     displayName: module.name,
-  ));
+  }));
 
   for (const module of selectedModules) {
     launchModuleServer(module);

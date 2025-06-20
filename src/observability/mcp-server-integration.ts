@@ -268,7 +268,7 @@ return;
 
       const instrumentation = this.observability!.instrumentMCPRequest(toolName, customer, {
         requestId: this.generateRequestId(),
-        toolArgs: Object.keys(toolArgs || {},
+        toolArgs: Object.keys(toolArgs || {}),
       });
 
       try {

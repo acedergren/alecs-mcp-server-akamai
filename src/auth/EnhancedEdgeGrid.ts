@@ -58,11 +58,11 @@ export class EnhancedEdgeGrid extends EventEmitter {
         failureThreshold: 3,
         successThreshold: 2,
         recoveryTimeout: 30000,
-        monitorTimeout: 5000
-      },
+        monitorTimeout: 5000,
+      }),
       timeoutMs: config.timeoutMs || 30000,
       retryAttempts: config.retryAttempts || 3,
-      monkeyPatchSDK: config.monkeyPatchSDK !== false
+      monkeyPatchSDK: config.monkeyPatchSDK !== false,
     };
 
     // Initialize EdgeGrid with configuration

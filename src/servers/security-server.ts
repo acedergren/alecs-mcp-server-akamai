@@ -444,7 +444,7 @@ class SecurityALECSServer {
         name: tool.name,
         description: tool.description,
         inputSchema: tool.inputSchema,
-      ));
+      }));
 
       const tools = [...networkListTools, ...appSecToolsList];
 
@@ -553,7 +553,7 @@ deactivateOptions.comments = typedArgs.comment;
               const bulkActivations = typedArgs.networkListIds.map((id: string) => ({
                 uniqueId: id,
                 network: typedArgs.network,
-              ));
+              }));
               const bulkOptions: any = {};
               if (typedArgs.comment) {
 bulkOptions.comments = typedArgs.comment;

@@ -591,7 +591,7 @@ export class ReportingService {
       value: item.value,
       unit: item.unit,
       dimensions: item.dimensions,
-    ));
+    }));
   }
 
   private aggregateMetric(data: ReportingMetric[], method: 'sum' | 'avg' | 'max' | 'min'): number {

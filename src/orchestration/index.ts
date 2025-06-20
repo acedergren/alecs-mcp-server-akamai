@@ -94,7 +94,7 @@ export class AkamaiOrchestrator {
       'Add hostnames to property',
       'Activate to staging',
       'Run validation tests',
-      ...(options.activateProduction ? ['Activate to production'] : [],
+      ...(options.activateProduction ? ['Activate to production'] : []),
       'Generate migration report',
     ];
 
@@ -310,7 +310,7 @@ export class AkamaiOrchestrator {
                 `${zone.source}: ${_error instanceof Error ? _error.message : String(_error)}`,
               );
             }
-          },
+          }),
         );
       }
 

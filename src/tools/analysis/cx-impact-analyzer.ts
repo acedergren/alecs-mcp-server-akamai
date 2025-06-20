@@ -6,30 +6,30 @@
  */
 
 interface CustomerPersona {
-  name: string;
-  priority: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
-  painPoints: string[];
-  journeySteps: string[];
-  businessValue: number;
-  description: string;
+  name: string;,
+    priority: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+  painPoints: string[];,
+    journeySteps: string[];
+  businessValue: number;,
+    description: string;
 }
 
 interface JourneyStep {
-  step: string;
-  weight: number;
+  step: string;,
+    weight: number;
   critical: boolean;
 }
 
 interface CustomerJourney {
-  name: string;
-  steps: JourneyStep[];
-  businessImpact: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
-  description: string;
+  name: string;,
+    steps: JourneyStep[];
+  businessImpact: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';,
+    description: string;
 }
 
 interface BusinessMetric {
-  weight: number;
-  baseline: number;
+  weight: number;,
+    baseline: number;
   target: number;
 }
 
@@ -52,70 +52,70 @@ interface TestResults {
 }
 
 interface PersonaImpact {
-  persona: string;
-  description: string;
-  priority: string;
-  businessValue: number;
-  impactScore: number;
-  riskLevel: string;
-  relevantFailures: number;
-  impactedPainPoints: string[];
-  affectedJourneySteps: any[];
-  recommendations: any[];
+  persona: string;,
+    description: string;
+  priority: string;,
+    businessValue: number;
+  impactScore: number;,
+    riskLevel: string;
+  relevantFailures: number;,
+    impactedPainPoints: string[];
+  affectedJourneySteps: any[];,
+    recommendations: any[];
   estimatedAffectedUsers: string;
 }
 
 interface JourneyImpact {
-  journey: string;
-  description: string;
-  businessImpact: string;
-  impactScore: number;
-  riskLevel: string;
-  relevantFailures: number;
-  affectedSteps: number;
-  criticalStepsAffected: number;
-  totalSteps: number;
-  completionRisk: number;
+  journey: string;,
+    description: string;
+  businessImpact: string;,
+    impactScore: number;
+  riskLevel: string;,
+    relevantFailures: number;
+  affectedSteps: number;,
+    criticalStepsAffected: number;
+  totalSteps: number;,
+    completionRisk: number;
   recommendations: any[];
 }
 
 interface MetricImpact {
-  name: string;
-  baseline: number;
-  target: number;
-  projected: number;
-  impact: number;
-  weight: number;
+  name: string;,
+    baseline: number;
+  target: number;,
+    projected: number;
+  impact: number;,
+    weight: number;
   riskLevel: string;
 }
 
 interface Risk {
-  type: string;
-  description: string;
-  impact: string;
-  affectedCustomers: string;
+  type: string;,
+    description: string;
+  impact: string;,
+    affectedCustomers: string;
   mitigationTime: string;
 }
 
 interface Recommendation {
-  action: string;
-  reason: string;
-  owner: string;
-  timeline: string;
+  action: string;,
+    reason: string;
+  owner: string;,
+    timeline: string;
   channels?: string[];
 }
 
 interface Action {
-  id: string;
-  description: string;
-  failure: TestFailure;
-  customerImpact: string;
-  businessValue: string;
-  urgency: string;
-  priority: number;
-  estimatedEffort: number;
-  affectedPersonas: string[];
-  affectedJourneys: string[];
+  id: string;,
+    description: string;
+  failure: TestFailure;,
+    customerImpact: string;
+  businessValue: string;,
+    urgency: string;
+  priority: number;,
+    estimatedEffort: number;
+  affectedPersonas: string[];,
+    affectedJourneys: string[];
 }
 
 export class CustomerExperienceImpactAnalyzer {
@@ -126,8 +126,8 @@ export class CustomerExperienceImpactAnalyzer {
 
   constructor() {
     this.customerPersonas = {
-      developer: {
-        name: 'Developer',
+      developer: {,
+    name: 'Developer',
         priority: 'HIGH',
         painPoints: ['api_failures', 'authentication_issues', 'documentation_gaps'],
         journeySteps: [
@@ -140,16 +140,16 @@ export class CustomerExperienceImpactAnalyzer {
         businessValue: 0.8,
         description: 'Developers integrating with Akamai services',
       },
-      devops_engineer: {
-        name: 'DevOps Engineer',
+      devops_engineer: {,
+    name: 'DevOps Engineer',
         priority: 'CRITICAL',
         painPoints: ['deployment_failures', 'configuration_issues', 'monitoring_gaps'],
         journeySteps: ['configuration', 'deployment', 'monitoring', 'scaling', 'troubleshooting'],
         businessValue: 0.9,
         description: 'Engineers managing CDN infrastructure',
       },
-      security_admin: {
-        name: 'Security Administrator',
+      security_admin: {,
+    name: 'Security Administrator',
         priority: 'CRITICAL',
         painPoints: ['security_misconfigurations', 'certificate_issues', 'access_control_failures'],
         journeySteps: [
@@ -161,8 +161,8 @@ export class CustomerExperienceImpactAnalyzer {
         businessValue: 0.95,
         description: 'Admins managing security configurations',
       },
-      content_manager: {
-        name: 'Content Manager',
+      content_manager: {,
+    name: 'Content Manager',
         priority: 'MEDIUM',
         painPoints: ['content_deployment_issues', 'cache_problems', 'performance_degradation'],
         journeySteps: [
@@ -174,8 +174,8 @@ export class CustomerExperienceImpactAnalyzer {
         businessValue: 0.7,
         description: 'Users managing content delivery',
       },
-      site_admin: {
-        name: 'Site Administrator',
+      site_admin: {,
+    name: 'Site Administrator',
         priority: 'HIGH',
         painPoints: [
           'site_availability_issues',
@@ -189,8 +189,8 @@ export class CustomerExperienceImpactAnalyzer {
     };
 
     this.customerJourneys = {
-      onboarding: {
-        name: 'Customer Onboarding',
+      onboarding: {,
+    name: 'Customer Onboarding',
         steps: [
           { step: 'account_setup', weight: 0.9, critical: true },
           { step: 'authentication_setup', weight: 0.95, critical: true },
@@ -201,8 +201,8 @@ export class CustomerExperienceImpactAnalyzer {
         businessImpact: 'HIGH',
         description: 'New customer getting started with Akamai services',
       },
-      daily_operations: {
-        name: 'Daily Operations',
+      daily_operations: {,
+    name: 'Daily Operations',
         steps: [
           { step: 'monitoring_check', weight: 0.6, critical: false },
           { step: 'configuration_updates', weight: 0.7, critical: false },
@@ -213,8 +213,8 @@ export class CustomerExperienceImpactAnalyzer {
         businessImpact: 'MEDIUM',
         description: 'Regular day-to-day operations and maintenance',
       },
-      incident_response: {
-        name: 'Incident Response',
+      incident_response: {,
+    name: 'Incident Response',
         steps: [
           { step: 'issue_detection', weight: 0.9, critical: true },
           { step: 'diagnosis', weight: 0.85, critical: true },
@@ -225,8 +225,8 @@ export class CustomerExperienceImpactAnalyzer {
         businessImpact: 'CRITICAL',
         description: 'Responding to service incidents and outages',
       },
-      feature_adoption: {
-        name: 'Feature Adoption',
+      feature_adoption: {,
+    name: 'Feature Adoption',
         steps: [
           { step: 'feature_discovery', weight: 0.5, critical: false },
           { step: 'documentation_review', weight: 0.6, critical: false },
@@ -237,8 +237,8 @@ export class CustomerExperienceImpactAnalyzer {
         businessImpact: 'MEDIUM',
         description: 'Adopting new features and capabilities',
       },
-      scaling_operations: {
-        name: 'Scaling Operations',
+      scaling_operations: {,
+    name: 'Scaling Operations',
         steps: [
           { step: 'capacity_planning', weight: 0.7, critical: false },
           { step: 'configuration_scaling', weight: 0.8, critical: true },
@@ -680,22 +680,22 @@ return [];
     suite: string,
   ): boolean {
     const contextMappings: Record<string, Record<string, string[]>> = {
-      onboarding: {
-        account_setup: ['setup', 'account', 'initial', 'first'],
+      onboarding: {,
+    account_setup: ['setup', 'account', 'initial', 'first'],
         authentication_setup: ['auth', 'credential', 'login', 'token'],
         first_property_creation: ['property', 'create', 'new', 'onboard'],
         basic_configuration: ['config', 'basic', 'setup'],
         first_deployment: ['deploy', 'activate', 'first', 'initial'],
       },
-      daily_operations: {
-        monitoring_check: ['monitor', 'health', 'status', 'check'],
+      daily_operations: {,
+    monitoring_check: ['monitor', 'health', 'status', 'check'],
         configuration_updates: ['config', 'update', 'modify', 'change'],
         content_management: ['content', 'manage', 'upload', 'publish'],
         performance_optimization: ['performance', 'optimize', 'speed'],
         issue_resolution: ['issue', 'problem', 'error', 'resolve'],
       },
-      incident_response: {
-        issue_detection: ['detect', 'alert', 'issue', 'problem'],
+      incident_response: {,
+    issue_detection: ['detect', 'alert', 'issue', 'problem'],
         diagnosis: ['diagnose', 'analyze', 'investigate'],
         mitigation: ['mitigate', 'workaround', 'temporary'],
         resolution: ['resolve', 'fix', 'solution'],
@@ -1477,9 +1477,9 @@ return '1-2 days';
     return '< 1 day';
   }
 
-  private calculateOverallRiskScore(risks: {
+  private calculateOverallRiskScore(risks: {,
     immediate: Risk[];
-    shortTerm: Risk[];
+    shortTerm: Risk[];,
     longTerm: Risk[];
   }): number {
     let score = 0;

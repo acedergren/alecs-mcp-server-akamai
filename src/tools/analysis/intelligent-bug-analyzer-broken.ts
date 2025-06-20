@@ -101,11 +101,11 @@
    * Generate comprehensive analysis report
    */
   private generateAnalysisReport(data: {,
-      analysisId: string;
+      analysisId: string;,
     testResults: TestResults;,
-      testAnalysis: TestAnalysis;
+      testAnalysis: TestAnalysis;,
     todoList: TodoList;,
-      customerImpact: CustomerImpact | null;
+      customerImpact: CustomerImpact | null;,
     fixStrategy: FixStrategy | null;,
       processingTime: number;
  ..._options: Record<string, any>;
@@ -127,31 +127,31 @@
    ..._options
     } = data;
 
-    const report: AnalysisReport = {
-      metadata: {
+    const report: AnalysisReport = {,
+    metadata: {
         analysisId,
         timestamp: new Date().toISOString(),
         processingTime,
         version: '1.0.0',
         _options: this.sanitizeOptions(_options)},
-      executive_summary: this.generateExecutiveSummary({
-        testAnalysis: _testAnalysis,
+      executive_summary: this.generateExecutiveSummary({,
+    testAnalysis: _testAnalysis,
         todoList,
         customerImpact,
         fixStrategy}),
-      test_analysis: {
-        results: testResults,
+      test_analysis: {,
+    results: testResults,
         analysis: _testAnalysis,
         health_score: this.calculateHealthScore(testResults, _testAnalysis),
         trends: this.analyzeTrends(testResults, _testAnalysis)},
-      todo_management: {
-        list: todoList,
+      todo_management: {,
+    list: todoList,
         prioritization: this.enhancePrioritization(todoList),
         execution_plan: this.createExecutionPlan(todoList)},
       customer_impact: customerImpact,
       fix_strategy: fixStrategy,
-      recommendations: this.generateUnifiedRecommendations({
-        testAnalysis: _testAnalysis,
+      recommendations: this.generateUnifiedRecommendations({,
+    testAnalysis: _testAnalysis,
         todoList,
         customerImpact,
         fixStrategy}),
@@ -165,9 +165,9 @@
    * Generate executive summary
    */
   private generateExecutiveSummary(data: {,
-      testAnalysis: TestAnalysis;
+      testAnalysis: TestAnalysis;,
     todoList: TodoList;,
-      customerImpact: CustomerImpact | null;
+      customerImpact: CustomerImpact | null;,
     fixStrategy: FixStrategy | null;
   }): ExecutiveSummary {
     const { testAnalysis, todoList, customerImpact, fixStrategy } = data;
@@ -299,9 +299,9 @@
    * Generate unified recommendations
    */
   private generateUnifiedRecommendations(data: {,
-      testAnalysis: TestAnalysis;
+      testAnalysis: TestAnalysis;,
     todoList: TodoList;,
-      customerImpact: CustomerImpact | null;
+      customerImpact: CustomerImpact | null;,
     fixStrategy: FixStrategy | null;
   }): Recommendations {
     const { _testAnalysis, todoList, customerImpact, fixStrategy } = data;
@@ -701,9 +701,9 @@ return 70;
   }
 
   private calculateSuccessProbability(data: {,
-      testAnalysis: TestAnalysis;
+      testAnalysis: TestAnalysis;,
     todoList: TodoList;,
-      customerImpact: CustomerImpact | null;
+      customerImpact: CustomerImpact | null;,
     fixStrategy: FixStrategy | null;
   }): number {
     // Simplified success probability calculation

@@ -118,7 +118,7 @@ class MinimalALECSServer {
           },
         },
       ],
-    ));
+    }));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> => {
       const { name, arguments: args } = request.params;

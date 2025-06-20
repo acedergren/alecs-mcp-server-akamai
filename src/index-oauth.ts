@@ -372,11 +372,11 @@ export class ALECSOAuthServer {
     this.registerTool(
       'list-tools',
       'List available MCP tools',
-      z.object({},
+      z.object({}),
       async () => ({
         success: true,
         data: Array.from(this.toolRegistry.keys()),
-      },
+      }),
       false, // No auth required
     );
 

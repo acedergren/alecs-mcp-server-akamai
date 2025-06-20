@@ -314,7 +314,7 @@ export class CPSCertificateAgent {
           targetEnvironment: network,
           notAfter: null,
           allowCancel: true,
-        },
+        }),
       });
 
       const location = response.location || response.headers?.location || '';
@@ -629,7 +629,7 @@ export class CPSCertificateAgent {
         method: 'PUT',
         path: `/cps/v2/enrollments/${enrollmentId}/dv-validation/${domain}`,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ validationMethod: 'dns' },
+        body: JSON.stringify({ validationMethod: 'dns' }),
       });
     }
   }
@@ -639,7 +639,7 @@ export class CPSCertificateAgent {
       method: 'POST',
       path: `/cps/v2/enrollments/${enrollmentId}/dv-validation/${domain}`,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ acknowledgeWarnings: true },
+      body: JSON.stringify({ acknowledgeWarnings: true }),
     });
   }
 
@@ -648,7 +648,7 @@ export class CPSCertificateAgent {
       method: 'POST',
       path: `/cps/v2/enrollments/${enrollmentId}/${action}`,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ acknowledgeWarnings: true },
+      body: JSON.stringify({ acknowledgeWarnings: true }),
     });
   }
 

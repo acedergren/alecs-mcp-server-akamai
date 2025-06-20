@@ -507,12 +507,11 @@ export class DNSMigrationAgent {
           path: `/config-dns/v2/zones/${zoneName}/recordsets`,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-          
             name: record.name,
             type: record.type,
             ttl: record.ttl,
             rdata: record.rdata,
-          },
+          }),
         });
 
         spinner.succeed(`Created ${format.cyan(record.name)} ${format.green(record.type)}`);
@@ -536,10 +535,9 @@ export class DNSMigrationAgent {
           path: `/config-dns/v2/zones/${zoneName}/recordsets/${record.name}/${record.type}`,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-          
             ttl: record.ttl,
             rdata: record.rdata,
-          },
+          }),
         });
 
         spinner.succeed(`Updated ${format.cyan(record.name)} ${format.green(record.type)}`);
@@ -733,11 +731,10 @@ params.append('page_size', options.limit.toString());
         path: '/config-dns/v2/zones',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          
           zone: zoneName,
           type,
           comment: 'Created by DNS Migration Agent',
-        },
+        }),
       });
     } catch (_error) {
       if (!(_error instanceof Error && _error.message.includes('already exists'))) {
@@ -771,7 +768,7 @@ params.append('page_size', options.limit.toString());
       ttl: r.ttl,
       rdata: Array.isArray(r.rdata) ? r.rdata : [r.rdata],
       active: true,
-    ));
+    }));
   }
 
   private async bulkImportRecords(
@@ -946,7 +943,7 @@ continue;
       ttl: r.ttl === 1 ? 300 : r.ttl, // CF uses 1 for automatic
       rdata: [r.content],
       active: true,
-    ));
+    }));
   }
 
   // Complete zone migration orchestration

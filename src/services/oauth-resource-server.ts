@@ -721,7 +721,7 @@ export class OAuthResourceServer {
       name: resource.name,
       description: resource.description,
       scopes: [...resource.requiredScopes, ...(resource.resourceScopes || [])],
-    ));
+    }));
 
     return {
       resources,

@@ -6,29 +6,29 @@
  */
 
 interface StrategyType {
-  name: string;
-  maxHours: number;
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  description: string;
+  name: string;,
+    maxHours: number;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';,
+    description: string;
   icon: string;
 }
 
 interface ResourceType {
-  cost: number;
-  capability: number;
+  cost: number;,
+    capability: number;
   availability: number;
 }
 
 interface FixPattern {
-  strategies: string[];
-  resources: string[];
-  complexity: 'LOW' | 'MEDIUM' | 'HIGH';
-  riskFactors: string[];
+  strategies: string[];,
+    resources: string[];
+  complexity: 'LOW' | 'MEDIUM' | 'HIGH';,
+    riskFactors: string[];
 }
 
 interface DependencyType {
-  blocking: boolean;
-  delay: number;
+  blocking: boolean;,
+    delay: number;
 }
 
 interface TodoItem {
@@ -60,9 +60,9 @@ interface AnalysisResults {
 }
 
 interface StrategicBalance {
-  counts: {
+  counts: {,
     quick_fixes: number;
-    tactical_fixes: number;
+    tactical_fixes: number;,
     strategic_fixes: number;
     architectural_changes: number;
   };
@@ -73,18 +73,18 @@ interface StrategicBalance {
 }
 
 interface ResourceNeeds {
-  [resourceType: string]: {
+  [resourceType: string]: {,
     required: number;
-    preferred: number;
+    preferred: number;,
     _items: TodoItem[];
   };
 }
 
 interface Phase {
-  name: string;
-  duration: string;
-  description: string;
-  _items: TodoItem[];
+  name: string;,
+    duration: string;
+  description: string;,
+    _items: TodoItem[];
   totalEffort?: number;
   actualDuration?: number;
   itemCount?: number;
@@ -92,18 +92,18 @@ interface Phase {
 }
 
 interface Initiative {
-  id: string;
-  name: string;
-  theme: string;
-  description: string;
-  _items: TodoItem[];
-  estimatedEffort: number;
-  priority: number;
-  complexity: string;
-  businessValue: number;
-  risks: any[];
-  dependencies: any[];
-  phases: any[];
+  id: string;,
+    name: string;
+  theme: string;,
+    description: string;
+  _items: TodoItem[];,
+    estimatedEffort: number;
+  priority: number;,
+    complexity: string;
+  businessValue: number;,
+    risks: any[];
+  dependencies: any[];,
+    phases: any[];
 }
 
 interface Risk {
@@ -112,10 +112,10 @@ interface Risk {
 
 interface Metrics {
   [category: string]: {
-    [metric: string]: {
-      description: string;
-      target: number | string;
-      measurement: string;
+    [metric: string]: {,
+    description: string;
+      target: number | string;,
+    measurement: string;
     };
   };
 }
@@ -128,29 +128,29 @@ export class FixStrategyOptimizer {
 
   constructor() {
     this.strategyTypes = {
-      quick_fix: {
-        name: 'Quick Fix',
+      quick_fix: {,
+    name: 'Quick Fix',
         maxHours: 4,
         riskLevel: 'LOW',
         description: 'Simple, low-risk fixes that can be implemented immediately',
         icon: '🚀',
       },
-      tactical_fix: {
-        name: 'Tactical Fix',
+      tactical_fix: {,
+    name: 'Tactical Fix',
         maxHours: 16,
         riskLevel: 'MEDIUM',
         description: 'Focused fixes addressing specific issues without major changes',
         icon: '🎯',
       },
-      strategic_fix: {
-        name: 'Strategic Fix',
+      strategic_fix: {,
+    name: 'Strategic Fix',
         maxHours: 80,
         riskLevel: 'HIGH',
         description: 'Comprehensive solutions requiring significant planning and resources',
         icon: '🏗️',
       },
-      architectural_change: {
-        name: 'Architectural Change',
+      architectural_change: {,
+    name: 'Architectural Change',
         maxHours: 200,
         riskLevel: 'CRITICAL',
         description: 'Major architectural improvements requiring careful planning',
@@ -168,32 +168,32 @@ export class FixStrategyOptimizer {
     };
 
     this.fixPatterns = {
-      authentication: {
-        strategies: ['credential_validation', 'token_refresh', 'permission_check'],
+      authentication: {,
+    strategies: ['credential_validation', 'token_refresh', 'permission_check'],
         resources: ['security_specialist', 'senior_developer'],
         complexity: 'MEDIUM',
         riskFactors: ['security_impact', 'user_access'],
       },
-      configuration: {
-        strategies: ['config_validation', 'environment_setup', 'default_values'],
+      configuration: {,
+    strategies: ['config_validation', 'environment_setup', 'default_values'],
         resources: ['devops_engineer', 'senior_developer'],
         complexity: 'LOW',
         riskFactors: ['deployment_impact'],
       },
-      api_integration: {
-        strategies: ['request_validation', 'response_handling', 'error_recovery'],
+      api_integration: {,
+    strategies: ['request_validation', 'response_handling', 'error_recovery'],
         resources: ['senior_developer', 'junior_developer'],
         complexity: 'MEDIUM',
         riskFactors: ['customer_impact', 'data_integrity'],
       },
-      performance: {
-        strategies: ['caching', 'optimization', 'parallel_processing'],
+      performance: {,
+    strategies: ['caching', 'optimization', 'parallel_processing'],
         resources: ['senior_developer', 'architect'],
         complexity: 'HIGH',
         riskFactors: ['system_stability', 'resource_usage'],
       },
-      infrastructure: {
-        strategies: ['scaling', 'monitoring', 'redundancy'],
+      infrastructure: {,
+    strategies: ['scaling', 'monitoring', 'redundancy'],
         resources: ['devops_engineer', 'architect'],
         complexity: 'HIGH',
         riskFactors: ['system_availability', 'cost_impact'],
@@ -744,54 +744,54 @@ return ['senior_developer'];
    * Define success metrics
    */
   defineSuccessMetrics(_todoList: TodoList, _analysisResults: AnalysisResults) {
-    const metrics: Metrics = {
-      delivery: {
-        completion_rate: {
-          description: 'Percentage of planned _items completed',
+    const metrics: Metrics = {,
+    delivery: {
+        completion_rate: {,
+    description: 'Percentage of planned _items completed',
           target: 90,
           measurement: 'completed_items / total_items * 100',
         },
-        timeline_adherence: {
-          description: 'Adherence to planned timeline',
+        timeline_adherence: {,
+    description: 'Adherence to planned timeline',
           target: 85,
           measurement: 'on_time_deliveries / total_deliveries * 100',
         },
-        quality_score: {
-          description: 'Quality of delivered fixes',
+        quality_score: {,
+    description: 'Quality of delivered fixes',
           target: 95,
           measurement: 'fixes_without_regression / total_fixes * 100',
         },
       },
-      impact: {
-        customer_satisfaction: {
+      impact: {,
+    customer_satisfaction: {
           description: 'Customer satisfaction with fixes',
           target: 4.5,
           measurement: 'average_customer_rating',
         },
-        issue_recurrence: {
-          description: 'Rate of issue recurrence after fixes',
+        issue_recurrence: {,
+    description: 'Rate of issue recurrence after fixes',
           target: 5,
           measurement: 'recurring_issues / total_fixes * 100',
         },
-        test_success_rate: {
-          description: 'Test suite success rate improvement',
+        test_success_rate: {,
+    description: 'Test suite success rate improvement',
           target: 95,
           measurement: 'passed_tests / total_tests * 100',
         },
       },
-      efficiency: {
-        resource_utilization: {
+      efficiency: {,
+    resource_utilization: {
           description: 'Efficiency of resource usage',
           target: 80,
           measurement: 'actual_hours / planned_hours * 100',
         },
-        cost_efficiency: {
-          description: 'Cost per issue resolved',
+        cost_efficiency: {,
+    description: 'Cost per issue resolved',
           target: 'baseline - 20%',
           measurement: 'total_cost / issues_resolved',
         },
-        velocity: {
-          description: 'Issue resolution velocity',
+        velocity: {,
+    description: 'Issue resolution velocity',
           target: 'baseline + 30%',
           measurement: 'issues_resolved / time_period',
         },

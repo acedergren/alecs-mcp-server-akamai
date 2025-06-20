@@ -382,5 +382,5 @@ export function getTemplateMetadata() {
       required: false,
       defaultValue: input.defaultValue,
     })),
-  ));
+  }));
 }

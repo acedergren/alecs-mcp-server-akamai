@@ -783,12 +783,12 @@ export const ErrorScenarios = {
   networkError: () => ({
     code: 'ECONNREFUSED',
     message: 'Connection refused',
-  },
+  }),
 
   timeout: () => ({
     code: 'ETIMEDOUT',
     message: 'Request timeout',
-  },
+  }),
 };
 
 // Test Data Generators
@@ -869,7 +869,7 @@ export const TestDataGenerators = {
     lastName: 'User',
     email: 'test@example.com',
     phone: '+1-555-0000',
-  },
+  }),
 
   generateLargeErrorResponse: () => ({
     type: 'complex_error',
@@ -878,7 +878,7 @@ export const TestDataGenerators = {
       message: `Error message ${i} with lots of details that make the response very large`,
       code: `ERR_${i}`,
     })),
-  },
+  }),
 };
 
 // Mock API Responses
@@ -922,7 +922,7 @@ export const MockAPIResponses = {
   activationResponse: (activationId = 'atv_123') => ({
     activationLink: `/papi/v1/properties/prp_123/activations/${activationId}`,
     activationId,
-  },
+  }),
 
   dnsZoneList: (count = 3) => ({
     zones: Array.from({ length: count }, (_, i) => ({
@@ -930,12 +930,12 @@ export const MockAPIResponses = {
       type: 'PRIMARY',
       versionId: `v${i + 1}`,
     })),
-  },
+  }),
 
   certificateEnrollment: (enrollmentId = 12345) => ({
     enrollment: `/cps/v2/enrollments/${enrollmentId}`,
     enrollmentId,
-  },
+  }),
 };
 
 // Performance Tracker
@@ -1013,7 +1013,7 @@ export class ConversationalContextTracker {
   };
 
   addUserMessage(content: string): void {
-    this.context.messages.push({
+    this._context.messages.push({
       role: 'user',
       content,
       timestamp: new Date().toISOString(),
@@ -1022,12 +1022,12 @@ export class ConversationalContextTracker {
     // Extract domain from user message for onboarding workflows
     const domainMatch = content.match(/(?:for|property for|set up)\s+([a-zA-Z0-9.-]+\.com)/);
     if (domainMatch && domainMatch[1]) {
-      this.context.entities.domain = domainMatch[1];
+      this._context.entities.domain = domainMatch[1];
     }
   }
 
   addAssistantResponse(content: string): void {
-    this.context.messages.push({
+    this._context.messages.push({
       role: 'assistant',
       content,
       timestamp: new Date().toISOString(),
@@ -1041,70 +1041,70 @@ export class ConversationalContextTracker {
     // Extract property IDs
     const propertyMatch = content.match(/Property ID.*?(?:`(prp_\w+)`|(prp_\w+))/);
     if (propertyMatch) {
-      this.context.entities.propertyId = propertyMatch[1] || propertyMatch[2];
+      this._context.entities.propertyId = propertyMatch[1] || propertyMatch[2];
     }
 
     // Extract activation IDs
     const activationMatch = content.match(/Activation\s+(atv_\w+|act_\w+)/);
     if (activationMatch) {
-      this.context.entities.activationId = activationMatch[1];
+      this._context.entities.activationId = activationMatch[1];
     }
 
     // Extract certificate IDs
     const certMatch = content.match(/Enrollment ID:\s+(\d+)/);
     if (certMatch && certMatch[1]) {
-      this.context.entities.enrollmentId = parseInt(certMatch[1]);
+      this._context.entities.enrollmentId = parseInt(certMatch[1]);
     }
 
     // Extract zone names
     const zoneMatch = content.match(/Zone:\s+([a-zA-Z0-9.-]+)/);
     if (zoneMatch) {
-      this.context.entities.zone = zoneMatch[1];
+      this._context.entities.zone = zoneMatch[1];
     }
 
     // Extract version information
     const prodVersionMatch = content.match(/Production version v(\d+)/);
     if (prodVersionMatch && prodVersionMatch[1]) {
-      this.context.entities.productionVersion = parseInt(prodVersionMatch[1]);
+      this._context.entities.productionVersion = parseInt(prodVersionMatch[1]);
     }
 
     const stagingVersionMatch = content.match(/staging version v(\d+)/);
     if (stagingVersionMatch && stagingVersionMatch[1]) {
-      this.context.entities.stagingVersion = parseInt(stagingVersionMatch[1]);
+      this._context.entities.stagingVersion = parseInt(stagingVersionMatch[1]);
     }
 
     // Extract insights about version mismatches
     if (content.includes('staging is ahead') || content.includes('staging version ahead')) {
-      if (!this.context.insights.includes('version_mismatch')) {
-        this.context.insights.push('version_mismatch');
+      if (!this._context.insights.includes('version_mismatch')) {
+        this._context.insights.push('version_mismatch');
       }
     }
 
     // Track errors and resolutions
     if (content.includes('validation failed') || content.includes('Validation Errors')) {
-      if (!this.context.errors.includes('validation_error')) {
-        this.context.errors.push('validation_error');
+      if (!this._context.errors.includes('validation_error')) {
+        this._context.errors.push('validation_error');
       }
     }
 
     if (content.includes('Added origin behavior') || content.includes('Updated origin')) {
-      if (!this.context.resolutions.includes('added_origin_behavior')) {
-        this.context.resolutions.push('added_origin_behavior');
+      if (!this._context.resolutions.includes('added_origin_behavior')) {
+        this._context.resolutions.push('added_origin_behavior');
       }
     }
   }
 
   addContext(key: string, value: any): void {
-    this.context.entities[key] = value;
+    this._context.entities[key] = value;
   }
 
   setWorkflowState(workflow: any): void {
-    this.context.workflow = workflow.type;
-    this.context.entities = { ...this.context.entities, ...workflow };
+    this._context.workflow = workflow.type;
+    this._context.entities = { ...this._context.entities, ...workflow };
 
     // Initialize default workflow steps if not provided
-    if (!this.context.entities.steps) {
-      this.context.entities.steps = [
+    if (!this._context.entities.steps) {
+      this._context.entities.steps = [
         { name: 'clone_property', status: 'completed' },
         { name: 'update_hostnames', status: 'completed' },
         { name: 'migrate_rules', status: 'in_progress' },
@@ -1115,7 +1115,7 @@ export class ConversationalContextTracker {
   }
 
   updateWorkflowState(workflow: any): void {
-    this.context.entities = { ...this.context.entities, ...workflow };
+    this._context.entities = { ...this._context.entities, ...workflow };
   }
 
   getWorkflowStatus(): {
@@ -1123,7 +1123,7 @@ export class ConversationalContextTracker {
     completedSteps: number;
     totalSteps: number;
   } {
-    const steps = this.context.entities.steps || [];
+    const steps = this._context.entities.steps || [];
     const completed = steps.filter((s: any) => s.status === 'completed').length;
     const current = steps.find((s: any) => s.status === 'in_progress')?.name;
 
@@ -1134,12 +1134,12 @@ export class ConversationalContextTracker {
     };
   }
 
-  getContext(): typeof this.context {
-    return { ...this.context };
+  getContext(): typeof this._context {
+    return { ...this._context };
   }
 
   reset(): void {
-    this.context = {
+    this._context = {
       messages: [],
       entities: {},
       errors: [],
@@ -1230,7 +1230,7 @@ export class LoadTestRunner {
               results.push({
                 success: false,
                 duration: performance.now() - requestStart,
-                error: error as Error,
+                error: _error as Error,
               });
             }
 

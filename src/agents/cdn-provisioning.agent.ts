@@ -219,8 +219,7 @@ export class CDNProvisioningAgent {
           'Content-Type': 'application/json',
           'If-Match': etag,
         },
-        body: JSON.stringify({
-           rules: ruleTree },
+        body: JSON.stringify({ rules: ruleTree }),
       });
 
       spinner.succeed('Rule configuration updated');
@@ -588,7 +587,7 @@ export class CDNProvisioningAgent {
         'Content-Type': 'application/json-patch+json',
         'If-Match': etag,
       },
-      body: JSON.stringify([{ op: 'replace', path: '/note', value: note }],
+      body: JSON.stringify([{ op: 'replace', path: '/note', value: note }]),
     });
   }
 
@@ -823,7 +822,7 @@ export class CDNProvisioningAgent {
     // This would integrate with CPS API
     return {
       enrollmentId: 'dv-123456',
-      dv: hostnames.reduce((acc, h) => ({ ...acc, [h]: `_acme-challenge.${h}` }), {},
+      dv: hostnames.reduce((acc, h) => ({ ...acc, [h]: `_acme-challenge.${h}` }), {}),
     };
   }
 
@@ -885,11 +884,10 @@ export class CDNProvisioningAgent {
         path: `/papi/v1/properties?contractId=${this.contractId}&groupId=${this.groupId}`,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          
           propertyName,
           productId: options.productId || 'prd_Web_Accel',
           ruleFormat: 'latest',
-        },
+        }),
       });
       propertyId = createResponse.propertyLink.split('/').pop() || '';
 

@@ -413,7 +413,7 @@ return;
         event.message,
         event.category,
         event.source,
-        JSON.stringify(event.data || {},
+        JSON.stringify(event.data || {}),
       ]
         .join(' ')
         .toLowerCase();
@@ -593,7 +593,7 @@ return '[Function]';
             };
           }
           return value;
-        },
+        }),
       );
     } catch (_error) {
       return '[Non-serializable data]';
@@ -632,7 +632,7 @@ continue;
             this.emit('streamingError', connection.id, _error);
             // Deactivate connection on error
             connection.active = false;
-          },
+          }),
         );
       }
     }
@@ -662,7 +662,7 @@ continue;
         event.message,
         event.category,
         event.source,
-        JSON.stringify(event.data || {},
+        JSON.stringify(event.data || {}),
       ]
         .join(' ')
         .toLowerCase();

@@ -552,7 +552,7 @@ return false;
       target: metric.name,
       datapoints: [[metric.value, metric.timestamp]],
       tags: metric.tags,
-    ));
+    }));
   }
 
   private transformForGeneric(batch: TelemetryBatch, format: string): any {

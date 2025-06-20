@@ -147,7 +147,7 @@ export class CertificateEnrollmentService {
               validationMethod: 'dns-01',
               attempts: 0,
             },
-          ],
+          ]),
         ),
         createdAt: new Date(),
         lastUpdated: new Date(),

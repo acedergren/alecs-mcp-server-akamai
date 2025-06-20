@@ -94,3 +94,4 @@ sbom/
 # Personalized Claude Desktop configs
 claude_desktop_config_*.json
 !examples/claude_desktop_config*.example.json
+CLAUDE.MD
