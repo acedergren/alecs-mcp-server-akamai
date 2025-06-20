@@ -356,7 +356,7 @@ export const NetworkListSchemas = {
 export function validateParameters<T>(schema: z.ZodSchema<T>, params: unknown): T {
   try {
     return schema.parse(params);
-  } catch (error) {
+  } catch (_error) {
     if (error instanceof z.ZodError) {
       const errorMessages = error.errors
         .map((err) => `${err.path.join('.')}: ${err.message}`)

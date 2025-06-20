@@ -146,7 +146,7 @@ export class ReportingService {
 
       logger.info('Traffic summary fetched successfully', { summary });
       return summary;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to fetch traffic summary', { error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
@@ -191,7 +191,7 @@ export class ReportingService {
       });
 
       return results;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to fetch time-series data', { error, metrics, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
@@ -285,7 +285,7 @@ export class ReportingService {
       });
 
       return insights;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to generate cost optimization insights', { error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
@@ -384,7 +384,7 @@ export class ReportingService {
       });
 
       return benchmarks;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to fetch performance benchmarks', { error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
@@ -428,7 +428,7 @@ export class ReportingService {
       });
 
       return createdDashboard;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to create dashboard', { error, name: dashboard.name });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
@@ -494,7 +494,7 @@ export class ReportingService {
         filename,
         contentType,
       };
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to export report', { error, format, metrics, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
@@ -529,7 +529,7 @@ export class ReportingService {
         enabledAlerts: thresholds.filter((t) => t.enabled).length,
         totalAlerts: thresholds.length,
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to configure alerts', { error, thresholds });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(

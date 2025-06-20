@@ -130,7 +130,7 @@ export async function collectTemplateInputs(
 /**
  * Generate a complete provisioning plan from template and inputs
  */
-export function generateProvisioningPlan(context: TemplateContext): ProvisioningPlan {
+export function generateProvisioningPlan(_context: TemplateContext): ProvisioningPlan {
   const { template, inputs, contractId, groupId, productId, cpCode } = context;
 
   // Generate property name
@@ -313,7 +313,7 @@ ${plan.activationSteps.map((step, i) => `${i + 1}. Deploy to **${step.network}**
 export async function provisionPropertyFromTemplate(
   templateId: string,
   inputs: Record<string, any>,
-  context: Partial<TemplateContext>,
+  _context: Partial<TemplateContext>,
 ): Promise<ProvisioningPlan> {
   // Get template
   const template = getTemplateById(templateId);

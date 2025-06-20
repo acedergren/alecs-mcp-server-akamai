@@ -283,7 +283,7 @@ continue;
               continue;
             }
           }
-        } catch (error) {
+        } catch (_error) {
           // Continue without hostname data
         }
       }
@@ -416,7 +416,7 @@ responseText += `- **Activation status:** ${args.criteria.activationStatus}\n`;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -722,7 +722,7 @@ export async function compareProperties(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -998,7 +998,7 @@ export async function checkPropertyHealth(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -1184,7 +1184,7 @@ export async function detectConfigurationDrift(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -1412,7 +1412,7 @@ rules.behaviors = [];
           message: updateApplied ? 'Updates applied successfully' : 'No updates applied',
           newVersion: args.createNewVersion ? version : undefined,
         });
-      } catch (error) {
+      } catch (_error) {
         results.push({
           propertyId,
           propertyName: 'Unknown',
@@ -1492,7 +1492,7 @@ rules.behaviors = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {

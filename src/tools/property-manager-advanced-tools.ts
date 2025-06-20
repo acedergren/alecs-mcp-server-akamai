@@ -86,7 +86,7 @@ text += `**Group:** ${args.groupId}\n`;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list edge hostnames', error);
   }
 }
@@ -184,7 +184,7 @@ export async function getEdgeHostname(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get edge hostname', error);
   }
 }
@@ -291,7 +291,7 @@ export async function cloneProperty(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('clone property', error);
   }
 }
@@ -355,7 +355,7 @@ export async function removeProperty(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('remove property', error);
   }
 }
@@ -446,7 +446,7 @@ export async function listPropertyVersions(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list property versions', error);
   }
 }
@@ -536,7 +536,7 @@ export async function getPropertyVersion(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get property version', error);
   }
 }
@@ -646,7 +646,7 @@ export async function getLatestPropertyVersion(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get latest property version', error);
   }
 }
@@ -708,7 +708,7 @@ export async function cancelPropertyActivation(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('cancel property activation', error);
   }
 }
@@ -945,7 +945,7 @@ continue;
                 if (matches.length > 0) {
                   property.hostnames = propertyHostnames;
                 }
-              } catch (err) {
+              } catch (_err) {
                 // Continue if unable to fetch hostnames
               }
             }
@@ -966,7 +966,7 @@ continue;
               });
             }
           }
-        } catch (err) {
+        } catch (_err) {
           // Continue with next contract
         }
       }
@@ -994,7 +994,7 @@ continue;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('search properties', error);
   }
 }
@@ -1210,11 +1210,11 @@ continue;
                   certStatus: hostname.certStatus?.production?.[0]?.status || 'Unknown',
                 });
               }
-            } catch (err) {
+            } catch (_err) {
               // Continue if unable to get hostnames for a property
             }
           }
-        } catch (err) {
+        } catch (_err) {
           // Continue with next contract
         }
       }
@@ -1298,7 +1298,7 @@ text += `**Group:** ${args.groupId}\n`;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list all hostnames', error);
   }
 }
@@ -1407,7 +1407,7 @@ export async function listPropertyVersionHostnames(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list property version hostnames', error);
   }
 }
@@ -1415,7 +1415,7 @@ export async function listPropertyVersionHostnames(
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 

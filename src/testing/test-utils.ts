@@ -8,7 +8,7 @@ import { type AkamaiClient } from '../akamai-client';
 // Mock Akamai Client
 export function createMockAkamaiClient(): jest.Mocked<AkamaiClient> {
   const mockClient = {
-    request: jest.fn(),
+    _request: jest.fn(),
     _customer: 'default',
     _accountSwitchKey: undefined,
     _edgercPath: '.edgerc',
@@ -566,7 +566,7 @@ Updated origin configuration and caching behaviors as requested.`,
 - Status: validated
 - Domains: ${args.domains?.join(', ') || 'example.com'}
 - Issued: 2025-01-01
-- Expires: 2026-01-01
+- Expi_res: 2026-01-01
 
 Certificate validation completed successfully.`,
         },
@@ -997,7 +997,7 @@ export class PerformanceTracker {
 
 // Conversational Context Tracker
 export class ConversationalContextTracker {
-  private context: {
+  private _context: {
     messages: Array<{ role: 'user' | 'assistant'; content: string; timestamp: string }>;
     entities: Record<string, any>;
     workflow?: string;
@@ -1226,7 +1226,7 @@ export class LoadTestRunner {
                 success: true,
                 duration: performance.now() - requestStart,
               });
-            } catch (error) {
+            } catch (_error) {
               results.push({
                 success: false,
                 duration: performance.now() - requestStart,

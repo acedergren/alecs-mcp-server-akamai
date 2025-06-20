@@ -184,7 +184,7 @@ return null;
         await this.recordMiss(key);
         return null;
       }
-    } catch (err) {
+    } catch (_err) {
       console.error(`[Valkey] Error getting ${key}:`, err);
       this.metrics.errors++;
       return null;
@@ -213,7 +213,7 @@ return false;
 
       await this.client.setex(fullKey, ttl, serialized);
       return true;
-    } catch (err) {
+    } catch (_err) {
       console.error(`[Valkey] Error setting ${key}:`, err);
       this.metrics.errors++;
       return false;
@@ -232,7 +232,7 @@ return 0;
       const keysArray = Array.isArray(keys) ? keys : [keys];
       const fullKeys = keysArray.map((k) => this.buildKey(k));
       return await this.client.del(...fullKeys);
-    } catch (err) {
+    } catch (_err) {
       console.error('[Valkey] Error deleting keys:', err);
       return 0;
     }
@@ -249,7 +249,7 @@ return -1;
     try {
       const fullKey = this.buildKey(key);
       return await this.client.ttl(fullKey);
-    } catch (err) {
+    } catch (_err) {
       console.error(`[Valkey] Error getting TTL for ${key}:`, err);
       return -1;
     }
@@ -337,7 +337,7 @@ return cached;
     try {
       const data = await fetchFn();
       await this.set(key, data, ttl);
-    } catch (err) {
+    } catch (_err) {
       console.error(`[Valkey] Background refresh failed for ${key}:`, err);
     } finally {
       this.refreshingKeys.delete(key);
@@ -362,7 +362,7 @@ return cached;
           try {
             result.set(keys[index], JSON.parse(value));
             this.metrics.hits++;
-          } catch (err) {
+          } catch (_err) {
             console.error(`[Valkey] Error parsing value for ${keys[index]}`);
           }
         } else {
@@ -371,7 +371,7 @@ return cached;
       });
 
       return result;
-    } catch (err) {
+    } catch (_err) {
       console.error('[Valkey] Error in mget:', err);
       return new Map();
     }
@@ -400,7 +400,7 @@ return 0;
           if (keys.length) {
             try {
               deleted += await this.client.del(...keys);
-            } catch (err) {
+            } catch (_err) {
               console.error('[Valkey] Error deleting batch:', err);
             }
           }
@@ -420,7 +420,7 @@ return 0;
         if (keys.length > 0) {
           try {
             deleted += await this.client.del(...keys);
-          } catch (err) {
+          } catch (_err) {
             console.error('[Valkey] Error deleting batch:', err);
           }
         }
@@ -439,7 +439,7 @@ return 0;
       const statsKey = this.buildKey(`stats:${date}:hits`);
       await this.client.hincrby(statsKey, key, 1);
       await this.client.expire(statsKey, 7 * 86400); // Keep for 7 days
-    } catch (err) {
+    } catch (_err) {
       // Ignore stats errors
     }
   }
@@ -453,7 +453,7 @@ return 0;
       const statsKey = this.buildKey(`stats:${date}:misses`);
       await this.client.hincrby(statsKey, key, 1);
       await this.client.expire(statsKey, 7 * 86400); // Keep for 7 days
-    } catch (err) {
+    } catch (_err) {
       // Ignore stats errors
     }
   }
@@ -493,7 +493,7 @@ return;
     try {
       await this.client.flushdb();
       console.error('[Valkey] Cache cleared');
-    } catch (err) {
+    } catch (_err) {
       console.error('[Valkey] Error flushing cache:', err);
     }
   }

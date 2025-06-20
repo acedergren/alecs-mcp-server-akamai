@@ -77,7 +77,7 @@ export const listAppSecConfigurations = {
           ),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
         error: `Failed to list APPSEC configurations: ${error instanceof Error ? error.message : String(error)}`,
@@ -127,7 +127,7 @@ export const getAppSecConfiguration = {
           formatted: formatJson(response),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
         error: `Failed to get APPSEC configuration: ${error instanceof Error ? error.message : String(error)}`,
@@ -196,7 +196,7 @@ export const createWAFPolicy = {
           formatted: formatJson(response),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
         error: `Failed to create WAF policy: ${error instanceof Error ? error.message : String(error)}`,
@@ -282,7 +282,7 @@ export const getSecurityEvents = {
           ),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
         error: `Failed to get security events: ${error instanceof Error ? error.message : String(error)}`,
@@ -351,7 +351,7 @@ export const activateSecurityConfiguration = {
           formatted: formatJson(response),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
         error: `Failed to activate security configuration: ${error instanceof Error ? error.message : String(error)}`,
@@ -404,7 +404,7 @@ export const getSecurityActivationStatus = {
           formatted: formatJson(response),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
         error: `Failed to get activation status: ${error instanceof Error ? error.message : String(error)}`,

@@ -135,6 +135,7 @@ export interface CreatePropertyArgs {
   ruleFormat?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ListGroupsArgs {
   // No specific args, returns all accessible groups
 }

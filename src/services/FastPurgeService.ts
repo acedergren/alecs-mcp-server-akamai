@@ -16,7 +16,7 @@ export interface FastPurgeResponse {
   supportId: string;
   detail: string;
   estimatedSeconds: number;
-  httpStatus: number;
+  _httpStatus: number;
   purgedCount?: number;
   title?: string;
   pingAfterSeconds?: number;
@@ -167,7 +167,7 @@ export class FastPurgeService {
   private async executeWithRetry<T>(
     _customer: string,
     operation: () => Promise<T>,
-    context: string,
+    _context: string,
   ): Promise<T> {
     let lastError: Error | null = null;
     let delay = this.INITIAL_RETRY_DELAY;
@@ -178,7 +178,7 @@ export class FastPurgeService {
           OperationType.BULK_OPERATION,
           operation,
         );
-      } catch (error: any) {
+      } catch (_error: any) {
         lastError = error;
 
         // Handle rate limiting
@@ -285,14 +285,14 @@ export class FastPurgeService {
           supportId: response.data.supportId,
           detail: response.data.detail,
           estimatedSeconds: response.data.estimatedSeconds,
-          httpStatus: response.data.httpStatus,
+          _httpStatus: response.data.httpStatus,
           purgedCount: batch.length,
           title: response.data.title,
           pingAfterSeconds: response.data.pingAfterSeconds,
         });
 
         processedCount += batchSize;
-      } catch (error: any) {
+      } catch (_error: any) {
         logger.error(`Failed to purge URL batch: ${error.message}`);
 
         // Handle RFC 7807 problem details
@@ -366,12 +366,12 @@ export class FastPurgeService {
           supportId: response.data.supportId,
           detail: response.data.detail,
           estimatedSeconds: response.data.estimatedSeconds,
-          httpStatus: response.data.httpStatus,
+          _httpStatus: response.data.httpStatus,
           purgedCount: 1,
           title: response.data.title,
           pingAfterSeconds: response.data.pingAfterSeconds,
         });
-      } catch (error: any) {
+      } catch (_error: any) {
         logger.error(`Failed to purge CP code ${cpCode}: ${error.message}`);
 
         if (error.response?.data?.type) {
@@ -448,14 +448,14 @@ export class FastPurgeService {
           supportId: response.data.supportId,
           detail: response.data.detail,
           estimatedSeconds: response.data.estimatedSeconds,
-          httpStatus: response.data.httpStatus,
+          _httpStatus: response.data.httpStatus,
           purgedCount: batch.length,
           title: response.data.title,
           pingAfterSeconds: response.data.pingAfterSeconds,
         });
 
         processedCount += batchSize;
-      } catch (error: any) {
+      } catch (_error: any) {
         logger.error(`Failed to purge tag batch: ${error.message}`);
 
         if (error.response?.data?.type) {
@@ -509,7 +509,7 @@ export class FastPurgeService {
         supportId: response.data.supportId,
         customer: customer,
       };
-    } catch (error: any) {
+    } catch (_error: any) {
       logger.error(`Failed to check purge status ${purgeId}: ${error.message}`);
 
       if (error.response?.data?.type) {

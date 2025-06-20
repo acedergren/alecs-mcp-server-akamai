@@ -109,7 +109,7 @@ class PropertyALECSServer {
       log('INFO', 'Initializing Akamai client...');
       this.client = new AkamaiClient();
       log('INFO', '✅ Akamai client initialized successfully');
-    } catch (error) {
+    } catch (_error) {
       log('ERROR', '❌ Failed to initialize Akamai client', {
         error: error instanceof Error ? error.message : String(error),
       });
@@ -687,7 +687,7 @@ class PropertyALECSServer {
 
         return result;
 
-      } catch (error) {
+      } catch (_error) {
         const duration = Date.now() - startTime;
         log('ERROR', `❌ Tool ${name} failed after ${duration}ms`, {
           error: error instanceof Error ? {
@@ -723,7 +723,7 @@ class PropertyALECSServer {
     const transport = new StdioServerTransport();
 
     // Add error handling for transport
-    transport.onerror = (error: Error) => {
+    transport.onerror = (_error: Error) => {
       log('ERROR', '❌ Transport error', {
         message: error.message,
         stack: error.stack,
@@ -743,7 +743,7 @@ class PropertyALECSServer {
         memoryUsage: process.memoryUsage(),
         uptime: process.uptime(),
       });
-    } catch (error) {
+    } catch (_error) {
       log('ERROR', '❌ Failed to connect server', {
         error: error instanceof Error ? {
           message: error.message,
@@ -772,7 +772,7 @@ async function main() {
       });
     }, 30000); // Every 30 seconds
 
-  } catch (error) {
+  } catch (_error) {
     log('ERROR', '❌ Failed to start server', {
       error: error instanceof Error ? {
         message: error.message,

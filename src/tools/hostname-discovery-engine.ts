@@ -144,7 +144,7 @@ export async function discoverHostnamesIntelligent(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(error, 'discovering hostnames intelligently');
   }
 }
@@ -223,7 +223,7 @@ export async function analyzeHostnameConflicts(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(error, 'analyzing hostname conflicts');
   }
 }
@@ -273,7 +273,7 @@ export async function analyzeWildcardCoverage(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(error, 'analyzing wildcard coverage');
   }
 }
@@ -324,7 +324,7 @@ export async function identifyOwnershipPatterns(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(error, 'identifying ownership patterns');
   }
 }
@@ -363,7 +363,7 @@ params.append('groupId', args.groupId);
           ...property,
           hostnames: hostnameResponse.hostnames?.items || [],
         };
-      } catch (error) {
+      } catch (_error) {
         return {
           ...property,
           hostnames: [],
@@ -458,7 +458,7 @@ async function analyzeWildcardEfficiency(
   return wildcardCoverage;
 }
 
-function findOwnershipPatterns(properties: any[], options: any = {}): PropertyOwnershipPattern[] {
+function findOwnershipPatterns(properties: any[], _options: any = {}): PropertyOwnershipPattern[] {
   const patterns: PropertyOwnershipPattern[] = [];
   const minProperties = options.minPropertiesForPattern || 3;
 

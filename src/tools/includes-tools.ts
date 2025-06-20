@@ -94,7 +94,7 @@ export async function listIncludes(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(error, 'listing includes');
   }
 }
@@ -192,7 +192,7 @@ export async function getInclude(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(error, 'getting include details');
   }
 }
@@ -269,7 +269,7 @@ export async function createInclude(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(error, 'creating include');
   }
 }
@@ -341,7 +341,7 @@ export async function updateInclude(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(error, 'updating include');
   }
 }
@@ -412,7 +412,7 @@ export async function createIncludeVersion(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(error, 'creating include version');
   }
 }
@@ -498,7 +498,7 @@ export async function activateInclude(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(error, 'activating include');
   }
 }
@@ -596,7 +596,7 @@ export async function getIncludeActivationStatus(
 
     if (activation.errors && activation.errors.length > 0) {
       responseText += '\n## Errors\n\n';
-      activation.errors.forEach((error: any) => {
+      activation.errors.forEach((_error: any) => {
         responseText += `❌ **${error.title}**: ${error.detail}\n`;
       });
     }
@@ -604,7 +604,7 @@ export async function getIncludeActivationStatus(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(error, 'getting include activation status');
   }
 }
@@ -706,7 +706,7 @@ export async function listIncludeActivations(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(error, 'listing include activations');
   }
 }

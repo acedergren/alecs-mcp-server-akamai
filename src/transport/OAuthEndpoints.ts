@@ -43,7 +43,7 @@ interface CustomerMappingRequest {
 /**
  * Wrapper for async route handlers
  */
-function asyncHandler(fn: (req: Request, res: Response, next: NextFunction) => Promise<any>): RequestHandler {
+function asyncHandler(fn: (_req: Request, _res: Response, _next: NextFunction) => Promise<any>): RequestHandler {
   return (req, res, next) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };
@@ -59,7 +59,7 @@ export function createOAuthRoutes(): Router {
   /**
    * OAuth login endpoint
    */
-  router.post('/auth/oauth/login', asyncHandler(async (req: Request, res: Response) => {
+  router.post('/auth/oauth/login', asyncHandler(async (_req: Request, _res: Response) => {
     try {
       const { token, provider } = req.body as OAuthLoginRequest;
 
@@ -83,7 +83,7 @@ export function createOAuthRoutes(): Router {
         availableCustomers: session.availableContexts,
         expiresAt: session.expiresAt,
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('OAuth login failed', { error });
       return res.status(401).json({
         error: error instanceof Error ? error.message : 'Authentication failed',
@@ -94,7 +94,7 @@ export function createOAuthRoutes(): Router {
   /**
    * Refresh token endpoint
    */
-  router.post('/auth/oauth/refresh', asyncHandler(async (req: Request, res: Response) => {
+  router.post('/auth/oauth/refresh', asyncHandler(async (_req: Request, _res: Response) => {
     try {
       const sessionId = req.headers['x-session-id'] as string;
 
@@ -110,7 +110,7 @@ export function createOAuthRoutes(): Router {
         token: newToken,
         expiresIn: newToken.expiresIn,
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Token refresh failed', { error });
       return res.status(401).json({
         error: error instanceof Error ? error.message : 'Token refresh failed',
@@ -121,7 +121,7 @@ export function createOAuthRoutes(): Router {
   /**
    * Logout endpoint
    */
-  router.post('/auth/oauth/logout', asyncHandler(async (req: Request, res: Response) => {
+  router.post('/auth/oauth/logout', asyncHandler(async (_req: Request, _res: Response) => {
     try {
       const sessionId = req.headers['x-session-id'] as string;
 
@@ -136,7 +136,7 @@ export function createOAuthRoutes(): Router {
       return res.json({
         message: 'Logout successful',
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Logout failed', { error });
       return res.status(500).json({
         error: error instanceof Error ? error.message : 'Logout failed',
@@ -147,7 +147,7 @@ export function createOAuthRoutes(): Router {
   /**
    * Get available customers
    */
-  router.get('/auth/customers', asyncHandler(async (req: Request, res: Response) => {
+  router.get('/auth/customers', asyncHandler(async (_req: Request, _res: Response) => {
     try {
       const sessionId = req.headers['x-session-id'] as string;
 
@@ -162,7 +162,7 @@ export function createOAuthRoutes(): Router {
       return res.json({
         customers,
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to get customers', { error });
       return res.status(500).json({
         error: error instanceof Error ? error.message : 'Failed to get customers',
@@ -173,7 +173,7 @@ export function createOAuthRoutes(): Router {
   /**
    * Switch customer context
    */
-  router.post('/auth/customers/switch', asyncHandler(async (req: Request, res: Response) => {
+  router.post('/auth/customers/switch', asyncHandler(async (_req: Request, _res: Response) => {
     try {
       const sessionId = req.headers['x-session-id'] as string;
       const { targetCustomerId, reason } = req.body as CustomerSwitchRequest;
@@ -200,7 +200,7 @@ export function createOAuthRoutes(): Router {
         currentCustomer: newContext,
         message: 'Customer context switched successfully',
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Customer switch failed', { error });
       return res.status(403).json({
         error: error instanceof Error ? error.message : 'Customer switch failed',
@@ -211,7 +211,7 @@ export function createOAuthRoutes(): Router {
   /**
    * Admin: Map subject to customer
    */
-  router.post('/admin/customers/mapping', asyncHandler(async (req: Request, res: Response) => {
+  router.post('/admin/customers/mapping', asyncHandler(async (_req: Request, _res: Response) => {
     try {
       const sessionId = req.headers['x-session-id'] as string;
       const { subject, provider, customerContext } = req.body as CustomerMappingRequest;
@@ -238,7 +238,7 @@ export function createOAuthRoutes(): Router {
       return res.json({
         message: 'Customer mapping created successfully',
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Customer mapping failed', { error });
       return res.status(403).json({
         error: error instanceof Error ? error.message : 'Customer mapping failed',
@@ -249,7 +249,7 @@ export function createOAuthRoutes(): Router {
   /**
    * Admin: Create custom role
    */
-  router.post('/admin/roles', asyncHandler(async (req: Request, res: Response) => {
+  router.post('/admin/roles', asyncHandler(async (_req: Request, _res: Response) => {
     try {
       const sessionId = req.headers['x-session-id'] as string;
       const role = req.body as Role;
@@ -272,7 +272,7 @@ export function createOAuthRoutes(): Router {
         message: 'Role created successfully',
         roleId: role.id,
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Role creation failed', { error });
       return res.status(403).json({
         error: error instanceof Error ? error.message : 'Role creation failed',
@@ -283,7 +283,7 @@ export function createOAuthRoutes(): Router {
   /**
    * Admin: Set customer isolation policy
    */
-  router.post('/admin/customers/:customerId/isolation-policy', asyncHandler(async (req: Request, res: Response) => {
+  router.post('/admin/customers/:customerId/isolation-policy', asyncHandler(async (_req: Request, _res: Response) => {
     try {
       const sessionId = req.headers['x-session-id'] as string;
       const { customerId } = req.params;
@@ -311,7 +311,7 @@ export function createOAuthRoutes(): Router {
         message: 'Isolation policy set successfully',
         customerId,
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Isolation policy creation failed', { error });
       return res.status(403).json({
         error: error instanceof Error ? error.message : 'Isolation policy creation failed',
@@ -322,7 +322,7 @@ export function createOAuthRoutes(): Router {
   /**
    * Health check endpoint
    */
-  router.get('/auth/health', (req: Request, res: Response) => {
+  router.get('/auth/health', (_req: Request, _res: Response) => {
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -330,7 +330,7 @@ export function createOAuthRoutes(): Router {
   });
 
   // Error handling middleware
-  router.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+  router.use((_error: Error, _req: Request, _res: Response, _next: NextFunction) => {
     logger.error('OAuth endpoint error', {
       path: req.path,
       method: req.method,
@@ -352,7 +352,7 @@ export function createOAuthRoutes(): Router {
 export function createSessionMiddleware() {
   const contextManager = CustomerContextManager.getInstance();
 
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (_req: Request, _res: Response, _next: NextFunction) => {
     try {
       const sessionId = req.headers['x-session-id'] as string;
 
@@ -371,7 +371,7 @@ export function createSessionMiddleware() {
       };
 
       next();
-    } catch (error) {
+    } catch (_error) {
       // Invalid session, continue without authentication
       logger.debug('Invalid session', { sessionId: req.headers['x-session-id'] });
       next();
@@ -382,7 +382,7 @@ export function createSessionMiddleware() {
 /**
  * Require authentication middleware
  */
-export function requireAuth(req: Request, res: Response, next: NextFunction): void {
+export function requireAuth(_req: Request, _res: Response, _next: NextFunction): void {
   if (!(req as any).session?.id) {
     res.status(401).json({
       error: 'Authentication required',
@@ -395,7 +395,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
 /**
  * Require admin middleware
  */
-export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
+export function requireAdmin(_req: Request, _res: Response, _next: NextFunction): void {
   const session = (req as any).session;
 
   if (!session?.id) {

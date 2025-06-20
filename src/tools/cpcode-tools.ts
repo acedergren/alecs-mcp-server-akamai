@@ -116,7 +116,7 @@ acc[contract] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list CP Codes', error);
   }
 }
@@ -231,7 +231,7 @@ export async function getCPCode(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get CP Code details', error);
   }
 }
@@ -305,7 +305,7 @@ export async function createCPCode(
             productId = bestProduct.productId;
           }
         }
-      } catch (productError) {
+      } catch (_productError) {
         // Ignore error and use default
       }
 
@@ -397,7 +397,7 @@ export async function createCPCode(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('create CP Code', error);
   }
 }
@@ -494,7 +494,7 @@ export async function searchCPCodes(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('search CP Codes', error);
   }
 }
@@ -502,7 +502,7 @@ export async function searchCPCodes(
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 

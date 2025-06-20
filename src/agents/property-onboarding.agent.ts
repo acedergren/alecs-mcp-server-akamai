@@ -217,7 +217,7 @@ export class PropertyOnboardingAgent {
       );
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       console.error('[PropertyOnboarding] Error:', error);
       result.errors!.push(
         `Unexpected error: ${error instanceof Error ? error.message : String(error)}`,
@@ -402,7 +402,7 @@ export class PropertyOnboardingAgent {
 
       console.error('[PropertyOnboarding] Could not extract CP Code ID from response');
       return { success: false };
-    } catch (error) {
+    } catch (_error) {
       console.error('[PropertyOnboarding] Create CP Code error:', error);
       return { success: false };
     }
@@ -432,7 +432,7 @@ export class PropertyOnboardingAgent {
       }
 
       return { success: false };
-    } catch (error) {
+    } catch (_error) {
       console.error('[PropertyOnboarding] Create property error:', error);
       return { success: false };
     }
@@ -463,7 +463,7 @@ export class PropertyOnboardingAgent {
         success: true,
         edgeHostname,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error('[PropertyOnboarding] Create edge hostname error:', error);
       return { success: false };
     }
@@ -713,7 +713,7 @@ export class PropertyOnboardingAgent {
           nextSteps: await this.generateDnsGuidance(domain, hostname, edgeHostname, config),
         };
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('[PropertyOnboarding] DNS setup error:', error);
       return {
         recordCreated: false,
@@ -740,7 +740,7 @@ export class PropertyOnboardingAgent {
         ttl: 300,
         rdata: [acmeTarget],
       });
-    } catch (error) {
+    } catch (_error) {
       console.error('[PropertyOnboarding] ACME record creation error:', error);
     }
   }
@@ -811,7 +811,7 @@ export class PropertyOnboardingAgent {
         success: true,
         activationId: activationIdMatch ? activationIdMatch[1] : undefined,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error('[PropertyOnboarding] Activation error:', error);
       return { success: false };
     }

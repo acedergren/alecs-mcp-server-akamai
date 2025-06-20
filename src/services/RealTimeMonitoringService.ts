@@ -133,7 +133,7 @@ export class RealTimeMonitoringService extends EventEmitter {
 
       this.emit('monitoring-started', { timestamp: new Date().toISOString() });
       logger.info('Real-time monitoring started successfully');
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to start real-time monitoring', { error });
       this.isMonitoring = false;
       throw new Error(
@@ -195,7 +195,7 @@ export class RealTimeMonitoringService extends EventEmitter {
             unit: this.getMetricUnit(metric),
             tags: filter,
           };
-        } catch (error) {
+        } catch (_error) {
           logger.error(`Failed to fetch metric ${metric}`, { error });
           return null;
         }
@@ -216,7 +216,7 @@ export class RealTimeMonitoringService extends EventEmitter {
       });
 
       return currentMetrics;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to get current metrics', { error, metrics, filter });
       throw new Error(
         `Failed to get current metrics: ${error instanceof Error ? error.message : String(error)}`,
@@ -326,7 +326,7 @@ export class RealTimeMonitoringService extends EventEmitter {
       });
 
       return healthStatus;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to get health status', { error });
       throw new Error(
         `Failed to get health status: ${error instanceof Error ? error.message : String(error)}`,
@@ -377,7 +377,7 @@ export class RealTimeMonitoringService extends EventEmitter {
 
       // Clean up old metric history
       this.cleanupMetricHistory();
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to collect metrics', { error });
       this.emit('metrics-collection-failed', {
         error: error instanceof Error ? error.message : String(error),
@@ -412,7 +412,7 @@ continue;
       }
 
       logger.debug('Alert evaluation completed', { evaluatedRules: evaluatedRules.length });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to evaluate alerts', { error });
     }
   }
@@ -448,7 +448,7 @@ continue;
           }
         }
       }
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to evaluate alert rule', { error, ruleId: rule.id });
     }
   }
@@ -607,7 +607,7 @@ return;
           responseTime,
           details: `Response time: ${responseTime}ms`,
         };
-      } catch (error) {
+      } catch (_error) {
         return {
           name: service.name,
           status: 'critical' as const,

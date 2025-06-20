@@ -56,7 +56,7 @@ export class AkamaiOrchestrator {
       this.cpsAgent = await createCPSCertificateAgent(this.options.customer, this.dnsAgent);
 
       progress.finish('All agents initialized');
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
@@ -69,7 +69,7 @@ export class AkamaiOrchestrator {
   /**
    * Complete website migration from another provider to Akamai
    */
-  async migrateWebsite(options: {
+  async migrateWebsite(_options: {
     domain: string;
     originHostname: string;
     sourceProvider: 'cloudflare' | 'aws' | 'generic';
@@ -166,7 +166,7 @@ export class AkamaiOrchestrator {
       console.log('  2. Test thoroughly on staging');
       console.log('  3. Activate to production when ready');
       console.log('  4. Monitor traffic and performance');
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
@@ -179,7 +179,7 @@ export class AkamaiOrchestrator {
   /**
    * Provision a new secure website from scratch
    */
-  async provisionSecureWebsite(options: {
+  async provisionSecureWebsite(_options: {
     domains: string[];
     originHostname: string;
     certificateType?: 'default-dv' | 'ev' | 'ov';
@@ -246,7 +246,7 @@ export class AkamaiOrchestrator {
       }
 
       progress.finish('Secure website provisioned successfully!');
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
@@ -259,7 +259,7 @@ export class AkamaiOrchestrator {
   /**
    * Bulk DNS migration for multiple zones
    */
-  async bulkDNSMigration(options: {
+  async bulkDNSMigration(_options: {
     zones: Array<{ source: string; target?: string }>;
     sourceType: 'cloudflare' | 'route53' | 'axfr';
     sourceConfig: any;
@@ -304,7 +304,7 @@ export class AkamaiOrchestrator {
                 autoActivate: true,
               });
               results.success++;
-            } catch (error) {
+            } catch (_error) {
               results.failed++;
               results.errors.push(
                 `${zone.source}: ${error instanceof Error ? error.message : String(error)}`,
@@ -332,7 +332,7 @@ export class AkamaiOrchestrator {
         console.log(`\n${icons.info} ${format.bold('Nameserver Update Required')}`);
         console.log('Update nameservers for all migrated zones at your domain registrar');
       }
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
@@ -361,7 +361,7 @@ export class AkamaiOrchestrator {
     }
   }
 
-  private async generateMigrationReport(options: any): Promise<void> {
+  private async generateMigrationReport(_options: any): Promise<void> {
     console.log(`\n${icons.document} Generating migration report...`);
 
     // This would generate a detailed report

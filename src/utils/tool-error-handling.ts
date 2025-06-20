@@ -19,7 +19,7 @@ export type { ErrorContext, RetryConfig };
 /**
  * Format error as MCPToolResponse
  */
-export function formatErrorResponse(error: any, context: ErrorContext): MCPToolResponse {
+export function formatErrorResponse(_error: any, _context: ErrorContext): MCPToolResponse {
   const errorResult = handleAkamaiError(error, context);
 
   let errorMessage = `❌ Failed to ${context.operation || 'complete operation'}`;
@@ -62,7 +62,7 @@ export function formatErrorResponse(error: any, context: ErrorContext): MCPToolR
  */
 export async function withToolErrorHandling<T extends MCPToolResponse>(
   operation: () => Promise<T>,
-  context: ErrorContext = {},
+  _context: ErrorContext = {},
   retryConfig?: Partial<RetryConfig>,
 ): Promise<T> {
   try {
@@ -71,7 +71,7 @@ export async function withToolErrorHandling<T extends MCPToolResponse>(
       process.env.NODE_ENV === 'test' ? { maxAttempts: 1, ...retryConfig } : retryConfig;
 
     return await baseWithEnhancedErrorHandling(operation, context, config);
-  } catch (error) {
+  } catch (_error) {
     return formatErrorResponse(error, context) as T;
   }
 }

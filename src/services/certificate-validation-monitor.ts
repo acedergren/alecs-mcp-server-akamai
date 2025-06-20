@@ -52,11 +52,11 @@ export interface MonitorEvents {
   'validation:started': (enrollmentId: number) => void;
   'validation:progress': (domain: string, status: ValidationStatus) => void;
   'validation:completed': (enrollmentId: number, domains: string[]) => void;
-  'validation:failed': (enrollmentId: number, error: string) => void;
+  'validation:failed': (enrollmentId: number, _error: string) => void;
   'dns:record_created': (domain: string, record: any) => void;
   'dns:propagation_complete': (domain: string) => void;
   'domain:validated': (domain: string) => void;
-  'domain:failed': (domain: string, error: string) => void;
+  'domain:failed': (domain: string, _error: string) => void;
 }
 
 export class CertificateValidationMonitor extends EventEmitter {
@@ -118,7 +118,7 @@ export class CertificateValidationMonitor extends EventEmitter {
           // Retry failed validations
           await this.retryFailedValidations(enrollmentId);
         }
-      } catch (error) {
+      } catch (_error) {
         console.error(`Monitor error for enrollment ${enrollmentId}:`, error);
         this.emit(
           'validation:failed',
@@ -169,7 +169,7 @@ return false;
       const answers = data.Answer || [];
 
       return answers.some((answer: any) => answer.data?.includes(expectedValue));
-    } catch (error) {
+    } catch (_error) {
       console.error(`DNS propagation check failed for ${domain}:`, error);
       return false;
     }
@@ -194,7 +194,7 @@ return false;
         domainState.attempts++;
         this.emit('validation:progress', domain, ValidationStatus.VALIDATION_TRIGGERED);
       }
-    } catch (error) {
+    } catch (_error) {
       const domainState = this.validationStates.get(enrollmentId)?.get(domain);
       if (domainState) {
         domainState.status = ValidationStatus.FAILED;
@@ -317,7 +317,7 @@ continue;
 
         try {
           await this.triggerDomainValidation(enrollmentId, domain);
-        } catch (error) {
+        } catch (_error) {
           console.error(`Failed to retry validation for ${domain}:`, error);
         }
       }

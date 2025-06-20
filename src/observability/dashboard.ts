@@ -37,7 +37,7 @@ export class DebugDashboard {
       return;
     }
 
-    this.server = createServer((req: IncomingMessage, res: ServerResponse) => {
+    this.server = createServer((_req: IncomingMessage, _res: ServerResponse) => {
       const url = new URL(req.url || '/', `http://localhost:${this.port}`);
 
       res.setHeader('Access-Control-Allow-Origin', '*');
@@ -84,7 +84,7 @@ export class DebugDashboard {
     }
   }
 
-  private serveDashboard(res: ServerResponse): void {
+  private serveDashboard(_res: ServerResponse): void {
     const html = `
 <!DOCTYPE html>
 <html>
@@ -214,7 +214,7 @@ export class DebugDashboard {
                 updateHealth(health);
                 updateMetrics(metrics);
                 updateOperations(operations);
-            } catch (error) {
+            } catch (_error) {
                 console.error('Failed to fetch data:', error);
             }
         }
@@ -307,25 +307,25 @@ export class DebugDashboard {
     res.end(html);
   }
 
-  private serveHealth(res: ServerResponse): void {
+  private serveHealth(_res: ServerResponse): void {
     // const health = healthMonitor.getLastStatus() || { status: 'unknown' };
     const health = { status: 'unknown', message: 'Health monitoring not yet implemented' };
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(health));
   }
 
-  private serveMetrics(res: ServerResponse): void {
+  private serveMetrics(_res: ServerResponse): void {
     const metrics = logger.getMetrics();
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(metrics));
   }
 
-  private serveOperations(res: ServerResponse): void {
+  private serveOperations(_res: ServerResponse): void {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(this.recentOperations));
   }
 
-  private serveCorrelations(res: ServerResponse, url: URL): void {
+  private serveCorrelations(_res: ServerResponse, url: URL): void {
     const correlationId = url.searchParams.get('id');
     if (!correlationId) {
       res.writeHead(400);

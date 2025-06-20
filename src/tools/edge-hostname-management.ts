@@ -222,7 +222,7 @@ export async function createEdgeHostnameEnhanced(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -298,7 +298,7 @@ export async function createBulkEdgeHostnames(
           edgeHostname,
           edgeHostnameId,
         });
-      } catch (error) {
+      } catch (_error) {
         results.failed.push({
           hostname,
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -355,7 +355,7 @@ export async function createBulkEdgeHostnames(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -537,7 +537,7 @@ queryParams.groupId = args.groupId;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -703,7 +703,7 @@ return;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -839,7 +839,7 @@ export async function validateEdgeHostnameCertificate(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -917,7 +917,7 @@ export async function associateCertificateWithEdgeHostname(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {

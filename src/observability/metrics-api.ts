@@ -328,7 +328,7 @@ continue;
         }
 
         this.emit('metricsCollected', name, collectedMetrics.length);
-      } catch (error) {
+      } catch (_error) {
         this.emit('collectionError', name, error);
       }
     }
@@ -435,7 +435,7 @@ continue;
   private startPushScheduler(): void {
     if (this.config.pushIntervalMs && this.config.pushIntervalMs > 0) {
       this.pushInterval = setInterval(() => {
-        this.pushMetrics().catch((error) => {
+        this.pushMetrics().catch((_error) => {
           this.emit('scheduledPushError', error);
         });
       }, this.config.pushIntervalMs);

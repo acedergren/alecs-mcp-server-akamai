@@ -29,7 +29,7 @@ export class ProgressBar extends EventEmitter {
   private clear: boolean;
   private lastDrawnLength = 0;
 
-  constructor(options: ProgressOptions = {}) {
+  constructor(_options: ProgressOptions = {}) {
     super();
     this.total = options.total || 100;
     this.format = options.format || '[:bar] :percent :message';
@@ -189,7 +189,7 @@ export class MultiProgress {
     this.stream = stream;
   }
 
-  addBar(id: string, options: ProgressOptions): ProgressBar {
+  addBar(id: string, _options: ProgressOptions): ProgressBar {
     const bar = new ProgressBar({ ...options, stream: this.stream });
     this.bars.set(id, bar);
     return bar;
@@ -240,7 +240,7 @@ export function withProgress<T>(
         spinner.succeed(`${message} - Done`);
         return result;
       })
-      .catch((error) => {
+      .catch((_error) => {
         spinner.fail(`${message} - Failed`);
         throw error;
       });
@@ -281,7 +281,7 @@ return;
     try {
       await processor(item, currentIndex);
       progress.increment(1, options.message || `Processing item ${currentIndex + 1}`);
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         message: `Error processing item ${currentIndex + 1}`,

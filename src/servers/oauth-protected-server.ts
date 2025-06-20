@@ -183,7 +183,7 @@ function createOAuthHttpServer(
   apiRouter.get(
     '/properties',
     oauthMiddleware.requireScopes(BASE_OAUTH_SCOPES.PROPERTY_READ),
-    async (req: OAuthRequest, res) => {
+    async (_req: OAuthRequest, res) => {
       const resources = resourceServer.listResources({
         type: ResourceType.PROPERTY,
         owner: req.oauth?.token.akamai?.account_id,
@@ -199,7 +199,7 @@ function createOAuthHttpServer(
       OAuthOperation.READ,
       req => req.params.propertyId,
     ),
-    async (req: OAuthRequest, res) => {
+    async (_req: OAuthRequest, res) => {
       const resource = req.oauth?.resource;
       res.json({ resource });
     },
@@ -212,7 +212,7 @@ function createOAuthHttpServer(
       OAuthOperation.WRITE,
       req => req.params.propertyId,
     ),
-    async (req: OAuthRequest, res) => {
+    async (_req: OAuthRequest, res) => {
       // Update property logic here
       res.json({ success: true });
     },
@@ -225,7 +225,7 @@ function createOAuthHttpServer(
       OAuthOperation.ACTIVATE,
       req => req.params.propertyId,
     ),
-    async (req: OAuthRequest, res) => {
+    async (_req: OAuthRequest, res) => {
       // Activation logic here
       res.json({ success: true });
     },
@@ -235,7 +235,7 @@ function createOAuthHttpServer(
   apiRouter.get(
     '/dns/zones',
     oauthMiddleware.requireScopes(BASE_OAUTH_SCOPES.DNS_READ),
-    async (req: OAuthRequest, res) => {
+    async (_req: OAuthRequest, res) => {
       const resources = resourceServer.listResources({
         type: ResourceType.DNS_ZONE,
         owner: req.oauth?.token.akamai?.account_id,
@@ -251,7 +251,7 @@ function createOAuthHttpServer(
       OAuthOperation.READ,
       req => req.params.zoneId,
     ),
-    async (req: OAuthRequest, res) => {
+    async (_req: OAuthRequest, res) => {
       const resource = req.oauth?.resource;
       res.json({ resource });
     },
@@ -261,7 +261,7 @@ function createOAuthHttpServer(
   apiRouter.get(
     '/network-lists',
     oauthMiddleware.requireScopes(BASE_OAUTH_SCOPES.NETWORK_LIST_READ),
-    async (req: OAuthRequest, res) => {
+    async (_req: OAuthRequest, res) => {
       const resources = resourceServer.listResources({
         type: ResourceType.NETWORK_LIST,
         owner: req.oauth?.token.akamai?.account_id,
@@ -274,7 +274,7 @@ function createOAuthHttpServer(
   apiRouter.get(
     '/certificates',
     oauthMiddleware.requireScopes(BASE_OAUTH_SCOPES.CERTIFICATE_READ),
-    async (req: OAuthRequest, res) => {
+    async (_req: OAuthRequest, res) => {
       const resources = resourceServer.listResources({
         type: ResourceType.CERTIFICATE,
         owner: req.oauth?.token.akamai?.account_id,
@@ -287,7 +287,7 @@ function createOAuthHttpServer(
   apiRouter.post(
     '/purge/url',
     oauthMiddleware.requireScopes(BASE_OAUTH_SCOPES.PURGE_EXECUTE),
-    async (req: OAuthRequest, res) => {
+    async (_req: OAuthRequest, res) => {
       // Purge logic here
       res.json({ success: true });
     },
@@ -297,7 +297,7 @@ function createOAuthHttpServer(
   app.use('/api/v1', apiRouter);
 
   // Error handling
-  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  app.use((_err: any, _req: express.Request, _res: express.Response, _next: express.NextFunction) => {
     console.error('Server error:', err);
     res.status(err.status || 500).json({
       error: err.error || 'server_error',

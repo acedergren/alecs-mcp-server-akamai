@@ -8,9 +8,9 @@ import { type McpToolResponse } from './mcp';
  * Middleware function type
  */
 export type MiddlewareFunction = (
-  req: MiddlewareRequest,
-  res: MiddlewareResponse,
-  next: NextFunction,
+  _req: MiddlewareRequest,
+  _res: MiddlewareResponse,
+  _next: NextFunction,
 ) => Promise<void> | void;
 
 /**
@@ -33,7 +33,7 @@ export interface MiddlewareRequest {
   /** Request timestamp */
   timestamp: number;
   /** Additional context */
-  context: Record<string, unknown>;
+  _context: Record<string, unknown>;
 }
 
 /**
@@ -43,7 +43,7 @@ export interface MiddlewareResponse {
   /** Set response data */
   send: (data: McpToolResponse) => void;
   /** Set error response */
-  error: (error: Error | string, code?: string) => void;
+  error: (_error: Error | string, code?: string) => void;
   /** Response status */
   status?: number;
   /** Response data */
@@ -121,11 +121,11 @@ export interface ValidationError {
  */
 export interface CustomerContextMiddleware {
   /** Extract customer from request */
-  extractCustomer: (req: MiddlewareRequest) => string | undefined;
+  extractCustomer: (_req: MiddlewareRequest) => string | undefined;
   /** Validate customer exists */
   validateCustomer: (customer: string) => Promise<boolean>;
   /** Enrich request with customer data */
-  enrichRequest: (req: MiddlewareRequest, customer: string) => Promise<void>;
+  enrichRequest: (_req: MiddlewareRequest, customer: string) => Promise<void>;
 }
 
 /**
@@ -133,9 +133,9 @@ export interface CustomerContextMiddleware {
  */
 export interface ErrorHandlerMiddleware {
   /** Handle specific error types */
-  handlers: Map<string, (error: Error) => McpToolResponse>;
+  handlers: Map<string, (_error: Error) => McpToolResponse>;
   /** Default error handler */
-  defaultHandler: (error: Error) => McpToolResponse;
+  defaultHandler: (_error: Error) => McpToolResponse;
   /** Log errors */
   logErrors?: boolean;
   /** Include stack traces */
@@ -146,7 +146,7 @@ export interface ErrorHandlerMiddleware {
  * Middleware stack manager
  */
 export class MiddlewareStack {
-  private middlewares: MiddlewareFunction[] = [];
+  private middlewa_res: MiddlewareFunction[] = [];
 
   /**
    * Add middleware to stack
@@ -158,10 +158,10 @@ export class MiddlewareStack {
   /**
    * Execute middleware stack
    */
-  async execute(req: MiddlewareRequest, res: MiddlewareResponse): Promise<void> {
+  async execute(_req: MiddlewareRequest, _res: MiddlewareResponse): Promise<void> {
     let index = 0;
 
-    const next: NextFunction = async (error?: Error) => {
+    const _next: NextFunction = async (error?: Error) => {
       if (error) {
         throw error;
       }
@@ -190,7 +190,7 @@ export const Middleware = {
   /**
    * Authentication middleware
    */
-  auth(options: AuthMiddlewareOptions = {}): MiddlewareFunction {
+  auth(_options: AuthMiddlewareOptions = {}): MiddlewareFunction {
     return async (req, res, next) => {
       const { requireAuth = true, skipAuthFor = [] } = options;
 
@@ -209,7 +209,7 @@ export const Middleware = {
   /**
    * Logging middleware
    */
-  logging(options: LoggingMiddlewareOptions = {}): MiddlewareFunction {
+  logging(_options: LoggingMiddlewareOptions = {}): MiddlewareFunction {
     return async (req, res, next) => {
       const { level = 'info', includeBody = true } = options;
 
@@ -244,7 +244,7 @@ export const Middleware = {
   /**
    * Rate limiting middleware
    */
-  rateLimit(options: RateLimitMiddlewareOptions): MiddlewareFunction {
+  rateLimit(_options: RateLimitMiddlewareOptions): MiddlewareFunction {
     const requests = new Map<string, number[]>();
 
     return async (req, res, next) => {
@@ -279,13 +279,13 @@ export const Middleware = {
   /**
    * Error handler middleware
    */
-  errorHandler(options: Partial<ErrorHandlerMiddleware> = {}): MiddlewareFunction {
+  errorHandler(_options: Partial<ErrorHandlerMiddleware> = {}): MiddlewareFunction {
     const { logErrors = true, includeStackTrace = false } = options;
 
     return async (req, res, next) => {
       try {
         await next();
-      } catch (error) {
+      } catch (_error) {
         if (logErrors) {
           console.error('Middleware error:', {
             requestId: req.requestId,

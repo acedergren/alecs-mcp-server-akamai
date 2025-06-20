@@ -964,7 +964,7 @@ export function applyTemplateInputs(template: PropertyTemplate, inputs: Record<s
             // This is a simplified evaluation - in production, use a proper expression parser
             const evalExpression = new Function(...Object.keys(inputs), `return ${expression}`);
             return evalExpression(...Object.values(inputs));
-          } catch (e) {
+          } catch (_e) {
             console.warn(`Failed to evaluate expression: ${expression}`);
             return match;
           }

@@ -113,7 +113,7 @@ export async function listProducts(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list products', error);
   }
 }
@@ -223,7 +223,7 @@ export async function getProduct(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get product', error);
   }
 }
@@ -368,7 +368,7 @@ export async function listUseCases(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list use cases', error);
   }
 }
@@ -376,7 +376,7 @@ export async function listUseCases(
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
@@ -594,7 +594,7 @@ export async function listBillingProducts(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list billing products', error);
   }
 }

@@ -295,7 +295,7 @@ export class BaseAkamaiClient {
   /**
    * Check if error is retryable
    */
-  private isRetryableError(error: Error): boolean {
+  private isRetryableError(_error: Error): boolean {
     if (error instanceof HttpError) {
       // Retry on 5xx errors and rate limits
       return error.statusCode >= 500 || error.statusCode === 429;
@@ -335,7 +335,7 @@ export class BaseAkamaiClient {
 
     try {
       return schema.parse(data);
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof z.ZodError) {
         throw new Error(
           `Response validation failed: ${error.errors.map((e) => e.message).join(', ')}`,
@@ -419,7 +419,7 @@ export class BaseAkamaiClient {
             customer: this.customer,
           },
         };
-      } catch (error) {
+      } catch (_error) {
         lastError = error as Error;
         const duration = Date.now() - startTime;
 

@@ -60,7 +60,7 @@ export class AkamaiCacheService {
 
         // Also create hostname mapping in background
         if (properties.length > 0) {
-          this.createHostnameMapping(client, customer, properties).catch((err) => {
+          this.createHostnameMapping(client, customer, properties).catch((_err) => {
             console.error('[Cache] Error creating hostname mapping:', err);
           });
         }
@@ -163,7 +163,7 @@ export class AkamaiCacheService {
                 );
               }
             }
-          } catch (err) {
+          } catch (_err) {
             console.error(`[Cache] Error processing property ${property.propertyId}:`, err);
           }
         }),
@@ -332,7 +332,7 @@ export class AkamaiCacheService {
 
       const elapsed = Date.now() - startTime;
       console.error(`[Cache] Cache warming completed in ${elapsed}ms`);
-    } catch (err) {
+    } catch (_err) {
       console.error('[Cache] Error during cache warming:', err);
     }
   }

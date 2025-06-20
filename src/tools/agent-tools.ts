@@ -101,7 +101,7 @@ export async function provisionCompleteProperty(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error provisioning property:', error);
     throw error;
   }
@@ -134,7 +134,7 @@ export async function clonePropertyVersion(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error cloning property version:', error);
     throw error;
   }
@@ -167,7 +167,7 @@ export async function applyPropertyTemplate(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error applying template:', error);
     throw error;
   }
@@ -203,7 +203,7 @@ export async function provisionAndDeployCertificate(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error provisioning certificate:', error);
     throw error;
   }
@@ -229,7 +229,7 @@ export async function automatedDNSValidation(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error with DNS validation:', error);
     throw error;
   }
@@ -254,7 +254,7 @@ export async function processCertificateRenewal(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error renewing certificate:', error);
     throw error;
   }
@@ -287,7 +287,7 @@ export async function importZoneFromCloudflare(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error importing from Cloudflare:', error);
     throw error;
   }
@@ -320,7 +320,7 @@ export async function bulkDNSMigration(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error with bulk DNS migration:', error);
     throw error;
   }
@@ -354,7 +354,7 @@ export async function migrateWebsite(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error migrating website:', error);
     throw error;
   }
@@ -385,7 +385,7 @@ export async function provisionSecureWebsite(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error provisioning secure website:', error);
     throw error;
   }

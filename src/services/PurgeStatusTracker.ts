@@ -112,13 +112,13 @@ export class PurgeStatusTracker {
       // Start cleanup timer
       this.cleanupTimer = setInterval(
         () => {
-          this.cleanupOldOperations().catch((err) =>
+          this.cleanupOldOperations().catch((_err) =>
             logger.error(`Failed to cleanup old operations: ${err.message}`),
           );
         },
         60 * 60 * 1000,
       ); // Every hour
-    } catch (error: any) {
+    } catch (_error: any) {
       logger.error(`Failed to initialize status persistence: ${error.message}`);
     }
   }
@@ -151,7 +151,7 @@ batch.completedAt = new Date(batch.completedAt);
 }
             });
 
-            operation.errors.forEach((error: any) => {
+            operation.errors.forEach((_error: any) => {
               error.occurredAt = new Date(error.occurredAt);
             });
 
@@ -161,14 +161,14 @@ batch.completedAt = new Date(batch.completedAt);
             if (operation.status === 'in-progress') {
               this.startPolling(operationId);
             }
-          } catch (err: any) {
+          } catch (_err: any) {
             logger.error(`Failed to load operation ${operationId}: ${err.message}`);
           }
         }
       }
 
       logger.info(`Loaded ${this.operations.size} purge operations from persistence`);
-    } catch (error: any) {
+    } catch (_error: any) {
       logger.error(`Failed to load operations: ${error.message}`);
     }
   }
@@ -178,7 +178,7 @@ batch.completedAt = new Date(batch.completedAt);
 
     try {
       await fs.writeFile(filePath, JSON.stringify(operation, null, 2));
-    } catch (error: any) {
+    } catch (_error: any) {
       logger.error(`Failed to persist operation ${operation.id}: ${error.message}`);
     }
   }
@@ -309,7 +309,7 @@ return;
               occurredAt: new Date(),
             });
           }
-        } catch (error: any) {
+        } catch (_error: any) {
           logger.error(`Failed to check status for batch ${batch.purgeId}: ${error.message}`);
 
           this.addError(operation, {
@@ -362,12 +362,12 @@ return;
 
       // Notify progress callbacks
       this.notifyProgressUpdate(operation);
-    } catch (error: any) {
+    } catch (_error: any) {
       logger.error(`Failed to update operation status ${operationId}: ${error.message}`);
     }
   }
 
-  private addError(operation: PurgeOperation, error: OperationError): void {
+  private addError(operation: PurgeOperation, _error: OperationError): void {
     operation.errors.push(error);
 
     // Limit error history
@@ -533,7 +533,7 @@ return;
       try {
         const filePath = path.join(this.statusDir, `${operationId}.json`);
         await fs.unlink(filePath);
-      } catch (error: any) {
+      } catch (_error: any) {
         // File might not exist, ignore error
       }
     }

@@ -39,9 +39,9 @@ export interface OAuthAuthorizationOptions {
   /** Whether to require authentication for all routes */
   requireAuth?: boolean;
   /** Custom token extractor */
-  tokenExtractor?: (req: Request) => string | undefined;
+  tokenExtractor?: (_req: Request) => string | undefined;
   /** Custom error handler */
-  errorHandler?: (err: OAuthError, req: Request, res: Response, next: NextFunction) => void;
+  errorHandler?: (_err: OAuthError, _req: Request, _res: Response, _next: NextFunction) => void;
 }
 
 /**
@@ -82,7 +82,7 @@ export function createOAuthMiddleware(
     errorHandler = defaultErrorHandler,
   } = options;
 
-  return async (req: OAuthRequest, res: Response, next: NextFunction) => {
+  return async (_req: OAuthRequest, _res: Response, _next: NextFunction) => {
     try {
       // Extract token
       const token = tokenExtractor(req);
@@ -135,7 +135,7 @@ export function createOAuthMiddleware(
       };
 
       next();
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof OAuthError) {
         errorHandler(error, req, res, next);
       } else {
@@ -157,9 +157,9 @@ export function createOAuthMiddleware(
 export function requireResourceAccess(
   resourceType: OAuthResourceType,
   operation: OAuthOperation,
-  resourceIdExtractor?: (req: Request) => string,
+  resourceIdExtractor?: (_req: Request) => string,
 ): RequestHandler {
-  return async (req: OAuthRequest, res: Response, next: NextFunction) => {
+  return async (_req: OAuthRequest, _res: Response, _next: NextFunction) => {
     try {
       if (!req.oauth?.token) {
         throw new OAuthError(
@@ -223,13 +223,13 @@ export function requireResourceAccess(
       }
 
       // Build access context
-      const context: OAuthResourceAccessContext = {
+      const _context: OAuthResourceAccessContext = {
         token: req.oauth.token,
         resource: req.oauth.resource,
         operation,
         method: req.method,
         path: req.path,
-        context: {
+        _context: {
           ip: req.ip,
           userAgent: req.get('user-agent'),
         },
@@ -252,7 +252,7 @@ export function requireResourceAccess(
       console.log('Authorization granted:', decision.audit);
 
       next();
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof OAuthError) {
         defaultErrorHandler(error, req, res, next);
       } else {
@@ -272,7 +272,7 @@ export function requireResourceAccess(
  * Create scope validation middleware
  */
 export function requireScopes(...requiredScopes: string[]): RequestHandler {
-  return (req: OAuthRequest, res: Response, next: NextFunction) => {
+  return (_req: OAuthRequest, _res: Response, _next: NextFunction) => {
     if (!req.oauth?.token) {
       return defaultErrorHandler(
         new OAuthError(
@@ -311,7 +311,7 @@ export function requireScopes(...requiredScopes: string[]): RequestHandler {
 /**
  * Extract Bearer token from Authorization header
  */
-function extractBearerToken(req: Request): string | undefined {
+function extractBearerToken(_req: Request): string | undefined {
   const authHeader = req.get('Authorization');
   if (!authHeader) {
     return undefined;
@@ -330,9 +330,9 @@ function extractBearerToken(req: Request): string | undefined {
  */
 function defaultErrorHandler(
   err: OAuthError,
-  req: Request,
-  res: Response,
-  next: NextFunction,
+  _req: Request,
+  _res: Response,
+  _next: NextFunction,
 ): void {
   // Set WWW-Authenticate header for 401 errors
   if (err.status === 401) {
@@ -361,7 +361,7 @@ function defaultErrorHandler(
 export function createResourceDiscoveryEndpoint(
   resourceServer: OAuthResourceServer,
 ): RequestHandler {
-  return (req: Request, res: Response) => {
+  return (_req: Request, _res: Response) => {
     const discovery = resourceServer.generateResourceDiscovery();
     res.json(discovery);
   };
@@ -373,7 +373,7 @@ export function createResourceDiscoveryEndpoint(
 export function createAuthServerMetadataEndpoint(
   resourceServer: OAuthResourceServer,
 ): RequestHandler {
-  return (req: Request, res: Response) => {
+  return (_req: Request, _res: Response) => {
     const metadata = resourceServer.getAuthorizationServerMetadata();
     res.json(metadata);
   };
@@ -385,7 +385,7 @@ export function createAuthServerMetadataEndpoint(
 export function createResourceServerMetadataEndpoint(
   resourceServer: OAuthResourceServer,
 ): RequestHandler {
-  return (req: Request, res: Response) => {
+  return (_req: Request, _res: Response) => {
     const metadata = resourceServer.getResourceServerMetadata();
     res.json(metadata);
   };
@@ -413,7 +413,7 @@ export class OAuthMiddlewareFactory {
   authorizeResource(
     resourceType: OAuthResourceType,
     operation: OAuthOperation,
-    resourceIdExtractor?: (req: Request) => string,
+    resourceIdExtractor?: (_req: Request) => string,
   ): RequestHandler {
     return requireResourceAccess(resourceType, operation, resourceIdExtractor);
   }

@@ -83,7 +83,7 @@ export class DNSMigrationAgent {
       });
 
       spinner.succeed('DNS Migration Agent initialized');
-    } catch (error) {
+    } catch (_error) {
       spinner.fail('Failed to initialize DNS agent');
       throw error;
     } finally {
@@ -173,7 +173,7 @@ export class DNSMigrationAgent {
       }
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
@@ -225,7 +225,7 @@ export class DNSMigrationAgent {
       });
 
       return records;
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(`Parse failed: ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
@@ -309,7 +309,7 @@ export class DNSMigrationAgent {
       progress.finish(options.dryRun ? 'Dry run complete' : 'Import complete');
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
@@ -365,7 +365,7 @@ export class DNSMigrationAgent {
         valid: warnings.length === 0,
         warnings,
       };
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
@@ -487,7 +487,7 @@ export class DNSMigrationAgent {
       console.log(format.dim('\n═'.repeat(60)));
 
       return migration;
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
         `Failed to generate instructions: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -515,7 +515,7 @@ export class DNSMigrationAgent {
         });
 
         spinner.succeed(`Created ${format.cyan(record.name)} ${format.green(record.type)}`);
-      } catch (error) {
+      } catch (_error) {
         spinner.fail(
           `Failed to create record: ${error instanceof Error ? error.message : String(error)}`,
         );
@@ -541,7 +541,7 @@ export class DNSMigrationAgent {
         });
 
         spinner.succeed(`Updated ${format.cyan(record.name)} ${format.green(record.type)}`);
-      } catch (error) {
+      } catch (_error) {
         spinner.fail(
           `Failed to update record: ${error instanceof Error ? error.message : String(error)}`,
         );
@@ -562,7 +562,7 @@ export class DNSMigrationAgent {
         });
 
         spinner.succeed(`Deleted ${format.cyan(name)} ${format.green(type)}`);
-      } catch (error) {
+      } catch (_error) {
         spinner.fail(
           `Failed to delete record: ${error instanceof Error ? error.message : String(error)}`,
         );
@@ -603,7 +603,7 @@ params.append('page_size', options.limit.toString());
       spinner.succeed(`Found ${records.length} records`);
 
       return records;
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
         `Failed to list records: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -669,7 +669,7 @@ params.append('page_size', options.limit.toString());
       });
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
@@ -710,7 +710,7 @@ params.append('page_size', options.limit.toString());
 
       this.changeListCache.delete(zoneName);
       return result;
-    } catch (error) {
+    } catch (_error) {
       // Discard change list on error
       if (this.changeListCache.has(zoneName)) {
         await this.auth.request({
@@ -735,7 +735,7 @@ params.append('page_size', options.limit.toString());
           comment: 'Created by DNS Migration Agent',
         }),
       });
-    } catch (error) {
+    } catch (_error) {
       if (!(error instanceof Error && error.message.includes('already exists'))) {
         throw error;
       }
@@ -781,7 +781,7 @@ params.append('page_size', options.limit.toString());
       try {
         await this.createRecord(zoneName, records[i]);
         result.success++;
-      } catch (error) {
+      } catch (_error) {
         result.failed++;
         result.errors.push(
           `${records[i].name} ${records[i].type}: ${error instanceof Error ? error.message : String(error)}`,
@@ -917,7 +917,7 @@ continue;
             body: JSON.stringify(record),
           });
           result.success++;
-        } catch (error) {
+        } catch (_error) {
           result.failed++;
           result.errors.push(
             `${record.name} ${record.type}: ${error instanceof Error ? error.message : String(error)}`,
@@ -1007,7 +1007,7 @@ continue;
 
       console.log(`\n${format.bold('Migration Complete!')}`);
       console.log(`${icons.success} Successfully migrated ${importResult.recordsImported} records`);
-    } catch (error) {
+    } catch (_error) {
       console.error(`\n${icons.error} ${format.red('Migration failed:')}`);
       console.error(format.red(error instanceof Error ? error.message : String(error)));
       throw error;
@@ -1025,7 +1025,7 @@ continue;
       });
 
       spinner.succeed('Zone activated');
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
         `Failed to activate zone: ${error instanceof Error ? error.message : String(error)}`,
       );

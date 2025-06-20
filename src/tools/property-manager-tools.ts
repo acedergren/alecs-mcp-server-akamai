@@ -140,7 +140,7 @@ export async function createPropertyVersion(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('create property version', error);
   }
 }
@@ -262,7 +262,7 @@ export async function getPropertyRules(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get property rules', error);
   }
 }
@@ -339,7 +339,7 @@ export async function updatePropertyRules(
 
     if (response.errors?.length > 0) {
       text += '⚠️ **Validation Errors:**\n';
-      response.errors.forEach((error: any) => {
+      response.errors.forEach((_error: any) => {
         text += `- ${error.detail}\n`;
       });
       text += '\n';
@@ -365,7 +365,7 @@ export async function updatePropertyRules(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('update property rules', error);
   }
 }
@@ -443,7 +443,7 @@ export async function createEdgeHostname(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('create edge hostname', error);
   }
 }
@@ -510,7 +510,7 @@ export async function addPropertyHostname(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('add property hostname', error);
   }
 }
@@ -584,7 +584,7 @@ export async function removePropertyHostname(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('remove property hostname', error);
   }
 }
@@ -679,7 +679,7 @@ export async function activateProperty(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     if (error instanceof Error && error.message.includes('warnings')) {
       return {
         content: [
@@ -748,7 +748,7 @@ export async function getActivationStatus(
 
     if (activation.errors && activation.errors.length > 0) {
       text += '\n## Errors\n';
-      activation.errors.forEach((error: any) => {
+      activation.errors.forEach((_error: any) => {
         text += `- ${error.messageId}: ${error.detail}\n`;
       });
     }
@@ -777,7 +777,7 @@ export async function getActivationStatus(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get activation status', error);
   }
 }
@@ -871,7 +871,7 @@ acc[act.network] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list property activations', error);
   }
 }
@@ -957,7 +957,7 @@ export async function updatePropertyWithDefaultDV(
       text += '✅ **Step 1 Complete:** Edge hostname created\n';
       text += `- Edge Hostname ID: ${edgeHostnameId}\n`;
       text += '- Certificate Type: Default Domain Validation (DV)\n\n';
-    } catch (err) {
+    } catch (_err) {
       if (err instanceof Error && err.message.includes('already exists')) {
         text += `ℹ️ Edge hostname ${edgeHostnameDomain} already exists, proceeding...\n\n`;
       } else {
@@ -1040,7 +1040,7 @@ export async function updatePropertyWithDefaultDV(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('update property with Default DV', error);
   }
 }
@@ -1138,7 +1138,7 @@ export async function updatePropertyWithCPSCertificate(
       text += '✅ **Step 2 Complete:** Edge hostname created\n';
       text += `- Edge Hostname ID: ${edgeHostnameId}\n`;
       text += `- Certificate Type: CPS-Managed (Enrollment ${args.certificateEnrollmentId})\n\n`;
-    } catch (err) {
+    } catch (_err) {
       if (err instanceof Error && err.message.includes('already exists')) {
         text += `ℹ️ Edge hostname ${edgeHostnameDomain} already exists, proceeding...\n\n`;
       } else {
@@ -1235,7 +1235,7 @@ export async function updatePropertyWithCPSCertificate(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('update property with CPS certificate', error);
   }
 }
@@ -1349,7 +1349,7 @@ ${args.autoSelectBase ? `- Auto-selected base version: ${baseVersion}` : ''}
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('create enhanced property version', error);
   }
 }
@@ -1463,7 +1463,7 @@ export async function getVersionDiff(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('compare property versions', error);
   }
 }
@@ -1573,7 +1573,7 @@ text += `  └ Tags: ${metadata.tags}\n`;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list property versions', error);
   }
 }
@@ -1676,7 +1676,7 @@ export async function rollbackPropertyVersion(
           },
         });
         text += `🚀 Auto-activated on ${args.network.toUpperCase()}\n`;
-      } catch (activationError) {
+      } catch (_activationError) {
         text += '⚠️ Rollback completed but auto-activation failed. Manual activation required.\n';
       }
     }
@@ -1699,7 +1699,7 @@ ${!args.autoActivate ? `- Activate: "Activate property ${args.propertyId} versio
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('rollback property version', error);
   }
 }
@@ -1755,7 +1755,7 @@ export async function batchVersionOperations(
               throw new Error(`Unknown operation: ${op.operation}`);
           }
           return { index, success: true, result, propertyId: op.propertyId };
-        } catch (error: any) {
+        } catch (_error: any) {
           return {
             index,
             success: false,
@@ -1822,7 +1822,7 @@ export async function batchVersionOperations(
               throw new Error(`Unknown operation: ${op.operation}`);
           }
           results.push({ propertyId: op.propertyId, operation: op.operation, result });
-        } catch (error: any) {
+        } catch (_error: any) {
           errors.push({
             propertyId: op.propertyId,
             operation: op.operation,
@@ -1871,7 +1871,7 @@ export async function batchVersionOperations(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('batch version operations', error);
   }
 }
@@ -1935,7 +1935,7 @@ function compareHostnames(hostnames1: any[], hostnames2: any[]): any[] {
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 

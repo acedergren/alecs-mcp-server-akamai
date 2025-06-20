@@ -176,7 +176,7 @@ export class AuthorizationManager {
    * Authorize action based on context
    */
   async authorize(
-    context: AuthorizationContext,
+    _context: AuthorizationContext,
     policyContext: PolicyContext,
   ): Promise<AuthorizationDecision> {
     try {
@@ -211,7 +211,7 @@ export class AuthorizationManager {
       );
 
       return roleCheck;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Authorization failed', {
         context,
         policyContext,

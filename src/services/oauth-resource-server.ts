@@ -134,7 +134,7 @@ export class OAuthResourceServer {
       authorization_servers: [this.config.authServerUrl],
       bearer_methods_supported: ['header'],
       mcp_version: '2025-06-18',
-      mcp_features: ['tools', 'resources'],
+      mcp_featu_res: ['tools', 'resources'],
     };
   }
 
@@ -410,7 +410,7 @@ export class OAuthResourceServer {
         if (invalidScopes.length > 0) {
           errors.push(`Invalid scopes for resource ${resourceUri}: ${invalidScopes.join(', ')}`);
         }
-      } catch (error) {
+      } catch (_error) {
         errors.push(`Invalid resource URI: ${resourceUri}`);
       }
     }
@@ -463,7 +463,7 @@ export class OAuthResourceServer {
    * Authorize resource access
    */
   async authorizeResourceAccess(
-    context: OAuthResourceAccessContext,
+    _context: OAuthResourceAccessContext,
   ): Promise<OAuthAuthorizationDecision> {
     const { token, resource, operation, method } = context;
 
@@ -659,7 +659,7 @@ export class OAuthResourceServer {
    */
   private createAuditEntry(
     decision: 'ALLOW' | 'DENY',
-    context: OAuthResourceAccessContext,
+    _context: OAuthResourceAccessContext,
     reason?: string,
   ): OAuthAuthorizationDecision['audit'] {
     return {

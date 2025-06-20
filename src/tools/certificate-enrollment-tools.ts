@@ -201,7 +201,7 @@ byNetwork[network] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -305,7 +305,7 @@ export async function renewCertificate(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -385,7 +385,7 @@ export async function cleanupValidationRecords(
         });
         text += `✅ Deleted: ${record.recordName} from ${record.zone}\n`;
         deleted++;
-      } catch (error) {
+      } catch (_error) {
         text += `❌ Failed to delete ${record.recordName}: ${error instanceof Error ? error.message : 'Unknown error'}\n`;
         failed++;
       }
@@ -407,7 +407,7 @@ export async function cleanupValidationRecords(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -491,7 +491,7 @@ byDomain[domain] = [];
         }
 
         if (entry.expires) {
-          text += `- **Expires:** ${new Date(entry.expires).toLocaleString()}\n`;
+          text += `- **Expi_res:** ${new Date(entry.expires).toLocaleString()}\n`;
         }
 
         if (entry.error) {
@@ -515,7 +515,7 @@ byDomain[domain] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {

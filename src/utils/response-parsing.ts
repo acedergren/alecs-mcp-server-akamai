@@ -235,14 +235,14 @@ export const CertificateResponseSchemas = {
         }),
       )
       .optional(),
-    expires: z.string().optional(),
+    expi_res: z.string().optional(),
   }),
 };
 
 // Fast Purge response schemas
 export const FastPurgeResponseSchemas = {
   purgeResponse: z.object({
-    httpStatus: z.number(),
+    _httpStatus: z.number(),
     detail: z.string(),
     estimatedSeconds: z.number(),
     purgeId: z.string(),
@@ -250,7 +250,7 @@ export const FastPurgeResponseSchemas = {
   }),
 
   purgeStatus: z.object({
-    httpStatus: z.number(),
+    _httpStatus: z.number(),
     detail: z.string(),
     status: z.enum(['In-Progress', 'Done', 'Error']),
     submittedBy: z.string().optional(),
@@ -302,7 +302,7 @@ return response;
         properties: response.properties.items.map((item: any) => {
           try {
             return PropertyResponseSchemas.property.parse(item);
-          } catch (e) {
+          } catch (_e) {
             // Return partial data if validation fails
             return item;
           }
@@ -456,7 +456,7 @@ return response;
    */
   static parseErrorResponse(
     error: any,
-    context?: { endpoint?: string; operation?: string },
+    _context?: { endpoint?: string; operation?: string },
   ): AkamaiErrorResponse {
     let errorData: any = error.response?.data || error.data || error;
 
@@ -502,7 +502,7 @@ return response;
   static validateResponse<T>(schema: z.ZodSchema<T>, response: any): T {
     try {
       return schema.parse(response);
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof z.ZodError) {
         console.warn('Response validation failed:', {
           errors: error.errors,
@@ -623,7 +623,7 @@ export function parseAkamaiResponse(
     }
 
     return parsedData;
-  } catch (error) {
+  } catch (_error) {
     console.warn('Failed to parse response:', error);
     return response.data || response;
   }

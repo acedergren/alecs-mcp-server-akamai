@@ -371,7 +371,7 @@ process.on('SIGINT', () => {
 });
 
 // Start the interactive launcher
-main().catch((error) => {
+main().catch((_error) => {
   console.error('❌ Error:', error);
   process.exit(1);
 });

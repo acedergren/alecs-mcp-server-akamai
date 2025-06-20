@@ -40,7 +40,7 @@ export async function onboardPropertyTool(
     useCase?: 'web-app' | 'api' | 'download' | 'streaming' | 'basic-web';
   },
 ): Promise<MCPToolResponse> {
-  const context: ErrorContext = {
+  const _context: ErrorContext = {
     operation: 'onboard property',
     endpoint: 'property onboarding workflow',
     apiType: 'papi',
@@ -85,7 +85,7 @@ export async function onboardPropertyWizard(
     customer?: string;
   },
 ): Promise<MCPToolResponse> {
-  const context: ErrorContext = {
+  const _context: ErrorContext = {
     operation: 'onboard property wizard',
     endpoint: 'property onboarding workflow',
     apiType: 'papi',
@@ -121,7 +121,7 @@ export async function checkOnboardingStatus(
     customer?: string;
   },
 ): Promise<MCPToolResponse> {
-  const context: ErrorContext = {
+  const _context: ErrorContext = {
     operation: 'check onboarding status',
     endpoint: 'multiple endpoints',
     apiType: 'papi',
@@ -157,7 +157,7 @@ export async function checkOnboardingStatus(
       } else {
         status.errors.push(`Property with hostname ${args.hostname} not found`);
       }
-    } catch (error) {
+    } catch (_error) {
       status.errors.push('Failed to check property status');
     }
 
@@ -172,7 +172,7 @@ export async function checkOnboardingStatus(
       } else {
         status.warnings.push('Edge hostname not found');
       }
-    } catch (error) {
+    } catch (_error) {
       status.warnings.push('Failed to check edge hostname status');
     }
 
@@ -190,7 +190,7 @@ export async function checkOnboardingStatus(
       } else {
         status.warnings.push('DNS record not found in Edge DNS');
       }
-    } catch (error) {
+    } catch (_error) {
       status.warnings.push('DNS zone not found or not using Edge DNS');
     }
 
@@ -201,7 +201,7 @@ export async function checkOnboardingStatus(
           propertyId: args.propertyId,
         });
         status.activations = activationsResult;
-      } catch (error) {
+      } catch (_error) {
         status.warnings.push('Failed to check activation status');
       }
     }

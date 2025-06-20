@@ -57,7 +57,7 @@ export interface SystemDiagnostics {
     eventLoopLag: number;
     gcStats?: GCStats;
     performanceMarks: PerformanceMark[];
-    performanceMeasures: PerformanceMeasure[];
+    performanceMeasu_res: PerformanceMeasure[];
   };
 }
 
@@ -218,7 +218,7 @@ export class DiagnosticsAPI extends EventEmitter {
         results.push(healthCheck);
 
         this.emit('healthCheckCompleted', healthCheck);
-      } catch (error) {
+      } catch (_error) {
         const healthCheck: HealthCheck = {
           name,
           status: 'critical',
@@ -295,7 +295,7 @@ export class DiagnosticsAPI extends EventEmitter {
       eventLoopLag: await this.measureEventLoopLag(),
       gcStats: this.config.enableGCStats ? this.getGCStats() : undefined,
       performanceMarks: this.getPerformanceMarks(),
-      performanceMeasures: this.getPerformanceMeasures(),
+      performanceMeasu_res: this.getPerformanceMeasures(),
     };
 
     this.systemDiagnostics = {
@@ -563,7 +563,7 @@ return false;
             duration: 0,
             metadata: { diskUsage },
           };
-        } catch (error) {
+        } catch (_error) {
           return {
             name: 'disk_space',
             status: 'unknown',
@@ -681,7 +681,7 @@ return;
 
           this.emit('alertTriggered', alert);
         }
-      } catch (error) {
+      } catch (_error) {
         this.emit('alertRuleError', name, error);
       }
     }

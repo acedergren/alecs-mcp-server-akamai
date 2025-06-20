@@ -37,7 +37,7 @@ export class AkamaiClient {
 
       // Store account switch key for API requests
       this.accountSwitchKey = accountSwitchKey;
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof Error && error.message.includes('ENOENT')) {
         throw new Error(
           `EdgeGrid configuration not found at ${edgercPath}\n` +
@@ -71,7 +71,7 @@ export class AkamaiClient {
   /**
    * Make authenticated request to Akamai API
    */
-  async request<T = any>(options: {
+  async request<T = any>(_options: {
     path: string;
     method?: string;
     body?: any;
@@ -114,7 +114,7 @@ export class AkamaiClient {
 
       // Debug logging
       if (this.debug) {
-        console.error(`[AkamaiClient] Making request: ${options.method || 'GET'} ${requestPath}`);
+        console.error(`[AkamaiClient] Making _request: ${options.method || 'GET'} ${requestPath}`);
         console.error(
           '[AkamaiClient] Request options:',
           JSON.stringify(
@@ -133,7 +133,7 @@ export class AkamaiClient {
 
       // Make the request using EdgeGrid's send method
       return new Promise((resolve, reject) => {
-        this.edgeGrid.send((error: any, response: any, body: any) => {
+        this.edgeGrid.send((_error: any, response: any, body: any) => {
           if (error) {
             try {
               this.handleApiError(error);
@@ -163,7 +163,7 @@ export class AkamaiClient {
           }
         });
       });
-    } catch (error) {
+    } catch (_error) {
       this.handleApiError(error);
     }
   }
@@ -213,7 +213,7 @@ export class AkamaiClient {
       message += '\n\nSolution: Rate limit exceeded. Please wait a moment before retrying.';
     }
 
-    const error = new Error(message);
+    const _error = new Error(message);
     (error as any).statusCode = statusCode;
     (error as any).akamaiError = errorData;
     return error;
@@ -222,7 +222,7 @@ export class AkamaiClient {
   /**
    * Handle API errors with user-friendly messages
    */
-  private handleApiError(error: any): never {
+  private handleApiError(_error: any): never {
     if (error instanceof Error) {
       // Check for specific error types
       if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
@@ -304,7 +304,7 @@ export class AkamaiClient {
       }
 
       return accountSwitchKey;
-    } catch (error) {
+    } catch (_error) {
       if (this.debug) {
         console.error('[AkamaiClient] Error reading account-switch-key from .edgerc:', error);
       }

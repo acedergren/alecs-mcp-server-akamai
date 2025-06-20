@@ -92,7 +92,7 @@ export const listAppSecConfigurations = {
           },
         ],
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         content: [
           {
@@ -148,7 +148,7 @@ export const getAppSecConfiguration = {
           },
         ],
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         content: [
           {

@@ -86,7 +86,7 @@ export interface SystemState {
     string,
     {
       state: 'closed' | 'open' | 'half-open';
-      failures: number;
+      failu_res: number;
       successRate: number;
       lastFailure?: number;
     }
@@ -595,7 +595,7 @@ return '[Function]';
           return value;
         }),
       );
-    } catch (error) {
+    } catch (_error) {
       return '[Non-serializable data]';
     }
   }
@@ -609,7 +609,7 @@ continue;
       if (this.matchesFilters(event, subscription.filters)) {
         try {
           subscription.callback(event);
-        } catch (error) {
+        } catch (_error) {
           this.emit('subscriptionError', subscription.id, error);
         }
       }
@@ -628,7 +628,7 @@ continue;
       if (this.matchesFilters(event, connection.filters)) {
         connection.lastActivity = now;
         promises.push(
-          connection.send({ type: 'debug-event', data: event }).catch((error) => {
+          connection.send({ type: 'debug-event', data: event }).catch((_error) => {
             this.emit('streamingError', connection.id, error);
             // Deactivate connection on error
             connection.active = false;

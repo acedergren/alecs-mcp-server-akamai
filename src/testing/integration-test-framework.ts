@@ -85,7 +85,7 @@ export class IntegrationTestFramework {
 
       this.testResults.push(testResult);
       return testResult;
-    } catch (error) {
+    } catch (_error) {
       const duration = Date.now() - startTime;
 
       const testResult: TestResult = {
@@ -168,7 +168,7 @@ export class IntegrationTestFramework {
           actual: passed,
           passed,
         });
-      } catch (error) {
+      } catch (_error) {
         assertions.push({
           description: rule.description,
           expected: true,
@@ -195,7 +195,7 @@ export class IntegrationTestFramework {
     const passed = this.testResults.filter((r) => r.status === 'passed').length;
     const failed = this.testResults.filter((r) => r.status === 'failed').length;
     const skipped = this.testResults.filter((r) => r.status === 'skipped').length;
-    const error = this.testResults.filter((r) => r.status === 'error').length;
+    const _error = this.testResults.filter((r) => r.status === 'error').length;
     const successRate = total > 0 ? (passed / total) * 100 : 0;
     const averageDuration =
       total > 0 ? this.testResults.reduce((sum, r) => sum + r.duration, 0) / total : 0;
@@ -365,7 +365,7 @@ export class TestScenarioBuilder {
     return this;
   }
 
-  category(category: TestScenario['category']): TestScenarioBuilder {
+  category(_category: TestScenario['category']): TestScenarioBuilder {
     this.scenario.category = category;
     return this;
   }
@@ -433,9 +433,9 @@ export class APIHealthChecker {
         endpoint,
         status: 'healthy',
         responseTime,
-        httpStatus: 200,
+        _httpStatus: 200,
       };
-    } catch (error) {
+    } catch (_error) {
       const responseTime = Date.now() - startTime;
 
       return {
@@ -469,7 +469,7 @@ export class LoadTestRunner {
     this.client = client;
   }
 
-  async runLoadTest(options: {
+  async runLoadTest(_options: {
     endpoint: string;
     method?: 'GET' | 'POST';
     concurrency: number;
@@ -515,7 +515,7 @@ export class LoadTestRunner {
               success: true,
               responseTime: Date.now() - requestStart,
             });
-          } catch (error) {
+          } catch (_error) {
             results.push({
               success: false,
               responseTime: Date.now() - requestStart,

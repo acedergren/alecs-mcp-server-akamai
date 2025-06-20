@@ -130,7 +130,7 @@ export class OAuthManager {
       });
 
       return session;
-    } catch (error) {
+    } catch (_error) {
       logger.error('OAuth authentication failed', { provider, error });
 
       // Audit log failure

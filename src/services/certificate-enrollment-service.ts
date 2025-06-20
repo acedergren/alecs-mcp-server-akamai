@@ -217,7 +217,7 @@ export class CertificateEnrollmentService {
           },
         ],
       };
-    } catch (error) {
+    } catch (_error) {
       this.performanceMonitor.endOperation('CERTIFICATE_ENROLLMENT');
 
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -259,7 +259,7 @@ export class CertificateEnrollmentService {
           },
         ],
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         content: [
           {
@@ -314,7 +314,7 @@ export class CertificateEnrollmentService {
           },
         ],
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         content: [
           {
@@ -385,7 +385,7 @@ export class CertificateEnrollmentService {
           },
         ],
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         content: [
           {
@@ -492,7 +492,7 @@ export class CertificateEnrollmentService {
               comment: `ACME validation for certificate ${enrollmentId}`,
             });
             validationSteps += `✅ Activated zone: ${zone}\n`;
-          } catch (error) {
+          } catch (_error) {
             validationSteps += `⚠️ Zone ${zone} activation skipped: ${error instanceof Error ? error.message : 'Unknown error'}\n`;
           }
         }
@@ -528,7 +528,7 @@ export class CertificateEnrollmentService {
         enrollmentState.status = 'failed';
         enrollmentState.errors.push('Validation monitoring failed');
       }
-    } catch (error) {
+    } catch (_error) {
       enrollmentState.status = 'failed';
       const errorMsg = error instanceof Error ? error.message : String(error);
       enrollmentState.errors.push(`Validation error: ${errorMsg}`);
@@ -594,7 +594,7 @@ export class CertificateEnrollmentService {
       enrollmentState.status = 'deployed';
       enrollmentState.deploymentStatus.status = 'completed';
       enrollmentState.deploymentStatus.completedAt = new Date();
-    } catch (error) {
+    } catch (_error) {
       enrollmentState.status = 'failed';
       const errorMsg = error instanceof Error ? error.message : String(error);
       enrollmentState.errors.push(`Deployment error: ${errorMsg}`);

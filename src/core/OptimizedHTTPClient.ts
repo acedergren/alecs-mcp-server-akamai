@@ -145,7 +145,7 @@ export class OptimizedHTTPClient extends EventEmitter {
    * Create DNS lookup function with caching
    */
   private createDNSLookup(_hostname: string) {
-    return (hostname: string, options: any, callback: any) => {
+    return (hostname: string, _options: any, callback: any) => {
       const cacheKey = `${hostname}:${options.family || 4}`;
       const cached = this.dnsCache.get(cacheKey);
       
@@ -158,9 +158,9 @@ export class OptimizedHTTPClient extends EventEmitter {
       const dns = require('dns');
       const lookupFn = options.family === 6 ? dns.lookup : dns.lookup;
       
-      lookupFn(hostname, options, (err: any, address: string, family: number) => {
+      lookupFn(hostname, options, (_err: any, address: string, family: number) => {
         if (err) {
-          this.emit('dnsLookupError', { hostname, error: err });
+          this.emit('dnsLookupError', { hostname, _error: err });
           return callback(err);
         }
 
@@ -229,7 +229,7 @@ export class OptimizedHTTPClient extends EventEmitter {
             connectionReused: result.socket?.reused || false
           }
         };
-      } catch (error) {
+      } catch (_error) {
         lastError = error as Error;
         attempt++;
         this.metrics.failureCount++;
@@ -242,19 +242,19 @@ export class OptimizedHTTPClient extends EventEmitter {
       }
     }
 
-    this.emit('requestFailed', { hostname, attempts: attempt, error: lastError });
+    this.emit('requestFailed', { hostname, attempts: attempt, _error: lastError });
     throw lastError;
   }
 
   /**
    * Make single HTTP request
    */
-  private makeRequest(options: any, data?: Buffer | string): Promise<any> {
+  private makeRequest(_options: any, data?: Buffer | string): Promise<any> {
     return new Promise((resolve, reject) => {
       const protocol = options.protocol === 'https:' ? 'https' : 'http';
       const mod = require(protocol);
       
-      const req = mod.request(options, (res: any) => {
+      const req = mod.request(options, (_res: any) => {
         const chunks: Buffer[] = [];
         
         res.on('data', (chunk: Buffer) => {

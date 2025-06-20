@@ -99,9 +99,9 @@ export function createOAuthMiddleware(
   const contextManager = CustomerContextManager.getInstance();
 
   return async (
-    req: MiddlewareRequest,
-    res: MiddlewareResponse,
-    next: NextFunction,
+    _req: MiddlewareRequest,
+    _res: MiddlewareResponse,
+    _next: NextFunction,
   ): Promise<void> => {
     try {
       // Check if tool requires authentication
@@ -207,7 +207,7 @@ export function createOAuthMiddleware(
       }
 
       next();
-    } catch (error) {
+    } catch (_error) {
       logger.error('OAuth middleware error', {
         tool: req.toolName,
         error,
@@ -225,7 +225,7 @@ export function createOAuthMiddleware(
  * Extract session ID from request
  */
 function extractSessionId(
-  req: MiddlewareRequest,
+  _req: MiddlewareRequest,
   headerName: string,
 ): string | undefined {
   // Check context first
@@ -258,7 +258,7 @@ function extractSessionId(
 /**
  * Extract resource ID from request
  */
-function extractResourceId(req: MiddlewareRequest): string | undefined {
+function extractResourceId(_req: MiddlewareRequest): string | undefined {
   if (typeof req.params === 'object' && req.params !== null) {
     const params = req.params as Record<string, unknown>;
 
@@ -283,7 +283,7 @@ async function authorizeRequest(
   sessionId: string,
   resource: string,
   action: string,
-  req: MiddlewareRequest,
+  _req: MiddlewareRequest,
   resourceId?: string,
 ): Promise<AuthorizationDecision> {
   return contextManager.authorize({
@@ -306,9 +306,9 @@ export function createCustomerContextMiddleware(): MiddlewareFunction {
   const contextManager = CustomerContextManager.getInstance();
 
   return async (
-    req: MiddlewareRequest,
-    res: MiddlewareResponse,
-    next: NextFunction,
+    _req: MiddlewareRequest,
+    _res: MiddlewareResponse,
+    _next: NextFunction,
   ): Promise<void> => {
     try {
       // Check if session ID is available
@@ -340,7 +340,7 @@ export function createCustomerContextMiddleware(): MiddlewareFunction {
       }
 
       next();
-    } catch (error) {
+    } catch (_error) {
       logger.error('Customer context middleware error', {
         tool: req.toolName,
         error,
@@ -359,9 +359,9 @@ export function createCredentialAccessMiddleware(): MiddlewareFunction {
   const contextManager = CustomerContextManager.getInstance();
 
   return async (
-    req: MiddlewareRequest,
-    res: MiddlewareResponse,
-    next: NextFunction,
+    _req: MiddlewareRequest,
+    _res: MiddlewareResponse,
+    _next: NextFunction,
   ): Promise<void> => {
     try {
       // Check if this tool requires EdgeGrid access
@@ -402,7 +402,7 @@ export function createCredentialAccessMiddleware(): MiddlewareFunction {
       });
 
       next();
-    } catch (error) {
+    } catch (_error) {
       logger.error('Credential access middleware error', {
         tool: req.toolName,
         customer: req.customer,

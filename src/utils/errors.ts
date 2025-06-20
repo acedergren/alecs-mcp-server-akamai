@@ -20,7 +20,7 @@ export class ErrorTranslator {
   /**
    * Translate API errors into user-friendly messages
    */
-  translateError(error: any, context?: ErrorContext): TranslatedError {
+  translateError(_error: any, context?: ErrorContext): TranslatedError {
     // Handle different error types
     if (error.response) {
       return this.translateHTTPError(error.response, context);
@@ -66,7 +66,7 @@ export class ErrorTranslator {
     const messages: string[] = [];
     const suggestions: string[] = [];
 
-    errors.forEach((error: any) => {
+    errors.forEach((_error: any) => {
       if (error.detail) {
         messages.push(this.cleanErrorMessage(error.detail));
       }
@@ -184,7 +184,7 @@ export class ErrorTranslator {
     };
   }
 
-  private translateSystemError(error: any, _context?: ErrorContext): TranslatedError {
+  private translateSystemError(_error: any, _context?: ErrorContext): TranslatedError {
     const errorMap: Record<string, TranslatedError> = {
       ECONNREFUSED: {
         message: 'Connection refused',
@@ -220,7 +220,7 @@ export class ErrorTranslator {
     );
   }
 
-  private translateGenericError(error: any, _context?: ErrorContext): TranslatedError {
+  private translateGenericError(_error: any, _context?: ErrorContext): TranslatedError {
     return {
       message: this.cleanErrorMessage(error.message || 'An error occurred'),
       suggestions: ['Please try again', 'Check your input parameters'],
@@ -255,7 +255,7 @@ export class ErrorTranslator {
       .trim();
   }
 
-  private getFormatSuggestion(error: any): string {
+  private getFormatSuggestion(_error: any): string {
     const field = error.field || error.errorLocation || 'value';
     const format = error.expectedFormat || error.format;
 
@@ -294,7 +294,7 @@ export class ErrorTranslator {
   /**
    * Format error for conversational response
    */
-  formatConversationalError(error: any, context?: ErrorContext): string {
+  formatConversationalError(_error: any, context?: ErrorContext): string {
     const translated = this.translateError(error, context);
 
     let response = `Error: ${translated.message}\n\n`;
@@ -316,7 +316,7 @@ export class ErrorTranslator {
   /**
    * Extract actionable next steps from error
    */
-  getNextSteps(error: any, context?: ErrorContext): string[] {
+  getNextSteps(_error: any, context?: ErrorContext): string[] {
     const translated = this.translateError(error, context);
     return translated.suggestions;
   }
@@ -363,7 +363,7 @@ export function formatBulkOperationResults(results: any[]): string {
   return response;
 }
 
-function getFixSuggestion(error: string): string {
+function getFixSuggestion(_error: string): string {
   const fixMap: Record<string, string> = {
     'already exists': 'Use a different name or skip existing resources',
     'not found': 'Verify the resource ID is correct',
@@ -410,7 +410,7 @@ export class AkamaiError extends Error {
  * Error recovery helper
  */
 export class ErrorRecovery {
-  static canRetry(error: any): boolean {
+  static canRetry(_error: any): boolean {
     // Retryable error codes
     const retryableCodes = ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNREFUSED'];
     if (error.code && retryableCodes.includes(error.code)) {
@@ -426,7 +426,7 @@ export class ErrorRecovery {
     return false;
   }
 
-  static getRetryDelay(attempt: number, error: any): number {
+  static getRetryDelay(attempt: number, _error: any): number {
     // Check for Retry-After header
     if (error.response?.headers?.['retry-after']) {
       const retryAfter = error.response.headers['retry-after'];
@@ -445,14 +445,14 @@ export class ErrorRecovery {
   static async withRetry<T>(
     operation: () => Promise<T>,
     maxAttempts = 3,
-    onRetry?: (attempt: number, error: any) => void,
+    onRetry?: (attempt: number, _error: any) => void,
   ): Promise<T> {
     let lastError: any;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         return await operation();
-      } catch (error) {
+      } catch (_error) {
         lastError = error;
 
         if (!this.canRetry(error) || attempt === maxAttempts - 1) {

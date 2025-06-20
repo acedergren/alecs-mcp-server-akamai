@@ -44,7 +44,7 @@ async function validatePrerequisites(
       path: `/papi/v1/contracts/${args.contractId}`,
       method: 'GET',
     });
-  } catch (error) {
+  } catch (_error) {
     errors.push(`Contract ${args.contractId} not found or not accessible`);
   }
 
@@ -60,7 +60,7 @@ async function validatePrerequisites(
     if (!groupExists) {
       errors.push(`Group ${args.groupId} not found`);
     }
-  } catch (error) {
+  } catch (_error) {
     errors.push(`Unable to validate group ${args.groupId}`);
   }
 
@@ -101,7 +101,7 @@ async function ensureCPCode(
         },
       });
       return args.cpCode;
-    } catch (error) {
+    } catch (_error) {
       // CP code doesn't exist, create new one
     }
   }
@@ -530,14 +530,14 @@ export async function onboardSecureByDefaultProperty(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     spinner?.fail('Onboarding failed');
 
     // Attempt rollback if needed
     if (state.propertyId) {
       try {
         await rollbackProperty(client, state.propertyId);
-      } catch (rollbackError) {
+      } catch (_rollbackError) {
         // Log but don't fail
       }
     }
@@ -586,7 +586,7 @@ export async function quickSecureByDefaultSetup(
       productId: 'prd_fresca',
       customer: args.customer,
     });
-  } catch (error) {
+  } catch (_error) {
     return formatError('quick Secure by Default setup', error);
   }
 }
@@ -686,7 +686,7 @@ export async function checkSecureByDefaultStatus(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('check Secure by Default status', error);
   }
 }
@@ -694,7 +694,7 @@ export async function checkSecureByDefaultStatus(
 /**
  * Generate failure report with recovery options
  */
-function generateFailureReport(state: OnboardingState, error: any, args: any): string {
+function generateFailureReport(state: OnboardingState, _error: any, args: any): string {
   let text = '# ❌ Secure Property Onboarding Failed\n\n';
 
   text += '## Error Details\n';
@@ -756,7 +756,7 @@ async function rollbackProperty(client: AkamaiClient, propertyId: string): Promi
         },
       });
     }
-  } catch (error) {
+  } catch (_error) {
     // Rollback failed, but don't throw
   }
 }
@@ -764,7 +764,7 @@ async function rollbackProperty(client: AkamaiClient, propertyId: string): Promi
 /**
  * Format error responses
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
 
   if (error instanceof Error) {

@@ -92,7 +92,7 @@ export async function createACMEValidationRecords(
         });
 
         results.successful++;
-      } catch (error) {
+      } catch (_error) {
         // Try with the parent domain if subdomain fails
         if (args.autoDetectZones && record.zone.includes('.')) {
           try {
@@ -172,7 +172,7 @@ export async function createACMEValidationRecords(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     spinner.stop();
     return {
       content: [
@@ -351,7 +351,7 @@ export async function monitorCertificateValidation(
 
       // Wait before next check
       await new Promise((resolve) => setTimeout(resolve, checkInterval));
-    } catch (error) {
+    } catch (_error) {
       spinner.stop();
       console.error(
         `\n❌ Error checking validation status: ${error instanceof Error ? error.message : 'Unknown error'}`,

@@ -100,7 +100,7 @@ export async function getPerformanceAnalysis(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -220,7 +220,7 @@ export async function optimizeCache(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -301,7 +301,7 @@ cacheHits++;
 }
 
           responseText += `- **Iteration ${i}:** ${duration}ms ${cacheHit ? '(cached)' : ''}\n`;
-        } catch (error) {
+        } catch (_error) {
           testResults.push({
             operation,
             iteration: i,
@@ -431,7 +431,7 @@ return null;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -544,7 +544,7 @@ export async function getRealtimeMetrics(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -619,7 +619,7 @@ export async function resetPerformanceMonitoring(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {

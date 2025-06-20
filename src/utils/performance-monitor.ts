@@ -411,7 +411,7 @@ export class RequestOptimizer {
   // Add request to batch queue
   addToBatch<T>(
     batchKey: string,
-    request: T,
+    _request: T,
     processor: (requests: T[]) => Promise<any[]>,
   ): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -462,7 +462,7 @@ export class RequestOptimizer {
       batch.forEach((item, index) => {
         item.resolve(results[index]);
       });
-    } catch (error) {
+    } catch (_error) {
       // Reject all promises with the error
       batch.forEach((item) => {
         item.reject(error);
@@ -544,7 +544,7 @@ export function withPerformanceMonitoring<T extends (...args: any[]) => Promise<
       }
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       globalPerformanceMonitor.endOperation(operationId, {
         errorOccurred: true,
       });

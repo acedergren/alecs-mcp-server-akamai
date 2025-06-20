@@ -212,7 +212,7 @@ export class FixStrategyOptimizer {
   /**
    * Generate comprehensive fix strategy
    */
-  generateFixStrategy(analysisResults: AnalysisResults, todoList: TodoList, options: any = {}) {
+  generateFixStrategy(analysisResults: AnalysisResults, todoList: TodoList, _options: any = {}) {
     const strategy = {
       overview: this.generateStrategyOverview(analysisResults, todoList),
       quickWins: this.identifyQuickWins(todoList, analysisResults),
@@ -1219,7 +1219,7 @@ return 'MEDIUM';
 
   private recommendRiskManagement(todoList: TodoList, analysisResults: AnalysisResults): any {
     // Implementation would recommend risk management
-    return { approach: 'PROACTIVE', measures: [] };
+    return { approach: 'PROACTIVE', measu_res: [] };
   }
 
   private identifySuccessFactorsFromList(todoList: TodoList): any {

@@ -82,7 +82,7 @@ export async function universalSearchCachedHandler(
           cacheHit = true;
           console.error(`⚡ Cache HIT - Found ${results.matches.length} cached results`);
         }
-      } catch (err) {
+      } catch (_err) {
         console.error('Cache error:', err);
       }
     }
@@ -119,7 +119,7 @@ export async function universalSearchCachedHandler(
                   },
                 });
                 property.hostnames = hostnamesResp.hostnames?.items || [];
-              } catch (e) {
+              } catch (_e) {
                 console.error('Failed to get hostnames:', e);
               }
             }
@@ -130,7 +130,7 @@ export async function universalSearchCachedHandler(
               matchReason: 'Exact property ID match',
             });
           }
-        } catch (err) {
+        } catch (_err) {
           console.error('Property ID search failed:', err);
         }
       }
@@ -159,8 +159,7 @@ export async function universalSearchCachedHandler(
             if (queryTypes.includes('hostname') || args.query.includes('.')) {
               try {
                 // Try to get from hostname cache first
-                const cacheKey = `akamai:${customer}:property:${property.propertyId}:hostnames`;
-                let hostnames;
+                const _cacheKey = `akamai:${customer}:property:${property.propertyId}:hostnames`;
 
                 const hostnamesResp = await client.request({
                   path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames`,
@@ -194,7 +193,7 @@ export async function universalSearchCachedHandler(
                 if (isMatch && detailed) {
                   property.hostnames = hostnames;
                 }
-              } catch (err) {
+              } catch (_err) {
                 console.error(`Error checking hostnames for ${property.propertyId}:`, err);
               }
             }
@@ -207,7 +206,7 @@ export async function universalSearchCachedHandler(
               });
             }
           }
-        } catch (err) {
+        } catch (_err) {
           console.error('Property search failed:', err);
         }
       }
@@ -231,7 +230,7 @@ export async function universalSearchCachedHandler(
               matchReason: 'Exact contract ID match',
             });
           }
-        } catch (err) {
+        } catch (_err) {
           console.error('Contract search failed:', err);
         }
       }
@@ -253,7 +252,7 @@ export async function universalSearchCachedHandler(
               matchReason: 'Exact group ID match',
             });
           }
-        } catch (err) {
+        } catch (_err) {
           console.error('Group search failed:', err);
         }
       }
@@ -317,7 +316,7 @@ export async function universalSearchCachedHandler(
           responseText += `• Total Keys: ${stats.totalKeys || 0}\n`;
           responseText += `• Akamai Keys: ${stats.akamaiKeys || 0}\n`;
         }
-      } catch (err) {
+      } catch (_err) {
         // Ignore stats errors
       }
     }
@@ -330,7 +329,7 @@ export async function universalSearchCachedHandler(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(error, 'universal search');
   }
 }

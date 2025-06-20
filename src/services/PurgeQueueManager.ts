@@ -125,11 +125,11 @@ export class PurgeQueueManager {
 
       // Start persistence timer
       this.persistenceTimer = setInterval(() => {
-        this.persistQueues().catch((err) =>
+        this.persistQueues().catch((_err) =>
           logger.error(`Failed to persist queues: ${err.message}`),
         );
       }, this.PERSISTENCE_INTERVAL);
-    } catch (error: any) {
+    } catch (_error: any) {
       logger.error(`Failed to initialize queue persistence: ${error.message}`);
     }
   }
@@ -153,12 +153,12 @@ export class PurgeQueueManager {
 
             this.queues.set(customer, items);
             logger.info(`Loaded ${items.length} queue items for customer ${customer}`);
-          } catch (err: any) {
+          } catch (_err: any) {
             logger.error(`Failed to load queue for ${customer}: ${err.message}`);
           }
         }
       }
-    } catch (error: any) {
+    } catch (_error: any) {
       logger.error(`Failed to load queues: ${error.message}`);
     }
   }
@@ -172,7 +172,7 @@ export class PurgeQueueManager {
         // Write to temp file first for atomic operation
         await fs.writeFile(tempPath, JSON.stringify(items, null, 2));
         await fs.rename(tempPath, filePath);
-      } catch (error: any) {
+      } catch (_error: any) {
         logger.error(`Failed to persist queue for ${customer}: ${error.message}`);
       }
     }
@@ -250,7 +250,7 @@ return null;
             domainMap.set(domain, new Set());
           }
           domainMap.get(domain)!.add(url);
-        } catch (err) {
+        } catch (_err) {
           // Invalid URL, skip
         }
       }
@@ -272,7 +272,7 @@ return null;
     return null;
   }
 
-  async enqueue(request: FastPurgeRequest & { customer: string }): Promise<QueueItem> {
+  async enqueue(_request: FastPurgeRequest & { customer: string }): Promise<QueueItem> {
     const dedupKey = this.generateDedupKey(request.type || 'url', request.objects);
 
     // Check for duplicates
@@ -389,7 +389,7 @@ return null;
       logger.info(
         `Completed purge ${item.id} for ${item.customer}: ${item.objects.length} objects`,
       );
-    } catch (error: any) {
+    } catch (_error: any) {
       item.error = error.message;
 
       if (item.attempts >= 3) {

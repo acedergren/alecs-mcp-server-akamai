@@ -25,7 +25,7 @@ interface LogEntry {
   timestamp: string;
   level: LogLevel;
   message: string;
-  context: LogContext;
+  _context: LogContext;
 }
 
 class StructuredLogger {
@@ -56,7 +56,7 @@ class StructuredLogger {
     return levels.indexOf(level) >= levels.indexOf(this.logLevel);
   }
 
-  private sanitizeContext(context: LogContext): LogContext {
+  private sanitizeContext(_context: LogContext): LogContext {
     const sanitized = { ...context };
 
     // Sanitize sensitive fields
@@ -75,7 +75,7 @@ class StructuredLogger {
     if (process.env.ALECS_LOG_FORMAT === 'json') {
       return JSON.stringify({
         ...entry,
-        context: this.sanitizeContext(entry.context),
+        _context: this.sanitizeContext(entry.context),
       });
     }
 
@@ -90,7 +90,7 @@ class StructuredLogger {
     return `[${timestamp}] ${level} [${context.correlationId}] ${message} ${contextStr}`.trim();
   }
 
-  log(level: LogLevel, message: string, context: LogContext): void {
+  log(level: LogLevel, message: string, _context: LogContext): void {
     if (!this.shouldLog(level)) {
 return;
 }
@@ -124,19 +124,19 @@ return;
     }
   }
 
-  debug(message: string, context: LogContext): void {
+  debug(message: string, _context: LogContext): void {
     this.log(LogLevel.DEBUG, message, context);
   }
 
-  info(message: string, context: LogContext): void {
+  info(message: string, _context: LogContext): void {
     this.log(LogLevel.INFO, message, context);
   }
 
-  warn(message: string, context: LogContext): void {
+  warn(message: string, _context: LogContext): void {
     this.log(LogLevel.WARN, message, context);
   }
 
-  error(message: string, context: LogContext): void {
+  error(message: string, _context: LogContext): void {
     this.log(LogLevel.ERROR, message, context);
   }
 
@@ -180,7 +180,7 @@ class MetricsCollector {
     }
   >();
 
-  recordToolExecution(toolName: string, duration: number, error: boolean): void {
+  recordToolExecution(toolName: string, duration: number, _error: boolean): void {
     const existing = this.toolMetrics.get(toolName) || {
       count: 0,
       totalDuration: 0,
@@ -266,7 +266,7 @@ export function withLogging<T extends (...args: any[]) => Promise<any>>(
       });
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       const duration = Date.now() - startTime;
 
       logger.error(`Failed ${toolName}`, {
@@ -309,7 +309,7 @@ export function trackPerformance(
       });
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       const duration = Date.now() - startTime;
 
       logger.debug(`Performance (error): ${propertyKey}`, {

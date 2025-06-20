@@ -190,7 +190,7 @@ export class TokenValidator {
       await this.cacheValidationResult(token, result);
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Token validation error', { error });
       return {
         valid: false,
@@ -215,24 +215,24 @@ export class TokenValidator {
       // Decode without verification first to get header
       const decoded = jwt.decode(token, { complete: true });
       if (!decoded) {
-        return { valid: false, error: 'Invalid JWT format' };
+        return { valid: false, _error: 'Invalid JWT format' };
       }
 
       const { header } = decoded;
 
       // Check algorithm
       if (!this.config.allowedAlgorithms.includes(header.alg as Algorithm)) {
-        return { valid: false, error: `Algorithm ${header.alg} not allowed` };
+        return { valid: false, _error: `Algorithm ${header.alg} not allowed` };
       }
 
       // Get signing key
       if (!header.kid) {
-        return { valid: false, error: 'JWT missing kid header' };
+        return { valid: false, _error: 'JWT missing kid header' };
       }
 
       const key = await this.getSigningKey(header.kid);
       if (!key) {
-        return { valid: false, error: 'Signing key not found' };
+        return { valid: false, _error: 'Signing key not found' };
       }
 
       // Verify JWT
@@ -258,19 +258,19 @@ export class TokenValidator {
         active: true,
         claims: verified,
       };
-    } catch (error) {
+    } catch (_error) {
       if (error instanceof jwt.TokenExpiredError) {
-        return { valid: false, error: 'Token expired' };
+        return { valid: false, _error: 'Token expired' };
       }
       if (error instanceof jwt.NotBeforeError) {
-        return { valid: false, error: 'Token not yet valid' };
+        return { valid: false, _error: 'Token not yet valid' };
       }
       if (error instanceof jwt.JsonWebTokenError) {
-        return { valid: false, error: error.message };
+        return { valid: false, _error: error.message };
       }
 
       logger.error('JWT validation error', { error: error instanceof Error ? error.message : String(error) });
-      return { valid: false, error: 'JWT validation failed' };
+      return { valid: false, _error: 'JWT validation failed' };
     }
   }
 
@@ -279,7 +279,7 @@ export class TokenValidator {
    */
   private async introspectToken(token: string): Promise<TokenValidationResult> {
     if (!this.config.introspectionEndpoint) {
-      return { valid: false, error: 'Introspection endpoint not configured' };
+      return { valid: false, _error: 'Introspection endpoint not configured' };
     }
 
     try {
@@ -306,7 +306,7 @@ export class TokenValidator {
       const introspectionResponse = TokenIntrospectionResponseSchema.parse(data);
 
       if (!introspectionResponse.active) {
-        return { valid: false, active: false, error: 'Token inactive' };
+        return { valid: false, active: false, _error: 'Token inactive' };
       }
 
       // Convert introspection response to claims
@@ -328,7 +328,7 @@ export class TokenValidator {
         active: true,
         claims,
       };
-    } catch (error) {
+    } catch (_error) {
       logger.error('Token introspection error', { error });
       return {
         valid: false,
@@ -379,7 +379,7 @@ export class TokenValidator {
       this.jwksCacheExpiry = Date.now() + (this.config.jwksCacheTTL * 1000);
 
       return this.jwksCache.get(kid) || null;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to fetch JWKS', { error });
       return null;
     }
@@ -434,7 +434,7 @@ ${Buffer.from(JSON.stringify(pubKey)).toString('base64')}
 
     try {
       return JSON.parse(cached) as TokenValidationResult;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to parse cached validation result', { error });
       return null;
     }

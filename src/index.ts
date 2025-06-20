@@ -120,7 +120,7 @@ export class ALECSServer {
    * Setup global error handling
    */
   private setupErrorHandling(): void {
-    process.on('uncaughtException', (error: Error) => {
+    process.on('uncaughtException', (_error: Error) => {
       logger.error('Uncaught exception', { error: error.message, stack: error.stack });
       process.exit(1);
     });
@@ -299,7 +299,7 @@ export class ALECSServer {
           tool: toolName,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       const duration = Date.now() - context.startTime;
 
       logger.error('Tool request failed', {
@@ -324,7 +324,7 @@ export class ALECSServer {
   /**
    * Format error for response
    */
-  private formatError(error: unknown): string {
+  private formatError(_error: unknown): string {
     if (error instanceof ConfigurationError) {
       return `Configuration error: ${error.message}`;
     }
@@ -402,7 +402,7 @@ export class ALECSServer {
    */
   private setupHandlers(): void {
     // Handle list tools request
-    this.server.setRequestHandler(ListToolsRequestSchema, async (request: ListToolsRequest) => {
+    this.server.setRequestHandler(ListToolsRequestSchema, async (_request: ListToolsRequest) => {
       logger.debug('List tools request received');
 
       const tools: Tool[] = [];
@@ -419,7 +419,7 @@ export class ALECSServer {
     // Handle call tool request
     this.server.setRequestHandler(
       CallToolRequestSchema,
-      async (request: CallToolRequest): Promise<CallToolResult> => {
+      async (_request: CallToolRequest): Promise<CallToolResult> => {
         const { name, arguments: args } = request.params;
 
         const entry = this.toolRegistry.get(name);
@@ -447,7 +447,7 @@ export class ALECSServer {
               },
             ],
           };
-        } catch (error) {
+        } catch (_error) {
           if (error instanceof z.ZodError) {
             throw new McpError(
               ErrorCode.InvalidParams,
@@ -479,7 +479,7 @@ export class ALECSServer {
       // Create and configure transport
       const transport = new StdioServerTransport();
 
-      transport.onerror = (error: Error) => {
+      transport.onerror = (_error: Error) => {
         logger.error('Transport error', { error: error.message, stack: error.stack });
       };
 
@@ -492,7 +492,7 @@ export class ALECSServer {
       await this.server.connect(transport);
 
       logger.info('ALECS MCP Server ready and listening');
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to start server', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
@@ -509,7 +509,7 @@ async function main(): Promise<void> {
   try {
     const server = new ALECSServer();
     await server.start();
-  } catch (error) {
+  } catch (_error) {
     logger.error('Server initialization failed', {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,

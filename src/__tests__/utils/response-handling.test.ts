@@ -106,7 +106,7 @@ const mockCertificateEnrollmentResponse = {
 };
 
 const mockFastPurgeResponse = {
-  httpStatus: 201,
+  _httpStatus: 201,
   detail: 'Request accepted',
   estimatedSeconds: 5,
   purgeId: 'purge_123',
@@ -154,7 +154,7 @@ describe('Response Parser Tests', () => {
         pageSize: 50,
         currentPage: 1,
         links: {
-          next: '/properties?page=2',
+          _next: '/properties?page=2',
           self: '/properties?page=1',
         },
       };
@@ -166,7 +166,7 @@ describe('Response Parser Tests', () => {
         pageSize: 50,
         currentPage: 1,
         links: {
-          next: '/properties?page=2',
+          _next: '/properties?page=2',
           self: '/properties?page=1',
         },
       });
@@ -260,7 +260,7 @@ describe('Response Parser Tests', () => {
                 keyAuthorization: 'xyz789',
               },
             ],
-            expires: '2025-01-25T10:00:00Z',
+            expi_res: '2025-01-25T10:00:00Z',
           },
         ],
       };
@@ -279,7 +279,7 @@ describe('Response Parser Tests', () => {
     it('should parse purge initiation response', () => {
       const parsed = ResponseParser.parseFastPurgeResponse(mockFastPurgeResponse);
       expect(parsed).toMatchObject({
-        httpStatus: 201,
+        _httpStatus: 201,
         detail: 'Request accepted',
         estimatedSeconds: 5,
         purgeId: 'purge_123',
@@ -289,7 +289,7 @@ describe('Response Parser Tests', () => {
 
     it('should parse purge status response', () => {
       const statusResponse = {
-        httpStatus: 200,
+        _httpStatus: 200,
         detail: 'Purge completed',
         status: 'Done',
         submittedBy: 'user@example.com',
@@ -299,7 +299,7 @@ describe('Response Parser Tests', () => {
 
       const parsed = ResponseParser.parseFastPurgeResponse(statusResponse);
       expect(parsed).toMatchObject({
-        httpStatus: 200,
+        _httpStatus: 200,
         status: 'Done',
         submittedBy: 'user@example.com',
       });
@@ -828,7 +828,7 @@ describe('Integration Response Handling', () => {
   });
 
   it('should handle error response with enhanced error handling', () => {
-    const error = {
+    const _error = {
       response: {
         status: 400,
         headers: {},

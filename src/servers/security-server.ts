@@ -640,7 +640,7 @@ bulkOptions.comments = typedArgs.comment;
         log('INFO', `✅ Tool ${name} completed in ${duration}ms`);
 
         return result;
-      } catch (error) {
+      } catch (_error) {
         const duration = Date.now() - startTime;
         log('ERROR', `❌ Tool ${name} failed after ${duration}ms`, {
           error:
@@ -679,7 +679,7 @@ bulkOptions.comments = typedArgs.comment;
     const transport = new StdioServerTransport();
 
     // Add error handling for transport
-    transport.onerror = (error: Error) => {
+    transport.onerror = (_error: Error) => {
       log('ERROR', '❌ Transport error', {
         message: error.message,
         stack: error.stack,
@@ -699,7 +699,7 @@ bulkOptions.comments = typedArgs.comment;
         memoryUsage: process.memoryUsage(),
         uptime: process.uptime(),
       });
-    } catch (error) {
+    } catch (_error) {
       log('ERROR', '❌ Failed to connect server', {
         error:
           error instanceof Error
@@ -730,7 +730,7 @@ async function main() {
         pid: process.pid,
       });
     }, 30000); // Every 30 seconds
-  } catch (error) {
+  } catch (_error) {
     log('ERROR', '❌ Failed to start server', {
       error:
         error instanceof Error

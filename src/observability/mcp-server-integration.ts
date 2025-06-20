@@ -80,7 +80,7 @@ export class InstrumentedMCPServer {
       console.log(
         `📊 Observability initialized for ${this.config.observability.environment} environment`,
       );
-    } catch (error) {
+    } catch (_error) {
       console.error('❌ Failed to initialize observability:', error);
     }
   }
@@ -142,7 +142,7 @@ return;
             duration: 0,
             metadata: { serverActive: isResponsive },
           };
-        } catch (error) {
+        } catch (_error) {
           return {
             name: 'mcp_server_connectivity',
             status: 'critical',
@@ -255,7 +255,7 @@ return;
         instrumentation.finish(undefined, { toolCount: tools.length });
 
         return { tools };
-      } catch (error) {
+      } catch (_error) {
         instrumentation.finish(error as Error);
         throw error;
       }
@@ -307,7 +307,7 @@ return;
             },
           ],
         };
-      } catch (error) {
+      } catch (_error) {
         // Record failed tool execution
         this.observability!.metrics.incrementCounter('akamai_mcp_tool_executions_total', 1, {
           tool: toolName,
@@ -397,7 +397,7 @@ return;
         apiInstrumentation.finish(undefined, result);
 
         return result;
-      } catch (error) {
+      } catch (_error) {
         apiInstrumentation.finish(error as Error);
         throw error;
       }
@@ -552,7 +552,7 @@ return;
           await this.observability.exportObservabilityData();
           console.log('📤 Observability data exported on shutdown');
         }
-      } catch (error) {
+      } catch (_error) {
         console.error('❌ Failed to generate final report:', error);
       }
 

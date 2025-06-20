@@ -139,7 +139,7 @@ acc[category] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list available behaviors', error);
   }
 }
@@ -276,7 +276,7 @@ acc[category] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list available criteria', error);
   }
 }
@@ -377,7 +377,7 @@ export async function patchPropertyRules(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('patch property rules', error);
   }
 }
@@ -459,7 +459,7 @@ export async function bulkSearchProperties(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('bulk search properties', error);
   }
 }
@@ -559,7 +559,7 @@ acc[key] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get bulk search results', error);
   }
 }
@@ -635,7 +635,7 @@ export async function generateDomainValidationChallenges(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('generate domain validation challenges', error);
   }
 }
@@ -689,7 +689,7 @@ export async function resumeDomainValidation(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('resume domain validation', error);
   }
 }
@@ -769,7 +769,7 @@ text += `**End Date:** ${args.endDate}\n`;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get property audit history', error);
   }
 }
@@ -777,7 +777,7 @@ text += `**End Date:** ${args.endDate}\n`;
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 

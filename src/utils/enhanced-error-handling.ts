@@ -33,7 +33,7 @@ export interface EnhancedErrorResult {
   errorCode?: string;
   errorType: ErrorType;
   suggestions: string[];
-  context: ErrorContext;
+  _context: ErrorContext;
 }
 
 export enum ErrorType {
@@ -61,7 +61,7 @@ export class EnhancedErrorHandler {
   /**
    * Handle error with comprehensive analysis and suggestions
    */
-  handle(error: any, context: ErrorContext = {}): EnhancedErrorResult {
+  handle(_error: any, _context: ErrorContext = {}): EnhancedErrorResult {
     const httpStatus = this.extractHttpStatus(error);
     const akamaiError = this.parseAkamaiErrorResponse(error);
     const errorType = this.categorizeError(httpStatus, akamaiError, context);
@@ -93,7 +93,7 @@ export class EnhancedErrorHandler {
    */
   async withRetry<T>(
     operation: () => Promise<T>,
-    context: ErrorContext = {},
+    _context: ErrorContext = {},
     retryConfig?: Partial<RetryConfig>,
   ): Promise<T> {
     const config = { ...this.defaultRetryConfig, ...retryConfig };
@@ -103,7 +103,7 @@ export class EnhancedErrorHandler {
     for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
       try {
         return await operation();
-      } catch (error) {
+      } catch (_error) {
         lastError = error;
         const errorResult = this.handle(error, context);
 
@@ -142,7 +142,7 @@ export class EnhancedErrorHandler {
   /**
    * Extract HTTP status from various error formats
    */
-  private extractHttpStatus(error: any): number {
+  private extractHttpStatus(_error: any): number {
     if (error.response?.status) {
 return error.response.status;
 }
@@ -170,7 +170,7 @@ return 503;
   /**
    * Parse Akamai error response with enhanced extraction
    */
-  private parseAkamaiErrorResponse(error: any): AkamaiErrorResponse | null {
+  private parseAkamaiErrorResponse(_error: any): AkamaiErrorResponse | null {
     let errorData = error.response?.data || error.data || error;
 
     // Handle string responses
@@ -206,9 +206,9 @@ return 503;
    * Categorize error for appropriate handling
    */
   private categorizeError(
-    httpStatus: number,
+    _httpStatus: number,
     akamaiError: AkamaiErrorResponse | null,
-    context: ErrorContext,
+    _context: ErrorContext,
   ): ErrorType {
     // Network/connection errors
     if (httpStatus >= 500 && httpStatus <= 599) {
@@ -253,7 +253,7 @@ return ErrorType.RATE_LIMIT;
     // Check for validation errors in errors array
     if (akamaiError?.errors && akamaiError.errors.length > 0) {
       const hasFieldErrors = akamaiError.errors.some(
-        (err: any) => err.field || err.type === 'field-error',
+        (_err: any) => err.field || err.type === 'field-error',
       );
       if (hasFieldErrors) {
 return ErrorType.VALIDATION;
@@ -267,10 +267,10 @@ return ErrorType.VALIDATION;
    * Generate actionable suggestions based on error type and context
    */
   private generateSuggestions(
-    httpStatus: number,
+    _httpStatus: number,
     akamaiError: AkamaiErrorResponse | null,
     errorType: ErrorType,
-    context: ErrorContext,
+    _context: ErrorContext,
   ): string[] {
     const suggestions: string[] = [];
 
@@ -374,7 +374,7 @@ return ErrorType.VALIDATION;
    */
   private formatTechnicalError(
     akamaiError: AkamaiErrorResponse | null,
-    httpStatus: number,
+    _httpStatus: number,
   ): string {
     if (akamaiError) {
       let message = `${akamaiError.title} (HTTP ${httpStatus})`;
@@ -400,10 +400,10 @@ return ErrorType.VALIDATION;
    * Format user-friendly error message
    */
   private formatUserMessage(
-    httpStatus: number,
+    _httpStatus: number,
     akamaiError: AkamaiErrorResponse | null,
     errorType: ErrorType,
-    context: ErrorContext,
+    _context: ErrorContext,
   ): string {
     const operation = context.operation || 'operation';
 
@@ -463,7 +463,7 @@ return ErrorType.VALIDATION;
   /**
    * Check if error is retryable
    */
-  private isRetryable(httpStatus: number, errorType: ErrorType): boolean {
+  private isRetryable(_httpStatus: number, errorType: ErrorType): boolean {
     const retryableTypes = [
       ErrorType.RATE_LIMIT,
       ErrorType.SERVER_ERROR,
@@ -477,7 +477,7 @@ return ErrorType.VALIDATION;
   /**
    * Extract retry-after value from error response
    */
-  private extractRetryAfter(error: any): number | undefined {
+  private extractRetryAfter(_error: any): number | undefined {
     const retryAfter = error.response?.headers?.['retry-after'] || error.headers?.['retry-after'];
 
     if (retryAfter) {
@@ -491,7 +491,7 @@ return ErrorType.VALIDATION;
   /**
    * Extract request ID for support tracking
    */
-  private extractRequestId(error: any): string | undefined {
+  private extractRequestId(_error: any): string | undefined {
     return (
       error.response?.headers?.['x-request-id'] ||
       error.headers?.['x-request-id'] ||
@@ -537,7 +537,7 @@ return ErrorType.VALIDATION;
     attempt: number,
     delay: number,
     errorResult: EnhancedErrorResult,
-    context: ErrorContext,
+    _context: ErrorContext,
   ): void {
     console.warn(`Retry attempt ${attempt} after ${delay}ms:`, {
       timestamp: new Date().toISOString(),
@@ -555,7 +555,7 @@ return ErrorType.VALIDATION;
    */
   private logFailure(
     attempts: Array<{ attempt: number; error: any; delay: number }>,
-    context: ErrorContext,
+    _context: ErrorContext,
   ): void {
     console.error('Operation failed after all retry attempts:', {
       timestamp: new Date().toISOString(),
@@ -578,7 +578,7 @@ return ErrorType.VALIDATION;
  */
 export async function withEnhancedErrorHandling<T>(
   operation: () => Promise<T>,
-  context: ErrorContext = {},
+  _context: ErrorContext = {},
   retryConfig?: Partial<RetryConfig>,
 ): Promise<T> {
   const handler = new EnhancedErrorHandler();
@@ -588,7 +588,7 @@ export async function withEnhancedErrorHandling<T>(
 /**
  * Convenience function for handling single errors
  */
-export function handleAkamaiError(error: any, context: ErrorContext = {}): EnhancedErrorResult {
+export function handleAkamaiError(_error: any, _context: ErrorContext = {}): EnhancedErrorResult {
   const handler = new EnhancedErrorHandler();
   return handler.handle(error, context);
 }

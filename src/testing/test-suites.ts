@@ -367,7 +367,7 @@ export class TestOrchestrator {
   }
 
   // Get scenarios by category
-  getScenariosByCategory(category: TestScenario['category']): TestScenario[] {
+  getScenariosByCategory(_category: TestScenario['category']): TestScenario[] {
     const scenarios: TestScenario[] = [];
 
     for (const suite of this.suites.values()) {

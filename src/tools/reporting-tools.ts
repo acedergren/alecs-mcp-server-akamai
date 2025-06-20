@@ -68,7 +68,7 @@ const reportingToolsBase: Tool[] = [
               items: { type: 'string' },
               description: 'Filter by geographic regions',
             },
-            httpStatus: {
+            _httpStatus: {
               type: 'array',
               items: { type: 'string' },
               description: 'Filter by HTTP status codes (e.g., ["200", "404", "500"])',
@@ -121,7 +121,7 @@ const reportingToolsBase: Tool[] = [
             hostnames: { type: 'array', items: { type: 'string' } },
             countries: { type: 'array', items: { type: 'string' } },
             regions: { type: 'array', items: { type: 'string' } },
-            httpStatus: { type: 'array', items: { type: 'string' } },
+            _httpStatus: { type: 'array', items: { type: 'string' } },
             cacheStatus: { type: 'array', items: { type: 'string' } },
           },
         },
@@ -644,7 +644,7 @@ const reportingToolsBase: Tool[] = [
           properties: {
             cpCodes: { type: 'array', items: { type: 'number' } },
             hostnames: { type: 'array', items: { type: 'string' } },
-            httpStatus: { type: 'array', items: { type: 'string' } },
+            _httpStatus: { type: 'array', items: { type: 'string' } },
           },
         },
         errorTypes: {
@@ -680,7 +680,7 @@ export async function handleGetTrafficSummary(args: any) {
       data: summary,
       message: 'Traffic summary retrieved successfully',
     };
-  } catch (error) {
+  } catch (_error) {
     logger.error('Failed to get traffic summary', { error, args });
     return {
       success: false,
@@ -704,7 +704,7 @@ export async function handleGetTimeseriesData(args: any) {
       data,
       message: `Time-series data retrieved for ${metrics.length} metrics`,
     };
-  } catch (error) {
+  } catch (_error) {
     logger.error('Failed to get timeseries data', { error, args });
     return {
       success: false,
@@ -728,7 +728,7 @@ export async function handleGetPerformanceBenchmarks(args: any) {
       data: benchmarks,
       message: `Performance benchmarks calculated for ${benchmarks.length} metrics`,
     };
-  } catch (error) {
+  } catch (_error) {
     logger.error('Failed to get performance benchmarks', { error, args });
     return {
       success: false,
@@ -770,7 +770,7 @@ export async function handleGetCostOptimizationInsights(args: any) {
       },
       message: `Generated ${filteredInsights.length} cost optimization insights`,
     };
-  } catch (error) {
+  } catch (_error) {
     logger.error('Failed to get cost optimization insights', { error, args });
     return {
       success: false,
@@ -809,7 +809,7 @@ export async function handleCreateReportingDashboard(args: any) {
       data: dashboard,
       message: `Dashboard "${name}" created successfully with ${widgets.length} widgets`,
     };
-  } catch (error) {
+  } catch (_error) {
     logger.error('Failed to create reporting dashboard', { error, args });
     return {
       success: false,
@@ -840,7 +840,7 @@ export async function handleExportReportData(args: any) {
       },
       message: `Report exported successfully as ${format.toUpperCase()}`,
     };
-  } catch (error) {
+  } catch (_error) {
     logger.error('Failed to export report data', { error, args });
     return {
       success: false,
@@ -874,7 +874,7 @@ export async function handleConfigureMonitoringAlerts(args: any) {
       },
       message: `Configured ${enabledAlerts} active monitoring alerts`,
     };
-  } catch (error) {
+  } catch (_error) {
     logger.error('Failed to configure monitoring alerts', { error, args });
     return {
       success: false,

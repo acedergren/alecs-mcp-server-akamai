@@ -78,7 +78,7 @@ export interface OperationMetrics {
   failedCalls: number;
   averageResponseTime: number;
   lastFailureTime?: Date;
-  consecutiveFailures: number;
+  consecutiveFailu_res: number;
   errorRate: number;
   p95ResponseTime: number;
 }
@@ -121,7 +121,7 @@ export class CircuitBreaker {
 
       this.recordSuccess(responseTime);
       return result;
-    } catch (error) {
+    } catch (_error) {
       this.recordFailure();
       throw error;
     }
@@ -177,7 +177,7 @@ return false;
           ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
           : 0,
       lastFailureTime: this.lastFailureTime,
-      consecutiveFailures: this.state === CircuitBreakerState.OPEN ? this.failureCount : 0,
+      consecutiveFailu_res: this.state === CircuitBreakerState.OPEN ? this.failureCount : 0,
       errorRate: totalCalls > 0 ? failedCalls / totalCalls : 0,
       p95ResponseTime: this.calculateP95(),
     };
@@ -203,14 +203,14 @@ export class RetryHandler {
 
   async execute<T>(
     operation: () => Promise<T>,
-    errorHandler?: (error: any, attempt: number) => boolean,
+    errorHandler?: (_error: any, attempt: number) => boolean,
   ): Promise<T> {
     let lastError: any;
 
     for (let attempt = 1; attempt <= this.config.maxAttempts; attempt++) {
       try {
         return await operation();
-      } catch (error) {
+      } catch (_error) {
         lastError = error;
 
         // Check if error is retryable
@@ -390,7 +390,7 @@ export class ErrorClassifier {
     ],
   ]);
 
-  static classify(error: any): ErrorCategory {
+  static classify(_error: any): ErrorCategory {
     let code: string | undefined;
 
     // Extract error code
@@ -422,11 +422,11 @@ export class ErrorClassifier {
     };
   }
 
-  static isRetryable(error: any): boolean {
+  static isRetryable(_error: any): boolean {
     return this.classify(error).retryable;
   }
 
-  static getSeverity(error: any): ErrorSeverity {
+  static getSeverity(_error: any): ErrorSeverity {
     return this.classify(error).severity;
   }
 }
@@ -544,7 +544,7 @@ export class ResilienceManager {
     }
   }
 
-  formatUserFriendlyError(error: any, operationType: OperationType, context?: any): string {
+  formatUserFriendlyError(_error: any, operationType: OperationType, context?: any): string {
     const category = ErrorClassifier.classify(error);
 
     // Use existing error translator for base formatting

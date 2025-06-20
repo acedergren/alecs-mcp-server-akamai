@@ -93,7 +93,7 @@ export interface RuleConflict {
 
 export interface RuleDependency {
   behavior: string;
-  requires: string[];
+  requi_res: string[];
   conflicts: string[];
   recommendedOrder?: number;
 }
@@ -278,7 +278,7 @@ export async function validateRuleTree(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -370,7 +370,7 @@ export async function createRuleTreeFromTemplate(
           content: [
             {
               type: 'text',
-              text: `❌ Failed to apply template:\n\n${updateResponse.errors.map((e: any) => `- ${e.detail}`).join('\n')}`,
+              text: `❌ Failed to apply template:\n\n${updateResponse.errors.map((_e: any) => `- ${e.detail}`).join('\n')}`,
             },
           ],
         };
@@ -418,7 +418,7 @@ export async function createRuleTreeFromTemplate(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -568,7 +568,7 @@ export async function analyzeRuleTreePerformance(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -694,7 +694,7 @@ export async function detectRuleConflicts(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -805,7 +805,7 @@ acc[cat] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -1534,25 +1534,25 @@ function getBehaviorDependencies(): RuleDependency[] {
   return [
     {
       behavior: 'gzipResponse',
-      requires: ['caching'],
+      requi_res: ['caching'],
       conflicts: ['brotli'],
       recommendedOrder: 50,
     },
     {
       behavior: 'modifyOutgoingResponseHeader',
-      requires: [],
+      requi_res: [],
       conflicts: [],
       recommendedOrder: 90,
     },
     {
       behavior: 'caching',
-      requires: ['cpCode'],
+      requi_res: ['cpCode'],
       conflicts: ['noStore'],
       recommendedOrder: 20,
     },
     {
       behavior: 'origin',
-      requires: [],
+      requi_res: [],
       conflicts: [],
       recommendedOrder: 10,
     },

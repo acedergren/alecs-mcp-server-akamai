@@ -296,7 +296,7 @@ export async function bulkCloneProperties(
           'completed',
           propertyOp.result,
         );
-      } catch (error) {
+      } catch (_error) {
         operationTracker.updatePropertyStatus(
           operationId,
           propertyOp.propertyId || 'unknown',
@@ -375,7 +375,7 @@ export async function bulkCloneProperties(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     operationTracker.updateOperation(operationTracker.createOperation('clone', 0, {}), {
       status: 'failed',
       endTime: new Date(),
@@ -526,7 +526,7 @@ export async function bulkActivateProperties(
             propertyOp.result,
           );
         }
-      } catch (error) {
+      } catch (_error) {
         operationTracker.updatePropertyStatus(
           operationId,
           propertyId,
@@ -615,7 +615,7 @@ export async function bulkActivateProperties(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -767,7 +767,7 @@ export async function bulkUpdatePropertyRules(
           'completed',
           propertyOp.result,
         );
-      } catch (error) {
+      } catch (_error) {
         operationTracker.updatePropertyStatus(
           operationId,
           propertyId,
@@ -788,7 +788,7 @@ export async function bulkUpdatePropertyRules(
               body: { rules: propertyOp.rollbackData.originalRules },
             });
             propertyOp.error += ' (Rolled back successfully)';
-          } catch (rollbackError) {
+          } catch (_rollbackError) {
             propertyOp.error += ' (Rollback failed: ' + (rollbackError as Error).message + ')';
           }
         }
@@ -856,7 +856,7 @@ export async function bulkUpdatePropertyRules(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -1005,7 +1005,7 @@ export async function bulkManageHostnames(
               action: operation.action,
               success: true,
             });
-          } catch (error) {
+          } catch (_error) {
             results.push({
               propertyId: operation.propertyId,
               propertyName: property.propertyName,
@@ -1044,7 +1044,7 @@ export async function bulkManageHostnames(
             },
           });
         }
-      } catch (error) {
+      } catch (_error) {
         operation.hostnames.forEach((h: any) => {
           results.push({
             propertyId: operation.propertyId,
@@ -1125,7 +1125,7 @@ export async function bulkManageHostnames(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -1230,7 +1230,7 @@ export async function getBulkOperationStatus(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {

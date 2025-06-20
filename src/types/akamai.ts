@@ -345,7 +345,7 @@ export interface PurgeResponse extends AkamaiBaseResponse {
   /** Estimated seconds to completion */
   estimatedSeconds: number;
   /** HTTP status */
-  httpStatus: number;
+  _httpStatus: number;
   /** Detail message */
   detail: string;
   /** Support ID */

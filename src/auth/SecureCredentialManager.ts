@@ -152,7 +152,7 @@ export class SecureCredentialManager {
       });
 
       return encryptedCredential.id;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to encrypt credentials', { customerId, error });
 
       await this.logCredentialAccess({
@@ -226,7 +226,7 @@ export class SecureCredentialManager {
       });
 
       return credentials;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to decrypt credentials', { credentialId, error });
 
       const encryptedCredential = this.credentials.get(credentialId);
@@ -301,7 +301,7 @@ export class SecureCredentialManager {
       });
 
       return newCredentialId;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to rotate credentials', { credentialId, error });
 
       const credential = this.credentials.get(credentialId);
@@ -416,7 +416,7 @@ export class SecureCredentialManager {
         credentialId,
         customerId: credential.customerId,
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Automatic credential rotation failed', {
         credentialId,
         error,

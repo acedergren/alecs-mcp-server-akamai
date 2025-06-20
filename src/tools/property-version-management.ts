@@ -198,7 +198,7 @@ export async function comparePropertyVersions(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -287,7 +287,7 @@ export async function batchCreateVersions(
             prop.note || args.defaultNote || '',
           );
         }
-      } catch (error: any) {
+      } catch (_error: any) {
         results.push({
           propertyId: prop.propertyId,
           success: false,
@@ -335,7 +335,7 @@ export async function batchCreateVersions(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -489,7 +489,7 @@ responseText += `- **Note:** ${event.note}\n`;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -647,7 +647,7 @@ export async function rollbackPropertyVersion(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -770,7 +770,7 @@ rules.comments = {};
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -915,7 +915,7 @@ export async function mergePropertyVersions(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {

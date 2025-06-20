@@ -95,7 +95,7 @@ export async function generateDocumentationIndex(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error generating documentation index:', error);
     throw error;
   }
@@ -160,7 +160,7 @@ export async function generateAPIReference(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error generating API reference:', error);
     throw error;
   }
@@ -263,7 +263,7 @@ export async function generateFeatureDocumentation(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error generating feature documentation:', error);
     throw error;
   }
@@ -335,7 +335,7 @@ export async function updateDocumentation(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error updating documentation:', error);
     throw error;
   }
@@ -437,7 +437,7 @@ continue;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error generating changelog:', error);
     throw error;
   }
@@ -509,7 +509,7 @@ export async function createKnowledgeArticle(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error creating knowledge article:', error);
     throw error;
   }
@@ -792,7 +792,7 @@ function parseConventionalCommits(_commits: any[]): any[] {
 
 function groupChangesByCategory(changes: any[]): Record<string, any[]> {
   const grouped: Record<string, any[]> = {
-    features: [],
+    featu_res: [],
     fixes: [],
     performance: [],
     documentation: [],
@@ -813,9 +813,9 @@ function groupChangesByCategory(changes: any[]): Record<string, any[]> {
   return grouped;
 }
 
-function formatCategory(category: string): string {
+function formatCategory(_category: string): string {
   const categoryNames: Record<string, string> = {
-    features: '✨ Features',
+    featu_res: '✨ Features',
     fixes: '🐛 Bug Fixes',
     performance: '⚡ Performance',
     documentation: '📚 Documentation',
@@ -869,7 +869,7 @@ async function updateKnowledgeBaseIndex(_articlePath: string, metadata: any): Pr
     });
 
     await fs.writeFile(indexPath, JSON.stringify(index, null, 2));
-  } catch (error) {
+  } catch (_error) {
     console.error('Error updating knowledge base index:', error);
   }
 }

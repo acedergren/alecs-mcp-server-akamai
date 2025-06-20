@@ -280,7 +280,7 @@ export async function analyzeHostnameOwnership(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -417,7 +417,7 @@ acc[suffix] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -620,7 +620,7 @@ export async function validateHostnamesBulk(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -769,7 +769,7 @@ export async function findOptimalPropertyAssignment(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -920,7 +920,7 @@ export async function createHostnameProvisioningPlan(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {

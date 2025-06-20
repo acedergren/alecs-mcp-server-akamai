@@ -129,7 +129,7 @@ export function wrapToolHandler<T>(
         oldResponse.error,
         meta,
       );
-    } catch (error) {
+    } catch (_error) {
       const meta: McpResponseMeta = {
         timestamp: new Date().toISOString(),
         duration: Date.now() - startTime,

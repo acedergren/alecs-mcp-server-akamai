@@ -22,8 +22,8 @@ export class JsonRpcMiddleware {
    */
   static wrapHandler<T = any>(
     handler: (params: any) => Promise<T>,
-  ): (request: JsonRpcRequest) => Promise<JsonRpcResponse> {
-    return async (request: JsonRpcRequest): Promise<JsonRpcResponse> => {
+  ): (_request: JsonRpcRequest) => Promise<JsonRpcResponse> {
+    return async (_request: JsonRpcRequest): Promise<JsonRpcResponse> => {
       // Validate request ID
       if ('id' in request && !isValidRequestId(request.id)) {
         return createJsonRpcError(
@@ -52,7 +52,7 @@ export class JsonRpcMiddleware {
           result,
           request._meta, // Preserve metadata
         );
-      } catch (error) {
+      } catch (_error) {
         // Handle errors and create proper error response
         return this.createErrorResponse(request.id ?? null, error, request._meta);
       }
@@ -125,7 +125,7 @@ export class JsonRpcMiddleware {
   /**
    * Validate incoming JSON-RPC request
    */
-  static validateRequest(request: unknown): JsonRpcRequest {
+  static validateRequest(_request: unknown): JsonRpcRequest {
     if (!request || typeof request !== 'object') {
       throw new Error('Request must be an object');
     }
@@ -168,7 +168,7 @@ export class JsonRpcMiddleware {
   /**
    * Extract metadata from request
    */
-  static extractMetadata(request: JsonRpcRequest): Record<string, unknown> | undefined {
+  static extractMetadata(_request: JsonRpcRequest): Record<string, unknown> | undefined {
     return request._meta;
   }
 }
@@ -210,7 +210,7 @@ export class BatchRequestHandler {
    */
   static async processBatch(
     requests: JsonRpcRequest[],
-    handler: (request: JsonRpcRequest) => Promise<JsonRpcResponse>,
+    handler: (_request: JsonRpcRequest) => Promise<JsonRpcResponse>,
   ): Promise<JsonRpcResponse[]> {
     const responses: JsonRpcResponse[] = [];
 
@@ -221,7 +221,7 @@ export class BatchRequestHandler {
         if ('id' in request && request.id !== undefined) {
           responses.push(response);
         }
-      } catch (error) {
+      } catch (_error) {
         // Even errors should be included if the request had an ID
         if ('id' in request && request.id !== undefined) {
           responses.push(

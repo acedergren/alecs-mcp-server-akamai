@@ -7,7 +7,6 @@ import { ResourceUri } from '@/services/oauth-resource-server';
 import {
   type OAuthResourceIndicator,
   type OAuthResourceType,
-  type OAuthProtectedResource,
   OAuthResourceType as ResourceType,
 } from '@/types/oauth';
 
@@ -195,7 +194,7 @@ export class ResourceIndicatorValidator {
     let uri: ResourceUri;
     try {
       uri = ResourceUri.parse(resource);
-    } catch (error) {
+    } catch (_error) {
       return { error: `Invalid resource URI format: ${resource}` };
     }
 
@@ -404,7 +403,7 @@ export function createDefaultResourceIndicatorValidator(): ResourceIndicatorVali
  * Parse resource indicators from token request
  */
 export function parseResourceIndicators(
-  request: Record<string, unknown>,
+  _request: Record<string, unknown>,
 ): OAuthResourceIndicator | undefined {
   if (!request.resource) {
     return undefined;

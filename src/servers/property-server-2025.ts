@@ -202,7 +202,7 @@ class PropertyALECSServer2025 {
     // Handle call_tool request
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
-      log('INFO', `Handling call_tool request: ${name}`, { args });
+      log('INFO', `Handling call_tool _request: ${name}`, { args });
 
       const startTime = Date.now();
 
@@ -386,7 +386,7 @@ class PropertyALECSServer2025 {
             },
           ],
         };
-      } catch (error) {
+      } catch (_error) {
         log('ERROR', `Tool ${name} failed`, { error });
 
         const errorResult = createMcp2025Response(
@@ -424,7 +424,7 @@ class PropertyALECSServer2025 {
 // Run the server
 if (require.main === module) {
   const server = new PropertyALECSServer2025();
-  server.run().catch((error) => {
+  server.run().catch((_error) => {
     log('FATAL', 'Failed to start server', { error });
     process.exit(1);
   });

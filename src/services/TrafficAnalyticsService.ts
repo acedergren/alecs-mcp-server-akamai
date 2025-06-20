@@ -203,7 +203,7 @@ export class TrafficAnalyticsService {
       });
 
       return analysis;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to analyze bandwidth usage', { error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
@@ -289,7 +289,7 @@ export class TrafficAnalyticsService {
         anomalies,
         forecasts,
       };
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to analyze traffic trends', { error, period });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
@@ -367,7 +367,7 @@ export class TrafficAnalyticsService {
       });
 
       return analysis;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to analyze cache performance', { error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
@@ -451,7 +451,7 @@ export class TrafficAnalyticsService {
       });
 
       return analysis;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to analyze request patterns', { error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(

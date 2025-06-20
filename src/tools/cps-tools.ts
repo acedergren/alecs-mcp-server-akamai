@@ -182,7 +182,7 @@ export async function createDVEnrollment(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('create DV enrollment', error);
   }
 }
@@ -310,7 +310,7 @@ export async function getDVValidationChallenges(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get DV validation challenges', error);
   }
 }
@@ -424,7 +424,7 @@ export async function checkDVEnrollmentStatus(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('check DV enrollment status', error);
   }
 }
@@ -533,7 +533,7 @@ acc[status] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list certificate enrollments', error);
   }
 }
@@ -596,7 +596,7 @@ export async function linkCertificateToProperty(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('link certificate to property', error);
   }
 }
@@ -637,7 +637,7 @@ function formatEnrollmentSummary(enrollment: CPSEnrollmentStatus): string {
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 

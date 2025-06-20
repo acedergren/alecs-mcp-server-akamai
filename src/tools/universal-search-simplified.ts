@@ -85,7 +85,7 @@ export async function universalSearchHandler(
                 },
               });
               property.hostnames = hostnamesResp.hostnames?.items || [];
-            } catch (e) {
+            } catch (_e) {
               console.error('Failed to get hostnames:', e);
             }
           }
@@ -96,7 +96,7 @@ export async function universalSearchHandler(
             matchReason: 'Exact property ID match',
           });
         }
-      } catch (err) {
+      } catch (_err) {
         console.error('Property ID search failed:', err);
       }
     }
@@ -160,7 +160,7 @@ export async function universalSearchHandler(
               if (isMatch && detailed) {
                 property.hostnames = hostnames;
               }
-            } catch (err) {
+            } catch (_err) {
               console.error(`Error checking hostnames for ${property.propertyId}:`, err);
             }
           }
@@ -173,7 +173,7 @@ export async function universalSearchHandler(
             });
           }
         }
-      } catch (err) {
+      } catch (_err) {
         console.error('Property search failed:', err);
       }
     }
@@ -197,7 +197,7 @@ export async function universalSearchHandler(
             matchReason: 'Exact contract ID match',
           });
         }
-      } catch (err) {
+      } catch (_err) {
         console.error('Contract search failed:', err);
       }
     }
@@ -219,7 +219,7 @@ export async function universalSearchHandler(
             matchReason: 'Exact group ID match',
           });
         }
-      } catch (err) {
+      } catch (_err) {
         console.error('Group search failed:', err);
       }
     }
@@ -277,7 +277,7 @@ export async function universalSearchHandler(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(error, 'universal search');
   }
 }

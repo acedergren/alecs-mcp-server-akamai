@@ -6,8 +6,6 @@
  * - RFC 8414 (OAuth 2.0 Authorization Server Metadata)
  */
 
-import { type Property, type DnsZone, type Certificate, type NetworkList } from './akamai';
-
 /**
  * OAuth 2.0 Resource Types
  * Defines the types of resources that can be protected

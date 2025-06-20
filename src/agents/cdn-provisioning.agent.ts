@@ -96,7 +96,7 @@ export class CDNProvisioningAgent {
       }
 
       spinner.succeed(`Initialized with contract: ${this.contractId}, group: ${this.groupId}`);
-    } catch (error) {
+    } catch (_error) {
       spinner.fail('Failed to initialize agent');
       throw error;
     } finally {
@@ -135,7 +135,7 @@ export class CDNProvisioningAgent {
 
       spinner.succeed(`Created version ${versionNumber} for property ${propertyId}`);
       return await this.getPropertyVersion(propertyId, versionNumber);
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
         `Failed to create property version: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -185,7 +185,7 @@ export class CDNProvisioningAgent {
 
       progress.finish('Version cloned successfully');
       return targetVersion;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
@@ -223,7 +223,7 @@ export class CDNProvisioningAgent {
       });
 
       spinner.succeed('Rule configuration updated');
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
         `Failed to update rules: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -260,7 +260,7 @@ export class CDNProvisioningAgent {
 
       await this.updateRuleTree(propertyId, version, ruleTree);
       spinner.succeed(`${format.bold(template)} template applied`);
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
         `Failed to apply template: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -287,7 +287,7 @@ export class CDNProvisioningAgent {
     try {
       progress.update({ current: 1, message: 'Preparing configuration' });
 
-      const request: any = {
+      const _request: any = {
         productId,
         domainPrefix,
         domainSuffix: options.domainSuffix || 'edgesuite.net',
@@ -323,7 +323,7 @@ export class CDNProvisioningAgent {
         `Edge hostname ${format.cyan(domainPrefix + '.' + request.domainSuffix)} created`,
       );
       return edgeHostname;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
@@ -360,7 +360,7 @@ export class CDNProvisioningAgent {
 
       progress.update({ current: 10, message: 'Submitting activation request' });
 
-      const request: any = {
+      const _request: any = {
         propertyVersion: version,
         network,
         activationType: 'FAST',
@@ -427,7 +427,7 @@ export class CDNProvisioningAgent {
         lastProgress = currentProgress;
         await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds
       }
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
@@ -469,7 +469,7 @@ export class CDNProvisioningAgent {
       });
 
       spinner.succeed(`Added hostname ${format.cyan(hostname)} → ${format.green(edgeHostname)}`);
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
         `Failed to add hostname: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -528,7 +528,7 @@ export class CDNProvisioningAgent {
       console.log(`  ${icons.bullet} Enrollment ID: ${format.cyan(enrollment.enrollmentId)}`);
       console.log(`  ${icons.bullet} Network: ${format.green('Enhanced TLS')}`);
       console.log(`  ${icons.bullet} Validated Domains: ${hostnames.length}`);
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
@@ -639,7 +639,7 @@ export class CDNProvisioningAgent {
   }
 
   // Template application methods
-  private applyOriginTemplate(ruleTree: RuleTree, options: any): void {
+  private applyOriginTemplate(ruleTree: RuleTree, _options: any): void {
     const originBehavior = {
       name: 'origin',
       options: {
@@ -665,7 +665,7 @@ export class CDNProvisioningAgent {
     }
   }
 
-  private applyCachingTemplate(ruleTree: RuleTree, options: any): void {
+  private applyCachingTemplate(ruleTree: RuleTree, _options: any): void {
     const cachingRule = {
       name: 'Performance',
       children: [
@@ -723,7 +723,7 @@ export class CDNProvisioningAgent {
     }
   }
 
-  private applyPerformanceTemplate(ruleTree: RuleTree, options: any): void {
+  private applyPerformanceTemplate(ruleTree: RuleTree, _options: any): void {
     const performanceBehaviors = [
       {
         name: 'http2',
@@ -967,7 +967,7 @@ export class CDNProvisioningAgent {
       });
       console.log(`  2. Test on staging: https://${hostnames[0]}.edgesuite-staging.net`);
       console.log('  3. Monitor activation status in Control Center');
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',

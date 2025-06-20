@@ -188,7 +188,7 @@ export class FastPurgeMonitor {
         // Check alerts
         await this.checkAlerts(metrics);
       }
-    } catch (error: any) {
+    } catch (_error: any) {
       logger.error(`Failed to collect FastPurge metrics: ${error.message}`);
     }
   }
@@ -308,7 +308,7 @@ apiHealth = 'unhealthy';
 } else if (apiLatency > 2000) {
 apiHealth = 'degraded';
 }
-    } catch (error) {
+    } catch (_error) {
       apiHealth = 'unhealthy';
       apiLatency = -1;
     }

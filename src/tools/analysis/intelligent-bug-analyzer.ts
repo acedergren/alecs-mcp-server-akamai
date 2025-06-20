@@ -214,7 +214,7 @@ interface HealthScore {
   success_rate: number;
   performance: number;
   stability: number;
-  critical_failures: number;
+  critical_failu_res: number;
   grade: string;
 }
 
@@ -295,7 +295,7 @@ export class IntelligentBugAnalyzer {
   private analysisHistory: AnalysisHistoryItem[];
   private benchmarks: Benchmarks;
 
-  constructor(options: AnalyzerOptions = {}) {
+  constructor(_options: AnalyzerOptions = {}) {
     this.options = {
       enableCxAnalysis: options.enableCxAnalysis !== false,
       enableStrategyOptimization: options.enableStrategyOptimization !== false,
@@ -374,7 +374,7 @@ export class IntelligentBugAnalyzer {
         insights: insights,
         exports: this.generateExports(analysisReport, this.options.outputFormat!),
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(`[${analysisId}] Analysis failed:`, error);
       throw new AnalysisError(`Bug analysis failed: ${(error as Error).message}`, {
         analysisId,
@@ -641,7 +641,7 @@ export class IntelligentBugAnalyzer {
   /**
    * Calculate health score
    */
-  private calculateHealthScore(testResults: TestResults, testAnalysis: TestAnalysis): HealthScore {
+  private calculateHealthScore(testResults: TestResults, _testAnalysis: TestAnalysis): HealthScore {
     const successRate = testAnalysis.overview?.successRate || 0;
     const criticalFailures =
       testAnalysis.errorAnalysis?.categorizedErrors?.get('AUTH_ERROR')?.length || 0;
@@ -659,7 +659,7 @@ export class IntelligentBugAnalyzer {
       success_rate: Math.round(successRate),
       performance: Math.round(performanceScore),
       stability: Math.round(stabilityScore),
-      critical_failures: criticalFailures,
+      critical_failu_res: criticalFailures,
       grade: this.getHealthGrade(healthScore),
     };
   }
@@ -695,7 +695,7 @@ return 'D';
   /**
    * Generate exports in various formats
    */
-  private generateExports(report: AnalysisReport, format: string): Record<string, ExportItem> {
+  private generateExports(_report: AnalysisReport, format: string): Record<string, ExportItem> {
     const exports: Record<string, ExportItem> = {};
 
     // JSON export (always available)
@@ -740,7 +740,7 @@ return 'D';
   /**
    * Generate Markdown report
    */
-  private generateMarkdownReport(report: AnalysisReport): string {
+  private generateMarkdownReport(_report: AnalysisReport): string {
     const { metadata, executive_summary, test_analysis, todo_management } = report;
 
     let markdown = '# Bug Analysis Report\n\n';
@@ -812,7 +812,7 @@ return 'D';
   /**
    * Generate insights from analysis
    */
-  private generateInsights(report: AnalysisReport): any {
+  private generateInsights(_report: AnalysisReport): any {
     const insights = {
       patterns: this.identifyPatterns(report),
       trends: this.identifyTrends(report),
@@ -827,7 +827,7 @@ return 'D';
   /**
    * Store analysis for historical tracking
    */
-  private storeAnalysis(report: AnalysisReport): void {
+  private storeAnalysis(_report: AnalysisReport): void {
     this.analysisHistory.push({
       id: report.metadata.analysisId,
       timestamp: report.metadata.timestamp,
@@ -849,7 +849,7 @@ return 'D';
     return `analysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  private sanitizeOptions(options: Record<string, any>): Partial<AnalyzerOptions> {
+  private sanitizeOptions(_options: Record<string, any>): Partial<AnalyzerOptions> {
     return {
       enableCxAnalysis: options.enableCxAnalysis,
       enableStrategyOptimization: options.enableStrategyOptimization,
@@ -909,7 +909,7 @@ return 70;
     return 60;
   }
 
-  private calculateStabilityScore(testAnalysis: TestAnalysis): number {
+  private calculateStabilityScore(_testAnalysis: TestAnalysis): number {
     const repeatingFailures = testAnalysis.patternAnalysis?.repeatingFailures?.length || 0;
     const cascadingFailures = testAnalysis.patternAnalysis?.cascadingFailures?.length || 0;
 
@@ -960,7 +960,7 @@ probability -= 5;
   }
 
   // Placeholder methods for future implementation
-  private analyzeTrends(testResults: TestResults, testAnalysis: TestAnalysis): any {
+  private analyzeTrends(testResults: TestResults, _testAnalysis: TestAnalysis): any {
     return { message: 'Trend analysis requires historical data' };
   }
 
@@ -990,19 +990,19 @@ probability -= 5;
     };
   }
 
-  private generateActionSummary(todoList: TodoList, fixStrategy: FixStrategy | null): any {
+  private generateActionSummary(todoList: TodoList, _fixStrategy: FixStrategy | null): any {
     return { message: 'Action summary generated from todo list and fix strategy' };
   }
 
-  private generateResourceSummary(fixStrategy: FixStrategy | null): any {
+  private generateResourceSummary(_fixStrategy: FixStrategy | null): any {
     return { message: 'Resource requirements calculated from fix strategy' };
   }
 
-  private generateTimelineSummary(fixStrategy: FixStrategy | null): any {
+  private generateTimelineSummary(_fixStrategy: FixStrategy | null): any {
     return { message: 'Timeline estimates based on fix strategy' };
   }
 
-  private generateBusinessImpactSummary(customerImpact: CustomerImpact | null): any {
+  private generateBusinessImpactSummary(_customerImpact: CustomerImpact | null): any {
     return { message: 'Business impact assessment based on customer analysis' };
   }
 
@@ -1014,23 +1014,23 @@ probability -= 5;
     return { message: 'Risk assessment based on comprehensive analysis' };
   }
 
-  private identifyPatterns(report: AnalysisReport): any {
+  private identifyPatterns(_report: AnalysisReport): any {
     return { message: 'Pattern identification based on historical analysis' };
   }
 
-  private identifyTrends(report: AnalysisReport): any {
+  private identifyTrends(_report: AnalysisReport): any {
     return { message: 'Trend identification requires multiple analysis runs' };
   }
 
-  private generateActionableInsights(report: AnalysisReport): any {
+  private generateActionableInsights(_report: AnalysisReport): any {
     return { message: 'Actionable insights generated from analysis data' };
   }
 
-  private generatePredictions(report: AnalysisReport): any {
+  private generatePredictions(_report: AnalysisReport): any {
     return { message: 'Predictions based on current analysis and historical patterns' };
   }
 
-  private generateComparisons(report: AnalysisReport): any {
+  private generateComparisons(_report: AnalysisReport): any {
     return { message: 'Comparisons with previous analysis runs and benchmarks' };
   }
 }
@@ -1039,10 +1039,10 @@ probability -= 5;
  * Custom error class for analysis failures
  */
 export class AnalysisError extends Error {
-  public context: AnalysisErrorContext;
+  public _context: AnalysisErrorContext;
   public timestamp: string;
 
-  constructor(message: string, context: Partial<AnalysisErrorContext> = {}) {
+  constructor(message: string, _context: Partial<AnalysisErrorContext> = {}) {
     super(message);
     this.name = 'AnalysisError';
     this.context = {

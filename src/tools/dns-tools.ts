@@ -194,7 +194,7 @@ export async function listZones(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     spinner.fail('Failed to fetch DNS zones');
     console.error('Error listing DNS zones:', error);
     throw error;
@@ -239,7 +239,7 @@ export async function getZone(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error getting DNS zone:', error);
     throw error;
   }
@@ -307,7 +307,7 @@ queryParams.gid = args.groupId;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     spinner.fail(`Failed to create zone: ${args.zone}`);
     console.error('Error creating DNS zone:', error);
     throw error;
@@ -366,7 +366,7 @@ queryParams.types = args.types.join(',');
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Error listing DNS records:', error);
     throw error;
   }
@@ -388,7 +388,7 @@ export async function getChangeList(
       },
     });
     return response;
-  } catch (error: any) {
+  } catch (_error: any) {
     if (error.message?.includes('404')) {
       return null;
     }
@@ -457,7 +457,7 @@ export async function submitChangeList(
         });
 
         break; // Success, exit retry loop
-      } catch (error: any) {
+      } catch (_error: any) {
         lastError = error;
 
         // Check if it's a rate limit error
@@ -548,7 +548,7 @@ export async function submitChangeList(
         } else {
           spinner.fail(`Zone activation failed: ${status.activationState}`);
         }
-      } catch (error) {
+      } catch (_error) {
         spinner.fail('Failed to monitor activation status');
         console.error('Activation monitoring error:', error);
         // Don't throw - submission was successful even if monitoring failed
@@ -556,7 +556,7 @@ export async function submitChangeList(
     }
 
     return response;
-  } catch (error) {
+  } catch (_error) {
     if (spinner) {
 spinner.fail('Failed to submit changelist');
 }
@@ -567,7 +567,7 @@ spinner.fail('Failed to submit changelist');
 /**
  * Helper to determine if an error is transient and should be retried
  */
-function isTransientError(error: any): boolean {
+function isTransientError(_error: any): boolean {
   // Network errors
   if (error.code && ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNREFUSED'].includes(error.code)) {
     return true;
@@ -611,7 +611,7 @@ export async function discardChangeList(
         },
       });
       return; // Success
-    } catch (error: any) {
+    } catch (_error: any) {
       lastError = error;
 
       // Don't retry on 404 - changelist doesn't exist
@@ -684,7 +684,7 @@ export async function waitForZoneActivation(
       // Still pending - wait before next poll
       const delay = opts.pollInterval * backoffMultiplier;
       await new Promise((resolve) => setTimeout(resolve, delay));
-    } catch (error: any) {
+    } catch (_error: any) {
       // Handle rate limiting with exponential backoff
       if (error.message?.includes('429') || error.statusCode === 429) {
         consecutiveErrors++;
@@ -763,7 +763,7 @@ continue;
       if (i < zones.length - 1 && opts.delayBetweenZones > 0) {
         await new Promise((resolve) => setTimeout(resolve, opts.delayBetweenZones));
       }
-    } catch (error: any) {
+    } catch (_error: any) {
       const errorMessage: string =
         error instanceof Error ? error.message : String(error || 'Unknown error');
       result.failed.push({
@@ -949,7 +949,7 @@ export async function upsertRecord(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     spinner.fail('Failed to update DNS record');
     console.error('Error updating DNS record:', error);
     throw error;
@@ -1010,7 +1010,7 @@ export async function deleteRecord(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     spinner.fail('Failed to delete DNS record');
     console.error('Error deleting DNS record:', error);
     throw error;
@@ -1110,7 +1110,7 @@ export async function activateZoneChanges(
         ],
       };
     }
-  } catch (error: any) {
+  } catch (_error: any) {
     spinner.fail('Failed to activate zone changes');
 
     // Provide helpful error messages

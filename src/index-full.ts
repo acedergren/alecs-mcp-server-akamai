@@ -31,8 +31,7 @@ import { CustomerConfigManager } from './utils/customer-config';
 import { logger } from './utils/logger';
 
 // Import all tools and schemas
-import { ALL_TOOL_DEFINITIONS } from './tools/tool-registry';
-import { TOOL_SCHEMAS } from './tools/tool-schemas';
+import { getAllToolDefinitions } from './tools/all-tools-registry';
 
 /**
  * Tool registry entry with metadata
@@ -170,7 +169,7 @@ export class ALECSFullServer {
    * Setup global error handling
    */
   private setupErrorHandling(): void {
-    process.on('uncaughtException', (error: Error) => {
+    process.on('uncaughtException', (_error: Error) => {
       logger.error('Uncaught exception', { error: error.message, stack: error.stack });
       process.exit(1);
     });
@@ -253,20 +252,16 @@ export class ALECSFullServer {
    * Register all available tools
    */
   private registerAllTools(): void {
-    // Register each tool from the registry
-    for (const [toolName, toolDef] of Object.entries(ALL_TOOL_DEFINITIONS)) {
-      const schema = TOOL_SCHEMAS[toolName as keyof typeof TOOL_SCHEMAS];
-      
-      if (!schema) {
-        logger.warn(`No schema found for tool: ${toolName}`);
-        continue;
-      }
-
+    // Get all tool definitions
+    const allTools = getAllToolDefinitions();
+    
+    // Register each tool
+    for (const toolDef of allTools) {
       this.registerTool(
-        toolName,
+        toolDef.name,
         toolDef.description,
-        schema,
-        async (params) => this.wrapToolHandler(toolName, params, toolDef.handler),
+        toolDef.schema,
+        async (params) => this.wrapToolHandler(toolDef.name, params, toolDef.handler),
       );
     }
 
@@ -326,7 +321,7 @@ export class ALECSFullServer {
       };
 
       return response as McpToolResponse;
-    } catch (error) {
+    } catch (_error) {
       const duration = Date.now() - context.startTime;
 
       logger.error('Tool request failed', {
@@ -360,7 +355,7 @@ export class ALECSFullServer {
   /**
    * Format error for response
    */
-  private formatError(error: unknown): string {
+  private formatError(_error: unknown): string {
     if (error instanceof ConfigurationError) {
       return `Configuration error: ${error.message}`;
     }
@@ -392,7 +387,7 @@ export class ALECSFullServer {
    */
   private setupHandlers(): void {
     // Handle list tools request
-    this.server.setRequestHandler(ListToolsRequestSchema, async (request: ListToolsRequest) => {
+    this.server.setRequestHandler(ListToolsRequestSchema, async (_request: ListToolsRequest) => {
       logger.debug('List tools request received');
 
       const tools: Tool[] = [];
@@ -409,7 +404,7 @@ export class ALECSFullServer {
     // Handle call tool request
     this.server.setRequestHandler(
       CallToolRequestSchema,
-      async (request: CallToolRequest): Promise<CallToolResult> => {
+      async (_request: CallToolRequest): Promise<CallToolResult> => {
         const { name, arguments: args } = request.params;
 
         const entry = this.toolRegistry.get(name);
@@ -446,7 +441,7 @@ export class ALECSFullServer {
               },
             ],
           };
-        } catch (error) {
+        } catch (_error) {
           if (error instanceof z.ZodError) {
             throw new McpError(
               ErrorCode.InvalidParams,
@@ -478,7 +473,7 @@ export class ALECSFullServer {
       // Create and configure transport
       const transport = new StdioServerTransport();
 
-      transport.onerror = (error: Error) => {
+      transport.onerror = (_error: Error) => {
         logger.error('Transport error', { error: error.message, stack: error.stack });
       };
 
@@ -491,7 +486,7 @@ export class ALECSFullServer {
       await this.server.connect(transport);
 
       logger.info('ALECS Full MCP Server ready and listening');
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to start server', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
@@ -508,7 +503,7 @@ async function main(): Promise<void> {
   try {
     const server = new ALECSFullServer();
     await server.start();
-  } catch (error) {
+  } catch (_error) {
     logger.error('Server initialization failed', {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,

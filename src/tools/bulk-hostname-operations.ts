@@ -337,7 +337,7 @@ export async function createBulkProvisioningPlan(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -560,7 +560,7 @@ export async function executeBulkProvisioning(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -704,7 +704,7 @@ export async function validateBulkDNS(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -859,7 +859,7 @@ acc[op.propertyId] = [];
           },
           body: hostnames,
         });
-      } catch (error) {
+      } catch (_error) {
         operations.forEach((op) => {
           results.failed.push({
             hostname: op.hostname,
@@ -930,7 +930,7 @@ acc[r.action] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {

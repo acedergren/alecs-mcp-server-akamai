@@ -258,7 +258,7 @@ export class TodoGenerator {
   /**
    * Generate TODOs for specific error categories
    */
-  private generateCategoryTodos(category: string, errors: ErrorItem[]): TodoItem[] {
+  private generateCategoryTodos(_category: string, errors: ErrorItem[]): TodoItem[] {
     const categoryTodos: TodoItem[] = [];
     const highestSeverity = this.getHighestSeverity(errors);
 
@@ -647,7 +647,7 @@ return null;
         tags: ['customer-facing', 'user-experience'],
         details: {
           impactLevel: impactAssessment.customerImpact.level,
-          affectedFeatures: impactAssessment.customerImpact.affectedFeatures || [],
+          affectedFeatu_res: impactAssessment.customerImpact.affectedFeatures || [],
           failureRate: impactAssessment.customerImpact.customerFailureRate,
           suggestedActions: [
             'Prioritize customer-facing functionality fixes',
@@ -785,7 +785,7 @@ return null;
   /**
    * Process and organize todos
    */
-  private processTodos(todos: TodoList, options: GenerateOptions): void {
+  private processTodos(todos: TodoList, _options: GenerateOptions): void {
     // Remove duplicates
     todos.items = this.removeDuplicateTodos(todos.items);
 
@@ -902,14 +902,14 @@ return false;
    */
   private hasDependency(prerequisite: TodoItem, dependent: TodoItem): boolean {
     interface DependencyRule {
-      prereq: string;
+      pre_req: string;
       dep: string[];
     }
 
     const dependencyRules: DependencyRule[] = [
-      { prereq: 'configuration', dep: ['bug_fix', 'testing', 'performance'] },
-      { prereq: 'security', dep: ['bug_fix', 'testing'] },
-      { prereq: 'infrastructure', dep: ['performance', 'testing'] },
+      { pre_req: 'configuration', dep: ['bug_fix', 'testing', 'performance'] },
+      { pre_req: 'security', dep: ['bug_fix', 'testing'] },
+      { pre_req: 'infrastructure', dep: ['performance', 'testing'] },
     ];
 
     return dependencyRules.some(

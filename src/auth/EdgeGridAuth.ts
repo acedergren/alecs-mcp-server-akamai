@@ -108,7 +108,7 @@ export class EdgeGridAuth {
   private readonly customerName: string;
   private readonly hasAccountSwitching: boolean;
 
-  private constructor(options: EdgeGridClientOptions = {}) {
+  private constructor(_options: EdgeGridClientOptions = {}) {
     const { customer = 'default', timeout = 30000, validateOnInit = true } = options;
 
     this.customerName = customer;
@@ -158,7 +158,7 @@ export class EdgeGridAuth {
   /**
    * Get or create EdgeGrid client instance
    */
-  static getInstance(options: EdgeGridClientOptions = {}): EdgeGridAuth {
+  static getInstance(_options: EdgeGridClientOptions = {}): EdgeGridAuth {
     const key = options.customer || 'default';
 
     if (!EdgeGridAuth.instances.has(key)) {
@@ -364,7 +364,7 @@ export class EdgeGridAuth {
   /**
    * Handle request/response errors
    */
-  private async handleError(error: AxiosError): Promise<never> {
+  private async handleError(_error: AxiosError): Promise<never> {
     if (error.response) {
       const errorResponse = error.response.data as EdgeGridErrorResponse;
       const errorMessage = this.extractErrorMessage(errorResponse, error.response.status);
@@ -402,7 +402,7 @@ export class EdgeGridAuth {
   /**
    * Create authentication error
    */
-  private createAuthError(error: unknown): EdgeGridAuthError {
+  private createAuthError(_error: unknown): EdgeGridAuthError {
     if (error instanceof Error) {
       return new EdgeGridAuthError(error.message, 'AUTH_ERROR');
     }

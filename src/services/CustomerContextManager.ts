@@ -93,7 +93,7 @@ export class CustomerContextManager {
   /**
    * Switch customer context
    */
-  async switchCustomer(request: CustomerSwitchRequest): Promise<CustomerContext> {
+  async switchCustomer(_request: CustomerSwitchRequest): Promise<CustomerContext> {
     const { sessionId, targetCustomerId, reason } = request;
 
     // Get session
@@ -142,7 +142,7 @@ export class CustomerContextManager {
   /**
    * Get EdgeGrid client for customer
    */
-  async getEdgeGridClient(request: CustomerCredentialRequest): Promise<AkamaiClient> {
+  async getEdgeGridClient(_request: CustomerCredentialRequest): Promise<AkamaiClient> {
     const { sessionId, customerId, purpose } = request;
 
     // Get session
@@ -298,7 +298,7 @@ export class CustomerContextManager {
   /**
    * Authorize action
    */
-  async authorize(request: AuthorizationRequest): Promise<AuthorizationDecision> {
+  async authorize(_request: AuthorizationRequest): Promise<AuthorizationDecision> {
     const { sessionId, resource, action, resourceId, metadata } = request;
 
     // Get session

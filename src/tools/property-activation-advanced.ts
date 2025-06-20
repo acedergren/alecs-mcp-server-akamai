@@ -137,7 +137,7 @@ export async function validatePropertyActivation(
 
     if (rulesValidation.errors?.length > 0) {
       validation.valid = false;
-      rulesValidation.errors.forEach((error: any) => {
+      rulesValidation.errors.forEach((_error: any) => {
         validation.errors.push({
           severity: error.type === 'error' ? 'CRITICAL' : 'ERROR',
           type: error.type,
@@ -288,7 +288,7 @@ responseText += `  - ${check.details}\n`;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -463,7 +463,7 @@ export async function activatePropertyWithMonitoring(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -569,7 +569,7 @@ export async function getActivationProgress(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -587,7 +587,7 @@ export async function getActivationProgress(
 
 // Helper functions
 
-function getErrorResolution(error: any): string {
+function getErrorResolution(_error: any): string {
   const resolutions: Record<string, string> = {
     missing_required_behavior: 'Add the required behavior to your rule tree',
     invalid_criteria: 'Update the criteria to use valid values',
@@ -682,7 +682,7 @@ return origin;
       message: `Origin configured: ${originHostname}`,
       details: 'Note: Actual connectivity test not performed',
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       name: 'Origin Connectivity',
       status: 'WARNING',
@@ -889,7 +889,7 @@ async function rollbackActivation(
         },
       });
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Rollback failed:', error);
   }
 }
@@ -943,7 +943,7 @@ export async function cancelPropertyActivation(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -1042,7 +1042,7 @@ export async function createActivationPlan(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {

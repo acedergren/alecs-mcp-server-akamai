@@ -148,7 +148,7 @@ class MinimalALECSServer {
           default:
             throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
         }
-      } catch (error) {
+      } catch (_error) {
         console.error('❌ Tool error:', error);
 
         if (error instanceof z.ZodError) {
@@ -176,7 +176,7 @@ class MinimalALECSServer {
     const transport = new StdioServerTransport();
 
     // Add error handling for transport
-    transport.onerror = (error: Error) => {
+    transport.onerror = (_error: Error) => {
       console.error('❌ Transport error:', error);
     };
 
@@ -196,7 +196,7 @@ async function main() {
   try {
     const server = new MinimalALECSServer();
     await server.start();
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);
   }

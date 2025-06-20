@@ -386,7 +386,7 @@ export async function updatePropertyRulesEnhanced(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('update property rules with validation', error);
   }
 }
@@ -494,7 +494,7 @@ export async function createRuleFromTemplate(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('create rule from template', error);
   }
 }
@@ -526,7 +526,7 @@ export async function validateRuleTree(
     const statusIcon = validation.isValid ? '✅' : '❌';
     text += `**Overall Status:** ${statusIcon} ${validation.isValid ? 'Valid' : 'Invalid'}\n\n`;
 
-    text += '**Scores:**\n';
+    text += '**Sco_res:**\n';
     text += `- Performance: ${validation.performanceScore}/100\n`;
     text += `- Compliance: ${validation.complianceScore}/100\n\n`;
 
@@ -593,7 +593,7 @@ export async function validateRuleTree(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('validate rule tree', error);
   }
 }
@@ -703,7 +703,7 @@ export async function mergeRuleTrees(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('merge rule trees', error);
   }
 }
@@ -803,7 +803,7 @@ export async function optimizeRuleTree(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('optimize rule tree', error);
   }
 }
@@ -881,14 +881,14 @@ export async function listRuleTemplates(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list rule templates', error);
   }
 }
 
 // Helper functions
 
-async function validateRuleTreeInternal(rules: any, _context: any): Promise<RuleValidationResult> {
+async function validateRuleTreeInternal(rules: any, __context: any): Promise<RuleValidationResult> {
   const errors: RuleValidationError[] = [];
   const warnings: RuleValidationWarning[] = [];
   const suggestions: RuleOptimizationSuggestion[] = [];
@@ -1233,7 +1233,7 @@ function processTemplate(template: any, variables: Record<string, any>): any {
 
       // Direct variable replacement
       return evaluateExpression(trimmed, variables);
-    } catch (error) {
+    } catch (_error) {
       logger.warn(`Failed to process template expression: ${expression}`);
       return match;
     }
@@ -1267,7 +1267,7 @@ function evaluateExpression(expression: string, variables: Record<string, any>):
   return expression;
 }
 
-function performRuleMerge(source: any, target: any, options: RuleMergeOptions): any {
+function performRuleMerge(source: any, target: any, _options: RuleMergeOptions): any {
   const result = {
     mergedRules: {},
     conflicts: [] as any[],
@@ -1742,7 +1742,7 @@ function applySecurityOptimization(rules: any, _optimization: RuleOptimizationSu
 /**
  * Format error responses
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 

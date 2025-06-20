@@ -79,7 +79,7 @@ export class HttpServerTransport {
   /**
    * Handle incoming HTTP requests
    */
-  private async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  private async handleRequest(_req: IncomingMessage, _res: ServerResponse): Promise<void> {
     // Set MCP-Protocol-Version header on all responses
     res.setHeader('MCP-Protocol-Version', MCP_PROTOCOL_VERSION);
     res.setHeader('Content-Type', 'application/json');
@@ -143,7 +143,7 @@ export class HttpServerTransport {
       res.writeHead(200);
       res.end(JSON.stringify(response));
 
-    } catch (error) {
+    } catch (_error) {
       // Handle parsing errors
       if (error instanceof SyntaxError) {
         res.writeHead(400);
@@ -167,7 +167,7 @@ export class HttpServerTransport {
   /**
    * Parse request body as JSON
    */
-  private parseRequestBody(req: IncomingMessage): Promise<any> {
+  private parseRequestBody(_req: IncomingMessage): Promise<any> {
     return new Promise((resolve, reject) => {
       let body = '';
 
@@ -178,7 +178,7 @@ export class HttpServerTransport {
       req.on('end', () => {
         try {
           resolve(JSON.parse(body));
-        } catch (error) {
+        } catch (_error) {
           reject(error);
         }
       });
@@ -195,7 +195,7 @@ export class HttpServerTransport {
   /**
    * Process JSON-RPC request through MCP server
    */
-  private async processRequest(request: JsonRpcRequest): Promise<JsonRpcResponse> {
+  private async processRequest(_request: JsonRpcRequest): Promise<JsonRpcResponse> {
     if (!this.server) {
       return createJsonRpcError(
         request.id,
@@ -213,7 +213,7 @@ export class HttpServerTransport {
         JsonRpcErrorCode.MethodNotFound,
         'HTTP transport integration not yet implemented',
       );
-    } catch (error) {
+    } catch (_error) {
       return createJsonRpcError(
         request.id,
         JsonRpcErrorCode.InternalError,
@@ -227,7 +227,7 @@ export class HttpServerTransport {
   /**
    * Set CORS headers
    */
-  private setCorsHeaders(req: IncomingMessage, res: ServerResponse): void {
+  private setCorsHeaders(_req: IncomingMessage, _res: ServerResponse): void {
     const origin = req.headers.origin;
     const allowedOrigins = Array.isArray(this.config.cors.origin)
       ? this.config.cors.origin

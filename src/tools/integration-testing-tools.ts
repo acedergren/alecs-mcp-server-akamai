@@ -129,7 +129,7 @@ export async function runIntegrationTestSuite(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -271,7 +271,7 @@ export async function checkAPIHealth(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -414,7 +414,7 @@ export async function generateTestData(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -486,7 +486,7 @@ export async function validateToolResponses(
           scenario: scenario.name,
           ...result,
         });
-      } catch (error) {
+      } catch (_error) {
         results.push({
           scenario: scenario.name,
           status: 'failed',
@@ -531,7 +531,7 @@ export async function validateToolResponses(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -671,7 +671,7 @@ export async function runLoadTest(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {

@@ -76,7 +76,7 @@ export interface TelemetryStats {
     {
       exports: number;
       successes: number;
-      failures: number;
+      failu_res: number;
       lastSuccess?: number;
       lastFailure?: number;
       averageLatency: number;
@@ -136,7 +136,7 @@ export class TelemetryExporter extends EventEmitter {
       this.stats.destinations[destination.name] = {
         exports: 0,
         successes: 0,
-        failures: 0,
+        failu_res: 0,
         averageLatency: 0,
       };
     }
@@ -191,7 +191,7 @@ return false;
       try {
         const result = await this.exportToDestination(destination);
         results.push(result);
-      } catch (error) {
+      } catch (_error) {
         const result: ExportResult = {
           destination: destination.name,
           success: false,
@@ -264,7 +264,7 @@ return false;
 
       this.emit('exportSuccess', result);
       return result;
-    } catch (error) {
+    } catch (_error) {
       const duration = performance.now() - startTime;
       this.updateStats(destination.name, false, duration, 0);
 
@@ -295,7 +295,7 @@ return false;
     this.flushInterval = setInterval(async () => {
       try {
         await this.exportAll();
-      } catch (error) {
+      } catch (_error) {
         this.emit('batchExportError', error);
       }
     }, interval);
@@ -339,7 +339,7 @@ return false;
       this.stats.destinations[destination] = {
         exports: 0,
         successes: 0,
-        failures: 0,
+        failu_res: 0,
         averageLatency: 0,
       };
     }
@@ -380,7 +380,7 @@ return false;
 
       this.emit('destinationTestSuccess', name);
       return true;
-    } catch (error) {
+    } catch (_error) {
       this.emit('destinationTestFailure', name, error);
       throw error;
     }
@@ -400,7 +400,7 @@ return false;
     const stats = this.stats.destinations[name] || {
       exports: 0,
       successes: 0,
-      failures: 0,
+      failu_res: 0,
       averageLatency: 0,
     };
 
@@ -658,7 +658,7 @@ return false;
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    } catch (error) {
+    } catch (_error) {
       clearTimeout(timeoutId);
       throw error;
     }
@@ -702,7 +702,7 @@ return false;
       this.stats.destinations[destinationName] = {
         exports: 0,
         successes: 0,
-        failures: 0,
+        failu_res: 0,
         averageLatency: 0,
       };
     }
@@ -753,7 +753,7 @@ return;
     try {
       await this.exportToDestination(destination);
       this.batches.delete(item.batchId);
-    } catch (error) {
+    } catch (_error) {
       if (item.retryCount < (this.config.maxRetryAttempts || 3)) {
         // Retry with exponential backoff
         setTimeout(

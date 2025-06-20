@@ -45,7 +45,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
     timeoutCount: 0,
     circuitBreakerTrips: 0
   };
-  private originalAuth: ((req: any) => any) | null = null;
+  private originalAuth: ((_req: any) => any) | null = null;
 
   constructor(config: EnhancedEdgeGridConfig = {}) {
     super();
@@ -148,7 +148,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
         });
 
         return authenticatedOptions;
-      } catch (error) {
+      } catch (_error) {
         const authTime = performance.now() - startTime;
         this.updateAuthMetrics(authTime, false);
         
@@ -214,7 +214,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
             circuitBreakerState: this.circuitBreaker.getState()
           }
         };
-      } catch (error) {
+      } catch (_error) {
         const totalTime = performance.now() - startTime;
         this.metrics.failedAuth++;
         

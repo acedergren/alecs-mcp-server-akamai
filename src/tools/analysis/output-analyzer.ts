@@ -6,7 +6,7 @@
  */
 
 // Type definitions for error patterns and configurations
-interface ErrorPattern {
+interface _ErrorPattern {
   name: string;
   pattern: RegExp;
 }
@@ -70,7 +70,7 @@ interface TestSummary {
 interface ParsedTestResults {
   summary: TestSummary;
   testSuites: TestSuite[];
-  failures: TestFailure[];
+  failu_res: TestFailure[];
   errors: TestError[];
   coverage?: any;
 }
@@ -144,8 +144,8 @@ interface CascadingFailure {
 }
 
 interface PatternAnalysis {
-  repeatingFailures: RepeatingFailure[];
-  cascadingFailures: CascadingFailure[];
+  repeatingFailu_res: RepeatingFailure[];
+  cascadingFailu_res: CascadingFailure[];
   timeBasedPatterns: TimeBasedPattern;
   suitePatterns: SuitePattern;
 }
@@ -166,7 +166,7 @@ interface SuiteStat {
 
 interface SuitePattern {
   slowestSuites: SuiteStat[];
-  mostFailures: SuiteStat[];
+  mostFailu_res: SuiteStat[];
   suiteStats: SuiteStat[];
 }
 
@@ -184,7 +184,7 @@ interface TechnicalImpact extends ImpactLevel {
 }
 
 interface CustomerImpact extends ImpactLevel {
-  affectedFeatures: number;
+  affectedFeatu_res: number;
   customerFailureRate: number;
 }
 
@@ -308,7 +308,7 @@ export class TestOutputAnalyzer {
         default:
           return this.parseGenericOutput(output);
       }
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
         error: `Failed to parse ${format} output: ${(error as Error).message}`,
@@ -320,7 +320,7 @@ export class TestOutputAnalyzer {
   /**
    * Parse Jest test output
    */
-  private parseJestOutput(output: string): ParsedTestResults {
+  private parseJestOutput(_output: string): ParsedTestResults {
     const results: ParsedTestResults = {
       summary: {
         totalTests: 0,
@@ -329,7 +329,7 @@ export class TestOutputAnalyzer {
         skippedTests: 0,
       },
       testSuites: [],
-      failures: [],
+      failu_res: [],
       errors: [],
       coverage: null,
     };
@@ -361,7 +361,7 @@ export class TestOutputAnalyzer {
           ) || 0,
       },
       testSuites: [],
-      failures: [],
+      failu_res: [],
       errors: [],
       coverage: jsonOutput.coverageMap || null,
     };
@@ -413,7 +413,7 @@ export class TestOutputAnalyzer {
   /**
    * Parse Jest text output
    */
-  private parseJestTextOutput(output: string): ParsedTestResults {
+  private parseJestTextOutput(_output: string): ParsedTestResults {
     const lines = output.split('\n');
     const results: ParsedTestResults = {
       summary: {
@@ -423,7 +423,7 @@ export class TestOutputAnalyzer {
         skippedTests: 0,
       },
       testSuites: [],
-      failures: [],
+      failu_res: [],
       errors: [],
     };
 
@@ -509,7 +509,7 @@ export class TestOutputAnalyzer {
   /**
    * Parse Mocha output (placeholder implementation)
    */
-  private parseMochaOutput(output: string): ParsedTestResults {
+  private parseMochaOutput(_output: string): ParsedTestResults {
     // This would be implemented based on Mocha output format
     return this.parseGenericOutput(output);
   }
@@ -517,7 +517,7 @@ export class TestOutputAnalyzer {
   /**
    * Parse JSON output
    */
-  private parseJsonOutput(output: string): ParsedTestResults {
+  private parseJsonOutput(_output: string): ParsedTestResults {
     try {
       const json = JSON.parse(output);
       // Convert generic JSON to ParsedTestResults format
@@ -529,7 +529,7 @@ export class TestOutputAnalyzer {
           skippedTests: 0,
         },
         testSuites: json.testSuites || [],
-        failures: json.failures || [],
+        failu_res: json.failures || [],
         errors: json.errors || [],
       };
     } catch {
@@ -540,7 +540,7 @@ export class TestOutputAnalyzer {
   /**
    * Parse generic test output
    */
-  private parseGenericOutput(output: string): ParsedTestResults {
+  private parseGenericOutput(_output: string): ParsedTestResults {
     // Basic parsing for unknown formats
     return {
       summary: {
@@ -550,7 +550,7 @@ export class TestOutputAnalyzer {
         skippedTests: 0,
       },
       testSuites: [],
-      failures: [],
+      failu_res: [],
       errors: [],
     };
   }
@@ -732,7 +732,7 @@ return 'MEDIUM';
   /**
    * Identify root cause of error
    */
-  private identifyRootCause(message: string, category: string): string {
+  private identifyRootCause(message: string, _category: string): string {
     const rootCausePatterns: Record<string, RegExp> = {
       configuration: /config|setup|environment|credentials|missing|not found/i,
       network: /network|connection|timeout|refused|unreachable/i,
@@ -760,8 +760,8 @@ return 'MEDIUM';
    */
   private analyzePatterns(testResults: ParsedTestResults): PatternAnalysis {
     const patterns: PatternAnalysis = {
-      repeatingFailures: this.findRepeatingFailures(testResults),
-      cascadingFailures: this.findCascadingFailures(testResults),
+      repeatingFailu_res: this.findRepeatingFailures(testResults),
+      cascadingFailu_res: this.findCascadingFailures(testResults),
       timeBasedPatterns: this.findTimeBasedPatterns(testResults),
       suitePatterns: this.findSuitePatterns(testResults),
     };
@@ -857,7 +857,7 @@ return 'MEDIUM';
 
     return {
       slowestSuites: [...suiteStats].sort((a, b) => b.runtime - a.runtime).slice(0, 5),
-      mostFailures: [...suiteStats].sort((a, b) => b.failureCount - a.failureCount).slice(0, 5),
+      mostFailu_res: [...suiteStats].sort((a, b) => b.failureCount - a.failureCount).slice(0, 5),
       suiteStats,
     };
   }
@@ -999,7 +999,7 @@ impact.riskLevel = 'MEDIUM';
     return {
       level,
       factors,
-      affectedFeatures: failedCustomerTests,
+      affectedFeatu_res: failedCustomerTests,
       customerFailureRate: totalCustomerTests > 0 ? failedCustomerTests / totalCustomerTests : 0,
     };
   }

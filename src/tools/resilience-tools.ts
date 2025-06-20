@@ -75,7 +75,7 @@ export async function getSystemHealth(
         responseText += `- Avg Response Time: ${check.metrics.averageResponseTime.toFixed(0)}ms\n`;
         responseText += `- P95 Response Time: ${check.metrics.p95ResponseTime.toFixed(0)}ms\n`;
         if (check.metrics.consecutiveFailures > 0) {
-          responseText += `- Consecutive Failures: ${check.metrics.consecutiveFailures}\n`;
+          responseText += `- Consecutive Failu_res: ${check.metrics.consecutiveFailures}\n`;
         }
       }
 
@@ -126,7 +126,7 @@ export async function getSystemHealth(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -201,7 +201,7 @@ export async function resetCircuitBreaker(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -248,13 +248,11 @@ export async function getOperationMetrics(
 
       let totalCalls = 0;
       let totalSuccessful = 0;
-      let totalFailed = 0;
       let avgResponseTime = 0;
 
       allMetrics.forEach((metrics) => {
         totalCalls += metrics.totalCalls;
         totalSuccessful += metrics.successfulCalls;
-        totalFailed += metrics.failedCalls;
         avgResponseTime += metrics.averageResponseTime;
       });
 
@@ -282,7 +280,7 @@ export async function getOperationMetrics(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -342,7 +340,7 @@ export async function testOperationResilience(
           success: true,
           responseTime: Date.now() - startTime,
         });
-      } catch (error) {
+      } catch (_error) {
         results.push({
           iteration: i,
           success: false,
@@ -416,7 +414,7 @@ export async function testOperationResilience(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -514,7 +512,7 @@ export async function getErrorRecoverySuggestions(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -561,7 +559,7 @@ function formatOperationMetrics(operationType: OperationType, metrics: any): str
   text += `- **P95 Response Time:** ${metrics.p95ResponseTime.toFixed(0)}ms\n`;
 
   if (metrics.consecutiveFailures > 0) {
-    text += `- **Consecutive Failures:** ${metrics.consecutiveFailures}\n`;
+    text += `- **Consecutive Failu_res:** ${metrics.consecutiveFailures}\n`;
   }
 
   if (metrics.lastFailureTime) {

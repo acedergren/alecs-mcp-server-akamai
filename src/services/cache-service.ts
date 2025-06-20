@@ -70,7 +70,7 @@ export class AkamaiCacheService {
         console.error('[Cache] Valkey error:', err.message);
         this.enabled = false;
       });
-    } catch (error) {
+    } catch (_error) {
       console.error('[Cache] Failed to initialize Valkey:', error);
       this.enabled = false;
     }
@@ -90,7 +90,7 @@ export class AkamaiCacheService {
           console.error('[Cache] HIT: Properties list');
           return JSON.parse(cached);
         }
-      } catch (err) {
+      } catch (_err) {
         console.error('[Cache] Error reading from cache:', err);
       }
     }
@@ -111,7 +111,7 @@ export class AkamaiCacheService {
 
         // Also create hostname mapping for quick lookups
         await this.createHostnameMapping(client, customer, properties);
-      } catch (err) {
+      } catch (_err) {
         console.error('[Cache] Error writing to cache:', err);
       }
     }
@@ -169,7 +169,7 @@ return;
             };
           }
         }
-      } catch (err) {
+      } catch (_err) {
         console.error(`[Cache] Error processing property ${property.propertyId}:`, err);
       }
     }
@@ -201,7 +201,7 @@ return;
           console.error(`[Cache] HIT: Search results for "${query}"`);
           return JSON.parse(cached);
         }
-      } catch (err) {
+      } catch (_err) {
         console.error('[Cache] Error reading search cache:', err);
       }
     }
@@ -244,7 +244,7 @@ return;
             });
           }
         }
-      } catch (err) {
+      } catch (_err) {
         console.error('[Cache] Error checking hostname map:', err);
       }
     }
@@ -266,7 +266,7 @@ return;
     if (this.enabled && this.redis && results.length > 0) {
       try {
         await this.redis.setex(searchKey, this.config.ttl!.search!, JSON.stringify(results));
-      } catch (err) {
+      } catch (_err) {
         console.error('[Cache] Error caching search results:', err);
       }
     }
@@ -302,7 +302,7 @@ return;
       }
 
       console.error(`[Cache] Invalidated cache for property ${propertyId}`);
-    } catch (err) {
+    } catch (_err) {
       console.error('[Cache] Error invalidating cache:', err);
     }
   }
@@ -327,9 +327,9 @@ return;
         akamaiKeys: keys.length,
         stats: info,
       };
-    } catch (err) {
+    } catch (_err) {
       console.error('[Cache] Error getting stats:', err);
-      return { enabled: true, error: err instanceof Error ? err.message : String(err) };
+      return { enabled: true, _error: err instanceof Error ? err.message : String(err) };
     }
   }
 

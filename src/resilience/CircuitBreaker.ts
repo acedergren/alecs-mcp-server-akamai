@@ -35,7 +35,7 @@ export class CircuitBreaker extends EventEmitter {
   private state: CircuitBreakerState = 'CLOSED';
   private config: Required<CircuitBreakerConfig>;
   private metrics: CircuitBreakerMetrics;
-  private failures: number = 0;
+  private failu_res: number = 0;
   private successes: number = 0;
   private nextAttempt: number = 0;
   private monitorTimer: NodeJS.Timeout | null = null;
@@ -83,7 +83,7 @@ export class CircuitBreaker extends EventEmitter {
     // Check if circuit is open
     if (this.state === 'OPEN') {
       if (Date.now() < this.nextAttempt) {
-        const error = new Error('Circuit breaker is OPEN');
+        const _error = new Error('Circuit breaker is OPEN');
         this.emit('requestRejected', { 
           state: this.state,
           nextAttempt: this.nextAttempt,
@@ -102,7 +102,7 @@ export class CircuitBreaker extends EventEmitter {
       
       this.onSuccess(responseTime);
       return result;
-    } catch (error) {
+    } catch (_error) {
       const responseTime = performance.now() - startTime;
       this.onFailure(error as Error, responseTime);
       throw error;
@@ -141,7 +141,7 @@ export class CircuitBreaker extends EventEmitter {
   /**
    * Handle failed execution
    */
-  private onFailure(error: Error, responseTime: number): void {
+  private onFailure(_error: Error, responseTime: number): void {
     this.metrics.failedRequests++;
     this.metrics.lastFailureTime = Date.now();
     this.updateResponseTime(responseTime);
@@ -167,7 +167,7 @@ export class CircuitBreaker extends EventEmitter {
     this.emit('requestFailure', {
       error,
       responseTime,
-      failures: this.failures,
+      failu_res: this.failures,
       state: this.state,
       threshold: this.config.failureThreshold
     });

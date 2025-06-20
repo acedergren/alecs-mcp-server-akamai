@@ -16,18 +16,17 @@ import {
   ensureAkamaiIdFormat,
 } from '@utils/parameter-validation';
 import { formatProductDisplay } from '@utils/product-mapping';
-import { parseAkamaiResponse, ResponseParser } from '@utils/response-parsing';
+import { parseAkamaiResponse } from '@utils/response-parsing';
 import { withToolErrorHandling, type ErrorContext } from '@utils/tool-error-handling';
 import {
   type TreeNode,
   renderTree,
   generateTreeSummary,
-  formatPropertyNode,
   formatGroupNode,
 } from '@utils/tree-view';
 
 import { type AkamaiClient } from '../akamai-client';
-import { type MCPToolResponse, type PropertyList, type Property, type GroupList } from '../types';
+import { type MCPToolResponse, type Property } from '../types';
 
 /**
  * Format a date string to a more readable format
@@ -84,7 +83,7 @@ export async function listProperties(
     includeSubgroups?: boolean;
   },
 ): Promise<MCPToolResponse> {
-  const context: ErrorContext = {
+  const _context: ErrorContext = {
     operation: 'list properties',
     endpoint: '/papi/v1/properties',
     apiType: 'papi',
@@ -283,7 +282,7 @@ export async function listPropertiesTreeView(
   client: AkamaiClient,
   args: { groupId: string; includeSubgroups?: boolean; customer?: string },
 ): Promise<MCPToolResponse> {
-  const context: ErrorContext = {
+  const _context: ErrorContext = {
     operation: 'list properties tree view',
     endpoint: '/papi/v1/properties',
     apiType: 'papi',
@@ -394,7 +393,7 @@ export async function listPropertiesTreeView(
                     const childStats = contractSummary.get(childContractId)!;
                     childStats.groupCount++;
                     childStats.propertyCount += childProps.length;
-                  } catch (error) {
+                  } catch (_error) {
                     console.error(
                       `Failed to get properties for child group ${childGroup.groupId}:`,
                       error,
@@ -427,7 +426,7 @@ export async function listPropertiesTreeView(
                       });
 
                       grandchildProperties.push(...(gcPropsResponse.properties?.items || []));
-                    } catch (error) {
+                    } catch (_error) {
                       console.error(
                         `Failed to get properties for grandchild group ${grandchild.groupId}:`,
                         error,
@@ -446,7 +445,7 @@ export async function listPropertiesTreeView(
 
           treeNodes.push(groupNode);
           break; // Only process first contract for now
-        } catch (error) {
+        } catch (_error) {
           console.error(`Failed to get properties for contract ${contractId}:`, error);
         }
       }
@@ -613,7 +612,7 @@ continue;
               partialMatches.forEach((prop: any) => {
                 foundProperties.push({ property: prop, group });
               });
-            } catch (err) {
+            } catch (_err) {
               console.error(`Failed to search in contract ${contractId}:`, err);
             }
           }
@@ -701,7 +700,7 @@ continue;
 
     // Get property by ID
     return await getPropertyById(client, propertyId);
-  } catch (error) {
+  } catch (_error) {
     return formatError('get property', error);
   }
 }
@@ -776,7 +775,7 @@ continue;
             groupName = group.groupName;
             break;
           }
-        } catch (err) {
+        } catch (_err) {
           // Continue searching
           console.error(`Failed to search in group ${group.groupId}:`, err);
         }
@@ -932,7 +931,7 @@ continue;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get property details', error);
   }
 }
@@ -1086,7 +1085,7 @@ export async function createProperty(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     // Handle specific error cases
     if (error instanceof Error) {
       if (error.message.includes('already exists')) {
@@ -1195,7 +1194,7 @@ export async function listContracts(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list contracts', error);
   }
 }
@@ -1351,7 +1350,7 @@ acc[group.parentGroupId] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list groups', error);
   }
 }
@@ -1364,7 +1363,7 @@ export async function listProducts(
   client: AkamaiClient,
   args: { contractId: string; customer?: string },
 ): Promise<MCPToolResponse> {
-  const context: ErrorContext = {
+  const _context: ErrorContext = {
     operation: 'list products',
     endpoint: '/papi/v1/products',
     apiType: 'papi',
@@ -1528,7 +1527,7 @@ export async function listProducts(
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 

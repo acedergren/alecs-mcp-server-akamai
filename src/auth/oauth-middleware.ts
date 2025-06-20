@@ -118,7 +118,7 @@ export class OAuthMiddleware {
   /**
    * Authenticate request
    */
-  async authenticate(request: CallToolRequest): Promise<AuthContext | null> {
+  async authenticate(_request: CallToolRequest): Promise<AuthContext | null> {
     // Skip authentication if disabled
     if (!this.config.enabled) {
       return null;
@@ -183,7 +183,7 @@ export class OAuthMiddleware {
    * Authorize request
    */
   async authorize(
-    request: CallToolRequest,
+    _request: CallToolRequest,
     authContext: AuthContext | null,
   ): Promise<void> {
     // Skip authorization if authentication is disabled
@@ -298,7 +298,7 @@ export class OAuthMiddleware {
 
         // Call original handler
         return await handler(...args);
-      } catch (error) {
+      } catch (_error) {
         // Log authentication/authorization failures
         if (error instanceof McpError) {
           logger.warn('Authentication/authorization failed', {
@@ -314,7 +314,7 @@ export class OAuthMiddleware {
   /**
    * Extract authorization header from request
    */
-  private extractAuthHeader(request: CallToolRequest): string | null {
+  private extractAuthHeader(_request: CallToolRequest): string | null {
     // Check various possible locations for auth header
     const headers = (request as any).headers ||
                    (request as any)._meta?.headers ||
@@ -346,7 +346,7 @@ export class OAuthMiddleware {
    * Validate token binding
    */
   private async validateTokenBinding(
-    request: CallToolRequest,
+    _request: CallToolRequest,
     token: string,
   ): Promise<boolean> {
     if (!this.config.tokenBindingType) {
@@ -395,7 +395,7 @@ export class OAuthMiddleware {
   /**
    * Extract DPoP header
    */
-  private extractDPoPHeader(request: CallToolRequest): string | null {
+  private extractDPoPHeader(_request: CallToolRequest): string | null {
     const headers = (request as any).headers ||
                    (request as any)._meta?.headers ||
                    (request.params as any)._headers;
@@ -453,7 +453,7 @@ export class OAuthMiddleware {
   /**
    * Get auth context from request
    */
-  static getAuthContext(request: CallToolRequest): AuthContext | null {
+  static getAuthContext(_request: CallToolRequest): AuthContext | null {
     return (request as any)._authContext || null;
   }
 }

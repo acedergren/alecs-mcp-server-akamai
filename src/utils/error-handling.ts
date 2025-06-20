@@ -12,8 +12,8 @@ const errorTranslator = new ErrorTranslator();
 /**
  * Format an API error for display
  */
-export function formatApiError(error: any, operation: string): string {
-  const context: ErrorContext = {
+export function formatApiError(_error: any, operation: string): string {
+  const _context: ErrorContext = {
     operation,
     timestamp: new Date(),
   };
@@ -24,7 +24,7 @@ export function formatApiError(error: any, operation: string): string {
 /**
  * Handle API errors and return proper MCP response
  */
-export function handleApiError(error: any, operation: string): MCPToolResponse {
+export function handleApiError(_error: any, operation: string): MCPToolResponse {
   const errorMessage = formatApiError(error, operation);
 
   return {
@@ -63,7 +63,7 @@ export function createErrorResponse(message: string, suggestions?: string[]): MC
 /**
  * Extract error message from various error formats
  */
-export function extractErrorMessage(error: any): string {
+export function extractErrorMessage(_error: any): string {
   if (typeof error === 'string') {
     return error;
   }

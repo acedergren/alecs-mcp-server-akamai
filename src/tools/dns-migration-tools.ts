@@ -103,7 +103,7 @@ export async function importZoneViaAXFR(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('import zone via AXFR', error);
   }
 }
@@ -224,7 +224,7 @@ export async function parseZoneFile(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('parse zone file', error);
   }
 }
@@ -284,7 +284,7 @@ export async function bulkImportRecords(
           });
 
           successCount++;
-        } catch (error) {
+        } catch (_error) {
           errors.push({
             record: `${record.name} ${record.type}`,
             error: error instanceof Error ? error.message : JSON.stringify(error),
@@ -362,7 +362,7 @@ export async function bulkImportRecords(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('bulk import records', error);
   }
 }
@@ -417,7 +417,7 @@ export async function convertZoneToPrimary(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('convert zone to primary', error);
   }
 }
@@ -554,7 +554,7 @@ export async function generateMigrationInstructions(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('generate migration instructions', error);
   }
 }
@@ -730,7 +730,7 @@ export async function importFromCloudflare(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('import from Cloudflare', error);
   }
 }
@@ -778,8 +778,6 @@ continue;
     let name: string;
     let ttl: number;
     let recordClass: string;
-    let type: string;
-    let rdata: string[];
 
     // Determine field positions
     let fieldIndex = 0;
@@ -823,14 +821,14 @@ continue;
 
     // Type
     const typeField = fieldIndex < parts.length ? parts[fieldIndex] : undefined;
-    type = typeField ? typeField.toUpperCase() : '';
+    const type = typeField ? typeField.toUpperCase() : '';
     if (!type) {
 continue;
 }
     fieldIndex++;
 
     // Rest is RDATA
-    rdata = parts.slice(fieldIndex);
+    const rdata = parts.slice(fieldIndex);
 
     // Special handling for different record types
     switch (type) {
@@ -978,7 +976,7 @@ async function validateDNSRecords(records: ZoneFileRecord[]): Promise<
         rdata: record.rdata,
       });
       results.push(result);
-    } catch (error) {
+    } catch (_error) {
       results.push({
         name: record.name,
         type: record.type,
@@ -1079,7 +1077,7 @@ async function validateSingleRecord(record: DNSRecordSet): Promise<{
     }
 
     return { name: record.name, type: record.type, valid: true };
-  } catch (error) {
+  } catch (_error) {
     return {
       name: record.name,
       type: record.type,
@@ -1110,7 +1108,7 @@ const globalMigrationCache = new Map<string, DNSRecordSet[]>();
 /**
  * Format error responses
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 

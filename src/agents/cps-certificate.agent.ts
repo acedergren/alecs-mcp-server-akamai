@@ -94,7 +94,7 @@ interface DVValidation {
     content: string;
   };
   emailAddresses?: string[];
-  expires: string;
+  expi_res: string;
 }
 
 interface DeploymentStatus {
@@ -132,7 +132,7 @@ export class CPSCertificateAgent {
       });
 
       spinner.succeed('CPS Certificate Agent initialized');
-    } catch (error) {
+    } catch (_error) {
       spinner.fail('Failed to initialize CPS agent');
       throw error;
     } finally {
@@ -201,7 +201,7 @@ export class CPSCertificateAgent {
       console.log(`  ${icons.bullet} Validation: ${format.yellow(enrollment.validationType)}`);
 
       return enrollment;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
@@ -263,7 +263,7 @@ export class CPSCertificateAgent {
                 // Trigger validation
                 await this.triggerDomainValidation(enrollmentId, challenge.domain);
                 console.log(`  ${icons.success} Validation triggered`);
-              } catch (error) {
+              } catch (_error) {
                 recordSpinner.fail(
                   `Failed to create DNS record: ${error instanceof Error ? error.message : String(error)}`,
                 );
@@ -278,7 +278,7 @@ export class CPSCertificateAgent {
       // Monitor validation status
       console.log(`\n${icons.time} Monitoring validation status...`);
       await this.waitForValidations(enrollmentId);
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(`Validation failed: ${error instanceof Error ? error.message : String(error)}`);
       throw error;
     }
@@ -343,7 +343,7 @@ export class CPSCertificateAgent {
 
         await new Promise((resolve) => setTimeout(resolve, 10000));
       }
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
@@ -370,7 +370,7 @@ export class CPSCertificateAgent {
           await new Promise((resolve) => setTimeout(resolve, 2000));
 
           spinner.succeed(`Linked to property ${propertyId}`);
-        } catch (error) {
+        } catch (_error) {
           spinner.fail(
             `Failed to link property ${propertyId}: ${error instanceof Error ? error.message : String(error)}`,
           );
@@ -413,7 +413,7 @@ export class CPSCertificateAgent {
       });
 
       spinner.succeed(`Auto-renewal configured (${request.renewalWindow} days before expiry)`);
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
         `Failed to setup auto-renewal: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -464,7 +464,7 @@ export class CPSCertificateAgent {
       console.log(`  ${icons.bullet} Enrollment ID: ${format.cyan(enrollmentId.toString())}`);
       console.log(`  ${icons.bullet} Status: ${format.green('Renewed and Deployed')}`);
       console.log(`  ${icons.bullet} New Expiry: ${format.yellow('+365 days')}`);
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
@@ -545,7 +545,7 @@ export class CPSCertificateAgent {
       }
 
       console.log(format.dim('═'.repeat(60)));
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
         `Failed to fetch certificate status: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -800,7 +800,7 @@ export class CPSCertificateAgent {
       console.log('  1. Verify certificate in Control Center');
       console.log('  2. Test HTTPS connectivity on your domains');
       console.log('  3. Monitor certificate expiry and renewal status');
-    } catch (error) {
+    } catch (_error) {
       console.error(`\n${icons.error} ${format.red('Certificate provisioning failed:')}`);
       console.error(format.red(error instanceof Error ? error.message : String(error)));
       throw error;
