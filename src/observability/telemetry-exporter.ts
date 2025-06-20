@@ -619,10 +619,11 @@ return false;
         case 'bearer':
           headers['Authorization'] = `Bearer ${auth.token}`;
           break;
-        case 'basic':
+        case 'basic': {
           const credentials = Buffer.from(`${auth.username}:${auth.password}`).toString('base64');
           headers['Authorization'] = `Basic ${credentials}`;
           break;
+        }
         case 'api-key':
           headers['X-API-Key'] = auth.apiKey!;
           break;

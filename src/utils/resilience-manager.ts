@@ -590,7 +590,7 @@ export class ResilienceManager {
           '- Check contract and group access rights';
         break;
 
-      case 'SERVER_ERROR':
+      case 'SERVER_ERROR': {
         const circuitState = this.getCircuitBreakerState(operationType);
         if (circuitState === CircuitBreakerState.OPEN) {
           guidance =
@@ -606,6 +606,7 @@ export class ResilienceManager {
             '- Consider trying again in a few minutes';
         }
         break;
+      }
     }
 
     return baseMessage + guidance;

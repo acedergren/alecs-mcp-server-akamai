@@ -486,7 +486,7 @@ class SecurityALECSServer {
                 typedArgs,
               );
               break;
-            case 'update-network-list':
+            case 'update-network-list': {
               const updateOptions: any = {};
               if (typedArgs.mode === 'append') {
                 updateOptions.addElements = typedArgs.elements;
@@ -504,10 +504,11 @@ updateOptions.description = typedArgs.description;
                 updateOptions,
               );
               break;
+            }
             case 'delete-network-list':
               result = await deleteNetworkList(typedArgs.networkListId, typedArgs.customer);
               break;
-            case 'activate-network-list':
+            case 'activate-network-list': {
               const activateOptions: any = {};
               if (typedArgs.comment) {
 activateOptions.comments = typedArgs.comment;
@@ -522,6 +523,7 @@ activateOptions.notificationEmails = typedArgs.notificationRecipients;
                 activateOptions,
               );
               break;
+            }
             case 'get-network-list-activation-status':
               result = await getNetworkListActivationStatus(
                 typedArgs.activationId,
@@ -534,7 +536,7 @@ activateOptions.notificationEmails = typedArgs.notificationRecipients;
                 typedArgs.customer,
               );
               break;
-            case 'deactivate-network-list':
+            case 'deactivate-network-list': {
               const deactivateOptions: any = {};
               if (typedArgs.comment) {
 deactivateOptions.comments = typedArgs.comment;
@@ -546,7 +548,8 @@ deactivateOptions.comments = typedArgs.comment;
                 deactivateOptions,
               );
               break;
-            case 'bulk-activate-network-lists':
+            }
+            case 'bulk-activate-network-lists': {
               const bulkActivations = typedArgs.networkListIds.map((id: string) => ({
                 uniqueId: id,
                 network: typedArgs.network,
@@ -561,7 +564,8 @@ bulkOptions.comments = typedArgs.comment;
                 bulkOptions,
               );
               break;
-            case 'import-network-list-from-csv':
+            }
+            case 'import-network-list-from-csv': {
               // First create the list, then import
               const createResult = await createNetworkList(
                 typedArgs.name,
@@ -584,6 +588,7 @@ bulkOptions.comments = typedArgs.comment;
                 result = createResult;
               }
               break;
+            }
             case 'export-network-list-to-csv':
               result = await exportNetworkListToCSV(typedArgs.networkListId, typedArgs.customer);
               break;

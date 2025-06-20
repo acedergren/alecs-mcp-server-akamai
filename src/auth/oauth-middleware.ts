@@ -364,7 +364,7 @@ export class OAuthMiddleware {
         bindingValue = (request as any)._meta?.tlsClientCertThumbprint;
         break;
 
-      case TokenBindingType.DPoP:
+      case TokenBindingType.DPoP: {
         // Extract DPoP proof
         const dpopHeader = this.extractDPoPHeader(request);
         if (dpopHeader) {
@@ -373,6 +373,7 @@ export class OAuthMiddleware {
           bindingValue = 'dpop-thumbprint';
         }
         break;
+      }
 
       case TokenBindingType.MTLS:
         // Extract mTLS certificate

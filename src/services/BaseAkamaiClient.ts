@@ -274,7 +274,7 @@ export class BaseAkamaiClient {
         return new NotFoundError(message, response, requestId);
       case 409:
         return new ConflictError(message, response, requestId);
-      case 429:
+      case 429: {
         const rateLimit = response?.rateLimit || {
           limit: 0,
           remaining: 0,
@@ -282,6 +282,7 @@ export class BaseAkamaiClient {
           window: 60,
         };
         return new RateLimitError(message, rateLimit, response, requestId);
+      }
       case 500:
         return new InternalServerError(message, response, requestId);
       case 503:

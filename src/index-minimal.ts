@@ -130,17 +130,20 @@ class MinimalALECSServer {
 
       try {
         switch (name) {
-          case 'list-properties':
+          case 'list-properties': {
             const listPropsArgs = ListPropertiesSchema.parse(args);
             return await listProperties(client, listPropsArgs);
+          }
 
-          case 'get-property':
+          case 'get-property': {
             const getPropArgs = GetPropertySchema.parse(args);
             return await getProperty(client, { propertyId: getPropArgs.propertyId });
+          }
 
-          case 'list-groups':
+          case 'list-groups': {
             const listGroupsArgs = ListGroupsSchema.parse(args);
             return await listGroups(client, listGroupsArgs);
+          }
 
           default:
             throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);

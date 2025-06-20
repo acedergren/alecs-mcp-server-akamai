@@ -1310,7 +1310,7 @@ current[key] = [];
     case 'add':
       setValueAtPath(cloned, patch.path, patch.value);
       break;
-    case 'remove':
+    case 'remove': {
       const pathParts = patch.path.split('/').filter((p: string) => p);
       const parent = getValueAtPath(cloned, pathParts.slice(0, -1).join('/'));
       if (parent && pathParts.length > 0) {
@@ -1320,14 +1320,16 @@ current[key] = [];
         }
       }
       break;
+    }
     case 'replace':
       setValueAtPath(cloned, patch.path, patch.value);
       break;
-    case 'copy':
+    case 'copy': {
       const copyValue = getValueAtPath(cloned, patch.from);
       setValueAtPath(cloned, patch.path, copyValue);
       break;
-    case 'move':
+    }
+    case 'move': {
       const moveValue = getValueAtPath(cloned, patch.from);
       setValueAtPath(cloned, patch.path, moveValue);
       // Remove from original location
@@ -1340,6 +1342,7 @@ current[key] = [];
         }
       }
       break;
+    }
   }
 
   return cloned;

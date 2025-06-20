@@ -144,7 +144,7 @@ export class OptimizedHTTPClient extends EventEmitter {
   /**
    * Create DNS lookup function with caching
    */
-  private createDNSLookup(hostname: string) {
+  private createDNSLookup(_hostname: string) {
     return (hostname: string, options: any, callback: any) => {
       const cacheKey = `${hostname}:${options.family || 4}`;
       const cached = this.dnsCache.get(cacheKey);

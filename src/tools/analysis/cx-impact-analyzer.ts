@@ -768,50 +768,57 @@ return false;
     let impactFactor = 1.0;
 
     switch (metricName) {
-      case 'customer_satisfaction':
+      case 'customer_satisfaction': {
         // Authentication and onboarding failures heavily impact satisfaction
         const authFailures = this.countFailuresByType(testResults, 'auth');
         const onboardingFailures = this.countFailuresByType(testResults, 'onboard');
         impactFactor = 1 - (authFailures * 0.15 + onboardingFailures * 0.2) * impactMultiplier;
         break;
+      }
 
-      case 'time_to_value':
+      case 'time_to_value': {
         // Setup and configuration failures increase time to value
         const setupFailures = this.countFailuresByType(testResults, 'setup');
         const configFailures = this.countFailuresByType(testResults, 'config');
         impactFactor = 1 + (setupFailures * 0.3 + configFailures * 0.25) * impactMultiplier;
         break;
+      }
 
-      case 'adoption_rate':
+      case 'adoption_rate': {
         // API and feature failures reduce adoption
         const apiFailures = this.countFailuresByType(testResults, 'api');
         const featureFailures = this.countFailuresByType(testResults, 'feature');
         impactFactor = 1 - (apiFailures * 0.1 + featureFailures * 0.15) * impactMultiplier;
         break;
+      }
 
-      case 'support_ticket_volume':
+      case 'support_ticket_volume': {
         // All failures potentially increase support tickets
         const totalFailures = testResults.summary?.failedTests || 0;
         impactFactor = 1 + totalFailures * 0.05 * impactMultiplier;
         break;
+      }
 
-      case 'churn_risk':
+      case 'churn_risk': {
         // Critical failures increase churn risk
         const criticalFailures = this.identifyCriticalFailures(testResults, analysisResults);
         impactFactor = 1 + criticalFailures.length * 0.02 * impactMultiplier;
         break;
+      }
 
-      case 'feature_utilization':
+      case 'feature_utilization': {
         // Feature-related failures reduce utilization
         const utilizationFailures = this.countFailuresByType(testResults, 'utilization');
         impactFactor = 1 - utilizationFailures * 0.1 * impactMultiplier;
         break;
+      }
 
-      case 'api_success_rate':
+      case 'api_success_rate': {
         // API failures directly impact success rate
         const apiErrorRate = this.calculateApiErrorRate(testResults);
         impactFactor = 1 - apiErrorRate * impactMultiplier;
         break;
+      }
 
       default:
         impactFactor = 1 - 0.05 * impactMultiplier;

@@ -204,10 +204,11 @@ export async function importNetworkListFromCSV(
       case 'replace':
         requestBody.list = validElements;
         break;
-      case 'append':
+      case 'append': {
         const uniqueNewElements = validElements.filter((e) => !currentList.list.includes(e));
         requestBody.list = [...currentList.list, ...uniqueNewElements];
         break;
+      }
       case 'remove':
         requestBody.list = currentList.list.filter((e) => !validElements.includes(e));
         break;
@@ -600,7 +601,7 @@ export async function mergeNetworkLists(
         );
         break;
 
-      case 'difference':
+      case 'difference': {
         // Remove elements that exist in any source list
         const elementsToRemove = new Set();
         sourceLists.forEach((sourceList) => {
@@ -608,6 +609,7 @@ export async function mergeNetworkLists(
         });
         mergedElements = targetList.list.filter((element) => !elementsToRemove.has(element));
         break;
+      }
     }
 
     if (options.removeDuplicates) {

@@ -985,12 +985,13 @@ continue;
             targetZone,
           );
           break;
-        case 'file':
+        case 'file': {
           const records = await this.parseZoneFile(options.sourceConfig.content, targetZone);
           importResult = await this.bulkImportWithProgress(targetZone, records, {
             validateFirst: options.validateFirst,
           });
           break;
+        }
         default:
           throw new Error(`Unsupported source: ${options.source}`);
       }

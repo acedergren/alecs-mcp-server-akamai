@@ -569,16 +569,18 @@ export class HTTPPushTarget implements PushTarget {
         case 'bearer':
           headers['Authorization'] = `Bearer ${this.authentication.token}`;
           break;
-        case 'basic':
+        case 'basic': {
           const credentials = Buffer.from(
             `${this.authentication.username}:${this.authentication.password}`,
           ).toString('base64');
           headers['Authorization'] = `Basic ${credentials}`;
           break;
-        case 'api-key':
+        }
+        case 'api-key': {
           const keyHeader = this.authentication.apiKeyHeader || 'X-API-Key';
           headers[keyHeader] = this.authentication.apiKey!;
           break;
+        }
       }
     }
 

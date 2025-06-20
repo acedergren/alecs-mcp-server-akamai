@@ -170,20 +170,15 @@ export class EdgeGridClient {
       hasBody: !!body,
     });
 
-    try {
-      const response = await this.axiosInstance.request<T>({
-        method,
-        url: path,
-        data: body,
-        headers,
-        params: queryParams,
-      });
+    const response = await this.axiosInstance.request<T>({
+      method,
+      url: path,
+      data: body,
+      headers,
+      params: queryParams,
+    });
 
-      return response.data;
-    } catch (error) {
-      // Error is already handled by interceptor
-      throw error;
-    }
+    return response.data;
   }
 
   // Convenience methods

@@ -670,10 +670,11 @@ export async function importFromCloudflare(
           // Cloudflare may have quotes, ensure proper formatting
           akamaiRecord.rdata = [cfRecord.content.replace(/^"|"$/g, '')];
           break;
-        case 'CAA':
+        case 'CAA': {
           const parts = cfRecord.data;
           akamaiRecord.rdata = [`${parts.flags} ${parts.tag} "${parts.value}"`];
           break;
+        }
         default:
           akamaiRecord.rdata = [cfRecord.content];
       }
@@ -840,11 +841,12 @@ continue;
         }
         break;
 
-      case 'TXT':
+      case 'TXT': {
         // Concatenate TXT record data
         const txtData = rdata.join(' ').replace(/"/g, '');
         records.push({ name, ttl, class: recordClass, type, rdata: [txtData] });
         break;
+      }
 
       case 'SRV':
         // SRV records need all parts

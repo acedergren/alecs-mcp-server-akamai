@@ -383,17 +383,19 @@ class EssentialALECSServer {
 
         switch (name) {
           // Property tools
-          case 'list-properties':
+          case 'list-properties': {
             const listPropsArgs = ListPropertiesSchema.parse(args);
             result = await listProperties(client, listPropsArgs);
             break;
+          }
 
-          case 'get-property':
+          case 'get-property': {
             const getPropArgs = GetPropertySchema.parse(args);
             result = await getProperty(client, { propertyId: getPropArgs.propertyId });
             break;
+          }
 
-          case 'create-property':
+          case 'create-property': {
             const createPropArgs = CreatePropertySchema.parse(args) as {
               customer?: string;
               propertyName: string;
@@ -404,6 +406,7 @@ class EssentialALECSServer {
             };
             result = await createProperty(client, createPropArgs);
             break;
+          }
 
           case 'activate-property':
             result = await activateProperty(client, args as any);
@@ -414,15 +417,17 @@ class EssentialALECSServer {
             break;
 
           // DNS tools
-          case 'list-zones':
+          case 'list-zones': {
             const listZonesArgs = ListZonesSchema.parse(args);
             result = await listZones(client, listZonesArgs);
             break;
+          }
 
-          case 'get-zone':
+          case 'get-zone': {
             const getZoneArgs = GetZoneSchema.parse(args);
             result = await getZone(client, { zone: getZoneArgs.zone });
             break;
+          }
 
           case 'create-zone':
             result = await createZone(client, args as any);
@@ -446,20 +451,22 @@ class EssentialALECSServer {
             break;
 
           // Fast Purge
-          case 'purge-by-url':
+          case 'purge-by-url': {
             const purgeByUrl = fastPurgeTools.find((t) => t.name === 'purge-by-url');
             if (purgeByUrl) {
               result = await purgeByUrl.handler(args);
             }
             break;
+          }
 
           // Reporting
-          case 'get-traffic-report':
+          case 'get-traffic-report': {
             const getTrafficReport = reportingTools.find((t) => t.name === 'get-traffic-report');
             if (getTrafficReport) {
               result = await getTrafficReport.handler(args);
             }
             break;
+          }
 
           case 'get-activation-status':
             result = await getActivationStatus(client, args as any);

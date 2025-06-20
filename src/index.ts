@@ -240,6 +240,16 @@ export class ALECSServer {
       async (params) => this.wrapToolHandler('activate-property', params, activateProperty),
     );
 
+    this.registerTool(
+      'list-contracts',
+      'List all Akamai contracts',
+      z.object({
+        customer: z.string().optional(),
+        searchTerm: z.string().optional(),
+      }),
+      async (params) => this.wrapToolHandler('list-contracts', params, listContracts),
+    );
+
     // DNS Tools
     this.registerTool('create-zone', 'Create a new DNS zone', CreateZoneSchema, async (params) =>
       this.wrapToolHandler('create-zone', params, createZone),
