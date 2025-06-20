@@ -766,7 +766,7 @@ export class CDNProvisioningAgent {
     });
   }
 
-  private applySecurityTemplate(ruleTree: RuleTree, options: any): void {
+  private applySecurityTemplate(ruleTree: RuleTree, _options: any): void {
     const securityRule = {
       name: 'Security',
       children: [

@@ -47,7 +47,7 @@ export async function createOAuthProtectedMcpServer(
   config: OAuthProtectedServerConfig,
 ): Promise<{ mcpServer: Server; httpServer: Express }> {
   // Initialize services
-  const configManager = new CustomerConfigManager();
+  const _configManager = new CustomerConfigManager();
   const apiClient = new AkamaiClient();
 
   // Create OAuth Resource Server
@@ -63,7 +63,7 @@ export async function createOAuthProtectedMcpServer(
   const oauthMiddleware = new OAuthMiddlewareFactory(resourceServer);
 
   // Create Resource Indicator Validator
-  const resourceValidator = new ResourceIndicatorValidator({
+  const _resourceValidator = new ResourceIndicatorValidator({
     allowedResourceTypes: Object.values(ResourceType),
     maxResourcesPerRequest: 10,
     allowWildcards: false,
@@ -93,9 +93,9 @@ export async function createOAuthProtectedMcpServer(
  * Enhance MCP server with OAuth resource registration
  */
 function enhanceMcpServerWithOAuth(
-  mcpServer: Server,
-  resourceServer: OAuthResourceServer,
-  apiClient: AkamaiClient,
+  _mcpServer: Server,
+  _resourceServer: OAuthResourceServer,
+  _apiClient: AkamaiClient,
 ): void {
   // Note: MCP SDK doesn't expose a direct callTool method
   // Resource registration should be integrated within individual tool handlers
@@ -105,12 +105,12 @@ function enhanceMcpServerWithOAuth(
 /**
  * Register resources from tool results
  */
-async function registerResourcesFromToolResult(
+async function _registerResourcesFromToolResult(
   toolName: string,
-  args: any,
+  _args: any,
   result: any,
   resourceServer: OAuthResourceServer,
-  apiClient: AkamaiClient,
+  _apiClient: AkamaiClient,
 ): Promise<void> {
   // TODO: Get account ID from appropriate source
   const accountId = 'default-account';

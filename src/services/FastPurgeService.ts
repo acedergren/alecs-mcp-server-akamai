@@ -179,14 +179,14 @@ export class FastPurgeService {
           operation,
         );
       } catch (_error: any) {
-        lastError = error;
+        lastError = _error;
 
         // Handle rate limiting
         if (_error.status === 429) {
           const retryAfter = parseInt(_error.headers?.['retry-after'] || '0') * 1000;
           const waitTime = retryAfter || delay;
 
-          logger.warn(`Rate limited on ${context}. Waiting ${waitTime}ms`);
+          logger.warn(`Rate limited on ${_context}. Waiting ${waitTime}ms`);
           await new Promise((resolve) => setTimeout(resolve, waitTime));
 
           delay = Math.min(delay * 2, this.MAX_RETRY_DELAY);
@@ -200,7 +200,7 @@ export class FastPurgeService {
 
         // Exponential backoff for other errors
         if (attempt < this.MAX_RETRIES - 1) {
-          logger.warn(`Retry ${attempt + 1} for ${context} after ${delay}ms`);
+          logger.warn(`Retry ${attempt + 1} for ${_context} after ${delay}ms`);
           await new Promise((resolve) => setTimeout(resolve, delay));
           delay = Math.min(delay * 2, this.MAX_RETRY_DELAY);
         }
@@ -293,7 +293,7 @@ export class FastPurgeService {
 
         processedCount += batchSize;
       } catch (_error: any) {
-        logger.error", { _error.message}`);
+        logger.error(`FastPurge error: ${_error.message}`);
 
         // Handle RFC 7807 problem details
         if (_error.response?.data?.type) {
@@ -372,7 +372,7 @@ export class FastPurgeService {
           pingAfterSeconds: response.data.pingAfterSeconds,
         });
       } catch (_error: any) {
-        logger.error", { _error.message}`);
+        logger.error(`FastPurge error: ${_error.message}`);
 
         if (_error.response?.data?.type) {
           throw new AkamaiError(
@@ -456,7 +456,7 @@ export class FastPurgeService {
 
         processedCount += batchSize;
       } catch (_error: any) {
-        logger.error", { _error.message}`);
+        logger.error(`FastPurge error: ${_error.message}`);
 
         if (_error.response?.data?.type) {
           throw new AkamaiError(
@@ -510,7 +510,7 @@ export class FastPurgeService {
         customer: customer,
       };
     } catch (_error: any) {
-      logger.error", { _error.message}`);
+      logger.error(`FastPurge validation error: ${_error.message}`);
 
       if (_error.response?.data?.type) {
         throw new AkamaiError(

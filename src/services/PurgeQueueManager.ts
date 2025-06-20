@@ -126,11 +126,11 @@ export class PurgeQueueManager {
       // Start persistence timer
       this.persistenceTimer = setInterval(() => {
         this.persistQueues().catch((_err) =>
-          logger.error(`Failed to persist queues: ${err.message}`),
+          logger.error(`Failed to persist queues: ${_err.message}`),
         );
       }, this.PERSISTENCE_INTERVAL);
     } catch (_error: any) {
-      logger.error", { _error.message}`);
+      logger.error(`Queue manager error: ${_error.message}`);
     }
   }
 
@@ -154,12 +154,12 @@ export class PurgeQueueManager {
             this.queues.set(customer, items);
             logger.info(`Loaded ${items.length} queue items for customer ${customer}`);
           } catch (_err: any) {
-            logger.error(`Failed to load queue for ${customer}: ${err.message}`);
+            logger.error(`Failed to load queue for ${customer}: ${_err.message}`);
           }
         }
       }
     } catch (_error: any) {
-      logger.error", { _error.message}`);
+      logger.error(`Queue manager error: ${_error.message}`);
     }
   }
 
@@ -173,7 +173,7 @@ export class PurgeQueueManager {
         await fs.writeFile(tempPath, JSON.stringify(items, null, 2));
         await fs.rename(tempPath, filePath);
       } catch (_error: any) {
-        logger.error", { _error.message}`);
+        logger.error(`Queue manager error: ${_error.message}`);
       }
     }
   }
@@ -273,29 +273,29 @@ return null;
   }
 
   async enqueue(_request: FastPurgeRequest & { customer: string }): Promise<QueueItem> {
-    const dedupKey = this.generateDedupKey(request.type || 'url', request.objects);
+    const dedupKey = this.generateDedupKey(_request.type || 'url', _request.objects);
 
     // Check for duplicates
     if (this.isDuplicate(dedupKey)) {
-      logger.info(`Duplicate purge request detected for ${request.customer}, skipping`);
+      logger.info(`Duplicate purge request detected for ${_request.customer}, skipping`);
       throw new Error('Duplicate purge request within 5-minute window');
     }
 
     const item: QueueItem = {
       id: crypto.randomUUID(),
-      customer: request.customer,
-      type: request.type || 'url',
-      network: request.network,
-      objects: request.objects,
-      priority: this.calculatePriority(request.type || 'url', request.objects.length),
+      customer: _request.customer,
+      type: _request.type || 'url',
+      network: _request.network,
+      objects: _request.objects,
+      priority: this.calculatePriority(_request.type || 'url', _request.objects.length),
       createdAt: new Date(),
       status: 'pending',
       attempts: 0,
       dedupKey,
-      estimatedSize: request.objects.reduce((sum, obj) => sum + Buffer.byteLength(obj, 'utf8'), 0),
+      estimatedSize: _request.objects.reduce((sum, obj) => sum + Buffer.byteLength(obj, 'utf8'), 0),
     };
 
-    const queue = this.getCustomerQueue(request.customer);
+    const queue = this.getCustomerQueue(_request.customer);
     queue.push(item);
 
     // Sort by priority
@@ -304,11 +304,11 @@ return null;
     // Check for consolidation opportunities
     const suggestion = this.analyzeConsolidation(queue);
     if (suggestion) {
-      logger.info(`Consolidation suggestion for ${request.customer}: ${suggestion.reason}`);
+      logger.info(`Consolidation suggestion for ${_request.customer}: ${suggestion.reason}`);
     }
 
     // Start processing if not already running
-    this.startProcessing(request.customer);
+    this.startProcessing(_request.customer);
 
     return item;
   }
@@ -394,7 +394,7 @@ return null;
 
       if (item.attempts >= 3) {
         item.status = 'failed';
-        logger.error", { _error.message}`);
+        logger.error(`Queue manager error: ${_error.message}`);
       } else {
         item.status = 'pending';
         logger.warn(`Purge ${item.id} failed, will retry: ${_error.message}`);

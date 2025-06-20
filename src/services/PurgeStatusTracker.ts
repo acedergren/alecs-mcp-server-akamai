@@ -113,13 +113,13 @@ export class PurgeStatusTracker {
       this.cleanupTimer = setInterval(
         () => {
           this.cleanupOldOperations().catch((_err) =>
-            logger.error(`Failed to cleanup old operations: ${err.message}`),
+            logger.error(`Failed to cleanup old operations: ${_err.message}`),
           );
         },
         60 * 60 * 1000,
       ); // Every hour
     } catch (_error: any) {
-      logger.error", { _error.message}`);
+      logger.error(`Status tracker error: ${_error.message}`);
     }
   }
 
@@ -162,14 +162,14 @@ batch.completedAt = new Date(batch.completedAt);
               this.startPolling(operationId);
             }
           } catch (_err: any) {
-            logger.error(`Failed to load operation ${operationId}: ${err.message}`);
+            logger.error(`Failed to load operation ${operationId}: ${_err.message}`);
           }
         }
       }
 
       logger.info(`Loaded ${this.operations.size} purge operations from persistence`);
     } catch (_error: any) {
-      logger.error", { _error.message}`);
+      logger.error(`Status tracker error: ${_error.message}`);
     }
   }
 
@@ -179,7 +179,7 @@ batch.completedAt = new Date(batch.completedAt);
     try {
       await fs.writeFile(filePath, JSON.stringify(operation, null, 2));
     } catch (_error: any) {
-      logger.error", { _error.message}`);
+      logger.error(`Status tracker error: ${_error.message}`);
     }
   }
 
@@ -310,7 +310,7 @@ return;
             });
           }
         } catch (_error: any) {
-          logger.error", { _error.message}`);
+          logger.error(`Status tracker error: ${_error.message}`);
 
           this.addError(operation, {
             type: 'network_error',
@@ -363,7 +363,7 @@ return;
       // Notify progress callbacks
       this.notifyProgressUpdate(operation);
     } catch (_error: any) {
-      logger.error", { _error.message}`);
+      logger.error(`Status tracker error: ${_error.message}`);
     }
   }
 

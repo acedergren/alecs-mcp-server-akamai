@@ -196,7 +196,7 @@ export const fastpurgeUrlInvalidate = {
         };
       }
     } catch (_error: any) {
-      logger.error", { _error.message}`);
+      logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
         return {
@@ -307,7 +307,7 @@ export const fastpurgeCpcodeInvalidate = {
             : undefined,
       };
     } catch (_error: any) {
-      logger.error", { _error.message}`);
+      logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
         return {
@@ -390,7 +390,7 @@ export const fastpurgeTagInvalidate = {
         tip: 'Use hierarchical tags (e.g., "product.123", "category.electronics") for better cache management',
       };
     } catch (_error: any) {
-      logger.error", { _error.message}`);
+      logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
         return {
@@ -484,7 +484,7 @@ export const fastpurgeStatusCheck = {
         };
       }
     } catch (_error: any) {
-      logger.error", { _error.message}`);
+      logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
         return {
@@ -585,7 +585,7 @@ export const fastpurgeQueueStatus = {
 
       return response;
     } catch (_error: any) {
-      logger.error", { _error.message}`);
+      logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
         return {
@@ -708,7 +708,7 @@ export const fastpurgeEstimate = {
 
       return estimate;
     } catch (_error: any) {
-      logger.error", { _error.message}`);
+      logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
         return {

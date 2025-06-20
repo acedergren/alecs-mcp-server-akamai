@@ -58,7 +58,7 @@ interface PersonaImpact {
   businessValue: number;
   impactScore: number;
   riskLevel: string;
-  relevantFailu_res: number;
+  relevantFailures: number;
   impactedPainPoints: string[];
   affectedJourneySteps: any[];
   recommendations: any[];
@@ -71,7 +71,7 @@ interface JourneyImpact {
   businessImpact: string;
   impactScore: number;
   riskLevel: string;
-  relevantFailu_res: number;
+  relevantFailures: number;
   affectedSteps: number;
   criticalStepsAffected: number;
   totalSteps: number;
