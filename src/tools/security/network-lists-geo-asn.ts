@@ -168,7 +168,7 @@ export async function validateGeographicCodes(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -257,7 +257,7 @@ export async function getASNInformation(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -371,7 +371,7 @@ export async function generateGeographicBlockingRecommendations(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -479,7 +479,7 @@ export async function generateASNSecurityRecommendations(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [

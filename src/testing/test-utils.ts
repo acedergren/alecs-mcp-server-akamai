@@ -1226,11 +1226,11 @@ export class LoadTestRunner {
                 success: true,
                 duration: performance.now() - requestStart,
               });
-            } catch (_error) {
+            } catch (error) {
               results.push({
                 success: false,
                 duration: performance.now() - requestStart,
-                error: _error as Error,
+                error: error as Error,
               });
             }
 

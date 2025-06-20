@@ -356,14 +356,14 @@ export const NetworkListSchemas = {
 export function validateParameters<T>(schema: z.ZodSchema<T>, params: unknown): T {
   try {
     return schema.parse(params);
-  } catch (_error) {
+  } catch (error) {
     if (_error instanceof z.ZodError) {
       const errorMessages = _error.errors
         .map((err) => `${err.path.join('.')}: ${err.message}`)
         .join(', ');
       throw new Error(`Parameter validation failed: ${errorMessages}`);
     }
-    throw _error;
+    throw error;
   }
 }
 

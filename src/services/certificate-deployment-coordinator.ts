@@ -120,9 +120,9 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
       this.emit('deployment:completed', enrollmentId, deploymentId);
 
       return deploymentState;
-    } catch (_error) {
+    } catch (error) {
       deploymentState.status = 'failed';
-      deploymentState.error = _error instanceof Error ? _error.message : String(_error);
+      deploymentState.error = error instanceof Error ? error.message : String(error);
       deploymentState.endTime = new Date();
       this.emit('deployment:failed', enrollmentId, deploymentState.error);
 
@@ -131,7 +131,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
         await this.rollbackDeployment(enrollmentId);
       }
 
-      throw _error;
+      throw error;
     } finally {
       // Cleanup monitors
       this.stopMonitoring(enrollmentId);
@@ -181,7 +181,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
         try {
           await this.linkToProperty(enrollmentId, propertyId);
           linkingState.completed++;
-        } catch (_error) {
+        } catch (error) {
           linkingState.failed++;
         }
         this.updateDeploymentProgress(enrollmentId, linkingState);
@@ -202,7 +202,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
     // Fetch from API
     try {
-      const response = await this.client.request({
+      const response = await this.client._request({
         path: `/cps/v2/enrollments/${enrollmentId}/deployments`,
         method: 'GET',
         headers: {
@@ -225,7 +225,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
         startTime: new Date(latest.deploymentDate || Date.now()),
         progress: latest.deploymentStatus === 'active' ? 100 : 50,
       };
-    } catch (_error) {
+    } catch (error) {
       return null;
     }
   }
@@ -240,7 +240,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
     }
 
     try {
-      await this.client.request({
+      await this.client._request({
         method: 'DELETE',
         path: `/cps/v2/enrollments/${enrollmentId}/deployments/${deploymentState.deploymentId}`,
         headers: {
@@ -250,9 +250,9 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
       deploymentState.status = 'rolled_back';
       this.emit('rollback:completed', enrollmentId);
-    } catch (_error) {
+    } catch (error) {
       throw new Error(
-        `Failed to cancel deployment: ${_error instanceof Error ? _error.message : String(_error)}`,
+        `Failed to cancel deployment: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -260,7 +260,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
   // Private helper methods
 
   private async verifyCertificateReadiness(enrollmentId: number): Promise<void> {
-    const response = await this.client.request({
+    const response = await this.client._request({
       path: `/cps/v2/enrollments/${enrollmentId}`,
       method: 'GET',
       headers: {
@@ -286,7 +286,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
   }
 
   private async initiateDeployment(enrollmentId: number, network: string): Promise<number> {
-    const response = await this.client.request({
+    const response = await this.client._request({
       method: 'POST',
       path: `/cps/v2/enrollments/${enrollmentId}/deployments`,
       headers: {
@@ -340,7 +340,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
             clearInterval(monitor);
             reject(new Error('Deployment timeout'));
           }
-        } catch (_error) {
+        } catch (error) {
           clearInterval(monitor);
           reject(_error);
         }
@@ -355,7 +355,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
     deploymentId: number,
   ): Promise<{ status: DeploymentState['status']; progress: number }> {
     try {
-      const response = await this.client.request({
+      const response = await this.client._request({
         method: 'GET',
         path: `/cps/v2/enrollments/${enrollmentId}/deployments/${deploymentId}`,
         headers: {
@@ -377,7 +377,7 @@ progress = 25;
 }
 
       return { status, progress };
-    } catch (_error) {
+    } catch (error) {
       // If we can't get status, assume it's still in progress
       return { status: 'in_progress', progress: 50 };
     }
@@ -390,7 +390,7 @@ progress = 25;
 
     try {
       // Get property details
-      const propertyResponse = await this.client.request({
+      const propertyResponse = await this.client._request({
         path: `/papi/v1/properties/${propertyId}`,
         method: 'GET',
       });
@@ -404,7 +404,7 @@ progress = 25;
       const version = property.latestVersion || 1;
 
       // Get current hostnames
-      const hostnamesResponse = await this.client.request({
+      const hostnamesResponse = await this.client._request({
         path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames`,
         method: 'GET',
       });
@@ -417,7 +417,7 @@ progress = 25;
       }));
 
       // Update property
-      await this.client.request({
+      await this.client._request({
         path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames`,
         method: 'PUT',
         headers: {
@@ -431,11 +431,11 @@ progress = 25;
       propertyState.status = 'linked';
       propertyState.version = version;
       this.emit('property:linked', propertyId, version);
-    } catch (_error) {
+    } catch (error) {
       propertyState.status = 'failed';
-      propertyState.error = _error instanceof Error ? _error.message : String(_error);
+      propertyState.error = error instanceof Error ? error.message : String(error);
       this.emit('property:link_failed', propertyId, propertyState.error);
-      throw _error;
+      throw error;
     }
   }
 
@@ -445,8 +445,8 @@ progress = 25;
     try {
       // Cancel deployment if possible
       await this.cancelDeployment(enrollmentId);
-    } catch (_error) {
-      console.error('Rollback failed:', _error);
+    } catch (error) {
+      console.error("[Error]:", error);
     }
   }
 

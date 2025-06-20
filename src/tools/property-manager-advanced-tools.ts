@@ -28,7 +28,7 @@ queryParams.contractId = args.contractId;
 queryParams.groupId = args.groupId;
 }
 
-    const response = await client.request({
+    const response = await client._request({
       path: '/papi/v1/edgehostnames',
       method: 'GET',
       queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
@@ -86,7 +86,7 @@ text += `**Group:** ${args.groupId}\n`;
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('list edge hostnames', _error);
   }
 }
@@ -106,7 +106,7 @@ export async function getEdgeHostname(
     let edgeHostnameId = args.edgeHostnameId;
     if (!edgeHostnameId.startsWith('ehn_')) {
       // Try to find by domain name
-      const listResponse = await client.request({
+      const listResponse = await client._request({
         path: '/papi/v1/edgehostnames',
         method: 'GET',
       });
@@ -131,7 +131,7 @@ export async function getEdgeHostname(
       edgeHostnameId = found.edgeHostnameId;
     }
 
-    const response = await client.request({
+    const response = await client._request({
       path: `/papi/v1/edgehostnames/${edgeHostnameId}`,
       method: 'GET',
     });
@@ -184,7 +184,7 @@ export async function getEdgeHostname(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('get edge hostname', _error);
   }
 }
@@ -205,7 +205,7 @@ export async function cloneProperty(
 ): Promise<MCPToolResponse> {
   try {
     // Get source property details
-    const sourceResponse = await client.request({
+    const sourceResponse = await client._request({
       path: `/papi/v1/properties/${args.sourcePropertyId}`,
       method: 'GET',
     });
@@ -227,7 +227,7 @@ export async function cloneProperty(
     const groupId = args.groupId || sourceProperty.groupId;
 
     // Clone the property
-    const cloneResponse = await client.request({
+    const cloneResponse = await client._request({
       path: '/papi/v1/properties',
       method: 'POST',
       headers: {
@@ -291,7 +291,7 @@ export async function cloneProperty(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('clone property', _error);
   }
 }
@@ -308,7 +308,7 @@ export async function removeProperty(
 ): Promise<MCPToolResponse> {
   try {
     // First check if property exists and is not active
-    const propertyResponse = await client.request({
+    const propertyResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -338,7 +338,7 @@ export async function removeProperty(
     }
 
     // Delete the property
-    await client.request({
+    await client._request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'DELETE',
       queryParams: {
@@ -355,7 +355,7 @@ export async function removeProperty(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('remove property', _error);
   }
 }
@@ -373,7 +373,7 @@ export async function listPropertyVersions(
 ): Promise<MCPToolResponse> {
   try {
     const limit = args.limit || 50;
-    const response = await client.request({
+    const response = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions`,
       method: 'GET',
       queryParams: {
@@ -393,7 +393,7 @@ export async function listPropertyVersions(
     }
 
     // Get property details for context
-    const propertyResponse = await client.request({
+    const propertyResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -446,7 +446,7 @@ export async function listPropertyVersions(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('list property versions', _error);
   }
 }
@@ -463,7 +463,7 @@ export async function getPropertyVersion(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client.request({
+    const response = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}`,
       method: 'GET',
     });
@@ -481,7 +481,7 @@ export async function getPropertyVersion(
     }
 
     // Get property details for activation status
-    const propertyResponse = await client.request({
+    const propertyResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -536,7 +536,7 @@ export async function getPropertyVersion(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('get property version', _error);
   }
 }
@@ -553,7 +553,7 @@ export async function getLatestPropertyVersion(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const propertyResponse = await client.request({
+    const propertyResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -601,7 +601,7 @@ export async function getLatestPropertyVersion(
     }
 
     // Get version details
-    const versionResponse = await client.request({
+    const versionResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${targetVersion}`,
       method: 'GET',
     });
@@ -646,7 +646,7 @@ export async function getLatestPropertyVersion(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('get latest property version', _error);
   }
 }
@@ -664,7 +664,7 @@ export async function cancelPropertyActivation(
 ): Promise<MCPToolResponse> {
   try {
     // First get the activation details to verify it's pending
-    const activationResponse = await client.request({
+    const activationResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/activations/${args.activationId}`,
       method: 'GET',
     });
@@ -695,7 +695,7 @@ export async function cancelPropertyActivation(
     }
 
     // Cancel the activation
-    await client.request({
+    await client._request({
       path: `/papi/v1/properties/${args.propertyId}/activations/${args.activationId}`,
       method: 'DELETE',
     });
@@ -708,7 +708,7 @@ export async function cancelPropertyActivation(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('cancel property activation', _error);
   }
 }
@@ -815,7 +815,7 @@ export async function searchProperties(
     const searchStartTime = Date.now();
 
     // Get all properties first
-    const groupsResponse = await client.request({
+    const groupsResponse = await client._request({
       path: '/papi/v1/groups',
       method: 'GET',
     });
@@ -851,7 +851,7 @@ continue;
 
       for (const contractId of searchContracts) {
         try {
-          const propertiesResponse = await client.request({
+          const propertiesResponse = await client._request({
             path: '/papi/v1/properties',
             method: 'GET',
             queryParams: {
@@ -912,7 +912,7 @@ continue;
             // For hostname/edgeHostname search, we need to fetch property hostnames
             if (searchCriteria.hostname || searchCriteria.edgeHostname) {
               try {
-                const hostnamesResponse = await client.request({
+                const hostnamesResponse = await client._request({
                   path: `/papi/v1/properties/${property.propertyId}/hostnames`,
                   method: 'GET',
                 });
@@ -994,7 +994,7 @@ continue;
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('search properties', _error);
   }
 }
@@ -1138,7 +1138,7 @@ export async function listAllHostnames(
 ): Promise<MCPToolResponse> {
   try {
     // Get all properties
-    const groupsResponse = await client.request({
+    const groupsResponse = await client._request({
       path: '/papi/v1/groups',
       method: 'GET',
     });
@@ -1179,7 +1179,7 @@ continue;
 }
 
         try {
-          const propertiesResponse = await client.request({
+          const propertiesResponse = await client._request({
             path: '/papi/v1/properties',
             method: 'GET',
             queryParams: {
@@ -1192,7 +1192,7 @@ continue;
 
           for (const property of properties) {
             try {
-              const hostnamesResponse = await client.request({
+              const hostnamesResponse = await client._request({
                 path: `/papi/v1/properties/${property.propertyId}/hostnames`,
                 method: 'GET',
               });
@@ -1298,7 +1298,7 @@ text += `**Group:** ${args.groupId}\n`;
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('list all hostnames', _error);
   }
 }
@@ -1319,7 +1319,7 @@ export async function listPropertyVersionHostnames(
     // Get latest version if not specified
     let version = args.version;
     if (!version) {
-      const propertyResponse = await client.request({
+      const propertyResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -1340,7 +1340,7 @@ export async function listPropertyVersionHostnames(
     }
 
     // Get hostnames for the version
-    const response = await client.request({
+    const response = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'GET',
       queryParams: args.validateCnames ? { validateCnames: 'true' } : undefined,
@@ -1374,7 +1374,7 @@ export async function listPropertyVersionHostnames(
 
     if (args.validateCnames && response.errors?.length > 0) {
       text += '\n## ⚠️ Validation Errors\n';
-      for (const _error of response._errors) {
+      for (const _error of response.errors) {
         text += `- ${_error.detail}\n`;
       }
     }
@@ -1407,7 +1407,7 @@ export async function listPropertyVersionHostnames(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('list property version hostnames', _error);
   }
 }
@@ -1419,23 +1419,23 @@ function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (_error instanceof Error) {
-    errorMessage += `: ${_error.message}`;
+  if (error instanceof Error) {
+    errorMessage += `: ${error.message}`;
 
     // Provide specific solutions based on error type
-    if (_error.message.includes('401') || _error.message.includes('credentials')) {
+    if (error.message.includes('401') || error.message.includes('credentials')) {
       solution = '**Solution:** Check your ~/.edgerc file has valid credentials.';
-    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
+    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
       solution = '**Solution:** Your API credentials may lack the necessary permissions.';
-    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
+    } else if (error.message.includes('404') || error.message.includes('not found')) {
       solution = '**Solution:** The requested resource was not found. Verify the ID is correct.';
-    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
+    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
       solution = '**Solution:** Invalid request parameters. Check the input values.';
-    } else if (_error.message.includes('409') || _error.message.includes('Conflict')) {
+    } else if (error.message.includes('409') || error.message.includes('Conflict')) {
       solution = '**Solution:** Resource conflict. The operation may already be in progress.';
     }
   } else {
-    errorMessage += `: ${String(_error)}`;
+    errorMessage += `: ${String(error)}`;
   }
 
   let text = errorMessage;

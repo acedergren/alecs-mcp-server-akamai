@@ -280,7 +280,7 @@ export class OAuth21ComplianceManager {
       }
 
       return isValid;
-    } catch (_error) {
+    } catch (error) {
       logger.error('PKCE validation error', { error: _error });
       return false;
     }
@@ -313,7 +313,7 @@ export class OAuth21ComplianceManager {
       }
 
       return true;
-    } catch (_error) {
+    } catch (error) {
       logger.error('Authorization server validation error', { issuer, error: _error });
       return false;
     }
@@ -353,9 +353,9 @@ export class OAuth21ComplianceManager {
       this.authServerMetadataCache.set(issuer, validatedMetadata);
 
       return validatedMetadata;
-    } catch (_error) {
+    } catch (error) {
       logger.error('Failed to fetch authorization server metadata', { issuer, error: _error });
-      throw _error;
+      throw error;
     }
   }
 
@@ -399,7 +399,7 @@ export class OAuth21ComplianceManager {
 
     try {
       return JSON.parse(data);
-    } catch (_error) {
+    } catch (error) {
       logger.error('Failed to parse state data', { error: _error });
       return null;
     }

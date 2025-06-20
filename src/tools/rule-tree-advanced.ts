@@ -120,7 +120,7 @@ export async function validateRuleTree(
 
     // If no rules provided, fetch from property
     if (!rules && args.propertyId) {
-      const propertyResponse = await client.request({
+      const propertyResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -133,7 +133,7 @@ export async function validateRuleTree(
       propertyName = property.propertyName;
       version = version || property.latestVersion || 1;
 
-      const rulesResponse = await client.request({
+      const rulesResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
         method: 'GET',
       });
@@ -216,7 +216,7 @@ export async function validateRuleTree(
       responseText += `## ❌ Errors (${validation.errors.length})\n`;
       validation.errors.forEach((_error, idx) => {
         responseText += `${idx + 1}. **${_error.severity}** at \`${_error.path}\`\n`;
-        responseText += `   - ${_error.message}\n`;
+        responseText += `   - ${error.message}\n`;
         if (_error.fix) {
           responseText += `   - **Fix:** ${_error.fix}\n`;
         }
@@ -278,7 +278,7 @@ export async function validateRuleTree(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -359,7 +359,7 @@ export async function createRuleTreeFromTemplate(
 
     // Update property if requested
     if (args.propertyId && args.version) {
-      const updateResponse = await client.request({
+      const updateResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/rules`,
         method: 'PUT',
         body: { rules },
@@ -418,7 +418,7 @@ export async function createRuleTreeFromTemplate(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -455,7 +455,7 @@ export async function analyzeRuleTreePerformance(
 
     // Fetch rules if not provided
     if (!rules && args.propertyId) {
-      const propertyResponse = await client.request({
+      const propertyResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -468,7 +468,7 @@ export async function analyzeRuleTreePerformance(
       propertyName = property.propertyName;
       version = version || property.latestVersion || 1;
 
-      const rulesResponse = await client.request({
+      const rulesResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
         method: 'GET',
       });
@@ -568,7 +568,7 @@ export async function analyzeRuleTreePerformance(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -601,7 +601,7 @@ export async function detectRuleConflicts(
     let rules = args.rules;
 
     if (!rules && args.propertyId) {
-      const propertyResponse = await client.request({
+      const propertyResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -612,7 +612,7 @@ export async function detectRuleConflicts(
       }
 
       const version = args.version || property.latestVersion || 1;
-      const rulesResponse = await client.request({
+      const rulesResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
         method: 'GET',
       });
@@ -694,7 +694,7 @@ export async function detectRuleConflicts(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -805,12 +805,12 @@ acc[cat] = [];
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
           type: 'text',
-          text: `❌ Failed to list rule templates: ${_error instanceof Error ? _error.message : String(_error)}`,
+          text: `❌ Failed to list rule templates: ${error instanceof Error ? error.message : String(error)}`,
         },
       ],
     };

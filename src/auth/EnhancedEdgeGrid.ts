@@ -148,12 +148,12 @@ export class EnhancedEdgeGrid extends EventEmitter {
         });
 
         return authenticatedOptions;
-      } catch (_error) {
+      } catch (error) {
         const authTime = performance.now() - startTime;
         this.updateAuthMetrics(authTime, false);
         
         this.emit('authError', { _error, authTime });
-        throw _error;
+        throw error;
       }
     };
 
@@ -214,12 +214,12 @@ export class EnhancedEdgeGrid extends EventEmitter {
             circuitBreakerState: this.circuitBreaker.getState()
           }
         };
-      } catch (_error) {
+      } catch (error) {
         const totalTime = performance.now() - startTime;
         this.metrics.failedAuth++;
         
         // Check for timeout
-        if (_error instanceof Error && _error.message.includes('timeout')) {
+        if (error instanceof Error && error.message.includes('timeout')) {
           this.metrics.timeoutCount++;
         }
         
@@ -230,7 +230,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
           totalTime
         });
         
-        throw _error;
+        throw error;
       }
     });
   }

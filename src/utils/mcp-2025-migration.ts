@@ -129,19 +129,19 @@ export function wrapToolHandler<T>(
         oldResponse.error,
         meta,
       );
-    } catch (_error) {
+    } catch (error) {
       const meta: McpResponseMeta = {
         timestamp: new Date().toISOString(),
         duration: Date.now() - startTime,
         version,
         tool: toSnakeCase(toolName),
-        errorType: _error instanceof Error ? _error.constructor.name : 'UnknownError',
+        errorType: error instanceof Error ? _error.constructor.name : 'UnknownError',
       };
 
       return createMcp2025Response(
         false,
         undefined as any as T,
-        _error instanceof Error ? _error.message : 'Unknown error',
+        error instanceof Error ? error.message : 'Unknown error',
         meta,
       );
     }

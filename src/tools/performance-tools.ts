@@ -100,7 +100,7 @@ export async function getPerformanceAnalysis(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -220,7 +220,7 @@ export async function optimizeCache(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -301,7 +301,7 @@ cacheHits++;
 }
 
           responseText += `- **Iteration ${i}:** ${duration}ms ${cacheHit ? '(cached)' : ''}\n`;
-        } catch (_error) {
+        } catch (error) {
           testResults.push({
             operation,
             iteration: i,
@@ -431,7 +431,7 @@ return null;
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -544,7 +544,7 @@ export async function getRealtimeMetrics(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -619,7 +619,7 @@ export async function resetPerformanceMonitoring(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -635,19 +635,19 @@ export async function resetPerformanceMonitoring(
 async function performTestOperation(client: AkamaiClient, operationType: string): Promise<void> {
   switch (operationType) {
     case 'property-read':
-      await client.request({ path: '/papi/v1/properties', method: 'GET' });
+      await client._request({ path: '/papi/v1/properties', method: 'GET' });
       break;
     case 'dns-read':
-      await client.request({ path: '/config-dns/v2/zones', method: 'GET' });
+      await client._request({ path: '/config-dns/v2/zones', method: 'GET' });
       break;
     case 'zone-list':
-      await client.request({ path: '/config-dns/v2/zones', method: 'GET' });
+      await client._request({ path: '/config-dns/v2/zones', method: 'GET' });
       break;
     case 'group-list':
-      await client.request({ path: '/papi/v1/groups', method: 'GET' });
+      await client._request({ path: '/papi/v1/groups', method: 'GET' });
       break;
     default:
       // Generic test operation
-      await client.request({ path: '/papi/v1/groups', method: 'GET' });
+      await client._request({ path: '/papi/v1/groups', method: 'GET' });
   }
 }

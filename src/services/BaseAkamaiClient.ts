@@ -335,13 +335,13 @@ export class BaseAkamaiClient {
 
     try {
       return schema.parse(data);
-    } catch (_error) {
+    } catch (error) {
       if (_error instanceof z.ZodError) {
         throw new Error(
           `Response validation failed: ${_error.errors.map((e) => e.message).join(', ')}`,
         );
       }
-      throw _error;
+      throw error;
     }
   }
 
@@ -419,7 +419,7 @@ export class BaseAkamaiClient {
             customer: this.customer,
           },
         };
-      } catch (_error) {
+      } catch (error) {
         lastError = error as Error;
         const duration = Date.now() - startTime;
 

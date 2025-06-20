@@ -91,8 +91,8 @@ export async function listProperties(
     await cache['cache'].set(cacheKey, response, CacheTTL.PROPERTIES_LIST);
 
     return response;
-  } catch (_error) {
-    console.error('[Cache] Error in cached listProperties:', _error);
+  } catch (error) {
+    console.error("[Error]:", error);
     // Fallback to direct API call
     return originalListProperties(client, args);
   }
@@ -134,8 +134,8 @@ export async function getProperty(
     await cache['cache'].set(cacheKey, response, CacheTTL.PROPERTY_DETAILS);
 
     return response;
-  } catch (_error) {
-    console.error('[Cache] Error in cached getProperty:', _error);
+  } catch (error) {
+    console.error("[Error]:", error);
     return originalGetProperty(client, args);
   }
 }
@@ -176,8 +176,8 @@ export async function listGroups(
     await cache['cache'].set(cacheKey, response, CacheTTL.GROUPS);
 
     return response;
-  } catch (_error) {
-    console.error('[Cache] Error in cached listGroups:', _error);
+  } catch (error) {
+    console.error("[Error]:", error);
     return originalListGroups(client, args);
   }
 }
@@ -217,8 +217,8 @@ export async function listContracts(
     await cache['cache'].set(cacheKey, response, CacheTTL.CONTRACTS);
 
     return response;
-  } catch (_error) {
-    console.error('[Cache] Error in cached listContracts:', _error);
+  } catch (error) {
+    console.error("[Error]:", error);
     return originalListContracts(client, args);
   }
 }

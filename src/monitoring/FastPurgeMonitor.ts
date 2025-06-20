@@ -189,7 +189,7 @@ export class FastPurgeMonitor {
         await this.checkAlerts(metrics);
       }
     } catch (error: any) {
-      logger.error(`Monitor error: ${_error.message}`);
+      logger.error(`Monitor error: ${error.message}`);
     }
   }
 
@@ -308,7 +308,7 @@ apiHealth = 'unhealthy';
 } else if (apiLatency > 2000) {
 apiHealth = 'degraded';
 }
-    } catch (_error) {
+    } catch (error) {
       apiHealth = 'unhealthy';
       apiLatency = -1;
     }

@@ -205,7 +205,7 @@ export class OAuthMiddleware {
       return; // No scopes required
     }
 
-    // If no auth _context but tool requires authentication, throw _error
+    // If no auth _context but tool requires authentication, throw error
     if (!authContext) {
       throw this.createAuthError('Authentication required for protected tool');
     }
@@ -298,15 +298,15 @@ export class OAuthMiddleware {
 
         // Call original handler
         return await handler(...args);
-      } catch (_error) {
+      } catch (error) {
         // Log authentication/authorization failures
         if (_error instanceof McpError) {
           logger.warn('Authentication/authorization failed', {
             tool: toolName,
-            error: _error.message,
+            error: error.message,
           });
         }
-        throw _error;
+        throw error;
       }
     }) as T;
   }

@@ -328,7 +328,7 @@ continue;
         }
 
         this.emit('metricsCollected', name, collectedMetrics.length);
-      } catch (_error) {
+      } catch (error) {
         this.emit('collectionError', name, _error);
       }
     }

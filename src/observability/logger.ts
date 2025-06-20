@@ -266,7 +266,7 @@ export function withLogging<T extends (...args: any[]) => Promise<any>>(
       });
 
       return result;
-    } catch (_error) {
+    } catch (error) {
       const duration = Date.now() - startTime;
 
       logger.error(`Failed ${toolName}`, {
@@ -274,11 +274,11 @@ export function withLogging<T extends (...args: any[]) => Promise<any>>(
         toolName,
         duration,
         error: true,
-        errorMessage: _error instanceof Error ? _error.message : String(_error),
-        errorStack: _error instanceof Error ? _error.stack : undefined,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? _error.stack : undefined,
       });
 
-      throw _error;
+      throw error;
     }
   }) as T;
 }
@@ -309,7 +309,7 @@ export function trackPerformance(
       });
 
       return result;
-    } catch (_error) {
+    } catch (error) {
       const duration = Date.now() - startTime;
 
       logger.debug(`Performance (_error): ${propertyKey}`, {
@@ -319,7 +319,7 @@ export function trackPerformance(
         error: true,
       });
 
-      throw _error;
+      throw error;
     }
   };
 

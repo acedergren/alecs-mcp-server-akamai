@@ -25,7 +25,7 @@ export async function listAvailableBehaviors(
     let ruleFormat = args.ruleFormat;
 
     if (!productId || !ruleFormat) {
-      const propertyResponse = await client.request({
+      const propertyResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -46,7 +46,7 @@ export async function listAvailableBehaviors(
 
       // Get rule format from latest version
       const version = args.version || property.latestVersion || 1;
-      const rulesResponse = await client.request({
+      const rulesResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
         method: 'GET',
       });
@@ -55,7 +55,7 @@ export async function listAvailableBehaviors(
     }
 
     // Get available behaviors
-    const response = await client.request({
+    const response = await client._request({
       path: '/papi/v1/catalog/behaviors',
       method: 'GET',
       queryParams: {
@@ -139,7 +139,7 @@ acc[category] = [];
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('list available behaviors', _error);
   }
 }
@@ -163,7 +163,7 @@ export async function listAvailableCriteria(
     let ruleFormat = args.ruleFormat;
 
     if (!productId || !ruleFormat) {
-      const propertyResponse = await client.request({
+      const propertyResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -184,7 +184,7 @@ export async function listAvailableCriteria(
 
       // Get rule format from latest version
       const version = args.version || property.latestVersion || 1;
-      const rulesResponse = await client.request({
+      const rulesResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
         method: 'GET',
       });
@@ -193,7 +193,7 @@ export async function listAvailableCriteria(
     }
 
     // Get available criteria
-    const response = await client.request({
+    const response = await client._request({
       path: '/papi/v1/catalog/criteria',
       method: 'GET',
       queryParams: {
@@ -276,7 +276,7 @@ acc[category] = [];
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('list available criteria', _error);
   }
 }
@@ -301,7 +301,7 @@ export async function patchPropertyRules(
 ): Promise<MCPToolResponse> {
   try {
     // Get property details and version
-    const propertyResponse = await client.request({
+    const propertyResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -321,7 +321,7 @@ export async function patchPropertyRules(
     const version = args.version || property.latestVersion || 1;
 
     // Apply patches
-    const response = await client.request({
+    const response = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
       method: 'PATCH',
       headers: {
@@ -338,7 +338,7 @@ export async function patchPropertyRules(
 
     if (response.errors?.length > 0) {
       text += '## ⚠️ Validation Errors\n';
-      for (const _error of response._errors) {
+      for (const _error of response.errors) {
         text += `- ${_error.detail}\n`;
       }
       text += '\n';
@@ -377,7 +377,7 @@ export async function patchPropertyRules(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('patch property rules', _error);
   }
 }
@@ -413,7 +413,7 @@ export async function bulkSearchProperties(
       searchBody.groupIds = args.groupIds;
     }
 
-    const searchResponse = await client.request({
+    const searchResponse = await client._request({
       path: '/papi/v1/bulk/rules-search-requests',
       method: 'POST',
       headers: {
@@ -459,7 +459,7 @@ export async function bulkSearchProperties(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('bulk search properties', _error);
   }
 }
@@ -475,7 +475,7 @@ export async function getBulkSearchResults(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client.request({
+    const response = await client._request({
       path: `/papi/v1/bulk/rules-search-requests/${args.bulkSearchId}`,
       method: 'GET',
     });
@@ -559,7 +559,7 @@ acc[key] = [];
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('get bulk search results', _error);
   }
 }
@@ -635,7 +635,7 @@ export async function generateDomainValidationChallenges(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('generate domain validation challenges', _error);
   }
 }
@@ -689,7 +689,7 @@ export async function resumeDomainValidation(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('resume domain validation', _error);
   }
 }
@@ -711,7 +711,7 @@ export async function getPropertyAuditHistory(
     // This would typically use the audit API
     // For now, we'll get activation history as an example
 
-    const response = await client.request({
+    const response = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/activations`,
       method: 'GET',
     });
@@ -769,7 +769,7 @@ text += `**End Date:** ${args.endDate}\n`;
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('get property audit history', _error);
   }
 }
@@ -781,21 +781,21 @@ function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (_error instanceof Error) {
-    errorMessage += `: ${_error.message}`;
+  if (error instanceof Error) {
+    errorMessage += `: ${error.message}`;
 
     // Provide specific solutions based on error type
-    if (_error.message.includes('401') || _error.message.includes('credentials')) {
+    if (error.message.includes('401') || error.message.includes('credentials')) {
       solution = '**Solution:** Check your ~/.edgerc file has valid credentials.';
-    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
+    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
       solution = '**Solution:** Your API credentials may lack the necessary permissions.';
-    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
+    } else if (error.message.includes('404') || error.message.includes('not found')) {
       solution = '**Solution:** The requested resource was not found. Verify the ID is correct.';
-    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
+    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
       solution = '**Solution:** Invalid request parameters. Check the input values.';
     }
   } else {
-    errorMessage += `: ${String(_error)}`;
+    errorMessage += `: ${String(error)}`;
   }
 
   let text = errorMessage;

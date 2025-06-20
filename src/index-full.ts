@@ -170,7 +170,7 @@ export class ALECSFullServer {
    */
   private setupErrorHandling(): void {
     process.on('uncaughtException', (error: Error) => {
-      logger.error('Uncaught exception', { error: _error.message, stack: _error.stack });
+      logger.error('Uncaught exception', { error: error.message, stack: _error.stack });
       process.exit(1);
     });
 
@@ -321,14 +321,14 @@ export class ALECSFullServer {
       };
 
       return response as McpToolResponse;
-    } catch (_error) {
+    } catch (error) {
       const duration = Date.now() - context.startTime;
 
       logger.error('Tool request failed', {
         ...context,
         duration,
-        error: _error instanceof Error ? _error.message : String(_error),
-        stack: _error instanceof Error ? _error.stack : undefined,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? _error.stack : undefined,
       });
 
       // Build error metadata
@@ -339,7 +339,7 @@ export class ALECSFullServer {
         customer: context.customer || 'default',
         tool: toolName,
         requestId: context.requestId,
-        errorType: _error instanceof Error ? _error.constructor.name : 'UnknownError',
+        errorType: error instanceof Error ? _error.constructor.name : 'UnknownError',
       };
 
       const response: Mcp2025ToolResponse = {
@@ -357,18 +357,18 @@ export class ALECSFullServer {
    */
   private formatError(error: unknown): string {
     if (_error instanceof ConfigurationError) {
-      return `Configuration error: ${_error.message}`;
+      return `Configuration error: ${error.message}`;
     }
 
     if (_error instanceof z.ZodError) {
       return `Validation error: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`;
     }
 
-    if (_error instanceof Error) {
-      return _error.message;
+    if (error instanceof Error) {
+      return error.message;
     }
 
-    return String(_error);
+    return String(error);
   }
 
   /**
@@ -441,7 +441,7 @@ export class ALECSFullServer {
               },
             ],
           };
-        } catch (_error) {
+        } catch (error) {
           if (_error instanceof z.ZodError) {
             throw new McpError(
               ErrorCode.InvalidParams,
@@ -450,7 +450,7 @@ export class ALECSFullServer {
           }
 
           if (_error instanceof McpError) {
-            throw _error;
+            throw error;
           }
 
           throw new McpError(ErrorCode.InternalError, this.formatError(_error));
@@ -474,7 +474,7 @@ export class ALECSFullServer {
       const transport = new StdioServerTransport();
 
       transport.onerror = (error: Error) => {
-        logger.error('Transport error', { error: _error.message, stack: _error.stack });
+        logger.error('Transport error', { error: error.message, stack: _error.stack });
       };
 
       transport.onclose = () => {
@@ -486,12 +486,12 @@ export class ALECSFullServer {
       await this.server.connect(transport);
 
       logger.info('ALECS Full MCP Server ready and listening');
-    } catch (_error) {
+    } catch (error) {
       logger.error('Failed to start server', {
-        error: _error instanceof Error ? _error.message : String(_error),
-        stack: _error instanceof Error ? _error.stack : undefined,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? _error.stack : undefined,
       });
-      throw _error;
+      throw error;
     }
   }
 }
@@ -503,10 +503,10 @@ async function main(): Promise<void> {
   try {
     const server = new ALECSFullServer();
     await server.start();
-  } catch (_error) {
+  } catch (error) {
     logger.error('Server initialization failed', {
-      error: _error instanceof Error ? _error.message : String(_error),
-      stack: _error instanceof Error ? _error.stack : undefined,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? _error.stack : undefined,
     });
     process.exit(1);
   }

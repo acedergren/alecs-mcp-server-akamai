@@ -157,7 +157,7 @@ export async function checkOnboardingStatus(
       } else {
         status.errors.push(`Property with hostname ${args.hostname} not found`);
       }
-    } catch (_error) {
+    } catch (error) {
       status.errors.push('Failed to check property status');
     }
 
@@ -172,7 +172,7 @@ export async function checkOnboardingStatus(
       } else {
         status.warnings.push('Edge hostname not found');
       }
-    } catch (_error) {
+    } catch (error) {
       status.warnings.push('Failed to check edge hostname status');
     }
 
@@ -190,7 +190,7 @@ export async function checkOnboardingStatus(
       } else {
         status.warnings.push('DNS record not found in Edge DNS');
       }
-    } catch (_error) {
+    } catch (error) {
       status.warnings.push('DNS zone not found or not using Edge DNS');
     }
 
@@ -201,7 +201,7 @@ export async function checkOnboardingStatus(
           propertyId: args.propertyId,
         });
         status.activations = activationsResult;
-      } catch (_error) {
+      } catch (error) {
         status.warnings.push('Failed to check activation status');
       }
     }

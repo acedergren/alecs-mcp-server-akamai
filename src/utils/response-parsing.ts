@@ -502,7 +502,7 @@ return response;
   static validateResponse<T>(schema: z.ZodSchema<T>, response: any): T {
     try {
       return schema.parse(response);
-    } catch (_error) {
+    } catch (error) {
       if (_error instanceof z.ZodError) {
         console.warn('Response validation failed:', {
           errors: _error.errors,
@@ -623,7 +623,7 @@ export function parseAkamaiResponse(
     }
 
     return parsedData;
-  } catch (_error) {
+  } catch (error) {
     console.warn('Failed to parse response:', _error);
     return response.data || response;
   }

@@ -130,7 +130,7 @@ export class OAuthManager {
       });
 
       return session;
-    } catch (_error) {
+    } catch (error) {
       logger.error('OAuth authentication failed', { provider, error });
 
       // Audit log failure
@@ -140,10 +140,10 @@ export class OAuthManager {
         action: CredentialAction.VALIDATE,
         resource: 'oauth_session',
         success: false,
-        error: _error instanceof Error ? _error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
 
-      throw _error;
+      throw error;
     }
   }
 

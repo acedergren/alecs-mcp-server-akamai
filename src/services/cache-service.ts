@@ -70,8 +70,8 @@ export class AkamaiCacheService {
         console.error('[Cache] Valkey error:', err.message);
         this.enabled = false;
       });
-    } catch (_error) {
-      console.error('[Cache] Failed to initialize Valkey:', _error);
+    } catch (error) {
+      console.error("[Error]:", error);
       this.enabled = false;
     }
   }
@@ -97,7 +97,7 @@ export class AkamaiCacheService {
 
     // Fetch from API
     console.error('[Cache] MISS: Fetching properties from API');
-    const response = await client.request({
+    const response = await client._request({
       path: '/papi/v1/properties',
       method: 'GET',
     });
@@ -145,7 +145,7 @@ return;
           hostnames = JSON.parse(cached);
         } else {
           // Fetch hostnames
-          const response = await client.request({
+          const response = await client._request({
             path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames`,
             method: 'GET',
             queryParams: {

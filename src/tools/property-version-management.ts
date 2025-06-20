@@ -83,7 +83,7 @@ export async function comparePropertyVersions(
 
   try {
     // Get property details
-    const propertyResponse = await client.request({
+    const propertyResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -110,11 +110,11 @@ export async function comparePropertyVersions(
     // Compare rules if requested
     if (compareType === 'rules' || compareType === 'all') {
       const [rules1, rules2] = await Promise.all([
-        client.request({
+        client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version1}/rules`,
           method: 'GET',
         }),
-        client.request({
+        client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version2}/rules`,
           method: 'GET',
         }),
@@ -136,11 +136,11 @@ export async function comparePropertyVersions(
     // Compare hostnames if requested
     if (compareType === 'hostnames' || compareType === 'all') {
       const [hostnames1, hostnames2] = await Promise.all([
-        client.request({
+        client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version1}/hostnames`,
           method: 'GET',
         }),
-        client.request({
+        client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version2}/hostnames`,
           method: 'GET',
         }),
@@ -198,7 +198,7 @@ export async function comparePropertyVersions(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -242,7 +242,7 @@ export async function batchCreateVersions(
     for (const prop of args.properties) {
       try {
         // Get property details
-        const propertyResponse = await client.request({
+        const propertyResponse = await client._request({
           path: `/papi/v1/properties/${prop.propertyId}`,
           method: 'GET',
         });
@@ -260,7 +260,7 @@ export async function batchCreateVersions(
         const baseVersion = prop.baseVersion || property.latestVersion;
 
         // Create new version
-        const versionResponse = await client.request({
+        const versionResponse = await client._request({
           path: `/papi/v1/properties/${prop.propertyId}/versions`,
           method: 'POST',
           body: {
@@ -291,7 +291,7 @@ export async function batchCreateVersions(
         results.push({
           propertyId: prop.propertyId,
           success: false,
-          error: _error.message || 'Unknown error',
+          error: error.message || 'Unknown error',
         });
       }
     }
@@ -335,7 +335,7 @@ export async function batchCreateVersions(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -369,7 +369,7 @@ export async function getVersionTimeline(
 
   try {
     // Get property details
-    const propertyResponse = await client.request({
+    const propertyResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -380,14 +380,14 @@ export async function getVersionTimeline(
     }
 
     // Get all versions
-    const versionsResponse = await client.request({
+    const versionsResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions`,
       method: 'GET',
       queryParams: { limit: limit.toString() },
     });
 
     // Get activation history
-    const activationsResponse = await client.request({
+    const activationsResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/activations`,
       method: 'GET',
     });
@@ -489,7 +489,7 @@ responseText += `- **Note:** ${event.note}\n`;
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -524,7 +524,7 @@ export async function rollbackPropertyVersion(
 
   try {
     // Get property details
-    const propertyResponse = await client.request({
+    const propertyResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -537,7 +537,7 @@ export async function rollbackPropertyVersion(
     const currentVersion = property.latestVersion;
 
     // Validate target version exists
-    const targetVersionResponse = await client.request({
+    const targetVersionResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.targetVersion}`,
       method: 'GET',
     });
@@ -549,7 +549,7 @@ export async function rollbackPropertyVersion(
     // Create backup if requested
     let backupVersion: number | undefined;
     if (createBackup) {
-      const backupResponse = await client.request({
+      const backupResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions`,
         method: 'POST',
         body: {
@@ -574,7 +574,7 @@ export async function rollbackPropertyVersion(
     // Get current hostnames if preserving
     let currentHostnames: any[] = [];
     if (preserveHostnames) {
-      const hostnamesResponse = await client.request({
+      const hostnamesResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${currentVersion}/hostnames`,
         method: 'GET',
       });
@@ -582,7 +582,7 @@ export async function rollbackPropertyVersion(
     }
 
     // Create new version from target
-    const rollbackResponse = await client.request({
+    const rollbackResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions`,
       method: 'POST',
       body: {
@@ -598,7 +598,7 @@ export async function rollbackPropertyVersion(
 
     // Restore hostnames if preserving
     if (preserveHostnames && currentHostnames.length > 0) {
-      await client.request({
+      await client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${newVersion}/hostnames`,
         method: 'PUT',
         body: {
@@ -647,7 +647,7 @@ export async function rollbackPropertyVersion(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -683,11 +683,11 @@ export async function updateVersionMetadata(
   try {
     // Get property and version details
     const [propertyResponse, versionResponse] = await Promise.all([
-      client.request({
+      client._request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       }),
-      client.request({
+      client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}`,
         method: 'GET',
       }),
@@ -707,7 +707,7 @@ export async function updateVersionMetadata(
 
     // Store extended metadata as a comment in rules (workaround)
     if (args.metadata.tags || args.metadata.labels) {
-      const rulesResponse = await client.request({
+      const rulesResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/rules`,
         method: 'GET',
       });
@@ -728,7 +728,7 @@ rules.comments = {};
       }
 
       // Update rules with metadata
-      await client.request({
+      await client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/rules`,
         method: 'PUT',
         body: {
@@ -770,7 +770,7 @@ rules.comments = {};
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -806,7 +806,7 @@ export async function mergePropertyVersions(
 
   try {
     // Get property details
-    const propertyResponse = await client.request({
+    const propertyResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -818,11 +818,11 @@ export async function mergePropertyVersions(
 
     // Get rules from both versions
     const [sourceRules, targetRules] = await Promise.all([
-      client.request({
+      client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${args.sourceVersion}/rules`,
         method: 'GET',
       }),
-      client.request({
+      client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${args.targetVersion}/rules`,
         method: 'GET',
       }),
@@ -849,7 +849,7 @@ export async function mergePropertyVersions(
 
     // Create new version if requested
     if (createNewVersion) {
-      const versionResponse = await client.request({
+      const versionResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions`,
         method: 'POST',
         body: {
@@ -864,7 +864,7 @@ export async function mergePropertyVersions(
     }
 
     // Apply merged rules
-    await client.request({
+    await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${finalVersion}/rules`,
       method: 'PUT',
       body: {
@@ -915,7 +915,7 @@ export async function mergePropertyVersions(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {

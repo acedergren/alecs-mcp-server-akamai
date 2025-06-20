@@ -156,7 +156,7 @@ export async function listZones(
       queryParams.offset = args.offset;
     }
 
-    const response = await client.request({
+    const response = await client._request({
       path: '/config-dns/v2/zones',
       method: 'GET',
       headers: {
@@ -194,10 +194,10 @@ export async function listZones(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     spinner.fail('Failed to fetch DNS zones');
-    console.error('Error listing DNS zones:', _error);
-    throw _error;
+    console.error("[Error]:", error);
+    throw error;
   }
 }
 
@@ -209,7 +209,7 @@ export async function getZone(
   args: { zone: string },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client.request({
+    const response = await client._request({
       path: `/config-dns/v2/zones/${args.zone}`,
       method: 'GET',
       headers: {
@@ -239,9 +239,9 @@ export async function getZone(
         },
       ],
     };
-  } catch (_error) {
-    console.error('Error getting DNS zone:', _error);
-    throw _error;
+  } catch (error) {
+    console.error("[Error]:", error);
+    throw error;
   }
 }
 
@@ -286,7 +286,7 @@ queryParams.contractId = args.contractId;
 queryParams.gid = args.groupId;
 }
 
-    await client.request({
+    await client._request({
       path: '/config-dns/v2/zones',
       method: 'POST',
       headers: {
@@ -307,10 +307,10 @@ queryParams.gid = args.groupId;
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     spinner.fail(`Failed to create zone: ${args.zone}`);
-    console.error('Error creating DNS zone:', _error);
-    throw _error;
+    console.error("[Error]:", error);
+    throw error;
   }
 }
 
@@ -330,7 +330,7 @@ queryParams.search = args.search;
 queryParams.types = args.types.join(',');
 }
 
-    const response = await client.request({
+    const response = await client._request({
       path: `/config-dns/v2/zones/${args.zone}/recordsets`,
       method: 'GET',
       headers: {
@@ -366,9 +366,9 @@ queryParams.types = args.types.join(',');
         },
       ],
     };
-  } catch (_error) {
-    console.error('Error listing DNS records:', _error);
-    throw _error;
+  } catch (error) {
+    console.error("[Error]:", error);
+    throw error;
   }
 }
 
@@ -380,7 +380,7 @@ export async function getChangeList(
   zone: string,
 ): Promise<ChangeList | null> {
   try {
-    const response = await client.request({
+    const response = await client._request({
       path: `/config-dns/v2/changelists/${zone}`,
       method: 'GET',
       headers: {
@@ -389,10 +389,10 @@ export async function getChangeList(
     });
     return response;
   } catch (error: any) {
-    if (_error.message?.includes('404')) {
+    if (error.message?.includes('404')) {
       return null;
     }
-    throw _error;
+    throw error;
   }
 }
 
@@ -443,7 +443,7 @@ export async function submitChangeList(
 
     for (let attempt = 0; attempt <= opts.retryConfig.maxRetries!; attempt++) {
       try {
-        response = await client.request({
+        response = await client._request({
           path: `/config-dns/v2/changelists/${zone}/submit`,
           method: 'POST',
           headers: {
@@ -461,7 +461,7 @@ export async function submitChangeList(
         lastError = error;
 
         // Check if it's a rate limit error
-        if (_error.message?.includes('429') || _error.statusCode === 429) {
+        if (error.message?.includes('429') || _error.statusCode === 429) {
           const retryAfter =
             _error.headers?.['retry-after'] ||
             Math.min(
@@ -488,7 +488,7 @@ export async function submitChangeList(
         }
 
         // Non-retryable error or max retries reached
-        throw _error;
+        throw error;
       }
     }
 
@@ -548,19 +548,19 @@ export async function submitChangeList(
         } else {
           spinner.fail(`Zone activation failed: ${status.activationState}`);
         }
-      } catch (_error) {
+      } catch (error) {
         spinner.fail('Failed to monitor activation status');
-        console.error('Activation monitoring error:', _error);
+        console.error("[Error]:", error);
         // Don't throw - submission was successful even if monitoring failed
       }
     }
 
     return response;
-  } catch (_error) {
+  } catch (error) {
     if (spinner) {
 spinner.fail('Failed to submit changelist');
 }
-    throw _error;
+    throw error;
   }
 }
 
@@ -603,7 +603,7 @@ export async function discardChangeList(
 
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
     try {
-      await client.request({
+      await client._request({
         path: `/config-dns/v2/changelists/${zone}`,
         method: 'DELETE',
         headers: {
@@ -615,7 +615,7 @@ export async function discardChangeList(
       lastError = error;
 
       // Don't retry on 404 - changelist doesn't exist
-      if (_error.message?.includes('404') || _error.statusCode === 404) {
+      if (error.message?.includes('404') || _error.statusCode === 404) {
         return; // Consider success - changelist is gone
       }
 
@@ -626,7 +626,7 @@ export async function discardChangeList(
         continue;
       }
 
-      throw _error;
+      throw error;
     }
   }
 
@@ -659,7 +659,7 @@ export async function waitForZoneActivation(
   while (Date.now() - startTime < opts.timeout) {
     try {
       // Get zone activation status
-      const status = await client.request({
+      const status = await client._request({
         path: `/config-dns/v2/zones/${zone}/status`,
         method: 'GET',
         headers: {
@@ -686,7 +686,7 @@ export async function waitForZoneActivation(
       await new Promise((resolve) => setTimeout(resolve, delay));
     } catch (error: any) {
       // Handle rate limiting with exponential backoff
-      if (_error.message?.includes('429') || _error.statusCode === 429) {
+      if (error.message?.includes('429') || _error.statusCode === 429) {
         consecutiveErrors++;
 
         if (consecutiveErrors >= maxConsecutiveErrors) {
@@ -707,7 +707,7 @@ export async function waitForZoneActivation(
 
         if (consecutiveErrors >= maxConsecutiveErrors) {
           throw new Error(
-            `Failed to get zone status after ${maxConsecutiveErrors} attempts: ${_error.message}`,
+            `Failed to get zone status after ${maxConsecutiveErrors} attempts: ${error.message}`,
           );
         }
 
@@ -716,7 +716,7 @@ export async function waitForZoneActivation(
       }
 
       // Non-transient error
-      throw _error;
+      throw error;
     }
   }
 
@@ -765,7 +765,7 @@ continue;
       }
     } catch (error: any) {
       const errorMessage: string =
-        _error instanceof Error ? _error.message : String(error || 'Unknown error');
+        error instanceof Error ? error.message : String(error || 'Unknown error');
       result.failed.push({
         zone,
         error: errorMessage,
@@ -871,7 +871,7 @@ spinner.update('Creating change list...');
   const createRequestId = generateRequestId();
   logOperation('CREATING_CHANGELIST', { zone, requestId: createRequestId });
 
-  await client.request({
+  await client._request({
     path: '/config-dns/v2/changelists',
     method: 'POST',
     headers: {
@@ -915,7 +915,7 @@ export async function upsertRecord(
       rdata: args.rdata,
     };
 
-    await client.request({
+    await client._request({
       path: `/config-dns/v2/changelists/${args.zone}/recordsets/${args.name}/${args.type}`,
       method: 'PUT',
       headers: {
@@ -927,7 +927,7 @@ export async function upsertRecord(
 
     // Step 3: Submit the change list
     spinner.update('Submitting changes...');
-    const submitResponse = await client.request({
+    const submitResponse = await client._request({
       path: `/config-dns/v2/changelists/${args.zone}/submit`,
       method: 'POST',
       headers: {
@@ -949,10 +949,10 @@ export async function upsertRecord(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     spinner.fail('Failed to update DNS record');
-    console.error('Error updating DNS record:', _error);
-    throw _error;
+    console.error("[Error]:", error);
+    throw error;
   }
 }
 
@@ -978,7 +978,7 @@ export async function deleteRecord(
 
     // Step 2: Delete the record from the change list
     spinner.update(`Deleting ${args.type} record for ${args.name}...`);
-    await client.request({
+    await client._request({
       path: `/config-dns/v2/changelists/${args.zone}/recordsets/${args.name}/${args.type}`,
       method: 'DELETE',
       headers: {
@@ -988,7 +988,7 @@ export async function deleteRecord(
 
     // Step 3: Submit the change list
     spinner.update('Submitting changes...');
-    const submitResponse = await client.request({
+    const submitResponse = await client._request({
       path: `/config-dns/v2/changelists/${args.zone}/submit`,
       method: 'POST',
       headers: {
@@ -1010,10 +1010,10 @@ export async function deleteRecord(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     spinner.fail('Failed to delete DNS record');
-    console.error('Error deleting DNS record:', _error);
-    throw _error;
+    console.error("[Error]:", error);
+    throw error;
   }
 }
 
@@ -1114,13 +1114,13 @@ export async function activateZoneChanges(
     spinner.fail('Failed to activate zone changes');
 
     // Provide helpful error messages
-    if (_error.message?.includes('No pending changelist')) {
+    if (error.message?.includes('No pending changelist')) {
       return {
         content: [
           {
             type: 'text',
             text:
-              `${icons.error} ${_error.message}\n\n` +
+              `${icons.error} ${error.message}\n\n` +
               `${icons.info} To make changes:\n` +
               '  1. Use upsertRecord to add/update records\n' +
               '  2. Use deleteRecord to remove records\n' +
@@ -1130,6 +1130,6 @@ export async function activateZoneChanges(
       };
     }
 
-    throw _error;
+    throw error;
   }
 }

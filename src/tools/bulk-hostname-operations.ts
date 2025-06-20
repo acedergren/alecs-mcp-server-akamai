@@ -337,7 +337,7 @@ export async function createBulkProvisioningPlan(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -560,7 +560,7 @@ export async function executeBulkProvisioning(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -704,7 +704,7 @@ export async function validateBulkDNS(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -760,7 +760,7 @@ acc[op.propertyId] = [];
     for (const [propertyId, operations] of Object.entries(operationsByProperty)) {
       try {
         // Get current property version
-        const propertyResponse = await client.request({
+        const propertyResponse = await client._request({
           path: `/papi/v1/properties/${propertyId}`,
           method: 'GET',
         });
@@ -780,7 +780,7 @@ acc[op.propertyId] = [];
 
         // Create new version if requested
         if (args.createNewVersion) {
-          const versionResponse = await client.request({
+          const versionResponse = await client._request({
             path: `/papi/v1/properties/${propertyId}/versions`,
             method: 'POST',
             headers: {
@@ -800,7 +800,7 @@ acc[op.propertyId] = [];
         }
 
         // Get current hostnames
-        const hostnamesResponse = await client.request({
+        const hostnamesResponse = await client._request({
           path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames`,
           method: 'GET',
         });
@@ -846,7 +846,7 @@ acc[op.propertyId] = [];
         }
 
         // Update hostnames
-        await client.request({
+        await client._request({
           path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames`,
           method: 'PUT',
           headers: {
@@ -859,11 +859,11 @@ acc[op.propertyId] = [];
           },
           body: hostnames,
         });
-      } catch (_error) {
+      } catch (error) {
         operations.forEach((op) => {
           results.failed.push({
             hostname: op.hostname,
-            error: _error instanceof Error ? _error.message : 'Unknown error',
+            error: error instanceof Error ? error.message : 'Unknown error',
           });
         });
       }
@@ -930,7 +930,7 @@ acc[r.action] = [];
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {

@@ -85,7 +85,7 @@ export class IntegrationTestFramework {
 
       this.testResults.push(testResult);
       return testResult;
-    } catch (_error) {
+    } catch (error) {
       const duration = Date.now() - startTime;
 
       const testResult: TestResult = {
@@ -168,7 +168,7 @@ export class IntegrationTestFramework {
           actual: passed,
           passed,
         });
-      } catch (_error) {
+      } catch (error) {
         assertions.push({
           description: rule.description,
           expected: true,
@@ -422,7 +422,7 @@ export class APIHealthChecker {
     const startTime = Date.now();
 
     try {
-      await this.client.request({
+      await this.client._request({
         path: endpoint,
         method,
       });
@@ -435,7 +435,7 @@ export class APIHealthChecker {
         responseTime,
         _httpStatus: 200,
       };
-    } catch (_error) {
+    } catch (error) {
       const responseTime = Date.now() - startTime;
 
       return {
@@ -510,12 +510,12 @@ export class LoadTestRunner {
           const requestStart = Date.now();
 
           try {
-            await this.client.request({ path: endpoint, method });
+            await this.client._request({ path: endpoint, method });
             results.push({
               success: true,
               responseTime: Date.now() - requestStart,
             });
-          } catch (_error) {
+          } catch (error) {
             results.push({
               success: false,
               responseTime: Date.now() - requestStart,

@@ -191,7 +191,7 @@ return false;
       try {
         const result = await this.exportToDestination(destination);
         results.push(result);
-      } catch (_error) {
+      } catch (error) {
         const result: ExportResult = {
           destination: destination.name,
           success: false,
@@ -264,7 +264,7 @@ return false;
 
       this.emit('exportSuccess', result);
       return result;
-    } catch (_error) {
+    } catch (error) {
       const duration = performance.now() - startTime;
       this.updateStats(destination.name, false, duration, 0);
 
@@ -278,7 +278,7 @@ return false;
       };
 
       this.emit('exportError', result);
-      throw _error;
+      throw error;
     }
   }
 
@@ -295,7 +295,7 @@ return false;
     this.flushInterval = setInterval(async () => {
       try {
         await this.exportAll();
-      } catch (_error) {
+      } catch (error) {
         this.emit('batchExportError', _error);
       }
     }, interval);
@@ -380,9 +380,9 @@ return false;
 
       this.emit('destinationTestSuccess', name);
       return true;
-    } catch (_error) {
+    } catch (error) {
       this.emit('destinationTestFailure', name, _error);
-      throw _error;
+      throw error;
     }
   }
 
@@ -658,9 +658,9 @@ return false;
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    } catch (_error) {
+    } catch (error) {
       clearTimeout(timeoutId);
-      throw _error;
+      throw error;
     }
   }
 
@@ -753,7 +753,7 @@ return;
     try {
       await this.exportToDestination(destination);
       this.batches.delete(item.batchId);
-    } catch (_error) {
+    } catch (error) {
       if (item.retryCount < (this.config.maxRetryAttempts || 3)) {
         // Retry with exponential backoff
         setTimeout(

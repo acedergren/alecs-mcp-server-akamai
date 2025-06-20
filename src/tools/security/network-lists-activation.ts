@@ -46,7 +46,7 @@ export async function activateNetworkList(
     const client = new AkamaiClient(customer);
 
     // First get the list details
-    const listResponse = await client.request({
+    const listResponse = await client._request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'GET',
     });
@@ -85,7 +85,7 @@ export async function activateNetworkList(
       requestBody.fast = true;
     }
 
-    const response = await client.request({
+    const response = await client._request({
       path: '/network-list/v2/network-lists/activations',
       method: 'POST',
       body: requestBody,
@@ -117,7 +117,7 @@ export async function activateNetworkList(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -140,7 +140,7 @@ export async function getNetworkListActivationStatus(
   try {
     const client = new AkamaiClient(customer);
 
-    const response = await client.request({
+    const response = await client._request({
       path: `/network-list/v2/network-lists/activations/${activationId}`,
       method: 'GET',
     });
@@ -177,7 +177,7 @@ export async function getNetworkListActivationStatus(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -215,7 +215,7 @@ export async function listNetworkListActivations(
       queryParams.status = options.status;
     }
 
-    const response = await client.request({
+    const response = await client._request({
       path: '/network-list/v2/network-lists/activations',
       method: 'GET',
       queryParams,
@@ -264,7 +264,7 @@ export async function listNetworkListActivations(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -292,7 +292,7 @@ export async function deactivateNetworkList(
     const client = new AkamaiClient(customer);
 
     // First get the list details
-    const listResponse = await client.request({
+    const listResponse = await client._request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'GET',
     });
@@ -324,7 +324,7 @@ export async function deactivateNetworkList(
       requestBody.comments = options.comments;
     }
 
-    const response = await client.request({
+    const response = await client._request({
       path: '/network-list/v2/network-lists/activations',
       method: 'POST',
       body: requestBody,
@@ -353,7 +353,7 @@ export async function deactivateNetworkList(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -407,7 +407,7 @@ export async function bulkActivateNetworkLists(
           requestBody.notificationEmails = options.notificationEmails;
         }
 
-        const response = await client.request({
+        const response = await client._request({
           path: '/network-list/v2/network-lists/activations',
           method: 'POST',
           body: requestBody,
@@ -420,7 +420,7 @@ export async function bulkActivateNetworkLists(
         });
 
         output += `✅ ${activation.uniqueId} → ${activation.network} (${activationResult.activationId})\n`;
-      } catch (_error) {
+      } catch (error) {
         const akamaiError = _error as AkamaiError;
         results.push({
           uniqueId: activation.uniqueId,
@@ -452,7 +452,7 @@ export async function bulkActivateNetworkLists(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [

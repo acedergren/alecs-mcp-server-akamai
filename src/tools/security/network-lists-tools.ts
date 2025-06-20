@@ -107,7 +107,7 @@ export async function listNetworkLists(
       queryParams.extended = 'true';
     }
 
-    const response = await client.request({
+    const response = await client._request({
       path: '/network-list/v2/network-lists',
       method: 'GET',
       queryParams,
@@ -170,7 +170,7 @@ export async function listNetworkLists(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -205,7 +205,7 @@ export async function getNetworkList(
       queryParams.extended = 'true';
     }
 
-    const response = await client.request({
+    const response = await client._request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'GET',
       queryParams,
@@ -261,7 +261,7 @@ export async function getNetworkList(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -342,7 +342,7 @@ export async function createNetworkList(
       requestBody.groupId = ensurePrefix(options.groupId, 'grp_');
     }
 
-    const response = await client.request({
+    const response = await client._request({
       path: '/network-list/v2/network-lists',
       method: 'POST',
       body: requestBody,
@@ -376,7 +376,7 @@ export async function createNetworkList(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -407,7 +407,7 @@ export async function updateNetworkList(
     const client = new AkamaiClient(customer);
 
     // First get the current list to validate operations
-    const currentResponse = await client.request({
+    const currentResponse = await client._request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'GET',
       queryParams: { includeElements: 'true' },
@@ -485,7 +485,7 @@ export async function updateNetworkList(
       requestBody.list = newList;
     }
 
-    const response = await client.request({
+    const response = await client._request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'PUT',
       body: requestBody,
@@ -524,7 +524,7 @@ export async function updateNetworkList(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -548,7 +548,7 @@ export async function deleteNetworkList(
     const client = new AkamaiClient(customer);
 
     // First check if the list exists and get its details
-    const listResponse = await client.request({
+    const listResponse = await client._request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'GET',
     });
@@ -567,7 +567,7 @@ export async function deleteNetworkList(
       };
     }
 
-    await client.request({
+    await client._request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'DELETE',
     });
@@ -580,7 +580,7 @@ export async function deleteNetworkList(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [

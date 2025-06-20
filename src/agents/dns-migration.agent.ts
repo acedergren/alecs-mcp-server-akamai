@@ -83,9 +83,9 @@ export class DNSMigrationAgent {
       });
 
       spinner.succeed('DNS Migration Agent initialized');
-    } catch (_error) {
+    } catch (error) {
       spinner.fail('Failed to initialize DNS agent');
-      throw _error;
+      throw error;
     } finally {
       this.multiProgress.remove('init');
     }
@@ -173,14 +173,14 @@ export class DNSMigrationAgent {
       }
 
       return result;
-    } catch (_error) {
+    } catch (error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: _error instanceof Error ? _error.message : String(_error),
+        message: error instanceof Error ? error.message : String(error),
       });
-      result.errors.push(_error instanceof Error ? _error.message : String(_error));
-      throw _error;
+      result.errors.push(error instanceof Error ? error.message : String(error));
+      throw error;
     }
   }
 
@@ -204,7 +204,7 @@ export class DNSMigrationAgent {
 
       if (!validation.valid) {
         spinner.fail(`Validation failed: ${validation.errors.length} errors`);
-        validation.errors.forEach((e) => console.log(`  ${icons._error} ${format.red(e)}`));
+        validation.errors.forEach((e) => console.log(`  ${icons.error} ${format.red(e)}`));
         throw new Error('Zone file validation failed');
       }
 
@@ -225,9 +225,9 @@ export class DNSMigrationAgent {
       });
 
       return records;
-    } catch (_error) {
-      spinner.fail(`Parse failed: ${_error instanceof Error ? _error.message : String(_error)}`);
-      throw _error;
+    } catch (error) {
+      spinner.fail(`Parse failed: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
     }
   }
 
@@ -309,13 +309,13 @@ export class DNSMigrationAgent {
       progress.finish(options.dryRun ? 'Dry run complete' : 'Import complete');
 
       return result;
-    } catch (_error) {
+    } catch (error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: _error instanceof Error ? _error.message : String(_error),
+        message: error instanceof Error ? error.message : String(error),
       });
-      throw _error;
+      throw error;
     }
   }
 
@@ -365,13 +365,13 @@ export class DNSMigrationAgent {
         valid: warnings.length === 0,
         warnings,
       };
-    } catch (_error) {
+    } catch (error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: _error instanceof Error ? _error.message : String(_error),
+        message: error instanceof Error ? error.message : String(error),
       });
-      throw _error;
+      throw error;
     }
   }
 
@@ -487,11 +487,11 @@ export class DNSMigrationAgent {
       console.log(format.dim('\n═'.repeat(60)));
 
       return migration;
-    } catch (_error) {
+    } catch (error) {
       spinner.fail(
-        `Failed to generate instructions: ${_error instanceof Error ? _error.message : String(_error)}`,
+        `Failed to generate instructions: ${error instanceof Error ? error.message : String(error)}`,
       );
-      throw _error;
+      throw error;
     }
   }
 
@@ -515,11 +515,11 @@ export class DNSMigrationAgent {
         });
 
         spinner.succeed(`Created ${format.cyan(record.name)} ${format.green(record.type)}`);
-      } catch (_error) {
+      } catch (error) {
         spinner.fail(
-          `Failed to create record: ${_error instanceof Error ? _error.message : String(_error)}`,
+          `Failed to create record: ${error instanceof Error ? error.message : String(error)}`,
         );
-        throw _error;
+        throw error;
       }
     });
   }
@@ -541,11 +541,11 @@ export class DNSMigrationAgent {
         });
 
         spinner.succeed(`Updated ${format.cyan(record.name)} ${format.green(record.type)}`);
-      } catch (_error) {
+      } catch (error) {
         spinner.fail(
-          `Failed to update record: ${_error instanceof Error ? _error.message : String(_error)}`,
+          `Failed to update record: ${error instanceof Error ? error.message : String(error)}`,
         );
-        throw _error;
+        throw error;
       }
     });
   }
@@ -562,11 +562,11 @@ export class DNSMigrationAgent {
         });
 
         spinner.succeed(`Deleted ${format.cyan(name)} ${format.green(type)}`);
-      } catch (_error) {
+      } catch (error) {
         spinner.fail(
-          `Failed to delete record: ${_error instanceof Error ? _error.message : String(_error)}`,
+          `Failed to delete record: ${error instanceof Error ? error.message : String(error)}`,
         );
-        throw _error;
+        throw error;
       }
     });
   }
@@ -603,11 +603,11 @@ params.append('page_size', options.limit.toString());
       spinner.succeed(`Found ${records.length} records`);
 
       return records;
-    } catch (_error) {
+    } catch (error) {
       spinner.fail(
-        `Failed to list records: ${_error instanceof Error ? _error.message : String(_error)}`,
+        `Failed to list records: ${error instanceof Error ? error.message : String(error)}`,
       );
-      throw _error;
+      throw error;
     }
   }
 
@@ -669,13 +669,13 @@ params.append('page_size', options.limit.toString());
       });
 
       return result;
-    } catch (_error) {
+    } catch (error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: _error instanceof Error ? _error.message : String(_error),
+        message: error instanceof Error ? error.message : String(error),
       });
-      throw _error;
+      throw error;
     }
   }
 
@@ -710,7 +710,7 @@ params.append('page_size', options.limit.toString());
 
       this.changeListCache.delete(zoneName);
       return result;
-    } catch (_error) {
+    } catch (error) {
       // Discard change list on _error
       if (this.changeListCache.has(zoneName)) {
         await this.auth._request({
@@ -719,7 +719,7 @@ params.append('page_size', options.limit.toString());
         });
         this.changeListCache.delete(zoneName);
       }
-      throw _error;
+      throw error;
     }
   }
 
@@ -735,9 +735,9 @@ params.append('page_size', options.limit.toString());
           comment: 'Created by DNS Migration Agent',
         }),
       });
-    } catch (_error) {
-      if (!(_error instanceof Error && _error.message.includes('already exists'))) {
-        throw _error;
+    } catch (error) {
+      if (!(error instanceof Error && error.message.includes('already exists'))) {
+        throw error;
       }
     }
   }
@@ -781,10 +781,10 @@ params.append('page_size', options.limit.toString());
       try {
         await this.createRecord(zoneName, records[i]);
         result.success++;
-      } catch (_error) {
+      } catch (error) {
         result.failed++;
         result.errors.push(
-          `${records[i].name} ${records[i].type}: ${_error instanceof Error ? _error.message : String(_error)}`,
+          `${records[i].name} ${records[i].type}: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
       progressCallback(i + 1, records.length);
@@ -917,10 +917,10 @@ continue;
             body: JSON.stringify(record),
           });
           result.success++;
-        } catch (_error) {
+        } catch (error) {
           result.failed++;
           result.errors.push(
-            `${record.name} ${record.type}: ${_error instanceof Error ? _error.message : String(_error)}`,
+            `${record.name} ${record.type}: ${error instanceof Error ? error.message : String(error)}`,
           );
         }
       }
@@ -1007,10 +1007,10 @@ continue;
 
       console.log(`\n${format.bold('Migration Complete!')}`);
       console.log(`${icons.success} Successfully migrated ${importResult.recordsImported} records`);
-    } catch (_error) {
-      console.error(`\n${icons._error} ${format.red('Migration failed:')}`);
-      console.error(format.red(_error instanceof Error ? _error.message : String(_error)));
-      throw _error;
+    } catch (error) {
+      console.error(`\n${icons.error} ${format.red('Migration failed:')}`);
+      console.error(format.red(error instanceof Error ? error.message : String(error)));
+      throw error;
     }
   }
 
@@ -1025,11 +1025,11 @@ continue;
       });
 
       spinner.succeed('Zone activated');
-    } catch (_error) {
+    } catch (error) {
       spinner.fail(
-        `Failed to activate zone: ${_error instanceof Error ? _error.message : String(_error)}`,
+        `Failed to activate zone: ${error instanceof Error ? error.message : String(error)}`,
       );
-      throw _error;
+      throw error;
     }
   }
 }

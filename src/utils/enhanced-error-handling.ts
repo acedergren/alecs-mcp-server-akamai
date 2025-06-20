@@ -103,7 +103,7 @@ export class EnhancedErrorHandler {
     for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
       try {
         return await operation();
-      } catch (_error) {
+      } catch (error) {
         lastError = _error;
         const errorResult = this.handle(_error, _context);
 
@@ -119,7 +119,7 @@ export class EnhancedErrorHandler {
         // Don't retry if _error is not retryable
         if (!errorResult.shouldRetry) {
           this.logFailure(attempts, _context);
-          throw _error;
+          throw error;
         }
 
         // Don't retry on last attempt

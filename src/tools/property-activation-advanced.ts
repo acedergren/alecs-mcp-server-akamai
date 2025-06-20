@@ -110,7 +110,7 @@ export async function validatePropertyActivation(
 
   try {
     // Get property details
-    const propertyResponse = await client.request({
+    const propertyResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -130,7 +130,7 @@ export async function validatePropertyActivation(
     };
 
     // 1. Check rule validation
-    const rulesValidation = await client.request({
+    const rulesValidation = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules/errors`,
       method: 'GET',
     });
@@ -160,7 +160,7 @@ export async function validatePropertyActivation(
     }
 
     // 2. Check hostname configuration
-    const hostnamesResponse = await client.request({
+    const hostnamesResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'GET',
     });
@@ -188,7 +188,7 @@ export async function validatePropertyActivation(
     }
 
     // 4. Check for concurrent activations
-    const activationsResponse = await client.request({
+    const activationsResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/activations`,
       method: 'GET',
     });
@@ -288,7 +288,7 @@ responseText += `  - ${check.details}\n`;
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -344,7 +344,7 @@ export async function activatePropertyWithMonitoring(
     }
 
     // Get property details
-    const propertyResponse = await client.request({
+    const propertyResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -355,7 +355,7 @@ export async function activatePropertyWithMonitoring(
     // Create activation
     const activationResponse = await ErrorRecovery.withRetry(
       async () => {
-        return await client.request({
+        return await client._request({
           path: `/papi/v1/properties/${args.propertyId}/activations`,
           method: 'POST',
           body: {
@@ -397,7 +397,7 @@ export async function activatePropertyWithMonitoring(
 
     while (Date.now() - startTime < maxWaitTime) {
       // Get current status
-      const statusResponse = await client.request({
+      const statusResponse = await client._request({
         path: `/papi/v1/properties/${args.propertyId}/activations/${activationId}`,
         method: 'GET',
       });
@@ -463,7 +463,7 @@ export async function activatePropertyWithMonitoring(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -492,7 +492,7 @@ export async function getActivationProgress(
   const errorTranslator = new ErrorTranslator();
 
   try {
-    const response = await client.request({
+    const response = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/activations/${args.activationId}`,
       method: 'GET',
     });
@@ -569,7 +569,7 @@ export async function getActivationProgress(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -640,7 +640,7 @@ async function checkOriginConnectivity(
 ): Promise<PreflightCheck> {
   try {
     // Get property rules to find origin configuration
-    const rulesResponse = await client.request({
+    const rulesResponse = await client._request({
       path: `/papi/v1/properties/${propertyId}/versions/${version}/rules`,
       method: 'GET',
     });
@@ -682,7 +682,7 @@ return origin;
       message: `Origin configured: ${originHostname}`,
       details: 'Note: Actual connectivity test not performed',
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       name: 'Origin Connectivity',
       status: 'WARNING',
@@ -864,7 +864,7 @@ async function rollbackActivation(
 ): Promise<void> {
   try {
     // Get previous stable version
-    const activationsResponse = await client.request({
+    const activationsResponse = await client._request({
       path: `/papi/v1/properties/${propertyId}/activations`,
       method: 'GET',
     });
@@ -877,7 +877,7 @@ async function rollbackActivation(
 
     if (previousActivation) {
       // Attempt to reactivate previous version
-      await client.request({
+      await client._request({
         path: `/papi/v1/properties/${propertyId}/activations`,
         method: 'POST',
         body: {
@@ -889,8 +889,8 @@ async function rollbackActivation(
         },
       });
     }
-  } catch (_error) {
-    console.error('Rollback failed:', _error);
+  } catch (error) {
+    console.error("[Error]:", error);
   }
 }
 
@@ -908,7 +908,7 @@ export async function cancelPropertyActivation(
 
   try {
     // Check activation status first
-    const statusResponse = await client.request({
+    const statusResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/activations/${args.activationId}`,
       method: 'GET',
     });
@@ -930,7 +930,7 @@ export async function cancelPropertyActivation(
     }
 
     // Cancel the activation
-    await client.request({
+    await client._request({
       path: `/papi/v1/properties/${args.propertyId}/activations/${args.activationId}`,
       method: 'DELETE',
     });
@@ -943,7 +943,7 @@ export async function cancelPropertyActivation(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -981,7 +981,7 @@ export async function createActivationPlan(
     // Validate all properties exist and get details
     const propertyDetails = await Promise.all(
       args.properties.map(async (prop) => {
-        const response = await client.request({
+        const response = await client._request({
           path: `/papi/v1/properties/${prop.propertyId}`,
           method: 'GET',
         });
@@ -1042,7 +1042,7 @@ export async function createActivationPlan(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {

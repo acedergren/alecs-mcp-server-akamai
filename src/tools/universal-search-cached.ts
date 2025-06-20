@@ -99,7 +99,7 @@ export async function universalSearchCachedHandler(
       // Property ID search
       if (queryTypes.includes('propertyId')) {
         try {
-          const response = await client.request({
+          const response = await client._request({
             path: `/papi/v1/properties/${args.query}`,
             method: 'GET',
           });
@@ -110,7 +110,7 @@ export async function universalSearchCachedHandler(
             if (detailed) {
               // Get hostnames
               try {
-                const hostnamesResp = await client.request({
+                const hostnamesResp = await client._request({
                   path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames`,
                   method: 'GET',
                   queryParams: {
@@ -161,7 +161,7 @@ export async function universalSearchCachedHandler(
                 // Try to get from hostname cache first
                 const _cacheKey = `akamai:${customer}:property:${property.propertyId}:hostnames`;
 
-                const hostnamesResp = await client.request({
+                const hostnamesResp = await client._request({
                   path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames`,
                   method: 'GET',
                   queryParams: {
@@ -214,7 +214,7 @@ export async function universalSearchCachedHandler(
       // Contract search
       if (queryTypes.includes('contractId')) {
         try {
-          const contractsResp = await client.request({
+          const contractsResp = await client._request({
             path: '/papi/v1/contracts',
             method: 'GET',
           });
@@ -238,7 +238,7 @@ export async function universalSearchCachedHandler(
       // Group search
       if (queryTypes.includes('groupId')) {
         try {
-          const groupsResp = await client.request({
+          const groupsResp = await client._request({
             path: '/papi/v1/groups',
             method: 'GET',
           });
@@ -329,7 +329,7 @@ export async function universalSearchCachedHandler(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return handleApiError(_error, 'universal search');
   }
 }

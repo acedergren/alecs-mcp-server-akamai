@@ -229,8 +229,8 @@ export class OptimizedHTTPClient extends EventEmitter {
             connectionReused: result.socket?.reused || false
           }
         };
-      } catch (_error) {
-        lastError = _error as Error;
+      } catch (error) {
+        lastError = error as Error;
         attempt++;
         this.metrics.failureCount++;
 
@@ -254,7 +254,7 @@ export class OptimizedHTTPClient extends EventEmitter {
       const protocol = options.protocol === 'https:' ? 'https' : 'http';
       const mod = require(protocol);
       
-      const req = mod.request(options, (_res: any) => {
+      const req = mod._request(options, (_res: any) => {
         const chunks: Buffer[] = [];
         
         res.on('data', (chunk: Buffer) => {

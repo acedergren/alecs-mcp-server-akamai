@@ -130,7 +130,7 @@ export class PurgeQueueManager {
         );
       }, this.PERSISTENCE_INTERVAL);
     } catch (error: any) {
-      logger.error(`Queue manager error: ${_error.message}`);
+      logger.error(`Queue manager error: ${error.message}`);
     }
   }
 
@@ -159,7 +159,7 @@ export class PurgeQueueManager {
         }
       }
     } catch (error: any) {
-      logger.error(`Queue manager error: ${_error.message}`);
+      logger.error(`Queue manager error: ${error.message}`);
     }
   }
 
@@ -173,7 +173,7 @@ export class PurgeQueueManager {
         await fs.writeFile(tempPath, JSON.stringify(items, null, 2));
         await fs.rename(tempPath, filePath);
       } catch (error: any) {
-        logger.error(`Queue manager error: ${_error.message}`);
+        logger.error(`Queue manager error: ${error.message}`);
       }
     }
   }
@@ -390,14 +390,14 @@ return null;
         `Completed purge ${item.id} for ${item.customer}: ${item.objects.length} objects`,
       );
     } catch (error: any) {
-      item.error = _error.message;
+      item.error = error.message;
 
       if (item.attempts >= 3) {
         item.status = 'failed';
-        logger.error(`Queue manager error: ${_error.message}`);
+        logger.error(`Queue manager error: ${error.message}`);
       } else {
         item.status = 'pending';
-        logger.warn(`Purge ${item.id} failed, will retry: ${_error.message}`);
+        logger.warn(`Purge ${item.id} failed, will retry: ${error.message}`);
       }
     }
   }

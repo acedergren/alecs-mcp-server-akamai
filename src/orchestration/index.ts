@@ -56,13 +56,13 @@ export class AkamaiOrchestrator {
       this.cpsAgent = await createCPSCertificateAgent(this.options.customer, this.dnsAgent);
 
       progress.finish('All agents initialized');
-    } catch (_error) {
+    } catch (error) {
       progress.update({
         current: progress['current'],
-        status: '_error',
-        message: `Initialization failed: ${_error instanceof Error ? _error.message : String(_error)}`,
+        status: 'error',
+        message: `Initialization failed: ${error instanceof Error ? error.message : String(error)}`,
       });
-      throw _error;
+      throw error;
     }
   }
 
@@ -166,13 +166,13 @@ export class AkamaiOrchestrator {
       console.log('  2. Test thoroughly on staging');
       console.log('  3. Activate to production when ready');
       console.log('  4. Monitor traffic and performance');
-    } catch (_error) {
+    } catch (error) {
       progress.update({
         current: progress['current'],
-        status: '_error',
-        message: `Migration failed: ${_error instanceof Error ? _error.message : String(_error)}`,
+        status: 'error',
+        message: `Migration failed: ${error instanceof Error ? error.message : String(error)}`,
       });
-      throw _error;
+      throw error;
     }
   }
 
@@ -246,13 +246,13 @@ export class AkamaiOrchestrator {
       }
 
       progress.finish('Secure website provisioned successfully!');
-    } catch (_error) {
+    } catch (error) {
       progress.update({
         current: progress['current'],
-        status: '_error',
-        message: _error instanceof Error ? _error.message : String(_error),
+        status: 'error',
+        message: error instanceof Error ? error.message : String(error),
       });
-      throw _error;
+      throw error;
     }
   }
 
@@ -304,10 +304,10 @@ export class AkamaiOrchestrator {
                 autoActivate: true,
               });
               results.success++;
-            } catch (_error) {
+            } catch (error) {
               results.failed++;
               results.errors.push(
-                `${zone.source}: ${_error instanceof Error ? _error.message : String(_error)}`,
+                `${zone.source}: ${error instanceof Error ? error.message : String(error)}`,
               );
             }
           }),
@@ -332,13 +332,13 @@ export class AkamaiOrchestrator {
         console.log(`\n${icons.info} ${format.bold('Nameserver Update Required')}`);
         console.log('Update nameservers for all migrated zones at your domain registrar');
       }
-    } catch (_error) {
+    } catch (error) {
       progress.update({
         current: progress['current'],
-        status: '_error',
-        message: _error instanceof Error ? _error.message : String(_error),
+        status: 'error',
+        message: error instanceof Error ? error.message : String(error),
       });
-      throw _error;
+      throw error;
     }
   }
 

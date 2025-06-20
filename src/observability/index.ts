@@ -149,9 +149,9 @@ export class ObservabilityStack extends EventEmitter {
         },
         'observability-stack',
       );
-    } catch (_error) {
+    } catch (error) {
       this.emit('initializationError', _error);
-      throw _error;
+      throw error;
     }
   }
 
@@ -470,10 +470,10 @@ export class ObservabilityStack extends EventEmitter {
       try {
         await this.telemetry.testDestination(name);
         results[name] = { success: true };
-      } catch (_error) {
+      } catch (error) {
         results[name] = {
           success: false,
-          error: _error instanceof Error ? _error.message : 'Unknown error',
+          error: error instanceof Error ? error.message : 'Unknown error',
         };
       }
     }

@@ -149,15 +149,15 @@ export class EdgeGridClient {
     } else if (_error.request) {
       logger.error('No response from API', {
         customer: this.customerName,
-        error: _error.message,
+        error: error.message,
       });
       throw new Error('No response from Akamai API');
     } else {
       logger.error('Request error', {
         customer: this.customerName,
-        error: _error.message,
+        error: error.message,
       });
-      throw new Error(_error.message);
+      throw new Error(error.message);
     }
   }
 

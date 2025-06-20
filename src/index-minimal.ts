@@ -148,8 +148,8 @@ class MinimalALECSServer {
           default:
             throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
         }
-      } catch (_error) {
-        console.error('❌ Tool error:', _error);
+      } catch (error) {
+        console.error("[Error]:", error);
 
         if (_error instanceof z.ZodError) {
           throw new McpError(
@@ -159,12 +159,12 @@ class MinimalALECSServer {
         }
 
         if (_error instanceof McpError) {
-          throw _error;
+          throw error;
         }
 
         throw new McpError(
           ErrorCode.InternalError,
-          `Tool execution failed: ${_error instanceof Error ? _error.message : String(_error)}`,
+          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     });
@@ -177,7 +177,7 @@ class MinimalALECSServer {
 
     // Add error handling for transport
     transport.onerror = (error: Error) => {
-      console.error('❌ Transport error:', _error);
+      console.error("[Error]:", error);
     };
 
     transport.onclose = () => {
@@ -196,15 +196,15 @@ async function main() {
   try {
     const server = new MinimalALECSServer();
     await server.start();
-  } catch (_error) {
-    console.error('❌ Failed to start server:', _error);
+  } catch (error) {
+    console.error("[Error]:", error);
     process.exit(1);
   }
 }
 
 // Handle uncaught errors
 process.on('uncaughtException', (_error) => {
-  console.error('❌ Uncaught exception:', _error);
+  console.error("[Error]:", error);
   process.exit(1);
 });
 

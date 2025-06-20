@@ -65,7 +65,7 @@ export async function universalSearchHandler(
     // Property ID search
     if (queryTypes.includes('propertyId')) {
       try {
-        const response = await client.request({
+        const response = await client._request({
           path: `/papi/v1/properties/${args.query}`,
           method: 'GET',
         });
@@ -76,7 +76,7 @@ export async function universalSearchHandler(
           if (detailed) {
             // Get hostnames
             try {
-              const hostnamesResp = await client.request({
+              const hostnamesResp = await client._request({
                 path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames`,
                 method: 'GET',
                 queryParams: {
@@ -108,7 +108,7 @@ export async function universalSearchHandler(
       queryTypes.includes('general')
     ) {
       try {
-        const propertiesResponse = await client.request({
+        const propertiesResponse = await client._request({
           path: '/papi/v1/properties',
           method: 'GET',
         });
@@ -128,7 +128,7 @@ export async function universalSearchHandler(
           // Check hostnames if it looks like a domain
           if (queryTypes.includes('hostname') || args.query.includes('.')) {
             try {
-              const hostnamesResp = await client.request({
+              const hostnamesResp = await client._request({
                 path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames`,
                 method: 'GET',
                 queryParams: {
@@ -181,7 +181,7 @@ export async function universalSearchHandler(
     // Contract search
     if (queryTypes.includes('contractId')) {
       try {
-        const contractsResp = await client.request({
+        const contractsResp = await client._request({
           path: '/papi/v1/contracts',
           method: 'GET',
         });
@@ -205,7 +205,7 @@ export async function universalSearchHandler(
     // Group search
     if (queryTypes.includes('groupId')) {
       try {
-        const groupsResp = await client.request({
+        const groupsResp = await client._request({
           path: '/papi/v1/groups',
           method: 'GET',
         });
@@ -277,7 +277,7 @@ export async function universalSearchHandler(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return handleApiError(_error, 'universal search');
   }
 }

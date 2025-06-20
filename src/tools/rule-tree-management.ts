@@ -276,7 +276,7 @@ export async function updatePropertyRulesEnhanced(
       validation.errors.slice(0, 5).forEach((_error, index) => {
         text += `${index + 1}. **${_error.type}** [${_error.severity}]\n`;
         text += `   Path: ${_error.path}\n`;
-        text += `   Message: ${_error.message}\n`;
+        text += `   Message: ${error.message}\n`;
         if (_error.fix) {
           text += `   Fix: ${_error.fix}\n`;
         }
@@ -345,7 +345,7 @@ export async function updatePropertyRulesEnhanced(
     }
 
     // Update rules
-    await client.request({
+    await client._request({
       method: 'PUT',
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/rules`,
       headers: {
@@ -386,7 +386,7 @@ export async function updatePropertyRulesEnhanced(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('update property rules with validation', _error);
   }
 }
@@ -494,7 +494,7 @@ export async function createRuleFromTemplate(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('create rule from template', _error);
   }
 }
@@ -540,7 +540,7 @@ export async function validateRuleTree(
       validation.errors.forEach((_error, index) => {
         text += `${index + 1}. [${_error.severity}] ${_error.type}\n`;
         text += `   Path: ${_error.path}\n`;
-        text += `   Issue: ${_error.message}\n`;
+        text += `   Issue: ${error.message}\n`;
         if (_error.fix) {
           text += `   Fix: ${_error.fix}\n`;
         }
@@ -593,7 +593,7 @@ export async function validateRuleTree(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('validate rule tree', _error);
   }
 }
@@ -641,7 +641,7 @@ export async function mergeRuleTrees(
 
         text += '**Validation Errors:**\n';
         validation.errors.slice(0, 5).forEach((_error, index) => {
-          text += `${index + 1}. ${_error.message}\n`;
+          text += `${index + 1}. ${error.message}\n`;
         });
 
         text += '\n**Note:** The merge completed but resulted in an invalid rule tree. Review and fix validation errors.';
@@ -703,7 +703,7 @@ export async function mergeRuleTrees(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('merge rule trees', _error);
   }
 }
@@ -803,7 +803,7 @@ export async function optimizeRuleTree(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('optimize rule tree', _error);
   }
 }
@@ -881,7 +881,7 @@ export async function listRuleTemplates(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('list rule templates', _error);
   }
 }
@@ -1233,7 +1233,7 @@ function processTemplate(template: any, variables: Record<string, any>): any {
 
       // Direct variable replacement
       return evaluateExpression(trimmed, variables);
-    } catch (_error) {
+    } catch (error) {
       logger.warn(`Failed to process template expression: ${expression}`);
       return match;
     }
@@ -1746,22 +1746,22 @@ function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (_error instanceof Error) {
-    errorMessage += `: ${_error.message}`;
+  if (error instanceof Error) {
+    errorMessage += `: ${error.message}`;
 
     // Provide specific solutions based on error type
-    if (_error.message.includes('401') || _error.message.includes('credentials')) {
+    if (error.message.includes('401') || error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials for the customer section.';
-    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
+    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
       solution = '**Solution:** Your API credentials may lack the necessary permissions.';
-    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
+    } else if (error.message.includes('404') || error.message.includes('not found')) {
       solution = '**Solution:** The requested resource was not found. Verify the ID is correct.';
-    } else if (_error.message.includes('validation')) {
+    } else if (error.message.includes('validation')) {
       solution = '**Solution:** Fix validation errors in the rule tree before proceeding.';
     }
   } else {
-    errorMessage += `: ${String(_error)}`;
+    errorMessage += `: ${String(error)}`;
   }
 
   let text = errorMessage;

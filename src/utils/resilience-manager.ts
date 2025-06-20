@@ -121,9 +121,9 @@ export class CircuitBreaker {
 
       this.recordSuccess(responseTime);
       return result;
-    } catch (_error) {
+    } catch (error) {
       this.recordFailure();
-      throw _error;
+      throw error;
     }
   }
 
@@ -210,16 +210,16 @@ export class RetryHandler {
     for (let attempt = 1; attempt <= this.config.maxAttempts; attempt++) {
       try {
         return await operation();
-      } catch (_error) {
+      } catch (error) {
         lastError = _error;
 
         // Check if error is retryable
         if (errorHandler && !errorHandler(_error, attempt)) {
-          throw _error;
+          throw error;
         }
 
         if (attempt === this.config.maxAttempts) {
-          throw _error;
+          throw error;
         }
 
         // Calculate delay with exponential backoff and jitter
@@ -400,9 +400,9 @@ export class ErrorClassifier {
       code = _error.response.status.toString();
     } else if (_error.status) {
       code = _error.status.toString();
-    } else if (_error.message) {
+    } else if (error.message) {
       // Try to extract HTTP status from message
-      const statusMatch = _error.message.match(/\b(4\d{2}|5\d{2})\b/);
+      const statusMatch = error.message.match(/\b(4\d{2}|5\d{2})\b/);
       if (statusMatch) {
         code = statusMatch[1];
       }
@@ -502,7 +502,7 @@ export class ResilienceManager {
 
         // Log error for monitoring
         console.error(`Operation ${operationType} failed (attempt ${attempt}):`, {
-          error: _error.message,
+          error: error.message,
           category: category.type,
           severity: category.severity,
           retryable: category.retryable,

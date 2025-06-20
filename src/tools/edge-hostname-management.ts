@@ -107,7 +107,7 @@ export async function createEdgeHostnameEnhanced(
     if (!contractId || !groupId) {
       if (args.propertyId) {
         // Get from property
-        const propertyResponse = await client.request({
+        const propertyResponse = await client._request({
           path: `/papi/v1/properties/${args.propertyId}`,
           method: 'GET',
         });
@@ -141,7 +141,7 @@ export async function createEdgeHostnameEnhanced(
     ];
 
     // Create edge hostname
-    const response = await client.request({
+    const response = await client._request({
       path: '/papi/v1/edgehostnames',
       method: 'POST',
       headers: {
@@ -222,7 +222,7 @@ export async function createEdgeHostnameEnhanced(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -260,7 +260,7 @@ export async function createBulkEdgeHostnames(
         const prefix = generateEdgeHostnamePrefix(hostname);
 
         // Create edge hostname
-        const response = await client.request({
+        const response = await client._request({
           path: '/papi/v1/edgehostnames',
           method: 'POST',
           headers: {
@@ -298,10 +298,10 @@ export async function createBulkEdgeHostnames(
           edgeHostname,
           edgeHostnameId,
         });
-      } catch (_error) {
+      } catch (error) {
         results.failed.push({
           hostname,
-          error: _error instanceof Error ? _error.message : 'Unknown error',
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }
@@ -355,7 +355,7 @@ export async function createBulkEdgeHostnames(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -398,7 +398,7 @@ queryParams.contractId = args.contractId;
 queryParams.groupId = args.groupId;
 }
 
-      const listResponse = await client.request({
+      const listResponse = await client._request({
         path: '/papi/v1/edgehostnames',
         method: 'GET',
         queryParams,
@@ -429,7 +429,7 @@ queryParams.groupId = args.groupId;
     }
 
     // Get edge hostname details
-    const response = await client.request({
+    const response = await client._request({
       path: `/papi/v1/edgehostnames/${edgeHostnameId}`,
       method: 'GET',
       queryParams: {
@@ -477,7 +477,7 @@ queryParams.groupId = args.groupId;
     }
 
     // Find properties using this edge hostname
-    const propertiesResponse = await client.request({
+    const propertiesResponse = await client._request({
       path: '/papi/v1/properties',
       method: 'GET',
       queryParams: {
@@ -489,7 +489,7 @@ queryParams.groupId = args.groupId;
     const usingProperties: string[] = [];
     for (const prop of propertiesResponse.properties?.items || []) {
       try {
-        const hostnamesResponse = await client.request({
+        const hostnamesResponse = await client._request({
           path: `/papi/v1/properties/${prop.propertyId}/versions/${prop.latestVersion}/hostnames`,
           method: 'GET',
         });
@@ -537,7 +537,7 @@ queryParams.groupId = args.groupId;
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -703,7 +703,7 @@ return;
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -733,7 +733,7 @@ export async function validateEdgeHostnameCertificate(
 
   try {
     // Get edge hostname details
-    const ehResponse = await client.request({
+    const ehResponse = await client._request({
       path: `/papi/v1/edgehostnames/${args.edgeHostnameId}`,
       method: 'GET',
     });
@@ -773,7 +773,7 @@ export async function validateEdgeHostnameCertificate(
 
       // Try to get more certificate details
       try {
-        const certResponse = await client.request({
+        const certResponse = await client._request({
           path: `/cps/v2/enrollments/${eh.certEnrollmentId}`,
           method: 'GET',
         });
@@ -839,7 +839,7 @@ export async function validateEdgeHostnameCertificate(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -869,7 +869,7 @@ export async function associateCertificateWithEdgeHostname(
 
   try {
     // Update edge hostname with certificate
-    await client.request({
+    await client._request({
       path: `/papi/v1/edgehostnames/${args.edgeHostnameId}`,
       method: 'PUT',
       headers: {
@@ -881,7 +881,7 @@ export async function associateCertificateWithEdgeHostname(
     });
 
     // Get updated edge hostname details
-    const ehResponse = await client.request({
+    const ehResponse = await client._request({
       path: `/papi/v1/edgehostnames/${args.edgeHostnameId}`,
       method: 'GET',
     });
@@ -917,7 +917,7 @@ export async function associateCertificateWithEdgeHostname(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {

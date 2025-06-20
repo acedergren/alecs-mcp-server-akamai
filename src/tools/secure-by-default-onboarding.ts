@@ -40,17 +40,17 @@ async function validatePrerequisites(
 
   // Validate contract exists
   try {
-    await client.request({
+    await client._request({
       path: `/papi/v1/contracts/${args.contractId}`,
       method: 'GET',
     });
-  } catch (_error) {
+  } catch (error) {
     errors.push(`Contract ${args.contractId} not found or not accessible`);
   }
 
   // Validate group exists
   try {
-    const groupsResponse = await client.request({
+    const groupsResponse = await client._request({
       path: '/papi/v1/groups',
       method: 'GET',
     });
@@ -60,7 +60,7 @@ async function validatePrerequisites(
     if (!groupExists) {
       errors.push(`Group ${args.groupId} not found`);
     }
-  } catch (_error) {
+  } catch (error) {
     errors.push(`Unable to validate group ${args.groupId}`);
   }
 
@@ -92,7 +92,7 @@ async function ensureCPCode(
   if (args.cpCode) {
     // Verify CP code exists
     try {
-      await client.request({
+      await client._request({
         path: `/papi/v1/cpcodes/${args.cpCode}`,
         method: 'GET',
         queryParams: {
@@ -101,7 +101,7 @@ async function ensureCPCode(
         },
       });
       return args.cpCode;
-    } catch (_error) {
+    } catch (error) {
       // CP code doesn't exist, create new one
     }
   }
@@ -137,7 +137,7 @@ async function createSecureByDefaultEdgeHostname(
   },
 ): Promise<{ edgeHostnameId: string; edgeHostnameDomain: string }> {
   // Get property details
-  const propertyResponse = await client.request({
+  const propertyResponse = await client._request({
     path: `/papi/v1/properties/${args.propertyId}`,
     method: 'GET',
   });
@@ -152,7 +152,7 @@ async function createSecureByDefaultEdgeHostname(
   // Create Secure by Default edge hostname
   // The key is using .edgekey.net suffix and NOT specifying a certificateEnrollmentId
   // This triggers automatic DefaultDV certificate creation
-  const response = await client.request({
+  const response = await client._request({
     path: '/papi/v1/edgehostnames',
     method: 'POST',
     headers: {
@@ -247,7 +247,7 @@ export async function onboardSecureByDefaultProperty(
     let productId = args.productId;
     if (!productId) {
       // Get available products for the contract
-      const productsResponse = await client.request({
+      const productsResponse = await client._request({
         path: '/papi/v1/products',
         method: 'GET',
         queryParams: {
@@ -530,7 +530,7 @@ export async function onboardSecureByDefaultProperty(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     spinner?.fail('Onboarding failed');
 
     // Attempt rollback if needed
@@ -586,7 +586,7 @@ export async function quickSecureByDefaultSetup(
       productId: 'prd_fresca',
       customer: args.customer,
     });
-  } catch (_error) {
+  } catch (error) {
     return formatError('quick Secure by Default setup', _error);
   }
 }
@@ -605,7 +605,7 @@ export async function checkSecureByDefaultStatus(
     let text = '# Secure by Default Property Status\n\n';
 
     // Get property details
-    const propertyResponse = await client.request({
+    const propertyResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -624,7 +624,7 @@ export async function checkSecureByDefaultStatus(
     text += `- **Staging Version:** ${property.stagingVersion || 'Not activated'}\n\n`;
 
     // Get hostnames
-    const hostnamesResponse = await client.request({
+    const hostnamesResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${property.latestVersion}/hostnames`,
       method: 'GET',
     });
@@ -686,7 +686,7 @@ export async function checkSecureByDefaultStatus(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('check Secure by Default status', _error);
   }
 }
@@ -698,7 +698,7 @@ function generateFailureReport(state: OnboardingState, error: any, args: any): s
   let text = '# ❌ Secure Property Onboarding Failed\n\n';
 
   text += '## Error Details\n';
-  text += `- **Error:** ${_error instanceof Error ? _error.message : String(_error)}\n`;
+  text += `- **Error:** ${error instanceof Error ? error.message : String(error)}\n`;
   text += `- **Failed At:** ${state.failed?.step || 'Unknown step'}\n\n`;
 
   text += '## Completed Steps\n';
@@ -739,7 +739,7 @@ function generateFailureReport(state: OnboardingState, error: any, args: any): s
 async function rollbackProperty(client: AkamaiClient, propertyId: string): Promise<void> {
   try {
     // Check if property has any activations
-    const propertyResponse = await client.request({
+    const propertyResponse = await client._request({
       path: `/papi/v1/properties/${propertyId}`,
       method: 'GET',
     });
@@ -747,7 +747,7 @@ async function rollbackProperty(client: AkamaiClient, propertyId: string): Promi
     const property = propertyResponse.properties?.items?.[0];
     if (!property?.productionVersion && !property?.stagingVersion) {
       // Safe to delete
-      await client.request({
+      await client._request({
         path: `/papi/v1/properties/${propertyId}`,
         method: 'DELETE',
         queryParams: {
@@ -756,7 +756,7 @@ async function rollbackProperty(client: AkamaiClient, propertyId: string): Promi
         },
       });
     }
-  } catch (_error) {
+  } catch (error) {
     // Rollback failed, but don't throw
   }
 }
@@ -767,10 +767,10 @@ async function rollbackProperty(client: AkamaiClient, propertyId: string): Promi
 function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
 
-  if (_error instanceof Error) {
-    errorMessage += `: ${_error.message}`;
+  if (error instanceof Error) {
+    errorMessage += `: ${error.message}`;
   } else {
-    errorMessage += `: ${String(_error)}`;
+    errorMessage += `: ${String(error)}`;
   }
 
   return {

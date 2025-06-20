@@ -323,14 +323,14 @@ export async function universalSearchWithCacheHandler(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return handleApiError(_error, 'universal search');
   }
 }
 
 // Helper functions for direct API calls (no cache)
 async function fetchPropertiesDirectly(client: AkamaiClient): Promise<any[]> {
-  const response = await client.request({
+  const response = await client._request({
     path: '/papi/v1/properties',
     method: 'GET',
   });
@@ -338,7 +338,7 @@ async function fetchPropertiesDirectly(client: AkamaiClient): Promise<any[]> {
 }
 
 async function fetchHostnamesDirectly(client: AkamaiClient, property: any): Promise<any[]> {
-  const response = await client.request({
+  const response = await client._request({
     path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames`,
     method: 'GET',
     queryParams: {
@@ -350,7 +350,7 @@ async function fetchHostnamesDirectly(client: AkamaiClient, property: any): Prom
 }
 
 async function fetchContractsDirectly(client: AkamaiClient): Promise<any[]> {
-  const response = await client.request({
+  const response = await client._request({
     path: '/papi/v1/contracts',
     method: 'GET',
   });
@@ -358,7 +358,7 @@ async function fetchContractsDirectly(client: AkamaiClient): Promise<any[]> {
 }
 
 async function fetchGroupsDirectly(client: AkamaiClient): Promise<any[]> {
-  const response = await client.request({
+  const response = await client._request({
     path: '/papi/v1/groups',
     method: 'GET',
   });

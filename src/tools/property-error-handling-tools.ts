@@ -65,7 +65,7 @@ export async function getValidationErrors(
       params.append('validateHostnames', 'true');
     }
 
-    const response = await client.request({
+    const response = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}?${params.toString()}`,
       method: 'GET',
     });
@@ -106,7 +106,7 @@ export async function getValidationErrors(
       errors.forEach((error: PropertyError, index: number) => {
         responseText += `### Error ${index + 1}: ${_error.title}\n`;
         responseText += `- **Type:** ${_error.type}\n`;
-        responseText += `- **Message ID:** ${_error.messageId}\n`;
+        responseText += `- **Message ID:** ${error.messageId}\n`;
         responseText += `- **Detail:** ${_error.detail}\n`;
         if (_error.errorLocation) {
           responseText += `- **Location:** ${_error.errorLocation}\n`;
@@ -178,7 +178,7 @@ export async function getValidationErrors(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (_error) {
+  } catch (error) {
     return handleApiError(_error, 'getting validation errors');
   }
 }
@@ -211,7 +211,7 @@ export async function acknowledgeWarnings(
       })),
     };
 
-    await client.request({
+    await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/acknowledge-warnings?${params.toString()}`,
       method: 'POST',
       body: requestBody,
@@ -245,7 +245,7 @@ export async function acknowledgeWarnings(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (_error) {
+  } catch (error) {
     return handleApiError(_error, 'acknowledging warnings');
   }
 }
@@ -280,7 +280,7 @@ export async function overrideErrors(
       })),
     };
 
-    await client.request({
+    await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/override-errors?${params.toString()}`,
       method: 'POST',
       body: requestBody,
@@ -323,7 +323,7 @@ export async function overrideErrors(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (_error) {
+  } catch (error) {
     return handleApiError(_error, 'overriding errors');
   }
 }
@@ -448,7 +448,7 @@ export async function getErrorRecoveryHelp(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (_error) {
+  } catch (error) {
     return handleApiError(_error, 'getting _error recovery help');
   }
 }
@@ -494,27 +494,27 @@ export async function validatePropertyConfiguration(
 
       validationResults.push('✅ Basic validation completed');
       responseText += '✅ Basic property validation completed\n\n';
-    } catch (_error) {
+    } catch (error) {
       totalErrors++;
       validationResults.push('❌ Basic validation failed');
-      responseText += `❌ Basic property validation failed: ${(_error as Error).message}\n\n`;
+      responseText += `❌ Basic property validation failed: ${(error as Error).message}\n\n`;
     }
 
     // 2. Rule tree validation
     if (args.includeRuleValidation !== false) {
       responseText += '## 2. Rule Tree Validation\n\n';
       try {
-        await client.request({
+        await client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/rules?contractId=${args.contractId}&groupId=${args.groupId}&validateRules=true`,
           method: 'GET',
         });
 
         validationResults.push('✅ Rule tree validation passed');
         responseText += '✅ Rule tree structure and logic validated\n\n';
-      } catch (_error) {
+      } catch (error) {
         totalErrors++;
         validationResults.push('❌ Rule tree validation failed');
-        responseText += `❌ Rule tree validation failed: ${(_error as Error).message}\n\n`;
+        responseText += `❌ Rule tree validation failed: ${(error as Error).message}\n\n`;
       }
     }
 
@@ -522,17 +522,17 @@ export async function validatePropertyConfiguration(
     if (args.includeHostnameValidation !== false) {
       responseText += '## 3. Hostname Validation\n\n';
       try {
-        await client.request({
+        await client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/hostnames?contractId=${args.contractId}&groupId=${args.groupId}&validateHostnames=true`,
           method: 'GET',
         });
 
         validationResults.push('✅ Hostname validation passed');
         responseText += '✅ All hostnames properly configured and validated\n\n';
-      } catch (_error) {
+      } catch (error) {
         totalErrors++;
         validationResults.push('❌ Hostname validation failed');
-        responseText += `❌ Hostname validation failed: ${(_error as Error).message}\n\n`;
+        responseText += `❌ Hostname validation failed: ${(error as Error).message}\n\n`;
       }
     }
 
@@ -540,7 +540,7 @@ export async function validatePropertyConfiguration(
     if (args.includeCertificateValidation) {
       responseText += '## 4. Certificate Validation\n\n';
       try {
-        const hostnameResponse = await client.request({
+        const hostnameResponse = await client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/hostnames?contractId=${args.contractId}&groupId=${args.groupId}&includeCertStatus=true`,
           method: 'GET',
         });
@@ -567,10 +567,10 @@ export async function validatePropertyConfiguration(
           validationResults.push('⚠️ Certificate issues detected');
           responseText += `⚠️ ${certIssues} certificate issues detected\n\n`;
         }
-      } catch (_error) {
+      } catch (error) {
         totalWarnings++;
         validationResults.push('⚠️ Certificate validation incomplete');
-        responseText += `⚠️ Certificate validation incomplete: ${(_error as Error).message}\n\n`;
+        responseText += `⚠️ Certificate validation incomplete: ${(error as Error).message}\n\n`;
       }
     }
 
@@ -611,7 +611,7 @@ export async function validatePropertyConfiguration(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (_error) {
+  } catch (error) {
     return handleApiError(_error, 'validating property configuration');
   }
 }

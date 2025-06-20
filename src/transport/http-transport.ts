@@ -143,7 +143,7 @@ export class HttpServerTransport {
       _res.writeHead(200);
       _res.end(JSON.stringify(response));
 
-    } catch (_error) {
+    } catch (error) {
       // Handle parsing errors
       if (_error instanceof SyntaxError) {
         _res.writeHead(400);
@@ -157,7 +157,7 @@ export class HttpServerTransport {
             null,
             JsonRpcErrorCode.InternalError,
             'Internal server _error',
-            _error instanceof Error ? _error.message : undefined,
+            error instanceof Error ? error.message : undefined,
           ),
         ));
       }
@@ -178,7 +178,7 @@ export class HttpServerTransport {
       _req.on('end', () => {
         try {
           resolve(JSON.parse(body));
-        } catch (_error) {
+        } catch (error) {
           reject(_error);
         }
       });
@@ -213,11 +213,11 @@ export class HttpServerTransport {
         JsonRpcErrorCode.MethodNotFound,
         'HTTP transport integration not yet implemented',
       );
-    } catch (_error) {
+    } catch (error) {
       return createJsonRpcError(
         _request.id,
         JsonRpcErrorCode.InternalError,
-        _error instanceof Error ? _error.message : 'Unknown _error',
+        error instanceof Error ? error.message : 'Unknown _error',
         undefined,
         _request._meta, // Preserve metadata in _error responses
       );

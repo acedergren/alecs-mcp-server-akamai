@@ -116,7 +116,7 @@ export async function listProperties(
 
     if (!contractId) {
       // Get groups to find the first contract
-      const groupsResponse = await client.request({
+      const groupsResponse = await client._request({
         path: '/papi/v1/groups',
         method: 'GET',
       });
@@ -153,7 +153,7 @@ export async function listProperties(
       limit: MAX_PROPERTIES_TO_DISPLAY,
     });
 
-    const response = await client.request({
+    const response = await client._request({
       path: '/papi/v1/properties',
       method: 'GET',
       headers: {
@@ -293,7 +293,7 @@ export async function listPropertiesTreeView(
     const groupId = ensureAkamaiIdFormat(args.groupId, 'group');
 
     // Get all groups to build hierarchy
-    const groupsResponse = await client.request({
+    const groupsResponse = await client._request({
       path: '/papi/v1/groups',
       method: 'GET',
     });
@@ -339,7 +339,7 @@ export async function listPropertiesTreeView(
     if (targetGroup.contractIds?.length > 0) {
       for (const contractId of targetGroup.contractIds) {
         try {
-          const propertiesResponse = await client.request({
+          const propertiesResponse = await client._request({
             path: '/papi/v1/properties',
             method: 'GET',
             queryParams: {
@@ -374,7 +374,7 @@ export async function listPropertiesTreeView(
               if (childGroup.contractIds?.length > 0) {
                 for (const childContractId of childGroup.contractIds) {
                   try {
-                    const childPropsResponse = await client.request({
+                    const childPropsResponse = await client._request({
                       path: '/papi/v1/properties',
                       method: 'GET',
                       queryParams: {
@@ -393,7 +393,7 @@ export async function listPropertiesTreeView(
                     const childStats = contractSummary.get(childContractId)!;
                     childStats.groupCount++;
                     childStats.propertyCount += childProps.length;
-                  } catch (_error) {
+                  } catch (error) {
                     console.error(
                       `Failed to get properties for child group ${childGroup.groupId}:`,
                       _error,
@@ -416,7 +416,7 @@ export async function listPropertiesTreeView(
                 if (grandchild.contractIds?.length > 0) {
                   for (const gcContractId of grandchild.contractIds) {
                     try {
-                      const gcPropsResponse = await client.request({
+                      const gcPropsResponse = await client._request({
                         path: '/papi/v1/properties',
                         method: 'GET',
                         queryParams: {
@@ -426,7 +426,7 @@ export async function listPropertiesTreeView(
                       });
 
                       grandchildProperties.push(...(gcPropsResponse.properties?.items || []));
-                    } catch (_error) {
+                    } catch (error) {
                       console.error(
                         `Failed to get properties for grandchild group ${grandchild.groupId}:`,
                         _error,
@@ -445,8 +445,8 @@ export async function listPropertiesTreeView(
 
           treeNodes.push(groupNode);
           break; // Only process first contract for now
-        } catch (_error) {
-          console.error(`Failed to get properties for contract ${contractId}:`, _error);
+        } catch (error) {
+          console.error("[Error]:", error);
         }
       }
     }
@@ -536,7 +536,7 @@ export async function getProperty(
         console.error(`[getProperty] Searching for property: ${searchTerm}`);
 
         // Get groups first
-        const groupsResponse = await client.request({
+        const groupsResponse = await client._request({
           path: '/papi/v1/groups',
           method: 'GET',
         });
@@ -578,7 +578,7 @@ continue;
 
           for (const contractId of group.contractIds) {
             try {
-              const propertiesResponse = await client.request({
+              const propertiesResponse = await client._request({
                 path: '/papi/v1/properties',
                 method: 'GET',
                 queryParams: {
@@ -700,7 +700,7 @@ continue;
 
     // Get property by ID
     return await getPropertyById(client, propertyId);
-  } catch (_error) {
+  } catch (error) {
     return formatError('get property', _error);
   }
 }
@@ -722,7 +722,7 @@ async function getPropertyById(
     if (!prop) {
       // First, we need to find the contract and group for this property
       // Get all groups to search for the property
-      const groupsResponse = await client.request({
+      const groupsResponse = await client._request({
         path: '/papi/v1/groups',
         method: 'GET',
       });
@@ -755,7 +755,7 @@ continue;
         // Only check first contract per group for speed
         const cId = group.contractIds[0];
         try {
-          const propertiesResponse = await client.request({
+          const propertiesResponse = await client._request({
             path: '/papi/v1/properties',
             method: 'GET',
             queryParams: {
@@ -800,7 +800,7 @@ continue;
     // Now get detailed property information using the proper endpoint if we have contract and group
     if (!existingProperty && contractId && groupId) {
       try {
-        const detailResponse = await client.request({
+        const detailResponse = await client._request({
           path: `/papi/v1/properties/${propertyId}`,
           method: 'GET',
           queryParams: {
@@ -828,7 +828,7 @@ continue;
     let versionDetails = null;
     try {
       if (prop.latestVersion && contractId && groupId) {
-        versionDetails = await client.request({
+        versionDetails = await client._request({
           path: `/papi/v1/properties/${propertyId}/versions/${prop.latestVersion}`,
           method: 'GET',
           queryParams: {
@@ -846,7 +846,7 @@ continue;
     let hostnames = null;
     try {
       if (prop.latestVersion && contractId && groupId) {
-        hostnames = await client.request({
+        hostnames = await client._request({
           path: `/papi/v1/properties/${propertyId}/versions/${prop.latestVersion}/hostnames`,
           method: 'GET',
           queryParams: {
@@ -931,7 +931,7 @@ continue;
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('get property details', _error);
   }
 }
@@ -997,7 +997,7 @@ export async function createProperty(
     let ruleFormat = args.ruleFormat;
     if (!ruleFormat) {
       try {
-        const formatsResponse = await client.request({
+        const formatsResponse = await client._request({
           path: '/papi/v1/rule-formats',
           method: 'GET',
         });
@@ -1013,7 +1013,7 @@ export async function createProperty(
     }
 
     // Create the property
-    const response = await client.request({
+    const response = await client._request({
       path: '/papi/v1/properties',
       method: 'POST',
       headers: {
@@ -1085,10 +1085,10 @@ export async function createProperty(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     // Handle specific error cases
-    if (_error instanceof Error) {
-      if (_error.message.includes('already exists')) {
+    if (error instanceof Error) {
+      if (error.message.includes('already exists')) {
         return {
           content: [
             {
@@ -1099,7 +1099,7 @@ export async function createProperty(
         };
       }
 
-      if (_error.message.includes('Invalid product')) {
+      if (error.message.includes('Invalid product')) {
         return {
           content: [
             {
@@ -1124,7 +1124,7 @@ export async function listContracts(
   args: { searchTerm?: string; customer?: string },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client.request({
+    const response = await client._request({
       path: '/papi/v1/contracts',
       method: 'GET',
     });
@@ -1194,7 +1194,7 @@ export async function listContracts(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('list contracts', _error);
   }
 }
@@ -1208,7 +1208,7 @@ export async function listGroups(
   args: { searchTerm?: string },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client.request({
+    const response = await client._request({
       path: '/papi/v1/groups',
       method: 'GET',
     });
@@ -1350,7 +1350,7 @@ acc[group.parentGroupId] = [];
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('list groups', _error);
   }
 }
@@ -1374,7 +1374,7 @@ export async function listProducts(
     // Ensure contract ID has proper prefix
     const contractId = ensurePrefix(args.contractId, 'ctr_');
 
-    const response = await client.request({
+    const response = await client._request({
       path: '/papi/v1/products',
       method: 'GET',
       queryParams: {
@@ -1531,30 +1531,30 @@ function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (_error instanceof Error) {
-    errorMessage += `: ${_error.message}`;
+  if (error instanceof Error) {
+    errorMessage += `: ${error.message}`;
 
     // Provide specific solutions based on error type
-    if (_error.message.includes('401') || _error.message.includes('credentials')) {
+    if (error.message.includes('401') || error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials. You may need to generate new API credentials in Akamai Control Center.';
-    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
+    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
       solution =
         '**Solution:** Your API credentials may lack the necessary permissions. Ensure your API client has read/write access to Property Manager.';
-    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
+    } else if (error.message.includes('404') || error.message.includes('not found')) {
       solution =
         '**Solution:** The requested resource was not found. Verify the ID is correct using the list tools.';
-    } else if (_error.message.includes('429') || _error.message.includes('rate limit')) {
+    } else if (error.message.includes('429') || error.message.includes('rate limit')) {
       solution = '**Solution:** Rate limit exceeded. Please wait 60 seconds before retrying.';
-    } else if (_error.message.includes('network') || _error.message.includes('ENOTFOUND')) {
+    } else if (error.message.includes('network') || error.message.includes('ENOTFOUND')) {
       solution =
         '**Solution:** Network connectivity issue. Check your internet connection and verify the API host in ~/.edgerc is correct.';
-    } else if (_error.message.includes('timeout')) {
+    } else if (error.message.includes('timeout')) {
       solution =
         '**Solution:** Request timed out. The Akamai API might be slow. Try again in a moment.';
     }
   } else {
-    errorMessage += `: ${String(_error)}`;
+    errorMessage += `: ${String(error)}`;
   }
 
   let text = errorMessage;

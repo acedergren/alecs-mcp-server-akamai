@@ -92,7 +92,7 @@ export async function createACMEValidationRecords(
         });
 
         results.successful++;
-      } catch (_error) {
+      } catch (error) {
         // Try with the parent domain if subdomain fails
         if (args.autoDetectZones && record.zone.includes('.')) {
           try {
@@ -117,7 +117,7 @@ export async function createACMEValidationRecords(
           results.failed++;
           results.errors.push({
             record: record.recordName,
-            error: _error instanceof Error ? _error.message : 'Unknown error',
+            error: error instanceof Error ? error.message : 'Unknown error',
           });
         }
       }
@@ -172,13 +172,13 @@ export async function createACMEValidationRecords(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     spinner.stop();
     return {
       content: [
         {
           type: 'text',
-          text: `❌ Failed to create ACME validation records: ${_error instanceof Error ? _error.message : 'Unknown _error'}`,
+          text: `❌ Failed to create ACME validation records: ${error instanceof Error ? error.message : 'Unknown _error'}`,
         },
       ],
     };
@@ -279,7 +279,7 @@ export async function monitorCertificateValidation(
 
     try {
       // Check enrollment status
-      const response = await client.request({
+      const response = await client._request({
         method: 'GET',
         path: `/cps/v2/enrollments/${args.enrollmentId}`,
       });
@@ -351,10 +351,10 @@ export async function monitorCertificateValidation(
 
       // Wait before next check
       await new Promise((resolve) => setTimeout(resolve, checkInterval));
-    } catch (_error) {
+    } catch (error) {
       spinner.stop();
       console.error(
-        `\n❌ Error checking validation status: ${_error instanceof Error ? _error.message : 'Unknown _error'}`,
+        `\n❌ Error checking validation status: ${error instanceof Error ? error.message : 'Unknown _error'}`,
       );
       await new Promise((resolve) => setTimeout(resolve, checkInterval));
     }

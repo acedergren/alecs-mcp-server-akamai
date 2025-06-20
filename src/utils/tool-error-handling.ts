@@ -71,7 +71,7 @@ export async function withToolErrorHandling<T extends MCPToolResponse>(
       process.env.NODE_ENV === 'test' ? { maxAttempts: 1, ...retryConfig } : retryConfig;
 
     return await baseWithEnhancedErrorHandling(operation, _context, config);
-  } catch (_error) {
+  } catch (error) {
     return formatErrorResponse(_error, _context) as T;
   }
 }

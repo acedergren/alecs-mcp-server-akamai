@@ -82,7 +82,7 @@ export async function importNetworkListFromCSV(
     }
 
     // Get current list to determine type and validate
-    const listResponse = await client.request({
+    const listResponse = await client._request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'GET',
       queryParams: { includeElements: 'true' },
@@ -214,7 +214,7 @@ export async function importNetworkListFromCSV(
         break;
     }
 
-    const response = await client.request({
+    const response = await client._request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'PUT',
       body: requestBody,
@@ -248,7 +248,7 @@ export async function importNetworkListFromCSV(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -275,7 +275,7 @@ export async function exportNetworkListToCSV(
   try {
     const client = new AkamaiClient(customer);
 
-    const response = await client.request({
+    const response = await client._request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'GET',
       queryParams: { includeElements: 'true' },
@@ -334,7 +334,7 @@ export async function exportNetworkListToCSV(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -375,7 +375,7 @@ export async function bulkUpdateNetworkLists(
     for (const update of updates) {
       try {
         // Get current list
-        const listResponse = await client.request({
+        const listResponse = await client._request({
           path: `/network-list/v2/network-lists/${update.uniqueId}`,
           method: 'GET',
           queryParams: { includeElements: 'true' },
@@ -470,7 +470,7 @@ export async function bulkUpdateNetworkLists(
           syncPoint: update.syncPoint,
         };
 
-        await client.request({
+        await client._request({
           path: `/network-list/v2/network-lists/${update.uniqueId}`,
           method: 'PUT',
           body: requestBody,
@@ -484,7 +484,7 @@ export async function bulkUpdateNetworkLists(
         });
 
         output += `✅ ${update.uniqueId}: +${validAdd.length} -${validRemove.length}\n`;
-      } catch (_error) {
+      } catch (error) {
         const akamaiError = _error as AkamaiError;
         results.push({
           uniqueId: update.uniqueId,
@@ -519,7 +519,7 @@ export async function bulkUpdateNetworkLists(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -551,7 +551,7 @@ export async function mergeNetworkLists(
     // Get all source lists
     const sourceLists: NetworkList[] = [];
     for (const listId of sourceListIds) {
-      const response = await client.request({
+      const response = await client._request({
         path: `/network-list/v2/network-lists/${listId}`,
         method: 'GET',
         queryParams: { includeElements: 'true' },
@@ -560,7 +560,7 @@ export async function mergeNetworkLists(
     }
 
     // Get target list
-    const targetResponse = await client.request({
+    const targetResponse = await client._request({
       path: `/network-list/v2/network-lists/${targetListId}`,
       method: 'GET',
       queryParams: { includeElements: 'true' },
@@ -617,7 +617,7 @@ export async function mergeNetworkLists(
     }
 
     // Update target list
-    const updateResponse = await client.request({
+    const updateResponse = await client._request({
       path: `/network-list/v2/network-lists/${targetListId}`,
       method: 'PUT',
       body: { list: mergedElements },
@@ -645,12 +645,12 @@ export async function mergeNetworkLists(
 
       for (const sourceList of sourceLists) {
         try {
-          await client.request({
+          await client._request({
             path: `/network-list/v2/network-lists/${sourceList.uniqueId}`,
             method: 'DELETE',
           });
           output += `✅ Deleted ${sourceList.name}\n`;
-        } catch (_error) {
+        } catch (error) {
           const akamaiError = _error as AkamaiError;
           output += `❌ Failed to delete ${sourceList.name}: ${akamaiError.title}\n`;
         }
@@ -665,7 +665,7 @@ export async function mergeNetworkLists(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [

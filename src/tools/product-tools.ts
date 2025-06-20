@@ -38,7 +38,7 @@ export async function listProducts(
 
     const contractId = ensurePrefix(args.contractId, 'ctr_');
 
-    const response = await client.request({
+    const response = await client._request({
       path: '/papi/v1/products',
       method: 'GET',
       queryParams: {
@@ -113,7 +113,7 @@ export async function listProducts(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('list products', _error);
   }
 }
@@ -154,7 +154,7 @@ export async function getProduct(
     }
 
     // Get all products and find the specific one
-    const response = await client.request({
+    const response = await client._request({
       path: '/papi/v1/products',
       method: 'GET',
       queryParams: {
@@ -223,7 +223,7 @@ export async function getProduct(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('get product', _error);
   }
 }
@@ -368,7 +368,7 @@ export async function listUseCases(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('list use cases', _error);
   }
 }
@@ -380,24 +380,24 @@ function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (_error instanceof Error) {
-    errorMessage += `: ${_error.message}`;
+  if (error instanceof Error) {
+    errorMessage += `: ${error.message}`;
 
     // Provide specific solutions based on error type
-    if (_error.message.includes('401') || _error.message.includes('credentials')) {
+    if (error.message.includes('401') || error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials for the customer section.';
-    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
+    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
       solution =
         '**Solution:** Your API credentials may lack the necessary permissions for product operations.';
-    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
+    } else if (error.message.includes('404') || error.message.includes('not found')) {
       solution =
         '**Solution:** The requested resource was not found. Verify the contract ID is correct.';
-    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
+    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
       solution = '**Solution:** Invalid request parameters. Check the product and contract IDs.';
     }
   } else {
-    errorMessage += `: ${String(_error)}`;
+    errorMessage += `: ${String(error)}`;
   }
 
   let text = errorMessage;
@@ -448,7 +448,7 @@ export async function listBillingProducts(
     const endDate = new Date(year, month, 0); // Last day of month
     const toDate = `${year}-${String(month).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
 
-    const response = await client.request({
+    const response = await client._request({
       path: `/billing/v1/contracts/${contractId}/products`,
       method: 'GET',
       queryParams: {
@@ -594,7 +594,7 @@ export async function listBillingProducts(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('list billing products', _error);
   }
 }

@@ -37,20 +37,20 @@ export class AkamaiClient {
 
       // Store account switch key for API requests
       this.accountSwitchKey = accountSwitchKey;
-    } catch (_error) {
-      if (_error instanceof Error && _error.message.includes('ENOENT')) {
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('ENOENT')) {
         throw new Error(
           `EdgeGrid configuration not found at ${edgercPath}\n` +
             'Please create this file with your Akamai API credentials.\n' +
             'See: https://techdocs.akamai.com/developer/docs/set-up-authentication-credentials',
         );
-      } else if (_error instanceof Error && _error.message.includes('section')) {
+      } else if (error instanceof Error && error.message.includes('section')) {
         throw new Error(
           `Section [${section}] not found in ${edgercPath}\n` +
             `Please ensure your .edgerc file contains the [${section}] section.`,
         );
       }
-      throw _error;
+      throw error;
     }
   }
 
@@ -134,9 +134,9 @@ export class AkamaiClient {
       // Make the request using EdgeGrid's send method
       return new Promise((resolve, reject) => {
         this.edgeGrid.send((error: any, response: any, body: any) => {
-          if (_error) {
+          if (error) {
             try {
-              this.handleApiError(_error);
+              this.handleApiError(error);
             } catch (handledError) {
               reject(handledError);
             }
@@ -163,13 +163,13 @@ export class AkamaiClient {
           }
         });
       });
-    } catch (_error) {
-      this.handleApiError(_error);
+    } catch (error) {
+      this.handleApiError(error);
     }
   }
 
   /**
-   * Parse Akamai _error response
+   * Parse Akamai error response
    */
   private parseErrorResponse(body: string, statusCode: number): Error {
     let errorData: AkamaiError;
@@ -180,7 +180,7 @@ export class AkamaiClient {
       return new Error(`API Error (${statusCode}): ${body}`);
     }
 
-    // Format user-friendly _error message
+    // Format user-friendly error message
     let message = `Akamai API Error (${statusCode}): ${errorData.title || 'Request failed'}`;
 
     if (errorData.detail) {
@@ -194,12 +194,12 @@ export class AkamaiClient {
       }
     }
 
-    // For 400 errors, include the full _error response for debugging
+    // For 400 errors, include the full error response for debugging
     if (statusCode === 400) {
-      message += `\n\nFull _error response: ${JSON.stringify(errorData, null, 2)}`;
+      message += `\n\nFull error response: ${JSON.stringify(errorData, null, 2)}`;
     }
 
-    // Add helpful suggestions based on _error type
+    // Add helpful suggestions based on error type
     if (statusCode === 401) {
       message += '\n\nSolution: Check your .edgerc credentials are valid and not expired.';
     } else if (statusCode === 403) {
@@ -213,28 +213,28 @@ export class AkamaiClient {
       message += '\n\nSolution: Rate limit exceeded. Please wait a moment before retrying.';
     }
 
-    const _error = new Error(message);
-    (_error as any).statusCode = statusCode;
-    (_error as any).akamaiError = errorData;
-    return _error;
+    const error = new Error(message);
+    (error as any).statusCode = statusCode;
+    (error as any).akamaiError = errorData;
+    return error;
   }
 
   /**
    * Handle API errors with user-friendly messages
    */
   private handleApiError(error: any): never {
-    if (_error instanceof Error) {
-      // Check for specific _error types
-      if (_error.message.includes('ENOTFOUND') || _error.message.includes('ECONNREFUSED')) {
+    if (error instanceof Error) {
+      // Check for specific error types
+      if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
         throw new Error(
           'Network connectivity issue. Check your internet connection and verify the API host in ~/.edgerc is correct.',
         );
-      } else if (_error.message.includes('ETIMEDOUT')) {
+      } else if (error.message.includes('ETIMEDOUT')) {
         throw new Error('Request timed out. The Akamai API might be slow. Try again in a moment.');
       }
     }
 
-    throw _error;
+    throw error;
   }
 
   /**
@@ -304,9 +304,9 @@ export class AkamaiClient {
       }
 
       return accountSwitchKey;
-    } catch (_error) {
+    } catch (error) {
       if (this.debug) {
-        console.error('[AkamaiClient] Error reading account-switch-key from .edgerc:', _error);
+        console.error('[AkamaiClient] Error reading account-switch-key from .edgerc:', error);
       }
       return undefined;
     }

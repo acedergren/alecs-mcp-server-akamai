@@ -68,8 +68,8 @@ export function extractErrorMessage(error: any): string {
     return _error;
   }
 
-  if (_error.message) {
-    return _error.message;
+  if (error.message) {
+    return error.message;
   }
 
   if (_error.response?.data?.detail) {

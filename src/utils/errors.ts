@@ -26,7 +26,7 @@ export class ErrorTranslator {
       return this.translateHTTPError(_error.response, context);
     } else if (_error.code) {
       return this.translateSystemError(_error, context);
-    } else if (_error.message) {
+    } else if (error.message) {
       return this.translateGenericError(_error, context);
     }
 
@@ -214,7 +214,7 @@ export class ErrorTranslator {
 
     return (
       errorMap[_error.code] || {
-        message: _error.message || 'System error occurred',
+        message: error.message || 'System error occurred',
         suggestions: ['Check your system configuration', 'Try again'],
       }
     );
@@ -222,7 +222,7 @@ export class ErrorTranslator {
 
   private translateGenericError(error: any, _context?: ErrorContext): TranslatedError {
     return {
-      message: this.cleanErrorMessage(_error.message || 'An error occurred'),
+      message: this.cleanErrorMessage(error.message || 'An error occurred'),
       suggestions: ['Please try again', 'Check your input parameters'],
     };
   }
@@ -452,11 +452,11 @@ export class ErrorRecovery {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         return await operation();
-      } catch (_error) {
+      } catch (error) {
         lastError = _error;
 
         if (!this.canRetry(_error) || attempt === maxAttempts - 1) {
-          throw _error;
+          throw error;
         }
 
         const delay = this.getRetryDelay(attempt, _error);

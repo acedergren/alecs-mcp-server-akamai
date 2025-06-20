@@ -85,7 +85,7 @@ export async function getZonesDNSSECStatus(
 
     for (const zone of args.zones) {
       try {
-        const response = await client.request({
+        const response = await client._request({
           path: `/config-dns/v2/zones/${zone}/dnssec`,
           method: 'GET',
           headers: {
@@ -96,13 +96,13 @@ export async function getZonesDNSSECStatus(
         results.push(response);
       } catch (error: any) {
         // If DNSSEC is not enabled, API returns 404
-        if (_error.message?.includes('404')) {
+        if (error.message?.includes('404')) {
           results.push({
             zone,
             dnssecEnabled: false,
           });
         } else {
-          throw _error;
+          throw error;
         }
       }
     }
@@ -138,9 +138,9 @@ export async function getZonesDNSSECStatus(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     spinner.fail('Failed to fetch DNSSEC status');
-    throw _error;
+    throw error;
   }
 }
 
@@ -158,7 +158,7 @@ export async function getSecondaryZoneTransferStatus(
     const results: ZoneTransferStatus[] = [];
 
     for (const zone of args.zones) {
-      const response = await client.request({
+      const response = await client._request({
         path: `/config-dns/v2/zones/${zone}/transfer-status`,
         method: 'GET',
         headers: {
@@ -205,9 +205,9 @@ export async function getSecondaryZoneTransferStatus(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     spinner.fail('Failed to fetch transfer status');
-    throw _error;
+    throw error;
   }
 }
 
@@ -219,7 +219,7 @@ export async function getZoneContract(
   args: { zone: string },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client.request({
+    const response = await client._request({
       path: `/config-dns/v2/zones/${args.zone}/contract`,
       method: 'GET',
       headers: {
@@ -250,9 +250,9 @@ export async function getZoneContract(
         },
       ],
     };
-  } catch (_error) {
-    console.error('Error getting zone contract:', _error);
-    throw _error;
+  } catch (error) {
+    console.error("[Error]:", error);
+    throw error;
   }
 }
 
@@ -264,7 +264,7 @@ export async function getRecordSet(
   args: { zone: string; name: string; type: string },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client.request({
+    const response = await client._request({
       path: `/config-dns/v2/zones/${args.zone}/recordsets/${args.name}/${args.type}`,
       method: 'GET',
       headers: {
@@ -292,7 +292,7 @@ export async function getRecordSet(
       ],
     };
   } catch (error: any) {
-    if (_error.message?.includes('404')) {
+    if (error.message?.includes('404')) {
       return {
         content: [
           {
@@ -302,7 +302,7 @@ export async function getRecordSet(
         ],
       };
     }
-    throw _error;
+    throw error;
   }
 }
 
@@ -329,7 +329,7 @@ export async function updateTSIGKeyForZones(
     for (const zone of args.zones) {
       try {
         // Get current zone config
-        const zoneConfig = await client.request({
+        const zoneConfig = await client._request({
           path: `/config-dns/v2/zones/${zone}`,
           method: 'GET',
           headers: {
@@ -338,7 +338,7 @@ export async function updateTSIGKeyForZones(
         });
 
         // Update with new TSIG key
-        await client.request({
+        await client._request({
           path: `/config-dns/v2/zones/${zone}`,
           method: 'PUT',
           headers: {
@@ -355,7 +355,7 @@ export async function updateTSIGKeyForZones(
         results.push({
           zone,
           success: false,
-          error: _error.message || 'Unknown error',
+          error: error.message || 'Unknown error',
         });
       }
     }
@@ -391,9 +391,9 @@ export async function updateTSIGKeyForZones(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     spinner.fail('Failed to update TSIG keys');
-    throw _error;
+    throw error;
   }
 }
 
@@ -408,7 +408,7 @@ export async function submitBulkZoneCreateRequest(
   spinner.start('Submitting bulk zone creation request...');
 
   try {
-    const response = await client.request({
+    const response = await client._request({
       path: '/config-dns/v2/zones/bulk-create',
       method: 'POST',
       headers: {
@@ -446,9 +446,9 @@ export async function submitBulkZoneCreateRequest(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     spinner.fail('Failed to submit bulk creation request');
-    throw _error;
+    throw error;
   }
 }
 
@@ -460,7 +460,7 @@ export async function getZoneVersion(
   args: { zone: string; versionId: string },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client.request({
+    const response = await client._request({
       path: `/config-dns/v2/zones/${args.zone}/versions/${args.versionId}`,
       method: 'GET',
       headers: {
@@ -487,9 +487,9 @@ export async function getZoneVersion(
         },
       ],
     };
-  } catch (_error) {
-    console.error('Error getting zone version:', _error);
-    throw _error;
+  } catch (error) {
+    console.error("[Error]:", error);
+    throw error;
   }
 }
 
@@ -509,7 +509,7 @@ queryParams.offset = args.offset;
 queryParams.limit = args.limit;
 }
 
-    const response = await client.request({
+    const response = await client._request({
       path: `/config-dns/v2/zones/${args.zone}/versions/${args.versionId}/recordsets`,
       method: 'GET',
       headers: {
@@ -534,9 +534,9 @@ queryParams.limit = args.limit;
         },
       ],
     };
-  } catch (_error) {
-    console.error('Error getting version record sets:', _error);
-    throw _error;
+  } catch (error) {
+    console.error("[Error]:", error);
+    throw error;
   }
 }
 
@@ -551,7 +551,7 @@ export async function reactivateZoneVersion(
   spinner.start(`Reactivating version ${args.versionId}...`);
 
   try {
-    const response = await client.request({
+    const response = await client._request({
       path: `/config-dns/v2/zones/${args.zone}/versions/${args.versionId}/reactivate`,
       method: 'POST',
       headers: {
@@ -573,9 +573,9 @@ export async function reactivateZoneVersion(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     spinner.fail('Failed to reactivate version');
-    throw _error;
+    throw error;
   }
 }
 
@@ -587,7 +587,7 @@ export async function getVersionMasterZoneFile(
   args: { zone: string; versionId: string },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client.request({
+    const response = await client._request({
       path: `/config-dns/v2/zones/${args.zone}/versions/${args.versionId}/zone-file`,
       method: 'GET',
       headers: {
@@ -603,9 +603,9 @@ export async function getVersionMasterZoneFile(
         },
       ],
     };
-  } catch (_error) {
-    console.error('Error getting master zone file:', _error);
-    throw _error;
+  } catch (error) {
+    console.error("[Error]:", error);
+    throw error;
   }
 }
 
@@ -630,7 +630,7 @@ export async function createMultipleRecordSets(
 
   try {
     // Create change list
-    await client.request({
+    await client._request({
       path: '/config-dns/v2/changelists',
       method: 'POST',
       headers: {
@@ -645,7 +645,7 @@ export async function createMultipleRecordSets(
 
     for (const recordSet of args.recordSets) {
       try {
-        await client.request({
+        await client._request({
           path: `/config-dns/v2/changelists/${args.zone}/recordsets/${recordSet.name}/${recordSet.type}`,
           method: 'PUT',
           headers: {
@@ -663,13 +663,13 @@ export async function createMultipleRecordSets(
         results.push({
           record: `${recordSet.name} ${recordSet.type}`,
           success: false,
-          error: _error.message,
+          error: error.message,
         });
       }
     }
 
     // Submit change list
-    const submitResponse = await client.request({
+    const submitResponse = await client._request({
       path: `/config-dns/v2/changelists/${args.zone}/submit`,
       method: 'POST',
       headers: {
@@ -707,8 +707,8 @@ export async function createMultipleRecordSets(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     spinner.fail('Failed to create record sets');
-    throw _error;
+    throw error;
   }
 }

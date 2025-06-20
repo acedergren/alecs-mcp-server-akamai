@@ -94,7 +94,7 @@ export async function analyzeHostnameOwnership(
 
   try {
     // Get all properties and their hostnames
-    const allHostnamesResponse = await client.request({
+    const allHostnamesResponse = await client._request({
       path: '/papi/v1/hostnames',
       method: 'GET',
       queryParams: {
@@ -280,7 +280,7 @@ export async function analyzeHostnameOwnership(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -417,7 +417,7 @@ acc[suffix] = [];
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -456,7 +456,7 @@ export async function validateHostnamesBulk(
     };
 
     // Get existing hostnames for conflict detection
-    const allHostnamesResponse = await client.request({
+    const allHostnamesResponse = await client._request({
       path: '/papi/v1/hostnames',
       method: 'GET',
     });
@@ -620,7 +620,7 @@ export async function validateHostnamesBulk(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -654,7 +654,7 @@ export async function findOptimalPropertyAssignment(
     const maxPerProperty = args.maxHostnamesPerProperty || 100;
 
     // Get existing properties
-    const propertiesResponse = await client.request({
+    const propertiesResponse = await client._request({
       path: '/papi/v1/properties',
       method: 'GET',
     });
@@ -769,7 +769,7 @@ export async function findOptimalPropertyAssignment(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -920,7 +920,7 @@ export async function createHostnameProvisioningPlan(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {

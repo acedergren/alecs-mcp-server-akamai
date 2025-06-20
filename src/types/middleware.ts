@@ -67,7 +67,7 @@ export interface AuthMiddlewareOptions {
  */
 export interface LoggingMiddlewareOptions {
   /** Log level */
-  level?: 'debug' | 'info' | 'warn' | '_error';
+  level?: 'debug' | 'info' | 'warn' | 'error';
   /** Include request body in logs */
   includeBody?: boolean;
   /** Include response in logs */
@@ -163,7 +163,7 @@ export class MiddlewareStack {
 
     const _next: NextFunction = async (_error?: Error) => {
       if (_error) {
-        throw _error;
+        throw error;
       }
 
       if (index >= this.middlewares.length) {
@@ -285,20 +285,20 @@ export const Middleware = {
     return async (_req, _res, _next) => {
       try {
         await _next();
-      } catch (_error) {
+      } catch (error) {
         if (logErrors) {
           console.error('Middleware error:', {
             requestId: _req.requestId,
             toolName: _req.toolName,
-            error: _error instanceof Error ? _error.message : String(_error),
-            stack: includeStackTrace && _error instanceof Error ? _error.stack : undefined,
+            error: error instanceof Error ? error.message : String(error),
+            stack: includeStackTrace && error instanceof Error ? _error.stack : undefined,
           });
         }
 
-        if (_error instanceof Error) {
-          _res._error(_error.message, _error.name);
+        if (error instanceof Error) {
+          _res._error(error.message, _error.name);
         } else {
-          _res._error(String(_error), 'UNKNOWN_ERROR');
+          _res._error(String(error), 'UNKNOWN_ERROR');
         }
       }
     };

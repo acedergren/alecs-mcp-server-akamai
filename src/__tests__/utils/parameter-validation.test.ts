@@ -84,7 +84,7 @@ describe('Parameter Validation Tests', () => {
       expect(ensureAkamaiIdFormat('grp_12345', 'group')).toBe('grp_12345');
     });
 
-    it('should throw _error for unsupported ID types', () => {
+    it('should throw error for unsupported ID types', () => {
       expect(() => ensureAkamaiIdFormat('123', 'unknown' as any)).toThrow();
     });
   });

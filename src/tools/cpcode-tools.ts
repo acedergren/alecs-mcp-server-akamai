@@ -40,7 +40,7 @@ export async function listCPCodes(
       queryParams.groupId = ensurePrefix(args.groupId, 'grp_');
     }
 
-    const response = await client.request({
+    const response = await client._request({
       path: '/papi/v1/cpcodes',
       method: 'GET',
       queryParams,
@@ -116,7 +116,7 @@ acc[contract] = [];
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('list CP Codes', _error);
   }
 }
@@ -136,7 +136,7 @@ export async function getCPCode(
     const cpcodeId = args.cpcodeId.startsWith('cpc_') ? args.cpcodeId : `cpc_${args.cpcodeId}`;
 
     // First get all CP Codes to find the one we want (since the direct GET seems to need query params)
-    const response = await client.request({
+    const response = await client._request({
       path: '/papi/v1/cpcodes',
       method: 'GET',
     });
@@ -231,7 +231,7 @@ export async function getCPCode(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('get CP Code details', _error);
   }
 }
@@ -291,7 +291,7 @@ export async function createCPCode(
     let productId = args.productId;
     if (!productId) {
       try {
-        const productsResponse = await client.request({
+        const productsResponse = await client._request({
           path: '/papi/v1/products',
           method: 'GET',
           queryParams: {
@@ -316,7 +316,7 @@ export async function createCPCode(
     }
 
     // Create the CP Code
-    const response = await client.request({
+    const response = await client._request({
       path: '/papi/v1/cpcodes',
       method: 'POST',
       headers: {
@@ -397,7 +397,7 @@ export async function createCPCode(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('create CP Code', _error);
   }
 }
@@ -424,7 +424,7 @@ export async function searchCPCodes(
       queryParams.groupId = ensurePrefix(args.groupId, 'grp_');
     }
 
-    const response = await client.request({
+    const response = await client._request({
       path: '/papi/v1/cpcodes',
       method: 'GET',
       queryParams,
@@ -494,7 +494,7 @@ export async function searchCPCodes(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('search CP Codes', _error);
   }
 }
@@ -506,27 +506,27 @@ function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (_error instanceof Error) {
-    errorMessage += `: ${_error.message}`;
+  if (error instanceof Error) {
+    errorMessage += `: ${error.message}`;
 
     // Provide specific solutions based on error type
-    if (_error.message.includes('401') || _error.message.includes('credentials')) {
+    if (error.message.includes('401') || error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials for CP Code management.';
-    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
+    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
       solution =
         '**Solution:** Your API credentials may lack the necessary permissions for CP Code operations.';
-    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
+    } else if (error.message.includes('404') || error.message.includes('not found')) {
       solution =
         '**Solution:** The CP Code was not found. Use "List CP Codes" to see available CP Codes.';
-    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
+    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
       solution =
         '**Solution:** Invalid request parameters. Check the CP Code name and contract/group IDs.';
-    } else if (_error.message.includes('409') || _error.message.includes('Conflict')) {
+    } else if (error.message.includes('409') || error.message.includes('Conflict')) {
       solution = '**Solution:** A CP Code with this name may already exist in this contract/group.';
     }
   } else {
-    errorMessage += `: ${String(_error)}`;
+    errorMessage += `: ${String(error)}`;
   }
 
   let text = errorMessage;

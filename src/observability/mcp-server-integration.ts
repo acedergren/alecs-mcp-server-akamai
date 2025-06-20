@@ -80,8 +80,8 @@ export class InstrumentedMCPServer {
       console.log(
         `📊 Observability initialized for ${this.config.observability.environment} environment`,
       );
-    } catch (_error) {
-      console.error('❌ Failed to initialize observability:', _error);
+    } catch (error) {
+      console.error("[Error]:", error);
     }
   }
 
@@ -142,11 +142,11 @@ return;
             duration: 0,
             metadata: { serverActive: isResponsive },
           };
-        } catch (_error) {
+        } catch (error) {
           return {
             name: 'mcp_server_connectivity',
             status: 'critical',
-            message: `Health check failed: ${_error instanceof Error ? _error.message : String(_error)}`,
+            message: `Health check failed: ${error instanceof Error ? error.message : String(error)}`,
             lastCheck: Date.now(),
             duration: 0,
           };
@@ -255,9 +255,9 @@ return;
         instrumentation.finish(undefined, { toolCount: tools.length });
 
         return { tools };
-      } catch (_error) {
+      } catch (error) {
         instrumentation.finish(error as Error);
-        throw _error;
+        throw error;
       }
     });
 
@@ -307,7 +307,7 @@ return;
             },
           ],
         };
-      } catch (_error) {
+      } catch (error) {
         // Record failed tool execution
         this.observability!.metrics.incrementCounter('akamai_mcp_tool_executions_total', 1, {
           tool: toolName,
@@ -333,7 +333,7 @@ return;
         instrumentation.finish(error as Error);
 
         // Re-throw to maintain MCP error handling
-        throw _error;
+        throw error;
       }
     });
   }
@@ -397,9 +397,9 @@ return;
         apiInstrumentation.finish(undefined, result);
 
         return result;
-      } catch (_error) {
+      } catch (error) {
         apiInstrumentation.finish(error as Error);
-        throw _error;
+        throw error;
       }
     }
 
@@ -552,8 +552,8 @@ return;
           await this.observability.exportObservabilityData();
           console.log('📤 Observability data exported on shutdown');
         }
-      } catch (_error) {
-        console.error('❌ Failed to generate final report:', _error);
+      } catch (error) {
+        console.error("[Error]:", error);
       }
 
       this.observability.stop();

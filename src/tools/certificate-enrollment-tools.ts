@@ -115,7 +115,7 @@ export async function getCertificateDeploymentStatus(
 ): Promise<MCPToolResponse> {
   try {
     // Get deployments
-    const response = await client.request({
+    const response = await client._request({
       path: `/cps/v2/enrollments/${args.enrollmentId}/deployments`,
       method: 'GET',
       headers: {
@@ -201,12 +201,12 @@ byNetwork[network] = [];
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
           type: 'text',
-          text: `❌ Failed to get deployment status: ${_error instanceof Error ? _error.message : String(_error)}`,
+          text: `❌ Failed to get deployment status: ${error instanceof Error ? error.message : String(error)}`,
         },
       ],
     };
@@ -253,7 +253,7 @@ export async function renewCertificate(
     // Step 2: Initiate renewal
     steps += '## Initiating Renewal\n\n';
 
-    await client.request({
+    await client._request({
       method: 'POST',
       path: `/cps/v2/enrollments/${args.enrollmentId}/renewals`,
       headers: {
@@ -305,12 +305,12 @@ export async function renewCertificate(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
           type: 'text',
-          text: `❌ Failed to renew certificate: ${_error instanceof Error ? _error.message : String(_error)}`,
+          text: `❌ Failed to renew certificate: ${error instanceof Error ? error.message : String(error)}`,
         },
       ],
     };
@@ -329,7 +329,7 @@ export async function cleanupValidationRecords(
 ): Promise<MCPToolResponse> {
   try {
     // Get validation challenges to find DNS records
-    const challengesResponse = await client.request({
+    const challengesResponse = await client._request({
       path: `/cps/v2/enrollments/${args.enrollmentId}`,
       method: 'GET',
       headers: {
@@ -385,8 +385,8 @@ export async function cleanupValidationRecords(
         });
         text += `✅ Deleted: ${record.recordName} from ${record.zone}\n`;
         deleted++;
-      } catch (_error) {
-        text += `❌ Failed to delete ${record.recordName}: ${_error instanceof Error ? _error.message : 'Unknown _error'}\n`;
+      } catch (error) {
+        text += `❌ Failed to delete ${record.recordName}: ${error instanceof Error ? error.message : 'Unknown _error'}\n`;
         failed++;
       }
     }
@@ -407,12 +407,12 @@ export async function cleanupValidationRecords(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
           type: 'text',
-          text: `❌ Failed to cleanup validation records: ${_error instanceof Error ? _error.message : String(_error)}`,
+          text: `❌ Failed to cleanup validation records: ${error instanceof Error ? error.message : String(error)}`,
         },
       ],
     };
@@ -430,7 +430,7 @@ export async function getCertificateValidationHistory(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client.request({
+    const response = await client._request({
       path: `/cps/v2/enrollments/${args.enrollmentId}/dv-history`,
       method: 'GET',
       headers: {
@@ -515,12 +515,12 @@ byDomain[domain] = [];
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
           type: 'text',
-          text: `❌ Failed to get validation history: ${_error instanceof Error ? _error.message : String(_error)}`,
+          text: `❌ Failed to get validation history: ${error instanceof Error ? error.message : String(error)}`,
         },
       ],
     };

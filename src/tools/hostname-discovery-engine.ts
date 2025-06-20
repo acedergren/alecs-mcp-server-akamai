@@ -144,7 +144,7 @@ export async function discoverHostnamesIntelligent(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (_error) {
+  } catch (error) {
     return handleApiError(_error, 'discovering hostnames intelligently');
   }
 }
@@ -223,7 +223,7 @@ export async function analyzeHostnameConflicts(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (_error) {
+  } catch (error) {
     return handleApiError(_error, 'analyzing hostname conflicts');
   }
 }
@@ -273,7 +273,7 @@ export async function analyzeWildcardCoverage(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (_error) {
+  } catch (error) {
     return handleApiError(_error, 'analyzing wildcard coverage');
   }
 }
@@ -324,7 +324,7 @@ export async function identifyOwnershipPatterns(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (_error) {
+  } catch (error) {
     return handleApiError(_error, 'identifying ownership patterns');
   }
 }
@@ -343,7 +343,7 @@ params.append('contractId', args.contractId);
 params.append('groupId', args.groupId);
 }
 
-  const response = await client.request({
+  const response = await client._request({
     path: `/papi/v1/properties?${params.toString()}`,
     method: 'GET',
   });
@@ -354,7 +354,7 @@ params.append('groupId', args.groupId);
   const propertiesWithHostnames = await Promise.all(
     properties.map(async (property: any) => {
       try {
-        const hostnameResponse = await client.request({
+        const hostnameResponse = await client._request({
           path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames?contractId=${property.contractId}&groupId=${property.groupId}`,
           method: 'GET',
         });
@@ -363,7 +363,7 @@ params.append('groupId', args.groupId);
           ...property,
           hostnames: hostnameResponse.hostnames?.items || [],
         };
-      } catch (_error) {
+      } catch (error) {
         return {
           ...property,
           hostnames: [],

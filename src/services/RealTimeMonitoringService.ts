@@ -133,11 +133,11 @@ export class RealTimeMonitoringService extends EventEmitter {
 
       this.emit('monitoring-started', { timestamp: new Date().toISOString() });
       logger.info('Real-time monitoring started successfully');
-    } catch (_error) {
+    } catch (error) {
       logger.error('Failed to start real-time monitoring', { error: _error });
       this.isMonitoring = false;
       throw new Error(
-        `Failed to start real-time monitoring: ${_error instanceof Error ? _error.message : String(_error)}`,
+        `Failed to start real-time monitoring: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -195,7 +195,7 @@ export class RealTimeMonitoringService extends EventEmitter {
             unit: this.getMetricUnit(metric),
             tags: filter,
           };
-        } catch (_error) {
+        } catch (error) {
           logger.error(`Failed to fetch metric ${metric}`, { error: _error });
           return null;
         }
@@ -216,10 +216,10 @@ export class RealTimeMonitoringService extends EventEmitter {
       });
 
       return currentMetrics;
-    } catch (_error) {
+    } catch (error) {
       logger.error('Failed to get current metrics', { _error, metrics, filter });
       throw new Error(
-        `Failed to get current metrics: ${_error instanceof Error ? _error.message : String(_error)}`,
+        `Failed to get current metrics: ${error instanceof Error ? error.message : String(error)}`,
       );
     } finally {
       this.performanceMonitor.endOperation(timer);
@@ -326,10 +326,10 @@ export class RealTimeMonitoringService extends EventEmitter {
       });
 
       return healthStatus;
-    } catch (_error) {
+    } catch (error) {
       logger.error('Failed to get health status', { error: _error });
       throw new Error(
-        `Failed to get health status: ${_error instanceof Error ? _error.message : String(_error)}`,
+        `Failed to get health status: ${error instanceof Error ? error.message : String(error)}`,
       );
     } finally {
       this.performanceMonitor.endOperation(timer);
@@ -377,10 +377,10 @@ export class RealTimeMonitoringService extends EventEmitter {
 
       // Clean up old metric history
       this.cleanupMetricHistory();
-    } catch (_error) {
+    } catch (error) {
       logger.error('Failed to collect metrics', { error: _error });
       this.emit('metrics-collection-failed', {
-        error: _error instanceof Error ? _error.message : String(_error),
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -412,7 +412,7 @@ continue;
       }
 
       logger.debug('Alert evaluation completed', { evaluatedRules: evaluatedRules.length });
-    } catch (_error) {
+    } catch (error) {
       logger.error('Failed to evaluate alerts', { error: _error });
     }
   }
@@ -448,7 +448,7 @@ continue;
           }
         }
       }
-    } catch (_error) {
+    } catch (error) {
       logger.error('Failed to evaluate alert rule', { _error, ruleId: rule.id });
     }
   }
@@ -524,7 +524,7 @@ return;
     filter?: Record<string, any>,
   ): Promise<number> {
     // This would make actual API calls to Akamai's real-time reporting endpoints
-    const response = await this.client.request({
+    const response = await this.client._request({
       method: 'GET',
       path: `/reporting/v1/realtime/${metric}`,
       queryParams: {
@@ -594,7 +594,7 @@ return;
     const healthChecks = services.map(async (service) => {
       try {
         const startTime = Date.now();
-        await this.client.request({
+        await this.client._request({
           method: 'GET',
           path: service.endpoint + '/health',
         });
@@ -607,12 +607,12 @@ return;
           responseTime,
           details: `Response time: ${responseTime}ms`,
         };
-      } catch (_error) {
+      } catch (error) {
         return {
           name: service.name,
           status: 'critical' as const,
           lastCheck: new Date().toISOString(),
-          details: _error instanceof Error ? _error.message : String(_error),
+          details: error instanceof Error ? error.message : String(error),
         };
       }
     });

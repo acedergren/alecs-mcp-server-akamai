@@ -71,7 +71,7 @@ export async function importZoneViaAXFR(
 
     // If TSIG key provided, update zone with TSIG configuration
     if (args.tsigKey) {
-      await client.request({
+      await client._request({
         path: `/config-dns/v2/zones/${args.zone}`,
         method: 'PUT',
         headers: {
@@ -87,7 +87,7 @@ export async function importZoneViaAXFR(
     }
 
     // Initiate zone transfer
-    await client.request({
+    await client._request({
       path: `/config-dns/v2/zones/${args.zone}/zone-transfer`,
       method: 'POST',
       headers: {
@@ -103,7 +103,7 @@ export async function importZoneViaAXFR(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('import zone via AXFR', _error);
   }
 }
@@ -224,7 +224,7 @@ export async function parseZoneFile(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('parse zone file', _error);
   }
 }
@@ -274,7 +274,7 @@ export async function bulkImportRecords(
           }
 
           // Add record to change list
-          await client.request({
+          await client._request({
             path: `/config-dns/v2/changelists/${args.zone}/recordsets/${record.name}/${record.type}`,
             method: 'PUT',
             headers: {
@@ -284,10 +284,10 @@ export async function bulkImportRecords(
           });
 
           successCount++;
-        } catch (_error) {
+        } catch (error) {
           errors.push({
             record: `${record.name} ${record.type}`,
-            error: _error instanceof Error ? _error.message : JSON.stringify(_error),
+            error: error instanceof Error ? error.message : JSON.stringify(_error),
           });
         }
       }
@@ -303,7 +303,7 @@ export async function bulkImportRecords(
     // Submit changelist if we have successful records
     let submitResponse: any = {};
     if (successCount > 0) {
-      submitResponse = await client.request({
+      submitResponse = await client._request({
         path: `/config-dns/v2/changelists/${args.zone}/submit`,
         method: 'POST',
         headers: {
@@ -362,7 +362,7 @@ export async function bulkImportRecords(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('bulk import records', _error);
   }
 }
@@ -379,7 +379,7 @@ export async function convertZoneToPrimary(
 ): Promise<MCPToolResponse> {
   try {
     // Get current zone config
-    const currentZone = await client.request({
+    const currentZone = await client._request({
       path: `/config-dns/v2/zones/${args.zone}`,
       method: 'GET',
     });
@@ -396,7 +396,7 @@ export async function convertZoneToPrimary(
     }
 
     // Update zone type
-    await client.request({
+    await client._request({
       path: `/config-dns/v2/zones/${args.zone}`,
       method: 'PUT',
       headers: {
@@ -417,7 +417,7 @@ export async function convertZoneToPrimary(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('convert zone to primary', _error);
   }
 }
@@ -435,13 +435,13 @@ export async function generateMigrationInstructions(
 ): Promise<MCPToolResponse> {
   try {
     // Get zone details
-    await client.request({
+    await client._request({
       path: `/config-dns/v2/zones/${args.zone}`,
       method: 'GET',
     });
 
     // Get record count
-    const recordsResponse = await client.request({
+    const recordsResponse = await client._request({
       path: `/config-dns/v2/zones/${args.zone}/recordsets`,
       method: 'GET',
     });
@@ -554,7 +554,7 @@ export async function generateMigrationInstructions(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('generate migration instructions', _error);
   }
 }
@@ -730,7 +730,7 @@ export async function importFromCloudflare(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('import from Cloudflare', _error);
   }
 }
@@ -976,12 +976,12 @@ async function validateDNSRecords(records: ZoneFileRecord[]): Promise<
         rdata: record.rdata,
       });
       results.push(result);
-    } catch (_error) {
+    } catch (error) {
       results.push({
         name: record.name,
         type: record.type,
         valid: false,
-        error: _error instanceof Error ? _error.message : 'Validation failed',
+        error: error instanceof Error ? error.message : 'Validation failed',
       });
     }
   }
@@ -1077,12 +1077,12 @@ async function validateSingleRecord(record: DNSRecordSet): Promise<{
     }
 
     return { name: record.name, type: record.type, valid: true };
-  } catch (_error) {
+  } catch (error) {
     return {
       name: record.name,
       type: record.type,
       valid: false,
-      error: _error instanceof Error ? _error.message : 'Validation _error',
+      error: error instanceof Error ? error.message : 'Validation _error',
     };
   }
 }
@@ -1112,19 +1112,19 @@ function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (_error instanceof Error) {
-    errorMessage += `: ${_error.message}`;
+  if (error instanceof Error) {
+    errorMessage += `: ${error.message}`;
 
     // Provide specific solutions
-    if (_error.message.includes('zone') && _error.message.includes('exist')) {
+    if (error.message.includes('zone') && error.message.includes('exist')) {
       solution = '**Solution:** Create the zone first using "Create primary zone [domain]"';
-    } else if (_error.message.includes('parse')) {
+    } else if (error.message.includes('parse')) {
       solution = '**Solution:** Check zone file format. Ensure it follows BIND format.';
-    } else if (_error.message.includes('AXFR')) {
+    } else if (error.message.includes('AXFR')) {
       solution = '**Solution:** Ensure the master server allows zone transfers from Akamai IPs.';
     }
   } else {
-    errorMessage += `: ${String(_error)}`;
+    errorMessage += `: ${String(error)}`;
   }
 
   let text = errorMessage;

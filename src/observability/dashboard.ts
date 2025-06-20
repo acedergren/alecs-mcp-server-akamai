@@ -214,8 +214,8 @@ export class DebugDashboard {
                 updateHealth(health);
                 updateMetrics(metrics);
                 updateOperations(operations);
-            } catch (_error) {
-                console.error('Failed to fetch data:', _error);
+            } catch (error) {
+                console.error("[Error]:", error);
             }
         }
 

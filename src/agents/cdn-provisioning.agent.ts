@@ -96,9 +96,9 @@ export class CDNProvisioningAgent {
       }
 
       spinner.succeed(`Initialized with contract: ${this.contractId}, group: ${this.groupId}`);
-    } catch (_error) {
+    } catch (error) {
       spinner.fail('Failed to initialize agent');
-      throw _error;
+      throw error;
     } finally {
       this.multiProgress.remove('init');
     }
@@ -135,11 +135,11 @@ export class CDNProvisioningAgent {
 
       spinner.succeed(`Created version ${versionNumber} for property ${propertyId}`);
       return await this.getPropertyVersion(propertyId, versionNumber);
-    } catch (_error) {
+    } catch (error) {
       spinner.fail(
-        `Failed to create property version: ${_error instanceof Error ? _error.message : String(_error)}`,
+        `Failed to create property version: ${error instanceof Error ? error.message : String(error)}`,
       );
-      throw _error;
+      throw error;
     }
   }
 
@@ -185,13 +185,13 @@ export class CDNProvisioningAgent {
 
       progress.finish('Version cloned successfully');
       return targetVersion;
-    } catch (_error) {
+    } catch (error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: _error instanceof Error ? _error.message : String(_error),
+        message: error instanceof Error ? error.message : String(error),
       });
-      throw _error;
+      throw error;
     }
   }
 
@@ -223,11 +223,11 @@ export class CDNProvisioningAgent {
       });
 
       spinner.succeed('Rule configuration updated');
-    } catch (_error) {
+    } catch (error) {
       spinner.fail(
-        `Failed to update rules: ${_error instanceof Error ? _error.message : String(_error)}`,
+        `Failed to update rules: ${error instanceof Error ? error.message : String(error)}`,
       );
-      throw _error;
+      throw error;
     }
   }
 
@@ -260,11 +260,11 @@ export class CDNProvisioningAgent {
 
       await this.updateRuleTree(propertyId, version, ruleTree);
       spinner.succeed(`${format.bold(template)} template applied`);
-    } catch (_error) {
+    } catch (error) {
       spinner.fail(
-        `Failed to apply template: ${_error instanceof Error ? _error.message : String(_error)}`,
+        `Failed to apply template: ${error instanceof Error ? error.message : String(error)}`,
       );
-      throw _error;
+      throw error;
     }
   }
 
@@ -323,13 +323,13 @@ export class CDNProvisioningAgent {
         `Edge hostname ${format.cyan(domainPrefix + '.' + request.domainSuffix)} created`,
       );
       return edgeHostname;
-    } catch (_error) {
+    } catch (error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: _error instanceof Error ? _error.message : String(_error),
+        message: error instanceof Error ? error.message : String(error),
       });
-      throw _error;
+      throw error;
     }
   }
 
@@ -427,13 +427,13 @@ export class CDNProvisioningAgent {
         lastProgress = currentProgress;
         await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds
       }
-    } catch (_error) {
+    } catch (error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: _error instanceof Error ? _error.message : String(_error),
+        message: error instanceof Error ? error.message : String(error),
       });
-      throw _error;
+      throw error;
     }
   }
 
@@ -469,11 +469,11 @@ export class CDNProvisioningAgent {
       });
 
       spinner.succeed(`Added hostname ${format.cyan(hostname)} → ${format.green(edgeHostname)}`);
-    } catch (_error) {
+    } catch (error) {
       spinner.fail(
-        `Failed to add hostname: ${_error instanceof Error ? _error.message : String(_error)}`,
+        `Failed to add hostname: ${error instanceof Error ? error.message : String(error)}`,
       );
-      throw _error;
+      throw error;
     }
   }
 
@@ -528,13 +528,13 @@ export class CDNProvisioningAgent {
       console.log(`  ${icons.bullet} Enrollment ID: ${format.cyan(enrollment.enrollmentId)}`);
       console.log(`  ${icons.bullet} Network: ${format.green('Enhanced TLS')}`);
       console.log(`  ${icons.bullet} Validated Domains: ${hostnames.length}`);
-    } catch (_error) {
+    } catch (error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: _error instanceof Error ? _error.message : String(_error),
+        message: error instanceof Error ? error.message : String(error),
       });
-      throw _error;
+      throw error;
     }
   }
 
@@ -967,13 +967,13 @@ export class CDNProvisioningAgent {
       });
       console.log(`  2. Test on staging: https://${hostnames[0]}.edgesuite-staging.net`);
       console.log('  3. Monitor activation status in Control Center');
-    } catch (_error) {
+    } catch (error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: `Failed: ${_error instanceof Error ? _error.message : String(_error)}`,
+        message: `Failed: ${error instanceof Error ? error.message : String(error)}`,
       });
-      throw _error;
+      throw error;
     }
   }
 }

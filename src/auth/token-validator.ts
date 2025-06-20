@@ -190,11 +190,11 @@ export class TokenValidator {
       await this.cacheValidationResult(token, result);
 
       return result;
-    } catch (_error) {
+    } catch (error) {
       logger.error('Token validation error', { error: _error });
       return {
         valid: false,
-        error: _error instanceof Error ? _error.message : 'Token validation failed',
+        error: error instanceof Error ? error.message : 'Token validation failed',
       };
     }
   }
@@ -258,7 +258,7 @@ export class TokenValidator {
         active: true,
         claims: verified,
       };
-    } catch (_error) {
+    } catch (error) {
       if (_error instanceof jwt.TokenExpiredError) {
         return { valid: false, error: 'Token expired' };
       }
@@ -266,10 +266,10 @@ export class TokenValidator {
         return { valid: false, error: 'Token not yet valid' };
       }
       if (_error instanceof jwt.JsonWebTokenError) {
-        return { valid: false, error: _error.message };
+        return { valid: false, error: error.message };
       }
 
-      logger.error('JWT validation error', { error: _error instanceof Error ? _error.message : String(_error) });
+      logger.error('JWT validation error', { error: error instanceof Error ? error.message : String(error) });
       return { valid: false, error: 'JWT validation failed' };
     }
   }
@@ -328,11 +328,11 @@ export class TokenValidator {
         active: true,
         claims,
       };
-    } catch (_error) {
+    } catch (error) {
       logger.error('Token introspection error', { error: _error });
       return {
         valid: false,
-        error: _error instanceof Error ? _error.message : 'Introspection failed',
+        error: error instanceof Error ? error.message : 'Introspection failed',
       };
     }
   }
@@ -379,7 +379,7 @@ export class TokenValidator {
       this.jwksCacheExpiry = Date.now() + (this.config.jwksCacheTTL * 1000);
 
       return this.jwksCache.get(kid) || null;
-    } catch (_error) {
+    } catch (error) {
       logger.error('Failed to fetch JWKS', { error: _error });
       return null;
     }
@@ -434,7 +434,7 @@ ${Buffer.from(JSON.stringify(pubKey)).toString('base64')}
 
     try {
       return JSON.parse(cached) as TokenValidationResult;
-    } catch (_error) {
+    } catch (error) {
       logger.error('Failed to parse cached validation result', { error: _error });
       return null;
     }

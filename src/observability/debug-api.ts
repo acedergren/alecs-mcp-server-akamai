@@ -595,7 +595,7 @@ return '[Function]';
           return value;
         }),
       );
-    } catch (_error) {
+    } catch (error) {
       return '[Non-serializable data]';
     }
   }
@@ -609,7 +609,7 @@ continue;
       if (this.matchesFilters(event, subscription.filters)) {
         try {
           subscription.callback(event);
-        } catch (_error) {
+        } catch (error) {
           this.emit('subscriptionError', subscription.id, _error);
         }
       }

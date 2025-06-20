@@ -159,7 +159,7 @@ export async function createDVEnrollment(
     };
 
     // Create enrollment
-    const response = await client.request({
+    const response = await client._request({
       path: '/cps/v2/enrollments',
       method: 'POST',
       headers: {
@@ -182,7 +182,7 @@ export async function createDVEnrollment(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('create DV enrollment', _error);
   }
 }
@@ -198,7 +198,7 @@ export async function getDVValidationChallenges(
 ): Promise<MCPToolResponse> {
   try {
     // Get enrollment status with validation details
-    const response = await client.request({
+    const response = await client._request({
       path: `/cps/v2/enrollments/${args.enrollmentId}`,
       method: 'GET',
       headers: {
@@ -310,7 +310,7 @@ export async function getDVValidationChallenges(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('get DV validation challenges', _error);
   }
 }
@@ -325,7 +325,7 @@ export async function checkDVEnrollmentStatus(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client.request({
+    const response = await client._request({
       path: `/cps/v2/enrollments/${args.enrollmentId}`,
       method: 'GET',
       headers: {
@@ -424,7 +424,7 @@ export async function checkDVEnrollmentStatus(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('check DV enrollment status', _error);
   }
 }
@@ -444,7 +444,7 @@ export async function listCertificateEnrollments(
       queryParams.contractId = args.contractId;
     }
 
-    const response = await client.request({
+    const response = await client._request({
       path: '/cps/v2/enrollments',
       method: 'GET',
       headers: {
@@ -533,7 +533,7 @@ acc[status] = [];
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('list certificate enrollments', _error);
   }
 }
@@ -551,7 +551,7 @@ export async function linkCertificateToProperty(
 ): Promise<MCPToolResponse> {
   try {
     // Get property details
-    const propertyResponse = await client.request({
+    const propertyResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -564,7 +564,7 @@ export async function linkCertificateToProperty(
     const version = args.propertyVersion || property.latestVersion || 1;
 
     // Get current property hostnames
-    const hostnamesResponse = await client.request({
+    const hostnamesResponse = await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'GET',
     });
@@ -577,7 +577,7 @@ export async function linkCertificateToProperty(
     }));
 
     // Update property hostnames
-    await client.request({
+    await client._request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'PUT',
       headers: {
@@ -596,7 +596,7 @@ export async function linkCertificateToProperty(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return formatError('link certificate to property', _error);
   }
 }
@@ -641,28 +641,28 @@ function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (_error instanceof Error) {
-    errorMessage += `: ${_error.message}`;
+  if (error instanceof Error) {
+    errorMessage += `: ${error.message}`;
 
     // Provide specific solutions based on error type
-    if (_error.message.includes('401') || _error.message.includes('credentials')) {
+    if (error.message.includes('401') || error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials with CPS permissions.';
-    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
+    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
       solution =
         '**Solution:** Your API credentials need CPS read/write permissions. Contact your account team.';
-    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
+    } else if (error.message.includes('404') || error.message.includes('not found')) {
       solution =
         '**Solution:** The enrollment was not found. Use "List certificate enrollments" to see available certificates.';
-    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
+    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
       solution =
         '**Solution:** Invalid request parameters. Check domain names and contact information.';
-    } else if (_error.message.includes('contract')) {
+    } else if (error.message.includes('contract')) {
       solution =
         '**Solution:** Specify a valid contract ID. Use "List groups" to find available contracts.';
     }
   } else {
-    errorMessage += `: ${String(_error)}`;
+    errorMessage += `: ${String(error)}`;
   }
 
   let text = errorMessage;

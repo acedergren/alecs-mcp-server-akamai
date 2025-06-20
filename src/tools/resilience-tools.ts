@@ -126,7 +126,7 @@ export async function getSystemHealth(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -201,7 +201,7 @@ export async function resetCircuitBreaker(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -280,7 +280,7 @@ export async function getOperationMetrics(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -340,7 +340,7 @@ export async function testOperationResilience(
           success: true,
           responseTime: Date.now() - startTime,
         });
-      } catch (_error) {
+      } catch (error) {
         results.push({
           iteration: i,
           success: false,
@@ -414,7 +414,7 @@ export async function testOperationResilience(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -512,7 +512,7 @@ export async function getErrorRecoverySuggestions(
         },
       ],
     };
-  } catch (_error) {
+  } catch (error) {
     return {
       content: [
         {
@@ -577,20 +577,20 @@ async function performTestOperation(
   switch (operationType) {
     case OperationType.PROPERTY_READ:
       await globalResilienceManager.executeWithResilience(operationType, () =>
-        client.request({ path: '/papi/v1/properties', method: 'GET' }),
+        client._request({ path: '/papi/v1/properties', method: 'GET' }),
       );
       break;
 
     case OperationType.DNS_READ:
       await globalResilienceManager.executeWithResilience(operationType, () =>
-        client.request({ path: '/config-dns/v2/zones', method: 'GET' }),
+        client._request({ path: '/config-dns/v2/zones', method: 'GET' }),
       );
       break;
 
     default:
       // For operations we can't safely test, just simulate a quick request
       await globalResilienceManager.executeWithResilience(operationType, () =>
-        client.request({ path: '/papi/v1/groups', method: 'GET' }),
+        client._request({ path: '/papi/v1/groups', method: 'GET' }),
       );
   }
 }

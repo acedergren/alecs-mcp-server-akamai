@@ -51,7 +51,7 @@ export class AkamaiCacheService {
       CacheTTL.PROPERTIES_LIST,
       async () => {
         console.error('[Cache] Fetching properties from API...');
-        const response = await client.request({
+        const response = await client._request({
           path: '/papi/v1/properties',
           method: 'GET',
         });
@@ -85,7 +85,7 @@ export class AkamaiCacheService {
       cacheKey,
       CacheTTL.PROPERTY_DETAILS,
       async () => {
-        const response = await client.request({
+        const response = await client._request({
           path: `/papi/v1/properties/${propertyId}`,
           method: 'GET',
         });
@@ -109,7 +109,7 @@ export class AkamaiCacheService {
       cacheKey,
       CacheTTL.HOSTNAMES,
       async () => {
-        const response = await client.request({
+        const response = await client._request({
           path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames`,
           method: 'GET',
           queryParams: {
@@ -266,7 +266,7 @@ export class AkamaiCacheService {
     const cacheKey = `${customer}:contracts:all`;
 
     return this.cache.getWithRefresh(cacheKey, CacheTTL.CONTRACTS, async () => {
-      const response = await client.request({
+      const response = await client._request({
         path: '/papi/v1/contracts',
         method: 'GET',
       });
@@ -281,7 +281,7 @@ export class AkamaiCacheService {
     const cacheKey = `${customer}:groups:all`;
 
     return this.cache.getWithRefresh(cacheKey, CacheTTL.GROUPS, async () => {
-      const response = await client.request({
+      const response = await client._request({
         path: '/papi/v1/groups',
         method: 'GET',
       });

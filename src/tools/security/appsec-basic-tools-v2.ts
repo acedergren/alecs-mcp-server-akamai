@@ -53,7 +53,7 @@ export const listAppSecConfigurations = {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
-      const response = await client.request({
+      const response = await client._request({
         path: '/appsec/v1/configs',
         method: 'GET',
       });
@@ -77,10 +77,10 @@ export const listAppSecConfigurations = {
           ),
         },
       };
-    } catch (_error) {
+    } catch (error) {
       return {
         success: false,
-        error: `Failed to list APPSEC configurations: ${_error instanceof Error ? _error.message : String(_error)}`,
+        error: `Failed to list APPSEC configurations: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
   },
@@ -115,7 +115,7 @@ export const getAppSecConfiguration = {
 
     try {
       const versionParam = args.version ? `?version=${args.version}` : '';
-      const response = await client.request({
+      const response = await client._request({
         path: `/appsec/v1/configs/${args.configId}${versionParam}`,
         method: 'GET',
       });
@@ -127,10 +127,10 @@ export const getAppSecConfiguration = {
           formatted: formatJson(response),
         },
       };
-    } catch (_error) {
+    } catch (error) {
       return {
         success: false,
-        error: `Failed to get APPSEC configuration: ${_error instanceof Error ? _error.message : String(_error)}`,
+        error: `Failed to get APPSEC configuration: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
   },
@@ -181,7 +181,7 @@ export const createWAFPolicy = {
         ...(args.paranoidLevel && { paranoidLevel: args.paranoidLevel }),
       };
 
-      const response = await client.request({
+      const response = await client._request({
         path: `/appsec/v1/configs/${args.configId}/versions/1/security-policies`,
         method: 'POST',
         body: policyData,
@@ -196,10 +196,10 @@ export const createWAFPolicy = {
           formatted: formatJson(response),
         },
       };
-    } catch (_error) {
+    } catch (error) {
       return {
         success: false,
-        error: `Failed to create WAF policy: ${_error instanceof Error ? _error.message : String(_error)}`,
+        error: `Failed to create WAF policy: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
   },
@@ -251,7 +251,7 @@ export const getSecurityEvents = {
         queryParams.limit = args.limit.toString();
       }
 
-      const response = await client.request({
+      const response = await client._request({
         path: `/appsec/v1/configs/${args.configId}/security-events`,
         method: 'GET',
         queryParams,
@@ -282,10 +282,10 @@ export const getSecurityEvents = {
           ),
         },
       };
-    } catch (_error) {
+    } catch (error) {
       return {
         success: false,
-        error: `Failed to get security events: ${_error instanceof Error ? _error.message : String(_error)}`,
+        error: `Failed to get security events: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
   },
@@ -334,7 +334,7 @@ export const activateSecurityConfiguration = {
         ...(args.note && { note: args.note }),
       };
 
-      const response = await client.request({
+      const response = await client._request({
         path: `/appsec/v1/configs/${args.configId}/versions/${args.version}/activations`,
         method: 'POST',
         body: activationData,
@@ -351,10 +351,10 @@ export const activateSecurityConfiguration = {
           formatted: formatJson(response),
         },
       };
-    } catch (_error) {
+    } catch (error) {
       return {
         success: false,
-        error: `Failed to activate security configuration: ${_error instanceof Error ? _error.message : String(_error)}`,
+        error: `Failed to activate security configuration: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
   },
@@ -388,7 +388,7 @@ export const getSecurityActivationStatus = {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
-      const response = await client.request({
+      const response = await client._request({
         path: `/appsec/v1/configs/${args.configId}/activations/${args.activationId}`,
         method: 'GET',
       });
@@ -404,10 +404,10 @@ export const getSecurityActivationStatus = {
           formatted: formatJson(response),
         },
       };
-    } catch (_error) {
+    } catch (error) {
       return {
         success: false,
-        error: `Failed to get activation status: ${_error instanceof Error ? _error.message : String(_error)}`,
+        error: `Failed to get activation status: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
   },

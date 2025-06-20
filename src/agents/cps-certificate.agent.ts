@@ -132,9 +132,9 @@ export class CPSCertificateAgent {
       });
 
       spinner.succeed('CPS Certificate Agent initialized');
-    } catch (_error) {
+    } catch (error) {
       spinner.fail('Failed to initialize CPS agent');
-      throw _error;
+      throw error;
     } finally {
       this.multiProgress.remove('init');
     }
@@ -201,13 +201,13 @@ export class CPSCertificateAgent {
       console.log(`  ${icons.bullet} Validation: ${format.yellow(enrollment.validationType)}`);
 
       return enrollment;
-    } catch (_error) {
+    } catch (error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: _error instanceof Error ? _error.message : String(_error),
+        message: error instanceof Error ? error.message : String(error),
       });
-      throw _error;
+      throw error;
     }
   }
 
@@ -263,11 +263,11 @@ export class CPSCertificateAgent {
                 // Trigger validation
                 await this.triggerDomainValidation(enrollmentId, challenge.domain);
                 console.log(`  ${icons.success} Validation triggered`);
-              } catch (_error) {
+              } catch (error) {
                 recordSpinner.fail(
-                  `Failed to create DNS record: ${_error instanceof Error ? _error.message : String(_error)}`,
+                  `Failed to create DNS record: ${error instanceof Error ? error.message : String(error)}`,
                 );
-                throw _error;
+                throw error;
               }
             }
           }
@@ -278,9 +278,9 @@ export class CPSCertificateAgent {
       // Monitor validation status
       console.log(`\n${icons.time} Monitoring validation status...`);
       await this.waitForValidations(enrollmentId);
-    } catch (_error) {
-      spinner.fail(`Validation failed: ${_error instanceof Error ? _error.message : String(_error)}`);
-      throw _error;
+    } catch (error) {
+      spinner.fail(`Validation failed: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
     }
   }
 
@@ -343,13 +343,13 @@ export class CPSCertificateAgent {
 
         await new Promise((resolve) => setTimeout(resolve, 10000));
       }
-    } catch (_error) {
+    } catch (error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: _error instanceof Error ? _error.message : String(_error),
+        message: error instanceof Error ? error.message : String(error),
       });
-      throw _error;
+      throw error;
     }
   }
 
@@ -370,11 +370,11 @@ export class CPSCertificateAgent {
           await new Promise((resolve) => setTimeout(resolve, 2000));
 
           spinner.succeed(`Linked to property ${propertyId}`);
-        } catch (_error) {
+        } catch (error) {
           spinner.fail(
-            `Failed to link property ${propertyId}: ${_error instanceof Error ? _error.message : String(_error)}`,
+            `Failed to link property ${propertyId}: ${error instanceof Error ? error.message : String(error)}`,
           );
-          throw _error;
+          throw error;
         }
       },
       { message: 'Linking properties' },
@@ -413,11 +413,11 @@ export class CPSCertificateAgent {
       });
 
       spinner.succeed(`Auto-renewal configured (${request.renewalWindow} days before expiry)`);
-    } catch (_error) {
+    } catch (error) {
       spinner.fail(
-        `Failed to setup auto-renewal: ${_error instanceof Error ? _error.message : String(_error)}`,
+        `Failed to setup auto-renewal: ${error instanceof Error ? error.message : String(error)}`,
       );
-      throw _error;
+      throw error;
     }
   }
 
@@ -464,13 +464,13 @@ export class CPSCertificateAgent {
       console.log(`  ${icons.bullet} Enrollment ID: ${format.cyan(enrollmentId.toString())}`);
       console.log(`  ${icons.bullet} Status: ${format.green('Renewed and Deployed')}`);
       console.log(`  ${icons.bullet} New Expiry: ${format.yellow('+365 days')}`);
-    } catch (_error) {
+    } catch (error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: _error instanceof Error ? _error.message : String(_error),
+        message: error instanceof Error ? error.message : String(error),
       });
-      throw _error;
+      throw error;
     }
   }
 
@@ -536,7 +536,7 @@ export class CPSCertificateAgent {
             val.status === 'completed'
               ? icons.success
               : val.status === 'failed'
-                ? icons._error
+                ? icons.error
                 : val.status === 'in-progress'
                   ? '⏳'
                   : '⏸️';
@@ -545,11 +545,11 @@ export class CPSCertificateAgent {
       }
 
       console.log(format.dim('═'.repeat(60)));
-    } catch (_error) {
+    } catch (error) {
       spinner.fail(
-        `Failed to fetch certificate status: ${_error instanceof Error ? _error.message : String(_error)}`,
+        `Failed to fetch certificate status: ${error instanceof Error ? error.message : String(error)}`,
       );
-      throw _error;
+      throw error;
     }
   }
 
@@ -800,10 +800,10 @@ export class CPSCertificateAgent {
       console.log('  1. Verify certificate in Control Center');
       console.log('  2. Test HTTPS connectivity on your domains');
       console.log('  3. Monitor certificate expiry and renewal status');
-    } catch (_error) {
-      console.error(`\n${icons._error} ${format.red('Certificate provisioning failed:')}`);
-      console.error(format.red(_error instanceof Error ? _error.message : String(_error)));
-      throw _error;
+    } catch (error) {
+      console.error(`\n${icons.error} ${format.red('Certificate provisioning failed:')}`);
+      console.error(format.red(error instanceof Error ? error.message : String(error)));
+      throw error;
     }
   }
 }

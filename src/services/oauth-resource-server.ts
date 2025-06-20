@@ -410,7 +410,7 @@ export class OAuthResourceServer {
         if (invalidScopes.length > 0) {
           errors.push(`Invalid scopes for resource ${resourceUri}: ${invalidScopes.join(', ')}`);
         }
-      } catch (_error) {
+      } catch (error) {
         errors.push(`Invalid resource URI: ${resourceUri}`);
       }
     }
