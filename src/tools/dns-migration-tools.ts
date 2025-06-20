@@ -823,14 +823,14 @@ continue;
 
     // Type
     const typeField = fieldIndex < parts.length ? parts[fieldIndex] : undefined;
-    const type = typeField ? typeField.toUpperCase() : '';
+    type = typeField ? typeField.toUpperCase() : '';
     if (!type) {
 continue;
 }
     fieldIndex++;
 
     // Rest is RDATA
-    const rdata = parts.slice(fieldIndex);
+    rdata = parts.slice(fieldIndex);
 
     // Special handling for different record types
     switch (type) {
