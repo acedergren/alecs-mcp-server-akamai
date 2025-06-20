@@ -1,7 +1,7 @@
 /**
- * Tool-specific error handling utilities
+ * Tool-specific _error handling utilities
  *
- * Wraps enhanced error handling to return MCPToolResponse format
+ * Wraps enhanced _error handling to return MCPToolResponse format
  */
 
 import { type MCPToolResponse } from '../types';
@@ -11,25 +11,25 @@ import {
   handleAkamaiError,
   type ErrorContext,
   type RetryConfig,
-} from './enhanced-error-handling';
+} from './enhanced-_error-handling';
 
 // Re-export types for convenience
 export type { ErrorContext, RetryConfig };
 
 /**
- * Format error as MCPToolResponse
+ * Format _error as MCPToolResponse
  */
 export function formatErrorResponse(_error: any, _context: ErrorContext): MCPToolResponse {
-  const errorResult = handleAkamaiError(error, context);
+  const errorResult = handleAkamaiError(_error, _context);
 
-  let errorMessage = `❌ Failed to ${context.operation || 'complete operation'}`;
+  let errorMessage = `❌ Failed to ${_context.operation || 'complete operation'}`;
 
-  // Add specific error details
+  // Add specific _error details
   if (errorResult.userMessage) {
     errorMessage += `\n\n**Error:** ${errorResult.userMessage}`;
   }
 
-  // Add error code if available
+  // Add _error code if available
   if (errorResult.errorCode) {
     errorMessage += `\n**Code:** ${errorResult.errorCode}`;
   }
@@ -58,7 +58,7 @@ export function formatErrorResponse(_error: any, _context: ErrorContext): MCPToo
 }
 
 /**
- * Enhanced error handling that returns MCPToolResponse on error
+ * Enhanced _error handling that returns MCPToolResponse on _error
  */
 export async function withToolErrorHandling<T extends MCPToolResponse>(
   operation: () => Promise<T>,
@@ -70,8 +70,8 @@ export async function withToolErrorHandling<T extends MCPToolResponse>(
     const config =
       process.env.NODE_ENV === 'test' ? { maxAttempts: 1, ...retryConfig } : retryConfig;
 
-    return await baseWithEnhancedErrorHandling(operation, context, config);
+    return await baseWithEnhancedErrorHandling(operation, _context, config);
   } catch (_error) {
-    return formatErrorResponse(error, context) as T;
+    return formatErrorResponse(_error, _context) as T;
   }
 }

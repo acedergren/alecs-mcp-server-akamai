@@ -160,7 +160,7 @@ function createOAuthHttpServer(
 
   // Middleware
   app.use(express.json());
-  app.use((req, res, next) => {
+  app.use((req, _res, next) => {
     // Attach resource server to request context
     (req as any).resourceServer = resourceServer;
     next();
@@ -328,7 +328,7 @@ export async function main() {
     httpPort: parseInt(process.env.HTTP_PORT || '3000', 10),
   };
 
-  const { mcpServer, httpServer } = await createOAuthProtectedMcpServer(config);
+  const { mcpServer, httpServer: _httpServer } = await createOAuthProtectedMcpServer(config);
 
   // Start MCP server on stdio transport
   const transport = new StdioServerTransport();

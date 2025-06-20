@@ -80,7 +80,7 @@ export class AkamaiClient {
   }): Promise<T> {
     try {
       // Ensure path starts with /
-      const requestPath = options.path.startsWith('/') ? options.path : `/${options.path}`;
+      const requestPath = _options.path.startsWith('/') ? _options.path : `/${_options.path}`;
 
       // Build query parameters object
       const queryParams: Record<string, string> = {};
@@ -91,20 +91,20 @@ export class AkamaiClient {
       }
 
       // Add any additional query parameters
-      if (options.queryParams) {
-        Object.assign(queryParams, options.queryParams);
+      if (_options.queryParams) {
+        Object.assign(queryParams, _options.queryParams);
       }
 
-      // Prepare request options for EdgeGrid
+      // Prepare request _options for EdgeGrid
       const requestOptions: any = {
         path: requestPath,
-        method: options.method || 'GET',
+        method: _options.method || 'GET',
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
-          ...options.headers,
+          ..._options.headers,
         },
-        body: options.body ? JSON.stringify(options.body) : undefined,
+        body: _options.body ? JSON.stringify(_options.body) : undefined,
       };
 
       // Add query parameters using qs property if any exist
@@ -114,9 +114,9 @@ export class AkamaiClient {
 
       // Debug logging
       if (this.debug) {
-        console.error(`[AkamaiClient] Making _request: ${options.method || 'GET'} ${requestPath}`);
+        console.error(`[AkamaiClient] Making _request: ${_options.method || 'GET'} ${requestPath}`);
         console.error(
-          '[AkamaiClient] Request options:',
+          '[AkamaiClient] Request _options:',
           JSON.stringify(
             {
               ...requestOptions,

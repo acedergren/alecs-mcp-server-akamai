@@ -212,7 +212,7 @@ return 0;
 
     if (analysis.p95ResponseTime! > this.thresholds.slowOperationMs * 2) {
       recommendations.push(
-        `P95 response time (${analysis.p95ResponseTime!.toFixed(0)}ms) is very high. Investigate slowest operations and consider request batching.`,
+        `P95 response time (${analysis.p95ResponseTime!.toFixed(0)}ms) is very high. Investigate slowest operations and consider _request batching.`,
       );
     }
 
@@ -408,10 +408,10 @@ export class RequestOptimizer {
     this.batchTimeoutMs = options?.batchTimeoutMs || 100;
   }
 
-  // Add request to batch queue
+  // Add _request to batch queue
   addToBatch<T>(
     batchKey: string,
-    _request: T,
+    __request: T,
     processor: (requests: T[]) => Promise<any[]>,
   ): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -420,7 +420,7 @@ export class RequestOptimizer {
       }
 
       const batch = this.batchQueue.get(batchKey)!;
-      batch.push({ request, resolve, reject });
+      batch.push({ _request, resolve, reject });
 
       // Process immediately if batch is full
       if (batch.length >= this.maxBatchSize) {
@@ -455,7 +455,7 @@ export class RequestOptimizer {
     }
 
     try {
-      const requests = batch.map((item) => item.request);
+      const requests = batch.map((item) => item._request);
       const results = await processor(requests);
 
       // Resolve each promise with corresponding result
@@ -498,7 +498,7 @@ export const metadataCache = new SmartCache<any>({
   performanceMonitor: globalPerformanceMonitor,
 });
 
-// Global request optimizer
+// Global _request optimizer
 export const globalRequestOptimizer = new RequestOptimizer({
   maxBatchSize: 5,
   batchTimeoutMs: 50,

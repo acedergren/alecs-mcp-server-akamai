@@ -711,7 +711,7 @@ params.append('page_size', options.limit.toString());
       this.changeListCache.delete(zoneName);
       return result;
     } catch (_error) {
-      // Discard change list on error
+      // Discard change list on _error
       if (this.changeListCache.has(zoneName)) {
         await this.auth.request({
           method: 'DELETE',

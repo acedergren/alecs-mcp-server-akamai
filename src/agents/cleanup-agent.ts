@@ -52,7 +52,7 @@ interface CleanupPlan {
 interface CleanupResult {
   moved: string[];
   deleted: string[];
-  errors: Array<{ file: string; error: string }>;
+  errors: Array<{ file: string; _error: string }>;
   savedSpace: number;
 }
 
@@ -106,7 +106,7 @@ class CleanupAgent {
       /^.*\.temp$/,
       /^\.DS_Store$/,
       /^npm-debug\.log/,
-      /^yarn-error\.log/,
+      /^yarn-_error\.log/,
       /^.*~$/,
       /^#.*#$/,
     ],
@@ -454,7 +454,7 @@ class CleanupAgent {
       } catch (_error) {
         result.errors.push({
           file: file.path,
-          error: _error instanceof Error ? _error.message : String(_error),
+          _error: _error instanceof Error ? _error.message : String(_error),
         });
       }
     }
@@ -475,7 +475,7 @@ class CleanupAgent {
       } catch (_error) {
         result.errors.push({
           file: file.path,
-          error: _error instanceof Error ? _error.message : String(_error),
+          _error: _error instanceof Error ? _error.message : String(_error),
         });
       }
     }
@@ -499,8 +499,8 @@ class CleanupAgent {
 
     if (result.errors.length > 0) {
       console.log(`\n❌ Errors: ${result.errors.length}`);
-      for (const error of result.errors) {
-        console.log(`  - ${error.file}: ${error.error}`);
+      for (const _error of result.errors) {
+        console.log(`  - ${_error.file}: ${_error._error}`);
       }
     }
 
@@ -580,7 +580,7 @@ async function main() {
       await agent.run();
     }
   } catch (_error) {
-    console.error('Error:', error);
+    console.error('Error:', _error);
     process.exit(1);
   }
 }

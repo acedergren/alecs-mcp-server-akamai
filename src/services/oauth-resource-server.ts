@@ -3,7 +3,7 @@
  * Implements resource protection, discovery, and validation
  */
 
-import { createHash } from 'crypto';
+import { createHash as _createHash } from 'crypto';
 
 import { type Property, type DnsZone, type Certificate, type NetworkList } from '@/types/akamai';
 import {
@@ -21,14 +21,14 @@ import {
   OAuthResourceType as ResourceType,
   RESOURCE_SCOPE_TEMPLATES,
   BASE_OAUTH_SCOPES,
-  OAUTH_WELL_KNOWN_URIS,
+  OAUTH_WELL_KNOWN_URIS as _OAUTH_WELL_KNOWN_URIS,
 } from '@/types/oauth';
 
 /**
  * OAuth Resource URI implementation
  */
 export class ResourceUri implements OAuthResourceUri {
-  scheme: 'akamai' = 'akamai';
+  scheme: 'akamai' = 'akamai' as const;
   resourceType: OAuthResourceType;
   accountId: string;
   resourceId: string;
@@ -425,8 +425,8 @@ export class OAuthResourceServer {
    * Introspect access token
    */
   async introspectToken(
-    token: string,
-    tokenType: 'access_token' | 'refresh_token' = 'access_token',
+    _token: string,
+    _tokenType: 'access_token' | 'refresh_token' = 'access_token',
   ): Promise<OAuthTokenIntrospectionResponse> {
     // In production, this would call the introspection endpoint
     // For now, we'll simulate token introspection

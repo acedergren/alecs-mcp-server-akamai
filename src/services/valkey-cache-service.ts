@@ -3,9 +3,9 @@
  * High-performance caching with smart invalidation and monitoring
  */
 
-import Redis, { Cluster, ClusterNode } from 'ioredis';
+import Redis, { Cluster, ClusterNode as _ClusterNode } from 'ioredis';
 
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient as _AkamaiClient } from '../akamai-client';
 
 export interface ValkeyConfig {
   mode?: 'single' | 'cluster' | 'sentinel';
@@ -461,7 +461,7 @@ return 0;
   /**
    * Get cache hit rate
    */
-  async getHitRate(pattern?: string): Promise<number> {
+  async getHitRate(_pattern?: string): Promise<number> {
     const total = this.metrics.hits + this.metrics.misses;
     if (total === 0) {
 return 0;

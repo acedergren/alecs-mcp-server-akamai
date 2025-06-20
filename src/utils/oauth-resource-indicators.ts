@@ -405,20 +405,20 @@ export function createDefaultResourceIndicatorValidator(): ResourceIndicatorVali
 export function parseResourceIndicators(
   _request: Record<string, unknown>,
 ): OAuthResourceIndicator | undefined {
-  if (!_request.resource) {
+  if (!__request.resource) {
     return undefined;
   }
 
   const indicator: OAuthResourceIndicator = {
-    resource: _request.resource as string | string[],
+    resource: __request.resource as string | string[],
   };
 
-  if (_request.resource_type) {
-    indicator.resource_type = _request.resource_type as OAuthResourceType;
+  if (__request.resource_type) {
+    indicator.resource_type = __request.resource_type as OAuthResourceType;
   }
 
-  if (_request.scope) {
-    indicator.scope = _request.scope as string;
+  if (__request.scope) {
+    indicator.scope = __request.scope as string;
   }
 
   return indicator;

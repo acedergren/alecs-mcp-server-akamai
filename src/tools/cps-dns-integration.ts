@@ -353,7 +353,7 @@ export async function monitorCertificateValidation(
       await new Promise((resolve) => setTimeout(resolve, checkInterval));
     } catch (_error) {
       spinner.stop();
-      console._error(
+      console.error(
         `\n❌ Error checking validation status: ${_error instanceof Error ? _error.message : 'Unknown _error'}`,
       );
       await new Promise((resolve) => setTimeout(resolve, checkInterval));

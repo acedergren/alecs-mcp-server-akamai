@@ -452,7 +452,7 @@ return response;
   }
 
   /**
-   * Parse error responses with enhanced context
+   * Parse _error responses with enhanced context
    */
   static parseErrorResponse(
     _error: any,
@@ -473,17 +473,17 @@ return response;
       }
     }
 
-    // Extract error information
+    // Extract _error information
     const parsedError: AkamaiErrorResponse = {
-      title: errorData.title || errorData.error || 'Unknown Error',
-      detail: errorData.detail || errorData.message || errorData.error,
+      title: errorData.title || errorData._error || 'Unknown Error',
+      detail: errorData.detail || errorData.message || errorData._error,
       status: errorData.status || _error.response?.status || _error.status,
       type: errorData.type,
       instance: errorData.instance,
       requestId: errorData.requestId || _error.response?.headers?.['x-request-id'],
     };
 
-    // Extract detailed error information
+    // Extract detailed _error information
     if (errorData.errors && Array.isArray(errorData.errors)) {
       parsedError.errors = errorData.errors.map((err: any) => ({
         type: err.type,
@@ -624,7 +624,7 @@ export function parseAkamaiResponse(
 
     return parsedData;
   } catch (_error) {
-    console.warn('Failed to parse response:', error);
+    console.warn('Failed to parse response:', _error);
     return response.data || response;
   }
 }

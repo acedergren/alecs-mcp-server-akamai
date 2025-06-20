@@ -36,7 +36,7 @@ import {
   type Mcp2025ToolDefinition,
   type Mcp2025ToolResponse,
 } from '../types/mcp-2025';
-import { wrapToolHandler } from '../utils/mcp-2025-migration';
+import { wrapToolHandler as _wrapToolHandler } from '../utils/mcp-2025-migration';
 
 // Import existing tool implementations
 

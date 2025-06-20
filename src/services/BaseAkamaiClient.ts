@@ -5,8 +5,8 @@
 import { logger } from '@utils/logger';
 import { z, type ZodSchema } from 'zod';
 
-import { EdgeGridAuth, EdgeGridRequestConfig, EdgeGridAuthError } from '../auth/EdgeGridAuth';
-import { type NetworkEnvironment, ConfigurationError, ConfigErrorType } from '../types/config';
+import { EdgeGridAuth, EdgeGridRequestConfig as _EdgeGridRequestConfig, EdgeGridAuthError } from '../auth/EdgeGridAuth';
+import { type NetworkEnvironment, ConfigurationError as _ConfigurationError, ConfigErrorType as _ConfigErrorType } from '../types/config';
 
 /**
  * Generic API response wrapper

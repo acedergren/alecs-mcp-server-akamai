@@ -111,7 +111,7 @@ export class PropertyOnboardingAgent {
 
     try {
       // Step 1: Validate and prepare configuration
-      console.error('[PropertyOnboarding] Step 1: Validating configuration...');
+      console.log('[ 1: Validating configuration...');
       const validatedConfig = await this.validateConfig(config);
 
       // Step 2: Pre-flight checks
@@ -125,7 +125,7 @@ export class PropertyOnboardingAgent {
       }
 
       // Step 3: Determine group and product if not provided
-      console.error('[PropertyOnboarding] Step 3: Determining group and product...');
+      console.log('[ 3: Determining group and product...');
       if (!validatedConfig.groupId || !validatedConfig.productId) {
         const selection = await this.selectGroupAndProduct(validatedConfig);
         validatedConfig.groupId = selection.groupId;
@@ -133,7 +133,7 @@ export class PropertyOnboardingAgent {
       }
 
       // Step 4: Create CP Code
-      console.error('[PropertyOnboarding] Step 4: Creating CP Code...');
+      console.log('[ 4: Creating CP Code...');
       const cpCodeResult = await this.createCPCodeForProperty(validatedConfig);
       if (!cpCodeResult.success || !cpCodeResult.cpCodeId) {
         result.errors!.push('Failed to create CP Code');
@@ -143,7 +143,7 @@ export class PropertyOnboardingAgent {
       validatedConfig.cpCodeId = cpCodeResult.cpCodeId;
 
       // Step 5: Create property
-      console.error('[PropertyOnboarding] Step 5: Creating property...');
+      console.log('[ 5: Creating property...');
       const propertyResult = await this.createPropertyWithRetry(validatedConfig);
       if (!propertyResult.success || !propertyResult.propertyId) {
         result.errors!.push('Failed to create property');
@@ -153,7 +153,7 @@ export class PropertyOnboardingAgent {
       console.error(`[PropertyOnboarding] Created property: ${result.propertyId}`);
 
       // Step 6: Create edge hostname
-      console.error('[PropertyOnboarding] Step 6: Creating edge hostname...');
+      console.log('[ 6: Creating edge hostname...');
       const edgeHostnameResult = await this.createEdgeHostnameWithRetry(
         propertyResult.propertyId,
         validatedConfig,
@@ -166,7 +166,7 @@ export class PropertyOnboardingAgent {
       result.edgeHostname = edgeHostnameResult.edgeHostname;
 
       // Step 7: Add hostname to property
-      console.error('[PropertyOnboarding] Step 7: Adding hostname to property...');
+      console.log('[ 7: Adding hostname to property...');
       await this.addHostnameToProperty(
         propertyResult.propertyId,
         validatedConfig.hostname,
@@ -174,11 +174,11 @@ export class PropertyOnboardingAgent {
       );
 
       // Step 8: Configure property rules with CP Code
-      console.error('[PropertyOnboarding] Step 8: Configuring property rules...');
+      console.log('[ 8: Configuring property rules...');
       await this.configurePropertyRules(propertyResult.propertyId, validatedConfig);
 
       // Step 9: Handle DNS setup
-      console.error('[PropertyOnboarding] Step 9: Handling DNS setup...');
+      console.log('[ 9: Handling DNS setup...');
       if (!validatedConfig.skipDnsSetup) {
         const dnsResult = await this.handleDnsSetup(
           validatedConfig.hostname,
@@ -195,7 +195,7 @@ export class PropertyOnboardingAgent {
       }
 
       // Step 10: Activate to staging only (production takes 10-60 minutes)
-      console.error('[PropertyOnboarding] Step 10: Activating to staging network...');
+      console.log('[ 10: Activating to staging network...');
       const activationResult = await this.activatePropertyToStaging(
         propertyResult.propertyId,
         validatedConfig,
@@ -218,9 +218,9 @@ export class PropertyOnboardingAgent {
 
       return result;
     } catch (_error) {
-      console.error('[PropertyOnboarding] Error:', error);
+      console.error('[PropertyOnboarding] Error:', _error);
       result.errors!.push(
-        `Unexpected error: ${_error instanceof Error ? _error.message : String(_error)}`,
+        `Unexpected _error: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
       return result;
     }
@@ -403,7 +403,7 @@ export class PropertyOnboardingAgent {
       console.error('[PropertyOnboarding] Could not extract CP Code ID from response');
       return { success: false };
     } catch (_error) {
-      console.error('[PropertyOnboarding] Create CP Code error:', error);
+      console.error('[PropertyOnboarding] Create CP Code _error:', _error);
       return { success: false };
     }
   }
@@ -433,7 +433,7 @@ export class PropertyOnboardingAgent {
 
       return { success: false };
     } catch (_error) {
-      console.error('[PropertyOnboarding] Create property error:', error);
+      console.error('[PropertyOnboarding] Create property _error:', _error);
       return { success: false };
     }
   }
@@ -464,7 +464,7 @@ export class PropertyOnboardingAgent {
         edgeHostname,
       };
     } catch (_error) {
-      console.error('[PropertyOnboarding] Create edge hostname error:', error);
+      console.error('[PropertyOnboarding] Create edge hostname _error:', _error);
       return { success: false };
     }
   }
@@ -714,7 +714,7 @@ export class PropertyOnboardingAgent {
         };
       }
     } catch (_error) {
-      console.error('[PropertyOnboarding] DNS setup error:', error);
+      console.error('[PropertyOnboarding] DNS setup _error:', _error);
       return {
         recordCreated: false,
         warnings: ['Failed to setup DNS automatically'],
@@ -741,7 +741,7 @@ export class PropertyOnboardingAgent {
         rdata: [acmeTarget],
       });
     } catch (_error) {
-      console.error('[PropertyOnboarding] ACME record creation error:', error);
+      console.error('[PropertyOnboarding] ACME record creation _error:', _error);
     }
   }
 
@@ -812,7 +812,7 @@ export class PropertyOnboardingAgent {
         activationId: activationIdMatch ? activationIdMatch[1] : undefined,
       };
     } catch (_error) {
-      console.error('[PropertyOnboarding] Activation error:', error);
+      console.error('[PropertyOnboarding] Activation _error:', _error);
       return { success: false };
     }
   }
@@ -852,7 +852,7 @@ export async function onboardProperty(
     if (result.errors && result.errors.length > 0) {
       responseText += '## Errors\n\n';
       result.errors.forEach((_error) => {
-        responseText += `- ${error}\n`;
+        responseText += `- ${_error}\n`;
       });
     }
   }

@@ -1,8 +1,8 @@
 /**
  * Enhanced Error Handling for Akamai APIs
  *
- * Comprehensive error handling with retry logic, categorization,
- * and user-friendly messaging based on documented error patterns.
+ * Comprehensive _error handling with retry logic, categorization,
+ * and user-friendly messaging based on documented _error patterns.
  */
 
 import { type AkamaiErrorResponse } from './response-parsing';
@@ -25,7 +25,7 @@ export interface ErrorContext {
 
 export interface EnhancedErrorResult {
   success: false;
-  error: string;
+  _error: string;
   userMessage: string;
   shouldRetry: boolean;
   retryAfter?: number;
@@ -59,26 +59,26 @@ export class EnhancedErrorHandler {
   };
 
   /**
-   * Handle error with comprehensive analysis and suggestions
+   * Handle _error with comprehensive analysis and suggestions
    */
   handle(_error: any, _context: ErrorContext = {}): EnhancedErrorResult {
-    const httpStatus = this.extractHttpStatus(_error);
+    const _httpStatus = this.extractHttpStatus(_error);
     const akamaiError = this.parseAkamaiErrorResponse(_error);
-    const errorType = this.categorizeError(httpStatus, akamaiError, _context);
+    const errorType = this.categorizeError(_httpStatus, akamaiError, _context);
 
-    // Extract request ID and add to context for suggestions
+    // Extract request ID and add to _context for suggestions
     const requestId = akamaiError?.requestId || this.extractRequestId(_error);
     if (requestId && !_context.requestId) {
       _context.requestId = requestId;
     }
 
-    const suggestions = this.generateSuggestions(httpStatus, akamaiError, errorType, _context);
+    const suggestions = this.generateSuggestions(_httpStatus, akamaiError, errorType, _context);
 
     return {
       success: false,
-      error: this.formatTechnicalError(akamaiError, httpStatus),
-      userMessage: this.formatUserMessage(httpStatus, akamaiError, errorType, _context),
-      shouldRetry: this.isRetryable(httpStatus, errorType),
+      _error: this.formatTechnicalError(akamaiError, _httpStatus),
+      userMessage: this.formatUserMessage(_httpStatus, akamaiError, errorType, _context),
+      shouldRetry: this.isRetryable(_httpStatus, errorType),
       retryAfter: this.extractRetryAfter(_error),
       requestId,
       errorCode: akamaiError?.type,
@@ -98,40 +98,40 @@ export class EnhancedErrorHandler {
   ): Promise<T> {
     const config = { ...this.defaultRetryConfig, ...retryConfig };
     let lastError: any;
-    const attempts: Array<{ attempt: number; error: any; delay: number }> = [];
+    const attempts: Array<{ attempt: number; _error: any; delay: number }> = [];
 
     for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
       try {
         return await operation();
       } catch (_error) {
-        lastError = error;
-        const errorResult = this.handle(error, context);
+        lastError = _error;
+        const errorResult = this.handle(_error, _context);
 
         attempts.push({
           attempt,
-          error: errorResult,
+          _error: errorResult,
           delay:
             attempt < config.maxAttempts
               ? this.calculateDelay(attempt, config, errorResult.retryAfter)
               : 0,
         });
 
-        // Don't retry if error is not retryable
+        // Don't retry if _error is not retryable
         if (!errorResult.shouldRetry) {
-          this.logFailure(attempts, context);
+          this.logFailure(attempts, _context);
           throw _error;
         }
 
         // Don't retry on last attempt
         if (attempt === config.maxAttempts) {
-          this.logFailure(attempts, context);
+          this.logFailure(attempts, _context);
           break;
         }
 
         // Calculate delay and wait
         const delay = this.calculateDelay(attempt, config, errorResult.retryAfter);
 
-        this.logRetryAttempt(attempt, delay, errorResult, context);
+        this.logRetryAttempt(attempt, delay, errorResult, _context);
         await this.delay(delay);
       }
     }
@@ -140,7 +140,7 @@ export class EnhancedErrorHandler {
   }
 
   /**
-   * Extract HTTP status from various error formats
+   * Extract HTTP status from various _error formats
    */
   private extractHttpStatus(_error: any): number {
     if (_error.response?.status) {
@@ -168,10 +168,10 @@ return 503;
   }
 
   /**
-   * Parse Akamai error response with enhanced extraction
+   * Parse Akamai _error response with enhanced extraction
    */
   private parseAkamaiErrorResponse(_error: any): AkamaiErrorResponse | null {
-    let errorData = _error.response?.data || _error.data || error;
+    let errorData = _error.response?.data || _error.data || _error;
 
     // Handle string responses
     if (typeof errorData === 'string') {
@@ -203,7 +203,7 @@ return 503;
   }
 
   /**
-   * Categorize error for appropriate handling
+   * Categorize _error for appropriate handling
    */
   private categorizeError(
     _httpStatus: number,
@@ -211,12 +211,12 @@ return 503;
     _context: ErrorContext,
   ): ErrorType {
     // Network/connection errors
-    if (httpStatus >= 500 && httpStatus <= 599) {
+    if (_httpStatus >= 500 && _httpStatus <= 599) {
       return ErrorType.SERVER_ERROR;
     }
 
     // Client errors
-    switch (httpStatus) {
+    switch (_httpStatus) {
       case 401:
         return ErrorType.AUTHENTICATION;
       case 403:
@@ -234,7 +234,7 @@ return 503;
         return ErrorType.TIMEOUT;
     }
 
-    // Check error type from Akamai error response
+    // Check _error type from Akamai _error response
     if (akamaiError?.type) {
       if (akamaiError.type.includes('authentication')) {
 return ErrorType.AUTHENTICATION;
@@ -253,7 +253,7 @@ return ErrorType.RATE_LIMIT;
     // Check for validation errors in errors array
     if (akamaiError?.errors && akamaiError.errors.length > 0) {
       const hasFieldErrors = akamaiError.errors.some(
-        (_err: any) => err.field || err.type === 'field-error',
+        (_err: any) => err.field || err.type === 'field-_error',
       );
       if (hasFieldErrors) {
 return ErrorType.VALIDATION;
@@ -264,7 +264,7 @@ return ErrorType.VALIDATION;
   }
 
   /**
-   * Generate actionable suggestions based on error type and context
+   * Generate actionable suggestions based on _error type and _context
    */
   private generateSuggestions(
     _httpStatus: number,
@@ -279,9 +279,9 @@ return ErrorType.VALIDATION;
         suggestions.push('Verify your .edgerc credentials are correct and not expired');
         suggestions.push('Check that the client_token, client_secret, and access_token are valid');
         suggestions.push('Ensure the host URL matches your credential configuration');
-        if (context.customer) {
+        if (_context.customer) {
           suggestions.push(
-            `Verify the customer section '${context.customer}' exists in your .edgerc file`,
+            `Verify the customer section '${_context.customer}' exists in your .edgerc file`,
           );
         }
         break;
@@ -289,20 +289,20 @@ return ErrorType.VALIDATION;
       case ErrorType.AUTHORIZATION:
         suggestions.push('Check that your API credentials have the necessary permissions');
         suggestions.push('Verify you have access to the specified contract and group');
-        if (context.apiType === 'papi') {
+        if (_context.apiType === 'papi') {
           suggestions.push('Ensure you have Property Manager API access');
         }
-        if (context.apiType === 'dns') {
+        if (_context.apiType === 'dns') {
           suggestions.push('Ensure you have Edge DNS API access');
         }
         break;
 
       case ErrorType.NOT_FOUND:
-        if (context.endpoint?.includes('properties')) {
+        if (_context.endpoint?.includes('properties')) {
           suggestions.push('Verify the property ID exists and you have access to it');
           suggestions.push('Check that the contract ID and group ID are correct');
         }
-        if (context.endpoint?.includes('zones')) {
+        if (_context.endpoint?.includes('zones')) {
           suggestions.push('Verify the DNS zone exists and is associated with your contract');
         }
         suggestions.push('Double-check all resource IDs are in the correct format');
@@ -343,8 +343,8 @@ return ErrorType.VALIDATION;
       case ErrorType.SERVER_ERROR:
         suggestions.push('Wait a few minutes and retry the operation');
         suggestions.push('Check Akamai status page for service disruptions');
-        if (context.requestId) {
-          suggestions.push(`Contact Akamai support with request ID: ${context.requestId}`);
+        if (_context.requestId) {
+          suggestions.push(`Contact Akamai support with request ID: ${_context.requestId}`);
         }
         break;
 
@@ -356,12 +356,12 @@ return ErrorType.VALIDATION;
     }
 
     // Add API-specific suggestions
-    if (context.apiType === 'papi' && context.endpoint?.includes('activations')) {
+    if (_context.apiType === 'papi' && _context.endpoint?.includes('activations')) {
       suggestions.push('Production activations require notification emails');
       suggestions.push('Ensure the property version exists before activating');
     }
 
-    if (context.apiType === 'dns' && context.operation?.includes('record')) {
+    if (_context.apiType === 'dns' && _context.operation?.includes('record')) {
       suggestions.push('DNS record changes require changelist workflow');
       suggestions.push('Submit the changelist after making record changes');
     }
@@ -370,14 +370,14 @@ return ErrorType.VALIDATION;
   }
 
   /**
-   * Format technical error message for logging
+   * Format technical _error message for logging
    */
   private formatTechnicalError(
     akamaiError: AkamaiErrorResponse | null,
     _httpStatus: number,
   ): string {
     if (akamaiError) {
-      let message = `${akamaiError.title} (HTTP ${httpStatus})`;
+      let message = `${akamaiError.title} (HTTP ${_httpStatus})`;
       if (akamaiError.detail) {
         message += `: ${akamaiError.detail}`;
       }
@@ -393,11 +393,11 @@ return ErrorType.VALIDATION;
       return message;
     }
 
-    return `HTTP ${httpStatus} error`;
+    return `HTTP ${_httpStatus} _error`;
   }
 
   /**
-   * Format user-friendly error message
+   * Format user-friendly _error message
    */
   private formatUserMessage(
     _httpStatus: number,
@@ -405,7 +405,7 @@ return ErrorType.VALIDATION;
     errorType: ErrorType,
     _context: ErrorContext,
   ): string {
-    const operation = context.operation || 'operation';
+    const operation = _context.operation || 'operation';
 
     switch (errorType) {
       case ErrorType.AUTHENTICATION:
@@ -415,10 +415,10 @@ return ErrorType.VALIDATION;
         return `You don't have permission to perform this ${operation}. Please contact your Akamai administrator to verify your API access rights.`;
 
       case ErrorType.NOT_FOUND:
-        if (context.endpoint?.includes('properties')) {
+        if (_context.endpoint?.includes('properties')) {
           return 'The requested property could not be found. Please verify the property ID and ensure you have access to it.';
         }
-        if (context.endpoint?.includes('zones')) {
+        if (_context.endpoint?.includes('zones')) {
           return 'The requested DNS zone could not be found. Please verify the zone name and contract access.';
         }
         return 'The requested resource could not be found. Please verify the ID and try again.';
@@ -456,12 +456,12 @@ return ErrorType.VALIDATION;
         return `The ${operation} request timed out. For long-running operations like activations, please check the status separately.`;
 
       default:
-        return `An unexpected error occurred during ${operation}. Please try again or contact support if the issue persists.`;
+        return `An unexpected _error occurred during ${operation}. Please try again or contact support if the issue persists.`;
     }
   }
 
   /**
-   * Check if error is retryable
+   * Check if _error is retryable
    */
   private isRetryable(_httpStatus: number, errorType: ErrorType): boolean {
     const retryableTypes = [
@@ -471,11 +471,11 @@ return ErrorType.VALIDATION;
       ErrorType.NETWORK_ERROR,
     ];
 
-    return retryableTypes.includes(errorType) || httpStatus >= 500;
+    return retryableTypes.includes(errorType) || _httpStatus >= 500;
   }
 
   /**
-   * Extract retry-after value from error response
+   * Extract retry-after value from _error response
    */
   private extractRetryAfter(_error: any): number | undefined {
     const retryAfter = _error.response?.headers?.['retry-after'] || _error.headers?.['retry-after'];
@@ -531,7 +531,7 @@ return ErrorType.VALIDATION;
   }
 
   /**
-   * Log retry attempt with context
+   * Log retry attempt with _context
    */
   private logRetryAttempt(
     attempt: number,
@@ -541,11 +541,11 @@ return ErrorType.VALIDATION;
   ): void {
     console.warn(`Retry attempt ${attempt} after ${delay}ms:`, {
       timestamp: new Date().toISOString(),
-      operation: context.operation,
-      endpoint: context.endpoint,
-      customer: context.customer,
+      operation: _context.operation,
+      endpoint: _context.endpoint,
+      customer: _context.customer,
       errorType: errorResult.errorType,
-      error: errorResult.error,
+      _error: errorResult._error,
       requestId: errorResult.requestId,
     });
   }
@@ -554,27 +554,27 @@ return ErrorType.VALIDATION;
    * Log final failure with all attempts
    */
   private logFailure(
-    attempts: Array<{ attempt: number; error: any; delay: number }>,
+    attempts: Array<{ attempt: number; _error: any; delay: number }>,
     _context: ErrorContext,
   ): void {
     console.error('Operation failed after all retry attempts:', {
       timestamp: new Date().toISOString(),
-      operation: context.operation,
-      endpoint: context.endpoint,
-      customer: context.customer,
+      operation: _context.operation,
+      endpoint: _context.endpoint,
+      customer: _context.customer,
       totalAttempts: attempts.length,
       attempts: attempts.map((a) => ({
         attempt: a.attempt,
         errorType: a._error.errorType,
         delay: a.delay,
       })),
-      finalError: attempts[attempts.length - 1]?.error,
+      finalError: attempts[attempts.length - 1]?._error,
     });
   }
 }
 
 /**
- * Convenience function for enhanced error handling with retry
+ * Convenience function for enhanced _error handling with retry
  */
 export async function withEnhancedErrorHandling<T>(
   operation: () => Promise<T>,
@@ -582,7 +582,7 @@ export async function withEnhancedErrorHandling<T>(
   retryConfig?: Partial<RetryConfig>,
 ): Promise<T> {
   const handler = new EnhancedErrorHandler();
-  return handler.withRetry(operation, context, retryConfig);
+  return handler.withRetry(operation, _context, retryConfig);
 }
 
 /**
@@ -590,5 +590,5 @@ export async function withEnhancedErrorHandling<T>(
  */
 export function handleAkamaiError(_error: any, _context: ErrorContext = {}): EnhancedErrorResult {
   const handler = new EnhancedErrorHandler();
-  return handler.handle(error, context);
+  return handler.handle(_error, _context);
 }

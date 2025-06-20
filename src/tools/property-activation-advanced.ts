@@ -890,7 +890,7 @@ async function rollbackActivation(
       });
     }
   } catch (_error) {
-    console._error('Rollback failed:', _error);
+    console.error('Rollback failed:', _error);
   }
 }
 

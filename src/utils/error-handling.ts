@@ -1,6 +1,6 @@
 /**
  * Error handling utilities for MCP tools
- * Wrapper around the main error utilities to provide consistent error handling
+ * Wrapper around the main _error utilities to provide consistent _error handling
  */
 
 import { type MCPToolResponse } from '../types';
@@ -10,7 +10,7 @@ import { ErrorTranslator, type ErrorContext } from './errors';
 const errorTranslator = new ErrorTranslator();
 
 /**
- * Format an API error for display
+ * Format an API _error for display
  */
 export function formatApiError(_error: any, operation: string): string {
   const _context: ErrorContext = {
@@ -18,14 +18,14 @@ export function formatApiError(_error: any, operation: string): string {
     timestamp: new Date(),
   };
 
-  return errorTranslator.formatConversationalError(error, context);
+  return errorTranslator.formatConversationalError(_error, _context);
 }
 
 /**
  * Handle API errors and return proper MCP response
  */
 export function handleApiError(_error: any, operation: string): MCPToolResponse {
-  const errorMessage = formatApiError(error, operation);
+  const errorMessage = formatApiError(_error, operation);
 
   return {
     content: [
@@ -38,7 +38,7 @@ export function handleApiError(_error: any, operation: string): MCPToolResponse 
 }
 
 /**
- * Create a standardized error response
+ * Create a standardized _error response
  */
 export function createErrorResponse(message: string, suggestions?: string[]): MCPToolResponse {
   let text = `Error: ${message}`;
@@ -61,11 +61,11 @@ export function createErrorResponse(message: string, suggestions?: string[]): MC
 }
 
 /**
- * Extract error message from various error formats
+ * Extract _error message from various _error formats
  */
 export function extractErrorMessage(_error: any): string {
-  if (typeof error === 'string') {
-    return error;
+  if (typeof _error === 'string') {
+    return _error;
   }
 
   if (_error.message) {
@@ -80,5 +80,5 @@ export function extractErrorMessage(_error: any): string {
     return _error.response.statusText;
   }
 
-  return 'Unknown error occurred';
+  return 'Unknown _error occurred';
 }

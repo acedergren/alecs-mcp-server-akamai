@@ -31,13 +31,13 @@ export class ProgressBar extends EventEmitter {
 
   constructor(_options: ProgressOptions = {}) {
     super();
-    this.total = _options.total || 100;
-    this.format = _options.format || '[:bar] :percent :message';
-    this.barCompleteChar = _options.barCompleteChar || '█';
-    this.barIncompleteChar = _options.barIncompleteChar || '░';
-    this.barWidth = _options.barWidth || 40;
-    this.stream = _options.stream || process.stdout;
-    this.clear = _options.clear !== false;
+    this.total = __options.total || 100;
+    this.format = __options.format || '[:bar] :percent :message';
+    this.barCompleteChar = __options.barCompleteChar || '█';
+    this.barIncompleteChar = __options.barIncompleteChar || '░';
+    this.barWidth = __options.barWidth || 40;
+    this.stream = __options.stream || process.stdout;
+    this.clear = __options.clear !== false;
     this.startTime = Date.now();
   }
 
@@ -190,7 +190,7 @@ export class MultiProgress {
   }
 
   addBar(id: string, _options: ProgressOptions): ProgressBar {
-    const bar = new ProgressBar({ ...options, stream: this.stream });
+    const bar = new ProgressBar({ ..._options, stream: this.stream });
     this.bars.set(id, bar);
     return bar;
   }
@@ -229,9 +229,9 @@ export class MultiProgress {
 export function withProgress<T>(
   task: () => Promise<T>,
   message: string,
-  options?: { showSpinner?: boolean },
+  _options?: { showSpinner?: boolean },
 ): Promise<T> {
-  if (options?.showSpinner !== false) {
+  if (_options?.showSpinner !== false) {
     const spinner = new Spinner();
     spinner.start(message);
 
@@ -252,7 +252,7 @@ export function withProgress<T>(
 export async function trackProgress<T>(
   items: T[],
   processor: (item: T, index: number) => Promise<void>,
-  options: {
+  _options: {
     message?: string;
     format?: string;
     concurrent?: number;
@@ -260,10 +260,10 @@ export async function trackProgress<T>(
 ): Promise<void> {
   const progress = new ProgressBar({
     total: items.length,
-    format: _options.format || '[:bar] :percent :current/:total :message',
+    format: __options.format || '[:bar] :percent :current/:total :message',
   });
 
-  const concurrent = _options.concurrent || 1;
+  const concurrent = __options.concurrent || 1;
   let index = 0;
 
   async function processNext(): Promise<void> {
@@ -280,7 +280,7 @@ return;
 
     try {
       await processor(item, currentIndex);
-      progress.increment(1, _options.message || `Processing item ${currentIndex + 1}`);
+      progress.increment(1, __options.message || `Processing item ${currentIndex + 1}`);
     } catch (_error) {
       progress.update({
         current: progress['current'],

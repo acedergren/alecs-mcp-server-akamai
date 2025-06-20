@@ -350,7 +350,7 @@ export function formatBulkOperationResults(results: any[]): string {
       response += 'To fix these errors:\n';
       const uniqueErrors = [...new Set(failed.map((r) => r.error))];
       uniqueErrors.forEach((error, index) => {
-        response += `${index + 1}. ${getFixSuggestion(error)}\n`;
+        response += `${index + 1}. ${getFixSuggestion(_error)}\n`;
       });
     } else {
       response += 'Multiple errors occurred. Common issues:\n';

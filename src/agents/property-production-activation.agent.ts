@@ -40,7 +40,7 @@ export class PropertyProductionActivationAgent {
 
     try {
       // Step 1: Validate property exists and get current version
-      console.error('[ProductionActivation] Step 1: Validating property...');
+      console.log('[ 1: Validating property...');
       const propertyResult = await getProperty(this.client, {
         propertyId: config.propertyId,
       });
@@ -53,7 +53,7 @@ export class PropertyProductionActivationAgent {
       }
 
       // Step 2: Activate to production
-      console.error('[ProductionActivation] Step 2: Activating to production network...');
+      console.log('[ 2: Activating to production network...');
       const version = config.version || 1;
       const activationResult = await activateProperty(this.client, {
         propertyId: config.propertyId,
@@ -76,7 +76,7 @@ export class PropertyProductionActivationAgent {
       result.success = true;
 
       // Step 3: Provide time estimates based on hostname status
-      console.error('[ProductionActivation] Step 3: Calculating completion estimates...');
+      console.log('[ 3: Calculating completion estimates...');
       const isNewHostname = this.checkIfNewHostname(responseText);
 
       if (isNewHostname) {
@@ -109,9 +109,9 @@ export class PropertyProductionActivationAgent {
 
       return result;
     } catch (_error) {
-      console.error('[ProductionActivation] Error:', error);
+      console.error('[ProductionActivation] Error:', _error);
       result.errors!.push(
-        `Activation error: ${_error instanceof Error ? _error.message : String(_error)}`,
+        `Activation _error: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
       return result;
     }
@@ -152,7 +152,7 @@ export class PropertyProductionActivationAgent {
         // Still pending, wait before next check
         await new Promise((resolve) => setTimeout(resolve, checkInterval));
       } catch (_error) {
-        console.error('[ProductionActivation] Status check error:', error);
+        console.error('[ProductionActivation] Status check _error:', _error);
         // Continue waiting
       }
     }
@@ -195,7 +195,7 @@ export async function activatePropertyToProduction(
     if (result.errors && result.errors.length > 0) {
       responseText += '## Errors\n\n';
       result.errors.forEach((_error) => {
-        responseText += `- ${error}\n`;
+        responseText += `- ${_error}\n`;
       });
     }
   }
