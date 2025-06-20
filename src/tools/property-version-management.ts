@@ -291,7 +291,7 @@ export async function batchCreateVersions(
         results.push({
           propertyId: prop.propertyId,
           success: false,
-          error: error.message || 'Unknown error',
+          error: _error.message || 'Unknown error',
         });
       }
     }

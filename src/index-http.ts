@@ -43,8 +43,8 @@ async function startHttpServer() {
     // await alecsServer.startWithTransport(httpTransport);
 
   } catch (_error) {
-    logger.error('Failed to start HTTP server', {
-      error: error instanceof Error ? error.message : String(error),
+    logger._error('Failed to start HTTP server', {
+      _error: _error instanceof Error ? _error.message : String(_error),
     });
     process.exit(1);
   }

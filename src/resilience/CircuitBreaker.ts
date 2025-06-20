@@ -89,7 +89,7 @@ export class CircuitBreaker extends EventEmitter {
           nextAttempt: this.nextAttempt,
           timeUntilRetry: this.nextAttempt - Date.now()
         });
-        throw error;
+        throw _error;
       } else {
         // Time to try half-open
         this.moveToHalfOpen();
@@ -104,8 +104,8 @@ export class CircuitBreaker extends EventEmitter {
       return result;
     } catch (_error) {
       const responseTime = performance.now() - startTime;
-      this.onFailure(error as Error, responseTime);
-      throw error;
+      this.onFailure(_error as Error, responseTime);
+      throw _error;
     }
   }
 
@@ -148,7 +148,7 @@ export class CircuitBreaker extends EventEmitter {
 
     // Check if this is an expected error that shouldn't trigger circuit breaker
     const isExpectedError = this.config.expectedErrors.some(
-      ExpectedError => error instanceof ExpectedError
+      ExpectedError => _error instanceof ExpectedError
     );
 
     if (isExpectedError) {
@@ -160,7 +160,7 @@ export class CircuitBreaker extends EventEmitter {
     this.successes = 0; // Reset success count
 
     // Check for timeout
-    if (error.message.includes('timeout')) {
+    if (_error.message.includes('timeout')) {
       this.metrics.timeouts++;
     }
 
@@ -428,4 +428,3 @@ export class CircuitBreaker extends EventEmitter {
   }
 }
 
-export default CircuitBreaker;

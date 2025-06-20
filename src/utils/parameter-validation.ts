@@ -357,13 +357,13 @@ export function validateParameters<T>(schema: z.ZodSchema<T>, params: unknown): 
   try {
     return schema.parse(params);
   } catch (_error) {
-    if (error instanceof z.ZodError) {
-      const errorMessages = error.errors
+    if (_error instanceof z.ZodError) {
+      const errorMessages = _error.errors
         .map((err) => `${err.path.join('.')}: ${err.message}`)
         .join(', ');
       throw new Error(`Parameter validation failed: ${errorMessages}`);
     }
-    throw error;
+    throw _error;
   }
 }
 

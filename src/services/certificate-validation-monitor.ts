@@ -123,7 +123,7 @@ export class CertificateValidationMonitor extends EventEmitter {
         this.emit(
           'validation:failed',
           enrollmentId,
-          error instanceof Error ? error.message : String(error),
+          _error instanceof Error ? _error.message : String(_error),
         );
       }
     }, checkInterval * 1000);
@@ -198,10 +198,10 @@ return false;
       const domainState = this.validationStates.get(enrollmentId)?.get(domain);
       if (domainState) {
         domainState.status = ValidationStatus.FAILED;
-        domainState.error = error instanceof Error ? error.message : String(error);
+        domainState.error = _error instanceof Error ? _error.message : String(_error);
         this.emit('domain:failed', domain, domainState.error);
       }
-      throw error;
+      throw _error;
     }
   }
 

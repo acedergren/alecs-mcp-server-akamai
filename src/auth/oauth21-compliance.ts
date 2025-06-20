@@ -355,7 +355,7 @@ export class OAuth21ComplianceManager {
       return validatedMetadata;
     } catch (_error) {
       logger.error('Failed to fetch authorization server metadata', { issuer, error });
-      throw error;
+      throw _error;
     }
   }
 

@@ -104,7 +104,7 @@ export async function importZoneViaAXFR(
       ],
     };
   } catch (_error) {
-    return formatError('import zone via AXFR', error);
+    return formatError('import zone via AXFR', _error);
   }
 }
 
@@ -225,7 +225,7 @@ export async function parseZoneFile(
       ],
     };
   } catch (_error) {
-    return formatError('parse zone file', error);
+    return formatError('parse zone file', _error);
   }
 }
 
@@ -287,7 +287,7 @@ export async function bulkImportRecords(
         } catch (_error) {
           errors.push({
             record: `${record.name} ${record.type}`,
-            error: error instanceof Error ? error.message : JSON.stringify(error),
+            _error: _error instanceof Error ? _error.message : JSON.stringify(_error),
           });
         }
       }
@@ -329,8 +329,8 @@ export async function bulkImportRecords(
 
     if (errors.length > 0) {
       text += '## ❌ Failed Records\n\n';
-      errors.slice(0, 20).forEach((error) => {
-        text += `- **${error.record}:** ${error.error}\n`;
+      errors.slice(0, 20).forEach((_error) => {
+        text += `- **${_error.record}:** ${_error.error}\n`;
       });
       if (errors.length > 20) {
         text += `\n... and ${errors.length - 20} more errors\n`;
@@ -363,7 +363,7 @@ export async function bulkImportRecords(
       ],
     };
   } catch (_error) {
-    return formatError('bulk import records', error);
+    return formatError('bulk import records', _error);
   }
 }
 
@@ -418,7 +418,7 @@ export async function convertZoneToPrimary(
       ],
     };
   } catch (_error) {
-    return formatError('convert zone to primary', error);
+    return formatError('convert zone to primary', _error);
   }
 }
 
@@ -555,7 +555,7 @@ export async function generateMigrationInstructions(
       ],
     };
   } catch (_error) {
-    return formatError('generate migration instructions', error);
+    return formatError('generate migration instructions', _error);
   }
 }
 
@@ -731,7 +731,7 @@ export async function importFromCloudflare(
       ],
     };
   } catch (_error) {
-    return formatError('import from Cloudflare', error);
+    return formatError('import from Cloudflare', _error);
   }
 }
 
@@ -981,7 +981,7 @@ async function validateDNSRecords(records: ZoneFileRecord[]): Promise<
         name: record.name,
         type: record.type,
         valid: false,
-        error: error instanceof Error ? error.message : 'Validation failed',
+        _error: _error instanceof Error ? _error.message : 'Validation failed',
       });
     }
   }
@@ -1082,7 +1082,7 @@ async function validateSingleRecord(record: DNSRecordSet): Promise<{
       name: record.name,
       type: record.type,
       valid: false,
-      error: error instanceof Error ? error.message : 'Validation error',
+      _error: _error instanceof Error ? _error.message : 'Validation _error',
     };
   }
 }
@@ -1112,19 +1112,19 @@ function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+  if (_error instanceof Error) {
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions
-    if (error.message.includes('zone') && error.message.includes('exist')) {
+    if (_error.message.includes('zone') && _error.message.includes('exist')) {
       solution = '**Solution:** Create the zone first using "Create primary zone [domain]"';
-    } else if (error.message.includes('parse')) {
+    } else if (_error.message.includes('parse')) {
       solution = '**Solution:** Check zone file format. Ensure it follows BIND format.';
-    } else if (error.message.includes('AXFR')) {
+    } else if (_error.message.includes('AXFR')) {
       solution = '**Solution:** Ensure the master server allows zone transfers from Akamai IPs.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

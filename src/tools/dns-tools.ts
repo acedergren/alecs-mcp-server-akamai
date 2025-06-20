@@ -197,7 +197,7 @@ export async function listZones(
   } catch (_error) {
     spinner.fail('Failed to fetch DNS zones');
     console.error('Error listing DNS zones:', error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -241,7 +241,7 @@ export async function getZone(
     };
   } catch (_error) {
     console.error('Error getting DNS zone:', error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -310,7 +310,7 @@ queryParams.gid = args.groupId;
   } catch (_error) {
     spinner.fail(`Failed to create zone: ${args.zone}`);
     console.error('Error creating DNS zone:', error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -368,7 +368,7 @@ queryParams.types = args.types.join(',');
     };
   } catch (_error) {
     console.error('Error listing DNS records:', error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -389,10 +389,10 @@ export async function getChangeList(
     });
     return response;
   } catch (_error: any) {
-    if (error.message?.includes('404')) {
+    if (_error.message?.includes('404')) {
       return null;
     }
-    throw error;
+    throw _error;
   }
 }
 
@@ -461,9 +461,9 @@ export async function submitChangeList(
         lastError = error;
 
         // Check if it's a rate limit error
-        if (error.message?.includes('429') || error.statusCode === 429) {
+        if (_error.message?.includes('429') || _error.statusCode === 429) {
           const retryAfter =
-            error.headers?.['retry-after'] ||
+            _error.headers?.['retry-after'] ||
             Math.min(
               opts.retryConfig.initialDelay! * Math.pow(2, attempt),
               opts.retryConfig.maxDelay!,
@@ -477,7 +477,7 @@ export async function submitChangeList(
         }
 
         // For other errors, only retry on transient failures
-        if (isTransientError(error) && attempt < opts.retryConfig.maxRetries!) {
+        if (isTransientError(_error) && attempt < opts.retryConfig.maxRetries!) {
           const delay = Math.min(
             opts.retryConfig.initialDelay! * Math.pow(2, attempt),
             opts.retryConfig.maxDelay!,
@@ -488,7 +488,7 @@ export async function submitChangeList(
         }
 
         // Non-retryable error or max retries reached
-        throw error;
+        throw _error;
       }
     }
 
@@ -560,7 +560,7 @@ export async function submitChangeList(
     if (spinner) {
 spinner.fail('Failed to submit changelist');
 }
-    throw error;
+    throw _error;
   }
 }
 
@@ -569,12 +569,12 @@ spinner.fail('Failed to submit changelist');
  */
 function isTransientError(_error: any): boolean {
   // Network errors
-  if (error.code && ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNREFUSED'].includes(error.code)) {
+  if (_error.code && ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNREFUSED'].includes(_error.code)) {
     return true;
   }
 
   // HTTP errors that might be transient
-  const statusCode = error.statusCode || error.response?.status;
+  const statusCode = _error.statusCode || _error.response?.status;
   if (statusCode && [502, 503, 504].includes(statusCode)) {
     return true;
   }
@@ -615,18 +615,18 @@ export async function discardChangeList(
       lastError = error;
 
       // Don't retry on 404 - changelist doesn't exist
-      if (error.message?.includes('404') || error.statusCode === 404) {
+      if (_error.message?.includes('404') || _error.statusCode === 404) {
         return; // Consider success - changelist is gone
       }
 
       // Retry on transient errors
-      if (isTransientError(error) && attempt < config.maxRetries) {
+      if (isTransientError(_error) && attempt < config.maxRetries) {
         const delay = config.initialDelay * Math.pow(2, attempt);
         await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
 
-      throw error;
+      throw _error;
     }
   }
 
@@ -686,7 +686,7 @@ export async function waitForZoneActivation(
       await new Promise((resolve) => setTimeout(resolve, delay));
     } catch (_error: any) {
       // Handle rate limiting with exponential backoff
-      if (error.message?.includes('429') || error.statusCode === 429) {
+      if (_error.message?.includes('429') || _error.statusCode === 429) {
         consecutiveErrors++;
 
         if (consecutiveErrors >= maxConsecutiveErrors) {
@@ -702,12 +702,12 @@ export async function waitForZoneActivation(
       }
 
       // For other errors, check if transient
-      if (isTransientError(error)) {
+      if (isTransientError(_error)) {
         consecutiveErrors++;
 
         if (consecutiveErrors >= maxConsecutiveErrors) {
           throw new Error(
-            `Failed to get zone status after ${maxConsecutiveErrors} attempts: ${error.message}`,
+            `Failed to get zone status after ${maxConsecutiveErrors} attempts: ${_error.message}`,
           );
         }
 
@@ -716,7 +716,7 @@ export async function waitForZoneActivation(
       }
 
       // Non-transient error
-      throw error;
+      throw _error;
     }
   }
 
@@ -765,7 +765,7 @@ continue;
       }
     } catch (_error: any) {
       const errorMessage: string =
-        error instanceof Error ? error.message : String(error || 'Unknown error');
+        _error instanceof Error ? _error.message : String(error || 'Unknown error');
       result.failed.push({
         zone,
         error: errorMessage,
@@ -952,7 +952,7 @@ export async function upsertRecord(
   } catch (_error) {
     spinner.fail('Failed to update DNS record');
     console.error('Error updating DNS record:', error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -1013,7 +1013,7 @@ export async function deleteRecord(
   } catch (_error) {
     spinner.fail('Failed to delete DNS record');
     console.error('Error deleting DNS record:', error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -1114,13 +1114,13 @@ export async function activateZoneChanges(
     spinner.fail('Failed to activate zone changes');
 
     // Provide helpful error messages
-    if (error.message?.includes('No pending changelist')) {
+    if (_error.message?.includes('No pending changelist')) {
       return {
         content: [
           {
             type: 'text',
             text:
-              `${icons.error} ${error.message}\n\n` +
+              `${icons.error} ${_error.message}\n\n` +
               `${icons.info} To make changes:\n` +
               '  1. Use upsertRecord to add/update records\n' +
               '  2. Use deleteRecord to remove records\n' +
@@ -1130,6 +1130,6 @@ export async function activateZoneChanges(
       };
     }
 
-    throw error;
+    throw _error;
   }
 }

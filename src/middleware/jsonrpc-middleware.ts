@@ -6,7 +6,7 @@
 import {
   JsonRpcRequest,
   JsonRpcResponse,
-  JsonRpcError,
+  // JsonRpcError,
   JsonRpcErrorCode,
   createJsonRpcError,
   createJsonRpcSuccess,
@@ -53,8 +53,8 @@ export class JsonRpcMiddleware {
           request._meta, // Preserve metadata
         );
       } catch (_error) {
-        // Handle errors and create proper error response
-        return this.createErrorResponse(request.id ?? null, error, request._meta);
+        // Handle errors and create proper _error response
+        return this.createErrorResponse(request.id ?? null, _error, request._meta);
       }
     };
   }
@@ -68,23 +68,23 @@ export class JsonRpcMiddleware {
     meta?: Record<string, unknown>,
   ): JsonRpcResponse {
     // Handle different error types
-    if (error instanceof Error) {
+    if (_error instanceof Error) {
       // Check for specific error types that map to JSON-RPC error codes
-      if (error.message.includes('not found') || error.message.includes('unknown method')) {
+      if (_error.message.includes('not found') || _error.message.includes('unknown method')) {
         return createJsonRpcError(
           id,
           JsonRpcErrorCode.MethodNotFound,
-          error.message,
+          _error.message,
           undefined,
           meta,
         );
       }
 
-      if (error.message.includes('invalid') || error.message.includes('validation')) {
+      if (_error.message.includes('invalid') || _error.message.includes('validation')) {
         return createJsonRpcError(
           id,
           JsonRpcErrorCode.InvalidParams,
-          error.message,
+          _error.message,
           undefined,
           meta,
         );
@@ -94,8 +94,8 @@ export class JsonRpcMiddleware {
       return createJsonRpcError(
         id,
         JsonRpcErrorCode.InternalError,
-        error.message,
-        error.stack,
+        _error.message,
+        _error.stack,
         meta,
       );
     }
@@ -117,7 +117,7 @@ export class JsonRpcMiddleware {
       id,
       JsonRpcErrorCode.InternalError,
       'An unknown error occurred',
-      String(error),
+      String(_error),
       meta,
     );
   }
@@ -228,7 +228,7 @@ export class BatchRequestHandler {
             createJsonRpcError(
               request.id,
               JsonRpcErrorCode.InternalError,
-              error instanceof Error ? error.message : 'Unknown error',
+              _error instanceof Error ? _error.message : 'Unknown _error',
             ),
           );
         }

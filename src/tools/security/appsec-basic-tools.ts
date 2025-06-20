@@ -97,7 +97,7 @@ export const listAppSecConfigurations = {
         content: [
           {
             type: 'text',
-            text: `Failed to list APPSEC configurations: ${error instanceof Error ? error.message : String(error)}`,
+            text: `Failed to list APPSEC configurations: ${_error instanceof Error ? _error.message : String(_error)}`,
           },
         ],
       };
@@ -153,7 +153,7 @@ export const getAppSecConfiguration = {
         content: [
           {
             type: 'text',
-            text: `Failed to get APPSEC configuration: ${error instanceof Error ? error.message : String(error)}`,
+            text: `Failed to get APPSEC configuration: ${_error instanceof Error ? _error.message : String(_error)}`,
           },
         ],
       };

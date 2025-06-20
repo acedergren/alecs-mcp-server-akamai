@@ -80,7 +80,7 @@ export const listAppSecConfigurations = {
     } catch (_error) {
       return {
         success: false,
-        error: `Failed to list APPSEC configurations: ${error instanceof Error ? error.message : String(error)}`,
+        _error: `Failed to list APPSEC configurations: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },
@@ -130,7 +130,7 @@ export const getAppSecConfiguration = {
     } catch (_error) {
       return {
         success: false,
-        error: `Failed to get APPSEC configuration: ${error instanceof Error ? error.message : String(error)}`,
+        _error: `Failed to get APPSEC configuration: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },
@@ -199,7 +199,7 @@ export const createWAFPolicy = {
     } catch (_error) {
       return {
         success: false,
-        error: `Failed to create WAF policy: ${error instanceof Error ? error.message : String(error)}`,
+        _error: `Failed to create WAF policy: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },
@@ -285,7 +285,7 @@ export const getSecurityEvents = {
     } catch (_error) {
       return {
         success: false,
-        error: `Failed to get security events: ${error instanceof Error ? error.message : String(error)}`,
+        _error: `Failed to get security events: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },
@@ -354,7 +354,7 @@ export const activateSecurityConfiguration = {
     } catch (_error) {
       return {
         success: false,
-        error: `Failed to activate security configuration: ${error instanceof Error ? error.message : String(error)}`,
+        _error: `Failed to activate security configuration: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },
@@ -407,7 +407,7 @@ export const getSecurityActivationStatus = {
     } catch (_error) {
       return {
         success: false,
-        error: `Failed to get activation status: ${error instanceof Error ? error.message : String(error)}`,
+        _error: `Failed to get activation status: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },

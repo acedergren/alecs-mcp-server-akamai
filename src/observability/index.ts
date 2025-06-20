@@ -151,7 +151,7 @@ export class ObservabilityStack extends EventEmitter {
       );
     } catch (_error) {
       this.emit('initializationError', error);
-      throw error;
+      throw _error;
     }
   }
 
@@ -473,7 +473,7 @@ export class ObservabilityStack extends EventEmitter {
       } catch (_error) {
         results[name] = {
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: _error instanceof Error ? _error.message : 'Unknown error',
         };
       }
     }

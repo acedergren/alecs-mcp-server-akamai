@@ -314,7 +314,7 @@ export class CustomerExperienceImpactAnalyzer {
   /**
    * Calculate overall customer experience health
    */
-  calculateOverallHealth(failureRate: number, criticalFailu_res: number): string {
+  calculateOverallHealth(failureRate: number, criticalFailures: number): string {
     if (criticalFailures > 0 || failureRate > 0.3) {
 return 'POOR';
 }
@@ -1036,7 +1036,7 @@ return false;
   /**
    * Prioritize actions by customer impact
    */
-  prioritizeByCustomerImpact(testResults: TestResults, analysisResults: any) {
+  prioritizeByCustomerImpact(testResults: TestResults, _analysisResults: any) {
     const actions: Action[] = [];
 
     // Extract all potential actions from analysis
@@ -1075,7 +1075,7 @@ return false;
   /**
    * Helper methods for calculations
    */
-  identifyCriticalFailures(testResults: TestResults, analysisResults: any): TestFailure[] {
+  identifyCriticalFailures(testResults: TestResults, _analysisResults: any): TestFailure[] {
     const failures = testResults.failures || [];
     return failures.filter((failure) => {
       const message = failure.message?.toLowerCase() || '';
@@ -1133,7 +1133,7 @@ return false;
       }));
   }
 
-  calculateRiskLevel(failureRate: number, criticalFailu_res: number): string {
+  calculateRiskLevel(failureRate: number, criticalFailures: number): string {
     if (criticalFailures > 0 || failureRate > 0.3) {
 return 'CRITICAL';
 }

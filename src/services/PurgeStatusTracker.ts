@@ -119,7 +119,7 @@ export class PurgeStatusTracker {
         60 * 60 * 1000,
       ); // Every hour
     } catch (_error: any) {
-      logger.error(`Failed to initialize status persistence: ${error.message}`);
+      logger.error", { _error.message}`);
     }
   }
 
@@ -152,7 +152,7 @@ batch.completedAt = new Date(batch.completedAt);
             });
 
             operation.errors.forEach((_error: any) => {
-              error.occurredAt = new Date(error.occurredAt);
+              _error.occurredAt = new Date(_error.occurredAt);
             });
 
             this.operations.set(operationId, operation);
@@ -169,7 +169,7 @@ batch.completedAt = new Date(batch.completedAt);
 
       logger.info(`Loaded ${this.operations.size} purge operations from persistence`);
     } catch (_error: any) {
-      logger.error(`Failed to load operations: ${error.message}`);
+      logger.error", { _error.message}`);
     }
   }
 
@@ -179,7 +179,7 @@ batch.completedAt = new Date(batch.completedAt);
     try {
       await fs.writeFile(filePath, JSON.stringify(operation, null, 2));
     } catch (_error: any) {
-      logger.error(`Failed to persist operation ${operation.id}: ${error.message}`);
+      logger.error", { _error.message}`);
     }
   }
 
@@ -275,8 +275,8 @@ return;
 }
 
     try {
-      let completedBatches = 0;
-      let failedBatches = 0;
+      let _completedBatches = 0;
+      let _failedBatches = 0;
       let totalProcessed = 0;
 
       for (const batch of operation.batches) {
@@ -293,12 +293,12 @@ return;
           if (status.status === 'Done') {
             batch.status = 'completed';
             batch.completedAt = new Date();
-            completedBatches++;
+            _completedBatches++;
             totalProcessed += batch.objects.length;
           } else if (status.status === 'Failed') {
             batch.status = 'failed';
             batch.error = 'Purge operation failed';
-            failedBatches++;
+            _failedBatches++;
 
             this.addError(operation, {
               type: 'batch_failure',
@@ -310,11 +310,11 @@ return;
             });
           }
         } catch (_error: any) {
-          logger.error(`Failed to check status for batch ${batch.purgeId}: ${error.message}`);
+          logger.error", { _error.message}`);
 
           this.addError(operation, {
             type: 'network_error',
-            message: `Status check failed: ${error.message}`,
+            message: `Status check failed: ${_error.message}`,
             retryable: true,
             guidance: 'Network issue, status will be checked again automatically',
             occurredAt: new Date(),
@@ -363,12 +363,12 @@ return;
       // Notify progress callbacks
       this.notifyProgressUpdate(operation);
     } catch (_error: any) {
-      logger.error(`Failed to update operation status ${operationId}: ${error.message}`);
+      logger.error", { _error.message}`);
     }
   }
 
   private addError(operation: PurgeOperation, _error: OperationError): void {
-    operation.errors.push(error);
+    operation.errors.push(_error);
 
     // Limit error history
     if (operation.errors.length > 50) {

@@ -249,12 +249,12 @@ export async function importNetworkListFromCSV(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error importing CSV: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error importing CSV: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -335,12 +335,12 @@ export async function exportNetworkListToCSV(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error exporting CSV: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error exporting CSV: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -485,11 +485,11 @@ export async function bulkUpdateNetworkLists(
 
         output += `✅ ${update.uniqueId}: +${validAdd.length} -${validRemove.length}\n`;
       } catch (_error) {
-        const akamaiError = error as AkamaiError;
+        const akamaiError = _error as AkamaiError;
         results.push({
           uniqueId: update.uniqueId,
           success: false,
-          error: akamaiError.title || akamaiError.detail || 'Unknown error',
+          _error: akamaiError.title || akamaiError.detail || 'Unknown _error',
         });
 
         output += `❌ ${update.uniqueId}: ${akamaiError.title}\n`;
@@ -520,12 +520,12 @@ export async function bulkUpdateNetworkLists(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error in bulk update: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error in bulk update: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -651,7 +651,7 @@ export async function mergeNetworkLists(
           });
           output += `✅ Deleted ${sourceList.name}\n`;
         } catch (_error) {
-          const akamaiError = error as AkamaiError;
+          const akamaiError = _error as AkamaiError;
           output += `❌ Failed to delete ${sourceList.name}: ${akamaiError.title}\n`;
         }
       }
@@ -666,12 +666,12 @@ export async function mergeNetworkLists(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error merging network lists: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error merging network lists: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };

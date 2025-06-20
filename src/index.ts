@@ -20,14 +20,14 @@ import {
 import { z, type ZodSchema } from 'zod';
 
 import {
-  listZones,
-  getZone,
+  // listZones,
+  // getZone,
   createZone,
-  listRecords,
+  // listRecords,
   upsertRecord,
-  deleteRecord,
+  // deleteRecord,
 } from './tools/dns-tools';
-import { listProducts } from './tools/product-tools';
+// import { listProducts } from './tools/product-tools';
 import {
   activateProperty,
 } from './tools/property-manager-tools';
@@ -121,7 +121,7 @@ export class ALECSServer {
    */
   private setupErrorHandling(): void {
     process.on('uncaughtException', (_error: Error) => {
-      logger.error('Uncaught exception', { error: error.message, stack: error.stack });
+      logger.error('Uncaught exception', { error: _error.message, stack: _error.stack });
       process.exit(1);
     });
 
@@ -302,16 +302,16 @@ export class ALECSServer {
     } catch (_error) {
       const duration = Date.now() - context.startTime;
 
-      logger.error('Tool request failed', {
+      logger._error('Tool request failed', {
         ...context,
         duration,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+        _error: _error instanceof Error ? _error.message : String(_error),
+        stack: _error instanceof Error ? _error.stack : undefined,
       });
 
       return {
         success: false,
-        error: this.formatError(error),
+        _error: this.formatError(_error),
         metadata: {
           customer: context.customer || 'default',
           duration,
@@ -325,19 +325,19 @@ export class ALECSServer {
    * Format error for response
    */
   private formatError(_error: unknown): string {
-    if (error instanceof ConfigurationError) {
-      return `Configuration error: ${error.message}`;
+    if (_error instanceof ConfigurationError) {
+      return `Configuration error: ${_error.message}`;
     }
 
-    if (error instanceof z.ZodError) {
-      return `Validation error: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`;
+    if (_error instanceof z.ZodError) {
+      return `Validation error: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`;
     }
 
-    if (error instanceof Error) {
-      return error.message;
+    if (_error instanceof Error) {
+      return _error.message;
     }
 
-    return String(error);
+    return String(_error);
   }
 
   /**
@@ -407,7 +407,7 @@ export class ALECSServer {
 
       const tools: Tool[] = [];
 
-      for (const [name, entry] of this.toolRegistry) {
+      for (const [_name, entry] of this.toolRegistry) {
         tools.push(this.toolMetadataToMcpTool(entry.metadata));
       }
 
@@ -448,18 +448,18 @@ export class ALECSServer {
             ],
           };
         } catch (_error) {
-          if (error instanceof z.ZodError) {
+          if (_error instanceof z.ZodError) {
             throw new McpError(
               ErrorCode.InvalidParams,
-              `Invalid parameters: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
+              `Invalid parameters: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
             );
           }
 
-          if (error instanceof McpError) {
-            throw error;
+          if (_error instanceof McpError) {
+            throw _error;
           }
 
-          throw new McpError(ErrorCode.InternalError, this.formatError(error));
+          throw new McpError(ErrorCode.InternalError, this.formatError(_error));
         }
       },
     );
@@ -480,7 +480,7 @@ export class ALECSServer {
       const transport = new StdioServerTransport();
 
       transport.onerror = (_error: Error) => {
-        logger.error('Transport error', { error: error.message, stack: error.stack });
+        logger.error('Transport error', { error: _error.message, stack: _error.stack });
       };
 
       transport.onclose = () => {
@@ -493,11 +493,11 @@ export class ALECSServer {
 
       logger.info('ALECS MCP Server ready and listening');
     } catch (_error) {
-      logger.error('Failed to start server', {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+      logger._error('Failed to start server', {
+        _error: _error instanceof Error ? _error.message : String(_error),
+        stack: _error instanceof Error ? _error.stack : undefined,
       });
-      throw error;
+      throw _error;
     }
   }
 }
@@ -510,9 +510,9 @@ async function main(): Promise<void> {
     const server = new ALECSServer();
     await server.start();
   } catch (_error) {
-    logger.error('Server initialization failed', {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+    logger._error('Server initialization failed', {
+      _error: _error instanceof Error ? _error.message : String(_error),
+      stack: _error instanceof Error ? _error.stack : undefined,
     });
     process.exit(1);
   }

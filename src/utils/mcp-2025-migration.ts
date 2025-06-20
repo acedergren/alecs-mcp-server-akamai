@@ -135,13 +135,13 @@ export function wrapToolHandler<T>(
         duration: Date.now() - startTime,
         version,
         tool: toSnakeCase(toolName),
-        errorType: error instanceof Error ? error.constructor.name : 'UnknownError',
+        errorType: _error instanceof Error ? _error.constructor.name : 'UnknownError',
       };
 
       return createMcp2025Response(
         false,
         undefined as any as T,
-        error instanceof Error ? error.message : 'Unknown error',
+        _error instanceof Error ? _error.message : 'Unknown error',
         meta,
       );
     }

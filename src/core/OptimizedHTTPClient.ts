@@ -230,13 +230,13 @@ export class OptimizedHTTPClient extends EventEmitter {
           }
         };
       } catch (_error) {
-        lastError = error as Error;
+        lastError = _error as Error;
         attempt++;
         this.metrics.failureCount++;
 
         if (attempt < this.config.retryAttempts) {
           const delay = this.calculateRetryDelay(attempt);
-          this.emit('requestRetry', { hostname, attempt, delay, error });
+          this.emit('requestRetry', { hostname, attempt, delay, _error });
           await this.sleep(delay);
         }
       }
@@ -423,4 +423,3 @@ export class OptimizedHTTPClient extends EventEmitter {
   }
 }
 
-export default OptimizedHTTPClient;

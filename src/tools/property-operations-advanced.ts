@@ -1417,7 +1417,7 @@ rules.behaviors = [];
           propertyId,
           propertyName: 'Unknown',
           success: false,
-          message: error instanceof Error ? error.message : 'Update failed',
+          message: _error instanceof Error ? _error.message : 'Update failed',
         });
       }
     }

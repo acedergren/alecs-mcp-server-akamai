@@ -296,13 +296,13 @@ export class BaseAkamaiClient {
    * Check if error is retryable
    */
   private isRetryableError(_error: Error): boolean {
-    if (error instanceof HttpError) {
+    if (_error instanceof HttpError) {
       // Retry on 5xx errors and rate limits
-      return error.statusCode >= 500 || error.statusCode === 429;
+      return _error.statusCode >= 500 || _error.statusCode === 429;
     }
-    if (error instanceof EdgeGridAuthError) {
+    if (_error instanceof EdgeGridAuthError) {
       // Retry on network errors
-      return error.code === 'NO_RESPONSE' || error.code === 'REQUEST_ERROR';
+      return _error.code === 'NO_RESPONSE' || _error.code === 'REQUEST_ERROR';
     }
     return false;
   }
@@ -312,8 +312,8 @@ export class BaseAkamaiClient {
    */
   private calculateRetryDelay(attempt: number, baseDelay: number, error?: Error): number {
     // For rate limit errors, use the reset time if available
-    if (error instanceof RateLimitError && error.rateLimit.reset) {
-      const resetTime = error.rateLimit.reset * 1000;
+    if (_error instanceof RateLimitError && _error.rateLimit.reset) {
+      const resetTime = _error.rateLimit.reset * 1000;
       const now = Date.now();
       const delay = Math.max(resetTime - now, 0);
       return delay + 1000; // Add 1 second buffer
@@ -336,12 +336,12 @@ export class BaseAkamaiClient {
     try {
       return schema.parse(data);
     } catch (_error) {
-      if (error instanceof z.ZodError) {
+      if (_error instanceof z.ZodError) {
         throw new Error(
-          `Response validation failed: ${error.errors.map((e) => e.message).join(', ')}`,
+          `Response validation failed: ${_error.errors.map((e) => e.message).join(', ')}`,
         );
       }
-      throw error;
+      throw _error;
     }
   }
 

@@ -15,7 +15,7 @@ import {
 import { CustomerConfigManager } from '@/services/customer-config-manager';
 import { OAuthResourceServer } from '@/services/oauth-resource-server';
 import {
-  type OAuthResourceType,
+  // type OAuthResourceType,
   OAuthResourceType as ResourceType,
   OAuthOperation,
   BASE_OAUTH_SCOPES,

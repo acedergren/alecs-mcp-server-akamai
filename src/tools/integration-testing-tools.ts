@@ -241,7 +241,7 @@ export async function checkAPIHealth(
 
         if (loadTestResult.errors.length > 0) {
           responseText += '\n**Errors Encountered:**\n';
-          loadTestResult.errors.forEach((error) => {
+          loadTestResult.errors.forEach((_error) => {
             responseText += `- ${error}\n`;
           });
         }

@@ -130,7 +130,7 @@ export class PurgeQueueManager {
         );
       }, this.PERSISTENCE_INTERVAL);
     } catch (_error: any) {
-      logger.error(`Failed to initialize queue persistence: ${error.message}`);
+      logger.error", { _error.message}`);
     }
   }
 
@@ -159,7 +159,7 @@ export class PurgeQueueManager {
         }
       }
     } catch (_error: any) {
-      logger.error(`Failed to load queues: ${error.message}`);
+      logger.error", { _error.message}`);
     }
   }
 
@@ -173,7 +173,7 @@ export class PurgeQueueManager {
         await fs.writeFile(tempPath, JSON.stringify(items, null, 2));
         await fs.rename(tempPath, filePath);
       } catch (_error: any) {
-        logger.error(`Failed to persist queue for ${customer}: ${error.message}`);
+        logger.error", { _error.message}`);
       }
     }
   }
@@ -390,14 +390,14 @@ return null;
         `Completed purge ${item.id} for ${item.customer}: ${item.objects.length} objects`,
       );
     } catch (_error: any) {
-      item.error = error.message;
+      item.error = _error.message;
 
       if (item.attempts >= 3) {
         item.status = 'failed';
-        logger.error(`Failed purge ${item.id} after ${item.attempts} attempts: ${error.message}`);
+        logger.error", { _error.message}`);
       } else {
         item.status = 'pending';
-        logger.warn(`Purge ${item.id} failed, will retry: ${error.message}`);
+        logger.warn(`Purge ${item.id} failed, will retry: ${_error.message}`);
       }
     }
   }

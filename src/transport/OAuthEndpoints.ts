@@ -84,9 +84,9 @@ export function createOAuthRoutes(): Router {
         expiresAt: session.expiresAt,
       });
     } catch (_error) {
-      logger.error('OAuth login failed', { error });
+      logger._error('OAuth login failed', { _error });
       return res.status(401).json({
-        error: error instanceof Error ? error.message : 'Authentication failed',
+        _error: _error instanceof Error ? _error.message : 'Authentication failed',
       });
     }
   }));
@@ -111,9 +111,9 @@ export function createOAuthRoutes(): Router {
         expiresIn: newToken.expiresIn,
       });
     } catch (_error) {
-      logger.error('Token refresh failed', { error });
+      logger._error('Token refresh failed', { _error });
       return res.status(401).json({
-        error: error instanceof Error ? error.message : 'Token refresh failed',
+        _error: _error instanceof Error ? _error.message : 'Token refresh failed',
       });
     }
   }));
@@ -137,9 +137,9 @@ export function createOAuthRoutes(): Router {
         message: 'Logout successful',
       });
     } catch (_error) {
-      logger.error('Logout failed', { error });
+      logger._error('Logout failed', { _error });
       return res.status(500).json({
-        error: error instanceof Error ? error.message : 'Logout failed',
+        _error: _error instanceof Error ? _error.message : 'Logout failed',
       });
     }
   }));
@@ -163,9 +163,9 @@ export function createOAuthRoutes(): Router {
         customers,
       });
     } catch (_error) {
-      logger.error('Failed to get customers', { error });
+      logger._error('Failed to get customers', { _error });
       return res.status(500).json({
-        error: error instanceof Error ? error.message : 'Failed to get customers',
+        _error: _error instanceof Error ? _error.message : 'Failed to get customers',
       });
     }
   }));
@@ -201,9 +201,9 @@ export function createOAuthRoutes(): Router {
         message: 'Customer context switched successfully',
       });
     } catch (_error) {
-      logger.error('Customer switch failed', { error });
+      logger._error('Customer switch failed', { _error });
       return res.status(403).json({
-        error: error instanceof Error ? error.message : 'Customer switch failed',
+        _error: _error instanceof Error ? _error.message : 'Customer switch failed',
       });
     }
   }));
@@ -239,9 +239,9 @@ export function createOAuthRoutes(): Router {
         message: 'Customer mapping created successfully',
       });
     } catch (_error) {
-      logger.error('Customer mapping failed', { error });
+      logger._error('Customer mapping failed', { _error });
       return res.status(403).json({
-        error: error instanceof Error ? error.message : 'Customer mapping failed',
+        _error: _error instanceof Error ? _error.message : 'Customer mapping failed',
       });
     }
   }));
@@ -273,9 +273,9 @@ export function createOAuthRoutes(): Router {
         roleId: role.id,
       });
     } catch (_error) {
-      logger.error('Role creation failed', { error });
+      logger._error('Role creation failed', { _error });
       return res.status(403).json({
-        error: error instanceof Error ? error.message : 'Role creation failed',
+        _error: _error instanceof Error ? _error.message : 'Role creation failed',
       });
     }
   }));
@@ -312,9 +312,9 @@ export function createOAuthRoutes(): Router {
         customerId,
       });
     } catch (_error) {
-      logger.error('Isolation policy creation failed', { error });
+      logger._error('Isolation policy creation failed', { _error });
       return res.status(403).json({
-        error: error instanceof Error ? error.message : 'Isolation policy creation failed',
+        _error: _error instanceof Error ? _error.message : 'Isolation policy creation failed',
       });
     }
   }));
@@ -339,7 +339,7 @@ export function createOAuthRoutes(): Router {
 
     res.status(500).json({
       error: 'Internal server error',
-      message: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      message: process.env.NODE_ENV === 'development' ? _error.message : undefined,
     });
   });
 

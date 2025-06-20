@@ -151,20 +151,20 @@ class MinimalALECSServer {
       } catch (_error) {
         console.error('❌ Tool error:', error);
 
-        if (error instanceof z.ZodError) {
+        if (_error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
+            `Invalid parameters: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
           );
         }
 
-        if (error instanceof McpError) {
-          throw error;
+        if (_error instanceof McpError) {
+          throw _error;
         }
 
         throw new McpError(
           ErrorCode.InternalError,
-          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
+          `Tool execution failed: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
       }
     });
@@ -203,7 +203,7 @@ async function main() {
 }
 
 // Handle uncaught errors
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', (_error) => {
   console.error('❌ Uncaught exception:', error);
   process.exit(1);
 });

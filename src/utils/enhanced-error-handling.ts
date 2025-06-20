@@ -62,12 +62,12 @@ export class EnhancedErrorHandler {
    * Handle error with comprehensive analysis and suggestions
    */
   handle(_error: any, _context: ErrorContext = {}): EnhancedErrorResult {
-    const httpStatus = this.extractHttpStatus(error);
-    const akamaiError = this.parseAkamaiErrorResponse(error);
+    const httpStatus = this.extractHttpStatus(_error);
+    const akamaiError = this.parseAkamaiErrorResponse(_error);
     const errorType = this.categorizeError(httpStatus, akamaiError, context);
 
     // Extract request ID and add to context for suggestions
-    const requestId = akamaiError?.requestId || this.extractRequestId(error);
+    const requestId = akamaiError?.requestId || this.extractRequestId(_error);
     if (requestId && !context.requestId) {
       context.requestId = requestId;
     }
@@ -79,7 +79,7 @@ export class EnhancedErrorHandler {
       error: this.formatTechnicalError(akamaiError, httpStatus),
       userMessage: this.formatUserMessage(httpStatus, akamaiError, errorType, context),
       shouldRetry: this.isRetryable(httpStatus, errorType),
-      retryAfter: this.extractRetryAfter(error),
+      retryAfter: this.extractRetryAfter(_error),
       requestId,
       errorCode: akamaiError?.type,
       errorType,
@@ -119,7 +119,7 @@ export class EnhancedErrorHandler {
         // Don't retry if error is not retryable
         if (!errorResult.shouldRetry) {
           this.logFailure(attempts, context);
-          throw error;
+          throw _error;
         }
 
         // Don't retry on last attempt
@@ -143,25 +143,25 @@ export class EnhancedErrorHandler {
    * Extract HTTP status from various error formats
    */
   private extractHttpStatus(_error: any): number {
-    if (error.response?.status) {
-return error.response.status;
+    if (_error.response?.status) {
+return _error.response.status;
 }
-    if (error.status) {
-return error.status;
+    if (_error.status) {
+return _error.status;
 }
-    if (error.statusCode) {
-return error.statusCode;
+    if (_error.statusCode) {
+return _error.statusCode;
 }
-    if (error.code === 'ECONNREFUSED') {
+    if (_error.code === 'ECONNREFUSED') {
 return 503;
 }
-    if (error.code === 'ETIMEDOUT') {
+    if (_error.code === 'ETIMEDOUT') {
 return 408;
 }
-    if (error.code === 'ENOTFOUND') {
+    if (_error.code === 'ENOTFOUND') {
 return 503;
 }
-    if (error.code === 'ECONNRESET') {
+    if (_error.code === 'ECONNRESET') {
 return 503;
 }
     return 500;
@@ -171,7 +171,7 @@ return 503;
    * Parse Akamai error response with enhanced extraction
    */
   private parseAkamaiErrorResponse(_error: any): AkamaiErrorResponse | null {
-    let errorData = error.response?.data || error.data || error;
+    let errorData = _error.response?.data || _error.data || error;
 
     // Handle string responses
     if (typeof errorData === 'string') {
@@ -181,7 +181,7 @@ return 503;
         return {
           title: 'API Error',
           detail: errorData,
-          status: this.extractHttpStatus(error),
+          status: this.extractHttpStatus(_error),
         };
       }
     }
@@ -192,9 +192,9 @@ return 503;
         type: errorData.type,
         title: errorData.title,
         detail: errorData.detail,
-        status: errorData.status || this.extractHttpStatus(error),
+        status: errorData.status || this.extractHttpStatus(_error),
         instance: errorData.instance,
-        requestId: errorData.requestId || this.extractRequestId(error),
+        requestId: errorData.requestId || this.extractRequestId(_error),
         errors: errorData.errors,
       };
     }
@@ -478,7 +478,7 @@ return ErrorType.VALIDATION;
    * Extract retry-after value from error response
    */
   private extractRetryAfter(_error: any): number | undefined {
-    const retryAfter = error.response?.headers?.['retry-after'] || error.headers?.['retry-after'];
+    const retryAfter = _error.response?.headers?.['retry-after'] || _error.headers?.['retry-after'];
 
     if (retryAfter) {
       const seconds = parseInt(retryAfter, 10);
@@ -493,11 +493,11 @@ return ErrorType.VALIDATION;
    */
   private extractRequestId(_error: any): string | undefined {
     return (
-      error.response?.headers?.['x-request-id'] ||
-      error.headers?.['x-request-id'] ||
-      error.response?.headers?.['x-trace-id'] ||
-      error.headers?.['x-trace-id'] ||
-      error.response?.data?.requestId
+      _error.response?.headers?.['x-request-id'] ||
+      _error.headers?.['x-request-id'] ||
+      _error.response?.headers?.['x-trace-id'] ||
+      _error.headers?.['x-trace-id'] ||
+      _error.response?.data?.requestId
     );
   }
 
@@ -565,7 +565,7 @@ return ErrorType.VALIDATION;
       totalAttempts: attempts.length,
       attempts: attempts.map((a) => ({
         attempt: a.attempt,
-        errorType: a.error.errorType,
+        errorType: a._error.errorType,
         delay: a.delay,
       })),
       finalError: attempts[attempts.length - 1]?.error,

@@ -162,8 +162,8 @@ export class MiddlewareStack {
     let index = 0;
 
     const _next: NextFunction = async (error?: Error) => {
-      if (error) {
-        throw error;
+      if (_error) {
+        throw _error;
       }
 
       if (index >= this.middlewares.length) {
@@ -290,15 +290,15 @@ export const Middleware = {
           console.error('Middleware error:', {
             requestId: req.requestId,
             toolName: req.toolName,
-            error: error instanceof Error ? error.message : String(error),
-            stack: includeStackTrace && error instanceof Error ? error.stack : undefined,
+            error: _error instanceof Error ? _error.message : String(_error),
+            stack: includeStackTrace && _error instanceof Error ? _error.stack : undefined,
           });
         }
 
-        if (error instanceof Error) {
-          res.error(error.message, error.name);
+        if (_error instanceof Error) {
+          res.error(_error.message, _error.name);
         } else {
-          res.error(String(error), 'UNKNOWN_ERROR');
+          res.error(String(_error), 'UNKNOWN_ERROR');
         }
       }
     };

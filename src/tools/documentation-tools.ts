@@ -97,7 +97,7 @@ export async function generateDocumentationIndex(
     };
   } catch (_error) {
     console.error('Error generating documentation index:', error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -162,7 +162,7 @@ export async function generateAPIReference(
     };
   } catch (_error) {
     console.error('Error generating API reference:', error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -265,7 +265,7 @@ export async function generateFeatureDocumentation(
     };
   } catch (_error) {
     console.error('Error generating feature documentation:', error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -337,7 +337,7 @@ export async function updateDocumentation(
     };
   } catch (_error) {
     console.error('Error updating documentation:', error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -439,7 +439,7 @@ continue;
     };
   } catch (_error) {
     console.error('Error generating changelog:', error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -511,7 +511,7 @@ export async function createKnowledgeArticle(
     };
   } catch (_error) {
     console.error('Error creating knowledge article:', error);
-    throw error;
+    throw _error;
   }
 }
 

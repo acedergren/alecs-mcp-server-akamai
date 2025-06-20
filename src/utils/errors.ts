@@ -22,12 +22,12 @@ export class ErrorTranslator {
    */
   translateError(_error: any, context?: ErrorContext): TranslatedError {
     // Handle different error types
-    if (error.response) {
-      return this.translateHTTPError(error.response, context);
-    } else if (error.code) {
-      return this.translateSystemError(error, context);
-    } else if (error.message) {
-      return this.translateGenericError(error, context);
+    if (_error.response) {
+      return this.translateHTTPError(_error.response, context);
+    } else if (_error.code) {
+      return this.translateSystemError(_error, context);
+    } else if (_error.message) {
+      return this.translateGenericError(_error, context);
     }
 
     return {
@@ -67,19 +67,19 @@ export class ErrorTranslator {
     const suggestions: string[] = [];
 
     errors.forEach((_error: any) => {
-      if (error.detail) {
-        messages.push(this.cleanErrorMessage(error.detail));
+      if (_error.detail) {
+        messages.push(this.cleanErrorMessage(_error.detail));
       }
 
       // Add specific suggestions based on error type
-      if (error.type === 'missing_required_field') {
+      if (_error.type === 'missing_required_field') {
         suggestions.push(
-          `Please provide the required field: ${error.errorLocation || error.field}`,
+          `Please provide the required field: ${_error.errorLocation || _error.field}`,
         );
-      } else if (error.type === 'invalid_format') {
-        suggestions.push(this.getFormatSuggestion(error));
-      } else if (error.type === 'value_out_of_range') {
-        suggestions.push(`Value must be between ${error.min} and ${error.max}`);
+      } else if (_error.type === 'invalid_format') {
+        suggestions.push(this.getFormatSuggestion(_error));
+      } else if (_error.type === 'value_out_of_range') {
+        suggestions.push(`Value must be between ${_error.min} and ${_error.max}`);
       }
     });
 
@@ -213,8 +213,8 @@ export class ErrorTranslator {
     };
 
     return (
-      errorMap[error.code] || {
-        message: error.message || 'System error occurred',
+      errorMap[_error.code] || {
+        message: _error.message || 'System error occurred',
         suggestions: ['Check your system configuration', 'Try again'],
       }
     );
@@ -222,7 +222,7 @@ export class ErrorTranslator {
 
   private translateGenericError(_error: any, _context?: ErrorContext): TranslatedError {
     return {
-      message: this.cleanErrorMessage(error.message || 'An error occurred'),
+      message: this.cleanErrorMessage(_error.message || 'An error occurred'),
       suggestions: ['Please try again', 'Check your input parameters'],
     };
   }
@@ -256,8 +256,8 @@ export class ErrorTranslator {
   }
 
   private getFormatSuggestion(_error: any): string {
-    const field = error.field || error.errorLocation || 'value';
-    const format = error.expectedFormat || error.format;
+    const field = _error.field || _error.errorLocation || 'value';
+    const format = _error.expectedFormat || _error.format;
 
     const formatSuggestions: Record<string, string> = {
       hostname: 'Use only the domain name without protocol or path (e.g., example.com)',
@@ -295,7 +295,7 @@ export class ErrorTranslator {
    * Format error for conversational response
    */
   formatConversationalError(_error: any, context?: ErrorContext): string {
-    const translated = this.translateError(error, context);
+    const translated = this.translateError(_error, context);
 
     let response = `Error: ${translated.message}\n\n`;
 
@@ -317,7 +317,7 @@ export class ErrorTranslator {
    * Extract actionable next steps from error
    */
   getNextSteps(_error: any, context?: ErrorContext): string[] {
-    const translated = this.translateError(error, context);
+    const translated = this.translateError(_error, context);
     return translated.suggestions;
   }
 }
@@ -373,7 +373,7 @@ function getFixSuggestion(_error: string): string {
   };
 
   for (const [key, suggestion] of Object.entries(fixMap)) {
-    if (error.toLowerCase().includes(key)) {
+    if (_error.toLowerCase().includes(key)) {
       return suggestion;
     }
   }
@@ -413,13 +413,13 @@ export class ErrorRecovery {
   static canRetry(_error: any): boolean {
     // Retryable error codes
     const retryableCodes = ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNREFUSED'];
-    if (error.code && retryableCodes.includes(error.code)) {
+    if (_error.code && retryableCodes.includes(_error.code)) {
       return true;
     }
 
     // Retryable HTTP status codes
     const retryableStatus = [408, 429, 502, 503, 504];
-    if (error.response?.status && retryableStatus.includes(error.response.status)) {
+    if (_error.response?.status && retryableStatus.includes(_error.response.status)) {
       return true;
     }
 
@@ -428,8 +428,8 @@ export class ErrorRecovery {
 
   static getRetryDelay(attempt: number, _error: any): number {
     // Check for Retry-After header
-    if (error.response?.headers?.['retry-after']) {
-      const retryAfter = error.response.headers['retry-after'];
+    if (_error.response?.headers?.['retry-after']) {
+      const retryAfter = _error.response.headers['retry-after'];
       return parseInt(retryAfter) * 1000; // Convert to milliseconds
     }
 
@@ -453,16 +453,16 @@ export class ErrorRecovery {
       try {
         return await operation();
       } catch (_error) {
-        lastError = error;
+        lastError = _error;
 
-        if (!this.canRetry(error) || attempt === maxAttempts - 1) {
-          throw error;
+        if (!this.canRetry(_error) || attempt === maxAttempts - 1) {
+          throw _error;
         }
 
-        const delay = this.getRetryDelay(attempt, error);
+        const delay = this.getRetryDelay(attempt, _error);
 
         if (onRetry) {
-          onRetry(attempt + 1, error);
+          onRetry(attempt + 1, _error);
         }
 
         await new Promise((resolve) => setTimeout(resolve, delay));

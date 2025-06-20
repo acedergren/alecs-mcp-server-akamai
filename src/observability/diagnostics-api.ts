@@ -222,10 +222,10 @@ export class DiagnosticsAPI extends EventEmitter {
         const healthCheck: HealthCheck = {
           name,
           status: 'critical',
-          message: `Health check failed: ${error instanceof Error ? error.message : String(error)}`,
+          message: `Health check failed: ${_error instanceof Error ? _error.message : String(_error)}`,
           lastCheck: Date.now(),
           duration: 0,
-          metadata: { error: error instanceof Error ? error.stack : String(error) },
+          metadata: { error: _error instanceof Error ? _error.stack : String(_error) },
         };
 
         this.healthChecks.set(name, healthCheck);
@@ -567,7 +567,7 @@ return false;
           return {
             name: 'disk_space',
             status: 'unknown',
-            message: `Unable to check disk space: ${error instanceof Error ? error.message : String(error)}`,
+            message: `Unable to check disk space: ${_error instanceof Error ? _error.message : String(_error)}`,
             lastCheck: Date.now(),
             duration: 0,
           };

@@ -220,7 +220,7 @@ export class PropertyOnboardingAgent {
     } catch (_error) {
       console.error('[PropertyOnboarding] Error:', error);
       result.errors!.push(
-        `Unexpected error: ${error instanceof Error ? error.message : String(error)}`,
+        `Unexpected error: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
       return result;
     }
@@ -851,7 +851,7 @@ export async function onboardProperty(
     responseText = '# ❌ Property Onboarding Failed\n\n';
     if (result.errors && result.errors.length > 0) {
       responseText += '## Errors\n\n';
-      result.errors.forEach((error) => {
+      result.errors.forEach((_error) => {
         responseText += `- ${error}\n`;
       });
     }

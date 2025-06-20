@@ -194,7 +194,7 @@ export class TokenValidator {
       logger.error('Token validation error', { error });
       return {
         valid: false,
-        error: error instanceof Error ? error.message : 'Token validation failed',
+        error: _error instanceof Error ? _error.message : 'Token validation failed',
       };
     }
   }
@@ -259,17 +259,17 @@ export class TokenValidator {
         claims: verified,
       };
     } catch (_error) {
-      if (error instanceof jwt.TokenExpiredError) {
+      if (_error instanceof jwt.TokenExpiredError) {
         return { valid: false, _error: 'Token expired' };
       }
-      if (error instanceof jwt.NotBeforeError) {
+      if (_error instanceof jwt.NotBeforeError) {
         return { valid: false, _error: 'Token not yet valid' };
       }
-      if (error instanceof jwt.JsonWebTokenError) {
-        return { valid: false, _error: error.message };
+      if (_error instanceof jwt.JsonWebTokenError) {
+        return { valid: false, _error: _error.message };
       }
 
-      logger.error('JWT validation error', { error: error instanceof Error ? error.message : String(error) });
+      logger.error('JWT validation error', { error: _error instanceof Error ? _error.message : String(_error) });
       return { valid: false, _error: 'JWT validation failed' };
     }
   }
@@ -332,7 +332,7 @@ export class TokenValidator {
       logger.error('Token introspection error', { error });
       return {
         valid: false,
-        error: error instanceof Error ? error.message : 'Introspection failed',
+        error: _error instanceof Error ? _error.message : 'Introspection failed',
       };
     }
   }

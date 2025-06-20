@@ -301,7 +301,7 @@ export async function createBulkEdgeHostnames(
       } catch (_error) {
         results.failed.push({
           hostname,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: _error instanceof Error ? _error.message : 'Unknown error',
         });
       }
     }

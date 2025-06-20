@@ -274,11 +274,11 @@ export function withLogging<T extends (...args: any[]) => Promise<any>>(
         toolName,
         duration,
         error: true,
-        errorMessage: error instanceof Error ? error.message : String(error),
-        errorStack: error instanceof Error ? error.stack : undefined,
+        errorMessage: _error instanceof Error ? _error.message : String(_error),
+        errorStack: _error instanceof Error ? _error.stack : undefined,
       });
 
-      throw error;
+      throw _error;
     }
   }) as T;
 }
@@ -312,14 +312,14 @@ export function trackPerformance(
     } catch (_error) {
       const duration = Date.now() - startTime;
 
-      logger.debug(`Performance (error): ${propertyKey}`, {
+      logger.debug(`Performance (_error): ${propertyKey}`, {
         correlationId,
         method: propertyKey,
         duration,
         error: true,
       });
 
-      throw error;
+      throw _error;
     }
   };
 

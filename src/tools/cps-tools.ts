@@ -641,28 +641,28 @@ function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+  if (_error instanceof Error) {
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
-    if (error.message.includes('401') || error.message.includes('credentials')) {
+    if (_error.message.includes('401') || _error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials with CPS permissions.';
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
       solution =
         '**Solution:** Your API credentials need CPS read/write permissions. Contact your account team.';
-    } else if (error.message.includes('404') || error.message.includes('not found')) {
+    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
       solution =
         '**Solution:** The enrollment was not found. Use "List certificate enrollments" to see available certificates.';
-    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
+    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
       solution =
         '**Solution:** Invalid request parameters. Check domain names and contact information.';
-    } else if (error.message.includes('contract')) {
+    } else if (_error.message.includes('contract')) {
       solution =
         '**Solution:** Specify a valid contract ID. Use "List groups" to find available contracts.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

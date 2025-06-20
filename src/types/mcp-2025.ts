@@ -357,7 +357,7 @@ export function createMcp2025Response<T>(
     response.data = data;
   }
 
-  if (error) {
+  if (_error) {
     response.error = error;
   }
 

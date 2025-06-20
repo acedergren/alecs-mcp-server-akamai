@@ -1375,7 +1375,7 @@ export async function listPropertyVersionHostnames(
     if (args.validateCnames && response.errors?.length > 0) {
       text += '\n## ⚠️ Validation Errors\n';
       for (const error of response.errors) {
-        text += `- ${error.detail}\n`;
+        text += `- ${_error.detail}\n`;
       }
     }
 
@@ -1419,23 +1419,23 @@ function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+  if (_error instanceof Error) {
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
-    if (error.message.includes('401') || error.message.includes('credentials')) {
+    if (_error.message.includes('401') || _error.message.includes('credentials')) {
       solution = '**Solution:** Check your ~/.edgerc file has valid credentials.';
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
       solution = '**Solution:** Your API credentials may lack the necessary permissions.';
-    } else if (error.message.includes('404') || error.message.includes('not found')) {
+    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
       solution = '**Solution:** The requested resource was not found. Verify the ID is correct.';
-    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
+    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
       solution = '**Solution:** Invalid request parameters. Check the input values.';
-    } else if (error.message.includes('409') || error.message.includes('Conflict')) {
+    } else if (_error.message.includes('409') || _error.message.includes('Conflict')) {
       solution = '**Solution:** Resource conflict. The operation may already be in progress.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

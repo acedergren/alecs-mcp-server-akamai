@@ -215,10 +215,10 @@ export async function validateRuleTree(
     if (validation.errors.length > 0) {
       responseText += `## ❌ Errors (${validation.errors.length})\n`;
       validation.errors.forEach((error, idx) => {
-        responseText += `${idx + 1}. **${error.severity}** at \`${error.path}\`\n`;
-        responseText += `   - ${error.message}\n`;
-        if (error.fix) {
-          responseText += `   - **Fix:** ${error.fix}\n`;
+        responseText += `${idx + 1}. **${_error.severity}** at \`${_error.path}\`\n`;
+        responseText += `   - ${_error.message}\n`;
+        if (_error.fix) {
+          responseText += `   - **Fix:** ${_error.fix}\n`;
         }
       });
       responseText += '\n';
@@ -810,7 +810,7 @@ acc[cat] = [];
       content: [
         {
           type: 'text',
-          text: `❌ Failed to list rule templates: ${error instanceof Error ? error.message : String(error)}`,
+          text: `❌ Failed to list rule templates: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };

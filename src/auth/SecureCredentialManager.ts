@@ -161,10 +161,10 @@ export class SecureCredentialManager {
         action: CredentialAction.CREATE,
         resource: 'credential',
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: _error instanceof Error ? _error.message : 'Unknown error',
       });
 
-      throw error;
+      throw _error;
     }
   }
 
@@ -236,10 +236,10 @@ export class SecureCredentialManager {
         action: CredentialAction.DECRYPT,
         resource: `credential:${credentialId}`,
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: _error instanceof Error ? _error.message : 'Unknown error',
       });
 
-      throw error;
+      throw _error;
     }
   }
 
@@ -311,10 +311,10 @@ export class SecureCredentialManager {
         action: CredentialAction.ROTATE,
         resource: `credential:${credentialId}`,
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: _error instanceof Error ? _error.message : 'Unknown error',
       });
 
-      throw error;
+      throw _error;
     }
   }
 

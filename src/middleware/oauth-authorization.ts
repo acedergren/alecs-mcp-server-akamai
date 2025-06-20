@@ -3,7 +3,7 @@
  * Handles token validation and resource authorization
  */
 
-import { createHash } from 'crypto';
+// import { createHash } from 'crypto';
 
 import { type Request, type Response, type NextFunction, type RequestHandler } from 'express';
 
@@ -76,7 +76,7 @@ export function createOAuthMiddleware(
 ): RequestHandler {
   const {
     resourceServer,
-    realm = 'Akamai API',
+    // realm = 'Akamai API',
     requireAuth = true,
     tokenExtractor = extractBearerToken,
     errorHandler = defaultErrorHandler,
@@ -136,14 +136,14 @@ export function createOAuthMiddleware(
 
       next();
     } catch (_error) {
-      if (error instanceof OAuthError) {
-        errorHandler(error, req, res, next);
+      if (_error instanceof OAuthError) {
+        errorHandler(_error, req, res, next);
       } else {
         const oauthError = new OAuthError(
-          'Internal server error',
+          'Internal server _error',
           500,
           'server_error',
-          error instanceof Error ? error.message : 'Unknown error',
+          _error instanceof Error ? _error.message : 'Unknown _error',
         );
         errorHandler(oauthError, req, res, next);
       }
@@ -253,14 +253,14 @@ export function requireResourceAccess(
 
       next();
     } catch (_error) {
-      if (error instanceof OAuthError) {
-        defaultErrorHandler(error, req, res, next);
+      if (_error instanceof OAuthError) {
+        defaultErrorHandler(_error, req, res, next);
       } else {
         const oauthError = new OAuthError(
-          'Authorization error',
+          'Authorization _error',
           500,
           'server_error',
-          error instanceof Error ? error.message : 'Unknown error',
+          _error instanceof Error ? _error.message : 'Unknown _error',
         );
         defaultErrorHandler(oauthError, req, res, next);
       }

@@ -35,13 +35,13 @@ export class EdgeGridClient {
     // Add request interceptor for EdgeGrid authentication
     this.axiosInstance.interceptors.request.use(
       (config) => this.addAuthHeaders(config),
-      (error) => Promise.reject(error),
+      (_error) => Promise.reject(_error),
     );
 
     // Add response interceptor for error handling
     this.axiosInstance.interceptors.response.use(
       (response) => response,
-      (error) => this.handleError(error),
+      (_error) => this.handleError(_error),
     );
   }
 
@@ -122,13 +122,13 @@ export class EdgeGridClient {
   }
 
   private async handleError(_error: any): Promise<never> {
-    if (error.response) {
-      const { status, data } = error.response;
+    if (_error.response) {
+      const { status, data } = _error.response;
       logger.error(`API Error [${status}]`, {
         customer: this.customerName,
         status,
         data,
-        path: error.config?.url,
+        path: _error.config?.url,
       });
 
       // Extract error message from Akamai API response
@@ -146,18 +146,18 @@ export class EdgeGridClient {
       }
 
       throw new Error(errorMessage);
-    } else if (error.request) {
+    } else if (_error.request) {
       logger.error('No response from API', {
         customer: this.customerName,
-        error: error.message,
+        error: _error.message,
       });
       throw new Error('No response from Akamai API');
     } else {
       logger.error('Request error', {
         customer: this.customerName,
-        error: error.message,
+        error: _error.message,
       });
-      throw new Error(error.message);
+      throw new Error(_error.message);
     }
   }
 

@@ -146,7 +146,7 @@ return;
           return {
             name: 'mcp_server_connectivity',
             status: 'critical',
-            message: `Health check failed: ${error instanceof Error ? error.message : String(error)}`,
+            message: `Health check failed: ${_error instanceof Error ? _error.message : String(_error)}`,
             lastCheck: Date.now(),
             duration: 0,
           };
@@ -257,7 +257,7 @@ return;
         return { tools };
       } catch (_error) {
         instrumentation.finish(error as Error);
-        throw error;
+        throw _error;
       }
     });
 
@@ -333,7 +333,7 @@ return;
         instrumentation.finish(error as Error);
 
         // Re-throw to maintain MCP error handling
-        throw error;
+        throw _error;
       }
     });
   }
@@ -399,7 +399,7 @@ return;
         return result;
       } catch (_error) {
         apiInstrumentation.finish(error as Error);
-        throw error;
+        throw _error;
       }
     }
 

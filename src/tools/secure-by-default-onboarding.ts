@@ -698,7 +698,7 @@ function generateFailureReport(state: OnboardingState, _error: any, args: any): 
   let text = '# ❌ Secure Property Onboarding Failed\n\n';
 
   text += '## Error Details\n';
-  text += `- **Error:** ${error instanceof Error ? error.message : String(error)}\n`;
+  text += `- **Error:** ${_error instanceof Error ? _error.message : String(_error)}\n`;
   text += `- **Failed At:** ${state.failed?.step || 'Unknown step'}\n\n`;
 
   text += '## Completed Steps\n';
@@ -767,10 +767,10 @@ async function rollbackProperty(client: AkamaiClient, propertyId: string): Promi
 function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
 
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+  if (_error instanceof Error) {
+    errorMessage += `: ${_error.message}`;
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   return {

@@ -145,13 +145,13 @@ export class EdgeGridAuth {
     // Add request interceptor for EdgeGrid authentication
     this.axiosInstance.interceptors.request.use(
       (config) => this.addAuthHeaders(config),
-      (error) => Promise.reject(this.createAuthError(error)),
+      (_error) => Promise.reject(this.createAuthError(_error)),
     );
 
     // Add response interceptor for error handling
     this.axiosInstance.interceptors.response.use(
       (response) => this.handleResponse(response),
-      (error) => this.handleError(error),
+      (_error) => this.handleError(_error),
     );
   }
 
@@ -365,37 +365,37 @@ export class EdgeGridAuth {
    * Handle request/response errors
    */
   private async handleError(_error: AxiosError): Promise<never> {
-    if (error.response) {
-      const errorResponse = error.response.data as EdgeGridErrorResponse;
-      const errorMessage = this.extractErrorMessage(errorResponse, error.response.status);
+    if (_error.response) {
+      const errorResponse = _error.response.data as EdgeGridErrorResponse;
+      const errorMessage = this.extractErrorMessage(errorResponse, _error.response.status);
 
-      logger.error(`API Error [${error.response.status}]`, {
+      logger.error(`API error [${_error.response.status}]`, {
         customer: this.customerName,
-        status: error.response.status,
-        path: error.config?.url,
+        status: _error.response.status,
+        path: _error.config?.url,
         error: errorResponse,
       });
 
       throw new EdgeGridAuthError(
         errorMessage,
-        `API_ERROR_${error.response.status}`,
-        error.response.status,
+        `API_ERROR_${_error.response.status}`,
+        _error.response.status,
         errorResponse,
       );
-    } else if (error.request) {
+    } else if (_error.request) {
       logger.error('No response from API', {
         customer: this.customerName,
-        error: error.message,
+        error: _error.message,
       });
 
       throw new EdgeGridAuthError('No response from Akamai API', 'NO_RESPONSE');
     } else {
       logger.error('Request error', {
         customer: this.customerName,
-        error: error.message,
+        error: _error.message,
       });
 
-      throw new EdgeGridAuthError(error.message, 'REQUEST_ERROR');
+      throw new EdgeGridAuthError(_error.message, 'REQUEST_ERROR');
     }
   }
 
@@ -403,8 +403,8 @@ export class EdgeGridAuth {
    * Create authentication error
    */
   private createAuthError(_error: unknown): EdgeGridAuthError {
-    if (error instanceof Error) {
-      return new EdgeGridAuthError(error.message, 'AUTH_ERROR');
+    if (_error instanceof Error) {
+      return new EdgeGridAuthError(_error.message, 'AUTH_ERROR');
     }
     return new EdgeGridAuthError('Unknown authentication error', 'AUTH_ERROR');
   }

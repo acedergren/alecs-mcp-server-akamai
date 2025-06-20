@@ -169,12 +169,12 @@ export async function validateGeographicCodes(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error validating geographic codes: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error validating geographic codes: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -258,12 +258,12 @@ export async function getASNInformation(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error looking up ASN information: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error looking up ASN information: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -372,12 +372,12 @@ export async function generateGeographicBlockingRecommendations(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error generating recommendations: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error generating recommendations: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -480,12 +480,12 @@ export async function generateASNSecurityRecommendations(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error generating ASN recommendations: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error generating ASN recommendations: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };

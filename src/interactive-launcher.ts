@@ -266,8 +266,8 @@ function launchServer(serverFile: string, name: string) {
     },
   });
 
-  child.on('error', (error) => {
-    console.error(`❌ Failed to start server: ${error.message}`);
+  child.on('error', (_error) => {
+    console.error(`❌ Failed to start server: ${_error.message}`);
     process.exit(1);
   });
 

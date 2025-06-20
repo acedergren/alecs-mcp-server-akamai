@@ -141,7 +141,7 @@ export async function createPropertyVersion(
       ],
     };
   } catch (_error) {
-    return formatError('create property version', error);
+    return formatError('create property version', _error);
   }
 }
 
@@ -263,7 +263,7 @@ export async function getPropertyRules(
       ],
     };
   } catch (_error) {
-    return formatError('get property rules', error);
+    return formatError('get property rules', _error);
   }
 }
 
@@ -340,7 +340,7 @@ export async function updatePropertyRules(
     if (response.errors?.length > 0) {
       text += '⚠️ **Validation Errors:**\n';
       response.errors.forEach((_error: any) => {
-        text += `- ${error.detail}\n`;
+        text += `- ${_error.detail}\n`;
       });
       text += '\n';
     }
@@ -366,7 +366,7 @@ export async function updatePropertyRules(
       ],
     };
   } catch (_error) {
-    return formatError('update property rules', error);
+    return formatError('update property rules', _error);
   }
 }
 
@@ -444,7 +444,7 @@ export async function createEdgeHostname(
       ],
     };
   } catch (_error) {
-    return formatError('create edge hostname', error);
+    return formatError('create edge hostname', _error);
   }
 }
 
@@ -511,7 +511,7 @@ export async function addPropertyHostname(
       ],
     };
   } catch (_error) {
-    return formatError('add property hostname', error);
+    return formatError('add property hostname', _error);
   }
 }
 
@@ -585,7 +585,7 @@ export async function removePropertyHostname(
       ],
     };
   } catch (_error) {
-    return formatError('remove property hostname', error);
+    return formatError('remove property hostname', _error);
   }
 }
 
@@ -680,7 +680,7 @@ export async function activateProperty(
       ],
     };
   } catch (_error) {
-    if (error instanceof Error && error.message.includes('warnings')) {
+    if (_error instanceof Error && _error.message.includes('warnings')) {
       return {
         content: [
           {
@@ -749,7 +749,7 @@ export async function getActivationStatus(
     if (activation.errors && activation.errors.length > 0) {
       text += '\n## Errors\n';
       activation.errors.forEach((_error: any) => {
-        text += `- ${error.messageId}: ${error.detail}\n`;
+        text += `- ${_error.messageId}: ${_error.detail}\n`;
       });
     }
 
@@ -778,7 +778,7 @@ export async function getActivationStatus(
       ],
     };
   } catch (_error) {
-    return formatError('get activation status', error);
+    return formatError('get activation status', _error);
   }
 }
 
@@ -872,7 +872,7 @@ acc[act.network] = [];
       ],
     };
   } catch (_error) {
-    return formatError('list property activations', error);
+    return formatError('list property activations', _error);
   }
 }
 
@@ -1041,7 +1041,7 @@ export async function updatePropertyWithDefaultDV(
       ],
     };
   } catch (_error) {
-    return formatError('update property with Default DV', error);
+    return formatError('update property with Default DV', _error);
   }
 }
 
@@ -1236,7 +1236,7 @@ export async function updatePropertyWithCPSCertificate(
       ],
     };
   } catch (_error) {
-    return formatError('update property with CPS certificate', error);
+    return formatError('update property with CPS certificate', _error);
   }
 }
 
@@ -1350,7 +1350,7 @@ ${args.autoSelectBase ? `- Auto-selected base version: ${baseVersion}` : ''}
       ],
     };
   } catch (_error) {
-    return formatError('create enhanced property version', error);
+    return formatError('create enhanced property version', _error);
   }
 }
 
@@ -1464,7 +1464,7 @@ export async function getVersionDiff(
       ],
     };
   } catch (_error) {
-    return formatError('compare property versions', error);
+    return formatError('compare property versions', _error);
   }
 }
 
@@ -1574,7 +1574,7 @@ text += `  └ Tags: ${metadata.tags}\n`;
       ],
     };
   } catch (_error) {
-    return formatError('list property versions', error);
+    return formatError('list property versions', _error);
   }
 }
 
@@ -1700,7 +1700,7 @@ ${!args.autoActivate ? `- Activate: "Activate property ${args.propertyId} versio
       ],
     };
   } catch (_error) {
-    return formatError('rollback property version', error);
+    return formatError('rollback property version', _error);
   }
 }
 
@@ -1776,7 +1776,7 @@ export async function batchVersionOperations(
               operation: args.operations[index]?.operation || '',
               result,
             });
-          } else if (error) {
+          } else if (_error) {
             errors.push({
               propertyId: propertyId || '',
               operation: args.operations[index]?.operation || '',
@@ -1850,7 +1850,7 @@ export async function batchVersionOperations(
     if (errors.length > 0) {
       text += '❌ **Failed Operations:**\n';
       errors.forEach((error, index) => {
-        text += `${index + 1}. ${error.propertyId} - ${error.operation}: ${error.error}\n`;
+        text += `${index + 1}. ${_error.propertyId} - ${_error.operation}: ${_error.error}\n`;
       });
       text += '\n';
     }
@@ -1872,7 +1872,7 @@ export async function batchVersionOperations(
       ],
     };
   } catch (_error) {
-    return formatError('batch version operations', error);
+    return formatError('batch version operations', _error);
   }
 }
 
@@ -1939,24 +1939,24 @@ function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+  if (_error instanceof Error) {
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
-    if (error.message.includes('401') || error.message.includes('credentials')) {
+    if (_error.message.includes('401') || _error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials for the customer section.';
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
       solution = '**Solution:** Your API credentials may lack the necessary permissions.';
-    } else if (error.message.includes('404') || error.message.includes('not found')) {
+    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
       solution = '**Solution:** The requested resource was not found. Verify the ID is correct.';
-    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
+    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
       solution = '**Solution:** Invalid request parameters. Check the input values.';
-    } else if (error.message.includes('409') || error.message.includes('Conflict')) {
+    } else if (_error.message.includes('409') || _error.message.includes('Conflict')) {
       solution = '**Solution:** Resource conflict. The operation may already be in progress.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

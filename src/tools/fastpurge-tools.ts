@@ -196,21 +196,21 @@ export const fastpurgeUrlInvalidate = {
         };
       }
     } catch (_error: any) {
-      logger.error(`FastPurge URL invalidate failed: ${error.message}`);
+      logger.error", { _error.message}`);
 
-      if (error instanceof AkamaiError) {
+      if (_error instanceof AkamaiError) {
         return {
           success: false,
-          error: error.code,
-          message: error.message,
+          error: _error.code,
+          message: _error.message,
           guidance:
-            error.code === 'RATE_LIMIT_EXCEEDED'
+            _error.code === 'RATE_LIMIT_EXCEEDED'
               ? 'Wait a few minutes before retrying, or use queue management for automatic rate limiting'
               : 'Check URL format and network parameters',
         };
       }
 
-      throw error;
+      throw _error;
     }
   },
 };
@@ -307,18 +307,18 @@ export const fastpurgeCpcodeInvalidate = {
             : undefined,
       };
     } catch (_error: any) {
-      logger.error(`FastPurge CP code invalidate failed: ${error.message}`);
+      logger.error", { _error.message}`);
 
-      if (error instanceof AkamaiError) {
+      if (_error instanceof AkamaiError) {
         return {
           success: false,
-          error: error.code,
-          message: error.message,
+          error: _error.code,
+          message: _error.message,
           guidance: 'Verify CP codes exist and are accessible in your account',
         };
       }
 
-      throw error;
+      throw _error;
     }
   },
 };
@@ -390,19 +390,19 @@ export const fastpurgeTagInvalidate = {
         tip: 'Use hierarchical tags (e.g., "product.123", "category.electronics") for better cache management',
       };
     } catch (_error: any) {
-      logger.error(`FastPurge tag invalidate failed: ${error.message}`);
+      logger.error", { _error.message}`);
 
-      if (error instanceof AkamaiError) {
+      if (_error instanceof AkamaiError) {
         return {
           success: false,
-          error: error.code,
-          message: error.message,
+          error: _error.code,
+          message: _error.message,
           guidance:
             'Check tag format - only alphanumeric characters, dots, underscores, and hyphens allowed',
         };
       }
 
-      throw error;
+      throw _error;
     }
   },
 };
@@ -484,18 +484,18 @@ export const fastpurgeStatusCheck = {
         };
       }
     } catch (_error: any) {
-      logger.error(`FastPurge status check failed: ${error.message}`);
+      logger.error", { _error.message}`);
 
-      if (error instanceof AkamaiError) {
+      if (_error instanceof AkamaiError) {
         return {
           success: false,
-          error: error.code,
-          message: error.message,
+          error: _error.code,
+          message: _error.message,
           guidance: 'Verify operation ID is correct and operation exists',
         };
       }
 
-      throw error;
+      throw _error;
     }
   },
 };
@@ -585,17 +585,17 @@ export const fastpurgeQueueStatus = {
 
       return response;
     } catch (_error: any) {
-      logger.error(`FastPurge queue status failed: ${error.message}`);
+      logger.error", { _error.message}`);
 
-      if (error instanceof AkamaiError) {
+      if (_error instanceof AkamaiError) {
         return {
           success: false,
-          error: error.code,
-          message: error.message,
+          error: _error.code,
+          message: _error.message,
         };
       }
 
-      throw error;
+      throw _error;
     }
   },
 };
@@ -708,18 +708,18 @@ export const fastpurgeEstimate = {
 
       return estimate;
     } catch (_error: any) {
-      logger.error(`FastPurge estimate failed: ${error.message}`);
+      logger.error", { _error.message}`);
 
-      if (error instanceof AkamaiError) {
+      if (_error instanceof AkamaiError) {
         return {
           success: false,
-          error: error.code,
-          message: error.message,
+          error: _error.code,
+          message: _error.message,
           guidance: 'Check operation parameters and object format',
         };
       }
 
-      throw error;
+      throw _error;
     }
   },
 };

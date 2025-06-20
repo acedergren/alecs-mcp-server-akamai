@@ -139,11 +139,11 @@ export async function validatePropertyActivation(
       validation.valid = false;
       rulesValidation.errors.forEach((_error: any) => {
         validation.errors.push({
-          severity: error.type === 'error' ? 'CRITICAL' : 'ERROR',
-          type: error.type,
-          detail: error.detail,
-          location: error.errorLocation,
-          resolution: getErrorResolution(error),
+          severity: _error.type === 'error' ? 'CRITICAL' : 'ERROR',
+          type: _error.type,
+          detail: _error.detail,
+          location: _error.errorLocation,
+          resolution: getErrorResolution(_error),
         });
       });
     }
@@ -239,12 +239,12 @@ export async function validatePropertyActivation(
     if (validation.errors.length > 0) {
       responseText += `### Errors (${validation.errors.length})\n`;
       validation.errors.forEach((error, index) => {
-        responseText += `${index + 1}. **${error.severity}**: ${error.detail}\n`;
-        if (error.location) {
-responseText += `   - Location: ${error.location}\n`;
+        responseText += `${index + 1}. **${_error.severity}**: ${_error.detail}\n`;
+        if (_error.location) {
+responseText += `   - Location: ${_error.location}\n`;
 }
-        if (error.resolution) {
-responseText += `   - Resolution: ${error.resolution}\n`;
+        if (_error.resolution) {
+responseText += `   - Resolution: ${_error.resolution}\n`;
 }
       });
       responseText += '\n';
@@ -293,7 +293,7 @@ responseText += `  - ${check.details}\n`;
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'validate property activation',
             parameters: args,
             timestamp: new Date(),
@@ -468,7 +468,7 @@ export async function activatePropertyWithMonitoring(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'activate property with monitoring',
             parameters: args,
             timestamp: new Date(),
@@ -531,7 +531,7 @@ export async function getActivationProgress(
     if (progress.errors && progress.errors.length > 0) {
       responseText += `### ❌ Errors (${progress.errors.length})\n`;
       progress.errors.forEach((error, index) => {
-        responseText += `${index + 1}. **${error.type}**: ${error.detail}\n`;
+        responseText += `${index + 1}. **${_error.type}**: ${_error.detail}\n`;
       });
       responseText += '\n';
     }
@@ -574,7 +574,7 @@ export async function getActivationProgress(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'get activation progress',
             parameters: args,
             timestamp: new Date(),
@@ -596,7 +596,7 @@ function getErrorResolution(_error: any): string {
     certificate_not_ready: 'Wait for certificate validation to complete',
   };
 
-  return resolutions[error.type] || 'Review the error details and update configuration';
+  return resolutions[_error.type] || 'Review the error details and update configuration';
 }
 
 async function checkCertificateStatus(hostnames: any[], network: string): Promise<PreflightCheck> {
@@ -844,7 +844,7 @@ function formatActivationFailure(
 
   if (progress.errors && progress.errors.length > 0) {
     progress.errors.forEach((error, index) => {
-      response += `${index + 1}. **${error.type}**: ${error.detail}\n`;
+      response += `${index + 1}. **${_error.type}**: ${_error.detail}\n`;
     });
   }
 
@@ -890,7 +890,7 @@ async function rollbackActivation(
       });
     }
   } catch (_error) {
-    console.error('Rollback failed:', error);
+    console._error('Rollback failed:', _error);
   }
 }
 
@@ -948,7 +948,7 @@ export async function cancelPropertyActivation(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'cancel property activation',
             parameters: args,
             timestamp: new Date(),
@@ -1047,7 +1047,7 @@ export async function createActivationPlan(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'create activation plan',
             parameters: args,
             timestamp: new Date(),

@@ -68,16 +68,16 @@ export function extractErrorMessage(_error: any): string {
     return error;
   }
 
-  if (error.message) {
-    return error.message;
+  if (_error.message) {
+    return _error.message;
   }
 
-  if (error.response?.data?.detail) {
-    return error.response.data.detail;
+  if (_error.response?.data?.detail) {
+    return _error.response.data.detail;
   }
 
-  if (error.response?.statusText) {
-    return error.response.statusText;
+  if (_error.response?.statusText) {
+    return _error.response.statusText;
   }
 
   return 'Unknown error occurred';

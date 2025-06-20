@@ -84,6 +84,7 @@ export interface TodoList {
 
 export interface GenerateOptions {
   // Add specific options here as needed
+  [key: string]: any; // Allow any additional properties
 }
 
 export interface ErrorItem {
@@ -913,7 +914,7 @@ return false;
     ];
 
     return dependencyRules.some(
-      (rule) => prerequisite.type === rule.prereq && rule.dep.includes(dependent.type),
+      (rule) => prerequisite.type === rule.pre_req && rule.dep.includes(dependent.type),
     );
   }
 

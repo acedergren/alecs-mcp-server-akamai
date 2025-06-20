@@ -110,14 +110,14 @@ export async function createACMEValidationRecords(
             results.failed++;
             results.errors.push({
               record: record.recordName,
-              error: retryError instanceof Error ? retryError.message : 'Unknown error',
+              _error: retryError instanceof Error ? retryError.message : 'Unknown _error',
             });
           }
         } else {
           results.failed++;
           results.errors.push({
             record: record.recordName,
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: _error instanceof Error ? _error.message : 'Unknown error',
           });
         }
       }
@@ -178,7 +178,7 @@ export async function createACMEValidationRecords(
       content: [
         {
           type: 'text',
-          text: `❌ Failed to create ACME validation records: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          text: `❌ Failed to create ACME validation records: ${_error instanceof Error ? _error.message : 'Unknown _error'}`,
         },
       ],
     };
@@ -353,8 +353,8 @@ export async function monitorCertificateValidation(
       await new Promise((resolve) => setTimeout(resolve, checkInterval));
     } catch (_error) {
       spinner.stop();
-      console.error(
-        `\n❌ Error checking validation status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      console._error(
+        `\n❌ Error checking validation status: ${_error instanceof Error ? _error.message : 'Unknown _error'}`,
       );
       await new Promise((resolve) => setTimeout(resolve, checkInterval));
     }

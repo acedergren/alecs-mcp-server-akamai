@@ -59,10 +59,10 @@ export class AkamaiOrchestrator {
     } catch (_error) {
       progress.update({
         current: progress['current'],
-        status: 'error',
-        message: `Initialization failed: ${error instanceof Error ? error.message : String(error)}`,
+        status: '_error',
+        message: `Initialization failed: ${_error instanceof Error ? _error.message : String(_error)}`,
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -169,10 +169,10 @@ export class AkamaiOrchestrator {
     } catch (_error) {
       progress.update({
         current: progress['current'],
-        status: 'error',
-        message: `Migration failed: ${error instanceof Error ? error.message : String(error)}`,
+        status: '_error',
+        message: `Migration failed: ${_error instanceof Error ? _error.message : String(_error)}`,
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -249,10 +249,10 @@ export class AkamaiOrchestrator {
     } catch (_error) {
       progress.update({
         current: progress['current'],
-        status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        status: '_error',
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -307,7 +307,7 @@ export class AkamaiOrchestrator {
             } catch (_error) {
               results.failed++;
               results.errors.push(
-                `${zone.source}: ${error instanceof Error ? error.message : String(error)}`,
+                `${zone.source}: ${_error instanceof Error ? _error.message : String(_error)}`,
               );
             }
           }),
@@ -335,10 +335,10 @@ export class AkamaiOrchestrator {
     } catch (_error) {
       progress.update({
         current: progress['current'],
-        status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        status: '_error',
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 

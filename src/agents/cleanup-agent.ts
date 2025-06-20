@@ -167,8 +167,8 @@ class CleanupAgent {
         await this.saveBackup(plan, result);
       }
     } catch (_error) {
-      console.error('❌ Cleanup failed:', error);
-      throw error;
+      console.error('❌ Cleanup failed:', _error);
+      throw _error;
     } finally {
       if (this.rl) {
         this.rl.close();
@@ -454,7 +454,7 @@ class CleanupAgent {
       } catch (_error) {
         result.errors.push({
           file: file.path,
-          error: error instanceof Error ? error.message : String(error),
+          error: _error instanceof Error ? _error.message : String(_error),
         });
       }
     }
@@ -475,7 +475,7 @@ class CleanupAgent {
       } catch (_error) {
         result.errors.push({
           file: file.path,
-          error: error instanceof Error ? error.message : String(error),
+          error: _error instanceof Error ? _error.message : String(_error),
         });
       }
     }
@@ -540,8 +540,8 @@ class CleanupAgent {
       console.log('\n✅ Undo complete');
       console.log('Note: Deleted files cannot be restored');
     } catch (_error) {
-      console.error('❌ Undo failed:', error);
-      throw error;
+      console.error('❌ Undo failed:', _error);
+      throw _error;
     }
   }
 

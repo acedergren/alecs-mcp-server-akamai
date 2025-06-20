@@ -78,7 +78,7 @@ export interface OperationMetrics {
   failedCalls: number;
   averageResponseTime: number;
   lastFailureTime?: Date;
-  consecutiveFailu_res: number;
+  consecutiveFailures: number;
   errorRate: number;
   p95ResponseTime: number;
 }
@@ -123,7 +123,7 @@ export class CircuitBreaker {
       return result;
     } catch (_error) {
       this.recordFailure();
-      throw error;
+      throw _error;
     }
   }
 
@@ -177,7 +177,7 @@ return false;
           ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
           : 0,
       lastFailureTime: this.lastFailureTime,
-      consecutiveFailu_res: this.state === CircuitBreakerState.OPEN ? this.failureCount : 0,
+      consecutiveFailures: this.state === CircuitBreakerState.OPEN ? this.failureCount : 0,
       errorRate: totalCalls > 0 ? failedCalls / totalCalls : 0,
       p95ResponseTime: this.calculateP95(),
     };
@@ -211,15 +211,15 @@ export class RetryHandler {
       try {
         return await operation();
       } catch (_error) {
-        lastError = error;
+        lastError = _error;
 
         // Check if error is retryable
-        if (errorHandler && !errorHandler(error, attempt)) {
-          throw error;
+        if (errorHandler && !errorHandler(_error, attempt)) {
+          throw _error;
         }
 
         if (attempt === this.config.maxAttempts) {
-          throw error;
+          throw _error;
         }
 
         // Calculate delay with exponential backoff and jitter
@@ -394,15 +394,15 @@ export class ErrorClassifier {
     let code: string | undefined;
 
     // Extract error code
-    if (error.code) {
-      code = error.code;
-    } else if (error.response?.status) {
-      code = error.response.status.toString();
-    } else if (error.status) {
-      code = error.status.toString();
-    } else if (error.message) {
+    if (_error.code) {
+      code = _error.code;
+    } else if (_error.response?.status) {
+      code = _error.response.status.toString();
+    } else if (_error.status) {
+      code = _error.status.toString();
+    } else if (_error.message) {
       // Try to extract HTTP status from message
-      const statusMatch = error.message.match(/\b(4\d{2}|5\d{2})\b/);
+      const statusMatch = _error.message.match(/\b(4\d{2}|5\d{2})\b/);
       if (statusMatch) {
         code = statusMatch[1];
       }
@@ -423,11 +423,11 @@ export class ErrorClassifier {
   }
 
   static isRetryable(_error: any): boolean {
-    return this.classify(error).retryable;
+    return this.classify(_error).retryable;
   }
 
   static getSeverity(_error: any): ErrorSeverity {
-    return this.classify(error).severity;
+    return this.classify(_error).severity;
   }
 }
 
@@ -498,11 +498,11 @@ export class ResilienceManager {
     return retryHandler.execute(
       () => circuitBreaker.execute(operation),
       (error, attempt) => {
-        const category = ErrorClassifier.classify(error);
+        const category = ErrorClassifier.classify(_error);
 
         // Log error for monitoring
         console.error(`Operation ${operationType} failed (attempt ${attempt}):`, {
-          error: error.message,
+          error: _error.message,
           category: category.type,
           severity: category.severity,
           retryable: category.retryable,
@@ -545,10 +545,10 @@ export class ResilienceManager {
   }
 
   formatUserFriendlyError(_error: any, operationType: OperationType, context?: any): string {
-    const category = ErrorClassifier.classify(error);
+    const category = ErrorClassifier.classify(_error);
 
     // Use existing error translator for base formatting
-    const baseMessage = this.errorTranslator.formatConversationalError(error, {
+    const baseMessage = this.errorTranslator.formatConversationalError(_error, {
       operation: operationType,
       parameters: context,
       timestamp: new Date(),

@@ -455,10 +455,10 @@ return response;
    * Parse error responses with enhanced context
    */
   static parseErrorResponse(
-    error: any,
+    _error: any,
     _context?: { endpoint?: string; operation?: string },
   ): AkamaiErrorResponse {
-    let errorData: any = error.response?.data || error.data || error;
+    let errorData: any = _error.response?.data || _error.data || _error;
 
     // Handle string responses
     if (typeof errorData === 'string') {
@@ -468,7 +468,7 @@ return response;
         return {
           title: 'API Error',
           detail: errorData,
-          status: error.response?.status || error.status || 500,
+          status: _error.response?.status || _error.status || 500,
         };
       }
     }
@@ -477,10 +477,10 @@ return response;
     const parsedError: AkamaiErrorResponse = {
       title: errorData.title || errorData.error || 'Unknown Error',
       detail: errorData.detail || errorData.message || errorData.error,
-      status: errorData.status || error.response?.status || error.status,
+      status: errorData.status || _error.response?.status || _error.status,
       type: errorData.type,
       instance: errorData.instance,
-      requestId: errorData.requestId || error.response?.headers?.['x-request-id'],
+      requestId: errorData.requestId || _error.response?.headers?.['x-request-id'],
     };
 
     // Extract detailed error information
@@ -503,9 +503,9 @@ return response;
     try {
       return schema.parse(response);
     } catch (_error) {
-      if (error instanceof z.ZodError) {
+      if (_error instanceof z.ZodError) {
         console.warn('Response validation failed:', {
-          errors: error.errors,
+          errors: _error.errors,
           response: JSON.stringify(response, null, 2),
         });
       }

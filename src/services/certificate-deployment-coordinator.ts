@@ -122,7 +122,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
       return deploymentState;
     } catch (_error) {
       deploymentState.status = 'failed';
-      deploymentState.error = error instanceof Error ? error.message : String(error);
+      deploymentState.error = _error instanceof Error ? _error.message : String(_error);
       deploymentState.endTime = new Date();
       this.emit('deployment:failed', enrollmentId, deploymentState.error);
 
@@ -131,7 +131,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
         await this.rollbackDeployment(enrollmentId);
       }
 
-      throw error;
+      throw _error;
     } finally {
       // Cleanup monitors
       this.stopMonitoring(enrollmentId);
@@ -252,7 +252,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
       this.emit('rollback:completed', enrollmentId);
     } catch (_error) {
       throw new Error(
-        `Failed to cancel deployment: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to cancel deployment: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
     }
   }
@@ -342,7 +342,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
           }
         } catch (_error) {
           clearInterval(monitor);
-          reject(error);
+          reject(_error);
         }
       }, 10000); // Check every 10 seconds
 
@@ -433,9 +433,9 @@ progress = 25;
       this.emit('property:linked', propertyId, version);
     } catch (_error) {
       propertyState.status = 'failed';
-      propertyState.error = error instanceof Error ? error.message : String(error);
+      propertyState.error = _error instanceof Error ? _error.message : String(_error);
       this.emit('property:link_failed', propertyId, propertyState.error);
-      throw error;
+      throw _error;
     }
   }
 

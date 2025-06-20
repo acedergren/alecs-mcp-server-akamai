@@ -971,32 +971,32 @@ return 'MEDIUM';
     return 85;
   }
 
-  private planQuickWinImplementation(quickWins: TodoItem[]): any {
+  private planQuickWinImplementation(_quickWins: TodoItem[]): any {
     // Implementation would plan quick win implementation
     return { phases: [], resources: [] };
   }
 
-  private assessQuickWinRisks(quickWins: TodoItem[]): any {
+  private assessQuickWinRisks(_quickWins: TodoItem[]): any {
     // Implementation would assess quick win risks
     return { risks: [], mitigation: [] };
   }
 
-  private optimizeTacticalPlan(groupedFixes: Record<string, TodoItem[]>): any {
+  private optimizeTacticalPlan(_groupedFixes: Record<string, TodoItem[]>): any {
     // Implementation would optimize tactical plan
     return { optimized: true, plan: [] };
   }
 
-  private calculateTacticalResources(plan: any): any {
+  private calculateTacticalResources(_plan: any): any {
     // Implementation would calculate tactical resources
     return { resources: [], allocation: {} };
   }
 
-  private createTacticalTimeline(plan: any): any {
+  private createTacticalTimeline(_plan: any): any {
     // Implementation would create tactical timeline
     return { timeline: [], milestones: [] };
   }
 
-  private identifyTacticalDependencies(plan: any): any {
+  private identifyTacticalDependencies(_plan: any): any {
     // Implementation would identify tactical dependencies
     return { dependencies: [], critical: [] };
   }
@@ -1052,12 +1052,12 @@ return 'MEDIUM';
     return this.calculateBusinessValue(items);
   }
 
-  private identifyInitiativeRisks(theme: string, items: TodoItem[]): any[] {
+  private identifyInitiativeRisks(_theme: string, _items: TodoItem[]): any[] {
     // Implementation would identify initiative risks
     return [];
   }
 
-  private mapInitiativeDependencies(items: TodoItem[]): any[] {
+  private mapInitiativeDependencies(_items: TodoItem[]): any[] {
     // Implementation would map initiative dependencies
     return [];
   }

@@ -137,7 +137,7 @@ export class RealTimeMonitoringService extends EventEmitter {
       logger.error('Failed to start real-time monitoring', { error });
       this.isMonitoring = false;
       throw new Error(
-        `Failed to start real-time monitoring: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to start real-time monitoring: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
     }
   }
@@ -219,7 +219,7 @@ export class RealTimeMonitoringService extends EventEmitter {
     } catch (_error) {
       logger.error('Failed to get current metrics', { error, metrics, filter });
       throw new Error(
-        `Failed to get current metrics: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to get current metrics: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
     } finally {
       this.performanceMonitor.endOperation(timer);
@@ -329,7 +329,7 @@ export class RealTimeMonitoringService extends EventEmitter {
     } catch (_error) {
       logger.error('Failed to get health status', { error });
       throw new Error(
-        `Failed to get health status: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to get health status: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
     } finally {
       this.performanceMonitor.endOperation(timer);
@@ -380,7 +380,7 @@ export class RealTimeMonitoringService extends EventEmitter {
     } catch (_error) {
       logger.error('Failed to collect metrics', { error });
       this.emit('metrics-collection-failed', {
-        error: error instanceof Error ? error.message : String(error),
+        error: _error instanceof Error ? _error.message : String(_error),
       });
     }
   }
@@ -612,7 +612,7 @@ return;
           name: service.name,
           status: 'critical' as const,
           lastCheck: new Date().toISOString(),
-          details: error instanceof Error ? error.message : String(error),
+          details: _error instanceof Error ? _error.message : String(_error),
         };
       }
     });

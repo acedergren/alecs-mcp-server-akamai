@@ -237,7 +237,7 @@ export async function checkOnboardingStatus(
 
     if (status.errors.length > 0) {
       responseText += '\n## Errors\n';
-      status.errors.forEach((error) => {
+      status.errors.forEach((_error) => {
         responseText += `- ${error}\n`;
       });
     }

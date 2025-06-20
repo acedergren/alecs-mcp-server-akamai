@@ -171,12 +171,12 @@ export async function listNetworkLists(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error listing network lists: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error listing network lists: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -262,12 +262,12 @@ export async function getNetworkList(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error retrieving network list: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error retrieving network list: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -377,12 +377,12 @@ export async function createNetworkList(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error creating network list: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error creating network list: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -525,12 +525,12 @@ export async function updateNetworkList(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error updating network list: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error updating network list: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -581,12 +581,12 @@ export async function deleteNetworkList(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error deleting network list: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error deleting network list: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };

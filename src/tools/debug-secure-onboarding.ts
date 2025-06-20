@@ -55,7 +55,7 @@ export async function debugSecurePropertyOnboarding(
 
     if (validationErrors.length > 0) {
       text += '❌ **Validation Failed:**\n';
-      validationErrors.forEach((error) => {
+      validationErrors.forEach((_error) => {
         text += `- ${error}\n`;
       });
       text += '\n';
@@ -289,8 +289,8 @@ export async function debugSecurePropertyOnboarding(
     };
   } catch (_error: any) {
     text += '\n## ❌ Unexpected Error\n';
-    text += `**Message:** ${error.message}\n`;
-    text += `**Stack:** ${error.stack}\n`;
+    text += `**Message:** ${_error.message}\n`;
+    text += `**Stack:** ${_error.stack}\n`;
 
     return {
       content: [
@@ -388,7 +388,7 @@ export async function testBasicPropertyCreation(
       content: [
         {
           type: 'text',
-          text: `❌ Test failed: ${error.message}`,
+          text: `❌ Test failed: ${_error.message}`,
         },
       ],
     };

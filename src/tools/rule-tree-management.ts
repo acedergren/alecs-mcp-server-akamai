@@ -274,11 +274,11 @@ export async function updatePropertyRulesEnhanced(
       text += `**Errors Found:** ${validation.errors.length}\n\n`;
 
       validation.errors.slice(0, 5).forEach((error, index) => {
-        text += `${index + 1}. **${error.type}** [${error.severity}]\n`;
-        text += `   Path: ${error.path}\n`;
-        text += `   Message: ${error.message}\n`;
-        if (error.fix) {
-          text += `   Fix: ${error.fix}\n`;
+        text += `${index + 1}. **${_error.type}** [${_error.severity}]\n`;
+        text += `   Path: ${_error.path}\n`;
+        text += `   Message: ${_error.message}\n`;
+        if (_error.fix) {
+          text += `   Fix: ${_error.fix}\n`;
         }
         text += '\n';
       });
@@ -538,11 +538,11 @@ export async function validateRuleTree(
     if (validation.errors.length > 0) {
       text += '**🚨 Errors (must fix):**\n';
       validation.errors.forEach((error, index) => {
-        text += `${index + 1}. [${error.severity}] ${error.type}\n`;
-        text += `   Path: ${error.path}\n`;
-        text += `   Issue: ${error.message}\n`;
-        if (error.fix) {
-          text += `   Fix: ${error.fix}\n`;
+        text += `${index + 1}. [${_error.severity}] ${_error.type}\n`;
+        text += `   Path: ${_error.path}\n`;
+        text += `   Issue: ${_error.message}\n`;
+        if (_error.fix) {
+          text += `   Fix: ${_error.fix}\n`;
         }
         text += '\n';
       });
@@ -641,7 +641,7 @@ export async function mergeRuleTrees(
 
         text += '**Validation Errors:**\n';
         validation.errors.slice(0, 5).forEach((error, index) => {
-          text += `${index + 1}. ${error.message}\n`;
+          text += `${index + 1}. ${_error.message}\n`;
         });
 
         text += '\n**Note:** The merge completed but resulted in an invalid rule tree. Review and fix validation errors.';
@@ -1746,22 +1746,22 @@ function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+  if (_error instanceof Error) {
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
-    if (error.message.includes('401') || error.message.includes('credentials')) {
+    if (_error.message.includes('401') || _error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials for the customer section.';
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
       solution = '**Solution:** Your API credentials may lack the necessary permissions.';
-    } else if (error.message.includes('404') || error.message.includes('not found')) {
+    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
       solution = '**Solution:** The requested resource was not found. Verify the ID is correct.';
-    } else if (error.message.includes('validation')) {
+    } else if (_error.message.includes('validation')) {
       solution = '**Solution:** Fix validation errors in the rule tree before proceeding.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

@@ -111,7 +111,7 @@ export class PropertyProductionActivationAgent {
     } catch (_error) {
       console.error('[ProductionActivation] Error:', error);
       result.errors!.push(
-        `Activation error: ${error instanceof Error ? error.message : String(error)}`,
+        `Activation error: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
       return result;
     }
@@ -194,7 +194,7 @@ export async function activatePropertyToProduction(
     responseText = '# ❌ Production Activation Failed\n\n';
     if (result.errors && result.errors.length > 0) {
       responseText += '## Errors\n\n';
-      result.errors.forEach((error) => {
+      result.errors.forEach((_error) => {
         responseText += `- ${error}\n`;
       });
     }

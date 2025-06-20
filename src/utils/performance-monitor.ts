@@ -465,7 +465,7 @@ export class RequestOptimizer {
     } catch (_error) {
       // Reject all promises with the error
       batch.forEach((item) => {
-        item.reject(error);
+        item.reject(_error);
       });
     }
   }
@@ -548,7 +548,7 @@ export function withPerformanceMonitoring<T extends (...args: any[]) => Promise<
       globalPerformanceMonitor.endOperation(operationId, {
         errorOccurred: true,
       });
-      throw error;
+      throw _error;
     }
   }) as T;
 }

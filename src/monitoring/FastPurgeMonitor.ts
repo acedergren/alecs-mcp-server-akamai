@@ -189,7 +189,7 @@ export class FastPurgeMonitor {
         await this.checkAlerts(metrics);
       }
     } catch (_error: any) {
-      logger.error(`Failed to collect FastPurge metrics: ${error.message}`);
+      logger.error(`Monitor error: ${_error.message}`);
     }
   }
 

@@ -153,7 +153,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
         this.updateAuthMetrics(authTime, false);
         
         this.emit('authError', { error, authTime });
-        throw error;
+        throw _error;
       }
     };
 
@@ -219,7 +219,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
         this.metrics.failedAuth++;
         
         // Check for timeout
-        if (error instanceof Error && error.message.includes('timeout')) {
+        if (_error instanceof Error && _error.message.includes('timeout')) {
           this.metrics.timeoutCount++;
         }
         
@@ -230,7 +230,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
           totalTime
         });
         
-        throw error;
+        throw _error;
       }
     });
   }

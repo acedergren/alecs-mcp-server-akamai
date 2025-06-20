@@ -278,7 +278,7 @@ return false;
       };
 
       this.emit('exportError', result);
-      throw error;
+      throw _error;
     }
   }
 
@@ -382,7 +382,7 @@ return false;
       return true;
     } catch (_error) {
       this.emit('destinationTestFailure', name, error);
-      throw error;
+      throw _error;
     }
   }
 
@@ -660,7 +660,7 @@ return false;
       }
     } catch (_error) {
       clearTimeout(timeoutId);
-      throw error;
+      throw _error;
     }
   }
 

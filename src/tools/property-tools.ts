@@ -1087,8 +1087,8 @@ export async function createProperty(
     };
   } catch (_error) {
     // Handle specific error cases
-    if (error instanceof Error) {
-      if (error.message.includes('already exists')) {
+    if (_error instanceof Error) {
+      if (_error.message.includes('already exists')) {
         return {
           content: [
             {
@@ -1099,7 +1099,7 @@ export async function createProperty(
         };
       }
 
-      if (error.message.includes('Invalid product')) {
+      if (_error.message.includes('Invalid product')) {
         return {
           content: [
             {
@@ -1531,30 +1531,30 @@ function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+  if (_error instanceof Error) {
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
-    if (error.message.includes('401') || error.message.includes('credentials')) {
+    if (_error.message.includes('401') || _error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials. You may need to generate new API credentials in Akamai Control Center.';
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
       solution =
         '**Solution:** Your API credentials may lack the necessary permissions. Ensure your API client has read/write access to Property Manager.';
-    } else if (error.message.includes('404') || error.message.includes('not found')) {
+    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
       solution =
         '**Solution:** The requested resource was not found. Verify the ID is correct using the list tools.';
-    } else if (error.message.includes('429') || error.message.includes('rate limit')) {
+    } else if (_error.message.includes('429') || _error.message.includes('rate limit')) {
       solution = '**Solution:** Rate limit exceeded. Please wait 60 seconds before retrying.';
-    } else if (error.message.includes('network') || error.message.includes('ENOTFOUND')) {
+    } else if (_error.message.includes('network') || _error.message.includes('ENOTFOUND')) {
       solution =
         '**Solution:** Network connectivity issue. Check your internet connection and verify the API host in ~/.edgerc is correct.';
-    } else if (error.message.includes('timeout')) {
+    } else if (_error.message.includes('timeout')) {
       solution =
         '**Solution:** Request timed out. The Akamai API might be slow. Try again in a moment.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;
