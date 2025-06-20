@@ -7,14 +7,12 @@ import { describe, it, expect } from '@jest/globals';
 
 import {
   EnhancedErrorHandler,
-  withEnhancedErrorHandling,
   handleAkamaiError,
   ErrorType,
 } from '../../utils/enhanced-error-handling';
 import {
   ResponseParser,
   parseAkamaiResponse,
-  AkamaiErrorResponse,
 } from '../../utils/response-parsing';
 
 // Mock API responses for testing

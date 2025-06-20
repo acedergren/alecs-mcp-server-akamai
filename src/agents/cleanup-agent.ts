@@ -201,9 +201,7 @@ class CleanupAgent {
       format: '[:bar] :percent :current/:total files',
     });
 
-    let processed = 0;
     for (const file of files) {
-      processed++;
       this.progressBar.increment();
 
       const category = this.categorizeFile(file);

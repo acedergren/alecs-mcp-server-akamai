@@ -6,20 +6,17 @@
 
 import { type AkamaiClient } from '../akamai-client';
 import { createCPCode } from '../tools/cpcode-tools';
-import { listZones, createZone, upsertRecord, listRecords } from '../tools/dns-tools';
+import { listZones, upsertRecord } from '../tools/dns-tools';
 import { listProducts } from '../tools/product-tools';
 import { searchProperties, listEdgeHostnames } from '../tools/property-manager-advanced-tools';
 import {
   createEdgeHostname,
   addPropertyHostname,
   activateProperty,
-  getActivationStatus,
   updatePropertyRules,
-  getPropertyRules,
 } from '../tools/property-manager-tools';
-import { listProperties, getProperty, createProperty, listGroups } from '../tools/property-tools';
+import { createProperty, listGroups } from '../tools/property-tools';
 import { type MCPToolResponse } from '../types';
-import { formatPropertyDisplay } from '../utils/formatting';
 
 export interface OnboardingConfig {
   hostname: string;
@@ -284,7 +281,7 @@ export class PropertyOnboardingAgent {
       ) {
         errors.push(`Property with hostname ${config.hostname} already exists`);
       }
-    } catch (error) {
+    } catch (_error) {
       // Search failed, but we can continue
       warnings.push('Could not verify if property already exists');
     }
@@ -299,7 +296,7 @@ export class PropertyOnboardingAgent {
       if (responseText.includes(config.hostname)) {
         errors.push(`Hostname ${config.hostname} is already in use by another property`);
       }
-    } catch (error) {
+    } catch (_error) {
       warnings.push('Could not verify if hostname is already in use');
     }
 
@@ -315,7 +312,7 @@ export class PropertyOnboardingAgent {
     productId: string;
   }> {
     // Get groups
-    const groupsResult = await listGroups(this.client, {
+    await listGroups(this.client, {
       searchTerm: 'default',
     });
 
@@ -383,7 +380,7 @@ export class PropertyOnboardingAgent {
 
       console.error(`[PropertyOnboarding] Creating CP Code with name: ${cpCodeName}`);
 
-      const result = await createCPCode(this.client, {
+      const _result = await createCPCode(this.client, {
         productId: config.productId,
         contractId: config.contractId || 'ctr_1-5C13O2',
         groupId: config.groupId,
@@ -391,7 +388,7 @@ export class PropertyOnboardingAgent {
       });
 
       // Extract CP Code ID from response
-      const responseText = result.content[0].text;
+      const responseText = _result.content[0].text;
       // Look for patterns like "CP Code ID: 1234567" or "CP Code: cpc_1234567"
       const cpCodeMatch = responseText.match(/(?:CP Code ID:|CP Code:)\s*(?:cpc_)?(\d+)/i);
 
@@ -452,7 +449,7 @@ export class PropertyOnboardingAgent {
       const domainPrefix = config.hostname;
       const domainSuffix = 'edgekey.net'; // Using .edgekey.net as default
 
-      const result = await createEdgeHostname(this.client, {
+      await createEdgeHostname(this.client, {
         propertyId,
         domainPrefix,
         domainSuffix,
@@ -729,7 +726,7 @@ export class PropertyOnboardingAgent {
   private async createAcmeChallengeRecords(
     hostname: string,
     domain: string,
-    config: Required<OnboardingConfig>,
+    _config: Required<OnboardingConfig>,
   ): Promise<void> {
     // Default DV certificates use predictable ACME challenge records
     const acmeRecord = `_acme-challenge.${hostname.replace(`.${domain}`, '')}`;

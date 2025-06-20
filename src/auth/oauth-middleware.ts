@@ -5,13 +5,11 @@
 
 import type {
   CallToolRequest,
-  CallToolResult,
 } from '@modelcontextprotocol/sdk/types.js';
 import {
   McpError,
   ErrorCode,
 } from '@modelcontextprotocol/sdk/types.js';
-import { z } from 'zod';
 
 import { ValkeyCache } from '../services/valkey-cache-service';
 import { logger } from '../utils/logger';

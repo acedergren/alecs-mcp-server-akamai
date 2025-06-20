@@ -80,7 +80,7 @@ export function initializeOAuthSystem(config?: {
   providers?: string[];
   requireAuth?: boolean;
 }): void {
-  const { masterKey, providers = [], requireAuth = true } = config || {};
+  const { masterKey, providers = [] } = config || {};
 
   // Set environment variables if provided
   if (masterKey) {

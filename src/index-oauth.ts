@@ -22,7 +22,6 @@ import { z, type ZodSchema } from 'zod';
 // Import OAuth 2.1 components
 import {
   OAuthMiddleware,
-  setupOAuth21Protection,
   type OAuthMiddlewareConfig,
   type AuthContext,
 } from './auth';
@@ -30,12 +29,8 @@ import { ValkeyCache } from './services/valkey-cache-service';
 
 // Import tool implementations
 import {
-  listZones,
-  getZone,
   createZone,
-  listRecords,
   upsertRecord,
-  deleteRecord,
   activateZoneChanges,
 } from './tools/dns-tools';
 import { listProducts, getProduct } from './tools/product-tools';

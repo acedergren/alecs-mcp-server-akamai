@@ -218,7 +218,7 @@ export class TokenValidator {
         return { valid: false, error: 'Invalid JWT format' };
       }
 
-      const { header, payload } = decoded;
+      const { header } = decoded;
 
       // Check algorithm
       if (!this.config.allowedAlgorithms.includes(header.alg as Algorithm)) {

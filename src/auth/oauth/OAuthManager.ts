@@ -3,7 +3,7 @@
  * Handles OAuth authentication and customer context mapping
  */
 
-import { createHash, randomBytes } from 'crypto';
+import { randomBytes } from 'crypto';
 
 import type {
   OAuthToken,
@@ -221,7 +221,7 @@ export class OAuthManager {
   /**
    * Get default customer contexts for new user
    */
-  private async getDefaultCustomerContexts(subject: string): Promise<CustomerContext[]> {
+  private async getDefaultCustomerContexts(_subject: string): Promise<CustomerContext[]> {
     // In a real implementation, this would query a database or configuration
     // For now, return a default context
     return [

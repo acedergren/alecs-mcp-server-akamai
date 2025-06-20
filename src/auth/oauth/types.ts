@@ -3,7 +3,6 @@
  * Provides type definitions for OAuth authentication with customer context mapping
  */
 
-import type { EdgeGridCredentials } from '@/types/config';
 
 /**
  * OAuth provider types supported

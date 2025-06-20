@@ -26,21 +26,15 @@ import {
   listRecords,
   upsertRecord,
   deleteRecord,
-  activateZoneChanges,
 } from './tools/dns-tools';
-import { listProducts, getProduct } from './tools/product-tools';
+import { listProducts } from './tools/product-tools';
 import {
-  createPropertyVersion,
-  getPropertyRules,
-  updatePropertyRules,
   activateProperty,
-  getActivationStatus,
 } from './tools/property-manager-tools';
 import {
   listProperties,
   getProperty,
   createProperty,
-  listGroups,
   listContracts,
 } from './tools/property-tools';
 import { ConfigurationError, ConfigErrorType } from './types/config';
@@ -54,8 +48,6 @@ import {
   ActivatePropertySchema,
   CreateZoneSchema,
   CreateRecordSchema,
-  PurgeByUrlSchema,
-  CreateNetworkListSchema,
 } from './types/mcp';
 import { CustomerConfigManager } from './utils/customer-config';
 import { logger } from './utils/logger';

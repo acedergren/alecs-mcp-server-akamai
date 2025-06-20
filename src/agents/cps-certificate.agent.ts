@@ -2,12 +2,10 @@ import {
   ProgressBar,
   Spinner,
   MultiProgress,
-  withProgress,
   format,
   icons,
   trackProgress,
 } from '@utils/progress';
-import axios from 'axios';
 
 import { EdgeGridAuth } from '../auth/EdgeGridAuth';
 
@@ -234,7 +232,7 @@ export class CPSCertificateAgent {
       // Process each challenge
       await trackProgress(
         challenges,
-        async (challenge, index) => {
+        async (challenge, _index) => {
           console.log(`\n${icons.dns} Domain: ${format.cyan(challenge.domain)}`);
 
           if (challenge.type === 'dns' && challenge.dnsTarget) {
@@ -362,7 +360,7 @@ export class CPSCertificateAgent {
 
     await trackProgress(
       propertyIds,
-      async (propertyId, index) => {
+      async (propertyId, _index) => {
         const spinner = new Spinner();
         spinner.start(`Linking to property ${propertyId}`);
 

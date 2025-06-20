@@ -264,7 +264,7 @@ program
     }
 
     console.log('\n📋 Installed ALECS Servers:\n');
-    for (const [name, serverConfig] of alecsServers) {
+    for (const [name, _serverConfig] of alecsServers) {
       const serverDef = Object.values(SERVERS).find((s) => s.name === name);
       const desc = serverDef ? `- ${serverDef.description} (${serverDef.toolCount} tools)` : '';
       console.log(`  ${colors.green}●${colors.reset} ${name} ${desc}`);

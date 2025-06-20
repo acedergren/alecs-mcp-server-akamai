@@ -4,7 +4,7 @@
  */
 
 import { type AkamaiClient } from '../akamai-client';
-import { type MCPToolResponse, type RuleTree } from '../types';
+import { type MCPToolResponse } from '../types';
 
 // Extended types for property management
 export interface PropertyVersionDetails {

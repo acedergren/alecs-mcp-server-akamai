@@ -116,7 +116,7 @@ export class EdgeGridAuth {
     // Get credentials with validation
     try {
       this.credentials = CustomerConfigManager.getInstance().getSection(customer);
-    } catch (error) {
+    } catch (_error) {
       throw new ConfigurationError(
         ConfigErrorType.SECTION_NOT_FOUND,
         `Customer section '${customer}' not found`,
@@ -287,7 +287,7 @@ export class EdgeGridAuth {
    * Create ISO timestamp for authentication
    */
   private createTimestamp(): string {
-    return new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
+    return new Date().toISOString().replace(/[:|-]|\.\d{3}/g, '');
   }
 
   /**

@@ -9,7 +9,6 @@ import {
   randomBytes,
   scrypt,
   createHash,
-  timingSafeEqual,
 } from 'crypto';
 import { promisify } from 'util';
 

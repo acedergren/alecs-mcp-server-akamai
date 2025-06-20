@@ -5,24 +5,21 @@ import {
   ProgressBar,
   Spinner,
   MultiProgress,
-  withProgress,
   format,
   icons,
-  trackProgress,
 } from '@utils/progress';
-import axios from 'axios';
 
 import { EdgeGridAuth } from '../auth/EdgeGridAuth';
 
 import { type DnsRecordsetsResponse, type CpsLocationResponse } from './types';
 
-const resolveTxt = promisify(dns.resolveTxt);
+const _resolveTxt = promisify(dns.resolveTxt);
 const resolveNs = promisify(dns.resolveNs);
-const resolveCname = promisify(dns.resolveCname);
-const resolveMx = promisify(dns.resolveMx);
-const resolveSrv = promisify(dns.resolveSrv);
-const resolve4 = promisify(dns.resolve4);
-const resolve6 = promisify(dns.resolve6);
+const _resolveCname = promisify(dns.resolveCname);
+const _resolveMx = promisify(dns.resolveMx);
+const _resolveSrv = promisify(dns.resolveSrv);
+const _resolve4 = promisify(dns.resolve4);
+const _resolve6 = promisify(dns.resolve6);
 
 interface DNSRecord {
   name: string;
@@ -745,7 +742,7 @@ params.append('page_size', options.limit.toString());
     }
   }
 
-  private async performAXFR(zoneName: string, primaryNS: string, options: any): Promise<any[]> {
+  private async performAXFR(_zoneName: string, _primaryNS: string, _options: any): Promise<any[]> {
     // This would use a DNS library that supports AXFR
     // For now, return mock data
     return [
@@ -868,7 +865,7 @@ continue;
     return response;
   }
 
-  private async getAkamaiNameservers(zone: DNSZone): Promise<string[]> {
+  private async getAkamaiNameservers(_zone: DNSZone): Promise<string[]> {
     // These would be returned by the API
     return ['a1-234.akam.net', 'a2-234.akam.net', 'a3-234.akam.net', 'a4-234.akam.net'];
   }
@@ -932,7 +929,7 @@ continue;
     return result;
   }
 
-  private async fetchCloudflareRecords(apiToken: string, zoneId: string): Promise<any[]> {
+  private async fetchCloudflareRecords(_apiToken: string, _zoneId: string): Promise<any[]> {
     // This would fetch from Cloudflare API
     return [];
   }

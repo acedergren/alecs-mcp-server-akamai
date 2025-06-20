@@ -11,7 +11,6 @@ import {
   AuthorizationDecision,
   CustomerIsolationPolicy,
   IsolationLevel,
-  ResourceRestriction,
   PermissionScope,
 } from './oauth/types';
 

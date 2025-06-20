@@ -452,7 +452,7 @@ export class OAuth21ComplianceManager {
   /**
    * Check for phishing indicators
    */
-  checkPhishingIndicators(redirectUri: string, clientId: string): string[] {
+  checkPhishingIndicators(redirectUri: string, _clientId: string): string[] {
     const warnings: string[] = [];
 
     // Check for suspicious redirect URIs
@@ -470,7 +470,7 @@ export class OAuth21ComplianceManager {
     }
 
     // Check for homograph attacks
-    if (/[^\x00-\x7F]/.test(url.hostname)) {
+    if (/[^\\x00-\\x7F]/.test(url.hostname)) {
       warnings.push('Redirect URI contains non-ASCII characters (possible homograph attack)');
     }
 

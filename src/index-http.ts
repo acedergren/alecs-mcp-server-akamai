@@ -16,13 +16,13 @@ import { ALECSServer } from './index';
 async function startHttpServer() {
   try {
     // Create ALECS server instance
-    const alecsServer = new ALECSServer({
+    new ALECSServer({
       name: 'alecs-mcp-server-akamai-http',
       version: '1.3.5.1',
     });
 
     // Create HTTP transport with configuration
-    const httpTransport = new HttpServerTransport({
+    new HttpServerTransport({
       port: parseInt(process.env.MCP_HTTP_PORT || '3000', 10),
       host: process.env.MCP_HTTP_HOST || 'localhost',
       cors: {

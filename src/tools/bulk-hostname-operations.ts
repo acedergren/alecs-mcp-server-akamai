@@ -805,7 +805,7 @@ acc[op.propertyId] = [];
           method: 'GET',
         });
 
-        let hostnames = hostnamesResponse.hostnames?.items || [];
+        const hostnames = hostnamesResponse.hostnames?.items || [];
 
         // Process operations
         for (const op of operations) {

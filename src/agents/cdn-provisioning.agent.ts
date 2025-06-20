@@ -2,11 +2,9 @@ import {
   ProgressBar,
   Spinner,
   MultiProgress,
-  withProgress,
   format,
   icons,
 } from '@utils/progress';
-import axios from 'axios';
 
 import { EdgeGridAuth } from '../auth/EdgeGridAuth';
 
@@ -768,7 +766,7 @@ export class CDNProvisioningAgent {
     });
   }
 
-  private applySecurityTemplate(ruleTree: RuleTree, options: any): void {
+  private applySecurityTemplate(ruleTree: RuleTree, _options: any): void {
     const securityRule = {
       name: 'Security',
       children: [
@@ -833,7 +831,7 @@ export class CDNProvisioningAgent {
     console.log(`  ${icons.dns} Creating DNS record: ${format.cyan(challenge)}`);
   }
 
-  private async waitForDomainValidation(enrollmentId: string, hostname: string): Promise<void> {
+  private async waitForDomainValidation(_enrollmentId: string, _hostname: string): Promise<void> {
     // This would poll CPS API for validation status
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
