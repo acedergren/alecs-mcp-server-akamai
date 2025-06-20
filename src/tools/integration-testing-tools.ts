@@ -638,7 +638,7 @@ export async function runLoadTest(
       responseText += '### Error Analysis\n\n';
       responseText += `**Unique errors encountered:** ${result.errors.length}\n\n`;
 
-      result.errors.forEach((error, index) => {
+      result.errors.forEach((_error, index) => {
         responseText += `${index + 1}. ${error}\n`;
       });
       responseText += '\n';

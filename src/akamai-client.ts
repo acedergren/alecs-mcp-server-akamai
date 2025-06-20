@@ -133,7 +133,7 @@ export class AkamaiClient {
 
       // Make the request using EdgeGrid's send method
       return new Promise((resolve, reject) => {
-        this.edgeGrid.send((_error: any, response: any, body: any) => {
+        this.edgeGrid.send((error: any, response: any, body: any) => {
           if (_error) {
             try {
               this.handleApiError(_error);
@@ -169,7 +169,7 @@ export class AkamaiClient {
   }
 
   /**
-   * Parse Akamai error response
+   * Parse Akamai _error response
    */
   private parseErrorResponse(body: string, statusCode: number): Error {
     let errorData: AkamaiError;
@@ -180,7 +180,7 @@ export class AkamaiClient {
       return new Error(`API Error (${statusCode}): ${body}`);
     }
 
-    // Format user-friendly error message
+    // Format user-friendly _error message
     let message = `Akamai API Error (${statusCode}): ${errorData.title || 'Request failed'}`;
 
     if (errorData.detail) {
@@ -194,12 +194,12 @@ export class AkamaiClient {
       }
     }
 
-    // For 400 errors, include the full error response for debugging
+    // For 400 errors, include the full _error response for debugging
     if (statusCode === 400) {
-      message += `\n\nFull error response: ${JSON.stringify(errorData, null, 2)}`;
+      message += `\n\nFull _error response: ${JSON.stringify(errorData, null, 2)}`;
     }
 
-    // Add helpful suggestions based on error type
+    // Add helpful suggestions based on _error type
     if (statusCode === 401) {
       message += '\n\nSolution: Check your .edgerc credentials are valid and not expired.';
     } else if (statusCode === 403) {
@@ -214,17 +214,17 @@ export class AkamaiClient {
     }
 
     const _error = new Error(message);
-    (error as any).statusCode = statusCode;
-    (error as any).akamaiError = errorData;
-    return error;
+    (_error as any).statusCode = statusCode;
+    (_error as any).akamaiError = errorData;
+    return _error;
   }
 
   /**
    * Handle API errors with user-friendly messages
    */
-  private handleApiError(_error: any): never {
+  private handleApiError(error: any): never {
     if (_error instanceof Error) {
-      // Check for specific error types
+      // Check for specific _error types
       if (_error.message.includes('ENOTFOUND') || _error.message.includes('ECONNREFUSED')) {
         throw new Error(
           'Network connectivity issue. Check your internet connection and verify the API host in ~/.edgerc is correct.',
@@ -306,7 +306,7 @@ export class AkamaiClient {
       return accountSwitchKey;
     } catch (_error) {
       if (this.debug) {
-        console.error('[AkamaiClient] Error reading account-switch-key from .edgerc:', error);
+        console.error('[AkamaiClient] Error reading account-switch-key from .edgerc:', _error);
       }
       return undefined;
     }

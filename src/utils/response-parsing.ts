@@ -455,7 +455,7 @@ return response;
    * Parse _error responses with enhanced context
    */
   static parseErrorResponse(
-    _error: any,
+    error: any,
     _context?: { endpoint?: string; operation?: string },
   ): AkamaiErrorResponse {
     let errorData: any = _error.response?.data || _error.data || _error;

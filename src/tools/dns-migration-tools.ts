@@ -287,7 +287,7 @@ export async function bulkImportRecords(
         } catch (_error) {
           errors.push({
             record: `${record.name} ${record.type}`,
-            _error: _error instanceof Error ? _error.message : JSON.stringify(_error),
+            error: _error instanceof Error ? _error.message : JSON.stringify(_error),
           });
         }
       }
@@ -981,7 +981,7 @@ async function validateDNSRecords(records: ZoneFileRecord[]): Promise<
         name: record.name,
         type: record.type,
         valid: false,
-        _error: _error instanceof Error ? _error.message : 'Validation failed',
+        error: _error instanceof Error ? _error.message : 'Validation failed',
       });
     }
   }
@@ -1082,7 +1082,7 @@ async function validateSingleRecord(record: DNSRecordSet): Promise<{
       name: record.name,
       type: record.type,
       valid: false,
-      _error: _error instanceof Error ? _error.message : 'Validation _error',
+      error: _error instanceof Error ? _error.message : 'Validation _error',
     };
   }
 }
@@ -1108,7 +1108,7 @@ const globalMigrationCache = new Map<string, DNSRecordSet[]>();
 /**
  * Format error responses
  */
-function formatError(operation: string, _error: any): MCPToolResponse {
+function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 

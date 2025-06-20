@@ -25,7 +25,7 @@ export interface ErrorContext {
 
 export interface EnhancedErrorResult {
   success: false;
-  _error: string;
+  error: string;
   userMessage: string;
   shouldRetry: boolean;
   retryAfter?: number;
@@ -61,7 +61,7 @@ export class EnhancedErrorHandler {
   /**
    * Handle _error with comprehensive analysis and suggestions
    */
-  handle(_error: any, _context: ErrorContext = {}): EnhancedErrorResult {
+  handle(error: any, _context: ErrorContext = {}): EnhancedErrorResult {
     const _httpStatus = this.extractHttpStatus(_error);
     const akamaiError = this.parseAkamaiErrorResponse(_error);
     const errorType = this.categorizeError(_httpStatus, akamaiError, _context);
@@ -76,7 +76,7 @@ export class EnhancedErrorHandler {
 
     return {
       success: false,
-      _error: this.formatTechnicalError(akamaiError, _httpStatus),
+      error: this.formatTechnicalError(akamaiError, _httpStatus),
       userMessage: this.formatUserMessage(_httpStatus, akamaiError, errorType, _context),
       shouldRetry: this.isRetryable(_httpStatus, errorType),
       retryAfter: this.extractRetryAfter(_error),
@@ -98,7 +98,7 @@ export class EnhancedErrorHandler {
   ): Promise<T> {
     const config = { ...this.defaultRetryConfig, ...retryConfig };
     let lastError: any;
-    const attempts: Array<{ attempt: number; _error: any; delay: number }> = [];
+    const attempts: Array<{ attempt: number; error: any; delay: number }> = [];
 
     for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
       try {
@@ -109,7 +109,7 @@ export class EnhancedErrorHandler {
 
         attempts.push({
           attempt,
-          _error: errorResult,
+          error: errorResult,
           delay:
             attempt < config.maxAttempts
               ? this.calculateDelay(attempt, config, errorResult.retryAfter)
@@ -142,7 +142,7 @@ export class EnhancedErrorHandler {
   /**
    * Extract HTTP status from various _error formats
    */
-  private extractHttpStatus(_error: any): number {
+  private extractHttpStatus(error: any): number {
     if (_error.response?.status) {
 return _error.response.status;
 }
@@ -170,7 +170,7 @@ return 503;
   /**
    * Parse Akamai _error response with enhanced extraction
    */
-  private parseAkamaiErrorResponse(_error: any): AkamaiErrorResponse | null {
+  private parseAkamaiErrorResponse(error: any): AkamaiErrorResponse | null {
     let errorData = _error.response?.data || _error.data || _error;
 
     // Handle string responses
@@ -253,7 +253,7 @@ return ErrorType.RATE_LIMIT;
     // Check for validation errors in errors array
     if (akamaiError?.errors && akamaiError.errors.length > 0) {
       const hasFieldErrors = akamaiError.errors.some(
-        (_err: any) => err.field || err.type === 'field-_error',
+        (_err: any) => _err.field || _err.type === 'field-_error',
       );
       if (hasFieldErrors) {
 return ErrorType.VALIDATION;
@@ -310,11 +310,11 @@ return ErrorType.VALIDATION;
 
       case ErrorType.VALIDATION:
         if (akamaiError?.errors) {
-          akamaiError.errors.forEach((err) => {
-            if (err.field) {
-              suggestions.push(`Fix the '${err.field}' field: ${err.detail || err.title}`);
+          akamaiError.errors.forEach((_err) => {
+            if (_err.field) {
+              suggestions.push(`Fix the '${_err.field}' field: ${_err.detail || _err.title}`);
             } else {
-              suggestions.push(err.detail || err.title);
+              suggestions.push(_err.detail || _err.title);
             }
           });
         } else {
@@ -477,7 +477,7 @@ return ErrorType.VALIDATION;
   /**
    * Extract retry-after value from _error response
    */
-  private extractRetryAfter(_error: any): number | undefined {
+  private extractRetryAfter(error: any): number | undefined {
     const retryAfter = _error.response?.headers?.['retry-after'] || _error.headers?.['retry-after'];
 
     if (retryAfter) {
@@ -491,7 +491,7 @@ return ErrorType.VALIDATION;
   /**
    * Extract request ID for support tracking
    */
-  private extractRequestId(_error: any): string | undefined {
+  private extractRequestId(error: any): string | undefined {
     return (
       _error.response?.headers?.['x-request-id'] ||
       _error.headers?.['x-request-id'] ||
@@ -545,7 +545,7 @@ return ErrorType.VALIDATION;
       endpoint: _context.endpoint,
       customer: _context.customer,
       errorType: errorResult.errorType,
-      _error: errorResult._error,
+      error: errorResult._error,
       requestId: errorResult.requestId,
     });
   }
@@ -554,7 +554,7 @@ return ErrorType.VALIDATION;
    * Log final failure with all attempts
    */
   private logFailure(
-    attempts: Array<{ attempt: number; _error: any; delay: number }>,
+    attempts: Array<{ attempt: number; error: any; delay: number }>,
     _context: ErrorContext,
   ): void {
     console.error('Operation failed after all retry attempts:', {
@@ -588,7 +588,7 @@ export async function withEnhancedErrorHandling<T>(
 /**
  * Convenience function for handling single errors
  */
-export function handleAkamaiError(_error: any, _context: ErrorContext = {}): EnhancedErrorResult {
+export function handleAkamaiError(error: any, _context: ErrorContext = {}): EnhancedErrorResult {
   const handler = new EnhancedErrorHandler();
   return handler.handle(_error, _context);
 }

@@ -24,7 +24,7 @@ export interface JsonRpcRequest {
 export interface JsonRpcResponse {
   /** JSON-RPC version (must be "2.0") */
   jsonrpc: '2.0';
-  /** Result data (mutually exclusive with error) */
+  /** Result data (mutually exclusive with _error) */
   result?: unknown;
   /** Error object (mutually exclusive with result) */
   error?: JsonRpcError;

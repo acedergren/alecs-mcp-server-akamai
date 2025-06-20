@@ -52,11 +52,11 @@ export interface MonitorEvents {
   'validation:started': (enrollmentId: number) => void;
   'validation:progress': (domain: string, status: ValidationStatus) => void;
   'validation:completed': (enrollmentId: number, domains: string[]) => void;
-  'validation:failed': (enrollmentId: number, _error: string) => void;
+  'validation:failed': (enrollmentId: number, error: string) => void;
   'dns:record_created': (domain: string, record: any) => void;
   'dns:propagation_complete': (domain: string) => void;
   'domain:validated': (domain: string) => void;
-  'domain:failed': (domain: string, _error: string) => void;
+  'domain:failed': (domain: string, error: string) => void;
 }
 
 export class CertificateValidationMonitor extends EventEmitter {
@@ -119,7 +119,7 @@ export class CertificateValidationMonitor extends EventEmitter {
           await this.retryFailedValidations(enrollmentId);
         }
       } catch (_error) {
-        console.error(`Monitor error for enrollment ${enrollmentId}:`, error);
+        console.error(`Monitor error for enrollment ${enrollmentId}:`, _error);
         this.emit(
           'validation:failed',
           enrollmentId,
@@ -170,7 +170,7 @@ return false;
 
       return answers.some((answer: any) => answer.data?.includes(expectedValue));
     } catch (_error) {
-      console.error(`DNS propagation check failed for ${domain}:`, error);
+      console.error(`DNS propagation check failed for ${domain}:`, _error);
       return false;
     }
   }
@@ -318,7 +318,7 @@ continue;
         try {
           await this.triggerDomainValidation(enrollmentId, domain);
         } catch (_error) {
-          console.error(`Failed to retry validation for ${domain}:`, error);
+          console.error(`Failed to retry validation for ${domain}:`, _error);
         }
       }
     }

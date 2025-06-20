@@ -52,7 +52,7 @@ interface CleanupPlan {
 interface CleanupResult {
   moved: string[];
   deleted: string[];
-  errors: Array<{ file: string; _error: string }>;
+  errors: Array<{ file: string; error: string }>;
   savedSpace: number;
 }
 
@@ -454,7 +454,7 @@ class CleanupAgent {
       } catch (_error) {
         result.errors.push({
           file: file.path,
-          _error: _error instanceof Error ? _error.message : String(_error),
+          error: _error instanceof Error ? _error.message : String(_error),
         });
       }
     }
@@ -475,7 +475,7 @@ class CleanupAgent {
       } catch (_error) {
         result.errors.push({
           file: file.path,
-          _error: _error instanceof Error ? _error.message : String(_error),
+          error: _error instanceof Error ? _error.message : String(_error),
         });
       }
     }

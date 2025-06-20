@@ -48,10 +48,10 @@ export interface DeploymentEvents {
   'deployment:started': (enrollmentId: number, network: string) => void;
   'deployment:progress': (enrollmentId: number, progress: number) => void;
   'deployment:completed': (enrollmentId: number, deploymentId: number) => void;
-  'deployment:failed': (enrollmentId: number, _error: string) => void;
+  'deployment:failed': (enrollmentId: number, error: string) => void;
   'property:linking': (propertyId: string) => void;
   'property:linked': (propertyId: string, version: number) => void;
-  'property:link_failed': (propertyId: string, _error: string) => void;
+  'property:link_failed': (propertyId: string, error: string) => void;
   'rollback:started': (enrollmentId: number) => void;
   'rollback:completed': (enrollmentId: number) => void;
 }
@@ -446,7 +446,7 @@ progress = 25;
       // Cancel deployment if possible
       await this.cancelDeployment(enrollmentId);
     } catch (_error) {
-      console.error('Rollback failed:', error);
+      console.error('Rollback failed:', _error);
     }
   }
 

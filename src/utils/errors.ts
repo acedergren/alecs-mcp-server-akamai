@@ -20,7 +20,7 @@ export class ErrorTranslator {
   /**
    * Translate API errors into user-friendly messages
    */
-  translateError(_error: any, context?: ErrorContext): TranslatedError {
+  translateError(error: any, context?: ErrorContext): TranslatedError {
     // Handle different error types
     if (_error.response) {
       return this.translateHTTPError(_error.response, context);
@@ -66,7 +66,7 @@ export class ErrorTranslator {
     const messages: string[] = [];
     const suggestions: string[] = [];
 
-    errors.forEach((_error: any) => {
+    errors.forEach((error: any) => {
       if (_error.detail) {
         messages.push(this.cleanErrorMessage(_error.detail));
       }
@@ -184,7 +184,7 @@ export class ErrorTranslator {
     };
   }
 
-  private translateSystemError(_error: any, _context?: ErrorContext): TranslatedError {
+  private translateSystemError(error: any, _context?: ErrorContext): TranslatedError {
     const errorMap: Record<string, TranslatedError> = {
       ECONNREFUSED: {
         message: 'Connection refused',
@@ -220,7 +220,7 @@ export class ErrorTranslator {
     );
   }
 
-  private translateGenericError(_error: any, _context?: ErrorContext): TranslatedError {
+  private translateGenericError(error: any, _context?: ErrorContext): TranslatedError {
     return {
       message: this.cleanErrorMessage(_error.message || 'An error occurred'),
       suggestions: ['Please try again', 'Check your input parameters'],
@@ -255,7 +255,7 @@ export class ErrorTranslator {
       .trim();
   }
 
-  private getFormatSuggestion(_error: any): string {
+  private getFormatSuggestion(error: any): string {
     const field = _error.field || _error.errorLocation || 'value';
     const format = _error.expectedFormat || _error.format;
 
@@ -294,7 +294,7 @@ export class ErrorTranslator {
   /**
    * Format error for conversational response
    */
-  formatConversationalError(_error: any, context?: ErrorContext): string {
+  formatConversationalError(error: any, context?: ErrorContext): string {
     const translated = this.translateError(_error, context);
 
     let response = `Error: ${translated.message}\n\n`;
@@ -316,7 +316,7 @@ export class ErrorTranslator {
   /**
    * Extract actionable next steps from error
    */
-  getNextSteps(_error: any, context?: ErrorContext): string[] {
+  getNextSteps(error: any, context?: ErrorContext): string[] {
     const translated = this.translateError(_error, context);
     return translated.suggestions;
   }
@@ -349,7 +349,7 @@ export function formatBulkOperationResults(results: any[]): string {
     if (failed.length <= 5) {
       response += 'To fix these errors:\n';
       const uniqueErrors = [...new Set(failed.map((r) => r.error))];
-      uniqueErrors.forEach((error, index) => {
+      uniqueErrors.forEach((_error, index) => {
         response += `${index + 1}. ${getFixSuggestion(_error)}\n`;
       });
     } else {
@@ -363,7 +363,7 @@ export function formatBulkOperationResults(results: any[]): string {
   return response;
 }
 
-function getFixSuggestion(_error: string): string {
+function getFixSuggestion(error: string): string {
   const fixMap: Record<string, string> = {
     'already exists': 'Use a different name or skip existing resources',
     'not found': 'Verify the resource ID is correct',
@@ -410,7 +410,7 @@ export class AkamaiError extends Error {
  * Error recovery helper
  */
 export class ErrorRecovery {
-  static canRetry(_error: any): boolean {
+  static canRetry(error: any): boolean {
     // Retryable error codes
     const retryableCodes = ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNREFUSED'];
     if (_error.code && retryableCodes.includes(_error.code)) {
@@ -426,7 +426,7 @@ export class ErrorRecovery {
     return false;
   }
 
-  static getRetryDelay(attempt: number, _error: any): number {
+  static getRetryDelay(attempt: number, error: any): number {
     // Check for Retry-After header
     if (_error.response?.headers?.['retry-after']) {
       const retryAfter = _error.response.headers['retry-after'];
@@ -445,7 +445,7 @@ export class ErrorRecovery {
   static async withRetry<T>(
     operation: () => Promise<T>,
     maxAttempts = 3,
-    onRetry?: (attempt: number, _error: any) => void,
+    onRetry?: (attempt: number, error: any) => void,
   ): Promise<T> {
     let lastError: any;
 

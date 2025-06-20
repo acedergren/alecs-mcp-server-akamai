@@ -118,7 +118,7 @@ export class PurgeStatusTracker {
         },
         60 * 60 * 1000,
       ); // Every hour
-    } catch (_error: any) {
+    } catch (error: any) {
       logger.error(`Status tracker error: ${_error.message}`);
     }
   }
@@ -151,7 +151,7 @@ batch.completedAt = new Date(batch.completedAt);
 }
             });
 
-            operation.errors.forEach((_error: any) => {
+            operation.errors.forEach((error: any) => {
               _error.occurredAt = new Date(_error.occurredAt);
             });
 
@@ -168,7 +168,7 @@ batch.completedAt = new Date(batch.completedAt);
       }
 
       logger.info(`Loaded ${this.operations.size} purge operations from persistence`);
-    } catch (_error: any) {
+    } catch (error: any) {
       logger.error(`Status tracker error: ${_error.message}`);
     }
   }
@@ -178,7 +178,7 @@ batch.completedAt = new Date(batch.completedAt);
 
     try {
       await fs.writeFile(filePath, JSON.stringify(operation, null, 2));
-    } catch (_error: any) {
+    } catch (error: any) {
       logger.error(`Status tracker error: ${_error.message}`);
     }
   }
@@ -309,7 +309,7 @@ return;
               occurredAt: new Date(),
             });
           }
-        } catch (_error: any) {
+        } catch (error: any) {
           logger.error(`Status tracker error: ${_error.message}`);
 
           this.addError(operation, {
@@ -362,12 +362,12 @@ return;
 
       // Notify progress callbacks
       this.notifyProgressUpdate(operation);
-    } catch (_error: any) {
+    } catch (error: any) {
       logger.error(`Status tracker error: ${_error.message}`);
     }
   }
 
-  private addError(operation: PurgeOperation, _error: OperationError): void {
+  private addError(operation: PurgeOperation, error: OperationError): void {
     operation.errors.push(_error);
 
     // Limit error history
@@ -533,7 +533,7 @@ return;
       try {
         const filePath = path.join(this.statusDir, `${operationId}.json`);
         await fs.unlink(filePath);
-      } catch (_error: any) {
+      } catch (error: any) {
         // File might not exist, ignore error
       }
     }

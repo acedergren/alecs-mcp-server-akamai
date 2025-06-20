@@ -35,7 +35,7 @@ export class CircuitBreaker extends EventEmitter {
   private state: CircuitBreakerState = 'CLOSED';
   private config: Required<CircuitBreakerConfig>;
   private metrics: CircuitBreakerMetrics;
-  private failu_res: number = 0;
+  private failures: number = 0;
   private successes: number = 0;
   private nextAttempt: number = 0;
   private monitorTimer: NodeJS.Timeout | null = null;
@@ -141,7 +141,7 @@ export class CircuitBreaker extends EventEmitter {
   /**
    * Handle failed execution
    */
-  private onFailure(_error: Error, responseTime: number): void {
+  private onFailure(error: Error, responseTime: number): void {
     this.metrics.failedRequests++;
     this.metrics.lastFailureTime = Date.now();
     this.updateResponseTime(responseTime);
@@ -152,7 +152,7 @@ export class CircuitBreaker extends EventEmitter {
     );
 
     if (isExpectedError) {
-      this.emit('expectedError', { error, responseTime });
+      this.emit('expectedError', { _error, responseTime });
       return;
     }
 
@@ -165,9 +165,9 @@ export class CircuitBreaker extends EventEmitter {
     }
 
     this.emit('requestFailure', {
-      error,
+      _error,
       responseTime,
-      failu_res: this.failures,
+      failures: this.failures,
       state: this.state,
       threshold: this.config.failureThreshold
     });

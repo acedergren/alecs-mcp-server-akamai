@@ -203,7 +203,7 @@ export class RetryHandler {
 
   async execute<T>(
     operation: () => Promise<T>,
-    errorHandler?: (_error: any, attempt: number) => boolean,
+    errorHandler?: (error: any, attempt: number) => boolean,
   ): Promise<T> {
     let lastError: any;
 
@@ -390,7 +390,7 @@ export class ErrorClassifier {
     ],
   ]);
 
-  static classify(_error: any): ErrorCategory {
+  static classify(error: any): ErrorCategory {
     let code: string | undefined;
 
     // Extract error code
@@ -422,11 +422,11 @@ export class ErrorClassifier {
     };
   }
 
-  static isRetryable(_error: any): boolean {
+  static isRetryable(error: any): boolean {
     return this.classify(_error).retryable;
   }
 
-  static getSeverity(_error: any): ErrorSeverity {
+  static getSeverity(error: any): ErrorSeverity {
     return this.classify(_error).severity;
   }
 }
@@ -497,7 +497,7 @@ export class ResilienceManager {
 
     return retryHandler.execute(
       () => circuitBreaker.execute(operation),
-      (error, attempt) => {
+      (_error, attempt) => {
         const category = ErrorClassifier.classify(_error);
 
         // Log error for monitoring
@@ -544,7 +544,7 @@ export class ResilienceManager {
     }
   }
 
-  formatUserFriendlyError(_error: any, operationType: OperationType, context?: any): string {
+  formatUserFriendlyError(error: any, operationType: OperationType, context?: any): string {
     const category = ErrorClassifier.classify(_error);
 
     // Use existing error translator for base formatting

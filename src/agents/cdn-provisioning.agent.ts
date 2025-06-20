@@ -119,7 +119,7 @@ export class CDNProvisioningAgent {
         createFromVersionEtag: await this.getVersionEtag(propertyId, baseVersion),
       };
 
-      const response = await this.auth.request<PapiVersionResponse>({
+      const response = await this.auth._request<PapiVersionResponse>({
         method: 'POST',
         path: `/papi/v1/properties/${propertyId}/versions?contractId=${this.contractId}&groupId=${this.groupId}`,
         headers: { 'Content-Type': 'application/json' },
@@ -197,7 +197,7 @@ export class CDNProvisioningAgent {
 
   // Rule Tree Configuration
   async getRuleTree(propertyId: string, version: number): Promise<RuleTree> {
-    const response = await this.auth.request<PapiRulesResponse>({
+    const response = await this.auth._request<PapiRulesResponse>({
       method: 'GET',
       path: `/papi/v1/properties/${propertyId}/versions/${version}/rules?contractId=${this.contractId}&groupId=${this.groupId}`,
     });
@@ -212,7 +212,7 @@ export class CDNProvisioningAgent {
     try {
       const etag = await this.getVersionEtag(propertyId, version);
 
-      await this.auth.request({
+      await this.auth._request({
         method: 'PUT',
         path: `/papi/v1/properties/${propertyId}/versions/${version}/rules?contractId=${this.contractId}&groupId=${this.groupId}`,
         headers: {
@@ -301,7 +301,7 @@ export class CDNProvisioningAgent {
 
       progress.update({ current: 2, message: 'Creating hostname' });
 
-      const response = await this.auth.request<PapiEdgeHostnameResponse>({
+      const response = await this.auth._request<PapiEdgeHostnameResponse>({
         method: 'POST',
         path: `/papi/v1/edgehostnames?contractId=${this.contractId}&groupId=${this.groupId}`,
         headers: { 'Content-Type': 'application/json' },
@@ -376,7 +376,7 @@ export class CDNProvisioningAgent {
         request.note = options.note;
       }
 
-      const response = await this.auth.request<PapiActivationResponse>({
+      const response = await this.auth._request<PapiActivationResponse>({
         method: 'POST',
         path: `/papi/v1/properties/${propertyId}/activations?contractId=${this.contractId}&groupId=${this.groupId}`,
         headers: { 'Content-Type': 'application/json' },
@@ -458,7 +458,7 @@ export class CDNProvisioningAgent {
 
       const etag = await this.getVersionEtag(propertyId, version);
 
-      await this.auth.request({
+      await this.auth._request({
         method: 'PUT',
         path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames?contractId=${this.contractId}&groupId=${this.groupId}`,
         headers: {
@@ -540,7 +540,7 @@ export class CDNProvisioningAgent {
 
   // Helper methods
   private async getGroups(): Promise<any[]> {
-    const response = await this.auth.request<PapiGroupsResponse>({
+    const response = await this.auth._request<PapiGroupsResponse>({
       method: 'GET',
       path: '/papi/v1/groups',
     });
@@ -548,7 +548,7 @@ export class CDNProvisioningAgent {
   }
 
   private async getPropertyVersion(propertyId: string, version: number): Promise<PropertyVersion> {
-    const response = await this.auth.request<PapiVersionsResponse>({
+    const response = await this.auth._request<PapiVersionsResponse>({
       method: 'GET',
       path: `/papi/v1/properties/${propertyId}/versions/${version}?contractId=${this.contractId}&groupId=${this.groupId}`,
     });
@@ -558,7 +558,7 @@ export class CDNProvisioningAgent {
 
   private async getVersionEtag(propertyId: string, version?: number): Promise<string> {
     const v = version || (await this.getLatestVersion(propertyId));
-    const response = await this.auth.request<PapiVersionsResponse & PapiEtagResponse>({
+    const response = await this.auth._request<PapiVersionsResponse & PapiEtagResponse>({
       method: 'GET',
       path: `/papi/v1/properties/${propertyId}/versions/${v}?contractId=${this.contractId}&groupId=${this.groupId}`,
     });
@@ -567,7 +567,7 @@ export class CDNProvisioningAgent {
   }
 
   private async getLatestVersion(propertyId: string): Promise<number> {
-    const response = await this.auth.request<PapiVersionsResponse>({
+    const response = await this.auth._request<PapiVersionsResponse>({
       method: 'GET',
       path: `/papi/v1/properties/${propertyId}/versions/latest?contractId=${this.contractId}&groupId=${this.groupId}`,
     });
@@ -580,7 +580,7 @@ export class CDNProvisioningAgent {
     note: string,
   ): Promise<void> {
     const etag = await this.getVersionEtag(propertyId, version);
-    await this.auth.request({
+    await this.auth._request({
       method: 'PATCH',
       path: `/papi/v1/properties/${propertyId}/versions/${version}?contractId=${this.contractId}&groupId=${this.groupId}`,
       headers: {
@@ -592,7 +592,7 @@ export class CDNProvisioningAgent {
   }
 
   private async getPropertyHostnames(propertyId: string, version: number): Promise<any[]> {
-    const response = await this.auth.request<PapiHostnamesResponse>({
+    const response = await this.auth._request<PapiHostnamesResponse>({
       method: 'GET',
       path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames?contractId=${this.contractId}&groupId=${this.groupId}`,
     });
@@ -601,7 +601,7 @@ export class CDNProvisioningAgent {
 
   private async waitForEdgeHostname(edgeHostnameId: string): Promise<EdgeHostname> {
     while (true) {
-      const response = await this.auth.request<PapiEdgeHostnamesResponse>({
+      const response = await this.auth._request<PapiEdgeHostnamesResponse>({
         method: 'GET',
         path: `/papi/v1/edgehostnames/${edgeHostnameId}?contractId=${this.contractId}&groupId=${this.groupId}`,
       });
@@ -616,7 +616,7 @@ export class CDNProvisioningAgent {
   }
 
   private async validateProperty(propertyId: string, version: number): Promise<void> {
-    const response = await this.auth.request<PapiErrorsResponse>({
+    const response = await this.auth._request<PapiErrorsResponse>({
       method: 'POST',
       path: `/papi/v1/properties/${propertyId}/versions/${version}/validate?contractId=${this.contractId}&groupId=${this.groupId}`,
     });
@@ -630,7 +630,7 @@ export class CDNProvisioningAgent {
     propertyId: string,
     activationId: string,
   ): Promise<ActivationStatus> {
-    const response = await this.auth.request<PapiActivationsResponse>({
+    const response = await this.auth._request<PapiActivationsResponse>({
       method: 'GET',
       path: `/papi/v1/properties/${propertyId}/activations/${activationId}?contractId=${this.contractId}&groupId=${this.groupId}`,
     });
@@ -879,7 +879,7 @@ export class CDNProvisioningAgent {
     try {
       // Step 1: Create property
       progress.update({ current: 1, message: steps[0] });
-      const createResponse = await this.auth.request<PapiPropertyResponse>({
+      const createResponse = await this.auth._request<PapiPropertyResponse>({
         method: 'POST',
         path: `/papi/v1/properties?contractId=${this.contractId}&groupId=${this.groupId}`,
         headers: { 'Content-Type': 'application/json' },

@@ -339,7 +339,7 @@ export async function updatePropertyRules(
 
     if (response.errors?.length > 0) {
       text += '⚠️ **Validation Errors:**\n';
-      response.errors.forEach((_error: any) => {
+      response.errors.forEach((error: any) => {
         text += `- ${_error.detail}\n`;
       });
       text += '\n';
@@ -690,7 +690,7 @@ export async function activateProperty(
         ],
       };
     }
-    return formatError('activate property', error);
+    return formatError('activate property', _error);
   }
 }
 
@@ -748,7 +748,7 @@ export async function getActivationStatus(
 
     if (activation.errors && activation.errors.length > 0) {
       text += '\n## Errors\n';
-      activation.errors.forEach((_error: any) => {
+      activation.errors.forEach((error: any) => {
         text += `- ${_error.messageId}: ${_error.detail}\n`;
       });
     }
@@ -1755,7 +1755,7 @@ export async function batchVersionOperations(
               throw new Error(`Unknown operation: ${op.operation}`);
           }
           return { index, success: true, result, propertyId: op.propertyId };
-        } catch (_error: any) {
+        } catch (error: any) {
           return {
             index,
             success: false,
@@ -1769,7 +1769,7 @@ export async function batchVersionOperations(
 
       allResults.forEach((promiseResult, index) => {
         if (promiseResult.status === 'fulfilled') {
-          const { success, result, error, propertyId } = promiseResult.value || {};
+          const { success, result, _error, propertyId } = promiseResult.value || {};
           if (success && result) {
             results.push({
               propertyId: propertyId || '',
@@ -1780,7 +1780,7 @@ export async function batchVersionOperations(
             errors.push({
               propertyId: propertyId || '',
               operation: args.operations[index]?.operation || '',
-              error,
+              _error,
             });
           }
         } else {
@@ -1822,7 +1822,7 @@ export async function batchVersionOperations(
               throw new Error(`Unknown operation: ${op.operation}`);
           }
           results.push({ propertyId: op.propertyId, operation: op.operation, result });
-        } catch (_error: any) {
+        } catch (error: any) {
           errors.push({
             propertyId: op.propertyId,
             operation: op.operation,
@@ -1849,7 +1849,7 @@ export async function batchVersionOperations(
 
     if (errors.length > 0) {
       text += '❌ **Failed Operations:**\n';
-      errors.forEach((error, index) => {
+      errors.forEach((_error, index) => {
         text += `${index + 1}. ${_error.propertyId} - ${_error.operation}: ${_error.error}\n`;
       });
       text += '\n';
@@ -1935,7 +1935,7 @@ function compareHostnames(hostnames1: any[], hostnames2: any[]): any[] {
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, _error: any): MCPToolResponse {
+function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 

@@ -848,7 +848,7 @@ describe('Integration Response Handling', () => {
       },
     };
 
-    const result = handleAkamaiError(error, {
+    const result = handleAkamaiError(_error, {
       operation: 'update property rules',
       apiType: 'papi',
     });

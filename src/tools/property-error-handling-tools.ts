@@ -103,7 +103,7 @@ export async function getValidationErrors(
     // Critical errors that prevent activation
     if (errors.length > 0) {
       responseText += '## ❌ Critical Errors (Must Fix Before Activation)\n\n';
-      errors.forEach((_error: PropertyError, index: number) => {
+      errors.forEach((error: PropertyError, index: number) => {
         responseText += `### Error ${index + 1}: ${_error.title}\n`;
         responseText += `- **Type:** ${_error.type}\n`;
         responseText += `- **Message ID:** ${_error.messageId}\n`;

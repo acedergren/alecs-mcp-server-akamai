@@ -11,7 +11,7 @@ import {
   handleAkamaiError,
   type ErrorContext,
   type RetryConfig,
-} from './enhanced-_error-handling';
+} from './enhanced-error-handling';
 
 // Re-export types for convenience
 export type { ErrorContext, RetryConfig };
@@ -19,7 +19,7 @@ export type { ErrorContext, RetryConfig };
 /**
  * Format _error as MCPToolResponse
  */
-export function formatErrorResponse(_error: any, _context: ErrorContext): MCPToolResponse {
+export function formatErrorResponse(error: any, _context: ErrorContext): MCPToolResponse {
   const errorResult = handleAkamaiError(_error, _context);
 
   let errorMessage = `❌ Failed to ${_context.operation || 'complete operation'}`;

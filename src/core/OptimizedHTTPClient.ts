@@ -160,7 +160,7 @@ export class OptimizedHTTPClient extends EventEmitter {
       
       lookupFn(hostname, options, (_err: any, address: string, family: number) => {
         if (err) {
-          this.emit('dnsLookupError', { hostname, _error: err });
+          this.emit('dnsLookupError', { hostname, error: err });
           return callback(err);
         }
 
@@ -242,7 +242,7 @@ export class OptimizedHTTPClient extends EventEmitter {
       }
     }
 
-    this.emit('requestFailed', { hostname, attempts: attempt, _error: lastError });
+    this.emit('requestFailed', { hostname, attempts: attempt, error: lastError });
     throw lastError;
   }
 

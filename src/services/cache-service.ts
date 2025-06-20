@@ -71,7 +71,7 @@ export class AkamaiCacheService {
         this.enabled = false;
       });
     } catch (_error) {
-      console.error('[Cache] Failed to initialize Valkey:', error);
+      console.error('[Cache] Failed to initialize Valkey:', _error);
       this.enabled = false;
     }
   }
@@ -329,7 +329,7 @@ return;
       };
     } catch (_err) {
       console.error('[Cache] Error getting stats:', err);
-      return { enabled: true, _error: err instanceof Error ? err.message : String(err) };
+      return { enabled: true, error: err instanceof Error ? err.message : String(err) };
     }
   }
 

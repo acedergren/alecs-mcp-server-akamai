@@ -196,7 +196,7 @@ export async function listZones(
     };
   } catch (_error) {
     spinner.fail('Failed to fetch DNS zones');
-    console.error('Error listing DNS zones:', error);
+    console.error('Error listing DNS zones:', _error);
     throw _error;
   }
 }
@@ -240,7 +240,7 @@ export async function getZone(
       ],
     };
   } catch (_error) {
-    console.error('Error getting DNS zone:', error);
+    console.error('Error getting DNS zone:', _error);
     throw _error;
   }
 }
@@ -309,7 +309,7 @@ queryParams.gid = args.groupId;
     };
   } catch (_error) {
     spinner.fail(`Failed to create zone: ${args.zone}`);
-    console.error('Error creating DNS zone:', error);
+    console.error('Error creating DNS zone:', _error);
     throw _error;
   }
 }
@@ -367,7 +367,7 @@ queryParams.types = args.types.join(',');
       ],
     };
   } catch (_error) {
-    console.error('Error listing DNS records:', error);
+    console.error('Error listing DNS records:', _error);
     throw _error;
   }
 }
@@ -388,7 +388,7 @@ export async function getChangeList(
       },
     });
     return response;
-  } catch (_error: any) {
+  } catch (error: any) {
     if (_error.message?.includes('404')) {
       return null;
     }
@@ -457,7 +457,7 @@ export async function submitChangeList(
         });
 
         break; // Success, exit retry loop
-      } catch (_error: any) {
+      } catch (error: any) {
         lastError = error;
 
         // Check if it's a rate limit error
@@ -482,7 +482,7 @@ export async function submitChangeList(
             opts.retryConfig.initialDelay! * Math.pow(2, attempt),
             opts.retryConfig.maxDelay!,
           );
-          spinner.update(`Transient error, retrying in ${delay}ms...`);
+          spinner.update(`Transient _error, retrying in ${delay}ms...`);
           await new Promise((resolve) => setTimeout(resolve, delay));
           continue;
         }
@@ -550,7 +550,7 @@ export async function submitChangeList(
         }
       } catch (_error) {
         spinner.fail('Failed to monitor activation status');
-        console.error('Activation monitoring error:', error);
+        console.error('Activation monitoring error:', _error);
         // Don't throw - submission was successful even if monitoring failed
       }
     }
@@ -567,7 +567,7 @@ spinner.fail('Failed to submit changelist');
 /**
  * Helper to determine if an error is transient and should be retried
  */
-function isTransientError(_error: any): boolean {
+function isTransientError(error: any): boolean {
   // Network errors
   if (_error.code && ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNREFUSED'].includes(_error.code)) {
     return true;
@@ -611,7 +611,7 @@ export async function discardChangeList(
         },
       });
       return; // Success
-    } catch (_error: any) {
+    } catch (error: any) {
       lastError = error;
 
       // Don't retry on 404 - changelist doesn't exist
@@ -684,7 +684,7 @@ export async function waitForZoneActivation(
       // Still pending - wait before next poll
       const delay = opts.pollInterval * backoffMultiplier;
       await new Promise((resolve) => setTimeout(resolve, delay));
-    } catch (_error: any) {
+    } catch (error: any) {
       // Handle rate limiting with exponential backoff
       if (_error.message?.includes('429') || _error.statusCode === 429) {
         consecutiveErrors++;
@@ -763,7 +763,7 @@ continue;
       if (i < zones.length - 1 && opts.delayBetweenZones > 0) {
         await new Promise((resolve) => setTimeout(resolve, opts.delayBetweenZones));
       }
-    } catch (_error: any) {
+    } catch (error: any) {
       const errorMessage: string =
         _error instanceof Error ? _error.message : String(error || 'Unknown error');
       result.failed.push({
@@ -951,7 +951,7 @@ export async function upsertRecord(
     };
   } catch (_error) {
     spinner.fail('Failed to update DNS record');
-    console.error('Error updating DNS record:', error);
+    console.error('Error updating DNS record:', _error);
     throw _error;
   }
 }
@@ -1012,7 +1012,7 @@ export async function deleteRecord(
     };
   } catch (_error) {
     spinner.fail('Failed to delete DNS record');
-    console.error('Error deleting DNS record:', error);
+    console.error('Error deleting DNS record:', _error);
     throw _error;
   }
 }
@@ -1110,7 +1110,7 @@ export async function activateZoneChanges(
         ],
       };
     }
-  } catch (_error: any) {
+  } catch (error: any) {
     spinner.fail('Failed to activate zone changes');
 
     // Provide helpful error messages

@@ -117,7 +117,7 @@ acc[contract] = [];
       ],
     };
   } catch (_error) {
-    return formatError('list CP Codes', error);
+    return formatError('list CP Codes', _error);
   }
 }
 
@@ -232,7 +232,7 @@ export async function getCPCode(
       ],
     };
   } catch (_error) {
-    return formatError('get CP Code details', error);
+    return formatError('get CP Code details', _error);
   }
 }
 
@@ -398,7 +398,7 @@ export async function createCPCode(
       ],
     };
   } catch (_error) {
-    return formatError('create CP Code', error);
+    return formatError('create CP Code', _error);
   }
 }
 
@@ -495,14 +495,14 @@ export async function searchCPCodes(
       ],
     };
   } catch (_error) {
-    return formatError('search CP Codes', error);
+    return formatError('search CP Codes', _error);
   }
 }
 
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, _error: any): MCPToolResponse {
+function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 

@@ -188,7 +188,7 @@ export class FastPurgeMonitor {
         // Check alerts
         await this.checkAlerts(metrics);
       }
-    } catch (_error: any) {
+    } catch (error: any) {
       logger.error(`Monitor error: ${_error.message}`);
     }
   }

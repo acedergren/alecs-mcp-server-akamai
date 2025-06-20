@@ -214,7 +214,7 @@ interface HealthScore {
   success_rate: number;
   performance: number;
   stability: number;
-  critical_failu_res: number;
+  critical_failures: number;
   grade: string;
 }
 
@@ -328,7 +328,7 @@ export class IntelligentBugAnalyzer {
       // Phase 1: Parse and analyze test output
       console.log(`[${analysisId}] Starting test output analysis...`);
       const testResults = this.outputAnalyzer.parseTestOutput(testOutput, format);
-      const testAnalysis = this.outputAnalyzer.analyzeResults(testResults);
+      const _testAnalysis = this.outputAnalyzer.analyzeResults(testResults);
 
       // Phase 2: Generate TODO list
       console.log(`[${analysisId}] Generating TODO list...`);
@@ -375,7 +375,7 @@ export class IntelligentBugAnalyzer {
         exports: this.generateExports(analysisReport, this.options.outputFormat!),
       };
     } catch (_error) {
-      console.error(`[${analysisId}] Analysis failed:`, error);
+      console.error(`[${analysisId}] Analysis failed:`, _error);
       throw new AnalysisError(`Bug analysis failed: ${(error as Error).message}`, {
         analysisId,
         phase: 'unknown',
@@ -462,8 +462,8 @@ export class IntelligentBugAnalyzer {
     const testOverview = testAnalysis.overview;
     const criticalIssues =
       todoList.items?.filter((item) => item.priority === 'CRITICAL').length || 0;
-    const quickWins = todoList.quickWins?.length || 0;
-    const estimatedHours = todoList.metadata?.estimatedTotalHours || 0;
+    const _quickWins = todoList.quickWins?.length || 0;
+    const _estimatedHours = todoList.metadata?.estimatedTotalHours || 0;
 
     const summary: ExecutiveSummary = {
       situation: this.generateSituationSummary(testOverview, criticalIssues),
@@ -569,7 +569,7 @@ export class IntelligentBugAnalyzer {
     customerImpact: CustomerImpact | null;
     fixStrategy: FixStrategy | null;
   }): Recommendations {
-    const { testAnalysis, todoList, customerImpact, fixStrategy } = data;
+    const { _testAnalysis, todoList, customerImpact, fixStrategy } = data;
 
     const recommendations: Recommendations = {
       immediate: [],
@@ -591,8 +591,8 @@ export class IntelligentBugAnalyzer {
     });
 
     // Quick wins
-    const quickWins = todoList.quickWins || [];
-    quickWins.slice(0, 3).forEach((item) => {
+    const _quickWins = todoList.quickWins || [];
+    _quickWins.slice(0, 3).forEach((item) => {
       recommendations.immediate.push({
         action: item.title,
         reason: 'Quick win for immediate impact',
@@ -659,7 +659,7 @@ export class IntelligentBugAnalyzer {
       success_rate: Math.round(successRate),
       performance: Math.round(performanceScore),
       stability: Math.round(stabilityScore),
-      critical_failu_res: criticalFailures,
+      critical_failures: criticalFailures,
       grade: this.getHealthGrade(healthScore),
     };
   }
@@ -924,7 +924,7 @@ return 70;
     fixStrategy: FixStrategy | null;
   }): number {
     // Simplified success probability calculation
-    const { testAnalysis, todoList, customerImpact, fixStrategy } = data;
+    const { _testAnalysis, todoList, customerImpact, _fixStrategy } = data;
 
     let probability = 85; // Base probability
 
@@ -960,15 +960,15 @@ probability -= 5;
   }
 
   // Placeholder methods for future implementation
-  private analyzeTrends(testResults: TestResults, _testAnalysis: TestAnalysis): any {
+  private analyzeTrends(_testResults: TestResults, _testAnalysis: TestAnalysis): any {
     return { message: 'Trend analysis requires historical data' };
   }
 
-  private enhancePrioritization(todoList: TodoList): any {
+  private enhancePrioritization(_todoList: TodoList): any {
     return { message: 'Enhanced prioritization applied' };
   }
 
-  private createExecutionPlan(todoList: TodoList): any {
+  private createExecutionPlan(_todoList: TodoList): any {
     return { message: 'Execution plan created based on dependencies and resources' };
   }
 
@@ -982,7 +982,7 @@ probability -= 5;
     };
   }
 
-  private defineNextSteps(data: any): NextSteps {
+  private defineNextSteps(_data: any): NextSteps {
     return {
       immediate: ['Review critical items', 'Assign owners', 'Start quick wins'],
       short_term: ['Execute tactical fixes', 'Monitor progress', 'Update stakeholders'],
@@ -990,7 +990,7 @@ probability -= 5;
     };
   }
 
-  private generateActionSummary(todoList: TodoList, _fixStrategy: FixStrategy | null): any {
+  private generateActionSummary(_todoList: TodoList, _fixStrategy: FixStrategy | null): any {
     return { message: 'Action summary generated from todo list and fix strategy' };
   }
 
@@ -1007,9 +1007,9 @@ probability -= 5;
   }
 
   private generateRiskSummary(
-    testAnalysis: TestAnalysis,
-    customerImpact: CustomerImpact | null,
-    fixStrategy: FixStrategy | null,
+    _testAnalysis: TestAnalysis,
+    _customerImpact: CustomerImpact | null,
+    _fixStrategy: FixStrategy | null,
   ): any {
     return { message: 'Risk assessment based on comprehensive analysis' };
   }

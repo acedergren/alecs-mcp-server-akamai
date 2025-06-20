@@ -396,7 +396,7 @@ export async function listPropertiesTreeView(
                   } catch (_error) {
                     console.error(
                       `Failed to get properties for child group ${childGroup.groupId}:`,
-                      error,
+                      _error,
                     );
                   }
                 }
@@ -429,7 +429,7 @@ export async function listPropertiesTreeView(
                     } catch (_error) {
                       console.error(
                         `Failed to get properties for grandchild group ${grandchild.groupId}:`,
-                        error,
+                        _error,
                       );
                     }
                   }
@@ -446,7 +446,7 @@ export async function listPropertiesTreeView(
           treeNodes.push(groupNode);
           break; // Only process first contract for now
         } catch (_error) {
-          console.error(`Failed to get properties for contract ${contractId}:`, error);
+          console.error(`Failed to get properties for contract ${contractId}:`, _error);
         }
       }
     }
@@ -701,7 +701,7 @@ continue;
     // Get property by ID
     return await getPropertyById(client, propertyId);
   } catch (_error) {
-    return formatError('get property', error);
+    return formatError('get property', _error);
   }
 }
 
@@ -932,7 +932,7 @@ continue;
       ],
     };
   } catch (_error) {
-    return formatError('get property details', error);
+    return formatError('get property details', _error);
   }
 }
 
@@ -1111,7 +1111,7 @@ export async function createProperty(
       }
     }
 
-    return formatError('create property', error);
+    return formatError('create property', _error);
   }
 }
 
@@ -1195,7 +1195,7 @@ export async function listContracts(
       ],
     };
   } catch (_error) {
-    return formatError('list contracts', error);
+    return formatError('list contracts', _error);
   }
 }
 
@@ -1351,7 +1351,7 @@ acc[group.parentGroupId] = [];
       ],
     };
   } catch (_error) {
-    return formatError('list groups', error);
+    return formatError('list groups', _error);
   }
 }
 
@@ -1527,7 +1527,7 @@ export async function listProducts(
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, _error: any): MCPToolResponse {
+function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 

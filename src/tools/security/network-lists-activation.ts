@@ -424,7 +424,7 @@ export async function bulkActivateNetworkLists(
         const akamaiError = _error as AkamaiError;
         results.push({
           uniqueId: activation.uniqueId,
-          _error: akamaiError.title || akamaiError.detail || 'Unknown _error',
+          error: akamaiError.title || akamaiError.detail || 'Unknown _error',
         });
 
         output += `❌ ${activation.uniqueId} → ${activation.network} (Error: ${akamaiError.title})\n`;

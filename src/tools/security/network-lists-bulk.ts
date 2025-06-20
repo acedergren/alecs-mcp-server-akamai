@@ -489,7 +489,7 @@ export async function bulkUpdateNetworkLists(
         results.push({
           uniqueId: update.uniqueId,
           success: false,
-          _error: akamaiError.title || akamaiError.detail || 'Unknown _error',
+          error: akamaiError.title || akamaiError.detail || 'Unknown _error',
         });
 
         output += `❌ ${update.uniqueId}: ${akamaiError.title}\n`;

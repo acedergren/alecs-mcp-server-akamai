@@ -1,6 +1,6 @@
 /**
  * OAuth Manager
- * Handles OAuth authentication and customer context mapping
+ * Handles OAuth authentication and customer _context mapping
  */
 
 import { randomBytes } from 'crypto';
@@ -180,7 +180,7 @@ export class OAuthManager {
       throw new Error(`User info endpoint not configured for ${provider}`);
     }
 
-    // In a real implementation, this would make an HTTP request to the provider
+    // In a real implementation, this would make an HTTP _request to the provider
     // For now, we'll return a mock profile
     return {
       sub: `${provider}_${randomBytes(8).toString('hex')}`,
@@ -223,7 +223,7 @@ export class OAuthManager {
    */
   private async getDefaultCustomerContexts(_subject: string): Promise<CustomerContext[]> {
     // In a real implementation, this would query a database or configuration
-    // For now, return a default context
+    // For now, return a default _context
     return [
       {
         customerId: 'default',
@@ -244,7 +244,7 @@ export class OAuthManager {
   }
 
   /**
-   * Map OAuth subject to customer context
+   * Map OAuth subject to customer _context
    */
   async mapSubjectToCustomer(
     subject: string,
@@ -258,16 +258,16 @@ export class OAuthManager {
       throw new Error('Subject mapping not found');
     }
 
-    // Check if customer context already exists
+    // Check if customer _context already exists
     const existingIndex = mapping.customerContexts.findIndex(
       (ctx) => ctx.customerId === customerContext.customerId,
     );
 
     if (existingIndex >= 0) {
-      // Update existing context
+      // Update existing _context
       mapping.customerContexts[existingIndex] = customerContext;
     } else {
-      // Add new context
+      // Add new _context
       mapping.customerContexts.push(customerContext);
     }
 
@@ -282,7 +282,7 @@ export class OAuthManager {
   }
 
   /**
-   * Switch customer context for session
+   * Switch customer _context for session
    */
   async switchCustomerContext(
     sessionId: string,
@@ -293,15 +293,15 @@ export class OAuthManager {
       throw new Error('Session not found');
     }
 
-    const context = session.availableContexts.find(
+    const _context = session.availableContexts.find(
       (ctx) => ctx.customerId === customerId,
     );
 
-    if (!context) {
-      throw new Error(`Customer context ${customerId} not available for session`);
+    if (!_context) {
+      throw new Error(`Customer _context ${customerId} not available for session`);
     }
 
-    session.currentContext = context;
+    session.currentContext = _context;
     session.currentContext.lastAccessAt = new Date();
 
     // Audit log
@@ -313,13 +313,13 @@ export class OAuthManager {
       success: true,
     });
 
-    logger.info('Customer context switched', {
+    logger.info('Customer _context switched', {
       sessionId,
       customerId,
       userId: session.profile.sub,
     });
 
-    return context;
+    return _context;
   }
 
   /**
@@ -355,7 +355,7 @@ export class OAuthManager {
       throw new Error('OAuth provider not configured');
     }
 
-    // In a real implementation, this would make a token refresh request
+    // In a real implementation, this would make a token refresh _request
     // For now, return a new mock token
     const newToken: OAuthToken = {
       ...session.token,

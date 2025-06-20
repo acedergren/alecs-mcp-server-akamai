@@ -81,7 +81,7 @@ export class InstrumentedMCPServer {
         `📊 Observability initialized for ${this.config.observability.environment} environment`,
       );
     } catch (_error) {
-      console.error('❌ Failed to initialize observability:', error);
+      console.error('❌ Failed to initialize observability:', _error);
     }
   }
 
@@ -553,7 +553,7 @@ return;
           console.log('📤 Observability data exported on shutdown');
         }
       } catch (_error) {
-        console.error('❌ Failed to generate final report:', error);
+        console.error('❌ Failed to generate final report:', _error);
       }
 
       this.observability.stop();

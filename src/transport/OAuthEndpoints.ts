@@ -16,7 +16,7 @@ import { CustomerContextManager } from '@/services/CustomerContextManager';
 import { logger } from '@/utils/logger';
 
 /**
- * OAuth login request
+ * OAuth login _request
  */
 interface OAuthLoginRequest {
   token: OAuthToken;
@@ -24,7 +24,7 @@ interface OAuthLoginRequest {
 }
 
 /**
- * Customer switch request
+ * Customer switch _request
  */
 interface CustomerSwitchRequest {
   targetCustomerId: string;
@@ -32,7 +32,7 @@ interface CustomerSwitchRequest {
 }
 
 /**
- * Customer mapping request
+ * Customer mapping _request
  */
 interface CustomerMappingRequest {
   subject: string;
@@ -44,8 +44,8 @@ interface CustomerMappingRequest {
  * Wrapper for async route handlers
  */
 function asyncHandler(fn: (_req: Request, _res: Response, _next: NextFunction) => Promise<any>): RequestHandler {
-  return (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+  return (_req, _res, _next) => {
+    Promise.resolve(fn(_req, _res, _next)).catch(_next);
   };
 }
 
@@ -61,10 +61,10 @@ export function createOAuthRoutes(): Router {
    */
   router.post('/auth/oauth/login', asyncHandler(async (_req: Request, _res: Response) => {
     try {
-      const { token, provider } = req.body as OAuthLoginRequest;
+      const { token, provider } = _req.body as OAuthLoginRequest;
 
       if (!token || !provider) {
-        return res.status(400).json({
+        return _res.status(400).json({
           error: 'Missing required fields: token, provider',
         });
       }
@@ -72,7 +72,7 @@ export function createOAuthRoutes(): Router {
       // Authenticate with OAuth
       const session = await contextManager.authenticateOAuth(token, provider);
 
-      return res.json({
+      return _res.json({
         sessionId: session.sessionId,
         profile: {
           sub: session.profile.sub,
@@ -84,9 +84,9 @@ export function createOAuthRoutes(): Router {
         expiresAt: session.expiresAt,
       });
     } catch (_error) {
-      logger._error('OAuth login failed', { _error });
-      return res.status(401).json({
-        _error: _error instanceof Error ? _error.message : 'Authentication failed',
+      logger.error('OAuth login failed', { error: _error });
+      return _res.status(401).json({
+        error: _error instanceof Error ? _error.message : 'Authentication failed',
       });
     }
   }));
@@ -96,24 +96,24 @@ export function createOAuthRoutes(): Router {
    */
   router.post('/auth/oauth/refresh', asyncHandler(async (_req: Request, _res: Response) => {
     try {
-      const sessionId = req.headers['x-session-id'] as string;
+      const sessionId = _req.headers['x-session-id'] as string;
 
       if (!sessionId) {
-        return res.status(401).json({
+        return _res.status(401).json({
           error: 'Session ID required',
         });
       }
 
       const newToken = await contextManager.refreshSessionToken(sessionId);
 
-      return res.json({
+      return _res.json({
         token: newToken,
         expiresIn: newToken.expiresIn,
       });
     } catch (_error) {
-      logger._error('Token refresh failed', { _error });
-      return res.status(401).json({
-        _error: _error instanceof Error ? _error.message : 'Token refresh failed',
+      logger.error('Token refresh failed', { error: _error });
+      return _res.status(401).json({
+        error: _error instanceof Error ? _error.message : 'Token refresh failed',
       });
     }
   }));
@@ -123,23 +123,23 @@ export function createOAuthRoutes(): Router {
    */
   router.post('/auth/oauth/logout', asyncHandler(async (_req: Request, _res: Response) => {
     try {
-      const sessionId = req.headers['x-session-id'] as string;
+      const sessionId = _req.headers['x-session-id'] as string;
 
       if (!sessionId) {
-        return res.status(401).json({
+        return _res.status(401).json({
           error: 'Session ID required',
         });
       }
 
       await contextManager.revokeSession(sessionId);
 
-      return res.json({
+      return _res.json({
         message: 'Logout successful',
       });
     } catch (_error) {
-      logger._error('Logout failed', { _error });
-      return res.status(500).json({
-        _error: _error instanceof Error ? _error.message : 'Logout failed',
+      logger.error('Logout failed', { error: _error });
+      return _res.status(500).json({
+        error: _error instanceof Error ? _error.message : 'Logout failed',
       });
     }
   }));
@@ -149,23 +149,23 @@ export function createOAuthRoutes(): Router {
    */
   router.get('/auth/customers', asyncHandler(async (_req: Request, _res: Response) => {
     try {
-      const sessionId = req.headers['x-session-id'] as string;
+      const sessionId = _req.headers['x-session-id'] as string;
 
       if (!sessionId) {
-        return res.status(401).json({
+        return _res.status(401).json({
           error: 'Session ID required',
         });
       }
 
       const customers = await contextManager.getAvailableCustomers(sessionId);
 
-      return res.json({
+      return _res.json({
         customers,
       });
     } catch (_error) {
-      logger._error('Failed to get customers', { _error });
-      return res.status(500).json({
-        _error: _error instanceof Error ? _error.message : 'Failed to get customers',
+      logger.error('Failed to get customers', { error: _error });
+      return _res.status(500).json({
+        error: _error instanceof Error ? _error.message : 'Failed to get customers',
       });
     }
   }));
@@ -175,17 +175,17 @@ export function createOAuthRoutes(): Router {
    */
   router.post('/auth/customers/switch', asyncHandler(async (_req: Request, _res: Response) => {
     try {
-      const sessionId = req.headers['x-session-id'] as string;
-      const { targetCustomerId, reason } = req.body as CustomerSwitchRequest;
+      const sessionId = _req.headers['x-session-id'] as string;
+      const { targetCustomerId, reason } = _req.body as CustomerSwitchRequest;
 
       if (!sessionId) {
-        return res.status(401).json({
+        return _res.status(401).json({
           error: 'Session ID required',
         });
       }
 
       if (!targetCustomerId) {
-        return res.status(400).json({
+        return _res.status(400).json({
           error: 'Target customer ID required',
         });
       }
@@ -196,14 +196,14 @@ export function createOAuthRoutes(): Router {
         reason,
       });
 
-      return res.json({
+      return _res.json({
         currentCustomer: newContext,
         message: 'Customer context switched successfully',
       });
     } catch (_error) {
-      logger._error('Customer switch failed', { _error });
-      return res.status(403).json({
-        _error: _error instanceof Error ? _error.message : 'Customer switch failed',
+      logger.error('Customer switch failed', { error: _error });
+      return _res.status(403).json({
+        error: _error instanceof Error ? _error.message : 'Customer switch failed',
       });
     }
   }));
@@ -213,17 +213,17 @@ export function createOAuthRoutes(): Router {
    */
   router.post('/admin/customers/mapping', asyncHandler(async (_req: Request, _res: Response) => {
     try {
-      const sessionId = req.headers['x-session-id'] as string;
-      const { subject, provider, customerContext } = req.body as CustomerMappingRequest;
+      const sessionId = _req.headers['x-session-id'] as string;
+      const { subject, provider, customerContext } = _req.body as CustomerMappingRequest;
 
       if (!sessionId) {
-        return res.status(401).json({
+        return _res.status(401).json({
           error: 'Session ID required',
         });
       }
 
       if (!subject || !provider || !customerContext) {
-        return res.status(400).json({
+        return _res.status(400).json({
           error: 'Missing required fields: subject, provider, customerContext',
         });
       }
@@ -235,13 +235,13 @@ export function createOAuthRoutes(): Router {
         customerContext,
       );
 
-      return res.json({
+      return _res.json({
         message: 'Customer mapping created successfully',
       });
     } catch (_error) {
-      logger._error('Customer mapping failed', { _error });
-      return res.status(403).json({
-        _error: _error instanceof Error ? _error.message : 'Customer mapping failed',
+      logger.error('Customer mapping failed', { error: _error });
+      return _res.status(403).json({
+        error: _error instanceof Error ? _error.message : 'Customer mapping failed',
       });
     }
   }));
@@ -251,31 +251,31 @@ export function createOAuthRoutes(): Router {
    */
   router.post('/admin/roles', asyncHandler(async (_req: Request, _res: Response) => {
     try {
-      const sessionId = req.headers['x-session-id'] as string;
-      const role = req.body as Role;
+      const sessionId = _req.headers['x-session-id'] as string;
+      const role = _req.body as Role;
 
       if (!sessionId) {
-        return res.status(401).json({
+        return _res.status(401).json({
           error: 'Session ID required',
         });
       }
 
       if (!role.id || !role.name || !role.permissions) {
-        return res.status(400).json({
+        return _res.status(400).json({
           error: 'Missing required fields: id, name, permissions',
         });
       }
 
       await contextManager.createCustomRole(sessionId, role);
 
-      return res.json({
+      return _res.json({
         message: 'Role created successfully',
         roleId: role.id,
       });
     } catch (_error) {
-      logger._error('Role creation failed', { _error });
-      return res.status(403).json({
-        _error: _error instanceof Error ? _error.message : 'Role creation failed',
+      logger.error('Role creation failed', { error: _error });
+      return _res.status(403).json({
+        error: _error instanceof Error ? _error.message : 'Role creation failed',
       });
     }
   }));
@@ -285,18 +285,18 @@ export function createOAuthRoutes(): Router {
    */
   router.post('/admin/customers/:customerId/isolation-policy', asyncHandler(async (_req: Request, _res: Response) => {
     try {
-      const sessionId = req.headers['x-session-id'] as string;
-      const { customerId } = req.params;
-      const policy = req.body as Omit<CustomerIsolationPolicy, 'customerId'>;
+      const sessionId = _req.headers['x-session-id'] as string;
+      const { customerId } = _req.params;
+      const policy = _req.body as Omit<CustomerIsolationPolicy, 'customerId'>;
 
       if (!sessionId) {
-        return res.status(401).json({
+        return _res.status(401).json({
           error: 'Session ID required',
         });
       }
 
       if (!policy.isolationLevel) {
-        return res.status(400).json({
+        return _res.status(400).json({
           error: 'Missing required field: isolationLevel',
         });
       }
@@ -307,14 +307,14 @@ export function createOAuthRoutes(): Router {
         id: `policy_${customerId}_${Date.now()}`,
       });
 
-      return res.json({
+      return _res.json({
         message: 'Isolation policy set successfully',
         customerId,
       });
     } catch (_error) {
-      logger._error('Isolation policy creation failed', { _error });
-      return res.status(403).json({
-        _error: _error instanceof Error ? _error.message : 'Isolation policy creation failed',
+      logger.error('Isolation policy creation failed', { error: _error });
+      return _res.status(403).json({
+        error: _error instanceof Error ? _error.message : 'Isolation policy creation failed',
       });
     }
   }));
@@ -323,21 +323,21 @@ export function createOAuthRoutes(): Router {
    * Health check endpoint
    */
   router.get('/auth/health', (_req: Request, _res: Response) => {
-    res.json({
+    _res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
     });
   });
 
   // Error handling middleware
-  router.use((_error: Error, _req: Request, _res: Response, _next: NextFunction) => {
+  router.use((error: Error, _req: Request, _res: Response, _next: NextFunction) => {
     logger.error('OAuth endpoint error', {
-      path: req.path,
-      method: req.method,
-      error,
+      path: _req.path,
+      method: _req.method,
+      _error,
     });
 
-    res.status(500).json({
+    _res.status(500).json({
       error: 'Internal server error',
       message: process.env.NODE_ENV === 'development' ? _error.message : undefined,
     });
@@ -354,27 +354,27 @@ export function createSessionMiddleware() {
 
   return async (_req: Request, _res: Response, _next: NextFunction) => {
     try {
-      const sessionId = req.headers['x-session-id'] as string;
+      const sessionId = _req.headers['x-session-id'] as string;
 
       if (!sessionId) {
         // No session, continue without authentication
-        return next();
+        return _next();
       }
 
       // Validate session exists
       const customers = await contextManager.getAvailableCustomers(sessionId);
 
-      // Attach session info to request
-      (req as any).session = {
+      // Attach session info to _request
+      (_req as any).session = {
         id: sessionId,
         customers,
       };
 
-      next();
+      _next();
     } catch (_error) {
       // Invalid session, continue without authentication
-      logger.debug('Invalid session', { sessionId: req.headers['x-session-id'] });
-      next();
+      logger.debug('Invalid session', { sessionId: _req.headers['x-session-id'] });
+      _next();
     }
   };
 }
@@ -383,23 +383,23 @@ export function createSessionMiddleware() {
  * Require authentication middleware
  */
 export function requireAuth(_req: Request, _res: Response, _next: NextFunction): void {
-  if (!(req as any).session?.id) {
-    res.status(401).json({
+  if (!(_req as any).session?.id) {
+    _res.status(401).json({
       error: 'Authentication required',
     });
     return;
   }
-  next();
+  _next();
 }
 
 /**
  * Require admin middleware
  */
 export function requireAdmin(_req: Request, _res: Response, _next: NextFunction): void {
-  const session = (req as any).session;
+  const session = (_req as any).session;
 
   if (!session?.id) {
-    res.status(401).json({
+    _res.status(401).json({
       error: 'Authentication required',
     });
     return;
@@ -411,11 +411,11 @@ export function requireAdmin(_req: Request, _res: Response, _next: NextFunction)
   );
 
   if (!hasAdmin) {
-    res.status(403).json({
+    _res.status(403).json({
       error: 'Admin privileges required',
     });
     return;
   }
 
-  next();
+  _next();
 }

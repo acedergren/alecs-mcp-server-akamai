@@ -231,7 +231,7 @@ export class DiagnosticsAPI extends EventEmitter {
         this.healthChecks.set(name, healthCheck);
         results.push(healthCheck);
 
-        this.emit('healthCheckError', name, error);
+        this.emit('healthCheckError', name, _error);
       }
     }
 
@@ -682,7 +682,7 @@ return;
           this.emit('alertTriggered', alert);
         }
       } catch (_error) {
-        this.emit('alertRuleError', name, error);
+        this.emit('alertRuleError', name, _error);
       }
     }
   }

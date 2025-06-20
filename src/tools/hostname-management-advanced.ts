@@ -285,7 +285,7 @@ export async function analyzeHostnameOwnership(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'analyze hostname ownership',
             parameters: args,
             timestamp: new Date(),
@@ -422,7 +422,7 @@ acc[suffix] = [];
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'generate edge hostname recommendations',
             parameters: args,
             timestamp: new Date(),
@@ -625,7 +625,7 @@ export async function validateHostnamesBulk(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'validate hostnames bulk',
             parameters: args,
             timestamp: new Date(),
@@ -774,7 +774,7 @@ export async function findOptimalPropertyAssignment(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'find optimal property assignment',
             parameters: args,
             timestamp: new Date(),
@@ -925,7 +925,7 @@ export async function createHostnameProvisioningPlan(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'create hostname provisioning plan',
             parameters: args,
             timestamp: new Date(),

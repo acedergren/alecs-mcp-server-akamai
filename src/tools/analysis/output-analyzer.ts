@@ -70,7 +70,7 @@ interface TestSummary {
 interface ParsedTestResults {
   summary: TestSummary;
   testSuites: TestSuite[];
-  failu_res: TestFailure[];
+  failures: TestFailure[];
   errors: TestError[];
   coverage?: any;
 }
@@ -311,7 +311,7 @@ export class TestOutputAnalyzer {
     } catch (_error) {
       return {
         success: false,
-        error: `Failed to parse ${format} output: ${(error as Error).message}`,
+        error: `Failed to parse ${format} output: ${(_error as Error).message}`,
         results: [],
       };
     }
@@ -321,7 +321,7 @@ export class TestOutputAnalyzer {
    * Parse Jest test output
    */
   private parseJestOutput(_output: string): ParsedTestResults {
-    const results: ParsedTestResults = {
+    const _results: ParsedTestResults = {
       summary: {
         totalTests: 0,
         passedTests: 0,
@@ -329,18 +329,18 @@ export class TestOutputAnalyzer {
         skippedTests: 0,
       },
       testSuites: [],
-      failu_res: [],
+      failures: [],
       errors: [],
       coverage: null,
     };
 
     try {
       // Try to parse as JSON first (Jest --json output)
-      const jsonOutput: JestJsonOutput = JSON.parse(output);
+      const jsonOutput: JestJsonOutput = JSON.parse(_output);
       return this.parseJestJsonOutput(jsonOutput);
     } catch {
       // Parse text output
-      return this.parseJestTextOutput(output);
+      return this.parseJestTextOutput(_output);
     }
   }
 
@@ -361,7 +361,7 @@ export class TestOutputAnalyzer {
           ) || 0,
       },
       testSuites: [],
-      failu_res: [],
+      failures: [],
       errors: [],
       coverage: jsonOutput.coverageMap || null,
     };
@@ -414,7 +414,7 @@ export class TestOutputAnalyzer {
    * Parse Jest text output
    */
   private parseJestTextOutput(_output: string): ParsedTestResults {
-    const lines = output.split('\n');
+    const lines = _output.split('\n');
     const results: ParsedTestResults = {
       summary: {
         totalTests: 0,
@@ -423,7 +423,7 @@ export class TestOutputAnalyzer {
         skippedTests: 0,
       },
       testSuites: [],
-      failu_res: [],
+      failures: [],
       errors: [],
     };
 
@@ -511,7 +511,7 @@ export class TestOutputAnalyzer {
    */
   private parseMochaOutput(_output: string): ParsedTestResults {
     // This would be implemented based on Mocha output format
-    return this.parseGenericOutput(output);
+    return this.parseGenericOutput(_output);
   }
 
   /**
@@ -519,7 +519,7 @@ export class TestOutputAnalyzer {
    */
   private parseJsonOutput(_output: string): ParsedTestResults {
     try {
-      const json = JSON.parse(output);
+      const json = JSON.parse(_output);
       // Convert generic JSON to ParsedTestResults format
       return {
         summary: json.summary || {
@@ -529,11 +529,11 @@ export class TestOutputAnalyzer {
           skippedTests: 0,
         },
         testSuites: json.testSuites || [],
-        failu_res: json.failures || [],
+        failures: json.failures || [],
         errors: json.errors || [],
       };
     } catch {
-      return this.parseGenericOutput(output);
+      return this.parseGenericOutput(_output);
     }
   }
 
@@ -550,7 +550,7 @@ export class TestOutputAnalyzer {
         skippedTests: 0,
       },
       testSuites: [],
-      failu_res: [],
+      failures: [],
       errors: [],
     };
   }
@@ -647,14 +647,14 @@ return 'POOR';
 
     allErrors.forEach((_error) => {
       const category = this.categorizeError(_error.message);
-      const severity = this.assessErrorSeverity(error, category);
+      const severity = this.assessErrorSeverity(_error, category);
 
       // Update categorized errors
       if (!errorAnalysis.categorizedErrors.has(category)) {
         errorAnalysis.categorizedErrors.set(category, []);
       }
       errorAnalysis.categorizedErrors.get(category)!.push({
-        ...(error as TestFailure),
+        ...(_error as TestFailure),
         severity,
         category,
       });
@@ -742,7 +742,7 @@ return 'MEDIUM';
       rate_limiting: /rate|throttle|limit|quota/i,
       resource_not_found: /not found|missing|does not exist/i,
       dependency: /dependency|module|import|require/i,
-      logic_error: /assertion|expect|should|logic/i,
+      logicerror: /assertion|expect|should|logic/i,
       performance: /timeout|slow|performance|memory/i,
     };
 

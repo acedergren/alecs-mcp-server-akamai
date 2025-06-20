@@ -216,7 +216,7 @@ export class ALECSOAuthServer {
    * Setup global error handling
    */
   private setupErrorHandling(): void {
-    process.on('uncaughtException', (_error: Error) => {
+    process.on('uncaughtException', (error: Error) => {
       logger.error('Uncaught exception', { error: _error.message, stack: _error.stack });
       process.exit(1);
     });
@@ -521,7 +521,7 @@ export class ALECSOAuthServer {
   /**
    * Format error for response
    */
-  private formatError(_error: unknown): string {
+  private formatError(error: unknown): string {
     if (_error instanceof ConfigurationError) {
       return `Configuration error: ${_error.message}`;
     }
@@ -706,7 +706,7 @@ export class ALECSOAuthServer {
       // Create and configure transport
       const transport = new StdioServerTransport();
 
-      transport.onerror = (_error: Error) => {
+      transport.onerror = (error: Error) => {
         logger.error('Transport error', { error: _error.message, stack: _error.stack });
       };
 

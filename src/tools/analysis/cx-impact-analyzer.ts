@@ -274,15 +274,15 @@ export class CustomerExperienceImpactAnalyzer {
   /**
    * Analyze customer experience impact from test failures
    */
-  analyzeCustomerImpact(testResults: TestResults, analysisResults: any) {
+  analyzeCustomerImpact(testResults: TestResults, _analysisResults: any) {
     const impact = {
-      overview: this.generateImpactOverview(testResults, analysisResults),
-      personaImpacts: this.analyzePersonaImpacts(testResults, analysisResults),
-      journeyImpacts: this.analyzeJourneyImpacts(testResults, analysisResults),
-      businessMetrics: this.calculateBusinessMetrics(testResults, analysisResults),
-      riskAssessment: this.assessCustomerRisks(testResults, analysisResults),
-      recommendations: this.generateCustomerRecommendations(testResults, analysisResults),
-      prioritizedActions: this.prioritizeByCustomerImpact(testResults, analysisResults),
+      overview: this.generateImpactOverview(testResults, _analysisResults),
+      personaImpacts: this.analyzePersonaImpacts(testResults, _analysisResults),
+      journeyImpacts: this.analyzeJourneyImpacts(testResults, _analysisResults),
+      businessMetrics: this.calculateBusinessMetrics(testResults, _analysisResults),
+      riskAssessment: this.assessCustomerRisks(testResults, _analysisResults),
+      recommendations: this.generateCustomerRecommendations(testResults, _analysisResults),
+      prioritizedActions: this.prioritizeByCustomerImpact(testResults, _analysisResults),
     };
 
     return impact;
@@ -291,23 +291,23 @@ export class CustomerExperienceImpactAnalyzer {
   /**
    * Generate overall impact overview
    */
-  generateImpactOverview(testResults: TestResults, analysisResults: any) {
+  generateImpactOverview(testResults: TestResults, _analysisResults: any) {
     const totalFailures = testResults.summary?.failedTests || 0;
     const totalTests = testResults.summary?.totalTests || 1;
     const failureRate = totalFailures / totalTests;
 
-    const criticalFailures = this.identifyCriticalFailures(testResults, analysisResults);
+    const criticalFailures = this.identifyCriticalFailures(testResults, _analysisResults);
     const customerFacingFailures = this.identifyCustomerFacingFailures(testResults);
 
     return {
       overallHealth: this.calculateOverallHealth(failureRate, criticalFailures.length),
-      customerImpactScore: this.calculateCustomerImpactScore(testResults, analysisResults),
-      affectedPersonas: this.getAffectedPersonas(testResults, analysisResults),
-      affectedJourneys: this.getAffectedJourneys(testResults, analysisResults),
-      criticalFailu_res: criticalFailures.length,
-      customerFacingFailu_res: customerFacingFailures.length,
+      customerImpactScore: this.calculateCustomerImpactScore(testResults, _analysisResults),
+      affectedPersonas: this.getAffectedPersonas(testResults, _analysisResults),
+      affectedJourneys: this.getAffectedJourneys(testResults, _analysisResults),
+      criticalFailures: criticalFailures.length,
+      customerFacingFailures: customerFacingFailures.length,
       riskLevel: this.calculateRiskLevel(failureRate, criticalFailures.length),
-      estimatedCustomersAffected: this.estimateAffectedCustomers(testResults, analysisResults),
+      estimatedCustomersAffected: this.estimateAffectedCustomers(testResults, _analysisResults),
     };
   }
 
@@ -460,12 +460,12 @@ return 'GOOD';
    */
   analyzePersonaImpacts(
     testResults: TestResults,
-    analysisResults: any,
+    _analysisResults: any,
   ): Record<string, PersonaImpact> {
     const personaImpacts: Record<string, PersonaImpact> = {};
 
-    Object.entries(this.customerPersonas).forEach(([personaId, persona]) => {
-      const impact = this.calculatePersonaImpact(personaId, persona, testResults, analysisResults);
+    Object.entries(this.customerPersonas).forEach(([_personaId, persona]) => {
+      const impact = this.calculatePersonaImpact(_personaId, persona, testResults, _analysisResults);
       personaImpacts[personaId] = impact;
     });
 
@@ -476,14 +476,14 @@ return 'GOOD';
    * Calculate impact for a specific persona
    */
   calculatePersonaImpact(
-    personaId: string,
+    _personaId: string,
     persona: CustomerPersona,
     testResults: TestResults,
-    analysisResults: any,
+    _analysisResults: any,
   ): PersonaImpact {
-    const relevantFailures = this.getPersonaRelevantFailures(personaId, testResults);
-    const impactedPainPoints = this.getImpactedPainPoints(personaId, relevantFailures);
-    const affectedJourneySteps = this.getAffectedJourneySteps(personaId, relevantFailures);
+    const relevantFailures = this.getPersonaRelevantFailures(_personaId, testResults);
+    const impactedPainPoints = this.getImpactedPainPoints(_personaId, relevantFailures);
+    const affectedJourneySteps = this.getAffectedJourneySteps(_personaId, relevantFailures);
 
     const impactScore = this.calculatePersonaImpactScore(relevantFailures, persona);
     const riskLevel = this.assessPersonaRisk(impactScore, impactedPainPoints.length);
@@ -495,18 +495,18 @@ return 'GOOD';
       businessValue: persona.businessValue,
       impactScore: impactScore,
       riskLevel: riskLevel,
-      relevantFailu_res: relevantFailures.length,
+      relevantFailures: relevantFailures.length,
       impactedPainPoints: impactedPainPoints,
       affectedJourneySteps: affectedJourneySteps,
-      recommendations: this.generatePersonaRecommendations(personaId, relevantFailures),
-      estimatedAffectedUsers: this.estimatePersonaAffectedUsers(personaId, impactScore),
+      recommendations: this.generatePersonaRecommendations(_personaId, relevantFailures),
+      estimatedAffectedUsers: this.estimatePersonaAffectedUsers(_personaId, impactScore),
     };
   }
 
   /**
    * Get failures relevant to a specific persona
    */
-  getPersonaRelevantFailures(personaId: string, testResults: TestResults): TestFailure[] {
+  getPersonaRelevantFailures(_personaId: string, testResults: TestResults): TestFailure[] {
     const persona = this.customerPersonas[personaId];
     if (!persona) {
 return [];
@@ -598,12 +598,12 @@ return [];
    */
   analyzeJourneyImpacts(
     testResults: TestResults,
-    analysisResults: any,
+    _analysisResults: any,
   ): Record<string, JourneyImpact> {
     const journeyImpacts: Record<string, JourneyImpact> = {};
 
     Object.entries(this.customerJourneys).forEach(([journeyId, journey]) => {
-      const impact = this.calculateJourneyImpact(journeyId, journey, testResults, analysisResults);
+      const impact = this.calculateJourneyImpact(journeyId, journey, testResults, _analysisResults);
       journeyImpacts[journeyId] = impact;
     });
 
@@ -617,7 +617,7 @@ return [];
     journeyId: string,
     journey: CustomerJourney,
     testResults: TestResults,
-    analysisResults: any,
+    _analysisResults: any,
   ): JourneyImpact {
     const relevantFailures = this.getJourneyRelevantFailures(journeyId, testResults);
     const affectedSteps = this.getAffectedJourneyStepsForJourney(journeyId, relevantFailures);
@@ -632,7 +632,7 @@ return [];
       businessImpact: journey.businessImpact,
       impactScore: impactScore,
       riskLevel: riskLevel,
-      relevantFailu_res: relevantFailures.length,
+      relevantFailures: relevantFailures.length,
       affectedSteps: affectedSteps.length,
       criticalStepsAffected: criticalStepsAffected,
       totalSteps: journey.steps.length,
@@ -718,9 +718,9 @@ return false;
   /**
    * Calculate business metrics impact
    */
-  calculateBusinessMetrics(testResults: TestResults, analysisResults: any) {
+  calculateBusinessMetrics(testResults: TestResults, _analysisResults: any) {
     const metrics: Record<string, MetricImpact> = {};
-    const impactMultiplier = this.getOverallImpactMultiplier(testResults, analysisResults);
+    const impactMultiplier = this.getOverallImpactMultiplier(testResults, _analysisResults);
 
     Object.entries(this.businessMetrics).forEach(([metricName, metricConfig]) => {
       const impactedValue = this.calculateMetricImpact(
@@ -728,7 +728,7 @@ return false;
         metricConfig,
         impactMultiplier,
         testResults,
-        analysisResults,
+        _analysisResults,
       );
 
       metrics[metricName] = {
@@ -750,7 +750,7 @@ return false;
       overallImpact: overallImpact,
       estimatedRevenueLoss: this.estimateRevenueLoss(overallImpact),
       customerChurnRisk: this.estimateChurnRisk(metrics),
-      timeToRecovery: this.estimateTimeToRecovery(testResults, analysisResults),
+      timeToRecovery: this.estimateTimeToRecovery(testResults, _analysisResults),
     };
   }
 
@@ -762,7 +762,7 @@ return false;
     metricConfig: BusinessMetric,
     impactMultiplier: number,
     testResults: TestResults,
-    analysisResults: any,
+    _analysisResults: any,
   ): number {
     const baselineValue = metricConfig.baseline;
     let impactFactor = 1.0;
@@ -801,7 +801,7 @@ return false;
 
       case 'churn_risk': {
         // Critical failures increase churn risk
-        const criticalFailures = this.identifyCriticalFailures(testResults, analysisResults);
+        const criticalFailures = this.identifyCriticalFailures(testResults, _analysisResults);
         impactFactor = 1 + criticalFailures.length * 0.02 * impactMultiplier;
         break;
       }
@@ -871,7 +871,7 @@ return false;
   /**
    * Assess customer risks
    */
-  assessCustomerRisks(testResults: TestResults, analysisResults: any) {
+  assessCustomerRisks(testResults: TestResults, _analysisResults: any) {
     const risks = {
       immediate: [] as Risk[],
       shortTerm: [] as Risk[],
@@ -880,13 +880,13 @@ return false;
     };
 
     // Immediate risks (critical failures affecting customer operations)
-    const criticalFailures = this.identifyCriticalFailures(testResults, analysisResults);
+    const criticalFailures = this.identifyCriticalFailures(testResults, _analysisResults);
     criticalFailures.forEach((failure) => {
       risks.immediate.push({
         type: 'critical_failure',
         description: `Critical failure in ${failure.suite}: ${failure.test}`,
         impact: 'HIGH',
-        affectedCustomers: this.estimateAffectedCustomers(testResults, analysisResults, failure),
+        affectedCustomers: this.estimateAffectedCustomers(testResults, _analysisResults, failure),
         mitigationTime: '< 4 hours',
       });
     });
@@ -948,7 +948,7 @@ return false;
   /**
    * Generate customer-focused recommendations
    */
-  generateCustomerRecommendations(testResults: TestResults, analysisResults: any) {
+  generateCustomerRecommendations(testResults: TestResults, _analysisResults: any) {
     const recommendations = {
       immediate: [] as Recommendation[],
       customerCommunication: [] as Recommendation[],
@@ -956,7 +956,7 @@ return false;
       preventive: [] as Recommendation[],
     };
 
-    const criticalFailures = this.identifyCriticalFailures(testResults, analysisResults);
+    const criticalFailures = this.identifyCriticalFailures(testResults, _analysisResults);
     const authFailures = this.countFailuresByType(testResults, 'auth');
     const onboardingFailures = this.countFailuresByType(testResults, 'onboard');
 
@@ -1109,20 +1109,20 @@ return false;
     });
   }
 
-  getAffectedPersonas(testResults: TestResults, analysisResults: any) {
-    const personaImpacts = this.analyzePersonaImpacts(testResults, analysisResults);
+  getAffectedPersonas(testResults: TestResults, _analysisResults: any) {
+    const personaImpacts = this.analyzePersonaImpacts(testResults, _analysisResults);
     return Object.entries(personaImpacts)
       .filter(([, impact]) => impact.relevantFailures > 0)
-      .map(([personaId, impact]) => ({
-        id: personaId,
+      .map(([_personaId, impact]) => ({
+        id: _personaId,
         name: impact.persona,
         impactScore: impact.impactScore,
         riskLevel: impact.riskLevel,
       }));
   }
 
-  getAffectedJourneys(testResults: TestResults, analysisResults: any) {
-    const journeyImpacts = this.analyzeJourneyImpacts(testResults, analysisResults);
+  getAffectedJourneys(testResults: TestResults, _analysisResults: any) {
+    const journeyImpacts = this.analyzeJourneyImpacts(testResults, _analysisResults);
     return Object.entries(journeyImpacts)
       .filter(([, impact]) => impact.relevantFailures > 0)
       .map(([journeyId, impact]) => ({
@@ -1148,12 +1148,12 @@ return 'MEDIUM';
 
   estimateAffectedCustomers(
     testResults: TestResults,
-    analysisResults: any,
-    specificFailure?: TestFailure,
+    _analysisResults: any,
+    _specificFailure?: TestFailure,
   ): string {
     // This would typically connect to customer data
     // For now, provide estimates based on failure types
-    const criticalFailures = this.identifyCriticalFailures(testResults, analysisResults);
+    const criticalFailures = this.identifyCriticalFailures(testResults, _analysisResults);
     const authFailures = this.countFailuresByType(testResults, 'auth');
 
     if (authFailures > 0) {
@@ -1302,19 +1302,19 @@ journeys.push('scaling_operations');
   }
 
   // Stub methods that need implementation
-  private getImpactedPainPoints(personaId: string, failu_res: TestFailure[]): string[] {
+  private getImpactedPainPoints(_personaId: string, _failures: TestFailure[]): string[] {
     // Implementation would analyze failures and map to pain points
     return [];
   }
 
-  private getAffectedJourneySteps(personaId: string, failu_res: TestFailure[]): any[] {
+  private getAffectedJourneySteps(_personaId: string, _failures: TestFailure[]): any[] {
     // Implementation would map failures to journey steps
     return [];
   }
 
-  private calculatePersonaImpactScore(failu_res: TestFailure[], persona: CustomerPersona): number {
+  private calculatePersonaImpactScore(_failures: TestFailure[], _persona: CustomerPersona): number {
     // Implementation would calculate score based on failures and persona
-    return 100 - failures.length * 10;
+    return 100 - _failures.length * 10;
   }
 
   private assessPersonaRisk(impactScore: number, painPointsCount: number): string {
@@ -1330,12 +1330,12 @@ return 'MEDIUM';
     return 'LOW';
   }
 
-  private generatePersonaRecommendations(personaId: string, failu_res: TestFailure[]): any[] {
+  private generatePersonaRecommendations(_personaId: string, _failures: TestFailure[]): any[] {
     // Implementation would generate specific recommendations
     return [];
   }
 
-  private estimatePersonaAffectedUsers(personaId: string, impactScore: number): string {
+  private estimatePersonaAffectedUsers(_personaId: string, impactScore: number): string {
     if (impactScore < 50) {
 return 'ALL';
 }
@@ -1350,7 +1350,7 @@ return 'SUBSET';
 
   private getAffectedJourneyStepsForJourney(
     journeyId: string,
-    failu_res: TestFailure[],
+    _failures: TestFailure[],
   ): JourneyStep[] {
     const journey = this.customerJourneys[journeyId];
     if (!journey) {
@@ -1361,9 +1361,9 @@ return [];
     return [];
   }
 
-  private calculateJourneyImpactScore(failu_res: TestFailure[], journey: CustomerJourney): number {
+  private calculateJourneyImpactScore(_failures: TestFailure[], _journey: CustomerJourney): number {
     // Implementation would calculate score based on failures and journey
-    return 100 - failures.length * 5;
+    return 100 - _failures.length * 5;
   }
 
   private assessJourneyRisk(impactScore: number, criticalStepsAffected: number): string {
@@ -1386,12 +1386,12 @@ return 0;
     return (affectedSteps.length / allSteps.length) * 100;
   }
 
-  private generateJourneyRecommendations(journeyId: string, failu_res: TestFailure[]): any[] {
+  private generateJourneyRecommendations(_journeyId: string, _failures: TestFailure[]): any[] {
     // Implementation would generate specific recommendations
     return [];
   }
 
-  private getOverallImpactMultiplier(testResults: TestResults, analysisResults: any): number {
+  private getOverallImpactMultiplier(testResults: TestResults, _analysisResults: any): number {
     const failureRate =
       (testResults.summary?.failedTests || 0) / (testResults.summary?.totalTests || 1);
     return Math.min(2.0, 1 + failureRate);
@@ -1458,8 +1458,8 @@ return 0;
     return churnMetric.projected;
   }
 
-  private estimateTimeToRecovery(testResults: TestResults, analysisResults: any): string {
-    const criticalFailures = this.identifyCriticalFailures(testResults, analysisResults);
+  private estimateTimeToRecovery(testResults: TestResults, _analysisResults: any): string {
+    const criticalFailures = this.identifyCriticalFailures(testResults, _analysisResults);
     const totalFailures = testResults.summary?.failedTests || 0;
 
     if (criticalFailures.length > 5) {

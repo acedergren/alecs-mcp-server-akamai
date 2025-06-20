@@ -47,7 +47,7 @@ export enum TokenBindingType {
 }
 
 /**
- * OAuth 2.1 authorization request parameters
+ * OAuth 2.1 authorization _request parameters
  */
 export interface OAuth21AuthorizationRequest {
   responseType: 'code'; // Only authorization code flow allowed
@@ -63,7 +63,7 @@ export interface OAuth21AuthorizationRequest {
 }
 
 /**
- * OAuth 2.1 token request parameters
+ * OAuth 2.1 token _request parameters
  */
 export interface OAuth21TokenRequest {
   grantType: GrantType;
@@ -281,7 +281,7 @@ export class OAuth21ComplianceManager {
 
       return isValid;
     } catch (_error) {
-      logger.error('PKCE validation error', { error });
+      logger.error('PKCE validation error', { error: _error });
       return false;
     }
   }
@@ -314,7 +314,7 @@ export class OAuth21ComplianceManager {
 
       return true;
     } catch (_error) {
-      logger.error('Authorization server validation error', { issuer, error });
+      logger.error('Authorization server validation error', { issuer, error: _error });
       return false;
     }
   }
@@ -354,7 +354,7 @@ export class OAuth21ComplianceManager {
 
       return validatedMetadata;
     } catch (_error) {
-      logger.error('Failed to fetch authorization server metadata', { issuer, error });
+      logger.error('Failed to fetch authorization server metadata', { issuer, error: _error });
       throw _error;
     }
   }
@@ -400,7 +400,7 @@ export class OAuth21ComplianceManager {
     try {
       return JSON.parse(data);
     } catch (_error) {
-      logger.error('Failed to parse state data', { error });
+      logger.error('Failed to parse state data', { error: _error });
       return null;
     }
   }

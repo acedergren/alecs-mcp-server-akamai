@@ -287,7 +287,7 @@ export async function debugSecurePropertyOnboarding(
         },
       ],
     };
-  } catch (_error: any) {
+  } catch (error: any) {
     text += '\n## ❌ Unexpected Error\n';
     text += `**Message:** ${_error.message}\n`;
     text += `**Stack:** ${_error.stack}\n`;
@@ -383,7 +383,7 @@ export async function testBasicPropertyCreation(
         },
       ],
     };
-  } catch (_error: any) {
+  } catch (error: any) {
     return {
       content: [
         {

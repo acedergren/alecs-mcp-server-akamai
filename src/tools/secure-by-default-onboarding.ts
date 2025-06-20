@@ -546,7 +546,7 @@ export async function onboardSecureByDefaultProperty(
       content: [
         {
           type: 'text',
-          text: generateFailureReport(state, error, args),
+          text: generateFailureReport(state, _error, args),
         },
       ],
     };
@@ -587,7 +587,7 @@ export async function quickSecureByDefaultSetup(
       customer: args.customer,
     });
   } catch (_error) {
-    return formatError('quick Secure by Default setup', error);
+    return formatError('quick Secure by Default setup', _error);
   }
 }
 
@@ -687,14 +687,14 @@ export async function checkSecureByDefaultStatus(
       ],
     };
   } catch (_error) {
-    return formatError('check Secure by Default status', error);
+    return formatError('check Secure by Default status', _error);
   }
 }
 
 /**
  * Generate failure report with recovery options
  */
-function generateFailureReport(state: OnboardingState, _error: any, args: any): string {
+function generateFailureReport(state: OnboardingState, error: any, args: any): string {
   let text = '# ❌ Secure Property Onboarding Failed\n\n';
 
   text += '## Error Details\n';
@@ -764,7 +764,7 @@ async function rollbackProperty(client: AkamaiClient, propertyId: string): Promi
 /**
  * Format error responses
  */
-function formatError(operation: string, _error: any): MCPToolResponse {
+function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
 
   if (_error instanceof Error) {

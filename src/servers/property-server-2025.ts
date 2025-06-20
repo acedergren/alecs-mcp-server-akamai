@@ -387,7 +387,7 @@ class PropertyALECSServer2025 {
           ],
         };
       } catch (_error) {
-        log('ERROR', `Tool ${name} failed`, { _error });
+        log('ERROR', `Tool ${name} failed`, { error: _error });
 
         const errorResult = createMcp2025Response(
           false,
@@ -425,7 +425,7 @@ class PropertyALECSServer2025 {
 if (require.main === module) {
   const server = new PropertyALECSServer2025();
   server.run().catch((_error) => {
-    log('FATAL', 'Failed to start server', { error });
+    log('FATAL', 'Failed to start server', { error: _error });
     process.exit(1);
   });
 }

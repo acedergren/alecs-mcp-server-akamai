@@ -94,7 +94,7 @@ export async function getZonesDNSSECStatus(
         });
 
         results.push(response);
-      } catch (_error: any) {
+      } catch (error: any) {
         // If DNSSEC is not enabled, API returns 404
         if (_error.message?.includes('404')) {
           results.push({
@@ -251,7 +251,7 @@ export async function getZoneContract(
       ],
     };
   } catch (_error) {
-    console.error('Error getting zone contract:', error);
+    console.error('Error getting zone contract:', _error);
     throw _error;
   }
 }
@@ -291,7 +291,7 @@ export async function getRecordSet(
         },
       ],
     };
-  } catch (_error: any) {
+  } catch (error: any) {
     if (_error.message?.includes('404')) {
       return {
         content: [
@@ -351,7 +351,7 @@ export async function updateTSIGKeyForZones(
         });
 
         results.push({ zone, success: true });
-      } catch (_error: any) {
+      } catch (error: any) {
         results.push({
           zone,
           success: false,
@@ -488,7 +488,7 @@ export async function getZoneVersion(
       ],
     };
   } catch (_error) {
-    console.error('Error getting zone version:', error);
+    console.error('Error getting zone version:', _error);
     throw _error;
   }
 }
@@ -535,7 +535,7 @@ queryParams.limit = args.limit;
       ],
     };
   } catch (_error) {
-    console.error('Error getting version record sets:', error);
+    console.error('Error getting version record sets:', _error);
     throw _error;
   }
 }
@@ -604,7 +604,7 @@ export async function getVersionMasterZoneFile(
       ],
     };
   } catch (_error) {
-    console.error('Error getting master zone file:', error);
+    console.error('Error getting master zone file:', _error);
     throw _error;
   }
 }
@@ -659,7 +659,7 @@ export async function createMultipleRecordSets(
           record: `${recordSet.name} ${recordSet.type}`,
           success: true,
         });
-      } catch (_error: any) {
+      } catch (error: any) {
         results.push({
           record: `${recordSet.name} ${recordSet.type}`,
           success: false,

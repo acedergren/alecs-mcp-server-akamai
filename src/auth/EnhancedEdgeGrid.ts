@@ -152,7 +152,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
         const authTime = performance.now() - startTime;
         this.updateAuthMetrics(authTime, false);
         
-        this.emit('authError', { error, authTime });
+        this.emit('authError', { _error, authTime });
         throw _error;
       }
     };
@@ -164,10 +164,10 @@ export class EnhancedEdgeGrid extends EventEmitter {
   }
 
   /**
-   * Execute authenticated request with circuit breaker protection
+   * Execute authenticated _request with circuit breaker protection
    */
   public async executeRequest(
-    options: EdgeGridRequestOptions,
+    _options: EdgeGridRequestOptions,
     data?: string | Buffer
   ): Promise<{ response: any; data: Buffer; metrics: any }> {
     this.metrics.totalRequests++;
@@ -176,20 +176,20 @@ export class EnhancedEdgeGrid extends EventEmitter {
       const startTime = performance.now();
       
       try {
-        // Prepare request options
+        // Prepare _request _options
         const requestOptions = {
-          method: options.method,
-          path: options.path,
-          headers: options.headers || {},
+          method: _options.method,
+          path: _options.path,
+          headers: _options.headers || {},
           body: data,
-          timeout: options.timeout || this.config.timeoutMs,
-          maxRedirects: options.maxRedirects || 5
+          timeout: _options.timeout || this.config.timeoutMs,
+          maxRedirects: _options.maxRedirects || 5
         };
 
         // Apply EdgeGrid authentication
         const authenticatedOptions = this.edgeGrid.auth(requestOptions);
         
-        // Execute request through optimized client
+        // Execute _request through optimized client
         const result = await this.optimizedClient.executeRequest(
           authenticatedOptions,
           data
@@ -199,8 +199,8 @@ export class EnhancedEdgeGrid extends EventEmitter {
         this.metrics.successfulAuth++;
         
         this.emit('requestSuccess', {
-          path: options.path,
-          method: options.method,
+          path: _options.path,
+          method: _options.method,
           totalTime,
           authTime: result.metrics?.authTime,
           networkTime: result.metrics?.latency
@@ -224,9 +224,9 @@ export class EnhancedEdgeGrid extends EventEmitter {
         }
         
         this.emit('requestError', {
-          path: options.path,
-          method: options.method,
-          error,
+          path: _options.path,
+          method: _options.method,
+          _error,
           totalTime
         });
         
@@ -236,7 +236,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
   }
 
   /**
-   * Execute GET request
+   * Execute GET _request
    */
   public async get(path: string, headers?: Record<string, string>): Promise<any> {
     return this.executeRequest({
@@ -247,7 +247,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
   }
 
   /**
-   * Execute POST request
+   * Execute POST _request
    */
   public async post(
     path: string,
@@ -265,7 +265,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
   }
 
   /**
-   * Execute PUT request
+   * Execute PUT _request
    */
   public async put(
     path: string,
@@ -283,7 +283,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
   }
 
   /**
-   * Execute DELETE request
+   * Execute DELETE _request
    */
   public async delete(path: string, headers?: Record<string, string>): Promise<any> {
     return this.executeRequest({

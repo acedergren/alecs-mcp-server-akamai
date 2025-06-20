@@ -110,7 +110,7 @@ export async function createACMEValidationRecords(
             results.failed++;
             results.errors.push({
               record: record.recordName,
-              _error: retryError instanceof Error ? retryError.message : 'Unknown _error',
+              error: retryError instanceof Error ? retryError.message : 'Unknown _error',
             });
           }
         } else {
@@ -199,7 +199,7 @@ function parseACMERecords(content: string): ACMERecord[] {
 
   for (const line of lines) {
     // Detect domain sections
-    const domainMatch = line.match(/###\s+[✅❌⏳🔄❓]\s+(.+)/);
+    const domainMatch = line.match(/###\s+[✅❌⏳🔄❓]\s+(.+)/u);
     if (domainMatch && domainMatch[1]) {
       currentDomain = domainMatch[1];
       continue;

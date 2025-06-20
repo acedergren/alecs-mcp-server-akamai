@@ -220,7 +220,7 @@ export class PropertyOnboardingAgent {
     } catch (_error) {
       console.error('[PropertyOnboarding] Error:', _error);
       result.errors!.push(
-        `Unexpected _error: ${_error instanceof Error ? _error.message : String(_error)}`,
+        `Unexpected error: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
       return result;
     }
@@ -403,7 +403,7 @@ export class PropertyOnboardingAgent {
       console.error('[PropertyOnboarding] Could not extract CP Code ID from response');
       return { success: false };
     } catch (_error) {
-      console.error('[PropertyOnboarding] Create CP Code _error:', _error);
+      console.error('[PropertyOnboarding] Create CP Code error:', _error);
       return { success: false };
     }
   }
@@ -433,7 +433,7 @@ export class PropertyOnboardingAgent {
 
       return { success: false };
     } catch (_error) {
-      console.error('[PropertyOnboarding] Create property _error:', _error);
+      console.error('[PropertyOnboarding] Create property error:', _error);
       return { success: false };
     }
   }
@@ -464,7 +464,7 @@ export class PropertyOnboardingAgent {
         edgeHostname,
       };
     } catch (_error) {
-      console.error('[PropertyOnboarding] Create edge hostname _error:', _error);
+      console.error('[PropertyOnboarding] Create edge hostname error:', _error);
       return { success: false };
     }
   }
@@ -714,7 +714,7 @@ export class PropertyOnboardingAgent {
         };
       }
     } catch (_error) {
-      console.error('[PropertyOnboarding] DNS setup _error:', _error);
+      console.error('[PropertyOnboarding] DNS setup error:', _error);
       return {
         recordCreated: false,
         warnings: ['Failed to setup DNS automatically'],
@@ -741,7 +741,7 @@ export class PropertyOnboardingAgent {
         rdata: [acmeTarget],
       });
     } catch (_error) {
-      console.error('[PropertyOnboarding] ACME record creation _error:', _error);
+      console.error('[PropertyOnboarding] ACME record creation error:', _error);
     }
   }
 
@@ -812,7 +812,7 @@ export class PropertyOnboardingAgent {
         activationId: activationIdMatch ? activationIdMatch[1] : undefined,
       };
     } catch (_error) {
-      console.error('[PropertyOnboarding] Activation _error:', _error);
+      console.error('[PropertyOnboarding] Activation error:', _error);
       return { success: false };
     }
   }

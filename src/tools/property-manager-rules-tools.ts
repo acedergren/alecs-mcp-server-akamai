@@ -338,7 +338,7 @@ export async function patchPropertyRules(
 
     if (response.errors?.length > 0) {
       text += '## ⚠️ Validation Errors\n';
-      for (const error of response.errors) {
+      for (const _error of response._errors) {
         text += `- ${_error.detail}\n`;
       }
       text += '\n';
@@ -777,7 +777,7 @@ text += `**End Date:** ${args.endDate}\n`;
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, _error: any): MCPToolResponse {
+function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 

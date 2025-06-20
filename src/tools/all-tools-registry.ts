@@ -61,8 +61,8 @@ import {
 } from './cps-tools';
 
 import {
-  createEdgeHostnameEnhanced,
-  getEdgeHostnameDetails,
+  createEdgeHostnameEnhanced as _createEdgeHostnameEnhanced,
+  getEdgeHostnameDetails as _getEdgeHostnameDetails,
 } from './edge-hostname-management';
 
 import {

@@ -205,7 +205,7 @@ export class IntegrationTestFramework {
       passed,
       failed,
       skipped,
-      error,
+      _error,
       successRate,
       averageDuration,
     };

@@ -81,78 +81,78 @@ export class HttpServerTransport {
    */
   private async handleRequest(_req: IncomingMessage, _res: ServerResponse): Promise<void> {
     // Set MCP-Protocol-Version header on all responses
-    res.setHeader('MCP-Protocol-Version', MCP_PROTOCOL_VERSION);
-    res.setHeader('Content-Type', 'application/json');
+    _res.setHeader('MCP-Protocol-Version', MCP_PROTOCOL_VERSION);
+    _res.setHeader('Content-Type', 'application/json');
 
     // Handle CORS if enabled
     if (this.config.cors.enabled) {
-      this.setCorsHeaders(req, res);
+      this.setCorsHeaders(_req, _res);
 
       // Handle preflight requests
-      if (req.method === 'OPTIONS') {
-        res.writeHead(204);
-        res.end();
+      if (_req.method === 'OPTIONS') {
+        _res.writeHead(204);
+        _res.end();
         return;
       }
     }
 
     // Only accept POST requests
-    if (req.method !== 'POST') {
-      res.writeHead(405, { 'Allow': 'POST' });
-      res.end(JSON.stringify(
+    if (_req.method !== 'POST') {
+      _res.writeHead(405, { 'Allow': 'POST' });
+      _res.end(JSON.stringify(
         createJsonRpcError(null, JsonRpcErrorCode.InvalidRequest, 'Only POST method is allowed'),
       ));
       return;
     }
 
     // Check for JSON-RPC path
-    if (req.url !== '/jsonrpc' && req.url !== '/') {
-      res.writeHead(404);
-      res.end(JSON.stringify(
+    if (_req.url !== '/jsonrpc' && _req.url !== '/') {
+      _res.writeHead(404);
+      _res.end(JSON.stringify(
         createJsonRpcError(null, JsonRpcErrorCode.InvalidRequest, 'Not found'),
       ));
       return;
     }
 
     try {
-      // Parse request body
-      const body = await this.parseRequestBody(req);
+      // Parse _request body
+      const body = await this.parseRequestBody(_req);
 
-      // Validate JSON-RPC request
+      // Validate JSON-RPC _request
       if (!isJsonRpcRequest(body)) {
-        res.writeHead(400);
-        res.end(JSON.stringify(
-          createJsonRpcError(null, JsonRpcErrorCode.InvalidRequest, 'Invalid JSON-RPC request'),
+        _res.writeHead(400);
+        _res.end(JSON.stringify(
+          createJsonRpcError(null, JsonRpcErrorCode.InvalidRequest, 'Invalid JSON-RPC _request'),
         ));
         return;
       }
 
-      // Validate request ID
+      // Validate _request ID
       if ('id' in body && !isValidRequestId(body.id)) {
-        res.writeHead(400);
-        res.end(JSON.stringify(
-          createJsonRpcError(null, JsonRpcErrorCode.InvalidRequest, 'Invalid request ID'),
+        _res.writeHead(400);
+        _res.end(JSON.stringify(
+          createJsonRpcError(null, JsonRpcErrorCode.InvalidRequest, 'Invalid _request ID'),
         ));
         return;
       }
 
-      // Process the request through MCP server
+      // Process the _request through MCP server
       const response = await this.processRequest(body);
 
       // Send response
-      res.writeHead(200);
-      res.end(JSON.stringify(response));
+      _res.writeHead(200);
+      _res.end(JSON.stringify(response));
 
     } catch (_error) {
       // Handle parsing errors
       if (_error instanceof SyntaxError) {
-        res.writeHead(400);
-        res.end(JSON.stringify(
+        _res.writeHead(400);
+        _res.end(JSON.stringify(
           createJsonRpcError(null, JsonRpcErrorCode.ParseError, 'Parse _error'),
         ));
       } else {
-        res.writeHead(500);
-        res.end(JSON.stringify(
+        _res.writeHead(500);
+        _res.end(JSON.stringify(
           createJsonRpcError(
             null,
             JsonRpcErrorCode.InternalError,
@@ -165,17 +165,17 @@ export class HttpServerTransport {
   }
 
   /**
-   * Parse request body as JSON
+   * Parse _request body as JSON
    */
   private parseRequestBody(_req: IncomingMessage): Promise<any> {
     return new Promise((resolve, reject) => {
       let body = '';
 
-      req.on('data', chunk => {
+      _req.on('data', chunk => {
         body += chunk.toString();
       });
 
-      req.on('end', () => {
+      _req.on('end', () => {
         try {
           resolve(JSON.parse(body));
         } catch (_error) {
@@ -183,22 +183,22 @@ export class HttpServerTransport {
         }
       });
 
-      req.on('error', reject);
+      _req.on('error', reject);
 
       // Set timeout
-      req.setTimeout(this.config.timeout, () => {
+      _req.setTimeout(this.config.timeout, () => {
         reject(new Error('Request timeout'));
       });
     });
   }
 
   /**
-   * Process JSON-RPC request through MCP server
+   * Process JSON-RPC _request through MCP server
    */
   private async processRequest(_request: JsonRpcRequest): Promise<JsonRpcResponse> {
     if (!this.server) {
       return createJsonRpcError(
-        request.id,
+        _request.id,
         JsonRpcErrorCode.InternalError,
         'Server not initialized',
       );
@@ -209,17 +209,17 @@ export class HttpServerTransport {
       // This would need to be implemented based on the specific server implementation
       // For now, return a method not found error
       return createJsonRpcError(
-        request.id,
+        _request.id,
         JsonRpcErrorCode.MethodNotFound,
         'HTTP transport integration not yet implemented',
       );
     } catch (_error) {
       return createJsonRpcError(
-        request.id,
+        _request.id,
         JsonRpcErrorCode.InternalError,
         _error instanceof Error ? _error.message : 'Unknown _error',
         undefined,
-        request._meta, // Preserve metadata in _error responses
+        _request._meta, // Preserve metadata in _error responses
       );
     }
   }
@@ -228,22 +228,22 @@ export class HttpServerTransport {
    * Set CORS headers
    */
   private setCorsHeaders(_req: IncomingMessage, _res: ServerResponse): void {
-    const origin = req.headers.origin;
+    const origin = _req.headers.origin;
     const allowedOrigins = Array.isArray(this.config.cors.origin)
       ? this.config.cors.origin
       : [this.config.cors.origin || '*'];
 
     if (origin && (allowedOrigins.includes('*') || allowedOrigins.includes(origin))) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
+      _res.setHeader('Access-Control-Allow-Origin', origin);
     } else if (allowedOrigins.includes('*')) {
-      res.setHeader('Access-Control-Allow-Origin', '*');
+      _res.setHeader('Access-Control-Allow-Origin', '*');
     }
 
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, MCP-Protocol-Version');
+    _res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    _res.setHeader('Access-Control-Allow-Headers', 'Content-Type, MCP-Protocol-Version');
 
     if (this.config.cors.credentials) {
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      _res.setHeader('Access-Control-Allow-Credentials', 'true');
     }
   }
 

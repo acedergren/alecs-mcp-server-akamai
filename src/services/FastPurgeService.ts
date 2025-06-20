@@ -178,7 +178,7 @@ export class FastPurgeService {
           OperationType.BULK_OPERATION,
           operation,
         );
-      } catch (_error: any) {
+      } catch (error: any) {
         lastError = _error;
 
         // Handle rate limiting
@@ -292,7 +292,7 @@ export class FastPurgeService {
         });
 
         processedCount += batchSize;
-      } catch (_error: any) {
+      } catch (error: any) {
         logger.error(`FastPurge error: ${_error.message}`);
 
         // Handle RFC 7807 problem details
@@ -371,7 +371,7 @@ export class FastPurgeService {
           title: response.data.title,
           pingAfterSeconds: response.data.pingAfterSeconds,
         });
-      } catch (_error: any) {
+      } catch (error: any) {
         logger.error(`FastPurge error: ${_error.message}`);
 
         if (_error.response?.data?.type) {
@@ -455,7 +455,7 @@ export class FastPurgeService {
         });
 
         processedCount += batchSize;
-      } catch (_error: any) {
+      } catch (error: any) {
         logger.error(`FastPurge error: ${_error.message}`);
 
         if (_error.response?.data?.type) {
@@ -509,7 +509,7 @@ export class FastPurgeService {
         supportId: response.data.supportId,
         customer: customer,
       };
-    } catch (_error: any) {
+    } catch (error: any) {
       logger.error(`FastPurge validation error: ${_error.message}`);
 
       if (_error.response?.data?.type) {

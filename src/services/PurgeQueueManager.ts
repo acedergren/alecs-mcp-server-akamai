@@ -129,7 +129,7 @@ export class PurgeQueueManager {
           logger.error(`Failed to persist queues: ${_err.message}`),
         );
       }, this.PERSISTENCE_INTERVAL);
-    } catch (_error: any) {
+    } catch (error: any) {
       logger.error(`Queue manager error: ${_error.message}`);
     }
   }
@@ -158,7 +158,7 @@ export class PurgeQueueManager {
           }
         }
       }
-    } catch (_error: any) {
+    } catch (error: any) {
       logger.error(`Queue manager error: ${_error.message}`);
     }
   }
@@ -172,7 +172,7 @@ export class PurgeQueueManager {
         // Write to temp file first for atomic operation
         await fs.writeFile(tempPath, JSON.stringify(items, null, 2));
         await fs.rename(tempPath, filePath);
-      } catch (_error: any) {
+      } catch (error: any) {
         logger.error(`Queue manager error: ${_error.message}`);
       }
     }
@@ -389,7 +389,7 @@ return null;
       logger.info(
         `Completed purge ${item.id} for ${item.customer}: ${item.objects.length} objects`,
       );
-    } catch (_error: any) {
+    } catch (error: any) {
       item.error = _error.message;
 
       if (item.attempts >= 3) {

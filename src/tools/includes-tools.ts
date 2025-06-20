@@ -596,7 +596,7 @@ export async function getIncludeActivationStatus(
 
     if (activation.errors && activation.errors.length > 0) {
       responseText += '\n## Errors\n\n';
-      activation.errors.forEach((_error: any) => {
+      activation.errors.forEach((error: any) => {
         responseText += `❌ **${_error.title}**: ${_error.detail}\n`;
       });
     }

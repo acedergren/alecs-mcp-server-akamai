@@ -180,7 +180,7 @@ class MetricsCollector {
     }
   >();
 
-  recordToolExecution(toolName: string, duration: number, _error: boolean): void {
+  recordToolExecution(toolName: string, duration: number, error: boolean): void {
     const existing = this.toolMetrics.get(toolName) || {
       count: 0,
       totalDuration: 0,

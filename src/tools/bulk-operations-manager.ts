@@ -1012,7 +1012,7 @@ export async function bulkManageHostnames(
               hostname: hostnameOp.hostname,
               action: operation.action,
               success: false,
-              _error: (_error as Error).message,
+              error: (_error as Error).message,
             });
           }
         }
@@ -1052,7 +1052,7 @@ export async function bulkManageHostnames(
             hostname: h.hostname,
             action: operation.action,
             success: false,
-            _error: (_error as Error).message,
+            error: (_error as Error).message,
           });
         });
       }

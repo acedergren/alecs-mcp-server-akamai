@@ -120,7 +120,7 @@ export class ALECSServer {
    * Setup global error handling
    */
   private setupErrorHandling(): void {
-    process.on('uncaughtException', (_error: Error) => {
+    process.on('uncaughtException', (error: Error) => {
       logger.error('Uncaught exception', { error: _error.message, stack: _error.stack });
       process.exit(1);
     });
@@ -302,16 +302,16 @@ export class ALECSServer {
     } catch (_error) {
       const duration = Date.now() - context.startTime;
 
-      logger._error('Tool request failed', {
+      logger.error('Tool request failed', {
         ...context,
         duration,
-        _error: _error instanceof Error ? _error.message : String(_error),
+        error: _error instanceof Error ? _error.message : String(_error),
         stack: _error instanceof Error ? _error.stack : undefined,
       });
 
       return {
         success: false,
-        _error: this.formatError(_error),
+        error: this.formatError(_error),
         metadata: {
           customer: context.customer || 'default',
           duration,
@@ -324,7 +324,7 @@ export class ALECSServer {
   /**
    * Format error for response
    */
-  private formatError(_error: unknown): string {
+  private formatError(error: unknown): string {
     if (_error instanceof ConfigurationError) {
       return `Configuration error: ${_error.message}`;
     }
@@ -479,7 +479,7 @@ export class ALECSServer {
       // Create and configure transport
       const transport = new StdioServerTransport();
 
-      transport.onerror = (_error: Error) => {
+      transport.onerror = (error: Error) => {
         logger.error('Transport error', { error: _error.message, stack: _error.stack });
       };
 
@@ -493,8 +493,8 @@ export class ALECSServer {
 
       logger.info('ALECS MCP Server ready and listening');
     } catch (_error) {
-      logger._error('Failed to start server', {
-        _error: _error instanceof Error ? _error.message : String(_error),
+      logger.error('Failed to start server', {
+        error: _error instanceof Error ? _error.message : String(_error),
         stack: _error instanceof Error ? _error.stack : undefined,
       });
       throw _error;
@@ -510,8 +510,8 @@ async function main(): Promise<void> {
     const server = new ALECSServer();
     await server.start();
   } catch (_error) {
-    logger._error('Server initialization failed', {
-      _error: _error instanceof Error ? _error.message : String(_error),
+    logger.error('Server initialization failed', {
+      error: _error instanceof Error ? _error.message : String(_error),
       stack: _error instanceof Error ? _error.stack : undefined,
     });
     process.exit(1);

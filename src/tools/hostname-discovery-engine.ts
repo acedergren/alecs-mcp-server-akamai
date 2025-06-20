@@ -145,7 +145,7 @@ export async function discoverHostnamesIntelligent(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'discovering hostnames intelligently');
+    return handleApiError(_error, 'discovering hostnames intelligently');
   }
 }
 
@@ -224,7 +224,7 @@ export async function analyzeHostnameConflicts(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'analyzing hostname conflicts');
+    return handleApiError(_error, 'analyzing hostname conflicts');
   }
 }
 
@@ -274,7 +274,7 @@ export async function analyzeWildcardCoverage(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'analyzing wildcard coverage');
+    return handleApiError(_error, 'analyzing wildcard coverage');
   }
 }
 
@@ -325,7 +325,7 @@ export async function identifyOwnershipPatterns(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'identifying ownership patterns');
+    return handleApiError(_error, 'identifying ownership patterns');
   }
 }
 

@@ -89,7 +89,7 @@ class DNSALECSServer {
       log('INFO', '✅ Akamai client initialized successfully');
     } catch (_error) {
       log('ERROR', '❌ Failed to initialize Akamai client', {
-        _error: _error instanceof Error ? _error.message : String(_error),
+        error: _error instanceof Error ? _error.message : String(_error),
       });
       throw _error;
     }
@@ -608,7 +608,7 @@ class DNSALECSServer {
       } catch (_error) {
         const duration = Date.now() - startTime;
         log('ERROR', `❌ Tool ${name} failed after ${duration}ms`, {
-          _error:
+          error:
             _error instanceof Error
               ? {
                   message: _error.message,
@@ -644,7 +644,7 @@ class DNSALECSServer {
     const transport = new StdioServerTransport();
 
     // Add error handling for transport
-    transport.onerror = (_error: Error) => {
+    transport.onerror = (error: Error) => {
       log('ERROR', '❌ Transport error', {
         message: _error.message,
         stack: _error.stack,
@@ -666,7 +666,7 @@ class DNSALECSServer {
       });
     } catch (_error) {
       log('ERROR', '❌ Failed to connect server', {
-        _error:
+        error:
           _error instanceof Error
             ? {
                 message: _error.message,
@@ -697,7 +697,7 @@ async function main() {
     }, 30000); // Every 30 seconds
   } catch (_error) {
     log('ERROR', '❌ Failed to start server', {
-      _error:
+      error:
         _error instanceof Error
           ? {
               message: _error.message,

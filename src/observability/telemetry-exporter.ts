@@ -76,7 +76,7 @@ export interface TelemetryStats {
     {
       exports: number;
       successes: number;
-      failu_res: number;
+      failures: number;
       lastSuccess?: number;
       lastFailure?: number;
       averageLatency: number;
@@ -136,7 +136,7 @@ export class TelemetryExporter extends EventEmitter {
       this.stats.destinations[destination.name] = {
         exports: 0,
         successes: 0,
-        failu_res: 0,
+        failures: 0,
         averageLatency: 0,
       };
     }
@@ -201,7 +201,7 @@ return false;
           error: error as Error,
         };
         results.push(result);
-        this.emit('exportError', destination.name, error);
+        this.emit('exportError', destination.name, _error);
       }
     }
 
@@ -296,7 +296,7 @@ return false;
       try {
         await this.exportAll();
       } catch (_error) {
-        this.emit('batchExportError', error);
+        this.emit('batchExportError', _error);
       }
     }, interval);
 
@@ -339,7 +339,7 @@ return false;
       this.stats.destinations[destination] = {
         exports: 0,
         successes: 0,
-        failu_res: 0,
+        failures: 0,
         averageLatency: 0,
       };
     }
@@ -381,7 +381,7 @@ return false;
       this.emit('destinationTestSuccess', name);
       return true;
     } catch (_error) {
-      this.emit('destinationTestFailure', name, error);
+      this.emit('destinationTestFailure', name, _error);
       throw _error;
     }
   }
@@ -400,7 +400,7 @@ return false;
     const stats = this.stats.destinations[name] || {
       exports: 0,
       successes: 0,
-      failu_res: 0,
+      failures: 0,
       averageLatency: 0,
     };
 
@@ -702,7 +702,7 @@ return false;
       this.stats.destinations[destinationName] = {
         exports: 0,
         successes: 0,
-        failu_res: 0,
+        failures: 0,
         averageLatency: 0,
       };
     }
@@ -768,7 +768,7 @@ return;
       } else {
         // Max retries exceeded
         this.batches.delete(item.batchId);
-        this.emit('exportFailed', batch.destination, error);
+        this.emit('exportFailed', batch.destination, _error);
       }
     }
   }

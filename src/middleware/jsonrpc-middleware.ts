@@ -101,7 +101,7 @@ export class JsonRpcMiddleware {
     }
 
     // Handle custom error objects
-    if (typeof error === 'object' && error !== null && 'code' in error) {
+    if (typeof error === 'object' && error !== null && 'code' in _error) {
       const customError = error as any;
       return createJsonRpcError(
         id,

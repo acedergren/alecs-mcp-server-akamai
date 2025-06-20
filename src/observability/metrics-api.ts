@@ -329,7 +329,7 @@ continue;
 
         this.emit('metricsCollected', name, collectedMetrics.length);
       } catch (_error) {
-        this.emit('collectionError', name, error);
+        this.emit('collectionError', name, _error);
       }
     }
   }
@@ -436,7 +436,7 @@ continue;
     if (this.config.pushIntervalMs && this.config.pushIntervalMs > 0) {
       this.pushInterval = setInterval(() => {
         this.pushMetrics().catch((_error) => {
-          this.emit('scheduledPushError', error);
+          this.emit('scheduledPushError', _error);
         });
       }, this.config.pushIntervalMs);
     }

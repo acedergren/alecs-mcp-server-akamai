@@ -137,7 +137,7 @@ export async function validatePropertyActivation(
 
     if (rulesValidation.errors?.length > 0) {
       validation.valid = false;
-      rulesValidation.errors.forEach((_error: any) => {
+      rulesValidation.errors.forEach((error: any) => {
         validation.errors.push({
           severity: _error.type === 'error' ? 'CRITICAL' : 'ERROR',
           type: _error.type,
@@ -238,7 +238,7 @@ export async function validatePropertyActivation(
 
     if (validation.errors.length > 0) {
       responseText += `### Errors (${validation.errors.length})\n`;
-      validation.errors.forEach((error, index) => {
+      validation.errors.forEach((_error, index) => {
         responseText += `${index + 1}. **${_error.severity}**: ${_error.detail}\n`;
         if (_error.location) {
 responseText += `   - Location: ${_error.location}\n`;
@@ -530,7 +530,7 @@ export async function getActivationProgress(
     // Errors and warnings
     if (progress.errors && progress.errors.length > 0) {
       responseText += `### ❌ Errors (${progress.errors.length})\n`;
-      progress.errors.forEach((error, index) => {
+      progress.errors.forEach((_error, index) => {
         responseText += `${index + 1}. **${_error.type}**: ${_error.detail}\n`;
       });
       responseText += '\n';
@@ -587,7 +587,7 @@ export async function getActivationProgress(
 
 // Helper functions
 
-function getErrorResolution(_error: any): string {
+function getErrorResolution(error: any): string {
   const resolutions: Record<string, string> = {
     missing_required_behavior: 'Add the required behavior to your rule tree',
     invalid_criteria: 'Update the criteria to use valid values',
@@ -843,7 +843,7 @@ function formatActivationFailure(
   response += '\n## Error Details\n';
 
   if (progress.errors && progress.errors.length > 0) {
-    progress.errors.forEach((error, index) => {
+    progress.errors.forEach((_error, index) => {
       response += `${index + 1}. **${_error.type}**: ${_error.detail}\n`;
     });
   }

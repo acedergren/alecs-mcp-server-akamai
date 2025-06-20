@@ -295,7 +295,7 @@ export class BaseAkamaiClient {
   /**
    * Check if error is retryable
    */
-  private isRetryableError(_error: Error): boolean {
+  private isRetryableError(error: Error): boolean {
     if (_error instanceof HttpError) {
       // Retry on 5xx errors and rate limits
       return _error.statusCode >= 500 || _error.statusCode === 429;
@@ -379,7 +379,7 @@ export class BaseAkamaiClient {
     while (retryCount <= maxRetries) {
       try {
         // Make request using EdgeGrid auth
-        const response = await this.auth.request<T>({
+        const response = await this.auth._request<T>({
           path,
           method: method as any,
           body,

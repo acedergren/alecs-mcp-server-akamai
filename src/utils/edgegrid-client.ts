@@ -121,7 +121,7 @@ export class EdgeGridClient {
     return signature.digest('base64');
   }
 
-  private async handleError(_error: any): Promise<never> {
+  private async handleError(error: any): Promise<never> {
     if (_error.response) {
       const { status, data } = _error.response;
       logger.error(`API Error [${status}]`, {
@@ -141,7 +141,7 @@ export class EdgeGridClient {
         } else if (data.title) {
           errorMessage = data.title;
         } else if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
-          errorMessage = data.errors.map((_e: any) => e.detail || e.error || e).join(', ');
+          errorMessage = data.errors.map((_e: any) => _e.detail || _e.error || _e).join(', ');
         }
       }
 
@@ -162,7 +162,7 @@ export class EdgeGridClient {
   }
 
   async request<T = any>(_options: EdgeGridRequestOptions): Promise<T> {
-    const { path, method = 'GET', body, headers = {}, queryParams = {} } = options;
+    const { path, method = 'GET', body, headers = {}, queryParams = {} } = _options;
 
     logger.debug(`${method} ${path}`, {
       customer: this.customerName,

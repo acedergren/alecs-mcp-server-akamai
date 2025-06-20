@@ -49,7 +49,7 @@ export interface OAuthMiddlewareConfig {
 }
 
 /**
- * Authentication context
+ * Authentication _context
  */
 export interface AuthContext {
   /** Authenticated user/client ID */
@@ -116,7 +116,7 @@ export class OAuthMiddleware {
   }
 
   /**
-   * Authenticate request
+   * Authenticate _request
    */
   async authenticate(_request: CallToolRequest): Promise<AuthContext | null> {
     // Skip authentication if disabled
@@ -125,14 +125,14 @@ export class OAuthMiddleware {
     }
 
     // Check if tool is public
-    const toolName = request.params.name;
+    const toolName = _request.params.name;
     if (this.config.publicTools.includes(toolName)) {
       logger.debug('Skipping authentication for public tool', { tool: toolName });
       return null;
     }
 
     // Extract authorization header
-    const authHeader = this.extractAuthHeader(request);
+    const authHeader = this.extractAuthHeader(_request);
     if (!authHeader) {
       // For protected tools, return null to let authorize handle it
       // For public tools, this will also return null which is correct
@@ -161,13 +161,13 @@ export class OAuthMiddleware {
 
     // Check token binding if required
     if (this.config.requireTokenBinding) {
-      const bindingValid = await this.validateTokenBinding(request, token);
+      const bindingValid = await this.validateTokenBinding(_request, token);
       if (!bindingValid) {
         return null; // Return null instead of throwing for token binding failures
       }
     }
 
-    // Create auth context
+    // Create auth _context
     const authContext: AuthContext = {
       subject: validation.claims.sub || 'unknown',
       clientId: validation.claims.client_id || 'unknown',
@@ -180,7 +180,7 @@ export class OAuthMiddleware {
   }
 
   /**
-   * Authorize request
+   * Authorize _request
    */
   async authorize(
     _request: CallToolRequest,
@@ -191,7 +191,7 @@ export class OAuthMiddleware {
       return;
     }
 
-    const toolName = request.params.name;
+    const toolName = _request.params.name;
 
     // Check if tool is public - if so, allow without authentication
     if (this.config.publicTools.includes(toolName)) {
@@ -205,7 +205,7 @@ export class OAuthMiddleware {
       return; // No scopes required
     }
 
-    // If no auth context but tool requires authentication, throw _error
+    // If no auth _context but tool requires authentication, throw _error
     if (!authContext) {
       throw this.createAuthError('Authentication required for protected tool');
     }
@@ -279,21 +279,21 @@ export class OAuthMiddleware {
     toolName: string,
   ): T {
     return (async (...args: Parameters<T>) => {
-      const request = args[0] as CallToolRequest;
+      const _request = args[0] as CallToolRequest;
 
       try {
         // Authenticate
-        const authContext = await this.authenticate(request);
+        const authContext = await this.authenticate(_request);
 
         // Apply rate limiting
         await this.applyRateLimit(authContext);
 
         // Authorize
-        await this.authorize(request, authContext);
+        await this.authorize(_request, authContext);
 
-        // Add auth context to request
+        // Add auth _context to _request
         if (authContext) {
-          (request as any)._authContext = authContext;
+          (_request as any)._authContext = authContext;
         }
 
         // Call original handler
@@ -312,13 +312,13 @@ export class OAuthMiddleware {
   }
 
   /**
-   * Extract authorization header from request
+   * Extract authorization header from _request
    */
   private extractAuthHeader(_request: CallToolRequest): string | null {
     // Check various possible locations for auth header
-    const headers = (request as any).headers ||
-                   (request as any)._meta?.headers ||
-                   (request.params as any)._headers;
+    const headers = (_request as any).headers ||
+                   (_request as any)._meta?.headers ||
+                   (_request.params as any)._headers;
 
     if (!headers) {
       return null;
@@ -359,12 +359,12 @@ export class OAuthMiddleware {
     switch (this.config.tokenBindingType) {
       case TokenBindingType.TLS_CLIENT_CERT:
         // Extract client certificate thumbprint
-        bindingValue = (request as any)._meta?.tlsClientCertThumbprint;
+        bindingValue = (_request as any)._meta?.tlsClientCertThumbprint;
         break;
 
       case TokenBindingType.DPoP: {
         // Extract DPoP proof
-        const dpopHeader = this.extractDPoPHeader(request);
+        const dpopHeader = this.extractDPoPHeader(_request);
         if (dpopHeader) {
           // Validate DPoP proof and extract thumbprint
           // This is simplified - implement full DPoP validation
@@ -375,7 +375,7 @@ export class OAuthMiddleware {
 
       case TokenBindingType.MTLS:
         // Extract mTLS certificate
-        bindingValue = (request as any)._meta?.mtlsCertThumbprint;
+        bindingValue = (_request as any)._meta?.mtlsCertThumbprint;
         break;
     }
 
@@ -396,9 +396,9 @@ export class OAuthMiddleware {
    * Extract DPoP header
    */
   private extractDPoPHeader(_request: CallToolRequest): string | null {
-    const headers = (request as any).headers ||
-                   (request as any)._meta?.headers ||
-                   (request.params as any)._headers;
+    const headers = (_request as any).headers ||
+                   (_request as any)._meta?.headers ||
+                   (_request.params as any)._headers;
 
     if (!headers) {
       return null;
@@ -451,10 +451,10 @@ export class OAuthMiddleware {
   }
 
   /**
-   * Get auth context from request
+   * Get auth _context from _request
    */
   static getAuthContext(_request: CallToolRequest): AuthContext | null {
-    return (request as any)._authContext || null;
+    return (_request as any)._authContext || null;
   }
 }
 

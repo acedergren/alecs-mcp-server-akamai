@@ -214,7 +214,7 @@ export async function validateRuleTree(
     // Errors
     if (validation.errors.length > 0) {
       responseText += `## ❌ Errors (${validation.errors.length})\n`;
-      validation.errors.forEach((error, idx) => {
+      validation.errors.forEach((_error, idx) => {
         responseText += `${idx + 1}. **${_error.severity}** at \`${_error.path}\`\n`;
         responseText += `   - ${_error.message}\n`;
         if (_error.fix) {
@@ -283,7 +283,7 @@ export async function validateRuleTree(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'validate rule tree',
             parameters: args,
             timestamp: new Date(),
@@ -423,7 +423,7 @@ export async function createRuleTreeFromTemplate(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'create rule tree from template',
             parameters: args,
             timestamp: new Date(),
@@ -573,7 +573,7 @@ export async function analyzeRuleTreePerformance(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'analyze rule tree performance',
             parameters: args,
             timestamp: new Date(),
@@ -699,7 +699,7 @@ export async function detectRuleConflicts(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'detect rule conflicts',
             parameters: args,
             timestamp: new Date(),

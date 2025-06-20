@@ -273,7 +273,7 @@ export async function updatePropertyRulesEnhanced(
       let text = '❌ **Rule Validation Failed**\n\n';
       text += `**Errors Found:** ${validation.errors.length}\n\n`;
 
-      validation.errors.slice(0, 5).forEach((error, index) => {
+      validation.errors.slice(0, 5).forEach((_error, index) => {
         text += `${index + 1}. **${_error.type}** [${_error.severity}]\n`;
         text += `   Path: ${_error.path}\n`;
         text += `   Message: ${_error.message}\n`;
@@ -387,7 +387,7 @@ export async function updatePropertyRulesEnhanced(
       ],
     };
   } catch (_error) {
-    return formatError('update property rules with validation', error);
+    return formatError('update property rules with validation', _error);
   }
 }
 
@@ -495,7 +495,7 @@ export async function createRuleFromTemplate(
       ],
     };
   } catch (_error) {
-    return formatError('create rule from template', error);
+    return formatError('create rule from template', _error);
   }
 }
 
@@ -537,7 +537,7 @@ export async function validateRuleTree(
 
     if (validation.errors.length > 0) {
       text += '**🚨 Errors (must fix):**\n';
-      validation.errors.forEach((error, index) => {
+      validation.errors.forEach((_error, index) => {
         text += `${index + 1}. [${_error.severity}] ${_error.type}\n`;
         text += `   Path: ${_error.path}\n`;
         text += `   Issue: ${_error.message}\n`;
@@ -594,7 +594,7 @@ export async function validateRuleTree(
       ],
     };
   } catch (_error) {
-    return formatError('validate rule tree', error);
+    return formatError('validate rule tree', _error);
   }
 }
 
@@ -640,7 +640,7 @@ export async function mergeRuleTrees(
         text += `- Validation errors: ${validation.errors.length}\n\n`;
 
         text += '**Validation Errors:**\n';
-        validation.errors.slice(0, 5).forEach((error, index) => {
+        validation.errors.slice(0, 5).forEach((_error, index) => {
           text += `${index + 1}. ${_error.message}\n`;
         });
 
@@ -704,7 +704,7 @@ export async function mergeRuleTrees(
       ],
     };
   } catch (_error) {
-    return formatError('merge rule trees', error);
+    return formatError('merge rule trees', _error);
   }
 }
 
@@ -804,7 +804,7 @@ export async function optimizeRuleTree(
       ],
     };
   } catch (_error) {
-    return formatError('optimize rule tree', error);
+    return formatError('optimize rule tree', _error);
   }
 }
 
@@ -882,7 +882,7 @@ export async function listRuleTemplates(
       ],
     };
   } catch (_error) {
-    return formatError('list rule templates', error);
+    return formatError('list rule templates', _error);
   }
 }
 
@@ -1742,7 +1742,7 @@ function applySecurityOptimization(rules: any, _optimization: RuleOptimizationSu
 /**
  * Format error responses
  */
-function formatError(operation: string, _error: any): MCPToolResponse {
+function formatError(operation: string, error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 

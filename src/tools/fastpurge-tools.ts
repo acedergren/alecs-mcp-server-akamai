@@ -195,7 +195,7 @@ export const fastpurgeUrlInvalidate = {
           totalObjects: params.urls.length,
         };
       }
-    } catch (_error: any) {
+    } catch (error: any) {
       logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
@@ -306,7 +306,7 @@ export const fastpurgeCpcodeInvalidate = {
             ? 'Production content invalidated - monitor for any impact'
             : undefined,
       };
-    } catch (_error: any) {
+    } catch (error: any) {
       logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
@@ -389,7 +389,7 @@ export const fastpurgeTagInvalidate = {
         efficiency: 'Cache tag purging is the most efficient invalidation method',
         tip: 'Use hierarchical tags (e.g., "product.123", "category.electronics") for better cache management',
       };
-    } catch (_error: any) {
+    } catch (error: any) {
       logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
@@ -483,7 +483,7 @@ export const fastpurgeStatusCheck = {
           isComplete: status.status === 'Done' || status.status === 'Failed',
         };
       }
-    } catch (_error: any) {
+    } catch (error: any) {
       logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
@@ -584,7 +584,7 @@ export const fastpurgeQueueStatus = {
       }
 
       return response;
-    } catch (_error: any) {
+    } catch (error: any) {
       logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
@@ -707,7 +707,7 @@ export const fastpurgeEstimate = {
       }
 
       return estimate;
-    } catch (_error: any) {
+    } catch (error: any) {
       logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {

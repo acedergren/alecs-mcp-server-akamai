@@ -411,7 +411,7 @@ export class RequestOptimizer {
   // Add _request to batch queue
   addToBatch<T>(
     batchKey: string,
-    __request: T,
+    _request: T,
     processor: (requests: T[]) => Promise<any[]>,
   ): Promise<any> {
     return new Promise((resolve, reject) => {

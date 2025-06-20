@@ -86,7 +86,7 @@ export interface SystemState {
     string,
     {
       state: 'closed' | 'open' | 'half-open';
-      failu_res: number;
+      failures: number;
       successRate: number;
       lastFailure?: number;
     }
@@ -610,7 +610,7 @@ continue;
         try {
           subscription.callback(event);
         } catch (_error) {
-          this.emit('subscriptionError', subscription.id, error);
+          this.emit('subscriptionError', subscription.id, _error);
         }
       }
     }
@@ -629,7 +629,7 @@ continue;
         connection.lastActivity = now;
         promises.push(
           connection.send({ type: 'debug-event', data: event }).catch((_error) => {
-            this.emit('streamingError', connection.id, error);
+            this.emit('streamingError', connection.id, _error);
             // Deactivate connection on error
             connection.active = false;
           }),

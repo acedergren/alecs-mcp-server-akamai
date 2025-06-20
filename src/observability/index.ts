@@ -150,7 +150,7 @@ export class ObservabilityStack extends EventEmitter {
         'observability-stack',
       );
     } catch (_error) {
-      this.emit('initializationError', error);
+      this.emit('initializationError', _error);
       throw _error;
     }
   }
@@ -244,7 +244,7 @@ export class ObservabilityStack extends EventEmitter {
         const status = error ? 'error' : 'success';
 
         // Finish span
-        this.debug.finishSpan(traceId, spanId, error, {
+        this.debug.finishSpan(traceId, spanId, _error, {
           'mcp.status': status,
           'mcp.response_size': response ? JSON.stringify(response).length : 0,
         });
@@ -318,7 +318,7 @@ export class ObservabilityStack extends EventEmitter {
         const status = error ? 'error' : 'success';
 
         // Finish span
-        this.debug.finishSpan(traceId, spanId, error, {
+        this.debug.finishSpan(traceId, spanId, _error, {
           'akamai.status': status,
           'akamai.response_size': response ? JSON.stringify(response).length : 0,
         });
@@ -342,7 +342,7 @@ export class ObservabilityStack extends EventEmitter {
           error ? 'error' : 'info',
           'akamai-api',
           `Akamai ${service} ${endpoint} ${status}`,
-          { duration, _error: error?.message },
+          { duration, error: error?.message },
           'akamai-client',
           traceId,
           spanId,

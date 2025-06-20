@@ -33,7 +33,7 @@ export interface EdgeGridAuthHeader {
 }
 
 /**
- * EdgeGrid request configuration
+ * EdgeGrid _request configuration
  */
 export interface EdgeGridRequestConfig {
   /** API endpoint path */
@@ -85,7 +85,7 @@ export class EdgeGridAuthError extends Error {
 }
 
 /**
- * EdgeGrid client configuration options
+ * EdgeGrid client configuration _options
  */
 export interface EdgeGridClientOptions {
   /** Customer section name */
@@ -109,7 +109,7 @@ export class EdgeGridAuth {
   private readonly hasAccountSwitching: boolean;
 
   private constructor(_options: EdgeGridClientOptions = {}) {
-    const { customer = 'default', timeout = 30000, validateOnInit = true } = options;
+    const { customer = 'default', timeout = 30000, validateOnInit = true } = _options;
 
     this.customerName = customer;
 
@@ -133,7 +133,7 @@ export class EdgeGridAuth {
 
     // Create axios instance with typed configuration
     this.axiosInstance = axios.create({
-      baseURL: options.baseUrl || `https://${this.credentials.host}`,
+      baseURL: _options.baseUrl || `https://${this.credentials.host}`,
       timeout,
       headers: {
         'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ export class EdgeGridAuth {
       validateStatus: (status) => status < 500, // Don't throw on 4xx errors
     });
 
-    // Add request interceptor for EdgeGrid authentication
+    // Add _request interceptor for EdgeGrid authentication
     this.axiosInstance.interceptors.request.use(
       (config) => this.addAuthHeaders(config),
       (_error) => Promise.reject(this.createAuthError(_error)),
@@ -159,10 +159,10 @@ export class EdgeGridAuth {
    * Get or create EdgeGrid client instance
    */
   static getInstance(_options: EdgeGridClientOptions = {}): EdgeGridAuth {
-    const key = options.customer || 'default';
+    const key = _options.customer || 'default';
 
     if (!EdgeGridAuth.instances.has(key)) {
-      EdgeGridAuth.instances.set(key, new EdgeGridAuth(options));
+      EdgeGridAuth.instances.set(key, new EdgeGridAuth(_options));
     }
 
     return EdgeGridAuth.instances.get(key)!;
@@ -298,7 +298,7 @@ export class EdgeGridAuth {
   }
 
   /**
-   * Serialize request body
+   * Serialize _request body
    */
   private serializeBody(data: unknown): string {
     if (typeof data === 'string') {
@@ -308,7 +308,7 @@ export class EdgeGridAuth {
   }
 
   /**
-   * Create content hash for request body
+   * Create content hash for _request body
    */
   private createContentHash(content: string): string {
     return crypto.createHash('sha256').update(content, 'utf8').digest('base64');
@@ -362,9 +362,9 @@ export class EdgeGridAuth {
   }
 
   /**
-   * Handle request/response errors
+   * Handle _request/response errors
    */
-  private async handleError(_error: AxiosError): Promise<never> {
+  private async handleError(error: AxiosError): Promise<never> {
     if (_error.response) {
       const errorResponse = _error.response.data as EdgeGridErrorResponse;
       const errorMessage = this.extractErrorMessage(errorResponse, _error.response.status);
@@ -402,7 +402,7 @@ export class EdgeGridAuth {
   /**
    * Create authentication error
    */
-  private createAuthError(_error: unknown): EdgeGridAuthError {
+  private createAuthError(error: unknown): EdgeGridAuthError {
     if (_error instanceof Error) {
       return new EdgeGridAuthError(_error.message, 'AUTH_ERROR');
     }
@@ -429,9 +429,9 @@ export class EdgeGridAuth {
   }
 
   /**
-   * Make authenticated request
+   * Make authenticated _request
    */
-  async request<T = unknown>(config: EdgeGridRequestConfig): Promise<T> {
+  async _request<T = unknown>(config: EdgeGridRequestConfig): Promise<T> {
     const { path, method = 'GET', body, headers = {}, queryParams = {} } = config;
 
     logger.info(`${method} ${path}`, {
@@ -453,7 +453,7 @@ export class EdgeGridAuth {
   }
 
   /**
-   * GET request
+   * GET _request
    */
   async get<T = unknown>(
     path: string,
@@ -463,7 +463,7 @@ export class EdgeGridAuth {
   }
 
   /**
-   * POST request
+   * POST _request
    */
   async post<T = unknown>(
     path: string,
@@ -474,7 +474,7 @@ export class EdgeGridAuth {
   }
 
   /**
-   * PUT request
+   * PUT _request
    */
   async put<T = unknown>(
     path: string,
@@ -485,7 +485,7 @@ export class EdgeGridAuth {
   }
 
   /**
-   * DELETE request
+   * DELETE _request
    */
   async delete<T = unknown>(
     path: string,
@@ -495,7 +495,7 @@ export class EdgeGridAuth {
   }
 
   /**
-   * PATCH request
+   * PATCH _request
    */
   async patch<T = unknown>(
     path: string,

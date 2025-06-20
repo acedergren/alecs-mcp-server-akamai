@@ -519,7 +519,7 @@ class EssentialALECSServer {
     const transport = new StdioServerTransport();
 
     // Add error handling for transport
-    transport.onerror = (_error: Error) => {
+    transport.onerror = (error: Error) => {
       log('ERROR', '❌ Transport error', {
         message: _error.message,
         stack: _error.stack,

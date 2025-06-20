@@ -421,7 +421,7 @@ responseText += `- **Activation status:** ${args.criteria.activationStatus}\n`;
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'search properties advanced',
             parameters: args,
             timestamp: new Date(),
@@ -727,7 +727,7 @@ export async function compareProperties(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'compare properties',
             parameters: args,
             timestamp: new Date(),
@@ -1003,7 +1003,7 @@ export async function checkPropertyHealth(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'check property health',
             parameters: args,
             timestamp: new Date(),
@@ -1189,7 +1189,7 @@ export async function detectConfigurationDrift(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'detect configuration drift',
             parameters: args,
             timestamp: new Date(),
@@ -1497,7 +1497,7 @@ rules.behaviors = [];
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'bulk update properties',
             parameters: args,
             timestamp: new Date(),
