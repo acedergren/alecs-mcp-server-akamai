@@ -329,7 +329,7 @@ continue;
 
         this.emit('metricsCollected', name, collectedMetrics.length);
       } catch (_error) {
-        this.emit('collectionError', name, error);
+        this.emit('collectionError', name, _error);
       }
     }
   }

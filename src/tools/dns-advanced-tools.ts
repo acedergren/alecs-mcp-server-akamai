@@ -140,7 +140,7 @@ export async function getZonesDNSSECStatus(
     };
   } catch (_error) {
     spinner.fail('Failed to fetch DNSSEC status');
-    throw error;
+    throw _error;
   }
 }
 
@@ -207,7 +207,7 @@ export async function getSecondaryZoneTransferStatus(
     };
   } catch (_error) {
     spinner.fail('Failed to fetch transfer status');
-    throw error;
+    throw _error;
   }
 }
 
@@ -251,8 +251,8 @@ export async function getZoneContract(
       ],
     };
   } catch (_error) {
-    console.error('Error getting zone contract:', error);
-    throw error;
+    console._error('Error getting zone contract:', _error);
+    throw _error;
   }
 }
 
@@ -393,7 +393,7 @@ export async function updateTSIGKeyForZones(
     };
   } catch (_error) {
     spinner.fail('Failed to update TSIG keys');
-    throw error;
+    throw _error;
   }
 }
 
@@ -448,7 +448,7 @@ export async function submitBulkZoneCreateRequest(
     };
   } catch (_error) {
     spinner.fail('Failed to submit bulk creation request');
-    throw error;
+    throw _error;
   }
 }
 
@@ -488,8 +488,8 @@ export async function getZoneVersion(
       ],
     };
   } catch (_error) {
-    console.error('Error getting zone version:', error);
-    throw error;
+    console._error('Error getting zone version:', _error);
+    throw _error;
   }
 }
 
@@ -535,8 +535,8 @@ queryParams.limit = args.limit;
       ],
     };
   } catch (_error) {
-    console.error('Error getting version record sets:', error);
-    throw error;
+    console._error('Error getting version record sets:', _error);
+    throw _error;
   }
 }
 
@@ -575,7 +575,7 @@ export async function reactivateZoneVersion(
     };
   } catch (_error) {
     spinner.fail('Failed to reactivate version');
-    throw error;
+    throw _error;
   }
 }
 
@@ -604,8 +604,8 @@ export async function getVersionMasterZoneFile(
       ],
     };
   } catch (_error) {
-    console.error('Error getting master zone file:', error);
-    throw error;
+    console._error('Error getting master zone file:', _error);
+    throw _error;
   }
 }
 
@@ -709,6 +709,6 @@ export async function createMultipleRecordSets(
     };
   } catch (_error) {
     spinner.fail('Failed to create record sets');
-    throw error;
+    throw _error;
   }
 }

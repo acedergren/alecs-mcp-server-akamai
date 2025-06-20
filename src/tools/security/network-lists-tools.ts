@@ -171,7 +171,7 @@ export async function listNetworkLists(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
@@ -262,7 +262,7 @@ export async function getNetworkList(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
@@ -377,7 +377,7 @@ export async function createNetworkList(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
@@ -525,7 +525,7 @@ export async function updateNetworkList(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
@@ -581,7 +581,7 @@ export async function deleteNetworkList(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {

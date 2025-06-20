@@ -293,7 +293,7 @@ responseText += `  - ${check.details}\n`;
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'validate property activation',
             parameters: args,
             timestamp: new Date(),
@@ -468,7 +468,7 @@ export async function activatePropertyWithMonitoring(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'activate property with monitoring',
             parameters: args,
             timestamp: new Date(),
@@ -574,7 +574,7 @@ export async function getActivationProgress(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'get activation progress',
             parameters: args,
             timestamp: new Date(),
@@ -890,7 +890,7 @@ async function rollbackActivation(
       });
     }
   } catch (_error) {
-    console.error('Rollback failed:', error);
+    console._error('Rollback failed:', _error);
   }
 }
 
@@ -948,7 +948,7 @@ export async function cancelPropertyActivation(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'cancel property activation',
             parameters: args,
             timestamp: new Date(),
@@ -1047,7 +1047,7 @@ export async function createActivationPlan(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'create activation plan',
             parameters: args,
             timestamp: new Date(),

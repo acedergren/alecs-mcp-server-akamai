@@ -118,7 +118,7 @@ export async function activateNetworkList(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
@@ -178,7 +178,7 @@ export async function getNetworkListActivationStatus(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
@@ -265,7 +265,7 @@ export async function listNetworkListActivations(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
@@ -354,7 +354,7 @@ export async function deactivateNetworkList(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
@@ -421,7 +421,7 @@ export async function bulkActivateNetworkLists(
 
         output += `✅ ${activation.uniqueId} → ${activation.network} (${activationResult.activationId})\n`;
       } catch (_error) {
-        const akamaiError = error as AkamaiError;
+        const akamaiError = _error as AkamaiError;
         results.push({
           uniqueId: activation.uniqueId,
           error: akamaiError.title || akamaiError.detail || 'Unknown error',
@@ -453,7 +453,7 @@ export async function bulkActivateNetworkLists(
       ],
     };
   } catch (_error) {
-    const akamaiError = error as AkamaiError;
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {

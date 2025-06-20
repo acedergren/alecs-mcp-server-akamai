@@ -141,7 +141,7 @@ export async function createPropertyVersion(
       ],
     };
   } catch (_error) {
-    return formatError('create property version', error);
+    return formatError('create property version', _error);
   }
 }
 
@@ -263,7 +263,7 @@ export async function getPropertyRules(
       ],
     };
   } catch (_error) {
-    return formatError('get property rules', error);
+    return formatError('get property rules', _error);
   }
 }
 
@@ -366,7 +366,7 @@ export async function updatePropertyRules(
       ],
     };
   } catch (_error) {
-    return formatError('update property rules', error);
+    return formatError('update property rules', _error);
   }
 }
 
@@ -444,7 +444,7 @@ export async function createEdgeHostname(
       ],
     };
   } catch (_error) {
-    return formatError('create edge hostname', error);
+    return formatError('create edge hostname', _error);
   }
 }
 
@@ -511,7 +511,7 @@ export async function addPropertyHostname(
       ],
     };
   } catch (_error) {
-    return formatError('add property hostname', error);
+    return formatError('add property hostname', _error);
   }
 }
 
@@ -585,7 +585,7 @@ export async function removePropertyHostname(
       ],
     };
   } catch (_error) {
-    return formatError('remove property hostname', error);
+    return formatError('remove property hostname', _error);
   }
 }
 
@@ -680,7 +680,7 @@ export async function activateProperty(
       ],
     };
   } catch (_error) {
-    if (error instanceof Error && error.message.includes('warnings')) {
+    if (_error instanceof Error && _error.message.includes('warnings')) {
       return {
         content: [
           {
@@ -690,7 +690,7 @@ export async function activateProperty(
         ],
       };
     }
-    return formatError('activate property', error);
+    return formatError('activate property', _error);
   }
 }
 
@@ -778,7 +778,7 @@ export async function getActivationStatus(
       ],
     };
   } catch (_error) {
-    return formatError('get activation status', error);
+    return formatError('get activation status', _error);
   }
 }
 
@@ -872,7 +872,7 @@ acc[act.network] = [];
       ],
     };
   } catch (_error) {
-    return formatError('list property activations', error);
+    return formatError('list property activations', _error);
   }
 }
 
@@ -1041,7 +1041,7 @@ export async function updatePropertyWithDefaultDV(
       ],
     };
   } catch (_error) {
-    return formatError('update property with Default DV', error);
+    return formatError('update property with Default DV', _error);
   }
 }
 
@@ -1236,7 +1236,7 @@ export async function updatePropertyWithCPSCertificate(
       ],
     };
   } catch (_error) {
-    return formatError('update property with CPS certificate', error);
+    return formatError('update property with CPS certificate', _error);
   }
 }
 
@@ -1350,7 +1350,7 @@ ${args.autoSelectBase ? `- Auto-selected base version: ${baseVersion}` : ''}
       ],
     };
   } catch (_error) {
-    return formatError('create enhanced property version', error);
+    return formatError('create enhanced property version', _error);
   }
 }
 
@@ -1464,7 +1464,7 @@ export async function getVersionDiff(
       ],
     };
   } catch (_error) {
-    return formatError('compare property versions', error);
+    return formatError('compare property versions', _error);
   }
 }
 
@@ -1574,7 +1574,7 @@ text += `  └ Tags: ${metadata.tags}\n`;
       ],
     };
   } catch (_error) {
-    return formatError('list property versions', error);
+    return formatError('list property versions', _error);
   }
 }
 
@@ -1700,7 +1700,7 @@ ${!args.autoActivate ? `- Activate: "Activate property ${args.propertyId} versio
       ],
     };
   } catch (_error) {
-    return formatError('rollback property version', error);
+    return formatError('rollback property version', _error);
   }
 }
 
@@ -1872,7 +1872,7 @@ export async function batchVersionOperations(
       ],
     };
   } catch (_error) {
-    return formatError('batch version operations', error);
+    return formatError('batch version operations', _error);
   }
 }
 

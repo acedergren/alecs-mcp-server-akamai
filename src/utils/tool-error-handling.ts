@@ -72,6 +72,6 @@ export async function withToolErrorHandling<T extends MCPToolResponse>(
 
     return await baseWithEnhancedErrorHandling(operation, context, config);
   } catch (_error) {
-    return formatErrorResponse(error, context) as T;
+    return formatErrorResponse(_error, context) as T;
   }
 }

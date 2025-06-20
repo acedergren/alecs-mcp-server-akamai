@@ -140,7 +140,7 @@ acc[category] = [];
       ],
     };
   } catch (_error) {
-    return formatError('list available behaviors', error);
+    return formatError('list available behaviors', _error);
   }
 }
 
@@ -277,7 +277,7 @@ acc[category] = [];
       ],
     };
   } catch (_error) {
-    return formatError('list available criteria', error);
+    return formatError('list available criteria', _error);
   }
 }
 
@@ -378,7 +378,7 @@ export async function patchPropertyRules(
       ],
     };
   } catch (_error) {
-    return formatError('patch property rules', error);
+    return formatError('patch property rules', _error);
   }
 }
 
@@ -460,7 +460,7 @@ export async function bulkSearchProperties(
       ],
     };
   } catch (_error) {
-    return formatError('bulk search properties', error);
+    return formatError('bulk search properties', _error);
   }
 }
 
@@ -560,7 +560,7 @@ acc[key] = [];
       ],
     };
   } catch (_error) {
-    return formatError('get bulk search results', error);
+    return formatError('get bulk search results', _error);
   }
 }
 
@@ -636,7 +636,7 @@ export async function generateDomainValidationChallenges(
       ],
     };
   } catch (_error) {
-    return formatError('generate domain validation challenges', error);
+    return formatError('generate domain validation challenges', _error);
   }
 }
 
@@ -690,7 +690,7 @@ export async function resumeDomainValidation(
       ],
     };
   } catch (_error) {
-    return formatError('resume domain validation', error);
+    return formatError('resume domain validation', _error);
   }
 }
 
@@ -770,7 +770,7 @@ text += `**End Date:** ${args.endDate}\n`;
       ],
     };
   } catch (_error) {
-    return formatError('get property audit history', error);
+    return formatError('get property audit history', _error);
   }
 }
 

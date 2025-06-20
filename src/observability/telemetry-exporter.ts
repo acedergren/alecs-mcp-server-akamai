@@ -198,10 +198,10 @@ return false;
           timestamp: Date.now(),
           recordsExported: 0,
           duration: 0,
-          error: error as Error,
+          error: _error as Error,
         };
         results.push(result);
-        this.emit('exportError', destination.name, error);
+        this.emit('exportError', destination.name, _error);
       }
     }
 
@@ -274,11 +274,11 @@ return false;
         timestamp,
         recordsExported: 0,
         duration,
-        error: error as Error,
+        error: _error as Error,
       };
 
       this.emit('exportError', result);
-      throw error;
+      throw _error;
     }
   }
 
@@ -296,7 +296,7 @@ return false;
       try {
         await this.exportAll();
       } catch (_error) {
-        this.emit('batchExportError', error);
+        this.emit('batchExportError', _error);
       }
     }, interval);
 
@@ -381,8 +381,8 @@ return false;
       this.emit('destinationTestSuccess', name);
       return true;
     } catch (_error) {
-      this.emit('destinationTestFailure', name, error);
-      throw error;
+      this.emit('destinationTestFailure', name, _error);
+      throw _error;
     }
   }
 
@@ -660,7 +660,7 @@ return false;
       }
     } catch (_error) {
       clearTimeout(timeoutId);
-      throw error;
+      throw _error;
     }
   }
 
@@ -768,7 +768,7 @@ return;
       } else {
         // Max retries exceeded
         this.batches.delete(item.batchId);
-        this.emit('exportFailed', batch.destination, error);
+        this.emit('exportFailed', batch.destination, _error);
       }
     }
   }

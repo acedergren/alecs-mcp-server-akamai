@@ -644,28 +644,28 @@ bulkOptions.comments = typedArgs.comment;
         const duration = Date.now() - startTime;
         log('ERROR', `❌ Tool ${name} failed after ${duration}ms`, {
           error:
-            error instanceof Error
+            _error instanceof Error
               ? {
-                  message: error.message,
-                  stack: error.stack,
+                  message: _error.message,
+                  stack: _error.stack,
                 }
-              : String(error),
+              : String(_error),
         });
 
-        if (error instanceof z.ZodError) {
+        if (_error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
+            `Invalid parameters: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
           );
         }
 
-        if (error instanceof McpError) {
-          throw error;
+        if (_error instanceof McpError) {
+          throw _error;
         }
 
         throw new McpError(
           ErrorCode.InternalError,
-          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
+          `Tool execution failed: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
       }
     });
@@ -702,14 +702,14 @@ bulkOptions.comments = typedArgs.comment;
     } catch (_error) {
       log('ERROR', '❌ Failed to connect server', {
         error:
-          error instanceof Error
+          _error instanceof Error
             ? {
-                message: error.message,
-                stack: error.stack,
+                message: _error.message,
+                stack: _error.stack,
               }
-            : String(error),
+            : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 }
@@ -733,12 +733,12 @@ async function main() {
   } catch (_error) {
     log('ERROR', '❌ Failed to start server', {
       error:
-        error instanceof Error
+        _error instanceof Error
           ? {
-              message: error.message,
-              stack: error.stack,
+              message: _error.message,
+              stack: _error.stack,
             }
-          : String(error),
+          : String(_error),
     });
     process.exit(1);
   }

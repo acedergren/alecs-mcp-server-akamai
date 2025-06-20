@@ -242,7 +242,7 @@ export function withProgress<T>(
       })
       .catch((_error) => {
         spinner.fail(`${message} - Failed`);
-        throw error;
+        throw _error;
       });
   }
 
@@ -287,7 +287,7 @@ return;
         message: `Error processing item ${currentIndex + 1}`,
         status: 'error',
       });
-      throw error;
+      throw _error;
     }
   }
 

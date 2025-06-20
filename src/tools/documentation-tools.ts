@@ -96,8 +96,8 @@ export async function generateDocumentationIndex(
       ],
     };
   } catch (_error) {
-    console.error('Error generating documentation index:', error);
-    throw error;
+    console._error('Error generating documentation index:', _error);
+    throw _error;
   }
 }
 
@@ -161,8 +161,8 @@ export async function generateAPIReference(
       ],
     };
   } catch (_error) {
-    console.error('Error generating API reference:', error);
-    throw error;
+    console._error('Error generating API reference:', _error);
+    throw _error;
   }
 }
 
@@ -264,8 +264,8 @@ export async function generateFeatureDocumentation(
       ],
     };
   } catch (_error) {
-    console.error('Error generating feature documentation:', error);
-    throw error;
+    console._error('Error generating feature documentation:', _error);
+    throw _error;
   }
 }
 
@@ -336,8 +336,8 @@ export async function updateDocumentation(
       ],
     };
   } catch (_error) {
-    console.error('Error updating documentation:', error);
-    throw error;
+    console._error('Error updating documentation:', _error);
+    throw _error;
   }
 }
 
@@ -438,8 +438,8 @@ continue;
       ],
     };
   } catch (_error) {
-    console.error('Error generating changelog:', error);
-    throw error;
+    console._error('Error generating changelog:', _error);
+    throw _error;
   }
 }
 
@@ -510,8 +510,8 @@ export async function createKnowledgeArticle(
       ],
     };
   } catch (_error) {
-    console.error('Error creating knowledge article:', error);
-    throw error;
+    console._error('Error creating knowledge article:', _error);
+    throw _error;
   }
 }
 
@@ -870,6 +870,6 @@ async function updateKnowledgeBaseIndex(_articlePath: string, metadata: any): Pr
 
     await fs.writeFile(indexPath, JSON.stringify(index, null, 2));
   } catch (_error) {
-    console.error('Error updating knowledge base index:', error);
+    console._error('Error updating knowledge base index:', _error);
   }
 }

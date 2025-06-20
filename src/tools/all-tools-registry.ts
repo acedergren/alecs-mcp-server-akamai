@@ -60,10 +60,11 @@ import {
   getDVValidationChallenges,
 } from './cps-tools';
 
-import {
-  createEdgeHostnameEnhanced,
-  getEdgeHostnameDetails,
-} from './edge-hostname-management';
+// Edge hostname tools are imported but not currently used
+// import {
+//   createEdgeHostnameEnhanced,
+//   getEdgeHostnameDetails,
+// } from './edge-hostname-management';
 
 import {
   listPropertyVersionHostnames,

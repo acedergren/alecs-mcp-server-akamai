@@ -92,7 +92,7 @@ export async function listProperties(
 
     return response;
   } catch (_error) {
-    console.error('[Cache] Error in cached listProperties:', error);
+    console._error('[Cache] Error in cached listProperties:', _error);
     // Fallback to direct API call
     return originalListProperties(client, args);
   }
@@ -135,7 +135,7 @@ export async function getProperty(
 
     return response;
   } catch (_error) {
-    console.error('[Cache] Error in cached getProperty:', error);
+    console._error('[Cache] Error in cached getProperty:', _error);
     return originalGetProperty(client, args);
   }
 }
@@ -177,7 +177,7 @@ export async function listGroups(
 
     return response;
   } catch (_error) {
-    console.error('[Cache] Error in cached listGroups:', error);
+    console._error('[Cache] Error in cached listGroups:', _error);
     return originalListGroups(client, args);
   }
 }
@@ -218,7 +218,7 @@ export async function listContracts(
 
     return response;
   } catch (_error) {
-    console.error('[Cache] Error in cached listContracts:', error);
+    console._error('[Cache] Error in cached listContracts:', _error);
     return originalListContracts(client, args);
   }
 }

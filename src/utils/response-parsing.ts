@@ -503,9 +503,9 @@ return response;
     try {
       return schema.parse(response);
     } catch (_error) {
-      if (error instanceof z.ZodError) {
+      if (_error instanceof z.ZodError) {
         console.warn('Response validation failed:', {
-          errors: error.errors,
+          errors: _error.errors,
           response: JSON.stringify(response, null, 2),
         });
       }
@@ -624,7 +624,7 @@ export function parseAkamaiResponse(
 
     return parsedData;
   } catch (_error) {
-    console.warn('Failed to parse response:', error);
+    console.warn('Failed to parse response:', _error);
     return response.data || response;
   }
 }

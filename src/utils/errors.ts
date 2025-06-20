@@ -453,16 +453,16 @@ export class ErrorRecovery {
       try {
         return await operation();
       } catch (_error) {
-        lastError = error;
+        lastError = _error;
 
-        if (!this.canRetry(error) || attempt === maxAttempts - 1) {
-          throw error;
+        if (!this.canRetry(_error) || attempt === maxAttempts - 1) {
+          throw _error;
         }
 
-        const delay = this.getRetryDelay(attempt, error);
+        const delay = this.getRetryDelay(attempt, _error);
 
         if (onRetry) {
-          onRetry(attempt + 1, error);
+          onRetry(attempt + 1, _error);
         }
 
         await new Promise((resolve) => setTimeout(resolve, delay));

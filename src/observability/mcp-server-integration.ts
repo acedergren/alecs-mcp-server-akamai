@@ -81,7 +81,7 @@ export class InstrumentedMCPServer {
         `📊 Observability initialized for ${this.config.observability.environment} environment`,
       );
     } catch (_error) {
-      console.error('❌ Failed to initialize observability:', error);
+      console._error('❌ Failed to initialize observability:', _error);
     }
   }
 
@@ -146,7 +146,7 @@ return;
           return {
             name: 'mcp_server_connectivity',
             status: 'critical',
-            message: `Health check failed: ${error instanceof Error ? error.message : String(error)}`,
+            message: `Health check failed: ${_error instanceof Error ? _error.message : String(_error)}`,
             lastCheck: Date.now(),
             duration: 0,
           };
@@ -256,8 +256,8 @@ return;
 
         return { tools };
       } catch (_error) {
-        instrumentation.finish(error as Error);
-        throw error;
+        instrumentation.finish(_error as Error);
+        throw _error;
       }
     });
 
@@ -322,18 +322,18 @@ return;
           {
             toolName,
             customer,
-            error: (error as Error).message,
-            stack: (error as Error).stack,
+            error: (_error as Error).message,
+            stack: (_error as Error).stack,
           },
           'mcp-server',
           instrumentation.traceId,
           instrumentation.spanId,
         );
 
-        instrumentation.finish(error as Error);
+        instrumentation.finish(_error as Error);
 
-        // Re-throw to maintain MCP error handling
-        throw error;
+        // Re-throw to maintain MCP _error handling
+        throw _error;
       }
     });
   }
@@ -398,8 +398,8 @@ return;
 
         return result;
       } catch (_error) {
-        apiInstrumentation.finish(error as Error);
-        throw error;
+        apiInstrumentation.finish(_error as Error);
+        throw _error;
       }
     }
 
@@ -553,7 +553,7 @@ return;
           console.log('📤 Observability data exported on shutdown');
         }
       } catch (_error) {
-        console.error('❌ Failed to generate final report:', error);
+        console._error('❌ Failed to generate final report:', _error);
       }
 
       this.observability.stop();

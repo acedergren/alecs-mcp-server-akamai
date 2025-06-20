@@ -208,13 +208,13 @@ export function createOAuthMiddleware(
 
       next();
     } catch (_error) {
-      logger.error('OAuth middleware error', {
+      logger.error('OAuth middleware _error', {
         tool: req.toolName,
-        error,
+        _error,
       });
 
-      res.error(
-        error instanceof Error ? error.message : 'Authentication error',
+      res._error(
+        _error instanceof Error ? _error.message : 'Authentication _error',
         'AUTH_ERROR',
       );
     }
@@ -341,9 +341,9 @@ export function createCustomerContextMiddleware(): MiddlewareFunction {
 
       next();
     } catch (_error) {
-      logger.error('Customer context middleware error', {
+      logger.error('Customer context middleware _error', {
         tool: req.toolName,
-        error,
+        _error,
       });
 
       // Continue without customer context
@@ -403,14 +403,14 @@ export function createCredentialAccessMiddleware(): MiddlewareFunction {
 
       next();
     } catch (_error) {
-      logger.error('Credential access middleware error', {
+      logger.error('Credential access middleware _error', {
         tool: req.toolName,
         customer: req.customer,
-        error,
+        _error,
       });
 
-      res.error(
-        error instanceof Error ? error.message : 'Credential access error',
+      res._error(
+        _error instanceof Error ? _error.message : 'Credential access _error',
         'CREDENTIAL_ERROR',
       );
     }

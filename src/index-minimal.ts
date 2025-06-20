@@ -149,22 +149,22 @@ class MinimalALECSServer {
             throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
         }
       } catch (_error) {
-        console.error('❌ Tool error:', error);
+        console._error('❌ Tool error:', _error);
 
-        if (error instanceof z.ZodError) {
+        if (_error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
+            `Invalid parameters: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
           );
         }
 
-        if (error instanceof McpError) {
-          throw error;
+        if (_error instanceof McpError) {
+          throw _error;
         }
 
         throw new McpError(
           ErrorCode.InternalError,
-          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
+          `Tool execution failed: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
       }
     });
@@ -197,7 +197,7 @@ async function main() {
     const server = new MinimalALECSServer();
     await server.start();
   } catch (_error) {
-    console.error('❌ Failed to start server:', error);
+    console._error('❌ Failed to start server:', _error);
     process.exit(1);
   }
 }

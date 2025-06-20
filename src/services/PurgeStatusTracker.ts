@@ -275,8 +275,8 @@ return;
 }
 
     try {
-      let completedBatches = 0;
-      let failedBatches = 0;
+      const _completedBatches = 0;
+      const _failedBatches = 0;
       let totalProcessed = 0;
 
       for (const batch of operation.batches) {
@@ -293,12 +293,10 @@ return;
           if (status.status === 'Done') {
             batch.status = 'completed';
             batch.completedAt = new Date();
-            completedBatches++;
             totalProcessed += batch.objects.length;
           } else if (status.status === 'Failed') {
             batch.status = 'failed';
             batch.error = 'Purge operation failed';
-            failedBatches++;
 
             this.addError(operation, {
               type: 'batch_failure',

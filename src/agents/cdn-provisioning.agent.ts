@@ -98,7 +98,7 @@ export class CDNProvisioningAgent {
       spinner.succeed(`Initialized with contract: ${this.contractId}, group: ${this.groupId}`);
     } catch (_error) {
       spinner.fail('Failed to initialize agent');
-      throw error;
+      throw _error;
     } finally {
       this.multiProgress.remove('init');
     }
@@ -137,9 +137,9 @@ export class CDNProvisioningAgent {
       return await this.getPropertyVersion(propertyId, versionNumber);
     } catch (_error) {
       spinner.fail(
-        `Failed to create property version: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to create property version: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
@@ -189,9 +189,9 @@ export class CDNProvisioningAgent {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -225,9 +225,9 @@ export class CDNProvisioningAgent {
       spinner.succeed('Rule configuration updated');
     } catch (_error) {
       spinner.fail(
-        `Failed to update rules: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to update rules: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
@@ -262,9 +262,9 @@ export class CDNProvisioningAgent {
       spinner.succeed(`${format.bold(template)} template applied`);
     } catch (_error) {
       spinner.fail(
-        `Failed to apply template: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to apply template: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
@@ -327,9 +327,9 @@ export class CDNProvisioningAgent {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -431,9 +431,9 @@ export class CDNProvisioningAgent {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -471,16 +471,16 @@ export class CDNProvisioningAgent {
       spinner.succeed(`Added hostname ${format.cyan(hostname)} → ${format.green(edgeHostname)}`);
     } catch (_error) {
       spinner.fail(
-        `Failed to add hostname: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to add hostname: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
   // Certificate Management Integration
   async provisionDefaultDVCertificate(
-    propertyId: string,
-    version: number,
+    _propertyId: string,
+    _version: number,
     hostnames: string[],
   ): Promise<void> {
     console.log(`\n${format.bold('Default DV Certificate Provisioning')}`);
@@ -532,9 +532,9 @@ export class CDNProvisioningAgent {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -826,7 +826,7 @@ export class CDNProvisioningAgent {
     };
   }
 
-  private async createACMEValidationRecord(hostname: string, challenge: string): Promise<void> {
+  private async createACMEValidationRecord(_hostname: string, challenge: string): Promise<void> {
     // This would integrate with EdgeDNS API
     console.log(`  ${icons.dns} Creating DNS record: ${format.cyan(challenge)}`);
   }
@@ -971,9 +971,9 @@ export class CDNProvisioningAgent {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: `Failed: ${error instanceof Error ? error.message : String(error)}`,
+        message: `Failed: ${_error instanceof Error ? _error.message : String(_error)}`,
       });
-      throw error;
+      throw _error;
     }
   }
 }

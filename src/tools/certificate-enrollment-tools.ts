@@ -206,7 +206,7 @@ byNetwork[network] = [];
       content: [
         {
           type: 'text',
-          text: `❌ Failed to get deployment status: ${error instanceof Error ? error.message : String(error)}`,
+          text: `❌ Failed to get deployment status: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };
@@ -310,7 +310,7 @@ export async function renewCertificate(
       content: [
         {
           type: 'text',
-          text: `❌ Failed to renew certificate: ${error instanceof Error ? error.message : String(error)}`,
+          text: `❌ Failed to renew certificate: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };
@@ -386,7 +386,7 @@ export async function cleanupValidationRecords(
         text += `✅ Deleted: ${record.recordName} from ${record.zone}\n`;
         deleted++;
       } catch (_error) {
-        text += `❌ Failed to delete ${record.recordName}: ${error instanceof Error ? error.message : 'Unknown error'}\n`;
+        text += `❌ Failed to delete ${record.recordName}: ${_error instanceof Error ? _error.message : 'Unknown error'}\n`;
         failed++;
       }
     }
@@ -412,7 +412,7 @@ export async function cleanupValidationRecords(
       content: [
         {
           type: 'text',
-          text: `❌ Failed to cleanup validation records: ${error instanceof Error ? error.message : String(error)}`,
+          text: `❌ Failed to cleanup validation records: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };
@@ -520,7 +520,7 @@ byDomain[domain] = [];
       content: [
         {
           type: 'text',
-          text: `❌ Failed to get validation history: ${error instanceof Error ? error.message : String(error)}`,
+          text: `❌ Failed to get validation history: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };

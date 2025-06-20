@@ -227,7 +227,7 @@ export async function createEdgeHostnameEnhanced(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'create edge hostname',
             parameters: args,
             timestamp: new Date(),
@@ -301,7 +301,7 @@ export async function createBulkEdgeHostnames(
       } catch (_error) {
         results.failed.push({
           hostname,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: _error instanceof Error ? _error.message : 'Unknown error',
         });
       }
     }
@@ -360,7 +360,7 @@ export async function createBulkEdgeHostnames(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'create bulk edge hostnames',
             parameters: args,
             timestamp: new Date(),
@@ -542,7 +542,7 @@ queryParams.groupId = args.groupId;
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'get edge hostname details',
             parameters: args,
             timestamp: new Date(),
@@ -708,7 +708,7 @@ return;
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'generate edge hostname recommendations',
             parameters: args,
             timestamp: new Date(),
@@ -844,7 +844,7 @@ export async function validateEdgeHostnameCertificate(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'validate edge hostname certificate',
             parameters: args,
             timestamp: new Date(),
@@ -922,7 +922,7 @@ export async function associateCertificateWithEdgeHostname(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'associate certificate with edge hostname',
             parameters: args,
             timestamp: new Date(),

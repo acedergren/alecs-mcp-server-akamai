@@ -6,7 +6,6 @@
 import {
   JsonRpcRequest,
   JsonRpcResponse,
-  JsonRpcError,
   JsonRpcErrorCode,
   createJsonRpcError,
   createJsonRpcSuccess,
@@ -53,8 +52,8 @@ export class JsonRpcMiddleware {
           request._meta, // Preserve metadata
         );
       } catch (_error) {
-        // Handle errors and create proper error response
-        return this.createErrorResponse(request.id ?? null, error, request._meta);
+        // Handle errors and create proper _error response
+        return this.createErrorResponse(request.id ?? null, _error, request._meta);
       }
     };
   }
@@ -228,7 +227,7 @@ export class BatchRequestHandler {
             createJsonRpcError(
               request.id,
               JsonRpcErrorCode.InternalError,
-              error instanceof Error ? error.message : 'Unknown error',
+              _error instanceof Error ? _error.message : 'Unknown error',
             ),
           );
         }

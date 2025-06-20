@@ -394,9 +394,9 @@ export async function listPropertiesTreeView(
                     childStats.groupCount++;
                     childStats.propertyCount += childProps.length;
                   } catch (_error) {
-                    console.error(
+                    console._error(
                       `Failed to get properties for child group ${childGroup.groupId}:`,
-                      error,
+                      _error,
                     );
                   }
                 }
@@ -427,9 +427,9 @@ export async function listPropertiesTreeView(
 
                       grandchildProperties.push(...(gcPropsResponse.properties?.items || []));
                     } catch (_error) {
-                      console.error(
+                      console._error(
                         `Failed to get properties for grandchild group ${grandchild.groupId}:`,
-                        error,
+                        _error,
                       );
                     }
                   }
@@ -446,7 +446,7 @@ export async function listPropertiesTreeView(
           treeNodes.push(groupNode);
           break; // Only process first contract for now
         } catch (_error) {
-          console.error(`Failed to get properties for contract ${contractId}:`, error);
+          console._error(`Failed to get properties for contract ${contractId}:`, _error);
         }
       }
     }
@@ -701,7 +701,7 @@ continue;
     // Get property by ID
     return await getPropertyById(client, propertyId);
   } catch (_error) {
-    return formatError('get property', error);
+    return formatError('get property', _error);
   }
 }
 
@@ -932,7 +932,7 @@ continue;
       ],
     };
   } catch (_error) {
-    return formatError('get property details', error);
+    return formatError('get property details', _error);
   }
 }
 
@@ -1086,9 +1086,9 @@ export async function createProperty(
       ],
     };
   } catch (_error) {
-    // Handle specific error cases
-    if (error instanceof Error) {
-      if (error.message.includes('already exists')) {
+    // Handle specific _error cases
+    if (_error instanceof Error) {
+      if (_error.message.includes('already exists')) {
         return {
           content: [
             {
@@ -1099,7 +1099,7 @@ export async function createProperty(
         };
       }
 
-      if (error.message.includes('Invalid product')) {
+      if (_error.message.includes('Invalid product')) {
         return {
           content: [
             {
@@ -1111,7 +1111,7 @@ export async function createProperty(
       }
     }
 
-    return formatError('create property', error);
+    return formatError('create property', _error);
   }
 }
 
@@ -1195,7 +1195,7 @@ export async function listContracts(
       ],
     };
   } catch (_error) {
-    return formatError('list contracts', error);
+    return formatError('list contracts', _error);
   }
 }
 
@@ -1351,7 +1351,7 @@ acc[group.parentGroupId] = [];
       ],
     };
   } catch (_error) {
-    return formatError('list groups', error);
+    return formatError('list groups', _error);
   }
 }
 

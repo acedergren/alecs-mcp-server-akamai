@@ -131,7 +131,7 @@ export async function getSystemHealth(
       content: [
         {
           type: 'text',
-          text: `Error checking system health: ${(error as Error).message}`,
+          text: `Error checking system health: ${(_error as Error).message}`,
         },
       ],
     };
@@ -206,7 +206,7 @@ export async function resetCircuitBreaker(
       content: [
         {
           type: 'text',
-          text: `Error resetting circuit breaker: ${(error as Error).message}`,
+          text: `Error resetting circuit breaker: ${(_error as Error).message}`,
         },
       ],
     };
@@ -285,7 +285,7 @@ export async function getOperationMetrics(
       content: [
         {
           type: 'text',
-          text: `Error retrieving operation metrics: ${(error as Error).message}`,
+          text: `Error retrieving operation metrics: ${(_error as Error).message}`,
         },
       ],
     };
@@ -345,7 +345,7 @@ export async function testOperationResilience(
           iteration: i,
           success: false,
           responseTime: Date.now() - startTime,
-          error: (error as Error).message,
+          error: (_error as Error).message,
         });
       }
 
@@ -419,7 +419,7 @@ export async function testOperationResilience(
       content: [
         {
           type: 'text',
-          text: `Error during resilience test: ${(error as Error).message}`,
+          text: `Error during resilience test: ${(_error as Error).message}`,
         },
       ],
     };
@@ -517,7 +517,7 @@ export async function getErrorRecoverySuggestions(
       content: [
         {
           type: 'text',
-          text: `Error generating recovery suggestions: ${(error as Error).message}`,
+          text: `Error generating recovery suggestions: ${(_error as Error).message}`,
         },
       ],
     };

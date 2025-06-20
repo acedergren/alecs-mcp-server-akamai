@@ -104,7 +104,7 @@ export async function importZoneViaAXFR(
       ],
     };
   } catch (_error) {
-    return formatError('import zone via AXFR', error);
+    return formatError('import zone via AXFR', _error);
   }
 }
 
@@ -225,7 +225,7 @@ export async function parseZoneFile(
       ],
     };
   } catch (_error) {
-    return formatError('parse zone file', error);
+    return formatError('parse zone file', _error);
   }
 }
 
@@ -287,7 +287,7 @@ export async function bulkImportRecords(
         } catch (_error) {
           errors.push({
             record: `${record.name} ${record.type}`,
-            error: error instanceof Error ? error.message : JSON.stringify(error),
+            error: _error instanceof Error ? _error.message : JSON.stringify(_error),
           });
         }
       }
@@ -363,7 +363,7 @@ export async function bulkImportRecords(
       ],
     };
   } catch (_error) {
-    return formatError('bulk import records', error);
+    return formatError('bulk import records', _error);
   }
 }
 
@@ -418,7 +418,7 @@ export async function convertZoneToPrimary(
       ],
     };
   } catch (_error) {
-    return formatError('convert zone to primary', error);
+    return formatError('convert zone to primary', _error);
   }
 }
 
@@ -555,7 +555,7 @@ export async function generateMigrationInstructions(
       ],
     };
   } catch (_error) {
-    return formatError('generate migration instructions', error);
+    return formatError('generate migration instructions', _error);
   }
 }
 
@@ -731,7 +731,7 @@ export async function importFromCloudflare(
       ],
     };
   } catch (_error) {
-    return formatError('import from Cloudflare', error);
+    return formatError('import from Cloudflare', _error);
   }
 }
 
@@ -981,7 +981,7 @@ async function validateDNSRecords(records: ZoneFileRecord[]): Promise<
         name: record.name,
         type: record.type,
         valid: false,
-        error: error instanceof Error ? error.message : 'Validation failed',
+        error: _error instanceof Error ? _error.message : 'Validation failed',
       });
     }
   }
@@ -1082,7 +1082,7 @@ async function validateSingleRecord(record: DNSRecordSet): Promise<{
       name: record.name,
       type: record.type,
       valid: false,
-      error: error instanceof Error ? error.message : 'Validation error',
+      error: _error instanceof Error ? _error.message : 'Validation _error',
     };
   }
 }

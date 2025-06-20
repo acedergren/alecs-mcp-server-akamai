@@ -87,7 +87,7 @@ text += `**Group:** ${args.groupId}\n`;
       ],
     };
   } catch (_error) {
-    return formatError('list edge hostnames', error);
+    return formatError('list edge hostnames', _error);
   }
 }
 
@@ -185,7 +185,7 @@ export async function getEdgeHostname(
       ],
     };
   } catch (_error) {
-    return formatError('get edge hostname', error);
+    return formatError('get edge hostname', _error);
   }
 }
 
@@ -292,7 +292,7 @@ export async function cloneProperty(
       ],
     };
   } catch (_error) {
-    return formatError('clone property', error);
+    return formatError('clone property', _error);
   }
 }
 
@@ -356,7 +356,7 @@ export async function removeProperty(
       ],
     };
   } catch (_error) {
-    return formatError('remove property', error);
+    return formatError('remove property', _error);
   }
 }
 
@@ -447,7 +447,7 @@ export async function listPropertyVersions(
       ],
     };
   } catch (_error) {
-    return formatError('list property versions', error);
+    return formatError('list property versions', _error);
   }
 }
 
@@ -537,7 +537,7 @@ export async function getPropertyVersion(
       ],
     };
   } catch (_error) {
-    return formatError('get property version', error);
+    return formatError('get property version', _error);
   }
 }
 
@@ -647,7 +647,7 @@ export async function getLatestPropertyVersion(
       ],
     };
   } catch (_error) {
-    return formatError('get latest property version', error);
+    return formatError('get latest property version', _error);
   }
 }
 
@@ -709,7 +709,7 @@ export async function cancelPropertyActivation(
       ],
     };
   } catch (_error) {
-    return formatError('cancel property activation', error);
+    return formatError('cancel property activation', _error);
   }
 }
 
@@ -995,7 +995,7 @@ continue;
       ],
     };
   } catch (_error) {
-    return formatError('search properties', error);
+    return formatError('search properties', _error);
   }
 }
 
@@ -1299,7 +1299,7 @@ text += `**Group:** ${args.groupId}\n`;
       ],
     };
   } catch (_error) {
-    return formatError('list all hostnames', error);
+    return formatError('list all hostnames', _error);
   }
 }
 
@@ -1408,7 +1408,7 @@ export async function listPropertyVersionHostnames(
       ],
     };
   } catch (_error) {
-    return formatError('list property version hostnames', error);
+    return formatError('list property version hostnames', _error);
   }
 }
 

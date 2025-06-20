@@ -102,8 +102,8 @@ export async function provisionCompleteProperty(
       ],
     };
   } catch (_error) {
-    console.error('Error provisioning property:', error);
-    throw error;
+    console._error('Error provisioning property:', _error);
+    throw _error;
   }
 }
 
@@ -135,8 +135,8 @@ export async function clonePropertyVersion(
       ],
     };
   } catch (_error) {
-    console.error('Error cloning property version:', error);
-    throw error;
+    console._error('Error cloning property version:', _error);
+    throw _error;
   }
 }
 
@@ -168,8 +168,8 @@ export async function applyPropertyTemplate(
       ],
     };
   } catch (_error) {
-    console.error('Error applying template:', error);
-    throw error;
+    console._error('Error applying template:', _error);
+    throw _error;
   }
 }
 
@@ -204,8 +204,8 @@ export async function provisionAndDeployCertificate(
       ],
     };
   } catch (_error) {
-    console.error('Error provisioning certificate:', error);
-    throw error;
+    console._error('Error provisioning certificate:', _error);
+    throw _error;
   }
 }
 
@@ -230,8 +230,8 @@ export async function automatedDNSValidation(
       ],
     };
   } catch (_error) {
-    console.error('Error with DNS validation:', error);
-    throw error;
+    console._error('Error with DNS validation:', _error);
+    throw _error;
   }
 }
 
@@ -255,8 +255,8 @@ export async function processCertificateRenewal(
       ],
     };
   } catch (_error) {
-    console.error('Error renewing certificate:', error);
-    throw error;
+    console._error('Error renewing certificate:', _error);
+    throw _error;
   }
 }
 
@@ -288,8 +288,8 @@ export async function importZoneFromCloudflare(
       ],
     };
   } catch (_error) {
-    console.error('Error importing from Cloudflare:', error);
-    throw error;
+    console._error('Error importing from Cloudflare:', _error);
+    throw _error;
   }
 }
 
@@ -321,8 +321,8 @@ export async function bulkDNSMigration(
       ],
     };
   } catch (_error) {
-    console.error('Error with bulk DNS migration:', error);
-    throw error;
+    console._error('Error with bulk DNS migration:', _error);
+    throw _error;
   }
 }
 
@@ -355,8 +355,8 @@ export async function migrateWebsite(
       ],
     };
   } catch (_error) {
-    console.error('Error migrating website:', error);
-    throw error;
+    console._error('Error migrating website:', _error);
+    throw _error;
   }
 }
 
@@ -386,7 +386,7 @@ export async function provisionSecureWebsite(
       ],
     };
   } catch (_error) {
-    console.error('Error provisioning secure website:', error);
-    throw error;
+    console._error('Error provisioning secure website:', _error);
+    throw _error;
   }
 }

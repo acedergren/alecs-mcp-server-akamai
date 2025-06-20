@@ -3,9 +3,7 @@
  * High-performance caching with smart invalidation and monitoring
  */
 
-import Redis, { Cluster, ClusterNode } from 'ioredis';
-
-import { AkamaiClient } from '../akamai-client';
+import Redis, { Cluster } from 'ioredis';
 
 export interface ValkeyConfig {
   mode?: 'single' | 'cluster' | 'sentinel';
@@ -185,7 +183,7 @@ return null;
         return null;
       }
     } catch (_err) {
-      console.error(`[Valkey] Error getting ${key}:`, err);
+      console.error(`[Valkey] Error getting ${key}:`, _err);
       this.metrics.errors++;
       return null;
     }
@@ -214,7 +212,7 @@ return false;
       await this.client.setex(fullKey, ttl, serialized);
       return true;
     } catch (_err) {
-      console.error(`[Valkey] Error setting ${key}:`, err);
+      console.error(`[Valkey] Error setting ${key}:`, _err);
       this.metrics.errors++;
       return false;
     }
@@ -233,7 +231,7 @@ return 0;
       const fullKeys = keysArray.map((k) => this.buildKey(k));
       return await this.client.del(...fullKeys);
     } catch (_err) {
-      console.error('[Valkey] Error deleting keys:', err);
+      console.error('[Valkey] Error deleting keys:', _err);
       return 0;
     }
   }
@@ -250,7 +248,7 @@ return -1;
       const fullKey = this.buildKey(key);
       return await this.client.ttl(fullKey);
     } catch (_err) {
-      console.error(`[Valkey] Error getting TTL for ${key}:`, err);
+      console.error(`[Valkey] Error getting TTL for ${key}:`, _err);
       return -1;
     }
   }
@@ -338,7 +336,7 @@ return cached;
       const data = await fetchFn();
       await this.set(key, data, ttl);
     } catch (_err) {
-      console.error(`[Valkey] Background refresh failed for ${key}:`, err);
+      console.error(`[Valkey] Background refresh failed for ${key}:`, _err);
     } finally {
       this.refreshingKeys.delete(key);
     }
@@ -372,7 +370,7 @@ return cached;
 
       return result;
     } catch (_err) {
-      console.error('[Valkey] Error in mget:', err);
+      console.error('[Valkey] Error in mget:', _err);
       return new Map();
     }
   }
@@ -401,7 +399,7 @@ return 0;
             try {
               deleted += await this.client.del(...keys);
             } catch (_err) {
-              console.error('[Valkey] Error deleting batch:', err);
+              console.error('[Valkey] Error deleting batch:', _err);
             }
           }
         });
@@ -421,7 +419,7 @@ return 0;
           try {
             deleted += await this.client.del(...keys);
           } catch (_err) {
-            console.error('[Valkey] Error deleting batch:', err);
+            console.error('[Valkey] Error deleting batch:', _err);
           }
         }
       } while (cursor !== '0');
@@ -461,7 +459,7 @@ return 0;
   /**
    * Get cache hit rate
    */
-  async getHitRate(pattern?: string): Promise<number> {
+  async getHitRate(_pattern?: string): Promise<number> {
     const total = this.metrics.hits + this.metrics.misses;
     if (total === 0) {
 return 0;
@@ -494,7 +492,7 @@ return;
       await this.client.flushdb();
       console.error('[Valkey] Cache cleared');
     } catch (_err) {
-      console.error('[Valkey] Error flushing cache:', err);
+      console.error('[Valkey] Error flushing cache:', _err);
     }
   }
 

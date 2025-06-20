@@ -610,7 +610,7 @@ continue;
         try {
           subscription.callback(event);
         } catch (_error) {
-          this.emit('subscriptionError', subscription.id, error);
+          this.emit('subscriptionError', subscription.id, _error);
         }
       }
     }

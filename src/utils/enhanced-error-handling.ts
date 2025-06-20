@@ -62,29 +62,29 @@ export class EnhancedErrorHandler {
    * Handle error with comprehensive analysis and suggestions
    */
   handle(_error: any, _context: ErrorContext = {}): EnhancedErrorResult {
-    const httpStatus = this.extractHttpStatus(error);
-    const akamaiError = this.parseAkamaiErrorResponse(error);
-    const errorType = this.categorizeError(httpStatus, akamaiError, context);
+    const httpStatus = this.extractHttpStatus(_error);
+    const akamaiError = this.parseAkamaiErrorResponse(_error);
+    const errorType = this.categorizeError(httpStatus, akamaiError, _context);
 
     // Extract request ID and add to context for suggestions
-    const requestId = akamaiError?.requestId || this.extractRequestId(error);
-    if (requestId && !context.requestId) {
-      context.requestId = requestId;
+    const requestId = akamaiError?.requestId || this.extractRequestId(_error);
+    if (requestId && !_context.requestId) {
+      _context.requestId = requestId;
     }
 
-    const suggestions = this.generateSuggestions(httpStatus, akamaiError, errorType, context);
+    const suggestions = this.generateSuggestions(httpStatus, akamaiError, errorType, _context);
 
     return {
       success: false,
       error: this.formatTechnicalError(akamaiError, httpStatus),
-      userMessage: this.formatUserMessage(httpStatus, akamaiError, errorType, context),
+      userMessage: this.formatUserMessage(httpStatus, akamaiError, errorType, _context),
       shouldRetry: this.isRetryable(httpStatus, errorType),
-      retryAfter: this.extractRetryAfter(error),
+      retryAfter: this.extractRetryAfter(_error),
       requestId,
       errorCode: akamaiError?.type,
       errorType,
       suggestions,
-      context,
+      context: _context,
     };
   }
 
@@ -104,8 +104,8 @@ export class EnhancedErrorHandler {
       try {
         return await operation();
       } catch (_error) {
-        lastError = error;
-        const errorResult = this.handle(error, context);
+        lastError = _error;
+        const errorResult = this.handle(_error, _context);
 
         attempts.push({
           attempt,
@@ -116,22 +116,22 @@ export class EnhancedErrorHandler {
               : 0,
         });
 
-        // Don't retry if error is not retryable
+        // Don't retry if _error is not retryable
         if (!errorResult.shouldRetry) {
-          this.logFailure(attempts, context);
-          throw error;
+          this.logFailure(attempts, _context);
+          throw _error;
         }
 
         // Don't retry on last attempt
         if (attempt === config.maxAttempts) {
-          this.logFailure(attempts, context);
+          this.logFailure(attempts, _context);
           break;
         }
 
         // Calculate delay and wait
         const delay = this.calculateDelay(attempt, config, errorResult.retryAfter);
 
-        this.logRetryAttempt(attempt, delay, errorResult, context);
+        this.logRetryAttempt(attempt, delay, errorResult, _context);
         await this.delay(delay);
       }
     }

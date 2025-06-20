@@ -153,7 +153,7 @@ export class SecureCredentialManager {
 
       return encryptedCredential.id;
     } catch (_error) {
-      logger.error('Failed to encrypt credentials', { customerId, error });
+      logger.error('Failed to encrypt credentials', { customerId, _error });
 
       await this.logCredentialAccess({
         userId: 'system',
@@ -161,10 +161,10 @@ export class SecureCredentialManager {
         action: CredentialAction.CREATE,
         resource: 'credential',
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: _error instanceof Error ? _error.message : 'Unknown error',
       });
 
-      throw error;
+      throw _error;
     }
   }
 
@@ -227,7 +227,7 @@ export class SecureCredentialManager {
 
       return credentials;
     } catch (_error) {
-      logger.error('Failed to decrypt credentials', { credentialId, error });
+      logger.error('Failed to decrypt credentials', { credentialId, _error });
 
       const encryptedCredential = this.credentials.get(credentialId);
       await this.logCredentialAccess({
@@ -236,10 +236,10 @@ export class SecureCredentialManager {
         action: CredentialAction.DECRYPT,
         resource: `credential:${credentialId}`,
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: _error instanceof Error ? _error.message : 'Unknown error',
       });
 
-      throw error;
+      throw _error;
     }
   }
 
@@ -302,7 +302,7 @@ export class SecureCredentialManager {
 
       return newCredentialId;
     } catch (_error) {
-      logger.error('Failed to rotate credentials', { credentialId, error });
+      logger.error('Failed to rotate credentials', { credentialId, _error });
 
       const credential = this.credentials.get(credentialId);
       await this.logCredentialAccess({
@@ -311,10 +311,10 @@ export class SecureCredentialManager {
         action: CredentialAction.ROTATE,
         resource: `credential:${credentialId}`,
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: _error instanceof Error ? _error.message : 'Unknown error',
       });
 
-      throw error;
+      throw _error;
     }
   }
 
@@ -419,7 +419,7 @@ export class SecureCredentialManager {
     } catch (_error) {
       logger.error('Automatic credential rotation failed', {
         credentialId,
-        error,
+        _error,
       });
     }
   }

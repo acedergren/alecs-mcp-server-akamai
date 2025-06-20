@@ -203,7 +203,7 @@ export async function comparePropertyVersions(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'compare property versions',
             parameters: args,
             timestamp: new Date(),
@@ -340,7 +340,7 @@ export async function batchCreateVersions(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'batch create versions',
             parameters: args,
             timestamp: new Date(),
@@ -494,7 +494,7 @@ responseText += `- **Note:** ${event.note}\n`;
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'get version timeline',
             parameters: args,
             timestamp: new Date(),
@@ -652,7 +652,7 @@ export async function rollbackPropertyVersion(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'rollback property version',
             parameters: args,
             timestamp: new Date(),
@@ -775,7 +775,7 @@ rules.comments = {};
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'update version metadata',
             parameters: args,
             timestamp: new Date(),
@@ -920,7 +920,7 @@ export async function mergePropertyVersions(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'merge property versions',
             parameters: args,
             timestamp: new Date(),

@@ -546,7 +546,7 @@ export async function onboardSecureByDefaultProperty(
       content: [
         {
           type: 'text',
-          text: generateFailureReport(state, error, args),
+          text: generateFailureReport(state, _error, args),
         },
       ],
     };
@@ -587,7 +587,7 @@ export async function quickSecureByDefaultSetup(
       customer: args.customer,
     });
   } catch (_error) {
-    return formatError('quick Secure by Default setup', error);
+    return formatError('quick Secure by Default setup', _error);
   }
 }
 
@@ -687,7 +687,7 @@ export async function checkSecureByDefaultStatus(
       ],
     };
   } catch (_error) {
-    return formatError('check Secure by Default status', error);
+    return formatError('check Secure by Default status', _error);
   }
 }
 

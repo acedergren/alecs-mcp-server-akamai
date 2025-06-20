@@ -35,7 +35,7 @@ export class CircuitBreaker extends EventEmitter {
   private state: CircuitBreakerState = 'CLOSED';
   private config: Required<CircuitBreakerConfig>;
   private metrics: CircuitBreakerMetrics;
-  private failu_res: number = 0;
+  private failures: number = 0;
   private successes: number = 0;
   private nextAttempt: number = 0;
   private monitorTimer: NodeJS.Timeout | null = null;
@@ -89,7 +89,7 @@ export class CircuitBreaker extends EventEmitter {
           nextAttempt: this.nextAttempt,
           timeUntilRetry: this.nextAttempt - Date.now()
         });
-        throw error;
+        throw _error;
       } else {
         // Time to try half-open
         this.moveToHalfOpen();
@@ -104,8 +104,8 @@ export class CircuitBreaker extends EventEmitter {
       return result;
     } catch (_error) {
       const responseTime = performance.now() - startTime;
-      this.onFailure(error as Error, responseTime);
-      throw error;
+      this.onFailure(_error as Error, responseTime);
+      throw _error;
     }
   }
 
@@ -148,11 +148,11 @@ export class CircuitBreaker extends EventEmitter {
 
     // Check if this is an expected error that shouldn't trigger circuit breaker
     const isExpectedError = this.config.expectedErrors.some(
-      ExpectedError => error instanceof ExpectedError
+      ExpectedError => _error instanceof ExpectedError
     );
 
     if (isExpectedError) {
-      this.emit('expectedError', { error, responseTime });
+      this.emit('expectedError', { error: _error, responseTime });
       return;
     }
 
@@ -160,14 +160,14 @@ export class CircuitBreaker extends EventEmitter {
     this.successes = 0; // Reset success count
 
     // Check for timeout
-    if (error.message.includes('timeout')) {
+    if (_error.message.includes('timeout')) {
       this.metrics.timeouts++;
     }
 
     this.emit('requestFailure', {
-      error,
+      error: _error,
       responseTime,
-      failu_res: this.failures,
+      failures: this.failures,
       state: this.state,
       threshold: this.config.failureThreshold
     });

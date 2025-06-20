@@ -93,7 +93,7 @@ export class IntegrationTestFramework {
         scenario: scenario.name,
         status: 'failed',
         duration,
-        error: (error as Error).message,
+        error: (_error as Error).message,
       };
 
       this.testResults.push(testResult);
@@ -442,7 +442,7 @@ export class APIHealthChecker {
         endpoint,
         status: responseTime > 10000 ? 'timeout' : 'unhealthy',
         responseTime,
-        error: (error as Error).message,
+        error: (_error as Error).message,
       };
     }
   }
@@ -519,7 +519,7 @@ export class LoadTestRunner {
             results.push({
               success: false,
               responseTime: Date.now() - requestStart,
-              error: (error as Error).message,
+              error: (_error as Error).message,
             });
           }
 

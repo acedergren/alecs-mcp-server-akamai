@@ -342,7 +342,7 @@ export async function createBulkProvisioningPlan(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'create bulk provisioning plan',
             parameters: args,
             timestamp: new Date(),
@@ -565,7 +565,7 @@ export async function executeBulkProvisioning(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'execute bulk provisioning',
             parameters: args,
             timestamp: new Date(),
@@ -709,7 +709,7 @@ export async function validateBulkDNS(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'validate bulk DNS',
             parameters: args,
             timestamp: new Date(),
@@ -863,7 +863,7 @@ acc[op.propertyId] = [];
         operations.forEach((op) => {
           results.failed.push({
             hostname: op.hostname,
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: _error instanceof Error ? _error.message : 'Unknown error',
           });
         });
       }
@@ -935,7 +935,7 @@ acc[r.action] = [];
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'bulk update hostname properties',
             parameters: args,
             timestamp: new Date(),

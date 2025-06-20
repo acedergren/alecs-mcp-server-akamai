@@ -5,8 +5,8 @@
 import { logger } from '@utils/logger';
 import { z, type ZodSchema } from 'zod';
 
-import { EdgeGridAuth, EdgeGridRequestConfig, EdgeGridAuthError } from '../auth/EdgeGridAuth';
-import { type NetworkEnvironment, ConfigurationError, ConfigErrorType } from '../types/config';
+import { EdgeGridAuth, EdgeGridAuthError } from '../auth/EdgeGridAuth';
+import { type NetworkEnvironment } from '../types/config';
 
 /**
  * Generic API response wrapper
@@ -336,12 +336,12 @@ export class BaseAkamaiClient {
     try {
       return schema.parse(data);
     } catch (_error) {
-      if (error instanceof z.ZodError) {
+      if (_error instanceof z.ZodError) {
         throw new Error(
-          `Response validation failed: ${error.errors.map((e) => e.message).join(', ')}`,
+          `Response validation failed: ${_error.errors.map((e) => e.message).join(', ')}`,
         );
       }
-      throw error;
+      throw _error;
     }
   }
 
@@ -355,10 +355,8 @@ export class BaseAkamaiClient {
       body,
       queryParams,
       headers = {},
-      timeout,
       maxRetries = 3,
       retryDelay = 1000,
-      parseJson = true,
       schema,
     } = config;
 
@@ -420,7 +418,7 @@ export class BaseAkamaiClient {
           },
         };
       } catch (_error) {
-        lastError = error as Error;
+        lastError = _error as Error;
         const duration = Date.now() - startTime;
 
         logger.error('API request failed', {
@@ -430,7 +428,7 @@ export class BaseAkamaiClient {
           error: lastError,
         });
 
-        // Check if error is retryable
+        // Check if _error is retryable
         if (retryCount < maxRetries && this.isRetryableError(lastError)) {
           const delay = this.calculateRetryDelay(retryCount, retryDelay, lastError);
 
@@ -445,7 +443,7 @@ export class BaseAkamaiClient {
           continue;
         }
 
-        // Transform error to appropriate HTTP error
+        // Transform _error to appropriate HTTP _error
         if (lastError instanceof EdgeGridAuthError) {
           const errorDetails = lastError.details
             ? {

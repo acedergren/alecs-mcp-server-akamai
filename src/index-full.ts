@@ -170,7 +170,7 @@ export class ALECSFullServer {
    */
   private setupErrorHandling(): void {
     process.on('uncaughtException', (_error: Error) => {
-      logger.error('Uncaught exception', { error: error.message, stack: error.stack });
+      logger.error('Uncaught exception', { error: _error.message, stack: _error.stack });
       process.exit(1);
     });
 
@@ -327,11 +327,11 @@ export class ALECSFullServer {
       logger.error('Tool request failed', {
         ...context,
         duration,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+        error: _error instanceof Error ? _error.message : String(_error),
+        stack: _error instanceof Error ? _error.stack : undefined,
       });
 
-      // Build error metadata
+      // Build _error metadata
       const meta: McpResponseMeta = {
         timestamp: new Date().toISOString(),
         duration,
@@ -339,12 +339,12 @@ export class ALECSFullServer {
         customer: context.customer || 'default',
         tool: toolName,
         requestId: context.requestId,
-        errorType: error instanceof Error ? error.constructor.name : 'UnknownError',
+        errorType: _error instanceof Error ? _error.constructor.name : 'UnknownError',
       };
 
       const response: Mcp2025ToolResponse = {
         success: false,
-        error: this.formatError(error),
+        error: this.formatError(_error),
         _meta: meta,
       };
 
@@ -392,7 +392,7 @@ export class ALECSFullServer {
 
       const tools: Tool[] = [];
 
-      for (const [name, entry] of this.toolRegistry) {
+      for (const [_name, entry] of this.toolRegistry) {
         tools.push(this.toolMetadataToMcpTool(entry.metadata));
       }
 
@@ -442,18 +442,18 @@ export class ALECSFullServer {
             ],
           };
         } catch (_error) {
-          if (error instanceof z.ZodError) {
+          if (_error instanceof z.ZodError) {
             throw new McpError(
               ErrorCode.InvalidParams,
-              `Invalid parameters: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
+              `Invalid parameters: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
             );
           }
 
-          if (error instanceof McpError) {
-            throw error;
+          if (_error instanceof McpError) {
+            throw _error;
           }
 
-          throw new McpError(ErrorCode.InternalError, this.formatError(error));
+          throw new McpError(ErrorCode.InternalError, this.formatError(_error));
         }
       },
     );
@@ -474,7 +474,7 @@ export class ALECSFullServer {
       const transport = new StdioServerTransport();
 
       transport.onerror = (_error: Error) => {
-        logger.error('Transport error', { error: error.message, stack: error.stack });
+        logger.error('Transport error', { error: _error.message, stack: _error.stack });
       };
 
       transport.onclose = () => {
@@ -488,10 +488,10 @@ export class ALECSFullServer {
       logger.info('ALECS Full MCP Server ready and listening');
     } catch (_error) {
       logger.error('Failed to start server', {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+        error: _error instanceof Error ? _error.message : String(_error),
+        stack: _error instanceof Error ? _error.stack : undefined,
       });
-      throw error;
+      throw _error;
     }
   }
 }
@@ -505,8 +505,8 @@ async function main(): Promise<void> {
     await server.start();
   } catch (_error) {
     logger.error('Server initialization failed', {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+      error: _error instanceof Error ? _error.message : String(_error),
+      stack: _error instanceof Error ? _error.stack : undefined,
     });
     process.exit(1);
   }

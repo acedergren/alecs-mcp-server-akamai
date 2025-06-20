@@ -196,8 +196,8 @@ export async function listZones(
     };
   } catch (_error) {
     spinner.fail('Failed to fetch DNS zones');
-    console.error('Error listing DNS zones:', error);
-    throw error;
+    console._error('Error listing DNS zones:', _error);
+    throw _error;
   }
 }
 
@@ -240,8 +240,8 @@ export async function getZone(
       ],
     };
   } catch (_error) {
-    console.error('Error getting DNS zone:', error);
-    throw error;
+    console._error('Error getting DNS zone:', _error);
+    throw _error;
   }
 }
 
@@ -309,8 +309,8 @@ queryParams.gid = args.groupId;
     };
   } catch (_error) {
     spinner.fail(`Failed to create zone: ${args.zone}`);
-    console.error('Error creating DNS zone:', error);
-    throw error;
+    console._error('Error creating DNS zone:', _error);
+    throw _error;
   }
 }
 
@@ -367,8 +367,8 @@ queryParams.types = args.types.join(',');
       ],
     };
   } catch (_error) {
-    console.error('Error listing DNS records:', error);
-    throw error;
+    console._error('Error listing DNS records:', _error);
+    throw _error;
   }
 }
 
@@ -550,7 +550,7 @@ export async function submitChangeList(
         }
       } catch (_error) {
         spinner.fail('Failed to monitor activation status');
-        console.error('Activation monitoring error:', error);
+        console._error('Activation monitoring error:', _error);
         // Don't throw - submission was successful even if monitoring failed
       }
     }
@@ -560,7 +560,7 @@ export async function submitChangeList(
     if (spinner) {
 spinner.fail('Failed to submit changelist');
 }
-    throw error;
+    throw _error;
   }
 }
 
@@ -765,7 +765,7 @@ continue;
       }
     } catch (_error: any) {
       const errorMessage: string =
-        error instanceof Error ? error.message : String(error || 'Unknown error');
+        _error instanceof Error ? error.message : String(error || 'Unknown error');
       result.failed.push({
         zone,
         error: errorMessage,
@@ -951,8 +951,8 @@ export async function upsertRecord(
     };
   } catch (_error) {
     spinner.fail('Failed to update DNS record');
-    console.error('Error updating DNS record:', error);
-    throw error;
+    console._error('Error updating DNS record:', _error);
+    throw _error;
   }
 }
 
@@ -1012,8 +1012,8 @@ export async function deleteRecord(
     };
   } catch (_error) {
     spinner.fail('Failed to delete DNS record');
-    console.error('Error deleting DNS record:', error);
-    throw error;
+    console._error('Error deleting DNS record:', _error);
+    throw _error;
   }
 }
 

@@ -36,7 +36,6 @@ import {
   type Mcp2025ToolDefinition,
   type Mcp2025ToolResponse,
 } from '../types/mcp-2025';
-import { wrapToolHandler } from '../utils/mcp-2025-migration';
 
 // Import existing tool implementations
 
@@ -387,17 +386,17 @@ class PropertyALECSServer2025 {
           ],
         };
       } catch (_error) {
-        log('ERROR', `Tool ${name} failed`, { error });
+        log('ERROR', `Tool ${name} failed`, { _error });
 
         const errorResult = createMcp2025Response(
           false,
           undefined,
-          error instanceof Error ? error.message : 'Unknown error',
+          _error instanceof Error ? _error.message : 'Unknown error',
           {
             duration: Date.now() - startTime,
             tool: name,
             version: '2.0.0',
-            errorType: error?.constructor?.name,
+            errorType: _error?.constructor?.name,
           },
         );
 

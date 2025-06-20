@@ -204,10 +204,10 @@ export class TrafficAnalyticsService {
 
       return analysis;
     } catch (_error) {
-      logger.error('Failed to analyze bandwidth usage', { error, period, filter });
+      logger.error('Failed to analyze bandwidth usage', { _error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to analyze bandwidth usage: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to analyze bandwidth usage: ${_error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -290,10 +290,10 @@ export class TrafficAnalyticsService {
         forecasts,
       };
     } catch (_error) {
-      logger.error('Failed to analyze traffic trends', { error, period });
+      logger.error('Failed to analyze traffic trends', { _error, period });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to analyze traffic trends: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to analyze traffic trends: ${_error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -368,10 +368,10 @@ export class TrafficAnalyticsService {
 
       return analysis;
     } catch (_error) {
-      logger.error('Failed to analyze cache performance', { error, period, filter });
+      logger.error('Failed to analyze cache performance', { _error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to analyze cache performance: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to analyze cache performance: ${_error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -452,10 +452,10 @@ export class TrafficAnalyticsService {
 
       return analysis;
     } catch (_error) {
-      logger.error('Failed to analyze request patterns', { error, period, filter });
+      logger.error('Failed to analyze request patterns', { _error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to analyze request patterns: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to analyze request patterns: ${_error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);

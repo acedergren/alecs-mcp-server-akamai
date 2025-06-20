@@ -314,7 +314,7 @@ export class CustomerExperienceImpactAnalyzer {
   /**
    * Calculate overall customer experience health
    */
-  calculateOverallHealth(failureRate: number, criticalFailu_res: number): string {
+  calculateOverallHealth(failureRate: number, criticalFailures: number): string {
     if (criticalFailures > 0 || failureRate > 0.3) {
 return 'POOR';
 }
@@ -330,7 +330,7 @@ return 'GOOD';
   /**
    * Calculate customer impact score (0-100)
    */
-  calculateCustomerImpactScore(testResults: TestResults, analysisResults: any): number {
+  calculateCustomerImpactScore(testResults: TestResults, _analysisResults: any): number {
     let score = 100;
     const failures = testResults.failures || [];
 
@@ -460,7 +460,7 @@ return 'GOOD';
    */
   analyzePersonaImpacts(
     testResults: TestResults,
-    analysisResults: any,
+    _analysisResults: any,
   ): Record<string, PersonaImpact> {
     const personaImpacts: Record<string, PersonaImpact> = {};
 
@@ -479,7 +479,7 @@ return 'GOOD';
     personaId: string,
     persona: CustomerPersona,
     testResults: TestResults,
-    analysisResults: any,
+    _analysisResults: any,
   ): PersonaImpact {
     const relevantFailures = this.getPersonaRelevantFailures(personaId, testResults);
     const impactedPainPoints = this.getImpactedPainPoints(personaId, relevantFailures);
@@ -598,7 +598,7 @@ return [];
    */
   analyzeJourneyImpacts(
     testResults: TestResults,
-    analysisResults: any,
+    _analysisResults: any,
   ): Record<string, JourneyImpact> {
     const journeyImpacts: Record<string, JourneyImpact> = {};
 
@@ -617,7 +617,7 @@ return [];
     journeyId: string,
     journey: CustomerJourney,
     testResults: TestResults,
-    analysisResults: any,
+    _analysisResults: any,
   ): JourneyImpact {
     const relevantFailures = this.getJourneyRelevantFailures(journeyId, testResults);
     const affectedSteps = this.getAffectedJourneyStepsForJourney(journeyId, relevantFailures);
@@ -762,7 +762,7 @@ return false;
     metricConfig: BusinessMetric,
     impactMultiplier: number,
     testResults: TestResults,
-    analysisResults: any,
+    _analysisResults: any,
   ): number {
     const baselineValue = metricConfig.baseline;
     let impactFactor = 1.0;
@@ -1133,7 +1133,7 @@ return false;
       }));
   }
 
-  calculateRiskLevel(failureRate: number, criticalFailu_res: number): string {
+  calculateRiskLevel(failureRate: number, criticalFailures: number): string {
     if (criticalFailures > 0 || failureRate > 0.3) {
 return 'CRITICAL';
 }
@@ -1148,12 +1148,12 @@ return 'MEDIUM';
 
   estimateAffectedCustomers(
     testResults: TestResults,
-    analysisResults: any,
-    specificFailure?: TestFailure,
+    _analysisResults: any,
+    _specificFailure?: TestFailure,
   ): string {
     // This would typically connect to customer data
     // For now, provide estimates based on failure types
-    const criticalFailures = this.identifyCriticalFailures(testResults, analysisResults);
+    const criticalFailures = this.identifyCriticalFailures(testResults, _analysisResults);
     const authFailures = this.countFailuresByType(testResults, 'auth');
 
     if (authFailures > 0) {
@@ -1302,17 +1302,17 @@ journeys.push('scaling_operations');
   }
 
   // Stub methods that need implementation
-  private getImpactedPainPoints(personaId: string, failu_res: TestFailure[]): string[] {
+  private getImpactedPainPoints(_personaId: string, _failures: TestFailure[]): string[] {
     // Implementation would analyze failures and map to pain points
     return [];
   }
 
-  private getAffectedJourneySteps(personaId: string, failu_res: TestFailure[]): any[] {
+  private getAffectedJourneySteps(_personaId: string, _failures: TestFailure[]): any[] {
     // Implementation would map failures to journey steps
     return [];
   }
 
-  private calculatePersonaImpactScore(failu_res: TestFailure[], persona: CustomerPersona): number {
+  private calculatePersonaImpactScore(failures: TestFailure[], _persona: CustomerPersona): number {
     // Implementation would calculate score based on failures and persona
     return 100 - failures.length * 10;
   }
@@ -1330,12 +1330,12 @@ return 'MEDIUM';
     return 'LOW';
   }
 
-  private generatePersonaRecommendations(personaId: string, failu_res: TestFailure[]): any[] {
+  private generatePersonaRecommendations(_personaId: string, _failures: TestFailure[]): any[] {
     // Implementation would generate specific recommendations
     return [];
   }
 
-  private estimatePersonaAffectedUsers(personaId: string, impactScore: number): string {
+  private estimatePersonaAffectedUsers(_personaId: string, impactScore: number): string {
     if (impactScore < 50) {
 return 'ALL';
 }
@@ -1350,7 +1350,7 @@ return 'SUBSET';
 
   private getAffectedJourneyStepsForJourney(
     journeyId: string,
-    failu_res: TestFailure[],
+    _failures: TestFailure[],
   ): JourneyStep[] {
     const journey = this.customerJourneys[journeyId];
     if (!journey) {
@@ -1361,7 +1361,7 @@ return [];
     return [];
   }
 
-  private calculateJourneyImpactScore(failu_res: TestFailure[], journey: CustomerJourney): number {
+  private calculateJourneyImpactScore(failures: TestFailure[], _journey: CustomerJourney): number {
     // Implementation would calculate score based on failures and journey
     return 100 - failures.length * 5;
   }
@@ -1386,12 +1386,12 @@ return 0;
     return (affectedSteps.length / allSteps.length) * 100;
   }
 
-  private generateJourneyRecommendations(journeyId: string, failu_res: TestFailure[]): any[] {
+  private generateJourneyRecommendations(_journeyId: string, _failures: TestFailure[]): any[] {
     // Implementation would generate specific recommendations
     return [];
   }
 
-  private getOverallImpactMultiplier(testResults: TestResults, analysisResults: any): number {
+  private getOverallImpactMultiplier(testResults: TestResults, _analysisResults: any): number {
     const failureRate =
       (testResults.summary?.failedTests || 0) / (testResults.summary?.totalTests || 1);
     return Math.min(2.0, 1 + failureRate);

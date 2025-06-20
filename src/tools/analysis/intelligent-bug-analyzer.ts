@@ -214,7 +214,7 @@ interface HealthScore {
   success_rate: number;
   performance: number;
   stability: number;
-  critical_failu_res: number;
+  critical_failures: number;
   grade: string;
 }
 
@@ -375,11 +375,11 @@ export class IntelligentBugAnalyzer {
         exports: this.generateExports(analysisReport, this.options.outputFormat!),
       };
     } catch (_error) {
-      console.error(`[${analysisId}] Analysis failed:`, error);
-      throw new AnalysisError(`Bug analysis failed: ${(error as Error).message}`, {
+      console._error(`[${analysisId}] Analysis failed:`, _error);
+      throw new AnalysisError(`Bug analysis failed: ${(_error as Error).message}`, {
         analysisId,
         phase: 'unknown',
-        originalError: error as Error,
+        originalError: _error as Error,
       });
     }
   }
@@ -659,7 +659,7 @@ export class IntelligentBugAnalyzer {
       success_rate: Math.round(successRate),
       performance: Math.round(performanceScore),
       stability: Math.round(stabilityScore),
-      critical_failu_res: criticalFailures,
+      critical_failures: criticalFailures,
       grade: this.getHealthGrade(healthScore),
     };
   }

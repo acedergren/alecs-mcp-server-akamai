@@ -198,7 +198,7 @@ export const fastpurgeUrlInvalidate = {
     } catch (_error: any) {
       logger.error(`FastPurge URL invalidate failed: ${error.message}`);
 
-      if (error instanceof AkamaiError) {
+      if (_error instanceof AkamaiError) {
         return {
           success: false,
           error: error.code,
@@ -309,7 +309,7 @@ export const fastpurgeCpcodeInvalidate = {
     } catch (_error: any) {
       logger.error(`FastPurge CP code invalidate failed: ${error.message}`);
 
-      if (error instanceof AkamaiError) {
+      if (_error instanceof AkamaiError) {
         return {
           success: false,
           error: error.code,
@@ -392,7 +392,7 @@ export const fastpurgeTagInvalidate = {
     } catch (_error: any) {
       logger.error(`FastPurge tag invalidate failed: ${error.message}`);
 
-      if (error instanceof AkamaiError) {
+      if (_error instanceof AkamaiError) {
         return {
           success: false,
           error: error.code,
@@ -486,7 +486,7 @@ export const fastpurgeStatusCheck = {
     } catch (_error: any) {
       logger.error(`FastPurge status check failed: ${error.message}`);
 
-      if (error instanceof AkamaiError) {
+      if (_error instanceof AkamaiError) {
         return {
           success: false,
           error: error.code,
@@ -587,7 +587,7 @@ export const fastpurgeQueueStatus = {
     } catch (_error: any) {
       logger.error(`FastPurge queue status failed: ${error.message}`);
 
-      if (error instanceof AkamaiError) {
+      if (_error instanceof AkamaiError) {
         return {
           success: false,
           error: error.code,
@@ -710,7 +710,7 @@ export const fastpurgeEstimate = {
     } catch (_error: any) {
       logger.error(`FastPurge estimate failed: ${error.message}`);
 
-      if (error instanceof AkamaiError) {
+      if (_error instanceof AkamaiError) {
         return {
           success: false,
           error: error.code,

@@ -145,10 +145,10 @@ export class HttpServerTransport {
 
     } catch (_error) {
       // Handle parsing errors
-      if (error instanceof SyntaxError) {
+      if (_error instanceof SyntaxError) {
         res.writeHead(400);
         res.end(JSON.stringify(
-          createJsonRpcError(null, JsonRpcErrorCode.ParseError, 'Parse error'),
+          createJsonRpcError(null, JsonRpcErrorCode.ParseError, 'Parse _error'),
         ));
       } else {
         res.writeHead(500);
@@ -156,8 +156,8 @@ export class HttpServerTransport {
           createJsonRpcError(
             null,
             JsonRpcErrorCode.InternalError,
-            'Internal server error',
-            error instanceof Error ? error.message : undefined,
+            'Internal server _error',
+            _error instanceof Error ? _error.message : undefined,
           ),
         ));
       }
@@ -179,7 +179,7 @@ export class HttpServerTransport {
         try {
           resolve(JSON.parse(body));
         } catch (_error) {
-          reject(error);
+          reject(_error);
         }
       });
 
@@ -217,9 +217,9 @@ export class HttpServerTransport {
       return createJsonRpcError(
         request.id,
         JsonRpcErrorCode.InternalError,
-        error instanceof Error ? error.message : 'Unknown error',
+        _error instanceof Error ? _error.message : 'Unknown error',
         undefined,
-        request._meta, // Preserve metadata in error responses
+        request._meta, // Preserve metadata in _error responses
       );
     }
   }

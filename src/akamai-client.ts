@@ -38,19 +38,19 @@ export class AkamaiClient {
       // Store account switch key for API requests
       this.accountSwitchKey = accountSwitchKey;
     } catch (_error) {
-      if (error instanceof Error && error.message.includes('ENOENT')) {
+      if (_error instanceof Error && _error.message.includes('ENOENT')) {
         throw new Error(
           `EdgeGrid configuration not found at ${edgercPath}\n` +
             'Please create this file with your Akamai API credentials.\n' +
             'See: https://techdocs.akamai.com/developer/docs/set-up-authentication-credentials',
         );
-      } else if (error instanceof Error && error.message.includes('section')) {
+      } else if (_error instanceof Error && _error.message.includes('section')) {
         throw new Error(
           `Section [${section}] not found in ${edgercPath}\n` +
             `Please ensure your .edgerc file contains the [${section}] section.`,
         );
       }
-      throw error;
+      throw _error;
     }
   }
 
@@ -164,7 +164,7 @@ export class AkamaiClient {
         });
       });
     } catch (_error) {
-      this.handleApiError(error);
+      this.handleApiError(_error);
     }
   }
 
@@ -306,7 +306,7 @@ export class AkamaiClient {
       return accountSwitchKey;
     } catch (_error) {
       if (this.debug) {
-        console.error('[AkamaiClient] Error reading account-switch-key from .edgerc:', error);
+        console._error('[AkamaiClient] Error reading account-switch-key from .edgerc:', _error);
       }
       return undefined;
     }

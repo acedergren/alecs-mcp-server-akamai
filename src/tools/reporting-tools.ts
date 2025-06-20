@@ -681,10 +681,10 @@ export async function handleGetTrafficSummary(args: any) {
       message: 'Traffic summary retrieved successfully',
     };
   } catch (_error) {
-    logger.error('Failed to get traffic summary', { error, args });
+    logger.error('Failed to get traffic summary', { error: _error, args });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: _error instanceof Error ? _error.message : 'Unknown error',
       details: 'Failed to retrieve traffic summary',
     };
   }
@@ -705,10 +705,10 @@ export async function handleGetTimeseriesData(args: any) {
       message: `Time-series data retrieved for ${metrics.length} metrics`,
     };
   } catch (_error) {
-    logger.error('Failed to get timeseries data', { error, args });
+    logger.error('Failed to get timeseries data', { error: _error, args });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: _error instanceof Error ? _error.message : 'Unknown error',
       details: 'Failed to retrieve time-series data',
     };
   }
@@ -729,10 +729,10 @@ export async function handleGetPerformanceBenchmarks(args: any) {
       message: `Performance benchmarks calculated for ${benchmarks.length} metrics`,
     };
   } catch (_error) {
-    logger.error('Failed to get performance benchmarks', { error, args });
+    logger.error('Failed to get performance benchmarks', { error: _error, args });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: _error instanceof Error ? _error.message : 'Unknown error',
       details: 'Failed to retrieve performance benchmarks',
     };
   }
@@ -771,10 +771,10 @@ export async function handleGetCostOptimizationInsights(args: any) {
       message: `Generated ${filteredInsights.length} cost optimization insights`,
     };
   } catch (_error) {
-    logger.error('Failed to get cost optimization insights', { error, args });
+    logger.error('Failed to get cost optimization insights', { error: _error, args });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: _error instanceof Error ? _error.message : 'Unknown error',
       details: 'Failed to generate cost optimization insights',
     };
   }
@@ -810,10 +810,10 @@ export async function handleCreateReportingDashboard(args: any) {
       message: `Dashboard "${name}" created successfully with ${widgets.length} widgets`,
     };
   } catch (_error) {
-    logger.error('Failed to create reporting dashboard', { error, args });
+    logger.error('Failed to create reporting dashboard', { error: _error, args });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: _error instanceof Error ? _error.message : 'Unknown error',
       details: 'Failed to create reporting dashboard',
     };
   }
@@ -841,10 +841,10 @@ export async function handleExportReportData(args: any) {
       message: `Report exported successfully as ${format.toUpperCase()}`,
     };
   } catch (_error) {
-    logger.error('Failed to export report data', { error, args });
+    logger.error('Failed to export report data', { error: _error, args });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: _error instanceof Error ? _error.message : 'Unknown error',
       details: 'Failed to export report data',
     };
   }
@@ -875,10 +875,10 @@ export async function handleConfigureMonitoringAlerts(args: any) {
       message: `Configured ${enabledAlerts} active monitoring alerts`,
     };
   } catch (_error) {
-    logger.error('Failed to configure monitoring alerts', { error, args });
+    logger.error('Failed to configure monitoring alerts', { error: _error, args });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: _error instanceof Error ? _error.message : 'Unknown error',
       details: 'Failed to configure monitoring alerts',
     };
   }

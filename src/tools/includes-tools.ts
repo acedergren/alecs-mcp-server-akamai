@@ -95,7 +95,7 @@ export async function listIncludes(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'listing includes');
+    return handleApiError(_error, 'listing includes');
   }
 }
 
@@ -193,7 +193,7 @@ export async function getInclude(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'getting include details');
+    return handleApiError(_error, 'getting include details');
   }
 }
 
@@ -270,7 +270,7 @@ export async function createInclude(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'creating include');
+    return handleApiError(_error, 'creating include');
   }
 }
 
@@ -342,7 +342,7 @@ export async function updateInclude(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'updating include');
+    return handleApiError(_error, 'updating include');
   }
 }
 
@@ -413,7 +413,7 @@ export async function createIncludeVersion(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'creating include version');
+    return handleApiError(_error, 'creating include version');
   }
 }
 
@@ -499,7 +499,7 @@ export async function activateInclude(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'activating include');
+    return handleApiError(_error, 'activating include');
   }
 }
 
@@ -605,7 +605,7 @@ export async function getIncludeActivationStatus(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'getting include activation status');
+    return handleApiError(_error, 'getting include activation status');
   }
 }
 
@@ -707,6 +707,6 @@ export async function listIncludeActivations(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'listing include activations');
+    return handleApiError(_error, 'listing include activations');
   }
 }

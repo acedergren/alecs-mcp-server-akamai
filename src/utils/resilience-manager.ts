@@ -123,7 +123,7 @@ export class CircuitBreaker {
       return result;
     } catch (_error) {
       this.recordFailure();
-      throw error;
+      throw _error;
     }
   }
 
@@ -211,15 +211,15 @@ export class RetryHandler {
       try {
         return await operation();
       } catch (_error) {
-        lastError = error;
+        lastError = _error;
 
-        // Check if error is retryable
-        if (errorHandler && !errorHandler(error, attempt)) {
-          throw error;
+        // Check if _error is retryable
+        if (errorHandler && !errorHandler(_error, attempt)) {
+          throw _error;
         }
 
         if (attempt === this.config.maxAttempts) {
-          throw error;
+          throw _error;
         }
 
         // Calculate delay with exponential backoff and jitter

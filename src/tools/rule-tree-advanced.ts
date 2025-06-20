@@ -283,7 +283,7 @@ export async function validateRuleTree(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'validate rule tree',
             parameters: args,
             timestamp: new Date(),
@@ -423,7 +423,7 @@ export async function createRuleTreeFromTemplate(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'create rule tree from template',
             parameters: args,
             timestamp: new Date(),
@@ -573,7 +573,7 @@ export async function analyzeRuleTreePerformance(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'analyze rule tree performance',
             parameters: args,
             timestamp: new Date(),
@@ -699,7 +699,7 @@ export async function detectRuleConflicts(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'detect rule conflicts',
             parameters: args,
             timestamp: new Date(),
@@ -810,7 +810,7 @@ acc[cat] = [];
       content: [
         {
           type: 'text',
-          text: `❌ Failed to list rule templates: ${error instanceof Error ? error.message : String(error)}`,
+          text: `❌ Failed to list rule templates: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };

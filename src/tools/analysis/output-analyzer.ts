@@ -311,7 +311,7 @@ export class TestOutputAnalyzer {
     } catch (_error) {
       return {
         success: false,
-        error: `Failed to parse ${format} output: ${(error as Error).message}`,
+        error: `Failed to parse ${format} output: ${(_error as Error).message}`,
         results: [],
       };
     }

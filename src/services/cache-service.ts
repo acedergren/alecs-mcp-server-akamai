@@ -71,7 +71,7 @@ export class AkamaiCacheService {
         this.enabled = false;
       });
     } catch (_error) {
-      console.error('[Cache] Failed to initialize Valkey:', error);
+      console._error('[Cache] Failed to initialize Valkey:', _error);
       this.enabled = false;
     }
   }

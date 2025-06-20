@@ -119,11 +119,11 @@ export class CertificateValidationMonitor extends EventEmitter {
           await this.retryFailedValidations(enrollmentId);
         }
       } catch (_error) {
-        console.error(`Monitor error for enrollment ${enrollmentId}:`, error);
+        console._error(`Monitor _error for enrollment ${enrollmentId}:`, _error);
         this.emit(
           'validation:failed',
           enrollmentId,
-          error instanceof Error ? error.message : String(error),
+          _error instanceof Error ? _error.message : String(_error),
         );
       }
     }, checkInterval * 1000);
@@ -170,7 +170,7 @@ return false;
 
       return answers.some((answer: any) => answer.data?.includes(expectedValue));
     } catch (_error) {
-      console.error(`DNS propagation check failed for ${domain}:`, error);
+      console._error(`DNS propagation check failed for ${domain}:`, _error);
       return false;
     }
   }
@@ -198,10 +198,10 @@ return false;
       const domainState = this.validationStates.get(enrollmentId)?.get(domain);
       if (domainState) {
         domainState.status = ValidationStatus.FAILED;
-        domainState.error = error instanceof Error ? error.message : String(error);
-        this.emit('domain:failed', domain, domainState.error);
+        domainState._error = _error instanceof Error ? _error.message : String(_error);
+        this.emit('domain:failed', domain, domainState._error);
       }
-      throw error;
+      throw _error;
     }
   }
 
@@ -318,7 +318,7 @@ continue;
         try {
           await this.triggerDomainValidation(enrollmentId, domain);
         } catch (_error) {
-          console.error(`Failed to retry validation for ${domain}:`, error);
+          console._error(`Failed to retry validation for ${domain}:`, _error);
         }
       }
     }

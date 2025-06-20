@@ -131,7 +131,7 @@ export class OAuthManager {
 
       return session;
     } catch (_error) {
-      logger.error('OAuth authentication failed', { provider, error });
+      logger.error('OAuth authentication failed', { provider, _error });
 
       // Audit log failure
       await this.logCredentialAccess({
@@ -140,10 +140,10 @@ export class OAuthManager {
         action: CredentialAction.VALIDATE,
         resource: 'oauth_session',
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: _error instanceof Error ? _error.message : 'Unknown error',
       });
 
-      throw error;
+      throw _error;
     }
   }
 
@@ -172,7 +172,7 @@ export class OAuthManager {
    * Get user profile from OAuth provider
    */
   private async getUserProfile(
-    token: OAuthToken,
+    _token: OAuthToken,
     provider: OAuthProvider,
   ): Promise<OAuthProfile> {
     const config = this.oauthConfigs.get(provider);

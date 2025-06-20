@@ -387,7 +387,7 @@ export async function updatePropertyRulesEnhanced(
       ],
     };
   } catch (_error) {
-    return formatError('update property rules with validation', error);
+    return formatError('update property rules with validation', _error);
   }
 }
 
@@ -495,7 +495,7 @@ export async function createRuleFromTemplate(
       ],
     };
   } catch (_error) {
-    return formatError('create rule from template', error);
+    return formatError('create rule from template', _error);
   }
 }
 
@@ -594,7 +594,7 @@ export async function validateRuleTree(
       ],
     };
   } catch (_error) {
-    return formatError('validate rule tree', error);
+    return formatError('validate rule tree', _error);
   }
 }
 
@@ -704,7 +704,7 @@ export async function mergeRuleTrees(
       ],
     };
   } catch (_error) {
-    return formatError('merge rule trees', error);
+    return formatError('merge rule trees', _error);
   }
 }
 
@@ -804,7 +804,7 @@ export async function optimizeRuleTree(
       ],
     };
   } catch (_error) {
-    return formatError('optimize rule tree', error);
+    return formatError('optimize rule tree', _error);
   }
 }
 
@@ -882,7 +882,7 @@ export async function listRuleTemplates(
       ],
     };
   } catch (_error) {
-    return formatError('list rule templates', error);
+    return formatError('list rule templates', _error);
   }
 }
 

@@ -134,10 +134,10 @@ export class RealTimeMonitoringService extends EventEmitter {
       this.emit('monitoring-started', { timestamp: new Date().toISOString() });
       logger.info('Real-time monitoring started successfully');
     } catch (_error) {
-      logger.error('Failed to start real-time monitoring', { error });
+      logger.error('Failed to start real-time monitoring', { _error });
       this.isMonitoring = false;
       throw new Error(
-        `Failed to start real-time monitoring: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to start real-time monitoring: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
     }
   }
@@ -196,7 +196,7 @@ export class RealTimeMonitoringService extends EventEmitter {
             tags: filter,
           };
         } catch (_error) {
-          logger.error(`Failed to fetch metric ${metric}`, { error });
+          logger.error(`Failed to fetch metric ${metric}`, { _error });
           return null;
         }
       });
@@ -217,9 +217,9 @@ export class RealTimeMonitoringService extends EventEmitter {
 
       return currentMetrics;
     } catch (_error) {
-      logger.error('Failed to get current metrics', { error, metrics, filter });
+      logger.error('Failed to get current metrics', { _error, metrics, filter });
       throw new Error(
-        `Failed to get current metrics: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to get current metrics: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
     } finally {
       this.performanceMonitor.endOperation(timer);
@@ -327,9 +327,9 @@ export class RealTimeMonitoringService extends EventEmitter {
 
       return healthStatus;
     } catch (_error) {
-      logger.error('Failed to get health status', { error });
+      logger.error('Failed to get health status', { _error });
       throw new Error(
-        `Failed to get health status: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to get health status: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
     } finally {
       this.performanceMonitor.endOperation(timer);
@@ -378,9 +378,9 @@ export class RealTimeMonitoringService extends EventEmitter {
       // Clean up old metric history
       this.cleanupMetricHistory();
     } catch (_error) {
-      logger.error('Failed to collect metrics', { error });
+      logger.error('Failed to collect metrics', { _error });
       this.emit('metrics-collection-failed', {
-        error: error instanceof Error ? error.message : String(error),
+        error: _error instanceof Error ? _error.message : String(_error),
       });
     }
   }
@@ -413,7 +413,7 @@ continue;
 
       logger.debug('Alert evaluation completed', { evaluatedRules: evaluatedRules.length });
     } catch (_error) {
-      logger.error('Failed to evaluate alerts', { error });
+      logger.error('Failed to evaluate alerts', { _error });
     }
   }
 
@@ -449,7 +449,7 @@ continue;
         }
       }
     } catch (_error) {
-      logger.error('Failed to evaluate alert rule', { error, ruleId: rule.id });
+      logger.error('Failed to evaluate alert rule', { _error, ruleId: rule.id });
     }
   }
 
@@ -612,7 +612,7 @@ return;
           name: service.name,
           status: 'critical' as const,
           lastCheck: new Date().toISOString(),
-          details: error instanceof Error ? error.message : String(error),
+          details: _error instanceof Error ? _error.message : String(_error),
         };
       }
     });

@@ -1214,7 +1214,7 @@ export class LoadTestRunner {
       const delay = options.rampUp ? (i * options.rampUp) / options.concurrency : 0;
 
       promises.push(
-        new Promise<void>(async (resolve) => {
+        (async () => {
           await new Promise((r) => setTimeout(r, delay));
 
           while (Date.now() - startTime < options.duration) {
@@ -1230,7 +1230,7 @@ export class LoadTestRunner {
               results.push({
                 success: false,
                 duration: performance.now() - requestStart,
-                error: error as Error,
+                error: _error as Error,
               });
             }
 

@@ -10,19 +10,28 @@ import { AkamaiCacheService } from '../../src/services/akamai-cache-service';
 // Mock ioredis
 const mockRedisInstance = {
   connect: jest.fn(() => Promise.resolve()),
-  get: jest.fn(),
-  set: jest.fn(),
-  setex: jest.fn(),
-  del: jest.fn(),
-  ttl: jest.fn(),
-  mget: jest.fn(),
-  expire: jest.fn(),
-  hincrby: jest.fn(),
-  hgetall: jest.fn(),
-  flushdb: jest.fn(),
-  quit: jest.fn(),
+  get: jest.fn<(key: string) => Promise<string | null>>(),
+  set: jest.fn<(key: string, value: string) => Promise<string>>(),
+  setex: jest.fn<(key: string, ttl: number, value: string) => Promise<string>>(),
+  del: jest.fn<(...keys: string[]) => Promise<number>>(),
+  ttl: jest.fn<(key: string) => Promise<number>>(),
+  mget: jest.fn<(...keys: string[]) => Promise<(string | null)[]>>(),
+  expire: jest.fn<(key: string, ttl: number) => Promise<number>>(),
+  hincrby: jest.fn<(key: string, field: string, increment: number) => Promise<number>>(),
+  hgetall: jest.fn<(key: string) => Promise<Record<string, string>>>(),
+  flushdb: jest.fn<() => Promise<string>>(),
+  quit: jest.fn<() => Promise<string>>(),
   on: jest.fn(),
   status: 'ready',
+  scanStream: jest.fn().mockReturnValue({
+    on: jest.fn((event: string, callback: any) => {
+      if (event === 'data') {
+        callback(['test:customer1:search:key1', 'test:customer1:search:key2']);
+      } else if (event === 'end') {
+        callback();
+      }
+    }),
+  }),
 };
 
 jest.mock('ioredis', () => ({
@@ -245,7 +254,7 @@ describe('Cache Service Unit Tests', () => {
 
     it('should handle property invalidation', async () => {
       mockRedisInstance.del.mockResolvedValue(3);
-      mockRedisInstance.scanStream = jest.fn().mockReturnValue({
+      (mockRedisInstance as any).scanStream = jest.fn().mockReturnValue({
         on: jest.fn((event: string, callback: any) => {
           if (event === 'data') {
             callback(['test:customer1:search:key1', 'test:customer1:search:key2']);

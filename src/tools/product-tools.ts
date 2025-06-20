@@ -114,7 +114,7 @@ export async function listProducts(
       ],
     };
   } catch (_error) {
-    return formatError('list products', error);
+    return formatError('list products', _error);
   }
 }
 
@@ -224,7 +224,7 @@ export async function getProduct(
       ],
     };
   } catch (_error) {
-    return formatError('get product', error);
+    return formatError('get product', _error);
   }
 }
 
@@ -369,7 +369,7 @@ export async function listUseCases(
       ],
     };
   } catch (_error) {
-    return formatError('list use cases', error);
+    return formatError('list use cases', _error);
   }
 }
 
@@ -595,6 +595,6 @@ export async function listBillingProducts(
       ],
     };
   } catch (_error) {
-    return formatError('list billing products', error);
+    return formatError('list billing products', _error);
   }
 }

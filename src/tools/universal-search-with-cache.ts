@@ -324,7 +324,7 @@ export async function universalSearchWithCacheHandler(
       ],
     };
   } catch (_error) {
-    return handleApiError(error, 'universal search');
+    return handleApiError(_error, 'universal search');
   }
 }
 

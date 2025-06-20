@@ -287,18 +287,18 @@ export const Middleware = {
         await next();
       } catch (_error) {
         if (logErrors) {
-          console.error('Middleware error:', {
+          console._error('Middleware error:', {
             requestId: req.requestId,
             toolName: req.toolName,
-            error: error instanceof Error ? error.message : String(error),
-            stack: includeStackTrace && error instanceof Error ? error.stack : undefined,
+            error: _error instanceof Error ? _error.message : String(_error),
+            stack: includeStackTrace && _error instanceof Error ? _error.stack : undefined,
           });
         }
 
-        if (error instanceof Error) {
-          res.error(error.message, error.name);
+        if (_error instanceof Error) {
+          res._error(_error.message, _error.name);
         } else {
-          res.error(String(error), 'UNKNOWN_ERROR');
+          res._error(String(_error), 'UNKNOWN_ERROR');
         }
       }
     };

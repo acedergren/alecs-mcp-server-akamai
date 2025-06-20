@@ -212,7 +212,7 @@ export class FixStrategyOptimizer {
   /**
    * Generate comprehensive fix strategy
    */
-  generateFixStrategy(analysisResults: AnalysisResults, todoList: TodoList, _options: any = {}) {
+  generateFixStrategy(_analysisResults: AnalysisResults, todoList: TodoList, _options: any = {}) {
     const strategy = {
       overview: this.generateStrategyOverview(analysisResults, todoList),
       quickWins: this.identifyQuickWins(todoList, analysisResults),
@@ -232,7 +232,7 @@ export class FixStrategyOptimizer {
   /**
    * Generate strategy overview
    */
-  generateStrategyOverview(analysisResults: AnalysisResults, todoList: TodoList) {
+  generateStrategyOverview(_analysisResults: AnalysisResults, todoList: TodoList) {
     const totalItems = todoList.items?.length || 0;
     const criticalItems =
       todoList.items?.filter((item) => item.priority === 'CRITICAL').length || 0;
@@ -314,7 +314,7 @@ balance.architectural_changes++;
   /**
    * Identify and optimize quick wins
    */
-  identifyQuickWins(todoList: TodoList, analysisResults: AnalysisResults) {
+  identifyQuickWins(todoList: TodoList, __analysisResults: AnalysisResults) {
     const quickWinCandidates = (todoList.items || []).filter((item) => {
       const effort = item.effort_details?.hours || 0;
       const priority = item.priority_details?.weight || 0;
@@ -371,7 +371,7 @@ balance.architectural_changes++;
   /**
    * Plan tactical fixes
    */
-  planTacticalFixes(todoList: TodoList, analysisResults: AnalysisResults) {
+  planTacticalFixes(todoList: TodoList, _analysisResults: AnalysisResults) {
     const tacticalCandidates = (todoList.items || []).filter((item) => {
       const effort = item.effort_details?.hours || 0;
       return effort > 4 && effort <= 16;
@@ -433,7 +433,7 @@ return priorityDiff;
   /**
    * Plan strategic initiatives
    */
-  planStrategicInitiatives(todoList: TodoList, analysisResults: AnalysisResults) {
+  planStrategicInitiatives(todoList: TodoList, _analysisResults: AnalysisResults) {
     const strategicCandidates = (todoList.items || []).filter((item) => {
       const effort = item.effort_details?.hours || 0;
       return effort > 16;
@@ -485,7 +485,7 @@ return priorityDiff;
   /**
    * Optimize resource allocation
    */
-  optimizeResourceAllocation(todoList: TodoList, analysisResults: AnalysisResults) {
+  optimizeResourceAllocation(todoList: TodoList, _analysisResults: AnalysisResults) {
     const items = todoList.items || [];
     const resourceNeeds = this.analyzeResourceNeeds(items);
     const constraints = this.getResourceConstraints();
@@ -560,7 +560,7 @@ return ['senior_developer'];
   /**
    * Generate implementation timeline
    */
-  generateTimeline(todoList: TodoList, analysisResults: AnalysisResults) {
+  generateTimeline(todoList: TodoList, _analysisResults: AnalysisResults) {
     const items = todoList.items || [];
     const timeline = {
       phases: this.createTimelinePhases(items),
@@ -636,7 +636,7 @@ return ['senior_developer'];
   /**
    * Assess implementation risks
    */
-  assessImplementationRisks(todoList: TodoList, analysisResults: AnalysisResults) {
+  assessImplementationRisks(todoList: TodoList, _analysisResults: AnalysisResults) {
     const items = todoList.items || [];
     const risks = {
       technical: this.assessTechnicalRisks(items),
@@ -662,7 +662,7 @@ return ['senior_developer'];
   /**
    * Generate strategy recommendations
    */
-  generateStrategyRecommendations(todoList: TodoList, analysisResults: AnalysisResults) {
+  generateStrategyRecommendations(todoList: TodoList, _analysisResults: AnalysisResults) {
     const recommendations = {
       approach: this.recommendApproachFull(todoList, analysisResults),
       prioritization: this.recommendPrioritization(todoList),
@@ -679,7 +679,7 @@ return ['senior_developer'];
   /**
    * Recommend overall approach
    */
-  recommendApproachFull(todoList: TodoList, analysisResults: AnalysisResults) {
+  recommendApproachFull(todoList: TodoList, _analysisResults: AnalysisResults) {
     const criticalCount =
       todoList.items?.filter((item) => item.priority === 'CRITICAL').length || 0;
     const quickWinCount = todoList.quickWins?.length || 0;
@@ -743,7 +743,7 @@ return ['senior_developer'];
   /**
    * Define success metrics
    */
-  defineSuccessMetrics(todoList: TodoList, analysisResults: AnalysisResults) {
+  defineSuccessMetrics(_todoList: TodoList, _analysisResults: AnalysisResults) {
     const metrics: Metrics = {
       delivery: {
         completion_rate: {
@@ -811,7 +811,7 @@ return ['senior_developer'];
 
   categorizeItem(item: TodoItem): string {
     const title = item.title?.toLowerCase() || '';
-    const description = item.description?.toLowerCase() || '';
+    const _description = item.description?.toLowerCase() || '';
     const tags = item.tags || [];
 
     if (tags.includes('authentication') || title.includes('auth')) {
@@ -943,29 +943,29 @@ return 'MEDIUM';
   }
 
   // Stub methods that need implementation
-  private calculateResourceRequirements(todoList: TodoList): any {
+  private calculateResourceRequirements(_todoList: TodoList): any {
     // Implementation would calculate resource requirements
     return {};
   }
 
-  private calculateRiskProfile(todoList: TodoList, analysisResults: AnalysisResults): any {
+  private calculateRiskProfile(_todoList: TodoList, _analysisResults: AnalysisResults): any {
     // Implementation would assess risk profile
     return { level: 'MEDIUM', factors: [] };
   }
 
-  private recommendApproach(strategicBalance: StrategicBalance, riskProfile: any): string {
+  private recommendApproach(_strategicBalance: StrategicBalance, _riskProfile: any): string {
     // Implementation would recommend approach based on balance and risk
     return 'Balanced approach recommended';
   }
 
-  private predictOutcomes(todoList: TodoList, analysisResults: AnalysisResults): any {
+  private predictOutcomes(_todoList: TodoList, _analysisResults: AnalysisResults): any {
     // Implementation would predict outcomes
     return { success: 'HIGH', timeline: 'ON_TRACK' };
   }
 
   private calculateSuccessProbability(
-    todoList: TodoList,
-    analysisResults: AnalysisResults,
+    _todoList: TodoList,
+    _analysisResults: AnalysisResults,
   ): number {
     // Implementation would calculate success probability
     return 85;
@@ -1217,7 +1217,7 @@ return 'MEDIUM';
     return { optimizations: [], savings: 0 };
   }
 
-  private recommendRiskManagement(todoList: TodoList, analysisResults: AnalysisResults): any {
+  private recommendRiskManagement(todoList: TodoList, _analysisResults: AnalysisResults): any {
     // Implementation would recommend risk management
     return { approach: 'PROACTIVE', measu_res: [] };
   }

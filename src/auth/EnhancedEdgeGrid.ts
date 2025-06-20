@@ -152,8 +152,8 @@ export class EnhancedEdgeGrid extends EventEmitter {
         const authTime = performance.now() - startTime;
         this.updateAuthMetrics(authTime, false);
         
-        this.emit('authError', { error, authTime });
-        throw error;
+        this.emit('authError', { _error, authTime });
+        throw _error;
       }
     };
 
@@ -219,18 +219,18 @@ export class EnhancedEdgeGrid extends EventEmitter {
         this.metrics.failedAuth++;
         
         // Check for timeout
-        if (error instanceof Error && error.message.includes('timeout')) {
+        if (_error instanceof Error && _error.message.includes('timeout')) {
           this.metrics.timeoutCount++;
         }
         
         this.emit('requestError', {
           path: options.path,
           method: options.method,
-          error,
+          _error,
           totalTime
         });
         
-        throw error;
+        throw _error;
       }
     });
   }

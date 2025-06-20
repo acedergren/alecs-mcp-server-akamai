@@ -215,12 +215,12 @@ export class AuthorizationManager {
       logger.error('Authorization failed', {
         context,
         policyContext,
-        error,
+        _error,
       });
 
       return {
         allowed: false,
-        reason: 'Authorization error',
+        reason: 'Authorization _error',
       };
     }
   }

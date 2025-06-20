@@ -179,7 +179,7 @@ export async function getValidationErrors(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'getting validation errors');
+    return handleApiError(_error, 'getting validation errors');
   }
 }
 
@@ -246,7 +246,7 @@ export async function acknowledgeWarnings(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'acknowledging warnings');
+    return handleApiError(_error, 'acknowledging warnings');
   }
 }
 
@@ -324,7 +324,7 @@ export async function overrideErrors(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'overriding errors');
+    return handleApiError(_error, 'overriding errors');
   }
 }
 
@@ -449,7 +449,7 @@ export async function getErrorRecoveryHelp(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'getting error recovery help');
+    return handleApiError(_error, 'getting _error recovery help');
   }
 }
 
@@ -497,7 +497,7 @@ export async function validatePropertyConfiguration(
     } catch (_error) {
       totalErrors++;
       validationResults.push('❌ Basic validation failed');
-      responseText += `❌ Basic property validation failed: ${(error as Error).message}\n\n`;
+      responseText += `❌ Basic property validation failed: ${(_error as Error).message}\n\n`;
     }
 
     // 2. Rule tree validation
@@ -514,7 +514,7 @@ export async function validatePropertyConfiguration(
       } catch (_error) {
         totalErrors++;
         validationResults.push('❌ Rule tree validation failed');
-        responseText += `❌ Rule tree validation failed: ${(error as Error).message}\n\n`;
+        responseText += `❌ Rule tree validation failed: ${(_error as Error).message}\n\n`;
       }
     }
 
@@ -532,7 +532,7 @@ export async function validatePropertyConfiguration(
       } catch (_error) {
         totalErrors++;
         validationResults.push('❌ Hostname validation failed');
-        responseText += `❌ Hostname validation failed: ${(error as Error).message}\n\n`;
+        responseText += `❌ Hostname validation failed: ${(_error as Error).message}\n\n`;
       }
     }
 
@@ -570,7 +570,7 @@ export async function validatePropertyConfiguration(
       } catch (_error) {
         totalWarnings++;
         validationResults.push('⚠️ Certificate validation incomplete');
-        responseText += `⚠️ Certificate validation incomplete: ${(error as Error).message}\n\n`;
+        responseText += `⚠️ Certificate validation incomplete: ${(_error as Error).message}\n\n`;
       }
     }
 
@@ -612,6 +612,6 @@ export async function validatePropertyConfiguration(
       content: [{ type: 'text', text: responseText }],
     };
   } catch (_error) {
-    return handleApiError(error, 'validating property configuration');
+    return handleApiError(_error, 'validating property configuration');
   }
 }
