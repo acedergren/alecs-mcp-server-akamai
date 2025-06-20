@@ -50,7 +50,7 @@ export const NetworkSchemas = {
     .min(1)
     .max(255, 'Hostname must be 255 characters or less')
     .regex(
-      /^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?))*$/,
+      /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?))*$/,
       'Invalid hostname format',
     ),
 

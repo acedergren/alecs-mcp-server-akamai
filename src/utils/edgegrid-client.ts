@@ -53,7 +53,7 @@ export class EdgeGridClient {
   }
 
   private addAuthHeaders(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
-    const timestamp = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
+    const timestamp = new Date().toISOString().replace(/[:.-]|\.\d{3}/g, '');
     const nonce = crypto.randomBytes(16).toString('hex');
     const authHeader = this.createAuthHeader(
       config.method?.toUpperCase() || 'GET',

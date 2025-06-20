@@ -171,7 +171,7 @@ export async function universalSearchCachedHandler(
                   },
                 });
 
-                hostnames = hostnamesResp.hostnames?.items || [];
+                const hostnames = hostnamesResp.hostnames?.items || [];
                 const queryLower = args.query.toLowerCase();
 
                 for (const hostname of hostnames) {

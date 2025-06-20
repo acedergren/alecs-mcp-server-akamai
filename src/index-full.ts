@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * ALECS - MCP Server for Akamai
- * A fully typed MCP server implementation with comprehensive error handling
+ * ALECS - MCP Server for Akamai (Full Version)
+ * Complete implementation with all available tools
+ * MCP June 2025 compliant
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -19,40 +20,19 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { z, type ZodSchema } from 'zod';
 
-import {
-  listZones,
-  getZone,
-  createZone,
-  listRecords,
-  upsertRecord,
-  deleteRecord,
-} from './tools/dns-tools';
-import { listProducts } from './tools/product-tools';
-import {
-  activateProperty,
-} from './tools/property-manager-tools';
-import {
-  listProperties,
-  getProperty,
-  createProperty,
-  listContracts,
-} from './tools/property-tools';
 import { ConfigurationError, ConfigErrorType } from './types/config';
 import {
   type BaseMcpParams,
   type McpToolResponse,
   type McpToolMetadata,
-  ListPropertiesSchema,
-  GetPropertySchema,
-  CreatePropertySchema,
-  ActivatePropertySchema,
-  CreateZoneSchema,
-  CreateRecordSchema,
 } from './types/mcp';
+import { type Mcp2025ToolResponse, type McpResponseMeta } from './types/mcp-2025';
 import { CustomerConfigManager } from './utils/customer-config';
 import { logger } from './utils/logger';
 
-// Import tool implementations
+// Import all tools and schemas
+import { ALL_TOOL_DEFINITIONS } from './tools/tool-registry';
+import { TOOL_SCHEMAS } from './tools/tool-schemas';
 
 /**
  * Tool registry entry with metadata
@@ -86,9 +66,79 @@ interface ServerConfig {
 }
 
 /**
- * Main ALECS MCP Server implementation
+ * Convert Zod schema to JSON Schema for MCP 2025 compliance
  */
-export class ALECSServer {
+function zodToJsonSchema(schema: ZodSchema): any {
+  const zodDef = (schema as any)._def;
+  
+  if (zodDef.typeName === 'ZodObject') {
+    const shape = zodDef.shape() || {};
+    const properties: Record<string, any> = {};
+    const required: string[] = [];
+    
+    for (const [key, value] of Object.entries(shape)) {
+      const fieldSchema = value as any;
+      const fieldDef = fieldSchema._def;
+      
+      // Get description
+      const description = fieldDef.description;
+      
+      // Determine type
+      let type = 'string';
+      if (fieldDef.typeName === 'ZodNumber') {type = 'number';}
+      else if (fieldDef.typeName === 'ZodBoolean') {type = 'boolean';}
+      else if (fieldDef.typeName === 'ZodArray') {type = 'array';}
+      else if (fieldDef.typeName === 'ZodObject') {type = 'object';}
+      else if (fieldDef.typeName === 'ZodEnum') {
+        properties[key] = {
+          type: 'string',
+          enum: fieldDef.values,
+          description,
+        };
+        if (!fieldSchema.isOptional()) {
+          required.push(key);
+        }
+        continue;
+      }
+      
+      properties[key] = {
+        type,
+        description,
+      };
+      
+      // Handle arrays
+      if (fieldDef.typeName === 'ZodArray') {
+        const innerType = fieldDef.type._def.typeName;
+        if (innerType === 'ZodString') {
+          properties[key].items = { type: 'string' };
+        } else if (innerType === 'ZodNumber') {
+          properties[key].items = { type: 'number' };
+        } else if (innerType === 'ZodObject') {
+          properties[key].items = { type: 'object' };
+        }
+      }
+      
+      // Check if required
+      if (!fieldSchema.isOptional()) {
+        required.push(key);
+      }
+    }
+    
+    return {
+      type: 'object',
+      properties,
+      required: required.length > 0 ? required : undefined,
+      additionalProperties: false,
+    };
+  }
+  
+  return { type: 'string' };
+}
+
+/**
+ * Main ALECS MCP Server implementation (Full Version)
+ */
+export class ALECSFullServer {
   private server: Server;
   private toolRegistry: Map<string, ToolRegistryEntry> = new Map();
   private configManager: CustomerConfigManager;
@@ -96,15 +146,15 @@ export class ALECSServer {
 
   constructor(config?: Partial<ServerConfig>) {
     const serverConfig: ServerConfig = {
-      name: config?.name || 'alecs-mcp-server-akamai',
-      version: config?.version || '1.3.0',
+      name: config?.name || 'alecs-mcp-server-akamai-full',
+      version: config?.version || '1.4.0',
       capabilities: {
         tools: {},
         ...config?.capabilities,
       },
     };
 
-    logger.info('Initializing ALECS MCP Server', serverConfig);
+    logger.info('Initializing ALECS Full MCP Server', serverConfig);
 
     this.server = new Server(serverConfig as any, {
       capabilities: serverConfig.capabilities || { tools: {} },
@@ -112,7 +162,7 @@ export class ALECSServer {
 
     this.configManager = CustomerConfigManager.getInstance();
     this.setupErrorHandling();
-    this.registerTools();
+    this.registerAllTools();
     this.setupHandlers();
   }
 
@@ -200,63 +250,31 @@ export class ALECSServer {
   }
 
   /**
-   * Register minimal set of essential tools
-   * For full tool set, use index-full.ts
+   * Register all available tools
    */
-  private registerTools(): void {
-    // Property Management Tools (Essential)
-    this.registerTool(
-      'list-properties',
-      'List all Akamai CDN properties in your account',
-      ListPropertiesSchema,
-      async (params) => this.wrapToolHandler('list-properties', params, listProperties),
-    );
+  private registerAllTools(): void {
+    // Register each tool from the registry
+    for (const [toolName, toolDef] of Object.entries(ALL_TOOL_DEFINITIONS)) {
+      const schema = TOOL_SCHEMAS[toolName as keyof typeof TOOL_SCHEMAS];
+      
+      if (!schema) {
+        logger.warn(`No schema found for tool: ${toolName}`);
+        continue;
+      }
 
-    this.registerTool(
-      'get-property',
-      'Get details of a specific property',
-      GetPropertySchema,
-      async (params) => this.wrapToolHandler('get-property', params, getProperty),
-    );
+      this.registerTool(
+        toolName,
+        toolDef.description,
+        schema,
+        async (params) => this.wrapToolHandler(toolName, params, toolDef.handler),
+      );
+    }
 
-    this.registerTool(
-      'create-property',
-      'Create a new property',
-      CreatePropertySchema,
-      async (params) => this.wrapToolHandler('create-property', params, createProperty),
-    );
-
-    this.registerTool(
-      'activate-property',
-      'Activate a property version',
-      ActivatePropertySchema,
-      async (params) => this.wrapToolHandler('activate-property', params, activateProperty),
-    );
-
-    this.registerTool(
-      'list-contracts',
-      'List all Akamai contracts',
-      z.object({
-        customer: z.string().optional(),
-        searchTerm: z.string().optional(),
-      }),
-      async (params) => this.wrapToolHandler('list-contracts', params, listContracts),
-    );
-
-    // DNS Tools (Essential)
-    this.registerTool('create-zone', 'Create a new DNS zone', CreateZoneSchema, async (params) =>
-      this.wrapToolHandler('create-zone', params, createZone),
-    );
-
-    this.registerTool('create-record', 'Create a DNS record', CreateRecordSchema, async (params) =>
-      this.wrapToolHandler('create-record', params, upsertRecord),
-    );
-
-    logger.info(`Registered ${this.toolRegistry.size} essential tools (use dev:full for all tools)`);
+    logger.info(`Registered ${this.toolRegistry.size} tools in full server`);
   }
 
   /**
-   * Wrap tool handler with common functionality
+   * Wrap tool handler with common functionality and MCP 2025 compliance
    */
   private async wrapToolHandler(
     toolName: string,
@@ -290,15 +308,24 @@ export class ALECSServer {
         success: true,
       });
 
-      return {
+      // Build MCP 2025 compliant response metadata
+      const meta: McpResponseMeta = {
+        timestamp: new Date().toISOString(),
+        duration,
+        version: '1.4.0',
+        customer,
+        tool: toolName,
+        requestId: context.requestId,
+      };
+
+      // Return MCP 2025 compliant response
+      const response: Mcp2025ToolResponse = {
         success: true,
         data: result,
-        metadata: {
-          customer,
-          duration,
-          tool: toolName,
-        },
+        _meta: meta,
       };
+
+      return response as McpToolResponse;
     } catch (error) {
       const duration = Date.now() - context.startTime;
 
@@ -309,15 +336,24 @@ export class ALECSServer {
         stack: error instanceof Error ? error.stack : undefined,
       });
 
-      return {
+      // Build error metadata
+      const meta: McpResponseMeta = {
+        timestamp: new Date().toISOString(),
+        duration,
+        version: '1.4.0',
+        customer: context.customer || 'default',
+        tool: toolName,
+        requestId: context.requestId,
+        errorType: error instanceof Error ? error.constructor.name : 'UnknownError',
+      };
+
+      const response: Mcp2025ToolResponse = {
         success: false,
         error: this.formatError(error),
-        metadata: {
-          customer: context.customer || 'default',
-          duration,
-          tool: toolName,
-        },
+        _meta: meta,
       };
+
+      return response as McpToolResponse;
     }
   }
 
@@ -341,60 +377,14 @@ export class ALECSServer {
   }
 
   /**
-   * Convert tool metadata to MCP tool format
+   * Convert tool metadata to MCP tool format with MCP 2025 compliance
    */
   private toolMetadataToMcpTool(metadata: McpToolMetadata): Tool {
-    const zodSchemaToJsonSchema = (schema: ZodSchema): any => {
-      // This is a simplified conversion - in production, use a proper converter
-      const shape = (schema as any)._def?.shape?.() || {};
-      const properties: Record<string, any> = {};
-      const required: string[] = [];
-
-      for (const [key, value] of Object.entries(shape)) {
-        const zodType = (value as any)._def?.typeName;
-
-        properties[key] = {
-          type: this.zodTypeToJsonType(zodType),
-          description: (value as any)._def?.description,
-        };
-
-        if (!(value as any).isOptional()) {
-          required.push(key);
-        }
-      }
-
-      return {
-        type: 'object',
-        properties,
-        required: required.length > 0 ? required : undefined,
-      };
-    };
-
     return {
       name: metadata.name,
       description: metadata.description,
-      inputSchema: zodSchemaToJsonSchema(metadata.inputSchema),
+      inputSchema: zodToJsonSchema(metadata.inputSchema),
     };
-  }
-
-  /**
-   * Convert Zod type to JSON Schema type
-   */
-  private zodTypeToJsonType(zodType: string): string {
-    switch (zodType) {
-      case 'ZodString':
-        return 'string';
-      case 'ZodNumber':
-        return 'number';
-      case 'ZodBoolean':
-        return 'boolean';
-      case 'ZodArray':
-        return 'array';
-      case 'ZodObject':
-        return 'object';
-      default:
-        return 'string';
-    }
   }
 
   /**
@@ -439,11 +429,20 @@ export class ALECSServer {
             throw new McpError(ErrorCode.InternalError, result.error || 'Tool execution failed');
           }
 
+          // Format response with MCP 2025 metadata if available
+          let responseText = JSON.stringify(result.data, null, 2);
+          
+          // Check if the result has metadata (cast to check)
+          const resultWithMeta = result as any;
+          if (resultWithMeta._meta) {
+            responseText += `\n\n---\n_meta: ${JSON.stringify(resultWithMeta._meta, null, 2)}`;
+          }
+
           return {
             content: [
               {
                 type: 'text',
-                text: JSON.stringify(result.data, null, 2),
+                text: responseText,
               },
             ],
           };
@@ -469,7 +468,7 @@ export class ALECSServer {
    * Start the MCP server
    */
   async start(): Promise<void> {
-    logger.info('Starting ALECS MCP Server');
+    logger.info('Starting ALECS Full MCP Server');
 
     try {
       // Validate configuration
@@ -491,7 +490,7 @@ export class ALECSServer {
       // Connect server to transport
       await this.server.connect(transport);
 
-      logger.info('ALECS MCP Server ready and listening');
+      logger.info('ALECS Full MCP Server ready and listening');
     } catch (error) {
       logger.error('Failed to start server', {
         error: error instanceof Error ? error.message : String(error),
@@ -507,7 +506,7 @@ export class ALECSServer {
  */
 async function main(): Promise<void> {
   try {
-    const server = new ALECSServer();
+    const server = new ALECSFullServer();
     await server.start();
   } catch (error) {
     logger.error('Server initialization failed', {
@@ -524,4 +523,4 @@ if (require.main === module) {
 }
 
 // Export for use as a module
-export default ALECSServer;
+export default ALECSFullServer;

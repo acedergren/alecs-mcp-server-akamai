@@ -127,7 +127,7 @@ export class ErrorTranslator {
 
     const suggestions = [
       `Check that the ${resource} ID is correct`,
-      `Ensure the ${resource} exists and hasn\'t been deleted`,
+      `Ensure the ${resource} exists and hasn't been deleted`,
     ];
 
     if (context?.parameters?.propertyId) {
