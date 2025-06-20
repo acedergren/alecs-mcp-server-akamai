@@ -103,7 +103,7 @@ export async function importZoneViaAXFR(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('import zone via AXFR', _error);
   }
 }
@@ -224,7 +224,7 @@ export async function parseZoneFile(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('parse zone file', _error);
   }
 }
@@ -284,10 +284,10 @@ export async function bulkImportRecords(
           });
 
           successCount++;
-        } catch (error) {
+        } catch (_error) {
           errors.push({
             record: `${record.name} ${record.type}`,
-            error: error instanceof Error ? error.message : JSON.stringify(_error),
+            error: error instanceof Error ? _error.message : JSON.stringify(_error),
           });
         }
       }
@@ -362,7 +362,7 @@ export async function bulkImportRecords(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('bulk import records', _error);
   }
 }
@@ -417,7 +417,7 @@ export async function convertZoneToPrimary(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('convert zone to primary', _error);
   }
 }
@@ -554,7 +554,7 @@ export async function generateMigrationInstructions(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('generate migration instructions', _error);
   }
 }
@@ -730,7 +730,7 @@ export async function importFromCloudflare(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('import from Cloudflare', _error);
   }
 }
@@ -976,12 +976,12 @@ async function validateDNSRecords(records: ZoneFileRecord[]): Promise<
         rdata: record.rdata,
       });
       results.push(result);
-    } catch (error) {
+    } catch (_error) {
       results.push({
         name: record.name,
         type: record.type,
         valid: false,
-        error: error instanceof Error ? error.message : 'Validation failed',
+        error: error instanceof Error ? _error.message : 'Validation failed',
       });
     }
   }
@@ -1077,12 +1077,12 @@ async function validateSingleRecord(record: DNSRecordSet): Promise<{
     }
 
     return { name: record.name, type: record.type, valid: true };
-  } catch (error) {
+  } catch (_error) {
     return {
       name: record.name,
       type: record.type,
       valid: false,
-      error: error instanceof Error ? error.message : 'Validation _error',
+      error: error instanceof Error ? _error.message : 'Validation _error',
     };
   }
 }
@@ -1108,19 +1108,19 @@ const globalMigrationCache = new Map<string, DNSRecordSet[]>();
 /**
  * Format error responses
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
   if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions
-    if (error.message.includes('zone') && error.message.includes('exist')) {
+    if (_error.message.includes('zone') && _error.message.includes('exist')) {
       solution = '**Solution:** Create the zone first using "Create primary zone [domain]"';
-    } else if (error.message.includes('parse')) {
+    } else if (_error.message.includes('parse')) {
       solution = '**Solution:** Check zone file format. Ensure it follows BIND format.';
-    } else if (error.message.includes('AXFR')) {
+    } else if (_error.message.includes('AXFR')) {
       solution = '**Solution:** Ensure the master server allows zone transfers from Akamai IPs.';
     }
   } else {

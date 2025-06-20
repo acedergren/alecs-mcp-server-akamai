@@ -116,7 +116,7 @@ export class EdgeGridAuth {
     // Get credentials with validation
     try {
       this.credentials = CustomerConfigManager.getInstance().getSection(customer);
-    } catch (error) {
+    } catch (_error) {
       throw new ConfigurationError(
         ConfigErrorType.SECTION_NOT_FOUND,
         `Customer section '${customer}' not found`,
@@ -364,7 +364,7 @@ export class EdgeGridAuth {
   /**
    * Handle _request/response errors
    */
-  private async handleError(error: AxiosError): Promise<never> {
+  private async handleError(_error: AxiosError): Promise<never> {
     if (error.response) {
       const errorResponse = error.response.data as EdgeGridErrorResponse;
       const errorMessage = this.extractErrorMessage(errorResponse, error.response.status);
@@ -385,26 +385,26 @@ export class EdgeGridAuth {
     } else if (error.request) {
       logger.error('No response from API', {
         customer: this.customerName,
-        error: error.message,
+        error: _error.message,
       });
 
       throw new EdgeGridAuthError('No response from Akamai API', 'NO_RESPONSE');
     } else {
       logger.error('Request error', {
         customer: this.customerName,
-        error: error.message,
+        error: _error.message,
       });
 
-      throw new EdgeGridAuthError(error.message, 'REQUEST_ERROR');
+      throw new EdgeGridAuthError(_error.message, 'REQUEST_ERROR');
     }
   }
 
   /**
    * Create authentication error
    */
-  private createAuthError(error: unknown): EdgeGridAuthError {
+  private createAuthError(_error: unknown): EdgeGridAuthError {
     if (error instanceof Error) {
-      return new EdgeGridAuthError(error.message, 'AUTH_ERROR');
+      return new EdgeGridAuthError(_error.message, 'AUTH_ERROR');
     }
     return new EdgeGridAuthError('Unknown authentication error', 'AUTH_ERROR');
   }

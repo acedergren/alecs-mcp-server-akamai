@@ -410,7 +410,7 @@ export class OAuthResourceServer {
         if (invalidScopes.length > 0) {
           errors.push(`Invalid scopes for resource ${resourceUri}: ${invalidScopes.join(', ')}`);
         }
-      } catch (error) {
+      } catch (_error) {
         errors.push(`Invalid resource URI: ${resourceUri}`);
       }
     }
@@ -721,7 +721,7 @@ export class OAuthResourceServer {
       name: resource.name,
       description: resource.description,
       scopes: [...resource.requiredScopes, ...(resource.resourceScopes || [])],
-    }));
+    ));
 
     return {
       resources,

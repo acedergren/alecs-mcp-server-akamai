@@ -118,8 +118,8 @@ export class PurgeStatusTracker {
         },
         60 * 60 * 1000,
       ); // Every hour
-    } catch (error: any) {
-      logger.error(`Status tracker error: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(`Status tracker error: ${_error.message}`);
     }
   }
 
@@ -151,7 +151,7 @@ batch.completedAt = new Date(batch.completedAt);
 }
             });
 
-            operation.errors.forEach((error: any) => {
+            operation.errors.forEach((_error: any) => {
               _error.occurredAt = new Date(_error.occurredAt);
             });
 
@@ -168,8 +168,8 @@ batch.completedAt = new Date(batch.completedAt);
       }
 
       logger.info(`Loaded ${this.operations.size} purge operations from persistence`);
-    } catch (error: any) {
-      logger.error(`Status tracker error: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(`Status tracker error: ${_error.message}`);
     }
   }
 
@@ -178,8 +178,8 @@ batch.completedAt = new Date(batch.completedAt);
 
     try {
       await fs.writeFile(filePath, JSON.stringify(operation, null, 2));
-    } catch (error: any) {
-      logger.error(`Status tracker error: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(`Status tracker error: ${_error.message}`);
     }
   }
 
@@ -309,12 +309,12 @@ return;
               occurredAt: new Date(),
             });
           }
-        } catch (error: any) {
-          logger.error(`Status tracker error: ${error.message}`);
+        } catch (_error: any) {
+          logger.error(`Status tracker error: ${_error.message}`);
 
           this.addError(operation, {
             type: 'network_error',
-            message: `Status check failed: ${error.message}`,
+            message: `Status check failed: ${_error.message}`,
             retryable: true,
             guidance: 'Network issue, status will be checked again automatically',
             occurredAt: new Date(),
@@ -362,12 +362,12 @@ return;
 
       // Notify progress callbacks
       this.notifyProgressUpdate(operation);
-    } catch (error: any) {
-      logger.error(`Status tracker error: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(`Status tracker error: ${_error.message}`);
     }
   }
 
-  private addError(operation: PurgeOperation, error: OperationError): void {
+  private addError(operation: PurgeOperation, _error: OperationError): void {
     operation.errors.push(_error);
 
     // Limit error history
@@ -533,7 +533,7 @@ return;
       try {
         const filePath = path.join(this.statusDir, `${operationId}.json`);
         await fs.unlink(filePath);
-      } catch (error: any) {
+      } catch (_error: any) {
         // File might not exist, ignore error
       }
     }

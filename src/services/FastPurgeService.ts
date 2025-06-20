@@ -178,7 +178,7 @@ export class FastPurgeService {
           OperationType.BULK_OPERATION,
           operation,
         );
-      } catch (error: any) {
+      } catch (_error: any) {
         lastError = _error;
 
         // Handle rate limiting
@@ -195,7 +195,7 @@ export class FastPurgeService {
 
         // Don't retry on client errors (except rate limits)
         if (_error.status && _error.status >= 400 && _error.status < 500) {
-          throw error;
+          throw _error;
         }
 
         // Exponential backoff for other errors
@@ -292,8 +292,8 @@ export class FastPurgeService {
         });
 
         processedCount += batchSize;
-      } catch (error: any) {
-        logger.error(`FastPurge error: ${error.message}`);
+      } catch (_error: any) {
+        logger.error(`FastPurge error: ${(_error instanceof Error ? _error.message : String(_error))}`);
 
         // Handle RFC 7807 problem details
         if (_error.response?.data?.type) {
@@ -310,7 +310,7 @@ export class FastPurgeService {
           );
         }
 
-        throw error;
+        throw _error;
       }
     }
 
@@ -371,8 +371,8 @@ export class FastPurgeService {
           title: response.data.title,
           pingAfterSeconds: response.data.pingAfterSeconds,
         });
-      } catch (error: any) {
-        logger.error(`FastPurge error: ${error.message}`);
+      } catch (_error: any) {
+        logger.error(`FastPurge error: ${(_error instanceof Error ? _error.message : String(_error))}`);
 
         if (_error.response?.data?.type) {
           throw new AkamaiError(
@@ -387,7 +387,7 @@ export class FastPurgeService {
           );
         }
 
-        throw error;
+        throw _error;
       }
     }
 
@@ -455,8 +455,8 @@ export class FastPurgeService {
         });
 
         processedCount += batchSize;
-      } catch (error: any) {
-        logger.error(`FastPurge error: ${error.message}`);
+      } catch (_error: any) {
+        logger.error(`FastPurge error: ${(_error instanceof Error ? _error.message : String(_error))}`);
 
         if (_error.response?.data?.type) {
           throw new AkamaiError(
@@ -471,7 +471,7 @@ export class FastPurgeService {
           );
         }
 
-        throw error;
+        throw _error;
       }
     }
 
@@ -509,8 +509,8 @@ export class FastPurgeService {
         supportId: response.data.supportId,
         customer: customer,
       };
-    } catch (error: any) {
-      logger.error(`FastPurge validation error: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(`FastPurge validation error: ${(_error instanceof Error ? _error.message : String(_error))}`);
 
       if (_error.response?.data?.type) {
         throw new AkamaiError(
@@ -525,7 +525,7 @@ export class FastPurgeService {
         );
       }
 
-      throw error;
+      throw _error;
     }
   }
 

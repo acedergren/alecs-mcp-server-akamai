@@ -96,9 +96,9 @@ export class CDNProvisioningAgent {
       }
 
       spinner.succeed(`Initialized with contract: ${this.contractId}, group: ${this.groupId}`);
-    } catch (error) {
+    } catch (_error) {
       spinner.fail('Failed to initialize agent');
-      throw error;
+      throw _error;
     } finally {
       this.multiProgress.remove('init');
     }
@@ -135,11 +135,11 @@ export class CDNProvisioningAgent {
 
       spinner.succeed(`Created version ${versionNumber} for property ${propertyId}`);
       return await this.getPropertyVersion(propertyId, versionNumber);
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
-        `Failed to create property version: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to create property version: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
@@ -185,13 +185,13 @@ export class CDNProvisioningAgent {
 
       progress.finish('Version cloned successfully');
       return targetVersion;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -219,15 +219,16 @@ export class CDNProvisioningAgent {
           'Content-Type': 'application/json',
           'If-Match': etag,
         },
-        body: JSON.stringify({ rules: ruleTree }),
+        body: JSON.stringify({
+           rules: ruleTree },
       });
 
       spinner.succeed('Rule configuration updated');
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
-        `Failed to update rules: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to update rules: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
@@ -260,11 +261,11 @@ export class CDNProvisioningAgent {
 
       await this.updateRuleTree(propertyId, version, ruleTree);
       spinner.succeed(`${format.bold(template)} template applied`);
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
-        `Failed to apply template: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to apply template: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
@@ -323,13 +324,13 @@ export class CDNProvisioningAgent {
         `Edge hostname ${format.cyan(domainPrefix + '.' + request.domainSuffix)} created`,
       );
       return edgeHostname;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -427,13 +428,13 @@ export class CDNProvisioningAgent {
         lastProgress = currentProgress;
         await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds
       }
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -469,11 +470,11 @@ export class CDNProvisioningAgent {
       });
 
       spinner.succeed(`Added hostname ${format.cyan(hostname)} → ${format.green(edgeHostname)}`);
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
-        `Failed to add hostname: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to add hostname: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
@@ -528,13 +529,13 @@ export class CDNProvisioningAgent {
       console.log(`  ${icons.bullet} Enrollment ID: ${format.cyan(enrollment.enrollmentId)}`);
       console.log(`  ${icons.bullet} Network: ${format.green('Enhanced TLS')}`);
       console.log(`  ${icons.bullet} Validated Domains: ${hostnames.length}`);
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -587,7 +588,7 @@ export class CDNProvisioningAgent {
         'Content-Type': 'application/json-patch+json',
         'If-Match': etag,
       },
-      body: JSON.stringify([{ op: 'replace', path: '/note', value: note }]),
+      body: JSON.stringify([{ op: 'replace', path: '/note', value: note }],
     });
   }
 
@@ -822,7 +823,7 @@ export class CDNProvisioningAgent {
     // This would integrate with CPS API
     return {
       enrollmentId: 'dv-123456',
-      dv: hostnames.reduce((acc, h) => ({ ...acc, [h]: `_acme-challenge.${h}` }), {}),
+      dv: hostnames.reduce((acc, h) => ({ ...acc, [h]: `_acme-challenge.${h}` }), {},
     };
   }
 
@@ -863,8 +864,8 @@ export class CDNProvisioningAgent {
       'Apply security template',
       'Add hostnames',
       'Provision certificates',
-      ...(options.activateStaging ? ['Activate to staging'] : []),
-      ...(options.activateProduction ? ['Activate to production'] : []),
+      ...(options.activateStaging ? ["Activate to staging"] : []),
+      ...(options.activateProduction ? ["Activate to production"] : []),
     ];
 
     const progress = new ProgressBar({
@@ -884,10 +885,11 @@ export class CDNProvisioningAgent {
         path: `/papi/v1/properties?contractId=${this.contractId}&groupId=${this.groupId}`,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          
           propertyName,
           productId: options.productId || 'prd_Web_Accel',
           ruleFormat: 'latest',
-        }),
+        },
       });
       propertyId = createResponse.propertyLink.split('/').pop() || '';
 
@@ -967,13 +969,13 @@ export class CDNProvisioningAgent {
       });
       console.log(`  2. Test on staging: https://${hostnames[0]}.edgesuite-staging.net`);
       console.log('  3. Monitor activation status in Control Center');
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: `Failed: ${error instanceof Error ? error.message : String(error)}`,
+        message: `Failed: ${_error instanceof Error ? _error.message : String(_error)}`,
       });
-      throw error;
+      throw _error;
     }
   }
 }

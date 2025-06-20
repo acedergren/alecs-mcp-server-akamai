@@ -329,7 +329,7 @@ export async function universalSearchCachedHandler(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(_error, 'universal search');
   }
 }

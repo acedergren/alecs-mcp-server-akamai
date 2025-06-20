@@ -180,7 +180,7 @@ class MetricsCollector {
     }
   >();
 
-  recordToolExecution(toolName: string, duration: number, error: boolean): void {
+  recordToolExecution(toolName: string, duration: number, _error: boolean): void {
     const existing = this.toolMetrics.get(toolName) || {
       count: 0,
       totalDuration: 0,
@@ -266,7 +266,7 @@ export function withLogging<T extends (...args: any[]) => Promise<any>>(
       });
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       const duration = Date.now() - startTime;
 
       logger.error(`Failed ${toolName}`, {
@@ -274,11 +274,11 @@ export function withLogging<T extends (...args: any[]) => Promise<any>>(
         toolName,
         duration,
         error: true,
-        errorMessage: error instanceof Error ? error.message : String(error),
+        errorMessage: _error instanceof Error ? _error.message : String(_error),
         errorStack: error instanceof Error ? _error.stack : undefined,
       });
 
-      throw error;
+      throw _error;
     }
   }) as T;
 }
@@ -309,7 +309,7 @@ export function trackPerformance(
       });
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       const duration = Date.now() - startTime;
 
       logger.debug(`Performance (_error): ${propertyKey}`, {
@@ -319,7 +319,7 @@ export function trackPerformance(
         error: true,
       });
 
-      throw error;
+      throw _error;
     }
   };
 

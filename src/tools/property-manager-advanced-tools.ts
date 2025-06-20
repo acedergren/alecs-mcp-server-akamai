@@ -86,7 +86,7 @@ text += `**Group:** ${args.groupId}\n`;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list edge hostnames', _error);
   }
 }
@@ -184,7 +184,7 @@ export async function getEdgeHostname(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get edge hostname', _error);
   }
 }
@@ -291,7 +291,7 @@ export async function cloneProperty(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('clone property', _error);
   }
 }
@@ -355,7 +355,7 @@ export async function removeProperty(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('remove property', _error);
   }
 }
@@ -446,7 +446,7 @@ export async function listPropertyVersions(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list property versions', _error);
   }
 }
@@ -536,7 +536,7 @@ export async function getPropertyVersion(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get property version', _error);
   }
 }
@@ -646,7 +646,7 @@ export async function getLatestPropertyVersion(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get latest property version', _error);
   }
 }
@@ -708,7 +708,7 @@ export async function cancelPropertyActivation(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('cancel property activation', _error);
   }
 }
@@ -994,7 +994,7 @@ continue;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('search properties', _error);
   }
 }
@@ -1298,7 +1298,7 @@ text += `**Group:** ${args.groupId}\n`;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list all hostnames', _error);
   }
 }
@@ -1407,7 +1407,7 @@ export async function listPropertyVersionHostnames(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list property version hostnames', _error);
   }
 }
@@ -1415,23 +1415,23 @@ export async function listPropertyVersionHostnames(
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
   if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
-    if (error.message.includes('401') || error.message.includes('credentials')) {
+    if (_error.message.includes('401') || _error.message.includes('credentials')) {
       solution = '**Solution:** Check your ~/.edgerc file has valid credentials.';
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
       solution = '**Solution:** Your API credentials may lack the necessary permissions.';
-    } else if (error.message.includes('404') || error.message.includes('not found')) {
+    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
       solution = '**Solution:** The requested resource was not found. Verify the ID is correct.';
-    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
+    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
       solution = '**Solution:** Invalid request parameters. Check the input values.';
-    } else if (error.message.includes('409') || error.message.includes('Conflict')) {
+    } else if (_error.message.includes('409') || _error.message.includes('Conflict')) {
       solution = '**Solution:** Resource conflict. The operation may already be in progress.';
     }
   } else {

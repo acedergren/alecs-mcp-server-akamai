@@ -16,7 +16,7 @@ import type {
 } from './types';
 import { OAuthProvider, CredentialAction } from './types';
 
-import { logger } from '@/utils/logger';
+import { logger } from '../../utils/logger';
 
 /**
  * OAuth Manager class for handling authentication and customer mapping
@@ -130,8 +130,8 @@ export class OAuthManager {
       });
 
       return session;
-    } catch (error) {
-      logger.error('OAuth authentication failed', { provider, error });
+    } catch (_error) {
+      logger.error('OAuth authentication failed', { provider, _error });
 
       // Audit log failure
       await this.logCredentialAccess({
@@ -140,10 +140,10 @@ export class OAuthManager {
         action: CredentialAction.VALIDATE,
         resource: 'oauth_session',
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: _error instanceof Error ? _error.message : 'Unknown error',
       });
 
-      throw error;
+      throw _error;
     }
   }
 
@@ -236,7 +236,7 @@ export class OAuthManager {
             actions: ['read'],
             scope: 'customer' as any,
           },
-        ],
+        ].filter(Boolean),
         isActive: true,
         createdAt: new Date(),
       },

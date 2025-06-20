@@ -129,8 +129,8 @@ export class PurgeQueueManager {
           logger.error(`Failed to persist queues: ${_err.message}`),
         );
       }, this.PERSISTENCE_INTERVAL);
-    } catch (error: any) {
-      logger.error(`Queue manager error: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(`Queue manager error: ${_error.message}`);
     }
   }
 
@@ -149,7 +149,7 @@ export class PurgeQueueManager {
               ...item,
               createdAt: new Date(item.createdAt),
               lastAttempt: item.lastAttempt ? new Date(item.lastAttempt) : undefined,
-            }));
+            ));
 
             this.queues.set(customer, items);
             logger.info(`Loaded ${items.length} queue items for customer ${customer}`);
@@ -158,8 +158,8 @@ export class PurgeQueueManager {
           }
         }
       }
-    } catch (error: any) {
-      logger.error(`Queue manager error: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(`Queue manager error: ${_error.message}`);
     }
   }
 
@@ -172,8 +172,8 @@ export class PurgeQueueManager {
         // Write to temp file first for atomic operation
         await fs.writeFile(tempPath, JSON.stringify(items, null, 2));
         await fs.rename(tempPath, filePath);
-      } catch (error: any) {
-        logger.error(`Queue manager error: ${error.message}`);
+      } catch (_error: any) {
+        logger.error(`Queue manager error: ${_error.message}`);
       }
     }
   }
@@ -234,9 +234,9 @@ export class PurgeQueueManager {
   private analyzeConsolidation(items: QueueItem[]): ConsolidationSuggestion | null {
     // Group URLs by domain
     const urlItems = items.filter((item) => item.type === 'url' && item.status === 'pending');
-    if (urlItems.length === 0) {
-return null;
-}
+          if (urlItems.length === 0) {
+      return null;
+    }
 
     const domainMap = new Map<string, Set<string>>();
 
@@ -269,7 +269,7 @@ return null;
       }
     }
 
-    return null;
+                    return null;
   }
 
   async enqueue(_request: FastPurgeRequest & { customer: string }): Promise<QueueItem> {
@@ -389,15 +389,15 @@ return null;
       logger.info(
         `Completed purge ${item.id} for ${item.customer}: ${item.objects.length} objects`,
       );
-    } catch (error: any) {
-      item.error = error.message;
+    } catch (_error: any) {
+      item.error = _error.message;
 
       if (item.attempts >= 3) {
         item.status = 'failed';
-        logger.error(`Queue manager error: ${error.message}`);
+        logger.error(`Queue manager error: ${_error.message}`);
       } else {
         item.status = 'pending';
-        logger.warn(`Purge ${item.id} failed, will retry: ${error.message}`);
+        logger.warn(`Purge ${item.id} failed, will retry: ${_error.message}`);
       }
     }
   }

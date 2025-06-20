@@ -96,11 +96,11 @@ class CertsALECSServer {
       log('INFO', 'Initializing Akamai client...');
       this.client = new AkamaiClient();
       log('INFO', '✅ Akamai client initialized successfully');
-    } catch (error) {
+    } catch (_error) {
       log('ERROR', '❌ Failed to initialize Akamai client', {
-        error: error instanceof Error ? error.message : String(error),
+        error: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
 
     this.setupHandlers();
@@ -669,13 +669,13 @@ class CertsALECSServer {
         log('INFO', `✅ Tool ${name} completed in ${duration}ms`);
 
         return result;
-      } catch (error) {
+      } catch (_error) {
         const duration = Date.now() - startTime;
         log('ERROR', `❌ Tool ${name} failed after ${duration}ms`, {
           error:
             error instanceof Error
               ? {
-                  message: error.message,
+                  message: _error.message,
                   stack: _error.stack,
                 }
               : String(error),
@@ -689,12 +689,12 @@ class CertsALECSServer {
         }
 
         if (_error instanceof McpError) {
-          throw error;
+          throw _error;
         }
 
         throw new McpError(
           ErrorCode.InternalError,
-          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
+          `Tool execution failed: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
       }
     });
@@ -708,9 +708,9 @@ class CertsALECSServer {
     const transport = new StdioServerTransport();
 
     // Add error handling for transport
-    transport.onerror = (error: Error) => {
+    transport.onerror = (_error: Error) => {
       log('ERROR', '❌ Transport error', {
-        message: error.message,
+        message: _error.message,
         stack: _error.stack,
       });
     };
@@ -728,17 +728,17 @@ class CertsALECSServer {
         memoryUsage: process.memoryUsage(),
         uptime: process.uptime(),
       });
-    } catch (error) {
+    } catch (_error) {
       log('ERROR', '❌ Failed to connect server', {
         error:
           error instanceof Error
             ? {
-                message: error.message,
+                message: _error.message,
                 stack: _error.stack,
               }
             : String(error),
       });
-      throw error;
+      throw _error;
     }
   }
 }
@@ -759,12 +759,12 @@ async function main() {
         pid: process.pid,
       });
     }, 30000); // Every 30 seconds
-  } catch (error) {
+  } catch (_error) {
     log('ERROR', '❌ Failed to start server', {
       error:
         error instanceof Error
           ? {
-              message: error.message,
+              message: _error.message,
               stack: _error.stack,
             }
           : String(error),
@@ -777,7 +777,7 @@ async function main() {
 process.on('uncaughtException', (_error) => {
   log('ERROR', '❌ Uncaught exception', {
     error: {
-      message: error.message,
+      message: _error.message,
       stack: _error.stack,
     },
   });

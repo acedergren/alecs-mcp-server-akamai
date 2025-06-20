@@ -140,7 +140,7 @@ export async function createPropertyVersion(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('create property version', _error);
   }
 }
@@ -262,7 +262,7 @@ export async function getPropertyRules(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get property rules', _error);
   }
 }
@@ -339,7 +339,7 @@ export async function updatePropertyRules(
 
     if (response.errors?.length > 0) {
       text += '⚠️ **Validation Errors:**\n';
-      response.errors.forEach((error: any) => {
+      response.errors.forEach((_error: any) => {
         text += `- ${_error.detail}\n`;
       });
       text += '\n';
@@ -365,7 +365,7 @@ export async function updatePropertyRules(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('update property rules', _error);
   }
 }
@@ -421,7 +421,7 @@ export async function createEdgeHostname(
         secure: args.secure || domainSuffix.includes('edgekey'),
         secureNetwork: args.secure || domainSuffix.includes('edgekey') ? 'ENHANCED_TLS' : undefined,
         ipVersionBehavior: args.ipVersion || 'IPV4',
-        ...(args.certificateEnrollmentId && { certEnrollmentId: args.certificateEnrollmentId }),
+        ...(args.certificateEnrollmentId && { certEnrollmentId: args.certificateEnrollmentId },
         useCases: [
           {
             useCase: 'Download_Mode',
@@ -443,7 +443,7 @@ export async function createEdgeHostname(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('create edge hostname', _error);
   }
 }
@@ -510,7 +510,7 @@ export async function addPropertyHostname(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('add property hostname', _error);
   }
 }
@@ -584,7 +584,7 @@ export async function removePropertyHostname(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('remove property hostname', _error);
   }
 }
@@ -679,8 +679,8 @@ export async function activateProperty(
         },
       ],
     };
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('warnings')) {
+  } catch (_error) {
+    if (error instanceof Error && _error.message.includes('warnings')) {
       return {
         content: [
           {
@@ -748,8 +748,8 @@ export async function getActivationStatus(
 
     if (activation.errors && activation.errors.length > 0) {
       text += '\n## Errors\n';
-      activation.errors.forEach((error: any) => {
-        text += `- ${error.messageId}: ${_error.detail}\n`;
+      activation.errors.forEach((_error: any) => {
+        text += `- ${_error.messageId}: ${_error.detail}\n`;
       });
     }
 
@@ -777,7 +777,7 @@ export async function getActivationStatus(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get activation status', _error);
   }
 }
@@ -871,7 +871,7 @@ acc[act.network] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list property activations', _error);
   }
 }
@@ -1040,7 +1040,7 @@ export async function updatePropertyWithDefaultDV(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('update property with Default DV', _error);
   }
 }
@@ -1235,7 +1235,7 @@ export async function updatePropertyWithCPSCertificate(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('update property with CPS certificate', _error);
   }
 }
@@ -1349,7 +1349,7 @@ ${args.autoSelectBase ? `- Auto-selected base version: ${baseVersion}` : ''}
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('create enhanced property version', _error);
   }
 }
@@ -1378,11 +1378,11 @@ export async function getVersionDiff(
         client._request({
           method: 'GET',
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version1}/rules`,
-        }),
+        },
         client._request({
           method: 'GET',
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version2}/rules`,
-        }),
+        },
       ]);
 
       const rulesDiff = compareRuleTrees(
@@ -1406,11 +1406,11 @@ export async function getVersionDiff(
         client._request({
           method: 'GET',
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version1}/hostnames`,
-        }),
+        },
         client._request({
           method: 'GET',
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version2}/hostnames`,
-        }),
+        },
       ]);
 
       const hostnamesDiff = compareHostnames(
@@ -1463,7 +1463,7 @@ export async function getVersionDiff(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('compare property versions', _error);
   }
 }
@@ -1573,7 +1573,7 @@ text += `  └ Tags: ${metadata.tags}\n`;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list property versions', _error);
   }
 }
@@ -1699,7 +1699,7 @@ ${!args.autoActivate ? `- Activate: "Activate property ${args.propertyId} versio
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('rollback property version', _error);
   }
 }
@@ -1755,7 +1755,7 @@ export async function batchVersionOperations(
               throw new Error(`Unknown operation: ${op.operation}`);
           }
           return { index, success: true, result, propertyId: op.propertyId };
-        } catch (error: any) {
+        } catch (_error: any) {
           return {
             index,
             success: false,
@@ -1822,7 +1822,7 @@ export async function batchVersionOperations(
               throw new Error(`Unknown operation: ${op.operation}`);
           }
           results.push({ propertyId: op.propertyId, operation: op.operation, result });
-        } catch (error: any) {
+        } catch (_error: any) {
           errors.push({
             propertyId: op.propertyId,
             operation: op.operation,
@@ -1871,7 +1871,7 @@ export async function batchVersionOperations(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('batch version operations', _error);
   }
 }
@@ -1935,24 +1935,24 @@ function compareHostnames(hostnames1: any[], hostnames2: any[]): any[] {
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
   if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
-    if (error.message.includes('401') || error.message.includes('credentials')) {
+    if (_error.message.includes('401') || _error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials for the customer section.';
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
       solution = '**Solution:** Your API credentials may lack the necessary permissions.';
-    } else if (error.message.includes('404') || error.message.includes('not found')) {
+    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
       solution = '**Solution:** The requested resource was not found. Verify the ID is correct.';
-    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
+    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
       solution = '**Solution:** Invalid request parameters. Check the input values.';
-    } else if (error.message.includes('409') || error.message.includes('Conflict')) {
+    } else if (_error.message.includes('409') || _error.message.includes('Conflict')) {
       solution = '**Solution:** Resource conflict. The operation may already be in progress.';
     }
   } else {

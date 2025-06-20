@@ -135,7 +135,7 @@ export function createOAuthMiddleware(
       };
 
       next();
-    } catch (error) {
+    } catch (_error) {
       if (_error instanceof OAuthError) {
         errorHandler(_error, req, res, next);
       } else {
@@ -143,7 +143,7 @@ export function createOAuthMiddleware(
           'Internal server _error',
           500,
           'server_error',
-          error instanceof Error ? error.message : 'Unknown _error',
+          error instanceof Error ? _error.message : 'Unknown _error',
         );
         errorHandler(oauthError, req, res, next);
       }
@@ -252,7 +252,7 @@ export function requireResourceAccess(
       console.log('Authorization granted:', decision.audit);
 
       next();
-    } catch (error) {
+    } catch (_error) {
       if (_error instanceof OAuthError) {
         defaultErrorHandler(_error, req, res, next);
       } else {
@@ -260,7 +260,7 @@ export function requireResourceAccess(
           'Authorization _error',
           500,
           'server_error',
-          error instanceof Error ? error.message : 'Unknown _error',
+          error instanceof Error ? _error.message : 'Unknown _error',
         );
         defaultErrorHandler(oauthError, req, res, next);
       }

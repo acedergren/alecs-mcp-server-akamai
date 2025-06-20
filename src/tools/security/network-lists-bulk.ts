@@ -248,7 +248,7 @@ export async function importNetworkListFromCSV(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -334,7 +334,7 @@ export async function exportNetworkListToCSV(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -484,7 +484,7 @@ export async function bulkUpdateNetworkLists(
         });
 
         output += `✅ ${update.uniqueId}: +${validAdd.length} -${validRemove.length}\n`;
-      } catch (error) {
+      } catch (_error) {
         const akamaiError = _error as AkamaiError;
         results.push({
           uniqueId: update.uniqueId,
@@ -519,7 +519,7 @@ export async function bulkUpdateNetworkLists(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -650,7 +650,7 @@ export async function mergeNetworkLists(
             method: 'DELETE',
           });
           output += `✅ Deleted ${sourceList.name}\n`;
-        } catch (error) {
+        } catch (_error) {
           const akamaiError = _error as AkamaiError;
           output += `❌ Failed to delete ${sourceList.name}: ${akamaiError.title}\n`;
         }
@@ -665,7 +665,7 @@ export async function mergeNetworkLists(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [

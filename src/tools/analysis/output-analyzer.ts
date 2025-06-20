@@ -308,7 +308,7 @@ export class TestOutputAnalyzer {
         default:
           return this.parseGenericOutput(output);
       }
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
         error: `Failed to parse ${format} output: ${(error as Error).message}`,
@@ -436,9 +436,9 @@ export class TestOutputAnalyzer {
       const summaryMatch = line.match(/Tests:\s+(\d+)\s+failed,\s+(\d+)\s+passed,\s+(\d+)\s+total/);
       if (summaryMatch) {
         results.summary = {
-          failedTests: parseInt(summaryMatch[1]),
-          passedTests: parseInt(summaryMatch[2]),
-          totalTests: parseInt(summaryMatch[3]),
+          failedTests: parseInt(summaryMatch[1],
+          passedTests: parseInt(summaryMatch[2],
+          totalTests: parseInt(summaryMatch[3],
           skippedTests: 0,
         };
         continue;
@@ -646,7 +646,7 @@ return 'POOR';
     ];
 
     allErrors.forEach((_error) => {
-      const category = this.categorizeError(error.message);
+      const category = this.categorizeError(_error.message);
       const severity = this.assessErrorSeverity(_error, category);
 
       // Update categorized errors
@@ -672,7 +672,7 @@ return 'POOR';
       );
 
       // Identify root causes
-      const rootCause = this.identifyRootCause(error.message, category);
+      const rootCause = this.identifyRootCause(_error.message, category);
       errorAnalysis.rootCauses.set(rootCause, (errorAnalysis.rootCauses.get(rootCause) || 0) + 1);
     });
 
@@ -702,7 +702,7 @@ return 'POOR';
     if (category === 'AUTH_ERROR' || category === 'CONFIG_ERROR') {
 return 'CRITICAL';
 }
-    if (error.message.includes('CRITICAL') || error.message.includes('FATAL')) {
+    if (_error.message.includes('CRITICAL') || _error.message.includes('FATAL')) {
 return 'CRITICAL';
 }
 
@@ -710,7 +710,7 @@ return 'CRITICAL';
     if (category === 'API_ERROR' || category === 'ACTIVATION_ERROR') {
 return 'HIGH';
 }
-    if (error.message.includes('HIGH') || error.message.includes('SEVERE')) {
+    if (_error.message.includes('HIGH') || _error.message.includes('SEVERE')) {
 return 'HIGH';
 }
     if (_error.type === 'suite_error') {
@@ -721,7 +721,7 @@ return 'HIGH';
     if (category === 'VALIDATION_ERROR' || category === 'TIMEOUT_ERROR') {
 return 'MEDIUM';
 }
-    if (error.message.includes('MEDIUM') || error.message.includes('WARNING')) {
+    if (_error.message.includes('MEDIUM') || _error.message.includes('WARNING')) {
 return 'MEDIUM';
 }
 
@@ -853,7 +853,7 @@ return 'MEDIUM';
       runtime: suite.runtime || 0,
       testCount: suite.tests?.length || 0,
       failureCount: suite.tests?.filter((t) => t.status === 'failed').length || 0,
-    }));
+    ));
 
     return {
       slowestSuites: [...suiteStats].sort((a, b) => b.runtime - a.runtime).slice(0, 5),

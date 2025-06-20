@@ -242,7 +242,7 @@ export function withProgress<T>(
       })
       .catch((_error) => {
         spinner.fail(`${message} - Failed`);
-        throw error;
+        throw _error;
       });
   }
 
@@ -281,13 +281,13 @@ return;
     try {
       await processor(item, currentIndex);
       progress.increment(1, _options.message || `Processing item ${currentIndex + 1}`);
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         message: `Error processing item ${currentIndex + 1}`,
         status: 'error',
       });
-      throw error;
+      throw _error;
     }
   }
 

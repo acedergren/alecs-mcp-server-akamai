@@ -83,13 +83,13 @@ export function createOAuthRoutes(): Router {
         availableCustomers: session.availableContexts,
         expiresAt: session.expiresAt,
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('OAuth login failed', { error: _error });
       return _res.status(401).json({
-        error: error instanceof Error ? error.message : 'Authentication failed',
+        error: error instanceof Error ? _error.message : 'Authentication failed',
       });
     }
-  }));
+  ));
 
   /**
    * Refresh token endpoint
@@ -110,13 +110,13 @@ export function createOAuthRoutes(): Router {
         token: newToken,
         expiresIn: newToken.expiresIn,
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Token refresh failed', { error: _error });
       return _res.status(401).json({
-        error: error instanceof Error ? error.message : 'Token refresh failed',
+        error: error instanceof Error ? _error.message : 'Token refresh failed',
       });
     }
-  }));
+  ));
 
   /**
    * Logout endpoint
@@ -136,13 +136,13 @@ export function createOAuthRoutes(): Router {
       return _res.json({
         message: 'Logout successful',
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Logout failed', { error: _error });
       return _res.status(500).json({
-        error: error instanceof Error ? error.message : 'Logout failed',
+        error: error instanceof Error ? _error.message : 'Logout failed',
       });
     }
-  }));
+  ));
 
   /**
    * Get available customers
@@ -162,13 +162,13 @@ export function createOAuthRoutes(): Router {
       return _res.json({
         customers,
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to get customers', { error: _error });
       return _res.status(500).json({
-        error: error instanceof Error ? error.message : 'Failed to get customers',
+        error: error instanceof Error ? _error.message : 'Failed to get customers',
       });
     }
-  }));
+  ));
 
   /**
    * Switch customer context
@@ -200,13 +200,13 @@ export function createOAuthRoutes(): Router {
         currentCustomer: newContext,
         message: 'Customer context switched successfully',
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Customer switch failed', { error: _error });
       return _res.status(403).json({
-        error: error instanceof Error ? error.message : 'Customer switch failed',
+        error: error instanceof Error ? _error.message : 'Customer switch failed',
       });
     }
-  }));
+  ));
 
   /**
    * Admin: Map subject to customer
@@ -238,13 +238,13 @@ export function createOAuthRoutes(): Router {
       return _res.json({
         message: 'Customer mapping created successfully',
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Customer mapping failed', { error: _error });
       return _res.status(403).json({
-        error: error instanceof Error ? error.message : 'Customer mapping failed',
+        error: error instanceof Error ? _error.message : 'Customer mapping failed',
       });
     }
-  }));
+  ));
 
   /**
    * Admin: Create custom role
@@ -272,13 +272,13 @@ export function createOAuthRoutes(): Router {
         message: 'Role created successfully',
         roleId: role.id,
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Role creation failed', { error: _error });
       return _res.status(403).json({
-        error: error instanceof Error ? error.message : 'Role creation failed',
+        error: error instanceof Error ? _error.message : 'Role creation failed',
       });
     }
-  }));
+  ));
 
   /**
    * Admin: Set customer isolation policy
@@ -311,13 +311,13 @@ export function createOAuthRoutes(): Router {
         message: 'Isolation policy set successfully',
         customerId,
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Isolation policy creation failed', { error: _error });
       return _res.status(403).json({
-        error: error instanceof Error ? error.message : 'Isolation policy creation failed',
+        error: error instanceof Error ? _error.message : 'Isolation policy creation failed',
       });
     }
-  }));
+  ));
 
   /**
    * Health check endpoint
@@ -330,7 +330,7 @@ export function createOAuthRoutes(): Router {
   });
 
   // Error handling middleware
-  router.use((error: Error, _req: Request, _res: Response, _next: NextFunction) => {
+  router.use((_error: Error, _req: Request, _res: Response, _next: NextFunction) => {
     logger.error('OAuth endpoint error', {
       path: _req.path,
       method: _req.method,
@@ -339,7 +339,7 @@ export function createOAuthRoutes(): Router {
 
     _res.status(500).json({
       error: 'Internal server error',
-      message: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      message: process.env.NODE_ENV === 'development' ? _error.message : undefined,
     });
   });
 
@@ -371,7 +371,7 @@ export function createSessionMiddleware() {
       };
 
       _next();
-    } catch (error) {
+    } catch (_error) {
       // Invalid session, continue without authentication
       logger.debug('Invalid session', { sessionId: _req.headers['x-session-id'] });
       _next();

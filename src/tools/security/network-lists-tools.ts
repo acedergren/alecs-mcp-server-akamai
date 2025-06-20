@@ -170,7 +170,7 @@ export async function listNetworkLists(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -261,7 +261,7 @@ export async function getNetworkList(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -376,7 +376,7 @@ export async function createNetworkList(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -418,8 +418,8 @@ export async function updateNetworkList(
     // Validate elements if provided
     if (options.addElements || options.replaceElements) {
       const elementsToValidate = [
-        ...(options.addElements || []),
-        ...(options.replaceElements || []),
+        ...(options.addElements || [],
+        ...(options.replaceElements || [],
       ];
 
       const invalidElements: string[] = [];
@@ -524,7 +524,7 @@ export async function updateNetworkList(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -580,7 +580,7 @@ export async function deleteNetworkList(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [

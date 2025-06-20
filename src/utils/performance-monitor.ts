@@ -462,7 +462,7 @@ export class RequestOptimizer {
       batch.forEach((item, index) => {
         item.resolve(results[index]);
       });
-    } catch (error) {
+    } catch (_error) {
       // Reject all promises with the error
       batch.forEach((item) => {
         item.reject(_error);
@@ -544,11 +544,11 @@ export function withPerformanceMonitoring<T extends (...args: any[]) => Promise<
       }
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       globalPerformanceMonitor.endOperation(operationId, {
         errorOccurred: true,
       });
-      throw error;
+      throw _error;
     }
   }) as T;
 }

@@ -191,7 +191,7 @@ return false;
       try {
         const result = await this.exportToDestination(destination);
         results.push(result);
-      } catch (error) {
+      } catch (_error) {
         const result: ExportResult = {
           destination: destination.name,
           success: false,
@@ -264,7 +264,7 @@ return false;
 
       this.emit('exportSuccess', result);
       return result;
-    } catch (error) {
+    } catch (_error) {
       const duration = performance.now() - startTime;
       this.updateStats(destination.name, false, duration, 0);
 
@@ -278,7 +278,7 @@ return false;
       };
 
       this.emit('exportError', result);
-      throw error;
+      throw _error;
     }
   }
 
@@ -295,7 +295,7 @@ return false;
     this.flushInterval = setInterval(async () => {
       try {
         await this.exportAll();
-      } catch (error) {
+      } catch (_error) {
         this.emit('batchExportError', _error);
       }
     }, interval);
@@ -380,9 +380,9 @@ return false;
 
       this.emit('destinationTestSuccess', name);
       return true;
-    } catch (error) {
+    } catch (_error) {
       this.emit('destinationTestFailure', name, _error);
-      throw error;
+      throw _error;
     }
   }
 
@@ -552,7 +552,7 @@ return false;
       target: metric.name,
       datapoints: [[metric.value, metric.timestamp]],
       tags: metric.tags,
-    }));
+    ));
   }
 
   private transformForGeneric(batch: TelemetryBatch, format: string): any {
@@ -658,9 +658,9 @@ return false;
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    } catch (error) {
+    } catch (_error) {
       clearTimeout(timeoutId);
-      throw error;
+      throw _error;
     }
   }
 
@@ -753,7 +753,7 @@ return;
     try {
       await this.exportToDestination(destination);
       this.batches.delete(item.batchId);
-    } catch (error) {
+    } catch (_error) {
       if (item.retryCount < (this.config.maxRetryAttempts || 3)) {
         // Retry with exponential backoff
         setTimeout(

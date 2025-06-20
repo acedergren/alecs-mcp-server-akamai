@@ -70,7 +70,7 @@ export class AkamaiCacheService {
         console.error('[Cache] Valkey error:', err.message);
         this.enabled = false;
       });
-    } catch (error) {
+    } catch (_error) {
       console.error("[Error]:", error);
       this.enabled = false;
     }
@@ -329,7 +329,7 @@ return;
       };
     } catch (_err) {
       console.error('[Cache] Error getting stats:', err);
-      return { enabled: true, error: err instanceof Error ? err.message : String(err) };
+      return { enabled: true, _error: err instanceof Error ? err.message : String(err) };
     }
   }
 

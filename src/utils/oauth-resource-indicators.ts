@@ -194,7 +194,7 @@ export class ResourceIndicatorValidator {
     let uri: ResourceUri;
     try {
       uri = ResourceUri.parse(resource);
-    } catch (error) {
+    } catch (_error) {
       return { error: `Invalid resource URI format: ${resource}` };
     }
 

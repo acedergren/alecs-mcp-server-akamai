@@ -276,7 +276,7 @@ export async function updatePropertyRulesEnhanced(
       validation.errors.slice(0, 5).forEach((_error, index) => {
         text += `${index + 1}. **${_error.type}** [${_error.severity}]\n`;
         text += `   Path: ${_error.path}\n`;
-        text += `   Message: ${error.message}\n`;
+        text += `   Message: ${_error.message}\n`;
         if (_error.fix) {
           text += `   Fix: ${_error.fix}\n`;
         }
@@ -386,7 +386,7 @@ export async function updatePropertyRulesEnhanced(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('update property rules with validation', _error);
   }
 }
@@ -494,7 +494,7 @@ export async function createRuleFromTemplate(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('create rule from template', _error);
   }
 }
@@ -540,7 +540,7 @@ export async function validateRuleTree(
       validation.errors.forEach((_error, index) => {
         text += `${index + 1}. [${_error.severity}] ${_error.type}\n`;
         text += `   Path: ${_error.path}\n`;
-        text += `   Issue: ${error.message}\n`;
+        text += `   Issue: ${_error.message}\n`;
         if (_error.fix) {
           text += `   Fix: ${_error.fix}\n`;
         }
@@ -593,7 +593,7 @@ export async function validateRuleTree(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('validate rule tree', _error);
   }
 }
@@ -641,7 +641,7 @@ export async function mergeRuleTrees(
 
         text += '**Validation Errors:**\n';
         validation.errors.slice(0, 5).forEach((_error, index) => {
-          text += `${index + 1}. ${error.message}\n`;
+          text += `${index + 1}. ${_error.message}\n`;
         });
 
         text += '\n**Note:** The merge completed but resulted in an invalid rule tree. Review and fix validation errors.';
@@ -703,7 +703,7 @@ export async function mergeRuleTrees(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('merge rule trees', _error);
   }
 }
@@ -803,7 +803,7 @@ export async function optimizeRuleTree(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('optimize rule tree', _error);
   }
 }
@@ -881,7 +881,7 @@ export async function listRuleTemplates(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list rule templates', _error);
   }
 }
@@ -1233,7 +1233,7 @@ function processTemplate(template: any, variables: Record<string, any>): any {
 
       // Direct variable replacement
       return evaluateExpression(trimmed, variables);
-    } catch (error) {
+    } catch (_error) {
       logger.warn(`Failed to process template expression: ${expression}`);
       return match;
     }
@@ -1329,7 +1329,7 @@ function mergeBehaviors(
   options: RuleMergeOptions,
 ): void {
   const targetBehaviorMap = new Map(
-    targetBehaviors.map((b, index) => [b.name, { behavior: b, index }]),
+    targetBehaviors.map((b, index) => [b.name, { behavior: b, index }],
   );
 
   sourceBehaviors.forEach((sourceBehavior) => {
@@ -1742,22 +1742,22 @@ function applySecurityOptimization(rules: any, _optimization: RuleOptimizationSu
 /**
  * Format error responses
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
   if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
-    if (error.message.includes('401') || error.message.includes('credentials')) {
+    if (_error.message.includes('401') || _error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials for the customer section.';
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
       solution = '**Solution:** Your API credentials may lack the necessary permissions.';
-    } else if (error.message.includes('404') || error.message.includes('not found')) {
+    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
       solution = '**Solution:** The requested resource was not found. Verify the ID is correct.';
-    } else if (error.message.includes('validation')) {
+    } else if (_error.message.includes('validation')) {
       solution = '**Solution:** Fix validation errors in the rule tree before proceeding.';
     }
   } else {

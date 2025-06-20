@@ -144,7 +144,7 @@ export async function discoverHostnamesIntelligent(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(_error, 'discovering hostnames intelligently');
   }
 }
@@ -223,7 +223,7 @@ export async function analyzeHostnameConflicts(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(_error, 'analyzing hostname conflicts');
   }
 }
@@ -273,7 +273,7 @@ export async function analyzeWildcardCoverage(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(_error, 'analyzing wildcard coverage');
   }
 }
@@ -324,7 +324,7 @@ export async function identifyOwnershipPatterns(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(_error, 'identifying ownership patterns');
   }
 }
@@ -363,13 +363,13 @@ params.append('groupId', args.groupId);
           ...property,
           hostnames: hostnameResponse.hostnames?.items || [],
         };
-      } catch (error) {
+      } catch (_error) {
         return {
           ...property,
           hostnames: [],
         };
       }
-    }),
+    },
   );
 
   return propertiesWithHostnames;

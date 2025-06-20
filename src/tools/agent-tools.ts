@@ -101,9 +101,9 @@ export async function provisionCompleteProperty(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -134,9 +134,9 @@ export async function clonePropertyVersion(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -167,9 +167,9 @@ export async function applyPropertyTemplate(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -203,9 +203,9 @@ export async function provisionAndDeployCertificate(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -229,9 +229,9 @@ export async function automatedDNSValidation(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -254,9 +254,9 @@ export async function processCertificateRenewal(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -287,9 +287,9 @@ export async function importZoneFromCloudflare(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -320,9 +320,9 @@ export async function bulkDNSMigration(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -354,9 +354,9 @@ export async function migrateWebsite(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -385,8 +385,8 @@ export async function provisionSecureWebsite(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }

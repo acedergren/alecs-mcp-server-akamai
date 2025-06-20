@@ -117,7 +117,7 @@ export async function activateNetworkList(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -177,7 +177,7 @@ export async function getNetworkListActivationStatus(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -264,7 +264,7 @@ export async function listNetworkListActivations(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -353,7 +353,7 @@ export async function deactivateNetworkList(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [
@@ -420,7 +420,7 @@ export async function bulkActivateNetworkLists(
         });
 
         output += `✅ ${activation.uniqueId} → ${activation.network} (${activationResult.activationId})\n`;
-      } catch (error) {
+      } catch (_error) {
         const akamaiError = _error as AkamaiError;
         results.push({
           uniqueId: activation.uniqueId,
@@ -452,7 +452,7 @@ export async function bulkActivateNetworkLists(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     const akamaiError = _error as AkamaiError;
     return {
       content: [

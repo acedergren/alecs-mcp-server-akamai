@@ -277,7 +277,7 @@ export async function universalSearchHandler(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(_error, 'universal search');
   }
 }

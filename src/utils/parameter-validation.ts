@@ -78,28 +78,28 @@ export const NetworkSchemas = {
 // Common enums
 export const AkamaiEnums = {
   network: z.enum(['STAGING', 'PRODUCTION'], {
-    errorMap: () => ({ message: 'Network must be STAGING or PRODUCTION' }),
-  }),
+    errorMap: () => ({ message: 'Network must be STAGING or PRODUCTION' },
+  },
 
   dnsRecordType: z.enum(['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'NS', 'SRV', 'CAA', 'PTR'], {
-    errorMap: () => ({ message: 'Invalid DNS record type' }),
-  }),
+    errorMap: () => ({ message: 'Invalid DNS record type' },
+  },
 
   zoneType: z.enum(['PRIMARY', 'SECONDARY', 'ALIAS'], {
-    errorMap: () => ({ message: 'Zone type must be PRIMARY, SECONDARY, or ALIAS' }),
-  }),
+    errorMap: () => ({ message: 'Zone type must be PRIMARY, SECONDARY, or ALIAS' },
+  },
 
   certificateType: z.enum(['san', 'single', 'wildcard'], {
-    errorMap: () => ({ message: 'Certificate type must be san, single, or wildcard' }),
-  }),
+    errorMap: () => ({ message: 'Certificate type must be san, single, or wildcard' },
+  },
 
   validationType: z.enum(['dv', 'ov', 'ev', 'third-party'], {
-    errorMap: () => ({ message: 'Validation type must be dv, ov, ev, or third-party' }),
-  }),
+    errorMap: () => ({ message: 'Validation type must be dv, ov, ev, or third-party' },
+  },
 
   networkListType: z.enum(['IP', 'GEO', 'ASN'], {
-    errorMap: () => ({ message: 'Network list type must be IP, GEO, or ASN' }),
-  }),
+    errorMap: () => ({ message: 'Network list type must be IP, GEO, or ASN' },
+  },
 };
 
 // Numeric constraints
@@ -141,14 +141,14 @@ export const PropertyManagerSchemas = {
     contractId: AkamaiIdSchemas.contractId.optional(),
     groupId: AkamaiIdSchemas.groupId.optional(),
     limit: NumericConstraints.pageSize.optional(),
-  }),
+  },
 
   getProperty: z.object({
     customer: z.string().optional(),
     propertyId: AkamaiIdSchemas.propertyId,
     contractId: AkamaiIdSchemas.contractId.optional(),
     groupId: AkamaiIdSchemas.groupId.optional(),
-  }),
+  },
 
   createProperty: z.object({
     customer: z.string().optional(),
@@ -165,7 +165,7 @@ export const PropertyManagerSchemas = {
       .regex(/^v\d{4}-\d{2}-\d{2}$/, 'Rule format must be in format vYYYY-MM-DD')
       .optional()
       .default('v2023-10-30'),
-  }),
+  },
 
   activateProperty: z
     .object({
@@ -209,7 +209,7 @@ export const DNSSchemas = {
     order: z.enum(['ASC', 'DESC']).optional(),
     limit: NumericConstraints.pageSize.optional(),
     offset: z.number().int().min(0).optional(),
-  }),
+  },
 
   createZone: z
     .object({
@@ -237,7 +237,7 @@ export const DNSSchemas = {
     .refine((data) => data.type !== 'ALIAS' || data.target, {
       message: 'Alias zones require a target',
       path: ['target'],
-    }),
+    },
 
   upsertRecord: z.object({
     customer: z.string().optional(),
@@ -248,7 +248,7 @@ export const DNSSchemas = {
     rdata: z
       .array(z.string().min(1, 'Record data cannot be empty'))
       .min(1, 'At least one record data value is required'),
-  }),
+  },
 };
 
 // Certificate specific schemas
@@ -270,7 +270,7 @@ export const CertificateSchemas = {
       country: z.string().length(2, 'Country must be 2-letter code'),
       organizationName: z.string().min(1),
       title: z.string().optional(),
-    }),
+    },
     techContact: z.object({
       firstName: z.string().min(1),
       lastName: z.string().min(1),
@@ -283,7 +283,7 @@ export const CertificateSchemas = {
       country: z.string().length(2, 'Country must be 2-letter code'),
       organizationName: z.string().min(1),
       title: z.string().optional(),
-    }),
+    },
     org: z.object({
       name: z.string().min(1),
       addressLineOne: z.string().min(1),
@@ -292,7 +292,7 @@ export const CertificateSchemas = {
       postalCode: z.string().min(1),
       country: z.string().length(2, 'Country must be 2-letter code'),
       phone: z.string().min(1),
-    }),
+    },
     validationType: AkamaiEnums.validationType.optional().default('dv'),
     certificateType: AkamaiEnums.certificateType.optional().default('san'),
     networkConfiguration: z
@@ -305,7 +305,7 @@ export const CertificateSchemas = {
         quicEnabled: z.boolean().optional().default(true),
       })
       .optional(),
-  }),
+  },
 };
 
 // Fast Purge schemas
@@ -322,7 +322,7 @@ export const FastPurgeSchemas = {
     notifyEmails: z.array(NetworkSchemas.email).optional(),
     waitForCompletion: z.boolean().optional().default(false),
     useQueue: z.boolean().optional().default(true),
-  }),
+  },
 
   purgeByCpcode: z.object({
     customer: z.string().optional(),
@@ -336,7 +336,7 @@ export const FastPurgeSchemas = {
     notifyEmails: z.array(NetworkSchemas.email).optional(),
     waitForCompletion: z.boolean().optional().default(false),
     confirmed: z.boolean().optional().default(false),
-  }),
+  },
 };
 
 // Network Lists schemas
@@ -347,7 +347,7 @@ export const NetworkListSchemas = {
     type: AkamaiEnums.networkListType,
     description: z.string().max(2048).optional(),
     elements: z.array(z.string()).optional(),
-  }),
+  },
 };
 
 /**
@@ -356,14 +356,14 @@ export const NetworkListSchemas = {
 export function validateParameters<T>(schema: z.ZodSchema<T>, params: unknown): T {
   try {
     return schema.parse(params);
-  } catch (error) {
+  } catch (_error) {
     if (_error instanceof z.ZodError) {
       const errorMessages = _error.errors
         .map((err) => `${err.path.join('.')}: ${err.message}`)
         .join(', ');
       throw new Error(`Parameter validation failed: ${errorMessages}`);
     }
-    throw error;
+    throw _error;
   }
 }
 

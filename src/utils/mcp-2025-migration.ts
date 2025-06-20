@@ -39,7 +39,7 @@ export function zodToJsonSchema(schema: ZodSchema): Record<string, unknown> {
     return {
       type: 'object',
       properties,
-      ...(required.length > 0 && { required }),
+      ...(required.length > 0 && { required },
       additionalProperties: false,
     };
   }
@@ -129,7 +129,7 @@ export function wrapToolHandler<T>(
         oldResponse.error,
         meta,
       );
-    } catch (error) {
+    } catch (_error) {
       const meta: McpResponseMeta = {
         timestamp: new Date().toISOString(),
         duration: Date.now() - startTime,
@@ -141,7 +141,7 @@ export function wrapToolHandler<T>(
       return createMcp2025Response(
         false,
         undefined as any as T,
-        error instanceof Error ? error.message : 'Unknown error',
+        error instanceof Error ? _error.message : 'Unknown error',
         meta,
       );
     }
@@ -166,7 +166,7 @@ export function migrateTools(tools: ToolMigrationConfig[]): Array<{
   return tools.map(tool => ({
     definition: createMcp2025Tool(tool.name, tool.description, tool.zodSchema),
     handler: wrapToolHandler(tool.handler, tool.name, tool.version),
-  }));
+  ));
 }
 
 /**

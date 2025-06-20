@@ -52,7 +52,7 @@ export class JsonRpcMiddleware {
           result,
           request._meta, // Preserve metadata
         );
-      } catch (error) {
+      } catch (_error) {
         // Handle errors and create proper _error response
         return this.createErrorResponse(request.id ?? null, _error, request._meta);
       }
@@ -70,21 +70,21 @@ export class JsonRpcMiddleware {
     // Handle different error types
     if (error instanceof Error) {
       // Check for specific error types that map to JSON-RPC error codes
-      if (error.message.includes('not found') || error.message.includes('unknown method')) {
+      if (_error.message.includes('not found') || _error.message.includes('unknown method')) {
         return createJsonRpcError(
           id,
           JsonRpcErrorCode.MethodNotFound,
-          error.message,
+          _error.message,
           undefined,
           meta,
         );
       }
 
-      if (error.message.includes('invalid') || error.message.includes('validation')) {
+      if (_error.message.includes('invalid') || _error.message.includes('validation')) {
         return createJsonRpcError(
           id,
           JsonRpcErrorCode.InvalidParams,
-          error.message,
+          _error.message,
           undefined,
           meta,
         );
@@ -94,7 +94,7 @@ export class JsonRpcMiddleware {
       return createJsonRpcError(
         id,
         JsonRpcErrorCode.InternalError,
-        error.message,
+        _error.message,
         _error.stack,
         meta,
       );
@@ -221,14 +221,14 @@ export class BatchRequestHandler {
         if ('id' in request && request.id !== undefined) {
           responses.push(response);
         }
-      } catch (error) {
+      } catch (_error) {
         // Even errors should be included if the request had an ID
         if ('id' in request && request.id !== undefined) {
           responses.push(
             createJsonRpcError(
               request.id,
               JsonRpcErrorCode.InternalError,
-              error instanceof Error ? error.message : 'Unknown _error',
+              error instanceof Error ? _error.message : 'Unknown _error',
             ),
           );
         }

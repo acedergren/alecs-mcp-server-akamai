@@ -178,7 +178,7 @@ async function launchModular() {
     name: module.name,
     path: path.join(__dirname, 'servers', module.file),
     displayName: module.name,
-  }));
+  ));
 
   for (const module of selectedModules) {
     launchModuleServer(module);
@@ -267,7 +267,7 @@ function launchServer(serverFile: string, name: string) {
   });
 
   child.on('error', (_error) => {
-    console.error(`❌ Failed to start server: ${error.message}`);
+    console.error(`❌ Failed to start server: ${_error.message}`);
     process.exit(1);
   });
 

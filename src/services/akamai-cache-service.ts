@@ -166,7 +166,7 @@ export class AkamaiCacheService {
           } catch (_err) {
             console.error(`[Cache] Error processing property ${property.propertyId}:`, err);
           }
-        }),
+        },
       );
     }
 

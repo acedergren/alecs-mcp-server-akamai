@@ -158,21 +158,21 @@ export class TrafficAnalyticsService {
           hostname: item.hostname,
           bandwidth: item.bandwidth,
           percentage: (item.bandwidth / totalBandwidth) * 100,
-        }));
+        ));
 
       // Process region breakdown
       const regionData = regionBreakdown.map((item) => ({
         region: item.region,
         bandwidth: item.bandwidth,
         percentage: (item.bandwidth / totalBandwidth) * 100,
-      }));
+      ));
 
       // Process content type breakdown
       const contentTypeData = contentTypeBreakdown.map((item) => ({
         contentType: item.contentType,
         bandwidth: item.bandwidth,
         percentage: (item.bandwidth / totalBandwidth) * 100,
-      }));
+      ));
 
       // Generate recommendations
       const recommendations = this.generateBandwidthRecommendations({
@@ -203,11 +203,11 @@ export class TrafficAnalyticsService {
       });
 
       return analysis;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to analyze bandwidth usage', { _error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to analyze bandwidth usage: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to analyze bandwidth usage: ${error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -289,11 +289,11 @@ export class TrafficAnalyticsService {
         anomalies,
         forecasts,
       };
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to analyze traffic trends', { _error, period });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to analyze traffic trends: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to analyze traffic trends: ${error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -331,14 +331,14 @@ export class TrafficAnalyticsService {
         reason: item.reason,
         count: item.count,
         percentage: (item.count / cacheMetrics.misses) * 100,
-      }));
+      ));
 
       // Process content type cache performance
       const cacheableContent = contentTypeCache.map((item) => ({
         contentType: item.contentType,
         hitRatio: (item.hits / (item.hits + item.misses)) * 100,
         volume: item.hits + item.misses,
-      }));
+      ));
 
       // Generate optimization opportunities
       let optimizationOpportunities = [];
@@ -367,11 +367,11 @@ export class TrafficAnalyticsService {
       });
 
       return analysis;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to analyze cache performance', { _error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to analyze cache performance: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to analyze cache performance: ${error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -409,21 +409,21 @@ export class TrafficAnalyticsService {
         method: item.method,
         count: item.count,
         percentage: (item.count / totalRequests) * 100,
-      }));
+      ));
 
       // Process status codes
       const statusCodeDistribution = statusCodeData.map((item) => ({
         statusCode: item.statusCode,
         count: item.count,
         percentage: (item.count / totalRequests) * 100,
-      }));
+      ));
 
       // Process top endpoints
       const topEndpoints = endpointData.map((item) => ({
         endpoint: item.endpoint,
         requests: item.requests,
         percentage: (item.requests / totalRequests) * 100,
-      }));
+      ));
 
       // Process bot traffic
       const botTraffic = {
@@ -451,11 +451,11 @@ export class TrafficAnalyticsService {
       });
 
       return analysis;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to analyze request patterns', { _error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to analyze request patterns: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to analyze request patterns: ${error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);

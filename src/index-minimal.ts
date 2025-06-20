@@ -118,7 +118,7 @@ class MinimalALECSServer {
           },
         },
       ],
-    }));
+    ));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> => {
       const { name, arguments: args } = request.params;
@@ -148,7 +148,7 @@ class MinimalALECSServer {
           default:
             throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
         }
-      } catch (error) {
+      } catch (_error) {
         console.error("[Error]:", error);
 
         if (_error instanceof z.ZodError) {
@@ -159,12 +159,12 @@ class MinimalALECSServer {
         }
 
         if (_error instanceof McpError) {
-          throw error;
+          throw _error;
         }
 
         throw new McpError(
           ErrorCode.InternalError,
-          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
+          `Tool execution failed: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
       }
     });
@@ -176,7 +176,7 @@ class MinimalALECSServer {
     const transport = new StdioServerTransport();
 
     // Add error handling for transport
-    transport.onerror = (error: Error) => {
+    transport.onerror = (_error: Error) => {
       console.error("[Error]:", error);
     };
 
@@ -196,7 +196,7 @@ async function main() {
   try {
     const server = new MinimalALECSServer();
     await server.start();
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
     process.exit(1);
   }

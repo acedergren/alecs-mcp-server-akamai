@@ -56,13 +56,13 @@ export class AkamaiOrchestrator {
       this.cpsAgent = await createCPSCertificateAgent(this.options.customer, this.dnsAgent);
 
       progress.finish('All agents initialized');
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: `Initialization failed: ${error instanceof Error ? error.message : String(error)}`,
+        message: `Initialization failed: ${_error instanceof Error ? _error.message : String(_error)}`,
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -94,7 +94,7 @@ export class AkamaiOrchestrator {
       'Add hostnames to property',
       'Activate to staging',
       'Run validation tests',
-      ...(options.activateProduction ? ['Activate to production'] : []),
+      ...(options.activateProduction ? ['Activate to production'] : [],
       'Generate migration report',
     ];
 
@@ -166,13 +166,13 @@ export class AkamaiOrchestrator {
       console.log('  2. Test thoroughly on staging');
       console.log('  3. Activate to production when ready');
       console.log('  4. Monitor traffic and performance');
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: `Migration failed: ${error instanceof Error ? error.message : String(error)}`,
+        message: `Migration failed: ${_error instanceof Error ? _error.message : String(_error)}`,
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -246,13 +246,13 @@ export class AkamaiOrchestrator {
       }
 
       progress.finish('Secure website provisioned successfully!');
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -304,13 +304,13 @@ export class AkamaiOrchestrator {
                 autoActivate: true,
               });
               results.success++;
-            } catch (error) {
+            } catch (_error) {
               results.failed++;
               results.errors.push(
-                `${zone.source}: ${error instanceof Error ? error.message : String(error)}`,
+                `${zone.source}: ${_error instanceof Error ? _error.message : String(_error)}`,
               );
             }
-          }),
+          },
         );
       }
 
@@ -332,13 +332,13 @@ export class AkamaiOrchestrator {
         console.log(`\n${icons.info} ${format.bold('Nameserver Update Required')}`);
         console.log('Update nameservers for all migrated zones at your domain registrar');
       }
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 

@@ -297,7 +297,7 @@ export const BulkActivatePropertiesSchema = BaseToolSchema.extend({
   activations: z.array(z.object({
     propertyId: z.string(),
     version: z.number(),
-    network: z.enum(['staging', 'production']),
+    network: z.enum(['staging', 'production'],
   })).describe('Properties to activate'),
   notificationEmails: z.array(z.string()).optional().describe('Notification emails'),
 });

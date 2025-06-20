@@ -295,7 +295,7 @@ export class IntelligentBugAnalyzer {
   private analysisHistory: AnalysisHistoryItem[];
   private benchmarks: Benchmarks;
 
-  constructor(_options: AnalyzerOptions = {}) {
+  constructor(options: AnalyzerOptions = {}) {
     this.options = {
       enableCxAnalysis: options.enableCxAnalysis !== false,
       enableStrategyOptimization: options.enableStrategyOptimization !== false,
@@ -328,7 +328,7 @@ export class IntelligentBugAnalyzer {
       // Phase 1: Parse and analyze test output
       console.log(`[${analysisId}] Starting test output analysis...`);
       const testResults = this.outputAnalyzer.parseTestOutput(testOutput, format);
-      const _testAnalysis = this.outputAnalyzer.analyzeResults(testResults);
+      const testAnalysis = this.outputAnalyzer.analyzeResults(testResults);
 
       // Phase 2: Generate TODO list
       console.log(`[${analysisId}] Generating TODO list...`);
@@ -462,8 +462,6 @@ export class IntelligentBugAnalyzer {
     const testOverview = testAnalysis.overview;
     const criticalIssues =
       todoList.items?.filter((item) => item.priority === 'CRITICAL').length || 0;
-    const _quickWins = todoList.quickWins?.length || 0;
-    const _estimatedHours = todoList.metadata?.estimatedTotalHours || 0;
 
     const summary: ExecutiveSummary = {
       situation: this.generateSituationSummary(testOverview, criticalIssues),
@@ -569,7 +567,7 @@ export class IntelligentBugAnalyzer {
     customerImpact: CustomerImpact | null;
     fixStrategy: FixStrategy | null;
   }): Recommendations {
-    const { _testAnalysis, todoList, customerImpact, fixStrategy } = data;
+    const { todoList, customerImpact, fixStrategy } = data;
 
     const recommendations: Recommendations = {
       immediate: [],
@@ -591,8 +589,8 @@ export class IntelligentBugAnalyzer {
     });
 
     // Quick wins
-    const _quickWins = todoList.quickWins || [];
-    _quickWins.slice(0, 3).forEach((item) => {
+    const quickWins = todoList.quickWins || [];
+    quickWins.slice(0, 3).forEach((item) => {
       recommendations.immediate.push({
         action: item.title,
         reason: 'Quick win for immediate impact',
@@ -641,7 +639,7 @@ export class IntelligentBugAnalyzer {
   /**
    * Calculate health score
    */
-  private calculateHealthScore(testResults: TestResults, _testAnalysis: TestAnalysis): HealthScore {
+  private calculateHealthScore(testResults: TestResults, testAnalysis: TestAnalysis): HealthScore {
     const successRate = testAnalysis.overview?.successRate || 0;
     const criticalFailures =
       testAnalysis.errorAnalysis?.categorizedErrors?.get('AUTH_ERROR')?.length || 0;
@@ -668,34 +666,20 @@ export class IntelligentBugAnalyzer {
    * Get health grade
    */
   private getHealthGrade(score: number): string {
-    if (score >= 95) {
-return 'A+';
-}
-    if (score >= 90) {
-return 'A';
-}
-    if (score >= 85) {
-return 'B+';
-}
-    if (score >= 80) {
-return 'B';
-}
-    if (score >= 75) {
-return 'C+';
-}
-    if (score >= 70) {
-return 'C';
-}
-    if (score >= 60) {
-return 'D';
-}
+    if (score >= 95) return 'A+';
+    if (score >= 90) return 'A';
+    if (score >= 85) return 'B+';
+    if (score >= 80) return 'B';
+    if (score >= 75) return 'C+';
+    if (score >= 70) return 'C';
+    if (score >= 60) return 'D';
     return 'F';
   }
 
   /**
    * Generate exports in various formats
    */
-  private generateExports(_report: AnalysisReport, format: string): Record<string, ExportItem> {
+  private generateExports(report: AnalysisReport, format: string): Record<string, ExportItem> {
     const exports: Record<string, ExportItem> = {};
 
     // JSON export (always available)
@@ -740,7 +724,7 @@ return 'D';
   /**
    * Generate Markdown report
    */
-  private generateMarkdownReport(_report: AnalysisReport): string {
+  private generateMarkdownReport(report: AnalysisReport): string {
     const { metadata, executive_summary, test_analysis, todo_management } = report;
 
     let markdown = '# Bug Analysis Report\n\n';
@@ -812,7 +796,7 @@ return 'D';
   /**
    * Generate insights from analysis
    */
-  private generateInsights(_report: AnalysisReport): any {
+  private generateInsights(report: AnalysisReport): any {
     const insights = {
       patterns: this.identifyPatterns(report),
       trends: this.identifyTrends(report),
@@ -827,7 +811,7 @@ return 'D';
   /**
    * Store analysis for historical tracking
    */
-  private storeAnalysis(_report: AnalysisReport): void {
+  private storeAnalysis(report: AnalysisReport): void {
     this.analysisHistory.push({
       id: report.metadata.analysisId,
       timestamp: report.metadata.timestamp,
@@ -849,7 +833,7 @@ return 'D';
     return `analysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  private sanitizeOptions(_options: Record<string, any>): Partial<AnalyzerOptions> {
+  private sanitizeOptions(options: Record<string, any>): Partial<AnalyzerOptions> {
     return {
       enableCxAnalysis: options.enableCxAnalysis,
       enableStrategyOptimization: options.enableStrategyOptimization,
@@ -876,15 +860,9 @@ return 'D';
 
   private estimateInitiativeTimeline(initiative: { estimatedEffort: number }): string {
     const hours = initiative.estimatedEffort || 0;
-    if (hours < 40) {
-return '1-2 weeks';
-}
-    if (hours < 160) {
-return '3-4 weeks';
-}
-    if (hours < 320) {
-return '6-8 weeks';
-}
+    if (hours < 40) return '1-2 weeks';
+    if (hours < 160) return '3-4 weeks';
+    if (hours < 320) return '6-8 weeks';
     return '2-3 months';
   }
 
@@ -894,22 +872,14 @@ return '6-8 weeks';
       (testResults.testSuites?.length || 1);
 
     // Score based on average test runtime (lower is better)
-    if (avgRuntime < 1000) {
-return 100;
-}
-    if (avgRuntime < 5000) {
-return 90;
-}
-    if (avgRuntime < 10000) {
-return 80;
-}
-    if (avgRuntime < 30000) {
-return 70;
-}
+    if (avgRuntime < 1000) return 100;
+    if (avgRuntime < 5000) return 90;
+    if (avgRuntime < 10000) return 80;
+    if (avgRuntime < 30000) return 70;
     return 60;
   }
 
-  private calculateStabilityScore(_testAnalysis: TestAnalysis): number {
+  private calculateStabilityScore(testAnalysis: TestAnalysis): number {
     const repeatingFailures = testAnalysis.patternAnalysis?.repeatingFailures?.length || 0;
     const cascadingFailures = testAnalysis.patternAnalysis?.cascadingFailures?.length || 0;
 
@@ -924,7 +894,7 @@ return 70;
     fixStrategy: FixStrategy | null;
   }): number {
     // Simplified success probability calculation
-    const { _testAnalysis, todoList, customerImpact, _fixStrategy } = data;
+    const { todoList, customerImpact } = data;
 
     let probability = 85; // Base probability
 
@@ -935,18 +905,18 @@ return 70;
 
     // Adjust based on customer impact
     if (customerImpact?.overview?.riskLevel === 'CRITICAL') {
-probability -= 15;
-} else if (customerImpact?.overview?.riskLevel === 'HIGH') {
-probability -= 10;
-}
+      probability -= 15;
+    } else if (customerImpact?.overview?.riskLevel === 'HIGH') {
+      probability -= 10;
+    }
 
     // Adjust based on total effort
     const totalHours = todoList.metadata?.estimatedTotalHours || 0;
     if (totalHours > 500) {
-probability -= 10;
-} else if (totalHours > 200) {
-probability -= 5;
-}
+      probability -= 10;
+    } else if (totalHours > 200) {
+      probability -= 5;
+    }
 
     return Math.max(10, Math.min(95, probability));
   }
@@ -1039,10 +1009,10 @@ probability -= 5;
  * Custom error class for analysis failures
  */
 export class AnalysisError extends Error {
-  public _context: AnalysisErrorContext;
+  public context: AnalysisErrorContext;
   public timestamp: string;
 
-  constructor(message: string, _context: Partial<AnalysisErrorContext> = {}) {
+  constructor(message: string, context: Partial<AnalysisErrorContext> = {}) {
     super(message);
     this.name = 'AnalysisError';
     this.context = {

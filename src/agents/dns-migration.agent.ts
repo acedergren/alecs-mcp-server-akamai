@@ -83,9 +83,9 @@ export class DNSMigrationAgent {
       });
 
       spinner.succeed('DNS Migration Agent initialized');
-    } catch (error) {
+    } catch (_error) {
       spinner.fail('Failed to initialize DNS agent');
-      throw error;
+      throw _error;
     } finally {
       this.multiProgress.remove('init');
     }
@@ -173,14 +173,14 @@ export class DNSMigrationAgent {
       }
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      result.errors.push(error instanceof Error ? error.message : String(error));
-      throw error;
+      result.errors.push(_error instanceof Error ? _error.message : String(_error));
+      throw _error;
     }
   }
 
@@ -225,9 +225,9 @@ export class DNSMigrationAgent {
       });
 
       return records;
-    } catch (error) {
-      spinner.fail(`Parse failed: ${error instanceof Error ? error.message : String(error)}`);
-      throw error;
+    } catch (_error) {
+      spinner.fail(`Parse failed: ${_error instanceof Error ? _error.message : String(_error)}`);
+      throw _error;
     }
   }
 
@@ -309,13 +309,13 @@ export class DNSMigrationAgent {
       progress.finish(options.dryRun ? 'Dry run complete' : 'Import complete');
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -365,13 +365,13 @@ export class DNSMigrationAgent {
         valid: warnings.length === 0,
         warnings,
       };
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -487,11 +487,11 @@ export class DNSMigrationAgent {
       console.log(format.dim('\n═'.repeat(60)));
 
       return migration;
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
-        `Failed to generate instructions: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to generate instructions: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
@@ -507,19 +507,20 @@ export class DNSMigrationAgent {
           path: `/config-dns/v2/zones/${zoneName}/recordsets`,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+          
             name: record.name,
             type: record.type,
             ttl: record.ttl,
             rdata: record.rdata,
-          }),
+          },
         });
 
         spinner.succeed(`Created ${format.cyan(record.name)} ${format.green(record.type)}`);
-      } catch (error) {
+      } catch (_error) {
         spinner.fail(
-          `Failed to create record: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to create record: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
-        throw error;
+        throw _error;
       }
     });
   }
@@ -535,17 +536,18 @@ export class DNSMigrationAgent {
           path: `/config-dns/v2/zones/${zoneName}/recordsets/${record.name}/${record.type}`,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+          
             ttl: record.ttl,
             rdata: record.rdata,
-          }),
+          },
         });
 
         spinner.succeed(`Updated ${format.cyan(record.name)} ${format.green(record.type)}`);
-      } catch (error) {
+      } catch (_error) {
         spinner.fail(
-          `Failed to update record: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to update record: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
-        throw error;
+        throw _error;
       }
     });
   }
@@ -562,11 +564,11 @@ export class DNSMigrationAgent {
         });
 
         spinner.succeed(`Deleted ${format.cyan(name)} ${format.green(type)}`);
-      } catch (error) {
+      } catch (_error) {
         spinner.fail(
-          `Failed to delete record: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to delete record: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
-        throw error;
+        throw _error;
       }
     });
   }
@@ -603,11 +605,11 @@ params.append('page_size', options.limit.toString());
       spinner.succeed(`Found ${records.length} records`);
 
       return records;
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
-        `Failed to list records: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to list records: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
@@ -669,13 +671,13 @@ params.append('page_size', options.limit.toString());
       });
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -690,7 +692,8 @@ params.append('page_size', options.limit.toString());
         method: 'POST',
         path: `/config-dns/v2/zones/${zoneName}/changelists`,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ comment: 'Automated change' }),
+        body: JSON.stringify({
+           comment: "Automated change" }),
       });
 
       const location = response.location || response.headers?.location || '';
@@ -710,7 +713,7 @@ params.append('page_size', options.limit.toString());
 
       this.changeListCache.delete(zoneName);
       return result;
-    } catch (error) {
+    } catch (_error) {
       // Discard change list on _error
       if (this.changeListCache.has(zoneName)) {
         await this.auth._request({
@@ -719,7 +722,7 @@ params.append('page_size', options.limit.toString());
         });
         this.changeListCache.delete(zoneName);
       }
-      throw error;
+      throw _error;
     }
   }
 
@@ -730,14 +733,15 @@ params.append('page_size', options.limit.toString());
         path: '/config-dns/v2/zones',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          
           zone: zoneName,
           type,
           comment: 'Created by DNS Migration Agent',
-        }),
+        },
       });
-    } catch (error) {
-      if (!(error instanceof Error && error.message.includes('already exists'))) {
-        throw error;
+    } catch (_error) {
+      if (!(_error instanceof Error && _error.message.includes('already exists'))) {
+        throw _error;
       }
     }
   }
@@ -767,7 +771,7 @@ params.append('page_size', options.limit.toString());
       ttl: r.ttl,
       rdata: Array.isArray(r.rdata) ? r.rdata : [r.rdata],
       active: true,
-    }));
+    ));
   }
 
   private async bulkImportRecords(
@@ -781,10 +785,10 @@ params.append('page_size', options.limit.toString());
       try {
         await this.createRecord(zoneName, records[i]);
         result.success++;
-      } catch (error) {
+      } catch (_error) {
         result.failed++;
         result.errors.push(
-          `${records[i].name} ${records[i].type}: ${error instanceof Error ? error.message : String(error)}`,
+          `${records[i].name} ${records[i].type}: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
       }
       progressCallback(i + 1, records.length);
@@ -917,10 +921,10 @@ continue;
             body: JSON.stringify(record),
           });
           result.success++;
-        } catch (error) {
+        } catch (_error) {
           result.failed++;
           result.errors.push(
-            `${record.name} ${record.type}: ${error instanceof Error ? error.message : String(error)}`,
+            `${record.name} ${record.type}: ${_error instanceof Error ? _error.message : String(_error)}`,
           );
         }
       }
@@ -942,7 +946,7 @@ continue;
       ttl: r.ttl === 1 ? 300 : r.ttl, // CF uses 1 for automatic
       rdata: [r.content],
       active: true,
-    }));
+    ));
   }
 
   // Complete zone migration orchestration
@@ -1007,10 +1011,10 @@ continue;
 
       console.log(`\n${format.bold('Migration Complete!')}`);
       console.log(`${icons.success} Successfully migrated ${importResult.recordsImported} records`);
-    } catch (error) {
+    } catch (_error) {
       console.error(`\n${icons.error} ${format.red('Migration failed:')}`);
-      console.error(format.red(error instanceof Error ? error.message : String(error)));
-      throw error;
+      console.error(format.red(_error instanceof Error ? _error.message : String(_error)));
+      throw _error;
     }
   }
 
@@ -1025,11 +1029,11 @@ continue;
       });
 
       spinner.succeed('Zone activated');
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
-        `Failed to activate zone: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to activate zone: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 }

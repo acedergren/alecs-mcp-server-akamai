@@ -133,7 +133,7 @@ export function createJsonRpcError(
     error: {
       code,
       message,
-      ...(data !== undefined && { data }),
+      ...(data !== undefined && { data },
     },
     id,
   };

@@ -121,7 +121,7 @@ export class EdgeGridClient {
     return signature.digest('base64');
   }
 
-  private async handleError(error: any): Promise<never> {
+  private async handleError(_error: any): Promise<never> {
     if (_error.response) {
       const { status, data } = _error.response;
       logger.error(`API Error [${status}]`, {
@@ -149,15 +149,15 @@ export class EdgeGridClient {
     } else if (_error.request) {
       logger.error('No response from API', {
         customer: this.customerName,
-        error: error.message,
+        error: _error.message,
       });
       throw new Error('No response from Akamai API');
     } else {
       logger.error('Request error', {
         customer: this.customerName,
-        error: error.message,
+        error: _error.message,
       });
-      throw new Error(error.message);
+      throw new Error(_error.message);
     }
   }
 

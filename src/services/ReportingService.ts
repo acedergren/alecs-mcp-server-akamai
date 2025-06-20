@@ -146,11 +146,11 @@ export class ReportingService {
 
       logger.info('Traffic summary fetched successfully', { summary });
       return summary;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to fetch traffic summary', { _error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to fetch traffic summary: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to fetch traffic summary: ${error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -191,11 +191,11 @@ export class ReportingService {
       });
 
       return results;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to fetch time-series data', { _error, metrics, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to fetch time-series data: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to fetch time-series data: ${error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -285,11 +285,11 @@ export class ReportingService {
       });
 
       return insights;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to generate cost optimization insights', { _error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to generate cost optimization insights: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to generate cost optimization insights: ${error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -384,11 +384,11 @@ export class ReportingService {
       });
 
       return benchmarks;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to fetch performance benchmarks', { _error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to fetch performance benchmarks: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to fetch performance benchmarks: ${error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -428,11 +428,11 @@ export class ReportingService {
       });
 
       return createdDashboard;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to create dashboard', { _error, name: dashboard.name });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to create dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to create dashboard: ${error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -494,11 +494,11 @@ export class ReportingService {
         filename,
         contentType,
       };
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to export report', { _error, format, metrics, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to export report: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to export report: ${error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -529,11 +529,11 @@ export class ReportingService {
         enabledAlerts: thresholds.filter((t) => t.enabled).length,
         totalAlerts: thresholds.length,
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to configure alerts', { _error, thresholds });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to configure alerts: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to configure alerts: ${error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -591,7 +591,7 @@ export class ReportingService {
       value: item.value,
       unit: item.unit,
       dimensions: item.dimensions,
-    }));
+    ));
   }
 
   private aggregateMetric(data: ReportingMetric[], method: 'sum' | 'avg' | 'max' | 'min'): number {

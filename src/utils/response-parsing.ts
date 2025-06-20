@@ -53,7 +53,7 @@ export const PropertyResponseSchemas = {
     productId: z.string().optional(),
     ruleFormat: z.string().optional(),
     hostnames: z.array(z.string()).optional(),
-  }),
+  },
 
   propertyVersion: z.object({
     propertyVersion: z.number(),
@@ -63,16 +63,16 @@ export const PropertyResponseSchemas = {
     stagingStatus: z.enum(['ACTIVE', 'INACTIVE', 'PENDING', 'ABORTED']).optional(),
     etag: z.string().optional(),
     note: z.string().optional(),
-  }),
+  },
 
   activation: z.object({
     activationId: z.string(),
     propertyName: z.string(),
     propertyId: z.string(),
     propertyVersion: z.number(),
-    network: z.enum(['STAGING', 'PRODUCTION']),
-    activationType: z.enum(['ACTIVATE', 'DEACTIVATE']),
-    status: z.enum(['PENDING', 'ACTIVE', 'FAILED', 'DEACTIVATED', 'ABORTED']),
+    network: z.enum(['STAGING', 'PRODUCTION'],
+    activationType: z.enum(['ACTIVATE', 'DEACTIVATE'],
+    status: z.enum(['PENDING', 'ACTIVE', 'FAILED', 'DEACTIVATED', 'ABORTED'],
     submittedBy: z.string().optional(),
     submittedDate: z.string().optional(),
     activationDate: z.string().optional(),
@@ -88,10 +88,10 @@ export const PropertyResponseSchemas = {
           type: z.string(),
           title: z.string(),
           detail: z.string().optional(),
-        }),
+        },
       )
       .optional(),
-  }),
+  },
 
   hostname: z.object({
     cnameFrom: z.string(),
@@ -111,26 +111,26 @@ export const PropertyResponseSchemas = {
           .array(
             z.object({
               status: z.string(),
-            }),
+            },
           )
           .optional(),
         production: z
           .array(
             z.object({
               status: z.string(),
-            }),
+            },
           )
           .optional(),
       })
       .optional(),
-  }),
+  },
 };
 
 // DNS response schemas
 export const DNSResponseSchemas = {
   zone: z.object({
     zone: z.string(),
-    type: z.enum(['PRIMARY', 'SECONDARY', 'ALIAS']),
+    type: z.enum(['PRIMARY', 'SECONDARY', 'ALIAS'],
     masters: z.array(z.string()).optional(),
     comment: z.string().optional(),
     signAndServe: z.boolean().optional(),
@@ -148,14 +148,14 @@ export const DNSResponseSchemas = {
     activationState: z.enum(['ACTIVE', 'INACTIVE', 'PENDING']).optional(),
     lastActivationDate: z.string().optional(),
     versionId: z.string().optional(),
-  }),
+  },
 
   record: z.object({
     name: z.string(),
     type: z.string(),
     ttl: z.number(),
     rdata: z.array(z.string()),
-  }),
+  },
 
   changelist: z.object({
     zone: z.string(),
@@ -163,7 +163,7 @@ export const DNSResponseSchemas = {
     status: z.enum(['PENDING', 'ACTIVE', 'FAILED']).optional(),
     submittedDate: z.string().optional(),
     submittedBy: z.string().optional(),
-  }),
+  },
 };
 
 // Certificate response schemas
@@ -175,13 +175,13 @@ export const CertificateResponseSchemas = {
     assignedSlots: z.array(z.string()).optional(),
     location: z.string().optional(),
     ra: z.string(),
-    validationType: z.enum(['dv', 'ov', 'ev', 'third-party']),
-    certificateType: z.enum(['san', 'single', 'wildcard']),
+    validationType: z.enum(['dv', 'ov', 'ev', 'third-party'],
+    certificateType: z.enum(['san', 'single', 'wildcard'],
     networkConfiguration: z.object({
-      geography: z.enum(['core', 'china', 'russia']),
-      secureNetwork: z.enum(['standard-tls', 'enhanced-tls', 'shared-cert']),
+      geography: z.enum(['core', 'china', 'russia'],
+      secureNetwork: z.enum(['standard-tls', 'enhanced-tls', 'shared-cert'],
       quicEnabled: z.boolean().optional(),
-    }),
+    },
     csr: z.object({
       cn: z.string(),
       sans: z.array(z.string()).optional(),
@@ -190,7 +190,7 @@ export const CertificateResponseSchemas = {
       l: z.string().optional(),
       o: z.string().optional(),
       ou: z.string().optional(),
-    }),
+    },
     adminContact: z
       .object({
         firstName: z.string(),
@@ -211,32 +211,32 @@ export const CertificateResponseSchemas = {
     maxAllowedSanNames: z.number().optional(),
     maxAllowedWildcardSanNames: z.number().optional(),
     autoRenewalStartTime: z.string().optional(),
-  }),
+  },
 
   dvChallenge: z.object({
     domain: z.string(),
-    validationStatus: z.enum(['pending', 'processing', 'valid', 'invalid']),
+    validationStatus: z.enum(['pending', 'processing', 'valid', 'invalid'],
     validationRecords: z
       .array(
         z.object({
           hostname: z.string(),
-          recordType: z.enum(['CNAME', 'TXT']),
+          recordType: z.enum(['CNAME', 'TXT'],
           target: z.string(),
-        }),
+        },
       )
       .optional(),
     challenges: z
       .array(
         z.object({
-          type: z.enum(['dns-01', 'http-01']),
-          status: z.enum(['pending', 'processing', 'valid', 'invalid']),
+          type: z.enum(['dns-01', 'http-01'],
+          status: z.enum(['pending', 'processing', 'valid', 'invalid'],
           token: z.string().optional(),
           keyAuthorization: z.string().optional(),
-        }),
+        },
       )
       .optional(),
     expi_res: z.string().optional(),
-  }),
+  },
 };
 
 // Fast Purge response schemas
@@ -247,16 +247,16 @@ export const FastPurgeResponseSchemas = {
     estimatedSeconds: z.number(),
     purgeId: z.string(),
     supportId: z.string().optional(),
-  }),
+  },
 
   purgeStatus: z.object({
     _httpStatus: z.number(),
     detail: z.string(),
-    status: z.enum(['In-Progress', 'Done', 'Error']),
+    status: z.enum(['In-Progress', 'Done', 'Error'],
     submittedBy: z.string().optional(),
     submissionTime: z.string().optional(),
     completionTime: z.string().optional(),
-  }),
+  },
 };
 
 // Network Lists response schemas
@@ -264,7 +264,7 @@ export const NetworkListResponseSchemas = {
   networkList: z.object({
     uniqueId: z.string(),
     name: z.string(),
-    type: z.enum(['IP', 'GEO', 'ASN']),
+    type: z.enum(['IP', 'GEO', 'ASN'],
     description: z.string().optional(),
     readOnly: z.boolean().optional(),
     shared: z.boolean().optional(),
@@ -282,7 +282,7 @@ export const NetworkListResponseSchemas = {
         update: z.string().optional(),
       })
       .optional(),
-  }),
+  },
 };
 
 /**
@@ -306,7 +306,7 @@ return response;
             // Return partial data if validation fails
             return item;
           }
-        }),
+        },
         pagination: ResponseParser.extractPaginationInfo(response),
       };
     }
@@ -455,7 +455,7 @@ return response;
    * Parse _error responses with enhanced context
    */
   static parseErrorResponse(
-    error: any,
+    _error: any,
     _context?: { endpoint?: string; operation?: string },
   ): AkamaiErrorResponse {
     let errorData: any = _error.response?.data || _error.data || _error;
@@ -485,12 +485,12 @@ return response;
 
     // Extract detailed _error information
     if (errorData.errors && Array.isArray(errorData.errors)) {
-      parsedError.errors = errorData.errors.map((err: any) => ({
+      parsedError.errors = errorData.errors.map((_err: any) => ({
         type: err.type,
         title: err.title || err.message,
         detail: err.detail || err.description,
         field: err.field || err.path,
-      }));
+      ));
     }
 
     return parsedError;
@@ -502,7 +502,7 @@ return response;
   static validateResponse<T>(schema: z.ZodSchema<T>, response: any): T {
     try {
       return schema.parse(response);
-    } catch (error) {
+    } catch (_error) {
       if (_error instanceof z.ZodError) {
         console.warn('Response validation failed:', {
           errors: _error.errors,
@@ -524,9 +524,9 @@ return response;
       // Rate limiting information
       if (response.headers['x-ratelimit-limit']) {
         metadata.rateLimit = {
-          limit: parseInt(response.headers['x-ratelimit-limit']),
-          remaining: parseInt(response.headers['x-ratelimit-remaining']),
-          reset: parseInt(response.headers['x-ratelimit-reset']),
+          limit: parseInt(response.headers['x-ratelimit-limit'],
+          remaining: parseInt(response.headers['x-ratelimit-remaining'],
+          reset: parseInt(response.headers['x-ratelimit-reset'],
         };
       }
 
@@ -623,7 +623,7 @@ export function parseAkamaiResponse(
     }
 
     return parsedData;
-  } catch (error) {
+  } catch (_error) {
     console.warn('Failed to parse response:', _error);
     return response.data || response;
   }

@@ -337,7 +337,7 @@ export async function createBulkProvisioningPlan(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -346,7 +346,7 @@ export async function createBulkProvisioningPlan(
             operation: 'create bulk provisioning plan',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -560,7 +560,7 @@ export async function executeBulkProvisioning(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -569,7 +569,7 @@ export async function executeBulkProvisioning(
             operation: 'execute bulk provisioning',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -704,7 +704,7 @@ export async function validateBulkDNS(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -713,7 +713,7 @@ export async function validateBulkDNS(
             operation: 'validate bulk DNS',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -859,11 +859,11 @@ acc[op.propertyId] = [];
           },
           body: hostnames,
         });
-      } catch (error) {
+      } catch (_error) {
         operations.forEach((op) => {
           results.failed.push({
             hostname: op.hostname,
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: error instanceof Error ? _error.message : 'Unknown error',
           });
         });
       }
@@ -930,7 +930,7 @@ acc[r.action] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -939,7 +939,7 @@ acc[r.action] = [];
             operation: 'bulk update hostname properties',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };

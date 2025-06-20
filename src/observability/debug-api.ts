@@ -413,7 +413,7 @@ return;
         event.message,
         event.category,
         event.source,
-        JSON.stringify(event.data || {}),
+        JSON.stringify(event.data || {},
       ]
         .join(' ')
         .toLowerCase();
@@ -593,9 +593,9 @@ return '[Function]';
             };
           }
           return value;
-        }),
+        },
       );
-    } catch (error) {
+    } catch (_error) {
       return '[Non-serializable data]';
     }
   }
@@ -609,7 +609,7 @@ continue;
       if (this.matchesFilters(event, subscription.filters)) {
         try {
           subscription.callback(event);
-        } catch (error) {
+        } catch (_error) {
           this.emit('subscriptionError', subscription.id, _error);
         }
       }
@@ -632,7 +632,7 @@ continue;
             this.emit('streamingError', connection.id, _error);
             // Deactivate connection on error
             connection.active = false;
-          }),
+          },
         );
       }
     }
@@ -662,7 +662,7 @@ continue;
         event.message,
         event.category,
         event.source,
-        JSON.stringify(event.data || {}),
+        JSON.stringify(event.data || {},
       ]
         .join(' ')
         .toLowerCase();

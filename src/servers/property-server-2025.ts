@@ -386,13 +386,13 @@ class PropertyALECSServer2025 {
             },
           ],
         };
-      } catch (error) {
+      } catch (_error) {
         log('ERROR', `Tool ${name} failed`, { error: _error });
 
         const errorResult = createMcp2025Response(
           false,
           undefined,
-          error instanceof Error ? error.message : 'Unknown _error',
+          error instanceof Error ? _error.message : 'Unknown _error',
           {
             duration: Date.now() - startTime,
             tool: name,

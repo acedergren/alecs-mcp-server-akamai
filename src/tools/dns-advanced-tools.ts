@@ -94,15 +94,15 @@ export async function getZonesDNSSECStatus(
         });
 
         results.push(response);
-      } catch (error: any) {
+      } catch (_error: any) {
         // If DNSSEC is not enabled, API returns 404
-        if (error.message?.includes('404')) {
+        if (_error.message?.includes('404')) {
           results.push({
             zone,
             dnssecEnabled: false,
           });
         } else {
-          throw error;
+          throw _error;
         }
       }
     }
@@ -138,9 +138,9 @@ export async function getZonesDNSSECStatus(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     spinner.fail('Failed to fetch DNSSEC status');
-    throw error;
+    throw _error;
   }
 }
 
@@ -205,9 +205,9 @@ export async function getSecondaryZoneTransferStatus(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     spinner.fail('Failed to fetch transfer status');
-    throw error;
+    throw _error;
   }
 }
 
@@ -250,9 +250,9 @@ export async function getZoneContract(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -291,8 +291,8 @@ export async function getRecordSet(
         },
       ],
     };
-  } catch (error: any) {
-    if (error.message?.includes('404')) {
+  } catch (_error: any) {
+    if (_error.message?.includes('404')) {
       return {
         content: [
           {
@@ -302,7 +302,7 @@ export async function getRecordSet(
         ],
       };
     }
-    throw error;
+    throw _error;
   }
 }
 
@@ -351,11 +351,11 @@ export async function updateTSIGKeyForZones(
         });
 
         results.push({ zone, success: true });
-      } catch (error: any) {
+      } catch (_error: any) {
         results.push({
           zone,
           success: false,
-          error: error.message || 'Unknown error',
+          error: _error.message || 'Unknown error',
         });
       }
     }
@@ -391,9 +391,9 @@ export async function updateTSIGKeyForZones(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     spinner.fail('Failed to update TSIG keys');
-    throw error;
+    throw _error;
   }
 }
 
@@ -446,9 +446,9 @@ export async function submitBulkZoneCreateRequest(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     spinner.fail('Failed to submit bulk creation request');
-    throw error;
+    throw _error;
   }
 }
 
@@ -487,9 +487,9 @@ export async function getZoneVersion(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -534,9 +534,9 @@ queryParams.limit = args.limit;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -573,9 +573,9 @@ export async function reactivateZoneVersion(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     spinner.fail('Failed to reactivate version');
-    throw error;
+    throw _error;
   }
 }
 
@@ -603,9 +603,9 @@ export async function getVersionMasterZoneFile(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -659,11 +659,11 @@ export async function createMultipleRecordSets(
           record: `${recordSet.name} ${recordSet.type}`,
           success: true,
         });
-      } catch (error: any) {
+      } catch (_error: any) {
         results.push({
           record: `${recordSet.name} ${recordSet.type}`,
           success: false,
-          error: error.message,
+          error: _error.message,
         });
       }
     }
@@ -707,8 +707,8 @@ export async function createMultipleRecordSets(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     spinner.fail('Failed to create record sets');
-    throw error;
+    throw _error;
   }
 }

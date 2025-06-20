@@ -146,7 +146,7 @@ export class OptimizedHTTPClient extends EventEmitter {
    */
   private createDNSLookup(_hostname: string) {
     return (hostname: string, _options: any, callback: any) => {
-      const cacheKey = `${hostname}:${options.family || 4}`;
+      const cacheKey = `${hostname}:${_options.family || 4}`;
       const cached = this.dnsCache.get(cacheKey);
       
       if (cached && Date.now() - cached.timestamp < cached.ttl) {
@@ -156,12 +156,12 @@ export class OptimizedHTTPClient extends EventEmitter {
 
       // Use Node.js dns module for lookup
       const dns = require('dns');
-      const lookupFn = options.family === 6 ? dns.lookup : dns.lookup;
+      const lookupFn = _options.family === 6 ? dns.lookup : dns.lookup;
       
-      lookupFn(hostname, options, (_err: any, address: string, family: number) => {
-        if (err) {
-          this.emit('dnsLookupError', { hostname, error: err });
-          return callback(err);
+      lookupFn(hostname, _options, (_err: any, address: string, family: number) => {
+        if (_err) {
+          this.emit('dnsLookupError', { hostname, _error: _err });
+          return callback(_err);
         }
 
         // Cache the result
@@ -229,8 +229,8 @@ export class OptimizedHTTPClient extends EventEmitter {
             connectionReused: result.socket?.reused || false
           }
         };
-      } catch (error) {
-        lastError = error as Error;
+      } catch (_error) {
+        lastError = _error as Error;
         attempt++;
         this.metrics.failureCount++;
 
@@ -242,7 +242,7 @@ export class OptimizedHTTPClient extends EventEmitter {
       }
     }
 
-    this.emit('requestFailed', { hostname, attempts: attempt, error: lastError });
+    this.emit('requestFailed', { hostname, attempts: attempt, _error: lastError });
     throw lastError;
   }
 
@@ -251,26 +251,26 @@ export class OptimizedHTTPClient extends EventEmitter {
    */
   private makeRequest(_options: any, data?: Buffer | string): Promise<any> {
     return new Promise((resolve, reject) => {
-      const protocol = options.protocol === 'https:' ? 'https' : 'http';
+      const protocol = _options.protocol === 'https:' ? 'https' : 'http';
       const mod = require(protocol);
       
-      const req = mod._request(options, (_res: any) => {
+      const req = mod._request(_options, (_res: any) => {
         const chunks: Buffer[] = [];
         
-        res.on('data', (chunk: Buffer) => {
+        _res.on('data', (chunk: Buffer) => {
           chunks.push(chunk);
         });
         
-        res.on('end', () => {
+        _res.on('end', () => {
           const responseData = Buffer.concat(chunks);
           resolve({
-            response: res,
+            _response: _res,
             data: responseData,
-            socket: res.socket
+            socket: _res.socket
           });
         });
         
-        res.on('error', reject);
+        _res.on('error', reject);
       });
 
       req.on('error', reject);

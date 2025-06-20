@@ -113,11 +113,11 @@ export async function comparePropertyVersions(
         client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version1}/rules`,
           method: 'GET',
-        }),
+        },
         client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version2}/rules`,
           method: 'GET',
-        }),
+        },
       ]);
 
       comparison.differences.rules = compareRuleTrees(rules1.rules, rules2.rules, includeDetails);
@@ -139,11 +139,11 @@ export async function comparePropertyVersions(
         client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version1}/hostnames`,
           method: 'GET',
-        }),
+        },
         client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version2}/hostnames`,
           method: 'GET',
-        }),
+        },
       ]);
 
       comparison.differences.hostnames = compareHostnames(
@@ -198,7 +198,7 @@ export async function comparePropertyVersions(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -207,7 +207,7 @@ export async function comparePropertyVersions(
             operation: 'compare property versions',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -287,11 +287,11 @@ export async function batchCreateVersions(
             prop.note || args.defaultNote || '',
           );
         }
-      } catch (error: any) {
+      } catch (_error: any) {
         results.push({
           propertyId: prop.propertyId,
           success: false,
-          error: error.message || 'Unknown error',
+          error: _error.message || 'Unknown error',
         });
       }
     }
@@ -335,7 +335,7 @@ export async function batchCreateVersions(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -344,7 +344,7 @@ export async function batchCreateVersions(
             operation: 'batch create versions',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -489,7 +489,7 @@ responseText += `- **Note:** ${event.note}\n`;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -498,7 +498,7 @@ responseText += `- **Note:** ${event.note}\n`;
             operation: 'get version timeline',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -647,7 +647,7 @@ export async function rollbackPropertyVersion(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -656,7 +656,7 @@ export async function rollbackPropertyVersion(
             operation: 'rollback property version',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -686,11 +686,11 @@ export async function updateVersionMetadata(
       client._request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
-      }),
+      },
       client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}`,
         method: 'GET',
-      }),
+      },
     ]);
 
     const property = propertyResponse.properties?.items?.[0];
@@ -770,7 +770,7 @@ rules.comments = {};
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -779,7 +779,7 @@ rules.comments = {};
             operation: 'update version metadata',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -821,11 +821,11 @@ export async function mergePropertyVersions(
       client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${args.sourceVersion}/rules`,
         method: 'GET',
-      }),
+      },
       client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${args.targetVersion}/rules`,
         method: 'GET',
-      }),
+      },
     ]);
 
     // Perform merge based on strategy
@@ -915,7 +915,7 @@ export async function mergePropertyVersions(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -924,7 +924,7 @@ export async function mergePropertyVersions(
             operation: 'merge property versions',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };

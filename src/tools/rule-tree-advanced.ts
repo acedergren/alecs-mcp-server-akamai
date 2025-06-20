@@ -216,7 +216,7 @@ export async function validateRuleTree(
       responseText += `## ❌ Errors (${validation.errors.length})\n`;
       validation.errors.forEach((_error, idx) => {
         responseText += `${idx + 1}. **${_error.severity}** at \`${_error.path}\`\n`;
-        responseText += `   - ${error.message}\n`;
+        responseText += `   - ${_error.message}\n`;
         if (_error.fix) {
           responseText += `   - **Fix:** ${_error.fix}\n`;
         }
@@ -278,7 +278,7 @@ export async function validateRuleTree(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -287,7 +287,7 @@ export async function validateRuleTree(
             operation: 'validate rule tree',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -418,7 +418,7 @@ export async function createRuleTreeFromTemplate(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -427,7 +427,7 @@ export async function createRuleTreeFromTemplate(
             operation: 'create rule tree from template',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -568,7 +568,7 @@ export async function analyzeRuleTreePerformance(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -577,7 +577,7 @@ export async function analyzeRuleTreePerformance(
             operation: 'analyze rule tree performance',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -694,7 +694,7 @@ export async function detectRuleConflicts(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -703,7 +703,7 @@ export async function detectRuleConflicts(
             operation: 'detect rule conflicts',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -805,12 +805,12 @@ acc[cat] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `❌ Failed to list rule templates: ${error instanceof Error ? error.message : String(error)}`,
+          text: `❌ Failed to list rule templates: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };

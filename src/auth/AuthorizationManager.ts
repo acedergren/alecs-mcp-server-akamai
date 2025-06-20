@@ -211,7 +211,7 @@ export class AuthorizationManager {
       );
 
       return roleCheck;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Authorization failed', {
         _context,
         policyContext,

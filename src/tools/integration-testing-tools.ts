@@ -129,7 +129,7 @@ export async function runIntegrationTestSuite(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -271,7 +271,7 @@ export async function checkAPIHealth(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -310,25 +310,25 @@ export async function generateTestData(
           return Array.from({ length: count }, () => ({
             name: TestDataGenerator.generatePropertyName(),
             type: 'property',
-          }));
+          ));
 
         case 'zone':
           return Array.from({ length: count }, () => ({
             name: TestDataGenerator.generateZoneName(),
             type: 'dns-zone',
-          }));
+          ));
 
         case 'hostname':
           return Array.from({ length: count }, () => ({
             name: TestDataGenerator.generateHostname(),
             type: 'hostname',
-          }));
+          ));
 
         case 'contact':
           return Array.from({ length: count }, () => ({
             ...TestDataGenerator.generateContactInfo(),
             type: 'contact',
-          }));
+          ));
 
         case 'all':
           return [
@@ -414,7 +414,7 @@ export async function generateTestData(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -486,7 +486,7 @@ export async function validateToolResponses(
           scenario: scenario.name,
           ...result,
         });
-      } catch (error) {
+      } catch (_error) {
         results.push({
           scenario: scenario.name,
           status: 'failed',
@@ -531,7 +531,7 @@ export async function validateToolResponses(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -671,7 +671,7 @@ export async function runLoadTest(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {

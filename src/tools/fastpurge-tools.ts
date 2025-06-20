@@ -189,20 +189,20 @@ export const fastpurgeUrlInvalidate = {
         );
 
         return {
-          ...formatResponse(responses[0]),
+          ...formatResponse(responses[0],
           operationId,
           batchCount: responses.length,
           totalObjects: params.urls.length,
         };
       }
-    } catch (error: any) {
-      logger.error(`FastPurge tools error: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
         return {
           success: false,
           error: _error.code,
-          message: error.message,
+          message: _error.message,
           guidance:
             _error.code === 'RATE_LIMIT_EXCEEDED'
               ? 'Wait a few minutes before retrying, or use queue management for automatic rate limiting'
@@ -210,7 +210,7 @@ export const fastpurgeUrlInvalidate = {
         };
       }
 
-      throw error;
+      throw _error;
     }
   },
 };
@@ -296,7 +296,7 @@ export const fastpurgeCpcodeInvalidate = {
       );
 
       return {
-        ...formatResponse(responses[0]),
+        ...formatResponse(responses[0],
         operationId,
         batchCount: responses.length,
         totalCpCodes: params.cpCodes.length,
@@ -306,19 +306,19 @@ export const fastpurgeCpcodeInvalidate = {
             ? 'Production content invalidated - monitor for any impact'
             : undefined,
       };
-    } catch (error: any) {
-      logger.error(`FastPurge tools error: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
         return {
           success: false,
           error: _error.code,
-          message: error.message,
+          message: _error.message,
           guidance: 'Verify CP codes exist and are accessible in your account',
         };
       }
 
-      throw error;
+      throw _error;
     }
   },
 };
@@ -382,27 +382,27 @@ export const fastpurgeTagInvalidate = {
       );
 
       return {
-        ...formatResponse(responses[0]),
+        ...formatResponse(responses[0],
         operationId,
         batchCount: responses.length,
         totalTags: params.tags.length,
         efficiency: 'Cache tag purging is the most efficient invalidation method',
         tip: 'Use hierarchical tags (e.g., "product.123", "category.electronics") for better cache management',
       };
-    } catch (error: any) {
-      logger.error(`FastPurge tools error: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
         return {
           success: false,
           error: _error.code,
-          message: error.message,
+          message: _error.message,
           guidance:
             'Check tag format - only alphanumeric characters, dots, underscores, and hyphens allowed',
         };
       }
 
-      throw error;
+      throw _error;
     }
   },
 };
@@ -483,19 +483,19 @@ export const fastpurgeStatusCheck = {
           isComplete: status.status === 'Done' || status.status === 'Failed',
         };
       }
-    } catch (error: any) {
-      logger.error(`FastPurge tools error: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
         return {
           success: false,
           error: _error.code,
-          message: error.message,
+          message: _error.message,
           guidance: 'Verify operation ID is correct and operation exists',
         };
       }
 
-      throw error;
+      throw _error;
     }
   },
 };
@@ -578,24 +578,24 @@ export const fastpurgeQueueStatus = {
           priority: item.priority,
           createdAt: item.createdAt,
           attempts: item.attempts,
-        }));
+        ));
 
         response.consolidationSuggestions = suggestions;
       }
 
       return response;
-    } catch (error: any) {
-      logger.error(`FastPurge tools error: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
         return {
           success: false,
           error: _error.code,
-          message: error.message,
+          message: _error.message,
         };
       }
 
-      throw error;
+      throw _error;
     }
   },
 };
@@ -707,19 +707,19 @@ export const fastpurgeEstimate = {
       }
 
       return estimate;
-    } catch (error: any) {
-      logger.error(`FastPurge tools error: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
         return {
           success: false,
           error: _error.code,
-          message: error.message,
+          message: _error.message,
           guidance: 'Check operation parameters and object format',
         };
       }
 
-      throw error;
+      throw _error;
     }
   },
 };

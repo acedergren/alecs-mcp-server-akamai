@@ -103,10 +103,10 @@ export async function getValidationErrors(
     // Critical errors that prevent activation
     if (errors.length > 0) {
       responseText += '## ❌ Critical Errors (Must Fix Before Activation)\n\n';
-      errors.forEach((error: PropertyError, index: number) => {
+      errors.forEach((_error: PropertyError, index: number) => {
         responseText += `### Error ${index + 1}: ${_error.title}\n`;
         responseText += `- **Type:** ${_error.type}\n`;
-        responseText += `- **Message ID:** ${error.messageId}\n`;
+        responseText += `- **Message ID:** ${_error.messageId}\n`;
         responseText += `- **Detail:** ${_error.detail}\n`;
         if (_error.errorLocation) {
           responseText += `- **Location:** ${_error.errorLocation}\n`;
@@ -178,7 +178,7 @@ export async function getValidationErrors(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(_error, 'getting validation errors');
   }
 }
@@ -245,7 +245,7 @@ export async function acknowledgeWarnings(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(_error, 'acknowledging warnings');
   }
 }
@@ -323,7 +323,7 @@ export async function overrideErrors(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(_error, 'overriding errors');
   }
 }
@@ -448,7 +448,7 @@ export async function getErrorRecoveryHelp(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(_error, 'getting _error recovery help');
   }
 }
@@ -494,7 +494,7 @@ export async function validatePropertyConfiguration(
 
       validationResults.push('✅ Basic validation completed');
       responseText += '✅ Basic property validation completed\n\n';
-    } catch (error) {
+    } catch (_error) {
       totalErrors++;
       validationResults.push('❌ Basic validation failed');
       responseText += `❌ Basic property validation failed: ${(error as Error).message}\n\n`;
@@ -511,7 +511,7 @@ export async function validatePropertyConfiguration(
 
         validationResults.push('✅ Rule tree validation passed');
         responseText += '✅ Rule tree structure and logic validated\n\n';
-      } catch (error) {
+      } catch (_error) {
         totalErrors++;
         validationResults.push('❌ Rule tree validation failed');
         responseText += `❌ Rule tree validation failed: ${(error as Error).message}\n\n`;
@@ -529,7 +529,7 @@ export async function validatePropertyConfiguration(
 
         validationResults.push('✅ Hostname validation passed');
         responseText += '✅ All hostnames properly configured and validated\n\n';
-      } catch (error) {
+      } catch (_error) {
         totalErrors++;
         validationResults.push('❌ Hostname validation failed');
         responseText += `❌ Hostname validation failed: ${(error as Error).message}\n\n`;
@@ -567,7 +567,7 @@ export async function validatePropertyConfiguration(
           validationResults.push('⚠️ Certificate issues detected');
           responseText += `⚠️ ${certIssues} certificate issues detected\n\n`;
         }
-      } catch (error) {
+      } catch (_error) {
         totalWarnings++;
         validationResults.push('⚠️ Certificate validation incomplete');
         responseText += `⚠️ Certificate validation incomplete: ${(error as Error).message}\n\n`;
@@ -611,7 +611,7 @@ export async function validatePropertyConfiguration(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
+  } catch (_error) {
     return handleApiError(_error, 'validating property configuration');
   }
 }

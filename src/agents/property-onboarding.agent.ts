@@ -217,10 +217,10 @@ export class PropertyOnboardingAgent {
       );
 
       return result;
-    } catch (error) {
-      console.error("[Error]:", error);
+    } catch (_error) {
+      console.error("[Error]:", _error);
       result.errors!.push(
-        `Unexpected error: ${error instanceof Error ? error.message : String(error)}`,
+        `Unexpected error: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
       return result;
     }
@@ -281,7 +281,7 @@ export class PropertyOnboardingAgent {
       ) {
         errors.push(`Property with hostname ${config.hostname} already exists`);
       }
-    } catch (error) {
+    } catch (_error) {
       // Search failed, but we can continue
       warnings.push('Could not verify if property already exists');
     }
@@ -296,7 +296,7 @@ export class PropertyOnboardingAgent {
       if (responseText.includes(config.hostname)) {
         errors.push(`Hostname ${config.hostname} is already in use by another property`);
       }
-    } catch (error) {
+    } catch (_error) {
       warnings.push('Could not verify if hostname is already in use');
     }
 
@@ -402,8 +402,8 @@ export class PropertyOnboardingAgent {
 
       console.error('[PropertyOnboarding] Could not extract CP Code ID from response');
       return { success: false };
-    } catch (error) {
-      console.error("[Error]:", error);
+    } catch (_error) {
+      console.error("[Error]:", _error);
       return { success: false };
     }
   }
@@ -432,8 +432,8 @@ export class PropertyOnboardingAgent {
       }
 
       return { success: false };
-    } catch (error) {
-      console.error("[Error]:", error);
+    } catch (_error) {
+      console.error("[Error]:", _error);
       return { success: false };
     }
   }
@@ -463,8 +463,8 @@ export class PropertyOnboardingAgent {
         success: true,
         edgeHostname,
       };
-    } catch (error) {
-      console.error("[Error]:", error);
+    } catch (_error) {
+      console.error("[Error]:", _error);
       return { success: false };
     }
   }
@@ -713,8 +713,8 @@ export class PropertyOnboardingAgent {
           nextSteps: await this.generateDnsGuidance(domain, hostname, edgeHostname, config),
         };
       }
-    } catch (error) {
-      console.error("[Error]:", error);
+    } catch (_error) {
+      console.error("[Error]:", _error);
       return {
         recordCreated: false,
         warnings: ['Failed to setup DNS automatically'],
@@ -740,8 +740,8 @@ export class PropertyOnboardingAgent {
         ttl: 300,
         rdata: [acmeTarget],
       });
-    } catch (error) {
-      console.error("[Error]:", error);
+    } catch (_error) {
+      console.error("[Error]:", _error);
     }
   }
 
@@ -811,8 +811,8 @@ export class PropertyOnboardingAgent {
         success: true,
         activationId: activationIdMatch ? activationIdMatch[1] : undefined,
       };
-    } catch (error) {
-      console.error("[Error]:", error);
+    } catch (_error) {
+      console.error("[Error]:", _error);
       return { success: false };
     }
   }

@@ -80,7 +80,7 @@ export class InstrumentedMCPServer {
       console.log(
         `📊 Observability initialized for ${this.config.observability.environment} environment`,
       );
-    } catch (error) {
+    } catch (_error) {
       console.error("[Error]:", error);
     }
   }
@@ -142,11 +142,11 @@ return;
             duration: 0,
             metadata: { serverActive: isResponsive },
           };
-        } catch (error) {
+        } catch (_error) {
           return {
             name: 'mcp_server_connectivity',
             status: 'critical',
-            message: `Health check failed: ${error instanceof Error ? error.message : String(error)}`,
+            message: `Health check failed: ${_error instanceof Error ? _error.message : String(_error)}`,
             lastCheck: Date.now(),
             duration: 0,
           };
@@ -255,9 +255,9 @@ return;
         instrumentation.finish(undefined, { toolCount: tools.length });
 
         return { tools };
-      } catch (error) {
+      } catch (_error) {
         instrumentation.finish(error as Error);
-        throw error;
+        throw _error;
       }
     });
 
@@ -268,7 +268,7 @@ return;
 
       const instrumentation = this.observability!.instrumentMCPRequest(toolName, customer, {
         requestId: this.generateRequestId(),
-        toolArgs: Object.keys(toolArgs || {}),
+        toolArgs: Object.keys(toolArgs || {},
       });
 
       try {
@@ -307,7 +307,7 @@ return;
             },
           ],
         };
-      } catch (error) {
+      } catch (_error) {
         // Record failed tool execution
         this.observability!.metrics.incrementCounter('akamai_mcp_tool_executions_total', 1, {
           tool: toolName,
@@ -333,7 +333,7 @@ return;
         instrumentation.finish(error as Error);
 
         // Re-throw to maintain MCP error handling
-        throw error;
+        throw _error;
       }
     });
   }
@@ -397,9 +397,9 @@ return;
         apiInstrumentation.finish(undefined, result);
 
         return result;
-      } catch (error) {
+      } catch (_error) {
         apiInstrumentation.finish(error as Error);
-        throw error;
+        throw _error;
       }
     }
 
@@ -552,7 +552,7 @@ return;
           await this.observability.exportObservabilityData();
           console.log('📤 Observability data exported on shutdown');
         }
-      } catch (error) {
+      } catch (_error) {
         console.error("[Error]:", error);
       }
 

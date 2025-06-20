@@ -89,7 +89,7 @@ export class CircuitBreaker extends EventEmitter {
           nextAttempt: this.nextAttempt,
           timeUntilRetry: this.nextAttempt - Date.now()
         });
-        throw error;
+        throw _error;
       } else {
         // Time to try half-open
         this.moveToHalfOpen();
@@ -102,10 +102,10 @@ export class CircuitBreaker extends EventEmitter {
       
       this.onSuccess(responseTime);
       return result;
-    } catch (error) {
+    } catch (_error) {
       const responseTime = performance.now() - startTime;
       this.onFailure(error as Error, responseTime);
-      throw error;
+      throw _error;
     }
   }
 
@@ -141,7 +141,7 @@ export class CircuitBreaker extends EventEmitter {
   /**
    * Handle failed execution
    */
-  private onFailure(error: Error, responseTime: number): void {
+  private onFailure(_error: Error, responseTime: number): void {
     this.metrics.failedRequests++;
     this.metrics.lastFailureTime = Date.now();
     this.updateResponseTime(responseTime);
@@ -160,7 +160,7 @@ export class CircuitBreaker extends EventEmitter {
     this.successes = 0; // Reset success count
 
     // Check for timeout
-    if (error.message.includes('timeout')) {
+    if (_error.message.includes('timeout')) {
       this.metrics.timeouts++;
     }
 

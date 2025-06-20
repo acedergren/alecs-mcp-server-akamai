@@ -77,10 +77,10 @@ export const listAppSecConfigurations = {
           ),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
-        error: `Failed to list APPSEC configurations: ${error instanceof Error ? error.message : String(error)}`,
+        error: `Failed to list APPSEC configurations: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },
@@ -127,10 +127,10 @@ export const getAppSecConfiguration = {
           formatted: formatJson(response),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
-        error: `Failed to get APPSEC configuration: ${error instanceof Error ? error.message : String(error)}`,
+        error: `Failed to get APPSEC configuration: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },
@@ -178,7 +178,7 @@ export const createWAFPolicy = {
       const policyData = {
         policyName: args.policyName,
         policyMode: args.policyMode,
-        ...(args.paranoidLevel && { paranoidLevel: args.paranoidLevel }),
+        ...(args.paranoidLevel && { paranoidLevel: args.paranoidLevel },
       };
 
       const response = await client._request({
@@ -196,10 +196,10 @@ export const createWAFPolicy = {
           formatted: formatJson(response),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
-        error: `Failed to create WAF policy: ${error instanceof Error ? error.message : String(error)}`,
+        error: `Failed to create WAF policy: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },
@@ -282,10 +282,10 @@ export const getSecurityEvents = {
           ),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
-        error: `Failed to get security events: ${error instanceof Error ? error.message : String(error)}`,
+        error: `Failed to get security events: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },
@@ -331,7 +331,7 @@ export const activateSecurityConfiguration = {
       const activationData = {
         action: 'ACTIVATE',
         network: args.network,
-        ...(args.note && { note: args.note }),
+        ...(args.note && { note: args.note },
       };
 
       const response = await client._request({
@@ -351,10 +351,10 @@ export const activateSecurityConfiguration = {
           formatted: formatJson(response),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
-        error: `Failed to activate security configuration: ${error instanceof Error ? error.message : String(error)}`,
+        error: `Failed to activate security configuration: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },
@@ -404,10 +404,10 @@ export const getSecurityActivationStatus = {
           formatted: formatJson(response),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
-        error: `Failed to get activation status: ${error instanceof Error ? error.message : String(error)}`,
+        error: `Failed to get activation status: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },

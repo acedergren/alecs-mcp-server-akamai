@@ -1118,7 +1118,7 @@ return false;
         name: impact.persona,
         impactScore: impact.impactScore,
         riskLevel: impact.riskLevel,
-      }));
+      ));
   }
 
   getAffectedJourneys(testResults: TestResults, _analysisResults: any) {
@@ -1130,7 +1130,7 @@ return false;
         name: impact.journey,
         impactScore: impact.impactScore,
         riskLevel: impact.riskLevel,
-      }));
+      ));
   }
 
   calculateRiskLevel(failureRate: number, criticalFailures: number): string {

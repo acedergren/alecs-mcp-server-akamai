@@ -283,7 +283,7 @@ continue;
               continue;
             }
           }
-        } catch (error) {
+        } catch (_error) {
           // Continue without hostname data
         }
       }
@@ -416,7 +416,7 @@ responseText += `- **Activation status:** ${args.criteria.activationStatus}\n`;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -425,7 +425,7 @@ responseText += `- **Activation status:** ${args.criteria.activationStatus}\n`;
             operation: 'search properties advanced',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -455,11 +455,11 @@ export async function compareProperties(
       client._request({
         path: `/papi/v1/properties/${args.propertyIdA}`,
         method: 'GET',
-      }),
+      },
       client._request({
         path: `/papi/v1/properties/${args.propertyIdB}`,
         method: 'GET',
-      }),
+      },
     ]);
 
     const propA = propAResponse.properties?.items?.[0];
@@ -525,11 +525,11 @@ export async function compareProperties(
         client._request({
           path: `/papi/v1/properties/${args.propertyIdA}/versions/${versionA}/hostnames`,
           method: 'GET',
-        }),
+        },
         client._request({
           path: `/papi/v1/properties/${args.propertyIdB}/versions/${versionB}/hostnames`,
           method: 'GET',
-        }),
+        },
       ]);
 
       const hostSetA = new Set(hostnamesA.hostnames?.items?.map((h: any) => h.cnameFrom) || []);
@@ -572,14 +572,14 @@ export async function compareProperties(
           headers: {
             Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
           },
-        }),
+        },
         client._request({
           path: `/papi/v1/properties/${args.propertyIdB}/versions/${versionB}/rules`,
           method: 'GET',
           headers: {
             Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
           },
-        }),
+        },
       ]);
 
       // Compare rule structures
@@ -722,7 +722,7 @@ export async function compareProperties(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -731,7 +731,7 @@ export async function compareProperties(
             operation: 'compare properties',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -998,7 +998,7 @@ export async function checkPropertyHealth(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -1007,7 +1007,7 @@ export async function checkPropertyHealth(
             operation: 'check property health',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -1061,14 +1061,14 @@ export async function detectConfigurationDrift(
         headers: {
           Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
         },
-      }),
+      },
       client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${compareVersion}/rules`,
         method: 'GET',
         headers: {
           Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
         },
-      }),
+      },
     ]);
 
     // Check behaviors
@@ -1083,11 +1083,11 @@ export async function detectConfigurationDrift(
         client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.baselineVersion}/hostnames`,
           method: 'GET',
-        }),
+        },
         client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${compareVersion}/hostnames`,
           method: 'GET',
-        }),
+        },
       ]);
 
       const hostnameDrifts = detectHostnameDrifts(
@@ -1184,7 +1184,7 @@ export async function detectConfigurationDrift(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -1193,7 +1193,7 @@ export async function detectConfigurationDrift(
             operation: 'detect configuration drift',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -1412,12 +1412,12 @@ rules.behaviors = [];
           message: updateApplied ? 'Updates applied successfully' : 'No updates applied',
           newVersion: args.createNewVersion ? version : undefined,
         });
-      } catch (error) {
+      } catch (_error) {
         results.push({
           propertyId,
           propertyName: 'Unknown',
           success: false,
-          message: error instanceof Error ? error.message : 'Update failed',
+          message: error instanceof Error ? _error.message : 'Update failed',
         });
       }
     }
@@ -1492,7 +1492,7 @@ rules.behaviors = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -1501,7 +1501,7 @@ rules.behaviors = [];
             operation: 'bulk update properties',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };

@@ -218,11 +218,11 @@ export class DiagnosticsAPI extends EventEmitter {
         results.push(healthCheck);
 
         this.emit('healthCheckCompleted', healthCheck);
-      } catch (error) {
+      } catch (_error) {
         const healthCheck: HealthCheck = {
           name,
           status: 'critical',
-          message: `Health check failed: ${error instanceof Error ? error.message : String(error)}`,
+          message: `Health check failed: ${_error instanceof Error ? _error.message : String(_error)}`,
           lastCheck: Date.now(),
           duration: 0,
           metadata: { error: error instanceof Error ? _error.stack : String(error) },
@@ -563,11 +563,11 @@ return false;
             duration: 0,
             metadata: { diskUsage },
           };
-        } catch (error) {
+        } catch (_error) {
           return {
             name: 'disk_space',
             status: 'unknown',
-            message: `Unable to check disk space: ${error instanceof Error ? error.message : String(error)}`,
+            message: `Unable to check disk space: ${_error instanceof Error ? _error.message : String(_error)}`,
             lastCheck: Date.now(),
             duration: 0,
           };
@@ -681,7 +681,7 @@ return;
 
           this.emit('alertTriggered', alert);
         }
-      } catch (error) {
+      } catch (_error) {
         this.emit('alertRuleError', name, _error);
       }
     }
@@ -710,7 +710,7 @@ return;
         name: mark.name,
         startTime: mark.startTime,
         detail: mark.detail,
-      }));
+      ));
     } catch {
       return [];
     }
@@ -724,7 +724,7 @@ return;
         startTime: measure.startTime,
         duration: measure.duration,
         detail: measure.detail,
-      }));
+      ));
     } catch {
       return [];
     }

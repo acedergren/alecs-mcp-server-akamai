@@ -214,7 +214,7 @@ export class DebugDashboard {
                 updateHealth(health);
                 updateMetrics(metrics);
                 updateOperations(operations);
-            } catch (error) {
+            } catch (_error) {
                 console.error("[Error]:", error);
             }
         }

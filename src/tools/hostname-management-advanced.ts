@@ -280,7 +280,7 @@ export async function analyzeHostnameOwnership(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -289,7 +289,7 @@ export async function analyzeHostnameOwnership(
             operation: 'analyze hostname ownership',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -417,7 +417,7 @@ acc[suffix] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -426,7 +426,7 @@ acc[suffix] = [];
             operation: 'generate edge hostname recommendations',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -620,7 +620,7 @@ export async function validateHostnamesBulk(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -629,7 +629,7 @@ export async function validateHostnamesBulk(
             operation: 'validate hostnames bulk',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -769,7 +769,7 @@ export async function findOptimalPropertyAssignment(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -778,7 +778,7 @@ export async function findOptimalPropertyAssignment(
             operation: 'find optimal property assignment',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -920,7 +920,7 @@ export async function createHostnameProvisioningPlan(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
@@ -929,7 +929,7 @@ export async function createHostnameProvisioningPlan(
             operation: 'create hostname provisioning plan',
             parameters: args,
             timestamp: new Date(),
-          }),
+          },
         },
       ],
     };
@@ -1281,7 +1281,7 @@ function findWildcardOpportunities(hostnames: string[]): Array<{ domain: string;
   // Return domains with 3+ subdomains as wildcard opportunities
   return Object.entries(domainCounts)
     .filter(([_, count]) => count >= 3)
-    .map(([domain, count]) => ({ domain, count }));
+    .map(([domain, count]) => ({ domain, count ));
 }
 
 function extractValidHostnames(validationResult: MCPToolResponse): string[] {

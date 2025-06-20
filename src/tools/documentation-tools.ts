@@ -95,9 +95,9 @@ export async function generateDocumentationIndex(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -160,9 +160,9 @@ export async function generateAPIReference(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -263,9 +263,9 @@ export async function generateFeatureDocumentation(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -335,9 +335,9 @@ export async function updateDocumentation(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -437,9 +437,9 @@ continue;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -509,9 +509,9 @@ export async function createKnowledgeArticle(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -634,7 +634,7 @@ function extractToolDefinitions(content: string): any[] {
       tools.push({
         name: functionName,
         description: description.trim(),
-        parameters: extractParameters(match[0]),
+        parameters: extractParameters(match[0],
         returns: extractReturns(jsdoc),
       });
     }
@@ -869,7 +869,7 @@ async function updateKnowledgeBaseIndex(_articlePath: string, metadata: any): Pr
     });
 
     await fs.writeFile(indexPath, JSON.stringify(index, null, 2));
-  } catch (error) {
+  } catch (_error) {
     console.error("[Error]:", error);
   }
 }

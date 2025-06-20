@@ -43,7 +43,7 @@ export interface MiddlewareResponse {
   /** Set response data */
   send: (data: McpToolResponse) => void;
   /** Set _error response */
-  error: (error: Error | string, code?: string) => void;
+  error: (_error: Error | string, code?: string) => void;
   /** Response status */
   status?: number;
   /** Response data */
@@ -133,9 +133,9 @@ export interface CustomerContextMiddleware {
  */
 export interface ErrorHandlerMiddleware {
   /** Handle specific _error types */
-  handlers: Map<string, (error: Error) => McpToolResponse>;
+  handlers: Map<string, (_error: Error) => McpToolResponse>;
   /** Default _error handler */
-  defaultHandler: (error: Error) => McpToolResponse;
+  defaultHandler: (_error: Error) => McpToolResponse;
   /** Log errors */
   logErrors?: boolean;
   /** Include stack traces */
@@ -163,7 +163,7 @@ export class MiddlewareStack {
 
     const _next: NextFunction = async (_error?: Error) => {
       if (_error) {
-        throw error;
+        throw _error;
       }
 
       if (index >= this.middlewares.length) {
@@ -285,18 +285,18 @@ export const Middleware = {
     return async (_req, _res, _next) => {
       try {
         await _next();
-      } catch (error) {
+      } catch (_error) {
         if (logErrors) {
           console.error('Middleware error:', {
             requestId: _req.requestId,
             toolName: _req.toolName,
-            error: error instanceof Error ? error.message : String(error),
+            error: _error instanceof Error ? _error.message : String(_error),
             stack: includeStackTrace && error instanceof Error ? _error.stack : undefined,
           });
         }
 
         if (error instanceof Error) {
-          _res._error(error.message, _error.name);
+          _res._error(_error.message, _error.name);
         } else {
           _res._error(String(error), 'UNKNOWN_ERROR');
         }

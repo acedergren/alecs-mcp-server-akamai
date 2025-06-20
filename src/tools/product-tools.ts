@@ -113,7 +113,7 @@ export async function listProducts(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list products', _error);
   }
 }
@@ -223,7 +223,7 @@ export async function getProduct(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('get product', _error);
   }
 }
@@ -368,7 +368,7 @@ export async function listUseCases(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list use cases', _error);
   }
 }
@@ -376,24 +376,24 @@ export async function listUseCases(
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
   if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
-    if (error.message.includes('401') || error.message.includes('credentials')) {
+    if (_error.message.includes('401') || _error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials for the customer section.';
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
       solution =
         '**Solution:** Your API credentials may lack the necessary permissions for product operations.';
-    } else if (error.message.includes('404') || error.message.includes('not found')) {
+    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
       solution =
         '**Solution:** The requested resource was not found. Verify the contract ID is correct.';
-    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
+    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
       solution = '**Solution:** Invalid request parameters. Check the product and contract IDs.';
     }
   } else {
@@ -594,7 +594,7 @@ export async function listBillingProducts(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return formatError('list billing products', _error);
   }
 }

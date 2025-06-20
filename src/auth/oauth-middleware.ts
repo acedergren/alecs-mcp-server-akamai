@@ -298,15 +298,15 @@ export class OAuthMiddleware {
 
         // Call original handler
         return await handler(...args);
-      } catch (error) {
+      } catch (_error) {
         // Log authentication/authorization failures
         if (_error instanceof McpError) {
           logger.warn('Authentication/authorization failed', {
             tool: toolName,
-            error: error.message,
+            _error: _error.message,
           });
         }
-        throw error;
+        throw _error;
       }
     }) as T;
   }

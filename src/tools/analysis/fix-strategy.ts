@@ -344,7 +344,7 @@ balance.architectural_changes++;
       impactEffortRatio: (_item.priority_details?.weight || 0) / (_item.effort_details?.hours || 1),
       customerImpact: this.assessCustomerImpact(_item),
       implementationRisk: this.assessImplementationRisk(_item),
-    }));
+    ));
 
     // Select top quick wins considering dependencies and resource constraints
     const selected: TodoItem[] = [];
@@ -594,7 +594,7 @@ return ['senior_developer'];
         _items: _items.filter((_item) => {
           const effort = _item.effort_details?.hours || 0;
           return effort > 4 && effort <= 16 && _item.priority !== 'LOW';
-        }),
+        },
       },
       {
         name: 'Strategic Development',
@@ -603,7 +603,7 @@ return ['senior_developer'];
         _items: _items.filter((_item) => {
           const effort = _item.effort_details?.hours || 0;
           return effort > 16 && effort <= 80;
-        }),
+        },
       },
       {
         name: 'Architectural Evolution',
@@ -612,7 +612,7 @@ return ['senior_developer'];
         _items: _items.filter((_item) => {
           const effort = _item.effort_details?.hours || 0;
           return effort > 80;
-        }),
+        },
       },
     ];
 

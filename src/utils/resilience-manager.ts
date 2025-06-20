@@ -121,9 +121,9 @@ export class CircuitBreaker {
 
       this.recordSuccess(responseTime);
       return result;
-    } catch (error) {
+    } catch (_error) {
       this.recordFailure();
-      throw error;
+      throw _error;
     }
   }
 
@@ -203,23 +203,23 @@ export class RetryHandler {
 
   async execute<T>(
     operation: () => Promise<T>,
-    errorHandler?: (error: any, attempt: number) => boolean,
+    errorHandler?: (_error: any, attempt: number) => boolean,
   ): Promise<T> {
     let lastError: any;
 
     for (let attempt = 1; attempt <= this.config.maxAttempts; attempt++) {
       try {
         return await operation();
-      } catch (error) {
+      } catch (_error) {
         lastError = _error;
 
         // Check if error is retryable
         if (errorHandler && !errorHandler(_error, attempt)) {
-          throw error;
+          throw _error;
         }
 
         if (attempt === this.config.maxAttempts) {
-          throw error;
+          throw _error;
         }
 
         // Calculate delay with exponential backoff and jitter
@@ -390,7 +390,7 @@ export class ErrorClassifier {
     ],
   ]);
 
-  static classify(error: any): ErrorCategory {
+  static classify(_error: any): ErrorCategory {
     let code: string | undefined;
 
     // Extract error code
@@ -400,9 +400,9 @@ export class ErrorClassifier {
       code = _error.response.status.toString();
     } else if (_error.status) {
       code = _error.status.toString();
-    } else if (error.message) {
+    } else if (_error.message) {
       // Try to extract HTTP status from message
-      const statusMatch = error.message.match(/\b(4\d{2}|5\d{2})\b/);
+      const statusMatch = _error.message.match(/\b(4\d{2}|5\d{2})\b/);
       if (statusMatch) {
         code = statusMatch[1];
       }
@@ -422,11 +422,11 @@ export class ErrorClassifier {
     };
   }
 
-  static isRetryable(error: any): boolean {
+  static isRetryable(_error: any): boolean {
     return this.classify(_error).retryable;
   }
 
-  static getSeverity(error: any): ErrorSeverity {
+  static getSeverity(_error: any): ErrorSeverity {
     return this.classify(_error).severity;
   }
 }
@@ -502,7 +502,7 @@ export class ResilienceManager {
 
         // Log error for monitoring
         console.error(`Operation ${operationType} failed (attempt ${attempt}):`, {
-          error: error.message,
+          error: _error.message,
           category: category.type,
           severity: category.severity,
           retryable: category.retryable,
@@ -544,7 +544,7 @@ export class ResilienceManager {
     }
   }
 
-  formatUserFriendlyError(error: any, operationType: OperationType, context?: any): string {
+  formatUserFriendlyError(_error: any, operationType: OperationType, context?: any): string {
     const category = ErrorClassifier.classify(_error);
 
     // Use existing error translator for base formatting
