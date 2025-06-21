@@ -2,18 +2,23 @@
 
 **ALECS - A LaunchGrid for Edge & Cloud Services**
 
-A comprehensive MCP (Model Context Protocol) server that enables AI assistants to manage Akamai's complete edge platform through natural language. ALECS provides enterprise-grade tools for Akamai properties, DNS, certificates, security, and performance optimization with OAuth 2.1 authentication and MCP 2025-06-18 compliance.
+A comprehensive MCP (Model Context Protocol) server that enables AI assistants to manage Akamai's
+complete edge platform through natural language. ALECS provides enterprise-grade tools for Akamai
+properties, DNS, certificates, security, and performance optimization with OAuth 2.1 authentication
+and MCP 2025-06-18 compliance.
 
 ## 🎯 What Can ALECS Do for You?
 
 ### 🌐 **Complete Akamai Property Management**
+
 - **End-to-End Property Onboarding**: From hostname to production activation in minutes
-- **Rule Tree Optimization**: AI-powered performance tuning and security hardening  
+- **Rule Tree Optimization**: AI-powered performance tuning and security hardening
 - **Multi-Environment Deployments**: Staging, production, and A/B testing workflows
 - **Version Control**: Property history, rollbacks, and change tracking
 - **Bulk Operations**: Manage hundreds of properties simultaneously
 
 ### 🚀 **Performance & Delivery Optimization**
+
 - **Ion Standard Templates**: Premium web/API delivery with HTTP/3 and adaptive acceleration
 - **FastPurge Management**: Intelligent cache invalidation with queue management
 - **CP Code Automation**: Automatic traffic categorization and billing
@@ -21,6 +26,7 @@ A comprehensive MCP (Model Context Protocol) server that enables AI assistants t
 - **Real-time Analytics**: Performance monitoring and optimization recommendations
 
 ### 🔐 **Enterprise Security & Compliance**
+
 - **OAuth 2.1 Resource Server**: RFC-compliant authentication with scope-based access control
 - **Certificate Lifecycle Management**: DV certificates, Enhanced TLS, and ACME automation
 - **WAF & Bot Protection**: Application security with 95+ security tools
@@ -28,6 +34,7 @@ A comprehensive MCP (Model Context Protocol) server that enables AI assistants t
 - **Compliance Ready**: SOX, PCI-DSS, and regulatory requirement support
 
 ### 🌍 **DNS & Traffic Management**
+
 - **Global DNS Management**: PRIMARY, SECONDARY, and ALIAS zones with DNSSEC
 - **DNS Migration Tools**: Seamless migration from any DNS provider
 - **Traffic Steering**: Geolocation, failover, and load balancing
@@ -35,9 +42,11 @@ A comprehensive MCP (Model Context Protocol) server that enables AI assistants t
 
 ## 🆕 MCP 2025-06-18 Specification & OAuth 2.1
 
-**ALECS is the one of the first(?) MCP server with comprehensive OAuth 2.1 Resource Server implementation and 87.5% MCP 2025-06-18 compliance.**
+**ALECS implements comprehensive OAuth 2.1 Resource Server functionality and is compliant with the
+MCP 2025-06-18 specification.**
 
 ### 🔐 **OAuth 2.1 Authentication**
+
 - **Resource Server Metadata (RFC 9728)**: Standards-compliant discovery endpoints
 - **Token Validation**: JWT and introspection support with caching
 - **Resource Indicators (RFC 8707)**: Fine-grained access control per Akamai resource
@@ -45,12 +54,14 @@ A comprehensive MCP (Model Context Protocol) server that enables AI assistants t
 - **Security Features**: Token replay prevention, rate limiting, HTTPS enforcement
 
 ### 📋 **MCP 2025-06-18 Compliance**
-- **21/24 Tests Passing**: 87.5% compliance with comprehensive test suite
+
+- **Specification Compliant**: Implements MCP 2025-06-18 protocol requirements
 - **Scope-Based Authorization**: Granular tool access control
 - **Protected vs Public Tools**: Configurable authentication requirements
 - **Standards Compliance**: WWW-Authenticate headers, CORS support, RFC error responses
 
 ### 🛡️ **Enterprise Security**
+
 - **Multi-Customer OAuth**: Isolated authentication per Akamai account
 - **Scope Management**: `property:read`, `property:write`, `property:activate` scopes
 - **Security Monitoring**: Real-time authentication and authorization logging
@@ -59,18 +70,21 @@ A comprehensive MCP (Model Context Protocol) server that enables AI assistants t
 ## Core Akamai Capabilities
 
 ### 🚀 **Multi-Customer & Partner Support**
+
 - **Seamless Account Switching**: Multiple Akamai accounts for partners and Akamai personnel
 - **Account-Specific Configurations**: Isolated `.edgerc` sections with OAuth scopes
 - **Automatic Key Detection**: Smart account key application and validation
 - **Partner-Ready**: MSP and CSP support with customer isolation
 
 ### 🔍 **Intelligent Property Discovery**
+
 - **AI-Powered Search**: Natural language property and configuration lookup
 - **Universal Search**: Cross-contract property discovery with advanced filtering
 - **Smart Suggestions**: Automatic hostname pattern detection and recommendations
 - **Performance Insights**: Property health checks and optimization recommendations
 
 ### 📊 **Advanced Property Management**
+
 - **Complete Lifecycle Management**: From creation to production activation
 - **Rule Tree Intelligence**: AI-powered configuration optimization and validation
 - **Version Control**: Complete change history with rollback capabilities
@@ -78,6 +92,7 @@ A comprehensive MCP (Model Context Protocol) server that enables AI assistants t
 - **A/B Testing**: Multi-version property deployments and traffic splitting
 
 ### 🌍 **Global DNS & Traffic Management**
+
 - **Edge DNS Integration**: PRIMARY, SECONDARY, and ALIAS zones with DNSSEC
 - **Traffic Steering**: Geographic, performance-based, and failover routing
 - **DNS Migration**: Seamless provider migration with validation and testing
@@ -85,6 +100,7 @@ A comprehensive MCP (Model Context Protocol) server that enables AI assistants t
 - **Global Anycast**: Distributed DNS with low-latency responses
 
 ### 🔐 **Certificate & Security Management**
+
 - **Enhanced TLS Network**: Modern TLS 1.3 with perfect forward secrecy
 - **DV Certificate Automation**: Zero-touch domain validation workflows
 - **WAF & Bot Protection**: Application security with threat intelligence
@@ -92,6 +108,7 @@ A comprehensive MCP (Model Context Protocol) server that enables AI assistants t
 - **Compliance Tools**: SOX, PCI-DSS, and regulatory requirement automation
 
 ### 🛠 **Developer & Operations Experience**
+
 - **Docker & Kubernetes**: Production-ready containers with Helm charts
 - **CI/CD Integration**: GitOps workflows with automated testing and deployment
 - **Monitoring & Alerting**: Real-time performance and security monitoring
@@ -114,6 +131,7 @@ npm start
 ```
 
 The interactive mode will guide you through:
+
 - Selecting which services to run (Property, DNS, Certificates, Security, Reporting)
 - Configuring your `.edgerc` path
 - Choosing the appropriate server configuration
@@ -147,7 +165,8 @@ account_key = 1-ABCDEF
 
 ### 2. Configure Claude Desktop
 
-ALECS has been completely refactored with a modular architecture for optimal performance and flexibility. The project now features:
+ALECS has been completely refactored with a modular architecture for optimal performance and
+flexibility. The project now features:
 
 - **TypeScript Migration**: 100% TypeScript with full strict mode for enhanced type safety
 - **Modular Architecture**: Services split into focused, independent modules
@@ -159,7 +178,8 @@ ALECS offers multiple deployment modes:
 
 #### Option A: Modular Servers (Recommended) 🚀
 
-Deploy focused servers for specific use cases. This approach reduces memory usage by up to 80% and improves stability:
+Deploy focused servers for specific use cases. This approach reduces memory usage by up to 80% and
+improves stability:
 
 ```json
 {
@@ -204,6 +224,7 @@ Deploy focused servers for specific use cases. This approach reduces memory usag
 ```
 
 **Modular Server Benefits:**
+
 - **alecs-property** (32 tools): Property management, activations, and basic certificate support
 - **alecs-dns** (24 tools): DNS zones, records, and migrations
 - **alecs-certs** (22 tools): Full certificate lifecycle management
@@ -244,29 +265,33 @@ A lightweight option with just the most commonly used features:
 
 ### Choosing the Right Configuration
 
-| Configuration | Use Case | Memory Usage | Tool Count |
-|--------------|----------|--------------|------------|
-| **Modular** | Deploy only what you need | ~80MB per module | 22-95 per module |
-| **Monolithic** | Need all features at once | ~512MB | 198 total |
-| **Essential** | Basic property & DNS management | ~200MB | ~60 tools |
+| Configuration  | Use Case                        | Memory Usage     | Tool Count       |
+| -------------- | ------------------------------- | ---------------- | ---------------- |
+| **Modular**    | Deploy only what you need       | ~80MB per module | 22-95 per module |
+| **Monolithic** | Need all features at once       | ~512MB           | 198 total        |
+| **Essential**  | Basic property & DNS management | ~200MB           | ~60 tools        |
 
-**Recommendation**: Start with modular servers and add modules as needed. This provides the best performance and stability.
+**Recommendation**: Start with modular servers and add modules as needed. This provides the best
+performance and stability.
 
 ## Usage Examples
 
 ### List Properties
+
 ```
 "List all my Akamai properties"
 "Show properties in contract ctr_1-ABCDEF"
 ```
 
 ### Search for Properties
+
 ```
 "Find property example.com"
 "Get details for property prp_12345"
 ```
 
 ### Group Management
+
 ```
 "List all Akamai groups"
 "Search for groups containing 'production'"
@@ -274,12 +299,14 @@ A lightweight option with just the most commonly used features:
 ```
 
 ### Multi-Customer Operations
+
 ```
 "List properties using customer production"
 "Switch to staging account and show properties"
 ```
 
 ### DNS Zone Management
+
 ```
 "List all DNS zones"
 "Get details for zone example.com"
@@ -287,6 +314,7 @@ A lightweight option with just the most commonly used features:
 ```
 
 ### DNS Record Management
+
 ```
 "List all records in example.com"
 "Add an A record for www.example.com pointing to 192.0.2.1"
@@ -297,6 +325,7 @@ A lightweight option with just the most commonly used features:
 ## Available Tools
 
 ### FastPurge - Content Invalidation
+
 - `fastpurge.url.invalidate` - Invalidate content by URL(s)
 - `fastpurge.cpcode.invalidate` - Invalidate all content for CP code(s)
 - `fastpurge.tag.invalidate` - Invalidate content by cache tag(s)
@@ -305,6 +334,7 @@ A lightweight option with just the most commonly used features:
 - `fastpurge.estimate` - Estimate purge completion time
 
 ### Property Management - Core Functions
+
 - `list_properties` - List CDN properties with filtering options
 - `get_property` - Get detailed property information by name or ID
 - `list_groups` - List account groups with search capability
@@ -314,6 +344,7 @@ A lightweight option with just the most commonly used features:
 - `remove_property` - Delete a property
 
 ### Property Management - Version & Rule Management
+
 - `create_property_version` - Create a new property version
 - `list_property_versions` - List all versions of a property
 - `get_property_version` - Get specific version details
@@ -334,6 +365,7 @@ A lightweight option with just the most commonly used features:
 - `optimize_rule_tree` - Optimize rule configuration
 
 ### Property Management - Hostname & Activation
+
 - `create_edge_hostname` - Create edge hostname for content delivery
 - `list_edge_hostnames` - List available edge hostnames
 - `get_edge_hostname` - Get edge hostname details
@@ -346,6 +378,7 @@ A lightweight option with just the most commonly used features:
 - `cancel_property_activation` - Cancel pending activation
 
 ### Property Management - Search & Analysis
+
 - `search_properties` - Search properties by various criteria
 - `search_properties_advanced` - Multi-criteria advanced search
 - `compare_properties` - Compare two properties in detail
@@ -357,6 +390,7 @@ A lightweight option with just the most commonly used features:
 - `get_property_audit_history` - Get property change history
 
 ### Property Management - Bulk Operations
+
 - `bulk_clone_properties` - Clone property to multiple targets
 - `bulk_activate_properties` - Activate multiple properties
 - `bulk_update_property_rules` - Update rules across properties
@@ -365,6 +399,7 @@ A lightweight option with just the most commonly used features:
 - `get_bulk_operation_status` - Track bulk operation progress
 
 ### Property Management - Products & CP Codes
+
 - `list_products` - List available Akamai products
 - `get_product` - Get product details
 - `list_use_cases` - List product use cases
@@ -374,6 +409,7 @@ A lightweight option with just the most commonly used features:
 - `search_cpcodes` - Search CP codes
 
 ### Certificate Management
+
 - `create_dv_enrollment` - Create Default DV certificate
 - `get_dv_validation_challenges` - Get domain validation challenges
 - `check_dv_enrollment_status` - Check certificate status
@@ -383,12 +419,14 @@ A lightweight option with just the most commonly used features:
 - `update_property_with_cps_certificate` - Add edge hostname with CPS cert
 
 ### Secure Property Onboarding
+
 - `onboard_secure_property` - Complete secure property workflow
 - `quick_secure_property_setup` - Quick setup with defaults
 - `check_secure_property_status` - Check onboarding status
 - `debug_secure_property_onboarding` - Debug onboarding issues
 
 ### DNS Management - Core Functions
+
 - `list_zones` - List all DNS zones with filtering
 - `get_zone` - Get detailed zone information
 - `create_zone` - Create new DNS zones (PRIMARY, SECONDARY, or ALIAS)
@@ -397,6 +435,7 @@ A lightweight option with just the most commonly used features:
 - `delete_record` - Delete DNS records
 
 ### DNS Management - Advanced Functions
+
 - `get_zones_dnssec_status` - Check DNSSEC status for multiple zones
 - `get_secondary_zone_transfer_status` - Get transfer status for secondary zones
 - `get_zone_contract` - Get contract information for zones
@@ -410,6 +449,7 @@ A lightweight option with just the most commonly used features:
 - `create_multiple_record_sets` - Create multiple DNS records in bulk
 
 ### DNS Migration Tools
+
 - `import_zone_via_axfr` - Import DNS zones via AXFR transfer
 - `parse_zone_file` - Parse and validate zone file content
 - `bulk_import_records` - Bulk import DNS records from parsed data
@@ -419,11 +459,13 @@ A lightweight option with just the most commonly used features:
 ## Development
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - TypeScript 5+
 - Akamai account with API credentials
 
 ### Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/acedergren/alecs-mcp-server-akamai.git
@@ -470,6 +512,7 @@ The project now uses full TypeScript strict mode:
 ```
 
 ### Testing
+
 ```bash
 # Run all tests
 npm test
@@ -488,6 +531,7 @@ npm run test:watch
 The server has undergone a complete architectural refactoring:
 
 #### Key Changes:
+
 1. **Service Separation**: Monolithic server split into 5 focused modules
 2. **TypeScript Migration**: All JavaScript files converted to TypeScript
 3. **Strict Mode**: Full TypeScript strict mode enabled
@@ -540,6 +584,7 @@ src/
 ## Current Capabilities (v1.3.0)
 
 ### 🎯 New in v1.3.0
+
 - **Complete TypeScript Migration**: 100% TypeScript codebase with full strict mode
 - **Modular Architecture**: Services split into focused, independent modules
 - **Interactive CLI**: User-friendly startup with service selection
@@ -549,6 +594,7 @@ src/
 - **Better Developer Experience**: Full IntelliSense support and type checking
 
 ### ✅ Implemented Features
+
 - **Property Manager**: Full CRUD operations, version management, activation workflow
 - **Edge DNS**: Zone management, record operations, bulk imports, DNSSEC support
 - **Certificate Management**: Default DV certificates with automatic DNS validation
@@ -565,7 +611,9 @@ src/
 - **Bulk Operations**: Multi-property cloning, activation, and rule updates
 
 ### Previous Features (v1.2.0)
-- **FastPurge Service**: Enterprise-grade content invalidation with intelligent rate limiting and batching
+
+- **FastPurge Service**: Enterprise-grade content invalidation with intelligent rate limiting and
+  batching
 - **Advanced Version Management**: Version comparison, timeline tracking, rollback capabilities
 - **Rule Tree Optimization**: Comprehensive validation, templates, and performance analysis
 - **Bulk Operations**: Multi-property management with progress tracking
@@ -574,17 +622,20 @@ src/
 ### 🚧 Upcoming Features
 
 #### Short term
+
 - **Network Lists**: IP and geographic access control list management
 - **Image & Video Manager**: Policy creation and management
 - **Simple Edgeworkers**: Edge logic deployment (redirects, forwards, etc.)
 
 #### Medium term
+
 - **Application Security**: WAF rule management and security policies
 - **Bot Manager**: Bot detection and mitigation configuration
 - **Reporting API**: Traffic analytics and performance metrics
 - **Securiy Metrics**: Security trends and metrcis
 
 #### Long term Roadmap
+
 - **API Definitions and Discovery**: API definition and policy management
 - **Advanced EdgeWorkers**: JavaScript code deployment at the edge
 - **Identity & Access Management**: User and API client management
@@ -613,4 +664,5 @@ MIT License - see LICENSE file for details
 
 ## Acknowledgments
 
-This project uses the Akamai OPEN APIs and follows their guidelines for third-party integrations. Special thanks to the MCP team at Anthropic for creating the Model Context Protocol.
+This project uses the Akamai OPEN APIs and follows their guidelines for third-party integrations.
+Special thanks to the MCP team at Anthropic for creating the Model Context Protocol.
