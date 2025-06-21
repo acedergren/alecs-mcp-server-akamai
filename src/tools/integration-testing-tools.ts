@@ -310,25 +310,25 @@ export async function generateTestData(
           return Array.from({ length: count }, () => ({
             name: TestDataGenerator.generatePropertyName(),
             type: 'property',
-          ));
+          }));
 
         case 'zone':
           return Array.from({ length: count }, () => ({
             name: TestDataGenerator.generateZoneName(),
             type: 'dns-zone',
-          ));
+          }));
 
         case 'hostname':
           return Array.from({ length: count }, () => ({
             name: TestDataGenerator.generateHostname(),
             type: 'hostname',
-          ));
+          }));
 
         case 'contact':
           return Array.from({ length: count }, () => ({
             ...TestDataGenerator.generateContactInfo(),
             type: 'contact',
-          ));
+          }));
 
         case 'all':
           return [

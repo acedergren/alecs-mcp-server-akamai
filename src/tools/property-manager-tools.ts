@@ -421,7 +421,7 @@ export async function createEdgeHostname(
         secure: args.secure || domainSuffix.includes('edgekey'),
         secureNetwork: args.secure || domainSuffix.includes('edgekey') ? 'ENHANCED_TLS' : undefined,
         ipVersionBehavior: args.ipVersion || 'IPV4',
-        ...(args.certificateEnrollmentId && { certEnrollmentId: args.certificateEnrollmentId },
+        ...(args.certificateEnrollmentId && { certEnrollmentId: args.certificateEnrollmentId }),
         useCases: [
           {
             useCase: 'Download_Mode',
@@ -1378,11 +1378,11 @@ export async function getVersionDiff(
         client._request({
           method: 'GET',
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version1}/rules`,
-        },
+        }),
         client._request({
           method: 'GET',
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version2}/rules`,
-        },
+        }),
       ]);
 
       const rulesDiff = compareRuleTrees(
@@ -1406,11 +1406,11 @@ export async function getVersionDiff(
         client._request({
           method: 'GET',
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version1}/hostnames`,
-        },
+        }),
         client._request({
           method: 'GET',
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version2}/hostnames`,
-        },
+        }),
       ]);
 
       const hostnamesDiff = compareHostnames(

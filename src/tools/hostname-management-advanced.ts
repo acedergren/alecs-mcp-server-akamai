@@ -289,7 +289,7 @@ export async function analyzeHostnameOwnership(
             operation: 'analyze hostname ownership',
             parameters: args,
             timestamp: new Date(),
-          }
+          }),
         }
       ],
     };
@@ -305,7 +305,7 @@ export async function generateEdgeHostnameRecommendations(
     hostnames: string[];
     preferredSuffix?: '.edgekey.net' | '.edgesuite.net' | '.akamaized.net';
     forceSecure?: boolean;
-  }),
+  }
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
 
@@ -363,7 +363,7 @@ acc[suffix] = [];
 }
         acc[suffix].push(rec);
         return acc;
-      }),
+      },
       {} as Record<string, EdgeHostnameRecommendation[]>,
     );
 
@@ -426,7 +426,7 @@ acc[suffix] = [];
             operation: 'generate edge hostname recommendations',
             parameters: args,
             timestamp: new Date(),
-          }
+          }),
         }
       ],
     };
@@ -442,7 +442,7 @@ export async function validateHostnamesBulk(
     hostnames: string[];
     checkDNS?: boolean;
     checkCertificates?: boolean;
-  }),
+  }
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
 
@@ -592,7 +592,7 @@ export async function validateHostnamesBulk(
         (acc, { reason }) => {
           acc[reason] = (acc[reason] || 0) + 1;
           return acc;
-        }
+        },
         {} as Record<string, number>,
       );
 
@@ -629,7 +629,7 @@ export async function validateHostnamesBulk(
             operation: 'validate hostnames bulk',
             parameters: args,
             timestamp: new Date(),
-          }
+          }),
         }
       ],
     };
@@ -645,7 +645,7 @@ export async function findOptimalPropertyAssignment(
     hostnames: string[];
     groupingStrategy?: 'by-domain' | 'by-function' | 'by-environment' | 'auto';
     maxHostnamesPerProperty?: number;
-  }),
+  }
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
 
@@ -778,7 +778,7 @@ export async function findOptimalPropertyAssignment(
             operation: 'find optimal property assignment',
             parameters: args,
             timestamp: new Date(),
-          }
+          }),
         }
       ],
     };
@@ -796,7 +796,7 @@ export async function createHostnameProvisioningPlan(
     groupId: string;
     productId?: string;
     securityLevel?: 'standard' | 'enhanced' | 'advanced';
-  }),
+  }
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
 
@@ -929,7 +929,7 @@ export async function createHostnameProvisioningPlan(
             operation: 'create hostname provisioning plan',
             parameters: args,
             timestamp: new Date(),
-          }
+          }),
         }
       ],
     };

@@ -287,7 +287,7 @@ export async function validateRuleTree(
             operation: 'validate rule tree',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -577,7 +577,7 @@ export async function analyzeRuleTreePerformance(
             operation: 'analyze rule tree performance',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -703,7 +703,7 @@ export async function detectRuleConflicts(
             operation: 'detect rule conflicts',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };

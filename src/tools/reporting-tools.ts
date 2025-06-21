@@ -870,7 +870,7 @@ export async function handleConfigureMonitoringAlerts(args: any) {
         alertsByMetric: thresholds.reduce((acc: any, threshold: any) => {
           acc[threshold.metric] = (acc[threshold.metric] || 0) + 1;
           return acc;
-        }, {},
+        }, {}),
       },
       message: `Configured ${enabledAlerts} active monitoring alerts`,
     };
