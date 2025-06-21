@@ -35,7 +35,7 @@ A comprehensive MCP (Model Context Protocol) server that enables AI assistants t
 
 ## 🆕 MCP 2025-06-18 Specification & OAuth 2.1
 
-**ALECS is the first MCP server with comprehensive OAuth 2.1 Resource Server implementation and 87.5% MCP 2025-06-18 compliance.**
+**ALECS is the one of the first(?) MCP server with comprehensive OAuth 2.1 Resource Server implementation and 87.5% MCP 2025-06-18 compliance.**
 
 ### 🔐 **OAuth 2.1 Authentication**
 - **Resource Server Metadata (RFC 9728)**: Standards-compliant discovery endpoints
