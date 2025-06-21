@@ -534,7 +534,7 @@ export class ALECSOAuthServer {
       return _error.message;
     }
 
-    return String(error);
+    return String(_error);
   }
 
   /**
@@ -619,8 +619,8 @@ export class ALECSOAuthServer {
 
       // Add _meta support if present in request
       const response: any = { tools };
-      if ((request as any)._meta) {
-        response._meta = (request as any)._meta;
+      if ((_request as any)._meta) {
+        response._meta = (_request as any)._meta;
       }
 
       return response;
@@ -630,7 +630,7 @@ export class ALECSOAuthServer {
     this.server.setRequestHandler(
       CallToolRequestSchema,
       async (_request: CallToolRequest): Promise<CallToolResult> => {
-        const { name, arguments: args } = request.params;
+        const { name, arguments: args } = _request.params;
 
         const entry = this.toolRegistry.get(name);
 
@@ -643,10 +643,10 @@ export class ALECSOAuthServer {
           let authContext: AuthContext | undefined;
 
           if (this.oauthMiddleware && entry.requiresAuth) {
-            authContext = (await this.oauthMiddleware.authenticate(request)) || undefined;
+            authContext = (await this.oauthMiddleware.authenticate(_request)) || undefined;
 
             if (authContext) {
-              await this.oauthMiddleware.authorize(request, authContext);
+              await this.oauthMiddleware.authorize(_request, authContext);
               await this.oauthMiddleware.applyRateLimit(authContext);
             }
           }

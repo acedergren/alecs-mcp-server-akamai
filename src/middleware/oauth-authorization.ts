@@ -94,7 +94,7 @@ export function createOAuthMiddleware(options: OAuthAuthorizationOptions): Reque
             'Missing Bearer token in Authorization header',
           );
         }
-        return next();
+        return _next();
       }
 
       // Introspect token
@@ -126,16 +126,16 @@ export function createOAuthMiddleware(options: OAuthAuthorizationOptions): Reque
       };
 
       // Attach OAuth context to request
-      req.oauth = {
+      _req.oauth = {
         token: tokenClaims,
         scopes: tokenClaims.scope.split(' '),
         clientId: tokenClaims.client_id,
       };
 
-      next();
+      _next();
     } catch (_error) {
       if (_error instanceof OAuthError) {
-        errorHandler(_error, req, res, next);
+        errorHandler(_error, _req, _res, _next);
       } else {
         const oauthError = new OAuthError(
           'Internal server _error',
@@ -159,7 +159,7 @@ export function requireResourceAccess(
 ): RequestHandler {
   return async (_req: OAuthRequest, _res: Response, _next: NextFunction) => {
     try {
-      if (!req.oauth?.token) {
+      if (!_req.oauth?.token) {
         throw new OAuthError(
           'Authentication required',
           401,
@@ -169,15 +169,15 @@ export function requireResourceAccess(
       }
 
       // Get resource server from request context (set by previous middleware)
-      const resourceServer = (req as any).resourceServer as OAuthResourceServer;
+      const resourceServer = (_req as any).resourceServer as OAuthResourceServer;
       if (!resourceServer) {
         throw new Error('Resource server not found in request context');
       }
 
       // Extract resource ID
       const resourceId = resourceIdExtractor
-        ? resourceIdExtractor(req)
-        : req.params.id || req.params.resourceId;
+        ? resourceIdExtractor(_req)
+        : _req.params.id || _req.params.resourceId;
 
       if (!resourceId) {
         throw new OAuthError(
@@ -189,7 +189,7 @@ export function requireResourceAccess(
       }
 
       // Build resource URI
-      const accountId = req.oauth.token.akamai?.account_id || 'unknown';
+      const accountId = _req.oauth.token.akamai?.account_id || 'unknown';
       const resourceUri = new ResourceUri(resourceType, accountId, resourceId);
 
       // Get resource metadata
@@ -211,26 +211,26 @@ export function requireResourceAccess(
           allowedMethods: ['GET', 'POST', 'PUT', 'DELETE'],
         };
         resourceServer.registerProtectedResource(tempResource);
-        req.oauth.resource = tempResource;
+        _req.oauth.resource = tempResource;
       } else {
-        req.oauth.resource = resource;
+        _req.oauth.resource = resource;
       }
 
       // Build access context
       const _context: OAuthResourceAccessContext = {
-        token: req.oauth.token,
-        resource: req.oauth.resource,
+        token: _req.oauth.token,
+        resource: _req.oauth.resource,
         operation,
-        method: req.method,
-        path: req.path,
+        method: _req.method,
+        path: _req.path,
         _context: {
-          ip: req.ip,
-          userAgent: req.get('user-agent'),
+          ip: _req.ip,
+          userAgent: _req.get('user-agent'),
         },
       };
 
       // Authorize access
-      const decision = await resourceServer.authorizeResourceAccess(context);
+      const decision = await resourceServer.authorizeResourceAccess(_context);
 
       if (!decision.allowed) {
         throw new OAuthError(
@@ -245,10 +245,10 @@ export function requireResourceAccess(
       // Log successful authorization
       console.log('Authorization granted:', decision.audit);
 
-      next();
+      _next();
     } catch (_error) {
       if (_error instanceof OAuthError) {
-        defaultErrorHandler(_error, req, res, next);
+        defaultErrorHandler(_error, _req, _res, _next);
       } else {
         const oauthError = new OAuthError(
           'Authorization _error',
@@ -267,7 +267,7 @@ export function requireResourceAccess(
  */
 export function requireScopes(...requiredScopes: string[]): RequestHandler {
   return (_req: OAuthRequest, _res: Response, _next: NextFunction) => {
-    if (!req.oauth?.token) {
+    if (!_req.oauth?.token) {
       return defaultErrorHandler(
         new OAuthError(
           'Authentication required',
@@ -275,13 +275,13 @@ export function requireScopes(...requiredScopes: string[]): RequestHandler {
           'unauthorized',
           'No valid authentication token found',
         ),
-        req,
-        res,
-        next,
+        _req,
+        _res,
+        _next,
       );
     }
 
-    const tokenScopes = req.oauth.scopes;
+    const tokenScopes = _req.oauth.scopes;
     const missingScopes = requiredScopes.filter((scope) => !tokenScopes.includes(scope));
 
     if (missingScopes.length > 0) {
@@ -292,13 +292,13 @@ export function requireScopes(...requiredScopes: string[]): RequestHandler {
           'insufficient_scope',
           `Required scopes: ${missingScopes.join(', ')}`,
         ),
-        req,
-        res,
-        next,
+        _req,
+        _res,
+        _next,
       );
     }
 
-    next();
+    _next();
   };
 }
 
@@ -306,7 +306,7 @@ export function requireScopes(...requiredScopes: string[]): RequestHandler {
  * Extract Bearer token from Authorization header
  */
 function extractBearerToken(_req: Request): string | undefined {
-  const authHeader = req.get('Authorization');
+  const authHeader = _req.get('Authorization');
   if (!authHeader) {
     return undefined;
   }
@@ -330,7 +330,7 @@ function defaultErrorHandler(
 ): void {
   // Set WWW-Authenticate header for 401 errors
   if (err.status === 401) {
-    const wwwAuthenticate = ['Bearer', `realm="${req.get('host') || 'Akamai API'}"`];
+    const wwwAuthenticate = ['Bearer', `realm="${_req.get('host') || 'Akamai API'}"`];
 
     if (err.error) {
       wwwAuthenticate.push(`error="${err.error}"`);
@@ -340,10 +340,10 @@ function defaultErrorHandler(
       wwwAuthenticate.push(`error_description="${err.errorDescription}"`);
     }
 
-    res.set('WWW-Authenticate', wwwAuthenticate.join(', '));
+    _res.set('WWW-Authenticate', wwwAuthenticate.join(', '));
   }
 
-  res.status(err.status).json(err.toJSON());
+  _res.status(err.status).json(err.toJSON());
 }
 
 /**
@@ -354,7 +354,7 @@ export function createResourceDiscoveryEndpoint(
 ): RequestHandler {
   return (_req: Request, _res: Response) => {
     const discovery = resourceServer.generateResourceDiscovery();
-    res.json(discovery);
+    _res.json(discovery);
   };
 }
 
@@ -366,7 +366,7 @@ export function createAuthServerMetadataEndpoint(
 ): RequestHandler {
   return (_req: Request, _res: Response) => {
     const metadata = resourceServer.getAuthorizationServerMetadata();
-    res.json(metadata);
+    _res.json(metadata);
   };
 }
 
@@ -378,7 +378,7 @@ export function createResourceServerMetadataEndpoint(
 ): RequestHandler {
   return (_req: Request, _res: Response) => {
     const metadata = resourceServer.getResourceServerMetadata();
-    res.json(metadata);
+    _res.json(metadata);
   };
 }
 

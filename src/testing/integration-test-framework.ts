@@ -422,7 +422,7 @@ export class APIHealthChecker {
     const startTime = Date.now();
 
     try {
-      await this.client._request({
+      await this.client.request({
         path: endpoint,
         method,
       });
@@ -510,7 +510,7 @@ export class LoadTestRunner {
           const requestStart = Date.now();
 
           try {
-            await this.client._request({ path: endpoint, method });
+            await this.client.request({ path: endpoint, method });
             results.push({
               success: true,
               responseTime: Date.now() - requestStart,

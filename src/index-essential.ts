@@ -547,7 +547,7 @@ class EssentialALECSServer {
                 message: _error.message,
                 stack: _error.stack,
               }
-            : String(error),
+            : String(_error),
       });
       throw _error;
     }
@@ -578,7 +578,7 @@ async function main() {
               message: _error.message,
               stack: _error.stack,
             }
-          : String(error),
+          : String(_error),
     });
     process.exit(1);
   }

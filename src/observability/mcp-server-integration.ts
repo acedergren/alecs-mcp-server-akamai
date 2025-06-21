@@ -81,7 +81,7 @@ export class InstrumentedMCPServer {
         `📊 Observability initialized for ${this.config.observability.environment} environment`,
       );
     } catch (_error) {
-      console.error('[Error]:', error);
+      console.error('[Error]:', _error);
     }
   }
 
@@ -256,7 +256,7 @@ export class InstrumentedMCPServer {
 
         return { tools };
       } catch (_error) {
-        instrumentation.finish(error as Error);
+        instrumentation.finish(_error as Error);
         throw _error;
       }
     });
@@ -330,7 +330,7 @@ export class InstrumentedMCPServer {
           instrumentation.spanId,
         );
 
-        instrumentation.finish(error as Error);
+        instrumentation.finish(_error as Error);
 
         // Re-throw to maintain MCP error handling
         throw _error;
@@ -398,7 +398,7 @@ export class InstrumentedMCPServer {
 
         return result;
       } catch (_error) {
-        apiInstrumentation.finish(error as Error);
+        apiInstrumentation.finish(_error as Error);
         throw _error;
       }
     }
@@ -553,7 +553,7 @@ export class InstrumentedMCPServer {
           console.log('📤 Observability data exported on shutdown');
         }
       } catch (_error) {
-        console.error('[Error]:', error);
+        console.error('[Error]:', _error);
       }
 
       this.observability.stop();

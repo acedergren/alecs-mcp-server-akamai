@@ -365,7 +365,7 @@ export class ALECSFullServer {
       return _error.message;
     }
 
-    return String(error);
+    return String(_error);
   }
 
   /**
@@ -402,7 +402,7 @@ export class ALECSFullServer {
     this.server.setRequestHandler(
       CallToolRequestSchema,
       async (_request: CallToolRequest): Promise<CallToolResult> => {
-        const { name, arguments: args } = request.params;
+        const { name, arguments: args } = _request.params;
 
         const entry = this.toolRegistry.get(name);
 

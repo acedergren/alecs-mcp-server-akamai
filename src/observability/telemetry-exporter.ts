@@ -198,7 +198,7 @@ export class TelemetryExporter extends EventEmitter {
           timestamp: Date.now(),
           recordsExported: 0,
           duration: 0,
-          error: error as Error,
+          error: _error as Error,
         };
         results.push(result);
         this.emit('exportError', destination.name, _error);
@@ -274,7 +274,7 @@ export class TelemetryExporter extends EventEmitter {
         timestamp,
         recordsExported: 0,
         duration,
-        error: error as Error,
+        error: _error as Error,
       };
 
       this.emit('exportError', result);

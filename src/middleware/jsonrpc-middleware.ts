@@ -25,7 +25,7 @@ export class JsonRpcMiddleware {
   ): (_request: JsonRpcRequest) => Promise<JsonRpcResponse> {
     return async (_request: JsonRpcRequest): Promise<JsonRpcResponse> => {
       // Validate request ID
-      if ('id' in request && !isValidRequestId(request.id)) {
+      if ('id' in _request && !isValidRequestId(_request.id)) {
         return createJsonRpcError(
           null,
           JsonRpcErrorCode.InvalidRequest,
@@ -34,9 +34,9 @@ export class JsonRpcMiddleware {
       }
 
       // Validate JSON-RPC version
-      if (request.jsonrpc !== '2.0') {
+      if (_request.jsonrpc !== '2.0') {
         return createJsonRpcError(
-          request.id ?? null,
+          _request.id ?? null,
           JsonRpcErrorCode.InvalidRequest,
           'Invalid JSON-RPC version, must be "2.0"',
         );
@@ -44,17 +44,17 @@ export class JsonRpcMiddleware {
 
       try {
         // Execute the handler
-        const result = await handler(request.params);
+        const result = await handler(_request.params);
 
         // Create success response with proper ID
         return createJsonRpcSuccess(
-          request.id ?? null,
+          _request.id ?? null,
           result,
-          request._meta, // Preserve metadata
+          _request._meta, // Preserve metadata
         );
       } catch (_error) {
         // Handle errors and create proper _error response
-        return this.createErrorResponse(request.id ?? null, _error, request._meta);
+        return this.createErrorResponse(_request.id ?? null, _error, _request._meta);
       }
     };
   }
@@ -68,23 +68,23 @@ export class JsonRpcMiddleware {
     meta?: Record<string, unknown>,
   ): JsonRpcResponse {
     // Handle different error types
-    if (_error instanceof Error) {
+    if (error instanceof Error) {
       // Check for specific error types that map to JSON-RPC error codes
-      if (_error.message.includes('not found') || _error.message.includes('unknown method')) {
+      if (error.message.includes('not found') || error.message.includes('unknown method')) {
         return createJsonRpcError(
           id,
           JsonRpcErrorCode.MethodNotFound,
-          _error.message,
+          error.message,
           undefined,
           meta,
         );
       }
 
-      if (_error.message.includes('invalid') || _error.message.includes('validation')) {
+      if (error.message.includes('invalid') || error.message.includes('validation')) {
         return createJsonRpcError(
           id,
           JsonRpcErrorCode.InvalidParams,
-          _error.message,
+          error.message,
           undefined,
           meta,
         );
@@ -94,14 +94,14 @@ export class JsonRpcMiddleware {
       return createJsonRpcError(
         id,
         JsonRpcErrorCode.InternalError,
-        _error.message,
-        _error.stack,
+        error.message,
+        error.stack,
         meta,
       );
     }
 
     // Handle custom error objects
-    if (typeof error === 'object' && error !== null && 'code' in _error) {
+    if (typeof error === 'object' && error !== null && 'code' in error) {
       const customError = error as any;
       return createJsonRpcError(
         id,
@@ -126,11 +126,11 @@ export class JsonRpcMiddleware {
    * Validate incoming JSON-RPC request
    */
   static validateRequest(_request: unknown): JsonRpcRequest {
-    if (!request || typeof request !== 'object') {
+    if (!_request || typeof _request !== 'object') {
       throw new Error('Request must be an object');
     }
 
-    const req = request as any;
+    const req = _request as any;
 
     // Check required fields
     if (req.jsonrpc !== '2.0') {
@@ -169,7 +169,7 @@ export class JsonRpcMiddleware {
    * Extract metadata from request
    */
   static extractMetadata(_request: JsonRpcRequest): Record<string, unknown> | undefined {
-    return request._meta;
+    return _request._meta;
   }
 }
 

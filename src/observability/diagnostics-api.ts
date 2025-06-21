@@ -225,7 +225,7 @@ export class DiagnosticsAPI extends EventEmitter {
           message: `Health check failed: ${_error instanceof Error ? _error.message : String(_error)}`,
           lastCheck: Date.now(),
           duration: 0,
-          metadata: { error: _error instanceof Error ? _error.stack : String(error) },
+          metadata: { error: _error instanceof Error ? _error.stack : String(_error) },
         };
 
         this.healthChecks.set(name, healthCheck);

@@ -219,24 +219,24 @@ export class TokenValidator {
       // Decode without verification first to get header
       const decoded = jwt.decode(token, { complete: true });
       if (!decoded) {
-        return { valid: false, _error: 'Invalid JWT format' };
+        return { valid: false, error: 'Invalid JWT format' };
       }
 
       const { header } = decoded;
 
       // Check algorithm
       if (!this.config.allowedAlgorithms.includes(header.alg as Algorithm)) {
-        return { valid: false, _error: `Algorithm ${header.alg} not allowed` };
+        return { valid: false, error: `Algorithm ${header.alg} not allowed` };
       }
 
       // Get signing key
       if (!header.kid) {
-        return { valid: false, _error: 'JWT missing kid header' };
+        return { valid: false, error: 'JWT missing kid header' };
       }
 
       const key = await this.getSigningKey(header.kid);
       if (!key) {
-        return { valid: false, _error: 'Signing key not found' };
+        return { valid: false, error: 'Signing key not found' };
       }
 
       // Verify JWT
@@ -264,19 +264,19 @@ export class TokenValidator {
       };
     } catch (_error) {
       if (_error instanceof jwt.TokenExpiredError) {
-        return { valid: false, _error: 'Token expired' };
+        return { valid: false, error: 'Token expired' };
       }
       if (_error instanceof jwt.NotBeforeError) {
-        return { valid: false, _error: 'Token not yet valid' };
+        return { valid: false, error: 'Token not yet valid' };
       }
       if (_error instanceof jwt.JsonWebTokenError) {
-        return { valid: false, _error: _error.message };
+        return { valid: false, error: _error.message };
       }
 
       logger.error('JWT validation error', {
         error: _error instanceof Error ? _error.message : String(_error),
       });
-      return { valid: false, _error: 'JWT validation failed' };
+      return { valid: false, error: 'JWT validation failed' };
     }
   }
 
@@ -285,7 +285,7 @@ export class TokenValidator {
    */
   private async introspectToken(token: string): Promise<TokenValidationResult> {
     if (!this.config.introspectionEndpoint) {
-      return { valid: false, _error: 'Introspection endpoint not configured' };
+      return { valid: false, error: 'Introspection endpoint not configured' };
     }
 
     try {
@@ -314,7 +314,7 @@ export class TokenValidator {
       const introspectionResponse = TokenIntrospectionResponseSchema.parse(data);
 
       if (!introspectionResponse.active) {
-        return { valid: false, active: false, _error: 'Token inactive' };
+        return { valid: false, active: false, error: 'Token inactive' };
       }
 
       // Convert introspection response to claims

@@ -52,7 +52,7 @@ export interface AuthorizationRequest {
 }
 
 /**
- * Customer context manager service
+ * Customer _context manager service
  */
 export class CustomerContextManager {
   private static instance: CustomerContextManager;
@@ -91,7 +91,7 @@ export class CustomerContextManager {
    * Switch customer context
    */
   async switchCustomer(_request: CustomerSwitchRequest): Promise<CustomerContext> {
-    const { sessionId, targetCustomerId, reason } = request;
+    const { sessionId, targetCustomerId, reason } = _request;
 
     // Get session
     const session = this.oauthManager.getSession(sessionId);
@@ -124,7 +124,7 @@ export class CustomerContextManager {
 
     // No cache to clear anymore
 
-    logger.info('Customer context switched', {
+    logger.info('Customer _context switched', {
       sessionId,
       fromCustomer: session.currentContext?.customerId,
       toCustomer: targetCustomerId,
@@ -311,7 +311,7 @@ export class CustomerContextManager {
       };
     }
 
-    // Build authorization context
+    // Build authorization _context
     const authContext: AuthorizationContext = {
       user: session.profile,
       customerContext: session.currentContext,

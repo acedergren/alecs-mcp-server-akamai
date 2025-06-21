@@ -192,7 +192,7 @@ class MetricsCollector {
     this.toolMetrics.set(toolName, {
       count: existing.count + 1,
       totalDuration: existing.totalDuration + duration,
-      errors: existing.errors + (error ? 1 : 0),
+      errors: existing.errors + (_error ? 1 : 0),
       minDuration: Math.min(existing.minDuration, duration),
       maxDuration: Math.max(existing.maxDuration, duration),
     });
