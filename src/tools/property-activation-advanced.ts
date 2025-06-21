@@ -297,7 +297,7 @@ responseText += `  - ${check.details}\n`;
             operation: 'validate property activation',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -472,7 +472,7 @@ export async function activatePropertyWithMonitoring(
             operation: 'activate property with monitoring',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -578,7 +578,7 @@ export async function getActivationProgress(
             operation: 'get activation progress',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -890,7 +890,7 @@ async function rollbackActivation(
       });
     }
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error("[Error]:", _error);
   }
 }
 
@@ -952,7 +952,7 @@ export async function cancelPropertyActivation(
             operation: 'cancel property activation',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -994,7 +994,7 @@ export async function createActivationPlan(
           ...prop,
           details: response.properties.items[0],
         };
-      },
+      }),
     );
 
     // Build activation plan
@@ -1051,7 +1051,7 @@ export async function createActivationPlan(
             operation: 'create activation plan',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
