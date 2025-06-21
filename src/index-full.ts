@@ -21,11 +21,7 @@ import {
 import { z, type ZodSchema } from 'zod';
 
 import { ConfigurationError, ConfigErrorType } from './types/config';
-import {
-  type BaseMcpParams,
-  type McpToolResponse,
-  type McpToolMetadata,
-} from './types/mcp';
+import { type BaseMcpParams, type McpToolResponse, type McpToolMetadata } from './types/mcp';
 import { type Mcp2025ToolResponse, type McpResponseMeta } from './types/mcp-2025';
 import { CustomerConfigManager } from './utils/customer-config';
 import { logger } from './utils/logger';
@@ -69,26 +65,30 @@ interface ServerConfig {
  */
 function zodToJsonSchema(schema: ZodSchema): any {
   const zodDef = (schema as any)._def;
-  
+
   if (zodDef.typeName === 'ZodObject') {
     const shape = zodDef.shape() || {};
     const properties: Record<string, any> = {};
     const required: string[] = [];
-    
+
     for (const [key, value] of Object.entries(shape)) {
       const fieldSchema = value as any;
       const fieldDef = fieldSchema._def;
-      
+
       // Get description
       const description = fieldDef.description;
-      
+
       // Determine type
       let type = 'string';
-      if (fieldDef.typeName === 'ZodNumber') {type = 'number';}
-      else if (fieldDef.typeName === 'ZodBoolean') {type = 'boolean';}
-      else if (fieldDef.typeName === 'ZodArray') {type = 'array';}
-      else if (fieldDef.typeName === 'ZodObject') {type = 'object';}
-      else if (fieldDef.typeName === 'ZodEnum') {
+      if (fieldDef.typeName === 'ZodNumber') {
+        type = 'number';
+      } else if (fieldDef.typeName === 'ZodBoolean') {
+        type = 'boolean';
+      } else if (fieldDef.typeName === 'ZodArray') {
+        type = 'array';
+      } else if (fieldDef.typeName === 'ZodObject') {
+        type = 'object';
+      } else if (fieldDef.typeName === 'ZodEnum') {
         properties[key] = {
           type: 'string',
           enum: fieldDef.values,
@@ -99,12 +99,12 @@ function zodToJsonSchema(schema: ZodSchema): any {
         }
         continue;
       }
-      
+
       properties[key] = {
         type,
         description,
       };
-      
+
       // Handle arrays
       if (fieldDef.typeName === 'ZodArray') {
         const innerType = fieldDef.type._def.typeName;
@@ -116,13 +116,13 @@ function zodToJsonSchema(schema: ZodSchema): any {
           properties[key].items = { type: 'object' };
         }
       }
-      
+
       // Check if required
       if (!fieldSchema.isOptional()) {
         required.push(key);
       }
     }
-    
+
     return {
       type: 'object',
       properties,
@@ -130,7 +130,7 @@ function zodToJsonSchema(schema: ZodSchema): any {
       additionalProperties: false,
     };
   }
-  
+
   return { type: 'string' };
 }
 
@@ -254,14 +254,11 @@ export class ALECSFullServer {
   private registerAllTools(): void {
     // Get all tool definitions
     const allTools = getAllToolDefinitions();
-    
+
     // Register each tool
     for (const toolDef of allTools) {
-      this.registerTool(
-        toolDef.name,
-        toolDef.description,
-        toolDef.schema,
-        async (params) => this.wrapToolHandler(toolDef.name, params, toolDef.handler),
+      this.registerTool(toolDef.name, toolDef.description, toolDef.schema, async (params) =>
+        this.wrapToolHandler(toolDef.name, params, toolDef.handler),
       );
     }
 
@@ -328,7 +325,7 @@ export class ALECSFullServer {
         ...context,
         duration,
         error: _error instanceof Error ? _error.message : String(_error),
-        stack: error instanceof Error ? _error.stack : undefined,
+        stack: _error instanceof Error ? _error.stack : undefined,
       });
 
       // Build error metadata
@@ -339,7 +336,7 @@ export class ALECSFullServer {
         customer: context.customer || 'default',
         tool: toolName,
         requestId: context.requestId,
-        errorType: error instanceof Error ? _error.constructor.name : 'UnknownError',
+        errorType: _error instanceof Error ? _error.constructor.name : 'UnknownError',
       };
 
       const response: Mcp2025ToolResponse = {
@@ -364,7 +361,7 @@ export class ALECSFullServer {
       return `Validation error: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`;
     }
 
-    if (error instanceof Error) {
+    if (_error instanceof Error) {
       return _error.message;
     }
 
@@ -426,7 +423,7 @@ export class ALECSFullServer {
 
           // Format response with MCP 2025 metadata if available
           let responseText = JSON.stringify(result.data, null, 2);
-          
+
           // Check if the result has metadata (cast to check)
           const resultWithMeta = result as any;
           if (resultWithMeta._meta) {
@@ -489,7 +486,7 @@ export class ALECSFullServer {
     } catch (_error) {
       logger.error('Failed to start server', {
         error: _error instanceof Error ? _error.message : String(_error),
-        stack: error instanceof Error ? _error.stack : undefined,
+        stack: _error instanceof Error ? _error.stack : undefined,
       });
       throw _error;
     }
@@ -506,7 +503,7 @@ async function main(): Promise<void> {
   } catch (_error) {
     logger.error('Server initialization failed', {
       error: _error instanceof Error ? _error.message : String(_error),
-      stack: error instanceof Error ? _error.stack : undefined,
+      stack: _error instanceof Error ? _error.stack : undefined,
     });
     process.exit(1);
   }

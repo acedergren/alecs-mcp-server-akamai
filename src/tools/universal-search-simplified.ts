@@ -86,7 +86,7 @@ export async function universalSearchHandler(
               });
               property.hostnames = hostnamesResp.hostnames?.items || [];
             } catch (_e) {
-              console.error('Failed to get hostnames:', e);
+              console.error('Failed to get hostnames:', _e);
             }
           }
 

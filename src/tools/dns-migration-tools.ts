@@ -71,7 +71,7 @@ export async function importZoneViaAXFR(
 
     // If TSIG key provided, update zone with TSIG configuration
     if (args.tsigKey) {
-      await client._request({
+      await client.request({
         path: `/config-dns/v2/zones/${args.zone}`,
         method: 'PUT',
         headers: {
@@ -87,7 +87,7 @@ export async function importZoneViaAXFR(
     }
 
     // Initiate zone transfer
-    await client._request({
+    await client.request({
       path: `/config-dns/v2/zones/${args.zone}/zone-transfer`,
       method: 'POST',
       headers: {
@@ -274,7 +274,7 @@ export async function bulkImportRecords(
           }
 
           // Add record to change list
-          await client._request({
+          await client.request({
             path: `/config-dns/v2/changelists/${args.zone}/recordsets/${record.name}/${record.type}`,
             method: 'PUT',
             headers: {
@@ -287,7 +287,7 @@ export async function bulkImportRecords(
         } catch (_error) {
           errors.push({
             record: `${record.name} ${record.type}`,
-            error: error instanceof Error ? _error.message : JSON.stringify(_error),
+            error: _error instanceof Error ? _error.message : JSON.stringify(_error),
           });
         }
       }
@@ -303,7 +303,7 @@ export async function bulkImportRecords(
     // Submit changelist if we have successful records
     let submitResponse: any = {};
     if (successCount > 0) {
-      submitResponse = await client._request({
+      submitResponse = await client.request({
         path: `/config-dns/v2/changelists/${args.zone}/submit`,
         method: 'POST',
         headers: {
@@ -351,7 +351,8 @@ export async function bulkImportRecords(
       text += '- use4.akadns.net\n';
       text += '- use2.akadns.net\n';
       text += '- use3.akadns.net\n\n';
-      text += '⚠️ **Important:** Don\'t update your domain registrar until you\'ve verified all records are working correctly!';
+      text +=
+        "⚠️ **Important:** Don't update your domain registrar until you've verified all records are working correctly!";
     }
 
     return {
@@ -379,7 +380,7 @@ export async function convertZoneToPrimary(
 ): Promise<MCPToolResponse> {
   try {
     // Get current zone config
-    const currentZone = await client._request({
+    const currentZone = await client.request({
       path: `/config-dns/v2/zones/${args.zone}`,
       method: 'GET',
     });
@@ -396,7 +397,7 @@ export async function convertZoneToPrimary(
     }
 
     // Update zone type
-    await client._request({
+    await client.request({
       path: `/config-dns/v2/zones/${args.zone}`,
       method: 'PUT',
       headers: {
@@ -435,13 +436,13 @@ export async function generateMigrationInstructions(
 ): Promise<MCPToolResponse> {
   try {
     // Get zone details
-    await client._request({
+    await client.request({
       path: `/config-dns/v2/zones/${args.zone}`,
       method: 'GET',
     });
 
     // Get record count
-    const recordsResponse = await client._request({
+    const recordsResponse = await client.request({
       path: `/config-dns/v2/zones/${args.zone}/recordsets`,
       method: 'GET',
     });
@@ -543,7 +544,7 @@ export async function generateMigrationInstructions(
 
     text += '## Support Contacts\n\n';
     text += '- **Akamai Support:** support@akamai.com\n';
-    text += '- **Domain Registrar:** Check your registrar\'s support page\n';
+    text += "- **Domain Registrar:** Check your registrar's support page\n";
     text += '- **Your Team:** Define escalation contacts\n';
 
     return {
@@ -752,8 +753,8 @@ function parseBindZoneFile(content: string, zone: string): ZoneFileRecord[] {
     const lineParts = line.split(';');
     const cleanLine = lineParts[0] ? lineParts[0].trim() : '';
     if (!cleanLine) {
-continue;
-}
+      continue;
+    }
 
     // Handle $TTL directive
     if (cleanLine.startsWith('$TTL')) {
@@ -766,14 +767,14 @@ continue;
 
     // Skip other directives
     if (cleanLine.startsWith('$')) {
-continue;
-}
+      continue;
+    }
 
     // Parse record
     const parts = cleanLine.split(/\s+/);
     if (parts.length < 3) {
-continue;
-}
+      continue;
+    }
 
     let name: string;
     let ttl: number;
@@ -823,8 +824,8 @@ continue;
     const typeField = fieldIndex < parts.length ? parts[fieldIndex] : undefined;
     const type = typeField ? typeField.toUpperCase() : '';
     if (!type) {
-continue;
-}
+      continue;
+    }
     fieldIndex++;
 
     // Rest is RDATA
@@ -885,8 +886,8 @@ function convertToAkamaiFormat(records: ZoneFileRecord[], _zone: string): DNSRec
     const firstRecord = groupedRecords[0];
 
     if (!firstRecord || !name || !type) {
-continue;
-}
+      continue;
+    }
 
     // Combine rdata from all records in group
     const rdata: string[] = [];
@@ -981,7 +982,7 @@ async function validateDNSRecords(records: ZoneFileRecord[]): Promise<
         name: record.name,
         type: record.type,
         valid: false,
-        error: error instanceof Error ? _error.message : 'Validation failed',
+        error: _error instanceof Error ? _error.message : 'Validation failed',
       });
     }
   }
@@ -1082,7 +1083,7 @@ async function validateSingleRecord(record: DNSRecordSet): Promise<{
       name: record.name,
       type: record.type,
       valid: false,
-      error: error instanceof Error ? _error.message : 'Validation _error',
+      error: _error instanceof Error ? _error.message : 'Validation _error',
     };
   }
 }
@@ -1112,7 +1113,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
+  if (_error instanceof Error) {
     errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions

@@ -117,7 +117,7 @@ export async function createACMEValidationRecords(
           results.failed++;
           results.errors.push({
             record: record.recordName,
-            error: error instanceof Error ? _error.message : 'Unknown error',
+            error: _error instanceof Error ? _error.message : 'Unknown error',
           });
         }
       }
@@ -178,7 +178,7 @@ export async function createACMEValidationRecords(
       content: [
         {
           type: 'text',
-          text: `❌ Failed to create ACME validation records: ${error instanceof Error ? _error.message : 'Unknown _error'}`,
+          text: `❌ Failed to create ACME validation records: ${_error instanceof Error ? _error.message : 'Unknown _error'}`,
         },
       ],
     };
@@ -279,7 +279,7 @@ export async function monitorCertificateValidation(
 
     try {
       // Check enrollment status
-      const response = await client._request({
+      const response = await client.request({
         method: 'GET',
         path: `/cps/v2/enrollments/${args.enrollmentId}`,
       });
@@ -354,7 +354,7 @@ export async function monitorCertificateValidation(
     } catch (_error) {
       spinner.stop();
       console.error(
-        `\n❌ Error checking validation status: ${error instanceof Error ? _error.message : 'Unknown _error'}`,
+        `\n❌ Error checking validation status: ${_error instanceof Error ? _error.message : 'Unknown _error'}`,
       );
       await new Promise((resolve) => setTimeout(resolve, checkInterval));
     }

@@ -202,7 +202,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
     // Fetch from API
     try {
-      const response = await this.client._request({
+      const response = await this.client.request({
         path: `/cps/v2/enrollments/${enrollmentId}/deployments`,
         method: 'GET',
         headers: {
@@ -240,7 +240,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
     }
 
     try {
-      await this.client._request({
+      await this.client.request({
         method: 'DELETE',
         path: `/cps/v2/enrollments/${enrollmentId}/deployments/${deploymentState.deploymentId}`,
         headers: {
@@ -260,7 +260,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
   // Private helper methods
 
   private async verifyCertificateReadiness(enrollmentId: number): Promise<void> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       path: `/cps/v2/enrollments/${enrollmentId}`,
       method: 'GET',
       headers: {
@@ -286,7 +286,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
   }
 
   private async initiateDeployment(enrollmentId: number, network: string): Promise<number> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'POST',
       path: `/cps/v2/enrollments/${enrollmentId}/deployments`,
       headers: {
@@ -355,7 +355,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
     deploymentId: number,
   ): Promise<{ status: DeploymentState['status']; progress: number }> {
     try {
-      const response = await this.client._request({
+      const response = await this.client.request({
         method: 'GET',
         path: `/cps/v2/enrollments/${enrollmentId}/deployments/${deploymentId}`,
         headers: {
@@ -369,12 +369,12 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
       // Estimate progress based on status
       let progress = 50;
       if (status === 'deployed') {
-progress = 100;
-} else if (status === 'in_progress') {
-progress = 75;
-} else if (status === 'initiated') {
-progress = 25;
-}
+        progress = 100;
+      } else if (status === 'in_progress') {
+        progress = 75;
+      } else if (status === 'initiated') {
+        progress = 25;
+      }
 
       return { status, progress };
     } catch (_error) {
@@ -390,7 +390,7 @@ progress = 25;
 
     try {
       // Get property details
-      const propertyResponse = await this.client._request({
+      const propertyResponse = await this.client.request({
         path: `/papi/v1/properties/${propertyId}`,
         method: 'GET',
       });
@@ -404,7 +404,7 @@ progress = 25;
       const version = property.latestVersion || 1;
 
       // Get current hostnames
-      const hostnamesResponse = await this.client._request({
+      const hostnamesResponse = await this.client.request({
         path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames`,
         method: 'GET',
       });
@@ -417,7 +417,7 @@ progress = 25;
       }));
 
       // Update property
-      await this.client._request({
+      await this.client.request({
         path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames`,
         method: 'PUT',
         headers: {
@@ -446,7 +446,7 @@ progress = 25;
       // Cancel deployment if possible
       await this.cancelDeployment(enrollmentId);
     } catch (_error) {
-      console.error("[Error]:", error);
+      console.error('[Error]:', error);
     }
   }
 

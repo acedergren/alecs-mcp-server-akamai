@@ -16,8 +16,8 @@ import {
  */
 function formatActivationStatus(status: string | undefined): string {
   if (!status) {
-return '⚫ INACTIVE';
-}
+    return '⚫ INACTIVE';
+  }
 
   const statusMap: Record<string, string> = {
     ACTIVE: '🟢 ACTIVE',
@@ -46,7 +46,7 @@ export async function activateNetworkList(
     const client = new AkamaiClient(customer);
 
     // First get the list details
-    const listResponse = await client._request({
+    const listResponse = await client.request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'GET',
     });
@@ -85,7 +85,7 @@ export async function activateNetworkList(
       requestBody.fast = true;
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: '/network-list/v2/network-lists/activations',
       method: 'POST',
       body: requestBody,
@@ -140,7 +140,7 @@ export async function getNetworkListActivationStatus(
   try {
     const client = new AkamaiClient(customer);
 
-    const response = await client._request({
+    const response = await client.request({
       path: `/network-list/v2/network-lists/activations/${activationId}`,
       method: 'GET',
     });
@@ -215,7 +215,7 @@ export async function listNetworkListActivations(
       queryParams.status = options.status;
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: '/network-list/v2/network-lists/activations',
       method: 'GET',
       queryParams,
@@ -292,7 +292,7 @@ export async function deactivateNetworkList(
     const client = new AkamaiClient(customer);
 
     // First get the list details
-    const listResponse = await client._request({
+    const listResponse = await client.request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'GET',
     });
@@ -324,7 +324,7 @@ export async function deactivateNetworkList(
       requestBody.comments = options.comments;
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: '/network-list/v2/network-lists/activations',
       method: 'POST',
       body: requestBody,
@@ -342,8 +342,10 @@ export async function deactivateNetworkList(
       output += `**Comments:** ${options.comments}\n`;
     }
 
-    output += '\n⚠️ **Warning:** Deactivating this list will remove its security policies from the edge network.\n';
-    output += 'Traffic that was previously blocked/allowed by this list will no longer be filtered.\n';
+    output +=
+      '\n⚠️ **Warning:** Deactivating this list will remove its security policies from the edge network.\n';
+    output +=
+      'Traffic that was previously blocked/allowed by this list will no longer be filtered.\n';
 
     return {
       content: [
@@ -407,7 +409,7 @@ export async function bulkActivateNetworkLists(
           requestBody.notificationEmails = options.notificationEmails;
         }
 
-        const response = await client._request({
+        const response = await client.request({
           path: '/network-list/v2/network-lists/activations',
           method: 'POST',
           body: requestBody,

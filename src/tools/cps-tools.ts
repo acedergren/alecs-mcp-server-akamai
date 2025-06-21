@@ -159,7 +159,7 @@ export async function createDVEnrollment(
     };
 
     // Create enrollment
-    const response = await client._request({
+    const response = await client.request({
       path: '/cps/v2/enrollments',
       method: 'POST',
       headers: {
@@ -198,7 +198,7 @@ export async function getDVValidationChallenges(
 ): Promise<MCPToolResponse> {
   try {
     // Get enrollment status with validation details
-    const response = await client._request({
+    const response = await client.request({
       path: `/cps/v2/enrollments/${args.enrollmentId}`,
       method: 'GET',
       headers: {
@@ -228,7 +228,15 @@ export async function getDVValidationChallenges(
           IN_PROGRESS: '🔄',
           ERROR: '❌',
           EXPIRED: '⚠️',
-        }[domain.validationStatus as keyof {VALIDATED: string; PENDING: string; IN_PROGRESS: string; ERROR: string; EXPIRED: string}] || '❓';
+        }[
+          domain.validationStatus as keyof {
+            VALIDATED: string;
+            PENDING: string;
+            IN_PROGRESS: string;
+            ERROR: string;
+            EXPIRED: string;
+          }
+        ] || '❓';
 
       text += `### ${statusEmoji} ${domain.name}\n`;
       text += `- **Status:** ${domain.status}\n`;
@@ -325,7 +333,7 @@ export async function checkDVEnrollmentStatus(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client._request({
+    const response = await client.request({
       path: `/cps/v2/enrollments/${args.enrollmentId}`,
       method: 'GET',
       headers: {
@@ -343,7 +351,18 @@ export async function checkDVEnrollmentStatus(
         expired: '❌',
         pending: '⏳',
         cancelled: '🚫',
-      }[response.status.toLowerCase() as keyof {active: string; new: string; modified: string; 'renewal-in-progress': string; 'expiring-soon': string; expired: string; pending: string; cancelled: string}] || '❓';
+      }[
+        response.status.toLowerCase() as keyof {
+          active: string;
+          new: string;
+          modified: string;
+          'renewal-in-progress': string;
+          'expiring-soon': string;
+          expired: string;
+          pending: string;
+          cancelled: string;
+        }
+      ] || '❓';
 
     let text = '# Certificate Enrollment Status\n\n';
     text += `**Enrollment ID:** ${response.enrollmentId}\n`;
@@ -368,7 +387,15 @@ export async function checkDVEnrollmentStatus(
           IN_PROGRESS: '🔄',
           ERROR: '❌',
           EXPIRED: '⚠️',
-        }[domain.validationStatus as keyof {VALIDATED: string; PENDING: string; IN_PROGRESS: string; ERROR: string; EXPIRED: string}] || '❓';
+        }[
+          domain.validationStatus as keyof {
+            VALIDATED: string;
+            PENDING: string;
+            IN_PROGRESS: string;
+            ERROR: string;
+            EXPIRED: string;
+          }
+        ] || '❓';
 
       text += `- ${emoji} **${domain.name}**: ${domain.validationStatus}\n`;
 
@@ -444,7 +471,7 @@ export async function listCertificateEnrollments(
       queryParams.contractId = args.contractId;
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: '/cps/v2/enrollments',
       method: 'GET',
       headers: {
@@ -473,8 +500,8 @@ export async function listCertificateEnrollments(
       (acc: any, enrollment: any) => {
         const status = enrollment.status.toLowerCase();
         if (!acc[status]) {
-acc[status] = [];
-}
+          acc[status] = [];
+        }
         acc[status].push(enrollment);
         return acc;
       },
@@ -551,7 +578,7 @@ export async function linkCertificateToProperty(
 ): Promise<MCPToolResponse> {
   try {
     // Get property details
-    const propertyResponse = await client._request({
+    const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -564,7 +591,7 @@ export async function linkCertificateToProperty(
     const version = args.propertyVersion || property.latestVersion || 1;
 
     // Get current property hostnames
-    const hostnamesResponse = await client._request({
+    const hostnamesResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'GET',
     });
@@ -577,7 +604,7 @@ export async function linkCertificateToProperty(
     }));
 
     // Update property hostnames
-    await client._request({
+    await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'PUT',
       headers: {
@@ -641,7 +668,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
+  if (_error instanceof Error) {
     errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type

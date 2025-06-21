@@ -120,7 +120,7 @@ export async function validateRuleTree(
 
     // If no rules provided, fetch from property
     if (!rules && args.propertyId) {
-      const propertyResponse = await client._request({
+      const propertyResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -133,7 +133,7 @@ export async function validateRuleTree(
       propertyName = property.propertyName;
       version = version || property.latestVersion || 1;
 
-      const rulesResponse = await client._request({
+      const rulesResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
         method: 'GET',
       });
@@ -359,7 +359,7 @@ export async function createRuleTreeFromTemplate(
 
     // Update property if requested
     if (args.propertyId && args.version) {
-      const updateResponse = await client._request({
+      const updateResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/rules`,
         method: 'PUT',
         body: { rules },
@@ -455,7 +455,7 @@ export async function analyzeRuleTreePerformance(
 
     // Fetch rules if not provided
     if (!rules && args.propertyId) {
-      const propertyResponse = await client._request({
+      const propertyResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -468,7 +468,7 @@ export async function analyzeRuleTreePerformance(
       propertyName = property.propertyName;
       version = version || property.latestVersion || 1;
 
-      const rulesResponse = await client._request({
+      const rulesResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
         method: 'GET',
       });
@@ -601,7 +601,7 @@ export async function detectRuleConflicts(
     let rules = args.rules;
 
     if (!rules && args.propertyId) {
-      const propertyResponse = await client._request({
+      const propertyResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -612,7 +612,7 @@ export async function detectRuleConflicts(
       }
 
       const version = args.version || property.latestVersion || 1;
-      const rulesResponse = await client._request({
+      const rulesResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
         method: 'GET',
       });
@@ -754,8 +754,8 @@ export async function listRuleTemplates(
       (acc, template) => {
         const cat = template.category;
         if (!acc[cat]) {
-acc[cat] = [];
-}
+          acc[cat] = [];
+        }
         acc[cat].push(template);
         return acc;
       },
@@ -1190,8 +1190,8 @@ function performRuleTreeAnalysis(rules: any): any {
 
     const hasCaching = rule.behaviors?.some((b: any) => b.name === 'caching');
     if (hasCaching) {
-rulesWithCaching++;
-}
+      rulesWithCaching++;
+    }
 
     const pathCriteria = rule.criteria?.find((c: any) => c.name === 'path');
     if (
@@ -1448,8 +1448,8 @@ function validateTemplateVariables(
 
     // Skip validation if not provided and not required
     if (value === undefined) {
-return;
-}
+      return;
+    }
 
     // Type validation
     if (variable.type === 'string' && typeof value !== 'string') {

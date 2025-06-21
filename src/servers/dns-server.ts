@@ -609,7 +609,7 @@ class DNSALECSServer {
         const duration = Date.now() - startTime;
         log('ERROR', `❌ Tool ${name} failed after ${duration}ms`, {
           error:
-            error instanceof Error
+            _error instanceof Error
               ? {
                   message: _error.message,
                   stack: _error.stack,
@@ -667,7 +667,7 @@ class DNSALECSServer {
     } catch (_error) {
       log('ERROR', '❌ Failed to connect server', {
         error:
-          error instanceof Error
+          _error instanceof Error
             ? {
                 message: _error.message,
                 stack: _error.stack,
@@ -698,7 +698,7 @@ async function main() {
   } catch (_error) {
     log('ERROR', '❌ Failed to start server', {
       error:
-        error instanceof Error
+        _error instanceof Error
           ? {
               message: _error.message,
               stack: _error.stack,

@@ -110,7 +110,7 @@ export async function validatePropertyActivation(
 
   try {
     // Get property details
-    const propertyResponse = await client._request({
+    const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -130,7 +130,7 @@ export async function validatePropertyActivation(
     };
 
     // 1. Check rule validation
-    const rulesValidation = await client._request({
+    const rulesValidation = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules/errors`,
       method: 'GET',
     });
@@ -160,7 +160,7 @@ export async function validatePropertyActivation(
     }
 
     // 2. Check hostname configuration
-    const hostnamesResponse = await client._request({
+    const hostnamesResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'GET',
     });
@@ -188,7 +188,7 @@ export async function validatePropertyActivation(
     }
 
     // 4. Check for concurrent activations
-    const activationsResponse = await client._request({
+    const activationsResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/activations`,
       method: 'GET',
     });
@@ -241,11 +241,11 @@ export async function validatePropertyActivation(
       validation.errors.forEach((_error, index) => {
         responseText += `${index + 1}. **${_error.severity}**: ${_error.detail}\n`;
         if (_error.location) {
-responseText += `   - Location: ${_error.location}\n`;
-}
+          responseText += `   - Location: ${_error.location}\n`;
+        }
         if (_error.resolution) {
-responseText += `   - Resolution: ${_error.resolution}\n`;
-}
+          responseText += `   - Resolution: ${_error.resolution}\n`;
+        }
       });
       responseText += '\n';
     }
@@ -255,8 +255,8 @@ responseText += `   - Resolution: ${_error.resolution}\n`;
       validation.warnings.forEach((warning, index) => {
         responseText += `${index + 1}. **${warning.severity}**: ${warning.detail}\n`;
         if (warning.location) {
-responseText += `   - Location: ${warning.location}\n`;
-}
+          responseText += `   - Location: ${warning.location}\n`;
+        }
       });
       responseText += '\n';
     }
@@ -267,8 +267,8 @@ responseText += `   - Location: ${warning.location}\n`;
         const icon = check.status === 'PASSED' ? '✅' : check.status === 'FAILED' ? '❌' : '⚠️';
         responseText += `- ${icon} **${check.name}**: ${check.message}\n`;
         if (check.details) {
-responseText += `  - ${check.details}\n`;
-}
+          responseText += `  - ${check.details}\n`;
+        }
       });
       responseText += '\n';
     }
@@ -344,7 +344,7 @@ export async function activatePropertyWithMonitoring(
     }
 
     // Get property details
-    const propertyResponse = await client._request({
+    const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -355,7 +355,7 @@ export async function activatePropertyWithMonitoring(
     // Create activation
     const activationResponse = await ErrorRecovery.withRetry(
       async () => {
-        return await client._request({
+        return await client.request({
           path: `/papi/v1/properties/${args.propertyId}/activations`,
           method: 'POST',
           body: {
@@ -397,7 +397,7 @@ export async function activatePropertyWithMonitoring(
 
     while (Date.now() - startTime < maxWaitTime) {
       // Get current status
-      const statusResponse = await client._request({
+      const statusResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}/activations/${activationId}`,
         method: 'GET',
       });
@@ -492,7 +492,7 @@ export async function getActivationProgress(
   const errorTranslator = new ErrorTranslator();
 
   try {
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/activations/${args.activationId}`,
       method: 'GET',
     });
@@ -640,7 +640,7 @@ async function checkOriginConnectivity(
 ): Promise<PreflightCheck> {
   try {
     // Get property rules to find origin configuration
-    const rulesResponse = await client._request({
+    const rulesResponse = await client.request({
       path: `/papi/v1/properties/${propertyId}/versions/${version}/rules`,
       method: 'GET',
     });
@@ -658,8 +658,8 @@ async function checkOriginConnectivity(
         for (const child of rules.children) {
           const origin = findOrigin(child);
           if (origin) {
-return origin;
-}
+            return origin;
+          }
         }
       }
       return null;
@@ -783,14 +783,14 @@ function buildActivationProgress(activation: any, startTime: number): Activation
 
 function getProgressiveDelay(elapsedTime: number): number {
   if (elapsedTime < 120000) {
-return 5000;
-} // First 2 minutes: 5 seconds
+    return 5000;
+  } // First 2 minutes: 5 seconds
   if (elapsedTime < 420000) {
-return 10000;
-} // Next 5 minutes: 10 seconds
+    return 10000;
+  } // Next 5 minutes: 10 seconds
   if (elapsedTime < 1020000) {
-return 30000;
-} // Next 10 minutes: 30 seconds
+    return 30000;
+  } // Next 10 minutes: 30 seconds
   return 60000; // After 17 minutes: 60 seconds
 }
 
@@ -815,7 +815,7 @@ function formatActivationSuccess(
     `**Version:** ${version}\n` +
     `**Network:** ${network}\n` +
     `**Duration:** ${minutes} minutes\n\n` +
-    '## What\'s Next?\n' +
+    "## What's Next?\n" +
     '1. **Test your property**: Visit your website to verify changes\n' +
     '2. **Monitor performance**: Check Control Center for metrics\n' +
     '3. **Clear cache if needed**: Use Fast Purge for immediate updates\n\n' +
@@ -864,7 +864,7 @@ async function rollbackActivation(
 ): Promise<void> {
   try {
     // Get previous stable version
-    const activationsResponse = await client._request({
+    const activationsResponse = await client.request({
       path: `/papi/v1/properties/${propertyId}/activations`,
       method: 'GET',
     });
@@ -877,7 +877,7 @@ async function rollbackActivation(
 
     if (previousActivation) {
       // Attempt to reactivate previous version
-      await client._request({
+      await client.request({
         path: `/papi/v1/properties/${propertyId}/activations`,
         method: 'POST',
         body: {
@@ -890,7 +890,7 @@ async function rollbackActivation(
       });
     }
   } catch (_error) {
-    console.error("[Error]:", _error);
+    console.error('[Error]:', _error);
   }
 }
 
@@ -908,7 +908,7 @@ export async function cancelPropertyActivation(
 
   try {
     // Check activation status first
-    const statusResponse = await client._request({
+    const statusResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/activations/${args.activationId}`,
       method: 'GET',
     });
@@ -930,7 +930,7 @@ export async function cancelPropertyActivation(
     }
 
     // Cancel the activation
-    await client._request({
+    await client.request({
       path: `/papi/v1/properties/${args.propertyId}/activations/${args.activationId}`,
       method: 'DELETE',
     });
@@ -981,7 +981,7 @@ export async function createActivationPlan(
     // Validate all properties exist and get details
     const propertyDetails = await Promise.all(
       args.properties.map(async (prop) => {
-        const response = await client._request({
+        const response = await client.request({
           path: `/papi/v1/properties/${prop.propertyId}`,
           method: 'GET',
         });
@@ -1065,8 +1065,8 @@ function topologicalSort(properties: any[], dependencies: Record<string, string[
 
   const visit = (propId: string) => {
     if (visited.has(propId)) {
-return;
-}
+      return;
+    }
     visited.add(propId);
 
     const deps = dependencies[propId] || [];
@@ -1074,8 +1074,8 @@ return;
 
     const prop = properties.find((p) => p.propertyId === propId);
     if (prop) {
-sorted.push(prop);
-}
+      sorted.push(prop);
+    }
   };
 
   properties.forEach((prop) => visit(prop.propertyId));

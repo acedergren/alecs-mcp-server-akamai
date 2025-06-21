@@ -65,7 +65,7 @@ export async function getValidationErrors(
       params.append('validateHostnames', 'true');
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}?${params.toString()}`,
       method: 'GET',
     });
@@ -168,7 +168,8 @@ export async function getValidationErrors(
 
     if (canActivate && warnings.length === 0) {
       responseText += '### ✅ Ready for Activation\n\n';
-      responseText += 'Property version passes all validation checks and is ready for deployment.\n\n';
+      responseText +=
+        'Property version passes all validation checks and is ready for deployment.\n\n';
       responseText += 'Recommended activation command:\n';
       responseText += '```\n';
       responseText += `activateProperty --propertyId ${args.propertyId} --version ${args.version} --network STAGING\n`;
@@ -211,7 +212,7 @@ export async function acknowledgeWarnings(
       })),
     };
 
-    await client._request({
+    await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/acknowledge-warnings?${params.toString()}`,
       method: 'POST',
       body: requestBody,
@@ -280,7 +281,7 @@ export async function overrideErrors(
       })),
     };
 
-    await client._request({
+    await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/override-errors?${params.toString()}`,
       method: 'POST',
       body: requestBody,
@@ -504,7 +505,7 @@ export async function validatePropertyConfiguration(
     if (args.includeRuleValidation !== false) {
       responseText += '## 2. Rule Tree Validation\n\n';
       try {
-        await client._request({
+        await client.request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/rules?contractId=${args.contractId}&groupId=${args.groupId}&validateRules=true`,
           method: 'GET',
         });
@@ -522,7 +523,7 @@ export async function validatePropertyConfiguration(
     if (args.includeHostnameValidation !== false) {
       responseText += '## 3. Hostname Validation\n\n';
       try {
-        await client._request({
+        await client.request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/hostnames?contractId=${args.contractId}&groupId=${args.groupId}&validateHostnames=true`,
           method: 'GET',
         });
@@ -540,7 +541,7 @@ export async function validatePropertyConfiguration(
     if (args.includeCertificateValidation) {
       responseText += '## 4. Certificate Validation\n\n';
       try {
-        const hostnameResponse = await client._request({
+        const hostnameResponse = await client.request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/hostnames?contractId=${args.contractId}&groupId=${args.groupId}&includeCertStatus=true`,
           method: 'GET',
         });

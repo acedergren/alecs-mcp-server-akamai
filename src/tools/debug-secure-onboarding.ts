@@ -75,7 +75,7 @@ export async function debugSecurePropertyOnboarding(
     // Step 2: Test API connectivity
     text += '## Step 2: API Connectivity Test\n';
     try {
-      const groupsResponse = await client._request({
+      const groupsResponse = await client.request({
         path: '/papi/v1/groups',
         method: 'GET',
       });
@@ -121,7 +121,7 @@ export async function debugSecurePropertyOnboarding(
 
     if (!productId) {
       try {
-        const productsResponse = await client._request({
+        const productsResponse = await client.request({
           path: '/papi/v1/products',
           method: 'GET',
           queryParams: {
@@ -206,7 +206,7 @@ export async function debugSecurePropertyOnboarding(
     if (propertyId) {
       try {
         // First, get property details
-        const propertyResponse = await client._request({
+        const propertyResponse = await client.request({
           path: `/papi/v1/properties/${propertyId}`,
           method: 'GET',
         });
@@ -226,7 +226,7 @@ export async function debugSecurePropertyOnboarding(
 
           // Test edge hostname creation with minimal parameters
           try {
-            const edgeResponse = await client._request({
+            const edgeResponse = await client.request({
               path: `/papi/v1/edgehostnames?contractId=${property.contractId}&groupId=${property.groupId}`,
               method: 'POST',
               headers: {
@@ -321,7 +321,7 @@ export async function testBasicPropertyCreation(
     // Test 1: API connectivity
     text += '## Test 1: API Connectivity\n';
     try {
-      const response = await client._request({
+      const response = await client.request({
         path: '/papi/v1/groups',
         method: 'GET',
       });
@@ -342,7 +342,7 @@ export async function testBasicPropertyCreation(
     text += '## Test 2: Product Selection\n';
     let productId = 'prd_fresca'; // Default to Ion
     try {
-      const productsResponse = await client._request({
+      const productsResponse = await client.request({
         path: '/papi/v1/products',
         method: 'GET',
         queryParams: {

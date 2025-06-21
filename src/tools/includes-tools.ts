@@ -30,7 +30,7 @@ export async function listIncludes(
       params.append('includeType', args.includeType);
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/includes?${params.toString()}`,
       method: 'GET',
     });
@@ -119,7 +119,7 @@ export async function getInclude(
     });
 
     const versionPath = args.version ? `/versions/${args.version}` : '';
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/includes/${args.includeId}${versionPath}?${params.toString()}`,
       method: 'GET',
     });
@@ -231,7 +231,7 @@ export async function createInclude(
       requestBody.cloneFrom = args.cloneFrom;
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/includes',
       method: 'POST',
       body: requestBody,
@@ -258,7 +258,7 @@ export async function createInclude(
     responseText += `**Created:** ${new Date().toISOString()}\n\n`;
 
     responseText += '## Next Steps\n\n';
-    responseText += '1. **Configure Rules:** Update the include\'s rule tree\n';
+    responseText += "1. **Configure Rules:** Update the include's rule tree\n";
     responseText += '2. **Create Version:** Create a new version when ready\n';
     responseText += '3. **Activate:** Activate to staging/production networks\n';
     responseText += '4. **Reference:** Use this include in property configurations\n\n';
@@ -304,7 +304,7 @@ export async function updateInclude(
       requestBody.note = args.note;
     }
 
-    await client._request({
+    await client.request({
       path: `/papi/v1/includes/${args.includeId}${versionPath}/rules?${params.toString()}`,
       method: 'PUT',
       body: requestBody,
@@ -376,7 +376,7 @@ export async function createIncludeVersion(
       requestBody.note = args.note;
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/includes/${args.includeId}/versions?${params.toString()}`,
       method: 'POST',
       body: requestBody,
@@ -450,7 +450,7 @@ export async function activateInclude(
       groupId: args.groupId,
     });
 
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/includes/${args.includeId}/versions/${args.version}/activations?${params.toString()}`,
       method: 'POST',
       body: requestBody,
@@ -522,7 +522,7 @@ export async function getIncludeActivationStatus(
       groupId: args.groupId,
     });
 
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/includes/${args.includeId}/activations/${args.activationId}?${params.toString()}`,
       method: 'GET',
     });
@@ -627,7 +627,7 @@ export async function listIncludeActivations(
       groupId: args.groupId,
     });
 
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/includes/${args.includeId}/activations?${params.toString()}`,
       method: 'GET',
     });

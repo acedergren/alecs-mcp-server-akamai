@@ -106,7 +106,7 @@ export async function createBulkProvisioningPlan(
           {
             type: 'text',
             text: `❌ No valid hostnames found. All ${args.hostnames.length} hostnames failed validation.\n\nPlease fix the validation errors and try again.`,
-          }
+          },
         ],
       };
     }
@@ -347,7 +347,7 @@ export async function createBulkProvisioningPlan(
             parameters: args,
             timestamp: new Date(),
           }),
-        }
+        },
       ],
     };
   }
@@ -415,7 +415,7 @@ export async function executeBulkProvisioning(
           {
             type: 'text',
             text: responseText,
-          }
+          },
         ],
       };
     }
@@ -487,7 +487,7 @@ export async function executeBulkProvisioning(
     // Phase 4: Certificate Status
     responseText += '## Phase 4: Certificate Provisioning\n';
     if (args.certificateStrategy === 'default-dv') {
-      responseText += '- Strategy: DefaultDV (Let\'s Encrypt)\n';
+      responseText += "- Strategy: DefaultDV (Let's Encrypt)\n";
       responseText += '- Automatic provisioning and renewal\n';
       responseText += '- Domain validation required\n';
     } else if (args.certificateStrategy === 'cps') {
@@ -570,7 +570,7 @@ export async function executeBulkProvisioning(
             parameters: args,
             timestamp: new Date(),
           }),
-        }
+        },
       ],
     };
   }
@@ -714,7 +714,7 @@ export async function validateBulkDNS(
             parameters: args,
             timestamp: new Date(),
           }),
-        }
+        },
       ],
     };
   }
@@ -748,8 +748,8 @@ export async function bulkUpdateHostnameProperties(
     const operationsByProperty = args.operations.reduce(
       (acc, op) => {
         if (!acc[op.propertyId]) {
-acc[op.propertyId] = [];
-}
+          acc[op.propertyId] = [];
+        }
         acc[op.propertyId].push(op);
         return acc;
       },
@@ -760,7 +760,7 @@ acc[op.propertyId] = [];
     for (const [propertyId, operations] of Object.entries(operationsByProperty)) {
       try {
         // Get current property version
-        const propertyResponse = await client._request({
+        const propertyResponse = await client.request({
           path: `/papi/v1/properties/${propertyId}`,
           method: 'GET',
         });
@@ -780,7 +780,7 @@ acc[op.propertyId] = [];
 
         // Create new version if requested
         if (args.createNewVersion) {
-          const versionResponse = await client._request({
+          const versionResponse = await client.request({
             path: `/papi/v1/properties/${propertyId}/versions`,
             method: 'POST',
             headers: {
@@ -793,14 +793,14 @@ acc[op.propertyId] = [];
             body: {
               createFromVersion: version,
               createFromVersionEtag: property.latestVersionEtag,
-            }
+            },
           });
 
           version = versionResponse.versionLink?.split('/').pop();
         }
 
         // Get current hostnames
-        const hostnamesResponse = await client._request({
+        const hostnamesResponse = await client.request({
           path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames`,
           method: 'GET',
         });
@@ -846,7 +846,7 @@ acc[op.propertyId] = [];
         }
 
         // Update hostnames
-        await client._request({
+        await client.request({
           path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames`,
           method: 'PUT',
           headers: {
@@ -863,7 +863,7 @@ acc[op.propertyId] = [];
         operations.forEach((op) => {
           results.failed.push({
             hostname: op.hostname,
-            error: error instanceof Error ? _error.message : 'Unknown error',
+            error: _error instanceof Error ? _error.message : 'Unknown error',
           });
         });
       }
@@ -883,8 +883,8 @@ acc[op.propertyId] = [];
       const byAction = results.successful.reduce(
         (acc, r) => {
           if (!acc[r.action]) {
-acc[r.action] = [];
-}
+            acc[r.action] = [];
+          }
           acc[r.action].push(r);
           return acc;
         },
@@ -940,7 +940,7 @@ acc[r.action] = [];
             parameters: args,
             timestamp: new Date(),
           }),
-        }
+        },
       ],
     };
   }
@@ -964,11 +964,11 @@ function estimateProvisioningDuration(hostnameCount: number): string {
 
 function estimatePropertyCount(hostnames: string[], strategy?: string): number {
   if (strategy === 'single') {
-return 1;
-}
+    return 1;
+  }
   if (strategy === 'per-hostname') {
-return hostnames.length;
-}
+    return hostnames.length;
+  }
 
   // For grouped strategy, estimate based on domains
   const domains = new Set(hostnames.map((h) => h.split('.').slice(-2).join('.')));

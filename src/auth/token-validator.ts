@@ -149,7 +149,10 @@ export class TokenValidator {
   /**
    * Validate access token
    */
-  async validateAccessToken(token: string, requiredScopes?: string[]): Promise<TokenValidationResult> {
+  async validateAccessToken(
+    token: string,
+    requiredScopes?: string[],
+  ): Promise<TokenValidationResult> {
     try {
       // Check cache first
       const cachedResult = await this.getCachedValidation(token);
@@ -168,20 +171,21 @@ export class TokenValidator {
       } else {
         return {
           valid: false,
-          error: 'No validation method available (neither JWT validation nor introspection configured)',
+          error:
+            'No validation method available (neither JWT validation nor introspection configured)',
         };
       }
 
       // Check required scopes
       if (result.valid && requiredScopes?.length) {
         const tokenScopes = result.claims?.scope?.split(' ') || [];
-        const hasRequiredScopes = requiredScopes.every(scope => tokenScopes.includes(scope));
+        const hasRequiredScopes = requiredScopes.every((scope) => tokenScopes.includes(scope));
 
         if (!hasRequiredScopes) {
           result = {
             ...result,
             valid: false,
-            error: `Missing required scopes: ${requiredScopes.filter(s => !tokenScopes.includes(s)).join(', ')}`,
+            error: `Missing required scopes: ${requiredScopes.filter((s) => !tokenScopes.includes(s)).join(', ')}`,
           };
         }
       }
@@ -194,7 +198,7 @@ export class TokenValidator {
       logger.error('Token validation error', { error: _error });
       return {
         valid: false,
-        _error: _error instanceof Error ? _error.message : 'Token validation failed',
+        error: _error instanceof Error ? _error.message : 'Token validation failed',
       };
     }
   }
@@ -244,7 +248,7 @@ export class TokenValidator {
 
       // Validate required claims
       if (this.config.requiredClaims) {
-        const missingClaims = this.config.requiredClaims.filter(claim => !(claim in verified));
+        const missingClaims = this.config.requiredClaims.filter((claim) => !(claim in verified));
         if (missingClaims.length > 0) {
           return {
             valid: false,
@@ -269,7 +273,9 @@ export class TokenValidator {
         return { valid: false, _error: _error.message };
       }
 
-      logger.error('JWT validation error', { error: _error instanceof Error ? _error.message : String(_error) });
+      logger.error('JWT validation error', {
+        error: _error instanceof Error ? _error.message : String(_error),
+      });
       return { valid: false, _error: 'JWT validation failed' };
     }
   }
@@ -283,13 +289,15 @@ export class TokenValidator {
     }
 
     try {
-      const auth = Buffer.from(`${this.config.clientId}:${this.config.clientSecret}`).toString('base64');
+      const auth = Buffer.from(`${this.config.clientId}:${this.config.clientSecret}`).toString(
+        'base64',
+      );
 
       const response = await fetch(this.config.introspectionEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': `Basic ${auth}`,
+          Authorization: `Basic ${auth}`,
         },
         body: new URLSearchParams({
           token,
@@ -332,7 +340,7 @@ export class TokenValidator {
       logger.error('Token introspection error', { error: _error });
       return {
         valid: false,
-        _error: _error instanceof Error ? _error.message : 'Introspection failed',
+        error: _error instanceof Error ? _error.message : 'Introspection failed',
       };
     }
   }
@@ -358,7 +366,7 @@ export class TokenValidator {
     try {
       const response = await fetch(this.config.jwksUri, {
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
         signal: AbortSignal.timeout(5000), // 5 second timeout
       });
@@ -367,7 +375,7 @@ export class TokenValidator {
         throw new Error(`Failed to fetch JWKS: ${response.status}`);
       }
 
-      const jwks = await response.json() as JWKSResponse;
+      const jwks = (await response.json()) as JWKSResponse;
 
       // Update cache
       this.jwksCache.clear();
@@ -376,7 +384,7 @@ export class TokenValidator {
           this.jwksCache.set(key.kid, key);
         }
       }
-      this.jwksCacheExpiry = Date.now() + (this.config.jwksCacheTTL * 1000);
+      this.jwksCacheExpiry = Date.now() + this.config.jwksCacheTTL * 1000;
 
       return this.jwksCache.get(kid) || null;
     } catch (_error) {

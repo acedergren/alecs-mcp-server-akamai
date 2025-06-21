@@ -20,8 +20,8 @@ function formatJson(obj: any): string {
 
 function formatTable(data: any[]): string {
   if (!data || data.length === 0) {
-return 'No data available';
-}
+    return 'No data available';
+  }
 
   const keys = Object.keys(data[0]);
   let result = keys.join('\t') + '\n';
@@ -53,7 +53,7 @@ export const listAppSecConfigurations = {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
-      const response = await client._request({
+      const response = await client.request({
         path: '/appsec/v1/configs',
         method: 'GET',
       });
@@ -115,7 +115,7 @@ export const getAppSecConfiguration = {
 
     try {
       const versionParam = args.version ? `?version=${args.version}` : '';
-      const response = await client._request({
+      const response = await client.request({
         path: `/appsec/v1/configs/${args.configId}${versionParam}`,
         method: 'GET',
       });
@@ -181,7 +181,7 @@ export const createWAFPolicy = {
         ...(args.paranoidLevel && { paranoidLevel: args.paranoidLevel }),
       };
 
-      const response = await client._request({
+      const response = await client.request({
         path: `/appsec/v1/configs/${args.configId}/versions/1/security-policies`,
         method: 'POST',
         body: policyData,
@@ -251,7 +251,7 @@ export const getSecurityEvents = {
         queryParams.limit = args.limit.toString();
       }
 
-      const response = await client._request({
+      const response = await client.request({
         path: `/appsec/v1/configs/${args.configId}/security-events`,
         method: 'GET',
         queryParams,
@@ -334,7 +334,7 @@ export const activateSecurityConfiguration = {
         ...(args.note && { note: args.note }),
       };
 
-      const response = await client._request({
+      const response = await client.request({
         path: `/appsec/v1/configs/${args.configId}/versions/${args.version}/activations`,
         method: 'POST',
         body: activationData,
@@ -388,7 +388,7 @@ export const getSecurityActivationStatus = {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
-      const response = await client._request({
+      const response = await client.request({
         path: `/appsec/v1/configs/${args.configId}/activations/${args.activationId}`,
         method: 'GET',
       });

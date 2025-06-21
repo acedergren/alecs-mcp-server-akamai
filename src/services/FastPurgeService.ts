@@ -259,7 +259,7 @@ export class FastPurgeService {
         const response = await this.executeWithRetry(
           customer,
           async () => {
-            const result = await client._request({
+            const result = await client.request({
               method: 'POST',
               path: `/ccu/v3/invalidate/url/${validatedNetwork}`,
               body: {
@@ -293,7 +293,9 @@ export class FastPurgeService {
 
         processedCount += batchSize;
       } catch (_error: any) {
-        logger.error(`FastPurge error: ${(_error instanceof Error ? _error.message : String(_error))}`);
+        logger.error(
+          `FastPurge error: ${_error instanceof Error ? _error.message : String(_error)}`,
+        );
 
         // Handle RFC 7807 problem details
         if (_error.response?.data?.type) {
@@ -340,7 +342,7 @@ export class FastPurgeService {
         const response = await this.executeWithRetry(
           customer,
           async () => {
-            const result = await client._request({
+            const result = await client.request({
               method: 'POST',
               path: `/ccu/v3/invalidate/cpcode/${validatedNetwork}`,
               body: {
@@ -372,7 +374,9 @@ export class FastPurgeService {
           pingAfterSeconds: response.data.pingAfterSeconds,
         });
       } catch (_error: any) {
-        logger.error(`FastPurge error: ${(_error instanceof Error ? _error.message : String(_error))}`);
+        logger.error(
+          `FastPurge error: ${_error instanceof Error ? _error.message : String(_error)}`,
+        );
 
         if (_error.response?.data?.type) {
           throw new AkamaiError(
@@ -422,7 +426,7 @@ export class FastPurgeService {
         const response = await this.executeWithRetry(
           customer,
           async () => {
-            const result = await client._request({
+            const result = await client.request({
               method: 'POST',
               path: `/ccu/v3/invalidate/tag/${validatedNetwork}`,
               body: {
@@ -456,7 +460,9 @@ export class FastPurgeService {
 
         processedCount += batchSize;
       } catch (_error: any) {
-        logger.error(`FastPurge error: ${(_error instanceof Error ? _error.message : String(_error))}`);
+        logger.error(
+          `FastPurge error: ${_error instanceof Error ? _error.message : String(_error)}`,
+        );
 
         if (_error.response?.data?.type) {
           throw new AkamaiError(
@@ -485,7 +491,7 @@ export class FastPurgeService {
       const response = await this.executeWithRetry(
         customer,
         async () => {
-          const result = await client._request({
+          const result = await client.request({
             method: 'GET',
             path: `/ccu/v3/purges/${purgeId}`,
             headers: {
@@ -510,7 +516,9 @@ export class FastPurgeService {
         customer: customer,
       };
     } catch (_error: any) {
-      logger.error(`FastPurge validation error: ${(_error instanceof Error ? _error.message : String(_error))}`);
+      logger.error(
+        `FastPurge validation error: ${_error instanceof Error ? _error.message : String(_error)}`,
+      );
 
       if (_error.response?.data?.type) {
         throw new AkamaiError(

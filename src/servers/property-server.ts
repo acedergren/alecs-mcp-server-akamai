@@ -21,19 +21,11 @@ import { AkamaiClient } from '../akamai-client';
 // Property Management Tools - with caching support
 
 // CP Code Tools
-import {
-  listCPCodes,
-  createCPCode,
-} from '../tools/cpcode-tools';
+import { listCPCodes, createCPCode } from '../tools/cpcode-tools';
 
 // Includes Tools
-import {
-  listIncludes,
-  createInclude,
-} from '../tools/includes-tools';
-import {
-  listProducts,
-} from '../tools/product-tools';
+import { listIncludes, createInclude } from '../tools/includes-tools';
+import { listProducts } from '../tools/product-tools';
 import {
   listEdgeHostnames,
   cloneProperty,
@@ -70,9 +62,7 @@ import {
   listGroups,
   listContracts,
 } from '../tools/property-tools-cached';
-import {
-  validateRuleTree,
-} from '../tools/rule-tree-advanced';
+import { validateRuleTree } from '../tools/rule-tree-advanced';
 
 // Universal Search Tool - now with caching!
 import { universalSearchWithCacheHandler } from '../tools/universal-search-with-cache';
@@ -96,14 +86,17 @@ class PropertyALECSServer {
     log('INFO', 'Node version:', { version: process.version });
     log('INFO', 'Working directory:', { cwd: process.cwd() });
 
-    this.server = new Server({
-      name: 'alecs-property',
-      version: '1.0.0',
-    }, {
-      capabilities: {
-        tools: {},
+    this.server = new Server(
+      {
+        name: 'alecs-property',
+        version: '1.0.0',
       },
-    });
+      {
+        capabilities: {
+          tools: {},
+        },
+      },
+    );
 
     try {
       log('INFO', 'Initializing Akamai client...');
@@ -129,15 +122,29 @@ class PropertyALECSServer {
         // Universal Search - The Main Tool
         {
           name: 'akamai.search',
-          description: 'Search for anything in Akamai - properties, hostnames, edge hostnames, CP codes, contracts, groups, or any other resource. Just type what you\'re looking for!',
+          description:
+            "Search for anything in Akamai - properties, hostnames, edge hostnames, CP codes, contracts, groups, or any other resource. Just type what you're looking for!",
           inputSchema: {
             type: 'object',
             properties: {
-              query: { type: 'string', description: 'Search for anything: hostname, property name, edge hostname, CP code, contract ID, group ID, or any Akamai resource' },
+              query: {
+                type: 'string',
+                description:
+                  'Search for anything: hostname, property name, edge hostname, CP code, contract ID, group ID, or any Akamai resource',
+              },
               customer: { type: 'string', description: 'Optional: Customer section name' },
-              detailed: { type: 'boolean', description: 'Include detailed information in results (default: true)' },
-              useCache: { type: 'boolean', description: 'Use Valkey cache for faster results (default: true)' },
-              warmCache: { type: 'boolean', description: 'Pre-warm cache before search (default: false)' },
+              detailed: {
+                type: 'boolean',
+                description: 'Include detailed information in results (default: true)',
+              },
+              useCache: {
+                type: 'boolean',
+                description: 'Use Valkey cache for faster results (default: true)',
+              },
+              warmCache: {
+                type: 'boolean',
+                description: 'Pre-warm cache before search (default: false)',
+              },
             },
             required: ['query'],
           },
@@ -152,8 +159,14 @@ class PropertyALECSServer {
               customer: { type: 'string', description: 'Optional: Customer section name' },
               contractId: { type: 'string', description: 'Optional: Filter by contract ID' },
               groupId: { type: 'string', description: 'Optional: Filter by group ID' },
-              useCache: { type: 'boolean', description: 'Use Valkey cache for faster results (default: true)' },
-              warmCache: { type: 'boolean', description: 'Pre-warm cache before fetching (default: false)' },
+              useCache: {
+                type: 'boolean',
+                description: 'Use Valkey cache for faster results (default: true)',
+              },
+              warmCache: {
+                type: 'boolean',
+                description: 'Pre-warm cache before fetching (default: false)',
+              },
             },
           },
         },
@@ -176,15 +189,39 @@ class PropertyALECSServer {
             type: 'object',
             properties: {
               customer: { type: 'string', description: 'Optional: Customer section name' },
-              hostname: { type: 'string', description: 'Hostname to onboard (e.g., code.example.com)' },
+              hostname: {
+                type: 'string',
+                description: 'Hostname to onboard (e.g., code.example.com)',
+              },
               originHostname: { type: 'string', description: 'Origin server hostname' },
-              groupId: { type: 'string', description: 'Optional: Group ID (defaults to first available)' },
-              productId: { type: 'string', description: 'Optional: Product ID (defaults to Ion Standard)' },
-              network: { type: 'string', enum: ['STANDARD_TLS', 'ENHANCED_TLS', 'SHARED_CERT'], description: 'Optional: Network type (defaults to ENHANCED_TLS)' },
-              certificateType: { type: 'string', enum: ['DEFAULT', 'CPS_MANAGED'], description: 'Optional: Certificate type (defaults to DEFAULT)' },
-              notificationEmails: { type: 'array', items: { type: 'string' }, description: 'Optional: Notification email addresses' },
+              groupId: {
+                type: 'string',
+                description: 'Optional: Group ID (defaults to first available)',
+              },
+              productId: {
+                type: 'string',
+                description: 'Optional: Product ID (defaults to Ion Standard)',
+              },
+              network: {
+                type: 'string',
+                enum: ['STANDARD_TLS', 'ENHANCED_TLS', 'SHARED_CERT'],
+                description: 'Optional: Network type (defaults to ENHANCED_TLS)',
+              },
+              certificateType: {
+                type: 'string',
+                enum: ['DEFAULT', 'CPS_MANAGED'],
+                description: 'Optional: Certificate type (defaults to DEFAULT)',
+              },
+              notificationEmails: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Optional: Notification email addresses',
+              },
               skipDnsSetup: { type: 'boolean', description: 'Optional: Skip DNS setup' },
-              dnsProvider: { type: 'string', description: 'Optional: Current DNS provider (aws, cloudflare, azure, other)' },
+              dnsProvider: {
+                type: 'string',
+                description: 'Optional: Current DNS provider (aws, cloudflare, azure, other)',
+              },
             },
             required: ['hostname'],
           },
@@ -676,30 +713,29 @@ class PropertyALECSServer {
             break;
 
           default:
-            throw new McpError(
-              ErrorCode.MethodNotFound,
-              `Tool not found: ${name}`,
-            );
+            throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
         }
 
         const duration = Date.now() - startTime;
         log('INFO', `✅ Tool ${name} completed in ${duration}ms`);
 
         return result;
-
       } catch (_error) {
         const duration = Date.now() - startTime;
         log('ERROR', `❌ Tool ${name} failed after ${duration}ms`, {
-          error: error instanceof Error ? {
-            message: _error.message,
-            stack: _error.stack,
-          } : String(error),
+          error:
+            _error instanceof Error
+              ? {
+                  message: _error.message,
+                  stack: _error.stack,
+                }
+              : String(error),
         });
 
         if (_error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${_error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
+            `Invalid parameters: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
           );
         }
 
@@ -745,10 +781,13 @@ class PropertyALECSServer {
       });
     } catch (_error) {
       log('ERROR', '❌ Failed to connect server', {
-        error: error instanceof Error ? {
-          message: _error.message,
-          stack: _error.stack,
-        } : String(error),
+        error:
+          _error instanceof Error
+            ? {
+                message: _error.message,
+                stack: _error.stack,
+              }
+            : String(error),
       });
       throw _error;
     }
@@ -771,13 +810,15 @@ async function main() {
         pid: process.pid,
       });
     }, 30000); // Every 30 seconds
-
   } catch (_error) {
     log('ERROR', '❌ Failed to start server', {
-      error: error instanceof Error ? {
-        message: _error.message,
-        stack: _error.stack,
-      } : String(error),
+      error:
+        _error instanceof Error
+          ? {
+              message: _error.message,
+              stack: _error.stack,
+            }
+          : String(error),
     });
     process.exit(1);
   }
@@ -796,10 +837,13 @@ process.on('uncaughtException', (_error) => {
 
 process.on('unhandledRejection', (reason, promise) => {
   log('ERROR', '❌ Unhandled rejection', {
-    reason: reason instanceof Error ? {
-      message: reason.message,
-      stack: reason.stack,
-    } : String(reason),
+    reason:
+      reason instanceof Error
+        ? {
+            message: reason.message,
+            stack: reason.stack,
+          }
+        : String(reason),
     promise: String(promise),
   });
   process.exit(1);

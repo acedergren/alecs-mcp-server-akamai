@@ -68,7 +68,7 @@ export const listAppSecConfigurations = {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
-      const response = await client._request({
+      const response = await client.request({
         path: '/appsec/v1/configs',
         method: 'GET',
       });
@@ -135,7 +135,7 @@ export const getAppSecConfiguration = {
 
     try {
       const versionParam = args.version ? `?version=${args.version}` : '';
-      const response = await client._request({
+      const response = await client.request({
         path: `/appsec/v1/configs/${args.configId}${versionParam}`,
         method: 'GET',
       });
@@ -211,7 +211,7 @@ export const createWAFPolicy = {
         ...(args.paranoidLevel && { paranoidLevel: args.paranoidLevel }),
       };
 
-      const data = await auth._request({
+      const data = await auth.request({
         path: `/appsec/v1/configs/${parsed.configId}/versions/1/security-policies`,
         method: 'POST',
         body: policyData,
@@ -277,7 +277,7 @@ export const getSecurityEvents = {
         ...(args.limit && { limit: args.limit.toString() }),
       });
 
-      const response = await auth._request({
+      const response = await auth.request({
         path: `/appsec/v1/configs/${parsed.configId}/security-events?${queryParams.toString()}`,
         method: 'GET',
       });
@@ -356,7 +356,7 @@ export const activateSecurityConfiguration = {
         ...(args.note && { note: args.note }),
       };
 
-      const data = await auth._request({
+      const data = await auth.request({
         path: `/appsec/v1/configs/${parsed.configId}/versions/${parsed.version}/activations`,
         method: 'POST',
         body: activationData,
@@ -406,7 +406,7 @@ export const getSecurityActivationStatus = {
       const config = getCustomerConfig(customer);
       const auth = new AkamaiClient(customer, config.account_switch_key);
 
-      const data = await auth._request({
+      const data = await auth.request({
         path: `/appsec/v1/configs/${args.configId}/activations/${args.activationId}`,
         method: 'GET',
       });

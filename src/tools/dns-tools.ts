@@ -156,7 +156,7 @@ export async function listZones(
       queryParams.offset = args.offset;
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: '/config-dns/v2/zones',
       method: 'GET',
       headers: {
@@ -196,7 +196,7 @@ export async function listZones(
     };
   } catch (_error) {
     spinner.fail('Failed to fetch DNS zones');
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -209,7 +209,7 @@ export async function getZone(
   args: { zone: string },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client._request({
+    const response = await client.request({
       path: `/config-dns/v2/zones/${args.zone}`,
       method: 'GET',
       headers: {
@@ -240,7 +240,7 @@ export async function getZone(
       ],
     };
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -280,13 +280,13 @@ export async function createZone(
 
     const queryParams: any = {};
     if (args.contractId) {
-queryParams.contractId = args.contractId;
-}
+      queryParams.contractId = args.contractId;
+    }
     if (args.groupId) {
-queryParams.gid = args.groupId;
-}
+      queryParams.gid = args.groupId;
+    }
 
-    await client._request({
+    await client.request({
       path: '/config-dns/v2/zones',
       method: 'POST',
       headers: {
@@ -309,7 +309,7 @@ queryParams.gid = args.groupId;
     };
   } catch (_error) {
     spinner.fail(`Failed to create zone: ${args.zone}`);
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -324,13 +324,13 @@ export async function listRecords(
   try {
     const queryParams: any = {};
     if (args.search) {
-queryParams.search = args.search;
-}
+      queryParams.search = args.search;
+    }
     if (args.types?.length) {
-queryParams.types = args.types.join(',');
-}
+      queryParams.types = args.types.join(',');
+    }
 
-    const response = await client._request({
+    const response = await client.request({
       path: `/config-dns/v2/zones/${args.zone}/recordsets`,
       method: 'GET',
       headers: {
@@ -367,7 +367,7 @@ queryParams.types = args.types.join(',');
       ],
     };
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -380,7 +380,7 @@ export async function getChangeList(
   zone: string,
 ): Promise<ChangeList | null> {
   try {
-    const response = await client._request({
+    const response = await client.request({
       path: `/config-dns/v2/changelists/${zone}`,
       method: 'GET',
       headers: {
@@ -443,7 +443,7 @@ export async function submitChangeList(
 
     for (let attempt = 0; attempt <= opts.retryConfig.maxRetries!; attempt++) {
       try {
-        response = await client._request({
+        response = await client.request({
           path: `/config-dns/v2/changelists/${zone}/submit`,
           method: 'POST',
           headers: {
@@ -550,7 +550,7 @@ export async function submitChangeList(
         }
       } catch (_error) {
         spinner.fail('Failed to monitor activation status');
-        console.error("[Error]:", error);
+        console.error('[Error]:', error);
         // Don't throw - submission was successful even if monitoring failed
       }
     }
@@ -558,8 +558,8 @@ export async function submitChangeList(
     return response;
   } catch (_error) {
     if (spinner) {
-spinner.fail('Failed to submit changelist');
-}
+      spinner.fail('Failed to submit changelist');
+    }
     throw _error;
   }
 }
@@ -569,7 +569,10 @@ spinner.fail('Failed to submit changelist');
  */
 function isTransientError(_error: any): boolean {
   // Network errors
-  if (_error.code && ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNREFUSED'].includes(_error.code)) {
+  if (
+    _error.code &&
+    ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNREFUSED'].includes(_error.code)
+  ) {
     return true;
   }
 
@@ -603,7 +606,7 @@ export async function discardChangeList(
 
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
     try {
-      await client._request({
+      await client.request({
         path: `/config-dns/v2/changelists/${zone}`,
         method: 'DELETE',
         headers: {
@@ -659,7 +662,7 @@ export async function waitForZoneActivation(
   while (Date.now() - startTime < opts.timeout) {
     try {
       // Get zone activation status
-      const status = await client._request({
+      const status = await client.request({
         path: `/config-dns/v2/zones/${zone}/status`,
         method: 'GET',
         headers: {
@@ -752,8 +755,8 @@ export async function processMultipleZones(
   for (let i = 0; i < zones.length; i++) {
     const zone = zones[i];
     if (!zone) {
-continue;
-} // TypeScript guard
+      continue;
+    } // TypeScript guard
 
     try {
       await operation(zone);
@@ -765,7 +768,7 @@ continue;
       }
     } catch (_error: any) {
       const errorMessage: string =
-        error instanceof Error ? _error.message : String(error || 'Unknown error');
+        _error instanceof Error ? _error.message : String(error || 'Unknown error');
       result.failed.push({
         zone,
         error: errorMessage,
@@ -792,8 +795,8 @@ export async function ensureCleanChangeList(
 ): Promise<void> {
   // Check for existing change list
   if (spinner) {
-spinner.update('Checking for existing change list...');
-}
+    spinner.update('Checking for existing change list...');
+  }
 
   const existingChangeList = await getChangeList(client, zone);
 
@@ -809,8 +812,8 @@ spinner.update('Checking for existing change list...');
 
     // Stop spinner to show interactive message
     if (spinner) {
-spinner.stop();
-}
+      spinner.stop();
+    }
 
     // Format pending changes
     const pendingChanges: string[] = [];
@@ -865,13 +868,13 @@ spinner.stop();
 
   // Create a new change list
   if (spinner) {
-spinner.update('Creating change list...');
-}
+    spinner.update('Creating change list...');
+  }
 
   const createRequestId = generateRequestId();
   logOperation('CREATING_CHANGELIST', { zone, requestId: createRequestId });
 
-  await client._request({
+  await client.request({
     path: '/config-dns/v2/changelists',
     method: 'POST',
     headers: {
@@ -915,7 +918,7 @@ export async function upsertRecord(
       rdata: args.rdata,
     };
 
-    await client._request({
+    await client.request({
       path: `/config-dns/v2/changelists/${args.zone}/recordsets/${args.name}/${args.type}`,
       method: 'PUT',
       headers: {
@@ -927,7 +930,7 @@ export async function upsertRecord(
 
     // Step 3: Submit the change list
     spinner.update('Submitting changes...');
-    const submitResponse = await client._request({
+    const submitResponse = await client.request({
       path: `/config-dns/v2/changelists/${args.zone}/submit`,
       method: 'POST',
       headers: {
@@ -951,7 +954,7 @@ export async function upsertRecord(
     };
   } catch (_error) {
     spinner.fail('Failed to update DNS record');
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -978,7 +981,7 @@ export async function deleteRecord(
 
     // Step 2: Delete the record from the change list
     spinner.update(`Deleting ${args.type} record for ${args.name}...`);
-    await client._request({
+    await client.request({
       path: `/config-dns/v2/changelists/${args.zone}/recordsets/${args.name}/${args.type}`,
       method: 'DELETE',
       headers: {
@@ -988,7 +991,7 @@ export async function deleteRecord(
 
     // Step 3: Submit the change list
     spinner.update('Submitting changes...');
-    const submitResponse = await client._request({
+    const submitResponse = await client.request({
       path: `/config-dns/v2/changelists/${args.zone}/submit`,
       method: 'POST',
       headers: {
@@ -1012,7 +1015,7 @@ export async function deleteRecord(
     };
   } catch (_error) {
     spinner.fail('Failed to delete DNS record');
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }

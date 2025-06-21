@@ -85,7 +85,7 @@ export async function getZonesDNSSECStatus(
 
     for (const zone of args.zones) {
       try {
-        const response = await client._request({
+        const response = await client.request({
           path: `/config-dns/v2/zones/${zone}/dnssec`,
           method: 'GET',
           headers: {
@@ -158,7 +158,7 @@ export async function getSecondaryZoneTransferStatus(
     const results: ZoneTransferStatus[] = [];
 
     for (const zone of args.zones) {
-      const response = await client._request({
+      const response = await client.request({
         path: `/config-dns/v2/zones/${zone}/transfer-status`,
         method: 'GET',
         headers: {
@@ -219,7 +219,7 @@ export async function getZoneContract(
   args: { zone: string },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client._request({
+    const response = await client.request({
       path: `/config-dns/v2/zones/${args.zone}/contract`,
       method: 'GET',
       headers: {
@@ -251,7 +251,7 @@ export async function getZoneContract(
       ],
     };
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -264,7 +264,7 @@ export async function getRecordSet(
   args: { zone: string; name: string; type: string },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client._request({
+    const response = await client.request({
       path: `/config-dns/v2/zones/${args.zone}/recordsets/${args.name}/${args.type}`,
       method: 'GET',
       headers: {
@@ -329,7 +329,7 @@ export async function updateTSIGKeyForZones(
     for (const zone of args.zones) {
       try {
         // Get current zone config
-        const zoneConfig = await client._request({
+        const zoneConfig = await client.request({
           path: `/config-dns/v2/zones/${zone}`,
           method: 'GET',
           headers: {
@@ -338,7 +338,7 @@ export async function updateTSIGKeyForZones(
         });
 
         // Update with new TSIG key
-        await client._request({
+        await client.request({
           path: `/config-dns/v2/zones/${zone}`,
           method: 'PUT',
           headers: {
@@ -408,7 +408,7 @@ export async function submitBulkZoneCreateRequest(
   spinner.start('Submitting bulk zone creation request...');
 
   try {
-    const response = await client._request({
+    const response = await client.request({
       path: '/config-dns/v2/zones/bulk-create',
       method: 'POST',
       headers: {
@@ -460,7 +460,7 @@ export async function getZoneVersion(
   args: { zone: string; versionId: string },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client._request({
+    const response = await client.request({
       path: `/config-dns/v2/zones/${args.zone}/versions/${args.versionId}`,
       method: 'GET',
       headers: {
@@ -488,7 +488,7 @@ export async function getZoneVersion(
       ],
     };
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -503,13 +503,13 @@ export async function getVersionRecordSets(
   try {
     const queryParams: any = {};
     if (args.offset !== undefined) {
-queryParams.offset = args.offset;
-}
+      queryParams.offset = args.offset;
+    }
     if (args.limit !== undefined) {
-queryParams.limit = args.limit;
-}
+      queryParams.limit = args.limit;
+    }
 
-    const response = await client._request({
+    const response = await client.request({
       path: `/config-dns/v2/zones/${args.zone}/versions/${args.versionId}/recordsets`,
       method: 'GET',
       headers: {
@@ -535,7 +535,7 @@ queryParams.limit = args.limit;
       ],
     };
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -551,7 +551,7 @@ export async function reactivateZoneVersion(
   spinner.start(`Reactivating version ${args.versionId}...`);
 
   try {
-    const response = await client._request({
+    const response = await client.request({
       path: `/config-dns/v2/zones/${args.zone}/versions/${args.versionId}/reactivate`,
       method: 'POST',
       headers: {
@@ -587,7 +587,7 @@ export async function getVersionMasterZoneFile(
   args: { zone: string; versionId: string },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client._request({
+    const response = await client.request({
       path: `/config-dns/v2/zones/${args.zone}/versions/${args.versionId}/zone-file`,
       method: 'GET',
       headers: {
@@ -604,7 +604,7 @@ export async function getVersionMasterZoneFile(
       ],
     };
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -630,7 +630,7 @@ export async function createMultipleRecordSets(
 
   try {
     // Create change list
-    await client._request({
+    await client.request({
       path: '/config-dns/v2/changelists',
       method: 'POST',
       headers: {
@@ -645,7 +645,7 @@ export async function createMultipleRecordSets(
 
     for (const recordSet of args.recordSets) {
       try {
-        await client._request({
+        await client.request({
           path: `/config-dns/v2/changelists/${args.zone}/recordsets/${recordSet.name}/${recordSet.type}`,
           method: 'PUT',
           headers: {
@@ -669,7 +669,7 @@ export async function createMultipleRecordSets(
     }
 
     // Submit change list
-    const submitResponse = await client._request({
+    const submitResponse = await client.request({
       path: `/config-dns/v2/changelists/${args.zone}/submit`,
       method: 'POST',
       headers: {

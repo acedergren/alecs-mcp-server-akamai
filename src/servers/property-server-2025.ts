@@ -219,154 +219,104 @@ class PropertyALECSServer2025 {
           case 'list_properties': {
             const validated = PropertyManagerZodSchemas.list_properties.parse(args);
             const response = await listProperties(this.client, validated);
-            result = createMcp2025Response(
-              true,
-              response,
-              undefined,
-              {
-                duration: Date.now() - startTime,
-                tool: name,
-                version: '2.0.0',
-              },
-            );
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
           }
 
           case 'get_property': {
             const validated = PropertyManagerZodSchemas.get_property.parse(args);
             const response = await getProperty(this.client, validated);
-            result = createMcp2025Response(
-              true,
-              response,
-              undefined,
-              {
-                duration: Date.now() - startTime,
-                tool: name,
-                version: '2.0.0',
-              },
-            );
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
           }
 
           case 'create_property': {
             const validated = PropertyManagerZodSchemas.create_property.parse(args);
             const response = await createProperty(this.client, validated);
-            result = createMcp2025Response(
-              true,
-              response,
-              undefined,
-              {
-                duration: Date.now() - startTime,
-                tool: name,
-                version: '2.0.0',
-              },
-            );
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
           }
 
           case 'activate_property': {
             const validated = PropertyManagerZodSchemas.activate_property.parse(args);
             const response = await activateProperty(this.client, validated);
-            result = createMcp2025Response(
-              true,
-              response,
-              undefined,
-              {
-                duration: Date.now() - startTime,
-                tool: name,
-                version: '2.0.0',
-              },
-            );
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
           }
 
           case 'list_groups': {
             const response = await listGroups(this.client, args as any);
-            result = createMcp2025Response(
-              true,
-              response,
-              undefined,
-              {
-                duration: Date.now() - startTime,
-                tool: name,
-                version: '2.0.0',
-              },
-            );
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
           }
 
           case 'list_contracts': {
             const response = await listContracts(this.client, args as any);
-            result = createMcp2025Response(
-              true,
-              response,
-              undefined,
-              {
-                duration: Date.now() - startTime,
-                tool: name,
-                version: '2.0.0',
-              },
-            );
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
           }
 
           case 'create_property_version': {
             const response = await createPropertyVersion(this.client, args as any);
-            result = createMcp2025Response(
-              true,
-              response,
-              undefined,
-              {
-                duration: Date.now() - startTime,
-                tool: name,
-                version: '2.0.0',
-              },
-            );
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
           }
 
           case 'get_property_rules': {
             const response = await getPropertyRules(this.client, args as any);
-            result = createMcp2025Response(
-              true,
-              response,
-              undefined,
-              {
-                duration: Date.now() - startTime,
-                tool: name,
-                version: '2.0.0',
-              },
-            );
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
           }
 
           case 'update_property_rules': {
             const response = await updatePropertyRules(this.client, args as any);
-            result = createMcp2025Response(
-              true,
-              response,
-              undefined,
-              {
-                duration: Date.now() - startTime,
-                tool: name,
-                version: '2.0.0',
-              },
-            );
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
           }
 
           case 'get_activation_status': {
             const response = await getActivationStatus(this.client, args as any);
-            result = createMcp2025Response(
-              true,
-              response,
-              undefined,
-              {
-                duration: Date.now() - startTime,
-                tool: name,
-                version: '2.0.0',
-              },
-            );
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
           }
 
@@ -392,7 +342,7 @@ class PropertyALECSServer2025 {
         const errorResult = createMcp2025Response(
           false,
           undefined,
-          error instanceof Error ? _error.message : 'Unknown _error',
+          _error instanceof Error ? _error.message : 'Unknown _error',
           {
             duration: Date.now() - startTime,
             tool: name,

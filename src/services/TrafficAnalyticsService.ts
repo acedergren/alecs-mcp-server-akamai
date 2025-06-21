@@ -207,7 +207,7 @@ export class TrafficAnalyticsService {
       logger.error('Failed to analyze bandwidth usage', { _error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to analyze bandwidth usage: ${error instanceof Error ? _error.message : 'Unknown error'}`,
+        `Failed to analyze bandwidth usage: ${_error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -293,7 +293,7 @@ export class TrafficAnalyticsService {
       logger.error('Failed to analyze traffic trends', { _error, period });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to analyze traffic trends: ${error instanceof Error ? _error.message : 'Unknown error'}`,
+        `Failed to analyze traffic trends: ${_error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -371,7 +371,7 @@ export class TrafficAnalyticsService {
       logger.error('Failed to analyze cache performance', { _error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to analyze cache performance: ${error instanceof Error ? _error.message : 'Unknown error'}`,
+        `Failed to analyze cache performance: ${_error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -455,7 +455,7 @@ export class TrafficAnalyticsService {
       logger.error('Failed to analyze request patterns', { _error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to analyze request patterns: ${error instanceof Error ? _error.message : 'Unknown error'}`,
+        `Failed to analyze request patterns: ${_error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -466,7 +466,7 @@ export class TrafficAnalyticsService {
 
   private async fetchBandwidthTimeSeries(period: any, filter?: any): Promise<any[]> {
     // Simulate API call to Akamai Reporting API
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/bandwidth',
       queryParams: { ...period, ...filter },
@@ -475,7 +475,7 @@ export class TrafficAnalyticsService {
   }
 
   private async fetchBandwidthByHostname(period: any, filter?: any): Promise<any[]> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/bandwidth-by-hostname',
       queryParams: { ...period, ...filter },
@@ -484,7 +484,7 @@ export class TrafficAnalyticsService {
   }
 
   private async fetchBandwidthByRegion(period: any, filter?: any): Promise<any[]> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/bandwidth-by-region',
       queryParams: { ...period, ...filter },
@@ -493,7 +493,7 @@ export class TrafficAnalyticsService {
   }
 
   private async fetchBandwidthByContentType(period: any, filter?: any): Promise<any[]> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/bandwidth-by-content-type',
       queryParams: { ...period, ...filter },
@@ -502,7 +502,7 @@ export class TrafficAnalyticsService {
   }
 
   private async fetchRequestTimeSeries(period: any, filter?: any): Promise<any[]> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/requests',
       queryParams: { ...period, ...filter },
@@ -511,7 +511,7 @@ export class TrafficAnalyticsService {
   }
 
   private async fetchErrorTimeSeries(period: any, filter?: any): Promise<any[]> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/errors',
       queryParams: { ...period, ...filter },
@@ -520,7 +520,7 @@ export class TrafficAnalyticsService {
   }
 
   private async fetchCacheMetrics(period: any, filter?: any): Promise<any> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/cache-metrics',
       queryParams: { ...period, ...filter },
@@ -529,7 +529,7 @@ export class TrafficAnalyticsService {
   }
 
   private async fetchCacheMissReasons(period: any, filter?: any): Promise<any[]> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/cache-miss-reasons',
       queryParams: { ...period, ...filter },
@@ -538,7 +538,7 @@ export class TrafficAnalyticsService {
   }
 
   private async fetchCacheByContentType(period: any, filter?: any): Promise<any[]> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/cache-by-content-type',
       queryParams: { ...period, ...filter },
@@ -547,7 +547,7 @@ export class TrafficAnalyticsService {
   }
 
   private async fetchRequestMetrics(period: any, filter?: any): Promise<any> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/request-metrics',
       queryParams: { ...period, ...filter },
@@ -556,7 +556,7 @@ export class TrafficAnalyticsService {
   }
 
   private async fetchRequestsByMethod(period: any, filter?: any): Promise<any[]> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/requests-by-method',
       queryParams: { ...period, ...filter },
@@ -565,7 +565,7 @@ export class TrafficAnalyticsService {
   }
 
   private async fetchRequestsByStatusCode(period: any, filter?: any): Promise<any[]> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/requests-by-status',
       queryParams: { ...period, ...filter },
@@ -574,7 +574,7 @@ export class TrafficAnalyticsService {
   }
 
   private async fetchTopEndpoints(period: any, filter?: any): Promise<any[]> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/top-endpoints',
       queryParams: { ...period, ...filter },
@@ -583,7 +583,7 @@ export class TrafficAnalyticsService {
   }
 
   private async fetchBotTraffic(period: any, filter?: any): Promise<any> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/bot-traffic',
       queryParams: { ...period, ...filter },
@@ -596,8 +596,8 @@ export class TrafficAnalyticsService {
     const patterns: TrafficPattern[] = [];
 
     if (timeSeriesData.length === 0) {
-return patterns;
-}
+      return patterns;
+    }
 
     const values = timeSeriesData.map((d) => d.value);
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
@@ -684,8 +684,8 @@ return patterns;
     const forecasts: TrafficForecast[] = [];
 
     if (timeSeriesData.length === 0) {
-return forecasts;
-}
+      return forecasts;
+    }
 
     const values = timeSeriesData.map((d) => d.value);
     const trend = this.calculateLinearTrend(values);
@@ -714,8 +714,8 @@ return forecasts;
     // Simple linear regression to calculate trend
     const n = values.length;
     if (n < 2) {
-return 0;
-}
+      return 0;
+    }
 
     const xSum = (n * (n - 1)) / 2;
     const ySum = values.reduce((sum, val) => sum + val, 0);

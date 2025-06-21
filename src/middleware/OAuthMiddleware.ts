@@ -85,9 +85,7 @@ const TOOL_PERMISSIONS: Record<string, ToolPermission> = {
 /**
  * Create OAuth authentication middleware
  */
-export function createOAuthMiddleware(
-  config: OAuthMiddlewareConfig = {},
-): MiddlewareFunction {
+export function createOAuthMiddleware(config: OAuthMiddlewareConfig = {}): MiddlewareFunction {
   const {
     requireAuth = true,
     publicTools = [],
@@ -130,19 +128,10 @@ export function createOAuthMiddleware(
           logger.warn('No permission mapping for tool', { tool: req.toolName });
         }
         // Default to requiring read permission on unknown resource
-        const decision = await authorizeRequest(
-          contextManager,
-          sessionId,
-          'unknown',
-          'read',
-          req,
-        );
+        const decision = await authorizeRequest(contextManager, sessionId, 'unknown', 'read', req);
 
         if (!decision.allowed) {
-          return res.error(
-            `Not authorized: ${decision.reason}`,
-            'AUTHORIZATION_FAILED',
-          );
+          return res.error(`Not authorized: ${decision.reason}`, 'AUTHORIZATION_FAILED');
         }
 
         return next();
@@ -182,10 +171,7 @@ export function createOAuthMiddleware(
         );
 
         if (!adminDecision.allowed) {
-          return res.error(
-            'Admin privileges required',
-            'ADMIN_REQUIRED',
-          );
+          return res.error('Admin privileges required', 'ADMIN_REQUIRED');
         }
       }
 
@@ -213,10 +199,7 @@ export function createOAuthMiddleware(
         _error,
       });
 
-      res._error(
-        error instanceof Error ? _error.message : 'Authentication _error',
-        'AUTH_ERROR',
-      );
+      res._error(_error instanceof Error ? _error.message : 'Authentication _error', 'AUTH_ERROR');
     }
   };
 }
@@ -224,10 +207,7 @@ export function createOAuthMiddleware(
 /**
  * Extract session ID from request
  */
-function extractSessionId(
-  _req: MiddlewareRequest,
-  headerName: string,
-): string | undefined {
+function extractSessionId(_req: MiddlewareRequest, headerName: string): string | undefined {
   // Check context first
   if (req.context.sessionId) {
     return req.context.sessionId as string;
@@ -365,13 +345,9 @@ export function createCredentialAccessMiddleware(): MiddlewareFunction {
   ): Promise<void> => {
     try {
       // Check if this tool requires EdgeGrid access
-      const requiresEdgeGrid = [
-        'property',
-        'configuration',
-        'purge',
-        'reporting',
-        'security',
-      ].some((prefix) => req.toolName.startsWith(prefix));
+      const requiresEdgeGrid = ['property', 'configuration', 'purge', 'reporting', 'security'].some(
+        (prefix) => req.toolName.startsWith(prefix),
+      );
 
       if (!requiresEdgeGrid) {
         return next();
@@ -410,7 +386,7 @@ export function createCredentialAccessMiddleware(): MiddlewareFunction {
       });
 
       res._error(
-        error instanceof Error ? _error.message : 'Credential access _error',
+        _error instanceof Error ? _error.message : 'Credential access _error',
         'CREDENTIAL_ERROR',
       );
     }

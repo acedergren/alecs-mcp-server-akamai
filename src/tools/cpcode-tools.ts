@@ -40,7 +40,7 @@ export async function listCPCodes(
       queryParams.groupId = ensurePrefix(args.groupId, 'grp_');
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/cpcodes',
       method: 'GET',
       queryParams,
@@ -58,14 +58,15 @@ export async function listCPCodes(
     }
 
     let text = `# CP Codes (${response.cpcodes.items.length} found)\n\n`;
-    text += 'CP Codes are used for traffic reporting, billing analysis, and content categorization.\n\n';
+    text +=
+      'CP Codes are used for traffic reporting, billing analysis, and content categorization.\n\n';
 
     // Group by contract for better organization
     const byContract = response.cpcodes.items.reduce((acc: any, cpcode: any) => {
       const contract = cpcode.contractIds?.[0] || 'Unknown';
       if (!acc[contract]) {
-acc[contract] = [];
-}
+        acc[contract] = [];
+      }
       acc[contract].push(cpcode);
       return acc;
     }, {});
@@ -101,7 +102,8 @@ acc[contract] = [];
     text += '### View CP Code Details\n';
     text += '`"Get details for CP Code 12345"`\n\n';
     text += '### Create New CP Code\n';
-    text += '`"Create CP Code named my-site-content for contract ctr_1-5C13O2 group grp_125952"`\n\n';
+    text +=
+      '`"Create CP Code named my-site-content for contract ctr_1-5C13O2 group grp_125952"`\n\n';
     text += '### Use in Property\n';
     text += 'CP Codes are automatically assigned to properties and used for:\n';
     text += '- **Traffic Reporting:** Analyze bandwidth, requests, and cache hit ratios\n';
@@ -136,7 +138,7 @@ export async function getCPCode(
     const cpcodeId = args.cpcodeId.startsWith('cpc_') ? args.cpcodeId : `cpc_${args.cpcodeId}`;
 
     // First get all CP Codes to find the one we want (since the direct GET seems to need query params)
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/cpcodes',
       method: 'GET',
     });
@@ -291,7 +293,7 @@ export async function createCPCode(
     let productId = args.productId;
     if (!productId) {
       try {
-        const productsResponse = await client._request({
+        const productsResponse = await client.request({
           path: '/papi/v1/products',
           method: 'GET',
           queryParams: {
@@ -316,7 +318,7 @@ export async function createCPCode(
     }
 
     // Create the CP Code
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/cpcodes',
       method: 'POST',
       headers: {
@@ -357,7 +359,7 @@ export async function createCPCode(
 
     text += '## Next Steps\n\n';
     text += '### 1. Assign to Property\n';
-    text += 'Add this CP Code to a property\'s rule tree:\n';
+    text += "Add this CP Code to a property's rule tree:\n";
     text += `\`"Update property rules to use CP Code ${numericId}"\`\n\n`;
 
     text += '### 2. Use in New Property\n';
@@ -424,7 +426,7 @@ export async function searchCPCodes(
       queryParams.groupId = ensurePrefix(args.groupId, 'grp_');
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/cpcodes',
       method: 'GET',
       queryParams,
@@ -506,7 +508,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
+  if (_error instanceof Error) {
     errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type

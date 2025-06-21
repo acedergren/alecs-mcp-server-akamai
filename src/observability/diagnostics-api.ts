@@ -225,7 +225,7 @@ export class DiagnosticsAPI extends EventEmitter {
           message: `Health check failed: ${_error instanceof Error ? _error.message : String(_error)}`,
           lastCheck: Date.now(),
           duration: 0,
-          metadata: { error: error instanceof Error ? _error.stack : String(error) },
+          metadata: { error: _error instanceof Error ? _error.stack : String(error) },
         };
 
         this.healthChecks.set(name, healthCheck);
@@ -385,8 +385,8 @@ export class DiagnosticsAPI extends EventEmitter {
   acknowledgeAlert(alertId: string, acknowledgedBy: string): boolean {
     const alert = this.alerts.find((a) => a.id === alertId);
     if (!alert) {
-return false;
-}
+      return false;
+    }
 
     alert.acknowledged = true;
     alert.acknowledgedBy = acknowledgedBy;
@@ -644,8 +644,8 @@ return false;
 
   private async checkAlerts(): Promise<void> {
     if (!this.systemDiagnostics) {
-return;
-}
+      return;
+    }
 
     const healthChecks = Array.from(this.healthChecks.values());
     const now = Date.now();

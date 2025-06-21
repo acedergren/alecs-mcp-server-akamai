@@ -40,7 +40,7 @@ async function validatePrerequisites(
 
   // Validate contract exists
   try {
-    await client._request({
+    await client.request({
       path: `/papi/v1/contracts/${args.contractId}`,
       method: 'GET',
     });
@@ -50,7 +50,7 @@ async function validatePrerequisites(
 
   // Validate group exists
   try {
-    const groupsResponse = await client._request({
+    const groupsResponse = await client.request({
       path: '/papi/v1/groups',
       method: 'GET',
     });
@@ -92,7 +92,7 @@ async function ensureCPCode(
   if (args.cpCode) {
     // Verify CP code exists
     try {
-      await client._request({
+      await client.request({
         path: `/papi/v1/cpcodes/${args.cpCode}`,
         method: 'GET',
         queryParams: {
@@ -137,7 +137,7 @@ async function createSecureByDefaultEdgeHostname(
   },
 ): Promise<{ edgeHostnameId: string; edgeHostnameDomain: string }> {
   // Get property details
-  const propertyResponse = await client._request({
+  const propertyResponse = await client.request({
     path: `/papi/v1/properties/${args.propertyId}`,
     method: 'GET',
   });
@@ -152,7 +152,7 @@ async function createSecureByDefaultEdgeHostname(
   // Create Secure by Default edge hostname
   // The key is using .edgekey.net suffix and NOT specifying a certificateEnrollmentId
   // This triggers automatic DefaultDV certificate creation
-  const response = await client._request({
+  const response = await client.request({
     path: '/papi/v1/edgehostnames',
     method: 'POST',
     headers: {
@@ -247,7 +247,7 @@ export async function onboardSecureByDefaultProperty(
     let productId = args.productId;
     if (!productId) {
       // Get available products for the contract
-      const productsResponse = await client._request({
+      const productsResponse = await client.request({
         path: '/papi/v1/products',
         method: 'GET',
         queryParams: {
@@ -605,7 +605,7 @@ export async function checkSecureByDefaultStatus(
     let text = '# Secure by Default Property Status\n\n';
 
     // Get property details
-    const propertyResponse = await client._request({
+    const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -624,7 +624,7 @@ export async function checkSecureByDefaultStatus(
     text += `- **Staging Version:** ${property.stagingVersion || 'Not activated'}\n\n`;
 
     // Get hostnames
-    const hostnamesResponse = await client._request({
+    const hostnamesResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${property.latestVersion}/hostnames`,
       method: 'GET',
     });
@@ -739,7 +739,7 @@ function generateFailureReport(state: OnboardingState, _error: any, args: any): 
 async function rollbackProperty(client: AkamaiClient, propertyId: string): Promise<void> {
   try {
     // Check if property has any activations
-    const propertyResponse = await client._request({
+    const propertyResponse = await client.request({
       path: `/papi/v1/properties/${propertyId}`,
       method: 'GET',
     });
@@ -747,7 +747,7 @@ async function rollbackProperty(client: AkamaiClient, propertyId: string): Promi
     const property = propertyResponse.properties?.items?.[0];
     if (!property?.productionVersion && !property?.stagingVersion) {
       // Safe to delete
-      await client._request({
+      await client.request({
         path: `/papi/v1/properties/${propertyId}`,
         method: 'DELETE',
         queryParams: {
@@ -767,7 +767,7 @@ async function rollbackProperty(client: AkamaiClient, propertyId: string): Promi
 function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
 
-  if (error instanceof Error) {
+  if (_error instanceof Error) {
     errorMessage += `: ${_error.message}`;
   } else {
     errorMessage += `: ${String(error)}`;

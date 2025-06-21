@@ -87,7 +87,7 @@ export async function createPropertyVersion(
     // Get current version if not specified
     let baseVersion = args.baseVersion;
     if (!baseVersion) {
-      const propertyResponse = await client._request({
+      const propertyResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -100,7 +100,7 @@ export async function createPropertyVersion(
     }
 
     // Create new version
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions`,
       method: 'POST',
       headers: {
@@ -116,7 +116,7 @@ export async function createPropertyVersion(
 
     // Update version note if provided
     if (args.note) {
-      await client._request({
+      await client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${newVersion}`,
         method: 'PATCH',
         headers: {
@@ -159,7 +159,7 @@ export async function getPropertyRules(
     // Get property details to find latest version if not specified
     let version = args.version;
     if (!version) {
-      const propertyResponse = await client._request({
+      const propertyResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -172,7 +172,7 @@ export async function getPropertyRules(
     }
 
     // Get rule tree
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
       method: 'GET',
       headers: {
@@ -283,7 +283,7 @@ export async function updatePropertyRules(
     // Get property details to find latest version if not specified
     let version = args.version;
     if (!version) {
-      const propertyResponse = await client._request({
+      const propertyResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -296,7 +296,7 @@ export async function updatePropertyRules(
     }
 
     // Get current rule tree to preserve format
-    const currentRules = await client._request({
+    const currentRules = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
       method: 'GET',
       headers: {
@@ -305,7 +305,7 @@ export async function updatePropertyRules(
     });
 
     // Update rules
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
       method: 'PUT',
       headers: {
@@ -319,7 +319,7 @@ export async function updatePropertyRules(
 
     // Update version note if provided
     if (args.note) {
-      await client._request({
+      await client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${version}`,
         method: 'PATCH',
         headers: {
@@ -387,7 +387,7 @@ export async function createEdgeHostname(
 ): Promise<MCPToolResponse> {
   try {
     // Get property details to find contract and group
-    const propertyResponse = await client._request({
+    const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -401,7 +401,7 @@ export async function createEdgeHostname(
     const domainSuffix = args.domainSuffix || (args.secure ? '.edgekey.net' : '.edgesuite.net');
 
     // Create edge hostname
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/edgehostnames',
       method: 'POST',
       headers: {
@@ -464,7 +464,7 @@ export async function addPropertyHostname(
     // Get property details to find latest version if not specified
     let version = args.version;
     if (!version) {
-      const propertyResponse = await client._request({
+      const propertyResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -477,7 +477,7 @@ export async function addPropertyHostname(
     }
 
     // Get current hostnames
-    const currentHostnames = await client._request({
+    const currentHostnames = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'GET',
     });
@@ -491,7 +491,7 @@ export async function addPropertyHostname(
     });
 
     // Update hostnames
-    await client._request({
+    await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'PUT',
       headers: {
@@ -530,7 +530,7 @@ export async function removePropertyHostname(
     // Get property details to find latest version if not specified
     let version = args.version;
     if (!version) {
-      const propertyResponse = await client._request({
+      const propertyResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -543,7 +543,7 @@ export async function removePropertyHostname(
     }
 
     // Get current hostnames
-    const currentHostnames = await client._request({
+    const currentHostnames = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'GET',
     });
@@ -565,7 +565,7 @@ export async function removePropertyHostname(
     }
 
     // Update hostnames
-    await client._request({
+    await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'PUT',
       headers: {
@@ -610,7 +610,7 @@ export async function activateProperty(
 ): Promise<MCPToolResponse> {
   try {
     // Get property details
-    const propertyResponse = await client._request({
+    const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -660,7 +660,7 @@ export async function activateProperty(
       activationBody.complianceRecord = args.complianceRecord;
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/activations`,
       method: 'POST',
       headers: {
@@ -680,7 +680,7 @@ export async function activateProperty(
       ],
     };
   } catch (_error) {
-    if (error instanceof Error && _error.message.includes('warnings')) {
+    if (_error instanceof Error && _error.message.includes('warnings')) {
       return {
         content: [
           {
@@ -705,7 +705,7 @@ export async function getActivationStatus(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/activations/${args.activationId}`,
       method: 'GET',
     });
@@ -727,7 +727,20 @@ export async function getActivationStatus(
         DEACTIVATED: '⚫',
         PENDING_DEACTIVATION: '⏳',
         NEW: '🆕',
-      }[activation.status as keyof {ACTIVE: string; PENDING: string; ZONE_1: string; ZONE_2: string; ZONE_3: string; ABORTED: string; FAILED: string; DEACTIVATED: string; PENDING_DEACTIVATION: string; NEW: string}] || '❓';
+      }[
+        activation.status as keyof {
+          ACTIVE: string;
+          PENDING: string;
+          ZONE_1: string;
+          ZONE_2: string;
+          ZONE_3: string;
+          ABORTED: string;
+          FAILED: string;
+          DEACTIVATED: string;
+          PENDING_DEACTIVATION: string;
+          NEW: string;
+        }
+      ] || '❓';
 
     let text = `# Activation Status: ${activation.activationId}\n\n`;
     text += `**Property:** ${activation.propertyName} (${activation.propertyId})\n`;
@@ -798,7 +811,7 @@ export async function listPropertyActivations(
       queryParams.network = args.network;
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/activations`,
       method: 'GET',
       queryParams,
@@ -821,8 +834,8 @@ export async function listPropertyActivations(
     const byNetwork = response.activations.items.reduce(
       (acc: any, act: any) => {
         if (!acc[act.network]) {
-acc[act.network] = [];
-}
+          acc[act.network] = [];
+        }
         acc[act.network].push(act);
         return acc;
       },
@@ -850,7 +863,20 @@ acc[act.network] = [];
             DEACTIVATED: '⚫',
             PENDING_DEACTIVATION: '⏳',
             NEW: '🆕',
-          }[act.status as keyof {ACTIVE: string; PENDING: string; ZONE_1: string; ZONE_2: string; ZONE_3: string; ABORTED: string; FAILED: string; DEACTIVATED: string; PENDING_DEACTIVATION: string; NEW: string}] || '❓';
+          }[
+            act.status as keyof {
+              ACTIVE: string;
+              PENDING: string;
+              ZONE_1: string;
+              ZONE_2: string;
+              ZONE_3: string;
+              ABORTED: string;
+              FAILED: string;
+              DEACTIVATED: string;
+              PENDING_DEACTIVATION: string;
+              NEW: string;
+            }
+          ] || '❓';
 
         text += `### ${statusEmoji} v${act.propertyVersion} - ${act.status}\n`;
         text += `- **ID:** ${act.activationId}\n`;
@@ -892,7 +918,7 @@ export async function updatePropertyWithDefaultDV(
 ): Promise<MCPToolResponse> {
   try {
     // Get property details
-    const propertyResponse = await client._request({
+    const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -920,7 +946,7 @@ export async function updatePropertyWithDefaultDV(
 
     try {
       // Create the edge hostname
-      const edgeHostnameResponse = await client._request({
+      const edgeHostnameResponse = await client.request({
         path: '/papi/v1/edgehostnames',
         method: 'POST',
         headers: {
@@ -966,7 +992,7 @@ export async function updatePropertyWithDefaultDV(
     }
 
     // Step 2: Add hostname to property
-    const currentHostnames = await client._request({
+    const currentHostnames = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'GET',
     });
@@ -988,7 +1014,7 @@ export async function updatePropertyWithDefaultDV(
         cnameType: 'EDGE_HOSTNAME',
       });
 
-      await client._request({
+      await client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
         method: 'PUT',
         headers: {
@@ -1063,7 +1089,7 @@ export async function updatePropertyWithCPSCertificate(
 ): Promise<MCPToolResponse> {
   try {
     // Get property details
-    const propertyResponse = await client._request({
+    const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -1103,7 +1129,7 @@ export async function updatePropertyWithCPSCertificate(
 
     // Step 2: Create edge hostname with CPS certificate
     try {
-      const edgeHostnameResponse = await client._request({
+      const edgeHostnameResponse = await client.request({
         path: '/papi/v1/edgehostnames',
         method: 'POST',
         headers: {
@@ -1147,7 +1173,7 @@ export async function updatePropertyWithCPSCertificate(
     }
 
     // Step 3: Add hostname to property
-    const currentHostnames = await client._request({
+    const currentHostnames = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'GET',
     });
@@ -1181,7 +1207,7 @@ export async function updatePropertyWithCPSCertificate(
         },
       });
 
-      await client._request({
+      await client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
         method: 'PUT',
         headers: {
@@ -1260,7 +1286,7 @@ export async function createPropertyVersionEnhanced(
 
     // Intelligent base version selection
     if (args.autoSelectBase && !baseVersion) {
-      const versionsResponse = await client._request({
+      const versionsResponse = await client.request({
         method: 'GET',
         path: `/papi/v1/properties/${args.propertyId}/versions`,
       });
@@ -1282,7 +1308,7 @@ export async function createPropertyVersionEnhanced(
     }
 
     // Create new version
-    const response = await client._request({
+    const response = await client.request({
       method: 'POST',
       path: `/papi/v1/properties/${args.propertyId}/versions`,
       body: baseVersion ? { createFromVersion: baseVersion } : {},
@@ -1319,7 +1345,7 @@ export async function createPropertyVersionEnhanced(
       }
 
       if (patches.length > 0) {
-        await client._request({
+        await client.request({
           method: 'PATCH',
           path: `/papi/v1/properties/${args.propertyId}/versions/${newVersion}`,
           body: patches,
@@ -1375,11 +1401,11 @@ export async function getVersionDiff(
     // Compare rules if requested
     if (compareType === 'rules' || compareType === 'all') {
       const [rules1Response, rules2Response] = await Promise.all([
-        client._request({
+        client.request({
           method: 'GET',
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version1}/rules`,
         }),
-        client._request({
+        client.request({
           method: 'GET',
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version2}/rules`,
         }),
@@ -1403,11 +1429,11 @@ export async function getVersionDiff(
     // Compare hostnames if requested
     if (compareType === 'hostnames' || compareType === 'all') {
       const [hostnames1Response, hostnames2Response] = await Promise.all([
-        client._request({
+        client.request({
           method: 'GET',
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version1}/hostnames`,
         }),
-        client._request({
+        client.request({
           method: 'GET',
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version2}/hostnames`,
         }),
@@ -1484,7 +1510,7 @@ export async function listPropertyVersionsEnhanced(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client._request({
+    const response = await client.request({
       method: 'GET',
       path: `/papi/v1/properties/${args.propertyId}/versions`,
     });
@@ -1528,22 +1554,22 @@ export async function listPropertyVersionsEnhanced(
       text += `  └ Updated: ${version.updatedDate} by ${version.updatedByUser}\n`;
 
       if (version.stagingStatus === 'ACTIVE') {
-text += '  └ 🟡 Active on STAGING\n';
-}
+        text += '  └ 🟡 Active on STAGING\n';
+      }
       if (version.productionStatus === 'ACTIVE') {
-text += '  └ 🔴 Active on PRODUCTION\n';
-}
+        text += '  └ 🔴 Active on PRODUCTION\n';
+      }
 
       if (version.note) {
-text += `  └ Note: ${version.note}\n`;
-}
+        text += `  └ Note: ${version.note}\n`;
+      }
 
       if (args.includeMetadata && version.metadata) {
         const metadata =
           typeof version.metadata === 'string' ? JSON.parse(version.metadata) : version.metadata;
         if (metadata.tags) {
-text += `  └ Tags: ${metadata.tags}\n`;
-}
+          text += `  └ Tags: ${metadata.tags}\n`;
+        }
       }
 
       text += '\n';
@@ -1598,7 +1624,7 @@ export async function rollbackPropertyVersion(
 
     // Create backup of current version if requested
     if (args.createBackup !== false) {
-      const currentVersionResponse = await client._request({
+      const currentVersionResponse = await client.request({
         method: 'GET',
         path: `/papi/v1/properties/${args.propertyId}/versions`,
       });
@@ -1606,7 +1632,7 @@ export async function rollbackPropertyVersion(
       const versions = currentVersionResponse.data.versions?.items || [];
       const latestVersion = Math.max(...versions.map((v: any) => v.propertyVersion));
 
-      const backupResponse = await client._request({
+      const backupResponse = await client.request({
         method: 'POST',
         path: `/papi/v1/properties/${args.propertyId}/versions`,
         body: { createFromVersion: latestVersion },
@@ -1616,7 +1642,7 @@ export async function rollbackPropertyVersion(
 
       // Add backup note
       if (backupVersionId) {
-        await client._request({
+        await client.request({
           method: 'PATCH',
           path: `/papi/v1/properties/${args.propertyId}/versions/${backupVersionId}`,
           body: [
@@ -1631,7 +1657,7 @@ export async function rollbackPropertyVersion(
     }
 
     // Create new version from target version
-    const rollbackResponse = await client._request({
+    const rollbackResponse = await client.request({
       method: 'POST',
       path: `/papi/v1/properties/${args.propertyId}/versions`,
       body: { createFromVersion: args.targetVersion },
@@ -1641,7 +1667,7 @@ export async function rollbackPropertyVersion(
 
     // Add rollback note
     if (newVersionId && args.note) {
-      await client._request({
+      await client.request({
         method: 'PATCH',
         path: `/papi/v1/properties/${args.propertyId}/versions/${newVersionId}`,
         body: [
@@ -1665,7 +1691,7 @@ export async function rollbackPropertyVersion(
     // Auto-activate if requested
     if (args.autoActivate && args.network) {
       try {
-        await client._request({
+        await client.request({
           method: 'POST',
           path: `/papi/v1/properties/${args.propertyId}/activations`,
           body: {
@@ -1939,7 +1965,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
+  if (_error instanceof Error) {
     errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type

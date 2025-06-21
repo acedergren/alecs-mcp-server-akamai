@@ -337,13 +337,13 @@ async function getAllPropertiesWithHostnames(client: AkamaiClient, args: any): P
   const params = new URLSearchParams();
 
   if (args.contractId) {
-params.append('contractId', args.contractId);
-}
+    params.append('contractId', args.contractId);
+  }
   if (args.groupId) {
-params.append('groupId', args.groupId);
-}
+    params.append('groupId', args.groupId);
+  }
 
-  const response = await client._request({
+  const response = await client.request({
     path: `/papi/v1/properties?${params.toString()}`,
     method: 'GET',
   });
@@ -354,7 +354,7 @@ params.append('groupId', args.groupId);
   const propertiesWithHostnames = await Promise.all(
     properties.map(async (property: any) => {
       try {
-        const hostnameResponse = await client._request({
+        const hostnameResponse = await client.request({
           path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames?contractId=${property.contractId}&groupId=${property.groupId}`,
           method: 'GET',
         });
@@ -369,7 +369,7 @@ params.append('groupId', args.groupId);
           hostnames: [],
         };
       }
-    })
+    }),
   );
 
   return propertiesWithHostnames;
@@ -700,8 +700,8 @@ function findPropertyByHostname(properties: any[], hostname: string): any {
 
 function extractDomain(hostname: string): string | null {
   if (!hostname || hostname.startsWith('*.')) {
-return null;
-}
+    return null;
+  }
 
   const parts = hostname.split('.');
   if (parts.length >= 2) {

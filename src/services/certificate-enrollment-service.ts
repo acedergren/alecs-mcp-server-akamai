@@ -400,7 +400,7 @@ export class CertificateEnrollmentService {
   // Private helper methods
 
   private async createEnrollment(args: any): Promise<{ enrollmentId: number }> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       path: `/cps/v2/enrollments?contractId=${args.contractId}`,
       method: 'POST',
       headers: {
@@ -493,7 +493,7 @@ export class CertificateEnrollmentService {
             });
             validationSteps += `✅ Activated zone: ${zone}\n`;
           } catch (_error) {
-            validationSteps += `⚠️ Zone ${zone} activation skipped: ${error instanceof Error ? _error.message : 'Unknown error'}\n`;
+            validationSteps += `⚠️ Zone ${zone} activation skipped: ${_error instanceof Error ? _error.message : 'Unknown error'}\n`;
           }
         }
         validationSteps += '\n';
@@ -557,7 +557,7 @@ export class CertificateEnrollmentService {
       this.logWorkflowEvent('deployment_started', { enrollmentId, network });
 
       // Initiate deployment
-      await this.client._request({
+      await this.client.request({
         method: 'POST',
         path: `/cps/v2/enrollments/${enrollmentId}/deployments`,
         headers: {

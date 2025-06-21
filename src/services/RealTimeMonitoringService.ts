@@ -394,8 +394,8 @@ export class RealTimeMonitoringService extends EventEmitter {
 
       for (const rule of this.alertRules.values()) {
         if (!rule.enabled) {
-continue;
-}
+          continue;
+        }
 
         // Check cooldown period
         if (rule.lastTriggered) {
@@ -488,8 +488,8 @@ continue;
   private async resolveAlert(alertId: string): Promise<void> {
     const alert = this.activeAlerts.get(alertId);
     if (!alert) {
-return;
-}
+      return;
+    }
 
     alert.resolved = true;
     alert.resolvedAt = new Date().toISOString();
@@ -524,7 +524,7 @@ return;
     filter?: Record<string, any>,
   ): Promise<number> {
     // This would make actual API calls to Akamai's real-time reporting endpoints
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'GET',
       path: `/reporting/v1/realtime/${metric}`,
       queryParams: {
@@ -594,7 +594,7 @@ return;
     const healthChecks = services.map(async (service) => {
       try {
         const startTime = Date.now();
-        await this.client._request({
+        await this.client.request({
           method: 'GET',
           path: service.endpoint + '/health',
         });

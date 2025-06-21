@@ -38,7 +38,7 @@ export async function listProducts(
 
     const contractId = ensurePrefix(args.contractId, 'ctr_');
 
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/products',
       method: 'GET',
       queryParams: {
@@ -84,14 +84,18 @@ export async function listProducts(
     if (bestProduct) {
       text += '## 🎯 Recommended Product\n\n';
       text += `**${formatProductDisplay(bestProduct.productId, bestProduct.productName)}**\n`;
-      text += 'Ion products are preferred for most use cases due to their modern features and performance.\n\n';
+      text +=
+        'Ion products are preferred for most use cases due to their modern features and performance.\n\n';
     }
 
     text += '## Common Product Use Cases\n\n';
-    text += '- **prd_SPM (Ion Premier)**: Premium performance for dynamic web apps and APIs (BEST)\n';
-    text += '- **prd_FRESCA (Ion Standard)**: Modern web acceleration with advanced features (RECOMMENDED)\n';
+    text +=
+      '- **prd_SPM (Ion Premier)**: Premium performance for dynamic web apps and APIs (BEST)\n';
+    text +=
+      '- **prd_FRESCA (Ion Standard)**: Modern web acceleration with advanced features (RECOMMENDED)\n';
     text += '- **prd_Alta (Alta)**: Alta acceleration platform\n';
-    text += '- **prd_SiteAccel/prd_Site_Accel (DSA)**: Dynamic Site Accelerator - Traditional web acceleration\n';
+    text +=
+      '- **prd_SiteAccel/prd_Site_Accel (DSA)**: Dynamic Site Accelerator - Traditional web acceleration\n';
     text += '- **prd_Object_Delivery**: Object storage and delivery\n';
     text += '- **prd_Download_Delivery (DD)**: Large file downloads\n';
     text += '- **prd_Adaptive_Media_Delivery (AMD)**: Video and media streaming\n';
@@ -154,7 +158,7 @@ export async function getProduct(
     }
 
     // Get all products and find the specific one
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/products',
       method: 'GET',
       queryParams: {
@@ -358,7 +362,8 @@ export async function listUseCases(
 
     text += '## Edge Hostname Creation Example\n';
     text += `\`"Create edge hostname www.example.com.edgekey.net for property prp_12345 with product ${args.productId}"\`\n\n`;
-    text += '💡 **Note:** Use cases are automatically configured when creating edge hostnames through the standard MCP tools.';
+    text +=
+      '💡 **Note:** Use cases are automatically configured when creating edge hostnames through the standard MCP tools.';
 
     return {
       content: [
@@ -380,7 +385,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
+  if (_error instanceof Error) {
     errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
@@ -448,7 +453,7 @@ export async function listBillingProducts(
     const endDate = new Date(year, month, 0); // Last day of month
     const toDate = `${year}-${String(month).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
 
-    const response = await client._request({
+    const response = await client.request({
       path: `/billing/v1/contracts/${contractId}/products`,
       method: 'GET',
       queryParams: {
@@ -549,7 +554,7 @@ export async function listBillingProducts(
     // Suggest new mappings
     if (productMappings.size > 0) {
       text += '\n## 📝 Suggested New Product Mappings\n\n';
-      text += 'The following products from billing don\'t have friendly name mappings:\n\n';
+      text += "The following products from billing don't have friendly name mappings:\n\n";
       text += '```typescript\n';
       text += '// Add to PRODUCT_NAME_MAP in product-mapping.ts:\n';
 
@@ -581,7 +586,8 @@ export async function listBillingProducts(
     text += `\`"List products for contract ${contractId}"\`\n\n`;
 
     text += '## Note\n';
-    text += 'Billing product names may differ from Property Manager product names. The billing API shows:\n';
+    text +=
+      'Billing product names may differ from Property Manager product names. The billing API shows:\n';
     text += '- Historical usage data\n';
     text += '- Geographic breakdown\n';
     text += '- Products that may not be available for new properties';

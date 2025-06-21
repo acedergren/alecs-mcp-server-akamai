@@ -28,15 +28,8 @@ import {
   // deleteRecord,
 } from './tools/dns-tools';
 // import { listProducts } from './tools/product-tools';
-import {
-  activateProperty,
-} from './tools/property-manager-tools';
-import {
-  listProperties,
-  getProperty,
-  createProperty,
-  listContracts,
-} from './tools/property-tools';
+import { activateProperty } from './tools/property-manager-tools';
+import { listProperties, getProperty, createProperty, listContracts } from './tools/property-tools';
 import { ConfigurationError, ConfigErrorType } from './types/config';
 import {
   type BaseMcpParams,
@@ -252,7 +245,9 @@ export class ALECSServer {
       this.wrapToolHandler('create-record', params, upsertRecord),
     );
 
-    logger.info(`Registered ${this.toolRegistry.size} essential tools (use dev:full for all tools)`);
+    logger.info(
+      `Registered ${this.toolRegistry.size} essential tools (use dev:full for all tools)`,
+    );
   }
 
   /**
@@ -306,7 +301,7 @@ export class ALECSServer {
         ...context,
         duration,
         error: _error instanceof Error ? _error.message : String(_error),
-        stack: error instanceof Error ? _error.stack : undefined,
+        stack: _error instanceof Error ? _error.stack : undefined,
       });
 
       return {
@@ -333,7 +328,7 @@ export class ALECSServer {
       return `Validation error: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`;
     }
 
-    if (error instanceof Error) {
+    if (_error instanceof Error) {
       return _error.message;
     }
 
@@ -495,7 +490,7 @@ export class ALECSServer {
     } catch (_error) {
       logger.error('Failed to start server', {
         error: _error instanceof Error ? _error.message : String(_error),
-        stack: error instanceof Error ? _error.stack : undefined,
+        stack: _error instanceof Error ? _error.stack : undefined,
       });
       throw _error;
     }
@@ -512,7 +507,7 @@ async function main(): Promise<void> {
   } catch (_error) {
     logger.error('Server initialization failed', {
       error: _error instanceof Error ? _error.message : String(_error),
-      stack: error instanceof Error ? _error.stack : undefined,
+      stack: _error instanceof Error ? _error.stack : undefined,
     });
     process.exit(1);
   }

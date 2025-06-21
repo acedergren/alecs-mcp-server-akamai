@@ -71,9 +71,7 @@ export class OAuthError extends Error {
 /**
  * Create OAuth authorization middleware
  */
-export function createOAuthMiddleware(
-  options: OAuthAuthorizationOptions,
-): RequestHandler {
+export function createOAuthMiddleware(options: OAuthAuthorizationOptions): RequestHandler {
   const {
     resourceServer,
     // realm = 'Akamai API',
@@ -143,7 +141,7 @@ export function createOAuthMiddleware(
           'Internal server _error',
           500,
           'server_error',
-          error instanceof Error ? _error.message : 'Unknown _error',
+          _error instanceof Error ? _error.message : 'Unknown _error',
         );
         errorHandler(oauthError, req, res, next);
       }
@@ -192,11 +190,7 @@ export function requireResourceAccess(
 
       // Build resource URI
       const accountId = req.oauth.token.akamai?.account_id || 'unknown';
-      const resourceUri = new ResourceUri(
-        resourceType,
-        accountId,
-        resourceId,
-      );
+      const resourceUri = new ResourceUri(resourceType, accountId, resourceId);
 
       // Get resource metadata
       const resource = resourceServer.getResource(resourceUri.toString());
@@ -260,7 +254,7 @@ export function requireResourceAccess(
           'Authorization _error',
           500,
           'server_error',
-          error instanceof Error ? _error.message : 'Unknown _error',
+          _error instanceof Error ? _error.message : 'Unknown _error',
         );
         defaultErrorHandler(oauthError, req, res, next);
       }
@@ -288,7 +282,7 @@ export function requireScopes(...requiredScopes: string[]): RequestHandler {
     }
 
     const tokenScopes = req.oauth.scopes;
-    const missingScopes = requiredScopes.filter(scope => !tokenScopes.includes(scope));
+    const missingScopes = requiredScopes.filter((scope) => !tokenScopes.includes(scope));
 
     if (missingScopes.length > 0) {
       return defaultErrorHandler(
@@ -336,10 +330,7 @@ function defaultErrorHandler(
 ): void {
   // Set WWW-Authenticate header for 401 errors
   if (err.status === 401) {
-    const wwwAuthenticate = [
-      'Bearer',
-      `realm="${req.get('host') || 'Akamai API'}"`,
-    ];
+    const wwwAuthenticate = ['Bearer', `realm="${req.get('host') || 'Akamai API'}"`];
 
     if (err.error) {
       wwwAuthenticate.push(`error="${err.error}"`);

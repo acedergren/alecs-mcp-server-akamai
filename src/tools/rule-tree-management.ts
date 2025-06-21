@@ -345,7 +345,7 @@ export async function updatePropertyRulesEnhanced(
     }
 
     // Update rules
-    await client._request({
+    await client.request({
       method: 'PUT',
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/rules`,
       headers: {
@@ -644,7 +644,8 @@ export async function mergeRuleTrees(
           text += `${index + 1}. ${_error.message}\n`;
         });
 
-        text += '\n**Note:** The merge completed but resulted in an invalid rule tree. Review and fix validation errors.';
+        text +=
+          '\n**Note:** The merge completed but resulted in an invalid rule tree. Review and fix validation errors.';
 
         return {
           content: [
@@ -1164,14 +1165,14 @@ function calculatePerformanceScore(rules: any, warnings: RuleValidationWarning[]
   const hasHttp2 = hasSpecificBehavior(rules, 'http2');
 
   if (!hasCaching) {
-score -= 20;
-}
+    score -= 20;
+  }
   if (!hasCompression) {
-score -= 15;
-}
+    score -= 15;
+  }
   if (!hasHttp2) {
-score -= 15;
-}
+    score -= 15;
+  }
 
   return Math.max(0, Math.min(100, score));
 }
@@ -1329,7 +1330,7 @@ function mergeBehaviors(
   options: RuleMergeOptions,
 ): void {
   const targetBehaviorMap = new Map(
-    targetBehaviors.map((b, index) => [b.name, { behavior: b, index }])
+    targetBehaviors.map((b, index) => [b.name, { behavior: b, index }]),
   );
 
   sourceBehaviors.forEach((sourceBehavior) => {
@@ -1746,7 +1747,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
+  if (_error instanceof Error) {
     errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type

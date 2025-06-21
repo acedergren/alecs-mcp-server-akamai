@@ -150,7 +150,7 @@ export class ReportingService {
       logger.error('Failed to fetch traffic summary', { _error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to fetch traffic summary: ${error instanceof Error ? _error.message : 'Unknown error'}`,
+        `Failed to fetch traffic summary: ${_error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -195,7 +195,7 @@ export class ReportingService {
       logger.error('Failed to fetch time-series data', { _error, metrics, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to fetch time-series data: ${error instanceof Error ? _error.message : 'Unknown error'}`,
+        `Failed to fetch time-series data: ${_error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -289,7 +289,7 @@ export class ReportingService {
       logger.error('Failed to generate cost optimization insights', { _error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to generate cost optimization insights: ${error instanceof Error ? _error.message : 'Unknown error'}`,
+        `Failed to generate cost optimization insights: ${_error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -388,7 +388,7 @@ export class ReportingService {
       logger.error('Failed to fetch performance benchmarks', { _error, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to fetch performance benchmarks: ${error instanceof Error ? _error.message : 'Unknown error'}`,
+        `Failed to fetch performance benchmarks: ${_error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -413,7 +413,7 @@ export class ReportingService {
 
       // In a real implementation, this would save to a database
       // For now, we'll simulate the API call
-      const response = await this.client._request({
+      const response = await this.client.request({
         method: 'POST',
         path: '/reporting/v1/dashboards',
         body: dashboardData,
@@ -432,7 +432,7 @@ export class ReportingService {
       logger.error('Failed to create dashboard', { _error, name: dashboard.name });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to create dashboard: ${error instanceof Error ? _error.message : 'Unknown error'}`,
+        `Failed to create dashboard: ${_error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -498,7 +498,7 @@ export class ReportingService {
       logger.error('Failed to export report', { _error, format, metrics, period, filter });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to export report: ${error instanceof Error ? _error.message : 'Unknown error'}`,
+        `Failed to export report: ${_error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -519,7 +519,7 @@ export class ReportingService {
         updatedAt: new Date().toISOString(),
       };
 
-      await this.client._request({
+      await this.client.request({
         method: 'PUT',
         path: '/reporting/v1/alerts/configuration',
         body: alertConfig,
@@ -533,7 +533,7 @@ export class ReportingService {
       logger.error('Failed to configure alerts', { _error, thresholds });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });
       throw new Error(
-        `Failed to configure alerts: ${error instanceof Error ? _error.message : 'Unknown error'}`,
+        `Failed to configure alerts: ${_error instanceof Error ? _error.message : 'Unknown error'}`,
       );
     } finally {
       this.performanceMonitor.endOperation(operationId);
@@ -580,7 +580,7 @@ export class ReportingService {
     metric: string,
     params: Record<string, any>,
   ): Promise<ReportingMetric[]> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       method: 'GET',
       path: `/reporting/v1/reports/${metric}`,
       queryParams: params,
@@ -596,8 +596,8 @@ export class ReportingService {
 
   private aggregateMetric(data: ReportingMetric[], method: 'sum' | 'avg' | 'max' | 'min'): number {
     if (!data || data.length === 0) {
-return 0;
-}
+      return 0;
+    }
 
     const values = data.map((d) => d.value);
 
@@ -642,8 +642,8 @@ return 0;
   } {
     const bandwidthData = timeSeriesData.bandwidth || [];
     if (bandwidthData.length === 0) {
-return { peakVariance: 0 };
-}
+      return { peakVariance: 0 };
+    }
 
     const values = bandwidthData.map((d) => d.value);
     const average = values.reduce((sum, val) => sum + val, 0) / values.length;

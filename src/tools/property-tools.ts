@@ -18,12 +18,7 @@ import {
 import { formatProductDisplay } from '@utils/product-mapping';
 import { parseAkamaiResponse } from '@utils/response-parsing';
 import { withToolErrorHandling, type ErrorContext } from '@utils/tool-error-handling';
-import {
-  type TreeNode,
-  renderTree,
-  generateTreeSummary,
-  formatGroupNode,
-} from '@utils/tree-view';
+import { type TreeNode, renderTree, generateTreeSummary, formatGroupNode } from '@utils/tree-view';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse, type Property } from '../types';
@@ -33,8 +28,8 @@ import { type MCPToolResponse, type Property } from '../types';
  */
 function formatDate(dateString: string | undefined): string {
   if (!dateString) {
-return 'N/A';
-}
+    return 'N/A';
+  }
   try {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -54,8 +49,8 @@ return 'N/A';
  */
 function formatStatus(status: string | undefined): string {
   if (!status) {
-return '⚫ INACTIVE';
-}
+    return '⚫ INACTIVE';
+  }
 
   const statusMap: Record<string, string> = {
     ACTIVE: '🟢 ACTIVE',
@@ -116,7 +111,7 @@ export async function listProperties(
 
     if (!contractId) {
       // Get groups to find the first contract
-      const groupsResponse = await client._request({
+      const groupsResponse = await client.request({
         path: '/papi/v1/groups',
         method: 'GET',
       });
@@ -153,7 +148,7 @@ export async function listProperties(
       limit: MAX_PROPERTIES_TO_DISPLAY,
     });
 
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/properties',
       method: 'GET',
       headers: {
@@ -170,11 +165,11 @@ export async function listProperties(
     if (!parsedResponse.properties || parsedResponse.properties.length === 0) {
       let message = 'No properties found';
       if (args.contractId) {
-message += ` for contract ${args.contractId}`;
-}
+        message += ` for contract ${args.contractId}`;
+      }
       if (args.groupId) {
-message += ` in group ${args.groupId}`;
-}
+        message += ` in group ${args.groupId}`;
+      }
       message += '.';
 
       if (!args.contractId && !args.groupId) {
@@ -205,11 +200,11 @@ message += ` in group ${args.groupId}`;
     // Add filter information
     text += '**Filters Applied:**\n';
     if (contractId) {
-text += `- Contract: ${formatContractDisplay(contractId)}${!args.contractId ? ' (auto-selected)' : ''}\n`;
-}
+      text += `- Contract: ${formatContractDisplay(contractId)}${!args.contractId ? ' (auto-selected)' : ''}\n`;
+    }
     if (groupId) {
-text += `- Group: ${formatGroupDisplay(groupId)}${!args.groupId && !args.contractId ? ' (auto-selected)' : ''}\n`;
-}
+      text += `- Group: ${formatGroupDisplay(groupId)}${!args.groupId && !args.contractId ? ' (auto-selected)' : ''}\n`;
+    }
     if (hasMore) {
       text += `- **Limit:** Showing first ${MAX_PROPERTIES_TO_DISPLAY} properties\n`;
     }
@@ -220,8 +215,8 @@ text += `- Group: ${formatGroupDisplay(groupId)}${!args.groupId && !args.contrac
       (acc: Record<string, Property[]>, prop: Property) => {
         const contract = prop.contractId;
         if (!acc[contract]) {
-acc[contract] = [];
-}
+          acc[contract] = [];
+        }
         acc[contract].push(prop);
         return acc;
       },
@@ -293,7 +288,7 @@ export async function listPropertiesTreeView(
     const groupId = ensureAkamaiIdFormat(args.groupId, 'group');
 
     // Get all groups to build hierarchy
-    const groupsResponse = await client._request({
+    const groupsResponse = await client.request({
       path: '/papi/v1/groups',
       method: 'GET',
     });
@@ -339,7 +334,7 @@ export async function listPropertiesTreeView(
     if (targetGroup.contractIds?.length > 0) {
       for (const contractId of targetGroup.contractIds) {
         try {
-          const propertiesResponse = await client._request({
+          const propertiesResponse = await client.request({
             path: '/papi/v1/properties',
             method: 'GET',
             queryParams: {
@@ -374,7 +369,7 @@ export async function listPropertiesTreeView(
               if (childGroup.contractIds?.length > 0) {
                 for (const childContractId of childGroup.contractIds) {
                   try {
-                    const childPropsResponse = await client._request({
+                    const childPropsResponse = await client.request({
                       path: '/papi/v1/properties',
                       method: 'GET',
                       queryParams: {
@@ -416,7 +411,7 @@ export async function listPropertiesTreeView(
                 if (grandchild.contractIds?.length > 0) {
                   for (const gcContractId of grandchild.contractIds) {
                     try {
-                      const gcPropsResponse = await client._request({
+                      const gcPropsResponse = await client.request({
                         path: '/papi/v1/properties',
                         method: 'GET',
                         queryParams: {
@@ -446,7 +441,7 @@ export async function listPropertiesTreeView(
           treeNodes.push(groupNode);
           break; // Only process first contract for now
         } catch (_error) {
-          console.error("[Error]:", error);
+          console.error('[Error]:', error);
         }
       }
     }
@@ -536,7 +531,7 @@ export async function getProperty(
         console.error(`[getProperty] Searching for property: ${searchTerm}`);
 
         // Get groups first
-        const groupsResponse = await client._request({
+        const groupsResponse = await client.request({
           path: '/papi/v1/groups',
           method: 'GET',
         });
@@ -565,20 +560,20 @@ export async function getProperty(
         // Search properties with limits
         for (const group of groupsResponse.groups.items) {
           if (groupsSearched >= MAX_GROUPS_TO_SEARCH) {
-break;
-}
+            break;
+          }
           if (totalPropertiesSearched >= MAX_TOTAL_PROPERTIES) {
-break;
-}
+            break;
+          }
           if (!group.contractIds?.length) {
-continue;
-}
+            continue;
+          }
 
           groupsSearched++;
 
           for (const contractId of group.contractIds) {
             try {
-              const propertiesResponse = await client._request({
+              const propertiesResponse = await client.request({
                 path: '/papi/v1/properties',
                 method: 'GET',
                 queryParams: {
@@ -635,7 +630,7 @@ continue;
                   `- First ${MAX_GROUPS_TO_SEARCH} groups\n` +
                   `- Maximum ${MAX_PROPERTIES_PER_GROUP} properties per group\n` +
                   `- Total of ${MAX_TOTAL_PROPERTIES} properties\n\n` +
-                  'If your property wasn\'t found, please use its exact property ID.',
+                  "If your property wasn't found, please use its exact property ID.",
               },
             ],
           };
@@ -671,7 +666,8 @@ continue;
 
         text += '**To get details for a specific property, use its ID:**\n';
         text += `Example: "get property ${matchesToShow[0]?.property.propertyId}"\n\n`;
-        text += '💡 **Tip:** Using the exact property ID (prp_XXXXX) is always faster and more reliable.';
+        text +=
+          '💡 **Tip:** Using the exact property ID (prp_XXXXX) is always faster and more reliable.';
 
         return {
           content: [
@@ -722,7 +718,7 @@ async function getPropertyById(
     if (!prop) {
       // First, we need to find the contract and group for this property
       // Get all groups to search for the property
-      const groupsResponse = await client._request({
+      const groupsResponse = await client.request({
         path: '/papi/v1/groups',
         method: 'GET',
       });
@@ -749,13 +745,13 @@ async function getPropertyById(
       // Search for the property in limited groups
       for (const group of groupsToSearch) {
         if (!group.contractIds?.length) {
-continue;
-}
+          continue;
+        }
 
         // Only check first contract per group for speed
         const cId = group.contractIds[0];
         try {
-          const propertiesResponse = await client._request({
+          const propertiesResponse = await client.request({
             path: '/papi/v1/properties',
             method: 'GET',
             queryParams: {
@@ -800,7 +796,7 @@ continue;
     // Now get detailed property information using the proper endpoint if we have contract and group
     if (!existingProperty && contractId && groupId) {
       try {
-        const detailResponse = await client._request({
+        const detailResponse = await client.request({
           path: `/papi/v1/properties/${propertyId}`,
           method: 'GET',
           queryParams: {
@@ -828,7 +824,7 @@ continue;
     let versionDetails = null;
     try {
       if (prop.latestVersion && contractId && groupId) {
-        versionDetails = await client._request({
+        versionDetails = await client.request({
           path: `/papi/v1/properties/${propertyId}/versions/${prop.latestVersion}`,
           method: 'GET',
           queryParams: {
@@ -846,7 +842,7 @@ continue;
     let hostnames = null;
     try {
       if (prop.latestVersion && contractId && groupId) {
-        hostnames = await client._request({
+        hostnames = await client.request({
           path: `/papi/v1/properties/${propertyId}/versions/${prop.latestVersion}/hostnames`,
           method: 'GET',
           queryParams: {
@@ -997,7 +993,7 @@ export async function createProperty(
     let ruleFormat = args.ruleFormat;
     if (!ruleFormat) {
       try {
-        const formatsResponse = await client._request({
+        const formatsResponse = await client.request({
           path: '/papi/v1/rule-formats',
           method: 'GET',
         });
@@ -1013,7 +1009,7 @@ export async function createProperty(
     }
 
     // Create the property
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/properties',
       method: 'POST',
       headers: {
@@ -1087,7 +1083,7 @@ export async function createProperty(
     };
   } catch (_error) {
     // Handle specific error cases
-    if (error instanceof Error) {
+    if (_error instanceof Error) {
       if (_error.message.includes('already exists')) {
         return {
           content: [
@@ -1124,7 +1120,7 @@ export async function listContracts(
   args: { searchTerm?: string; customer?: string },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/contracts',
       method: 'GET',
     });
@@ -1208,7 +1204,7 @@ export async function listGroups(
   args: { searchTerm?: string },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/groups',
       method: 'GET',
     });
@@ -1253,8 +1249,8 @@ export async function listGroups(
       (acc: any, group: any) => {
         if (group.parentGroupId) {
           if (!acc[group.parentGroupId]) {
-acc[group.parentGroupId] = [];
-}
+            acc[group.parentGroupId] = [];
+          }
           acc[group.parentGroupId].push(group);
         }
         return acc;
@@ -1333,14 +1329,15 @@ acc[group.parentGroupId] = [];
 
     // Add usage instructions
     text += '## How to Use This Information\n\n';
-    text += 'When creating a new property, you\'ll need:\n';
+    text += "When creating a new property, you'll need:\n";
     text += '1. **Group ID** - Choose based on your organization structure\n';
     text += '2. **Contract ID** - Choose based on your billing arrangement\n\n';
     text += 'Example:\n';
     text += '`"Create a new property called my-site in group 12345 with contract C-1234567"`\n\n';
     text += '💡 **Tips:**\n';
     text += '- You can omit the prefixes (ctr_, grp_) when referencing IDs\n';
-    text += '- Properties inherit permissions from their group, so choose the appropriate group for access control';
+    text +=
+      '- Properties inherit permissions from their group, so choose the appropriate group for access control';
 
     return {
       content: [
@@ -1374,7 +1371,7 @@ export async function listProducts(
     // Ensure contract ID has proper prefix
     const contractId = ensurePrefix(args.contractId, 'ctr_');
 
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/products',
       method: 'GET',
       queryParams: {
@@ -1506,7 +1503,7 @@ export async function listProducts(
 
     if (newMappings.length > 0) {
       text += '\n\n## 📝 New Product Mappings Discovered\n\n';
-      text += 'The following products don\'t have friendly name mappings yet:\n\n';
+      text += "The following products don't have friendly name mappings yet:\n\n";
       text += '```typescript\n';
       text += newMappings.join(',\n');
       text += '\n```\n';
@@ -1531,7 +1528,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
+  if (_error instanceof Error) {
     errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type

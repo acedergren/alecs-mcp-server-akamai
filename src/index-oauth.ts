@@ -20,11 +20,7 @@ import {
 import { z, type ZodSchema } from 'zod';
 
 // Import OAuth 2.1 components
-import {
-  OAuthMiddleware,
-  type OAuthMiddlewareConfig,
-  type AuthContext,
-} from './auth';
+import { OAuthMiddleware, type OAuthMiddlewareConfig, type AuthContext } from './auth';
 import { ValkeyCache } from './services/valkey-cache-service';
 
 // Import tool implementations
@@ -239,7 +235,11 @@ export class ALECSOAuthServer {
   /**
    * Create request context
    */
-  private createRequestContext(toolName: string, params?: unknown, authContext?: AuthContext): RequestContext {
+  private createRequestContext(
+    toolName: string,
+    params?: unknown,
+    authContext?: AuthContext,
+  ): RequestContext {
     const customer = this.extractCustomer(params);
     return {
       requestId: this.generateRequestId(),
@@ -412,7 +412,7 @@ export class ALECSOAuthServer {
             (mockRequest as any)._meta = (params as any)._meta;
           }
 
-          authContext = await this.oauthMiddleware.authenticate(mockRequest) || undefined;
+          authContext = (await this.oauthMiddleware.authenticate(mockRequest)) || undefined;
 
           if (authContext) {
             await this.oauthMiddleware.authorize(mockRequest, authContext);
@@ -425,7 +425,7 @@ export class ALECSOAuthServer {
 
           return {
             success: false,
-            error: error instanceof Error ? _error.message : 'Authentication failed',
+            error: _error instanceof Error ? _error.message : 'Authentication failed',
             metadata: {
               customer: 'unknown',
               duration: 0,
@@ -496,7 +496,7 @@ export class ALECSOAuthServer {
         ...context,
         duration,
         error: _error instanceof Error ? _error.message : String(_error),
-        stack: error instanceof Error ? _error.stack : undefined,
+        stack: _error instanceof Error ? _error.stack : undefined,
       });
 
       const response: McpToolResponse & { _meta?: any } = {
@@ -530,7 +530,7 @@ export class ALECSOAuthServer {
       return `Validation error: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`;
     }
 
-    if (error instanceof Error) {
+    if (_error instanceof Error) {
       return _error.message;
     }
 
@@ -643,7 +643,7 @@ export class ALECSOAuthServer {
           let authContext: AuthContext | undefined;
 
           if (this.oauthMiddleware && entry.requiresAuth) {
-            authContext = await this.oauthMiddleware.authenticate(request) || undefined;
+            authContext = (await this.oauthMiddleware.authenticate(request)) || undefined;
 
             if (authContext) {
               await this.oauthMiddleware.authorize(request, authContext);
@@ -725,7 +725,7 @@ export class ALECSOAuthServer {
     } catch (_error) {
       logger.error('Failed to start server', {
         error: _error instanceof Error ? _error.message : String(_error),
-        stack: error instanceof Error ? _error.stack : undefined,
+        stack: _error instanceof Error ? _error.stack : undefined,
       });
       throw _error;
     }
@@ -760,7 +760,7 @@ async function main(): Promise<void> {
   } catch (_error) {
     logger.error('Server initialization failed', {
       error: _error instanceof Error ? _error.message : String(_error),
-      stack: error instanceof Error ? _error.stack : undefined,
+      stack: _error instanceof Error ? _error.stack : undefined,
     });
     process.exit(1);
   }

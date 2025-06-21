@@ -25,7 +25,7 @@ export async function listAvailableBehaviors(
     let ruleFormat = args.ruleFormat;
 
     if (!productId || !ruleFormat) {
-      const propertyResponse = await client._request({
+      const propertyResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -46,7 +46,7 @@ export async function listAvailableBehaviors(
 
       // Get rule format from latest version
       const version = args.version || property.latestVersion || 1;
-      const rulesResponse = await client._request({
+      const rulesResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
         method: 'GET',
       });
@@ -55,7 +55,7 @@ export async function listAvailableBehaviors(
     }
 
     // Get available behaviors
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/catalog/behaviors',
       method: 'GET',
       queryParams: {
@@ -84,8 +84,8 @@ export async function listAvailableBehaviors(
     const behaviorsByCategory = response.behaviors.items.reduce((acc: any, behavior: any) => {
       const category = behavior.category || 'Other';
       if (!acc[category]) {
-acc[category] = [];
-}
+        acc[category] = [];
+      }
       acc[category].push(behavior);
       return acc;
     }, {});
@@ -163,7 +163,7 @@ export async function listAvailableCriteria(
     let ruleFormat = args.ruleFormat;
 
     if (!productId || !ruleFormat) {
-      const propertyResponse = await client._request({
+      const propertyResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -184,7 +184,7 @@ export async function listAvailableCriteria(
 
       // Get rule format from latest version
       const version = args.version || property.latestVersion || 1;
-      const rulesResponse = await client._request({
+      const rulesResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
         method: 'GET',
       });
@@ -193,7 +193,7 @@ export async function listAvailableCriteria(
     }
 
     // Get available criteria
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/catalog/criteria',
       method: 'GET',
       queryParams: {
@@ -222,8 +222,8 @@ export async function listAvailableCriteria(
     const criteriaByCategory = response.criteria.items.reduce((acc: any, criterion: any) => {
       const category = criterion.category || 'Other';
       if (!acc[category]) {
-acc[category] = [];
-}
+        acc[category] = [];
+      }
       acc[category].push(criterion);
       return acc;
     }, {});
@@ -301,7 +301,7 @@ export async function patchPropertyRules(
 ): Promise<MCPToolResponse> {
   try {
     // Get property details and version
-    const propertyResponse = await client._request({
+    const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -321,7 +321,7 @@ export async function patchPropertyRules(
     const version = args.version || property.latestVersion || 1;
 
     // Apply patches
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
       method: 'PATCH',
       headers: {
@@ -413,7 +413,7 @@ export async function bulkSearchProperties(
       searchBody.groupIds = args.groupIds;
     }
 
-    const searchResponse = await client._request({
+    const searchResponse = await client.request({
       path: '/papi/v1/bulk/rules-search-requests',
       method: 'POST',
       headers: {
@@ -447,8 +447,10 @@ export async function bulkSearchProperties(
     text += `\`"Get bulk search results ${bulkSearchId}"\`\n\n`;
 
     text += '## JSONPath Examples\n';
-    text += '- Find properties with specific origin: `$.rules.behaviors[?(@.name == "origin")].options.hostname`\n';
-    text += '- Find caching TTL settings: `$.rules..behaviors[?(@.name == "caching")].options.defaultTtl`\n';
+    text +=
+      '- Find properties with specific origin: `$.rules.behaviors[?(@.name == "origin")].options.hostname`\n';
+    text +=
+      '- Find caching TTL settings: `$.rules..behaviors[?(@.name == "caching")].options.defaultTtl`\n';
     text += '- Find CP codes: `$.rules..behaviors[?(@.name == "cpCode")].options.value.id`\n';
 
     return {
@@ -475,7 +477,7 @@ export async function getBulkSearchResults(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/bulk/rules-search-requests/${args.bulkSearchId}`,
       method: 'GET',
     });
@@ -522,8 +524,8 @@ export async function getBulkSearchResults(
         const byProperty = results.reduce((acc: any, result: any) => {
           const key = result.propertyId;
           if (!acc[key]) {
-acc[key] = [];
-}
+            acc[key] = [];
+          }
           acc[key].push(result);
           return acc;
         }, {});
@@ -711,7 +713,7 @@ export async function getPropertyAuditHistory(
     // This would typically use the audit API
     // For now, we'll get activation history as an example
 
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/activations`,
       method: 'GET',
     });
@@ -719,11 +721,11 @@ export async function getPropertyAuditHistory(
     let text = `# Property Audit History: ${args.propertyId}\n\n`;
 
     if (args.startDate) {
-text += `**Start Date:** ${args.startDate}\n`;
-}
+      text += `**Start Date:** ${args.startDate}\n`;
+    }
     if (args.endDate) {
-text += `**End Date:** ${args.endDate}\n`;
-}
+      text += `**End Date:** ${args.endDate}\n`;
+    }
 
     text += '\n## Recent Activations\n\n';
 
@@ -781,7 +783,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
+  if (_error instanceof Error) {
     errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type

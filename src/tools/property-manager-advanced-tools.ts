@@ -22,13 +22,13 @@ export async function listEdgeHostnames(
     // Build query parameters
     const queryParams: any = {};
     if (args.contractId) {
-queryParams.contractId = args.contractId;
-}
+      queryParams.contractId = args.contractId;
+    }
     if (args.groupId) {
-queryParams.groupId = args.groupId;
-}
+      queryParams.groupId = args.groupId;
+    }
 
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/edgehostnames',
       method: 'GET',
       queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
@@ -48,11 +48,11 @@ queryParams.groupId = args.groupId;
     let text = `# Edge Hostnames (${response.edgeHostnames.items.length} found)\n\n`;
 
     if (args.contractId) {
-text += `**Contract:** ${args.contractId}\n`;
-}
+      text += `**Contract:** ${args.contractId}\n`;
+    }
     if (args.groupId) {
-text += `**Group:** ${args.groupId}\n`;
-}
+      text += `**Group:** ${args.groupId}\n`;
+    }
     text += '\n';
 
     text += '| Edge Hostname | Product | Secure | Status | Serial Number |\n';
@@ -106,7 +106,7 @@ export async function getEdgeHostname(
     let edgeHostnameId = args.edgeHostnameId;
     if (!edgeHostnameId.startsWith('ehn_')) {
       // Try to find by domain name
-      const listResponse = await client._request({
+      const listResponse = await client.request({
         path: '/papi/v1/edgehostnames',
         method: 'GET',
       });
@@ -131,7 +131,7 @@ export async function getEdgeHostname(
       edgeHostnameId = found.edgeHostnameId;
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/edgehostnames/${edgeHostnameId}`,
       method: 'GET',
     });
@@ -205,7 +205,7 @@ export async function cloneProperty(
 ): Promise<MCPToolResponse> {
   try {
     // Get source property details
-    const sourceResponse = await client._request({
+    const sourceResponse = await client.request({
       path: `/papi/v1/properties/${args.sourcePropertyId}`,
       method: 'GET',
     });
@@ -227,7 +227,7 @@ export async function cloneProperty(
     const groupId = args.groupId || sourceProperty.groupId;
 
     // Clone the property
-    const cloneResponse = await client._request({
+    const cloneResponse = await client.request({
       path: '/papi/v1/properties',
       method: 'POST',
       headers: {
@@ -308,7 +308,7 @@ export async function removeProperty(
 ): Promise<MCPToolResponse> {
   try {
     // First check if property exists and is not active
-    const propertyResponse = await client._request({
+    const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -338,7 +338,7 @@ export async function removeProperty(
     }
 
     // Delete the property
-    await client._request({
+    await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'DELETE',
       queryParams: {
@@ -373,7 +373,7 @@ export async function listPropertyVersions(
 ): Promise<MCPToolResponse> {
   try {
     const limit = args.limit || 50;
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions`,
       method: 'GET',
       queryParams: {
@@ -393,7 +393,7 @@ export async function listPropertyVersions(
     }
 
     // Get property details for context
-    const propertyResponse = await client._request({
+    const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -463,7 +463,7 @@ export async function getPropertyVersion(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}`,
       method: 'GET',
     });
@@ -481,7 +481,7 @@ export async function getPropertyVersion(
     }
 
     // Get property details for activation status
-    const propertyResponse = await client._request({
+    const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -553,7 +553,7 @@ export async function getLatestPropertyVersion(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const propertyResponse = await client._request({
+    const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -601,7 +601,7 @@ export async function getLatestPropertyVersion(
     }
 
     // Get version details
-    const versionResponse = await client._request({
+    const versionResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${targetVersion}`,
       method: 'GET',
     });
@@ -664,7 +664,7 @@ export async function cancelPropertyActivation(
 ): Promise<MCPToolResponse> {
   try {
     // First get the activation details to verify it's pending
-    const activationResponse = await client._request({
+    const activationResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/activations/${args.activationId}`,
       method: 'GET',
     });
@@ -695,7 +695,7 @@ export async function cancelPropertyActivation(
     }
 
     // Cancel the activation
-    await client._request({
+    await client.request({
       path: `/papi/v1/properties/${args.propertyId}/activations/${args.activationId}`,
       method: 'DELETE',
     });
@@ -815,7 +815,7 @@ export async function searchProperties(
     const searchStartTime = Date.now();
 
     // Get all properties first
-    const groupsResponse = await client._request({
+    const groupsResponse = await client.request({
       path: '/papi/v1/groups',
       method: 'GET',
     });
@@ -840,8 +840,8 @@ export async function searchProperties(
     // Search through properties in each group
     for (const group of searchGroups) {
       if (!group.contractIds?.length) {
-continue;
-}
+        continue;
+      }
 
       // Filter contracts if contractId is specified
       let searchContracts = group.contractIds;
@@ -851,7 +851,7 @@ continue;
 
       for (const contractId of searchContracts) {
         try {
-          const propertiesResponse = await client._request({
+          const propertiesResponse = await client.request({
             path: '/papi/v1/properties',
             method: 'GET',
             queryParams: {
@@ -912,7 +912,7 @@ continue;
             // For hostname/edgeHostname search, we need to fetch property hostnames
             if (searchCriteria.hostname || searchCriteria.edgeHostname) {
               try {
-                const hostnamesResponse = await client._request({
+                const hostnamesResponse = await client.request({
                   path: `/papi/v1/properties/${property.propertyId}/hostnames`,
                   method: 'GET',
                 });
@@ -1014,26 +1014,26 @@ function formatSearchResults(
   // Show search criteria
   text += '## Search Criteria\n';
   if (criteria.propertyName) {
-text += `- Property Name: *${criteria.propertyName}*\n`;
-}
+    text += `- Property Name: *${criteria.propertyName}*\n`;
+  }
   if (criteria.hostname) {
-text += `- Hostname: *${criteria.hostname}*\n`;
-}
+    text += `- Hostname: *${criteria.hostname}*\n`;
+  }
   if (criteria.edgeHostname) {
-text += `- Edge Hostname: *${criteria.edgeHostname}*\n`;
-}
+    text += `- Edge Hostname: *${criteria.edgeHostname}*\n`;
+  }
   if (criteria.contractId) {
-text += `- Contract: ${criteria.contractId}\n`;
-}
+    text += `- Contract: ${criteria.contractId}\n`;
+  }
   if (criteria.groupId) {
-text += `- Group: ${criteria.groupId}\n`;
-}
+    text += `- Group: ${criteria.groupId}\n`;
+  }
   if (criteria.productId) {
-text += `- Product: ${criteria.productId}\n`;
-}
+    text += `- Product: ${criteria.productId}\n`;
+  }
   if (criteria.activationStatus) {
-text += `- Activation Status: ${criteria.activationStatus}\n`;
-}
+    text += `- Activation Status: ${criteria.activationStatus}\n`;
+  }
   text += '\n';
 
   // Show results
@@ -1093,26 +1093,26 @@ function formatNoResults(criteria: SearchCriteria, searchTime: string): string {
 
   text += '## Search Criteria Used\n';
   if (criteria.propertyName) {
-text += `- Property Name: *${criteria.propertyName}*\n`;
-}
+    text += `- Property Name: *${criteria.propertyName}*\n`;
+  }
   if (criteria.hostname) {
-text += `- Hostname: *${criteria.hostname}*\n`;
-}
+    text += `- Hostname: *${criteria.hostname}*\n`;
+  }
   if (criteria.edgeHostname) {
-text += `- Edge Hostname: *${criteria.edgeHostname}*\n`;
-}
+    text += `- Edge Hostname: *${criteria.edgeHostname}*\n`;
+  }
   if (criteria.contractId) {
-text += `- Contract: ${criteria.contractId}\n`;
-}
+    text += `- Contract: ${criteria.contractId}\n`;
+  }
   if (criteria.groupId) {
-text += `- Group: ${criteria.groupId}\n`;
-}
+    text += `- Group: ${criteria.groupId}\n`;
+  }
   if (criteria.productId) {
-text += `- Product: ${criteria.productId}\n`;
-}
+    text += `- Product: ${criteria.productId}\n`;
+  }
   if (criteria.activationStatus) {
-text += `- Activation Status: ${criteria.activationStatus}\n`;
-}
+    text += `- Activation Status: ${criteria.activationStatus}\n`;
+  }
   text += '\n';
 
   text += '## Suggestions\n';
@@ -1138,7 +1138,7 @@ export async function listAllHostnames(
 ): Promise<MCPToolResponse> {
   try {
     // Get all properties
-    const groupsResponse = await client._request({
+    const groupsResponse = await client.request({
       path: '/papi/v1/groups',
       method: 'GET',
     });
@@ -1167,19 +1167,19 @@ export async function listAllHostnames(
     // Collect hostnames from all properties
     for (const group of groupsResponse.groups.items) {
       if (args.groupId && group.groupId !== args.groupId) {
-continue;
-}
+        continue;
+      }
       if (!group.contractIds?.length) {
-continue;
-}
+        continue;
+      }
 
       for (const contractId of group.contractIds) {
         if (args.contractId && contractId !== args.contractId) {
-continue;
-}
+          continue;
+        }
 
         try {
-          const propertiesResponse = await client._request({
+          const propertiesResponse = await client.request({
             path: '/papi/v1/properties',
             method: 'GET',
             queryParams: {
@@ -1192,7 +1192,7 @@ continue;
 
           for (const property of properties) {
             try {
-              const hostnamesResponse = await client._request({
+              const hostnamesResponse = await client.request({
                 path: `/papi/v1/properties/${property.propertyId}/hostnames`,
                 method: 'GET',
               });
@@ -1223,11 +1223,11 @@ continue;
     if (allHostnames.length === 0) {
       let message = 'No hostnames found';
       if (args.contractId) {
-message += ` for contract ${args.contractId}`;
-}
+        message += ` for contract ${args.contractId}`;
+      }
       if (args.groupId) {
-message += ` in group ${args.groupId}`;
-}
+        message += ` in group ${args.groupId}`;
+      }
       message += '.';
 
       return {
@@ -1246,11 +1246,11 @@ message += ` in group ${args.groupId}`;
     let text = `# All Property Hostnames (${allHostnames.length} found)\n\n`;
 
     if (args.contractId) {
-text += `**Contract:** ${args.contractId}\n`;
-}
+      text += `**Contract:** ${args.contractId}\n`;
+    }
     if (args.groupId) {
-text += `**Group:** ${args.groupId}\n`;
-}
+      text += `**Group:** ${args.groupId}\n`;
+    }
     text += '\n';
 
     if (args.includeDetails) {
@@ -1319,7 +1319,7 @@ export async function listPropertyVersionHostnames(
     // Get latest version if not specified
     let version = args.version;
     if (!version) {
-      const propertyResponse = await client._request({
+      const propertyResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
       });
@@ -1340,7 +1340,7 @@ export async function listPropertyVersionHostnames(
     }
 
     // Get hostnames for the version
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'GET',
       queryParams: args.validateCnames ? { validateCnames: 'true' } : undefined,
@@ -1419,7 +1419,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
+  if (_error instanceof Error) {
     errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type

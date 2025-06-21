@@ -115,7 +115,7 @@ export async function getCertificateDeploymentStatus(
 ): Promise<MCPToolResponse> {
   try {
     // Get deployments
-    const response = await client._request({
+    const response = await client.request({
       path: `/cps/v2/enrollments/${args.enrollmentId}/deployments`,
       method: 'GET',
       headers: {
@@ -144,8 +144,8 @@ export async function getCertificateDeploymentStatus(
     deployments.forEach((dep: any) => {
       const network = dep.primaryCertificate?.network || dep.targetEnvironment || 'unknown';
       if (!byNetwork[network]) {
-byNetwork[network] = [];
-}
+        byNetwork[network] = [];
+      }
       byNetwork[network].push(dep);
     });
 
@@ -253,7 +253,7 @@ export async function renewCertificate(
     // Step 2: Initiate renewal
     steps += '## Initiating Renewal\n\n';
 
-    await client._request({
+    await client.request({
       method: 'POST',
       path: `/cps/v2/enrollments/${args.enrollmentId}/renewals`,
       headers: {
@@ -329,7 +329,7 @@ export async function cleanupValidationRecords(
 ): Promise<MCPToolResponse> {
   try {
     // Get validation challenges to find DNS records
-    const challengesResponse = await client._request({
+    const challengesResponse = await client.request({
       path: `/cps/v2/enrollments/${args.enrollmentId}`,
       method: 'GET',
       headers: {
@@ -386,7 +386,7 @@ export async function cleanupValidationRecords(
         text += `✅ Deleted: ${record.recordName} from ${record.zone}\n`;
         deleted++;
       } catch (_error) {
-        text += `❌ Failed to delete ${record.recordName}: ${error instanceof Error ? _error.message : 'Unknown _error'}\n`;
+        text += `❌ Failed to delete ${record.recordName}: ${_error instanceof Error ? _error.message : 'Unknown _error'}\n`;
         failed++;
       }
     }
@@ -430,7 +430,7 @@ export async function getCertificateValidationHistory(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client._request({
+    const response = await client.request({
       path: `/cps/v2/enrollments/${args.enrollmentId}/dv-history`,
       method: 'GET',
       headers: {
@@ -459,8 +459,8 @@ export async function getCertificateValidationHistory(
     history.forEach((entry: any) => {
       const domain = entry.domain || 'unknown';
       if (!byDomain[domain]) {
-byDomain[domain] = [];
-}
+        byDomain[domain] = [];
+      }
       byDomain[domain].push(entry);
     });
 

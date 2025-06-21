@@ -107,7 +107,7 @@ export async function createEdgeHostnameEnhanced(
     if (!contractId || !groupId) {
       if (args.propertyId) {
         // Get from property
-        const propertyResponse = await client._request({
+        const propertyResponse = await client.request({
           path: `/papi/v1/properties/${args.propertyId}`,
           method: 'GET',
         });
@@ -141,7 +141,7 @@ export async function createEdgeHostnameEnhanced(
     ];
 
     // Create edge hostname
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/edgehostnames',
       method: 'POST',
       headers: {
@@ -207,8 +207,9 @@ export async function createEdgeHostnameEnhanced(
 
     if (secure && !args.certificateEnrollmentId) {
       responseText += '\n## ⚠️ Certificate Required\n';
-      responseText += 'This is a secure edge hostname but no certificate enrollment was specified.\n';
-      responseText += 'You\'ll need to:\n';
+      responseText +=
+        'This is a secure edge hostname but no certificate enrollment was specified.\n';
+      responseText += "You'll need to:\n";
       responseText += '1. Create a certificate enrollment\n';
       responseText += '2. Complete domain validation\n';
       responseText += '3. Associate the certificate with this edge hostname\n';
@@ -232,7 +233,7 @@ export async function createEdgeHostnameEnhanced(
             parameters: args,
             timestamp: new Date(),
           }),
-        }
+        },
       ],
     };
   }
@@ -260,7 +261,7 @@ export async function createBulkEdgeHostnames(
         const prefix = generateEdgeHostnamePrefix(hostname);
 
         // Create edge hostname
-        const response = await client._request({
+        const response = await client.request({
           path: '/papi/v1/edgehostnames',
           method: 'POST',
           headers: {
@@ -301,7 +302,7 @@ export async function createBulkEdgeHostnames(
       } catch (_error) {
         results.failed.push({
           hostname,
-          error: error instanceof Error ? _error.message : 'Unknown error',
+          error: _error instanceof Error ? _error.message : 'Unknown error',
         });
       }
     }
@@ -365,7 +366,7 @@ export async function createBulkEdgeHostnames(
             parameters: args,
             timestamp: new Date(),
           }),
-        }
+        },
       ],
     };
   }
@@ -392,13 +393,13 @@ export async function getEdgeHostnameDetails(
     if (!edgeHostnameId && args.edgeHostnameDomain) {
       const queryParams: any = {};
       if (args.contractId) {
-queryParams.contractId = args.contractId;
-}
+        queryParams.contractId = args.contractId;
+      }
       if (args.groupId) {
-queryParams.groupId = args.groupId;
-}
+        queryParams.groupId = args.groupId;
+      }
 
-      const listResponse = await client._request({
+      const listResponse = await client.request({
         path: '/papi/v1/edgehostnames',
         method: 'GET',
         queryParams,
@@ -429,7 +430,7 @@ queryParams.groupId = args.groupId;
     }
 
     // Get edge hostname details
-    const response = await client._request({
+    const response = await client.request({
       path: `/papi/v1/edgehostnames/${edgeHostnameId}`,
       method: 'GET',
       queryParams: {
@@ -477,7 +478,7 @@ queryParams.groupId = args.groupId;
     }
 
     // Find properties using this edge hostname
-    const propertiesResponse = await client._request({
+    const propertiesResponse = await client.request({
       path: '/papi/v1/properties',
       method: 'GET',
       queryParams: {
@@ -489,7 +490,7 @@ queryParams.groupId = args.groupId;
     const usingProperties: string[] = [];
     for (const prop of propertiesResponse.properties?.items || []) {
       try {
-        const hostnamesResponse = await client._request({
+        const hostnamesResponse = await client.request({
           path: `/papi/v1/properties/${prop.propertyId}/versions/${prop.latestVersion}/hostnames`,
           method: 'GET',
         });
@@ -547,7 +548,7 @@ queryParams.groupId = args.groupId;
             parameters: args,
             timestamp: new Date(),
           }),
-        }
+        },
       ],
     };
   }
@@ -587,8 +588,8 @@ export async function generateEdgeHostnameRecommendations(
       (acc, rec) => {
         const key = `${rec.recommendedSuffix}-${rec.secure}`;
         if (!acc[key]) {
-acc[key] = [];
-}
+          acc[key] = [];
+        }
         acc[key].push(rec);
         return acc;
       },
@@ -623,8 +624,8 @@ acc[key] = [];
 
     Object.entries(suffixGroups).forEach(([suffix, recs]) => {
       if (recs.length === 0) {
-return;
-}
+        return;
+      }
 
       responseText += `### ${suffix} (${recs.length} hostnames)\n\n`;
 
@@ -651,7 +652,8 @@ return;
     responseText += `- **Non-Secure Edge Hostnames:** ${nonSecureCount}\n`;
 
     if (nonSecureCount > 0 && args.securityRequirement !== 'maximum') {
-      responseText += '\n💡 **Cost Saving Tip:** Using non-secure edge hostnames for static content can reduce costs.\n';
+      responseText +=
+        '\n💡 **Cost Saving Tip:** Using non-secure edge hostnames for static content can reduce costs.\n';
     }
 
     // Certificate strategy summary
@@ -669,7 +671,8 @@ return;
     });
 
     if (certStrategies['DEFAULT_DV'] && certStrategies['DEFAULT_DV'] > 0) {
-      responseText += '\n✅ **DefaultDV Recommended:** Fastest deployment with automatic certificate provisioning.\n';
+      responseText +=
+        '\n✅ **DefaultDV Recommended:** Fastest deployment with automatic certificate provisioning.\n';
     }
 
     // Implementation commands
@@ -713,7 +716,7 @@ return;
             parameters: args,
             timestamp: new Date(),
           }),
-        }
+        },
       ],
     };
   }
@@ -733,7 +736,7 @@ export async function validateEdgeHostnameCertificate(
 
   try {
     // Get edge hostname details
-    const ehResponse = await client._request({
+    const ehResponse = await client.request({
       path: `/papi/v1/edgehostnames/${args.edgeHostnameId}`,
       method: 'GET',
     });
@@ -752,7 +755,8 @@ export async function validateEdgeHostnameCertificate(
 
     if (!eh.secure) {
       responseText += '## ℹ️ Non-Secure Edge Hostname\n';
-      responseText += 'This edge hostname is configured for HTTP-only traffic and does not require a certificate.\n';
+      responseText +=
+        'This edge hostname is configured for HTTP-only traffic and does not require a certificate.\n';
 
       return {
         content: [
@@ -773,7 +777,7 @@ export async function validateEdgeHostnameCertificate(
 
       // Try to get more certificate details
       try {
-        const certResponse = await client._request({
+        const certResponse = await client.request({
           path: `/cps/v2/enrollments/${eh.certEnrollmentId}`,
           method: 'GET',
         });
@@ -797,7 +801,8 @@ export async function validateEdgeHostnameCertificate(
       responseText += '3. Associate the certificate with this edge hostname\n\n';
 
       responseText += '### Certificate Options\n';
-      responseText += '- **DefaultDV (Recommended):** Automatic DV certificate from Let\'s Encrypt\n';
+      responseText +=
+        "- **DefaultDV (Recommended):** Automatic DV certificate from Let's Encrypt\n";
       responseText += '- **CPS Standard:** Akamai-managed DV certificate\n';
       responseText += '- **Third-Party:** Upload your own certificate\n';
     }
@@ -808,9 +813,11 @@ export async function validateEdgeHostnameCertificate(
 
       if (eh.certEnrollmentId) {
         // Check if hostname would be covered
-        responseText += '⚠️ **Note:** Certificate coverage verification requires checking the certificate\'s CN and SANs.\n';
+        responseText +=
+          "⚠️ **Note:** Certificate coverage verification requires checking the certificate's CN and SANs.\n";
       } else {
-        responseText += '❌ **Not Covered:** No certificate is associated with this edge hostname.\n';
+        responseText +=
+          '❌ **Not Covered:** No certificate is associated with this edge hostname.\n';
       }
     }
 
@@ -849,7 +856,7 @@ export async function validateEdgeHostnameCertificate(
             parameters: args,
             timestamp: new Date(),
           }),
-        }
+        },
       ],
     };
   }
@@ -869,7 +876,7 @@ export async function associateCertificateWithEdgeHostname(
 
   try {
     // Update edge hostname with certificate
-    await client._request({
+    await client.request({
       path: `/papi/v1/edgehostnames/${args.edgeHostnameId}`,
       method: 'PUT',
       headers: {
@@ -881,7 +888,7 @@ export async function associateCertificateWithEdgeHostname(
     });
 
     // Get updated edge hostname details
-    const ehResponse = await client._request({
+    const ehResponse = await client.request({
       path: `/papi/v1/edgehostnames/${args.edgeHostnameId}`,
       method: 'GET',
     });
@@ -927,7 +934,7 @@ export async function associateCertificateWithEdgeHostname(
             parameters: args,
             timestamp: new Date(),
           }),
-        }
+        },
       ],
     };
   }

@@ -3,11 +3,7 @@
  * MCP tools for performance analysis, optimization, and monitoring
  */
 
-import {
-  globalPerformanceMonitor,
-  responseCache,
-  metadataCache,
-} from '@utils/performance-monitor';
+import { globalPerformanceMonitor, responseCache, metadataCache } from '@utils/performance-monitor';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -297,8 +293,8 @@ export async function profilePerformance(
           successCount++;
           totalDuration += duration;
           if (cacheHit) {
-cacheHits++;
-}
+            cacheHits++;
+          }
 
           responseText += `- **Iteration ${i}:** ${duration}ms ${cacheHit ? '(cached)' : ''}\n`;
         } catch (_error) {
@@ -366,8 +362,8 @@ cacheHits++;
       .map((op) => {
         const opResults = testResults.filter((r) => r.operation === op && !r.error);
         if (opResults.length === 0) {
-return null;
-}
+          return null;
+        }
 
         const avgDuration = opResults.reduce((sum, r) => sum + r.duration, 0) / opResults.length;
         const maxDuration = Math.max(...opResults.map((r) => r.duration));
@@ -609,7 +605,8 @@ export async function resetPerformanceMonitoring(
     responseText += `- **Response Cache Size:** ${responseCache.size()}\n`;
     responseText += `- **Metadata Cache Size:** ${metadataCache.size()}\n`;
 
-    responseText += '\n✅ **Performance monitoring has been reset and is ready for fresh data collection.**';
+    responseText +=
+      '\n✅ **Performance monitoring has been reset and is ready for fresh data collection.**';
 
     return {
       content: [
@@ -635,19 +632,19 @@ export async function resetPerformanceMonitoring(
 async function performTestOperation(client: AkamaiClient, operationType: string): Promise<void> {
   switch (operationType) {
     case 'property-read':
-      await client._request({ path: '/papi/v1/properties', method: 'GET' });
+      await client.request({ path: '/papi/v1/properties', method: 'GET' });
       break;
     case 'dns-read':
-      await client._request({ path: '/config-dns/v2/zones', method: 'GET' });
+      await client.request({ path: '/config-dns/v2/zones', method: 'GET' });
       break;
     case 'zone-list':
-      await client._request({ path: '/config-dns/v2/zones', method: 'GET' });
+      await client.request({ path: '/config-dns/v2/zones', method: 'GET' });
       break;
     case 'group-list':
-      await client._request({ path: '/papi/v1/groups', method: 'GET' });
+      await client.request({ path: '/papi/v1/groups', method: 'GET' });
       break;
     default:
       // Generic test operation
-      await client._request({ path: '/papi/v1/groups', method: 'GET' });
+      await client.request({ path: '/papi/v1/groups', method: 'GET' });
   }
 }

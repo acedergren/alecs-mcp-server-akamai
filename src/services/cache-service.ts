@@ -71,7 +71,7 @@ export class AkamaiCacheService {
         this.enabled = false;
       });
     } catch (_error) {
-      console.error("[Error]:", error);
+      console.error('[Error]:', error);
       this.enabled = false;
     }
   }
@@ -97,7 +97,7 @@ export class AkamaiCacheService {
 
     // Fetch from API
     console.error('[Cache] MISS: Fetching properties from API');
-    const response = await client._request({
+    const response = await client.request({
       path: '/papi/v1/properties',
       method: 'GET',
     });
@@ -128,8 +128,8 @@ export class AkamaiCacheService {
     properties: any[],
   ): Promise<void> {
     if (!this.enabled || !this.redis) {
-return;
-}
+      return;
+    }
 
     const hostnameMap: Record<string, any> = {};
 
@@ -145,7 +145,7 @@ return;
           hostnames = JSON.parse(cached);
         } else {
           // Fetch hostnames
-          const response = await client._request({
+          const response = await client.request({
             path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames`,
             method: 'GET',
             queryParams: {
@@ -279,8 +279,8 @@ return;
    */
   async invalidateProperty(propertyId: string, customer = 'default'): Promise<void> {
     if (!this.enabled || !this.redis) {
-return;
-}
+      return;
+    }
 
     try {
       const keys = [

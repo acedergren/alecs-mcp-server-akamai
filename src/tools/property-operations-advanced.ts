@@ -173,7 +173,7 @@ export async function searchPropertiesAdvanced(
     const limit = args.limit || 50;
 
     // Get all properties
-    const propertiesResponse = await client._request({
+    const propertiesResponse = await client.request({
       path: '/papi/v1/properties',
       method: 'GET',
     });
@@ -247,7 +247,7 @@ export async function searchPropertiesAdvanced(
 
       if (args.includeDetails || args.criteria.hostname || args.criteria.edgeHostname) {
         try {
-          const hostnamesResponse = await client._request({
+          const hostnamesResponse = await client.request({
             path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames`,
             method: 'GET',
           });
@@ -452,11 +452,11 @@ export async function compareProperties(
   try {
     // Get property details
     const [propAResponse, propBResponse] = await Promise.all([
-      client._request({
+      client.request({
         path: `/papi/v1/properties/${args.propertyIdA}`,
         method: 'GET',
       }),
-      client._request({
+      client.request({
         path: `/papi/v1/properties/${args.propertyIdB}`,
         method: 'GET',
       }),
@@ -522,11 +522,11 @@ export async function compareProperties(
     // Compare hostnames
     if (args.compareHostnames !== false) {
       const [hostnamesA, hostnamesB] = await Promise.all([
-        client._request({
+        client.request({
           path: `/papi/v1/properties/${args.propertyIdA}/versions/${versionA}/hostnames`,
           method: 'GET',
         }),
-        client._request({
+        client.request({
           path: `/papi/v1/properties/${args.propertyIdB}/versions/${versionB}/hostnames`,
           method: 'GET',
         }),
@@ -566,14 +566,14 @@ export async function compareProperties(
     // Compare rules
     if (args.compareRules !== false) {
       const [rulesA, rulesB] = await Promise.all([
-        client._request({
+        client.request({
           path: `/papi/v1/properties/${args.propertyIdA}/versions/${versionA}/rules`,
           method: 'GET',
           headers: {
             Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
           },
         }),
-        client._request({
+        client.request({
           path: `/papi/v1/properties/${args.propertyIdB}/versions/${versionB}/rules`,
           method: 'GET',
           headers: {
@@ -754,7 +754,7 @@ export async function checkPropertyHealth(
 
   try {
     // Get property details
-    const propertyResponse = await client._request({
+    const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -784,7 +784,7 @@ export async function checkPropertyHealth(
     };
 
     // Get rule tree for analysis
-    const rulesResponse = await client._request({
+    const rulesResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules`,
       method: 'GET',
       headers: {
@@ -808,7 +808,7 @@ export async function checkPropertyHealth(
     }
 
     // Get hostnames for certificate checks
-    const hostnamesResponse = await client._request({
+    const hostnamesResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'GET',
     });
@@ -1032,7 +1032,7 @@ export async function detectConfigurationDrift(
 
   try {
     // Get property details
-    const propertyResponse = await client._request({
+    const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
@@ -1055,14 +1055,14 @@ export async function detectConfigurationDrift(
 
     // Get rules for both versions
     const [baselineRules, compareRules] = await Promise.all([
-      client._request({
+      client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${args.baselineVersion}/rules`,
         method: 'GET',
         headers: {
           Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
         },
       }),
-      client._request({
+      client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${compareVersion}/rules`,
         method: 'GET',
         headers: {
@@ -1080,11 +1080,11 @@ export async function detectConfigurationDrift(
     // Check hostnames
     if (args.checkHostnames !== false) {
       const [baselineHostnames, compareHostnames] = await Promise.all([
-        client._request({
+        client.request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.baselineVersion}/hostnames`,
           method: 'GET',
         }),
-        client._request({
+        client.request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${compareVersion}/hostnames`,
           method: 'GET',
         }),
@@ -1242,7 +1242,7 @@ export async function bulkUpdateProperties(
     for (const propertyId of args.propertyIds) {
       try {
         // Get property details
-        const propertyResponse = await client._request({
+        const propertyResponse = await client.request({
           path: `/papi/v1/properties/${propertyId}`,
           method: 'GET',
         });
@@ -1262,7 +1262,7 @@ export async function bulkUpdateProperties(
 
         // Create new version if requested
         if (args.createNewVersion) {
-          const versionResponse = await client._request({
+          const versionResponse = await client.request({
             path: `/papi/v1/properties/${propertyId}/versions`,
             method: 'POST',
             headers: {
@@ -1286,7 +1286,7 @@ export async function bulkUpdateProperties(
 
         // Update rules if behavior changes requested
         if (args.updates.addBehavior || args.updates.updateBehavior) {
-          const rulesResponse = await client._request({
+          const rulesResponse = await client.request({
             path: `/papi/v1/properties/${propertyId}/versions/${version}/rules`,
             method: 'GET',
             headers: {
@@ -1324,7 +1324,7 @@ export async function bulkUpdateProperties(
 
           // Save updated rules
           if (updateApplied) {
-            await client._request({
+            await client.request({
               path: `/papi/v1/properties/${propertyId}/versions/${version}/rules`,
               method: 'PUT',
               headers: {
@@ -1346,7 +1346,7 @@ export async function bulkUpdateProperties(
         if (args.updates.addHostname || args.updates.removeHostname) {
           // Add hostname
           if (args.updates.addHostname) {
-            await client._request({
+            await client.request({
               path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames`,
               method: 'PATCH',
               headers: {
@@ -1373,7 +1373,7 @@ export async function bulkUpdateProperties(
 
           // Remove hostname
           if (args.updates.removeHostname) {
-            const hostnamesResponse = await client._request({
+            const hostnamesResponse = await client.request({
               path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames`,
               method: 'GET',
             });
@@ -1383,7 +1383,7 @@ export async function bulkUpdateProperties(
             );
 
             if (hostnameIndex !== undefined && hostnameIndex >= 0) {
-              await client._request({
+              await client.request({
                 path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames`,
                 method: 'PATCH',
                 headers: {

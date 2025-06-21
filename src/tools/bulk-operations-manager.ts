@@ -143,20 +143,20 @@ class BulkOperationTracker {
         property.status = status;
         property.endTime = new Date();
         if (result) {
-property.result = result;
-}
+          property.result = result;
+        }
         if (_error) {
-property.error = error;
-}
+          property.error = error;
+        }
 
         // Update counters
         operation.processedItems++;
         if (status === 'completed') {
-operation.successfulItems++;
-}
+          operation.successfulItems++;
+        }
         if (status === 'failed') {
-operation.failedItems++;
-}
+          operation.failedItems++;
+        }
       }
     }
   }
@@ -184,7 +184,7 @@ export async function bulkCloneProperties(
     operationTracker.updateOperation(operationId, { status: 'in-progress' });
 
     // Get source property details
-    const sourceResponse = await client._request({
+    const sourceResponse = await client.request({
       path: `/papi/v1/properties/${args.sourcePropertyId}`,
       method: 'GET',
     });
@@ -195,7 +195,7 @@ export async function bulkCloneProperties(
     }
 
     // Get source property rules
-    const rulesResponse = await client._request({
+    const rulesResponse = await client.request({
       path: `/papi/v1/properties/${args.sourcePropertyId}/versions/${sourceProperty.latestVersion}/rules`,
       method: 'GET',
       headers: {
@@ -206,7 +206,7 @@ export async function bulkCloneProperties(
     // Get source property hostnames if needed
     let sourceHostnames = [];
     if (args.cloneHostnames) {
-      const hostnamesResponse = await client._request({
+      const hostnamesResponse = await client.request({
         path: `/papi/v1/properties/${args.sourcePropertyId}/versions/${sourceProperty.latestVersion}/hostnames`,
         method: 'GET',
       });
@@ -226,7 +226,7 @@ export async function bulkCloneProperties(
 
       try {
         // Create new property
-        const createResponse = await client._request({
+        const createResponse = await client.request({
           path: '/papi/v1/properties',
           method: 'POST',
           headers: {
@@ -247,7 +247,7 @@ export async function bulkCloneProperties(
         propertyOp.propertyId = newPropertyId;
 
         // Update rules
-        await client._request({
+        await client.request({
           path: `/papi/v1/properties/${newPropertyId}/versions/1/rules`,
           method: 'PUT',
           headers: {
@@ -268,7 +268,7 @@ export async function bulkCloneProperties(
 
         // Activate if requested
         if (args.activateImmediately) {
-          const activationResponse = await client._request({
+          const activationResponse = await client.request({
             path: `/papi/v1/properties/${newPropertyId}/activations`,
             method: 'POST',
             headers: {
@@ -428,7 +428,7 @@ export async function bulkActivateProperties(
 
       try {
         // Get property details
-        const propertyResponse = await client._request({
+        const propertyResponse = await client.request({
           path: `/papi/v1/properties/${propertyId}`,
           method: 'GET',
         });
@@ -441,7 +441,7 @@ export async function bulkActivateProperties(
         propertyOp.propertyName = property.propertyName;
 
         // Check if already activated
-        await client._request({
+        await client.request({
           path: `/papi/v1/properties/${propertyId}/activations`,
           method: 'GET',
         });
@@ -458,7 +458,7 @@ export async function bulkActivateProperties(
         }
 
         // Create activation
-        const activationResponse = await client._request({
+        const activationResponse = await client.request({
           path: `/papi/v1/properties/${propertyId}/activations`,
           method: 'POST',
           headers: {
@@ -484,7 +484,7 @@ export async function bulkActivateProperties(
           while (status === 'PENDING' && Date.now() - startWait < maxWait) {
             await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds
 
-            const statusResponse = await client._request({
+            const statusResponse = await client.request({
               path: `/papi/v1/properties/${propertyId}/activations/${activationId}`,
               method: 'GET',
             });
@@ -663,7 +663,7 @@ export async function bulkUpdatePropertyRules(
 
       try {
         // Get property details
-        const propertyResponse = await client._request({
+        const propertyResponse = await client.request({
           path: `/papi/v1/properties/${propertyId}`,
           method: 'GET',
         });
@@ -679,7 +679,7 @@ export async function bulkUpdatePropertyRules(
 
         // Create new version if requested
         if (args.createNewVersion) {
-          const versionResponse = await client._request({
+          const versionResponse = await client.request({
             path: `/papi/v1/properties/${propertyId}/versions`,
             method: 'POST',
             headers: {
@@ -699,7 +699,7 @@ export async function bulkUpdatePropertyRules(
         }
 
         // Get current rules
-        const rulesResponse = await client._request({
+        const rulesResponse = await client.request({
           path: `/papi/v1/properties/${propertyId}/versions/${version}/rules`,
           method: 'GET',
           headers: {
@@ -729,7 +729,7 @@ export async function bulkUpdatePropertyRules(
         }
 
         // Update rules
-        await client._request({
+        await client.request({
           path: `/papi/v1/properties/${propertyId}/versions/${version}/rules`,
           method: 'PUT',
           headers: {
@@ -744,7 +744,7 @@ export async function bulkUpdatePropertyRules(
 
         // Add version notes if provided
         if (args.note) {
-          await client._request({
+          await client.request({
             path: `/papi/v1/properties/${propertyId}/versions/${version}/version-notes`,
             method: 'PUT',
             headers: {
@@ -779,7 +779,7 @@ export async function bulkUpdatePropertyRules(
         // Attempt rollback if we have rollback data
         if (propertyOp.rollbackData) {
           try {
-            await client._request({
+            await client.request({
               path: `/papi/v1/properties/${propertyId}/versions/${propertyOp.rollbackData.version}/rules`,
               method: 'PUT',
               headers: {
@@ -904,7 +904,7 @@ export async function bulkManageHostnames(
     for (const operation of args.operations) {
       try {
         // Get property details
-        const propertyResponse = await client._request({
+        const propertyResponse = await client.request({
           path: `/papi/v1/properties/${operation.propertyId}`,
           method: 'GET',
         });
@@ -928,7 +928,7 @@ export async function bulkManageHostnames(
 
         // Create new version if requested
         if (args.createNewVersion) {
-          const versionResponse = await client._request({
+          const versionResponse = await client.request({
             path: `/papi/v1/properties/${operation.propertyId}/versions`,
             method: 'POST',
             headers: {
@@ -948,7 +948,7 @@ export async function bulkManageHostnames(
         }
 
         // Get current hostnames
-        const hostnamesResponse = await client._request({
+        const hostnamesResponse = await client.request({
           path: `/papi/v1/properties/${operation.propertyId}/versions/${version}/hostnames`,
           method: 'GET',
         });
@@ -1018,7 +1018,7 @@ export async function bulkManageHostnames(
         }
 
         // Update hostnames
-        await client._request({
+        await client.request({
           path: `/papi/v1/properties/${operation.propertyId}/versions/${version}/hostnames`,
           method: 'PUT',
           headers: {
@@ -1033,7 +1033,7 @@ export async function bulkManageHostnames(
 
         // Add version notes if provided
         if (args.note) {
-          await client._request({
+          await client.request({
             path: `/papi/v1/properties/${operation.propertyId}/versions/${version}/version-notes`,
             method: 'PUT',
             headers: {
@@ -1261,8 +1261,8 @@ function applyJsonPatch(obj: any, patch: any): any {
         current = current[part];
       }
       if (current === undefined) {
-return undefined;
-}
+        return undefined;
+      }
     }
     return current;
   };
@@ -1278,16 +1278,16 @@ return undefined;
         const indexStr = part.substring(bracketIndex + 1, part.indexOf(']'));
         const index = parseInt(indexStr);
         if (!current[key]) {
-current[key] = [];
-}
+          current[key] = [];
+        }
         if (!current[key][index]) {
-current[key][index] = {};
-}
+          current[key][index] = {};
+        }
         current = current[key][index];
       } else if (part) {
         if (!current[part]) {
-current[part] = {};
-}
+          current[part] = {};
+        }
         current = current[part];
       }
     }
@@ -1298,8 +1298,8 @@ current[part] = {};
       const indexStr = lastPart.substring(bracketIndex + 1, lastPart.indexOf(']'));
       const index = parseInt(indexStr);
       if (!current[key]) {
-current[key] = [];
-}
+        current[key] = [];
+      }
       current[key][index] = value;
     } else if (lastPart) {
       current[lastPart] = value;

@@ -374,7 +374,7 @@ export class IntelligentBugAnalyzer {
         insights: insights,
         exports: this.generateExports(analysisReport, this.options.outputFormat!),
       };
-    } catch (error) {
+    } catch (_error) {
       console.error('[Error]:', error);
       throw new AnalysisError(`Bug analysis failed: ${(error as Error).message}`, {
         analysisId,

@@ -51,8 +51,8 @@ function validateASN(asn: string): boolean {
  */
 function formatActivationStatus(status: string | undefined): string {
   if (!status) {
-return '⚫ INACTIVE';
-}
+    return '⚫ INACTIVE';
+  }
 
   const statusMap: Record<string, string> = {
     ACTIVE: '🟢 ACTIVE',
@@ -107,7 +107,7 @@ export async function listNetworkLists(
       queryParams.extended = 'true';
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: '/network-list/v2/network-lists',
       method: 'GET',
       queryParams,
@@ -205,7 +205,7 @@ export async function getNetworkList(
       queryParams.extended = 'true';
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'GET',
       queryParams,
@@ -342,7 +342,7 @@ export async function createNetworkList(
       requestBody.groupId = ensurePrefix(options.groupId, 'grp_');
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: '/network-list/v2/network-lists',
       method: 'POST',
       body: requestBody,
@@ -407,7 +407,7 @@ export async function updateNetworkList(
     const client = new AkamaiClient(customer);
 
     // First get the current list to validate operations
-    const currentResponse = await client._request({
+    const currentResponse = await client.request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'GET',
       queryParams: { includeElements: 'true' },
@@ -485,7 +485,7 @@ export async function updateNetworkList(
       requestBody.list = newList;
     }
 
-    const response = await client._request({
+    const response = await client.request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'PUT',
       body: requestBody,
@@ -548,7 +548,7 @@ export async function deleteNetworkList(
     const client = new AkamaiClient(customer);
 
     // First check if the list exists and get its details
-    const listResponse = await client._request({
+    const listResponse = await client.request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'GET',
     });
@@ -567,7 +567,7 @@ export async function deleteNetworkList(
       };
     }
 
-    await client._request({
+    await client.request({
       path: `/network-list/v2/network-lists/${uniqueId}`,
       method: 'DELETE',
     });

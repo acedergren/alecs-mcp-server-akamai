@@ -119,7 +119,7 @@ export class CertificateValidationMonitor extends EventEmitter {
           await this.retryFailedValidations(enrollmentId);
         }
       } catch (_error) {
-        console.error("[Error]:", error);
+        console.error('[Error]:', error);
         this.emit(
           'validation:failed',
           enrollmentId,
@@ -162,15 +162,15 @@ export class CertificateValidationMonitor extends EventEmitter {
       const response = await fetch(`https://dns.google/resolve?name=${recordName}&type=TXT`);
 
       if (!response.ok) {
-return false;
-}
+        return false;
+      }
 
       const data: any = await response.json();
       const answers = data.Answer || [];
 
       return answers.some((answer: any) => answer.data?.includes(expectedValue));
     } catch (_error) {
-      console.error("[Error]:", error);
+      console.error('[Error]:', error);
       return false;
     }
   }
@@ -180,7 +180,7 @@ return false;
    */
   async triggerDomainValidation(enrollmentId: number, domain: string): Promise<void> {
     try {
-      await this.client._request({
+      await this.client.request({
         method: 'POST',
         path: `/cps/v2/enrollments/${enrollmentId}/dv-validation/${domain}`,
         headers: { 'Content-Type': 'application/json' },
@@ -208,7 +208,7 @@ return false;
   // Private helper methods
 
   private async fetchDomains(enrollmentId: number): Promise<string[]> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       path: `/cps/v2/enrollments/${enrollmentId}`,
       method: 'GET',
       headers: {
@@ -220,7 +220,7 @@ return false;
   }
 
   private async checkValidationStatus(enrollmentId: number): Promise<boolean> {
-    const response = await this.client._request({
+    const response = await this.client.request({
       path: `/cps/v2/enrollments/${enrollmentId}`,
       method: 'GET',
       headers: {
@@ -230,16 +230,16 @@ return false;
 
     const domainStates = this.validationStates.get(enrollmentId);
     if (!domainStates) {
-return false;
-}
+      return false;
+    }
 
     let allValidated = true;
 
     for (const domain of response.allowedDomains || []) {
       const domainState = domainStates.get(domain.name);
       if (!domainState) {
-continue;
-}
+        continue;
+      }
 
       const previousStatus = domainState.status;
 
@@ -305,20 +305,20 @@ continue;
   private async retryFailedValidations(enrollmentId: number): Promise<void> {
     const domainStates = this.validationStates.get(enrollmentId);
     if (!domainStates) {
-return;
-}
+      return;
+    }
 
     for (const [domain, state] of domainStates) {
       if (state.status === ValidationStatus.FAILED || state.status === ValidationStatus.EXPIRED) {
         // Don't retry if max attempts reached
         if (state.attempts >= 3) {
-continue;
-}
+          continue;
+        }
 
         try {
           await this.triggerDomainValidation(enrollmentId, domain);
         } catch (_error) {
-          console.error("[Error]:", error);
+          console.error('[Error]:', error);
         }
       }
     }

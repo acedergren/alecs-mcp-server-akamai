@@ -68,7 +68,7 @@ export class JsonRpcMiddleware {
     meta?: Record<string, unknown>,
   ): JsonRpcResponse {
     // Handle different error types
-    if (error instanceof Error) {
+    if (_error instanceof Error) {
       // Check for specific error types that map to JSON-RPC error codes
       if (_error.message.includes('not found') || _error.message.includes('unknown method')) {
         return createJsonRpcError(
@@ -228,7 +228,7 @@ export class BatchRequestHandler {
             createJsonRpcError(
               request.id,
               JsonRpcErrorCode.InternalError,
-              error instanceof Error ? _error.message : 'Unknown _error',
+              _error instanceof Error ? _error.message : 'Unknown _error',
             ),
           );
         }

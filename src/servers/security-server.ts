@@ -496,8 +496,8 @@ class SecurityALECSServer {
                 updateOptions.replaceElements = typedArgs.elements;
               }
               if (typedArgs.description) {
-updateOptions.description = typedArgs.description;
-}
+                updateOptions.description = typedArgs.description;
+              }
               result = await updateNetworkList(
                 typedArgs.networkListId,
                 typedArgs.customer,
@@ -511,11 +511,11 @@ updateOptions.description = typedArgs.description;
             case 'activate-network-list': {
               const activateOptions: any = {};
               if (typedArgs.comment) {
-activateOptions.comments = typedArgs.comment;
-}
+                activateOptions.comments = typedArgs.comment;
+              }
               if (typedArgs.notificationRecipients) {
-activateOptions.notificationEmails = typedArgs.notificationRecipients;
-}
+                activateOptions.notificationEmails = typedArgs.notificationRecipients;
+              }
               result = await activateNetworkList(
                 typedArgs.networkListId,
                 typedArgs.network,
@@ -539,8 +539,8 @@ activateOptions.notificationEmails = typedArgs.notificationRecipients;
             case 'deactivate-network-list': {
               const deactivateOptions: any = {};
               if (typedArgs.comment) {
-deactivateOptions.comments = typedArgs.comment;
-}
+                deactivateOptions.comments = typedArgs.comment;
+              }
               result = await deactivateNetworkList(
                 typedArgs.networkListId,
                 typedArgs.network,
@@ -556,8 +556,8 @@ deactivateOptions.comments = typedArgs.comment;
               }));
               const bulkOptions: any = {};
               if (typedArgs.comment) {
-bulkOptions.comments = typedArgs.comment;
-}
+                bulkOptions.comments = typedArgs.comment;
+              }
               result = await bulkActivateNetworkLists(
                 bulkActivations,
                 typedArgs.customer,
@@ -644,7 +644,7 @@ bulkOptions.comments = typedArgs.comment;
         const duration = Date.now() - startTime;
         log('ERROR', `❌ Tool ${name} failed after ${duration}ms`, {
           error:
-            error instanceof Error
+            _error instanceof Error
               ? {
                   message: _error.message,
                   stack: _error.stack,
@@ -702,7 +702,7 @@ bulkOptions.comments = typedArgs.comment;
     } catch (_error) {
       log('ERROR', '❌ Failed to connect server', {
         error:
-          error instanceof Error
+          _error instanceof Error
             ? {
                 message: _error.message,
                 stack: _error.stack,
@@ -733,7 +733,7 @@ async function main() {
   } catch (_error) {
     log('ERROR', '❌ Failed to start server', {
       error:
-        error instanceof Error
+        _error instanceof Error
           ? {
               message: _error.message,
               stack: _error.stack,
