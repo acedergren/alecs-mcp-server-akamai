@@ -23,8 +23,8 @@ let cacheService: AkamaiCacheService | null = null;
 function getCacheService(): AkamaiCacheService {
   if (!cacheService) {
     cacheService = new AkamaiCacheService();
-    cacheService.initialize().catch((err) => {
-      console.error('[PropertyTools] Failed to initialize cache:', err);
+    cacheService.initialize().catch((_err) => {
+      console.error('[PropertyTools] Failed to initialize cache:', _err);
     });
   }
   return cacheService;
@@ -91,8 +91,8 @@ export async function listProperties(
     await cache['cache'].set(cacheKey, response, CacheTTL.PROPERTIES_LIST);
 
     return response;
-  } catch (error) {
-    console.error('[Cache] Error in cached listProperties:', error);
+  } catch (_error) {
+    console.error('[Error]:', _error);
     // Fallback to direct API call
     return originalListProperties(client, args);
   }
@@ -134,8 +134,8 @@ export async function getProperty(
     await cache['cache'].set(cacheKey, response, CacheTTL.PROPERTY_DETAILS);
 
     return response;
-  } catch (error) {
-    console.error('[Cache] Error in cached getProperty:', error);
+  } catch (_error) {
+    console.error('[Error]:', _error);
     return originalGetProperty(client, args);
   }
 }
@@ -176,8 +176,8 @@ export async function listGroups(
     await cache['cache'].set(cacheKey, response, CacheTTL.GROUPS);
 
     return response;
-  } catch (error) {
-    console.error('[Cache] Error in cached listGroups:', error);
+  } catch (_error) {
+    console.error('[Error]:', _error);
     return originalListGroups(client, args);
   }
 }
@@ -217,8 +217,8 @@ export async function listContracts(
     await cache['cache'].set(cacheKey, response, CacheTTL.CONTRACTS);
 
     return response;
-  } catch (error) {
-    console.error('[Cache] Error in cached listContracts:', error);
+  } catch (_error) {
+    console.error('[Error]:', _error);
     return originalListContracts(client, args);
   }
 }

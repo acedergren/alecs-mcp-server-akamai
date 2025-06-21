@@ -7,10 +7,7 @@ import {
   type CDNProvisioningAgent,
   createCDNProvisioningAgent,
 } from '@agents/cdn-provisioning.agent';
-import {
-  type CPSCertificateAgent,
-  createCPSCertificateAgent,
-} from '@agents/cps-certificate.agent';
+import { type CPSCertificateAgent, createCPSCertificateAgent } from '@agents/cps-certificate.agent';
 import { type DNSMigrationAgent, createDNSMigrationAgent } from '@agents/dns-migration.agent';
 
 import { type AkamaiClient } from '../akamai-client';
@@ -101,9 +98,9 @@ export async function provisionCompleteProperty(
         },
       ],
     };
-  } catch (error) {
-    console.error('Error provisioning property:', error);
-    throw error;
+  } catch (_error) {
+    console.error('[Error]:', _error);
+    throw _error;
   }
 }
 
@@ -134,9 +131,9 @@ export async function clonePropertyVersion(
         },
       ],
     };
-  } catch (error) {
-    console.error('Error cloning property version:', error);
-    throw error;
+  } catch (_error) {
+    console.error('[Error]:', _error);
+    throw _error;
   }
 }
 
@@ -167,9 +164,9 @@ export async function applyPropertyTemplate(
         },
       ],
     };
-  } catch (error) {
-    console.error('Error applying template:', error);
-    throw error;
+  } catch (_error) {
+    console.error('[Error]:', _error);
+    throw _error;
   }
 }
 
@@ -203,9 +200,9 @@ export async function provisionAndDeployCertificate(
         },
       ],
     };
-  } catch (error) {
-    console.error('Error provisioning certificate:', error);
-    throw error;
+  } catch (_error) {
+    console.error('[Error]:', _error);
+    throw _error;
   }
 }
 
@@ -229,9 +226,9 @@ export async function automatedDNSValidation(
         },
       ],
     };
-  } catch (error) {
-    console.error('Error with DNS validation:', error);
-    throw error;
+  } catch (_error) {
+    console.error('[Error]:', _error);
+    throw _error;
   }
 }
 
@@ -254,9 +251,9 @@ export async function processCertificateRenewal(
         },
       ],
     };
-  } catch (error) {
-    console.error('Error renewing certificate:', error);
-    throw error;
+  } catch (_error) {
+    console.error('[Error]:', _error);
+    throw _error;
   }
 }
 
@@ -287,9 +284,9 @@ export async function importZoneFromCloudflare(
         },
       ],
     };
-  } catch (error) {
-    console.error('Error importing from Cloudflare:', error);
-    throw error;
+  } catch (_error) {
+    console.error('[Error]:', _error);
+    throw _error;
   }
 }
 
@@ -320,9 +317,9 @@ export async function bulkDNSMigration(
         },
       ],
     };
-  } catch (error) {
-    console.error('Error with bulk DNS migration:', error);
-    throw error;
+  } catch (_error) {
+    console.error('[Error]:', _error);
+    throw _error;
   }
 }
 
@@ -354,9 +351,9 @@ export async function migrateWebsite(
         },
       ],
     };
-  } catch (error) {
-    console.error('Error migrating website:', error);
-    throw error;
+  } catch (_error) {
+    console.error('[Error]:', _error);
+    throw _error;
   }
 }
 
@@ -385,8 +382,8 @@ export async function provisionSecureWebsite(
         },
       ],
     };
-  } catch (error) {
-    console.error('Error provisioning secure website:', error);
-    throw error;
+  } catch (_error) {
+    console.error('[Error]:', _error);
+    throw _error;
   }
 }

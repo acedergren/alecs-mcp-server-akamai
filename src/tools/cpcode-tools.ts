@@ -58,14 +58,15 @@ export async function listCPCodes(
     }
 
     let text = `# CP Codes (${response.cpcodes.items.length} found)\n\n`;
-    text += 'CP Codes are used for traffic reporting, billing analysis, and content categorization.\n\n';
+    text +=
+      'CP Codes are used for traffic reporting, billing analysis, and content categorization.\n\n';
 
     // Group by contract for better organization
     const byContract = response.cpcodes.items.reduce((acc: any, cpcode: any) => {
       const contract = cpcode.contractIds?.[0] || 'Unknown';
       if (!acc[contract]) {
-acc[contract] = [];
-}
+        acc[contract] = [];
+      }
       acc[contract].push(cpcode);
       return acc;
     }, {});
@@ -101,7 +102,8 @@ acc[contract] = [];
     text += '### View CP Code Details\n';
     text += '`"Get details for CP Code 12345"`\n\n';
     text += '### Create New CP Code\n';
-    text += '`"Create CP Code named my-site-content for contract ctr_1-5C13O2 group grp_125952"`\n\n';
+    text +=
+      '`"Create CP Code named my-site-content for contract ctr_1-5C13O2 group grp_125952"`\n\n';
     text += '### Use in Property\n';
     text += 'CP Codes are automatically assigned to properties and used for:\n';
     text += '- **Traffic Reporting:** Analyze bandwidth, requests, and cache hit ratios\n';
@@ -116,8 +118,8 @@ acc[contract] = [];
         },
       ],
     };
-  } catch (error) {
-    return formatError('list CP Codes', error);
+  } catch (_error) {
+    return formatError('list CP Codes', _error);
   }
 }
 
@@ -231,8 +233,8 @@ export async function getCPCode(
         },
       ],
     };
-  } catch (error) {
-    return formatError('get CP Code details', error);
+  } catch (_error) {
+    return formatError('get CP Code details', _error);
   }
 }
 
@@ -305,7 +307,7 @@ export async function createCPCode(
             productId = bestProduct.productId;
           }
         }
-      } catch (productError) {
+      } catch (_productError) {
         // Ignore error and use default
       }
 
@@ -357,7 +359,7 @@ export async function createCPCode(
 
     text += '## Next Steps\n\n';
     text += '### 1. Assign to Property\n';
-    text += 'Add this CP Code to a property\'s rule tree:\n';
+    text += "Add this CP Code to a property's rule tree:\n";
     text += `\`"Update property rules to use CP Code ${numericId}"\`\n\n`;
 
     text += '### 2. Use in New Property\n';
@@ -397,8 +399,8 @@ export async function createCPCode(
         },
       ],
     };
-  } catch (error) {
-    return formatError('create CP Code', error);
+  } catch (_error) {
+    return formatError('create CP Code', _error);
   }
 }
 
@@ -494,39 +496,39 @@ export async function searchCPCodes(
         },
       ],
     };
-  } catch (error) {
-    return formatError('search CP Codes', error);
+  } catch (_error) {
+    return formatError('search CP Codes', _error);
   }
 }
 
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+  if (_error instanceof Error) {
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
-    if (error.message.includes('401') || error.message.includes('credentials')) {
+    if (_error.message.includes('401') || _error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials for CP Code management.';
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
       solution =
         '**Solution:** Your API credentials may lack the necessary permissions for CP Code operations.';
-    } else if (error.message.includes('404') || error.message.includes('not found')) {
+    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
       solution =
         '**Solution:** The CP Code was not found. Use "List CP Codes" to see available CP Codes.';
-    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
+    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
       solution =
         '**Solution:** Invalid request parameters. Check the CP Code name and contract/group IDs.';
-    } else if (error.message.includes('409') || error.message.includes('Conflict')) {
+    } else if (_error.message.includes('409') || _error.message.includes('Conflict')) {
       solution = '**Solution:** A CP Code with this name may already exist in this contract/group.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

@@ -70,8 +70,8 @@ export class AkamaiCacheService {
         console.error('[Cache] Valkey error:', err.message);
         this.enabled = false;
       });
-    } catch (error) {
-      console.error('[Cache] Failed to initialize Valkey:', error);
+    } catch (_error) {
+      console.error('[Error]:', _error);
       this.enabled = false;
     }
   }
@@ -90,8 +90,8 @@ export class AkamaiCacheService {
           console.error('[Cache] HIT: Properties list');
           return JSON.parse(cached);
         }
-      } catch (err) {
-        console.error('[Cache] Error reading from cache:', err);
+      } catch (_err) {
+        console.error('[Cache] Error reading from cache:', _err);
       }
     }
 
@@ -111,8 +111,8 @@ export class AkamaiCacheService {
 
         // Also create hostname mapping for quick lookups
         await this.createHostnameMapping(client, customer, properties);
-      } catch (err) {
-        console.error('[Cache] Error writing to cache:', err);
+      } catch (_err) {
+        console.error('[Cache] Error writing to cache:', _err);
       }
     }
 
@@ -128,8 +128,8 @@ export class AkamaiCacheService {
     properties: any[],
   ): Promise<void> {
     if (!this.enabled || !this.redis) {
-return;
-}
+      return;
+    }
 
     const hostnameMap: Record<string, any> = {};
 
@@ -169,8 +169,8 @@ return;
             };
           }
         }
-      } catch (err) {
-        console.error(`[Cache] Error processing property ${property.propertyId}:`, err);
+      } catch (_err) {
+        console.error(`[Cache] Error processing property ${property.propertyId}:`, _err);
       }
     }
 
@@ -201,8 +201,8 @@ return;
           console.error(`[Cache] HIT: Search results for "${query}"`);
           return JSON.parse(cached);
         }
-      } catch (err) {
-        console.error('[Cache] Error reading search cache:', err);
+      } catch (_err) {
+        console.error('[Cache] Error reading search cache:', _err);
       }
     }
 
@@ -244,8 +244,8 @@ return;
             });
           }
         }
-      } catch (err) {
-        console.error('[Cache] Error checking hostname map:', err);
+      } catch (_err) {
+        console.error('[Cache] Error checking hostname map:', _err);
       }
     }
 
@@ -266,8 +266,8 @@ return;
     if (this.enabled && this.redis && results.length > 0) {
       try {
         await this.redis.setex(searchKey, this.config.ttl!.search!, JSON.stringify(results));
-      } catch (err) {
-        console.error('[Cache] Error caching search results:', err);
+      } catch (_err) {
+        console.error('[Cache] Error caching search results:', _err);
       }
     }
 
@@ -279,8 +279,8 @@ return;
    */
   async invalidateProperty(propertyId: string, customer = 'default'): Promise<void> {
     if (!this.enabled || !this.redis) {
-return;
-}
+      return;
+    }
 
     try {
       const keys = [
@@ -302,8 +302,8 @@ return;
       }
 
       console.error(`[Cache] Invalidated cache for property ${propertyId}`);
-    } catch (err) {
-      console.error('[Cache] Error invalidating cache:', err);
+    } catch (_err) {
+      console.error('[Cache] Error invalidating cache:', _err);
     }
   }
 
@@ -327,9 +327,9 @@ return;
         akamaiKeys: keys.length,
         stats: info,
       };
-    } catch (err) {
-      console.error('[Cache] Error getting stats:', err);
-      return { enabled: true, error: err instanceof Error ? err.message : String(err) };
+    } catch (_err) {
+      console.error('[Cache] Error getting stats:', _err);
+      return { enabled: true, _error: _err instanceof Error ? _err.message : String(_err) };
     }
   }
 

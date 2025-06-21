@@ -75,7 +75,7 @@ export async function getSystemHealth(
         responseText += `- Avg Response Time: ${check.metrics.averageResponseTime.toFixed(0)}ms\n`;
         responseText += `- P95 Response Time: ${check.metrics.p95ResponseTime.toFixed(0)}ms\n`;
         if (check.metrics.consecutiveFailures > 0) {
-          responseText += `- Consecutive Failures: ${check.metrics.consecutiveFailures}\n`;
+          responseText += `- Consecutive Failu_res: ${check.metrics.consecutiveFailures}\n`;
         }
       }
 
@@ -98,7 +98,8 @@ export async function getSystemHealth(
           });
 
           if (op.circuitBreakerState === CircuitBreakerState.OPEN) {
-            responseText += '- Wait for circuit breaker reset or use `reset_circuit_breaker` tool\n';
+            responseText +=
+              '- Wait for circuit breaker reset or use `reset_circuit_breaker` tool\n';
           }
           responseText += '- Check Akamai service status\n';
           responseText += '- Review recent changes to configuration\n\n';
@@ -126,12 +127,12 @@ export async function getSystemHealth(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `Error checking system health: ${(error as Error).message}`,
+          text: `Error checking system health: ${(_error as Error).message}`,
         },
       ],
     };
@@ -201,12 +202,12 @@ export async function resetCircuitBreaker(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `Error resetting circuit breaker: ${(error as Error).message}`,
+          text: `Error resetting circuit breaker: ${(_error as Error).message}`,
         },
       ],
     };
@@ -248,13 +249,11 @@ export async function getOperationMetrics(
 
       let totalCalls = 0;
       let totalSuccessful = 0;
-      let totalFailed = 0;
       let avgResponseTime = 0;
 
       allMetrics.forEach((metrics) => {
         totalCalls += metrics.totalCalls;
         totalSuccessful += metrics.successfulCalls;
-        totalFailed += metrics.failedCalls;
         avgResponseTime += metrics.averageResponseTime;
       });
 
@@ -282,12 +281,12 @@ export async function getOperationMetrics(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `Error retrieving operation metrics: ${(error as Error).message}`,
+          text: `Error retrieving operation metrics: ${(_error as Error).message}`,
         },
       ],
     };
@@ -342,12 +341,12 @@ export async function testOperationResilience(
           success: true,
           responseTime: Date.now() - startTime,
         });
-      } catch (error) {
+      } catch (_error) {
         results.push({
           iteration: i,
           success: false,
           responseTime: Date.now() - startTime,
-          error: (error as Error).message,
+          error: (_error as Error).message,
         });
       }
 
@@ -416,12 +415,12 @@ export async function testOperationResilience(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `Error during resilience test: ${(error as Error).message}`,
+          text: `Error during resilience test: ${(_error as Error).message}`,
         },
       ],
     };
@@ -514,12 +513,12 @@ export async function getErrorRecoverySuggestions(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `Error generating recovery suggestions: ${(error as Error).message}`,
+          text: `Error generating recovery suggestions: ${(_error as Error).message}`,
         },
       ],
     };
@@ -561,7 +560,7 @@ function formatOperationMetrics(operationType: OperationType, metrics: any): str
   text += `- **P95 Response Time:** ${metrics.p95ResponseTime.toFixed(0)}ms\n`;
 
   if (metrics.consecutiveFailures > 0) {
-    text += `- **Consecutive Failures:** ${metrics.consecutiveFailures}\n`;
+    text += `- **Consecutive Failu_res:** ${metrics.consecutiveFailures}\n`;
   }
 
   if (metrics.lastFailureTime) {

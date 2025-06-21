@@ -168,13 +168,13 @@ export async function validateGeographicCodes(
         },
       ],
     };
-  } catch (error) {
-    const akamaiError = error as AkamaiError;
+  } catch (_error) {
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error validating geographic codes: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error validating geographic codes: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -257,13 +257,13 @@ export async function getASNInformation(
         },
       ],
     };
-  } catch (error) {
-    const akamaiError = error as AkamaiError;
+  } catch (_error) {
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error looking up ASN information: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error looking up ASN information: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -371,13 +371,13 @@ export async function generateGeographicBlockingRecommendations(
         },
       ],
     };
-  } catch (error) {
-    const akamaiError = error as AkamaiError;
+  } catch (_error) {
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error generating recommendations: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error generating recommendations: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -412,7 +412,8 @@ export async function generateASNSecurityRecommendations(
       output += '- AS13335: Cloudflare\n';
       output += '- AS14061: DigitalOcean\n';
       output += '- AS16276: OVH\n';
-      output += '\n**Recommendation:** Monitor rather than block - many legitimate services use these.\n\n';
+      output +=
+        '\n**Recommendation:** Monitor rather than block - many legitimate services use these.\n\n';
     }
 
     // Common VPN/proxy providers (this would be a longer list in practice)
@@ -479,13 +480,13 @@ export async function generateASNSecurityRecommendations(
         },
       ],
     };
-  } catch (error) {
-    const akamaiError = error as AkamaiError;
+  } catch (_error) {
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error generating ASN recommendations: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error generating ASN recommendations: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };

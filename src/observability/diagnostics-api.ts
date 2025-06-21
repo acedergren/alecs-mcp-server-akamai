@@ -57,7 +57,7 @@ export interface SystemDiagnostics {
     eventLoopLag: number;
     gcStats?: GCStats;
     performanceMarks: PerformanceMark[];
-    performanceMeasures: PerformanceMeasure[];
+    performanceMeasu_res: PerformanceMeasure[];
   };
 }
 
@@ -218,20 +218,20 @@ export class DiagnosticsAPI extends EventEmitter {
         results.push(healthCheck);
 
         this.emit('healthCheckCompleted', healthCheck);
-      } catch (error) {
+      } catch (_error) {
         const healthCheck: HealthCheck = {
           name,
           status: 'critical',
-          message: `Health check failed: ${error instanceof Error ? error.message : String(error)}`,
+          message: `Health check failed: ${_error instanceof Error ? _error.message : String(_error)}`,
           lastCheck: Date.now(),
           duration: 0,
-          metadata: { error: error instanceof Error ? error.stack : String(error) },
+          metadata: { error: _error instanceof Error ? _error.stack : String(_error) },
         };
 
         this.healthChecks.set(name, healthCheck);
         results.push(healthCheck);
 
-        this.emit('healthCheckError', name, error);
+        this.emit('healthCheckError', name, _error);
       }
     }
 
@@ -295,7 +295,7 @@ export class DiagnosticsAPI extends EventEmitter {
       eventLoopLag: await this.measureEventLoopLag(),
       gcStats: this.config.enableGCStats ? this.getGCStats() : undefined,
       performanceMarks: this.getPerformanceMarks(),
-      performanceMeasures: this.getPerformanceMeasures(),
+      performanceMeasu_res: this.getPerformanceMeasures(),
     };
 
     this.systemDiagnostics = {
@@ -385,8 +385,8 @@ export class DiagnosticsAPI extends EventEmitter {
   acknowledgeAlert(alertId: string, acknowledgedBy: string): boolean {
     const alert = this.alerts.find((a) => a.id === alertId);
     if (!alert) {
-return false;
-}
+      return false;
+    }
 
     alert.acknowledged = true;
     alert.acknowledgedBy = acknowledgedBy;
@@ -563,11 +563,11 @@ return false;
             duration: 0,
             metadata: { diskUsage },
           };
-        } catch (error) {
+        } catch (_error) {
           return {
             name: 'disk_space',
             status: 'unknown',
-            message: `Unable to check disk space: ${error instanceof Error ? error.message : String(error)}`,
+            message: `Unable to check disk space: ${_error instanceof Error ? _error.message : String(_error)}`,
             lastCheck: Date.now(),
             duration: 0,
           };
@@ -644,8 +644,8 @@ return false;
 
   private async checkAlerts(): Promise<void> {
     if (!this.systemDiagnostics) {
-return;
-}
+      return;
+    }
 
     const healthChecks = Array.from(this.healthChecks.values());
     const now = Date.now();
@@ -681,8 +681,8 @@ return;
 
           this.emit('alertTriggered', alert);
         }
-      } catch (error) {
-        this.emit('alertRuleError', name, error);
+      } catch (_error) {
+        this.emit('alertRuleError', name, _error);
       }
     }
   }

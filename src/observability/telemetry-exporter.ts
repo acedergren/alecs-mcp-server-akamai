@@ -158,8 +158,8 @@ export class TelemetryExporter extends EventEmitter {
   updateDestination(name: string, updates: Partial<TelemetryDestination>): boolean {
     const destination = this.destinations.get(name);
     if (!destination) {
-return false;
-}
+      return false;
+    }
 
     Object.assign(destination, updates);
     this.emit('destinationUpdated', name, destination);
@@ -172,8 +172,8 @@ return false;
   setDestinationEnabled(name: string, enabled: boolean): boolean {
     const destination = this.destinations.get(name);
     if (!destination) {
-return false;
-}
+      return false;
+    }
 
     destination.enabled = enabled;
     this.emit('destinationToggled', name, enabled);
@@ -191,17 +191,17 @@ return false;
       try {
         const result = await this.exportToDestination(destination);
         results.push(result);
-      } catch (error) {
+      } catch (_error) {
         const result: ExportResult = {
           destination: destination.name,
           success: false,
           timestamp: Date.now(),
           recordsExported: 0,
           duration: 0,
-          error: error as Error,
+          error: _error as Error,
         };
         results.push(result);
-        this.emit('exportError', destination.name, error);
+        this.emit('exportError', destination.name, _error);
       }
     }
 
@@ -264,7 +264,7 @@ return false;
 
       this.emit('exportSuccess', result);
       return result;
-    } catch (error) {
+    } catch (_error) {
       const duration = performance.now() - startTime;
       this.updateStats(destination.name, false, duration, 0);
 
@@ -274,11 +274,11 @@ return false;
         timestamp,
         recordsExported: 0,
         duration,
-        error: error as Error,
+        error: _error as Error,
       };
 
       this.emit('exportError', result);
-      throw error;
+      throw _error;
     }
   }
 
@@ -295,8 +295,8 @@ return false;
     this.flushInterval = setInterval(async () => {
       try {
         await this.exportAll();
-      } catch (error) {
-        this.emit('batchExportError', error);
+      } catch (_error) {
+        this.emit('batchExportError', _error);
       }
     }, interval);
 
@@ -380,9 +380,9 @@ return false;
 
       this.emit('destinationTestSuccess', name);
       return true;
-    } catch (error) {
-      this.emit('destinationTestFailure', name, error);
-      throw error;
+    } catch (_error) {
+      this.emit('destinationTestFailure', name, _error);
+      throw _error;
     }
   }
 
@@ -619,10 +619,11 @@ return false;
         case 'bearer':
           headers['Authorization'] = `Bearer ${auth.token}`;
           break;
-        case 'basic':
+        case 'basic': {
           const credentials = Buffer.from(`${auth.username}:${auth.password}`).toString('base64');
           headers['Authorization'] = `Basic ${credentials}`;
           break;
+        }
         case 'api-key':
           headers['X-API-Key'] = auth.apiKey!;
           break;
@@ -657,9 +658,9 @@ return false;
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    } catch (error) {
+    } catch (_error) {
       clearTimeout(timeoutId);
-      throw error;
+      throw _error;
     }
   }
 
@@ -730,18 +731,18 @@ return false;
 
   private async processExportQueue(): Promise<void> {
     if (this.exportQueue.length === 0) {
-return;
-}
+      return;
+    }
 
     const item = this.exportQueue.shift();
     if (!item) {
-return;
-}
+      return;
+    }
 
     const batch = this.batches.get(item.batchId);
     if (!batch) {
-return;
-}
+      return;
+    }
 
     const destination = this.destinations.get(batch.destination);
     if (!destination?.enabled) {
@@ -752,7 +753,7 @@ return;
     try {
       await this.exportToDestination(destination);
       this.batches.delete(item.batchId);
-    } catch (error) {
+    } catch (_error) {
       if (item.retryCount < (this.config.maxRetryAttempts || 3)) {
         // Retry with exponential backoff
         setTimeout(
@@ -767,7 +768,7 @@ return;
       } else {
         // Max retries exceeded
         this.batches.delete(item.batchId);
-        this.emit('exportFailed', batch.destination, error);
+        this.emit('exportFailed', batch.destination, _error);
       }
     }
   }

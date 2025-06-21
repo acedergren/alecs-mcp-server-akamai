@@ -84,8 +84,8 @@ export async function listAvailableBehaviors(
     const behaviorsByCategory = response.behaviors.items.reduce((acc: any, behavior: any) => {
       const category = behavior.category || 'Other';
       if (!acc[category]) {
-acc[category] = [];
-}
+        acc[category] = [];
+      }
       acc[category].push(behavior);
       return acc;
     }, {});
@@ -139,8 +139,8 @@ acc[category] = [];
         },
       ],
     };
-  } catch (error) {
-    return formatError('list available behaviors', error);
+  } catch (_error) {
+    return formatError('list available behaviors', _error);
   }
 }
 
@@ -222,8 +222,8 @@ export async function listAvailableCriteria(
     const criteriaByCategory = response.criteria.items.reduce((acc: any, criterion: any) => {
       const category = criterion.category || 'Other';
       if (!acc[category]) {
-acc[category] = [];
-}
+        acc[category] = [];
+      }
       acc[category].push(criterion);
       return acc;
     }, {});
@@ -276,8 +276,8 @@ acc[category] = [];
         },
       ],
     };
-  } catch (error) {
-    return formatError('list available criteria', error);
+  } catch (_error) {
+    return formatError('list available criteria', _error);
   }
 }
 
@@ -338,8 +338,8 @@ export async function patchPropertyRules(
 
     if (response.errors?.length > 0) {
       text += '## ⚠️ Validation Errors\n';
-      for (const error of response.errors) {
-        text += `- ${error.detail}\n`;
+      for (const _error of response.errors) {
+        text += `- ${_error.detail}\n`;
       }
       text += '\n';
     }
@@ -377,8 +377,8 @@ export async function patchPropertyRules(
         },
       ],
     };
-  } catch (error) {
-    return formatError('patch property rules', error);
+  } catch (_error) {
+    return formatError('patch property rules', _error);
   }
 }
 
@@ -447,8 +447,10 @@ export async function bulkSearchProperties(
     text += `\`"Get bulk search results ${bulkSearchId}"\`\n\n`;
 
     text += '## JSONPath Examples\n';
-    text += '- Find properties with specific origin: `$.rules.behaviors[?(@.name == "origin")].options.hostname`\n';
-    text += '- Find caching TTL settings: `$.rules..behaviors[?(@.name == "caching")].options.defaultTtl`\n';
+    text +=
+      '- Find properties with specific origin: `$.rules.behaviors[?(@.name == "origin")].options.hostname`\n';
+    text +=
+      '- Find caching TTL settings: `$.rules..behaviors[?(@.name == "caching")].options.defaultTtl`\n';
     text += '- Find CP codes: `$.rules..behaviors[?(@.name == "cpCode")].options.value.id`\n';
 
     return {
@@ -459,8 +461,8 @@ export async function bulkSearchProperties(
         },
       ],
     };
-  } catch (error) {
-    return formatError('bulk search properties', error);
+  } catch (_error) {
+    return formatError('bulk search properties', _error);
   }
 }
 
@@ -522,8 +524,8 @@ export async function getBulkSearchResults(
         const byProperty = results.reduce((acc: any, result: any) => {
           const key = result.propertyId;
           if (!acc[key]) {
-acc[key] = [];
-}
+            acc[key] = [];
+          }
           acc[key].push(result);
           return acc;
         }, {});
@@ -559,8 +561,8 @@ acc[key] = [];
         },
       ],
     };
-  } catch (error) {
-    return formatError('get bulk search results', error);
+  } catch (_error) {
+    return formatError('get bulk search results', _error);
   }
 }
 
@@ -635,8 +637,8 @@ export async function generateDomainValidationChallenges(
         },
       ],
     };
-  } catch (error) {
-    return formatError('generate domain validation challenges', error);
+  } catch (_error) {
+    return formatError('generate domain validation challenges', _error);
   }
 }
 
@@ -689,8 +691,8 @@ export async function resumeDomainValidation(
         },
       ],
     };
-  } catch (error) {
-    return formatError('resume domain validation', error);
+  } catch (_error) {
+    return formatError('resume domain validation', _error);
   }
 }
 
@@ -719,11 +721,11 @@ export async function getPropertyAuditHistory(
     let text = `# Property Audit History: ${args.propertyId}\n\n`;
 
     if (args.startDate) {
-text += `**Start Date:** ${args.startDate}\n`;
-}
+      text += `**Start Date:** ${args.startDate}\n`;
+    }
     if (args.endDate) {
-text += `**End Date:** ${args.endDate}\n`;
-}
+      text += `**End Date:** ${args.endDate}\n`;
+    }
 
     text += '\n## Recent Activations\n\n';
 
@@ -769,33 +771,33 @@ text += `**End Date:** ${args.endDate}\n`;
         },
       ],
     };
-  } catch (error) {
-    return formatError('get property audit history', error);
+  } catch (_error) {
+    return formatError('get property audit history', _error);
   }
 }
 
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+  if (_error instanceof Error) {
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
-    if (error.message.includes('401') || error.message.includes('credentials')) {
+    if (_error.message.includes('401') || _error.message.includes('credentials')) {
       solution = '**Solution:** Check your ~/.edgerc file has valid credentials.';
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
       solution = '**Solution:** Your API credentials may lack the necessary permissions.';
-    } else if (error.message.includes('404') || error.message.includes('not found')) {
+    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
       solution = '**Solution:** The requested resource was not found. Verify the ID is correct.';
-    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
+    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
       solution = '**Solution:** Invalid request parameters. Check the input values.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

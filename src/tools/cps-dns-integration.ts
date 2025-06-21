@@ -92,7 +92,7 @@ export async function createACMEValidationRecords(
         });
 
         results.successful++;
-      } catch (error) {
+      } catch (_error) {
         // Try with the parent domain if subdomain fails
         if (args.autoDetectZones && record.zone.includes('.')) {
           try {
@@ -110,14 +110,14 @@ export async function createACMEValidationRecords(
             results.failed++;
             results.errors.push({
               record: record.recordName,
-              error: retryError instanceof Error ? retryError.message : 'Unknown error',
+              error: retryError instanceof Error ? retryError.message : 'Unknown _error',
             });
           }
         } else {
           results.failed++;
           results.errors.push({
             record: record.recordName,
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: _error instanceof Error ? _error.message : 'Unknown error',
           });
         }
       }
@@ -172,13 +172,13 @@ export async function createACMEValidationRecords(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     spinner.stop();
     return {
       content: [
         {
           type: 'text',
-          text: `❌ Failed to create ACME validation records: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          text: `❌ Failed to create ACME validation records: ${_error instanceof Error ? _error.message : 'Unknown _error'}`,
         },
       ],
     };
@@ -199,7 +199,7 @@ function parseACMERecords(content: string): ACMERecord[] {
 
   for (const line of lines) {
     // Detect domain sections
-    const domainMatch = line.match(/###\s+[✅❌⏳🔄❓]\s+(.+)/);
+    const domainMatch = line.match(/###\s+[✅❌⏳🔄❓]\s+(.+)/u);
     if (domainMatch && domainMatch[1]) {
       currentDomain = domainMatch[1];
       continue;
@@ -351,10 +351,10 @@ export async function monitorCertificateValidation(
 
       // Wait before next check
       await new Promise((resolve) => setTimeout(resolve, checkInterval));
-    } catch (error) {
+    } catch (_error) {
       spinner.stop();
       console.error(
-        `\n❌ Error checking validation status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `\n❌ Error checking validation status: ${_error instanceof Error ? _error.message : 'Unknown _error'}`,
       );
       await new Promise((resolve) => setTimeout(resolve, checkInterval));
     }

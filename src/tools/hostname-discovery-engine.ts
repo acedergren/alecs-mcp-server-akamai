@@ -144,8 +144,8 @@ export async function discoverHostnamesIntelligent(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
-    return handleApiError(error, 'discovering hostnames intelligently');
+  } catch (_error) {
+    return handleApiError(_error, 'discovering hostnames intelligently');
   }
 }
 
@@ -223,8 +223,8 @@ export async function analyzeHostnameConflicts(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
-    return handleApiError(error, 'analyzing hostname conflicts');
+  } catch (_error) {
+    return handleApiError(_error, 'analyzing hostname conflicts');
   }
 }
 
@@ -273,8 +273,8 @@ export async function analyzeWildcardCoverage(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
-    return handleApiError(error, 'analyzing wildcard coverage');
+  } catch (_error) {
+    return handleApiError(_error, 'analyzing wildcard coverage');
   }
 }
 
@@ -324,8 +324,8 @@ export async function identifyOwnershipPatterns(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
-    return handleApiError(error, 'identifying ownership patterns');
+  } catch (_error) {
+    return handleApiError(_error, 'identifying ownership patterns');
   }
 }
 
@@ -337,11 +337,11 @@ async function getAllPropertiesWithHostnames(client: AkamaiClient, args: any): P
   const params = new URLSearchParams();
 
   if (args.contractId) {
-params.append('contractId', args.contractId);
-}
+    params.append('contractId', args.contractId);
+  }
   if (args.groupId) {
-params.append('groupId', args.groupId);
-}
+    params.append('groupId', args.groupId);
+  }
 
   const response = await client.request({
     path: `/papi/v1/properties?${params.toString()}`,
@@ -363,7 +363,7 @@ params.append('groupId', args.groupId);
           ...property,
           hostnames: hostnameResponse.hostnames?.items || [],
         };
-      } catch (error) {
+      } catch (_error) {
         return {
           ...property,
           hostnames: [],
@@ -458,9 +458,9 @@ async function analyzeWildcardEfficiency(
   return wildcardCoverage;
 }
 
-function findOwnershipPatterns(properties: any[], options: any = {}): PropertyOwnershipPattern[] {
+function findOwnershipPatterns(properties: any[], _options: any = {}): PropertyOwnershipPattern[] {
   const patterns: PropertyOwnershipPattern[] = [];
-  const minProperties = options.minPropertiesForPattern || 3;
+  const minProperties = _options.minPropertiesForPattern || 3;
 
   // Group properties by domain patterns
   const domainGroups = new Map<string, any[]>();
@@ -700,8 +700,8 @@ function findPropertyByHostname(properties: any[], hostname: string): any {
 
 function extractDomain(hostname: string): string | null {
   if (!hostname || hostname.startsWith('*.')) {
-return null;
-}
+    return null;
+  }
 
   const parts = hostname.split('.');
   if (parts.length >= 2) {

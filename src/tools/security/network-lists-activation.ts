@@ -16,8 +16,8 @@ import {
  */
 function formatActivationStatus(status: string | undefined): string {
   if (!status) {
-return '⚫ INACTIVE';
-}
+    return '⚫ INACTIVE';
+  }
 
   const statusMap: Record<string, string> = {
     ACTIVE: '🟢 ACTIVE',
@@ -117,13 +117,13 @@ export async function activateNetworkList(
         },
       ],
     };
-  } catch (error) {
-    const akamaiError = error as AkamaiError;
+  } catch (_error) {
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error activating network list: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error activating network list: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -177,13 +177,13 @@ export async function getNetworkListActivationStatus(
         },
       ],
     };
-  } catch (error) {
-    const akamaiError = error as AkamaiError;
+  } catch (_error) {
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error retrieving activation status: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error retrieving activation status: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -264,13 +264,13 @@ export async function listNetworkListActivations(
         },
       ],
     };
-  } catch (error) {
-    const akamaiError = error as AkamaiError;
+  } catch (_error) {
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error listing activations: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error listing activations: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -342,8 +342,10 @@ export async function deactivateNetworkList(
       output += `**Comments:** ${options.comments}\n`;
     }
 
-    output += '\n⚠️ **Warning:** Deactivating this list will remove its security policies from the edge network.\n';
-    output += 'Traffic that was previously blocked/allowed by this list will no longer be filtered.\n';
+    output +=
+      '\n⚠️ **Warning:** Deactivating this list will remove its security policies from the edge network.\n';
+    output +=
+      'Traffic that was previously blocked/allowed by this list will no longer be filtered.\n';
 
     return {
       content: [
@@ -353,13 +355,13 @@ export async function deactivateNetworkList(
         },
       ],
     };
-  } catch (error) {
-    const akamaiError = error as AkamaiError;
+  } catch (_error) {
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error deactivating network list: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error deactivating network list: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -420,11 +422,11 @@ export async function bulkActivateNetworkLists(
         });
 
         output += `✅ ${activation.uniqueId} → ${activation.network} (${activationResult.activationId})\n`;
-      } catch (error) {
-        const akamaiError = error as AkamaiError;
+      } catch (_error) {
+        const akamaiError = _error as AkamaiError;
         results.push({
           uniqueId: activation.uniqueId,
-          error: akamaiError.title || akamaiError.detail || 'Unknown error',
+          error: akamaiError.title || akamaiError.detail || 'Unknown _error',
         });
 
         output += `❌ ${activation.uniqueId} → ${activation.network} (Error: ${akamaiError.title})\n`;
@@ -452,13 +454,13 @@ export async function bulkActivateNetworkLists(
         },
       ],
     };
-  } catch (error) {
-    const akamaiError = error as AkamaiError;
+  } catch (_error) {
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error in bulk activation: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error in bulk activation: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };

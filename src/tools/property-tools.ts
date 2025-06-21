@@ -16,26 +16,20 @@ import {
   ensureAkamaiIdFormat,
 } from '@utils/parameter-validation';
 import { formatProductDisplay } from '@utils/product-mapping';
-import { parseAkamaiResponse, ResponseParser } from '@utils/response-parsing';
+import { parseAkamaiResponse } from '@utils/response-parsing';
 import { withToolErrorHandling, type ErrorContext } from '@utils/tool-error-handling';
-import {
-  type TreeNode,
-  renderTree,
-  generateTreeSummary,
-  formatPropertyNode,
-  formatGroupNode,
-} from '@utils/tree-view';
+import { type TreeNode, renderTree, generateTreeSummary, formatGroupNode } from '@utils/tree-view';
 
 import { type AkamaiClient } from '../akamai-client';
-import { type MCPToolResponse, type PropertyList, type Property, type GroupList } from '../types';
+import { type MCPToolResponse, type Property } from '../types';
 
 /**
  * Format a date string to a more readable format
  */
 function formatDate(dateString: string | undefined): string {
   if (!dateString) {
-return 'N/A';
-}
+    return 'N/A';
+  }
   try {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -55,8 +49,8 @@ return 'N/A';
  */
 function formatStatus(status: string | undefined): string {
   if (!status) {
-return '⚫ INACTIVE';
-}
+    return '⚫ INACTIVE';
+  }
 
   const statusMap: Record<string, string> = {
     ACTIVE: '🟢 ACTIVE',
@@ -84,7 +78,7 @@ export async function listProperties(
     includeSubgroups?: boolean;
   },
 ): Promise<MCPToolResponse> {
-  const context: ErrorContext = {
+  const _context: ErrorContext = {
     operation: 'list properties',
     endpoint: '/papi/v1/properties',
     apiType: 'papi',
@@ -171,11 +165,11 @@ export async function listProperties(
     if (!parsedResponse.properties || parsedResponse.properties.length === 0) {
       let message = 'No properties found';
       if (args.contractId) {
-message += ` for contract ${args.contractId}`;
-}
+        message += ` for contract ${args.contractId}`;
+      }
       if (args.groupId) {
-message += ` in group ${args.groupId}`;
-}
+        message += ` in group ${args.groupId}`;
+      }
       message += '.';
 
       if (!args.contractId && !args.groupId) {
@@ -206,11 +200,11 @@ message += ` in group ${args.groupId}`;
     // Add filter information
     text += '**Filters Applied:**\n';
     if (contractId) {
-text += `- Contract: ${formatContractDisplay(contractId)}${!args.contractId ? ' (auto-selected)' : ''}\n`;
-}
+      text += `- Contract: ${formatContractDisplay(contractId)}${!args.contractId ? ' (auto-selected)' : ''}\n`;
+    }
     if (groupId) {
-text += `- Group: ${formatGroupDisplay(groupId)}${!args.groupId && !args.contractId ? ' (auto-selected)' : ''}\n`;
-}
+      text += `- Group: ${formatGroupDisplay(groupId)}${!args.groupId && !args.contractId ? ' (auto-selected)' : ''}\n`;
+    }
     if (hasMore) {
       text += `- **Limit:** Showing first ${MAX_PROPERTIES_TO_DISPLAY} properties\n`;
     }
@@ -221,8 +215,8 @@ text += `- Group: ${formatGroupDisplay(groupId)}${!args.groupId && !args.contrac
       (acc: Record<string, Property[]>, prop: Property) => {
         const contract = prop.contractId;
         if (!acc[contract]) {
-acc[contract] = [];
-}
+          acc[contract] = [];
+        }
         acc[contract].push(prop);
         return acc;
       },
@@ -272,7 +266,7 @@ acc[contract] = [];
         },
       ],
     };
-  }, context);
+  }, _context);
 }
 
 /**
@@ -283,7 +277,7 @@ export async function listPropertiesTreeView(
   client: AkamaiClient,
   args: { groupId: string; includeSubgroups?: boolean; customer?: string },
 ): Promise<MCPToolResponse> {
-  const context: ErrorContext = {
+  const _context: ErrorContext = {
     operation: 'list properties tree view',
     endpoint: '/papi/v1/properties',
     apiType: 'papi',
@@ -394,10 +388,10 @@ export async function listPropertiesTreeView(
                     const childStats = contractSummary.get(childContractId)!;
                     childStats.groupCount++;
                     childStats.propertyCount += childProps.length;
-                  } catch (error) {
+                  } catch (_error) {
                     console.error(
                       `Failed to get properties for child group ${childGroup.groupId}:`,
-                      error,
+                      _error,
                     );
                   }
                 }
@@ -427,10 +421,10 @@ export async function listPropertiesTreeView(
                       });
 
                       grandchildProperties.push(...(gcPropsResponse.properties?.items || []));
-                    } catch (error) {
+                    } catch (_error) {
                       console.error(
                         `Failed to get properties for grandchild group ${grandchild.groupId}:`,
-                        error,
+                        _error,
                       );
                     }
                   }
@@ -446,8 +440,8 @@ export async function listPropertiesTreeView(
 
           treeNodes.push(groupNode);
           break; // Only process first contract for now
-        } catch (error) {
-          console.error(`Failed to get properties for contract ${contractId}:`, error);
+        } catch (_error) {
+          console.error('[Error]:', _error);
         }
       }
     }
@@ -515,7 +509,7 @@ export async function listPropertiesTreeView(
         },
       ],
     };
-  }, context);
+  }, _context);
 }
 
 /**
@@ -566,14 +560,14 @@ export async function getProperty(
         // Search properties with limits
         for (const group of groupsResponse.groups.items) {
           if (groupsSearched >= MAX_GROUPS_TO_SEARCH) {
-break;
-}
+            break;
+          }
           if (totalPropertiesSearched >= MAX_TOTAL_PROPERTIES) {
-break;
-}
+            break;
+          }
           if (!group.contractIds?.length) {
-continue;
-}
+            continue;
+          }
 
           groupsSearched++;
 
@@ -613,8 +607,8 @@ continue;
               partialMatches.forEach((prop: any) => {
                 foundProperties.push({ property: prop, group });
               });
-            } catch (err) {
-              console.error(`Failed to search in contract ${contractId}:`, err);
+            } catch (_err) {
+              console.error(`Failed to search in contract ${contractId}:`, _err);
             }
           }
         }
@@ -636,7 +630,7 @@ continue;
                   `- First ${MAX_GROUPS_TO_SEARCH} groups\n` +
                   `- Maximum ${MAX_PROPERTIES_PER_GROUP} properties per group\n` +
                   `- Total of ${MAX_TOTAL_PROPERTIES} properties\n\n` +
-                  'If your property wasn\'t found, please use its exact property ID.',
+                  "If your property wasn't found, please use its exact property ID.",
               },
             ],
           };
@@ -672,7 +666,8 @@ continue;
 
         text += '**To get details for a specific property, use its ID:**\n';
         text += `Example: "get property ${matchesToShow[0]?.property.propertyId}"\n\n`;
-        text += '💡 **Tip:** Using the exact property ID (prp_XXXXX) is always faster and more reliable.';
+        text +=
+          '💡 **Tip:** Using the exact property ID (prp_XXXXX) is always faster and more reliable.';
 
         return {
           content: [
@@ -701,8 +696,8 @@ continue;
 
     // Get property by ID
     return await getPropertyById(client, propertyId);
-  } catch (error) {
-    return formatError('get property', error);
+  } catch (_error) {
+    return formatError('get property', _error);
   }
 }
 
@@ -750,8 +745,8 @@ async function getPropertyById(
       // Search for the property in limited groups
       for (const group of groupsToSearch) {
         if (!group.contractIds?.length) {
-continue;
-}
+          continue;
+        }
 
         // Only check first contract per group for speed
         const cId = group.contractIds[0];
@@ -776,9 +771,9 @@ continue;
             groupName = group.groupName;
             break;
           }
-        } catch (err) {
+        } catch (_err) {
           // Continue searching
-          console.error(`Failed to search in group ${group.groupId}:`, err);
+          console.error(`Failed to search in group ${group.groupId}:`, _err);
         }
       }
 
@@ -932,8 +927,8 @@ continue;
         },
       ],
     };
-  } catch (error) {
-    return formatError('get property details', error);
+  } catch (_error) {
+    return formatError('get property details', _error);
   }
 }
 
@@ -1086,10 +1081,10 @@ export async function createProperty(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     // Handle specific error cases
-    if (error instanceof Error) {
-      if (error.message.includes('already exists')) {
+    if (_error instanceof Error) {
+      if (_error.message.includes('already exists')) {
         return {
           content: [
             {
@@ -1100,7 +1095,7 @@ export async function createProperty(
         };
       }
 
-      if (error.message.includes('Invalid product')) {
+      if (_error.message.includes('Invalid product')) {
         return {
           content: [
             {
@@ -1112,7 +1107,7 @@ export async function createProperty(
       }
     }
 
-    return formatError('create property', error);
+    return formatError('create property', _error);
   }
 }
 
@@ -1195,8 +1190,8 @@ export async function listContracts(
         },
       ],
     };
-  } catch (error) {
-    return formatError('list contracts', error);
+  } catch (_error) {
+    return formatError('list contracts', _error);
   }
 }
 
@@ -1254,8 +1249,8 @@ export async function listGroups(
       (acc: any, group: any) => {
         if (group.parentGroupId) {
           if (!acc[group.parentGroupId]) {
-acc[group.parentGroupId] = [];
-}
+            acc[group.parentGroupId] = [];
+          }
           acc[group.parentGroupId].push(group);
         }
         return acc;
@@ -1334,14 +1329,15 @@ acc[group.parentGroupId] = [];
 
     // Add usage instructions
     text += '## How to Use This Information\n\n';
-    text += 'When creating a new property, you\'ll need:\n';
+    text += "When creating a new property, you'll need:\n";
     text += '1. **Group ID** - Choose based on your organization structure\n';
     text += '2. **Contract ID** - Choose based on your billing arrangement\n\n';
     text += 'Example:\n';
     text += '`"Create a new property called my-site in group 12345 with contract C-1234567"`\n\n';
     text += '💡 **Tips:**\n';
     text += '- You can omit the prefixes (ctr_, grp_) when referencing IDs\n';
-    text += '- Properties inherit permissions from their group, so choose the appropriate group for access control';
+    text +=
+      '- Properties inherit permissions from their group, so choose the appropriate group for access control';
 
     return {
       content: [
@@ -1351,8 +1347,8 @@ acc[group.parentGroupId] = [];
         },
       ],
     };
-  } catch (error) {
-    return formatError('list groups', error);
+  } catch (_error) {
+    return formatError('list groups', _error);
   }
 }
 
@@ -1364,7 +1360,7 @@ export async function listProducts(
   client: AkamaiClient,
   args: { contractId: string; customer?: string },
 ): Promise<MCPToolResponse> {
-  const context: ErrorContext = {
+  const _context: ErrorContext = {
     operation: 'list products',
     endpoint: '/papi/v1/products',
     apiType: 'papi',
@@ -1507,7 +1503,7 @@ export async function listProducts(
 
     if (newMappings.length > 0) {
       text += '\n\n## 📝 New Product Mappings Discovered\n\n';
-      text += 'The following products don\'t have friendly name mappings yet:\n\n';
+      text += "The following products don't have friendly name mappings yet:\n\n";
       text += '```typescript\n';
       text += newMappings.join(',\n');
       text += '\n```\n';
@@ -1522,40 +1518,40 @@ export async function listProducts(
         },
       ],
     };
-  }, context);
+  }, _context);
 }
 
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+  if (_error instanceof Error) {
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
-    if (error.message.includes('401') || error.message.includes('credentials')) {
+    if (_error.message.includes('401') || _error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials. You may need to generate new API credentials in Akamai Control Center.';
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
       solution =
         '**Solution:** Your API credentials may lack the necessary permissions. Ensure your API client has read/write access to Property Manager.';
-    } else if (error.message.includes('404') || error.message.includes('not found')) {
+    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
       solution =
         '**Solution:** The requested resource was not found. Verify the ID is correct using the list tools.';
-    } else if (error.message.includes('429') || error.message.includes('rate limit')) {
+    } else if (_error.message.includes('429') || _error.message.includes('rate limit')) {
       solution = '**Solution:** Rate limit exceeded. Please wait 60 seconds before retrying.';
-    } else if (error.message.includes('network') || error.message.includes('ENOTFOUND')) {
+    } else if (_error.message.includes('network') || _error.message.includes('ENOTFOUND')) {
       solution =
         '**Solution:** Network connectivity issue. Check your internet connection and verify the API host in ~/.edgerc is correct.';
-    } else if (error.message.includes('timeout')) {
+    } else if (_error.message.includes('timeout')) {
       solution =
         '**Solution:** Request timed out. The Akamai API might be slow. Try again in a moment.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

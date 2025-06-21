@@ -106,7 +106,7 @@ class CleanupAgent {
       /^.*\.temp$/,
       /^\.DS_Store$/,
       /^npm-debug\.log/,
-      /^yarn-error\.log/,
+      /^yarn-_error\.log/,
       /^.*~$/,
       /^#.*#$/,
     ],
@@ -166,9 +166,9 @@ class CleanupAgent {
         // Save backup for undo capability
         await this.saveBackup(plan, result);
       }
-    } catch (error) {
-      console.error('❌ Cleanup failed:', error);
-      throw error;
+    } catch (_error) {
+      console.error('[Error]:', _error);
+      throw _error;
     } finally {
       if (this.rl) {
         this.rl.close();
@@ -201,9 +201,7 @@ class CleanupAgent {
       format: '[:bar] :percent :current/:total files',
     });
 
-    let processed = 0;
     for (const file of files) {
-      processed++;
       this.progressBar.increment();
 
       const category = this.categorizeFile(file);
@@ -453,10 +451,10 @@ class CleanupAgent {
           current: completed,
           message: `Moved ${path.basename(file.path)}`,
         });
-      } catch (error) {
+      } catch (_error) {
         result.errors.push({
           file: file.path,
-          error: error instanceof Error ? error.message : String(error),
+          error: _error instanceof Error ? _error.message : String(_error),
         });
       }
     }
@@ -474,10 +472,10 @@ class CleanupAgent {
           current: completed,
           message: `Deleted ${path.basename(file.path)}`,
         });
-      } catch (error) {
+      } catch (_error) {
         result.errors.push({
           file: file.path,
-          error: error instanceof Error ? error.message : String(error),
+          error: _error instanceof Error ? _error.message : String(_error),
         });
       }
     }
@@ -501,8 +499,8 @@ class CleanupAgent {
 
     if (result.errors.length > 0) {
       console.log(`\n❌ Errors: ${result.errors.length}`);
-      for (const error of result.errors) {
-        console.log(`  - ${error.file}: ${error.error}`);
+      for (const _error of result.errors) {
+        console.log(`  - ${_error.file}: ${_error.error}`);
       }
     }
 
@@ -541,9 +539,9 @@ class CleanupAgent {
 
       console.log('\n✅ Undo complete');
       console.log('Note: Deleted files cannot be restored');
-    } catch (error) {
-      console.error('❌ Undo failed:', error);
-      throw error;
+    } catch (_error) {
+      console.error('[Error]:', _error);
+      throw _error;
     }
   }
 
@@ -581,8 +579,8 @@ async function main() {
     } else {
       await agent.run();
     }
-  } catch (error) {
-    console.error('Error:', error);
+  } catch (_error) {
+    console.error('[Error]:', _error);
     process.exit(1);
   }
 }

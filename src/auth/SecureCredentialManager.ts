@@ -3,14 +3,7 @@
  * Handles encryption, decryption, and rotation of EdgeGrid credentials
  */
 
-import {
-  createCipheriv,
-  createDecipheriv,
-  randomBytes,
-  scrypt,
-  createHash,
-  timingSafeEqual,
-} from 'crypto';
+import { createCipheriv, createDecipheriv, randomBytes, scrypt, createHash } from 'crypto';
 import { promisify } from 'util';
 
 import {
@@ -104,10 +97,7 @@ export class SecureCredentialManager {
 
       // Encrypt credentials
       const credentialData = JSON.stringify(credentials);
-      const encrypted = Buffer.concat([
-        cipher.update(credentialData, 'utf8'),
-        cipher.final(),
-      ]);
+      const encrypted = Buffer.concat([cipher.update(credentialData, 'utf8'), cipher.final()]);
 
       // Get authentication tag for GCM
       const authTag = (cipher as any).getAuthTag();
@@ -153,8 +143,8 @@ export class SecureCredentialManager {
       });
 
       return encryptedCredential.id;
-    } catch (error) {
-      logger.error('Failed to encrypt credentials', { customerId, error });
+    } catch (_error) {
+      logger.error('Failed to encrypt credentials', { customerId, _error: _error });
 
       await this.logCredentialAccess({
         userId: 'system',
@@ -162,20 +152,17 @@ export class SecureCredentialManager {
         action: CredentialAction.CREATE,
         resource: 'credential',
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: _error instanceof Error ? _error.message : 'Unknown error',
       });
 
-      throw error;
+      throw _error;
     }
   }
 
   /**
    * Decrypt EdgeGrid credentials
    */
-  async decryptCredentials(
-    credentialId: string,
-    userId: string,
-  ): Promise<EdgeGridCredentials> {
+  async decryptCredentials(credentialId: string, userId: string): Promise<EdgeGridCredentials> {
     try {
       const encryptedCredential = this.credentials.get(credentialId);
       if (!encryptedCredential) {
@@ -203,10 +190,7 @@ export class SecureCredentialManager {
 
       // Decrypt data
       const encryptedData = Buffer.from(encryptedCredential.encryptedData, 'base64');
-      const decrypted = Buffer.concat([
-        decipher.update(encryptedData),
-        decipher.final(),
-      ]);
+      const decrypted = Buffer.concat([decipher.update(encryptedData), decipher.final()]);
 
       // Parse credentials
       const credentials = JSON.parse(decrypted.toString('utf8')) as EdgeGridCredentials;
@@ -227,8 +211,8 @@ export class SecureCredentialManager {
       });
 
       return credentials;
-    } catch (error) {
-      logger.error('Failed to decrypt credentials', { credentialId, error });
+    } catch (_error) {
+      logger.error('Failed to decrypt credentials', { credentialId, _error: _error });
 
       const encryptedCredential = this.credentials.get(credentialId);
       await this.logCredentialAccess({
@@ -237,10 +221,10 @@ export class SecureCredentialManager {
         action: CredentialAction.DECRYPT,
         resource: `credential:${credentialId}`,
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: _error instanceof Error ? _error.message : 'Unknown error',
       });
 
-      throw error;
+      throw _error;
     }
   }
 
@@ -302,8 +286,8 @@ export class SecureCredentialManager {
       });
 
       return newCredentialId;
-    } catch (error) {
-      logger.error('Failed to rotate credentials', { credentialId, error });
+    } catch (_error) {
+      logger.error('Failed to rotate credentials', { credentialId, _error: _error });
 
       const credential = this.credentials.get(credentialId);
       await this.logCredentialAccess({
@@ -312,10 +296,10 @@ export class SecureCredentialManager {
         action: CredentialAction.ROTATE,
         resource: `credential:${credentialId}`,
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: _error instanceof Error ? _error.message : 'Unknown error',
       });
 
-      throw error;
+      throw _error;
     }
   }
 
@@ -365,10 +349,7 @@ export class SecureCredentialManager {
   /**
    * Schedule automatic rotation
    */
-  private scheduleRotation(
-    credentialId: string,
-    schedule: CredentialRotationSchedule,
-  ): void {
+  private scheduleRotation(credentialId: string, schedule: CredentialRotationSchedule): void {
     const msUntilRotation = schedule.nextRotation.getTime() - Date.now();
 
     if (msUntilRotation <= 0) {
@@ -385,7 +366,8 @@ export class SecureCredentialManager {
 
     // Schedule notification if configured
     if (schedule.notifications?.enabled) {
-      const notifyMs = msUntilRotation - schedule.notifications.daysBeforeRotation * 24 * 60 * 60 * 1000;
+      const notifyMs =
+        msUntilRotation - schedule.notifications.daysBeforeRotation * 24 * 60 * 60 * 1000;
       if (notifyMs > 0) {
         setTimeout(() => {
           this.sendRotationNotification(credentialId);
@@ -405,9 +387,7 @@ export class SecureCredentialManager {
       }
 
       // Get current credentials from customer config
-      const currentCreds = CustomerConfigManager.getInstance().getSection(
-        credential.customerId,
-      );
+      const currentCreds = CustomerConfigManager.getInstance().getSection(credential.customerId);
 
       // In a real implementation, this would generate new credentials
       // For now, we'll just re-encrypt the existing ones
@@ -417,10 +397,10 @@ export class SecureCredentialManager {
         credentialId,
         customerId: credential.customerId,
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Automatic credential rotation failed', {
         credentialId,
-        error,
+        _error,
       });
     }
   }
@@ -446,11 +426,7 @@ export class SecureCredentialManager {
    * Derive encryption key from master key
    */
   private async deriveKey(masterKey: string, salt: Buffer): Promise<Buffer> {
-    return (await scryptAsync(
-      masterKey,
-      salt,
-      this.encryptionConfig.keyLength,
-    )) as Buffer;
+    return (await scryptAsync(masterKey, salt, this.encryptionConfig.keyLength)) as Buffer;
   }
 
   /**
@@ -496,9 +472,7 @@ export class SecureCredentialManager {
    * List credentials for customer
    */
   listCustomerCredentials(customerId: string): EncryptedCredential[] {
-    return Array.from(this.credentials.values()).filter(
-      (cred) => cred.customerId === customerId,
-    );
+    return Array.from(this.credentials.values()).filter((cred) => cred.customerId === customerId);
   }
 
   /**

@@ -7,15 +7,10 @@ import { describe, it, expect } from '@jest/globals';
 
 import {
   EnhancedErrorHandler,
-  withEnhancedErrorHandling,
   handleAkamaiError,
   ErrorType,
 } from '../../utils/enhanced-error-handling';
-import {
-  ResponseParser,
-  parseAkamaiResponse,
-  AkamaiErrorResponse,
-} from '../../utils/response-parsing';
+import { ResponseParser, parseAkamaiResponse } from '../../utils/response-parsing';
 
 // Mock API responses for testing
 const mockPropertyListResponse = {
@@ -108,7 +103,7 @@ const mockCertificateEnrollmentResponse = {
 };
 
 const mockFastPurgeResponse = {
-  httpStatus: 201,
+  _httpStatus: 201,
   detail: 'Request accepted',
   estimatedSeconds: 5,
   purgeId: 'purge_123',
@@ -156,7 +151,7 @@ describe('Response Parser Tests', () => {
         pageSize: 50,
         currentPage: 1,
         links: {
-          next: '/properties?page=2',
+          _next: '/properties?page=2',
           self: '/properties?page=1',
         },
       };
@@ -168,7 +163,7 @@ describe('Response Parser Tests', () => {
         pageSize: 50,
         currentPage: 1,
         links: {
-          next: '/properties?page=2',
+          _next: '/properties?page=2',
           self: '/properties?page=1',
         },
       });
@@ -262,7 +257,7 @@ describe('Response Parser Tests', () => {
                 keyAuthorization: 'xyz789',
               },
             ],
-            expires: '2025-01-25T10:00:00Z',
+            expi_res: '2025-01-25T10:00:00Z',
           },
         ],
       };
@@ -281,7 +276,7 @@ describe('Response Parser Tests', () => {
     it('should parse purge initiation response', () => {
       const parsed = ResponseParser.parseFastPurgeResponse(mockFastPurgeResponse);
       expect(parsed).toMatchObject({
-        httpStatus: 201,
+        _httpStatus: 201,
         detail: 'Request accepted',
         estimatedSeconds: 5,
         purgeId: 'purge_123',
@@ -291,7 +286,7 @@ describe('Response Parser Tests', () => {
 
     it('should parse purge status response', () => {
       const statusResponse = {
-        httpStatus: 200,
+        _httpStatus: 200,
         detail: 'Purge completed',
         status: 'Done',
         submittedBy: 'user@example.com',
@@ -301,7 +296,7 @@ describe('Response Parser Tests', () => {
 
       const parsed = ResponseParser.parseFastPurgeResponse(statusResponse);
       expect(parsed).toMatchObject({
-        httpStatus: 200,
+        _httpStatus: 200,
         status: 'Done',
         submittedBy: 'user@example.com',
       });
@@ -350,7 +345,9 @@ describe('Response Parser Tests', () => {
         requestId: 'req_123',
       };
 
-      const parsed = ResponseParser.parseErrorResponse({ response: { data: errorResponse, status: 404 } });
+      const parsed = ResponseParser.parseErrorResponse({
+        response: { data: errorResponse, status: 404 },
+      });
       expect(parsed).toMatchObject({
         type: '/papi/v1/errors/property-not-found',
         title: 'Property not found',
@@ -381,7 +378,9 @@ describe('Response Parser Tests', () => {
         ],
       };
 
-      const parsed = ResponseParser.parseErrorResponse({ response: { data: validationError, status: 400 } });
+      const parsed = ResponseParser.parseErrorResponse({
+        response: { data: validationError, status: 400 },
+      });
       expect(parsed.errors).toHaveLength(2);
       expect(parsed.errors?.[0]).toMatchObject({
         type: 'field-error',
@@ -392,7 +391,9 @@ describe('Response Parser Tests', () => {
 
     it('should handle string error responses', () => {
       const stringError = 'Internal server error occurred';
-      const parsed = ResponseParser.parseErrorResponse({ response: { data: stringError, status: 500 } });
+      const parsed = ResponseParser.parseErrorResponse({
+        response: { data: stringError, status: 500 },
+      });
       expect(parsed).toMatchObject({
         title: 'API Error',
         detail: 'Internal server error occurred',
@@ -402,7 +403,9 @@ describe('Response Parser Tests', () => {
 
     it('should handle JSON string error responses', () => {
       const jsonStringError = '{"error": "Rate limit exceeded", "retry_after": 60}';
-      const parsed = ResponseParser.parseErrorResponse({ response: { data: jsonStringError, status: 429 } });
+      const parsed = ResponseParser.parseErrorResponse({
+        response: { data: jsonStringError, status: 429 },
+      });
       expect(parsed).toMatchObject({
         title: 'Rate limit exceeded',
         detail: 'Rate limit exceeded',
@@ -433,7 +436,7 @@ describe('Response Parser Tests', () => {
       const response = {
         headers: {
           'x-request-id': 'req_abc123',
-          'etag': 'W/"abc123"',
+          etag: 'W/"abc123"',
           'last-modified': 'Fri, 18 Jan 2025 10:00:00 GMT',
           'cache-control': 'max-age=300',
         },
@@ -575,7 +578,9 @@ describe('Enhanced Error Handler Tests', () => {
 
       const result = errorHandler.handle(authError);
       expect(result.errorType).toBe(ErrorType.AUTHENTICATION);
-      expect(result.suggestions).toContain('Verify your .edgerc credentials are correct and not expired');
+      expect(result.suggestions).toContain(
+        'Verify your .edgerc credentials are correct and not expired',
+      );
     });
 
     it('should categorize rate limit errors', () => {
@@ -811,7 +816,7 @@ describe('Integration Response Handling', () => {
         'x-ratelimit-remaining': '99',
         'x-ratelimit-limit': '100',
         'x-ratelimit-reset': '1705576800',
-        'etag': 'W/"abc"',
+        etag: 'W/"abc"',
       },
       data: mockPropertyListResponse,
     };
@@ -830,7 +835,7 @@ describe('Integration Response Handling', () => {
   });
 
   it('should handle error response with enhanced error handling', () => {
-    const error = {
+    const _error = {
       response: {
         status: 400,
         headers: {},
@@ -850,7 +855,7 @@ describe('Integration Response Handling', () => {
       },
     };
 
-    const result = handleAkamaiError(error, {
+    const result = handleAkamaiError(_error, {
       operation: 'update property rules',
       apiType: 'papi',
     });

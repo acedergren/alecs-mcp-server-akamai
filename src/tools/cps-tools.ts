@@ -182,8 +182,8 @@ export async function createDVEnrollment(
         },
       ],
     };
-  } catch (error) {
-    return formatError('create DV enrollment', error);
+  } catch (_error) {
+    return formatError('create DV enrollment', _error);
   }
 }
 
@@ -228,7 +228,15 @@ export async function getDVValidationChallenges(
           IN_PROGRESS: '🔄',
           ERROR: '❌',
           EXPIRED: '⚠️',
-        }[domain.validationStatus as keyof {VALIDATED: string; PENDING: string; IN_PROGRESS: string; ERROR: string; EXPIRED: string}] || '❓';
+        }[
+          domain.validationStatus as keyof {
+            VALIDATED: string;
+            PENDING: string;
+            IN_PROGRESS: string;
+            ERROR: string;
+            EXPIRED: string;
+          }
+        ] || '❓';
 
       text += `### ${statusEmoji} ${domain.name}\n`;
       text += `- **Status:** ${domain.status}\n`;
@@ -310,8 +318,8 @@ export async function getDVValidationChallenges(
         },
       ],
     };
-  } catch (error) {
-    return formatError('get DV validation challenges', error);
+  } catch (_error) {
+    return formatError('get DV validation challenges', _error);
   }
 }
 
@@ -343,7 +351,18 @@ export async function checkDVEnrollmentStatus(
         expired: '❌',
         pending: '⏳',
         cancelled: '🚫',
-      }[response.status.toLowerCase() as keyof {active: string; new: string; modified: string; 'renewal-in-progress': string; 'expiring-soon': string; expired: string; pending: string; cancelled: string}] || '❓';
+      }[
+        response.status.toLowerCase() as keyof {
+          active: string;
+          new: string;
+          modified: string;
+          'renewal-in-progress': string;
+          'expiring-soon': string;
+          expired: string;
+          pending: string;
+          cancelled: string;
+        }
+      ] || '❓';
 
     let text = '# Certificate Enrollment Status\n\n';
     text += `**Enrollment ID:** ${response.enrollmentId}\n`;
@@ -368,7 +387,15 @@ export async function checkDVEnrollmentStatus(
           IN_PROGRESS: '🔄',
           ERROR: '❌',
           EXPIRED: '⚠️',
-        }[domain.validationStatus as keyof {VALIDATED: string; PENDING: string; IN_PROGRESS: string; ERROR: string; EXPIRED: string}] || '❓';
+        }[
+          domain.validationStatus as keyof {
+            VALIDATED: string;
+            PENDING: string;
+            IN_PROGRESS: string;
+            ERROR: string;
+            EXPIRED: string;
+          }
+        ] || '❓';
 
       text += `- ${emoji} **${domain.name}**: ${domain.validationStatus}\n`;
 
@@ -424,8 +451,8 @@ export async function checkDVEnrollmentStatus(
         },
       ],
     };
-  } catch (error) {
-    return formatError('check DV enrollment status', error);
+  } catch (_error) {
+    return formatError('check DV enrollment status', _error);
   }
 }
 
@@ -473,8 +500,8 @@ export async function listCertificateEnrollments(
       (acc: any, enrollment: any) => {
         const status = enrollment.status.toLowerCase();
         if (!acc[status]) {
-acc[status] = [];
-}
+          acc[status] = [];
+        }
         acc[status].push(enrollment);
         return acc;
       },
@@ -533,8 +560,8 @@ acc[status] = [];
         },
       ],
     };
-  } catch (error) {
-    return formatError('list certificate enrollments', error);
+  } catch (_error) {
+    return formatError('list certificate enrollments', _error);
   }
 }
 
@@ -596,8 +623,8 @@ export async function linkCertificateToProperty(
         },
       ],
     };
-  } catch (error) {
-    return formatError('link certificate to property', error);
+  } catch (_error) {
+    return formatError('link certificate to property', _error);
   }
 }
 
@@ -637,32 +664,32 @@ function formatEnrollmentSummary(enrollment: CPSEnrollmentStatus): string {
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+  if (_error instanceof Error) {
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
-    if (error.message.includes('401') || error.message.includes('credentials')) {
+    if (_error.message.includes('401') || _error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials with CPS permissions.';
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
       solution =
         '**Solution:** Your API credentials need CPS read/write permissions. Contact your account team.';
-    } else if (error.message.includes('404') || error.message.includes('not found')) {
+    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
       solution =
         '**Solution:** The enrollment was not found. Use "List certificate enrollments" to see available certificates.';
-    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
+    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
       solution =
         '**Solution:** Invalid request parameters. Check domain names and contact information.';
-    } else if (error.message.includes('contract')) {
+    } else if (_error.message.includes('contract')) {
       solution =
         '**Solution:** Specify a valid contract ID. Use "List groups" to find available contracts.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

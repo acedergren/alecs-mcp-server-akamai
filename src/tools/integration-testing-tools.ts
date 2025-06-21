@@ -129,12 +129,12 @@ export async function runIntegrationTestSuite(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `Error running integration tests: ${(error as Error).message}`,
+          text: `Error running integration tests: ${(_error as Error).message}`,
         },
       ],
     };
@@ -241,8 +241,8 @@ export async function checkAPIHealth(
 
         if (loadTestResult.errors.length > 0) {
           responseText += '\n**Errors Encountered:**\n';
-          loadTestResult.errors.forEach((error) => {
-            responseText += `- ${error}\n`;
+          loadTestResult.errors.forEach((_error) => {
+            responseText += `- ${_error}\n`;
           });
         }
       }
@@ -271,12 +271,12 @@ export async function checkAPIHealth(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `Error checking API health: ${(error as Error).message}`,
+          text: `Error checking API health: ${(_error as Error).message}`,
         },
       ],
     };
@@ -414,12 +414,12 @@ export async function generateTestData(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `Error generating test data: ${(error as Error).message}`,
+          text: `Error generating test data: ${(_error as Error).message}`,
         },
       ],
     };
@@ -486,11 +486,11 @@ export async function validateToolResponses(
           scenario: scenario.name,
           ...result,
         });
-      } catch (error) {
+      } catch (_error) {
         results.push({
           scenario: scenario.name,
           status: 'failed',
-          error: (error as Error).message,
+          error: (_error as Error).message,
         });
       }
     }
@@ -531,12 +531,12 @@ export async function validateToolResponses(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `Error validating tool responses: ${(error as Error).message}`,
+          text: `Error validating tool responses: ${(_error as Error).message}`,
         },
       ],
     };
@@ -638,8 +638,8 @@ export async function runLoadTest(
       responseText += '### Error Analysis\n\n';
       responseText += `**Unique errors encountered:** ${result.errors.length}\n\n`;
 
-      result.errors.forEach((error, index) => {
-        responseText += `${index + 1}. ${error}\n`;
+      result.errors.forEach((_error, index) => {
+        responseText += `${index + 1}. ${_error}\n`;
       });
       responseText += '\n';
     }
@@ -671,12 +671,12 @@ export async function runLoadTest(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `Error running load test: ${(error as Error).message}`,
+          text: `Error running load test: ${(_error as Error).message}`,
         },
       ],
     };

@@ -103,8 +103,8 @@ export async function importZoneViaAXFR(
         },
       ],
     };
-  } catch (error) {
-    return formatError('import zone via AXFR', error);
+  } catch (_error) {
+    return formatError('import zone via AXFR', _error);
   }
 }
 
@@ -224,8 +224,8 @@ export async function parseZoneFile(
         },
       ],
     };
-  } catch (error) {
-    return formatError('parse zone file', error);
+  } catch (_error) {
+    return formatError('parse zone file', _error);
   }
 }
 
@@ -284,10 +284,10 @@ export async function bulkImportRecords(
           });
 
           successCount++;
-        } catch (error) {
+        } catch (_error) {
           errors.push({
             record: `${record.name} ${record.type}`,
-            error: error instanceof Error ? error.message : JSON.stringify(error),
+            error: _error instanceof Error ? _error.message : JSON.stringify(_error),
           });
         }
       }
@@ -329,8 +329,8 @@ export async function bulkImportRecords(
 
     if (errors.length > 0) {
       text += '## ❌ Failed Records\n\n';
-      errors.slice(0, 20).forEach((error) => {
-        text += `- **${error.record}:** ${error.error}\n`;
+      errors.slice(0, 20).forEach((_error) => {
+        text += `- **${_error.record}:** ${_error.error}\n`;
       });
       if (errors.length > 20) {
         text += `\n... and ${errors.length - 20} more errors\n`;
@@ -351,7 +351,8 @@ export async function bulkImportRecords(
       text += '- use4.akadns.net\n';
       text += '- use2.akadns.net\n';
       text += '- use3.akadns.net\n\n';
-      text += '⚠️ **Important:** Don\'t update your domain registrar until you\'ve verified all records are working correctly!';
+      text +=
+        "⚠️ **Important:** Don't update your domain registrar until you've verified all records are working correctly!";
     }
 
     return {
@@ -362,8 +363,8 @@ export async function bulkImportRecords(
         },
       ],
     };
-  } catch (error) {
-    return formatError('bulk import records', error);
+  } catch (_error) {
+    return formatError('bulk import records', _error);
   }
 }
 
@@ -417,8 +418,8 @@ export async function convertZoneToPrimary(
         },
       ],
     };
-  } catch (error) {
-    return formatError('convert zone to primary', error);
+  } catch (_error) {
+    return formatError('convert zone to primary', _error);
   }
 }
 
@@ -543,7 +544,7 @@ export async function generateMigrationInstructions(
 
     text += '## Support Contacts\n\n';
     text += '- **Akamai Support:** support@akamai.com\n';
-    text += '- **Domain Registrar:** Check your registrar\'s support page\n';
+    text += "- **Domain Registrar:** Check your registrar's support page\n";
     text += '- **Your Team:** Define escalation contacts\n';
 
     return {
@@ -554,8 +555,8 @@ export async function generateMigrationInstructions(
         },
       ],
     };
-  } catch (error) {
-    return formatError('generate migration instructions', error);
+  } catch (_error) {
+    return formatError('generate migration instructions', _error);
   }
 }
 
@@ -670,10 +671,11 @@ export async function importFromCloudflare(
           // Cloudflare may have quotes, ensure proper formatting
           akamaiRecord.rdata = [cfRecord.content.replace(/^"|"$/g, '')];
           break;
-        case 'CAA':
+        case 'CAA': {
           const parts = cfRecord.data;
           akamaiRecord.rdata = [`${parts.flags} ${parts.tag} "${parts.value}"`];
           break;
+        }
         default:
           akamaiRecord.rdata = [cfRecord.content];
       }
@@ -729,8 +731,8 @@ export async function importFromCloudflare(
         },
       ],
     };
-  } catch (error) {
-    return formatError('import from Cloudflare', error);
+  } catch (_error) {
+    return formatError('import from Cloudflare', _error);
   }
 }
 
@@ -751,8 +753,8 @@ function parseBindZoneFile(content: string, zone: string): ZoneFileRecord[] {
     const lineParts = line.split(';');
     const cleanLine = lineParts[0] ? lineParts[0].trim() : '';
     if (!cleanLine) {
-continue;
-}
+      continue;
+    }
 
     // Handle $TTL directive
     if (cleanLine.startsWith('$TTL')) {
@@ -765,20 +767,18 @@ continue;
 
     // Skip other directives
     if (cleanLine.startsWith('$')) {
-continue;
-}
+      continue;
+    }
 
     // Parse record
     const parts = cleanLine.split(/\s+/);
     if (parts.length < 3) {
-continue;
-}
+      continue;
+    }
 
     let name: string;
     let ttl: number;
     let recordClass: string;
-    let type: string;
-    let rdata: string[];
 
     // Determine field positions
     let fieldIndex = 0;
@@ -822,14 +822,14 @@ continue;
 
     // Type
     const typeField = fieldIndex < parts.length ? parts[fieldIndex] : undefined;
-    type = typeField ? typeField.toUpperCase() : '';
+    const type = typeField ? typeField.toUpperCase() : '';
     if (!type) {
-continue;
-}
+      continue;
+    }
     fieldIndex++;
 
     // Rest is RDATA
-    rdata = parts.slice(fieldIndex);
+    const rdata = parts.slice(fieldIndex);
 
     // Special handling for different record types
     switch (type) {
@@ -840,11 +840,12 @@ continue;
         }
         break;
 
-      case 'TXT':
+      case 'TXT': {
         // Concatenate TXT record data
         const txtData = rdata.join(' ').replace(/"/g, '');
         records.push({ name, ttl, class: recordClass, type, rdata: [txtData] });
         break;
+      }
 
       case 'SRV':
         // SRV records need all parts
@@ -885,8 +886,8 @@ function convertToAkamaiFormat(records: ZoneFileRecord[], _zone: string): DNSRec
     const firstRecord = groupedRecords[0];
 
     if (!firstRecord || !name || !type) {
-continue;
-}
+      continue;
+    }
 
     // Combine rdata from all records in group
     const rdata: string[] = [];
@@ -976,12 +977,12 @@ async function validateDNSRecords(records: ZoneFileRecord[]): Promise<
         rdata: record.rdata,
       });
       results.push(result);
-    } catch (error) {
+    } catch (_error) {
       results.push({
         name: record.name,
         type: record.type,
         valid: false,
-        error: error instanceof Error ? error.message : 'Validation failed',
+        error: _error instanceof Error ? _error.message : 'Validation failed',
       });
     }
   }
@@ -1077,12 +1078,12 @@ async function validateSingleRecord(record: DNSRecordSet): Promise<{
     }
 
     return { name: record.name, type: record.type, valid: true };
-  } catch (error) {
+  } catch (_error) {
     return {
       name: record.name,
       type: record.type,
       valid: false,
-      error: error instanceof Error ? error.message : 'Validation error',
+      error: _error instanceof Error ? _error.message : 'Validation _error',
     };
   }
 }
@@ -1108,23 +1109,23 @@ const globalMigrationCache = new Map<string, DNSRecordSet[]>();
 /**
  * Format error responses
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+  if (_error instanceof Error) {
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions
-    if (error.message.includes('zone') && error.message.includes('exist')) {
+    if (_error.message.includes('zone') && _error.message.includes('exist')) {
       solution = '**Solution:** Create the zone first using "Create primary zone [domain]"';
-    } else if (error.message.includes('parse')) {
+    } else if (_error.message.includes('parse')) {
       solution = '**Solution:** Check zone file format. Ensure it follows BIND format.';
-    } else if (error.message.includes('AXFR')) {
+    } else if (_error.message.includes('AXFR')) {
       solution = '**Solution:** Ensure the master server allows zone transfers from Akamai IPs.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

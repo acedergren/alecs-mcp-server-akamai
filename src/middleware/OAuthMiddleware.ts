@@ -85,9 +85,7 @@ const TOOL_PERMISSIONS: Record<string, ToolPermission> = {
 /**
  * Create OAuth authentication middleware
  */
-export function createOAuthMiddleware(
-  config: OAuthMiddlewareConfig = {},
-): MiddlewareFunction {
+export function createOAuthMiddleware(config: OAuthMiddlewareConfig = {}): MiddlewareFunction {
   const {
     requireAuth = true,
     publicTools = [],
@@ -99,59 +97,50 @@ export function createOAuthMiddleware(
   const contextManager = CustomerContextManager.getInstance();
 
   return async (
-    req: MiddlewareRequest,
-    res: MiddlewareResponse,
-    next: NextFunction,
+    _req: MiddlewareRequest,
+    _res: MiddlewareResponse,
+    _next: NextFunction,
   ): Promise<void> => {
     try {
       // Check if tool requires authentication
-      if (!requireAuth || publicTools.includes(req.toolName)) {
+      if (!requireAuth || publicTools.includes(_req.toolName)) {
         if (debug) {
           logger.debug('Tool does not require authentication', {
-            tool: req.toolName,
+            tool: _req.toolName,
           });
         }
-        return next();
+        return _next();
       }
 
       // Extract session ID from request
-      const sessionId = extractSessionId(req, sessionHeader);
+      const sessionId = extractSessionId(_req, sessionHeader);
       if (!sessionId) {
-        return res.error('Authentication required', 'AUTH_REQUIRED');
+        return _res.error('Authentication required', 'AUTH_REQUIRED');
       }
 
       // Store session ID in request context
-      req.context.sessionId = sessionId;
+      _req._context.sessionId = sessionId;
 
       // Get tool permissions
-      const toolPermission = TOOL_PERMISSIONS[req.toolName];
+      const toolPermission = TOOL_PERMISSIONS[_req.toolName];
       if (!toolPermission) {
         if (debug) {
-          logger.warn('No permission mapping for tool', { tool: req.toolName });
+          logger.warn('No permission mapping for tool', { tool: _req.toolName });
         }
         // Default to requiring read permission on unknown resource
-        const decision = await authorizeRequest(
-          contextManager,
-          sessionId,
-          'unknown',
-          'read',
-          req,
-        );
+        const decision = await authorizeRequest(contextManager, sessionId, 'unknown', 'read', _req);
 
         if (!decision.allowed) {
-          return res.error(
-            `Not authorized: ${decision.reason}`,
-            'AUTHORIZATION_FAILED',
-          );
+          return _res.error(`Not authorized: ${decision.reason}`, 'AUTHORIZATION_FAILED');
         }
 
-        return next();
+        return _next();
       }
 
       // Extract resource ID if required
       let resourceId: string | undefined;
       if (toolPermission.requiresResourceId) {
-        resourceId = extractResourceId(req);
+        resourceId = extractResourceId(_req);
       }
 
       // Perform authorization
@@ -160,37 +149,34 @@ export function createOAuthMiddleware(
         sessionId,
         toolPermission.resource,
         toolPermission.action,
-        req,
+        _req,
         resourceId,
       );
 
       if (!decision.allowed) {
-        return res.error(
+        return _res.error(
           `Not authorized to ${toolPermission.action} ${toolPermission.resource}: ${decision.reason}`,
           'AUTHORIZATION_FAILED',
         );
       }
 
       // Check admin requirement
-      if (adminTools.includes(req.toolName)) {
+      if (adminTools.includes(_req.toolName)) {
         const adminDecision = await authorizeRequest(
           contextManager,
           sessionId,
           'admin',
           'access',
-          req,
+          _req,
         );
 
         if (!adminDecision.allowed) {
-          return res.error(
-            'Admin privileges required',
-            'ADMIN_REQUIRED',
-          );
+          return _res.error('Admin privileges required', 'ADMIN_REQUIRED');
         }
       }
 
       // Store authorization context
-      req.context.authorization = {
+      _req._context.authorization = {
         allowed: true,
         resource: toolPermission.resource,
         action: toolPermission.action,
@@ -199,24 +185,21 @@ export function createOAuthMiddleware(
 
       if (debug) {
         logger.debug('Authorization successful', {
-          tool: req.toolName,
+          tool: _req.toolName,
           resource: toolPermission.resource,
           action: toolPermission.action,
           sessionId,
         });
       }
 
-      next();
-    } catch (error) {
-      logger.error('OAuth middleware error', {
-        tool: req.toolName,
-        error,
+      _next();
+    } catch (_error) {
+      logger.error('OAuth middleware _error', {
+        tool: _req.toolName,
+        _error,
       });
 
-      res.error(
-        error instanceof Error ? error.message : 'Authentication error',
-        'AUTH_ERROR',
-      );
+      _res.error(_error instanceof Error ? _error.message : 'Authentication error', 'AUTH_ERROR');
     }
   };
 }
@@ -224,18 +207,15 @@ export function createOAuthMiddleware(
 /**
  * Extract session ID from request
  */
-function extractSessionId(
-  req: MiddlewareRequest,
-  headerName: string,
-): string | undefined {
+function extractSessionId(_req: MiddlewareRequest, headerName: string): string | undefined {
   // Check context first
-  if (req.context.sessionId) {
-    return req.context.sessionId as string;
+  if (_req._context.sessionId) {
+    return _req._context.sessionId as string;
   }
 
   // Check params for session ID
-  if (typeof req.params === 'object' && req.params !== null) {
-    const params = req.params as Record<string, unknown>;
+  if (typeof _req.params === 'object' && _req.params !== null) {
+    const params = _req.params as Record<string, unknown>;
 
     // Check header-style parameter
     if (params[headerName]) {
@@ -258,9 +238,9 @@ function extractSessionId(
 /**
  * Extract resource ID from request
  */
-function extractResourceId(req: MiddlewareRequest): string | undefined {
-  if (typeof req.params === 'object' && req.params !== null) {
-    const params = req.params as Record<string, unknown>;
+function extractResourceId(_req: MiddlewareRequest): string | undefined {
+  if (typeof _req.params === 'object' && _req.params !== null) {
+    const params = _req.params as Record<string, unknown>;
 
     // Common resource ID parameter names
     const idParams = ['id', 'resourceId', 'propertyId', 'configId', 'credentialId'];
@@ -283,7 +263,7 @@ async function authorizeRequest(
   sessionId: string,
   resource: string,
   action: string,
-  req: MiddlewareRequest,
+  _req: MiddlewareRequest,
   resourceId?: string,
 ): Promise<AuthorizationDecision> {
   return contextManager.authorize({
@@ -292,9 +272,9 @@ async function authorizeRequest(
     action,
     resourceId,
     metadata: {
-      toolName: req.toolName,
-      requestId: req.requestId,
-      timestamp: req.timestamp,
+      toolName: _req.toolName,
+      requestId: _req.requestId,
+      timestamp: _req.timestamp,
     },
   });
 }
@@ -306,48 +286,48 @@ export function createCustomerContextMiddleware(): MiddlewareFunction {
   const contextManager = CustomerContextManager.getInstance();
 
   return async (
-    req: MiddlewareRequest,
-    res: MiddlewareResponse,
-    next: NextFunction,
+    _req: MiddlewareRequest,
+    _res: MiddlewareResponse,
+    _next: NextFunction,
   ): Promise<void> => {
     try {
       // Check if session ID is available
-      const sessionId = req.context.sessionId as string | undefined;
+      const sessionId = _req._context.sessionId as string | undefined;
       if (!sessionId) {
         // No session, continue without customer context
-        return next();
+        return _next();
       }
 
       // Get available customers for session
       const customers = await contextManager.getAvailableCustomers(sessionId);
 
       // Store in request context
-      req.context.availableCustomers = customers;
-      req.context.currentCustomer = customers.find((c) => c.customerId === req.customer);
+      _req._context.availableCustomers = customers;
+      _req._context.currentCustomer = customers.find((c) => c.customerId === _req.customer);
 
       // If customer specified but not available, error
-      if (req.customer && !req.context.currentCustomer) {
-        return res.error(
-          `Customer ${req.customer} not available for session`,
+      if (_req.customer && !_req._context.currentCustomer) {
+        return _res.error(
+          `Customer ${_req.customer} not available for session`,
           'CUSTOMER_NOT_AVAILABLE',
         );
       }
 
       // If no customer specified, use first available
-      if (!req.customer && customers.length > 0) {
-        req.customer = customers[0]!.customerId;
-        req.context.currentCustomer = customers[0];
+      if (!_req.customer && customers.length > 0) {
+        _req.customer = customers[0]!.customerId;
+        _req._context.currentCustomer = customers[0];
       }
 
-      next();
-    } catch (error) {
-      logger.error('Customer context middleware error', {
-        tool: req.toolName,
-        error,
+      _next();
+    } catch (_error) {
+      logger.error('Customer context middleware _error', {
+        tool: _req.toolName,
+        _error,
       });
 
       // Continue without customer context
-      next();
+      _next();
     }
   };
 }
@@ -359,58 +339,54 @@ export function createCredentialAccessMiddleware(): MiddlewareFunction {
   const contextManager = CustomerContextManager.getInstance();
 
   return async (
-    req: MiddlewareRequest,
-    res: MiddlewareResponse,
-    next: NextFunction,
+    _req: MiddlewareRequest,
+    _res: MiddlewareResponse,
+    _next: NextFunction,
   ): Promise<void> => {
     try {
       // Check if this tool requires EdgeGrid access
-      const requiresEdgeGrid = [
-        'property',
-        'configuration',
-        'purge',
-        'reporting',
-        'security',
-      ].some((prefix) => req.toolName.startsWith(prefix));
+      const requiresEdgeGrid = ['property', 'configuration', 'purge', 'reporting', 'security'].some(
+        (prefix) => _req.toolName.startsWith(prefix),
+      );
 
       if (!requiresEdgeGrid) {
-        return next();
+        return _next();
       }
 
       // Check session and customer
-      const sessionId = req.context.sessionId as string | undefined;
-      const customerId = req.customer;
+      const sessionId = _req._context.sessionId as string | undefined;
+      const customerId = _req.customer;
 
       if (!sessionId || !customerId) {
-        return next(); // Let other middleware handle authentication
+        return _next(); // Let other middleware handle authentication
       }
 
       // Get EdgeGrid client for customer
       const client = await contextManager.getEdgeGridClient({
         sessionId,
         customerId,
-        purpose: `${req.toolName} API call`,
+        purpose: `${_req.toolName} API call`,
       });
 
       // Store in context for tool to use
-      req.context.edgeGridClient = client;
-      req.context.hasCredentialAccess = true;
+      _req._context.edgeGridClient = client;
+      _req._context.hasCredentialAccess = true;
 
       logger.debug('EdgeGrid client provided for request', {
-        tool: req.toolName,
+        tool: _req.toolName,
         customerId,
       });
 
-      next();
-    } catch (error) {
-      logger.error('Credential access middleware error', {
-        tool: req.toolName,
-        customer: req.customer,
-        error,
+      _next();
+    } catch (_error) {
+      logger.error('Credential access middleware _error', {
+        tool: _req.toolName,
+        customer: _req.customer,
+        _error,
       });
 
-      res.error(
-        error instanceof Error ? error.message : 'Credential access error',
+      _res.error(
+        _error instanceof Error ? _error.message : 'Credential access error',
         'CREDENTIAL_ERROR',
       );
     }

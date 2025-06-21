@@ -337,12 +337,12 @@ export async function createBulkProvisioningPlan(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'create bulk provisioning plan',
             parameters: args,
             timestamp: new Date(),
@@ -487,7 +487,7 @@ export async function executeBulkProvisioning(
     // Phase 4: Certificate Status
     responseText += '## Phase 4: Certificate Provisioning\n';
     if (args.certificateStrategy === 'default-dv') {
-      responseText += '- Strategy: DefaultDV (Let\'s Encrypt)\n';
+      responseText += "- Strategy: DefaultDV (Let's Encrypt)\n";
       responseText += '- Automatic provisioning and renewal\n';
       responseText += '- Domain validation required\n';
     } else if (args.certificateStrategy === 'cps') {
@@ -560,12 +560,12 @@ export async function executeBulkProvisioning(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'execute bulk provisioning',
             parameters: args,
             timestamp: new Date(),
@@ -704,12 +704,12 @@ export async function validateBulkDNS(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'validate bulk DNS',
             parameters: args,
             timestamp: new Date(),
@@ -748,8 +748,8 @@ export async function bulkUpdateHostnameProperties(
     const operationsByProperty = args.operations.reduce(
       (acc, op) => {
         if (!acc[op.propertyId]) {
-acc[op.propertyId] = [];
-}
+          acc[op.propertyId] = [];
+        }
         acc[op.propertyId].push(op);
         return acc;
       },
@@ -859,11 +859,11 @@ acc[op.propertyId] = [];
           },
           body: hostnames,
         });
-      } catch (error) {
+      } catch (_error) {
         operations.forEach((op) => {
           results.failed.push({
             hostname: op.hostname,
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: _error instanceof Error ? _error.message : 'Unknown error',
           });
         });
       }
@@ -883,8 +883,8 @@ acc[op.propertyId] = [];
       const byAction = results.successful.reduce(
         (acc, r) => {
           if (!acc[r.action]) {
-acc[r.action] = [];
-}
+            acc[r.action] = [];
+          }
           acc[r.action].push(r);
           return acc;
         },
@@ -930,12 +930,12 @@ acc[r.action] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'bulk update hostname properties',
             parameters: args,
             timestamp: new Date(),
@@ -964,11 +964,11 @@ function estimateProvisioningDuration(hostnameCount: number): string {
 
 function estimatePropertyCount(hostnames: string[], strategy?: string): number {
   if (strategy === 'single') {
-return 1;
-}
+    return 1;
+  }
   if (strategy === 'per-hostname') {
-return hostnames.length;
-}
+    return hostnames.length;
+  }
 
   // For grouped strategy, estimate based on domains
   const domains = new Set(hostnames.map((h) => h.split('.').slice(-2).join('.')));

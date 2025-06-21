@@ -1,9 +1,9 @@
 /**
  * OAuth Manager
- * Handles OAuth authentication and customer context mapping
+ * Handles OAuth authentication and customer _context mapping
  */
 
-import { createHash, randomBytes } from 'crypto';
+import { randomBytes } from 'crypto';
 
 import type {
   OAuthToken,
@@ -16,7 +16,7 @@ import type {
 } from './types';
 import { OAuthProvider, CredentialAction } from './types';
 
-import { logger } from '@/utils/logger';
+import { logger } from '../../utils/logger';
 
 /**
  * OAuth Manager class for handling authentication and customer mapping
@@ -86,10 +86,7 @@ export class OAuthManager {
   /**
    * Authenticate user with OAuth token
    */
-  async authenticateWithToken(
-    token: OAuthToken,
-    provider: OAuthProvider,
-  ): Promise<AuthSession> {
+  async authenticateWithToken(token: OAuthToken, provider: OAuthProvider): Promise<AuthSession> {
     try {
       // Validate token
       await this.validateToken(token, provider);
@@ -130,8 +127,8 @@ export class OAuthManager {
       });
 
       return session;
-    } catch (error) {
-      logger.error('OAuth authentication failed', { provider, error });
+    } catch (_error) {
+      logger.error('OAuth authentication failed', { provider, _error });
 
       // Audit log failure
       await this.logCredentialAccess({
@@ -140,10 +137,10 @@ export class OAuthManager {
         action: CredentialAction.VALIDATE,
         resource: 'oauth_session',
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: _error instanceof Error ? _error.message : 'Unknown error',
       });
 
-      throw error;
+      throw _error;
     }
   }
 
@@ -171,16 +168,13 @@ export class OAuthManager {
   /**
    * Get user profile from OAuth provider
    */
-  private async getUserProfile(
-    token: OAuthToken,
-    provider: OAuthProvider,
-  ): Promise<OAuthProfile> {
+  private async getUserProfile(_token: OAuthToken, provider: OAuthProvider): Promise<OAuthProfile> {
     const config = this.oauthConfigs.get(provider);
     if (!config || !config.userInfoUrl) {
       throw new Error(`User info endpoint not configured for ${provider}`);
     }
 
-    // In a real implementation, this would make an HTTP request to the provider
+    // In a real implementation, this would make an HTTP _request to the provider
     // For now, we'll return a mock profile
     return {
       sub: `${provider}_${randomBytes(8).toString('hex')}`,
@@ -221,9 +215,9 @@ export class OAuthManager {
   /**
    * Get default customer contexts for new user
    */
-  private async getDefaultCustomerContexts(subject: string): Promise<CustomerContext[]> {
+  private async getDefaultCustomerContexts(_subject: string): Promise<CustomerContext[]> {
     // In a real implementation, this would query a database or configuration
-    // For now, return a default context
+    // For now, return a default _context
     return [
       {
         customerId: 'default',
@@ -236,7 +230,7 @@ export class OAuthManager {
             actions: ['read'],
             scope: 'customer' as any,
           },
-        ],
+        ].filter(Boolean),
         isActive: true,
         createdAt: new Date(),
       },
@@ -244,7 +238,7 @@ export class OAuthManager {
   }
 
   /**
-   * Map OAuth subject to customer context
+   * Map OAuth subject to customer _context
    */
   async mapSubjectToCustomer(
     subject: string,
@@ -258,16 +252,16 @@ export class OAuthManager {
       throw new Error('Subject mapping not found');
     }
 
-    // Check if customer context already exists
+    // Check if customer _context already exists
     const existingIndex = mapping.customerContexts.findIndex(
       (ctx) => ctx.customerId === customerContext.customerId,
     );
 
     if (existingIndex >= 0) {
-      // Update existing context
+      // Update existing _context
       mapping.customerContexts[existingIndex] = customerContext;
     } else {
-      // Add new context
+      // Add new _context
       mapping.customerContexts.push(customerContext);
     }
 
@@ -282,26 +276,21 @@ export class OAuthManager {
   }
 
   /**
-   * Switch customer context for session
+   * Switch customer _context for session
    */
-  async switchCustomerContext(
-    sessionId: string,
-    customerId: string,
-  ): Promise<CustomerContext> {
+  async switchCustomerContext(sessionId: string, customerId: string): Promise<CustomerContext> {
     const session = this.sessions.get(sessionId);
     if (!session) {
       throw new Error('Session not found');
     }
 
-    const context = session.availableContexts.find(
-      (ctx) => ctx.customerId === customerId,
-    );
+    const _context = session.availableContexts.find((ctx) => ctx.customerId === customerId);
 
-    if (!context) {
-      throw new Error(`Customer context ${customerId} not available for session`);
+    if (!_context) {
+      throw new Error(`Customer _context ${customerId} not available for session`);
     }
 
-    session.currentContext = context;
+    session.currentContext = _context;
     session.currentContext.lastAccessAt = new Date();
 
     // Audit log
@@ -313,13 +302,13 @@ export class OAuthManager {
       success: true,
     });
 
-    logger.info('Customer context switched', {
+    logger.info('Customer _context switched', {
       sessionId,
       customerId,
       userId: session.profile.sub,
     });
 
-    return context;
+    return _context;
   }
 
   /**
@@ -355,7 +344,7 @@ export class OAuthManager {
       throw new Error('OAuth provider not configured');
     }
 
-    // In a real implementation, this would make a token refresh request
+    // In a real implementation, this would make a token refresh _request
     // For now, return a new mock token
     const newToken: OAuthToken = {
       ...session.token,
@@ -440,10 +429,7 @@ export class OAuthManager {
   /**
    * Get customer contexts for subject
    */
-  getCustomerContextsForSubject(
-    subject: string,
-    provider: OAuthProvider,
-  ): CustomerContext[] {
+  getCustomerContextsForSubject(subject: string, provider: OAuthProvider): CustomerContext[] {
     const key = `${provider}:${subject}`;
     const mapping = this.subjectMappings.get(key);
 

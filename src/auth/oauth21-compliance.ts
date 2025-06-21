@@ -47,7 +47,7 @@ export enum TokenBindingType {
 }
 
 /**
- * OAuth 2.1 authorization request parameters
+ * OAuth 2.1 authorization _request parameters
  */
 export interface OAuth21AuthorizationRequest {
   responseType: 'code'; // Only authorization code flow allowed
@@ -63,7 +63,7 @@ export interface OAuth21AuthorizationRequest {
 }
 
 /**
- * OAuth 2.1 token request parameters
+ * OAuth 2.1 token _request parameters
  */
 export interface OAuth21TokenRequest {
   grantType: GrantType;
@@ -225,11 +225,7 @@ export class OAuth21ComplianceManager {
    * Base64 URL encode (no padding)
    */
   private base64urlEncode(buffer: Buffer): string {
-    return buffer
-      .toString('base64')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
+    return buffer.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 
   /**
@@ -280,8 +276,8 @@ export class OAuth21ComplianceManager {
       }
 
       return isValid;
-    } catch (error) {
-      logger.error('PKCE validation error', { error });
+    } catch (_error) {
+      logger.error('PKCE validation error', { error: _error });
       return false;
     }
   }
@@ -313,8 +309,8 @@ export class OAuth21ComplianceManager {
       }
 
       return true;
-    } catch (error) {
-      logger.error('Authorization server validation error', { issuer, error });
+    } catch (_error) {
+      logger.error('Authorization server validation error', { issuer, _error });
       return false;
     }
   }
@@ -335,7 +331,7 @@ export class OAuth21ComplianceManager {
     try {
       const response = await fetch(metadataUrl, {
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
         signal: AbortSignal.timeout(5000), // 5 second timeout
       });
@@ -353,9 +349,9 @@ export class OAuth21ComplianceManager {
       this.authServerMetadataCache.set(issuer, validatedMetadata);
 
       return validatedMetadata;
-    } catch (error) {
-      logger.error('Failed to fetch authorization server metadata', { issuer, error });
-      throw error;
+    } catch (_error) {
+      logger.error('Failed to fetch authorization server metadata', { issuer, _error });
+      throw _error;
     }
   }
 
@@ -399,8 +395,8 @@ export class OAuth21ComplianceManager {
 
     try {
       return JSON.parse(data);
-    } catch (error) {
-      logger.error('Failed to parse state data', { error });
+    } catch (_error) {
+      logger.error('Failed to parse state data', { error: _error });
       return null;
     }
   }
@@ -436,7 +432,9 @@ export class OAuth21ComplianceManager {
       htm,
       htu,
       iat: Math.floor(Date.now() / 1000),
-      ath: accessToken ? this.base64urlEncode(crypto.createHash('sha256').update(accessToken).digest()) : undefined,
+      ath: accessToken
+        ? this.base64urlEncode(crypto.createHash('sha256').update(accessToken).digest())
+        : undefined,
     };
 
     // Sign with private key (simplified)
@@ -452,7 +450,7 @@ export class OAuth21ComplianceManager {
   /**
    * Check for phishing indicators
    */
-  checkPhishingIndicators(redirectUri: string, clientId: string): string[] {
+  checkPhishingIndicators(redirectUri: string, _clientId: string): string[] {
     const warnings: string[] = [];
 
     // Check for suspicious redirect URIs
@@ -465,12 +463,12 @@ export class OAuth21ComplianceManager {
 
     // Check for suspicious TLDs
     const suspiciousTLDs = ['.tk', '.ml', '.ga', '.cf'];
-    if (suspiciousTLDs.some(tld => url.hostname.endsWith(tld))) {
+    if (suspiciousTLDs.some((tld) => url.hostname.endsWith(tld))) {
       warnings.push('Redirect URI uses suspicious TLD');
     }
 
     // Check for homograph attacks
-    if (/[^\x00-\x7F]/.test(url.hostname)) {
+    if (/[^\\x00-\\x7F]/.test(url.hostname)) {
       warnings.push('Redirect URI contains non-ASCII characters (possible homograph attack)');
     }
 
@@ -485,10 +483,7 @@ export class OAuth21ComplianceManager {
   /**
    * Build authorization URL with OAuth 2.1 compliance
    */
-  buildAuthorizationUrl(
-    authEndpoint: string,
-    params: OAuth21AuthorizationRequest,
-  ): string {
+  buildAuthorizationUrl(authEndpoint: string, params: OAuth21AuthorizationRequest): string {
     const url = new URL(authEndpoint);
 
     // Add required OAuth 2.1 parameters

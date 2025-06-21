@@ -55,8 +55,8 @@ export async function debugSecurePropertyOnboarding(
 
     if (validationErrors.length > 0) {
       text += '❌ **Validation Failed:**\n';
-      validationErrors.forEach((error) => {
-        text += `- ${error}\n`;
+      validationErrors.forEach((_error) => {
+        text += `- ${_error}\n`;
       });
       text += '\n';
 
@@ -142,10 +142,10 @@ export async function debugSecurePropertyOnboarding(
           productId = 'prd_fresca';
           text += '⚠️ **No products found, using default:** Ion (prd_fresca)\n';
         }
-      } catch (productError: any) {
+      } catch (_productError: any) {
         productId = 'prd_fresca';
         text += '⚠️ **Product lookup failed, using default:** Ion (prd_fresca)\n';
-        text += `Error: ${productError.message}\n`;
+        text += `Error: ${_productError.message}\n`;
       }
     } else {
       text += `✅ **Using specified product:** ${formatProductDisplay(productId)}\n`;
@@ -287,10 +287,10 @@ export async function debugSecurePropertyOnboarding(
         },
       ],
     };
-  } catch (error: any) {
+  } catch (_error: any) {
     text += '\n## ❌ Unexpected Error\n';
-    text += `**Message:** ${error.message}\n`;
-    text += `**Stack:** ${error.stack}\n`;
+    text += `**Message:** ${_error.message}\n`;
+    text += `**Stack:** ${_error.stack}\n`;
 
     return {
       content: [
@@ -359,7 +359,7 @@ export async function testBasicPropertyCreation(
           text += '⚠️ Using default product: Ion (prd_fresca)\n\n';
         }
       }
-    } catch (productError: any) {
+    } catch (_productError: any) {
       text += '⚠️ Product lookup failed, using default: Ion (prd_fresca)\n\n';
     }
 
@@ -383,12 +383,12 @@ export async function testBasicPropertyCreation(
         },
       ],
     };
-  } catch (error: any) {
+  } catch (_error: any) {
     return {
       content: [
         {
           type: 'text',
-          text: `❌ Test failed: ${error.message}`,
+          text: `❌ Test failed: ${_error.message}`,
         },
       ],
     };

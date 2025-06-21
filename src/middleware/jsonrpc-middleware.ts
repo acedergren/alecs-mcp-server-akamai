@@ -6,7 +6,7 @@
 import {
   JsonRpcRequest,
   JsonRpcResponse,
-  JsonRpcError,
+  // JsonRpcError,
   JsonRpcErrorCode,
   createJsonRpcError,
   createJsonRpcSuccess,
@@ -22,10 +22,10 @@ export class JsonRpcMiddleware {
    */
   static wrapHandler<T = any>(
     handler: (params: any) => Promise<T>,
-  ): (request: JsonRpcRequest) => Promise<JsonRpcResponse> {
-    return async (request: JsonRpcRequest): Promise<JsonRpcResponse> => {
+  ): (_request: JsonRpcRequest) => Promise<JsonRpcResponse> {
+    return async (_request: JsonRpcRequest): Promise<JsonRpcResponse> => {
       // Validate request ID
-      if ('id' in request && !isValidRequestId(request.id)) {
+      if ('id' in _request && !isValidRequestId(_request.id)) {
         return createJsonRpcError(
           null,
           JsonRpcErrorCode.InvalidRequest,
@@ -34,9 +34,9 @@ export class JsonRpcMiddleware {
       }
 
       // Validate JSON-RPC version
-      if (request.jsonrpc !== '2.0') {
+      if (_request.jsonrpc !== '2.0') {
         return createJsonRpcError(
-          request.id ?? null,
+          _request.id ?? null,
           JsonRpcErrorCode.InvalidRequest,
           'Invalid JSON-RPC version, must be "2.0"',
         );
@@ -44,17 +44,17 @@ export class JsonRpcMiddleware {
 
       try {
         // Execute the handler
-        const result = await handler(request.params);
+        const result = await handler(_request.params);
 
         // Create success response with proper ID
         return createJsonRpcSuccess(
-          request.id ?? null,
+          _request.id ?? null,
           result,
-          request._meta, // Preserve metadata
+          _request._meta, // Preserve metadata
         );
-      } catch (error) {
-        // Handle errors and create proper error response
-        return this.createErrorResponse(request.id ?? null, error, request._meta);
+      } catch (_error) {
+        // Handle errors and create proper _error response
+        return this.createErrorResponse(_request.id ?? null, _error, _request._meta);
       }
     };
   }
@@ -125,12 +125,12 @@ export class JsonRpcMiddleware {
   /**
    * Validate incoming JSON-RPC request
    */
-  static validateRequest(request: unknown): JsonRpcRequest {
-    if (!request || typeof request !== 'object') {
+  static validateRequest(_request: unknown): JsonRpcRequest {
+    if (!_request || typeof _request !== 'object') {
       throw new Error('Request must be an object');
     }
 
-    const req = request as any;
+    const req = _request as any;
 
     // Check required fields
     if (req.jsonrpc !== '2.0') {
@@ -168,8 +168,8 @@ export class JsonRpcMiddleware {
   /**
    * Extract metadata from request
    */
-  static extractMetadata(request: JsonRpcRequest): Record<string, unknown> | undefined {
-    return request._meta;
+  static extractMetadata(_request: JsonRpcRequest): Record<string, unknown> | undefined {
+    return _request._meta;
   }
 }
 
@@ -210,7 +210,7 @@ export class BatchRequestHandler {
    */
   static async processBatch(
     requests: JsonRpcRequest[],
-    handler: (request: JsonRpcRequest) => Promise<JsonRpcResponse>,
+    handler: (_request: JsonRpcRequest) => Promise<JsonRpcResponse>,
   ): Promise<JsonRpcResponse[]> {
     const responses: JsonRpcResponse[] = [];
 
@@ -221,14 +221,14 @@ export class BatchRequestHandler {
         if ('id' in request && request.id !== undefined) {
           responses.push(response);
         }
-      } catch (error) {
+      } catch (_error) {
         // Even errors should be included if the request had an ID
         if ('id' in request && request.id !== undefined) {
           responses.push(
             createJsonRpcError(
               request.id,
               JsonRpcErrorCode.InternalError,
-              error instanceof Error ? error.message : 'Unknown error',
+              _error instanceof Error ? _error.message : 'Unknown _error',
             ),
           );
         }

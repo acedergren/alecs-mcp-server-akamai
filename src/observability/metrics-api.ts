@@ -177,8 +177,8 @@ export class MetricsAPI extends EventEmitter {
     for (const [name, values] of this.metrics.entries()) {
       const definition = this.definitions.get(name);
       if (!definition) {
-continue;
-}
+        continue;
+      }
 
       const metric: PrometheusMetric = {
         name: name.replace(/[^a-zA-Z0-9_]/g, '_'),
@@ -206,8 +206,8 @@ continue;
     for (const [name, values] of this.metrics.entries()) {
       const definition = this.definitions.get(name);
       if (!definition) {
-continue;
-}
+        continue;
+      }
 
       const metric: OpenTelemetryMetric = {
         name,
@@ -328,8 +328,8 @@ continue;
         }
 
         this.emit('metricsCollected', name, collectedMetrics.length);
-      } catch (error) {
-        this.emit('collectionError', name, error);
+      } catch (_error) {
+        this.emit('collectionError', name, _error);
       }
     }
   }
@@ -435,8 +435,8 @@ continue;
   private startPushScheduler(): void {
     if (this.config.pushIntervalMs && this.config.pushIntervalMs > 0) {
       this.pushInterval = setInterval(() => {
-        this.pushMetrics().catch((error) => {
-          this.emit('scheduledPushError', error);
+        this.pushMetrics().catch((_error) => {
+          this.emit('scheduledPushError', _error);
         });
       }, this.config.pushIntervalMs);
     }
@@ -495,8 +495,8 @@ continue;
   private getLatestMetricValue(name: string, labels: Record<string, string>): number | null {
     const values = this.metrics.get(name);
     if (!values || values.length === 0) {
-return null;
-}
+      return null;
+    }
 
     // Find the latest value with matching labels
     for (let i = values.length - 1; i >= 0; i--) {
@@ -569,16 +569,18 @@ export class HTTPPushTarget implements PushTarget {
         case 'bearer':
           headers['Authorization'] = `Bearer ${this.authentication.token}`;
           break;
-        case 'basic':
+        case 'basic': {
           const credentials = Buffer.from(
             `${this.authentication.username}:${this.authentication.password}`,
           ).toString('base64');
           headers['Authorization'] = `Basic ${credentials}`;
           break;
-        case 'api-key':
+        }
+        case 'api-key': {
           const keyHeader = this.authentication.apiKeyHeader || 'X-API-Key';
           headers[keyHeader] = this.authentication.apiKey!;
           break;
+        }
       }
     }
 

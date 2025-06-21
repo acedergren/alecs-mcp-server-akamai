@@ -3,15 +3,8 @@
  * Provides authentication and authorization for MCP tool calls
  */
 
-import type {
-  CallToolRequest,
-  CallToolResult,
-} from '@modelcontextprotocol/sdk/types.js';
-import {
-  McpError,
-  ErrorCode,
-} from '@modelcontextprotocol/sdk/types.js';
-import { z } from 'zod';
+import type { CallToolRequest } from '@modelcontextprotocol/sdk/types.js';
+import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 
 import { ValkeyCache } from '../services/valkey-cache-service';
 import { logger } from '../utils/logger';
@@ -51,7 +44,7 @@ export interface OAuthMiddlewareConfig {
 }
 
 /**
- * Authentication context
+ * Authentication _context
  */
 export interface AuthContext {
   /** Authenticated user/client ID */
@@ -95,9 +88,9 @@ export class OAuthMiddleware {
         jwksUri: config.tokenValidator.jwksUri,
         clientId: config.tokenValidator.clientId,
         clientSecret: config.tokenValidator.clientSecret,
-        ...(config.tokenValidator as any).algorithms && {
-          allowedAlgorithms: (config.tokenValidator as any).algorithms
-        },
+        ...((config.tokenValidator as any).algorithms && {
+          allowedAlgorithms: (config.tokenValidator as any).algorithms,
+        }),
       },
       cache,
     );
@@ -118,23 +111,23 @@ export class OAuthMiddleware {
   }
 
   /**
-   * Authenticate request
+   * Authenticate _request
    */
-  async authenticate(request: CallToolRequest): Promise<AuthContext | null> {
+  async authenticate(_request: CallToolRequest): Promise<AuthContext | null> {
     // Skip authentication if disabled
     if (!this.config.enabled) {
       return null;
     }
 
     // Check if tool is public
-    const toolName = request.params.name;
+    const toolName = _request.params.name;
     if (this.config.publicTools.includes(toolName)) {
       logger.debug('Skipping authentication for public tool', { tool: toolName });
       return null;
     }
 
     // Extract authorization header
-    const authHeader = this.extractAuthHeader(request);
+    const authHeader = this.extractAuthHeader(_request);
     if (!authHeader) {
       // For protected tools, return null to let authorize handle it
       // For public tools, this will also return null which is correct
@@ -151,7 +144,10 @@ export class OAuthMiddleware {
     const validation = await this.tokenValidator.validateAccessToken(token);
     if (!validation.valid) {
       // For audience validation errors, return null instead of throwing
-      if (validation.error?.includes('audience') || validation.error?.includes('Invalid audience')) {
+      if (
+        validation.error?.includes('audience') ||
+        validation.error?.includes('Invalid audience')
+      ) {
         return null;
       }
       throw this.createAuthError(`Token validation failed: ${validation.error}`);
@@ -163,13 +159,13 @@ export class OAuthMiddleware {
 
     // Check token binding if required
     if (this.config.requireTokenBinding) {
-      const bindingValid = await this.validateTokenBinding(request, token);
+      const bindingValid = await this.validateTokenBinding(_request, token);
       if (!bindingValid) {
         return null; // Return null instead of throwing for token binding failures
       }
     }
 
-    // Create auth context
+    // Create auth _context
     const authContext: AuthContext = {
       subject: validation.claims.sub || 'unknown',
       clientId: validation.claims.client_id || 'unknown',
@@ -182,18 +178,15 @@ export class OAuthMiddleware {
   }
 
   /**
-   * Authorize request
+   * Authorize _request
    */
-  async authorize(
-    request: CallToolRequest,
-    authContext: AuthContext | null,
-  ): Promise<void> {
+  async authorize(_request: CallToolRequest, authContext: AuthContext | null): Promise<void> {
     // Skip authorization if authentication is disabled
     if (!this.config.enabled) {
       return;
     }
 
-    const toolName = request.params.name;
+    const toolName = _request.params.name;
 
     // Check if tool is public - if so, allow without authentication
     if (this.config.publicTools.includes(toolName)) {
@@ -207,20 +200,16 @@ export class OAuthMiddleware {
       return; // No scopes required
     }
 
-    // If no auth context but tool requires authentication, throw error
+    // If no auth _context but tool requires authentication, throw error
     if (!authContext) {
       throw this.createAuthError('Authentication required for protected tool');
     }
 
     // Check if user has required scopes
-    const hasRequiredScopes = requiredScopes.every(scope =>
-      authContext.scopes.includes(scope),
-    );
+    const hasRequiredScopes = requiredScopes.every((scope) => authContext.scopes.includes(scope));
 
     if (!hasRequiredScopes) {
-      const missingScopes = requiredScopes.filter(scope =>
-        !authContext.scopes.includes(scope),
-      );
+      const missingScopes = requiredScopes.filter((scope) => !authContext.scopes.includes(scope));
 
       throw this.createAuthError(
         `Insufficient scopes. Required: ${requiredScopes.join(', ')}. Missing: ${missingScopes.join(', ')}`,
@@ -276,51 +265,49 @@ export class OAuthMiddleware {
   /**
    * Wrap tool handler with authentication
    */
-  wrapHandler<T extends (...args: any[]) => Promise<any>>(
-    handler: T,
-    toolName: string,
-  ): T {
+  wrapHandler<T extends (...args: any[]) => Promise<any>>(handler: T, toolName: string): T {
     return (async (...args: Parameters<T>) => {
-      const request = args[0] as CallToolRequest;
+      const _request = args[0] as CallToolRequest;
 
       try {
         // Authenticate
-        const authContext = await this.authenticate(request);
+        const authContext = await this.authenticate(_request);
 
         // Apply rate limiting
         await this.applyRateLimit(authContext);
 
         // Authorize
-        await this.authorize(request, authContext);
+        await this.authorize(_request, authContext);
 
-        // Add auth context to request
+        // Add auth _context to _request
         if (authContext) {
-          (request as any)._authContext = authContext;
+          (_request as any)._authContext = authContext;
         }
 
         // Call original handler
         return await handler(...args);
-      } catch (error) {
+      } catch (_error) {
         // Log authentication/authorization failures
-        if (error instanceof McpError) {
+        if (_error instanceof McpError) {
           logger.warn('Authentication/authorization failed', {
             tool: toolName,
-            error: error.message,
+            _error: _error.message,
           });
         }
-        throw error;
+        throw _error;
       }
     }) as T;
   }
 
   /**
-   * Extract authorization header from request
+   * Extract authorization header from _request
    */
-  private extractAuthHeader(request: CallToolRequest): string | null {
+  private extractAuthHeader(_request: CallToolRequest): string | null {
     // Check various possible locations for auth header
-    const headers = (request as any).headers ||
-                   (request as any)._meta?.headers ||
-                   (request.params as any)._headers;
+    const headers =
+      (_request as any).headers ||
+      (_request as any)._meta?.headers ||
+      (_request.params as any)._headers;
 
     if (!headers) {
       return null;
@@ -347,10 +334,7 @@ export class OAuthMiddleware {
   /**
    * Validate token binding
    */
-  private async validateTokenBinding(
-    request: CallToolRequest,
-    token: string,
-  ): Promise<boolean> {
+  private async validateTokenBinding(_request: CallToolRequest, token: string): Promise<boolean> {
     if (!this.config.tokenBindingType) {
       return true;
     }
@@ -361,22 +345,23 @@ export class OAuthMiddleware {
     switch (this.config.tokenBindingType) {
       case TokenBindingType.TLS_CLIENT_CERT:
         // Extract client certificate thumbprint
-        bindingValue = (request as any)._meta?.tlsClientCertThumbprint;
+        bindingValue = (_request as any)._meta?.tlsClientCertThumbprint;
         break;
 
-      case TokenBindingType.DPoP:
+      case TokenBindingType.DPoP: {
         // Extract DPoP proof
-        const dpopHeader = this.extractDPoPHeader(request);
+        const dpopHeader = this.extractDPoPHeader(_request);
         if (dpopHeader) {
           // Validate DPoP proof and extract thumbprint
           // This is simplified - implement full DPoP validation
           bindingValue = 'dpop-thumbprint';
         }
         break;
+      }
 
       case TokenBindingType.MTLS:
         // Extract mTLS certificate
-        bindingValue = (request as any)._meta?.mtlsCertThumbprint;
+        bindingValue = (_request as any)._meta?.mtlsCertThumbprint;
         break;
     }
 
@@ -396,10 +381,11 @@ export class OAuthMiddleware {
   /**
    * Extract DPoP header
    */
-  private extractDPoPHeader(request: CallToolRequest): string | null {
-    const headers = (request as any).headers ||
-                   (request as any)._meta?.headers ||
-                   (request.params as any)._headers;
+  private extractDPoPHeader(_request: CallToolRequest): string | null {
+    const headers =
+      (_request as any).headers ||
+      (_request as any)._meta?.headers ||
+      (_request.params as any)._headers;
 
     if (!headers) {
       return null;
@@ -430,32 +416,24 @@ export class OAuthMiddleware {
    * Create authentication error
    */
   private createAuthError(message: string): McpError {
-    return new McpError(
-      ErrorCode.InvalidRequest,
-      message,
-      { code: 'AUTHENTICATION_REQUIRED' },
-    );
+    return new McpError(ErrorCode.InvalidRequest, message, { code: 'AUTHENTICATION_REQUIRED' });
   }
 
   /**
    * Create rate limit error
    */
   private createRateLimitError(message: string, retryAfter: number): McpError {
-    return new McpError(
-      ErrorCode.InvalidRequest,
-      message,
-      {
-        code: 'RATE_LIMIT_EXCEEDED',
-        retryAfter,
-      },
-    );
+    return new McpError(ErrorCode.InvalidRequest, message, {
+      code: 'RATE_LIMIT_EXCEEDED',
+      retryAfter,
+    });
   }
 
   /**
-   * Get auth context from request
+   * Get auth _context from _request
    */
-  static getAuthContext(request: CallToolRequest): AuthContext | null {
-    return (request as any)._authContext || null;
+  static getAuthContext(_request: CallToolRequest): AuthContext | null {
+    return (_request as any)._authContext || null;
   }
 }
 

@@ -84,6 +84,7 @@ export interface TodoList {
 
 export interface GenerateOptions {
   // Add specific options here as needed
+  [key: string]: any; // Allow any additional properties
 }
 
 export interface ErrorItem {
@@ -258,11 +259,11 @@ export class TodoGenerator {
   /**
    * Generate TODOs for specific error categories
    */
-  private generateCategoryTodos(category: string, errors: ErrorItem[]): TodoItem[] {
+  private generateCategoryTodos(_category: string, errors: ErrorItem[]): TodoItem[] {
     const categoryTodos: TodoItem[] = [];
     const highestSeverity = this.getHighestSeverity(errors);
 
-    switch (category) {
+    switch (_category) {
       case 'AUTH_ERROR':
         categoryTodos.push({
           id: `auth-fix-${Date.now()}`,
@@ -420,13 +421,13 @@ export class TodoGenerator {
       default:
         if (errors.length > 0) {
           categoryTodos.push({
-            id: `generic-fix-${category}-${Date.now()}`,
-            title: `Investigate ${category.replace('_', ' ').toLowerCase()} Issues`,
-            description: `Analyze and resolve ${errors.length} ${category.toLowerCase()} error(s)`,
+            id: `generic-fix-${_category}-${Date.now()}`,
+            title: `Investigate ${_category.replace('_', ' ').toLowerCase()} Issues`,
+            description: `Analyze and resolve ${errors.length} ${_category.toLowerCase()} error(s)`,
             priority: this.mapSeverityToPriority(highestSeverity),
             type: 'bug_fix',
             effort: 'moderate',
-            tags: [category.toLowerCase(), 'investigation'],
+            tags: [_category.toLowerCase(), 'investigation'],
             details: {
               errorCount: errors.length,
               affectedTests: errors.map((e) => e.test || e.suite || '').slice(0, 5),
@@ -505,8 +506,8 @@ export class TodoGenerator {
 
     const config = rootCauseConfigs[rootCause];
     if (!config) {
-return null;
-}
+      return null;
+    }
 
     return {
       id: `root-cause-${rootCause}-${Date.now()}`,
@@ -785,7 +786,7 @@ return null;
   /**
    * Process and organize todos
    */
-  private processTodos(todos: TodoList, options: GenerateOptions): void {
+  private processTodos(todos: TodoList, _options: GenerateOptions): void {
     // Remove duplicates
     todos.items = this.removeDuplicateTodos(todos.items);
 
@@ -794,8 +795,8 @@ return null;
       const priorityDiff =
         this.priorityMatrix[b.priority].weight - this.priorityMatrix[a.priority].weight;
       if (priorityDiff !== 0) {
-return priorityDiff;
-}
+        return priorityDiff;
+      }
 
       return this.effortEstimates[a.effort].hours - this.effortEstimates[b.effort].hours;
     });
@@ -831,8 +832,8 @@ return priorityDiff;
     return items.filter((item) => {
       const key = `${item.title}-${item.type}-${item.priority}`;
       if (seen.has(key)) {
-return false;
-}
+        return false;
+      }
       seen.add(key);
       return true;
     });
@@ -902,18 +903,18 @@ return false;
    */
   private hasDependency(prerequisite: TodoItem, dependent: TodoItem): boolean {
     interface DependencyRule {
-      prereq: string;
+      pre_req: string;
       dep: string[];
     }
 
     const dependencyRules: DependencyRule[] = [
-      { prereq: 'configuration', dep: ['bug_fix', 'testing', 'performance'] },
-      { prereq: 'security', dep: ['bug_fix', 'testing'] },
-      { prereq: 'infrastructure', dep: ['performance', 'testing'] },
+      { pre_req: 'configuration', dep: ['bug_fix', 'testing', 'performance'] },
+      { pre_req: 'security', dep: ['bug_fix', 'testing'] },
+      { pre_req: 'infrastructure', dep: ['performance', 'testing'] },
     ];
 
     return dependencyRules.some(
-      (rule) => prerequisite.type === rule.prereq && rule.dep.includes(dependent.type),
+      (rule) => prerequisite.type === rule.pre_req && rule.dep.includes(dependent.type),
     );
   }
 

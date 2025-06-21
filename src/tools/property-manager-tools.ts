@@ -4,7 +4,7 @@
  */
 
 import { type AkamaiClient } from '../akamai-client';
-import { type MCPToolResponse, type RuleTree } from '../types';
+import { type MCPToolResponse } from '../types';
 
 // Extended types for property management
 export interface PropertyVersionDetails {
@@ -140,8 +140,8 @@ export async function createPropertyVersion(
         },
       ],
     };
-  } catch (error) {
-    return formatError('create property version', error);
+  } catch (_error) {
+    return formatError('create property version', _error);
   }
 }
 
@@ -262,8 +262,8 @@ export async function getPropertyRules(
         },
       ],
     };
-  } catch (error) {
-    return formatError('get property rules', error);
+  } catch (_error) {
+    return formatError('get property rules', _error);
   }
 }
 
@@ -339,8 +339,8 @@ export async function updatePropertyRules(
 
     if (response.errors?.length > 0) {
       text += '⚠️ **Validation Errors:**\n';
-      response.errors.forEach((error: any) => {
-        text += `- ${error.detail}\n`;
+      response.errors.forEach((_error: any) => {
+        text += `- ${_error.detail}\n`;
       });
       text += '\n';
     }
@@ -365,8 +365,8 @@ export async function updatePropertyRules(
         },
       ],
     };
-  } catch (error) {
-    return formatError('update property rules', error);
+  } catch (_error) {
+    return formatError('update property rules', _error);
   }
 }
 
@@ -443,8 +443,8 @@ export async function createEdgeHostname(
         },
       ],
     };
-  } catch (error) {
-    return formatError('create edge hostname', error);
+  } catch (_error) {
+    return formatError('create edge hostname', _error);
   }
 }
 
@@ -510,8 +510,8 @@ export async function addPropertyHostname(
         },
       ],
     };
-  } catch (error) {
-    return formatError('add property hostname', error);
+  } catch (_error) {
+    return formatError('add property hostname', _error);
   }
 }
 
@@ -584,8 +584,8 @@ export async function removePropertyHostname(
         },
       ],
     };
-  } catch (error) {
-    return formatError('remove property hostname', error);
+  } catch (_error) {
+    return formatError('remove property hostname', _error);
   }
 }
 
@@ -679,8 +679,8 @@ export async function activateProperty(
         },
       ],
     };
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('warnings')) {
+  } catch (_error) {
+    if (_error instanceof Error && _error.message.includes('warnings')) {
       return {
         content: [
           {
@@ -690,7 +690,7 @@ export async function activateProperty(
         ],
       };
     }
-    return formatError('activate property', error);
+    return formatError('activate property', _error);
   }
 }
 
@@ -727,7 +727,20 @@ export async function getActivationStatus(
         DEACTIVATED: '⚫',
         PENDING_DEACTIVATION: '⏳',
         NEW: '🆕',
-      }[activation.status as keyof {ACTIVE: string; PENDING: string; ZONE_1: string; ZONE_2: string; ZONE_3: string; ABORTED: string; FAILED: string; DEACTIVATED: string; PENDING_DEACTIVATION: string; NEW: string}] || '❓';
+      }[
+        activation.status as keyof {
+          ACTIVE: string;
+          PENDING: string;
+          ZONE_1: string;
+          ZONE_2: string;
+          ZONE_3: string;
+          ABORTED: string;
+          FAILED: string;
+          DEACTIVATED: string;
+          PENDING_DEACTIVATION: string;
+          NEW: string;
+        }
+      ] || '❓';
 
     let text = `# Activation Status: ${activation.activationId}\n\n`;
     text += `**Property:** ${activation.propertyName} (${activation.propertyId})\n`;
@@ -748,8 +761,8 @@ export async function getActivationStatus(
 
     if (activation.errors && activation.errors.length > 0) {
       text += '\n## Errors\n';
-      activation.errors.forEach((error: any) => {
-        text += `- ${error.messageId}: ${error.detail}\n`;
+      activation.errors.forEach((_error: any) => {
+        text += `- ${_error.messageId}: ${_error.detail}\n`;
       });
     }
 
@@ -777,8 +790,8 @@ export async function getActivationStatus(
         },
       ],
     };
-  } catch (error) {
-    return formatError('get activation status', error);
+  } catch (_error) {
+    return formatError('get activation status', _error);
   }
 }
 
@@ -821,8 +834,8 @@ export async function listPropertyActivations(
     const byNetwork = response.activations.items.reduce(
       (acc: any, act: any) => {
         if (!acc[act.network]) {
-acc[act.network] = [];
-}
+          acc[act.network] = [];
+        }
         acc[act.network].push(act);
         return acc;
       },
@@ -850,7 +863,20 @@ acc[act.network] = [];
             DEACTIVATED: '⚫',
             PENDING_DEACTIVATION: '⏳',
             NEW: '🆕',
-          }[act.status as keyof {ACTIVE: string; PENDING: string; ZONE_1: string; ZONE_2: string; ZONE_3: string; ABORTED: string; FAILED: string; DEACTIVATED: string; PENDING_DEACTIVATION: string; NEW: string}] || '❓';
+          }[
+            act.status as keyof {
+              ACTIVE: string;
+              PENDING: string;
+              ZONE_1: string;
+              ZONE_2: string;
+              ZONE_3: string;
+              ABORTED: string;
+              FAILED: string;
+              DEACTIVATED: string;
+              PENDING_DEACTIVATION: string;
+              NEW: string;
+            }
+          ] || '❓';
 
         text += `### ${statusEmoji} v${act.propertyVersion} - ${act.status}\n`;
         text += `- **ID:** ${act.activationId}\n`;
@@ -871,8 +897,8 @@ acc[act.network] = [];
         },
       ],
     };
-  } catch (error) {
-    return formatError('list property activations', error);
+  } catch (_error) {
+    return formatError('list property activations', _error);
   }
 }
 
@@ -957,11 +983,11 @@ export async function updatePropertyWithDefaultDV(
       text += '✅ **Step 1 Complete:** Edge hostname created\n';
       text += `- Edge Hostname ID: ${edgeHostnameId}\n`;
       text += '- Certificate Type: Default Domain Validation (DV)\n\n';
-    } catch (err) {
-      if (err instanceof Error && err.message.includes('already exists')) {
+    } catch (_err) {
+      if (_err instanceof Error && _err.message.includes('already exists')) {
         text += `ℹ️ Edge hostname ${edgeHostnameDomain} already exists, proceeding...\n\n`;
       } else {
-        throw err;
+        throw _err;
       }
     }
 
@@ -1040,8 +1066,8 @@ export async function updatePropertyWithDefaultDV(
         },
       ],
     };
-  } catch (error) {
-    return formatError('update property with Default DV', error);
+  } catch (_error) {
+    return formatError('update property with Default DV', _error);
   }
 }
 
@@ -1138,11 +1164,11 @@ export async function updatePropertyWithCPSCertificate(
       text += '✅ **Step 2 Complete:** Edge hostname created\n';
       text += `- Edge Hostname ID: ${edgeHostnameId}\n`;
       text += `- Certificate Type: CPS-Managed (Enrollment ${args.certificateEnrollmentId})\n\n`;
-    } catch (err) {
-      if (err instanceof Error && err.message.includes('already exists')) {
+    } catch (_err) {
+      if (_err instanceof Error && _err.message.includes('already exists')) {
         text += `ℹ️ Edge hostname ${edgeHostnameDomain} already exists, proceeding...\n\n`;
       } else {
-        throw err;
+        throw _err;
       }
     }
 
@@ -1235,8 +1261,8 @@ export async function updatePropertyWithCPSCertificate(
         },
       ],
     };
-  } catch (error) {
-    return formatError('update property with CPS certificate', error);
+  } catch (_error) {
+    return formatError('update property with CPS certificate', _error);
   }
 }
 
@@ -1349,8 +1375,8 @@ ${args.autoSelectBase ? `- Auto-selected base version: ${baseVersion}` : ''}
         },
       ],
     };
-  } catch (error) {
-    return formatError('create enhanced property version', error);
+  } catch (_error) {
+    return formatError('create enhanced property version', _error);
   }
 }
 
@@ -1463,8 +1489,8 @@ export async function getVersionDiff(
         },
       ],
     };
-  } catch (error) {
-    return formatError('compare property versions', error);
+  } catch (_error) {
+    return formatError('compare property versions', _error);
   }
 }
 
@@ -1528,22 +1554,22 @@ export async function listPropertyVersionsEnhanced(
       text += `  └ Updated: ${version.updatedDate} by ${version.updatedByUser}\n`;
 
       if (version.stagingStatus === 'ACTIVE') {
-text += '  └ 🟡 Active on STAGING\n';
-}
+        text += '  └ 🟡 Active on STAGING\n';
+      }
       if (version.productionStatus === 'ACTIVE') {
-text += '  └ 🔴 Active on PRODUCTION\n';
-}
+        text += '  └ 🔴 Active on PRODUCTION\n';
+      }
 
       if (version.note) {
-text += `  └ Note: ${version.note}\n`;
-}
+        text += `  └ Note: ${version.note}\n`;
+      }
 
       if (args.includeMetadata && version.metadata) {
         const metadata =
           typeof version.metadata === 'string' ? JSON.parse(version.metadata) : version.metadata;
         if (metadata.tags) {
-text += `  └ Tags: ${metadata.tags}\n`;
-}
+          text += `  └ Tags: ${metadata.tags}\n`;
+        }
       }
 
       text += '\n';
@@ -1573,8 +1599,8 @@ text += `  └ Tags: ${metadata.tags}\n`;
         },
       ],
     };
-  } catch (error) {
-    return formatError('list property versions', error);
+  } catch (_error) {
+    return formatError('list property versions', _error);
   }
 }
 
@@ -1676,7 +1702,7 @@ export async function rollbackPropertyVersion(
           },
         });
         text += `🚀 Auto-activated on ${args.network.toUpperCase()}\n`;
-      } catch (activationError) {
+      } catch (_activationError) {
         text += '⚠️ Rollback completed but auto-activation failed. Manual activation required.\n';
       }
     }
@@ -1699,8 +1725,8 @@ ${!args.autoActivate ? `- Activate: "Activate property ${args.propertyId} versio
         },
       ],
     };
-  } catch (error) {
-    return formatError('rollback property version', error);
+  } catch (_error) {
+    return formatError('rollback property version', _error);
   }
 }
 
@@ -1755,11 +1781,11 @@ export async function batchVersionOperations(
               throw new Error(`Unknown operation: ${op.operation}`);
           }
           return { index, success: true, result, propertyId: op.propertyId };
-        } catch (error: any) {
+        } catch (_error: any) {
           return {
             index,
             success: false,
-            error: error?.message || 'Unknown error',
+            error: _error?.message || 'Unknown error',
             propertyId: op.propertyId,
           };
         }
@@ -1822,11 +1848,11 @@ export async function batchVersionOperations(
               throw new Error(`Unknown operation: ${op.operation}`);
           }
           results.push({ propertyId: op.propertyId, operation: op.operation, result });
-        } catch (error: any) {
+        } catch (_error: any) {
           errors.push({
             propertyId: op.propertyId,
             operation: op.operation,
-            error: error?.message || 'Unknown error',
+            error: _error?.message || 'Unknown error',
           });
 
           if (!args.continueOnError) {
@@ -1849,8 +1875,8 @@ export async function batchVersionOperations(
 
     if (errors.length > 0) {
       text += '❌ **Failed Operations:**\n';
-      errors.forEach((error, index) => {
-        text += `${index + 1}. ${error.propertyId} - ${error.operation}: ${error.error}\n`;
+      errors.forEach((_error, index) => {
+        text += `${index + 1}. ${_error.propertyId} - ${_error.operation}: ${_error.error}\n`;
       });
       text += '\n';
     }
@@ -1871,8 +1897,8 @@ export async function batchVersionOperations(
         },
       ],
     };
-  } catch (error) {
-    return formatError('batch version operations', error);
+  } catch (_error) {
+    return formatError('batch version operations', _error);
   }
 }
 
@@ -1935,28 +1961,28 @@ function compareHostnames(hostnames1: any[], hostnames2: any[]): any[] {
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+  if (_error instanceof Error) {
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
-    if (error.message.includes('401') || error.message.includes('credentials')) {
+    if (_error.message.includes('401') || _error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials for the customer section.';
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
       solution = '**Solution:** Your API credentials may lack the necessary permissions.';
-    } else if (error.message.includes('404') || error.message.includes('not found')) {
+    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
       solution = '**Solution:** The requested resource was not found. Verify the ID is correct.';
-    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
+    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
       solution = '**Solution:** Invalid request parameters. Check the input values.';
-    } else if (error.message.includes('409') || error.message.includes('Conflict')) {
+    } else if (_error.message.includes('409') || _error.message.includes('Conflict')) {
       solution = '**Solution:** Resource conflict. The operation may already be in progress.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

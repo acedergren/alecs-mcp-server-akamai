@@ -93,7 +93,7 @@ export interface RuleConflict {
 
 export interface RuleDependency {
   behavior: string;
-  requires: string[];
+  requi_res: string[];
   conflicts: string[];
   recommendedOrder?: number;
 }
@@ -214,11 +214,11 @@ export async function validateRuleTree(
     // Errors
     if (validation.errors.length > 0) {
       responseText += `## ❌ Errors (${validation.errors.length})\n`;
-      validation.errors.forEach((error, idx) => {
-        responseText += `${idx + 1}. **${error.severity}** at \`${error.path}\`\n`;
-        responseText += `   - ${error.message}\n`;
-        if (error.fix) {
-          responseText += `   - **Fix:** ${error.fix}\n`;
+      validation.errors.forEach((_error, idx) => {
+        responseText += `${idx + 1}. **${_error.severity}** at \`${_error.path}\`\n`;
+        responseText += `   - ${_error.message}\n`;
+        if (_error.fix) {
+          responseText += `   - **Fix:** ${_error.fix}\n`;
         }
       });
       responseText += '\n';
@@ -278,12 +278,12 @@ export async function validateRuleTree(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'validate rule tree',
             parameters: args,
             timestamp: new Date(),
@@ -370,7 +370,7 @@ export async function createRuleTreeFromTemplate(
           content: [
             {
               type: 'text',
-              text: `❌ Failed to apply template:\n\n${updateResponse.errors.map((e: any) => `- ${e.detail}`).join('\n')}`,
+              text: `❌ Failed to apply template:\n\n${updateResponse.errors.map((_e: any) => `- ${_e.detail}`).join('\n')}`,
             },
           ],
         };
@@ -418,12 +418,12 @@ export async function createRuleTreeFromTemplate(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'create rule tree from template',
             parameters: args,
             timestamp: new Date(),
@@ -568,12 +568,12 @@ export async function analyzeRuleTreePerformance(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'analyze rule tree performance',
             parameters: args,
             timestamp: new Date(),
@@ -694,12 +694,12 @@ export async function detectRuleConflicts(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'detect rule conflicts',
             parameters: args,
             timestamp: new Date(),
@@ -754,8 +754,8 @@ export async function listRuleTemplates(
       (acc, template) => {
         const cat = template.category;
         if (!acc[cat]) {
-acc[cat] = [];
-}
+          acc[cat] = [];
+        }
         acc[cat].push(template);
         return acc;
       },
@@ -805,12 +805,12 @@ acc[cat] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `❌ Failed to list rule templates: ${error instanceof Error ? error.message : String(error)}`,
+          text: `❌ Failed to list rule templates: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };
@@ -1190,8 +1190,8 @@ function performRuleTreeAnalysis(rules: any): any {
 
     const hasCaching = rule.behaviors?.some((b: any) => b.name === 'caching');
     if (hasCaching) {
-rulesWithCaching++;
-}
+      rulesWithCaching++;
+    }
 
     const pathCriteria = rule.criteria?.find((c: any) => c.name === 'path');
     if (
@@ -1448,8 +1448,8 @@ function validateTemplateVariables(
 
     // Skip validation if not provided and not required
     if (value === undefined) {
-return;
-}
+      return;
+    }
 
     // Type validation
     if (variable.type === 'string' && typeof value !== 'string') {
@@ -1534,25 +1534,25 @@ function getBehaviorDependencies(): RuleDependency[] {
   return [
     {
       behavior: 'gzipResponse',
-      requires: ['caching'],
+      requi_res: ['caching'],
       conflicts: ['brotli'],
       recommendedOrder: 50,
     },
     {
       behavior: 'modifyOutgoingResponseHeader',
-      requires: [],
+      requi_res: [],
       conflicts: [],
       recommendedOrder: 90,
     },
     {
       behavior: 'caching',
-      requires: ['cpCode'],
+      requi_res: ['cpCode'],
       conflicts: ['noStore'],
       recommendedOrder: 20,
     },
     {
       behavior: 'origin',
-      requires: [],
+      requi_res: [],
       conflicts: [],
       recommendedOrder: 10,
     },

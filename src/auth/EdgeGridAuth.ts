@@ -33,7 +33,7 @@ export interface EdgeGridAuthHeader {
 }
 
 /**
- * EdgeGrid request configuration
+ * EdgeGrid _request configuration
  */
 export interface EdgeGridRequestConfig {
   /** API endpoint path */
@@ -85,7 +85,7 @@ export class EdgeGridAuthError extends Error {
 }
 
 /**
- * EdgeGrid client configuration options
+ * EdgeGrid client configuration _options
  */
 export interface EdgeGridClientOptions {
   /** Customer section name */
@@ -108,15 +108,15 @@ export class EdgeGridAuth {
   private readonly customerName: string;
   private readonly hasAccountSwitching: boolean;
 
-  private constructor(options: EdgeGridClientOptions = {}) {
-    const { customer = 'default', timeout = 30000, validateOnInit = true } = options;
+  private constructor(_options: EdgeGridClientOptions = {}) {
+    const { customer = 'default', timeout = 30000, validateOnInit = true } = _options;
 
     this.customerName = customer;
 
     // Get credentials with validation
     try {
       this.credentials = CustomerConfigManager.getInstance().getSection(customer);
-    } catch (error) {
+    } catch (_error) {
       throw new ConfigurationError(
         ConfigErrorType.SECTION_NOT_FOUND,
         `Customer section '${customer}' not found`,
@@ -133,7 +133,7 @@ export class EdgeGridAuth {
 
     // Create axios instance with typed configuration
     this.axiosInstance = axios.create({
-      baseURL: options.baseUrl || `https://${this.credentials.host}`,
+      baseURL: _options.baseUrl || `https://${this.credentials.host}`,
       timeout,
       headers: {
         'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ export class EdgeGridAuth {
       validateStatus: (status) => status < 500, // Don't throw on 4xx errors
     });
 
-    // Add request interceptor for EdgeGrid authentication
+    // Add _request interceptor for EdgeGrid authentication
     this.axiosInstance.interceptors.request.use(
       (config) => this.addAuthHeaders(config),
       (error) => Promise.reject(this.createAuthError(error)),
@@ -158,11 +158,11 @@ export class EdgeGridAuth {
   /**
    * Get or create EdgeGrid client instance
    */
-  static getInstance(options: EdgeGridClientOptions = {}): EdgeGridAuth {
-    const key = options.customer || 'default';
+  static getInstance(_options: EdgeGridClientOptions = {}): EdgeGridAuth {
+    const key = _options.customer || 'default';
 
     if (!EdgeGridAuth.instances.has(key)) {
-      EdgeGridAuth.instances.set(key, new EdgeGridAuth(options));
+      EdgeGridAuth.instances.set(key, new EdgeGridAuth(_options));
     }
 
     return EdgeGridAuth.instances.get(key)!;
@@ -287,7 +287,7 @@ export class EdgeGridAuth {
    * Create ISO timestamp for authentication
    */
   private createTimestamp(): string {
-    return new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
+    return new Date().toISOString().replace(/[:|-]|\.\d{3}/g, '');
   }
 
   /**
@@ -298,7 +298,7 @@ export class EdgeGridAuth {
   }
 
   /**
-   * Serialize request body
+   * Serialize _request body
    */
   private serializeBody(data: unknown): string {
     if (typeof data === 'string') {
@@ -308,7 +308,7 @@ export class EdgeGridAuth {
   }
 
   /**
-   * Create content hash for request body
+   * Create content hash for _request body
    */
   private createContentHash(content: string): string {
     return crypto.createHash('sha256').update(content, 'utf8').digest('base64');
@@ -362,49 +362,49 @@ export class EdgeGridAuth {
   }
 
   /**
-   * Handle request/response errors
+   * Handle _request/response errors
    */
-  private async handleError(error: AxiosError): Promise<never> {
-    if (error.response) {
-      const errorResponse = error.response.data as EdgeGridErrorResponse;
-      const errorMessage = this.extractErrorMessage(errorResponse, error.response.status);
+  private async handleError(_error: AxiosError): Promise<never> {
+    if (_error.response) {
+      const errorResponse = _error.response.data as EdgeGridErrorResponse;
+      const errorMessage = this.extractErrorMessage(errorResponse, _error.response.status);
 
-      logger.error(`API Error [${error.response.status}]`, {
+      logger.error(`API error [${_error.response.status}]`, {
         customer: this.customerName,
-        status: error.response.status,
-        path: error.config?.url,
+        status: _error.response.status,
+        path: _error.config?.url,
         error: errorResponse,
       });
 
       throw new EdgeGridAuthError(
         errorMessage,
-        `API_ERROR_${error.response.status}`,
-        error.response.status,
+        `API_ERROR_${_error.response.status}`,
+        _error.response.status,
         errorResponse,
       );
-    } else if (error.request) {
+    } else if (_error.request) {
       logger.error('No response from API', {
         customer: this.customerName,
-        error: error.message,
+        error: _error.message,
       });
 
       throw new EdgeGridAuthError('No response from Akamai API', 'NO_RESPONSE');
     } else {
       logger.error('Request error', {
         customer: this.customerName,
-        error: error.message,
+        error: _error.message,
       });
 
-      throw new EdgeGridAuthError(error.message, 'REQUEST_ERROR');
+      throw new EdgeGridAuthError(_error.message, 'REQUEST_ERROR');
     }
   }
 
   /**
    * Create authentication error
    */
-  private createAuthError(error: unknown): EdgeGridAuthError {
-    if (error instanceof Error) {
-      return new EdgeGridAuthError(error.message, 'AUTH_ERROR');
+  private createAuthError(_error: unknown): EdgeGridAuthError {
+    if (_error instanceof Error) {
+      return new EdgeGridAuthError(_error.message, 'AUTH_ERROR');
     }
     return new EdgeGridAuthError('Unknown authentication error', 'AUTH_ERROR');
   }
@@ -429,9 +429,9 @@ export class EdgeGridAuth {
   }
 
   /**
-   * Make authenticated request
+   * Make authenticated _request
    */
-  async request<T = unknown>(config: EdgeGridRequestConfig): Promise<T> {
+  async _request<T = unknown>(config: EdgeGridRequestConfig): Promise<T> {
     const { path, method = 'GET', body, headers = {}, queryParams = {} } = config;
 
     logger.info(`${method} ${path}`, {
@@ -441,73 +441,68 @@ export class EdgeGridAuth {
       hasAccountSwitching: this.hasAccountSwitching,
     });
 
-    try {
-      const response = await this.axiosInstance.request<T>({
-        method,
-        url: path,
-        data: body,
-        headers,
-        params: queryParams,
-      });
+    const response = await this.axiosInstance.request<T>({
+      method,
+      url: path,
+      data: body,
+      headers,
+      params: queryParams,
+    });
 
-      return response.data;
-    } catch (error) {
-      // Error is already transformed by interceptor
-      throw error;
-    }
+    return response.data;
   }
 
   /**
-   * GET request
+   * GET _request
    */
   async get<T = unknown>(
     path: string,
     queryParams?: Record<string, string | number | boolean>,
   ): Promise<T> {
-    return this.request<T>({ path, method: 'GET', queryParams });
+    return this._request<T>({ path, method: 'GET', queryParams });
   }
 
   /**
-   * POST request
+   * POST _request
    */
   async post<T = unknown>(
     path: string,
     body?: unknown,
     queryParams?: Record<string, string | number | boolean>,
   ): Promise<T> {
-    return this.request<T>({ path, method: 'POST', body, queryParams });
+    return this._request<T>({ path, method: 'POST', body, queryParams });
   }
 
   /**
-   * PUT request
+   * PUT _request
    */
   async put<T = unknown>(
     path: string,
     body?: unknown,
     queryParams?: Record<string, string | number | boolean>,
   ): Promise<T> {
-    return this.request<T>({ path, method: 'PUT', body, queryParams });
+    return this._request<T>({ path, method: 'PUT', body, queryParams });
   }
 
   /**
-   * DELETE request
+   * DELETE _request
    */
   async delete<T = unknown>(
     path: string,
     queryParams?: Record<string, string | number | boolean>,
   ): Promise<T> {
-    return this.request<T>({ path, method: 'DELETE', queryParams });
+    return this._request<T>({ path, method: 'DELETE', queryParams });
   }
 
   /**
-   * PATCH request
+   * PATCH _request
    */
   async patch<T = unknown>(
     path: string,
     body?: unknown,
     queryParams?: Record<string, string | number | boolean>,
   ): Promise<T> {
-    return this.request<T>({ path, method: 'PATCH', body, queryParams });
+    return this._request<T>({ path, method: 'PATCH', body, queryParams });
   }
 
   /**

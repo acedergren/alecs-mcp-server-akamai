@@ -149,7 +149,10 @@ export class TokenValidator {
   /**
    * Validate access token
    */
-  async validateAccessToken(token: string, requiredScopes?: string[]): Promise<TokenValidationResult> {
+  async validateAccessToken(
+    token: string,
+    requiredScopes?: string[],
+  ): Promise<TokenValidationResult> {
     try {
       // Check cache first
       const cachedResult = await this.getCachedValidation(token);
@@ -168,20 +171,21 @@ export class TokenValidator {
       } else {
         return {
           valid: false,
-          error: 'No validation method available (neither JWT validation nor introspection configured)',
+          error:
+            'No validation method available (neither JWT validation nor introspection configured)',
         };
       }
 
       // Check required scopes
       if (result.valid && requiredScopes?.length) {
         const tokenScopes = result.claims?.scope?.split(' ') || [];
-        const hasRequiredScopes = requiredScopes.every(scope => tokenScopes.includes(scope));
+        const hasRequiredScopes = requiredScopes.every((scope) => tokenScopes.includes(scope));
 
         if (!hasRequiredScopes) {
           result = {
             ...result,
             valid: false,
-            error: `Missing required scopes: ${requiredScopes.filter(s => !tokenScopes.includes(s)).join(', ')}`,
+            error: `Missing required scopes: ${requiredScopes.filter((s) => !tokenScopes.includes(s)).join(', ')}`,
           };
         }
       }
@@ -190,11 +194,11 @@ export class TokenValidator {
       await this.cacheValidationResult(token, result);
 
       return result;
-    } catch (error) {
-      logger.error('Token validation error', { error });
+    } catch (_error) {
+      logger.error('Token validation error', { error: _error });
       return {
         valid: false,
-        error: error instanceof Error ? error.message : 'Token validation failed',
+        error: _error instanceof Error ? _error.message : 'Token validation failed',
       };
     }
   }
@@ -218,7 +222,7 @@ export class TokenValidator {
         return { valid: false, error: 'Invalid JWT format' };
       }
 
-      const { header, payload } = decoded;
+      const { header } = decoded;
 
       // Check algorithm
       if (!this.config.allowedAlgorithms.includes(header.alg as Algorithm)) {
@@ -244,7 +248,7 @@ export class TokenValidator {
 
       // Validate required claims
       if (this.config.requiredClaims) {
-        const missingClaims = this.config.requiredClaims.filter(claim => !(claim in verified));
+        const missingClaims = this.config.requiredClaims.filter((claim) => !(claim in verified));
         if (missingClaims.length > 0) {
           return {
             valid: false,
@@ -258,18 +262,20 @@ export class TokenValidator {
         active: true,
         claims: verified,
       };
-    } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
+    } catch (_error) {
+      if (_error instanceof jwt.TokenExpiredError) {
         return { valid: false, error: 'Token expired' };
       }
-      if (error instanceof jwt.NotBeforeError) {
+      if (_error instanceof jwt.NotBeforeError) {
         return { valid: false, error: 'Token not yet valid' };
       }
-      if (error instanceof jwt.JsonWebTokenError) {
-        return { valid: false, error: error.message };
+      if (_error instanceof jwt.JsonWebTokenError) {
+        return { valid: false, error: _error.message };
       }
 
-      logger.error('JWT validation error', { error: error instanceof Error ? error.message : String(error) });
+      logger.error('JWT validation error', {
+        error: _error instanceof Error ? _error.message : String(_error),
+      });
       return { valid: false, error: 'JWT validation failed' };
     }
   }
@@ -283,13 +289,15 @@ export class TokenValidator {
     }
 
     try {
-      const auth = Buffer.from(`${this.config.clientId}:${this.config.clientSecret}`).toString('base64');
+      const auth = Buffer.from(`${this.config.clientId}:${this.config.clientSecret}`).toString(
+        'base64',
+      );
 
       const response = await fetch(this.config.introspectionEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': `Basic ${auth}`,
+          Authorization: `Basic ${auth}`,
         },
         body: new URLSearchParams({
           token,
@@ -328,11 +336,11 @@ export class TokenValidator {
         active: true,
         claims,
       };
-    } catch (error) {
-      logger.error('Token introspection error', { error });
+    } catch (_error) {
+      logger.error('Token introspection error', { error: _error });
       return {
         valid: false,
-        error: error instanceof Error ? error.message : 'Introspection failed',
+        error: _error instanceof Error ? _error.message : 'Introspection failed',
       };
     }
   }
@@ -358,7 +366,7 @@ export class TokenValidator {
     try {
       const response = await fetch(this.config.jwksUri, {
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
         signal: AbortSignal.timeout(5000), // 5 second timeout
       });
@@ -367,7 +375,7 @@ export class TokenValidator {
         throw new Error(`Failed to fetch JWKS: ${response.status}`);
       }
 
-      const jwks = await response.json() as JWKSResponse;
+      const jwks = (await response.json()) as JWKSResponse;
 
       // Update cache
       this.jwksCache.clear();
@@ -376,11 +384,11 @@ export class TokenValidator {
           this.jwksCache.set(key.kid, key);
         }
       }
-      this.jwksCacheExpiry = Date.now() + (this.config.jwksCacheTTL * 1000);
+      this.jwksCacheExpiry = Date.now() + this.config.jwksCacheTTL * 1000;
 
       return this.jwksCache.get(kid) || null;
-    } catch (error) {
-      logger.error('Failed to fetch JWKS', { error });
+    } catch (_error) {
+      logger.error('Failed to fetch JWKS', { error: _error });
       return null;
     }
   }
@@ -434,8 +442,8 @@ ${Buffer.from(JSON.stringify(pubKey)).toString('base64')}
 
     try {
       return JSON.parse(cached) as TokenValidationResult;
-    } catch (error) {
-      logger.error('Failed to parse cached validation result', { error });
+    } catch (_error) {
+      logger.error('Failed to parse cached validation result', { error: _error });
       return null;
     }
   }

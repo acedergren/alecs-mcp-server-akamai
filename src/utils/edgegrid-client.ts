@@ -35,13 +35,13 @@ export class EdgeGridClient {
     // Add request interceptor for EdgeGrid authentication
     this.axiosInstance.interceptors.request.use(
       (config) => this.addAuthHeaders(config),
-      (error) => Promise.reject(error),
+      (_error) => Promise.reject(_error),
     );
 
     // Add response interceptor for error handling
     this.axiosInstance.interceptors.response.use(
       (response) => response,
-      (error) => this.handleError(error),
+      (_error) => this.handleError(_error),
     );
   }
 
@@ -53,7 +53,7 @@ export class EdgeGridClient {
   }
 
   private addAuthHeaders(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
-    const timestamp = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
+    const timestamp = new Date().toISOString().replace(/[:.-]|\.\d{3}/g, '');
     const nonce = crypto.randomBytes(16).toString('hex');
     const authHeader = this.createAuthHeader(
       config.method?.toUpperCase() || 'GET',
@@ -121,14 +121,14 @@ export class EdgeGridClient {
     return signature.digest('base64');
   }
 
-  private async handleError(error: any): Promise<never> {
-    if (error.response) {
-      const { status, data } = error.response;
+  private async handleError(_error: any): Promise<never> {
+    if (_error.response) {
+      const { status, data } = _error.response;
       logger.error(`API Error [${status}]`, {
         customer: this.customerName,
         status,
         data,
-        path: error.config?.url,
+        path: _error.config?.url,
       });
 
       // Extract error message from Akamai API response
@@ -141,28 +141,28 @@ export class EdgeGridClient {
         } else if (data.title) {
           errorMessage = data.title;
         } else if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
-          errorMessage = data.errors.map((e: any) => e.detail || e.error || e).join(', ');
+          errorMessage = data.errors.map((_e: any) => _e.detail || _e.error || _e).join(', ');
         }
       }
 
       throw new Error(errorMessage);
-    } else if (error.request) {
+    } else if (_error.request) {
       logger.error('No response from API', {
         customer: this.customerName,
-        error: error.message,
+        error: _error.message,
       });
       throw new Error('No response from Akamai API');
     } else {
       logger.error('Request error', {
         customer: this.customerName,
-        error: error.message,
+        error: _error.message,
       });
-      throw new Error(error.message);
+      throw new Error(_error.message);
     }
   }
 
-  async request<T = any>(options: EdgeGridRequestOptions): Promise<T> {
-    const { path, method = 'GET', body, headers = {}, queryParams = {} } = options;
+  async request<T = any>(_options: EdgeGridRequestOptions): Promise<T> {
+    const { path, method = 'GET', body, headers = {}, queryParams = {} } = _options;
 
     logger.debug(`${method} ${path}`, {
       customer: this.customerName,
@@ -170,20 +170,15 @@ export class EdgeGridClient {
       hasBody: !!body,
     });
 
-    try {
-      const response = await this.axiosInstance.request<T>({
-        method,
-        url: path,
-        data: body,
-        headers,
-        params: queryParams,
-      });
+    const response = await this.axiosInstance.request<T>({
+      method,
+      url: path,
+      data: body,
+      headers,
+      params: queryParams,
+    });
 
-      return response.data;
-    } catch (error) {
-      // Error is already handled by interceptor
-      throw error;
-    }
+    return response.data;
   }
 
   // Convenience methods

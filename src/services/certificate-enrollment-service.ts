@@ -217,10 +217,10 @@ export class CertificateEnrollmentService {
           },
         ],
       };
-    } catch (error) {
+    } catch (_error) {
       this.performanceMonitor.endOperation('CERTIFICATE_ENROLLMENT');
 
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = _error instanceof Error ? _error.message : String(_error);
       this.logWorkflowEvent('workflow_failed', { error: errorMessage });
 
       return {
@@ -259,12 +259,12 @@ export class CertificateEnrollmentService {
           },
         ],
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         content: [
           {
             type: 'text',
-            text: `❌ Validation failed: ${error instanceof Error ? error.message : String(error)}`,
+            text: `❌ Validation failed: ${_error instanceof Error ? _error.message : String(_error)}`,
           },
         ],
       };
@@ -314,12 +314,12 @@ export class CertificateEnrollmentService {
           },
         ],
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         content: [
           {
             type: 'text',
-            text: `❌ Deployment failed: ${error instanceof Error ? error.message : String(error)}`,
+            text: `❌ Deployment failed: ${_error instanceof Error ? _error.message : String(_error)}`,
           },
         ],
       };
@@ -385,12 +385,12 @@ export class CertificateEnrollmentService {
           },
         ],
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         content: [
           {
             type: 'text',
-            text: `❌ Failed to monitor certificate: ${error instanceof Error ? error.message : String(error)}`,
+            text: `❌ Failed to monitor certificate: ${_error instanceof Error ? _error.message : String(_error)}`,
           },
         ],
       };
@@ -492,8 +492,8 @@ export class CertificateEnrollmentService {
               comment: `ACME validation for certificate ${enrollmentId}`,
             });
             validationSteps += `✅ Activated zone: ${zone}\n`;
-          } catch (error) {
-            validationSteps += `⚠️ Zone ${zone} activation skipped: ${error instanceof Error ? error.message : 'Unknown error'}\n`;
+          } catch (_error) {
+            validationSteps += `⚠️ Zone ${zone} activation skipped: ${_error instanceof Error ? _error.message : 'Unknown error'}\n`;
           }
         }
         validationSteps += '\n';
@@ -528,9 +528,9 @@ export class CertificateEnrollmentService {
         enrollmentState.status = 'failed';
         enrollmentState.errors.push('Validation monitoring failed');
       }
-    } catch (error) {
+    } catch (_error) {
       enrollmentState.status = 'failed';
-      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorMsg = _error instanceof Error ? _error.message : String(_error);
       enrollmentState.errors.push(`Validation error: ${errorMsg}`);
       validationSteps += `\n❌ Validation failed: ${errorMsg}\n`;
     }
@@ -594,9 +594,9 @@ export class CertificateEnrollmentService {
       enrollmentState.status = 'deployed';
       enrollmentState.deploymentStatus.status = 'completed';
       enrollmentState.deploymentStatus.completedAt = new Date();
-    } catch (error) {
+    } catch (_error) {
       enrollmentState.status = 'failed';
-      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorMsg = _error instanceof Error ? _error.message : String(_error);
       enrollmentState.errors.push(`Deployment error: ${errorMsg}`);
 
       if (enrollmentState.deploymentStatus) {

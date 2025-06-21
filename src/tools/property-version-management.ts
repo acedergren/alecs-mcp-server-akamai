@@ -198,12 +198,12 @@ export async function comparePropertyVersions(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'compare property versions',
             parameters: args,
             timestamp: new Date(),
@@ -287,11 +287,11 @@ export async function batchCreateVersions(
             prop.note || args.defaultNote || '',
           );
         }
-      } catch (error: any) {
+      } catch (_error: any) {
         results.push({
           propertyId: prop.propertyId,
           success: false,
-          error: error.message || 'Unknown error',
+          error: _error.message || 'Unknown error',
         });
       }
     }
@@ -335,12 +335,12 @@ export async function batchCreateVersions(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'batch create versions',
             parameters: args,
             timestamp: new Date(),
@@ -405,11 +405,11 @@ export async function getVersionTimeline(
 
       // Apply date filters if provided
       if (args.startDate && versionDate < new Date(args.startDate)) {
-continue;
-}
+        continue;
+      }
       if (args.endDate && versionDate > new Date(args.endDate)) {
-continue;
-}
+        continue;
+      }
 
       timeline.timeline.push({
         version: version.propertyVersion,
@@ -461,15 +461,15 @@ continue;
       responseText += `- **Date:** ${date}\n`;
       responseText += `- **Event:** ${event.event}`;
       if (event.network) {
-responseText += ` to ${event.network}`;
-}
+        responseText += ` to ${event.network}`;
+      }
       responseText += '\n';
       if (event.user) {
-responseText += `- **By:** ${event.user}\n`;
-}
+        responseText += `- **By:** ${event.user}\n`;
+      }
       if (event.note) {
-responseText += `- **Note:** ${event.note}\n`;
-}
+        responseText += `- **Note:** ${event.note}\n`;
+      }
       responseText += '\n';
     }
 
@@ -489,12 +489,12 @@ responseText += `- **Note:** ${event.note}\n`;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'get version timeline',
             parameters: args,
             timestamp: new Date(),
@@ -647,12 +647,12 @@ export async function rollbackPropertyVersion(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'rollback property version',
             parameters: args,
             timestamp: new Date(),
@@ -716,8 +716,8 @@ export async function updateVersionMetadata(
 
       // Add metadata as comments in rule tree
       if (!rules.comments) {
-rules.comments = {};
-}
+        rules.comments = {};
+      }
 
       if (args.metadata.tags) {
         rules.comments.tags = args.metadata.tags.join(', ');
@@ -759,8 +759,10 @@ rules.comments = {};
     responseText += `\n✅ Metadata successfully updated for version ${args.version}\n`;
 
     responseText += '\n## Note\n';
-    responseText += 'Tags and labels are stored as rule comments since PAPI doesn\'t natively support extended metadata.\n';
-    responseText += 'They will be preserved across version updates and can be retrieved when viewing rules.\n';
+    responseText +=
+      "Tags and labels are stored as rule comments since PAPI doesn't natively support extended metadata.\n";
+    responseText +=
+      'They will be preserved across version updates and can be retrieved when viewing rules.\n';
 
     return {
       content: [
@@ -770,12 +772,12 @@ rules.comments = {};
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'update version metadata',
             parameters: args,
             timestamp: new Date(),
@@ -915,12 +917,12 @@ export async function mergePropertyVersions(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'merge property versions',
             parameters: args,
             timestamp: new Date(),
@@ -1168,8 +1170,8 @@ function cherryPickChanges(
   // Extract and apply specific paths from source
   for (const path of includePaths) {
     if (excludePaths?.includes(path)) {
-continue;
-}
+      continue;
+    }
 
     const value = getValueAtPath(sourceRules, path);
     if (value !== undefined) {
@@ -1236,8 +1238,8 @@ function getValueAtPath(obj: any, path: string): any {
     }
 
     if (current === undefined) {
-break;
-}
+      break;
+    }
   }
 
   return current;
@@ -1250,8 +1252,8 @@ function setValueAtPath(obj: any, path: string, value: any): void {
   for (let i = 0; i < parts.length - 1; i++) {
     const part = parts[i];
     if (!part) {
-continue;
-}
+      continue;
+    }
 
     if (part.includes('[') && part.includes(']')) {
       const bracketIndex = part.indexOf('[');
@@ -1260,17 +1262,17 @@ continue;
       const index = parseInt(indexStr);
 
       if (!current[key]) {
-current[key] = [];
-}
+        current[key] = [];
+      }
       if (!current[key][index]) {
-current[key][index] = {};
-}
+        current[key][index] = {};
+      }
 
       current = current[key][index];
     } else {
       if (!current[part]) {
-current[part] = {};
-}
+        current[part] = {};
+      }
       current = current[part];
     }
   }
@@ -1283,8 +1285,8 @@ current[part] = {};
     const index = parseInt(indexStr);
 
     if (!current[key]) {
-current[key] = [];
-}
+      current[key] = [];
+    }
     current[key][index] = value;
   } else if (lastPart) {
     current[lastPart] = value;

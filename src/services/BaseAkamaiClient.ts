@@ -5,8 +5,16 @@
 import { logger } from '@utils/logger';
 import { z, type ZodSchema } from 'zod';
 
-import { EdgeGridAuth, EdgeGridRequestConfig, EdgeGridAuthError } from '../auth/EdgeGridAuth';
-import { type NetworkEnvironment, ConfigurationError, ConfigErrorType } from '../types/config';
+import {
+  EdgeGridAuth,
+  EdgeGridRequestConfig as _EdgeGridRequestConfig,
+  EdgeGridAuthError,
+} from '../auth/EdgeGridAuth';
+import {
+  type NetworkEnvironment,
+  ConfigurationError as _ConfigurationError,
+  ConfigErrorType as _ConfigErrorType,
+} from '../types/config';
 
 /**
  * Generic API response wrapper
@@ -126,20 +134,20 @@ export class HttpError extends Error {
 
   get category(): HttpStatusCategory {
     if (this.statusCode >= 100 && this.statusCode < 200) {
-return HttpStatusCategory.INFORMATIONAL;
-}
+      return HttpStatusCategory.INFORMATIONAL;
+    }
     if (this.statusCode >= 200 && this.statusCode < 300) {
-return HttpStatusCategory.SUCCESS;
-}
+      return HttpStatusCategory.SUCCESS;
+    }
     if (this.statusCode >= 300 && this.statusCode < 400) {
-return HttpStatusCategory.REDIRECTION;
-}
+      return HttpStatusCategory.REDIRECTION;
+    }
     if (this.statusCode >= 400 && this.statusCode < 500) {
-return HttpStatusCategory.CLIENT_ERROR;
-}
+      return HttpStatusCategory.CLIENT_ERROR;
+    }
     if (this.statusCode >= 500 && this.statusCode < 600) {
-return HttpStatusCategory.SERVER_ERROR;
-}
+      return HttpStatusCategory.SERVER_ERROR;
+    }
     throw new Error(`Invalid status code: ${this.statusCode}`);
   }
 }
@@ -274,7 +282,7 @@ export class BaseAkamaiClient {
         return new NotFoundError(message, response, requestId);
       case 409:
         return new ConflictError(message, response, requestId);
-      case 429:
+      case 429: {
         const rateLimit = response?.rateLimit || {
           limit: 0,
           remaining: 0,
@@ -282,6 +290,7 @@ export class BaseAkamaiClient {
           window: 60,
         };
         return new RateLimitError(message, rateLimit, response, requestId);
+      }
       case 500:
         return new InternalServerError(message, response, requestId);
       case 503:
@@ -294,14 +303,14 @@ export class BaseAkamaiClient {
   /**
    * Check if error is retryable
    */
-  private isRetryableError(error: Error): boolean {
-    if (error instanceof HttpError) {
+  private isRetryableError(_error: Error): boolean {
+    if (_error instanceof HttpError) {
       // Retry on 5xx errors and rate limits
-      return error.statusCode >= 500 || error.statusCode === 429;
+      return _error.statusCode >= 500 || _error.statusCode === 429;
     }
-    if (error instanceof EdgeGridAuthError) {
+    if (_error instanceof EdgeGridAuthError) {
       // Retry on network errors
-      return error.code === 'NO_RESPONSE' || error.code === 'REQUEST_ERROR';
+      return _error.code === 'NO_RESPONSE' || _error.code === 'REQUEST_ERROR';
     }
     return false;
   }
@@ -309,10 +318,10 @@ export class BaseAkamaiClient {
   /**
    * Calculate retry delay with exponential backoff
    */
-  private calculateRetryDelay(attempt: number, baseDelay: number, error?: Error): number {
+  private calculateRetryDelay(attempt: number, baseDelay: number, _error?: Error): number {
     // For rate limit errors, use the reset time if available
-    if (error instanceof RateLimitError && error.rateLimit.reset) {
-      const resetTime = error.rateLimit.reset * 1000;
+    if (_error instanceof RateLimitError && _error.rateLimit.reset) {
+      const resetTime = _error.rateLimit.reset * 1000;
       const now = Date.now();
       const delay = Math.max(resetTime - now, 0);
       return delay + 1000; // Add 1 second buffer
@@ -334,13 +343,13 @@ export class BaseAkamaiClient {
 
     try {
       return schema.parse(data);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
+    } catch (_error) {
+      if (_error instanceof z.ZodError) {
         throw new Error(
-          `Response validation failed: ${error.errors.map((e) => e.message).join(', ')}`,
+          `Response validation failed: ${_error.errors.map((e) => e.message).join(', ')}`,
         );
       }
-      throw error;
+      throw _error;
     }
   }
 
@@ -354,10 +363,10 @@ export class BaseAkamaiClient {
       body,
       queryParams,
       headers = {},
-      timeout,
+      timeout: _timeout,
       maxRetries = 3,
       retryDelay = 1000,
-      parseJson = true,
+      parseJson: _parseJson = true,
       schema,
     } = config;
 
@@ -378,7 +387,7 @@ export class BaseAkamaiClient {
     while (retryCount <= maxRetries) {
       try {
         // Make request using EdgeGrid auth
-        const response = await this.auth.request<T>({
+        const response = await this.auth._request<T>({
           path,
           method: method as any,
           body,
@@ -418,8 +427,8 @@ export class BaseAkamaiClient {
             customer: this.customer,
           },
         };
-      } catch (error) {
-        lastError = error as Error;
+      } catch (_error) {
+        lastError = _error as Error;
         const duration = Date.now() - startTime;
 
         logger.error('API request failed', {

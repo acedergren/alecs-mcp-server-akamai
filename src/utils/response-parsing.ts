@@ -54,7 +54,6 @@ export const PropertyResponseSchemas = {
     ruleFormat: z.string().optional(),
     hostnames: z.array(z.string()).optional(),
   }),
-
   propertyVersion: z.object({
     propertyVersion: z.number(),
     updatedByUser: z.string().optional(),
@@ -64,7 +63,6 @@ export const PropertyResponseSchemas = {
     etag: z.string().optional(),
     note: z.string().optional(),
   }),
-
   activation: z.object({
     activationId: z.string(),
     propertyName: z.string(),
@@ -156,7 +154,6 @@ export const DNSResponseSchemas = {
     ttl: z.number(),
     rdata: z.array(z.string()),
   }),
-
   changelist: z.object({
     zone: z.string(),
     changeId: z.string().optional(),
@@ -242,15 +239,14 @@ export const CertificateResponseSchemas = {
 // Fast Purge response schemas
 export const FastPurgeResponseSchemas = {
   purgeResponse: z.object({
-    httpStatus: z.number(),
+    _httpStatus: z.number(),
     detail: z.string(),
     estimatedSeconds: z.number(),
     purgeId: z.string(),
     supportId: z.string().optional(),
   }),
-
   purgeStatus: z.object({
-    httpStatus: z.number(),
+    _httpStatus: z.number(),
     detail: z.string(),
     status: z.enum(['In-Progress', 'Done', 'Error']),
     submittedBy: z.string().optional(),
@@ -294,15 +290,15 @@ export class ResponseParser {
    */
   static parsePropertyResponse(response: any): any {
     if (!response) {
-return response;
-}
+      return response;
+    }
 
     if (response.properties?.items) {
       return {
         properties: response.properties.items.map((item: any) => {
           try {
             return PropertyResponseSchemas.property.parse(item);
-          } catch (e) {
+          } catch (_e) {
             // Return partial data if validation fails
             return item;
           }
@@ -345,8 +341,8 @@ return response;
    */
   static parseDNSResponse(response: any): any {
     if (!response) {
-return response;
-}
+      return response;
+    }
 
     if (response.zones) {
       return {
@@ -452,13 +448,13 @@ return response;
   }
 
   /**
-   * Parse error responses with enhanced context
+   * Parse _error responses with enhanced context
    */
   static parseErrorResponse(
-    error: any,
-    context?: { endpoint?: string; operation?: string },
+    _error: any,
+    _context?: { endpoint?: string; operation?: string },
   ): AkamaiErrorResponse {
-    let errorData: any = error.response?.data || error.data || error;
+    let errorData: any = _error.response?.data || _error.data || _error;
 
     // Handle string responses
     if (typeof errorData === 'string') {
@@ -468,28 +464,28 @@ return response;
         return {
           title: 'API Error',
           detail: errorData,
-          status: error.response?.status || error.status || 500,
+          status: _error.response?.status || _error.status || 500,
         };
       }
     }
 
-    // Extract error information
+    // Extract _error information
     const parsedError: AkamaiErrorResponse = {
-      title: errorData.title || errorData.error || 'Unknown Error',
-      detail: errorData.detail || errorData.message || errorData.error,
-      status: errorData.status || error.response?.status || error.status,
+      title: errorData.title || errorData._error || 'Unknown Error',
+      detail: errorData.detail || errorData.message || errorData._error,
+      status: errorData.status || _error.response?.status || _error.status,
       type: errorData.type,
       instance: errorData.instance,
-      requestId: errorData.requestId || error.response?.headers?.['x-request-id'],
+      requestId: errorData.requestId || _error.response?.headers?.['x-request-id'],
     };
 
-    // Extract detailed error information
+    // Extract detailed _error information
     if (errorData.errors && Array.isArray(errorData.errors)) {
-      parsedError.errors = errorData.errors.map((err: any) => ({
-        type: err.type,
-        title: err.title || err.message,
-        detail: err.detail || err.description,
-        field: err.field || err.path,
+      parsedError.errors = errorData.errors.map((_err: any) => ({
+        type: _err.type,
+        title: _err.title || _err.message,
+        detail: _err.detail || _err.description,
+        field: _err.field || _err.path,
       }));
     }
 
@@ -502,10 +498,10 @@ return response;
   static validateResponse<T>(schema: z.ZodSchema<T>, response: any): T {
     try {
       return schema.parse(response);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
+    } catch (_error) {
+      if (_error instanceof z.ZodError) {
         console.warn('Response validation failed:', {
-          errors: error.errors,
+          errors: _error.errors,
           response: JSON.stringify(response, null, 2),
         });
       }
@@ -623,8 +619,8 @@ export function parseAkamaiResponse(
     }
 
     return parsedData;
-  } catch (error) {
-    console.warn('Failed to parse response:', error);
+  } catch (_error) {
+    console.warn('Failed to parse response:', _error);
     return response.data || response;
   }
 }

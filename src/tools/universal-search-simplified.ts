@@ -85,8 +85,8 @@ export async function universalSearchHandler(
                 },
               });
               property.hostnames = hostnamesResp.hostnames?.items || [];
-            } catch (e) {
-              console.error('Failed to get hostnames:', e);
+            } catch (_e) {
+              console.error('Failed to get hostnames:', _e);
             }
           }
 
@@ -96,8 +96,8 @@ export async function universalSearchHandler(
             matchReason: 'Exact property ID match',
           });
         }
-      } catch (err) {
-        console.error('Property ID search failed:', err);
+      } catch (_err) {
+        console.error('Property ID search failed:', _err);
       }
     }
 
@@ -160,8 +160,8 @@ export async function universalSearchHandler(
               if (isMatch && detailed) {
                 property.hostnames = hostnames;
               }
-            } catch (err) {
-              console.error(`Error checking hostnames for ${property.propertyId}:`, err);
+            } catch (_err) {
+              console.error(`Error checking hostnames for ${property.propertyId}:`, _err);
             }
           }
 
@@ -173,8 +173,8 @@ export async function universalSearchHandler(
             });
           }
         }
-      } catch (err) {
-        console.error('Property search failed:', err);
+      } catch (_err) {
+        console.error('Property search failed:', _err);
       }
     }
 
@@ -197,8 +197,8 @@ export async function universalSearchHandler(
             matchReason: 'Exact contract ID match',
           });
         }
-      } catch (err) {
-        console.error('Contract search failed:', err);
+      } catch (_err) {
+        console.error('Contract search failed:', _err);
       }
     }
 
@@ -219,8 +219,8 @@ export async function universalSearchHandler(
             matchReason: 'Exact group ID match',
           });
         }
-      } catch (err) {
-        console.error('Group search failed:', err);
+      } catch (_err) {
+        console.error('Group search failed:', _err);
       }
     }
 
@@ -277,7 +277,7 @@ export async function universalSearchHandler(
         },
       ],
     };
-  } catch (error) {
-    return handleApiError(error, 'universal search');
+  } catch (_error) {
+    return handleApiError(_error, 'universal search');
   }
 }

@@ -6,20 +6,17 @@
 
 import { type AkamaiClient } from '../akamai-client';
 import { createCPCode } from '../tools/cpcode-tools';
-import { listZones, createZone, upsertRecord, listRecords } from '../tools/dns-tools';
+import { listZones, upsertRecord } from '../tools/dns-tools';
 import { listProducts } from '../tools/product-tools';
 import { searchProperties, listEdgeHostnames } from '../tools/property-manager-advanced-tools';
 import {
   createEdgeHostname,
   addPropertyHostname,
   activateProperty,
-  getActivationStatus,
   updatePropertyRules,
-  getPropertyRules,
 } from '../tools/property-manager-tools';
-import { listProperties, getProperty, createProperty, listGroups } from '../tools/property-tools';
+import { createProperty, listGroups } from '../tools/property-tools';
 import { type MCPToolResponse } from '../types';
-import { formatPropertyDisplay } from '../utils/formatting';
 
 export interface OnboardingConfig {
   hostname: string;
@@ -114,7 +111,7 @@ export class PropertyOnboardingAgent {
 
     try {
       // Step 1: Validate and prepare configuration
-      console.error('[PropertyOnboarding] Step 1: Validating configuration...');
+      console.log('[ 1: Validating configuration...');
       const validatedConfig = await this.validateConfig(config);
 
       // Step 2: Pre-flight checks
@@ -128,7 +125,7 @@ export class PropertyOnboardingAgent {
       }
 
       // Step 3: Determine group and product if not provided
-      console.error('[PropertyOnboarding] Step 3: Determining group and product...');
+      console.log('[ 3: Determining group and product...');
       if (!validatedConfig.groupId || !validatedConfig.productId) {
         const selection = await this.selectGroupAndProduct(validatedConfig);
         validatedConfig.groupId = selection.groupId;
@@ -136,7 +133,7 @@ export class PropertyOnboardingAgent {
       }
 
       // Step 4: Create CP Code
-      console.error('[PropertyOnboarding] Step 4: Creating CP Code...');
+      console.log('[ 4: Creating CP Code...');
       const cpCodeResult = await this.createCPCodeForProperty(validatedConfig);
       if (!cpCodeResult.success || !cpCodeResult.cpCodeId) {
         result.errors!.push('Failed to create CP Code');
@@ -146,7 +143,7 @@ export class PropertyOnboardingAgent {
       validatedConfig.cpCodeId = cpCodeResult.cpCodeId;
 
       // Step 5: Create property
-      console.error('[PropertyOnboarding] Step 5: Creating property...');
+      console.log('[ 5: Creating property...');
       const propertyResult = await this.createPropertyWithRetry(validatedConfig);
       if (!propertyResult.success || !propertyResult.propertyId) {
         result.errors!.push('Failed to create property');
@@ -156,7 +153,7 @@ export class PropertyOnboardingAgent {
       console.error(`[PropertyOnboarding] Created property: ${result.propertyId}`);
 
       // Step 6: Create edge hostname
-      console.error('[PropertyOnboarding] Step 6: Creating edge hostname...');
+      console.log('[ 6: Creating edge hostname...');
       const edgeHostnameResult = await this.createEdgeHostnameWithRetry(
         propertyResult.propertyId,
         validatedConfig,
@@ -169,7 +166,7 @@ export class PropertyOnboardingAgent {
       result.edgeHostname = edgeHostnameResult.edgeHostname;
 
       // Step 7: Add hostname to property
-      console.error('[PropertyOnboarding] Step 7: Adding hostname to property...');
+      console.log('[ 7: Adding hostname to property...');
       await this.addHostnameToProperty(
         propertyResult.propertyId,
         validatedConfig.hostname,
@@ -177,11 +174,11 @@ export class PropertyOnboardingAgent {
       );
 
       // Step 8: Configure property rules with CP Code
-      console.error('[PropertyOnboarding] Step 8: Configuring property rules...');
+      console.log('[ 8: Configuring property rules...');
       await this.configurePropertyRules(propertyResult.propertyId, validatedConfig);
 
       // Step 9: Handle DNS setup
-      console.error('[PropertyOnboarding] Step 9: Handling DNS setup...');
+      console.log('[ 9: Handling DNS setup...');
       if (!validatedConfig.skipDnsSetup) {
         const dnsResult = await this.handleDnsSetup(
           validatedConfig.hostname,
@@ -198,7 +195,7 @@ export class PropertyOnboardingAgent {
       }
 
       // Step 10: Activate to staging only (production takes 10-60 minutes)
-      console.error('[PropertyOnboarding] Step 10: Activating to staging network...');
+      console.log('[ 10: Activating to staging network...');
       const activationResult = await this.activatePropertyToStaging(
         propertyResult.propertyId,
         validatedConfig,
@@ -220,10 +217,10 @@ export class PropertyOnboardingAgent {
       );
 
       return result;
-    } catch (error) {
-      console.error('[PropertyOnboarding] Error:', error);
+    } catch (_error) {
+      console.error('[Error]:', _error);
       result.errors!.push(
-        `Unexpected error: ${error instanceof Error ? error.message : String(error)}`,
+        `Unexpected error: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
       return result;
     }
@@ -284,7 +281,7 @@ export class PropertyOnboardingAgent {
       ) {
         errors.push(`Property with hostname ${config.hostname} already exists`);
       }
-    } catch (error) {
+    } catch (_error) {
       // Search failed, but we can continue
       warnings.push('Could not verify if property already exists');
     }
@@ -299,7 +296,7 @@ export class PropertyOnboardingAgent {
       if (responseText.includes(config.hostname)) {
         errors.push(`Hostname ${config.hostname} is already in use by another property`);
       }
-    } catch (error) {
+    } catch (_error) {
       warnings.push('Could not verify if hostname is already in use');
     }
 
@@ -315,7 +312,7 @@ export class PropertyOnboardingAgent {
     productId: string;
   }> {
     // Get groups
-    const groupsResult = await listGroups(this.client, {
+    await listGroups(this.client, {
       searchTerm: 'default',
     });
 
@@ -383,7 +380,7 @@ export class PropertyOnboardingAgent {
 
       console.error(`[PropertyOnboarding] Creating CP Code with name: ${cpCodeName}`);
 
-      const result = await createCPCode(this.client, {
+      const _result = await createCPCode(this.client, {
         productId: config.productId,
         contractId: config.contractId || 'ctr_1-5C13O2',
         groupId: config.groupId,
@@ -391,7 +388,7 @@ export class PropertyOnboardingAgent {
       });
 
       // Extract CP Code ID from response
-      const responseText = result.content[0].text;
+      const responseText = _result.content[0].text;
       // Look for patterns like "CP Code ID: 1234567" or "CP Code: cpc_1234567"
       const cpCodeMatch = responseText.match(/(?:CP Code ID:|CP Code:)\s*(?:cpc_)?(\d+)/i);
 
@@ -405,8 +402,8 @@ export class PropertyOnboardingAgent {
 
       console.error('[PropertyOnboarding] Could not extract CP Code ID from response');
       return { success: false };
-    } catch (error) {
-      console.error('[PropertyOnboarding] Create CP Code error:', error);
+    } catch (_error) {
+      console.error('[Error]:', _error);
       return { success: false };
     }
   }
@@ -435,8 +432,8 @@ export class PropertyOnboardingAgent {
       }
 
       return { success: false };
-    } catch (error) {
-      console.error('[PropertyOnboarding] Create property error:', error);
+    } catch (_error) {
+      console.error('[Error]:', _error);
       return { success: false };
     }
   }
@@ -452,7 +449,7 @@ export class PropertyOnboardingAgent {
       const domainPrefix = config.hostname;
       const domainSuffix = 'edgekey.net'; // Using .edgekey.net as default
 
-      const result = await createEdgeHostname(this.client, {
+      await createEdgeHostname(this.client, {
         propertyId,
         domainPrefix,
         domainSuffix,
@@ -466,8 +463,8 @@ export class PropertyOnboardingAgent {
         success: true,
         edgeHostname,
       };
-    } catch (error) {
-      console.error('[PropertyOnboarding] Create edge hostname error:', error);
+    } catch (_error) {
+      console.error('[Error]:', _error);
       return { success: false };
     }
   }
@@ -716,8 +713,8 @@ export class PropertyOnboardingAgent {
           nextSteps: await this.generateDnsGuidance(domain, hostname, edgeHostname, config),
         };
       }
-    } catch (error) {
-      console.error('[PropertyOnboarding] DNS setup error:', error);
+    } catch (_error) {
+      console.error('[Error]:', _error);
       return {
         recordCreated: false,
         warnings: ['Failed to setup DNS automatically'],
@@ -729,7 +726,7 @@ export class PropertyOnboardingAgent {
   private async createAcmeChallengeRecords(
     hostname: string,
     domain: string,
-    config: Required<OnboardingConfig>,
+    _config: Required<OnboardingConfig>,
   ): Promise<void> {
     // Default DV certificates use predictable ACME challenge records
     const acmeRecord = `_acme-challenge.${hostname.replace(`.${domain}`, '')}`;
@@ -743,8 +740,8 @@ export class PropertyOnboardingAgent {
         ttl: 300,
         rdata: [acmeTarget],
       });
-    } catch (error) {
-      console.error('[PropertyOnboarding] ACME record creation error:', error);
+    } catch (_error) {
+      console.error('[Error]:', _error);
     }
   }
 
@@ -814,8 +811,8 @@ export class PropertyOnboardingAgent {
         success: true,
         activationId: activationIdMatch ? activationIdMatch[1] : undefined,
       };
-    } catch (error) {
-      console.error('[PropertyOnboarding] Activation error:', error);
+    } catch (_error) {
+      console.error('[Error]:', _error);
       return { success: false };
     }
   }
@@ -854,8 +851,8 @@ export async function onboardProperty(
     responseText = '# ❌ Property Onboarding Failed\n\n';
     if (result.errors && result.errors.length > 0) {
       responseText += '## Errors\n\n';
-      result.errors.forEach((error) => {
-        responseText += `- ${error}\n`;
+      result.errors.forEach((_error) => {
+        responseText += `- ${_error}\n`;
       });
     }
   }

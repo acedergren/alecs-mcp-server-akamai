@@ -47,7 +47,7 @@ interface TodoItem {
 }
 
 interface TodoList {
-  items?: TodoItem[];
+  _items?: TodoItem[];
   metadata?: {
     estimatedTotalHours?: number;
   };
@@ -76,7 +76,7 @@ interface ResourceNeeds {
   [resourceType: string]: {
     required: number;
     preferred: number;
-    items: TodoItem[];
+    _items: TodoItem[];
   };
 }
 
@@ -84,7 +84,7 @@ interface Phase {
   name: string;
   duration: string;
   description: string;
-  items: TodoItem[];
+  _items: TodoItem[];
   totalEffort?: number;
   actualDuration?: number;
   itemCount?: number;
@@ -96,7 +96,7 @@ interface Initiative {
   name: string;
   theme: string;
   description: string;
-  items: TodoItem[];
+  _items: TodoItem[];
   estimatedEffort: number;
   priority: number;
   complexity: string;
@@ -212,18 +212,18 @@ export class FixStrategyOptimizer {
   /**
    * Generate comprehensive fix strategy
    */
-  generateFixStrategy(analysisResults: AnalysisResults, todoList: TodoList, options: any = {}) {
+  generateFixStrategy(_analysisResults: AnalysisResults, _todoList: TodoList, _options: any = {}) {
     const strategy = {
-      overview: this.generateStrategyOverview(analysisResults, todoList),
-      quickWins: this.identifyQuickWins(todoList, analysisResults),
-      tacticalFixes: this.planTacticalFixes(todoList, analysisResults),
-      strategicInitiatives: this.planStrategicInitiatives(todoList, analysisResults),
-      resourceAllocation: this.optimizeResourceAllocation(todoList, analysisResults),
-      timeline: this.generateTimeline(todoList, analysisResults),
-      riskAssessment: this.assessImplementationRisks(todoList, analysisResults),
-      dependencies: this.analyzeDependencies(todoList),
-      recommendations: this.generateStrategyRecommendations(todoList, analysisResults),
-      metrics: this.defineSuccessMetrics(todoList, analysisResults),
+      overview: this.generateStrategyOverview(_analysisResults, _todoList),
+      quickWins: this.identifyQuickWins(_todoList, _analysisResults),
+      tacticalFixes: this.planTacticalFixes(_todoList, _analysisResults),
+      strategicInitiatives: this.planStrategicInitiatives(_todoList, _analysisResults),
+      resourceAllocation: this.optimizeResourceAllocation(_todoList, _analysisResults),
+      timeline: this.generateTimeline(_todoList, _analysisResults),
+      riskAssessment: this.assessImplementationRisks(_todoList, _analysisResults),
+      dependencies: this.analyzeDependencies(_todoList),
+      recommendations: this.generateStrategyRecommendations(_todoList, _analysisResults),
+      metrics: this.defineSuccessMetrics(_todoList, _analysisResults),
     };
 
     return strategy;
@@ -232,36 +232,36 @@ export class FixStrategyOptimizer {
   /**
    * Generate strategy overview
    */
-  generateStrategyOverview(analysisResults: AnalysisResults, todoList: TodoList) {
-    const totalItems = todoList.items?.length || 0;
+  generateStrategyOverview(_analysisResults: AnalysisResults, _todoList: TodoList) {
+    const totalItems = _todoList._items?.length || 0;
     const criticalItems =
-      todoList.items?.filter((item) => item.priority === 'CRITICAL').length || 0;
-    const highItems = todoList.items?.filter((item) => item.priority === 'HIGH').length || 0;
-    const estimatedHours = todoList.metadata?.estimatedTotalHours || 0;
+      _todoList._items?.filter((item) => item.priority === 'CRITICAL').length || 0;
+    const highItems = _todoList._items?.filter((item) => item.priority === 'HIGH').length || 0;
+    const estimatedHours = _todoList.metadata?.estimatedTotalHours || 0;
 
-    const strategicBalance = this.calculateStrategicBalance(todoList);
-    const resourceRequirements = this.calculateResourceRequirements(todoList);
-    const riskProfile = this.calculateRiskProfile(todoList, analysisResults);
+    const _strategicBalance = this.calculateStrategicBalance(_todoList);
+    const resourceRequirements = this.calculateResourceRequirements(_todoList);
+    const riskProfile = this.calculateRiskProfile(_todoList, _analysisResults);
 
     return {
       totalItems: totalItems,
       criticalItems: criticalItems,
       highPriorityItems: highItems,
       estimatedTotalHours: estimatedHours,
-      strategicBalance: strategicBalance,
+      strategicBalance: _strategicBalance,
       resourceRequirements: resourceRequirements,
       riskProfile: riskProfile,
-      recommendedApproach: this.recommendApproach(strategicBalance, riskProfile),
-      expectedOutcomes: this.predictOutcomes(todoList, analysisResults),
-      successProbability: this.calculateSuccessProbability(todoList, analysisResults),
+      recommendedApproach: this.recommendApproach(_strategicBalance, riskProfile),
+      expectedOutcomes: this.predictOutcomes(_todoList, _analysisResults),
+      successProbability: this.calculateSuccessProbability(_todoList, _analysisResults),
     };
   }
 
   /**
    * Calculate strategic balance across fix types
    */
-  calculateStrategicBalance(todoList: TodoList): StrategicBalance {
-    const items = todoList.items || [];
+  calculateStrategicBalance(_todoList: TodoList): StrategicBalance {
+    const _items = _todoList._items || [];
     const balance = {
       quick_fixes: 0,
       tactical_fixes: 0,
@@ -269,17 +269,17 @@ export class FixStrategyOptimizer {
       architectural_changes: 0,
     };
 
-    items.forEach((item) => {
-      const effort = item.effort_details?.hours || 0;
+    _items.forEach((_item) => {
+      const effort = _item.effort_details?.hours || 0;
       if (effort <= 4) {
-balance.quick_fixes++;
-} else if (effort <= 16) {
-balance.tactical_fixes++;
-} else if (effort <= 80) {
-balance.strategic_fixes++;
-} else {
-balance.architectural_changes++;
-}
+        balance.quick_fixes++;
+      } else if (effort <= 16) {
+        balance.tactical_fixes++;
+      } else if (effort <= 80) {
+        balance.strategic_fixes++;
+      } else {
+        balance.architectural_changes++;
+      }
     });
 
     const total = Object.values(balance).reduce((sum, count) => sum + count, 0);
@@ -314,10 +314,10 @@ balance.architectural_changes++;
   /**
    * Identify and optimize quick wins
    */
-  identifyQuickWins(todoList: TodoList, analysisResults: AnalysisResults) {
-    const quickWinCandidates = (todoList.items || []).filter((item) => {
-      const effort = item.effort_details?.hours || 0;
-      const priority = item.priority_details?.weight || 0;
+  identifyQuickWins(_todoList: TodoList, _analysisResults: AnalysisResults) {
+    const quickWinCandidates = (_todoList._items || []).filter((_item) => {
+      const effort = _item.effort_details?.hours || 0;
+      const priority = _item.priority_details?.weight || 0;
 
       // Quick wins: low effort, high impact
       return effort <= 4 && priority >= 50;
@@ -339,11 +339,11 @@ balance.architectural_changes++;
    */
   optimizeQuickWins(candidates: TodoItem[]): TodoItem[] {
     // Sort by impact-to-effort ratio
-    const scored = candidates.map((item) => ({
-      ...item,
-      impactEffortRatio: (item.priority_details?.weight || 0) / (item.effort_details?.hours || 1),
-      customerImpact: this.assessCustomerImpact(item),
-      implementationRisk: this.assessImplementationRisk(item),
+    const scored = candidates.map((_item) => ({
+      ..._item,
+      impactEffortRatio: (_item.priority_details?.weight || 0) / (_item.effort_details?.hours || 1),
+      customerImpact: this.assessCustomerImpact(_item),
+      implementationRisk: this.assessImplementationRisk(_item),
     }));
 
     // Select top quick wins considering dependencies and resource constraints
@@ -354,14 +354,14 @@ balance.architectural_changes++;
 
     scored
       .sort((a, b) => b.impactEffortRatio - a.impactEffortRatio)
-      .forEach((item) => {
+      .forEach((_item) => {
         if (
           selected.length < maxQuickWins &&
-          usedHours + (item.effort_details?.hours || 0) <= availableHours &&
-          !this.hasBlockingDependencies(item, selected)
+          usedHours + (_item.effort_details?.hours || 0) <= availableHours &&
+          !this.hasBlockingDependencies(_item, selected)
         ) {
-          selected.push(item);
-          usedHours += item.effort_details?.hours || 0;
+          selected.push(_item);
+          usedHours += _item.effort_details?.hours || 0;
         }
       });
 
@@ -371,9 +371,9 @@ balance.architectural_changes++;
   /**
    * Plan tactical fixes
    */
-  planTacticalFixes(todoList: TodoList, analysisResults: AnalysisResults) {
-    const tacticalCandidates = (todoList.items || []).filter((item) => {
-      const effort = item.effort_details?.hours || 0;
+  planTacticalFixes(_todoList: TodoList, _analysisResults: AnalysisResults) {
+    const tacticalCandidates = (_todoList._items || []).filter((_item) => {
+      const effort = _item.effort_details?.hours || 0;
       return effort > 4 && effort <= 16;
     });
 
@@ -403,12 +403,12 @@ balance.architectural_changes++;
       other: [],
     };
 
-    candidates.forEach((item) => {
-      const category = this.categorizeItem(item);
+    candidates.forEach((_item) => {
+      const category = this.categorizeItem(_item);
       if (groups[category]) {
-        groups[category].push(item);
+        groups[category].push(_item);
       } else {
-        groups.other.push(item);
+        groups.other.push(_item);
       }
     });
 
@@ -417,8 +417,8 @@ balance.architectural_changes++;
       groups[category].sort((a, b) => {
         const priorityDiff = (b.priority_details?.weight || 0) - (a.priority_details?.weight || 0);
         if (priorityDiff !== 0) {
-return priorityDiff;
-}
+          return priorityDiff;
+        }
 
         // Consider dependencies
         const aDeps = this.getDependencyCount(a);
@@ -433,113 +433,116 @@ return priorityDiff;
   /**
    * Plan strategic initiatives
    */
-  planStrategicInitiatives(todoList: TodoList, analysisResults: AnalysisResults) {
-    const strategicCandidates = (todoList.items || []).filter((item) => {
-      const effort = item.effort_details?.hours || 0;
+  planStrategicInitiatives(_todoList: TodoList, _analysisResults: AnalysisResults) {
+    const strategicCandidates = (_todoList._items || []).filter((_item) => {
+      const effort = _item.effort_details?.hours || 0;
       return effort > 16;
     });
 
-    const initiatives = this.createStrategicInitiatives(strategicCandidates);
-    const roadmap = this.createStrategicRoadmap(initiatives);
+    const _initiatives = this.createStrategicInitiatives(strategicCandidates);
+    const roadmap = this.createStrategicRoadmap(_initiatives);
 
     return {
       totalCandidates: strategicCandidates.length,
-      initiatives: initiatives,
+      _initiatives: _initiatives,
       roadmap: roadmap,
-      resourceRequirements: this.calculateStrategicResources(initiatives),
-      riskAssessment: this.assessStrategicRisks(initiatives),
-      successFactors: this.identifySuccessFactors(initiatives),
-      milestones: this.defineMilestones(initiatives),
+      resourceRequirements: this.calculateStrategicResources(_initiatives),
+      riskAssessment: this.assessStrategicRisks(_initiatives),
+      successFactors: this.identifySuccessFactors(_initiatives),
+      milestones: this.defineMilestones(_initiatives),
     };
   }
 
   /**
-   * Create strategic initiatives from large items
+   * Create strategic initiatives from large _items
    */
   createStrategicInitiatives(candidates: TodoItem[]): Initiative[] {
-    const initiatives: Initiative[] = [];
+    const _initiatives: Initiative[] = [];
     const groupedItems = this.groupItemsByTheme(candidates);
 
-    Object.entries(groupedItems).forEach(([theme, items]) => {
-      if (items.length > 0) {
-        initiatives.push({
+    Object.entries(groupedItems).forEach(([theme, _items]) => {
+      if (_items.length > 0) {
+        _initiatives.push({
           id: `initiative-${theme}-${Date.now()}`,
           name: this.generateInitiativeName(theme),
           theme: theme,
-          description: this.generateInitiativeDescription(theme, items),
-          items: items,
-          estimatedEffort: items.reduce((sum, item) => sum + (item.effort_details?.hours || 0), 0),
-          priority: this.calculateInitiativePriority(items),
-          complexity: this.assessInitiativeComplexity(items),
-          businessValue: this.assessInitiativeBusinessValue(items),
-          risks: this.identifyInitiativeRisks(theme, items),
-          dependencies: this.mapInitiativeDependencies(items),
-          phases: this.planInitiativePhases(items),
+          description: this.generateInitiativeDescription(theme, _items),
+          _items: _items,
+          estimatedEffort: _items.reduce(
+            (sum, _item) => sum + (_item.effort_details?.hours || 0),
+            0,
+          ),
+          priority: this.calculateInitiativePriority(_items),
+          complexity: this.assessInitiativeComplexity(_items),
+          businessValue: this.assessInitiativeBusinessValue(_items),
+          risks: this.identifyInitiativeRisks(theme, _items),
+          dependencies: this.mapInitiativeDependencies(_items),
+          phases: this.planInitiativePhases(_items),
         });
       }
     });
 
-    return initiatives.sort((a, b) => b.priority - a.priority);
+    return _initiatives.sort((a, b) => b.priority - a.priority);
   }
 
   /**
    * Optimize resource allocation
    */
-  optimizeResourceAllocation(todoList: TodoList, analysisResults: AnalysisResults) {
-    const items = todoList.items || [];
-    const resourceNeeds = this.analyzeResourceNeeds(items);
-    const constraints = this.getResourceConstraints();
-    const allocation = this.calculateOptimalAllocation(resourceNeeds, constraints);
+  optimizeResourceAllocation(_todoList: TodoList, _analysisResults: AnalysisResults) {
+    const _items = _todoList._items || [];
+    const resourceNeeds = this.analyzeResourceNeeds(_items);
+    const _constraints = this.getResourceConstraints();
+    const _allocation = this.calculateOptimalAllocation(resourceNeeds, _constraints);
 
     return {
       resourceNeeds: resourceNeeds,
-      constraints: constraints,
-      optimalAllocation: allocation,
-      utilizationRate: this.calculateUtilizationRate(allocation),
-      bottlenecks: this.identifyBottlenecks(allocation, constraints),
-      recommendations: this.generateResourceRecommendations(allocation, constraints),
-      costEstimate: this.calculateCostEstimate(allocation),
-      alternatives: this.generateAlternativeAllocations(resourceNeeds, constraints),
+      _constraints: _constraints,
+      optimalAllocation: _allocation,
+      utilizationRate: this.calculateUtilizationRate(_allocation),
+      bottlenecks: this.identifyBottlenecks(_allocation, _constraints),
+      recommendations: this.generateResourceRecommendations(_allocation, _constraints),
+      costEstimate: this.calculateCostEstimate(_allocation),
+      alternatives: this.generateAlternativeAllocations(resourceNeeds, _constraints),
     };
   }
 
   /**
-   * Analyze resource needs for all items
+   * Analyze resource needs for all _items
    */
-  analyzeResourceNeeds(items: TodoItem[]): ResourceNeeds {
-    const needs: ResourceNeeds = {};
+  analyzeResourceNeeds(_items: TodoItem[]): ResourceNeeds {
+    const _needs: ResourceNeeds = {};
 
     Object.keys(this.resourceTypes).forEach((resourceType) => {
-      needs[resourceType] = { required: 0, preferred: 0, items: [] };
+      _needs[resourceType] = { required: 0, preferred: 0, _items: [] };
     });
 
-    items.forEach((item) => {
-      const requiredResources = this.getRequiredResources(item);
-      const preferredResources = this.getPreferredResources(item);
-      const effort = item.effort_details?.hours || 0;
+    _items.forEach((_item) => {
+      const requiredResources = this.getRequiredResources(_item);
+      const preferredResources = this.getPreferredResources(_item);
+      const effort = _item.effort_details?.hours || 0;
 
       requiredResources.forEach((resourceType) => {
-        if (needs[resourceType]) {
-          needs[resourceType].required += effort;
-          needs[resourceType].items.push(item);
+        if (_needs[resourceType]) {
+          _needs[resourceType].required += effort;
+          _needs[resourceType]._items.push(_item);
         }
       });
 
       preferredResources.forEach((resourceType) => {
-        if (needs[resourceType]) {
-          needs[resourceType].preferred += effort;
+        if (_needs[resourceType]) {
+          _needs[resourceType].preferred += effort;
         }
       });
     });
 
-    return needs;
+    return _needs;
   }
 
   /**
    * Get required resources for an item
    */
-  getRequiredResources(item: TodoItem): string[] {
-    const category = this.categorizeItem(item);
+  getRequiredResources(_item: TodoItem): string[] {
+    const category = this.categorizeItem(_item);
     const pattern = this.fixPatterns[category];
 
     if (pattern) {
@@ -547,28 +550,28 @@ return priorityDiff;
     }
 
     // Default resources based on effort and type
-    const effort = item.effort_details?.hours || 0;
+    const effort = _item.effort_details?.hours || 0;
     if (effort > 40) {
-return ['architect', 'senior_developer'];
-}
+      return ['architect', 'senior_developer'];
+    }
     if (effort > 16) {
-return ['senior_developer'];
-}
+      return ['senior_developer'];
+    }
     return ['senior_developer', 'junior_developer'];
   }
 
   /**
    * Generate implementation timeline
    */
-  generateTimeline(todoList: TodoList, analysisResults: AnalysisResults) {
-    const items = todoList.items || [];
+  generateTimeline(_todoList: TodoList, _analysisResults: AnalysisResults) {
+    const _items = _todoList._items || [];
     const timeline = {
-      phases: this.createTimelinePhases(items),
-      milestones: this.createMilestones(items),
-      criticalPath: this.calculateCriticalPath(items),
-      dependencies: this.mapTimelineDependencies(items),
-      riskPeriods: this.identifyRiskPeriods(items),
-      deliveryDates: this.calculateDeliveryDates(items),
+      phases: this.createTimelinePhases(_items),
+      milestones: this.createMilestones(_items),
+      criticalPath: this.calculateCriticalPath(_items),
+      dependencies: this.mapTimelineDependencies(_items),
+      riskPeriods: this.identifyRiskPeriods(_items),
+      deliveryDates: this.calculateDeliveryDates(_items),
     };
 
     return timeline;
@@ -577,31 +580,31 @@ return ['senior_developer'];
   /**
    * Create timeline phases
    */
-  createTimelinePhases(items: TodoItem[]): Phase[] {
+  createTimelinePhases(_items: TodoItem[]): Phase[] {
     const phases: Phase[] = [
       {
         name: 'Immediate Response',
         duration: '1-3 days',
         description: 'Critical fixes and quick wins',
-        items: items.filter(
-          (item) => item.priority === 'CRITICAL' || (item.effort_details?.hours || 0) <= 4,
+        _items: _items.filter(
+          (_item) => _item.priority === 'CRITICAL' || (_item.effort_details?.hours || 0) <= 4,
         ),
       },
       {
         name: 'Tactical Implementation',
         duration: '1-2 weeks',
         description: 'Focused fixes addressing specific issues',
-        items: items.filter((item) => {
-          const effort = item.effort_details?.hours || 0;
-          return effort > 4 && effort <= 16 && item.priority !== 'LOW';
+        _items: _items.filter((_item) => {
+          const effort = _item.effort_details?.hours || 0;
+          return effort > 4 && effort <= 16 && _item.priority !== 'LOW';
         }),
       },
       {
         name: 'Strategic Development',
         duration: '2-8 weeks',
         description: 'Comprehensive solutions and improvements',
-        items: items.filter((item) => {
-          const effort = item.effort_details?.hours || 0;
+        _items: _items.filter((_item) => {
+          const effort = _item.effort_details?.hours || 0;
           return effort > 16 && effort <= 80;
         }),
       },
@@ -609,8 +612,8 @@ return ['senior_developer'];
         name: 'Architectural Evolution',
         duration: '2-6 months',
         description: 'Major architectural improvements',
-        items: items.filter((item) => {
-          const effort = item.effort_details?.hours || 0;
+        _items: _items.filter((_item) => {
+          const effort = _item.effort_details?.hours || 0;
           return effort > 80;
         }),
       },
@@ -618,16 +621,16 @@ return ['senior_developer'];
 
     // Calculate actual durations and effort for each phase
     phases.forEach((phase) => {
-      const totalEffort = phase.items.reduce(
-        (sum, item) => sum + (item.effort_details?.hours || 0),
+      const totalEffort = phase._items.reduce(
+        (sum, _item) => sum + (_item.effort_details?.hours || 0),
         0,
       );
-      const parallelization = this.calculateParallelization(phase.items);
+      const parallelization = this.calculateParallelization(phase._items);
 
       phase.totalEffort = totalEffort;
       phase.actualDuration = Math.ceil(totalEffort / parallelization);
-      phase.itemCount = phase.items.length;
-      phase.criticalItems = phase.items.filter((item) => item.priority === 'CRITICAL').length;
+      phase.itemCount = phase._items.length;
+      phase.criticalItems = phase._items.filter((_item) => _item.priority === 'CRITICAL').length;
     });
 
     return phases;
@@ -636,15 +639,15 @@ return ['senior_developer'];
   /**
    * Assess implementation risks
    */
-  assessImplementationRisks(todoList: TodoList, analysisResults: AnalysisResults) {
-    const items = todoList.items || [];
+  assessImplementationRisks(_todoList: TodoList, _analysisResults: AnalysisResults) {
+    const _items = _todoList._items || [];
     const risks = {
-      technical: this.assessTechnicalRisks(items),
-      resource: this.assessResourceRisks(items),
-      timeline: this.assessTimelineRisks(items),
-      dependency: this.assessDependencyRisks(items),
-      customer: this.assessCustomerRisks(items),
-      business: this.assessBusinessRisks(items),
+      technical: this.assessTechnicalRisks(_items),
+      resource: this.assessResourceRisks(_items),
+      timeline: this.assessTimelineRisks(_items),
+      dependency: this.assessDependencyRisks(_items),
+      customer: this.assessCustomerRisks(_items),
+      business: this.assessBusinessRisks(_items),
     };
 
     const overallRisk = this.calculateOverallRisk(risks);
@@ -662,15 +665,15 @@ return ['senior_developer'];
   /**
    * Generate strategy recommendations
    */
-  generateStrategyRecommendations(todoList: TodoList, analysisResults: AnalysisResults) {
+  generateStrategyRecommendations(_todoList: TodoList, _analysisResults: AnalysisResults) {
     const recommendations = {
-      approach: this.recommendApproachFull(todoList, analysisResults),
-      prioritization: this.recommendPrioritization(todoList),
-      resource_strategy: this.recommendResourceStrategy(todoList),
-      timeline_optimization: this.recommendTimelineOptimization(todoList),
-      risk_management: this.recommendRiskManagement(todoList, analysisResults),
-      success_factors: this.identifySuccessFactorsFromList(todoList),
-      monitoring: this.recommendMonitoring(todoList),
+      approach: this.recommendApproachFull(_todoList, _analysisResults),
+      prioritization: this.recommendPrioritization(_todoList),
+      resource_strategy: this.recommendResourceStrategy(_todoList),
+      timeline_optimization: this.recommendTimelineOptimization(_todoList),
+      risk_management: this.recommendRiskManagement(_todoList, _analysisResults),
+      success_factors: this.identifySuccessFactorsFromList(_todoList),
+      monitoring: this.recommendMonitoring(_todoList),
     };
 
     return recommendations;
@@ -679,11 +682,11 @@ return ['senior_developer'];
   /**
    * Recommend overall approach
    */
-  recommendApproachFull(todoList: TodoList, analysisResults: AnalysisResults) {
+  recommendApproachFull(_todoList: TodoList, _analysisResults: AnalysisResults) {
     const criticalCount =
-      todoList.items?.filter((item) => item.priority === 'CRITICAL').length || 0;
-    const quickWinCount = todoList.quickWins?.length || 0;
-    const totalHours = todoList.metadata?.estimatedTotalHours || 0;
+      _todoList._items?.filter((_item) => _item.priority === 'CRITICAL').length || 0;
+    const quickWinCount = _todoList.quickWins?.length || 0;
+    const totalHours = _todoList.metadata?.estimatedTotalHours || 0;
 
     if (criticalCount > 3) {
       return {
@@ -743,11 +746,11 @@ return ['senior_developer'];
   /**
    * Define success metrics
    */
-  defineSuccessMetrics(todoList: TodoList, analysisResults: AnalysisResults) {
+  defineSuccessMetrics(_todoList: TodoList, _analysisResults: AnalysisResults) {
     const metrics: Metrics = {
       delivery: {
         completion_rate: {
-          description: 'Percentage of planned items completed',
+          description: 'Percentage of planned _items completed',
           target: 90,
           measurement: 'completed_items / total_items * 100',
         },
@@ -809,36 +812,36 @@ return ['senior_developer'];
 
   // Helper methods for various calculations and assessments
 
-  categorizeItem(item: TodoItem): string {
-    const title = item.title?.toLowerCase() || '';
-    const description = item.description?.toLowerCase() || '';
-    const tags = item.tags || [];
+  categorizeItem(_item: TodoItem): string {
+    const title = _item.title?.toLowerCase() || '';
+    const _description = _item.description?.toLowerCase() || '';
+    const tags = _item.tags || [];
 
     if (tags.includes('authentication') || title.includes('auth')) {
-return 'authentication';
-}
+      return 'authentication';
+    }
     if (tags.includes('configuration') || title.includes('config')) {
-return 'configuration';
-}
+      return 'configuration';
+    }
     if (tags.includes('api') || title.includes('api')) {
-return 'api_integration';
-}
+      return 'api_integration';
+    }
     if (tags.includes('performance') || title.includes('performance')) {
-return 'performance';
-}
+      return 'performance';
+    }
     if (tags.includes('infrastructure') || title.includes('infrastructure')) {
-return 'infrastructure';
-}
+      return 'infrastructure';
+    }
 
     return 'other';
   }
 
-  hasBlockingDependencies(item: TodoItem, selectedItems: TodoItem[]): boolean {
+  hasBlockingDependencies(_item: TodoItem, selectedItems: TodoItem[]): boolean {
     // Simplified dependency check
-    const category = this.categorizeItem(item);
+    const category = this.categorizeItem(_item);
     const selectedCategories = selectedItems.map((i) => this.categorizeItem(i));
 
-    // Configuration items should come before others
+    // Configuration _items should come before others
     if (category !== 'configuration' && !selectedCategories.includes('configuration')) {
       return selectedItems.some((i) => this.categorizeItem(i) === 'configuration');
     }
@@ -848,7 +851,7 @@ return 'infrastructure';
 
   calculateQuickWinImpact(quickWins: TodoItem[]) {
     const totalImpact = quickWins.reduce(
-      (sum, item) => sum + (item.priority_details?.weight || 0),
+      (sum, _item) => sum + (_item.priority_details?.weight || 0),
       0,
     );
     const avgImpact = quickWins.length > 0 ? totalImpact / quickWins.length : 0;
@@ -856,57 +859,57 @@ return 'infrastructure';
     return {
       total: totalImpact,
       average: avgImpact,
-      customerImpact: quickWins.filter((item) => item.tags?.includes('customer-facing')).length,
+      customerImpact: quickWins.filter((_item) => _item.tags?.includes('customer-facing')).length,
       businessValue: this.calculateBusinessValue(quickWins),
     };
   }
 
-  calculateBusinessValue(items: TodoItem[]): number {
+  calculateBusinessValue(_items: TodoItem[]): number {
     // Simplified business value calculation
-    return items.reduce((sum, item) => {
-      let value = item.priority_details?.weight || 0;
-      if (item.tags?.includes('customer-facing')) {
-value *= 1.5;
-}
-      if (item.tags?.includes('revenue-impact')) {
-value *= 2.0;
-}
-      if (item.tags?.includes('security')) {
-value *= 1.3;
-}
+    return _items.reduce((sum, _item) => {
+      let value = _item.priority_details?.weight || 0;
+      if (_item.tags?.includes('customer-facing')) {
+        value *= 1.5;
+      }
+      if (_item.tags?.includes('revenue-impact')) {
+        value *= 2.0;
+      }
+      if (_item.tags?.includes('security')) {
+        value *= 1.3;
+      }
       return sum + value;
     }, 0);
   }
 
-  assessCustomerImpact(item: TodoItem): string {
-    if (item.tags?.includes('customer-facing')) {
-return 'HIGH';
-}
-    if (item.tags?.includes('user-experience')) {
-return 'MEDIUM';
-}
-    if (item.priority === 'CRITICAL') {
-return 'HIGH';
-}
+  assessCustomerImpact(_item: TodoItem): string {
+    if (_item.tags?.includes('customer-facing')) {
+      return 'HIGH';
+    }
+    if (_item.tags?.includes('user-experience')) {
+      return 'MEDIUM';
+    }
+    if (_item.priority === 'CRITICAL') {
+      return 'HIGH';
+    }
     return 'LOW';
   }
 
-  assessImplementationRisk(item: TodoItem): string {
-    const effort = item.effort_details?.hours || 0;
-    const complexity = this.categorizeItem(item);
+  assessImplementationRisk(_item: TodoItem): string {
+    const effort = _item.effort_details?.hours || 0;
+    const complexity = this.categorizeItem(_item);
 
     if (effort <= 2 && complexity !== 'infrastructure') {
-return 'LOW';
-}
+      return 'LOW';
+    }
     if (effort <= 8 && complexity !== 'authentication') {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'HIGH';
   }
 
-  getDependencyCount(item: TodoItem): number {
+  getDependencyCount(_item: TodoItem): number {
     // Simplified dependency counting
-    const category = this.categorizeItem(item);
+    const category = this.categorizeItem(_item);
     const dependencyMap: Record<string, number> = {
       authentication: 0, // Usually prerequisites for others
       configuration: 0, // Usually prerequisites for others
@@ -919,9 +922,9 @@ return 'MEDIUM';
     return dependencyMap[category] || 1;
   }
 
-  calculateParallelization(items: TodoItem[]): number {
-    // Estimate how many items can be worked on in parallel
-    const categories = [...new Set(items.map((item) => this.categorizeItem(item)))];
+  calculateParallelization(_items: TodoItem[]): number {
+    // Estimate how many _items can be worked on in parallel
+    const categories = [...new Set(_items.map((_item) => this.categorizeItem(_item)))];
     const maxParallel = Math.min(categories.length, 4); // Assume max 4 parallel tracks
     return Math.max(1, maxParallel);
   }
@@ -931,85 +934,85 @@ return 'MEDIUM';
     const avgRisk = riskScores.reduce((sum, score) => sum + score, 0) / riskScores.length;
 
     if (avgRisk > 80) {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
     if (avgRisk > 60) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (avgRisk > 40) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
   // Stub methods that need implementation
-  private calculateResourceRequirements(todoList: TodoList): any {
+  private calculateResourceRequirements(_todoList: TodoList): any {
     // Implementation would calculate resource requirements
     return {};
   }
 
-  private calculateRiskProfile(todoList: TodoList, analysisResults: AnalysisResults): any {
+  private calculateRiskProfile(_todoList: TodoList, _analysisResults: AnalysisResults): any {
     // Implementation would assess risk profile
     return { level: 'MEDIUM', factors: [] };
   }
 
-  private recommendApproach(strategicBalance: StrategicBalance, riskProfile: any): string {
+  private recommendApproach(_strategicBalance: StrategicBalance, _riskProfile: any): string {
     // Implementation would recommend approach based on balance and risk
     return 'Balanced approach recommended';
   }
 
-  private predictOutcomes(todoList: TodoList, analysisResults: AnalysisResults): any {
+  private predictOutcomes(_todoList: TodoList, _analysisResults: AnalysisResults): any {
     // Implementation would predict outcomes
     return { success: 'HIGH', timeline: 'ON_TRACK' };
   }
 
   private calculateSuccessProbability(
-    todoList: TodoList,
-    analysisResults: AnalysisResults,
+    _todoList: TodoList,
+    _analysisResults: AnalysisResults,
   ): number {
     // Implementation would calculate success probability
     return 85;
   }
 
-  private planQuickWinImplementation(quickWins: TodoItem[]): any {
+  private planQuickWinImplementation(_quickWins: TodoItem[]): any {
     // Implementation would plan quick win implementation
     return { phases: [], resources: [] };
   }
 
-  private assessQuickWinRisks(quickWins: TodoItem[]): any {
+  private assessQuickWinRisks(_quickWins: TodoItem[]): any {
     // Implementation would assess quick win risks
     return { risks: [], mitigation: [] };
   }
 
-  private optimizeTacticalPlan(groupedFixes: Record<string, TodoItem[]>): any {
+  private optimizeTacticalPlan(_groupedFixes: Record<string, TodoItem[]>): any {
     // Implementation would optimize tactical plan
     return { optimized: true, plan: [] };
   }
 
-  private calculateTacticalResources(plan: any): any {
+  private calculateTacticalResources(_plan: any): any {
     // Implementation would calculate tactical resources
-    return { resources: [], allocation: {} };
+    return { resources: [], _allocation: {} };
   }
 
-  private createTacticalTimeline(plan: any): any {
+  private createTacticalTimeline(_plan: any): any {
     // Implementation would create tactical timeline
     return { timeline: [], milestones: [] };
   }
 
-  private identifyTacticalDependencies(plan: any): any {
+  private identifyTacticalDependencies(_plan: any): any {
     // Implementation would identify tactical dependencies
     return { dependencies: [], critical: [] };
   }
 
   private groupItemsByTheme(candidates: TodoItem[]): Record<string, TodoItem[]> {
-    // Implementation would group items by theme
+    // Implementation would group _items by theme
     const themes: Record<string, TodoItem[]> = {};
-    candidates.forEach((item) => {
-      const theme = this.categorizeItem(item);
+    candidates.forEach((_item) => {
+      const theme = this.categorizeItem(_item);
       if (!themes[theme]) {
-themes[theme] = [];
-}
-      themes[theme].push(item);
+        themes[theme] = [];
+      }
+      themes[theme].push(_item);
     });
     return themes;
   }
@@ -1026,233 +1029,233 @@ themes[theme] = [];
     return names[theme] || 'Improvement Initiative';
   }
 
-  private generateInitiativeDescription(theme: string, items: TodoItem[]): string {
-    return `Initiative to address ${items.length} ${theme} related improvements`;
+  private generateInitiativeDescription(theme: string, _items: TodoItem[]): string {
+    return `Initiative to address ${_items.length} ${theme} related improvements`;
   }
 
-  private calculateInitiativePriority(items: TodoItem[]): number {
+  private calculateInitiativePriority(_items: TodoItem[]): number {
     const avgPriority =
-      items.reduce((sum, item) => sum + (item.priority_details?.weight || 0), 0) / items.length;
+      _items.reduce((sum, _item) => sum + (_item.priority_details?.weight || 0), 0) / _items.length;
     return avgPriority;
   }
 
-  private assessInitiativeComplexity(items: TodoItem[]): string {
+  private assessInitiativeComplexity(_items: TodoItem[]): string {
     const avgEffort =
-      items.reduce((sum, item) => sum + (item.effort_details?.hours || 0), 0) / items.length;
+      _items.reduce((sum, _item) => sum + (_item.effort_details?.hours || 0), 0) / _items.length;
     if (avgEffort > 40) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (avgEffort > 16) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
-  private assessInitiativeBusinessValue(items: TodoItem[]): number {
-    return this.calculateBusinessValue(items);
+  private assessInitiativeBusinessValue(_items: TodoItem[]): number {
+    return this.calculateBusinessValue(_items);
   }
 
-  private identifyInitiativeRisks(theme: string, items: TodoItem[]): any[] {
+  private identifyInitiativeRisks(_theme: string, _items: TodoItem[]): any[] {
     // Implementation would identify initiative risks
     return [];
   }
 
-  private mapInitiativeDependencies(items: TodoItem[]): any[] {
+  private mapInitiativeDependencies(_items: TodoItem[]): any[] {
     // Implementation would map initiative dependencies
     return [];
   }
 
-  private planInitiativePhases(items: TodoItem[]): any[] {
+  private planInitiativePhases(_items: TodoItem[]): any[] {
     // Implementation would plan initiative phases
     return [];
   }
 
-  private createStrategicRoadmap(initiatives: Initiative[]): any {
+  private createStrategicRoadmap(_initiatives: Initiative[]): any {
     // Implementation would create strategic roadmap
     return { roadmap: [], milestones: [] };
   }
 
-  private calculateStrategicResources(initiatives: Initiative[]): any {
+  private calculateStrategicResources(_initiatives: Initiative[]): any {
     // Implementation would calculate strategic resources
     return { resources: [], timeline: [] };
   }
 
-  private assessStrategicRisks(initiatives: Initiative[]): any {
+  private assessStrategicRisks(_initiatives: Initiative[]): any {
     // Implementation would assess strategic risks
     return { risks: [], mitigation: [] };
   }
 
-  private identifySuccessFactors(initiatives: Initiative[]): any {
+  private identifySuccessFactors(_initiatives: Initiative[]): any {
     // Implementation would identify success factors
     return { factors: [], critical: [] };
   }
 
-  private defineMilestones(initiatives: Initiative[]): any {
+  private defineMilestones(_initiatives: Initiative[]): any {
     // Implementation would define milestones
     return { milestones: [], deliverables: [] };
   }
 
   private getResourceConstraints(): any {
     // Implementation would get resource constraints
-    return { constraints: [], availability: {} };
+    return { _constraints: [], availability: {} };
   }
 
-  private calculateOptimalAllocation(needs: ResourceNeeds, constraints: any): any {
+  private calculateOptimalAllocation(_needs: ResourceNeeds, _constraints: any): any {
     // Implementation would calculate optimal allocation
-    return { allocation: {}, efficiency: 0 };
+    return { _allocation: {}, efficiency: 0 };
   }
 
-  private calculateUtilizationRate(allocation: any): number {
+  private calculateUtilizationRate(_allocation: any): number {
     // Implementation would calculate utilization rate
     return 80;
   }
 
-  private identifyBottlenecks(allocation: any, constraints: any): any[] {
+  private identifyBottlenecks(_allocation: any, _constraints: any): any[] {
     // Implementation would identify bottlenecks
     return [];
   }
 
-  private generateResourceRecommendations(allocation: any, constraints: any): any[] {
+  private generateResourceRecommendations(_allocation: any, _constraints: any): any[] {
     // Implementation would generate resource recommendations
     return [];
   }
 
-  private calculateCostEstimate(allocation: any): number {
+  private calculateCostEstimate(_allocation: any): number {
     // Implementation would calculate cost estimate
     return 0;
   }
 
-  private generateAlternativeAllocations(needs: ResourceNeeds, constraints: any): any[] {
-    // Implementation would generate alternative allocations
+  private generateAlternativeAllocations(_needs: ResourceNeeds, _constraints: any): any[] {
+    // Implementation would generate alternative _allocations
     return [];
   }
 
-  private getPreferredResources(item: TodoItem): string[] {
+  private getPreferredResources(_item: TodoItem): string[] {
     // Implementation would get preferred resources
     return [];
   }
 
-  private createMilestones(items: TodoItem[]): any[] {
+  private createMilestones(_items: TodoItem[]): any[] {
     // Implementation would create milestones
     return [];
   }
 
-  private calculateCriticalPath(items: TodoItem[]): any {
+  private calculateCriticalPath(_items: TodoItem[]): any {
     // Implementation would calculate critical path
     return { path: [], duration: 0 };
   }
 
-  private mapTimelineDependencies(items: TodoItem[]): any {
+  private mapTimelineDependencies(_items: TodoItem[]): any {
     // Implementation would map timeline dependencies
     return { dependencies: [], critical: [] };
   }
 
-  private identifyRiskPeriods(items: TodoItem[]): any[] {
+  private identifyRiskPeriods(_items: TodoItem[]): any[] {
     // Implementation would identify risk periods
     return [];
   }
 
-  private calculateDeliveryDates(items: TodoItem[]): any {
+  private calculateDeliveryDates(_items: TodoItem[]): any {
     // Implementation would calculate delivery dates
     return { dates: [], confidence: 0 };
   }
 
-  private assessTechnicalRisks(items: TodoItem[]): Risk {
+  private assessTechnicalRisks(_items: TodoItem[]): Risk {
     // Implementation would assess technical risks
     return { score: 50 };
   }
 
-  private assessResourceRisks(items: TodoItem[]): Risk {
+  private assessResourceRisks(_items: TodoItem[]): Risk {
     // Implementation would assess resource risks
     return { score: 40 };
   }
 
-  private assessTimelineRisks(items: TodoItem[]): Risk {
+  private assessTimelineRisks(_items: TodoItem[]): Risk {
     // Implementation would assess timeline risks
     return { score: 45 };
   }
 
-  private assessDependencyRisks(items: TodoItem[]): Risk {
+  private assessDependencyRisks(_items: TodoItem[]): Risk {
     // Implementation would assess dependency risks
     return { score: 35 };
   }
 
-  private assessCustomerRisks(items: TodoItem[]): Risk {
+  private assessCustomerRisks(_items: TodoItem[]): Risk {
     // Implementation would assess customer risks
     return { score: 60 };
   }
 
-  private assessBusinessRisks(items: TodoItem[]): Risk {
+  private assessBusinessRisks(_items: TodoItem[]): Risk {
     // Implementation would assess business risks
     return { score: 55 };
   }
 
-  private planRiskMitigation(risks: Record<string, Risk>): any {
+  private planRiskMitigation(_risks: Record<string, Risk>): any {
     // Implementation would plan risk mitigation
     return { strategies: [], actions: [] };
   }
 
-  private createContingencyPlans(risks: Record<string, Risk>): any[] {
+  private createContingencyPlans(_risks: Record<string, Risk>): any[] {
     // Implementation would create contingency plans
     return [];
   }
 
-  private planRiskMonitoring(risks: Record<string, Risk>): any {
+  private planRiskMonitoring(_risks: Record<string, Risk>): any {
     // Implementation would plan risk monitoring
     return { monitoring: [], alerts: [] };
   }
 
-  private recommendPrioritization(todoList: TodoList): any {
+  private recommendPrioritization(_todoList: TodoList): any {
     // Implementation would recommend prioritization
     return { strategy: 'VALUE_EFFORT', recommendations: [] };
   }
 
-  private recommendResourceStrategy(todoList: TodoList): any {
+  private recommendResourceStrategy(_todoList: TodoList): any {
     // Implementation would recommend resource strategy
     return { strategy: 'BALANCED', recommendations: [] };
   }
 
-  private recommendTimelineOptimization(todoList: TodoList): any {
+  private recommendTimelineOptimization(_todoList: TodoList): any {
     // Implementation would recommend timeline optimization
     return { optimizations: [], savings: 0 };
   }
 
-  private recommendRiskManagement(todoList: TodoList, analysisResults: AnalysisResults): any {
+  private recommendRiskManagement(_todoList: TodoList, _analysisResults: AnalysisResults): any {
     // Implementation would recommend risk management
-    return { approach: 'PROACTIVE', measures: [] };
+    return { approach: 'PROACTIVE', measu_res: [] };
   }
 
-  private identifySuccessFactorsFromList(todoList: TodoList): any {
+  private identifySuccessFactorsFromList(_todoList: TodoList): any {
     // Implementation would identify success factors
     return { critical: [], important: [] };
   }
 
-  private recommendMonitoring(todoList: TodoList): any {
+  private recommendMonitoring(_todoList: TodoList): any {
     // Implementation would recommend monitoring
     return { metrics: [], frequency: 'WEEKLY' };
   }
 
-  private analyzeDependencies(todoList: TodoList): any {
+  private analyzeDependencies(_todoList: TodoList): any {
     // Implementation would analyze dependencies
     return { dependencies: [], critical: [] };
   }
 
-  private designMetricsDashboard(metrics: Metrics): any {
+  private designMetricsDashboard(_metrics: Metrics): any {
     // Implementation would design metrics dashboard
     return { layout: [], widgets: [] };
   }
 
-  private planMetricsReporting(metrics: Metrics): any {
+  private planMetricsReporting(_metrics: Metrics): any {
     // Implementation would plan metrics reporting
     return { reports: [], schedule: [] };
   }
 
-  private defineMetricThresholds(metrics: Metrics): any {
+  private defineMetricThresholds(_metrics: Metrics): any {
     // Implementation would define metric thresholds
     return { thresholds: [], alerts: [] };
   }
 
-  private planMetricsMonitoring(metrics: Metrics): any {
+  private planMetricsMonitoring(_metrics: Metrics): any {
     // Implementation would plan metrics monitoring
     return { monitoring: [], automation: [] };
   }

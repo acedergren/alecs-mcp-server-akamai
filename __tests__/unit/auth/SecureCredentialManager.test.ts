@@ -5,11 +5,7 @@
 
 import { SecureCredentialManager } from '@/auth/SecureCredentialManager';
 import type { EdgeGridCredentials } from '@/types/config';
-import type {
-  EncryptedCredential,
-  CredentialRotationSchedule,
-  CredentialAuditLog,
-} from '@/auth/oauth/types';
+import type { CredentialRotationSchedule } from '@/auth/oauth/types';
 import { CredentialAction } from '@/auth/oauth/types';
 import { logger } from '@/utils/logger';
 import { CustomerConfigManager } from '@/utils/customer-config';
@@ -23,7 +19,7 @@ describe('SecureCredentialManager', () => {
   let credentialManager: SecureCredentialManager;
   const mockLogger = logger as jest.Mocked<typeof logger>;
   const mockConfigManager = CustomerConfigManager as jest.Mocked<typeof CustomerConfigManager>;
-  
+
   const masterKey = 'test-master-key-32-characters-long!!';
   const testCredentials: EdgeGridCredentials = {
     client_secret: 'test-client-secret',
@@ -37,10 +33,10 @@ describe('SecureCredentialManager', () => {
     jest.useFakeTimers();
     // Reset singleton
     (SecureCredentialManager as any).instance = undefined;
-    
+
     // Set up environment
     process.env.CREDENTIAL_MASTER_KEY = masterKey;
-    
+
     credentialManager = SecureCredentialManager.getInstance(masterKey);
   });
 
@@ -68,10 +64,7 @@ describe('SecureCredentialManager', () => {
   describe('encryptCredentials', () => {
     it('should encrypt credentials successfully', async () => {
       const customerId = 'customer-123';
-      const credentialId = await credentialManager.encryptCredentials(
-        testCredentials,
-        customerId,
-      );
+      const credentialId = await credentialManager.encryptCredentials(testCredentials, customerId);
 
       expect(credentialId).toMatch(/^cred_customer-123_[a-f0-9]{16}$/);
 
@@ -104,7 +97,7 @@ describe('SecureCredentialManager', () => {
       );
 
       expect(credentialId).toBeDefined();
-      
+
       // Timer will be set internally when rotation schedule is provided
       // We can verify this indirectly by checking the credential has a rotation schedule
     });
@@ -118,17 +111,10 @@ describe('SecureCredentialManager', () => {
       };
 
       // Mock the performAutoRotation method
-      const performAutoRotationSpy = jest.spyOn(
-        credentialManager as any,
-        'performAutoRotation',
-      );
+      const performAutoRotationSpy = jest.spyOn(credentialManager as any, 'performAutoRotation');
       performAutoRotationSpy.mockImplementation(() => Promise.resolve());
 
-      await credentialManager.encryptCredentials(
-        testCredentials,
-        customerId,
-        rotationSchedule,
-      );
+      await credentialManager.encryptCredentials(testCredentials, customerId, rotationSchedule);
 
       expect(performAutoRotationSpy).toHaveBeenCalled();
     });
@@ -151,7 +137,7 @@ describe('SecureCredentialManager', () => {
 
     it('should handle encryption errors', async () => {
       const customerId = 'customer-123';
-      
+
       // Mock crypto.createCipheriv to throw an error
       const originalCreateCipheriv = crypto.createCipheriv;
       (crypto as any).createCipheriv = jest.fn().mockImplementation(() => {
@@ -182,12 +168,12 @@ describe('SecureCredentialManager', () => {
 
     it('should encrypt different credentials with different outputs', async () => {
       const customerId = 'customer-123';
-      
+
       const credentials1: EdgeGridCredentials = {
         ...testCredentials,
         client_secret: 'secret1',
       };
-      
+
       const credentials2: EdgeGridCredentials = {
         ...testCredentials,
         client_secret: 'secret2',
@@ -210,17 +196,11 @@ describe('SecureCredentialManager', () => {
     let credentialId: string;
 
     beforeEach(async () => {
-      credentialId = await credentialManager.encryptCredentials(
-        testCredentials,
-        'customer-123',
-      );
+      credentialId = await credentialManager.encryptCredentials(testCredentials, 'customer-123');
     });
 
     it('should decrypt credentials successfully', async () => {
-      const decrypted = await credentialManager.decryptCredentials(
-        credentialId,
-        'user-123',
-      );
+      const decrypted = await credentialManager.decryptCredentials(credentialId, 'user-123');
 
       expect(decrypted).toEqual(testCredentials);
 
@@ -280,9 +260,9 @@ describe('SecureCredentialManager', () => {
       const credential = (credentialManager as any).credentials.get(credentialId);
       delete credential.keyDerivation;
 
-      await expect(
-        credentialManager.decryptCredentials(credentialId, 'user-123'),
-      ).rejects.toThrow('Key derivation parameters missing');
+      await expect(credentialManager.decryptCredentials(credentialId, 'user-123')).rejects.toThrow(
+        'Key derivation parameters missing',
+      );
     });
 
     it('should handle authentication tag verification failure', async () => {
@@ -299,10 +279,7 @@ describe('SecureCredentialManager', () => {
     let credentialId: string;
 
     beforeEach(async () => {
-      credentialId = await credentialManager.encryptCredentials(
-        testCredentials,
-        'customer-123',
-      );
+      credentialId = await credentialManager.encryptCredentials(testCredentials, 'customer-123');
     });
 
     it('should rotate credentials successfully', async () => {
@@ -326,9 +303,7 @@ describe('SecureCredentialManager', () => {
       expect(oldCredential).toBeUndefined();
 
       // Verify new credential exists
-      const newCredential = (credentialManager as any).credentials.get(
-        newCredentialId,
-      );
+      const newCredential = (credentialManager as any).credentials.get(newCredentialId);
       expect(newCredential).toBeDefined();
       expect(newCredential.version).toBe(2);
       expect(newCredential.lastRotatedAt).toBeDefined();
@@ -388,7 +363,7 @@ describe('SecureCredentialManager', () => {
       const timer = (credentialManager as any).rotationTimers.get(originalId);
       expect(timer).toBeDefined();
 
-      const newId = await credentialManager.rotateCredentials(
+      const _newId = await credentialManager.rotateCredentials(
         originalId,
         testCredentials,
         'user-123',
@@ -401,11 +376,7 @@ describe('SecureCredentialManager', () => {
 
     it('should throw error for non-existent credential', async () => {
       await expect(
-        credentialManager.rotateCredentials(
-          'non-existent-id',
-          testCredentials,
-          'user-123',
-        ),
+        credentialManager.rotateCredentials('non-existent-id', testCredentials, 'user-123'),
       ).rejects.toThrow('Credential not found');
     });
 
@@ -437,10 +408,7 @@ describe('SecureCredentialManager', () => {
     let credentialId: string;
 
     beforeEach(async () => {
-      credentialId = await credentialManager.encryptCredentials(
-        testCredentials,
-        'customer-123',
-      );
+      credentialId = await credentialManager.encryptCredentials(testCredentials, 'customer-123');
     });
 
     it('should update rotation schedule successfully', async () => {
@@ -455,11 +423,7 @@ describe('SecureCredentialManager', () => {
         },
       };
 
-      await credentialManager.updateRotationSchedule(
-        credentialId,
-        newSchedule,
-        'user-123',
-      );
+      await credentialManager.updateRotationSchedule(credentialId, newSchedule, 'user-123');
 
       const credential = (credentialManager as any).credentials.get(credentialId);
       expect(credential.rotationSchedule).toEqual(newSchedule);
@@ -511,11 +475,7 @@ describe('SecureCredentialManager', () => {
         nextRotation: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       };
 
-      await credentialManager.updateRotationSchedule(
-        credentialId,
-        schedule,
-        'user-123',
-      );
+      await credentialManager.updateRotationSchedule(credentialId, schedule, 'user-123');
 
       const timer = (credentialManager as any).rotationTimers.get(credentialId);
       expect(timer).toBeUndefined();
@@ -529,11 +489,7 @@ describe('SecureCredentialManager', () => {
       };
 
       await expect(
-        credentialManager.updateRotationSchedule(
-          'non-existent-id',
-          schedule,
-          'user-123',
-        ),
+        credentialManager.updateRotationSchedule('non-existent-id', schedule, 'user-123'),
       ).rejects.toThrow('Credential not found');
     });
   });
@@ -541,20 +497,14 @@ describe('SecureCredentialManager', () => {
   describe('listCustomerCredentials', () => {
     it('should list all credentials for a customer', async () => {
       const customerId = 'customer-123';
-      
+
       // Create multiple credentials
-      const id1 = await credentialManager.encryptCredentials(
-        testCredentials,
-        customerId,
-      );
+      const id1 = await credentialManager.encryptCredentials(testCredentials, customerId);
       const id2 = await credentialManager.encryptCredentials(
         { ...testCredentials, client_secret: 'different-secret' },
         customerId,
       );
-      const id3 = await credentialManager.encryptCredentials(
-        testCredentials,
-        'different-customer',
-      );
+      const id3 = await credentialManager.encryptCredentials(testCredentials, 'different-customer');
 
       const credentials = credentialManager.listCustomerCredentials(customerId);
 
@@ -565,9 +515,7 @@ describe('SecureCredentialManager', () => {
     });
 
     it('should return empty array for customer with no credentials', () => {
-      const credentials = credentialManager.listCustomerCredentials(
-        'non-existent-customer',
-      );
+      const credentials = credentialManager.listCustomerCredentials('non-existent-customer');
       expect(credentials).toEqual([]);
     });
   });
@@ -576,10 +524,7 @@ describe('SecureCredentialManager', () => {
     let credentialId: string;
 
     beforeEach(async () => {
-      credentialId = await credentialManager.encryptCredentials(
-        testCredentials,
-        'customer-123',
-      );
+      credentialId = await credentialManager.encryptCredentials(testCredentials, 'customer-123');
     });
 
     it('should delete credential successfully', async () => {
@@ -708,7 +653,7 @@ describe('SecureCredentialManager', () => {
         'Automatic credential rotation failed',
         expect.objectContaining({
           credentialId,
-          error: expect.any(Error),
+          _error: expect.any(Error),
         }),
       );
     });
@@ -748,15 +693,9 @@ describe('SecureCredentialManager', () => {
   describe('Security features', () => {
     it('should use different IVs for each encryption', async () => {
       const customerId = 'customer-123';
-      
-      const id1 = await credentialManager.encryptCredentials(
-        testCredentials,
-        customerId,
-      );
-      const id2 = await credentialManager.encryptCredentials(
-        testCredentials,
-        customerId,
-      );
+
+      const id1 = await credentialManager.encryptCredentials(testCredentials, customerId);
+      const id2 = await credentialManager.encryptCredentials(testCredentials, customerId);
 
       const cred1 = (credentialManager as any).credentials.get(id1);
       const cred2 = (credentialManager as any).credentials.get(id2);
@@ -766,15 +705,9 @@ describe('SecureCredentialManager', () => {
 
     it('should use different salts for key derivation', async () => {
       const customerId = 'customer-123';
-      
-      const id1 = await credentialManager.encryptCredentials(
-        testCredentials,
-        customerId,
-      );
-      const id2 = await credentialManager.encryptCredentials(
-        testCredentials,
-        customerId,
-      );
+
+      const id1 = await credentialManager.encryptCredentials(testCredentials, customerId);
+      const id2 = await credentialManager.encryptCredentials(testCredentials, customerId);
 
       const cred1 = (credentialManager as any).credentials.get(id1);
       const cred2 = (credentialManager as any).credentials.get(id2);
@@ -797,9 +730,7 @@ describe('SecureCredentialManager', () => {
       (wrongKeyManager as any).credentials.set(credentialId, credential);
 
       // Attempt to decrypt with wrong key should fail
-      await expect(
-        wrongKeyManager.decryptCredentials(credentialId, 'user-123'),
-      ).rejects.toThrow();
+      await expect(wrongKeyManager.decryptCredentials(credentialId, 'user-123')).rejects.toThrow();
     });
 
     it('should store master key hash securely', () => {
@@ -824,10 +755,7 @@ describe('SecureCredentialManager', () => {
         'customer-123',
       );
 
-      const decrypted = await credentialManager.decryptCredentials(
-        credentialId,
-        'user-123',
-      );
+      const decrypted = await credentialManager.decryptCredentials(credentialId, 'user-123');
 
       expect(decrypted).toEqual(largeCredentials);
     });
@@ -845,10 +773,7 @@ describe('SecureCredentialManager', () => {
         'customer-123',
       );
 
-      const decrypted = await credentialManager.decryptCredentials(
-        credentialId,
-        'user-123',
-      );
+      const decrypted = await credentialManager.decryptCredentials(credentialId, 'user-123');
 
       expect(decrypted).toEqual(specialCredentials);
     });

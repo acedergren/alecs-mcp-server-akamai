@@ -29,15 +29,15 @@ export class ProgressBar extends EventEmitter {
   private clear: boolean;
   private lastDrawnLength = 0;
 
-  constructor(options: ProgressOptions = {}) {
+  constructor(_options: ProgressOptions = {}) {
     super();
-    this.total = options.total || 100;
-    this.format = options.format || '[:bar] :percent :message';
-    this.barCompleteChar = options.barCompleteChar || '█';
-    this.barIncompleteChar = options.barIncompleteChar || '░';
-    this.barWidth = options.barWidth || 40;
-    this.stream = options.stream || process.stdout;
-    this.clear = options.clear !== false;
+    this.total = _options.total || 100;
+    this.format = _options.format || '[:bar] :percent :message';
+    this.barCompleteChar = _options.barCompleteChar || '█';
+    this.barIncompleteChar = _options.barIncompleteChar || '░';
+    this.barWidth = _options.barWidth || 40;
+    this.stream = _options.stream || process.stdout;
+    this.clear = _options.clear !== false;
     this.startTime = Date.now();
   }
 
@@ -100,8 +100,8 @@ export class ProgressBar extends EventEmitter {
 
   private formatTime(seconds: number): string {
     if (!isFinite(seconds)) {
-return '∞';
-}
+      return '∞';
+    }
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
@@ -189,8 +189,8 @@ export class MultiProgress {
     this.stream = stream;
   }
 
-  addBar(id: string, options: ProgressOptions): ProgressBar {
-    const bar = new ProgressBar({ ...options, stream: this.stream });
+  addBar(id: string, _options: ProgressOptions): ProgressBar {
+    const bar = new ProgressBar({ ..._options, stream: this.stream });
     this.bars.set(id, bar);
     return bar;
   }
@@ -229,9 +229,9 @@ export class MultiProgress {
 export function withProgress<T>(
   task: () => Promise<T>,
   message: string,
-  options?: { showSpinner?: boolean },
+  _options?: { showSpinner?: boolean },
 ): Promise<T> {
-  if (options?.showSpinner !== false) {
+  if (_options?.showSpinner !== false) {
     const spinner = new Spinner();
     spinner.start(message);
 
@@ -240,9 +240,9 @@ export function withProgress<T>(
         spinner.succeed(`${message} - Done`);
         return result;
       })
-      .catch((error) => {
+      .catch((_error) => {
         spinner.fail(`${message} - Failed`);
-        throw error;
+        throw _error;
       });
   }
 
@@ -252,7 +252,7 @@ export function withProgress<T>(
 export async function trackProgress<T>(
   items: T[],
   processor: (item: T, index: number) => Promise<void>,
-  options: {
+  _options: {
     message?: string;
     format?: string;
     concurrent?: number;
@@ -260,16 +260,16 @@ export async function trackProgress<T>(
 ): Promise<void> {
   const progress = new ProgressBar({
     total: items.length,
-    format: options.format || '[:bar] :percent :current/:total :message',
+    format: _options.format || '[:bar] :percent :current/:total :message',
   });
 
-  const concurrent = options.concurrent || 1;
+  const concurrent = _options.concurrent || 1;
   let index = 0;
 
   async function processNext(): Promise<void> {
     if (index >= items.length) {
-return;
-}
+      return;
+    }
 
     const currentIndex = index++;
     const item = items[currentIndex];
@@ -280,14 +280,14 @@ return;
 
     try {
       await processor(item, currentIndex);
-      progress.increment(1, options.message || `Processing item ${currentIndex + 1}`);
-    } catch (error) {
+      progress.increment(1, _options.message || `Processing item ${currentIndex + 1}`);
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         message: `Error processing item ${currentIndex + 1}`,
         status: 'error',
       });
-      throw error;
+      throw _error;
     }
   }
 

@@ -260,13 +260,13 @@ export class DebugAPI extends EventEmitter {
   ): void {
     const trace = this.traces.get(traceId);
     if (!trace) {
-return;
-}
+      return;
+    }
 
     const span = trace.spans.find((s) => s.spanId === spanId);
     if (!span) {
-return;
-}
+      return;
+    }
 
     span.endTime = performance.now();
     span.duration = span.endTime - span.startTime;
@@ -283,13 +283,13 @@ return;
   logToSpan(traceId: string, spanId: string, fields: Record<string, any>): void {
     const trace = this.traces.get(traceId);
     if (!trace) {
-return;
-}
+      return;
+    }
 
     const span = trace.spans.find((s) => s.spanId === spanId);
     if (!span) {
-return;
-}
+      return;
+    }
 
     span.logs.push({
       timestamp: performance.now(),
@@ -575,16 +575,16 @@ return;
 
   private sanitizeData(data: any): any {
     if (data === null || data === undefined) {
-return data;
-}
+      return data;
+    }
 
     // Remove circular references and limit depth
     try {
       return JSON.parse(
         JSON.stringify(data, (_key, value) => {
           if (typeof value === 'function') {
-return '[Function]';
-}
+            return '[Function]';
+          }
           if (value instanceof Error) {
             return {
               name: value.name,
@@ -595,7 +595,7 @@ return '[Function]';
           return value;
         }),
       );
-    } catch (error) {
+    } catch (_error) {
       return '[Non-serializable data]';
     }
   }
@@ -603,14 +603,14 @@ return '[Function]';
   private notifySubscribers(event: DebugEvent): void {
     for (const subscription of this.subscriptions.values()) {
       if (!subscription.active) {
-continue;
-}
+        continue;
+      }
 
       if (this.matchesFilters(event, subscription.filters)) {
         try {
           subscription.callback(event);
-        } catch (error) {
-          this.emit('subscriptionError', subscription.id, error);
+        } catch (_error) {
+          this.emit('subscriptionError', subscription.id, _error);
         }
       }
     }
@@ -622,14 +622,14 @@ continue;
 
     for (const connection of this.streamingConnections.values()) {
       if (!connection.active) {
-continue;
-}
+        continue;
+      }
 
       if (this.matchesFilters(event, connection.filters)) {
         connection.lastActivity = now;
         promises.push(
-          connection.send({ type: 'debug-event', data: event }).catch((error) => {
-            this.emit('streamingError', connection.id, error);
+          connection.send({ type: 'debug-event', data: event }).catch((_error) => {
+            this.emit('streamingError', connection.id, _error);
             // Deactivate connection on error
             connection.active = false;
           }),

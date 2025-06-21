@@ -3,9 +3,9 @@
  * High-performance caching with smart invalidation and monitoring
  */
 
-import Redis, { Cluster, ClusterNode } from 'ioredis';
+import Redis, { Cluster, ClusterNode as _ClusterNode } from 'ioredis';
 
-import { AkamaiClient } from '../akamai-client';
+import { AkamaiClient as _AkamaiClient } from '../akamai-client';
 
 export interface ValkeyConfig {
   mode?: 'single' | 'cluster' | 'sentinel';
@@ -167,8 +167,8 @@ export class ValkeyCache {
    */
   async get<T = any>(key: string): Promise<T | null> {
     if (!this.isAvailable()) {
-return null;
-}
+      return null;
+    }
 
     try {
       const fullKey = this.buildKey(key);
@@ -184,8 +184,8 @@ return null;
         await this.recordMiss(key);
         return null;
       }
-    } catch (err) {
-      console.error(`[Valkey] Error getting ${key}:`, err);
+    } catch (_err) {
+      console.error(`[Valkey] Error getting ${key}:`, _err);
       this.metrics.errors++;
       return null;
     }
@@ -196,8 +196,8 @@ return null;
    */
   async set<T = any>(key: string, value: T, ttl: number): Promise<boolean> {
     if (!this.isAvailable()) {
-return false;
-}
+      return false;
+    }
 
     try {
       const fullKey = this.buildKey(key);
@@ -213,8 +213,8 @@ return false;
 
       await this.client.setex(fullKey, ttl, serialized);
       return true;
-    } catch (err) {
-      console.error(`[Valkey] Error setting ${key}:`, err);
+    } catch (_err) {
+      console.error(`[Valkey] Error setting ${key}:`, _err);
       this.metrics.errors++;
       return false;
     }
@@ -225,15 +225,15 @@ return false;
    */
   async del(keys: string | string[]): Promise<number> {
     if (!this.isAvailable()) {
-return 0;
-}
+      return 0;
+    }
 
     try {
       const keysArray = Array.isArray(keys) ? keys : [keys];
       const fullKeys = keysArray.map((k) => this.buildKey(k));
       return await this.client.del(...fullKeys);
-    } catch (err) {
-      console.error('[Valkey] Error deleting keys:', err);
+    } catch (_err) {
+      console.error('[Valkey] Error deleting keys:', _err);
       return 0;
     }
   }
@@ -243,14 +243,14 @@ return 0;
    */
   async ttl(key: string): Promise<number> {
     if (!this.isAvailable()) {
-return -1;
-}
+      return -1;
+    }
 
     try {
       const fullKey = this.buildKey(key);
       return await this.client.ttl(fullKey);
-    } catch (err) {
-      console.error(`[Valkey] Error getting TTL for ${key}:`, err);
+    } catch (_err) {
+      console.error(`[Valkey] Error getting TTL for ${key}:`, _err);
       return -1;
     }
   }
@@ -308,8 +308,8 @@ return -1;
       await this.sleep(100);
       const cached = await this.get<T>(key);
       if (cached) {
-return cached;
-}
+        return cached;
+      }
 
       // Retry with exponential backoff
       return this.getWithLock(key, ttl, fetchFn, lockTimeout);
@@ -337,8 +337,8 @@ return cached;
     try {
       const data = await fetchFn();
       await this.set(key, data, ttl);
-    } catch (err) {
-      console.error(`[Valkey] Background refresh failed for ${key}:`, err);
+    } catch (_err) {
+      console.error(`[Valkey] Background refresh failed for ${key}:`, _err);
     } finally {
       this.refreshingKeys.delete(key);
     }
@@ -362,7 +362,7 @@ return cached;
           try {
             result.set(keys[index], JSON.parse(value));
             this.metrics.hits++;
-          } catch (err) {
+          } catch (_err) {
             console.error(`[Valkey] Error parsing value for ${keys[index]}`);
           }
         } else {
@@ -371,8 +371,8 @@ return cached;
       });
 
       return result;
-    } catch (err) {
-      console.error('[Valkey] Error in mget:', err);
+    } catch (_err) {
+      console.error('[Valkey] Error in mget:', _err);
       return new Map();
     }
   }
@@ -382,8 +382,8 @@ return cached;
    */
   async scanAndDelete(pattern: string): Promise<number> {
     if (!this.isAvailable()) {
-return 0;
-}
+      return 0;
+    }
 
     let deleted = 0;
     const fullPattern = this.buildKey(pattern);
@@ -400,8 +400,8 @@ return 0;
           if (keys.length) {
             try {
               deleted += await this.client.del(...keys);
-            } catch (err) {
-              console.error('[Valkey] Error deleting batch:', err);
+            } catch (_err) {
+              console.error('[Valkey] Error deleting batch:', _err);
             }
           }
         });
@@ -420,8 +420,8 @@ return 0;
         if (keys.length > 0) {
           try {
             deleted += await this.client.del(...keys);
-          } catch (err) {
-            console.error('[Valkey] Error deleting batch:', err);
+          } catch (_err) {
+            console.error('[Valkey] Error deleting batch:', _err);
           }
         }
       } while (cursor !== '0');
@@ -439,7 +439,7 @@ return 0;
       const statsKey = this.buildKey(`stats:${date}:hits`);
       await this.client.hincrby(statsKey, key, 1);
       await this.client.expire(statsKey, 7 * 86400); // Keep for 7 days
-    } catch (err) {
+    } catch (_err) {
       // Ignore stats errors
     }
   }
@@ -453,7 +453,7 @@ return 0;
       const statsKey = this.buildKey(`stats:${date}:misses`);
       await this.client.hincrby(statsKey, key, 1);
       await this.client.expire(statsKey, 7 * 86400); // Keep for 7 days
-    } catch (err) {
+    } catch (_err) {
       // Ignore stats errors
     }
   }
@@ -461,11 +461,11 @@ return 0;
   /**
    * Get cache hit rate
    */
-  async getHitRate(pattern?: string): Promise<number> {
+  async getHitRate(_pattern?: string): Promise<number> {
     const total = this.metrics.hits + this.metrics.misses;
     if (total === 0) {
-return 0;
-}
+      return 0;
+    }
     return (this.metrics.hits / total) * 100;
   }
 
@@ -487,14 +487,14 @@ return 0;
    */
   async flushAll(): Promise<void> {
     if (!this.isAvailable()) {
-return;
-}
+      return;
+    }
 
     try {
       await this.client.flushdb();
       console.error('[Valkey] Cache cleared');
-    } catch (err) {
-      console.error('[Valkey] Error flushing cache:', err);
+    } catch (_err) {
+      console.error('[Valkey] Error flushing cache:', _err);
     }
   }
 

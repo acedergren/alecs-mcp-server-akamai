@@ -1,12 +1,4 @@
-import {
-  ProgressBar,
-  Spinner,
-  MultiProgress,
-  withProgress,
-  format,
-  icons,
-} from '@utils/progress';
-import axios from 'axios';
+import { ProgressBar, Spinner, MultiProgress, format, icons } from '@utils/progress';
 
 import { EdgeGridAuth } from '../auth/EdgeGridAuth';
 
@@ -98,9 +90,9 @@ export class CDNProvisioningAgent {
       }
 
       spinner.succeed(`Initialized with contract: ${this.contractId}, group: ${this.groupId}`);
-    } catch (error) {
+    } catch (_error) {
       spinner.fail('Failed to initialize agent');
-      throw error;
+      throw _error;
     } finally {
       this.multiProgress.remove('init');
     }
@@ -121,7 +113,7 @@ export class CDNProvisioningAgent {
         createFromVersionEtag: await this.getVersionEtag(propertyId, baseVersion),
       };
 
-      const response = await this.auth.request<PapiVersionResponse>({
+      const response = await this.auth._request<PapiVersionResponse>({
         method: 'POST',
         path: `/papi/v1/properties/${propertyId}/versions?contractId=${this.contractId}&groupId=${this.groupId}`,
         headers: { 'Content-Type': 'application/json' },
@@ -137,11 +129,11 @@ export class CDNProvisioningAgent {
 
       spinner.succeed(`Created version ${versionNumber} for property ${propertyId}`);
       return await this.getPropertyVersion(propertyId, versionNumber);
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
-        `Failed to create property version: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to create property version: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
@@ -187,19 +179,19 @@ export class CDNProvisioningAgent {
 
       progress.finish('Version cloned successfully');
       return targetVersion;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
   // Rule Tree Configuration
   async getRuleTree(propertyId: string, version: number): Promise<RuleTree> {
-    const response = await this.auth.request<PapiRulesResponse>({
+    const response = await this.auth._request<PapiRulesResponse>({
       method: 'GET',
       path: `/papi/v1/properties/${propertyId}/versions/${version}/rules?contractId=${this.contractId}&groupId=${this.groupId}`,
     });
@@ -214,7 +206,7 @@ export class CDNProvisioningAgent {
     try {
       const etag = await this.getVersionEtag(propertyId, version);
 
-      await this.auth.request({
+      await this.auth._request({
         method: 'PUT',
         path: `/papi/v1/properties/${propertyId}/versions/${version}/rules?contractId=${this.contractId}&groupId=${this.groupId}`,
         headers: {
@@ -225,11 +217,11 @@ export class CDNProvisioningAgent {
       });
 
       spinner.succeed('Rule configuration updated');
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
-        `Failed to update rules: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to update rules: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
@@ -262,11 +254,11 @@ export class CDNProvisioningAgent {
 
       await this.updateRuleTree(propertyId, version, ruleTree);
       spinner.succeed(`${format.bold(template)} template applied`);
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
-        `Failed to apply template: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to apply template: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
@@ -303,7 +295,7 @@ export class CDNProvisioningAgent {
 
       progress.update({ current: 2, message: 'Creating hostname' });
 
-      const response = await this.auth.request<PapiEdgeHostnameResponse>({
+      const response = await this.auth._request<PapiEdgeHostnameResponse>({
         method: 'POST',
         path: `/papi/v1/edgehostnames?contractId=${this.contractId}&groupId=${this.groupId}`,
         headers: { 'Content-Type': 'application/json' },
@@ -325,13 +317,13 @@ export class CDNProvisioningAgent {
         `Edge hostname ${format.cyan(domainPrefix + '.' + request.domainSuffix)} created`,
       );
       return edgeHostname;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -378,7 +370,7 @@ export class CDNProvisioningAgent {
         request.note = options.note;
       }
 
-      const response = await this.auth.request<PapiActivationResponse>({
+      const response = await this.auth._request<PapiActivationResponse>({
         method: 'POST',
         path: `/papi/v1/properties/${propertyId}/activations?contractId=${this.contractId}&groupId=${this.groupId}`,
         headers: { 'Content-Type': 'application/json' },
@@ -429,13 +421,13 @@ export class CDNProvisioningAgent {
         lastProgress = currentProgress;
         await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds
       }
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -460,7 +452,7 @@ export class CDNProvisioningAgent {
 
       const etag = await this.getVersionEtag(propertyId, version);
 
-      await this.auth.request({
+      await this.auth._request({
         method: 'PUT',
         path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames?contractId=${this.contractId}&groupId=${this.groupId}`,
         headers: {
@@ -471,18 +463,18 @@ export class CDNProvisioningAgent {
       });
 
       spinner.succeed(`Added hostname ${format.cyan(hostname)} → ${format.green(edgeHostname)}`);
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
-        `Failed to add hostname: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to add hostname: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
   // Certificate Management Integration
   async provisionDefaultDVCertificate(
-    propertyId: string,
-    version: number,
+    _propertyId: string,
+    _version: number,
     hostnames: string[],
   ): Promise<void> {
     console.log(`\n${format.bold('Default DV Certificate Provisioning')}`);
@@ -530,19 +522,19 @@ export class CDNProvisioningAgent {
       console.log(`  ${icons.bullet} Enrollment ID: ${format.cyan(enrollment.enrollmentId)}`);
       console.log(`  ${icons.bullet} Network: ${format.green('Enhanced TLS')}`);
       console.log(`  ${icons.bullet} Validated Domains: ${hostnames.length}`);
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
   // Helper methods
   private async getGroups(): Promise<any[]> {
-    const response = await this.auth.request<PapiGroupsResponse>({
+    const response = await this.auth._request<PapiGroupsResponse>({
       method: 'GET',
       path: '/papi/v1/groups',
     });
@@ -550,7 +542,7 @@ export class CDNProvisioningAgent {
   }
 
   private async getPropertyVersion(propertyId: string, version: number): Promise<PropertyVersion> {
-    const response = await this.auth.request<PapiVersionsResponse>({
+    const response = await this.auth._request<PapiVersionsResponse>({
       method: 'GET',
       path: `/papi/v1/properties/${propertyId}/versions/${version}?contractId=${this.contractId}&groupId=${this.groupId}`,
     });
@@ -560,7 +552,7 @@ export class CDNProvisioningAgent {
 
   private async getVersionEtag(propertyId: string, version?: number): Promise<string> {
     const v = version || (await this.getLatestVersion(propertyId));
-    const response = await this.auth.request<PapiVersionsResponse & PapiEtagResponse>({
+    const response = await this.auth._request<PapiVersionsResponse & PapiEtagResponse>({
       method: 'GET',
       path: `/papi/v1/properties/${propertyId}/versions/${v}?contractId=${this.contractId}&groupId=${this.groupId}`,
     });
@@ -569,7 +561,7 @@ export class CDNProvisioningAgent {
   }
 
   private async getLatestVersion(propertyId: string): Promise<number> {
-    const response = await this.auth.request<PapiVersionsResponse>({
+    const response = await this.auth._request<PapiVersionsResponse>({
       method: 'GET',
       path: `/papi/v1/properties/${propertyId}/versions/latest?contractId=${this.contractId}&groupId=${this.groupId}`,
     });
@@ -582,7 +574,7 @@ export class CDNProvisioningAgent {
     note: string,
   ): Promise<void> {
     const etag = await this.getVersionEtag(propertyId, version);
-    await this.auth.request({
+    await this.auth._request({
       method: 'PATCH',
       path: `/papi/v1/properties/${propertyId}/versions/${version}?contractId=${this.contractId}&groupId=${this.groupId}`,
       headers: {
@@ -594,7 +586,7 @@ export class CDNProvisioningAgent {
   }
 
   private async getPropertyHostnames(propertyId: string, version: number): Promise<any[]> {
-    const response = await this.auth.request<PapiHostnamesResponse>({
+    const response = await this.auth._request<PapiHostnamesResponse>({
       method: 'GET',
       path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames?contractId=${this.contractId}&groupId=${this.groupId}`,
     });
@@ -603,7 +595,7 @@ export class CDNProvisioningAgent {
 
   private async waitForEdgeHostname(edgeHostnameId: string): Promise<EdgeHostname> {
     while (true) {
-      const response = await this.auth.request<PapiEdgeHostnamesResponse>({
+      const response = await this.auth._request<PapiEdgeHostnamesResponse>({
         method: 'GET',
         path: `/papi/v1/edgehostnames/${edgeHostnameId}?contractId=${this.contractId}&groupId=${this.groupId}`,
       });
@@ -618,7 +610,7 @@ export class CDNProvisioningAgent {
   }
 
   private async validateProperty(propertyId: string, version: number): Promise<void> {
-    const response = await this.auth.request<PapiErrorsResponse>({
+    const response = await this.auth._request<PapiErrorsResponse>({
       method: 'POST',
       path: `/papi/v1/properties/${propertyId}/versions/${version}/validate?contractId=${this.contractId}&groupId=${this.groupId}`,
     });
@@ -632,7 +624,7 @@ export class CDNProvisioningAgent {
     propertyId: string,
     activationId: string,
   ): Promise<ActivationStatus> {
-    const response = await this.auth.request<PapiActivationsResponse>({
+    const response = await this.auth._request<PapiActivationsResponse>({
       method: 'GET',
       path: `/papi/v1/properties/${propertyId}/activations/${activationId}?contractId=${this.contractId}&groupId=${this.groupId}`,
     });
@@ -768,7 +760,7 @@ export class CDNProvisioningAgent {
     });
   }
 
-  private applySecurityTemplate(ruleTree: RuleTree, options: any): void {
+  private applySecurityTemplate(ruleTree: RuleTree, _options: any): void {
     const securityRule = {
       name: 'Security',
       children: [
@@ -828,12 +820,12 @@ export class CDNProvisioningAgent {
     };
   }
 
-  private async createACMEValidationRecord(hostname: string, challenge: string): Promise<void> {
+  private async createACMEValidationRecord(_hostname: string, challenge: string): Promise<void> {
     // This would integrate with EdgeDNS API
     console.log(`  ${icons.dns} Creating DNS record: ${format.cyan(challenge)}`);
   }
 
-  private async waitForDomainValidation(enrollmentId: string, hostname: string): Promise<void> {
+  private async waitForDomainValidation(_enrollmentId: string, _hostname: string): Promise<void> {
     // This would poll CPS API for validation status
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
@@ -881,7 +873,7 @@ export class CDNProvisioningAgent {
     try {
       // Step 1: Create property
       progress.update({ current: 1, message: steps[0] });
-      const createResponse = await this.auth.request<PapiPropertyResponse>({
+      const createResponse = await this.auth._request<PapiPropertyResponse>({
         method: 'POST',
         path: `/papi/v1/properties?contractId=${this.contractId}&groupId=${this.groupId}`,
         headers: { 'Content-Type': 'application/json' },
@@ -969,13 +961,13 @@ export class CDNProvisioningAgent {
       });
       console.log(`  2. Test on staging: https://${hostnames[0]}.edgesuite-staging.net`);
       console.log('  3. Monitor activation status in Control Center');
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: `Failed: ${error instanceof Error ? error.message : String(error)}`,
+        message: `Failed: ${_error instanceof Error ? _error.message : String(_error)}`,
       });
-      throw error;
+      throw _error;
     }
   }
 }

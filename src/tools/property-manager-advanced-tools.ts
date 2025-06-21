@@ -22,11 +22,11 @@ export async function listEdgeHostnames(
     // Build query parameters
     const queryParams: any = {};
     if (args.contractId) {
-queryParams.contractId = args.contractId;
-}
+      queryParams.contractId = args.contractId;
+    }
     if (args.groupId) {
-queryParams.groupId = args.groupId;
-}
+      queryParams.groupId = args.groupId;
+    }
 
     const response = await client.request({
       path: '/papi/v1/edgehostnames',
@@ -48,11 +48,11 @@ queryParams.groupId = args.groupId;
     let text = `# Edge Hostnames (${response.edgeHostnames.items.length} found)\n\n`;
 
     if (args.contractId) {
-text += `**Contract:** ${args.contractId}\n`;
-}
+      text += `**Contract:** ${args.contractId}\n`;
+    }
     if (args.groupId) {
-text += `**Group:** ${args.groupId}\n`;
-}
+      text += `**Group:** ${args.groupId}\n`;
+    }
     text += '\n';
 
     text += '| Edge Hostname | Product | Secure | Status | Serial Number |\n';
@@ -86,8 +86,8 @@ text += `**Group:** ${args.groupId}\n`;
         },
       ],
     };
-  } catch (error) {
-    return formatError('list edge hostnames', error);
+  } catch (_error) {
+    return formatError('list edge hostnames', _error);
   }
 }
 
@@ -184,8 +184,8 @@ export async function getEdgeHostname(
         },
       ],
     };
-  } catch (error) {
-    return formatError('get edge hostname', error);
+  } catch (_error) {
+    return formatError('get edge hostname', _error);
   }
 }
 
@@ -291,8 +291,8 @@ export async function cloneProperty(
         },
       ],
     };
-  } catch (error) {
-    return formatError('clone property', error);
+  } catch (_error) {
+    return formatError('clone property', _error);
   }
 }
 
@@ -355,8 +355,8 @@ export async function removeProperty(
         },
       ],
     };
-  } catch (error) {
-    return formatError('remove property', error);
+  } catch (_error) {
+    return formatError('remove property', _error);
   }
 }
 
@@ -446,8 +446,8 @@ export async function listPropertyVersions(
         },
       ],
     };
-  } catch (error) {
-    return formatError('list property versions', error);
+  } catch (_error) {
+    return formatError('list property versions', _error);
   }
 }
 
@@ -536,8 +536,8 @@ export async function getPropertyVersion(
         },
       ],
     };
-  } catch (error) {
-    return formatError('get property version', error);
+  } catch (_error) {
+    return formatError('get property version', _error);
   }
 }
 
@@ -646,8 +646,8 @@ export async function getLatestPropertyVersion(
         },
       ],
     };
-  } catch (error) {
-    return formatError('get latest property version', error);
+  } catch (_error) {
+    return formatError('get latest property version', _error);
   }
 }
 
@@ -708,8 +708,8 @@ export async function cancelPropertyActivation(
         },
       ],
     };
-  } catch (error) {
-    return formatError('cancel property activation', error);
+  } catch (_error) {
+    return formatError('cancel property activation', _error);
   }
 }
 
@@ -840,8 +840,8 @@ export async function searchProperties(
     // Search through properties in each group
     for (const group of searchGroups) {
       if (!group.contractIds?.length) {
-continue;
-}
+        continue;
+      }
 
       // Filter contracts if contractId is specified
       let searchContracts = group.contractIds;
@@ -945,7 +945,7 @@ continue;
                 if (matches.length > 0) {
                   property.hostnames = propertyHostnames;
                 }
-              } catch (err) {
+              } catch (_err) {
                 // Continue if unable to fetch hostnames
               }
             }
@@ -966,7 +966,7 @@ continue;
               });
             }
           }
-        } catch (err) {
+        } catch (_err) {
           // Continue with next contract
         }
       }
@@ -994,8 +994,8 @@ continue;
         },
       ],
     };
-  } catch (error) {
-    return formatError('search properties', error);
+  } catch (_error) {
+    return formatError('search properties', _error);
   }
 }
 
@@ -1014,26 +1014,26 @@ function formatSearchResults(
   // Show search criteria
   text += '## Search Criteria\n';
   if (criteria.propertyName) {
-text += `- Property Name: *${criteria.propertyName}*\n`;
-}
+    text += `- Property Name: *${criteria.propertyName}*\n`;
+  }
   if (criteria.hostname) {
-text += `- Hostname: *${criteria.hostname}*\n`;
-}
+    text += `- Hostname: *${criteria.hostname}*\n`;
+  }
   if (criteria.edgeHostname) {
-text += `- Edge Hostname: *${criteria.edgeHostname}*\n`;
-}
+    text += `- Edge Hostname: *${criteria.edgeHostname}*\n`;
+  }
   if (criteria.contractId) {
-text += `- Contract: ${criteria.contractId}\n`;
-}
+    text += `- Contract: ${criteria.contractId}\n`;
+  }
   if (criteria.groupId) {
-text += `- Group: ${criteria.groupId}\n`;
-}
+    text += `- Group: ${criteria.groupId}\n`;
+  }
   if (criteria.productId) {
-text += `- Product: ${criteria.productId}\n`;
-}
+    text += `- Product: ${criteria.productId}\n`;
+  }
   if (criteria.activationStatus) {
-text += `- Activation Status: ${criteria.activationStatus}\n`;
-}
+    text += `- Activation Status: ${criteria.activationStatus}\n`;
+  }
   text += '\n';
 
   // Show results
@@ -1093,26 +1093,26 @@ function formatNoResults(criteria: SearchCriteria, searchTime: string): string {
 
   text += '## Search Criteria Used\n';
   if (criteria.propertyName) {
-text += `- Property Name: *${criteria.propertyName}*\n`;
-}
+    text += `- Property Name: *${criteria.propertyName}*\n`;
+  }
   if (criteria.hostname) {
-text += `- Hostname: *${criteria.hostname}*\n`;
-}
+    text += `- Hostname: *${criteria.hostname}*\n`;
+  }
   if (criteria.edgeHostname) {
-text += `- Edge Hostname: *${criteria.edgeHostname}*\n`;
-}
+    text += `- Edge Hostname: *${criteria.edgeHostname}*\n`;
+  }
   if (criteria.contractId) {
-text += `- Contract: ${criteria.contractId}\n`;
-}
+    text += `- Contract: ${criteria.contractId}\n`;
+  }
   if (criteria.groupId) {
-text += `- Group: ${criteria.groupId}\n`;
-}
+    text += `- Group: ${criteria.groupId}\n`;
+  }
   if (criteria.productId) {
-text += `- Product: ${criteria.productId}\n`;
-}
+    text += `- Product: ${criteria.productId}\n`;
+  }
   if (criteria.activationStatus) {
-text += `- Activation Status: ${criteria.activationStatus}\n`;
-}
+    text += `- Activation Status: ${criteria.activationStatus}\n`;
+  }
   text += '\n';
 
   text += '## Suggestions\n';
@@ -1167,16 +1167,16 @@ export async function listAllHostnames(
     // Collect hostnames from all properties
     for (const group of groupsResponse.groups.items) {
       if (args.groupId && group.groupId !== args.groupId) {
-continue;
-}
+        continue;
+      }
       if (!group.contractIds?.length) {
-continue;
-}
+        continue;
+      }
 
       for (const contractId of group.contractIds) {
         if (args.contractId && contractId !== args.contractId) {
-continue;
-}
+          continue;
+        }
 
         try {
           const propertiesResponse = await client.request({
@@ -1210,11 +1210,11 @@ continue;
                   certStatus: hostname.certStatus?.production?.[0]?.status || 'Unknown',
                 });
               }
-            } catch (err) {
+            } catch (_err) {
               // Continue if unable to get hostnames for a property
             }
           }
-        } catch (err) {
+        } catch (_err) {
           // Continue with next contract
         }
       }
@@ -1223,11 +1223,11 @@ continue;
     if (allHostnames.length === 0) {
       let message = 'No hostnames found';
       if (args.contractId) {
-message += ` for contract ${args.contractId}`;
-}
+        message += ` for contract ${args.contractId}`;
+      }
       if (args.groupId) {
-message += ` in group ${args.groupId}`;
-}
+        message += ` in group ${args.groupId}`;
+      }
       message += '.';
 
       return {
@@ -1246,11 +1246,11 @@ message += ` in group ${args.groupId}`;
     let text = `# All Property Hostnames (${allHostnames.length} found)\n\n`;
 
     if (args.contractId) {
-text += `**Contract:** ${args.contractId}\n`;
-}
+      text += `**Contract:** ${args.contractId}\n`;
+    }
     if (args.groupId) {
-text += `**Group:** ${args.groupId}\n`;
-}
+      text += `**Group:** ${args.groupId}\n`;
+    }
     text += '\n';
 
     if (args.includeDetails) {
@@ -1298,8 +1298,8 @@ text += `**Group:** ${args.groupId}\n`;
         },
       ],
     };
-  } catch (error) {
-    return formatError('list all hostnames', error);
+  } catch (_error) {
+    return formatError('list all hostnames', _error);
   }
 }
 
@@ -1374,8 +1374,8 @@ export async function listPropertyVersionHostnames(
 
     if (args.validateCnames && response.errors?.length > 0) {
       text += '\n## ⚠️ Validation Errors\n';
-      for (const error of response.errors) {
-        text += `- ${error.detail}\n`;
+      for (const _error of response.errors) {
+        text += `- ${_error.detail}\n`;
       }
     }
 
@@ -1407,35 +1407,35 @@ export async function listPropertyVersionHostnames(
         },
       ],
     };
-  } catch (error) {
-    return formatError('list property version hostnames', error);
+  } catch (_error) {
+    return formatError('list property version hostnames', _error);
   }
 }
 
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+  if (_error instanceof Error) {
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
-    if (error.message.includes('401') || error.message.includes('credentials')) {
+    if (_error.message.includes('401') || _error.message.includes('credentials')) {
       solution = '**Solution:** Check your ~/.edgerc file has valid credentials.';
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
       solution = '**Solution:** Your API credentials may lack the necessary permissions.';
-    } else if (error.message.includes('404') || error.message.includes('not found')) {
+    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
       solution = '**Solution:** The requested resource was not found. Verify the ID is correct.';
-    } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
+    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
       solution = '**Solution:** Invalid request parameters. Check the input values.';
-    } else if (error.message.includes('409') || error.message.includes('Conflict')) {
+    } else if (_error.message.includes('409') || _error.message.includes('Conflict')) {
       solution = '**Solution:** Resource conflict. The operation may already be in progress.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

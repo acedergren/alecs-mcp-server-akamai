@@ -52,7 +52,7 @@ export interface AuthorizationRequest {
 }
 
 /**
- * Customer context manager service
+ * Customer _context manager service
  */
 export class CustomerContextManager {
   private static instance: CustomerContextManager;
@@ -83,18 +83,15 @@ export class CustomerContextManager {
   /**
    * Authenticate with OAuth token
    */
-  async authenticateOAuth(
-    token: OAuthToken,
-    provider: OAuthProvider,
-  ): Promise<AuthSession> {
+  async authenticateOAuth(token: OAuthToken, provider: OAuthProvider): Promise<AuthSession> {
     return this.oauthManager.authenticateWithToken(token, provider);
   }
 
   /**
    * Switch customer context
    */
-  async switchCustomer(request: CustomerSwitchRequest): Promise<CustomerContext> {
-    const { sessionId, targetCustomerId, reason } = request;
+  async switchCustomer(_request: CustomerSwitchRequest): Promise<CustomerContext> {
+    const { sessionId, targetCustomerId, reason } = _request;
 
     // Get session
     const session = this.oauthManager.getSession(sessionId);
@@ -117,18 +114,17 @@ export class CustomerContextManager {
     });
 
     if (!decision.allowed) {
-      throw new Error(`Not authorized to switch to customer ${targetCustomerId}: ${decision.reason}`);
+      throw new Error(
+        `Not authorized to switch to customer ${targetCustomerId}: ${decision.reason}`,
+      );
     }
 
     // Perform switch
-    const newContext = await this.oauthManager.switchCustomerContext(
-      sessionId,
-      targetCustomerId,
-    );
+    const newContext = await this.oauthManager.switchCustomerContext(sessionId, targetCustomerId);
 
     // No cache to clear anymore
 
-    logger.info('Customer context switched', {
+    logger.info('Customer _context switched', {
       sessionId,
       fromCustomer: session.currentContext?.customerId,
       toCustomer: targetCustomerId,
@@ -142,8 +138,8 @@ export class CustomerContextManager {
   /**
    * Get EdgeGrid client for customer
    */
-  async getEdgeGridClient(request: CustomerCredentialRequest): Promise<AkamaiClient> {
-    const { sessionId, customerId, purpose } = request;
+  async getEdgeGridClient(_request: CustomerCredentialRequest): Promise<AkamaiClient> {
+    const { sessionId, customerId, purpose } = _request;
 
     // Get session
     const session = this.oauthManager.getSession(sessionId);
@@ -152,9 +148,7 @@ export class CustomerContextManager {
     }
 
     // Check if user has access to this customer
-    const hasAccess = session.availableContexts.some(
-      (ctx) => ctx.customerId === customerId,
-    );
+    const hasAccess = session.availableContexts.some((ctx) => ctx.customerId === customerId);
 
     if (!hasAccess) {
       throw new Error(`No access to customer ${customerId}`);
@@ -181,7 +175,7 @@ export class CustomerContextManager {
     // For OAuth-based access, we still use the standard .edgerc file
     // The OAuth layer only controls WHO can access WHICH customer section
     // It does NOT replace EdgeRC authentication
-    
+
     // Create standard AkamaiClient with the customer section from .edgerc
     const client = new AkamaiClient(customerId);
 
@@ -298,8 +292,8 @@ export class CustomerContextManager {
   /**
    * Authorize action
    */
-  async authorize(request: AuthorizationRequest): Promise<AuthorizationDecision> {
-    const { sessionId, resource, action, resourceId, metadata } = request;
+  async authorize(_request: AuthorizationRequest): Promise<AuthorizationDecision> {
+    const { sessionId, resource, action, resourceId, metadata } = _request;
 
     // Get session
     const session = this.oauthManager.getSession(sessionId);
@@ -317,7 +311,7 @@ export class CustomerContextManager {
       };
     }
 
-    // Build authorization context
+    // Build authorization _context
     const authContext: AuthorizationContext = {
       user: session.profile,
       customerContext: session.currentContext,

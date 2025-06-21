@@ -6,8 +6,6 @@
  * - RFC 8414 (OAuth 2.0 Authorization Server Metadata)
  */
 
-import { type Property, type DnsZone, type Certificate, type NetworkList } from './akamai';
-
 /**
  * OAuth 2.0 Resource Types
  * Defines the types of resources that can be protected
@@ -371,15 +369,8 @@ export const RESOURCE_SCOPE_TEMPLATES: Record<OAuthResourceType, string[]> = {
     'network_list:{id}:write',
     'network_list:{id}:activate',
   ],
-  [OAuthResourceType.PURGE]: [
-    'purge:url:execute',
-    'purge:cpcode:execute',
-    'purge:tag:execute',
-  ],
-  [OAuthResourceType.REPORT]: [
-    'report:{type}:read',
-    'report:{type}:generate',
-  ],
+  [OAuthResourceType.PURGE]: ['purge:url:execute', 'purge:cpcode:execute', 'purge:tag:execute'],
+  [OAuthResourceType.REPORT]: ['report:{type}:read', 'report:{type}:generate'],
   [OAuthResourceType.SECURITY_CONFIG]: [
     'security_config:{id}:read',
     'security_config:{id}:write',

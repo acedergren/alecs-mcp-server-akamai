@@ -130,38 +130,41 @@ class MinimalALECSServer {
 
       try {
         switch (name) {
-          case 'list-properties':
+          case 'list-properties': {
             const listPropsArgs = ListPropertiesSchema.parse(args);
             return await listProperties(client, listPropsArgs);
+          }
 
-          case 'get-property':
+          case 'get-property': {
             const getPropArgs = GetPropertySchema.parse(args);
             return await getProperty(client, { propertyId: getPropArgs.propertyId });
+          }
 
-          case 'list-groups':
+          case 'list-groups': {
             const listGroupsArgs = ListGroupsSchema.parse(args);
             return await listGroups(client, listGroupsArgs);
+          }
 
           default:
             throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
         }
-      } catch (error) {
-        console.error('❌ Tool error:', error);
+      } catch (_error) {
+        console.error('[Error]:', _error);
 
-        if (error instanceof z.ZodError) {
+        if (_error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
+            `Invalid parameters: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
           );
         }
 
-        if (error instanceof McpError) {
-          throw error;
+        if (_error instanceof McpError) {
+          throw _error;
         }
 
         throw new McpError(
           ErrorCode.InternalError,
-          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
+          `Tool execution failed: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
       }
     });
@@ -173,8 +176,8 @@ class MinimalALECSServer {
     const transport = new StdioServerTransport();
 
     // Add error handling for transport
-    transport.onerror = (error: Error) => {
-      console.error('❌ Transport error:', error);
+    transport.onerror = (_error: Error) => {
+      console.error('[Error]:', _error);
     };
 
     transport.onclose = () => {
@@ -193,15 +196,15 @@ async function main() {
   try {
     const server = new MinimalALECSServer();
     await server.start();
-  } catch (error) {
-    console.error('❌ Failed to start server:', error);
+  } catch (_error) {
+    console.error('[Error]:', _error);
     process.exit(1);
   }
 }
 
 // Handle uncaught errors
-process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught exception:', error);
+process.on('uncaughtException', (_error) => {
+  console.error('[Error]:', _error);
   process.exit(1);
 });
 

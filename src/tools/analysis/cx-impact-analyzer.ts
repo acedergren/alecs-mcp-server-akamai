@@ -274,15 +274,15 @@ export class CustomerExperienceImpactAnalyzer {
   /**
    * Analyze customer experience impact from test failures
    */
-  analyzeCustomerImpact(testResults: TestResults, analysisResults: any) {
+  analyzeCustomerImpact(testResults: TestResults, _analysisResults: any) {
     const impact = {
-      overview: this.generateImpactOverview(testResults, analysisResults),
-      personaImpacts: this.analyzePersonaImpacts(testResults, analysisResults),
-      journeyImpacts: this.analyzeJourneyImpacts(testResults, analysisResults),
-      businessMetrics: this.calculateBusinessMetrics(testResults, analysisResults),
-      riskAssessment: this.assessCustomerRisks(testResults, analysisResults),
-      recommendations: this.generateCustomerRecommendations(testResults, analysisResults),
-      prioritizedActions: this.prioritizeByCustomerImpact(testResults, analysisResults),
+      overview: this.generateImpactOverview(testResults, _analysisResults),
+      personaImpacts: this.analyzePersonaImpacts(testResults, _analysisResults),
+      journeyImpacts: this.analyzeJourneyImpacts(testResults, _analysisResults),
+      businessMetrics: this.calculateBusinessMetrics(testResults, _analysisResults),
+      riskAssessment: this.assessCustomerRisks(testResults, _analysisResults),
+      recommendations: this.generateCustomerRecommendations(testResults, _analysisResults),
+      prioritizedActions: this.prioritizeByCustomerImpact(testResults, _analysisResults),
     };
 
     return impact;
@@ -291,23 +291,23 @@ export class CustomerExperienceImpactAnalyzer {
   /**
    * Generate overall impact overview
    */
-  generateImpactOverview(testResults: TestResults, analysisResults: any) {
+  generateImpactOverview(testResults: TestResults, _analysisResults: any) {
     const totalFailures = testResults.summary?.failedTests || 0;
     const totalTests = testResults.summary?.totalTests || 1;
     const failureRate = totalFailures / totalTests;
 
-    const criticalFailures = this.identifyCriticalFailures(testResults, analysisResults);
+    const criticalFailures = this.identifyCriticalFailures(testResults, _analysisResults);
     const customerFacingFailures = this.identifyCustomerFacingFailures(testResults);
 
     return {
       overallHealth: this.calculateOverallHealth(failureRate, criticalFailures.length),
-      customerImpactScore: this.calculateCustomerImpactScore(testResults, analysisResults),
-      affectedPersonas: this.getAffectedPersonas(testResults, analysisResults),
-      affectedJourneys: this.getAffectedJourneys(testResults, analysisResults),
+      customerImpactScore: this.calculateCustomerImpactScore(testResults, _analysisResults),
+      affectedPersonas: this.getAffectedPersonas(testResults, _analysisResults),
+      affectedJourneys: this.getAffectedJourneys(testResults, _analysisResults),
       criticalFailures: criticalFailures.length,
       customerFacingFailures: customerFacingFailures.length,
       riskLevel: this.calculateRiskLevel(failureRate, criticalFailures.length),
-      estimatedCustomersAffected: this.estimateAffectedCustomers(testResults, analysisResults),
+      estimatedCustomersAffected: this.estimateAffectedCustomers(testResults, _analysisResults),
     };
   }
 
@@ -316,21 +316,21 @@ export class CustomerExperienceImpactAnalyzer {
    */
   calculateOverallHealth(failureRate: number, criticalFailures: number): string {
     if (criticalFailures > 0 || failureRate > 0.3) {
-return 'POOR';
-}
+      return 'POOR';
+    }
     if (failureRate > 0.15) {
-return 'FAIR';
-}
+      return 'FAIR';
+    }
     if (failureRate > 0.05) {
-return 'GOOD';
-}
+      return 'GOOD';
+    }
     return 'EXCELLENT';
   }
 
   /**
    * Calculate customer impact score (0-100)
    */
-  calculateCustomerImpactScore(testResults: TestResults, analysisResults: any): number {
+  calculateCustomerImpactScore(testResults: TestResults, _analysisResults: any): number {
     let score = 100;
     const failures = testResults.failures || [];
 
@@ -460,13 +460,18 @@ return 'GOOD';
    */
   analyzePersonaImpacts(
     testResults: TestResults,
-    analysisResults: any,
+    _analysisResults: any,
   ): Record<string, PersonaImpact> {
     const personaImpacts: Record<string, PersonaImpact> = {};
 
-    Object.entries(this.customerPersonas).forEach(([personaId, persona]) => {
-      const impact = this.calculatePersonaImpact(personaId, persona, testResults, analysisResults);
-      personaImpacts[personaId] = impact;
+    Object.entries(this.customerPersonas).forEach(([_personaId, persona]) => {
+      const impact = this.calculatePersonaImpact(
+        _personaId,
+        persona,
+        testResults,
+        _analysisResults,
+      );
+      personaImpacts[_personaId] = impact;
     });
 
     return personaImpacts;
@@ -476,14 +481,14 @@ return 'GOOD';
    * Calculate impact for a specific persona
    */
   calculatePersonaImpact(
-    personaId: string,
+    _personaId: string,
     persona: CustomerPersona,
     testResults: TestResults,
-    analysisResults: any,
+    _analysisResults: any,
   ): PersonaImpact {
-    const relevantFailures = this.getPersonaRelevantFailures(personaId, testResults);
-    const impactedPainPoints = this.getImpactedPainPoints(personaId, relevantFailures);
-    const affectedJourneySteps = this.getAffectedJourneySteps(personaId, relevantFailures);
+    const relevantFailures = this.getPersonaRelevantFailures(_personaId, testResults);
+    const impactedPainPoints = this.getImpactedPainPoints(_personaId, relevantFailures);
+    const affectedJourneySteps = this.getAffectedJourneySteps(_personaId, relevantFailures);
 
     const impactScore = this.calculatePersonaImpactScore(relevantFailures, persona);
     const riskLevel = this.assessPersonaRisk(impactScore, impactedPainPoints.length);
@@ -498,19 +503,19 @@ return 'GOOD';
       relevantFailures: relevantFailures.length,
       impactedPainPoints: impactedPainPoints,
       affectedJourneySteps: affectedJourneySteps,
-      recommendations: this.generatePersonaRecommendations(personaId, relevantFailures),
-      estimatedAffectedUsers: this.estimatePersonaAffectedUsers(personaId, impactScore),
+      recommendations: this.generatePersonaRecommendations(_personaId, relevantFailures),
+      estimatedAffectedUsers: this.estimatePersonaAffectedUsers(_personaId, impactScore),
     };
   }
 
   /**
    * Get failures relevant to a specific persona
    */
-  getPersonaRelevantFailures(personaId: string, testResults: TestResults): TestFailure[] {
-    const persona = this.customerPersonas[personaId];
+  getPersonaRelevantFailures(_personaId: string, testResults: TestResults): TestFailure[] {
+    const persona = this.customerPersonas[_personaId];
     if (!persona) {
-return [];
-}
+      return [];
+    }
 
     const failures = testResults.failures || [];
 
@@ -598,12 +603,12 @@ return [];
    */
   analyzeJourneyImpacts(
     testResults: TestResults,
-    analysisResults: any,
+    _analysisResults: any,
   ): Record<string, JourneyImpact> {
     const journeyImpacts: Record<string, JourneyImpact> = {};
 
     Object.entries(this.customerJourneys).forEach(([journeyId, journey]) => {
-      const impact = this.calculateJourneyImpact(journeyId, journey, testResults, analysisResults);
+      const impact = this.calculateJourneyImpact(journeyId, journey, testResults, _analysisResults);
       journeyImpacts[journeyId] = impact;
     });
 
@@ -617,7 +622,7 @@ return [];
     journeyId: string,
     journey: CustomerJourney,
     testResults: TestResults,
-    analysisResults: any,
+    _analysisResults: any,
   ): JourneyImpact {
     const relevantFailures = this.getJourneyRelevantFailures(journeyId, testResults);
     const affectedSteps = this.getAffectedJourneyStepsForJourney(journeyId, relevantFailures);
@@ -647,8 +652,8 @@ return [];
   getJourneyRelevantFailures(journeyId: string, testResults: TestResults): TestFailure[] {
     const journey = this.customerJourneys[journeyId];
     if (!journey) {
-return [];
-}
+      return [];
+    }
 
     const failures = testResults.failures || [];
     const stepNames = journey.steps.map((s) => s.step);
@@ -705,8 +710,8 @@ return [];
 
     const journeyMappings = contextMappings[journeyId];
     if (!journeyMappings?.[stepName]) {
-return false;
-}
+      return false;
+    }
 
     const keywords = journeyMappings[stepName];
     return keywords.some(
@@ -718,9 +723,9 @@ return false;
   /**
    * Calculate business metrics impact
    */
-  calculateBusinessMetrics(testResults: TestResults, analysisResults: any) {
+  calculateBusinessMetrics(testResults: TestResults, _analysisResults: any) {
     const metrics: Record<string, MetricImpact> = {};
-    const impactMultiplier = this.getOverallImpactMultiplier(testResults, analysisResults);
+    const impactMultiplier = this.getOverallImpactMultiplier(testResults, _analysisResults);
 
     Object.entries(this.businessMetrics).forEach(([metricName, metricConfig]) => {
       const impactedValue = this.calculateMetricImpact(
@@ -728,7 +733,7 @@ return false;
         metricConfig,
         impactMultiplier,
         testResults,
-        analysisResults,
+        _analysisResults,
       );
 
       metrics[metricName] = {
@@ -750,7 +755,7 @@ return false;
       overallImpact: overallImpact,
       estimatedRevenueLoss: this.estimateRevenueLoss(overallImpact),
       customerChurnRisk: this.estimateChurnRisk(metrics),
-      timeToRecovery: this.estimateTimeToRecovery(testResults, analysisResults),
+      timeToRecovery: this.estimateTimeToRecovery(testResults, _analysisResults),
     };
   }
 
@@ -762,56 +767,63 @@ return false;
     metricConfig: BusinessMetric,
     impactMultiplier: number,
     testResults: TestResults,
-    analysisResults: any,
+    _analysisResults: any,
   ): number {
     const baselineValue = metricConfig.baseline;
     let impactFactor = 1.0;
 
     switch (metricName) {
-      case 'customer_satisfaction':
+      case 'customer_satisfaction': {
         // Authentication and onboarding failures heavily impact satisfaction
         const authFailures = this.countFailuresByType(testResults, 'auth');
         const onboardingFailures = this.countFailuresByType(testResults, 'onboard');
         impactFactor = 1 - (authFailures * 0.15 + onboardingFailures * 0.2) * impactMultiplier;
         break;
+      }
 
-      case 'time_to_value':
+      case 'time_to_value': {
         // Setup and configuration failures increase time to value
         const setupFailures = this.countFailuresByType(testResults, 'setup');
         const configFailures = this.countFailuresByType(testResults, 'config');
         impactFactor = 1 + (setupFailures * 0.3 + configFailures * 0.25) * impactMultiplier;
         break;
+      }
 
-      case 'adoption_rate':
+      case 'adoption_rate': {
         // API and feature failures reduce adoption
         const apiFailures = this.countFailuresByType(testResults, 'api');
         const featureFailures = this.countFailuresByType(testResults, 'feature');
         impactFactor = 1 - (apiFailures * 0.1 + featureFailures * 0.15) * impactMultiplier;
         break;
+      }
 
-      case 'support_ticket_volume':
+      case 'support_ticket_volume': {
         // All failures potentially increase support tickets
         const totalFailures = testResults.summary?.failedTests || 0;
         impactFactor = 1 + totalFailures * 0.05 * impactMultiplier;
         break;
+      }
 
-      case 'churn_risk':
+      case 'churn_risk': {
         // Critical failures increase churn risk
-        const criticalFailures = this.identifyCriticalFailures(testResults, analysisResults);
+        const criticalFailures = this.identifyCriticalFailures(testResults, _analysisResults);
         impactFactor = 1 + criticalFailures.length * 0.02 * impactMultiplier;
         break;
+      }
 
-      case 'feature_utilization':
+      case 'feature_utilization': {
         // Feature-related failures reduce utilization
         const utilizationFailures = this.countFailuresByType(testResults, 'utilization');
         impactFactor = 1 - utilizationFailures * 0.1 * impactMultiplier;
         break;
+      }
 
-      case 'api_success_rate':
+      case 'api_success_rate': {
         // API failures directly impact success rate
         const apiErrorRate = this.calculateApiErrorRate(testResults);
         impactFactor = 1 - apiErrorRate * impactMultiplier;
         break;
+      }
 
       default:
         impactFactor = 1 - 0.05 * impactMultiplier;
@@ -864,7 +876,7 @@ return false;
   /**
    * Assess customer risks
    */
-  assessCustomerRisks(testResults: TestResults, analysisResults: any) {
+  assessCustomerRisks(testResults: TestResults, _analysisResults: any) {
     const risks = {
       immediate: [] as Risk[],
       shortTerm: [] as Risk[],
@@ -873,13 +885,13 @@ return false;
     };
 
     // Immediate risks (critical failures affecting customer operations)
-    const criticalFailures = this.identifyCriticalFailures(testResults, analysisResults);
+    const criticalFailures = this.identifyCriticalFailures(testResults, _analysisResults);
     criticalFailures.forEach((failure) => {
       risks.immediate.push({
         type: 'critical_failure',
         description: `Critical failure in ${failure.suite}: ${failure.test}`,
         impact: 'HIGH',
-        affectedCustomers: this.estimateAffectedCustomers(testResults, analysisResults, failure),
+        affectedCustomers: this.estimateAffectedCustomers(testResults, _analysisResults, failure),
         mitigationTime: '< 4 hours',
       });
     });
@@ -941,7 +953,7 @@ return false;
   /**
    * Generate customer-focused recommendations
    */
-  generateCustomerRecommendations(testResults: TestResults, analysisResults: any) {
+  generateCustomerRecommendations(testResults: TestResults, _analysisResults: any) {
     const recommendations = {
       immediate: [] as Recommendation[],
       customerCommunication: [] as Recommendation[],
@@ -949,7 +961,7 @@ return false;
       preventive: [] as Recommendation[],
     };
 
-    const criticalFailures = this.identifyCriticalFailures(testResults, analysisResults);
+    const criticalFailures = this.identifyCriticalFailures(testResults, _analysisResults);
     const authFailures = this.countFailuresByType(testResults, 'auth');
     const onboardingFailures = this.countFailuresByType(testResults, 'onboard');
 
@@ -1029,7 +1041,7 @@ return false;
   /**
    * Prioritize actions by customer impact
    */
-  prioritizeByCustomerImpact(testResults: TestResults, analysisResults: any) {
+  prioritizeByCustomerImpact(testResults: TestResults, _analysisResults: any) {
     const actions: Action[] = [];
 
     // Extract all potential actions from analysis
@@ -1068,7 +1080,7 @@ return false;
   /**
    * Helper methods for calculations
    */
-  identifyCriticalFailures(testResults: TestResults, analysisResults: any): TestFailure[] {
+  identifyCriticalFailures(testResults: TestResults, _analysisResults: any): TestFailure[] {
     const failures = testResults.failures || [];
     return failures.filter((failure) => {
       const message = failure.message?.toLowerCase() || '';
@@ -1102,20 +1114,20 @@ return false;
     });
   }
 
-  getAffectedPersonas(testResults: TestResults, analysisResults: any) {
-    const personaImpacts = this.analyzePersonaImpacts(testResults, analysisResults);
+  getAffectedPersonas(testResults: TestResults, _analysisResults: any) {
+    const personaImpacts = this.analyzePersonaImpacts(testResults, _analysisResults);
     return Object.entries(personaImpacts)
       .filter(([, impact]) => impact.relevantFailures > 0)
-      .map(([personaId, impact]) => ({
-        id: personaId,
+      .map(([_personaId, impact]) => ({
+        id: _personaId,
         name: impact.persona,
         impactScore: impact.impactScore,
         riskLevel: impact.riskLevel,
       }));
   }
 
-  getAffectedJourneys(testResults: TestResults, analysisResults: any) {
-    const journeyImpacts = this.analyzeJourneyImpacts(testResults, analysisResults);
+  getAffectedJourneys(testResults: TestResults, _analysisResults: any) {
+    const journeyImpacts = this.analyzeJourneyImpacts(testResults, _analysisResults);
     return Object.entries(journeyImpacts)
       .filter(([, impact]) => impact.relevantFailures > 0)
       .map(([journeyId, impact]) => ({
@@ -1128,36 +1140,36 @@ return false;
 
   calculateRiskLevel(failureRate: number, criticalFailures: number): string {
     if (criticalFailures > 0 || failureRate > 0.3) {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
     if (failureRate > 0.15) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (failureRate > 0.05) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
   estimateAffectedCustomers(
     testResults: TestResults,
-    analysisResults: any,
-    specificFailure?: TestFailure,
+    _analysisResults: any,
+    _specificFailure?: TestFailure,
   ): string {
     // This would typically connect to customer data
     // For now, provide estimates based on failure types
-    const criticalFailures = this.identifyCriticalFailures(testResults, analysisResults);
+    const criticalFailures = this.identifyCriticalFailures(testResults, _analysisResults);
     const authFailures = this.countFailuresByType(testResults, 'auth');
 
     if (authFailures > 0) {
-return 'ALL';
-}
+      return 'ALL';
+    }
     if (criticalFailures.length > 2) {
-return 'MAJORITY';
-}
+      return 'MAJORITY';
+    }
     if (criticalFailures.length > 0) {
-return 'SUBSET';
-}
+      return 'SUBSET';
+    }
     return 'MINIMAL';
   }
 
@@ -1196,53 +1208,53 @@ return 'SUBSET';
   assessFailureCustomerImpact(failure: TestFailure): string {
     const message = failure.message?.toLowerCase() || '';
     if (message.includes('auth') || message.includes('critical')) {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
     if (message.includes('api') || message.includes('onboard')) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (message.includes('config') || message.includes('setup')) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
   assessFailureBusinessValue(failure: TestFailure): string {
     const testName = (failure.test || '').toLowerCase();
     if (testName.includes('critical') || testName.includes('revenue')) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (testName.includes('customer') || testName.includes('user')) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
   assessFailureUrgency(failure: TestFailure): string {
     const message = failure.message?.toLowerCase() || '';
     if (message.includes('critical') || message.includes('fatal')) {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
     if (message.includes('auth') || message.includes('security')) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (message.includes('performance') || message.includes('timeout')) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
   estimateFixEffort(failure: TestFailure): number {
     const message = failure.message?.toLowerCase() || '';
     if (message.includes('config') || message.includes('validation')) {
-return 2;
-}
+      return 2;
+    }
     if (message.includes('api') || message.includes('auth')) {
-return 4;
-}
+      return 4;
+    }
     if (message.includes('complex') || message.includes('architecture')) {
-return 16;
-}
+      return 16;
+    }
     return 8;
   }
 
@@ -1252,20 +1264,20 @@ return 16;
     const personas: string[] = [];
 
     if (message.includes('api')) {
-personas.push('developer');
-}
+      personas.push('developer');
+    }
     if (message.includes('config') || message.includes('deploy')) {
-personas.push('devops_engineer');
-}
+      personas.push('devops_engineer');
+    }
     if (message.includes('security') || message.includes('cert')) {
-personas.push('security_admin');
-}
+      personas.push('security_admin');
+    }
     if (message.includes('content') || message.includes('performance')) {
-personas.push('content_manager');
-}
+      personas.push('content_manager');
+    }
     if (message.includes('site') || message.includes('domain')) {
-personas.push('site_admin');
-}
+      personas.push('site_admin');
+    }
 
     return personas.length > 0 ? personas : ['developer']; // Default to developer
   }
@@ -1276,115 +1288,115 @@ personas.push('site_admin');
     const journeys: string[] = [];
 
     if (testName.includes('onboard') || testName.includes('setup')) {
-journeys.push('onboarding');
-}
+      journeys.push('onboarding');
+    }
     if (testName.includes('daily') || testName.includes('monitor')) {
-journeys.push('daily_operations');
-}
+      journeys.push('daily_operations');
+    }
     if (testName.includes('incident') || testName.includes('critical')) {
-journeys.push('incident_response');
-}
+      journeys.push('incident_response');
+    }
     if (testName.includes('feature') || testName.includes('new')) {
-journeys.push('feature_adoption');
-}
+      journeys.push('feature_adoption');
+    }
     if (testName.includes('scale') || testName.includes('performance')) {
-journeys.push('scaling_operations');
-}
+      journeys.push('scaling_operations');
+    }
 
     return journeys.length > 0 ? journeys : ['daily_operations']; // Default
   }
 
   // Stub methods that need implementation
-  private getImpactedPainPoints(personaId: string, failures: TestFailure[]): string[] {
+  private getImpactedPainPoints(_personaId: string, _failures: TestFailure[]): string[] {
     // Implementation would analyze failures and map to pain points
     return [];
   }
 
-  private getAffectedJourneySteps(personaId: string, failures: TestFailure[]): any[] {
+  private getAffectedJourneySteps(_personaId: string, _failures: TestFailure[]): any[] {
     // Implementation would map failures to journey steps
     return [];
   }
 
-  private calculatePersonaImpactScore(failures: TestFailure[], persona: CustomerPersona): number {
+  private calculatePersonaImpactScore(_failures: TestFailure[], _persona: CustomerPersona): number {
     // Implementation would calculate score based on failures and persona
-    return 100 - failures.length * 10;
+    return 100 - _failures.length * 10;
   }
 
   private assessPersonaRisk(impactScore: number, painPointsCount: number): string {
     if (impactScore < 50 || painPointsCount > 3) {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
     if (impactScore < 70 || painPointsCount > 2) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (impactScore < 85 || painPointsCount > 1) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
-  private generatePersonaRecommendations(personaId: string, failures: TestFailure[]): any[] {
+  private generatePersonaRecommendations(_personaId: string, _failures: TestFailure[]): any[] {
     // Implementation would generate specific recommendations
     return [];
   }
 
-  private estimatePersonaAffectedUsers(personaId: string, impactScore: number): string {
+  private estimatePersonaAffectedUsers(_personaId: string, impactScore: number): string {
     if (impactScore < 50) {
-return 'ALL';
-}
+      return 'ALL';
+    }
     if (impactScore < 70) {
-return 'MAJORITY';
-}
+      return 'MAJORITY';
+    }
     if (impactScore < 85) {
-return 'SUBSET';
-}
+      return 'SUBSET';
+    }
     return 'MINIMAL';
   }
 
   private getAffectedJourneyStepsForJourney(
     journeyId: string,
-    failures: TestFailure[],
+    _failures: TestFailure[],
   ): JourneyStep[] {
     const journey = this.customerJourneys[journeyId];
     if (!journey) {
-return [];
-}
+      return [];
+    }
 
     // Implementation would analyze failures and map to journey steps
     return [];
   }
 
-  private calculateJourneyImpactScore(failures: TestFailure[], journey: CustomerJourney): number {
+  private calculateJourneyImpactScore(_failures: TestFailure[], _journey: CustomerJourney): number {
     // Implementation would calculate score based on failures and journey
-    return 100 - failures.length * 5;
+    return 100 - _failures.length * 5;
   }
 
   private assessJourneyRisk(impactScore: number, criticalStepsAffected: number): string {
     if (impactScore < 50 || criticalStepsAffected > 2) {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
     if (impactScore < 70 || criticalStepsAffected > 1) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (impactScore < 85 || criticalStepsAffected > 0) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
   private calculateCompletionRisk(affectedSteps: JourneyStep[], allSteps: JourneyStep[]): number {
     if (allSteps.length === 0) {
-return 0;
-}
+      return 0;
+    }
     return (affectedSteps.length / allSteps.length) * 100;
   }
 
-  private generateJourneyRecommendations(journeyId: string, failures: TestFailure[]): any[] {
+  private generateJourneyRecommendations(_journeyId: string, _failures: TestFailure[]): any[] {
     // Implementation would generate specific recommendations
     return [];
   }
 
-  private getOverallImpactMultiplier(testResults: TestResults, analysisResults: any): number {
+  private getOverallImpactMultiplier(testResults: TestResults, _analysisResults: any): number {
     const failureRate =
       (testResults.summary?.failedTests || 0) / (testResults.summary?.totalTests || 1);
     return Math.min(2.0, 1 + failureRate);
@@ -1392,8 +1404,8 @@ return 0;
 
   private calculateMetricImpactPercentage(baseline: number, projected: number): number {
     if (baseline === 0) {
-return 0;
-}
+      return 0;
+    }
     return ((projected - baseline) / baseline) * 100;
   }
 
@@ -1402,14 +1414,14 @@ return 0;
     const baselineDiff = Math.abs(projectedValue - metric.baseline);
 
     if (targetDiff > baselineDiff * 2) {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
     if (targetDiff > baselineDiff * 1.5) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (targetDiff > baselineDiff) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
@@ -1428,45 +1440,45 @@ return 'MEDIUM';
   private estimateRevenueLoss(overallImpact: number): string {
     // Simplified calculation - would use actual business metrics
     if (Math.abs(overallImpact) > 50) {
-return '$100K+';
-}
+      return '$100K+';
+    }
     if (Math.abs(overallImpact) > 30) {
-return '$50K-$100K';
-}
+      return '$50K-$100K';
+    }
     if (Math.abs(overallImpact) > 15) {
-return '$10K-$50K';
-}
+      return '$10K-$50K';
+    }
     if (Math.abs(overallImpact) > 5) {
-return '$1K-$10K';
-}
+      return '$1K-$10K';
+    }
     return '<$1K';
   }
 
   private estimateChurnRisk(metrics: Record<string, MetricImpact>): number {
     const churnMetric = metrics['churn_risk'];
     if (!churnMetric) {
-return 0;
-}
+      return 0;
+    }
 
     return churnMetric.projected;
   }
 
-  private estimateTimeToRecovery(testResults: TestResults, analysisResults: any): string {
-    const criticalFailures = this.identifyCriticalFailures(testResults, analysisResults);
+  private estimateTimeToRecovery(testResults: TestResults, _analysisResults: any): string {
+    const criticalFailures = this.identifyCriticalFailures(testResults, _analysisResults);
     const totalFailures = testResults.summary?.failedTests || 0;
 
     if (criticalFailures.length > 5) {
-return '1-2 weeks';
-}
+      return '1-2 weeks';
+    }
     if (criticalFailures.length > 2) {
-return '3-5 days';
-}
+      return '3-5 days';
+    }
     if (totalFailures > 10) {
-return '2-3 days';
-}
+      return '2-3 days';
+    }
     if (totalFailures > 5) {
-return '1-2 days';
-}
+      return '1-2 days';
+    }
     return '< 1 day';
   }
 

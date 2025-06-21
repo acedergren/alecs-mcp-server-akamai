@@ -143,20 +143,20 @@ class BulkOperationTracker {
         property.status = status;
         property.endTime = new Date();
         if (result) {
-property.result = result;
-}
+          property.result = result;
+        }
         if (error) {
-property.error = error;
-}
+          property.error = error;
+        }
 
         // Update counters
         operation.processedItems++;
         if (status === 'completed') {
-operation.successfulItems++;
-}
+          operation.successfulItems++;
+        }
         if (status === 'failed') {
-operation.failedItems++;
-}
+          operation.failedItems++;
+        }
       }
     }
   }
@@ -296,13 +296,13 @@ export async function bulkCloneProperties(
           'completed',
           propertyOp.result,
         );
-      } catch (error) {
+      } catch (_error) {
         operationTracker.updatePropertyStatus(
           operationId,
           propertyOp.propertyId || 'unknown',
           'failed',
           null,
-          (error as Error).message,
+          (_error as Error).message,
         );
       }
     });
@@ -375,7 +375,7 @@ export async function bulkCloneProperties(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     operationTracker.updateOperation(operationTracker.createOperation('clone', 0, {}), {
       status: 'failed',
       endTime: new Date(),
@@ -385,7 +385,7 @@ export async function bulkCloneProperties(
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'bulk clone properties',
             parameters: args,
             timestamp: new Date(),
@@ -526,13 +526,13 @@ export async function bulkActivateProperties(
             propertyOp.result,
           );
         }
-      } catch (error) {
+      } catch (_error) {
         operationTracker.updatePropertyStatus(
           operationId,
           propertyId,
           'failed',
           null,
-          (error as Error).message,
+          (_error as Error).message,
         );
       }
     });
@@ -615,12 +615,12 @@ export async function bulkActivateProperties(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'bulk activate properties',
             parameters: args,
             timestamp: new Date(),
@@ -767,13 +767,13 @@ export async function bulkUpdatePropertyRules(
           'completed',
           propertyOp.result,
         );
-      } catch (error) {
+      } catch (_error) {
         operationTracker.updatePropertyStatus(
           operationId,
           propertyId,
           'failed',
           null,
-          (error as Error).message,
+          (_error as Error).message,
         );
 
         // Attempt rollback if we have rollback data
@@ -788,8 +788,8 @@ export async function bulkUpdatePropertyRules(
               body: { rules: propertyOp.rollbackData.originalRules },
             });
             propertyOp.error += ' (Rolled back successfully)';
-          } catch (rollbackError) {
-            propertyOp.error += ' (Rollback failed: ' + (rollbackError as Error).message + ')';
+          } catch (_rollbackError) {
+            propertyOp.error += ' (Rollback failed: ' + (_rollbackError as Error).message + ')';
           }
         }
       }
@@ -856,12 +856,12 @@ export async function bulkUpdatePropertyRules(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'bulk update property rules',
             parameters: args,
             timestamp: new Date(),
@@ -1005,14 +1005,14 @@ export async function bulkManageHostnames(
               action: operation.action,
               success: true,
             });
-          } catch (error) {
+          } catch (_error) {
             results.push({
               propertyId: operation.propertyId,
               propertyName: property.propertyName,
               hostname: hostnameOp.hostname,
               action: operation.action,
               success: false,
-              error: (error as Error).message,
+              error: (_error as Error).message,
             });
           }
         }
@@ -1044,7 +1044,7 @@ export async function bulkManageHostnames(
             },
           });
         }
-      } catch (error) {
+      } catch (_error) {
         operation.hostnames.forEach((h: any) => {
           results.push({
             propertyId: operation.propertyId,
@@ -1052,7 +1052,7 @@ export async function bulkManageHostnames(
             hostname: h.hostname,
             action: operation.action,
             success: false,
-            error: (error as Error).message,
+            error: (_error as Error).message,
           });
         });
       }
@@ -1125,12 +1125,12 @@ export async function bulkManageHostnames(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'bulk manage hostnames',
             parameters: args,
             timestamp: new Date(),
@@ -1230,12 +1230,12 @@ export async function getBulkOperationStatus(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `Error retrieving operation status: ${(error as Error).message}`,
+          text: `Error retrieving operation status: ${(_error as Error).message}`,
         },
       ],
     };
@@ -1261,8 +1261,8 @@ function applyJsonPatch(obj: any, patch: any): any {
         current = current[part];
       }
       if (current === undefined) {
-return undefined;
-}
+        return undefined;
+      }
     }
     return current;
   };
@@ -1278,16 +1278,16 @@ return undefined;
         const indexStr = part.substring(bracketIndex + 1, part.indexOf(']'));
         const index = parseInt(indexStr);
         if (!current[key]) {
-current[key] = [];
-}
+          current[key] = [];
+        }
         if (!current[key][index]) {
-current[key][index] = {};
-}
+          current[key][index] = {};
+        }
         current = current[key][index];
       } else if (part) {
         if (!current[part]) {
-current[part] = {};
-}
+          current[part] = {};
+        }
         current = current[part];
       }
     }
@@ -1298,8 +1298,8 @@ current[part] = {};
       const indexStr = lastPart.substring(bracketIndex + 1, lastPart.indexOf(']'));
       const index = parseInt(indexStr);
       if (!current[key]) {
-current[key] = [];
-}
+        current[key] = [];
+      }
       current[key][index] = value;
     } else if (lastPart) {
       current[lastPart] = value;
@@ -1310,7 +1310,7 @@ current[key] = [];
     case 'add':
       setValueAtPath(cloned, patch.path, patch.value);
       break;
-    case 'remove':
+    case 'remove': {
       const pathParts = patch.path.split('/').filter((p: string) => p);
       const parent = getValueAtPath(cloned, pathParts.slice(0, -1).join('/'));
       if (parent && pathParts.length > 0) {
@@ -1320,14 +1320,16 @@ current[key] = [];
         }
       }
       break;
+    }
     case 'replace':
       setValueAtPath(cloned, patch.path, patch.value);
       break;
-    case 'copy':
+    case 'copy': {
       const copyValue = getValueAtPath(cloned, patch.from);
       setValueAtPath(cloned, patch.path, copyValue);
       break;
-    case 'move':
+    }
+    case 'move': {
       const moveValue = getValueAtPath(cloned, patch.from);
       setValueAtPath(cloned, patch.path, moveValue);
       // Remove from original location
@@ -1340,6 +1342,7 @@ current[key] = [];
         }
       }
       break;
+    }
   }
 
   return cloned;

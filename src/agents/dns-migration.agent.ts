@@ -1,28 +1,19 @@
 import * as dns from 'dns';
 import { promisify } from 'util';
 
-import {
-  ProgressBar,
-  Spinner,
-  MultiProgress,
-  withProgress,
-  format,
-  icons,
-  trackProgress,
-} from '@utils/progress';
-import axios from 'axios';
+import { ProgressBar, Spinner, MultiProgress, format, icons } from '@utils/progress';
 
 import { EdgeGridAuth } from '../auth/EdgeGridAuth';
 
 import { type DnsRecordsetsResponse, type CpsLocationResponse } from './types';
 
-const resolveTxt = promisify(dns.resolveTxt);
+const _resolveTxt = promisify(dns.resolveTxt);
 const resolveNs = promisify(dns.resolveNs);
-const resolveCname = promisify(dns.resolveCname);
-const resolveMx = promisify(dns.resolveMx);
-const resolveSrv = promisify(dns.resolveSrv);
-const resolve4 = promisify(dns.resolve4);
-const resolve6 = promisify(dns.resolve6);
+const _resolveCname = promisify(dns.resolveCname);
+const _resolveMx = promisify(dns.resolveMx);
+const _resolveSrv = promisify(dns.resolveSrv);
+const _resolve4 = promisify(dns.resolve4);
+const _resolve6 = promisify(dns.resolve6);
 
 interface DNSRecord {
   name: string;
@@ -80,15 +71,15 @@ export class DNSMigrationAgent {
 
     try {
       // Verify EdgeDNS access
-      await this.auth.request({
+      await this.auth._request({
         method: 'GET',
         path: '/config-dns/v2/zones?showAll=true&types=PRIMARY',
       });
 
       spinner.succeed('DNS Migration Agent initialized');
-    } catch (error) {
+    } catch (_error) {
       spinner.fail('Failed to initialize DNS agent');
-      throw error;
+      throw _error;
     } finally {
       this.multiProgress.remove('init');
     }
@@ -176,14 +167,14 @@ export class DNSMigrationAgent {
       }
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      result.errors.push(error instanceof Error ? error.message : String(error));
-      throw error;
+      result.errors.push(_error instanceof Error ? _error.message : String(_error));
+      throw _error;
     }
   }
 
@@ -228,9 +219,9 @@ export class DNSMigrationAgent {
       });
 
       return records;
-    } catch (error) {
-      spinner.fail(`Parse failed: ${error instanceof Error ? error.message : String(error)}`);
-      throw error;
+    } catch (_error) {
+      spinner.fail(`Parse failed: ${_error instanceof Error ? _error.message : String(_error)}`);
+      throw _error;
     }
   }
 
@@ -312,13 +303,13 @@ export class DNSMigrationAgent {
       progress.finish(options.dryRun ? 'Dry run complete' : 'Import complete');
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -368,13 +359,13 @@ export class DNSMigrationAgent {
         valid: warnings.length === 0,
         warnings,
       };
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -490,11 +481,11 @@ export class DNSMigrationAgent {
       console.log(format.dim('\n═'.repeat(60)));
 
       return migration;
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
-        `Failed to generate instructions: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to generate instructions: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
@@ -505,7 +496,7 @@ export class DNSMigrationAgent {
       spinner.start(`Creating ${record.type} record for ${record.name}`);
 
       try {
-        await this.auth.request({
+        await this.auth._request({
           method: 'POST',
           path: `/config-dns/v2/zones/${zoneName}/recordsets`,
           headers: { 'Content-Type': 'application/json' },
@@ -518,11 +509,11 @@ export class DNSMigrationAgent {
         });
 
         spinner.succeed(`Created ${format.cyan(record.name)} ${format.green(record.type)}`);
-      } catch (error) {
+      } catch (_error) {
         spinner.fail(
-          `Failed to create record: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to create record: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
-        throw error;
+        throw _error;
       }
     });
   }
@@ -533,7 +524,7 @@ export class DNSMigrationAgent {
       spinner.start(`Updating ${record.type} record for ${record.name}`);
 
       try {
-        await this.auth.request({
+        await this.auth._request({
           method: 'PUT',
           path: `/config-dns/v2/zones/${zoneName}/recordsets/${record.name}/${record.type}`,
           headers: { 'Content-Type': 'application/json' },
@@ -544,11 +535,11 @@ export class DNSMigrationAgent {
         });
 
         spinner.succeed(`Updated ${format.cyan(record.name)} ${format.green(record.type)}`);
-      } catch (error) {
+      } catch (_error) {
         spinner.fail(
-          `Failed to update record: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to update record: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
-        throw error;
+        throw _error;
       }
     });
   }
@@ -559,17 +550,17 @@ export class DNSMigrationAgent {
       spinner.start(`Deleting ${type} record for ${name}`);
 
       try {
-        await this.auth.request({
+        await this.auth._request({
           method: 'DELETE',
           path: `/config-dns/v2/zones/${zoneName}/recordsets/${name}/${type}`,
         });
 
         spinner.succeed(`Deleted ${format.cyan(name)} ${format.green(type)}`);
-      } catch (error) {
+      } catch (_error) {
         spinner.fail(
-          `Failed to delete record: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to delete record: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
-        throw error;
+        throw _error;
       }
     });
   }
@@ -588,16 +579,16 @@ export class DNSMigrationAgent {
     try {
       const params = new URLSearchParams();
       if (options.types) {
-params.append('types', options.types.join(','));
-}
+        params.append('types', options.types.join(','));
+      }
       if (options.search) {
-params.append('search', options.search);
-}
+        params.append('search', options.search);
+      }
       if (options.limit) {
-params.append('page_size', options.limit.toString());
-}
+        params.append('page_size', options.limit.toString());
+      }
 
-      const response = await this.auth.request<DnsRecordsetsResponse>({
+      const response = await this.auth._request<DnsRecordsetsResponse>({
         method: 'GET',
         path: `/config-dns/v2/zones/${zoneName}/recordsets?${params}`,
       });
@@ -606,11 +597,11 @@ params.append('page_size', options.limit.toString());
       spinner.succeed(`Found ${records.length} records`);
 
       return records;
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
-        `Failed to list records: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to list records: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
@@ -672,13 +663,13 @@ params.append('page_size', options.limit.toString());
       });
 
       return result;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -689,11 +680,13 @@ params.append('page_size', options.limit.toString());
 
     if (!changeListId) {
       // Create new change list
-      const response = await this.auth.request<CpsLocationResponse>({
+      const response = await this.auth._request<CpsLocationResponse>({
         method: 'POST',
         path: `/config-dns/v2/zones/${zoneName}/changelists`,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ comment: 'Automated change' }),
+        body: JSON.stringify({
+          comment: 'Automated change',
+        }),
       });
 
       const location = response.location || response.headers?.location || '';
@@ -706,29 +699,29 @@ params.append('page_size', options.limit.toString());
       const result = await operation();
 
       // Submit change list
-      await this.auth.request({
+      await this.auth._request({
         method: 'POST',
         path: `/config-dns/v2/zones/${zoneName}/changelists/${this.changeListCache.get(zoneName)}/submit`,
       });
 
       this.changeListCache.delete(zoneName);
       return result;
-    } catch (error) {
-      // Discard change list on error
+    } catch (_error) {
+      // Discard change list on _error
       if (this.changeListCache.has(zoneName)) {
-        await this.auth.request({
+        await this.auth._request({
           method: 'DELETE',
           path: `/config-dns/v2/zones/${zoneName}/changelists/${this.changeListCache.get(zoneName)}`,
         });
         this.changeListCache.delete(zoneName);
       }
-      throw error;
+      throw _error;
     }
   }
 
   private async createZone(zoneName: string, type: 'PRIMARY' | 'SECONDARY'): Promise<void> {
     try {
-      await this.auth.request({
+      await this.auth._request({
         method: 'POST',
         path: '/config-dns/v2/zones',
         headers: { 'Content-Type': 'application/json' },
@@ -738,14 +731,14 @@ params.append('page_size', options.limit.toString());
           comment: 'Created by DNS Migration Agent',
         }),
       });
-    } catch (error) {
-      if (!(error instanceof Error && error.message.includes('already exists'))) {
-        throw error;
+    } catch (_error) {
+      if (!(_error instanceof Error && _error.message.includes('already exists'))) {
+        throw _error;
       }
     }
   }
 
-  private async performAXFR(zoneName: string, primaryNS: string, options: any): Promise<any[]> {
+  private async performAXFR(_zoneName: string, _primaryNS: string, _options: any): Promise<any[]> {
     // This would use a DNS library that supports AXFR
     // For now, return mock data
     return [
@@ -784,10 +777,10 @@ params.append('page_size', options.limit.toString());
       try {
         await this.createRecord(zoneName, records[i]);
         result.success++;
-      } catch (error) {
+      } catch (_error) {
         result.failed++;
         result.errors.push(
-          `${records[i].name} ${records[i].type}: ${error instanceof Error ? error.message : String(error)}`,
+          `${records[i].name} ${records[i].type}: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
       }
       progressCallback(i + 1, records.length);
@@ -804,8 +797,8 @@ params.append('page_size', options.limit.toString());
 
         for (const line of lines) {
           if (line.trim() === '' || line.startsWith(';')) {
-continue;
-}
+            continue;
+          }
 
           // Simple parser - would need more robust implementation
           const parts = line.split(/\s+/);
@@ -836,7 +829,7 @@ continue;
   }
 
   private async getAllRecords(zoneName: string): Promise<DNSRecord[]> {
-    const response = await this.auth.request<DnsRecordsetsResponse>({
+    const response = await this.auth._request<DnsRecordsetsResponse>({
       method: 'GET',
       path: `/config-dns/v2/zones/${zoneName}/recordsets`,
     });
@@ -861,14 +854,14 @@ continue;
   }
 
   private async getZone(zoneName: string): Promise<DNSZone> {
-    const response = await this.auth.request<DNSZone>({
+    const response = await this.auth._request<DNSZone>({
       method: 'GET',
       path: `/config-dns/v2/zones/${zoneName}`,
     });
     return response;
   }
 
-  private async getAkamaiNameservers(zone: DNSZone): Promise<string[]> {
+  private async getAkamaiNameservers(_zone: DNSZone): Promise<string[]> {
     // These would be returned by the API
     return ['a1-234.akam.net', 'a2-234.akam.net', 'a3-234.akam.net', 'a4-234.akam.net'];
   }
@@ -885,7 +878,7 @@ continue;
   }
 
   private async validateRecords(
-    zoneName: string,
+    _zoneName: string,
     records: DNSRecord[],
   ): Promise<{ errors: string[] }> {
     const errors: string[] = [];
@@ -913,17 +906,17 @@ continue;
     await this.withChangeList(zoneName, async () => {
       for (const record of records) {
         try {
-          await this.auth.request({
+          await this.auth._request({
             method: 'POST',
             path: `/config-dns/v2/zones/${zoneName}/recordsets`,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(record),
           });
           result.success++;
-        } catch (error) {
+        } catch (_error) {
           result.failed++;
           result.errors.push(
-            `${record.name} ${record.type}: ${error instanceof Error ? error.message : String(error)}`,
+            `${record.name} ${record.type}: ${_error instanceof Error ? _error.message : String(_error)}`,
           );
         }
       }
@@ -932,7 +925,7 @@ continue;
     return result;
   }
 
-  private async fetchCloudflareRecords(apiToken: string, zoneId: string): Promise<any[]> {
+  private async fetchCloudflareRecords(_apiToken: string, _zoneId: string): Promise<any[]> {
     // This would fetch from Cloudflare API
     return [];
   }
@@ -985,12 +978,13 @@ continue;
             targetZone,
           );
           break;
-        case 'file':
+        case 'file': {
           const records = await this.parseZoneFile(options.sourceConfig.content, targetZone);
           importResult = await this.bulkImportWithProgress(targetZone, records, {
             validateFirst: options.validateFirst,
           });
           break;
+        }
         default:
           throw new Error(`Unsupported source: ${options.source}`);
       }
@@ -1009,10 +1003,10 @@ continue;
 
       console.log(`\n${format.bold('Migration Complete!')}`);
       console.log(`${icons.success} Successfully migrated ${importResult.recordsImported} records`);
-    } catch (error) {
+    } catch (_error) {
       console.error(`\n${icons.error} ${format.red('Migration failed:')}`);
-      console.error(format.red(error instanceof Error ? error.message : String(error)));
-      throw error;
+      console.error(format.red(_error instanceof Error ? _error.message : String(_error)));
+      throw _error;
     }
   }
 
@@ -1021,17 +1015,17 @@ continue;
     spinner.start('Activating zone');
 
     try {
-      await this.auth.request({
+      await this.auth._request({
         method: 'POST',
         path: `/config-dns/v2/zones/${zoneName}/activate`,
       });
 
       spinner.succeed('Zone activated');
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
-        `Failed to activate zone: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to activate zone: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 }

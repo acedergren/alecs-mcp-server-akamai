@@ -16,13 +16,13 @@ import { ALECSServer } from './index';
 async function startHttpServer() {
   try {
     // Create ALECS server instance
-    const alecsServer = new ALECSServer({
+    new ALECSServer({
       name: 'alecs-mcp-server-akamai-http',
       version: '1.3.5.1',
     });
 
     // Create HTTP transport with configuration
-    const httpTransport = new HttpServerTransport({
+    new HttpServerTransport({
       port: parseInt(process.env.MCP_HTTP_PORT || '3000', 10),
       host: process.env.MCP_HTTP_HOST || 'localhost',
       cors: {
@@ -37,14 +37,15 @@ async function startHttpServer() {
     // custom transports. For now, this serves as an example implementation.
 
     logger.info('HTTP server example created');
-    logger.info('To use HTTP transport, the ALECSServer class would need to be modified to accept custom transports');
+    logger.info(
+      'To use HTTP transport, the ALECSServer class would need to be modified to accept custom transports',
+    );
 
     // In a real implementation, you would do:
     // await alecsServer.startWithTransport(httpTransport);
-
-  } catch (error) {
+  } catch (_error) {
     logger.error('Failed to start HTTP server', {
-      error: error instanceof Error ? error.message : String(error),
+      error: _error instanceof Error ? _error.message : String(_error),
     });
     process.exit(1);
   }

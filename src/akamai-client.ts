@@ -37,20 +37,20 @@ export class AkamaiClient {
 
       // Store account switch key for API requests
       this.accountSwitchKey = accountSwitchKey;
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('ENOENT')) {
+    } catch (_error) {
+      if (_error instanceof Error && _error.message.includes('ENOENT')) {
         throw new Error(
           `EdgeGrid configuration not found at ${edgercPath}\n` +
             'Please create this file with your Akamai API credentials.\n' +
             'See: https://techdocs.akamai.com/developer/docs/set-up-authentication-credentials',
         );
-      } else if (error instanceof Error && error.message.includes('section')) {
+      } else if (_error instanceof Error && _error.message.includes('section')) {
         throw new Error(
           `Section [${section}] not found in ${edgercPath}\n` +
             `Please ensure your .edgerc file contains the [${section}] section.`,
         );
       }
-      throw error;
+      throw _error;
     }
   }
 
@@ -71,7 +71,7 @@ export class AkamaiClient {
   /**
    * Make authenticated request to Akamai API
    */
-  async request<T = any>(options: {
+  async request<T = any>(_options: {
     path: string;
     method?: string;
     body?: any;
@@ -80,7 +80,7 @@ export class AkamaiClient {
   }): Promise<T> {
     try {
       // Ensure path starts with /
-      const requestPath = options.path.startsWith('/') ? options.path : `/${options.path}`;
+      const requestPath = _options.path.startsWith('/') ? _options.path : `/${_options.path}`;
 
       // Build query parameters object
       const queryParams: Record<string, string> = {};
@@ -91,20 +91,20 @@ export class AkamaiClient {
       }
 
       // Add any additional query parameters
-      if (options.queryParams) {
-        Object.assign(queryParams, options.queryParams);
+      if (_options.queryParams) {
+        Object.assign(queryParams, _options.queryParams);
       }
 
-      // Prepare request options for EdgeGrid
+      // Prepare request _options for EdgeGrid
       const requestOptions: any = {
         path: requestPath,
-        method: options.method || 'GET',
+        method: _options.method || 'GET',
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
-          ...options.headers,
+          ..._options.headers,
         },
-        body: options.body ? JSON.stringify(options.body) : undefined,
+        body: _options.body ? JSON.stringify(_options.body) : undefined,
       };
 
       // Add query parameters using qs property if any exist
@@ -114,9 +114,9 @@ export class AkamaiClient {
 
       // Debug logging
       if (this.debug) {
-        console.error(`[AkamaiClient] Making request: ${options.method || 'GET'} ${requestPath}`);
+        console.error(`[AkamaiClient] Making _request: ${_options.method || 'GET'} ${requestPath}`);
         console.error(
-          '[AkamaiClient] Request options:',
+          '[AkamaiClient] Request _options:',
           JSON.stringify(
             {
               ...requestOptions,
@@ -133,10 +133,10 @@ export class AkamaiClient {
 
       // Make the request using EdgeGrid's send method
       return new Promise((resolve, reject) => {
-        this.edgeGrid.send((error: any, response: any, body: any) => {
-          if (error) {
+        this.edgeGrid.send((_error: any, response: any, body: any) => {
+          if (_error) {
             try {
-              this.handleApiError(error);
+              this.handleApiError(_error);
             } catch (handledError) {
               reject(handledError);
             }
@@ -163,8 +163,8 @@ export class AkamaiClient {
           }
         });
       });
-    } catch (error) {
-      this.handleApiError(error);
+    } catch (_error) {
+      this.handleApiError(_error);
     }
   }
 
@@ -222,19 +222,19 @@ export class AkamaiClient {
   /**
    * Handle API errors with user-friendly messages
    */
-  private handleApiError(error: any): never {
-    if (error instanceof Error) {
+  private handleApiError(_error: any): never {
+    if (_error instanceof Error) {
       // Check for specific error types
-      if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
+      if (_error.message.includes('ENOTFOUND') || _error.message.includes('ECONNREFUSED')) {
         throw new Error(
           'Network connectivity issue. Check your internet connection and verify the API host in ~/.edgerc is correct.',
         );
-      } else if (error.message.includes('ETIMEDOUT')) {
+      } else if (_error.message.includes('ETIMEDOUT')) {
         throw new Error('Request timed out. The Akamai API might be slow. Try again in a moment.');
       }
     }
 
-    throw error;
+    throw _error;
   }
 
   /**
@@ -304,9 +304,9 @@ export class AkamaiClient {
       }
 
       return accountSwitchKey;
-    } catch (error) {
+    } catch (_error) {
       if (this.debug) {
-        console.error('[AkamaiClient] Error reading account-switch-key from .edgerc:', error);
+        console.error('[AkamaiClient] Error reading account-switch-key from .edgerc:', _error);
       }
       return undefined;
     }

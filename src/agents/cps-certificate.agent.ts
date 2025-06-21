@@ -1,13 +1,4 @@
-import {
-  ProgressBar,
-  Spinner,
-  MultiProgress,
-  withProgress,
-  format,
-  icons,
-  trackProgress,
-} from '@utils/progress';
-import axios from 'axios';
+import { ProgressBar, Spinner, MultiProgress, format, icons, trackProgress } from '@utils/progress';
 
 import { EdgeGridAuth } from '../auth/EdgeGridAuth';
 
@@ -96,7 +87,7 @@ interface DVValidation {
     content: string;
   };
   emailAddresses?: string[];
-  expires: string;
+  expi_res: string;
 }
 
 interface DeploymentStatus {
@@ -128,15 +119,15 @@ export class CPSCertificateAgent {
 
     try {
       // Verify CPS access
-      await this.auth.request({
+      await this.auth._request({
         method: 'GET',
         path: '/cps/v2/enrollments?limit=1',
       });
 
       spinner.succeed('CPS Certificate Agent initialized');
-    } catch (error) {
+    } catch (_error) {
       spinner.fail('Failed to initialize CPS agent');
-      throw error;
+      throw _error;
     } finally {
       this.multiProgress.remove('init');
     }
@@ -167,7 +158,7 @@ export class CPSCertificateAgent {
 
       // Step 2: Create enrollment
       progress.update({ current: 2, message: 'Creating enrollment' });
-      const response = await this.auth.request<CpsLocationResponse>({
+      const response = await this.auth._request<CpsLocationResponse>({
         method: 'POST',
         path: '/cps/v2/enrollments',
         headers: { 'Content-Type': 'application/vnd.akamai.cps.enrollment.v11+json' },
@@ -203,13 +194,13 @@ export class CPSCertificateAgent {
       console.log(`  ${icons.bullet} Validation: ${format.yellow(enrollment.validationType)}`);
 
       return enrollment;
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -234,7 +225,7 @@ export class CPSCertificateAgent {
       // Process each challenge
       await trackProgress(
         challenges,
-        async (challenge, index) => {
+        async (challenge, _index) => {
           console.log(`\n${icons.dns} Domain: ${format.cyan(challenge.domain)}`);
 
           if (challenge.type === 'dns' && challenge.dnsTarget) {
@@ -265,11 +256,11 @@ export class CPSCertificateAgent {
                 // Trigger validation
                 await this.triggerDomainValidation(enrollmentId, challenge.domain);
                 console.log(`  ${icons.success} Validation triggered`);
-              } catch (error) {
+              } catch (_error) {
                 recordSpinner.fail(
-                  `Failed to create DNS record: ${error instanceof Error ? error.message : String(error)}`,
+                  `Failed to create DNS record: ${_error instanceof Error ? _error.message : String(_error)}`,
                 );
-                throw error;
+                throw _error;
               }
             }
           }
@@ -280,9 +271,11 @@ export class CPSCertificateAgent {
       // Monitor validation status
       console.log(`\n${icons.time} Monitoring validation status...`);
       await this.waitForValidations(enrollmentId);
-    } catch (error) {
-      spinner.fail(`Validation failed: ${error instanceof Error ? error.message : String(error)}`);
-      throw error;
+    } catch (_error) {
+      spinner.fail(
+        `Validation failed: ${_error instanceof Error ? _error.message : String(_error)}`,
+      );
+      throw _error;
     }
   }
 
@@ -304,7 +297,7 @@ export class CPSCertificateAgent {
       progress.update({ current: 5, message: 'Initiating deployment' });
 
       // Start deployment
-      const response = await this.auth.request<CpsLocationResponse>({
+      const response = await this.auth._request<CpsLocationResponse>({
         method: 'POST',
         path: `/cps/v2/enrollments/${enrollmentId}/deployments`,
         headers: {
@@ -345,24 +338,24 @@ export class CPSCertificateAgent {
 
         await new Promise((resolve) => setTimeout(resolve, 10000));
       }
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
   // Certificate-Property Linking
-  async linkCertificateToProperties(enrollmentId: number, propertyIds: string[]): Promise<void> {
+  async linkCertificateToProperties(_enrollmentId: number, propertyIds: string[]): Promise<void> {
     console.log(`\n${format.bold('Linking Certificate to Properties')}`);
     console.log(format.dim('─'.repeat(50)));
 
     await trackProgress(
       propertyIds,
-      async (propertyId, index) => {
+      async (propertyId, _index) => {
         const spinner = new Spinner();
         spinner.start(`Linking to property ${propertyId}`);
 
@@ -372,11 +365,11 @@ export class CPSCertificateAgent {
           await new Promise((resolve) => setTimeout(resolve, 2000));
 
           spinner.succeed(`Linked to property ${propertyId}`);
-        } catch (error) {
+        } catch (_error) {
           spinner.fail(
-            `Failed to link property ${propertyId}: ${error instanceof Error ? error.message : String(error)}`,
+            `Failed to link property ${propertyId}: ${_error instanceof Error ? _error.message : String(_error)}`,
           );
-          throw error;
+          throw _error;
         }
       },
       { message: 'Linking properties' },
@@ -407,7 +400,7 @@ export class CPSCertificateAgent {
         notificationEmails: options.notificationEmails || [],
       };
 
-      await this.auth.request({
+      await this.auth._request({
         method: 'PUT',
         path: `/cps/v2/enrollments/${enrollmentId}/auto-renewal`,
         headers: { 'Content-Type': 'application/json' },
@@ -415,11 +408,11 @@ export class CPSCertificateAgent {
       });
 
       spinner.succeed(`Auto-renewal configured (${request.renewalWindow} days before expiry)`);
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
-        `Failed to setup auto-renewal: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to setup auto-renewal: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
@@ -466,13 +459,13 @@ export class CPSCertificateAgent {
       console.log(`  ${icons.bullet} Enrollment ID: ${format.cyan(enrollmentId.toString())}`);
       console.log(`  ${icons.bullet} Status: ${format.green('Renewed and Deployed')}`);
       console.log(`  ${icons.bullet} New Expiry: ${format.yellow('+365 days')}`);
-    } catch (error) {
+    } catch (_error) {
       progress.update({
         current: progress['current'],
         status: 'error',
-        message: error instanceof Error ? error.message : String(error),
+        message: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 
@@ -547,11 +540,11 @@ export class CPSCertificateAgent {
       }
 
       console.log(format.dim('═'.repeat(60)));
-    } catch (error) {
+    } catch (_error) {
       spinner.fail(
-        `Failed to fetch certificate status: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to fetch certificate status: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
-      throw error;
+      throw _error;
     }
   }
 
@@ -605,7 +598,7 @@ export class CPSCertificateAgent {
   }
 
   private async getEnrollment(enrollmentId: number): Promise<Certificate> {
-    const response = await this.auth.request<Certificate>({
+    const response = await this.auth._request<Certificate>({
       method: 'GET',
       path: `/cps/v2/enrollments/${enrollmentId}`,
       headers: { Accept: 'application/vnd.akamai.cps.enrollment.v11+json' },
@@ -615,7 +608,7 @@ export class CPSCertificateAgent {
   }
 
   private async getDVChallenges(enrollmentId: number): Promise<DVValidation[]> {
-    const response = await this.auth.request<CpsResultsResponse>({
+    const response = await this.auth._request<CpsResultsResponse>({
       method: 'GET',
       path: `/cps/v2/enrollments/${enrollmentId}/dv-history`,
       headers: { Accept: 'application/vnd.akamai.cps.dv-history.v2+json' },
@@ -627,7 +620,7 @@ export class CPSCertificateAgent {
   private async setupDVValidation(enrollmentId: number, domains: string[]): Promise<void> {
     // Set validation method for each domain
     for (const domain of domains) {
-      await this.auth.request({
+      await this.auth._request({
         method: 'PUT',
         path: `/cps/v2/enrollments/${enrollmentId}/dv-validation/${domain}`,
         headers: { 'Content-Type': 'application/json' },
@@ -637,7 +630,7 @@ export class CPSCertificateAgent {
   }
 
   private async triggerDomainValidation(enrollmentId: number, domain: string): Promise<void> {
-    await this.auth.request({
+    await this.auth._request({
       method: 'POST',
       path: `/cps/v2/enrollments/${enrollmentId}/dv-validation/${domain}`,
       headers: { 'Content-Type': 'application/json' },
@@ -646,7 +639,7 @@ export class CPSCertificateAgent {
   }
 
   private async updateEnrollmentStatus(enrollmentId: number, action: string): Promise<void> {
-    await this.auth.request({
+    await this.auth._request({
       method: 'POST',
       path: `/cps/v2/enrollments/${enrollmentId}/${action}`,
       headers: { 'Content-Type': 'application/json' },
@@ -709,7 +702,7 @@ export class CPSCertificateAgent {
   }
 
   private async getDeployments(enrollmentId: number): Promise<DeploymentStatus[]> {
-    const response = await this.auth.request<CpsResultsResponse>({
+    const response = await this.auth._request<CpsResultsResponse>({
       method: 'GET',
       path: `/cps/v2/enrollments/${enrollmentId}/deployments`,
       headers: { Accept: 'application/vnd.akamai.cps.deployments.v3+json' },
@@ -722,7 +715,7 @@ export class CPSCertificateAgent {
     enrollmentId: number,
     deploymentId: number,
   ): Promise<DeploymentStatus> {
-    const response = await this.auth.request<DeploymentStatus>({
+    const response = await this.auth._request<DeploymentStatus>({
       method: 'GET',
       path: `/cps/v2/enrollments/${enrollmentId}/deployments/${deploymentId}`,
       headers: { Accept: 'application/vnd.akamai.cps.deployment.v3+json' },
@@ -802,10 +795,10 @@ export class CPSCertificateAgent {
       console.log('  1. Verify certificate in Control Center');
       console.log('  2. Test HTTPS connectivity on your domains');
       console.log('  3. Monitor certificate expiry and renewal status');
-    } catch (error) {
+    } catch (_error) {
       console.error(`\n${icons.error} ${format.red('Certificate provisioning failed:')}`);
-      console.error(format.red(error instanceof Error ? error.message : String(error)));
-      throw error;
+      console.error(format.red(_error instanceof Error ? _error.message : String(_error)));
+      throw _error;
     }
   }
 }

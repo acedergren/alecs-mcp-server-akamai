@@ -8,15 +8,15 @@ import { type McpToolResponse } from './mcp';
  * Middleware function type
  */
 export type MiddlewareFunction = (
-  req: MiddlewareRequest,
-  res: MiddlewareResponse,
-  next: NextFunction,
+  _req: MiddlewareRequest,
+  _res: MiddlewareResponse,
+  _next: NextFunction,
 ) => Promise<void> | void;
 
 /**
  * Next function type
  */
-export type NextFunction = (error?: Error) => void;
+export type NextFunction = (_error?: Error) => void;
 
 /**
  * Middleware request object
@@ -33,7 +33,7 @@ export interface MiddlewareRequest {
   /** Request timestamp */
   timestamp: number;
   /** Additional context */
-  context: Record<string, unknown>;
+  _context: Record<string, unknown>;
 }
 
 /**
@@ -42,8 +42,8 @@ export interface MiddlewareRequest {
 export interface MiddlewareResponse {
   /** Set response data */
   send: (data: McpToolResponse) => void;
-  /** Set error response */
-  error: (error: Error | string, code?: string) => void;
+  /** Set _error response */
+  error: (_error: Error | string, code?: string) => void;
   /** Response status */
   status?: number;
   /** Response data */
@@ -51,7 +51,7 @@ export interface MiddlewareResponse {
 }
 
 /**
- * Authentication middleware options
+ * Authentication middleware _options
  */
 export interface AuthMiddlewareOptions {
   /** Required authentication level */
@@ -63,7 +63,7 @@ export interface AuthMiddlewareOptions {
 }
 
 /**
- * Logging middleware options
+ * Logging middleware _options
  */
 export interface LoggingMiddlewareOptions {
   /** Log level */
@@ -77,7 +77,7 @@ export interface LoggingMiddlewareOptions {
 }
 
 /**
- * Rate limiting middleware options
+ * Rate limiting middleware _options
  */
 export interface RateLimitMiddlewareOptions {
   /** Maximum requests per window */
@@ -93,17 +93,17 @@ export interface RateLimitMiddlewareOptions {
 }
 
 /**
- * Validation middleware options
+ * Validation middleware _options
  */
 export interface ValidationMiddlewareOptions {
   /** Strict mode - fail on unknown fields */
   strict?: boolean;
-  /** Custom error formatter */
+  /** Custom _error formatter */
   errorFormatter?: (errors: ValidationError[]) => string;
 }
 
 /**
- * Validation error
+ * Validation _error
  */
 export interface ValidationError {
   /** Field path */
@@ -121,21 +121,21 @@ export interface ValidationError {
  */
 export interface CustomerContextMiddleware {
   /** Extract customer from request */
-  extractCustomer: (req: MiddlewareRequest) => string | undefined;
+  extractCustomer: (_req: MiddlewareRequest) => string | undefined;
   /** Validate customer exists */
   validateCustomer: (customer: string) => Promise<boolean>;
   /** Enrich request with customer data */
-  enrichRequest: (req: MiddlewareRequest, customer: string) => Promise<void>;
+  enrichRequest: (_req: MiddlewareRequest, customer: string) => Promise<void>;
 }
 
 /**
  * Error handling middleware
  */
 export interface ErrorHandlerMiddleware {
-  /** Handle specific error types */
-  handlers: Map<string, (error: Error) => McpToolResponse>;
-  /** Default error handler */
-  defaultHandler: (error: Error) => McpToolResponse;
+  /** Handle specific _error types */
+  handlers: Map<string, (_error: Error) => McpToolResponse>;
+  /** Default _error handler */
+  defaultHandler: (_error: Error) => McpToolResponse;
   /** Log errors */
   logErrors?: boolean;
   /** Include stack traces */
@@ -158,12 +158,12 @@ export class MiddlewareStack {
   /**
    * Execute middleware stack
    */
-  async execute(req: MiddlewareRequest, res: MiddlewareResponse): Promise<void> {
+  async execute(_req: MiddlewareRequest, _res: MiddlewareResponse): Promise<void> {
     let index = 0;
 
-    const next: NextFunction = async (error?: Error) => {
-      if (error) {
-        throw error;
+    const _next: NextFunction = async (_error?: Error) => {
+      if (_error) {
+        throw _error;
       }
 
       if (index >= this.middlewares.length) {
@@ -176,10 +176,10 @@ export class MiddlewareStack {
         return;
       }
 
-      await middleware(req, res, next);
+      await middleware(_req, _res, _next);
     };
 
-    await next();
+    await _next();
   }
 }
 
@@ -190,53 +190,53 @@ export const Middleware = {
   /**
    * Authentication middleware
    */
-  auth(options: AuthMiddlewareOptions = {}): MiddlewareFunction {
-    return async (req, res, next) => {
-      const { requireAuth = true, skipAuthFor = [] } = options;
+  auth(_options: AuthMiddlewareOptions = {}): MiddlewareFunction {
+    return async (_req, _res, _next) => {
+      const { requireAuth = true, skipAuthFor = [] } = _options;
 
-      if (skipAuthFor.includes(req.toolName)) {
-        return next();
+      if (skipAuthFor.includes(_req.toolName)) {
+        return _next();
       }
 
-      if (requireAuth && !req.customer) {
-        return res.error('Authentication required', 'AUTH_REQUIRED');
+      if (requireAuth && !_req.customer) {
+        return _res.error('Authentication required', 'AUTH_REQUIRED');
       }
 
-      next();
+      _next();
     };
   },
 
   /**
    * Logging middleware
    */
-  logging(options: LoggingMiddlewareOptions = {}): MiddlewareFunction {
-    return async (req, res, next) => {
-      const { level = 'info', includeBody = true } = options;
+  logging(_options: LoggingMiddlewareOptions = {}): MiddlewareFunction {
+    return async (_req, _res, _next) => {
+      const { level = 'info', includeBody = true } = _options;
 
       const startTime = Date.now();
 
       // Log request
       const logData: Record<string, unknown> = {
-        requestId: req.requestId,
-        toolName: req.toolName,
-        customer: req.customer,
+        requestId: _req.requestId,
+        toolName: _req.toolName,
+        customer: _req.customer,
       };
 
       if (includeBody) {
-        logData.params = req.params;
+        logData.params = _req.params;
       }
 
       console.log(`[${level.toUpperCase()}] Request:`, logData);
 
-      // Continue to next middleware
-      next();
+      // Continue to _next middleware
+      _next();
 
       // Log response (after other middlewares)
       const duration = Date.now() - startTime;
       console.log(`[${level.toUpperCase()}] Response:`, {
-        requestId: req.requestId,
+        requestId: _req.requestId,
         duration,
-        status: res.status,
+        status: _res.status,
       });
     };
   },
@@ -244,17 +244,17 @@ export const Middleware = {
   /**
    * Rate limiting middleware
    */
-  rateLimit(options: RateLimitMiddlewareOptions): MiddlewareFunction {
+  rateLimit(_options: RateLimitMiddlewareOptions): MiddlewareFunction {
     const requests = new Map<string, number[]>();
 
-    return async (req, res, next) => {
-      const { maxRequests, windowMs, byCustomer = true, skipFor = [] } = options;
+    return async (_req, _res, _next) => {
+      const { maxRequests, windowMs, byCustomer = true, skipFor = [] } = _options;
 
-      if (skipFor.includes(req.toolName)) {
-        return next();
+      if (skipFor.includes(_req.toolName)) {
+        return _next();
       }
 
-      const key = byCustomer ? `${req.customer}-${req.toolName}` : req.toolName;
+      const key = byCustomer ? `${_req.customer}-${_req.toolName}` : _req.toolName;
       const now = Date.now();
       const windowStart = now - windowMs;
 
@@ -265,40 +265,40 @@ export const Middleware = {
       const recentRequests = requestTimes.filter((time) => time > windowStart);
 
       if (recentRequests.length >= maxRequests) {
-        return res.error('Rate limit exceeded', 'RATE_LIMIT_EXCEEDED');
+        return _res.error('Rate limit exceeded', 'RATE_LIMIT_EXCEEDED');
       }
 
       // Add current request
       recentRequests.push(now);
       requests.set(key, recentRequests);
 
-      next();
+      _next();
     };
   },
 
   /**
    * Error handler middleware
    */
-  errorHandler(options: Partial<ErrorHandlerMiddleware> = {}): MiddlewareFunction {
-    const { logErrors = true, includeStackTrace = false } = options;
+  errorHandler(_options: Partial<ErrorHandlerMiddleware> = {}): MiddlewareFunction {
+    const { logErrors = true, includeStackTrace = false } = _options;
 
-    return async (req, res, next) => {
+    return async (_req, _res, _next) => {
       try {
-        await next();
-      } catch (error) {
+        await _next();
+      } catch (_error) {
         if (logErrors) {
           console.error('Middleware error:', {
-            requestId: req.requestId,
-            toolName: req.toolName,
-            error: error instanceof Error ? error.message : String(error),
-            stack: includeStackTrace && error instanceof Error ? error.stack : undefined,
+            requestId: _req.requestId,
+            toolName: _req.toolName,
+            error: _error instanceof Error ? _error.message : String(_error),
+            stack: includeStackTrace && _error instanceof Error ? _error.stack : undefined,
           });
         }
 
-        if (error instanceof Error) {
-          res.error(error.message, error.name);
+        if (_error instanceof Error) {
+          _res.error(_error.message, _error.name);
         } else {
-          res.error(String(error), 'UNKNOWN_ERROR');
+          _res.error(String(_error), 'UNKNOWN_ERROR');
         }
       }
     };

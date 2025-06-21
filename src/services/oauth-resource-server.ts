@@ -3,7 +3,7 @@
  * Implements resource protection, discovery, and validation
  */
 
-import { createHash } from 'crypto';
+import { createHash as _createHash } from 'crypto';
 
 import { type Property, type DnsZone, type Certificate, type NetworkList } from '@/types/akamai';
 import {
@@ -21,14 +21,14 @@ import {
   OAuthResourceType as ResourceType,
   RESOURCE_SCOPE_TEMPLATES,
   BASE_OAUTH_SCOPES,
-  OAUTH_WELL_KNOWN_URIS,
+  OAUTH_WELL_KNOWN_URIS as _OAUTH_WELL_KNOWN_URIS,
 } from '@/types/oauth';
 
 /**
  * OAuth Resource URI implementation
  */
 export class ResourceUri implements OAuthResourceUri {
-  scheme: 'akamai' = 'akamai';
+  scheme: 'akamai' = 'akamai' as const;
   resourceType: OAuthResourceType;
   accountId: string;
   resourceId: string;
@@ -68,12 +68,7 @@ export class ResourceUri implements OAuthResourceUri {
       throw new Error(`Invalid resource type: ${resourceType}`);
     }
 
-    return new ResourceUri(
-      resourceType as OAuthResourceType,
-      accountId,
-      resourceId,
-      subPath,
-    );
+    return new ResourceUri(resourceType as OAuthResourceType, accountId, resourceId, subPath);
   }
 }
 
@@ -146,17 +141,17 @@ export class OAuthResourceServer {
       issuer: this.config.authServerUrl,
       authorization_endpoint: `${this.config.authServerUrl}/oauth/authorize`,
       token_endpoint: `${this.config.authServerUrl}/oauth/token`,
-      introspection_endpoint: this.config.introspectionEndpoint || `${this.config.authServerUrl}/oauth/introspect`,
+      introspection_endpoint:
+        this.config.introspectionEndpoint || `${this.config.authServerUrl}/oauth/introspect`,
       jwks_uri: this.config.jwksEndpoint || `${this.config.authServerUrl}/.well-known/jwks.json`,
-      scopes_supported: [
-        ...Object.values(BASE_OAUTH_SCOPES),
-        'openid',
-        'profile',
-        'email',
-      ],
+      scopes_supported: [...Object.values(BASE_OAUTH_SCOPES), 'openid', 'profile', 'email'],
       response_types_supported: ['code', 'token', 'code token'],
       grant_types_supported: ['authorization_code', 'client_credentials', 'refresh_token'],
-      token_endpoint_auth_methods_supported: ['client_secret_basic', 'client_secret_post', 'private_key_jwt'],
+      token_endpoint_auth_methods_supported: [
+        'client_secret_basic',
+        'client_secret_post',
+        'private_key_jwt',
+      ],
       code_challenge_methods_supported: ['S256', 'plain'],
       resource_indicators_supported: true,
       authorization_response_iss_parameter_supported: true,
@@ -187,15 +182,8 @@ export class OAuthResourceServer {
   /**
    * Create protected resource metadata for a Property
    */
-  createPropertyResource(
-    property: Property,
-    accountId: string,
-  ): OAuthProtectedResource {
-    const uri = new ResourceUri(
-      ResourceType.PROPERTY,
-      accountId,
-      property.propertyId,
-    );
+  createPropertyResource(property: Property, accountId: string): OAuthProtectedResource {
+    const uri = new ResourceUri(ResourceType.PROPERTY, accountId, property.propertyId);
 
     const resource: OAuthProtectedResource = {
       uri: uri.toString(),
@@ -231,15 +219,8 @@ export class OAuthResourceServer {
   /**
    * Create protected resource metadata for a DNS Zone
    */
-  createDnsZoneResource(
-    zone: DnsZone,
-    accountId: string,
-  ): OAuthProtectedResource {
-    const uri = new ResourceUri(
-      ResourceType.DNS_ZONE,
-      accountId,
-      zone.zone,
-    );
+  createDnsZoneResource(zone: DnsZone, accountId: string): OAuthProtectedResource {
+    const uri = new ResourceUri(ResourceType.DNS_ZONE, accountId, zone.zone);
 
     const resource: OAuthProtectedResource = {
       uri: uri.toString(),
@@ -273,10 +254,7 @@ export class OAuthResourceServer {
   /**
    * Create protected resource metadata for a Certificate
    */
-  createCertificateResource(
-    certificate: Certificate,
-    accountId: string,
-  ): OAuthProtectedResource {
+  createCertificateResource(certificate: Certificate, accountId: string): OAuthProtectedResource {
     const uri = new ResourceUri(
       ResourceType.CERTIFICATE,
       accountId,
@@ -317,15 +295,8 @@ export class OAuthResourceServer {
   /**
    * Create protected resource metadata for a Network List
    */
-  createNetworkListResource(
-    networkList: NetworkList,
-    accountId: string,
-  ): OAuthProtectedResource {
-    const uri = new ResourceUri(
-      ResourceType.NETWORK_LIST,
-      accountId,
-      networkList.listId,
-    );
+  createNetworkListResource(networkList: NetworkList, accountId: string): OAuthProtectedResource {
+    const uri = new ResourceUri(ResourceType.NETWORK_LIST, accountId, networkList.listId);
 
     const resource: OAuthProtectedResource = {
       uri: uri.toString(),
@@ -333,10 +304,7 @@ export class OAuthResourceServer {
       name: networkList.name,
       description: networkList.description || `Network List ${networkList.name}`,
       requiredScopes: [BASE_OAUTH_SCOPES.NETWORK_LIST_READ],
-      resourceScopes: this.generateResourceScopes(
-        ResourceType.NETWORK_LIST,
-        networkList.listId,
-      ),
+      resourceScopes: this.generateResourceScopes(ResourceType.NETWORK_LIST, networkList.listId),
       owner: {
         accountId,
       },
@@ -361,12 +329,9 @@ export class OAuthResourceServer {
   /**
    * Generate resource-specific scopes
    */
-  private generateResourceScopes(
-    resourceType: OAuthResourceType,
-    resourceId: string,
-  ): string[] {
+  private generateResourceScopes(resourceType: OAuthResourceType, resourceId: string): string[] {
     const templates = RESOURCE_SCOPE_TEMPLATES[resourceType];
-    return templates.map(template =>
+    return templates.map((template) =>
       template.replace('{id}', resourceId).replace('{zone}', resourceId),
     );
   }
@@ -399,7 +364,7 @@ export class OAuthResourceServer {
         }
 
         // Validate requested scopes against resource
-        const invalidScopes = requestedScopes.filter(scope => {
+        const invalidScopes = requestedScopes.filter((scope) => {
           const isBaseScope = Object.values(BASE_OAUTH_SCOPES).includes(scope as any);
           const isResourceScope = resource.resourceScopes?.includes(scope);
           const isRequiredScope = resource.requiredScopes.includes(scope);
@@ -410,7 +375,7 @@ export class OAuthResourceServer {
         if (invalidScopes.length > 0) {
           errors.push(`Invalid scopes for resource ${resourceUri}: ${invalidScopes.join(', ')}`);
         }
-      } catch (error) {
+      } catch (_error) {
         errors.push(`Invalid resource URI: ${resourceUri}`);
       }
     }
@@ -425,8 +390,8 @@ export class OAuthResourceServer {
    * Introspect access token
    */
   async introspectToken(
-    token: string,
-    tokenType: 'access_token' | 'refresh_token' = 'access_token',
+    _token: string,
+    _tokenType: 'access_token' | 'refresh_token' = 'access_token',
   ): Promise<OAuthTokenIntrospectionResponse> {
     // In production, this would call the introspection endpoint
     // For now, we'll simulate token introspection
@@ -463,16 +428,16 @@ export class OAuthResourceServer {
    * Authorize resource access
    */
   async authorizeResourceAccess(
-    context: OAuthResourceAccessContext,
+    _context: OAuthResourceAccessContext,
   ): Promise<OAuthAuthorizationDecision> {
-    const { token, resource, operation, method } = context;
+    const { token, resource, operation, method } = _context;
 
     // Check if token is valid for this resource server
     if (!this.isValidAudience(token.aud)) {
       return {
         allowed: false,
         reason: 'Invalid token audience',
-        audit: this.createAuditEntry('DENY', context, 'Invalid audience'),
+        audit: this.createAuditEntry('DENY', _context, 'Invalid audience'),
       };
     }
 
@@ -481,7 +446,7 @@ export class OAuthResourceServer {
       return {
         allowed: false,
         reason: 'Token expired',
-        audit: this.createAuditEntry('DENY', context, 'Token expired'),
+        audit: this.createAuditEntry('DENY', _context, 'Token expired'),
       };
     }
 
@@ -490,7 +455,7 @@ export class OAuthResourceServer {
       return {
         allowed: false,
         reason: `Method ${method} not allowed for resource`,
-        audit: this.createAuditEntry('DENY', context, 'Method not allowed'),
+        audit: this.createAuditEntry('DENY', _context, 'Method not allowed'),
       };
     }
 
@@ -504,7 +469,7 @@ export class OAuthResourceServer {
         allowed: false,
         reason: 'Insufficient scopes',
         missingScopes: hasRequiredScopes.missing,
-        audit: this.createAuditEntry('DENY', context, 'Insufficient scopes'),
+        audit: this.createAuditEntry('DENY', _context, 'Insufficient scopes'),
       };
     }
 
@@ -513,14 +478,14 @@ export class OAuthResourceServer {
       return {
         allowed: false,
         reason: 'Access denied to resource',
-        audit: this.createAuditEntry('DENY', context, 'Ownership check failed'),
+        audit: this.createAuditEntry('DENY', _context, 'Ownership check failed'),
       };
     }
 
     // Authorization successful
     return {
       allowed: true,
-      audit: this.createAuditEntry('ALLOW', context),
+      audit: this.createAuditEntry('ALLOW', _context),
     };
   }
 
@@ -542,10 +507,7 @@ export class OAuthResourceServer {
   /**
    * Get required scopes for operation
    */
-  private getRequiredScopes(
-    resource: OAuthProtectedResource,
-    operation: OAuthOperation,
-  ): string[] {
+  private getRequiredScopes(resource: OAuthProtectedResource, operation: OAuthOperation): string[] {
     const scopes: string[] = [];
 
     // Add base required scopes
@@ -571,9 +533,7 @@ export class OAuthResourceServer {
 
     // Add resource-specific scopes
     if (resource.resourceScopes) {
-      const resourceOpScope = resource.resourceScopes.find(s =>
-        s.includes(`:${operation}`),
-      );
+      const resourceOpScope = resource.resourceScopes.find((s) => s.includes(`:${operation}`));
       if (resourceOpScope) {
         scopes.push(resourceOpScope);
       }
@@ -589,7 +549,7 @@ export class OAuthResourceServer {
     tokenScopes: string[],
     requiredScopes: string[],
   ): { allowed: boolean; missing?: string[] } {
-    const missing = requiredScopes.filter(scope => {
+    const missing = requiredScopes.filter((scope) => {
       // Check exact match
       if (tokenScopes.includes(scope)) {
         return false;
@@ -659,15 +619,15 @@ export class OAuthResourceServer {
    */
   private createAuditEntry(
     decision: 'ALLOW' | 'DENY',
-    context: OAuthResourceAccessContext,
+    _context: OAuthResourceAccessContext,
     reason?: string,
   ): OAuthAuthorizationDecision['audit'] {
     return {
       timestamp: new Date().toISOString(),
       decision,
-      resource: context.resource.uri,
-      operation: context.operation,
-      client: context.token.client_id,
+      resource: _context.resource.uri,
+      operation: _context.operation,
+      client: _context.token.client_id,
       reason,
     };
   }
@@ -682,18 +642,15 @@ export class OAuthResourceServer {
   /**
    * List all protected resources
    */
-  listResources(filter?: {
-    type?: OAuthResourceType;
-    owner?: string;
-  }): OAuthProtectedResource[] {
+  listResources(filter?: { type?: OAuthResourceType; owner?: string }): OAuthProtectedResource[] {
     let resources = Array.from(this.resourceRegistry.values());
 
     if (filter?.type) {
-      resources = resources.filter(r => r.type === filter.type);
+      resources = resources.filter((r) => r.type === filter.type);
     }
 
     if (filter?.owner) {
-      resources = resources.filter(r => r.owner.accountId === filter.owner);
+      resources = resources.filter((r) => r.owner.accountId === filter.owner);
     }
 
     return resources;
@@ -715,7 +672,7 @@ export class OAuthResourceServer {
       token_endpoint: string;
     };
   } {
-    const resources = Array.from(this.resourceRegistry.values()).map(resource => ({
+    const resources = Array.from(this.resourceRegistry.values()).map((resource) => ({
       uri: resource.uri,
       type: resource.type,
       name: resource.name,

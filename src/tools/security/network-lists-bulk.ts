@@ -204,10 +204,11 @@ export async function importNetworkListFromCSV(
       case 'replace':
         requestBody.list = validElements;
         break;
-      case 'append':
+      case 'append': {
         const uniqueNewElements = validElements.filter((e) => !currentList.list.includes(e));
         requestBody.list = [...currentList.list, ...uniqueNewElements];
         break;
+      }
       case 'remove':
         requestBody.list = currentList.list.filter((e) => !validElements.includes(e));
         break;
@@ -247,13 +248,13 @@ export async function importNetworkListFromCSV(
         },
       ],
     };
-  } catch (error) {
-    const akamaiError = error as AkamaiError;
+  } catch (_error) {
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error importing CSV: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error importing CSV: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -333,13 +334,13 @@ export async function exportNetworkListToCSV(
         },
       ],
     };
-  } catch (error) {
-    const akamaiError = error as AkamaiError;
+  } catch (_error) {
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error exporting CSV: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error exporting CSV: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -483,12 +484,12 @@ export async function bulkUpdateNetworkLists(
         });
 
         output += `✅ ${update.uniqueId}: +${validAdd.length} -${validRemove.length}\n`;
-      } catch (error) {
-        const akamaiError = error as AkamaiError;
+      } catch (_error) {
+        const akamaiError = _error as AkamaiError;
         results.push({
           uniqueId: update.uniqueId,
           success: false,
-          error: akamaiError.title || akamaiError.detail || 'Unknown error',
+          error: akamaiError.title || akamaiError.detail || 'Unknown _error',
         });
 
         output += `❌ ${update.uniqueId}: ${akamaiError.title}\n`;
@@ -518,13 +519,13 @@ export async function bulkUpdateNetworkLists(
         },
       ],
     };
-  } catch (error) {
-    const akamaiError = error as AkamaiError;
+  } catch (_error) {
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error in bulk update: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error in bulk update: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };
@@ -600,7 +601,7 @@ export async function mergeNetworkLists(
         );
         break;
 
-      case 'difference':
+      case 'difference': {
         // Remove elements that exist in any source list
         const elementsToRemove = new Set();
         sourceLists.forEach((sourceList) => {
@@ -608,6 +609,7 @@ export async function mergeNetworkLists(
         });
         mergedElements = targetList.list.filter((element) => !elementsToRemove.has(element));
         break;
+      }
     }
 
     if (options.removeDuplicates) {
@@ -648,8 +650,8 @@ export async function mergeNetworkLists(
             method: 'DELETE',
           });
           output += `✅ Deleted ${sourceList.name}\n`;
-        } catch (error) {
-          const akamaiError = error as AkamaiError;
+        } catch (_error) {
+          const akamaiError = _error as AkamaiError;
           output += `❌ Failed to delete ${sourceList.name}: ${akamaiError.title}\n`;
         }
       }
@@ -663,13 +665,13 @@ export async function mergeNetworkLists(
         },
       ],
     };
-  } catch (error) {
-    const akamaiError = error as AkamaiError;
+  } catch (_error) {
+    const akamaiError = _error as AkamaiError;
     return {
       content: [
         {
           type: 'text',
-          text: `Error merging network lists: ${akamaiError.title || akamaiError.detail || 'Unknown error'}`,
+          text: `Error merging network lists: ${akamaiError.title || akamaiError.detail || 'Unknown _error'}`,
         },
       ],
     };

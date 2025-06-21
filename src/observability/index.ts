@@ -149,9 +149,9 @@ export class ObservabilityStack extends EventEmitter {
         },
         'observability-stack',
       );
-    } catch (error) {
-      this.emit('initializationError', error);
-      throw error;
+    } catch (_error) {
+      this.emit('initializationError', _error);
+      throw _error;
     }
   }
 
@@ -342,7 +342,7 @@ export class ObservabilityStack extends EventEmitter {
           error ? 'error' : 'info',
           'akamai-api',
           `Akamai ${service} ${endpoint} ${status}`,
-          { duration, error: error?.message },
+          { duration, _error: error?.message },
           'akamai-client',
           traceId,
           spanId,
@@ -470,10 +470,10 @@ export class ObservabilityStack extends EventEmitter {
       try {
         await this.telemetry.testDestination(name);
         results[name] = { success: true };
-      } catch (error) {
+      } catch (_error) {
         results[name] = {
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: _error instanceof Error ? _error.message : 'Unknown error',
         };
       }
     }

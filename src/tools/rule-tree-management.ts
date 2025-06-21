@@ -273,12 +273,12 @@ export async function updatePropertyRulesEnhanced(
       let text = '❌ **Rule Validation Failed**\n\n';
       text += `**Errors Found:** ${validation.errors.length}\n\n`;
 
-      validation.errors.slice(0, 5).forEach((error, index) => {
-        text += `${index + 1}. **${error.type}** [${error.severity}]\n`;
-        text += `   Path: ${error.path}\n`;
-        text += `   Message: ${error.message}\n`;
-        if (error.fix) {
-          text += `   Fix: ${error.fix}\n`;
+      validation.errors.slice(0, 5).forEach((_error, index) => {
+        text += `${index + 1}. **${_error.type}** [${_error.severity}]\n`;
+        text += `   Path: ${_error.path}\n`;
+        text += `   Message: ${_error.message}\n`;
+        if (_error.fix) {
+          text += `   Fix: ${_error.fix}\n`;
         }
         text += '\n';
       });
@@ -386,8 +386,8 @@ export async function updatePropertyRulesEnhanced(
         },
       ],
     };
-  } catch (error) {
-    return formatError('update property rules with validation', error);
+  } catch (_error) {
+    return formatError('update property rules with validation', _error);
   }
 }
 
@@ -494,8 +494,8 @@ export async function createRuleFromTemplate(
         },
       ],
     };
-  } catch (error) {
-    return formatError('create rule from template', error);
+  } catch (_error) {
+    return formatError('create rule from template', _error);
   }
 }
 
@@ -526,7 +526,7 @@ export async function validateRuleTree(
     const statusIcon = validation.isValid ? '✅' : '❌';
     text += `**Overall Status:** ${statusIcon} ${validation.isValid ? 'Valid' : 'Invalid'}\n\n`;
 
-    text += '**Scores:**\n';
+    text += '**Sco_res:**\n';
     text += `- Performance: ${validation.performanceScore}/100\n`;
     text += `- Compliance: ${validation.complianceScore}/100\n\n`;
 
@@ -537,12 +537,12 @@ export async function validateRuleTree(
 
     if (validation.errors.length > 0) {
       text += '**🚨 Errors (must fix):**\n';
-      validation.errors.forEach((error, index) => {
-        text += `${index + 1}. [${error.severity}] ${error.type}\n`;
-        text += `   Path: ${error.path}\n`;
-        text += `   Issue: ${error.message}\n`;
-        if (error.fix) {
-          text += `   Fix: ${error.fix}\n`;
+      validation.errors.forEach((_error, index) => {
+        text += `${index + 1}. [${_error.severity}] ${_error.type}\n`;
+        text += `   Path: ${_error.path}\n`;
+        text += `   Issue: ${_error.message}\n`;
+        if (_error.fix) {
+          text += `   Fix: ${_error.fix}\n`;
         }
         text += '\n';
       });
@@ -593,8 +593,8 @@ export async function validateRuleTree(
         },
       ],
     };
-  } catch (error) {
-    return formatError('validate rule tree', error);
+  } catch (_error) {
+    return formatError('validate rule tree', _error);
   }
 }
 
@@ -640,11 +640,12 @@ export async function mergeRuleTrees(
         text += `- Validation errors: ${validation.errors.length}\n\n`;
 
         text += '**Validation Errors:**\n';
-        validation.errors.slice(0, 5).forEach((error, index) => {
-          text += `${index + 1}. ${error.message}\n`;
+        validation.errors.slice(0, 5).forEach((_error, index) => {
+          text += `${index + 1}. ${_error.message}\n`;
         });
 
-        text += '\n**Note:** The merge completed but resulted in an invalid rule tree. Review and fix validation errors.';
+        text +=
+          '\n**Note:** The merge completed but resulted in an invalid rule tree. Review and fix validation errors.';
 
         return {
           content: [
@@ -703,8 +704,8 @@ export async function mergeRuleTrees(
         },
       ],
     };
-  } catch (error) {
-    return formatError('merge rule trees', error);
+  } catch (_error) {
+    return formatError('merge rule trees', _error);
   }
 }
 
@@ -803,8 +804,8 @@ export async function optimizeRuleTree(
         },
       ],
     };
-  } catch (error) {
-    return formatError('optimize rule tree', error);
+  } catch (_error) {
+    return formatError('optimize rule tree', _error);
   }
 }
 
@@ -881,14 +882,14 @@ export async function listRuleTemplates(
         },
       ],
     };
-  } catch (error) {
-    return formatError('list rule templates', error);
+  } catch (_error) {
+    return formatError('list rule templates', _error);
   }
 }
 
 // Helper functions
 
-async function validateRuleTreeInternal(rules: any, _context: any): Promise<RuleValidationResult> {
+async function validateRuleTreeInternal(rules: any, __context: any): Promise<RuleValidationResult> {
   const errors: RuleValidationError[] = [];
   const warnings: RuleValidationWarning[] = [];
   const suggestions: RuleOptimizationSuggestion[] = [];
@@ -1164,14 +1165,14 @@ function calculatePerformanceScore(rules: any, warnings: RuleValidationWarning[]
   const hasHttp2 = hasSpecificBehavior(rules, 'http2');
 
   if (!hasCaching) {
-score -= 20;
-}
+    score -= 20;
+  }
   if (!hasCompression) {
-score -= 15;
-}
+    score -= 15;
+  }
   if (!hasHttp2) {
-score -= 15;
-}
+    score -= 15;
+  }
 
   return Math.max(0, Math.min(100, score));
 }
@@ -1233,7 +1234,7 @@ function processTemplate(template: any, variables: Record<string, any>): any {
 
       // Direct variable replacement
       return evaluateExpression(trimmed, variables);
-    } catch (error) {
+    } catch (_error) {
       logger.warn(`Failed to process template expression: ${expression}`);
       return match;
     }
@@ -1267,7 +1268,7 @@ function evaluateExpression(expression: string, variables: Record<string, any>):
   return expression;
 }
 
-function performRuleMerge(source: any, target: any, options: RuleMergeOptions): any {
+function performRuleMerge(source: any, target: any, _options: RuleMergeOptions): any {
   const result = {
     mergedRules: {},
     conflicts: [] as any[],
@@ -1281,9 +1282,9 @@ function performRuleMerge(source: any, target: any, options: RuleMergeOptions): 
   result.mergedRules = JSON.parse(JSON.stringify(target));
 
   // Merge based on strategy
-  switch (options.strategy) {
+  switch (_options.strategy) {
     case 'merge':
-      mergeRuleNodes(source, result.mergedRules, '/', result, options);
+      mergeRuleNodes(source, result.mergedRules, '/', result, _options);
       break;
     case 'override':
       result.mergedRules = JSON.parse(JSON.stringify(source));
@@ -1742,26 +1743,26 @@ function applySecurityOptimization(rules: any, _optimization: RuleOptimizationSu
 /**
  * Format error responses
  */
-function formatError(operation: string, error: any): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `❌ Failed to ${operation}`;
   let solution = '';
 
-  if (error instanceof Error) {
-    errorMessage += `: ${error.message}`;
+  if (_error instanceof Error) {
+    errorMessage += `: ${_error.message}`;
 
     // Provide specific solutions based on error type
-    if (error.message.includes('401') || error.message.includes('credentials')) {
+    if (_error.message.includes('401') || _error.message.includes('credentials')) {
       solution =
         '**Solution:** Check your ~/.edgerc file has valid credentials for the customer section.';
-    } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
       solution = '**Solution:** Your API credentials may lack the necessary permissions.';
-    } else if (error.message.includes('404') || error.message.includes('not found')) {
+    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
       solution = '**Solution:** The requested resource was not found. Verify the ID is correct.';
-    } else if (error.message.includes('validation')) {
+    } else if (_error.message.includes('validation')) {
       solution = '**Solution:** Fix validation errors in the rule tree before proceeding.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

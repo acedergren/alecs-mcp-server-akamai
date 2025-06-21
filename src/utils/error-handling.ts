@@ -1,6 +1,6 @@
 /**
  * Error handling utilities for MCP tools
- * Wrapper around the main error utilities to provide consistent error handling
+ * Wrapper around the main _error utilities to provide consistent _error handling
  */
 
 import { type MCPToolResponse } from '../types';
@@ -10,22 +10,22 @@ import { ErrorTranslator, type ErrorContext } from './errors';
 const errorTranslator = new ErrorTranslator();
 
 /**
- * Format an API error for display
+ * Format an API _error for display
  */
-export function formatApiError(error: any, operation: string): string {
-  const context: ErrorContext = {
+export function formatApiError(_error: any, operation: string): string {
+  const _context: ErrorContext = {
     operation,
     timestamp: new Date(),
   };
 
-  return errorTranslator.formatConversationalError(error, context);
+  return errorTranslator.formatConversationalError(_error, _context);
 }
 
 /**
  * Handle API errors and return proper MCP response
  */
-export function handleApiError(error: any, operation: string): MCPToolResponse {
-  const errorMessage = formatApiError(error, operation);
+export function handleApiError(_error: any, operation: string): MCPToolResponse {
+  const errorMessage = formatApiError(_error, operation);
 
   return {
     content: [
@@ -38,7 +38,7 @@ export function handleApiError(error: any, operation: string): MCPToolResponse {
 }
 
 /**
- * Create a standardized error response
+ * Create a standardized _error response
  */
 export function createErrorResponse(message: string, suggestions?: string[]): MCPToolResponse {
   let text = `Error: ${message}`;
@@ -61,24 +61,24 @@ export function createErrorResponse(message: string, suggestions?: string[]): MC
 }
 
 /**
- * Extract error message from various error formats
+ * Extract _error message from various _error formats
  */
-export function extractErrorMessage(error: any): string {
-  if (typeof error === 'string') {
-    return error;
+export function extractErrorMessage(_error: any): string {
+  if (typeof _error === 'string') {
+    return _error;
   }
 
-  if (error.message) {
-    return error.message;
+  if (_error.message) {
+    return _error.message;
   }
 
-  if (error.response?.data?.detail) {
-    return error.response.data.detail;
+  if (_error.response?.data?.detail) {
+    return _error.response.data.detail;
   }
 
-  if (error.response?.statusText) {
-    return error.response.statusText;
+  if (_error.response?.statusText) {
+    return _error.response.statusText;
   }
 
-  return 'Unknown error occurred';
+  return 'Unknown _error occurred';
 }

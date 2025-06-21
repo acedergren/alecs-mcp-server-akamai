@@ -20,8 +20,8 @@ function formatJson(obj: any): string {
 
 function formatTable(data: any[]): string {
   if (!data || data.length === 0) {
-return 'No data available';
-}
+    return 'No data available';
+  }
 
   const keys = Object.keys(data[0]);
   let result = keys.join('\t') + '\n';
@@ -77,10 +77,10 @@ export const listAppSecConfigurations = {
           ),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
-        error: `Failed to list APPSEC configurations: ${error instanceof Error ? error.message : String(error)}`,
+        error: `Failed to list APPSEC configurations: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },
@@ -127,10 +127,10 @@ export const getAppSecConfiguration = {
           formatted: formatJson(response),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
-        error: `Failed to get APPSEC configuration: ${error instanceof Error ? error.message : String(error)}`,
+        error: `Failed to get APPSEC configuration: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },
@@ -196,10 +196,10 @@ export const createWAFPolicy = {
           formatted: formatJson(response),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
-        error: `Failed to create WAF policy: ${error instanceof Error ? error.message : String(error)}`,
+        error: `Failed to create WAF policy: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },
@@ -282,10 +282,10 @@ export const getSecurityEvents = {
           ),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
-        error: `Failed to get security events: ${error instanceof Error ? error.message : String(error)}`,
+        error: `Failed to get security events: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },
@@ -351,10 +351,10 @@ export const activateSecurityConfiguration = {
           formatted: formatJson(response),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
-        error: `Failed to activate security configuration: ${error instanceof Error ? error.message : String(error)}`,
+        error: `Failed to activate security configuration: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },
@@ -404,10 +404,10 @@ export const getSecurityActivationStatus = {
           formatted: formatJson(response),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
-        error: `Failed to get activation status: ${error instanceof Error ? error.message : String(error)}`,
+        error: `Failed to get activation status: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
   },

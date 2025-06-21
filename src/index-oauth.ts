@@ -20,38 +20,29 @@ import {
 import { z, type ZodSchema } from 'zod';
 
 // Import OAuth 2.1 components
-import {
-  OAuthMiddleware,
-  setupOAuth21Protection,
-  type OAuthMiddlewareConfig,
-  type AuthContext,
-} from './auth';
+import { OAuthMiddleware, type OAuthMiddlewareConfig, type AuthContext } from './auth';
 import { ValkeyCache } from './services/valkey-cache-service';
 
 // Import tool implementations
 import {
-  listZones,
-  getZone,
   createZone,
-  listRecords,
   upsertRecord,
-  deleteRecord,
-  activateZoneChanges,
+  // activateZoneChanges,
 } from './tools/dns-tools';
-import { listProducts, getProduct } from './tools/product-tools';
+// import { listProducts, getProduct } from './tools/product-tools';
 import {
-  createPropertyVersion,
-  getPropertyRules,
-  updatePropertyRules,
+  // createPropertyVersion,
+  // getPropertyRules,
+  // updatePropertyRules,
   activateProperty,
-  getActivationStatus,
+  // getActivationStatus,
 } from './tools/property-manager-tools';
 import {
   listProperties,
   getProperty,
   createProperty,
-  listGroups,
-  listContracts,
+  // listGroups,
+  // listContracts,
 } from './tools/property-tools';
 import { ConfigurationError, ConfigErrorType } from './types/config';
 import {
@@ -64,8 +55,8 @@ import {
   ActivatePropertySchema,
   CreateZoneSchema,
   CreateRecordSchema,
-  PurgeByUrlSchema,
-  CreateNetworkListSchema,
+  // PurgeByUrlSchema,
+  // CreateNetworkListSchema,
 } from './types/mcp';
 import { CustomerConfigManager } from './utils/customer-config';
 import { logger } from './utils/logger';
@@ -221,8 +212,8 @@ export class ALECSOAuthServer {
    * Setup global error handling
    */
   private setupErrorHandling(): void {
-    process.on('uncaughtException', (error: Error) => {
-      logger.error('Uncaught exception', { error: error.message, stack: error.stack });
+    process.on('uncaughtException', (_error: Error) => {
+      logger.error('Uncaught exception', { error: _error.message, stack: _error.stack });
       process.exit(1);
     });
 
@@ -244,7 +235,11 @@ export class ALECSOAuthServer {
   /**
    * Create request context
    */
-  private createRequestContext(toolName: string, params?: unknown, authContext?: AuthContext): RequestContext {
+  private createRequestContext(
+    toolName: string,
+    params?: unknown,
+    authContext?: AuthContext,
+  ): RequestContext {
     const customer = this.extractCustomer(params);
     return {
       requestId: this.generateRequestId(),
@@ -417,20 +412,20 @@ export class ALECSOAuthServer {
             (mockRequest as any)._meta = (params as any)._meta;
           }
 
-          authContext = await this.oauthMiddleware.authenticate(mockRequest) || undefined;
+          authContext = (await this.oauthMiddleware.authenticate(mockRequest)) || undefined;
 
           if (authContext) {
             await this.oauthMiddleware.authorize(mockRequest, authContext);
           }
-        } catch (error) {
+        } catch (_error) {
           logger.error('OAuth authentication/authorization failed', {
             tool: toolName,
-            error: error instanceof Error ? error.message : String(error),
+            error: _error instanceof Error ? _error.message : String(_error),
           });
 
           return {
             success: false,
-            error: error instanceof Error ? error.message : 'Authentication failed',
+            error: _error instanceof Error ? _error.message : 'Authentication failed',
             metadata: {
               customer: 'unknown',
               duration: 0,
@@ -494,19 +489,19 @@ export class ALECSOAuthServer {
       }
 
       return response;
-    } catch (error) {
+    } catch (_error) {
       const duration = Date.now() - context.startTime;
 
       logger.error('Tool request failed', {
         ...context,
         duration,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+        error: _error instanceof Error ? _error.message : String(_error),
+        stack: _error instanceof Error ? _error.stack : undefined,
       });
 
       const response: McpToolResponse & { _meta?: any } = {
         success: false,
-        error: this.formatError(error),
+        error: this.formatError(_error),
         metadata: {
           customer: context.customer || 'default',
           duration,
@@ -526,20 +521,20 @@ export class ALECSOAuthServer {
   /**
    * Format error for response
    */
-  private formatError(error: unknown): string {
-    if (error instanceof ConfigurationError) {
-      return `Configuration error: ${error.message}`;
+  private formatError(_error: unknown): string {
+    if (_error instanceof ConfigurationError) {
+      return `Configuration error: ${_error.message}`;
     }
 
-    if (error instanceof z.ZodError) {
-      return `Validation error: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`;
+    if (_error instanceof z.ZodError) {
+      return `Validation error: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`;
     }
 
-    if (error instanceof Error) {
-      return error.message;
+    if (_error instanceof Error) {
+      return _error.message;
     }
 
-    return String(error);
+    return String(_error);
   }
 
   /**
@@ -611,12 +606,12 @@ export class ALECSOAuthServer {
    */
   private setupHandlers(): void {
     // Handle list tools request
-    this.server.setRequestHandler(ListToolsRequestSchema, async (request: ListToolsRequest) => {
+    this.server.setRequestHandler(ListToolsRequestSchema, async (_request: ListToolsRequest) => {
       logger.debug('List tools request received');
 
       const tools: Tool[] = [];
 
-      for (const [name, entry] of this.toolRegistry) {
+      for (const [_name, entry] of this.toolRegistry) {
         tools.push(this.toolMetadataToMcpTool(entry.metadata, entry));
       }
 
@@ -624,8 +619,8 @@ export class ALECSOAuthServer {
 
       // Add _meta support if present in request
       const response: any = { tools };
-      if ((request as any)._meta) {
-        response._meta = (request as any)._meta;
+      if ((_request as any)._meta) {
+        response._meta = (_request as any)._meta;
       }
 
       return response;
@@ -634,8 +629,8 @@ export class ALECSOAuthServer {
     // Handle call tool request
     this.server.setRequestHandler(
       CallToolRequestSchema,
-      async (request: CallToolRequest): Promise<CallToolResult> => {
-        const { name, arguments: args } = request.params;
+      async (_request: CallToolRequest): Promise<CallToolResult> => {
+        const { name, arguments: args } = _request.params;
 
         const entry = this.toolRegistry.get(name);
 
@@ -648,10 +643,10 @@ export class ALECSOAuthServer {
           let authContext: AuthContext | undefined;
 
           if (this.oauthMiddleware && entry.requiresAuth) {
-            authContext = await this.oauthMiddleware.authenticate(request) || undefined;
+            authContext = (await this.oauthMiddleware.authenticate(_request)) || undefined;
 
             if (authContext) {
-              await this.oauthMiddleware.authorize(request, authContext);
+              await this.oauthMiddleware.authorize(_request, authContext);
               await this.oauthMiddleware.applyRateLimit(authContext);
             }
           }
@@ -679,19 +674,19 @@ export class ALECSOAuthServer {
               },
             ],
           };
-        } catch (error) {
-          if (error instanceof z.ZodError) {
+        } catch (_error) {
+          if (_error instanceof z.ZodError) {
             throw new McpError(
               ErrorCode.InvalidParams,
-              `Invalid parameters: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
+              `Invalid parameters: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
             );
           }
 
-          if (error instanceof McpError) {
-            throw error;
+          if (_error instanceof McpError) {
+            throw _error;
           }
 
-          throw new McpError(ErrorCode.InternalError, this.formatError(error));
+          throw new McpError(ErrorCode.InternalError, this.formatError(_error));
         }
       },
     );
@@ -711,8 +706,8 @@ export class ALECSOAuthServer {
       // Create and configure transport
       const transport = new StdioServerTransport();
 
-      transport.onerror = (error: Error) => {
-        logger.error('Transport error', { error: error.message, stack: error.stack });
+      transport.onerror = (_error: Error) => {
+        logger.error('Transport error', { error: _error.message, stack: _error.stack });
       };
 
       transport.onclose = () => {
@@ -727,12 +722,12 @@ export class ALECSOAuthServer {
         oauthEnabled: !!this.oauthMiddleware,
         cacheEnabled: !!this.cacheService,
       });
-    } catch (error) {
+    } catch (_error) {
       logger.error('Failed to start server', {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
+        error: _error instanceof Error ? _error.message : String(_error),
+        stack: _error instanceof Error ? _error.stack : undefined,
       });
-      throw error;
+      throw _error;
     }
   }
 }
@@ -762,10 +757,10 @@ async function main(): Promise<void> {
     });
 
     await server.start();
-  } catch (error) {
+  } catch (_error) {
     logger.error('Server initialization failed', {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+      error: _error instanceof Error ? _error.message : String(_error),
+      stack: _error instanceof Error ? _error.stack : undefined,
     });
     process.exit(1);
   }

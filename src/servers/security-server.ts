@@ -486,7 +486,7 @@ class SecurityALECSServer {
                 typedArgs,
               );
               break;
-            case 'update-network-list':
+            case 'update-network-list': {
               const updateOptions: any = {};
               if (typedArgs.mode === 'append') {
                 updateOptions.addElements = typedArgs.elements;
@@ -496,25 +496,26 @@ class SecurityALECSServer {
                 updateOptions.replaceElements = typedArgs.elements;
               }
               if (typedArgs.description) {
-updateOptions.description = typedArgs.description;
-}
+                updateOptions.description = typedArgs.description;
+              }
               result = await updateNetworkList(
                 typedArgs.networkListId,
                 typedArgs.customer,
                 updateOptions,
               );
               break;
+            }
             case 'delete-network-list':
               result = await deleteNetworkList(typedArgs.networkListId, typedArgs.customer);
               break;
-            case 'activate-network-list':
+            case 'activate-network-list': {
               const activateOptions: any = {};
               if (typedArgs.comment) {
-activateOptions.comments = typedArgs.comment;
-}
+                activateOptions.comments = typedArgs.comment;
+              }
               if (typedArgs.notificationRecipients) {
-activateOptions.notificationEmails = typedArgs.notificationRecipients;
-}
+                activateOptions.notificationEmails = typedArgs.notificationRecipients;
+              }
               result = await activateNetworkList(
                 typedArgs.networkListId,
                 typedArgs.network,
@@ -522,6 +523,7 @@ activateOptions.notificationEmails = typedArgs.notificationRecipients;
                 activateOptions,
               );
               break;
+            }
             case 'get-network-list-activation-status':
               result = await getNetworkListActivationStatus(
                 typedArgs.activationId,
@@ -534,11 +536,11 @@ activateOptions.notificationEmails = typedArgs.notificationRecipients;
                 typedArgs.customer,
               );
               break;
-            case 'deactivate-network-list':
+            case 'deactivate-network-list': {
               const deactivateOptions: any = {};
               if (typedArgs.comment) {
-deactivateOptions.comments = typedArgs.comment;
-}
+                deactivateOptions.comments = typedArgs.comment;
+              }
               result = await deactivateNetworkList(
                 typedArgs.networkListId,
                 typedArgs.network,
@@ -546,22 +548,24 @@ deactivateOptions.comments = typedArgs.comment;
                 deactivateOptions,
               );
               break;
-            case 'bulk-activate-network-lists':
+            }
+            case 'bulk-activate-network-lists': {
               const bulkActivations = typedArgs.networkListIds.map((id: string) => ({
                 uniqueId: id,
                 network: typedArgs.network,
               }));
               const bulkOptions: any = {};
               if (typedArgs.comment) {
-bulkOptions.comments = typedArgs.comment;
-}
+                bulkOptions.comments = typedArgs.comment;
+              }
               result = await bulkActivateNetworkLists(
                 bulkActivations,
                 typedArgs.customer,
                 bulkOptions,
               );
               break;
-            case 'import-network-list-from-csv':
+            }
+            case 'import-network-list-from-csv': {
               // First create the list, then import
               const createResult = await createNetworkList(
                 typedArgs.name,
@@ -584,6 +588,7 @@ bulkOptions.comments = typedArgs.comment;
                 result = createResult;
               }
               break;
+            }
             case 'export-network-list-to-csv':
               result = await exportNetworkListToCSV(typedArgs.networkListId, typedArgs.customer);
               break;
@@ -635,32 +640,32 @@ bulkOptions.comments = typedArgs.comment;
         log('INFO', `✅ Tool ${name} completed in ${duration}ms`);
 
         return result;
-      } catch (error) {
+      } catch (_error) {
         const duration = Date.now() - startTime;
         log('ERROR', `❌ Tool ${name} failed after ${duration}ms`, {
           error:
-            error instanceof Error
+            _error instanceof Error
               ? {
-                  message: error.message,
-                  stack: error.stack,
+                  message: _error.message,
+                  stack: _error.stack,
                 }
-              : String(error),
+              : String(_error),
         });
 
-        if (error instanceof z.ZodError) {
+        if (_error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
+            `Invalid parameters: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
           );
         }
 
-        if (error instanceof McpError) {
-          throw error;
+        if (_error instanceof McpError) {
+          throw _error;
         }
 
         throw new McpError(
           ErrorCode.InternalError,
-          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
+          `Tool execution failed: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
       }
     });
@@ -674,10 +679,10 @@ bulkOptions.comments = typedArgs.comment;
     const transport = new StdioServerTransport();
 
     // Add error handling for transport
-    transport.onerror = (error: Error) => {
+    transport.onerror = (_error: Error) => {
       log('ERROR', '❌ Transport error', {
-        message: error.message,
-        stack: error.stack,
+        message: _error.message,
+        stack: _error.stack,
       });
     };
 
@@ -694,17 +699,17 @@ bulkOptions.comments = typedArgs.comment;
         memoryUsage: process.memoryUsage(),
         uptime: process.uptime(),
       });
-    } catch (error) {
+    } catch (_error) {
       log('ERROR', '❌ Failed to connect server', {
         error:
-          error instanceof Error
+          _error instanceof Error
             ? {
-                message: error.message,
-                stack: error.stack,
+                message: _error.message,
+                stack: _error.stack,
               }
-            : String(error),
+            : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 }
@@ -725,26 +730,26 @@ async function main() {
         pid: process.pid,
       });
     }, 30000); // Every 30 seconds
-  } catch (error) {
+  } catch (_error) {
     log('ERROR', '❌ Failed to start server', {
       error:
-        error instanceof Error
+        _error instanceof Error
           ? {
-              message: error.message,
-              stack: error.stack,
+              message: _error.message,
+              stack: _error.stack,
             }
-          : String(error),
+          : String(_error),
     });
     process.exit(1);
   }
 }
 
 // Handle uncaught errors
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', (_error) => {
   log('ERROR', '❌ Uncaught exception', {
     error: {
-      message: error.message,
-      stack: error.stack,
+      message: _error.message,
+      stack: _error.stack,
     },
   });
   process.exit(1);

@@ -144,8 +144,8 @@ export async function getCertificateDeploymentStatus(
     deployments.forEach((dep: any) => {
       const network = dep.primaryCertificate?.network || dep.targetEnvironment || 'unknown';
       if (!byNetwork[network]) {
-byNetwork[network] = [];
-}
+        byNetwork[network] = [];
+      }
       byNetwork[network].push(dep);
     });
 
@@ -201,12 +201,12 @@ byNetwork[network] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `❌ Failed to get deployment status: ${error instanceof Error ? error.message : String(error)}`,
+          text: `❌ Failed to get deployment status: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };
@@ -305,12 +305,12 @@ export async function renewCertificate(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `❌ Failed to renew certificate: ${error instanceof Error ? error.message : String(error)}`,
+          text: `❌ Failed to renew certificate: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };
@@ -385,8 +385,8 @@ export async function cleanupValidationRecords(
         });
         text += `✅ Deleted: ${record.recordName} from ${record.zone}\n`;
         deleted++;
-      } catch (error) {
-        text += `❌ Failed to delete ${record.recordName}: ${error instanceof Error ? error.message : 'Unknown error'}\n`;
+      } catch (_error) {
+        text += `❌ Failed to delete ${record.recordName}: ${_error instanceof Error ? _error.message : 'Unknown _error'}\n`;
         failed++;
       }
     }
@@ -407,12 +407,12 @@ export async function cleanupValidationRecords(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `❌ Failed to cleanup validation records: ${error instanceof Error ? error.message : String(error)}`,
+          text: `❌ Failed to cleanup validation records: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };
@@ -459,8 +459,8 @@ export async function getCertificateValidationHistory(
     history.forEach((entry: any) => {
       const domain = entry.domain || 'unknown';
       if (!byDomain[domain]) {
-byDomain[domain] = [];
-}
+        byDomain[domain] = [];
+      }
       byDomain[domain].push(entry);
     });
 
@@ -491,7 +491,7 @@ byDomain[domain] = [];
         }
 
         if (entry.expires) {
-          text += `- **Expires:** ${new Date(entry.expires).toLocaleString()}\n`;
+          text += `- **Expi_res:** ${new Date(entry.expires).toLocaleString()}\n`;
         }
 
         if (entry.error) {
@@ -515,12 +515,12 @@ byDomain[domain] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `❌ Failed to get validation history: ${error instanceof Error ? error.message : String(error)}`,
+          text: `❌ Failed to get validation history: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };

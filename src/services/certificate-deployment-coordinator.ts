@@ -48,10 +48,10 @@ export interface DeploymentEvents {
   'deployment:started': (enrollmentId: number, network: string) => void;
   'deployment:progress': (enrollmentId: number, progress: number) => void;
   'deployment:completed': (enrollmentId: number, deploymentId: number) => void;
-  'deployment:failed': (enrollmentId: number, error: string) => void;
+  'deployment:failed': (enrollmentId: number, _error: string) => void;
   'property:linking': (propertyId: string) => void;
   'property:linked': (propertyId: string, version: number) => void;
-  'property:link_failed': (propertyId: string, error: string) => void;
+  'property:link_failed': (propertyId: string, _error: string) => void;
   'rollback:started': (enrollmentId: number) => void;
   'rollback:completed': (enrollmentId: number) => void;
 }
@@ -120,9 +120,9 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
       this.emit('deployment:completed', enrollmentId, deploymentId);
 
       return deploymentState;
-    } catch (error) {
+    } catch (_error) {
       deploymentState.status = 'failed';
-      deploymentState.error = error instanceof Error ? error.message : String(error);
+      deploymentState.error = _error instanceof Error ? _error.message : String(_error);
       deploymentState.endTime = new Date();
       this.emit('deployment:failed', enrollmentId, deploymentState.error);
 
@@ -131,7 +131,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
         await this.rollbackDeployment(enrollmentId);
       }
 
-      throw error;
+      throw _error;
     } finally {
       // Cleanup monitors
       this.stopMonitoring(enrollmentId);
@@ -181,7 +181,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
         try {
           await this.linkToProperty(enrollmentId, propertyId);
           linkingState.completed++;
-        } catch (error) {
+        } catch (_error) {
           linkingState.failed++;
         }
         this.updateDeploymentProgress(enrollmentId, linkingState);
@@ -225,7 +225,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
         startTime: new Date(latest.deploymentDate || Date.now()),
         progress: latest.deploymentStatus === 'active' ? 100 : 50,
       };
-    } catch (error) {
+    } catch (_error) {
       return null;
     }
   }
@@ -250,9 +250,9 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
       deploymentState.status = 'rolled_back';
       this.emit('rollback:completed', enrollmentId);
-    } catch (error) {
+    } catch (_error) {
       throw new Error(
-        `Failed to cancel deployment: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to cancel deployment: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
     }
   }
@@ -340,9 +340,9 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
             clearInterval(monitor);
             reject(new Error('Deployment timeout'));
           }
-        } catch (error) {
+        } catch (_error) {
           clearInterval(monitor);
-          reject(error);
+          reject(_error);
         }
       }, 10000); // Check every 10 seconds
 
@@ -369,15 +369,15 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
       // Estimate progress based on status
       let progress = 50;
       if (status === 'deployed') {
-progress = 100;
-} else if (status === 'in_progress') {
-progress = 75;
-} else if (status === 'initiated') {
-progress = 25;
-}
+        progress = 100;
+      } else if (status === 'in_progress') {
+        progress = 75;
+      } else if (status === 'initiated') {
+        progress = 25;
+      }
 
       return { status, progress };
-    } catch (error) {
+    } catch (_error) {
       // If we can't get status, assume it's still in progress
       return { status: 'in_progress', progress: 50 };
     }
@@ -431,11 +431,11 @@ progress = 25;
       propertyState.status = 'linked';
       propertyState.version = version;
       this.emit('property:linked', propertyId, version);
-    } catch (error) {
+    } catch (_error) {
       propertyState.status = 'failed';
-      propertyState.error = error instanceof Error ? error.message : String(error);
+      propertyState.error = _error instanceof Error ? _error.message : String(_error);
       this.emit('property:link_failed', propertyId, propertyState.error);
-      throw error;
+      throw _error;
     }
   }
 
@@ -445,8 +445,8 @@ progress = 25;
     try {
       // Cancel deployment if possible
       await this.cancelDeployment(enrollmentId);
-    } catch (error) {
-      console.error('Rollback failed:', error);
+    } catch (_error) {
+      console.error('[Error]:', _error);
     }
   }
 

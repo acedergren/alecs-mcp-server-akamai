@@ -3,11 +3,7 @@
  * MCP tools for performance analysis, optimization, and monitoring
  */
 
-import {
-  globalPerformanceMonitor,
-  responseCache,
-  metadataCache,
-} from '@utils/performance-monitor';
+import { globalPerformanceMonitor, responseCache, metadataCache } from '@utils/performance-monitor';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -100,12 +96,12 @@ export async function getPerformanceAnalysis(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `Error generating performance analysis: ${(error as Error).message}`,
+          text: `Error generating performance analysis: ${(_error as Error).message}`,
         },
       ],
     };
@@ -220,12 +216,12 @@ export async function optimizeCache(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `Error optimizing cache: ${(error as Error).message}`,
+          text: `Error optimizing cache: ${(_error as Error).message}`,
         },
       ],
     };
@@ -297,20 +293,20 @@ export async function profilePerformance(
           successCount++;
           totalDuration += duration;
           if (cacheHit) {
-cacheHits++;
-}
+            cacheHits++;
+          }
 
           responseText += `- **Iteration ${i}:** ${duration}ms ${cacheHit ? '(cached)' : ''}\n`;
-        } catch (error) {
+        } catch (_error) {
           testResults.push({
             operation,
             iteration: i,
             duration: Date.now() - startTime,
             cacheHit: false,
-            error: (error as Error).message,
+            error: (_error as Error).message,
           });
 
-          responseText += `- **Iteration ${i}:** Failed - ${(error as Error).message}\n`;
+          responseText += `- **Iteration ${i}:** Failed - ${(_error as Error).message}\n`;
         }
 
         // Small delay between iterations
@@ -366,8 +362,8 @@ cacheHits++;
       .map((op) => {
         const opResults = testResults.filter((r) => r.operation === op && !r.error);
         if (opResults.length === 0) {
-return null;
-}
+          return null;
+        }
 
         const avgDuration = opResults.reduce((sum, r) => sum + r.duration, 0) / opResults.length;
         const maxDuration = Math.max(...opResults.map((r) => r.duration));
@@ -431,12 +427,12 @@ return null;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `Error profiling performance: ${(error as Error).message}`,
+          text: `Error profiling performance: ${(_error as Error).message}`,
         },
       ],
     };
@@ -544,12 +540,12 @@ export async function getRealtimeMetrics(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `Error monitoring real-time metrics: ${(error as Error).message}`,
+          text: `Error monitoring real-time metrics: ${(_error as Error).message}`,
         },
       ],
     };
@@ -609,7 +605,8 @@ export async function resetPerformanceMonitoring(
     responseText += `- **Response Cache Size:** ${responseCache.size()}\n`;
     responseText += `- **Metadata Cache Size:** ${metadataCache.size()}\n`;
 
-    responseText += '\n✅ **Performance monitoring has been reset and is ready for fresh data collection.**';
+    responseText +=
+      '\n✅ **Performance monitoring has been reset and is ready for fresh data collection.**';
 
     return {
       content: [
@@ -619,12 +616,12 @@ export async function resetPerformanceMonitoring(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: `Error resetting performance monitoring: ${(error as Error).message}`,
+          text: `Error resetting performance monitoring: ${(_error as Error).message}`,
         },
       ],
     };

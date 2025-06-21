@@ -5,8 +5,6 @@
 
 import { z } from 'zod';
 
-import { type NetworkEnvironment } from './config';
-
 /**
  * MCP 2025 Response Meta Type
  * All responses must include optional _meta field

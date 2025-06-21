@@ -1,9 +1,7 @@
 /**
  * OAuth Authentication Types and Interfaces
- * Provides type definitions for OAuth authentication with customer context mapping
+ * Provides type definitions for OAuth authentication with customer _context mapping
  */
-
-import type { EdgeGridCredentials } from '@/types/config';
 
 /**
  * OAuth provider types supported
@@ -57,7 +55,7 @@ export interface OAuthProfile {
 }
 
 /**
- * Customer context mapping
+ * Customer _context mapping
  */
 export interface CustomerContext {
   /** Customer identifier */
@@ -90,7 +88,7 @@ export interface OAuthSubjectMapping {
   provider: OAuthProvider;
   /** Mapped customer contexts */
   customerContexts: CustomerContext[];
-  /** Default customer context */
+  /** Default customer _context */
   defaultCustomerId?: string;
   /** Mapping creation timestamp */
   createdAt: Date;
@@ -151,7 +149,7 @@ export interface AuthSession {
   token: OAuthToken;
   /** User profile */
   profile: OAuthProfile;
-  /** Current customer context */
+  /** Current customer _context */
   currentContext?: CustomerContext;
   /** Available customer contexts */
   availableContexts: CustomerContext[];
@@ -171,7 +169,7 @@ export interface CredentialAuditLog {
   id: string;
   /** User who accessed credentials */
   userId: string;
-  /** Customer context */
+  /** Customer _context */
   customerId: string;
   /** Action performed */
   action: CredentialAction;
@@ -353,12 +351,12 @@ export interface DataResidencyRequirement {
 }
 
 /**
- * Authorization context for requests
+ * Authorization _context for requests
  */
 export interface AuthorizationContext {
   /** Authenticated user */
   user: OAuthProfile;
-  /** Current customer context */
+  /** Current customer _context */
   customerContext: CustomerContext;
   /** Effective permissions */
   permissions: Permission[];

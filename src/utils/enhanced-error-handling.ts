@@ -1,8 +1,8 @@
 /**
  * Enhanced Error Handling for Akamai APIs
  *
- * Comprehensive error handling with retry logic, categorization,
- * and user-friendly messaging based on documented error patterns.
+ * Comprehensive _error handling with retry logic, categorization,
+ * and user-friendly messaging based on documented _error patterns.
  */
 
 import { type AkamaiErrorResponse } from './response-parsing';
@@ -33,7 +33,7 @@ export interface EnhancedErrorResult {
   errorCode?: string;
   errorType: ErrorType;
   suggestions: string[];
-  context: ErrorContext;
+  _context: ErrorContext;
 }
 
 export enum ErrorType {
@@ -59,32 +59,32 @@ export class EnhancedErrorHandler {
   };
 
   /**
-   * Handle error with comprehensive analysis and suggestions
+   * Handle _error with comprehensive analysis and suggestions
    */
-  handle(error: any, context: ErrorContext = {}): EnhancedErrorResult {
-    const httpStatus = this.extractHttpStatus(error);
-    const akamaiError = this.parseAkamaiErrorResponse(error);
-    const errorType = this.categorizeError(httpStatus, akamaiError, context);
+  handle(_error: any, _context: ErrorContext = {}): EnhancedErrorResult {
+    const _httpStatus = this.extractHttpStatus(_error);
+    const akamaiError = this.parseAkamaiErrorResponse(_error);
+    const errorType = this.categorizeError(_httpStatus, akamaiError, _context);
 
-    // Extract request ID and add to context for suggestions
-    const requestId = akamaiError?.requestId || this.extractRequestId(error);
-    if (requestId && !context.requestId) {
-      context.requestId = requestId;
+    // Extract request ID and add to _context for suggestions
+    const requestId = akamaiError?.requestId || this.extractRequestId(_error);
+    if (requestId && !_context.requestId) {
+      _context.requestId = requestId;
     }
 
-    const suggestions = this.generateSuggestions(httpStatus, akamaiError, errorType, context);
+    const suggestions = this.generateSuggestions(_httpStatus, akamaiError, errorType, _context);
 
     return {
       success: false,
-      error: this.formatTechnicalError(akamaiError, httpStatus),
-      userMessage: this.formatUserMessage(httpStatus, akamaiError, errorType, context),
-      shouldRetry: this.isRetryable(httpStatus, errorType),
-      retryAfter: this.extractRetryAfter(error),
+      error: this.formatTechnicalError(akamaiError, _httpStatus),
+      userMessage: this.formatUserMessage(_httpStatus, akamaiError, errorType, _context),
+      shouldRetry: this.isRetryable(_httpStatus, errorType),
+      retryAfter: this.extractRetryAfter(_error),
       requestId,
       errorCode: akamaiError?.type,
       errorType,
       suggestions,
-      context,
+      _context,
     };
   }
 
@@ -93,7 +93,7 @@ export class EnhancedErrorHandler {
    */
   async withRetry<T>(
     operation: () => Promise<T>,
-    context: ErrorContext = {},
+    _context: ErrorContext = {},
     retryConfig?: Partial<RetryConfig>,
   ): Promise<T> {
     const config = { ...this.defaultRetryConfig, ...retryConfig };
@@ -103,9 +103,9 @@ export class EnhancedErrorHandler {
     for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
       try {
         return await operation();
-      } catch (error) {
-        lastError = error;
-        const errorResult = this.handle(error, context);
+      } catch (_error) {
+        lastError = _error;
+        const errorResult = this.handle(_error, _context);
 
         attempts.push({
           attempt,
@@ -116,22 +116,22 @@ export class EnhancedErrorHandler {
               : 0,
         });
 
-        // Don't retry if error is not retryable
+        // Don't retry if _error is not retryable
         if (!errorResult.shouldRetry) {
-          this.logFailure(attempts, context);
-          throw error;
+          this.logFailure(attempts, _context);
+          throw _error;
         }
 
         // Don't retry on last attempt
         if (attempt === config.maxAttempts) {
-          this.logFailure(attempts, context);
+          this.logFailure(attempts, _context);
           break;
         }
 
         // Calculate delay and wait
         const delay = this.calculateDelay(attempt, config, errorResult.retryAfter);
 
-        this.logRetryAttempt(attempt, delay, errorResult, context);
+        this.logRetryAttempt(attempt, delay, errorResult, _context);
         await this.delay(delay);
       }
     }
@@ -140,38 +140,38 @@ export class EnhancedErrorHandler {
   }
 
   /**
-   * Extract HTTP status from various error formats
+   * Extract HTTP status from various _error formats
    */
-  private extractHttpStatus(error: any): number {
-    if (error.response?.status) {
-return error.response.status;
-}
-    if (error.status) {
-return error.status;
-}
-    if (error.statusCode) {
-return error.statusCode;
-}
-    if (error.code === 'ECONNREFUSED') {
-return 503;
-}
-    if (error.code === 'ETIMEDOUT') {
-return 408;
-}
-    if (error.code === 'ENOTFOUND') {
-return 503;
-}
-    if (error.code === 'ECONNRESET') {
-return 503;
-}
+  private extractHttpStatus(_error: any): number {
+    if (_error.response?.status) {
+      return _error.response.status;
+    }
+    if (_error.status) {
+      return _error.status;
+    }
+    if (_error.statusCode) {
+      return _error.statusCode;
+    }
+    if (_error.code === 'ECONNREFUSED') {
+      return 503;
+    }
+    if (_error.code === 'ETIMEDOUT') {
+      return 408;
+    }
+    if (_error.code === 'ENOTFOUND') {
+      return 503;
+    }
+    if (_error.code === 'ECONNRESET') {
+      return 503;
+    }
     return 500;
   }
 
   /**
-   * Parse Akamai error response with enhanced extraction
+   * Parse Akamai _error response with enhanced extraction
    */
-  private parseAkamaiErrorResponse(error: any): AkamaiErrorResponse | null {
-    let errorData = error.response?.data || error.data || error;
+  private parseAkamaiErrorResponse(_error: any): AkamaiErrorResponse | null {
+    let errorData = _error.response?.data || _error.data || _error;
 
     // Handle string responses
     if (typeof errorData === 'string') {
@@ -181,7 +181,7 @@ return 503;
         return {
           title: 'API Error',
           detail: errorData,
-          status: this.extractHttpStatus(error),
+          status: this.extractHttpStatus(_error),
         };
       }
     }
@@ -192,9 +192,9 @@ return 503;
         type: errorData.type,
         title: errorData.title,
         detail: errorData.detail,
-        status: errorData.status || this.extractHttpStatus(error),
+        status: errorData.status || this.extractHttpStatus(_error),
         instance: errorData.instance,
-        requestId: errorData.requestId || this.extractRequestId(error),
+        requestId: errorData.requestId || this.extractRequestId(_error),
         errors: errorData.errors,
       };
     }
@@ -203,20 +203,20 @@ return 503;
   }
 
   /**
-   * Categorize error for appropriate handling
+   * Categorize _error for appropriate handling
    */
   private categorizeError(
-    httpStatus: number,
+    _httpStatus: number,
     akamaiError: AkamaiErrorResponse | null,
-    context: ErrorContext,
+    _context: ErrorContext,
   ): ErrorType {
     // Network/connection errors
-    if (httpStatus >= 500 && httpStatus <= 599) {
+    if (_httpStatus >= 500 && _httpStatus <= 599) {
       return ErrorType.SERVER_ERROR;
     }
 
     // Client errors
-    switch (httpStatus) {
+    switch (_httpStatus) {
       case 401:
         return ErrorType.AUTHENTICATION;
       case 403:
@@ -234,43 +234,43 @@ return 503;
         return ErrorType.TIMEOUT;
     }
 
-    // Check error type from Akamai error response
+    // Check _error type from Akamai _error response
     if (akamaiError?.type) {
       if (akamaiError.type.includes('authentication')) {
-return ErrorType.AUTHENTICATION;
-}
+        return ErrorType.AUTHENTICATION;
+      }
       if (akamaiError.type.includes('authorization')) {
-return ErrorType.AUTHORIZATION;
-}
+        return ErrorType.AUTHORIZATION;
+      }
       if (akamaiError.type.includes('validation')) {
-return ErrorType.VALIDATION;
-}
+        return ErrorType.VALIDATION;
+      }
       if (akamaiError.type.includes('rate-limit')) {
-return ErrorType.RATE_LIMIT;
-}
+        return ErrorType.RATE_LIMIT;
+      }
     }
 
     // Check for validation errors in errors array
     if (akamaiError?.errors && akamaiError.errors.length > 0) {
       const hasFieldErrors = akamaiError.errors.some(
-        (err: any) => err.field || err.type === 'field-error',
+        (_err: any) => _err.field || _err.type === 'field-_error',
       );
       if (hasFieldErrors) {
-return ErrorType.VALIDATION;
-}
+        return ErrorType.VALIDATION;
+      }
     }
 
     return ErrorType.UNKNOWN;
   }
 
   /**
-   * Generate actionable suggestions based on error type and context
+   * Generate actionable suggestions based on _error type and _context
    */
   private generateSuggestions(
-    httpStatus: number,
+    _httpStatus: number,
     akamaiError: AkamaiErrorResponse | null,
     errorType: ErrorType,
-    context: ErrorContext,
+    _context: ErrorContext,
   ): string[] {
     const suggestions: string[] = [];
 
@@ -279,9 +279,9 @@ return ErrorType.VALIDATION;
         suggestions.push('Verify your .edgerc credentials are correct and not expired');
         suggestions.push('Check that the client_token, client_secret, and access_token are valid');
         suggestions.push('Ensure the host URL matches your credential configuration');
-        if (context.customer) {
+        if (_context.customer) {
           suggestions.push(
-            `Verify the customer section '${context.customer}' exists in your .edgerc file`,
+            `Verify the customer section '${_context.customer}' exists in your .edgerc file`,
           );
         }
         break;
@@ -289,20 +289,20 @@ return ErrorType.VALIDATION;
       case ErrorType.AUTHORIZATION:
         suggestions.push('Check that your API credentials have the necessary permissions');
         suggestions.push('Verify you have access to the specified contract and group');
-        if (context.apiType === 'papi') {
+        if (_context.apiType === 'papi') {
           suggestions.push('Ensure you have Property Manager API access');
         }
-        if (context.apiType === 'dns') {
+        if (_context.apiType === 'dns') {
           suggestions.push('Ensure you have Edge DNS API access');
         }
         break;
 
       case ErrorType.NOT_FOUND:
-        if (context.endpoint?.includes('properties')) {
+        if (_context.endpoint?.includes('properties')) {
           suggestions.push('Verify the property ID exists and you have access to it');
           suggestions.push('Check that the contract ID and group ID are correct');
         }
-        if (context.endpoint?.includes('zones')) {
+        if (_context.endpoint?.includes('zones')) {
           suggestions.push('Verify the DNS zone exists and is associated with your contract');
         }
         suggestions.push('Double-check all resource IDs are in the correct format');
@@ -310,11 +310,11 @@ return ErrorType.VALIDATION;
 
       case ErrorType.VALIDATION:
         if (akamaiError?.errors) {
-          akamaiError.errors.forEach((err) => {
-            if (err.field) {
-              suggestions.push(`Fix the '${err.field}' field: ${err.detail || err.title}`);
+          akamaiError.errors.forEach((_err) => {
+            if (_err.field) {
+              suggestions.push(`Fix the '${_err.field}' field: ${_err.detail || _err.title}`);
             } else {
-              suggestions.push(err.detail || err.title);
+              suggestions.push(_err.detail || _err.title);
             }
           });
         } else {
@@ -343,8 +343,8 @@ return ErrorType.VALIDATION;
       case ErrorType.SERVER_ERROR:
         suggestions.push('Wait a few minutes and retry the operation');
         suggestions.push('Check Akamai status page for service disruptions');
-        if (context.requestId) {
-          suggestions.push(`Contact Akamai support with request ID: ${context.requestId}`);
+        if (_context.requestId) {
+          suggestions.push(`Contact Akamai support with request ID: ${_context.requestId}`);
         }
         break;
 
@@ -356,12 +356,12 @@ return ErrorType.VALIDATION;
     }
 
     // Add API-specific suggestions
-    if (context.apiType === 'papi' && context.endpoint?.includes('activations')) {
+    if (_context.apiType === 'papi' && _context.endpoint?.includes('activations')) {
       suggestions.push('Production activations require notification emails');
       suggestions.push('Ensure the property version exists before activating');
     }
 
-    if (context.apiType === 'dns' && context.operation?.includes('record')) {
+    if (_context.apiType === 'dns' && _context.operation?.includes('record')) {
       suggestions.push('DNS record changes require changelist workflow');
       suggestions.push('Submit the changelist after making record changes');
     }
@@ -370,14 +370,14 @@ return ErrorType.VALIDATION;
   }
 
   /**
-   * Format technical error message for logging
+   * Format technical _error message for logging
    */
   private formatTechnicalError(
     akamaiError: AkamaiErrorResponse | null,
-    httpStatus: number,
+    _httpStatus: number,
   ): string {
     if (akamaiError) {
-      let message = `${akamaiError.title} (HTTP ${httpStatus})`;
+      let message = `${akamaiError.title} (HTTP ${_httpStatus})`;
       if (akamaiError.detail) {
         message += `: ${akamaiError.detail}`;
       }
@@ -393,19 +393,19 @@ return ErrorType.VALIDATION;
       return message;
     }
 
-    return `HTTP ${httpStatus} error`;
+    return `HTTP ${_httpStatus} _error`;
   }
 
   /**
-   * Format user-friendly error message
+   * Format user-friendly _error message
    */
   private formatUserMessage(
-    httpStatus: number,
+    _httpStatus: number,
     akamaiError: AkamaiErrorResponse | null,
     errorType: ErrorType,
-    context: ErrorContext,
+    _context: ErrorContext,
   ): string {
-    const operation = context.operation || 'operation';
+    const operation = _context.operation || 'operation';
 
     switch (errorType) {
       case ErrorType.AUTHENTICATION:
@@ -415,10 +415,10 @@ return ErrorType.VALIDATION;
         return `You don't have permission to perform this ${operation}. Please contact your Akamai administrator to verify your API access rights.`;
 
       case ErrorType.NOT_FOUND:
-        if (context.endpoint?.includes('properties')) {
+        if (_context.endpoint?.includes('properties')) {
           return 'The requested property could not be found. Please verify the property ID and ensure you have access to it.';
         }
-        if (context.endpoint?.includes('zones')) {
+        if (_context.endpoint?.includes('zones')) {
           return 'The requested DNS zone could not be found. Please verify the zone name and contract access.';
         }
         return 'The requested resource could not be found. Please verify the ID and try again.';
@@ -456,14 +456,14 @@ return ErrorType.VALIDATION;
         return `The ${operation} request timed out. For long-running operations like activations, please check the status separately.`;
 
       default:
-        return `An unexpected error occurred during ${operation}. Please try again or contact support if the issue persists.`;
+        return `An unexpected _error occurred during ${operation}. Please try again or contact support if the issue persists.`;
     }
   }
 
   /**
-   * Check if error is retryable
+   * Check if _error is retryable
    */
-  private isRetryable(httpStatus: number, errorType: ErrorType): boolean {
+  private isRetryable(_httpStatus: number, errorType: ErrorType): boolean {
     const retryableTypes = [
       ErrorType.RATE_LIMIT,
       ErrorType.SERVER_ERROR,
@@ -471,14 +471,14 @@ return ErrorType.VALIDATION;
       ErrorType.NETWORK_ERROR,
     ];
 
-    return retryableTypes.includes(errorType) || httpStatus >= 500;
+    return retryableTypes.includes(errorType) || _httpStatus >= 500;
   }
 
   /**
-   * Extract retry-after value from error response
+   * Extract retry-after value from _error response
    */
-  private extractRetryAfter(error: any): number | undefined {
-    const retryAfter = error.response?.headers?.['retry-after'] || error.headers?.['retry-after'];
+  private extractRetryAfter(_error: any): number | undefined {
+    const retryAfter = _error.response?.headers?.['retry-after'] || _error.headers?.['retry-after'];
 
     if (retryAfter) {
       const seconds = parseInt(retryAfter, 10);
@@ -491,13 +491,13 @@ return ErrorType.VALIDATION;
   /**
    * Extract request ID for support tracking
    */
-  private extractRequestId(error: any): string | undefined {
+  private extractRequestId(_error: any): string | undefined {
     return (
-      error.response?.headers?.['x-request-id'] ||
-      error.headers?.['x-request-id'] ||
-      error.response?.headers?.['x-trace-id'] ||
-      error.headers?.['x-trace-id'] ||
-      error.response?.data?.requestId
+      _error.response?.headers?.['x-request-id'] ||
+      _error.headers?.['x-request-id'] ||
+      _error.response?.headers?.['x-trace-id'] ||
+      _error.headers?.['x-trace-id'] ||
+      _error.response?.data?.requestId
     );
   }
 
@@ -531,19 +531,19 @@ return ErrorType.VALIDATION;
   }
 
   /**
-   * Log retry attempt with context
+   * Log retry attempt with _context
    */
   private logRetryAttempt(
     attempt: number,
     delay: number,
     errorResult: EnhancedErrorResult,
-    context: ErrorContext,
+    _context: ErrorContext,
   ): void {
     console.warn(`Retry attempt ${attempt} after ${delay}ms:`, {
       timestamp: new Date().toISOString(),
-      operation: context.operation,
-      endpoint: context.endpoint,
-      customer: context.customer,
+      operation: _context.operation,
+      endpoint: _context.endpoint,
+      customer: _context.customer,
       errorType: errorResult.errorType,
       error: errorResult.error,
       requestId: errorResult.requestId,
@@ -555,13 +555,13 @@ return ErrorType.VALIDATION;
    */
   private logFailure(
     attempts: Array<{ attempt: number; error: any; delay: number }>,
-    context: ErrorContext,
+    _context: ErrorContext,
   ): void {
     console.error('Operation failed after all retry attempts:', {
       timestamp: new Date().toISOString(),
-      operation: context.operation,
-      endpoint: context.endpoint,
-      customer: context.customer,
+      operation: _context.operation,
+      endpoint: _context.endpoint,
+      customer: _context.customer,
       totalAttempts: attempts.length,
       attempts: attempts.map((a) => ({
         attempt: a.attempt,
@@ -574,21 +574,21 @@ return ErrorType.VALIDATION;
 }
 
 /**
- * Convenience function for enhanced error handling with retry
+ * Convenience function for enhanced _error handling with retry
  */
 export async function withEnhancedErrorHandling<T>(
   operation: () => Promise<T>,
-  context: ErrorContext = {},
+  _context: ErrorContext = {},
   retryConfig?: Partial<RetryConfig>,
 ): Promise<T> {
   const handler = new EnhancedErrorHandler();
-  return handler.withRetry(operation, context, retryConfig);
+  return handler.withRetry(operation, _context, retryConfig);
 }
 
 /**
  * Convenience function for handling single errors
  */
-export function handleAkamaiError(error: any, context: ErrorContext = {}): EnhancedErrorResult {
+export function handleAkamaiError(_error: any, _context: ErrorContext = {}): EnhancedErrorResult {
   const handler = new EnhancedErrorHandler();
-  return handler.handle(error, context);
+  return handler.handle(_error, _context);
 }

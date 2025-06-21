@@ -50,7 +50,7 @@ export const NetworkSchemas = {
     .min(1)
     .max(255, 'Hostname must be 255 characters or less')
     .regex(
-      /^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?))*$/,
+      /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?))*$/,
       'Invalid hostname format',
     ),
 
@@ -356,14 +356,14 @@ export const NetworkListSchemas = {
 export function validateParameters<T>(schema: z.ZodSchema<T>, params: unknown): T {
   try {
     return schema.parse(params);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      const errorMessages = error.errors
+  } catch (_error) {
+    if (_error instanceof z.ZodError) {
+      const errorMessages = _error.errors
         .map((err) => `${err.path.join('.')}: ${err.message}`)
         .join(', ');
       throw new Error(`Parameter validation failed: ${errorMessages}`);
     }
-    throw error;
+    throw _error;
   }
 }
 

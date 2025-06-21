@@ -94,8 +94,8 @@ export async function listIncludes(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
-    return handleApiError(error, 'listing includes');
+  } catch (_error) {
+    return handleApiError(_error, 'listing includes');
   }
 }
 
@@ -192,8 +192,8 @@ export async function getInclude(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
-    return handleApiError(error, 'getting include details');
+  } catch (_error) {
+    return handleApiError(_error, 'getting include details');
   }
 }
 
@@ -258,7 +258,7 @@ export async function createInclude(
     responseText += `**Created:** ${new Date().toISOString()}\n\n`;
 
     responseText += '## Next Steps\n\n';
-    responseText += '1. **Configure Rules:** Update the include\'s rule tree\n';
+    responseText += "1. **Configure Rules:** Update the include's rule tree\n";
     responseText += '2. **Create Version:** Create a new version when ready\n';
     responseText += '3. **Activate:** Activate to staging/production networks\n';
     responseText += '4. **Reference:** Use this include in property configurations\n\n';
@@ -269,8 +269,8 @@ export async function createInclude(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
-    return handleApiError(error, 'creating include');
+  } catch (_error) {
+    return handleApiError(_error, 'creating include');
   }
 }
 
@@ -341,8 +341,8 @@ export async function updateInclude(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
-    return handleApiError(error, 'updating include');
+  } catch (_error) {
+    return handleApiError(_error, 'updating include');
   }
 }
 
@@ -412,8 +412,8 @@ export async function createIncludeVersion(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
-    return handleApiError(error, 'creating include version');
+  } catch (_error) {
+    return handleApiError(_error, 'creating include version');
   }
 }
 
@@ -498,8 +498,8 @@ export async function activateInclude(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
-    return handleApiError(error, 'activating include');
+  } catch (_error) {
+    return handleApiError(_error, 'activating include');
   }
 }
 
@@ -596,16 +596,16 @@ export async function getIncludeActivationStatus(
 
     if (activation.errors && activation.errors.length > 0) {
       responseText += '\n## Errors\n\n';
-      activation.errors.forEach((error: any) => {
-        responseText += `❌ **${error.title}**: ${error.detail}\n`;
+      activation.errors.forEach((_error: any) => {
+        responseText += `❌ **${_error.title}**: ${_error.detail}\n`;
       });
     }
 
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
-    return handleApiError(error, 'getting include activation status');
+  } catch (_error) {
+    return handleApiError(_error, 'getting include activation status');
   }
 }
 
@@ -706,7 +706,7 @@ export async function listIncludeActivations(
     return {
       content: [{ type: 'text', text: responseText }],
     };
-  } catch (error) {
-    return handleApiError(error, 'listing include activations');
+  } catch (_error) {
+    return handleApiError(_error, 'listing include activations');
   }
 }

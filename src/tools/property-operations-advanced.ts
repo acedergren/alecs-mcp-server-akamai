@@ -199,14 +199,14 @@ export async function searchPropertiesAdvanced(
 
       // Contract/Group/Product filtering
       if (args.criteria.contractId && property.contractId !== args.criteria.contractId) {
-continue;
-}
+        continue;
+      }
       if (args.criteria.groupId && property.groupId !== args.criteria.groupId) {
-continue;
-}
+        continue;
+      }
       if (args.criteria.productId && property.productId !== args.criteria.productId) {
-continue;
-}
+        continue;
+      }
 
       // Activation status filtering
       if (args.criteria.activationStatus) {
@@ -216,26 +216,26 @@ continue;
         switch (args.criteria.activationStatus) {
           case 'production':
             if (!hasProduction) {
-continue;
-}
+              continue;
+            }
             matchReasons.push('Active in production');
             break;
           case 'staging':
             if (!hasStaging) {
-continue;
-}
+              continue;
+            }
             matchReasons.push('Active in staging');
             break;
           case 'both':
             if (!hasProduction || !hasStaging) {
-continue;
-}
+              continue;
+            }
             matchReasons.push('Active in both networks');
             break;
           case 'none':
             if (hasProduction || hasStaging) {
-continue;
-}
+              continue;
+            }
             matchReasons.push('Not activated');
             break;
         }
@@ -283,7 +283,7 @@ continue;
               continue;
             }
           }
-        } catch (error) {
+        } catch (_error) {
           // Continue without hostname data
         }
       }
@@ -291,11 +291,11 @@ continue;
       // Last modified filtering
       const lastModified = new Date(property.lastModified || property.updateDate);
       if (args.criteria.lastModifiedAfter && lastModified < args.criteria.lastModifiedAfter) {
-continue;
-}
+        continue;
+      }
       if (args.criteria.lastModifiedBefore && lastModified > args.criteria.lastModifiedBefore) {
-continue;
-}
+        continue;
+      }
 
       // Add to results if matches criteria
       if (score > 0 || matchReasons.length > 0 || !hasAnyCriteria(args.criteria)) {
@@ -344,26 +344,26 @@ continue;
     // Search criteria summary
     responseText += '## Search Criteria\n';
     if (args.criteria.name) {
-responseText += `- **Name contains:** ${args.criteria.name}\n`;
-}
+      responseText += `- **Name contains:** ${args.criteria.name}\n`;
+    }
     if (args.criteria.hostname) {
-responseText += `- **Hostname contains:** ${args.criteria.hostname}\n`;
-}
+      responseText += `- **Hostname contains:** ${args.criteria.hostname}\n`;
+    }
     if (args.criteria.edgeHostname) {
-responseText += `- **Edge hostname contains:** ${args.criteria.edgeHostname}\n`;
-}
+      responseText += `- **Edge hostname contains:** ${args.criteria.edgeHostname}\n`;
+    }
     if (args.criteria.contractId) {
-responseText += `- **Contract:** ${args.criteria.contractId}\n`;
-}
+      responseText += `- **Contract:** ${args.criteria.contractId}\n`;
+    }
     if (args.criteria.groupId) {
-responseText += `- **Group:** ${args.criteria.groupId}\n`;
-}
+      responseText += `- **Group:** ${args.criteria.groupId}\n`;
+    }
     if (args.criteria.productId) {
-responseText += `- **Product:** ${args.criteria.productId}\n`;
-}
+      responseText += `- **Product:** ${args.criteria.productId}\n`;
+    }
     if (args.criteria.activationStatus) {
-responseText += `- **Activation status:** ${args.criteria.activationStatus}\n`;
-}
+      responseText += `- **Activation status:** ${args.criteria.activationStatus}\n`;
+    }
     responseText += '\n';
 
     // Results
@@ -416,12 +416,12 @@ responseText += `- **Activation status:** ${args.criteria.activationStatus}\n`;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'search properties advanced',
             parameters: args,
             timestamp: new Date(),
@@ -722,12 +722,12 @@ export async function compareProperties(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'compare properties',
             parameters: args,
             timestamp: new Date(),
@@ -998,12 +998,12 @@ export async function checkPropertyHealth(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'check property health',
             parameters: args,
             timestamp: new Date(),
@@ -1167,7 +1167,7 @@ export async function detectConfigurationDrift(
     // Next steps
     responseText += '\n## Next Steps\n';
     if (drift.driftDetected) {
-      responseText += '1. Review each drift item to verify it\'s intentional\n';
+      responseText += "1. Review each drift item to verify it's intentional\n";
       responseText += '2. Test changes in staging environment\n';
       responseText += '3. Document significant changes\n';
       responseText += '4. Consider updating baseline after verification\n';
@@ -1184,12 +1184,12 @@ export async function detectConfigurationDrift(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'detect configuration drift',
             parameters: args,
             timestamp: new Date(),
@@ -1299,8 +1299,8 @@ export async function bulkUpdateProperties(
           // Add behavior
           if (args.updates.addBehavior) {
             if (!rules.behaviors) {
-rules.behaviors = [];
-}
+              rules.behaviors = [];
+            }
             rules.behaviors.push({
               name: args.updates.addBehavior.name,
               options: args.updates.addBehavior.options,
@@ -1412,12 +1412,12 @@ rules.behaviors = [];
           message: updateApplied ? 'Updates applied successfully' : 'No updates applied',
           newVersion: args.createNewVersion ? version : undefined,
         });
-      } catch (error) {
+      } catch (_error) {
         results.push({
           propertyId,
           propertyName: 'Unknown',
           success: false,
-          message: error instanceof Error ? error.message : 'Update failed',
+          message: _error instanceof Error ? _error.message : 'Update failed',
         });
       }
     }
@@ -1492,12 +1492,12 @@ rules.behaviors = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'bulk update properties',
             parameters: args,
             timestamp: new Date(),
@@ -1515,19 +1515,19 @@ function calculateStringMatch(str1: string, str2: string): number {
   const s2 = str2.toLowerCase();
 
   if (s1 === s2) {
-return 1;
-}
+    return 1;
+  }
   if (s1.includes(s2) || s2.includes(s1)) {
-return 0.8;
-}
+    return 0.8;
+  }
 
   // Simple similarity score
   const maxLen = Math.max(s1.length, s2.length);
   let matches = 0;
   for (let i = 0; i < Math.min(s1.length, s2.length); i++) {
     if (s1[i] === s2[i]) {
-matches++;
-}
+      matches++;
+    }
   }
   return matches / maxLen;
 }

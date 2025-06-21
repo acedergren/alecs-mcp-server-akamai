@@ -188,8 +188,8 @@ export class FastPurgeMonitor {
         // Check alerts
         await this.checkAlerts(metrics);
       }
-    } catch (error: any) {
-      logger.error(`Failed to collect FastPurge metrics: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(`Monitor error: ${_error instanceof Error ? _error.message : String(_error)}`);
     }
   }
 
@@ -304,11 +304,11 @@ export class FastPurgeMonitor {
       apiLatency = Date.now() - start;
 
       if (apiLatency > 5000) {
-apiHealth = 'unhealthy';
-} else if (apiLatency > 2000) {
-apiHealth = 'degraded';
-}
-    } catch (error) {
+        apiHealth = 'unhealthy';
+      } else if (apiLatency > 2000) {
+        apiHealth = 'degraded';
+      }
+    } catch (_error) {
       apiHealth = 'unhealthy';
       apiLatency = -1;
     }
@@ -415,8 +415,8 @@ apiHealth = 'degraded';
 
   private calculateTrend(values: number[]): 'increasing' | 'decreasing' | 'stable' {
     if (values.length < 2) {
-return 'stable';
-}
+      return 'stable';
+    }
 
     const first = values.slice(0, Math.ceil(values.length / 2));
     const second = values.slice(Math.floor(values.length / 2));
@@ -428,11 +428,11 @@ return 'stable';
     const threshold = firstAvg * 0.05; // 5% threshold
 
     if (diff > threshold) {
-return 'increasing';
-}
+      return 'increasing';
+    }
     if (diff < -threshold) {
-return 'decreasing';
-}
+      return 'decreasing';
+    }
     return 'stable';
   }
 
@@ -498,15 +498,15 @@ return 'decreasing';
 
   private calculateGrowthRate(metrics: FastPurgeMetrics[]): number {
     if (metrics.length < 2) {
-return 0;
-}
+      return 0;
+    }
 
     const recent = metrics.slice(-7); // Last 7 data points
     const older = metrics.slice(-14, -7); // Previous 7 data points
 
     if (older.length === 0) {
-return 0;
-}
+      return 0;
+    }
 
     const recentAvg =
       recent.reduce((sum, m) => sum + m.costMetrics.operationsToday, 0) / recent.length;

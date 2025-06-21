@@ -6,7 +6,7 @@
  */
 
 // Type definitions for error patterns and configurations
-interface ErrorPattern {
+interface _ErrorPattern {
   name: string;
   pattern: RegExp;
 }
@@ -144,8 +144,8 @@ interface CascadingFailure {
 }
 
 interface PatternAnalysis {
-  repeatingFailures: RepeatingFailure[];
-  cascadingFailures: CascadingFailure[];
+  repeatingFailu_res: RepeatingFailure[];
+  cascadingFailu_res: CascadingFailure[];
   timeBasedPatterns: TimeBasedPattern;
   suitePatterns: SuitePattern;
 }
@@ -184,7 +184,7 @@ interface TechnicalImpact extends ImpactLevel {
 }
 
 interface CustomerImpact extends ImpactLevel {
-  affectedFeatures: number;
+  affectedFeatu_res: number;
   customerFailureRate: number;
 }
 
@@ -308,10 +308,10 @@ export class TestOutputAnalyzer {
         default:
           return this.parseGenericOutput(output);
       }
-    } catch (error) {
+    } catch (_error) {
       return {
         success: false,
-        error: `Failed to parse ${format} output: ${(error as Error).message}`,
+        error: `Failed to parse ${format} output: ${(_error as Error).message}`,
         results: [],
       };
     }
@@ -320,8 +320,8 @@ export class TestOutputAnalyzer {
   /**
    * Parse Jest test output
    */
-  private parseJestOutput(output: string): ParsedTestResults {
-    const results: ParsedTestResults = {
+  private parseJestOutput(_output: string): ParsedTestResults {
+    const _results: ParsedTestResults = {
       summary: {
         totalTests: 0,
         passedTests: 0,
@@ -336,11 +336,11 @@ export class TestOutputAnalyzer {
 
     try {
       // Try to parse as JSON first (Jest --json output)
-      const jsonOutput: JestJsonOutput = JSON.parse(output);
+      const jsonOutput: JestJsonOutput = JSON.parse(_output);
       return this.parseJestJsonOutput(jsonOutput);
     } catch {
       // Parse text output
-      return this.parseJestTextOutput(output);
+      return this.parseJestTextOutput(_output);
     }
   }
 
@@ -413,8 +413,8 @@ export class TestOutputAnalyzer {
   /**
    * Parse Jest text output
    */
-  private parseJestTextOutput(output: string): ParsedTestResults {
-    const lines = output.split('\n');
+  private parseJestTextOutput(_output: string): ParsedTestResults {
+    const lines = _output.split('\n');
     const results: ParsedTestResults = {
       summary: {
         totalTests: 0,
@@ -509,17 +509,17 @@ export class TestOutputAnalyzer {
   /**
    * Parse Mocha output (placeholder implementation)
    */
-  private parseMochaOutput(output: string): ParsedTestResults {
+  private parseMochaOutput(_output: string): ParsedTestResults {
     // This would be implemented based on Mocha output format
-    return this.parseGenericOutput(output);
+    return this.parseGenericOutput(_output);
   }
 
   /**
    * Parse JSON output
    */
-  private parseJsonOutput(output: string): ParsedTestResults {
+  private parseJsonOutput(_output: string): ParsedTestResults {
     try {
-      const json = JSON.parse(output);
+      const json = JSON.parse(_output);
       // Convert generic JSON to ParsedTestResults format
       return {
         summary: json.summary || {
@@ -533,14 +533,14 @@ export class TestOutputAnalyzer {
         errors: json.errors || [],
       };
     } catch {
-      return this.parseGenericOutput(output);
+      return this.parseGenericOutput(_output);
     }
   }
 
   /**
    * Parse generic test output
    */
-  private parseGenericOutput(output: string): ParsedTestResults {
+  private parseGenericOutput(_output: string): ParsedTestResults {
     // Basic parsing for unknown formats
     return {
       summary: {
@@ -614,17 +614,17 @@ export class TestOutputAnalyzer {
     overview: Overview,
   ): 'EXCELLENT' | 'GOOD' | 'FAIR' | 'POOR' | 'CRITICAL' {
     if (overview.successRate >= 95) {
-return 'EXCELLENT';
-}
+      return 'EXCELLENT';
+    }
     if (overview.successRate >= 90) {
-return 'GOOD';
-}
+      return 'GOOD';
+    }
     if (overview.successRate >= 80) {
-return 'FAIR';
-}
+      return 'FAIR';
+    }
     if (overview.successRate >= 70) {
-return 'POOR';
-}
+      return 'POOR';
+    }
     return 'CRITICAL';
   }
 
@@ -645,16 +645,16 @@ return 'POOR';
       ...(testResults.errors || []).map((e) => ({ ...e, type: 'suite_error' })),
     ];
 
-    allErrors.forEach((error) => {
-      const category = this.categorizeError(error.message);
-      const severity = this.assessErrorSeverity(error, category);
+    allErrors.forEach((_error) => {
+      const category = this.categorizeError(_error.message);
+      const severity = this.assessErrorSeverity(_error, category);
 
       // Update categorized errors
       if (!errorAnalysis.categorizedErrors.has(category)) {
         errorAnalysis.categorizedErrors.set(category, []);
       }
       errorAnalysis.categorizedErrors.get(category)!.push({
-        ...(error as TestFailure),
+        ...(_error as TestFailure),
         severity,
         category,
       });
@@ -672,7 +672,7 @@ return 'POOR';
       );
 
       // Identify root causes
-      const rootCause = this.identifyRootCause(error.message, category);
+      const rootCause = this.identifyRootCause(_error.message, category);
       errorAnalysis.rootCauses.set(rootCause, (errorAnalysis.rootCauses.get(rootCause) || 0) + 1);
     });
 
@@ -695,35 +695,35 @@ return 'POOR';
    * Assess error severity
    */
   private assessErrorSeverity(
-    error: any,
+    _error: any,
     category: string,
   ): 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' {
     // Critical severity indicators
     if (category === 'AUTH_ERROR' || category === 'CONFIG_ERROR') {
-return 'CRITICAL';
-}
-    if (error.message.includes('CRITICAL') || error.message.includes('FATAL')) {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
+    if (_error.message.includes('CRITICAL') || _error.message.includes('FATAL')) {
+      return 'CRITICAL';
+    }
 
     // High severity indicators
     if (category === 'API_ERROR' || category === 'ACTIVATION_ERROR') {
-return 'HIGH';
-}
-    if (error.message.includes('HIGH') || error.message.includes('SEVERE')) {
-return 'HIGH';
-}
-    if (error.type === 'suite_error') {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
+    if (_error.message.includes('HIGH') || _error.message.includes('SEVERE')) {
+      return 'HIGH';
+    }
+    if (_error.type === 'suite_error') {
+      return 'HIGH';
+    }
 
     // Medium severity indicators
     if (category === 'VALIDATION_ERROR' || category === 'TIMEOUT_ERROR') {
-return 'MEDIUM';
-}
-    if (error.message.includes('MEDIUM') || error.message.includes('WARNING')) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
+    if (_error.message.includes('MEDIUM') || _error.message.includes('WARNING')) {
+      return 'MEDIUM';
+    }
 
     // Default to LOW
     return 'LOW';
@@ -732,7 +732,7 @@ return 'MEDIUM';
   /**
    * Identify root cause of error
    */
-  private identifyRootCause(message: string, category: string): string {
+  private identifyRootCause(message: string, _category: string): string {
     const rootCausePatterns: Record<string, RegExp> = {
       configuration: /config|setup|environment|credentials|missing|not found/i,
       network: /network|connection|timeout|refused|unreachable/i,
@@ -742,7 +742,7 @@ return 'MEDIUM';
       rate_limiting: /rate|throttle|limit|quota/i,
       resource_not_found: /not found|missing|does not exist/i,
       dependency: /dependency|module|import|require/i,
-      logic_error: /assertion|expect|should|logic/i,
+      logicerror: /assertion|expect|should|logic/i,
       performance: /timeout|slow|performance|memory/i,
     };
 
@@ -760,8 +760,8 @@ return 'MEDIUM';
    */
   private analyzePatterns(testResults: ParsedTestResults): PatternAnalysis {
     const patterns: PatternAnalysis = {
-      repeatingFailures: this.findRepeatingFailures(testResults),
-      cascadingFailures: this.findCascadingFailures(testResults),
+      repeatingFailu_res: this.findRepeatingFailures(testResults),
+      cascadingFailu_res: this.findCascadingFailures(testResults),
       timeBasedPatterns: this.findTimeBasedPatterns(testResults),
       suitePatterns: this.findSuitePatterns(testResults),
     };
@@ -880,12 +880,12 @@ return 'MEDIUM';
       impact.customerImpact.level,
     ];
     if (impacts.includes('CRITICAL')) {
-impact.riskLevel = 'CRITICAL';
-} else if (impacts.includes('HIGH')) {
-impact.riskLevel = 'HIGH';
-} else if (impacts.includes('MEDIUM')) {
-impact.riskLevel = 'MEDIUM';
-}
+      impact.riskLevel = 'CRITICAL';
+    } else if (impacts.includes('HIGH')) {
+      impact.riskLevel = 'HIGH';
+    } else if (impacts.includes('MEDIUM')) {
+      impact.riskLevel = 'MEDIUM';
+    }
 
     return impact;
   }
@@ -999,7 +999,7 @@ impact.riskLevel = 'MEDIUM';
     return {
       level,
       factors,
-      affectedFeatures: failedCustomerTests,
+      affectedFeatu_res: failedCustomerTests,
       customerFailureRate: totalCustomerTests > 0 ? failedCustomerTests / totalCustomerTests : 0,
     };
   }

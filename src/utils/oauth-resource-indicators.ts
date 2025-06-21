@@ -7,7 +7,6 @@ import { ResourceUri } from '@/services/oauth-resource-server';
 import {
   type OAuthResourceIndicator,
   type OAuthResourceType,
-  type OAuthProtectedResource,
   OAuthResourceType as ResourceType,
 } from '@/types/oauth';
 
@@ -151,10 +150,7 @@ export class ResourceIndicatorValidator {
 
     // Validate scope consistency
     if (indicators.scope) {
-      const scopeValidation = this.validateScopeConsistency(
-        indicators.scope,
-        validatedResources,
-      );
+      const scopeValidation = this.validateScopeConsistency(indicators.scope, validatedResources);
 
       if (scopeValidation.errors) {
         errors.push(...scopeValidation.errors);
@@ -195,7 +191,7 @@ export class ResourceIndicatorValidator {
     let uri: ResourceUri;
     try {
       uri = ResourceUri.parse(resource);
-    } catch (error) {
+    } catch (_error) {
       return { error: `Invalid resource URI format: ${resource}` };
     }
 
@@ -268,7 +264,8 @@ export class ResourceIndicatorValidator {
     for (const resource of resources) {
       // Check if requested scopes include required scopes for resource
       const missingRequired = resource.requiredScopes.filter(
-        scope => !requestedScopes.includes(scope) && !this.hasWildcardScope(requestedScopes, scope),
+        (scope) =>
+          !requestedScopes.includes(scope) && !this.hasWildcardScope(requestedScopes, scope),
       );
 
       if (missingRequired.length > 0) {
@@ -278,14 +275,12 @@ export class ResourceIndicatorValidator {
       }
 
       // Check for resource-specific scopes
-      const resourceSpecificScopes = requestedScopes.filter(scope =>
+      const resourceSpecificScopes = requestedScopes.filter((scope) =>
         scope.includes(resource.uri.resourceId),
       );
 
       if (resourceSpecificScopes.length === 0) {
-        warnings.push(
-          `No resource-specific scopes requested for ${resource.indicator}`,
-        );
+        warnings.push(`No resource-specific scopes requested for ${resource.indicator}`);
       }
     }
 
@@ -326,11 +321,11 @@ export class ResourceIndicatorValidator {
 
     for (const resource of resources) {
       // Add base required scopes
-      resource.requiredScopes.forEach(scope => scopes.add(scope));
+      resource.requiredScopes.forEach((scope) => scopes.add(scope));
 
       // Generate resource-specific scopes
       const resourceScopes = this.generateResourceSpecificScopes(resource);
-      resourceScopes.forEach(scope => scopes.add(scope));
+      resourceScopes.forEach((scope) => scopes.add(scope));
     }
 
     return Array.from(scopes);
@@ -404,22 +399,22 @@ export function createDefaultResourceIndicatorValidator(): ResourceIndicatorVali
  * Parse resource indicators from token request
  */
 export function parseResourceIndicators(
-  request: Record<string, unknown>,
+  _request: Record<string, unknown>,
 ): OAuthResourceIndicator | undefined {
-  if (!request.resource) {
+  if (!_request.resource) {
     return undefined;
   }
 
   const indicator: OAuthResourceIndicator = {
-    resource: request.resource as string | string[],
+    resource: _request.resource as string | string[],
   };
 
-  if (request.resource_type) {
-    indicator.resource_type = request.resource_type as OAuthResourceType;
+  if (_request.resource_type) {
+    indicator.resource_type = _request.resource_type as OAuthResourceType;
   }
 
-  if (request.scope) {
-    indicator.scope = request.scope as string;
+  if (_request.scope) {
+    indicator.scope = _request.scope as string;
   }
 
   return indicator;
@@ -428,8 +423,6 @@ export function parseResourceIndicators(
 /**
  * Format resource indicators for token response
  */
-export function formatResourceIndicators(
-  resources: ValidatedResource[],
-): string[] {
-  return resources.map(r => r.indicator);
+export function formatResourceIndicators(resources: ValidatedResource[]): string[] {
+  return resources.map((r) => r.indicator);
 }

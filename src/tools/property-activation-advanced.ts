@@ -137,13 +137,13 @@ export async function validatePropertyActivation(
 
     if (rulesValidation.errors?.length > 0) {
       validation.valid = false;
-      rulesValidation.errors.forEach((error: any) => {
+      rulesValidation.errors.forEach((_error: any) => {
         validation.errors.push({
-          severity: error.type === 'error' ? 'CRITICAL' : 'ERROR',
-          type: error.type,
-          detail: error.detail,
-          location: error.errorLocation,
-          resolution: getErrorResolution(error),
+          severity: _error.type === 'error' ? 'CRITICAL' : 'ERROR',
+          type: _error.type,
+          detail: _error.detail,
+          location: _error.errorLocation,
+          resolution: getErrorResolution(_error),
         });
       });
     }
@@ -238,14 +238,14 @@ export async function validatePropertyActivation(
 
     if (validation.errors.length > 0) {
       responseText += `### Errors (${validation.errors.length})\n`;
-      validation.errors.forEach((error, index) => {
-        responseText += `${index + 1}. **${error.severity}**: ${error.detail}\n`;
-        if (error.location) {
-responseText += `   - Location: ${error.location}\n`;
-}
-        if (error.resolution) {
-responseText += `   - Resolution: ${error.resolution}\n`;
-}
+      validation.errors.forEach((_error, index) => {
+        responseText += `${index + 1}. **${_error.severity}**: ${_error.detail}\n`;
+        if (_error.location) {
+          responseText += `   - Location: ${_error.location}\n`;
+        }
+        if (_error.resolution) {
+          responseText += `   - Resolution: ${_error.resolution}\n`;
+        }
       });
       responseText += '\n';
     }
@@ -255,8 +255,8 @@ responseText += `   - Resolution: ${error.resolution}\n`;
       validation.warnings.forEach((warning, index) => {
         responseText += `${index + 1}. **${warning.severity}**: ${warning.detail}\n`;
         if (warning.location) {
-responseText += `   - Location: ${warning.location}\n`;
-}
+          responseText += `   - Location: ${warning.location}\n`;
+        }
       });
       responseText += '\n';
     }
@@ -267,8 +267,8 @@ responseText += `   - Location: ${warning.location}\n`;
         const icon = check.status === 'PASSED' ? '✅' : check.status === 'FAILED' ? '❌' : '⚠️';
         responseText += `- ${icon} **${check.name}**: ${check.message}\n`;
         if (check.details) {
-responseText += `  - ${check.details}\n`;
-}
+          responseText += `  - ${check.details}\n`;
+        }
       });
       responseText += '\n';
     }
@@ -288,12 +288,12 @@ responseText += `  - ${check.details}\n`;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'validate property activation',
             parameters: args,
             timestamp: new Date(),
@@ -463,12 +463,12 @@ export async function activatePropertyWithMonitoring(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'activate property with monitoring',
             parameters: args,
             timestamp: new Date(),
@@ -530,8 +530,8 @@ export async function getActivationProgress(
     // Errors and warnings
     if (progress.errors && progress.errors.length > 0) {
       responseText += `### ❌ Errors (${progress.errors.length})\n`;
-      progress.errors.forEach((error, index) => {
-        responseText += `${index + 1}. **${error.type}**: ${error.detail}\n`;
+      progress.errors.forEach((_error, index) => {
+        responseText += `${index + 1}. **${_error.type}**: ${_error.detail}\n`;
       });
       responseText += '\n';
     }
@@ -569,12 +569,12 @@ export async function getActivationProgress(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'get activation progress',
             parameters: args,
             timestamp: new Date(),
@@ -587,7 +587,7 @@ export async function getActivationProgress(
 
 // Helper functions
 
-function getErrorResolution(error: any): string {
+function getErrorResolution(_error: any): string {
   const resolutions: Record<string, string> = {
     missing_required_behavior: 'Add the required behavior to your rule tree',
     invalid_criteria: 'Update the criteria to use valid values',
@@ -596,7 +596,7 @@ function getErrorResolution(error: any): string {
     certificate_not_ready: 'Wait for certificate validation to complete',
   };
 
-  return resolutions[error.type] || 'Review the error details and update configuration';
+  return resolutions[_error.type] || 'Review the error details and update configuration';
 }
 
 async function checkCertificateStatus(hostnames: any[], network: string): Promise<PreflightCheck> {
@@ -658,8 +658,8 @@ async function checkOriginConnectivity(
         for (const child of rules.children) {
           const origin = findOrigin(child);
           if (origin) {
-return origin;
-}
+            return origin;
+          }
         }
       }
       return null;
@@ -682,7 +682,7 @@ return origin;
       message: `Origin configured: ${originHostname}`,
       details: 'Note: Actual connectivity test not performed',
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       name: 'Origin Connectivity',
       status: 'WARNING',
@@ -783,14 +783,14 @@ function buildActivationProgress(activation: any, startTime: number): Activation
 
 function getProgressiveDelay(elapsedTime: number): number {
   if (elapsedTime < 120000) {
-return 5000;
-} // First 2 minutes: 5 seconds
+    return 5000;
+  } // First 2 minutes: 5 seconds
   if (elapsedTime < 420000) {
-return 10000;
-} // Next 5 minutes: 10 seconds
+    return 10000;
+  } // Next 5 minutes: 10 seconds
   if (elapsedTime < 1020000) {
-return 30000;
-} // Next 10 minutes: 30 seconds
+    return 30000;
+  } // Next 10 minutes: 30 seconds
   return 60000; // After 17 minutes: 60 seconds
 }
 
@@ -815,7 +815,7 @@ function formatActivationSuccess(
     `**Version:** ${version}\n` +
     `**Network:** ${network}\n` +
     `**Duration:** ${minutes} minutes\n\n` +
-    '## What\'s Next?\n' +
+    "## What's Next?\n" +
     '1. **Test your property**: Visit your website to verify changes\n' +
     '2. **Monitor performance**: Check Control Center for metrics\n' +
     '3. **Clear cache if needed**: Use Fast Purge for immediate updates\n\n' +
@@ -843,8 +843,8 @@ function formatActivationFailure(
   response += '\n## Error Details\n';
 
   if (progress.errors && progress.errors.length > 0) {
-    progress.errors.forEach((error, index) => {
-      response += `${index + 1}. **${error.type}**: ${error.detail}\n`;
+    progress.errors.forEach((_error, index) => {
+      response += `${index + 1}. **${_error.type}**: ${_error.detail}\n`;
     });
   }
 
@@ -889,8 +889,8 @@ async function rollbackActivation(
         },
       });
     }
-  } catch (error) {
-    console.error('Rollback failed:', error);
+  } catch (_error) {
+    console.error('[Error]:', _error);
   }
 }
 
@@ -943,12 +943,12 @@ export async function cancelPropertyActivation(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'cancel property activation',
             parameters: args,
             timestamp: new Date(),
@@ -1042,12 +1042,12 @@ export async function createActivationPlan(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'create activation plan',
             parameters: args,
             timestamp: new Date(),
@@ -1065,8 +1065,8 @@ function topologicalSort(properties: any[], dependencies: Record<string, string[
 
   const visit = (propId: string) => {
     if (visited.has(propId)) {
-return;
-}
+      return;
+    }
     visited.add(propId);
 
     const deps = dependencies[propId] || [];
@@ -1074,8 +1074,8 @@ return;
 
     const prop = properties.find((p) => p.propertyId === propId);
     if (prop) {
-sorted.push(prop);
-}
+      sorted.push(prop);
+    }
   };
 
   properties.forEach((prop) => visit(prop.propertyId));

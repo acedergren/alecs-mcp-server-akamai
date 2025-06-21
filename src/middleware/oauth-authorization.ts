@@ -3,7 +3,7 @@
  * Handles token validation and resource authorization
  */
 
-import { createHash } from 'crypto';
+// import { createHash } from 'crypto';
 
 import { type Request, type Response, type NextFunction, type RequestHandler } from 'express';
 
@@ -39,9 +39,9 @@ export interface OAuthAuthorizationOptions {
   /** Whether to require authentication for all routes */
   requireAuth?: boolean;
   /** Custom token extractor */
-  tokenExtractor?: (req: Request) => string | undefined;
+  tokenExtractor?: (_req: Request) => string | undefined;
   /** Custom error handler */
-  errorHandler?: (err: OAuthError, req: Request, res: Response, next: NextFunction) => void;
+  errorHandler?: (_err: OAuthError, _req: Request, _res: Response, _next: NextFunction) => void;
 }
 
 /**
@@ -71,21 +71,19 @@ export class OAuthError extends Error {
 /**
  * Create OAuth authorization middleware
  */
-export function createOAuthMiddleware(
-  options: OAuthAuthorizationOptions,
-): RequestHandler {
+export function createOAuthMiddleware(options: OAuthAuthorizationOptions): RequestHandler {
   const {
     resourceServer,
-    realm = 'Akamai API',
+    // realm = 'Akamai API',
     requireAuth = true,
     tokenExtractor = extractBearerToken,
     errorHandler = defaultErrorHandler,
   } = options;
 
-  return async (req: OAuthRequest, res: Response, next: NextFunction) => {
+  return async (_req: OAuthRequest, _res: Response, _next: NextFunction) => {
     try {
       // Extract token
-      const token = tokenExtractor(req);
+      const token = tokenExtractor(_req);
 
       if (!token) {
         if (requireAuth) {
@@ -96,7 +94,7 @@ export function createOAuthMiddleware(
             'Missing Bearer token in Authorization header',
           );
         }
-        return next();
+        return _next();
       }
 
       // Introspect token
@@ -128,24 +126,24 @@ export function createOAuthMiddleware(
       };
 
       // Attach OAuth context to request
-      req.oauth = {
+      _req.oauth = {
         token: tokenClaims,
         scopes: tokenClaims.scope.split(' '),
         clientId: tokenClaims.client_id,
       };
 
-      next();
-    } catch (error) {
-      if (error instanceof OAuthError) {
-        errorHandler(error, req, res, next);
+      _next();
+    } catch (_error) {
+      if (_error instanceof OAuthError) {
+        errorHandler(_error, _req, _res, _next);
       } else {
         const oauthError = new OAuthError(
-          'Internal server error',
+          'Internal server _error',
           500,
           'server_error',
-          error instanceof Error ? error.message : 'Unknown error',
+          _error instanceof Error ? _error.message : 'Unknown _error',
         );
-        errorHandler(oauthError, req, res, next);
+        errorHandler(oauthError, _req, _res, _next);
       }
     }
   };
@@ -157,11 +155,11 @@ export function createOAuthMiddleware(
 export function requireResourceAccess(
   resourceType: OAuthResourceType,
   operation: OAuthOperation,
-  resourceIdExtractor?: (req: Request) => string,
+  resourceIdExtractor?: (_req: Request) => string,
 ): RequestHandler {
-  return async (req: OAuthRequest, res: Response, next: NextFunction) => {
+  return async (_req: OAuthRequest, _res: Response, _next: NextFunction) => {
     try {
-      if (!req.oauth?.token) {
+      if (!_req.oauth?.token) {
         throw new OAuthError(
           'Authentication required',
           401,
@@ -171,15 +169,15 @@ export function requireResourceAccess(
       }
 
       // Get resource server from request context (set by previous middleware)
-      const resourceServer = (req as any).resourceServer as OAuthResourceServer;
+      const resourceServer = (_req as any).resourceServer as OAuthResourceServer;
       if (!resourceServer) {
         throw new Error('Resource server not found in request context');
       }
 
       // Extract resource ID
       const resourceId = resourceIdExtractor
-        ? resourceIdExtractor(req)
-        : req.params.id || req.params.resourceId;
+        ? resourceIdExtractor(_req)
+        : _req.params.id || _req.params.resourceId;
 
       if (!resourceId) {
         throw new OAuthError(
@@ -191,12 +189,8 @@ export function requireResourceAccess(
       }
 
       // Build resource URI
-      const accountId = req.oauth.token.akamai?.account_id || 'unknown';
-      const resourceUri = new ResourceUri(
-        resourceType,
-        accountId,
-        resourceId,
-      );
+      const accountId = _req.oauth.token.akamai?.account_id || 'unknown';
+      const resourceUri = new ResourceUri(resourceType, accountId, resourceId);
 
       // Get resource metadata
       const resource = resourceServer.getResource(resourceUri.toString());
@@ -217,26 +211,26 @@ export function requireResourceAccess(
           allowedMethods: ['GET', 'POST', 'PUT', 'DELETE'],
         };
         resourceServer.registerProtectedResource(tempResource);
-        req.oauth.resource = tempResource;
+        _req.oauth.resource = tempResource;
       } else {
-        req.oauth.resource = resource;
+        _req.oauth.resource = resource;
       }
 
       // Build access context
-      const context: OAuthResourceAccessContext = {
-        token: req.oauth.token,
-        resource: req.oauth.resource,
+      const _context: OAuthResourceAccessContext = {
+        token: _req.oauth.token,
+        resource: _req.oauth.resource,
         operation,
-        method: req.method,
-        path: req.path,
+        method: _req.method,
+        path: _req.path,
         context: {
-          ip: req.ip,
-          userAgent: req.get('user-agent'),
+          ip: _req.ip,
+          userAgent: _req.get('user-agent'),
         },
       };
 
       // Authorize access
-      const decision = await resourceServer.authorizeResourceAccess(context);
+      const decision = await resourceServer.authorizeResourceAccess(_context);
 
       if (!decision.allowed) {
         throw new OAuthError(
@@ -251,18 +245,18 @@ export function requireResourceAccess(
       // Log successful authorization
       console.log('Authorization granted:', decision.audit);
 
-      next();
-    } catch (error) {
-      if (error instanceof OAuthError) {
-        defaultErrorHandler(error, req, res, next);
+      _next();
+    } catch (_error) {
+      if (_error instanceof OAuthError) {
+        defaultErrorHandler(_error, _req, _res, _next);
       } else {
         const oauthError = new OAuthError(
-          'Authorization error',
+          'Authorization _error',
           500,
           'server_error',
-          error instanceof Error ? error.message : 'Unknown error',
+          _error instanceof Error ? _error.message : 'Unknown _error',
         );
-        defaultErrorHandler(oauthError, req, res, next);
+        defaultErrorHandler(oauthError, _req, _res, _next);
       }
     }
   };
@@ -272,8 +266,8 @@ export function requireResourceAccess(
  * Create scope validation middleware
  */
 export function requireScopes(...requiredScopes: string[]): RequestHandler {
-  return (req: OAuthRequest, res: Response, next: NextFunction) => {
-    if (!req.oauth?.token) {
+  return (_req: OAuthRequest, _res: Response, _next: NextFunction) => {
+    if (!_req.oauth?.token) {
       return defaultErrorHandler(
         new OAuthError(
           'Authentication required',
@@ -281,14 +275,14 @@ export function requireScopes(...requiredScopes: string[]): RequestHandler {
           'unauthorized',
           'No valid authentication token found',
         ),
-        req,
-        res,
-        next,
+        _req,
+        _res,
+        _next,
       );
     }
 
-    const tokenScopes = req.oauth.scopes;
-    const missingScopes = requiredScopes.filter(scope => !tokenScopes.includes(scope));
+    const tokenScopes = _req.oauth.scopes;
+    const missingScopes = requiredScopes.filter((scope) => !tokenScopes.includes(scope));
 
     if (missingScopes.length > 0) {
       return defaultErrorHandler(
@@ -298,21 +292,21 @@ export function requireScopes(...requiredScopes: string[]): RequestHandler {
           'insufficient_scope',
           `Required scopes: ${missingScopes.join(', ')}`,
         ),
-        req,
-        res,
-        next,
+        _req,
+        _res,
+        _next,
       );
     }
 
-    next();
+    _next();
   };
 }
 
 /**
  * Extract Bearer token from Authorization header
  */
-function extractBearerToken(req: Request): string | undefined {
-  const authHeader = req.get('Authorization');
+function extractBearerToken(_req: Request): string | undefined {
+  const authHeader = _req.get('Authorization');
   if (!authHeader) {
     return undefined;
   }
@@ -330,16 +324,13 @@ function extractBearerToken(req: Request): string | undefined {
  */
 function defaultErrorHandler(
   err: OAuthError,
-  req: Request,
-  res: Response,
-  next: NextFunction,
+  _req: Request,
+  _res: Response,
+  _next: NextFunction,
 ): void {
   // Set WWW-Authenticate header for 401 errors
   if (err.status === 401) {
-    const wwwAuthenticate = [
-      'Bearer',
-      `realm="${req.get('host') || 'Akamai API'}"`,
-    ];
+    const wwwAuthenticate = ['Bearer', `realm="${_req.get('host') || 'Akamai API'}"`];
 
     if (err.error) {
       wwwAuthenticate.push(`error="${err.error}"`);
@@ -349,10 +340,10 @@ function defaultErrorHandler(
       wwwAuthenticate.push(`error_description="${err.errorDescription}"`);
     }
 
-    res.set('WWW-Authenticate', wwwAuthenticate.join(', '));
+    _res.set('WWW-Authenticate', wwwAuthenticate.join(', '));
   }
 
-  res.status(err.status).json(err.toJSON());
+  _res.status(err.status).json(err.toJSON());
 }
 
 /**
@@ -361,9 +352,9 @@ function defaultErrorHandler(
 export function createResourceDiscoveryEndpoint(
   resourceServer: OAuthResourceServer,
 ): RequestHandler {
-  return (req: Request, res: Response) => {
+  return (_req: Request, _res: Response) => {
     const discovery = resourceServer.generateResourceDiscovery();
-    res.json(discovery);
+    _res.json(discovery);
   };
 }
 
@@ -373,9 +364,9 @@ export function createResourceDiscoveryEndpoint(
 export function createAuthServerMetadataEndpoint(
   resourceServer: OAuthResourceServer,
 ): RequestHandler {
-  return (req: Request, res: Response) => {
+  return (_req: Request, _res: Response) => {
     const metadata = resourceServer.getAuthorizationServerMetadata();
-    res.json(metadata);
+    _res.json(metadata);
   };
 }
 
@@ -385,9 +376,9 @@ export function createAuthServerMetadataEndpoint(
 export function createResourceServerMetadataEndpoint(
   resourceServer: OAuthResourceServer,
 ): RequestHandler {
-  return (req: Request, res: Response) => {
+  return (_req: Request, _res: Response) => {
     const metadata = resourceServer.getResourceServerMetadata();
-    res.json(metadata);
+    _res.json(metadata);
   };
 }
 
@@ -413,7 +404,7 @@ export class OAuthMiddlewareFactory {
   authorizeResource(
     resourceType: OAuthResourceType,
     operation: OAuthOperation,
-    resourceIdExtractor?: (req: Request) => string,
+    resourceIdExtractor?: (_req: Request) => string,
   ): RequestHandler {
     return requireResourceAccess(resourceType, operation, resourceIdExtractor);
   }

@@ -95,9 +95,9 @@ export async function generateDocumentationIndex(
         },
       ],
     };
-  } catch (error) {
-    console.error('Error generating documentation index:', error);
-    throw error;
+  } catch (_error) {
+    console.error('[Error]:', _error);
+    throw _error;
   }
 }
 
@@ -160,9 +160,9 @@ export async function generateAPIReference(
         },
       ],
     };
-  } catch (error) {
-    console.error('Error generating API reference:', error);
-    throw error;
+  } catch (_error) {
+    console.error('[Error]:', _error);
+    throw _error;
   }
 }
 
@@ -263,9 +263,9 @@ export async function generateFeatureDocumentation(
         },
       ],
     };
-  } catch (error) {
-    console.error('Error generating feature documentation:', error);
-    throw error;
+  } catch (_error) {
+    console.error('[Error]:', _error);
+    throw _error;
   }
 }
 
@@ -335,9 +335,9 @@ export async function updateDocumentation(
         },
       ],
     };
-  } catch (error) {
-    console.error('Error updating documentation:', error);
-    throw error;
+  } catch (_error) {
+    console.error('[Error]:', _error);
+    throw _error;
   }
 }
 
@@ -390,8 +390,8 @@ export async function generateChangelog(
     // Add categorized changes
     for (const [category, categoryChanges] of Object.entries(grouped)) {
       if (category === 'all' || categoryChanges.length === 0) {
-continue;
-}
+        continue;
+      }
 
       changelog += `### ${formatCategory(category)}\n\n`;
       for (const change of categoryChanges) {
@@ -437,9 +437,9 @@ continue;
         },
       ],
     };
-  } catch (error) {
-    console.error('Error generating changelog:', error);
-    throw error;
+  } catch (_error) {
+    console.error('[Error]:', _error);
+    throw _error;
   }
 }
 
@@ -509,9 +509,9 @@ export async function createKnowledgeArticle(
         },
       ],
     };
-  } catch (error) {
-    console.error('Error creating knowledge article:', error);
-    throw error;
+  } catch (_error) {
+    console.error('[Error]:', _error);
+    throw _error;
   }
 }
 
@@ -563,20 +563,20 @@ function getTitleFromFilename(filename: string): string {
 
 function getCategoryFromFilename(filename: string): string {
   if (filename.includes('api')) {
-return 'API Reference';
-}
+    return 'API Reference';
+  }
   if (filename.includes('guide')) {
-return 'Guides';
-}
+    return 'Guides';
+  }
   if (filename.includes('tool')) {
-return 'Tools';
-}
+    return 'Tools';
+  }
   if (filename.includes('feature')) {
-return 'Features';
-}
+    return 'Features';
+  }
   if (filename.includes('test')) {
-return 'Testing';
-}
+    return 'Testing';
+  }
   return 'General';
 }
 
@@ -588,13 +588,13 @@ function extractFirstParagraph(content: string): string {
   for (const line of lines) {
     if (line.trim() === '') {
       if (inParagraph) {
-break;
-}
+        break;
+      }
       continue;
     }
     if (line.startsWith('#')) {
-continue;
-}
+      continue;
+    }
     inParagraph = true;
     paragraph += line + ' ';
   }
@@ -665,8 +665,8 @@ function extractParameters(functionDef: string): any[] {
 
 function extractReturns(jsdoc: string | undefined): string {
   if (!jsdoc) {
-return 'Promise<MCPToolResponse>';
-}
+    return 'Promise<MCPToolResponse>';
+  }
   const returnMatch = jsdoc.match(/@returns?\s+(.+)$/m);
   return returnMatch?.[1]?.trim() || 'Promise<MCPToolResponse>';
 }
@@ -792,7 +792,7 @@ function parseConventionalCommits(_commits: any[]): any[] {
 
 function groupChangesByCategory(changes: any[]): Record<string, any[]> {
   const grouped: Record<string, any[]> = {
-    features: [],
+    featu_res: [],
     fixes: [],
     performance: [],
     documentation: [],
@@ -813,16 +813,16 @@ function groupChangesByCategory(changes: any[]): Record<string, any[]> {
   return grouped;
 }
 
-function formatCategory(category: string): string {
+function formatCategory(_category: string): string {
   const categoryNames: Record<string, string> = {
-    features: '✨ Features',
+    featu_res: '✨ Features',
     fixes: '🐛 Bug Fixes',
     performance: '⚡ Performance',
     documentation: '📚 Documentation',
     other: '🔧 Other Changes',
   };
 
-  return categoryNames[category] || category;
+  return categoryNames[_category] || _category;
 }
 
 function getUniqueContributors(_commits: any[]): string[] {
@@ -869,7 +869,7 @@ async function updateKnowledgeBaseIndex(_articlePath: string, metadata: any): Pr
     });
 
     await fs.writeFile(indexPath, JSON.stringify(index, null, 2));
-  } catch (error) {
-    console.error('Error updating knowledge base index:', error);
+  } catch (_error) {
+    console.error('[Error]:', _error);
   }
 }

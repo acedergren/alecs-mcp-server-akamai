@@ -11,7 +11,6 @@ import {
   AuthorizationDecision,
   CustomerIsolationPolicy,
   IsolationLevel,
-  ResourceRestriction,
   PermissionScope,
 } from './oauth/types';
 
@@ -27,7 +26,7 @@ interface PermissionEvaluation {
 }
 
 /**
- * Policy evaluation context
+ * Policy evaluation _context
  */
 interface PolicyContext {
   resource: string;
@@ -174,16 +173,16 @@ export class AuthorizationManager {
   }
 
   /**
-   * Authorize action based on context
+   * Authorize action based on _context
    */
   async authorize(
-    context: AuthorizationContext,
+    _context: AuthorizationContext,
     policyContext: PolicyContext,
   ): Promise<AuthorizationDecision> {
     try {
       // Check isolation policy first
       const isolationCheck = await this.checkIsolationPolicy(
-        context.customerContext,
+        _context.customerContext,
         policyContext,
       );
 
@@ -192,11 +191,11 @@ export class AuthorizationManager {
       }
 
       // Evaluate direct permissions first
-      if (context.permissions && context.permissions.length > 0) {
+      if (_context.permissions && _context.permissions.length > 0) {
         const permissionCheck = await this.evaluatePermissions(
-          context.permissions,
+          _context.permissions,
           policyContext,
-          context.customerContext,
+          _context.customerContext,
         );
 
         if (permissionCheck.allowed) {
@@ -206,17 +205,17 @@ export class AuthorizationManager {
 
       // Check role-based permissions
       const roleCheck = await this.evaluateRolePermissions(
-        context.customerContext.roles,
+        _context.customerContext.roles,
         policyContext,
-        context.customerContext,
+        _context.customerContext,
       );
 
       return roleCheck;
-    } catch (error) {
+    } catch (_error) {
       logger.error('Authorization failed', {
-        context,
+        _context,
         policyContext,
-        error,
+        _error,
       });
 
       return {
@@ -301,11 +300,7 @@ export class AuthorizationManager {
     const evaluations: PermissionEvaluation[] = [];
 
     for (const permission of permissions) {
-      const evaluation = this.evaluatePermission(
-        permission,
-        policyContext,
-        customerContext,
-      );
+      const evaluation = this.evaluatePermission(permission, policyContext, customerContext);
       evaluations.push(evaluation);
 
       if (evaluation.allowed) {
@@ -345,10 +340,7 @@ export class AuthorizationManager {
     }
 
     // Check action match
-    if (
-      !permission.actions.includes('*') &&
-      !permission.actions.includes(policyContext.action)
-    ) {
+    if (!permission.actions.includes('*') && !permission.actions.includes(policyContext.action)) {
       return {
         permission,
         allowed: false,
@@ -390,16 +382,13 @@ export class AuthorizationManager {
   /**
    * Check permission scope
    */
-  private checkPermissionScope(
-    permission: Permission,
-    customerContext: CustomerContext,
-  ): boolean {
+  private checkPermissionScope(permission: Permission, customerContext: CustomerContext): boolean {
     switch (permission.scope) {
       case PermissionScope.GLOBAL:
         // Global permissions apply to all customers
         return true;
       case PermissionScope.CUSTOMER:
-        // Customer permissions apply within customer context
+        // Customer permissions apply within customer _context
         return !!customerContext.customerId;
       case PermissionScope.RESOURCE:
         // Resource permissions require specific resource access
@@ -438,11 +427,7 @@ export class AuthorizationManager {
     // Evaluate permissions from highest priority role first
     for (const role of sortedRoles) {
       for (const permission of role.permissions) {
-        const evaluation = this.evaluatePermission(
-          permission,
-          policyContext,
-          customerContext,
-        );
+        const evaluation = this.evaluatePermission(permission, policyContext, customerContext);
 
         if (evaluation.allowed) {
           return {

@@ -207,8 +207,9 @@ export async function createEdgeHostnameEnhanced(
 
     if (secure && !args.certificateEnrollmentId) {
       responseText += '\n## ⚠️ Certificate Required\n';
-      responseText += 'This is a secure edge hostname but no certificate enrollment was specified.\n';
-      responseText += 'You\'ll need to:\n';
+      responseText +=
+        'This is a secure edge hostname but no certificate enrollment was specified.\n';
+      responseText += "You'll need to:\n";
       responseText += '1. Create a certificate enrollment\n';
       responseText += '2. Complete domain validation\n';
       responseText += '3. Associate the certificate with this edge hostname\n';
@@ -222,12 +223,12 @@ export async function createEdgeHostnameEnhanced(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'create edge hostname',
             parameters: args,
             timestamp: new Date(),
@@ -298,10 +299,10 @@ export async function createBulkEdgeHostnames(
           edgeHostname,
           edgeHostnameId,
         });
-      } catch (error) {
+      } catch (_error) {
         results.failed.push({
           hostname,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: _error instanceof Error ? _error.message : 'Unknown error',
         });
       }
     }
@@ -355,12 +356,12 @@ export async function createBulkEdgeHostnames(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'create bulk edge hostnames',
             parameters: args,
             timestamp: new Date(),
@@ -392,11 +393,11 @@ export async function getEdgeHostnameDetails(
     if (!edgeHostnameId && args.edgeHostnameDomain) {
       const queryParams: any = {};
       if (args.contractId) {
-queryParams.contractId = args.contractId;
-}
+        queryParams.contractId = args.contractId;
+      }
       if (args.groupId) {
-queryParams.groupId = args.groupId;
-}
+        queryParams.groupId = args.groupId;
+      }
 
       const listResponse = await client.request({
         path: '/papi/v1/edgehostnames',
@@ -537,12 +538,12 @@ queryParams.groupId = args.groupId;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'get edge hostname details',
             parameters: args,
             timestamp: new Date(),
@@ -587,8 +588,8 @@ export async function generateEdgeHostnameRecommendations(
       (acc, rec) => {
         const key = `${rec.recommendedSuffix}-${rec.secure}`;
         if (!acc[key]) {
-acc[key] = [];
-}
+          acc[key] = [];
+        }
         acc[key].push(rec);
         return acc;
       },
@@ -623,8 +624,8 @@ acc[key] = [];
 
     Object.entries(suffixGroups).forEach(([suffix, recs]) => {
       if (recs.length === 0) {
-return;
-}
+        return;
+      }
 
       responseText += `### ${suffix} (${recs.length} hostnames)\n\n`;
 
@@ -651,7 +652,8 @@ return;
     responseText += `- **Non-Secure Edge Hostnames:** ${nonSecureCount}\n`;
 
     if (nonSecureCount > 0 && args.securityRequirement !== 'maximum') {
-      responseText += '\n💡 **Cost Saving Tip:** Using non-secure edge hostnames for static content can reduce costs.\n';
+      responseText +=
+        '\n💡 **Cost Saving Tip:** Using non-secure edge hostnames for static content can reduce costs.\n';
     }
 
     // Certificate strategy summary
@@ -669,7 +671,8 @@ return;
     });
 
     if (certStrategies['DEFAULT_DV'] && certStrategies['DEFAULT_DV'] > 0) {
-      responseText += '\n✅ **DefaultDV Recommended:** Fastest deployment with automatic certificate provisioning.\n';
+      responseText +=
+        '\n✅ **DefaultDV Recommended:** Fastest deployment with automatic certificate provisioning.\n';
     }
 
     // Implementation commands
@@ -703,12 +706,12 @@ return;
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'generate edge hostname recommendations',
             parameters: args,
             timestamp: new Date(),
@@ -752,7 +755,8 @@ export async function validateEdgeHostnameCertificate(
 
     if (!eh.secure) {
       responseText += '## ℹ️ Non-Secure Edge Hostname\n';
-      responseText += 'This edge hostname is configured for HTTP-only traffic and does not require a certificate.\n';
+      responseText +=
+        'This edge hostname is configured for HTTP-only traffic and does not require a certificate.\n';
 
       return {
         content: [
@@ -797,7 +801,8 @@ export async function validateEdgeHostnameCertificate(
       responseText += '3. Associate the certificate with this edge hostname\n\n';
 
       responseText += '### Certificate Options\n';
-      responseText += '- **DefaultDV (Recommended):** Automatic DV certificate from Let\'s Encrypt\n';
+      responseText +=
+        "- **DefaultDV (Recommended):** Automatic DV certificate from Let's Encrypt\n";
       responseText += '- **CPS Standard:** Akamai-managed DV certificate\n';
       responseText += '- **Third-Party:** Upload your own certificate\n';
     }
@@ -808,9 +813,11 @@ export async function validateEdgeHostnameCertificate(
 
       if (eh.certEnrollmentId) {
         // Check if hostname would be covered
-        responseText += '⚠️ **Note:** Certificate coverage verification requires checking the certificate\'s CN and SANs.\n';
+        responseText +=
+          "⚠️ **Note:** Certificate coverage verification requires checking the certificate's CN and SANs.\n";
       } else {
-        responseText += '❌ **Not Covered:** No certificate is associated with this edge hostname.\n';
+        responseText +=
+          '❌ **Not Covered:** No certificate is associated with this edge hostname.\n';
       }
     }
 
@@ -839,12 +846,12 @@ export async function validateEdgeHostnameCertificate(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'validate edge hostname certificate',
             parameters: args,
             timestamp: new Date(),
@@ -917,12 +924,12 @@ export async function associateCertificateWithEdgeHostname(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'associate certificate with edge hostname',
             parameters: args,
             timestamp: new Date(),

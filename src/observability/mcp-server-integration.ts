@@ -80,8 +80,8 @@ export class InstrumentedMCPServer {
       console.log(
         `📊 Observability initialized for ${this.config.observability.environment} environment`,
       );
-    } catch (error) {
-      console.error('❌ Failed to initialize observability:', error);
+    } catch (_error) {
+      console.error('[Error]:', _error);
     }
   }
 
@@ -122,8 +122,8 @@ export class InstrumentedMCPServer {
 
   private setupCustomHealthChecks(): void {
     if (!this.observability) {
-return;
-}
+      return;
+    }
 
     // MCP Server connectivity health check
     this.observability.diagnostics.registerHealthCheck({
@@ -142,11 +142,11 @@ return;
             duration: 0,
             metadata: { serverActive: isResponsive },
           };
-        } catch (error) {
+        } catch (_error) {
           return {
             name: 'mcp_server_connectivity',
             status: 'critical',
-            message: `Health check failed: ${error instanceof Error ? error.message : String(error)}`,
+            message: `Health check failed: ${_error instanceof Error ? _error.message : String(_error)}`,
             lastCheck: Date.now(),
             duration: 0,
           };
@@ -191,8 +191,8 @@ return;
 
   private setupCustomAlerts(): void {
     if (!this.observability) {
-return;
-}
+      return;
+    }
 
     // High error rate alert
     this.observability.diagnostics.registerAlertRule({
@@ -255,9 +255,9 @@ return;
         instrumentation.finish(undefined, { toolCount: tools.length });
 
         return { tools };
-      } catch (error) {
-        instrumentation.finish(error as Error);
-        throw error;
+      } catch (_error) {
+        instrumentation.finish(_error as Error);
+        throw _error;
       }
     });
 
@@ -307,7 +307,7 @@ return;
             },
           ],
         };
-      } catch (error) {
+      } catch (_error) {
         // Record failed tool execution
         this.observability!.metrics.incrementCounter('akamai_mcp_tool_executions_total', 1, {
           tool: toolName,
@@ -322,18 +322,18 @@ return;
           {
             toolName,
             customer,
-            error: (error as Error).message,
-            stack: (error as Error).stack,
+            error: (_error as Error).message,
+            stack: (_error as Error).stack,
           },
           'mcp-server',
           instrumentation.traceId,
           instrumentation.spanId,
         );
 
-        instrumentation.finish(error as Error);
+        instrumentation.finish(_error as Error);
 
         // Re-throw to maintain MCP error handling
-        throw error;
+        throw _error;
       }
     });
   }
@@ -397,9 +397,9 @@ return;
         apiInstrumentation.finish(undefined, result);
 
         return result;
-      } catch (error) {
-        apiInstrumentation.finish(error as Error);
-        throw error;
+      } catch (_error) {
+        apiInstrumentation.finish(_error as Error);
+        throw _error;
       }
     }
 
@@ -552,8 +552,8 @@ return;
           await this.observability.exportObservabilityData();
           console.log('📤 Observability data exported on shutdown');
         }
-      } catch (error) {
-        console.error('❌ Failed to generate final report:', error);
+      } catch (_error) {
+        console.error('[Error]:', _error);
       }
 
       this.observability.stop();

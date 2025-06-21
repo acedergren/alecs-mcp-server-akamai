@@ -280,12 +280,12 @@ export async function analyzeHostnameOwnership(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'analyze hostname ownership',
             parameters: args,
             timestamp: new Date(),
@@ -359,8 +359,8 @@ export async function generateEdgeHostnameRecommendations(
       (acc, rec) => {
         const suffix = rec.domainSuffix as string;
         if (!acc[suffix]) {
-acc[suffix] = [];
-}
+          acc[suffix] = [];
+        }
         acc[suffix].push(rec);
         return acc;
       },
@@ -417,12 +417,12 @@ acc[suffix] = [];
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'generate edge hostname recommendations',
             parameters: args,
             timestamp: new Date(),
@@ -620,12 +620,12 @@ export async function validateHostnamesBulk(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'validate hostnames bulk',
             parameters: args,
             timestamp: new Date(),
@@ -769,12 +769,12 @@ export async function findOptimalPropertyAssignment(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'find optimal property assignment',
             parameters: args,
             timestamp: new Date(),
@@ -902,9 +902,11 @@ export async function createHostnameProvisioningPlan(
     responseText += '# Create properties\n';
     responseText += `akamai property create --name "property-name" --product ${args.productId || 'prd_Ion'} --contract ${args.contractId} --group ${args.groupId}\n\n`;
     responseText += '# Create edge hostnames\n';
-    responseText += 'akamai edgehostname create --hostname "hostname" --secure true --cert DEFAULT\n\n';
+    responseText +=
+      'akamai edgehostname create --hostname "hostname" --secure true --cert DEFAULT\n\n';
     responseText += '# Add hostnames\n';
-    responseText += 'akamai property hostname add --property "property-id" --hostname "hostname" --edgehostname "edge-hostname"\n';
+    responseText +=
+      'akamai property hostname add --property "property-id" --hostname "hostname" --edgehostname "edge-hostname"\n';
     responseText += '```\n\n';
 
     responseText += '## ✅ Ready to Execute?\n';
@@ -920,12 +922,12 @@ export async function createHostnameProvisioningPlan(
         },
       ],
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(error, {
+          text: errorTranslator.formatConversationalError(_error, {
             operation: 'create hostname provisioning plan',
             parameters: args,
             timestamp: new Date(),
@@ -948,14 +950,14 @@ function getNetworkStatus(hostname: any): 'STAGING' | 'PRODUCTION' | 'BOTH' | 'N
   const production = hostname.productionStatus === 'ACTIVE';
 
   if (staging && production) {
-return 'BOTH';
-}
+    return 'BOTH';
+  }
   if (staging) {
-return 'STAGING';
-}
+    return 'STAGING';
+  }
   if (production) {
-return 'PRODUCTION';
-}
+    return 'PRODUCTION';
+  }
   return 'NONE';
 }
 
@@ -1142,8 +1144,8 @@ function groupHostnamesByStrategy(
       hostnames.forEach((hostname) => {
         const domain = hostname.split('.').slice(-2).join('.');
         if (!groups[domain]) {
-groups[domain] = [];
-}
+          groups[domain] = [];
+        }
         groups[domain].push(hostname);
       });
       break;
@@ -1163,8 +1165,8 @@ groups[domain] = [];
           category = 'www';
         }
         if (!groups[category]) {
-groups[category] = [];
-}
+          groups[category] = [];
+        }
         groups[category].push(hostname);
       });
       break;
@@ -1182,8 +1184,8 @@ groups[category] = [];
           env = 'staging';
         }
         if (!groups[env]) {
-groups[env] = [];
-}
+          groups[env] = [];
+        }
         groups[env].push(hostname);
       });
       break;
@@ -1200,20 +1202,20 @@ groups[env] = [];
         if (subdomain && (subdomain === 'api' || subdomain.includes('api'))) {
           const key = `api-${domain}`;
           if (!groups[key]) {
-groups[key] = [];
-}
+            groups[key] = [];
+          }
           groups[key].push(hostname);
         } else if (subdomain === 'static' || subdomain === 'cdn' || subdomain === 'assets') {
           const key = `static-${domain}`;
           if (!groups[key]) {
-groups[key] = [];
-}
+            groups[key] = [];
+          }
           groups[key].push(hostname);
         } else {
           // Otherwise group by domain
           if (!groups[domain]) {
-groups[domain] = [];
-}
+            groups[domain] = [];
+          }
           groups[domain].push(hostname);
         }
       });
@@ -1253,8 +1255,8 @@ function generatePropertyName(groupName: string, hostnames: string[]): string {
   // Use first hostname as basis
   const firstHostname = hostnames[0];
   if (!firstHostname) {
-return 'property';
-}
+    return 'property';
+  }
 
   const parts = firstHostname.split('.');
   const domain = parts.slice(-2).join('.');
@@ -1310,8 +1312,8 @@ function extractSummaryFromResponse(response: MCPToolResponse): string {
     if (foundSummary && line.trim() !== '') {
       summaryLines.push(line);
       if (summaryLines.length >= 3) {
-break;
-}
+        break;
+      }
     }
   }
 

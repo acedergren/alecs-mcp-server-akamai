@@ -8,14 +8,11 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import express, { type Express } from 'express';
 
 import { AkamaiClient } from '@/akamai-client';
-import {
-  OAuthMiddlewareFactory,
-  type OAuthRequest,
-} from '@/middleware/oauth-authorization';
+import { OAuthMiddlewareFactory, type OAuthRequest } from '@/middleware/oauth-authorization';
 import { CustomerConfigManager } from '@/services/customer-config-manager';
 import { OAuthResourceServer } from '@/services/oauth-resource-server';
 import {
-  type OAuthResourceType,
+  // type OAuthResourceType,
   OAuthResourceType as ResourceType,
   OAuthOperation,
   BASE_OAUTH_SCOPES,
@@ -47,7 +44,7 @@ export async function createOAuthProtectedMcpServer(
   config: OAuthProtectedServerConfig,
 ): Promise<{ mcpServer: Server; httpServer: Express }> {
   // Initialize services
-  const configManager = new CustomerConfigManager();
+  const _configManager = new CustomerConfigManager();
   const apiClient = new AkamaiClient();
 
   // Create OAuth Resource Server
@@ -63,7 +60,7 @@ export async function createOAuthProtectedMcpServer(
   const oauthMiddleware = new OAuthMiddlewareFactory(resourceServer);
 
   // Create Resource Indicator Validator
-  const resourceValidator = new ResourceIndicatorValidator({
+  const _resourceValidator = new ResourceIndicatorValidator({
     allowedResourceTypes: Object.values(ResourceType),
     maxResourcesPerRequest: 10,
     allowWildcards: false,
@@ -93,9 +90,9 @@ export async function createOAuthProtectedMcpServer(
  * Enhance MCP server with OAuth resource registration
  */
 function enhanceMcpServerWithOAuth(
-  mcpServer: Server,
-  resourceServer: OAuthResourceServer,
-  apiClient: AkamaiClient,
+  _mcpServer: Server,
+  _resourceServer: OAuthResourceServer,
+  _apiClient: AkamaiClient,
 ): void {
   // Note: MCP SDK doesn't expose a direct callTool method
   // Resource registration should be integrated within individual tool handlers
@@ -105,12 +102,12 @@ function enhanceMcpServerWithOAuth(
 /**
  * Register resources from tool results
  */
-async function registerResourcesFromToolResult(
+async function _registerResourcesFromToolResult(
   toolName: string,
-  args: any,
+  _args: any,
   result: any,
   resourceServer: OAuthResourceServer,
-  apiClient: AkamaiClient,
+  _apiClient: AkamaiClient,
 ): Promise<void> {
   // TODO: Get account ID from appropriate source
   const accountId = 'default-account';
@@ -160,7 +157,7 @@ function createOAuthHttpServer(
 
   // Middleware
   app.use(express.json());
-  app.use((req, res, next) => {
+  app.use((req, _res, next) => {
     // Attach resource server to request context
     (req as any).resourceServer = resourceServer;
     next();
@@ -183,10 +180,10 @@ function createOAuthHttpServer(
   apiRouter.get(
     '/properties',
     oauthMiddleware.requireScopes(BASE_OAUTH_SCOPES.PROPERTY_READ),
-    async (req: OAuthRequest, res) => {
+    async (_req: OAuthRequest, res) => {
       const resources = resourceServer.listResources({
         type: ResourceType.PROPERTY,
-        owner: req.oauth?.token.akamai?.account_id,
+        owner: _req.oauth?.token.akamai?.account_id,
       });
       res.json({ resources });
     },
@@ -197,10 +194,10 @@ function createOAuthHttpServer(
     oauthMiddleware.authorizeResource(
       ResourceType.PROPERTY,
       OAuthOperation.READ,
-      req => req.params.propertyId,
+      (_req) => _req.params.propertyId,
     ),
-    async (req: OAuthRequest, res) => {
-      const resource = req.oauth?.resource;
+    async (_req: OAuthRequest, res) => {
+      const resource = _req.oauth?.resource;
       res.json({ resource });
     },
   );
@@ -210,9 +207,9 @@ function createOAuthHttpServer(
     oauthMiddleware.authorizeResource(
       ResourceType.PROPERTY,
       OAuthOperation.WRITE,
-      req => req.params.propertyId,
+      (_req) => _req.params.propertyId,
     ),
-    async (req: OAuthRequest, res) => {
+    async (_req: OAuthRequest, res) => {
       // Update property logic here
       res.json({ success: true });
     },
@@ -223,9 +220,9 @@ function createOAuthHttpServer(
     oauthMiddleware.authorizeResource(
       ResourceType.PROPERTY,
       OAuthOperation.ACTIVATE,
-      req => req.params.propertyId,
+      (_req) => _req.params.propertyId,
     ),
-    async (req: OAuthRequest, res) => {
+    async (_req: OAuthRequest, res) => {
       // Activation logic here
       res.json({ success: true });
     },
@@ -235,10 +232,10 @@ function createOAuthHttpServer(
   apiRouter.get(
     '/dns/zones',
     oauthMiddleware.requireScopes(BASE_OAUTH_SCOPES.DNS_READ),
-    async (req: OAuthRequest, res) => {
+    async (_req: OAuthRequest, res) => {
       const resources = resourceServer.listResources({
         type: ResourceType.DNS_ZONE,
-        owner: req.oauth?.token.akamai?.account_id,
+        owner: _req.oauth?.token.akamai?.account_id,
       });
       res.json({ resources });
     },
@@ -249,10 +246,10 @@ function createOAuthHttpServer(
     oauthMiddleware.authorizeResource(
       ResourceType.DNS_ZONE,
       OAuthOperation.READ,
-      req => req.params.zoneId,
+      (_req) => _req.params.zoneId,
     ),
-    async (req: OAuthRequest, res) => {
-      const resource = req.oauth?.resource;
+    async (_req: OAuthRequest, res) => {
+      const resource = _req.oauth?.resource;
       res.json({ resource });
     },
   );
@@ -261,10 +258,10 @@ function createOAuthHttpServer(
   apiRouter.get(
     '/network-lists',
     oauthMiddleware.requireScopes(BASE_OAUTH_SCOPES.NETWORK_LIST_READ),
-    async (req: OAuthRequest, res) => {
+    async (_req: OAuthRequest, res) => {
       const resources = resourceServer.listResources({
         type: ResourceType.NETWORK_LIST,
-        owner: req.oauth?.token.akamai?.account_id,
+        owner: _req.oauth?.token.akamai?.account_id,
       });
       res.json({ resources });
     },
@@ -274,10 +271,10 @@ function createOAuthHttpServer(
   apiRouter.get(
     '/certificates',
     oauthMiddleware.requireScopes(BASE_OAUTH_SCOPES.CERTIFICATE_READ),
-    async (req: OAuthRequest, res) => {
+    async (_req: OAuthRequest, res) => {
       const resources = resourceServer.listResources({
         type: ResourceType.CERTIFICATE,
-        owner: req.oauth?.token.akamai?.account_id,
+        owner: _req.oauth?.token.akamai?.account_id,
       });
       res.json({ resources });
     },
@@ -287,7 +284,7 @@ function createOAuthHttpServer(
   apiRouter.post(
     '/purge/url',
     oauthMiddleware.requireScopes(BASE_OAUTH_SCOPES.PURGE_EXECUTE),
-    async (req: OAuthRequest, res) => {
+    async (_req: OAuthRequest, res) => {
       // Purge logic here
       res.json({ success: true });
     },
@@ -297,13 +294,15 @@ function createOAuthHttpServer(
   app.use('/api/v1', apiRouter);
 
   // Error handling
-  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    console.error('Server error:', err);
-    res.status(err.status || 500).json({
-      error: err.error || 'server_error',
-      error_description: err.message || 'Internal server error',
-    });
-  });
+  app.use(
+    (_err: any, _req: express.Request, _res: express.Response, _next: express.NextFunction) => {
+      console.error('Server error:', _err);
+      _res.status(_err.status || 500).json({
+        error: _err.error || 'server_error',
+        error_description: _err.message || 'Internal server error',
+      });
+    },
+  );
 
   // Start server
   app.listen(port, () => {
@@ -328,7 +327,7 @@ export async function main() {
     httpPort: parseInt(process.env.HTTP_PORT || '3000', 10),
   };
 
-  const { mcpServer, httpServer } = await createOAuthProtectedMcpServer(config);
+  const { mcpServer, httpServer: _httpServer } = await createOAuthProtectedMcpServer(config);
 
   // Start MCP server on stdio transport
   const transport = new StdioServerTransport();

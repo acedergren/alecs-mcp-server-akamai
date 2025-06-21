@@ -95,11 +95,11 @@ class EssentialALECSServer {
       log('INFO', 'Initializing Akamai client...');
       this.client = new AkamaiClient();
       log('INFO', '✅ Akamai client initialized successfully');
-    } catch (error) {
+    } catch (_error) {
       log('ERROR', '❌ Failed to initialize Akamai client', {
-        error: error instanceof Error ? error.message : String(error),
+        error: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
 
     this.setupHandlers();
@@ -383,17 +383,19 @@ class EssentialALECSServer {
 
         switch (name) {
           // Property tools
-          case 'list-properties':
+          case 'list-properties': {
             const listPropsArgs = ListPropertiesSchema.parse(args);
             result = await listProperties(client, listPropsArgs);
             break;
+          }
 
-          case 'get-property':
+          case 'get-property': {
             const getPropArgs = GetPropertySchema.parse(args);
             result = await getProperty(client, { propertyId: getPropArgs.propertyId });
             break;
+          }
 
-          case 'create-property':
+          case 'create-property': {
             const createPropArgs = CreatePropertySchema.parse(args) as {
               customer?: string;
               propertyName: string;
@@ -404,6 +406,7 @@ class EssentialALECSServer {
             };
             result = await createProperty(client, createPropArgs);
             break;
+          }
 
           case 'activate-property':
             result = await activateProperty(client, args as any);
@@ -414,15 +417,17 @@ class EssentialALECSServer {
             break;
 
           // DNS tools
-          case 'list-zones':
+          case 'list-zones': {
             const listZonesArgs = ListZonesSchema.parse(args);
             result = await listZones(client, listZonesArgs);
             break;
+          }
 
-          case 'get-zone':
+          case 'get-zone': {
             const getZoneArgs = GetZoneSchema.parse(args);
             result = await getZone(client, { zone: getZoneArgs.zone });
             break;
+          }
 
           case 'create-zone':
             result = await createZone(client, args as any);
@@ -446,20 +451,22 @@ class EssentialALECSServer {
             break;
 
           // Fast Purge
-          case 'purge-by-url':
+          case 'purge-by-url': {
             const purgeByUrl = fastPurgeTools.find((t) => t.name === 'purge-by-url');
             if (purgeByUrl) {
               result = await purgeByUrl.handler(args);
             }
             break;
+          }
 
           // Reporting
-          case 'get-traffic-report':
+          case 'get-traffic-report': {
             const getTrafficReport = reportingTools.find((t) => t.name === 'get-traffic-report');
             if (getTrafficReport) {
               result = await getTrafficReport.handler(args);
             }
             break;
+          }
 
           case 'get-activation-status':
             result = await getActivationStatus(client, args as any);
@@ -473,32 +480,32 @@ class EssentialALECSServer {
         log('INFO', `✅ Tool ${name} completed in ${duration}ms`);
 
         return result;
-      } catch (error) {
+      } catch (_error) {
         const duration = Date.now() - startTime;
         log('ERROR', `❌ Tool ${name} failed after ${duration}ms`, {
           error:
-            error instanceof Error
+            _error instanceof Error
               ? {
-                  message: error.message,
-                  stack: error.stack,
+                  message: _error.message,
+                  stack: _error.stack,
                 }
-              : String(error),
+              : String(_error),
         });
 
-        if (error instanceof z.ZodError) {
+        if (_error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
+            `Invalid parameters: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
           );
         }
 
-        if (error instanceof McpError) {
-          throw error;
+        if (_error instanceof McpError) {
+          throw _error;
         }
 
         throw new McpError(
           ErrorCode.InternalError,
-          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
+          `Tool execution failed: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
       }
     });
@@ -512,10 +519,10 @@ class EssentialALECSServer {
     const transport = new StdioServerTransport();
 
     // Add error handling for transport
-    transport.onerror = (error: Error) => {
+    transport.onerror = (_error: Error) => {
       log('ERROR', '❌ Transport error', {
-        message: error.message,
-        stack: error.stack,
+        message: _error.message,
+        stack: _error.stack,
       });
     };
 
@@ -532,17 +539,17 @@ class EssentialALECSServer {
         memoryUsage: process.memoryUsage(),
         uptime: process.uptime(),
       });
-    } catch (error) {
+    } catch (_error) {
       log('ERROR', '❌ Failed to connect server', {
         error:
-          error instanceof Error
+          _error instanceof Error
             ? {
-                message: error.message,
-                stack: error.stack,
+                message: _error.message,
+                stack: _error.stack,
               }
-            : String(error),
+            : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 }
@@ -563,26 +570,26 @@ async function main() {
         pid: process.pid,
       });
     }, 30000); // Every 30 seconds
-  } catch (error) {
+  } catch (_error) {
     log('ERROR', '❌ Failed to start server', {
       error:
-        error instanceof Error
+        _error instanceof Error
           ? {
-              message: error.message,
-              stack: error.stack,
+              message: _error.message,
+              stack: _error.stack,
             }
-          : String(error),
+          : String(_error),
     });
     process.exit(1);
   }
 }
 
 // Handle uncaught errors
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', (_error) => {
   log('ERROR', '❌ Uncaught exception', {
     error: {
-      message: error.message,
-      stack: error.stack,
+      message: _error.message,
+      stack: _error.stack,
     },
   });
   process.exit(1);

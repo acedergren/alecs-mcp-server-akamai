@@ -68,7 +68,7 @@ const reportingToolsBase: Tool[] = [
               items: { type: 'string' },
               description: 'Filter by geographic regions',
             },
-            httpStatus: {
+            _httpStatus: {
               type: 'array',
               items: { type: 'string' },
               description: 'Filter by HTTP status codes (e.g., ["200", "404", "500"])',
@@ -121,7 +121,7 @@ const reportingToolsBase: Tool[] = [
             hostnames: { type: 'array', items: { type: 'string' } },
             countries: { type: 'array', items: { type: 'string' } },
             regions: { type: 'array', items: { type: 'string' } },
-            httpStatus: { type: 'array', items: { type: 'string' } },
+            _httpStatus: { type: 'array', items: { type: 'string' } },
             cacheStatus: { type: 'array', items: { type: 'string' } },
           },
         },
@@ -644,7 +644,7 @@ const reportingToolsBase: Tool[] = [
           properties: {
             cpCodes: { type: 'array', items: { type: 'number' } },
             hostnames: { type: 'array', items: { type: 'string' } },
-            httpStatus: { type: 'array', items: { type: 'string' } },
+            _httpStatus: { type: 'array', items: { type: 'string' } },
           },
         },
         errorTypes: {
@@ -680,11 +680,11 @@ export async function handleGetTrafficSummary(args: any) {
       data: summary,
       message: 'Traffic summary retrieved successfully',
     };
-  } catch (error) {
-    logger.error('Failed to get traffic summary', { error, args });
+  } catch (_error) {
+    logger.error('Failed to get traffic summary', { _error, args });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: _error instanceof Error ? _error.message : 'Unknown _error',
       details: 'Failed to retrieve traffic summary',
     };
   }
@@ -704,11 +704,11 @@ export async function handleGetTimeseriesData(args: any) {
       data,
       message: `Time-series data retrieved for ${metrics.length} metrics`,
     };
-  } catch (error) {
-    logger.error('Failed to get timeseries data', { error, args });
+  } catch (_error) {
+    logger.error('Failed to get timeseries data', { _error, args });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: _error instanceof Error ? _error.message : 'Unknown _error',
       details: 'Failed to retrieve time-series data',
     };
   }
@@ -728,11 +728,11 @@ export async function handleGetPerformanceBenchmarks(args: any) {
       data: benchmarks,
       message: `Performance benchmarks calculated for ${benchmarks.length} metrics`,
     };
-  } catch (error) {
-    logger.error('Failed to get performance benchmarks', { error, args });
+  } catch (_error) {
+    logger.error('Failed to get performance benchmarks', { _error, args });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: _error instanceof Error ? _error.message : 'Unknown _error',
       details: 'Failed to retrieve performance benchmarks',
     };
   }
@@ -770,11 +770,11 @@ export async function handleGetCostOptimizationInsights(args: any) {
       },
       message: `Generated ${filteredInsights.length} cost optimization insights`,
     };
-  } catch (error) {
-    logger.error('Failed to get cost optimization insights', { error, args });
+  } catch (_error) {
+    logger.error('Failed to get cost optimization insights', { _error, args });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: _error instanceof Error ? _error.message : 'Unknown _error',
       details: 'Failed to generate cost optimization insights',
     };
   }
@@ -809,11 +809,11 @@ export async function handleCreateReportingDashboard(args: any) {
       data: dashboard,
       message: `Dashboard "${name}" created successfully with ${widgets.length} widgets`,
     };
-  } catch (error) {
-    logger.error('Failed to create reporting dashboard', { error, args });
+  } catch (_error) {
+    logger.error('Failed to create reporting dashboard', { _error, args });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: _error instanceof Error ? _error.message : 'Unknown _error',
       details: 'Failed to create reporting dashboard',
     };
   }
@@ -840,11 +840,11 @@ export async function handleExportReportData(args: any) {
       },
       message: `Report exported successfully as ${format.toUpperCase()}`,
     };
-  } catch (error) {
-    logger.error('Failed to export report data', { error, args });
+  } catch (_error) {
+    logger.error('Failed to export report data', { _error, args });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: _error instanceof Error ? _error.message : 'Unknown _error',
       details: 'Failed to export report data',
     };
   }
@@ -874,11 +874,11 @@ export async function handleConfigureMonitoringAlerts(args: any) {
       },
       message: `Configured ${enabledAlerts} active monitoring alerts`,
     };
-  } catch (error) {
-    logger.error('Failed to configure monitoring alerts', { error, args });
+  } catch (_error) {
+    logger.error('Failed to configure monitoring alerts', { _error, args });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: _error instanceof Error ? _error.message : 'Unknown _error',
       details: 'Failed to configure monitoring alerts',
     };
   }

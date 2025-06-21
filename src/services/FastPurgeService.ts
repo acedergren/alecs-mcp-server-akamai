@@ -16,7 +16,7 @@ export interface FastPurgeResponse {
   supportId: string;
   detail: string;
   estimatedSeconds: number;
-  httpStatus: number;
+  _httpStatus: number;
   purgedCount?: number;
   title?: string;
   pingAfterSeconds?: number;
@@ -167,7 +167,7 @@ export class FastPurgeService {
   private async executeWithRetry<T>(
     _customer: string,
     operation: () => Promise<T>,
-    context: string,
+    _context: string,
   ): Promise<T> {
     let lastError: Error | null = null;
     let delay = this.INITIAL_RETRY_DELAY;
@@ -178,15 +178,15 @@ export class FastPurgeService {
           OperationType.BULK_OPERATION,
           operation,
         );
-      } catch (error: any) {
-        lastError = error;
+      } catch (_error: any) {
+        lastError = _error;
 
         // Handle rate limiting
-        if (error.status === 429) {
-          const retryAfter = parseInt(error.headers?.['retry-after'] || '0') * 1000;
+        if (_error.status === 429) {
+          const retryAfter = parseInt(_error.headers?.['retry-after'] || '0') * 1000;
           const waitTime = retryAfter || delay;
 
-          logger.warn(`Rate limited on ${context}. Waiting ${waitTime}ms`);
+          logger.warn(`Rate limited on ${_context}. Waiting ${waitTime}ms`);
           await new Promise((resolve) => setTimeout(resolve, waitTime));
 
           delay = Math.min(delay * 2, this.MAX_RETRY_DELAY);
@@ -194,13 +194,13 @@ export class FastPurgeService {
         }
 
         // Don't retry on client errors (except rate limits)
-        if (error.status && error.status >= 400 && error.status < 500) {
-          throw error;
+        if (_error.status && _error.status >= 400 && _error.status < 500) {
+          throw _error;
         }
 
         // Exponential backoff for other errors
         if (attempt < this.MAX_RETRIES - 1) {
-          logger.warn(`Retry ${attempt + 1} for ${context} after ${delay}ms`);
+          logger.warn(`Retry ${attempt + 1} for ${_context} after ${delay}ms`);
           await new Promise((resolve) => setTimeout(resolve, delay));
           delay = Math.min(delay * 2, this.MAX_RETRY_DELAY);
         }
@@ -285,32 +285,34 @@ export class FastPurgeService {
           supportId: response.data.supportId,
           detail: response.data.detail,
           estimatedSeconds: response.data.estimatedSeconds,
-          httpStatus: response.data.httpStatus,
+          _httpStatus: response.data.httpStatus,
           purgedCount: batch.length,
           title: response.data.title,
           pingAfterSeconds: response.data.pingAfterSeconds,
         });
 
         processedCount += batchSize;
-      } catch (error: any) {
-        logger.error(`Failed to purge URL batch: ${error.message}`);
+      } catch (_error: any) {
+        logger.error(
+          `FastPurge error: ${_error instanceof Error ? _error.message : String(_error)}`,
+        );
 
         // Handle RFC 7807 problem details
-        if (error.response?.data?.type) {
+        if (_error.response?.data?.type) {
           throw new AkamaiError(
-            error.response.data.detail || error.response.data.title,
-            error.response.status || 500,
+            _error.response.data.detail || _error.response.data.title,
+            _error.response.status || 500,
             'FASTPURGE_ERROR',
             {
-              type: error.response.data.type,
-              supportId: error.response.data.supportId,
-              instance: error.response.data.instance,
-              status: error.response.data.status,
+              type: _error.response.data.type,
+              supportId: _error.response.data.supportId,
+              instance: _error.response.data.instance,
+              status: _error.response.data.status,
             },
           );
         }
 
-        throw error;
+        throw _error;
       }
     }
 
@@ -366,28 +368,30 @@ export class FastPurgeService {
           supportId: response.data.supportId,
           detail: response.data.detail,
           estimatedSeconds: response.data.estimatedSeconds,
-          httpStatus: response.data.httpStatus,
+          _httpStatus: response.data.httpStatus,
           purgedCount: 1,
           title: response.data.title,
           pingAfterSeconds: response.data.pingAfterSeconds,
         });
-      } catch (error: any) {
-        logger.error(`Failed to purge CP code ${cpCode}: ${error.message}`);
+      } catch (_error: any) {
+        logger.error(
+          `FastPurge error: ${_error instanceof Error ? _error.message : String(_error)}`,
+        );
 
-        if (error.response?.data?.type) {
+        if (_error.response?.data?.type) {
           throw new AkamaiError(
-            error.response.data.detail || error.response.data.title,
-            error.response.status || 500,
+            _error.response.data.detail || _error.response.data.title,
+            _error.response.status || 500,
             'FASTPURGE_ERROR',
             {
-              type: error.response.data.type,
-              supportId: error.response.data.supportId,
+              type: _error.response.data.type,
+              supportId: _error.response.data.supportId,
               cpCode: cpCode,
             },
           );
         }
 
-        throw error;
+        throw _error;
       }
     }
 
@@ -448,30 +452,32 @@ export class FastPurgeService {
           supportId: response.data.supportId,
           detail: response.data.detail,
           estimatedSeconds: response.data.estimatedSeconds,
-          httpStatus: response.data.httpStatus,
+          _httpStatus: response.data.httpStatus,
           purgedCount: batch.length,
           title: response.data.title,
           pingAfterSeconds: response.data.pingAfterSeconds,
         });
 
         processedCount += batchSize;
-      } catch (error: any) {
-        logger.error(`Failed to purge tag batch: ${error.message}`);
+      } catch (_error: any) {
+        logger.error(
+          `FastPurge error: ${_error instanceof Error ? _error.message : String(_error)}`,
+        );
 
-        if (error.response?.data?.type) {
+        if (_error.response?.data?.type) {
           throw new AkamaiError(
-            error.response.data.detail || error.response.data.title,
-            error.response.status || 500,
+            _error.response.data.detail || _error.response.data.title,
+            _error.response.status || 500,
             'FASTPURGE_ERROR',
             {
-              type: error.response.data.type,
-              supportId: error.response.data.supportId,
+              type: _error.response.data.type,
+              supportId: _error.response.data.supportId,
               tags: batch,
             },
           );
         }
 
-        throw error;
+        throw _error;
       }
     }
 
@@ -509,23 +515,25 @@ export class FastPurgeService {
         supportId: response.data.supportId,
         customer: customer,
       };
-    } catch (error: any) {
-      logger.error(`Failed to check purge status ${purgeId}: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(
+        `FastPurge validation error: ${_error instanceof Error ? _error.message : String(_error)}`,
+      );
 
-      if (error.response?.data?.type) {
+      if (_error.response?.data?.type) {
         throw new AkamaiError(
-          error.response.data.detail || error.response.data.title,
-          error.response.status || 500,
+          _error.response.data.detail || _error.response.data.title,
+          _error.response.status || 500,
           'FASTPURGE_STATUS_ERROR',
           {
-            type: error.response.data.type,
-            supportId: error.response.data.supportId,
+            type: _error.response.data.type,
+            supportId: _error.response.data.supportId,
             purgeId: purgeId,
           },
         );
       }
 
-      throw error;
+      throw _error;
     }
   }
 

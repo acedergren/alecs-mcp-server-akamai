@@ -87,11 +87,11 @@ class DNSALECSServer {
       log('INFO', 'Initializing Akamai client...');
       this.client = new AkamaiClient();
       log('INFO', '✅ Akamai client initialized successfully');
-    } catch (error) {
+    } catch (_error) {
       log('ERROR', '❌ Failed to initialize Akamai client', {
-        error: error instanceof Error ? error.message : String(error),
+        error: _error instanceof Error ? _error.message : String(_error),
       });
-      throw error;
+      throw _error;
     }
 
     this.setupHandlers();
@@ -605,32 +605,32 @@ class DNSALECSServer {
         log('INFO', `✅ Tool ${name} completed in ${duration}ms`);
 
         return result;
-      } catch (error) {
+      } catch (_error) {
         const duration = Date.now() - startTime;
         log('ERROR', `❌ Tool ${name} failed after ${duration}ms`, {
           error:
-            error instanceof Error
+            _error instanceof Error
               ? {
-                  message: error.message,
-                  stack: error.stack,
+                  message: _error.message,
+                  stack: _error.stack,
                 }
-              : String(error),
+              : String(_error),
         });
 
-        if (error instanceof z.ZodError) {
+        if (_error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
+            `Invalid parameters: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
           );
         }
 
-        if (error instanceof McpError) {
-          throw error;
+        if (_error instanceof McpError) {
+          throw _error;
         }
 
         throw new McpError(
           ErrorCode.InternalError,
-          `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
+          `Tool execution failed: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
       }
     });
@@ -644,10 +644,10 @@ class DNSALECSServer {
     const transport = new StdioServerTransport();
 
     // Add error handling for transport
-    transport.onerror = (error: Error) => {
+    transport.onerror = (_error: Error) => {
       log('ERROR', '❌ Transport error', {
-        message: error.message,
-        stack: error.stack,
+        message: _error.message,
+        stack: _error.stack,
       });
     };
 
@@ -664,17 +664,17 @@ class DNSALECSServer {
         memoryUsage: process.memoryUsage(),
         uptime: process.uptime(),
       });
-    } catch (error) {
+    } catch (_error) {
       log('ERROR', '❌ Failed to connect server', {
         error:
-          error instanceof Error
+          _error instanceof Error
             ? {
-                message: error.message,
-                stack: error.stack,
+                message: _error.message,
+                stack: _error.stack,
               }
-            : String(error),
+            : String(_error),
       });
-      throw error;
+      throw _error;
     }
   }
 }
@@ -695,26 +695,26 @@ async function main() {
         pid: process.pid,
       });
     }, 30000); // Every 30 seconds
-  } catch (error) {
+  } catch (_error) {
     log('ERROR', '❌ Failed to start server', {
       error:
-        error instanceof Error
+        _error instanceof Error
           ? {
-              message: error.message,
-              stack: error.stack,
+              message: _error.message,
+              stack: _error.stack,
             }
-          : String(error),
+          : String(_error),
     });
     process.exit(1);
   }
 }
 
 // Handle uncaught errors
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', (_error) => {
   log('ERROR', '❌ Uncaught exception', {
     error: {
-      message: error.message,
-      stack: error.stack,
+      message: _error.message,
+      stack: _error.stack,
     },
   });
   process.exit(1);

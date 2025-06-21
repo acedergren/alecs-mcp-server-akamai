@@ -125,12 +125,12 @@ export class PurgeQueueManager {
 
       // Start persistence timer
       this.persistenceTimer = setInterval(() => {
-        this.persistQueues().catch((err) =>
-          logger.error(`Failed to persist queues: ${err.message}`),
+        this.persistQueues().catch((_err) =>
+          logger.error(`Failed to persist queues: ${_err.message}`),
         );
       }, this.PERSISTENCE_INTERVAL);
-    } catch (error: any) {
-      logger.error(`Failed to initialize queue persistence: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(`Queue manager error: ${_error.message}`);
     }
   }
 
@@ -153,13 +153,13 @@ export class PurgeQueueManager {
 
             this.queues.set(customer, items);
             logger.info(`Loaded ${items.length} queue items for customer ${customer}`);
-          } catch (err: any) {
-            logger.error(`Failed to load queue for ${customer}: ${err.message}`);
+          } catch (_err: any) {
+            logger.error(`Failed to load queue for ${customer}: ${_err.message}`);
           }
         }
       }
-    } catch (error: any) {
-      logger.error(`Failed to load queues: ${error.message}`);
+    } catch (_error: any) {
+      logger.error(`Queue manager error: ${_error.message}`);
     }
   }
 
@@ -172,8 +172,8 @@ export class PurgeQueueManager {
         // Write to temp file first for atomic operation
         await fs.writeFile(tempPath, JSON.stringify(items, null, 2));
         await fs.rename(tempPath, filePath);
-      } catch (error: any) {
-        logger.error(`Failed to persist queue for ${customer}: ${error.message}`);
+      } catch (_error: any) {
+        logger.error(`Queue manager error: ${_error.message}`);
       }
     }
   }
@@ -235,8 +235,8 @@ export class PurgeQueueManager {
     // Group URLs by domain
     const urlItems = items.filter((item) => item.type === 'url' && item.status === 'pending');
     if (urlItems.length === 0) {
-return null;
-}
+      return null;
+    }
 
     const domainMap = new Map<string, Set<string>>();
 
@@ -250,7 +250,7 @@ return null;
             domainMap.set(domain, new Set());
           }
           domainMap.get(domain)!.add(url);
-        } catch (err) {
+        } catch (_err) {
           // Invalid URL, skip
         }
       }
@@ -272,30 +272,30 @@ return null;
     return null;
   }
 
-  async enqueue(request: FastPurgeRequest & { customer: string }): Promise<QueueItem> {
-    const dedupKey = this.generateDedupKey(request.type || 'url', request.objects);
+  async enqueue(_request: FastPurgeRequest & { customer: string }): Promise<QueueItem> {
+    const dedupKey = this.generateDedupKey(_request.type || 'url', _request.objects);
 
     // Check for duplicates
     if (this.isDuplicate(dedupKey)) {
-      logger.info(`Duplicate purge request detected for ${request.customer}, skipping`);
+      logger.info(`Duplicate purge request detected for ${_request.customer}, skipping`);
       throw new Error('Duplicate purge request within 5-minute window');
     }
 
     const item: QueueItem = {
       id: crypto.randomUUID(),
-      customer: request.customer,
-      type: request.type || 'url',
-      network: request.network,
-      objects: request.objects,
-      priority: this.calculatePriority(request.type || 'url', request.objects.length),
+      customer: _request.customer,
+      type: _request.type || 'url',
+      network: _request.network,
+      objects: _request.objects,
+      priority: this.calculatePriority(_request.type || 'url', _request.objects.length),
       createdAt: new Date(),
       status: 'pending',
       attempts: 0,
       dedupKey,
-      estimatedSize: request.objects.reduce((sum, obj) => sum + Buffer.byteLength(obj, 'utf8'), 0),
+      estimatedSize: _request.objects.reduce((sum, obj) => sum + Buffer.byteLength(obj, 'utf8'), 0),
     };
 
-    const queue = this.getCustomerQueue(request.customer);
+    const queue = this.getCustomerQueue(_request.customer);
     queue.push(item);
 
     // Sort by priority
@@ -304,11 +304,11 @@ return null;
     // Check for consolidation opportunities
     const suggestion = this.analyzeConsolidation(queue);
     if (suggestion) {
-      logger.info(`Consolidation suggestion for ${request.customer}: ${suggestion.reason}`);
+      logger.info(`Consolidation suggestion for ${_request.customer}: ${suggestion.reason}`);
     }
 
     // Start processing if not already running
-    this.startProcessing(request.customer);
+    this.startProcessing(_request.customer);
 
     return item;
   }
@@ -389,15 +389,15 @@ return null;
       logger.info(
         `Completed purge ${item.id} for ${item.customer}: ${item.objects.length} objects`,
       );
-    } catch (error: any) {
-      item.error = error.message;
+    } catch (_error: any) {
+      item.error = _error.message;
 
       if (item.attempts >= 3) {
         item.status = 'failed';
-        logger.error(`Failed purge ${item.id} after ${item.attempts} attempts: ${error.message}`);
+        logger.error(`Queue manager error: ${_error.message}`);
       } else {
         item.status = 'pending';
-        logger.warn(`Purge ${item.id} failed, will retry: ${error.message}`);
+        logger.warn(`Purge ${item.id} failed, will retry: ${_error.message}`);
       }
     }
   }

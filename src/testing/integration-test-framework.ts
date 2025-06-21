@@ -85,7 +85,7 @@ export class IntegrationTestFramework {
 
       this.testResults.push(testResult);
       return testResult;
-    } catch (error) {
+    } catch (_error) {
       const duration = Date.now() - startTime;
 
       const testResult: TestResult = {
@@ -93,7 +93,7 @@ export class IntegrationTestFramework {
         scenario: scenario.name,
         status: 'failed',
         duration,
-        error: (error as Error).message,
+        error: (_error as Error).message,
       };
 
       this.testResults.push(testResult);
@@ -168,7 +168,7 @@ export class IntegrationTestFramework {
           actual: passed,
           passed,
         });
-      } catch (error) {
+      } catch (_error) {
         assertions.push({
           description: rule.description,
           expected: true,
@@ -195,7 +195,7 @@ export class IntegrationTestFramework {
     const passed = this.testResults.filter((r) => r.status === 'passed').length;
     const failed = this.testResults.filter((r) => r.status === 'failed').length;
     const skipped = this.testResults.filter((r) => r.status === 'skipped').length;
-    const error = this.testResults.filter((r) => r.status === 'error').length;
+    const _error = this.testResults.filter((r) => r.status === 'error').length;
     const successRate = total > 0 ? (passed / total) * 100 : 0;
     const averageDuration =
       total > 0 ? this.testResults.reduce((sum, r) => sum + r.duration, 0) / total : 0;
@@ -205,7 +205,7 @@ export class IntegrationTestFramework {
       passed,
       failed,
       skipped,
-      error,
+      error: _error,
       successRate,
       averageDuration,
     };
@@ -365,8 +365,8 @@ export class TestScenarioBuilder {
     return this;
   }
 
-  category(category: TestScenario['category']): TestScenarioBuilder {
-    this.scenario.category = category;
+  category(_category: TestScenario['category']): TestScenarioBuilder {
+    this.scenario.category = _category;
     return this;
   }
 
@@ -435,14 +435,14 @@ export class APIHealthChecker {
         responseTime,
         httpStatus: 200,
       };
-    } catch (error) {
+    } catch (_error) {
       const responseTime = Date.now() - startTime;
 
       return {
         endpoint,
         status: responseTime > 10000 ? 'timeout' : 'unhealthy',
         responseTime,
-        error: (error as Error).message,
+        error: (_error as Error).message,
       };
     }
   }
@@ -469,7 +469,7 @@ export class LoadTestRunner {
     this.client = client;
   }
 
-  async runLoadTest(options: {
+  async runLoadTest(_options: {
     endpoint: string;
     method?: 'GET' | 'POST';
     concurrency: number;
@@ -485,7 +485,7 @@ export class LoadTestRunner {
     requestsPerSecond: number;
     errors: string[];
   }> {
-    const { endpoint, method = 'GET', concurrency, duration, rampUp = 1000 } = options;
+    const { endpoint, method = 'GET', concurrency, duration, rampUp = 1000 } = _options;
 
     const results: Array<{
       success: boolean;
@@ -515,11 +515,11 @@ export class LoadTestRunner {
               success: true,
               responseTime: Date.now() - requestStart,
             });
-          } catch (error) {
+          } catch (_error) {
             results.push({
               success: false,
               responseTime: Date.now() - requestStart,
-              error: (error as Error).message,
+              error: (_error as Error).message,
             });
           }
 

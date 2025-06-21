@@ -16,8 +16,8 @@ function getCacheService(): AkamaiCacheService {
   if (!cacheService) {
     cacheService = new AkamaiCacheService();
     // Initialize in background
-    cacheService.initialize().catch((err) => {
-      console.error('[UniversalSearch] Failed to initialize cache:', err);
+    cacheService.initialize().catch((_err) => {
+      console.error('[UniversalSearch] Failed to initialize cache:', _err);
     });
   }
   return cacheService;
@@ -137,8 +137,8 @@ export async function universalSearchWithCacheHandler(
               matchReason: 'Exact property ID match',
             });
           }
-        } catch (err) {
-          console.error('Property ID search failed:', err);
+        } catch (_err) {
+          console.error('Property ID search failed:', _err);
         }
       }
 
@@ -192,8 +192,8 @@ export async function universalSearchWithCacheHandler(
                 if (isMatch && detailed) {
                   property.hostnames = hostnames;
                 }
-              } catch (err) {
-                console.error(`Error checking hostnames for ${property.propertyId}:`, err);
+              } catch (_err) {
+                console.error(`Error checking hostnames for ${property.propertyId}:`, _err);
               }
             }
 
@@ -205,8 +205,8 @@ export async function universalSearchWithCacheHandler(
               });
             }
           }
-        } catch (err) {
-          console.error('Property search failed:', err);
+        } catch (_err) {
+          console.error('Property search failed:', _err);
         }
       }
 
@@ -226,8 +226,8 @@ export async function universalSearchWithCacheHandler(
               matchReason: 'Exact contract ID match',
             });
           }
-        } catch (err) {
-          console.error('Contract search failed:', err);
+        } catch (_err) {
+          console.error('Contract search failed:', _err);
         }
       }
 
@@ -247,8 +247,8 @@ export async function universalSearchWithCacheHandler(
               matchReason: 'Exact group ID match',
             });
           }
-        } catch (err) {
-          console.error('Group search failed:', err);
+        } catch (_err) {
+          console.error('Group search failed:', _err);
         }
       }
     }
@@ -323,8 +323,8 @@ export async function universalSearchWithCacheHandler(
         },
       ],
     };
-  } catch (error) {
-    return handleApiError(error, 'universal search');
+  } catch (_error) {
+    return handleApiError(_error, 'universal search');
   }
 }
 
