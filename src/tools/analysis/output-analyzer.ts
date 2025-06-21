@@ -614,17 +614,17 @@ export class TestOutputAnalyzer {
     overview: Overview,
   ): 'EXCELLENT' | 'GOOD' | 'FAIR' | 'POOR' | 'CRITICAL' {
     if (overview.successRate >= 95) {
-return 'EXCELLENT';
-}
+      return 'EXCELLENT';
+    }
     if (overview.successRate >= 90) {
-return 'GOOD';
-}
+      return 'GOOD';
+    }
     if (overview.successRate >= 80) {
-return 'FAIR';
-}
+      return 'FAIR';
+    }
     if (overview.successRate >= 70) {
-return 'POOR';
-}
+      return 'POOR';
+    }
     return 'CRITICAL';
   }
 
@@ -695,35 +695,35 @@ return 'POOR';
    * Assess error severity
    */
   private assessErrorSeverity(
-    error: any,
+    _error: any,
     category: string,
   ): 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' {
     // Critical severity indicators
     if (category === 'AUTH_ERROR' || category === 'CONFIG_ERROR') {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
     if (_error.message.includes('CRITICAL') || _error.message.includes('FATAL')) {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
 
     // High severity indicators
     if (category === 'API_ERROR' || category === 'ACTIVATION_ERROR') {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (_error.message.includes('HIGH') || _error.message.includes('SEVERE')) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (_error.type === 'suite_error') {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
 
     // Medium severity indicators
     if (category === 'VALIDATION_ERROR' || category === 'TIMEOUT_ERROR') {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     if (_error.message.includes('MEDIUM') || _error.message.includes('WARNING')) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
 
     // Default to LOW
     return 'LOW';
@@ -880,12 +880,12 @@ return 'MEDIUM';
       impact.customerImpact.level,
     ];
     if (impacts.includes('CRITICAL')) {
-impact.riskLevel = 'CRITICAL';
-} else if (impacts.includes('HIGH')) {
-impact.riskLevel = 'HIGH';
-} else if (impacts.includes('MEDIUM')) {
-impact.riskLevel = 'MEDIUM';
-}
+      impact.riskLevel = 'CRITICAL';
+    } else if (impacts.includes('HIGH')) {
+      impact.riskLevel = 'HIGH';
+    } else if (impacts.includes('MEDIUM')) {
+      impact.riskLevel = 'MEDIUM';
+    }
 
     return impact;
   }

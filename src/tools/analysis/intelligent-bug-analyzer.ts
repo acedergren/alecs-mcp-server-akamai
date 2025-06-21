@@ -375,7 +375,7 @@ export class IntelligentBugAnalyzer {
         exports: this.generateExports(analysisReport, this.options.outputFormat!),
       };
     } catch (error) {
-      console.error("[Error]:", error);
+      console.error('[Error]:', error);
       throw new AnalysisError(`Bug analysis failed: ${(error as Error).message}`, {
         analysisId,
         phase: 'unknown',
@@ -666,13 +666,27 @@ export class IntelligentBugAnalyzer {
    * Get health grade
    */
   private getHealthGrade(score: number): string {
-    if (score >= 95) return 'A+';
-    if (score >= 90) return 'A';
-    if (score >= 85) return 'B+';
-    if (score >= 80) return 'B';
-    if (score >= 75) return 'C+';
-    if (score >= 70) return 'C';
-    if (score >= 60) return 'D';
+    if (score >= 95) {
+      return 'A+';
+    }
+    if (score >= 90) {
+      return 'A';
+    }
+    if (score >= 85) {
+      return 'B+';
+    }
+    if (score >= 80) {
+      return 'B';
+    }
+    if (score >= 75) {
+      return 'C+';
+    }
+    if (score >= 70) {
+      return 'C';
+    }
+    if (score >= 60) {
+      return 'D';
+    }
     return 'F';
   }
 
@@ -860,9 +874,15 @@ export class IntelligentBugAnalyzer {
 
   private estimateInitiativeTimeline(initiative: { estimatedEffort: number }): string {
     const hours = initiative.estimatedEffort || 0;
-    if (hours < 40) return '1-2 weeks';
-    if (hours < 160) return '3-4 weeks';
-    if (hours < 320) return '6-8 weeks';
+    if (hours < 40) {
+      return '1-2 weeks';
+    }
+    if (hours < 160) {
+      return '3-4 weeks';
+    }
+    if (hours < 320) {
+      return '6-8 weeks';
+    }
     return '2-3 months';
   }
 
@@ -872,10 +892,18 @@ export class IntelligentBugAnalyzer {
       (testResults.testSuites?.length || 1);
 
     // Score based on average test runtime (lower is better)
-    if (avgRuntime < 1000) return 100;
-    if (avgRuntime < 5000) return 90;
-    if (avgRuntime < 10000) return 80;
-    if (avgRuntime < 30000) return 70;
+    if (avgRuntime < 1000) {
+      return 100;
+    }
+    if (avgRuntime < 5000) {
+      return 90;
+    }
+    if (avgRuntime < 10000) {
+      return 80;
+    }
+    if (avgRuntime < 30000) {
+      return 70;
+    }
     return 60;
   }
 
