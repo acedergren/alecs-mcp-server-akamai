@@ -109,7 +109,7 @@ export class PropertyProductionActivationAgent {
 
       return result;
     } catch (_error) {
-      console.error("[Error]:", _error);
+      console.error('[Error]:', _error);
       result.errors!.push(
         `Activation error: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
@@ -152,7 +152,7 @@ export class PropertyProductionActivationAgent {
         // Still pending, wait before next check
         await new Promise((resolve) => setTimeout(resolve, checkInterval));
       } catch (_error) {
-        console.error("[Error]:", _error);
+        console.error('[Error]:', _error);
         // Continue waiting
       }
     }

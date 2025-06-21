@@ -121,7 +121,10 @@ export const RemovePropertySchema = BaseToolSchema.extend({
 // DNS Management Schemas
 export const ListZonesSchema = BaseToolSchema.extend({
   contractIds: z.array(z.string()).optional().describe('Filter by contract IDs'),
-  types: z.array(z.enum(['primary', 'secondary', 'alias'])).optional().describe('Filter by zone types'),
+  types: z
+    .array(z.enum(['primary', 'secondary', 'alias']))
+    .optional()
+    .describe('Filter by zone types'),
 });
 
 export const GetZoneSchema = BaseToolSchema.extend({
@@ -175,12 +178,16 @@ export const ParseZoneFileSchema = BaseToolSchema.extend({
 
 export const BulkImportRecordsSchema = BaseToolSchema.extend({
   zone: z.string().describe('Zone name'),
-  records: z.array(z.object({
-    name: z.string(),
-    type: z.string(),
-    ttl: z.number(),
-    rdata: z.array(z.string()),
-  })).describe('Records to import'),
+  records: z
+    .array(
+      z.object({
+        name: z.string(),
+        type: z.string(),
+        ttl: z.number(),
+        rdata: z.array(z.string()),
+      }),
+    )
+    .describe('Records to import'),
 });
 
 // Certificate Management Schemas
@@ -193,12 +200,15 @@ export const CreateDVEnrollmentSchema = BaseToolSchema.extend({
   sans: z.array(z.string()).optional().describe('Subject alternative names'),
   contractId: z.string().describe('Contract ID'),
   validationType: z.enum(['dv', 'third-party']).describe('Validation type'),
-  networkConfiguration: z.object({
-    geography: z.enum(['core', 'china+core', 'russia+core']).optional(),
-    secureNetwork: z.enum(['enhanced-tls', 'standard-tls']).optional(),
-    mustHaveCiphers: z.array(z.string()).optional(),
-    preferredCiphers: z.array(z.string()).optional(),
-  }).optional().describe('Network configuration'),
+  networkConfiguration: z
+    .object({
+      geography: z.enum(['core', 'china+core', 'russia+core']).optional(),
+      secureNetwork: z.enum(['enhanced-tls', 'standard-tls']).optional(),
+      mustHaveCiphers: z.array(z.string()).optional(),
+      preferredCiphers: z.array(z.string()).optional(),
+    })
+    .optional()
+    .describe('Network configuration'),
 });
 
 export const CheckDVEnrollmentStatusSchema = BaseToolSchema.extend({
@@ -294,20 +304,28 @@ export const GetIncludeSchema = BaseToolSchema.extend({
 
 // Bulk Operations Schemas
 export const BulkActivatePropertiesSchema = BaseToolSchema.extend({
-  activations: z.array(z.object({
-    propertyId: z.string(),
-    version: z.number(),
-    network: z.enum(['staging', 'production']),
-  })).describe('Properties to activate'),
+  activations: z
+    .array(
+      z.object({
+        propertyId: z.string(),
+        version: z.number(),
+        network: z.enum(['staging', 'production']),
+      }),
+    )
+    .describe('Properties to activate'),
   notificationEmails: z.array(z.string()).optional().describe('Notification emails'),
 });
 
 export const BulkClonePropertiesSchema = BaseToolSchema.extend({
-  properties: z.array(z.object({
-    sourcePropertyId: z.string(),
-    cloneName: z.string(),
-    version: z.number().optional(),
-  })).describe('Properties to clone'),
+  properties: z
+    .array(
+      z.object({
+        sourcePropertyId: z.string(),
+        cloneName: z.string(),
+        version: z.number().optional(),
+      }),
+    )
+    .describe('Properties to clone'),
   targetContractId: z.string().optional().describe('Target contract ID'),
   targetGroupId: z.string().optional().describe('Target group ID'),
 });
@@ -331,7 +349,10 @@ export const OnboardPropertySchema = BaseToolSchema.extend({
   productId: z.string().optional().describe('Product ID'),
   contractId: z.string().optional().describe('Contract ID'),
   groupId: z.string().optional().describe('Group ID'),
-  certificateType: z.enum(['default-dv', 'cps-managed', 'third-party']).optional().describe('Certificate type'),
+  certificateType: z
+    .enum(['default-dv', 'cps-managed', 'third-party'])
+    .optional()
+    .describe('Certificate type'),
 });
 
 export const CheckOnboardingStatusSchema = BaseToolSchema.extend({

@@ -158,8 +158,8 @@ export class TelemetryExporter extends EventEmitter {
   updateDestination(name: string, updates: Partial<TelemetryDestination>): boolean {
     const destination = this.destinations.get(name);
     if (!destination) {
-return false;
-}
+      return false;
+    }
 
     Object.assign(destination, updates);
     this.emit('destinationUpdated', name, destination);
@@ -172,8 +172,8 @@ return false;
   setDestinationEnabled(name: string, enabled: boolean): boolean {
     const destination = this.destinations.get(name);
     if (!destination) {
-return false;
-}
+      return false;
+    }
 
     destination.enabled = enabled;
     this.emit('destinationToggled', name, enabled);
@@ -731,18 +731,18 @@ return false;
 
   private async processExportQueue(): Promise<void> {
     if (this.exportQueue.length === 0) {
-return;
-}
+      return;
+    }
 
     const item = this.exportQueue.shift();
     if (!item) {
-return;
-}
+      return;
+    }
 
     const batch = this.batches.get(item.batchId);
     if (!batch) {
-return;
-}
+      return;
+    }
 
     const destination = this.destinations.get(batch.destination);
     if (!destination?.enabled) {

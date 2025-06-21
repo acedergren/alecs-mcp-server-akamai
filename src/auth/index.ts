@@ -38,7 +38,11 @@ import { AuthorizationManager } from './AuthorizationManager';
 
 // EdgeGrid Authentication (existing)
 export { EdgeGridAuth } from './EdgeGridAuth';
-export type { EdgeGridAuthHeader, EdgeGridRequestConfig, EdgeGridClientOptions } from './EdgeGridAuth';
+export type {
+  EdgeGridAuthHeader,
+  EdgeGridRequestConfig,
+  EdgeGridClientOptions,
+} from './EdgeGridAuth';
 
 // Customer Context Manager integration
 export { CustomerContextManager } from '@/services/CustomerContextManager';
@@ -93,9 +97,7 @@ export function initializeOAuthSystem(config?: {
 
   // Initialize managers (they're singletons)
   OAuthManager.getInstance();
-  SecureCredentialManager.getInstance(
-    process.env.CREDENTIAL_MASTER_KEY || 'default-insecure-key',
-  );
+  SecureCredentialManager.getInstance(process.env.CREDENTIAL_MASTER_KEY || 'default-insecure-key');
   AuthorizationManager.getInstance();
   CustomerContextManager.getInstance();
 }

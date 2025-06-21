@@ -4,14 +4,14 @@
  */
 
 // Property Management Tools
-export { 
-  listProperties, 
-  listPropertiesTreeView, 
-  getProperty, 
-  createProperty, 
-  listContracts, 
+export {
+  listProperties,
+  listPropertiesTreeView,
+  getProperty,
+  createProperty,
+  listContracts,
   listGroups,
-  listProducts 
+  listProducts,
 } from './property-tools';
 
 export {
@@ -30,7 +30,7 @@ export {
   getActivationStatus,
   rollbackPropertyVersion,
   getVersionDiff,
-  batchVersionOperations
+  batchVersionOperations,
 } from './property-manager-tools';
 
 export {
@@ -44,7 +44,7 @@ export {
   getEdgeHostname,
   cloneProperty,
   removeProperty,
-  cancelPropertyActivation
+  cancelPropertyActivation,
 } from './property-manager-advanced-tools';
 
 // DNS Management Tools
@@ -55,7 +55,7 @@ export {
   listRecords,
   upsertRecord,
   deleteRecord,
-  activateZoneChanges
+  activateZoneChanges,
 } from './dns-tools';
 
 export {
@@ -69,7 +69,7 @@ export {
   getVersionMasterZoneFile,
   reactivateZoneVersion,
   getSecondaryZoneTransferStatus,
-  getZoneContract
+  getZoneContract,
 } from './dns-advanced-tools';
 
 export {
@@ -78,7 +78,7 @@ export {
   parseZoneFile,
   bulkImportRecords,
   convertZoneToPrimary,
-  generateMigrationInstructions
+  generateMigrationInstructions,
 } from './dns-migration-tools';
 
 // Certificate Management Tools
@@ -87,7 +87,7 @@ export {
   createDVEnrollment,
   checkDVEnrollmentStatus,
   getDVValidationChallenges,
-  linkCertificateToProperty
+  linkCertificateToProperty,
 } from './cps-tools';
 
 export {
@@ -98,7 +98,7 @@ export {
   validateCertificateEnrollment,
   deployCertificateToNetwork,
   renewCertificate,
-  cleanupValidationRecords
+  cleanupValidationRecords,
 } from './certificate-enrollment-tools';
 
 // Hostname Management Tools
@@ -106,7 +106,7 @@ export {
   discoverHostnamesIntelligent,
   analyzeHostnameConflicts,
   analyzeWildcardCoverage,
-  identifyOwnershipPatterns
+  identifyOwnershipPatterns,
 } from './hostname-discovery-engine';
 
 export {
@@ -114,7 +114,7 @@ export {
   findOptimalPropertyAssignment,
   generateEdgeHostnameRecommendations,
   analyzeHostnameOwnership,
-  validateHostnamesBulk
+  validateHostnamesBulk,
 } from './hostname-management-advanced';
 
 export {
@@ -122,7 +122,7 @@ export {
   createBulkEdgeHostnames,
   getEdgeHostnameDetails,
   associateCertificateWithEdgeHostname,
-  validateEdgeHostnameCertificate
+  validateEdgeHostnameCertificate,
 } from './edge-hostname-management';
 
 // Rule Tree Management Tools
@@ -131,7 +131,7 @@ export {
   updatePropertyRulesEnhanced,
   mergeRuleTrees,
   optimizeRuleTree,
-  validateRuleTree
+  validateRuleTree,
 } from './rule-tree-management';
 
 // Bulk Operations Tools
@@ -140,7 +140,7 @@ export {
   bulkCloneProperties,
   bulkManageHostnames,
   bulkUpdatePropertyRules,
-  getBulkOperationStatus
+  getBulkOperationStatus,
 } from './bulk-operations-manager';
 
 // Include Management Tools
@@ -152,16 +152,11 @@ export {
   createIncludeVersion,
   activateInclude,
   listIncludeActivations,
-  getIncludeActivationStatus
+  getIncludeActivationStatus,
 } from './includes-tools';
 
 // CP Code Tools
-export {
-  listCPCodes,
-  getCPCode,
-  createCPCode,
-  searchCPCodes
-} from './cpcode-tools';
+export { listCPCodes, getCPCode, createCPCode, searchCPCodes } from './cpcode-tools';
 
 // Product Tools
 export { getProduct } from './product-tools';
@@ -170,10 +165,10 @@ export { getProduct } from './product-tools';
 export { universalSearchWithCacheHandler } from './universal-search-with-cache';
 
 // Property Onboarding Tools
-export { 
+export {
   onboardPropertyTool,
   onboardPropertyWizard,
-  checkOnboardingStatus
+  checkOnboardingStatus,
 } from './property-onboarding-tools';
 
 // Advanced Property Operations
@@ -182,14 +177,14 @@ export {
   searchPropertiesAdvanced,
   compareProperties,
   detectConfigurationDrift,
-  checkPropertyHealth
+  checkPropertyHealth,
 } from './property-operations-advanced';
 
 // Secure by Default Tools
 export {
   onboardSecureByDefaultProperty,
   checkSecureByDefaultStatus,
-  quickSecureByDefaultSetup
+  quickSecureByDefaultSetup,
 } from './secure-by-default-onboarding';
 
 // All tool definitions for easy registration
@@ -219,7 +214,7 @@ export const ALL_TOOL_DEFINITIONS: Record<string, { handler: any; description: s
     handler: listProducts,
     description: 'List available Akamai products',
   },
-  
+
   // Property Version Management
   'create-property-version': {
     handler: createPropertyVersion,
@@ -253,7 +248,7 @@ export const ALL_TOOL_DEFINITIONS: Record<string, { handler: any; description: s
     handler: getPropertyVersion,
     description: 'Get details of a specific property version',
   },
-  
+
   // Property Search and Advanced Operations
   'search-properties': {
     handler: searchProperties,
@@ -267,7 +262,7 @@ export const ALL_TOOL_DEFINITIONS: Record<string, { handler: any; description: s
     handler: removeProperty,
     description: 'Remove a property',
   },
-  
+
   // DNS Management
   'list-zones': {
     handler: listZones,
@@ -297,7 +292,7 @@ export const ALL_TOOL_DEFINITIONS: Record<string, { handler: any; description: s
     handler: activateZoneChanges,
     description: 'Activate pending DNS zone changes',
   },
-  
+
   // DNS Migration
   'import-from-cloudflare': {
     handler: importFromCloudflare,
@@ -311,7 +306,7 @@ export const ALL_TOOL_DEFINITIONS: Record<string, { handler: any; description: s
     handler: bulkImportRecords,
     description: 'Bulk import DNS records',
   },
-  
+
   // Certificate Management
   'list-certificate-enrollments': {
     handler: listCertificateEnrollments,
@@ -329,7 +324,7 @@ export const ALL_TOOL_DEFINITIONS: Record<string, { handler: any; description: s
     handler: getDVValidationChallenges,
     description: 'Get DV certificate validation challenges',
   },
-  
+
   // Edge Hostname Management
   'create-edge-hostname': {
     handler: createEdgeHostname,
@@ -343,7 +338,7 @@ export const ALL_TOOL_DEFINITIONS: Record<string, { handler: any; description: s
     handler: getEdgeHostname,
     description: 'Get edge hostname details',
   },
-  
+
   // Hostname Management
   'add-property-hostname': {
     handler: addPropertyHostname,
@@ -357,7 +352,7 @@ export const ALL_TOOL_DEFINITIONS: Record<string, { handler: any; description: s
     handler: listPropertyVersionHostnames,
     description: 'List hostnames for a property version',
   },
-  
+
   // CP Code Management
   'list-cpcodes': {
     handler: listCPCodes,
@@ -371,7 +366,7 @@ export const ALL_TOOL_DEFINITIONS: Record<string, { handler: any; description: s
     handler: getCPCode,
     description: 'Get CP code details',
   },
-  
+
   // Include Management
   'list-includes': {
     handler: listIncludes,
@@ -385,7 +380,7 @@ export const ALL_TOOL_DEFINITIONS: Record<string, { handler: any; description: s
     handler: getInclude,
     description: 'Get include details',
   },
-  
+
   // Bulk Operations
   'bulk-activate-properties': {
     handler: bulkActivateProperties,
@@ -399,13 +394,13 @@ export const ALL_TOOL_DEFINITIONS: Record<string, { handler: any; description: s
     handler: bulkUpdatePropertyRules,
     description: 'Update rules for multiple properties',
   },
-  
+
   // Search
   'universal-search': {
     handler: universalSearchWithCacheHandler,
     description: 'Search across all Akamai resources',
   },
-  
+
   // Property Onboarding
   'onboard-property': {
     handler: onboardPropertyTool,

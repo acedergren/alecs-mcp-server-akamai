@@ -98,12 +98,16 @@ describe('Parameter Validation Tests', () => {
           groupId: 'grp_456',
           limit: 50,
         };
-        expect(() => validateParameters(PropertyManagerSchemas.listProperties, valid)).not.toThrow();
+        expect(() =>
+          validateParameters(PropertyManagerSchemas.listProperties, valid),
+        ).not.toThrow();
       });
 
       it('should allow optional parameters', () => {
         const minimal = {};
-        expect(() => validateParameters(PropertyManagerSchemas.listProperties, minimal)).not.toThrow();
+        expect(() =>
+          validateParameters(PropertyManagerSchemas.listProperties, minimal),
+        ).not.toThrow();
       });
 
       it('should reject invalid limit values', () => {
@@ -114,7 +118,9 @@ describe('Parameter Validation Tests', () => {
         expect(() => validateParameters(PropertyManagerSchemas.listProperties, negative)).toThrow();
 
         const nonInteger = { limit: 5.5 };
-        expect(() => validateParameters(PropertyManagerSchemas.listProperties, nonInteger)).toThrow();
+        expect(() =>
+          validateParameters(PropertyManagerSchemas.listProperties, nonInteger),
+        ).toThrow();
       });
     });
 
@@ -133,7 +139,9 @@ describe('Parameter Validation Tests', () => {
             noncomplianceReason: 'Emergency deployment',
           },
         };
-        expect(() => validateParameters(PropertyManagerSchemas.activateProperty, valid)).not.toThrow();
+        expect(() =>
+          validateParameters(PropertyManagerSchemas.activateProperty, valid),
+        ).not.toThrow();
       });
 
       it('should require notification emails for production', () => {
@@ -143,7 +151,9 @@ describe('Parameter Validation Tests', () => {
           network: 'PRODUCTION',
           note: 'Production deployment',
         };
-        expect(() => validateParameters(PropertyManagerSchemas.activateProperty, prodWithoutEmails)).toThrow();
+        expect(() =>
+          validateParameters(PropertyManagerSchemas.activateProperty, prodWithoutEmails),
+        ).toThrow();
       });
 
       it('should allow staging without notification emails', () => {
@@ -153,7 +163,9 @@ describe('Parameter Validation Tests', () => {
           network: 'STAGING',
           note: 'Staging test',
         };
-        expect(() => validateParameters(PropertyManagerSchemas.activateProperty, stagingWithoutEmails)).not.toThrow();
+        expect(() =>
+          validateParameters(PropertyManagerSchemas.activateProperty, stagingWithoutEmails),
+        ).not.toThrow();
       });
 
       it('should validate email formats', () => {
@@ -164,7 +176,9 @@ describe('Parameter Validation Tests', () => {
           note: 'Test',
           notifyEmails: ['not-an-email', 'test@example.com'],
         };
-        expect(() => validateParameters(PropertyManagerSchemas.activateProperty, invalidEmails)).toThrow();
+        expect(() =>
+          validateParameters(PropertyManagerSchemas.activateProperty, invalidEmails),
+        ).toThrow();
       });
 
       it('should reject invalid version numbers', () => {
@@ -174,7 +188,9 @@ describe('Parameter Validation Tests', () => {
           network: 'STAGING',
           note: 'Test',
         };
-        expect(() => validateParameters(PropertyManagerSchemas.activateProperty, invalidVersion)).toThrow();
+        expect(() =>
+          validateParameters(PropertyManagerSchemas.activateProperty, invalidVersion),
+        ).toThrow();
       });
     });
 
@@ -186,7 +202,9 @@ describe('Parameter Validation Tests', () => {
           propertyName: 'valid-property_name.com',
           productId: 'prd_fresca',
         };
-        expect(() => validateParameters(PropertyManagerSchemas.createProperty, validName)).not.toThrow();
+        expect(() =>
+          validateParameters(PropertyManagerSchemas.createProperty, validName),
+        ).not.toThrow();
 
         // Test max length (85 chars)
         const longName = {
@@ -204,7 +222,9 @@ describe('Parameter Validation Tests', () => {
           propertyName: 'property name with spaces',
           productId: 'prd_fresca',
         };
-        expect(() => validateParameters(PropertyManagerSchemas.createProperty, invalidChars)).toThrow();
+        expect(() =>
+          validateParameters(PropertyManagerSchemas.createProperty, invalidChars),
+        ).toThrow();
       });
 
       it('should validate and default rule format', () => {
@@ -225,7 +245,10 @@ describe('Parameter Validation Tests', () => {
           propertyName: 'test-property',
           productId: 'prd_fresca',
         };
-        const defaulted = validateParameters(PropertyManagerSchemas.createProperty, withoutRuleFormat);
+        const defaulted = validateParameters(
+          PropertyManagerSchemas.createProperty,
+          withoutRuleFormat,
+        );
         expect(defaulted.ruleFormat).toBe('v2023-10-30');
 
         // Test invalid format
@@ -236,7 +259,9 @@ describe('Parameter Validation Tests', () => {
           productId: 'prd_fresca',
           ruleFormat: 'invalid-format',
         };
-        expect(() => validateParameters(PropertyManagerSchemas.createProperty, invalidFormat)).toThrow();
+        expect(() =>
+          validateParameters(PropertyManagerSchemas.createProperty, invalidFormat),
+        ).toThrow();
       });
     });
   });
@@ -378,7 +403,7 @@ describe('Parameter Validation Tests', () => {
 
       it('should validate record types', () => {
         const validTypes = ['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'NS', 'SRV', 'PTR'];
-        validTypes.forEach(type => {
+        validTypes.forEach((type) => {
           const record = {
             zone: 'example.com',
             name: 'test',
@@ -460,7 +485,9 @@ describe('Parameter Validation Tests', () => {
             quicEnabled: true,
           },
         };
-        expect(() => validateParameters(CertificateSchemas.createDVEnrollment, valid)).not.toThrow();
+        expect(() =>
+          validateParameters(CertificateSchemas.createDVEnrollment, valid),
+        ).not.toThrow();
       });
 
       it('should validate hostname formats', () => {
@@ -479,7 +506,9 @@ describe('Parameter Validation Tests', () => {
             phone: '+1234567890',
           },
         };
-        expect(() => validateParameters(CertificateSchemas.createDVEnrollment, invalidCN)).toThrow();
+        expect(() =>
+          validateParameters(CertificateSchemas.createDVEnrollment, invalidCN),
+        ).toThrow();
       });
 
       it('should validate email formats in contacts', () => {
@@ -503,7 +532,9 @@ describe('Parameter Validation Tests', () => {
             phone: '+1234567890',
           },
         };
-        expect(() => validateParameters(CertificateSchemas.createDVEnrollment, enrollment)).toThrow();
+        expect(() =>
+          validateParameters(CertificateSchemas.createDVEnrollment, enrollment),
+        ).toThrow();
       });
 
       it('should validate country codes', () => {
@@ -527,7 +558,9 @@ describe('Parameter Validation Tests', () => {
             phone: '+1234567890',
           },
         };
-        expect(() => validateParameters(CertificateSchemas.createDVEnrollment, enrollment)).toThrow();
+        expect(() =>
+          validateParameters(CertificateSchemas.createDVEnrollment, enrollment),
+        ).toThrow();
       });
 
       it('should apply defaults for optional parameters', () => {
@@ -588,7 +621,7 @@ describe('Parameter Validation Tests', () => {
 
       it('should validate priority values', () => {
         const validPriorities = ['high', 'normal', 'low'];
-        validPriorities.forEach(priority => {
+        validPriorities.forEach((priority) => {
           const purge = { urls: ['https://example.com'], priority };
           expect(() => validateParameters(FastPurgeSchemas.purgeByUrl, purge)).not.toThrow();
         });
@@ -677,13 +710,17 @@ describe('Parameter Validation Tests', () => {
 
       it('should validate network list types', () => {
         const validTypes = ['IP', 'GEO', 'ASN'];
-        validTypes.forEach(type => {
+        validTypes.forEach((type) => {
           const list = { name: 'Test List', type };
-          expect(() => validateParameters(NetworkListSchemas.createNetworkList, list)).not.toThrow();
+          expect(() =>
+            validateParameters(NetworkListSchemas.createNetworkList, list),
+          ).not.toThrow();
         });
 
         const invalidType = { name: 'Test List', type: 'INVALID' };
-        expect(() => validateParameters(NetworkListSchemas.createNetworkList, invalidType)).toThrow();
+        expect(() =>
+          validateParameters(NetworkListSchemas.createNetworkList, invalidType),
+        ).toThrow();
       });
 
       it('should validate description length', () => {
@@ -692,7 +729,9 @@ describe('Parameter Validation Tests', () => {
           type: 'IP',
           description: 'a'.repeat(2049), // Over 2048 limit
         };
-        expect(() => validateParameters(NetworkListSchemas.createNetworkList, longDescription)).toThrow();
+        expect(() =>
+          validateParameters(NetworkListSchemas.createNetworkList, longDescription),
+        ).toThrow();
       });
     });
   });
@@ -766,19 +805,35 @@ describe('Parameter Validation Tests', () => {
   describe('Boundary Conditions', () => {
     it('should handle edge cases for numeric constraints', () => {
       // Test exact boundary values
-      const exactMinTTL = { zone: 'example.com', name: 'test', type: 'A', ttl: 30, rdata: ['1.1.1.1'] };
+      const exactMinTTL = {
+        zone: 'example.com',
+        name: 'test',
+        type: 'A',
+        ttl: 30,
+        rdata: ['1.1.1.1'],
+      };
       expect(() => validateParameters(DNSSchemas.upsertRecord, exactMinTTL)).not.toThrow();
 
-      const exactMaxTTL = { zone: 'example.com', name: 'test', type: 'A', ttl: 2147483647, rdata: ['1.1.1.1'] };
+      const exactMaxTTL = {
+        zone: 'example.com',
+        name: 'test',
+        type: 'A',
+        ttl: 2147483647,
+        rdata: ['1.1.1.1'],
+      };
       expect(() => validateParameters(DNSSchemas.upsertRecord, exactMaxTTL)).not.toThrow();
 
       // Test property versions
       const minVersion = { propertyId: 'prp_123', version: 1, network: 'STAGING', note: 'Test' };
-      expect(() => validateParameters(PropertyManagerSchemas.activateProperty, minVersion)).not.toThrow();
+      expect(() =>
+        validateParameters(PropertyManagerSchemas.activateProperty, minVersion),
+      ).not.toThrow();
 
       // Test page size limits
       const maxPageSize = { limit: 1000 };
-      expect(() => validateParameters(PropertyManagerSchemas.listProperties, maxPageSize)).not.toThrow();
+      expect(() =>
+        validateParameters(PropertyManagerSchemas.listProperties, maxPageSize),
+      ).not.toThrow();
     });
 
     it('should handle special characters in strings', () => {
@@ -789,7 +844,9 @@ describe('Parameter Validation Tests', () => {
         propertyName: 'test-property_v2.0',
         productId: 'prd_fresca',
       };
-      expect(() => validateParameters(PropertyManagerSchemas.createProperty, specialChars)).not.toThrow();
+      expect(() =>
+        validateParameters(PropertyManagerSchemas.createProperty, specialChars),
+      ).not.toThrow();
 
       // Test email with special characters
       const emailWithPlus = {
@@ -799,7 +856,9 @@ describe('Parameter Validation Tests', () => {
         note: 'Test',
         notifyEmails: ['test+production@example.com'],
       };
-      expect(() => validateParameters(PropertyManagerSchemas.activateProperty, emailWithPlus)).not.toThrow();
+      expect(() =>
+        validateParameters(PropertyManagerSchemas.activateProperty, emailWithPlus),
+      ).not.toThrow();
     });
 
     it('should handle empty arrays appropriately', () => {
@@ -842,7 +901,9 @@ describe('Parameter Validation Tests', () => {
           phone: '+1234567890',
         },
       };
-      expect(() => validateParameters(CertificateSchemas.createDVEnrollment, emptyOptionalArray)).not.toThrow();
+      expect(() =>
+        validateParameters(CertificateSchemas.createDVEnrollment, emptyOptionalArray),
+      ).not.toThrow();
     });
   });
 });

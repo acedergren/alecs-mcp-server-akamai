@@ -300,11 +300,7 @@ export class AuthorizationManager {
     const evaluations: PermissionEvaluation[] = [];
 
     for (const permission of permissions) {
-      const evaluation = this.evaluatePermission(
-        permission,
-        policyContext,
-        customerContext,
-      );
+      const evaluation = this.evaluatePermission(permission, policyContext, customerContext);
       evaluations.push(evaluation);
 
       if (evaluation.allowed) {
@@ -344,10 +340,7 @@ export class AuthorizationManager {
     }
 
     // Check action match
-    if (
-      !permission.actions.includes('*') &&
-      !permission.actions.includes(policyContext.action)
-    ) {
+    if (!permission.actions.includes('*') && !permission.actions.includes(policyContext.action)) {
       return {
         permission,
         allowed: false,
@@ -389,10 +382,7 @@ export class AuthorizationManager {
   /**
    * Check permission scope
    */
-  private checkPermissionScope(
-    permission: Permission,
-    customerContext: CustomerContext,
-  ): boolean {
+  private checkPermissionScope(permission: Permission, customerContext: CustomerContext): boolean {
     switch (permission.scope) {
       case PermissionScope.GLOBAL:
         // Global permissions apply to all customers
@@ -437,11 +427,7 @@ export class AuthorizationManager {
     // Evaluate permissions from highest priority role first
     for (const role of sortedRoles) {
       for (const permission of role.permissions) {
-        const evaluation = this.evaluatePermission(
-          permission,
-          policyContext,
-          customerContext,
-        );
+        const evaluation = this.evaluatePermission(permission, policyContext, customerContext);
 
         if (evaluation.allowed) {
           return {

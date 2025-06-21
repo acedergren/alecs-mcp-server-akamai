@@ -157,8 +157,8 @@ export class CircuitBreaker {
 
   private shouldAttemptReset(): boolean {
     if (!this.lastFailureTime) {
-return false;
-}
+      return false;
+    }
     return Date.now() - this.lastFailureTime.getTime() >= this.config.resetTimeout;
   }
 
@@ -185,8 +185,8 @@ return false;
 
   private calculateP95(): number {
     if (this.responseTimes.length === 0) {
-return 0;
-}
+      return 0;
+    }
     const sorted = [...this.responseTimes].sort((a, b) => a - b);
     const index = Math.ceil(sorted.length * 0.95) - 1;
     return sorted[index] || 0;
@@ -663,16 +663,16 @@ export class HealthChecker {
       issues.push(`High error rate: ${(metrics.errorRate * 100).toFixed(1)}%`);
     } else if (metrics.errorRate > 0.2) {
       if (status === 'HEALTHY') {
-status = 'DEGRADED';
-}
+        status = 'DEGRADED';
+      }
       issues.push(`Elevated error rate: ${(metrics.errorRate * 100).toFixed(1)}%`);
     }
 
     // Check response times
     if (metrics.p95ResponseTime > 30000) {
       if (status === 'HEALTHY') {
-status = 'DEGRADED';
-}
+        status = 'DEGRADED';
+      }
       issues.push(`Slow response times: P95 = ${metrics.p95ResponseTime}ms`);
     }
 

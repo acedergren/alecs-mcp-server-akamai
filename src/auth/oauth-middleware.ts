@@ -3,13 +3,8 @@
  * Provides authentication and authorization for MCP tool calls
  */
 
-import type {
-  CallToolRequest,
-} from '@modelcontextprotocol/sdk/types.js';
-import {
-  McpError,
-  ErrorCode,
-} from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolRequest } from '@modelcontextprotocol/sdk/types.js';
+import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 
 import { ValkeyCache } from '../services/valkey-cache-service';
 import { logger } from '../utils/logger';
@@ -93,9 +88,9 @@ export class OAuthMiddleware {
         jwksUri: config.tokenValidator.jwksUri,
         clientId: config.tokenValidator.clientId,
         clientSecret: config.tokenValidator.clientSecret,
-        ...(config.tokenValidator as any).algorithms && {
-          allowedAlgorithms: (config.tokenValidator as any).algorithms
-        },
+        ...((config.tokenValidator as any).algorithms && {
+          allowedAlgorithms: (config.tokenValidator as any).algorithms,
+        }),
       },
       cache,
     );
@@ -149,7 +144,10 @@ export class OAuthMiddleware {
     const validation = await this.tokenValidator.validateAccessToken(token);
     if (!validation.valid) {
       // For audience validation errors, return null instead of throwing
-      if (validation.error?.includes('audience') || validation.error?.includes('Invalid audience')) {
+      if (
+        validation.error?.includes('audience') ||
+        validation.error?.includes('Invalid audience')
+      ) {
         return null;
       }
       throw this.createAuthError(`Token validation failed: ${validation.error}`);
@@ -182,10 +180,7 @@ export class OAuthMiddleware {
   /**
    * Authorize _request
    */
-  async authorize(
-    _request: CallToolRequest,
-    authContext: AuthContext | null,
-  ): Promise<void> {
+  async authorize(_request: CallToolRequest, authContext: AuthContext | null): Promise<void> {
     // Skip authorization if authentication is disabled
     if (!this.config.enabled) {
       return;
@@ -211,14 +206,10 @@ export class OAuthMiddleware {
     }
 
     // Check if user has required scopes
-    const hasRequiredScopes = requiredScopes.every(scope =>
-      authContext.scopes.includes(scope),
-    );
+    const hasRequiredScopes = requiredScopes.every((scope) => authContext.scopes.includes(scope));
 
     if (!hasRequiredScopes) {
-      const missingScopes = requiredScopes.filter(scope =>
-        !authContext.scopes.includes(scope),
-      );
+      const missingScopes = requiredScopes.filter((scope) => !authContext.scopes.includes(scope));
 
       throw this.createAuthError(
         `Insufficient scopes. Required: ${requiredScopes.join(', ')}. Missing: ${missingScopes.join(', ')}`,
@@ -274,10 +265,7 @@ export class OAuthMiddleware {
   /**
    * Wrap tool handler with authentication
    */
-  wrapHandler<T extends (...args: any[]) => Promise<any>>(
-    handler: T,
-    toolName: string,
-  ): T {
+  wrapHandler<T extends (...args: any[]) => Promise<any>>(handler: T, toolName: string): T {
     return (async (...args: Parameters<T>) => {
       const _request = args[0] as CallToolRequest;
 
@@ -316,9 +304,10 @@ export class OAuthMiddleware {
    */
   private extractAuthHeader(_request: CallToolRequest): string | null {
     // Check various possible locations for auth header
-    const headers = (_request as any).headers ||
-                   (_request as any)._meta?.headers ||
-                   (_request.params as any)._headers;
+    const headers =
+      (_request as any).headers ||
+      (_request as any)._meta?.headers ||
+      (_request.params as any)._headers;
 
     if (!headers) {
       return null;
@@ -345,10 +334,7 @@ export class OAuthMiddleware {
   /**
    * Validate token binding
    */
-  private async validateTokenBinding(
-    _request: CallToolRequest,
-    token: string,
-  ): Promise<boolean> {
+  private async validateTokenBinding(_request: CallToolRequest, token: string): Promise<boolean> {
     if (!this.config.tokenBindingType) {
       return true;
     }
@@ -396,9 +382,10 @@ export class OAuthMiddleware {
    * Extract DPoP header
    */
   private extractDPoPHeader(_request: CallToolRequest): string | null {
-    const headers = (_request as any).headers ||
-                   (_request as any)._meta?.headers ||
-                   (_request.params as any)._headers;
+    const headers =
+      (_request as any).headers ||
+      (_request as any)._meta?.headers ||
+      (_request.params as any)._headers;
 
     if (!headers) {
       return null;
@@ -429,25 +416,17 @@ export class OAuthMiddleware {
    * Create authentication error
    */
   private createAuthError(message: string): McpError {
-    return new McpError(
-      ErrorCode.InvalidRequest,
-      message,
-      { code: 'AUTHENTICATION_REQUIRED' },
-    );
+    return new McpError(ErrorCode.InvalidRequest, message, { code: 'AUTHENTICATION_REQUIRED' });
   }
 
   /**
    * Create rate limit error
    */
   private createRateLimitError(message: string, retryAfter: number): McpError {
-    return new McpError(
-      ErrorCode.InvalidRequest,
-      message,
-      {
-        code: 'RATE_LIMIT_EXCEEDED',
-        retryAfter,
-      },
-    );
+    return new McpError(ErrorCode.InvalidRequest, message, {
+      code: 'RATE_LIMIT_EXCEEDED',
+      retryAfter,
+    });
   }
 
   /**

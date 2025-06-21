@@ -5,8 +5,16 @@
 import { logger } from '@utils/logger';
 import { z, type ZodSchema } from 'zod';
 
-import { EdgeGridAuth, EdgeGridRequestConfig as _EdgeGridRequestConfig, EdgeGridAuthError } from '../auth/EdgeGridAuth';
-import { type NetworkEnvironment, ConfigurationError as _ConfigurationError, ConfigErrorType as _ConfigErrorType } from '../types/config';
+import {
+  EdgeGridAuth,
+  EdgeGridRequestConfig as _EdgeGridRequestConfig,
+  EdgeGridAuthError,
+} from '../auth/EdgeGridAuth';
+import {
+  type NetworkEnvironment,
+  ConfigurationError as _ConfigurationError,
+  ConfigErrorType as _ConfigErrorType,
+} from '../types/config';
 
 /**
  * Generic API response wrapper
@@ -126,20 +134,20 @@ export class HttpError extends Error {
 
   get category(): HttpStatusCategory {
     if (this.statusCode >= 100 && this.statusCode < 200) {
-return HttpStatusCategory.INFORMATIONAL;
-}
+      return HttpStatusCategory.INFORMATIONAL;
+    }
     if (this.statusCode >= 200 && this.statusCode < 300) {
-return HttpStatusCategory.SUCCESS;
-}
+      return HttpStatusCategory.SUCCESS;
+    }
     if (this.statusCode >= 300 && this.statusCode < 400) {
-return HttpStatusCategory.REDIRECTION;
-}
+      return HttpStatusCategory.REDIRECTION;
+    }
     if (this.statusCode >= 400 && this.statusCode < 500) {
-return HttpStatusCategory.CLIENT_ERROR;
-}
+      return HttpStatusCategory.CLIENT_ERROR;
+    }
     if (this.statusCode >= 500 && this.statusCode < 600) {
-return HttpStatusCategory.SERVER_ERROR;
-}
+      return HttpStatusCategory.SERVER_ERROR;
+    }
     throw new Error(`Invalid status code: ${this.statusCode}`);
   }
 }

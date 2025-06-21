@@ -167,7 +167,7 @@ class CleanupAgent {
         await this.saveBackup(plan, result);
       }
     } catch (_error) {
-      console.error("[Error]:", _error);
+      console.error('[Error]:', _error);
       throw _error;
     } finally {
       if (this.rl) {
@@ -540,7 +540,7 @@ class CleanupAgent {
       console.log('\n✅ Undo complete');
       console.log('Note: Deleted files cannot be restored');
     } catch (_error) {
-      console.error("[Error]:", _error);
+      console.error('[Error]:', _error);
       throw _error;
     }
   }
@@ -580,7 +580,7 @@ async function main() {
       await agent.run();
     }
   } catch (_error) {
-    console.error("[Error]:", _error);
+    console.error('[Error]:', _error);
     process.exit(1);
   }
 }

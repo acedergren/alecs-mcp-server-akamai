@@ -7,10 +7,7 @@ import {
   type CDNProvisioningAgent,
   createCDNProvisioningAgent,
 } from '@agents/cdn-provisioning.agent';
-import {
-  type CPSCertificateAgent,
-  createCPSCertificateAgent,
-} from '@agents/cps-certificate.agent';
+import { type CPSCertificateAgent, createCPSCertificateAgent } from '@agents/cps-certificate.agent';
 import { type DNSMigrationAgent, createDNSMigrationAgent } from '@agents/dns-migration.agent';
 
 import { type AkamaiClient } from '../akamai-client';
@@ -102,7 +99,7 @@ export async function provisionCompleteProperty(
       ],
     };
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -135,7 +132,7 @@ export async function clonePropertyVersion(
       ],
     };
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -168,7 +165,7 @@ export async function applyPropertyTemplate(
       ],
     };
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -204,7 +201,7 @@ export async function provisionAndDeployCertificate(
       ],
     };
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -230,7 +227,7 @@ export async function automatedDNSValidation(
       ],
     };
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -255,7 +252,7 @@ export async function processCertificateRenewal(
       ],
     };
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -288,7 +285,7 @@ export async function importZoneFromCloudflare(
       ],
     };
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -321,7 +318,7 @@ export async function bulkDNSMigration(
       ],
     };
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -355,7 +352,7 @@ export async function migrateWebsite(
       ],
     };
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }
@@ -386,7 +383,7 @@ export async function provisionSecureWebsite(
       ],
     };
   } catch (_error) {
-    console.error("[Error]:", error);
+    console.error('[Error]:', error);
     throw _error;
   }
 }

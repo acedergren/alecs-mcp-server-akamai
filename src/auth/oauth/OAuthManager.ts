@@ -86,10 +86,7 @@ export class OAuthManager {
   /**
    * Authenticate user with OAuth token
    */
-  async authenticateWithToken(
-    token: OAuthToken,
-    provider: OAuthProvider,
-  ): Promise<AuthSession> {
+  async authenticateWithToken(token: OAuthToken, provider: OAuthProvider): Promise<AuthSession> {
     try {
       // Validate token
       await this.validateToken(token, provider);
@@ -171,10 +168,7 @@ export class OAuthManager {
   /**
    * Get user profile from OAuth provider
    */
-  private async getUserProfile(
-    _token: OAuthToken,
-    provider: OAuthProvider,
-  ): Promise<OAuthProfile> {
+  private async getUserProfile(_token: OAuthToken, provider: OAuthProvider): Promise<OAuthProfile> {
     const config = this.oauthConfigs.get(provider);
     if (!config || !config.userInfoUrl) {
       throw new Error(`User info endpoint not configured for ${provider}`);
@@ -284,18 +278,13 @@ export class OAuthManager {
   /**
    * Switch customer _context for session
    */
-  async switchCustomerContext(
-    sessionId: string,
-    customerId: string,
-  ): Promise<CustomerContext> {
+  async switchCustomerContext(sessionId: string, customerId: string): Promise<CustomerContext> {
     const session = this.sessions.get(sessionId);
     if (!session) {
       throw new Error('Session not found');
     }
 
-    const _context = session.availableContexts.find(
-      (ctx) => ctx.customerId === customerId,
-    );
+    const _context = session.availableContexts.find((ctx) => ctx.customerId === customerId);
 
     if (!_context) {
       throw new Error(`Customer _context ${customerId} not available for session`);
@@ -440,10 +429,7 @@ export class OAuthManager {
   /**
    * Get customer contexts for subject
    */
-  getCustomerContextsForSubject(
-    subject: string,
-    provider: OAuthProvider,
-  ): CustomerContext[] {
+  getCustomerContextsForSubject(subject: string, provider: OAuthProvider): CustomerContext[] {
     const key = `${provider}:${subject}`;
     const mapping = this.subjectMappings.get(key);
 

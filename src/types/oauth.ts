@@ -369,15 +369,8 @@ export const RESOURCE_SCOPE_TEMPLATES: Record<OAuthResourceType, string[]> = {
     'network_list:{id}:write',
     'network_list:{id}:activate',
   ],
-  [OAuthResourceType.PURGE]: [
-    'purge:url:execute',
-    'purge:cpcode:execute',
-    'purge:tag:execute',
-  ],
-  [OAuthResourceType.REPORT]: [
-    'report:{type}:read',
-    'report:{type}:generate',
-  ],
+  [OAuthResourceType.PURGE]: ['purge:url:execute', 'purge:cpcode:execute', 'purge:tag:execute'],
+  [OAuthResourceType.REPORT]: ['report:{type}:read', 'report:{type}:generate'],
   [OAuthResourceType.SECURITY_CONFIG]: [
     'security_config:{id}:read',
     'security_config:{id}:write',

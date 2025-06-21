@@ -225,11 +225,7 @@ export class OAuth21ComplianceManager {
    * Base64 URL encode (no padding)
    */
   private base64urlEncode(buffer: Buffer): string {
-    return buffer
-      .toString('base64')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
+    return buffer.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 
   /**
@@ -335,7 +331,7 @@ export class OAuth21ComplianceManager {
     try {
       const response = await fetch(metadataUrl, {
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
         signal: AbortSignal.timeout(5000), // 5 second timeout
       });
@@ -436,7 +432,9 @@ export class OAuth21ComplianceManager {
       htm,
       htu,
       iat: Math.floor(Date.now() / 1000),
-      ath: accessToken ? this.base64urlEncode(crypto.createHash('sha256').update(accessToken).digest()) : undefined,
+      ath: accessToken
+        ? this.base64urlEncode(crypto.createHash('sha256').update(accessToken).digest())
+        : undefined,
     };
 
     // Sign with private key (simplified)
@@ -465,7 +463,7 @@ export class OAuth21ComplianceManager {
 
     // Check for suspicious TLDs
     const suspiciousTLDs = ['.tk', '.ml', '.ga', '.cf'];
-    if (suspiciousTLDs.some(tld => url.hostname.endsWith(tld))) {
+    if (suspiciousTLDs.some((tld) => url.hostname.endsWith(tld))) {
       warnings.push('Redirect URI uses suspicious TLD');
     }
 
@@ -485,10 +483,7 @@ export class OAuth21ComplianceManager {
   /**
    * Build authorization URL with OAuth 2.1 compliance
    */
-  buildAuthorizationUrl(
-    authEndpoint: string,
-    params: OAuth21AuthorizationRequest,
-  ): string {
+  buildAuthorizationUrl(authEndpoint: string, params: OAuth21AuthorizationRequest): string {
     const url = new URL(authEndpoint);
 
     // Add required OAuth 2.1 parameters

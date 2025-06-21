@@ -47,11 +47,7 @@ import {
   activateZoneChanges,
 } from './dns-tools';
 
-import {
-  importFromCloudflare,
-  parseZoneFile,
-  bulkImportRecords,
-} from './dns-migration-tools';
+import { importFromCloudflare, parseZoneFile, bulkImportRecords } from './dns-migration-tools';
 
 import {
   listCertificateEnrollments,
@@ -65,21 +61,11 @@ import {
   getEdgeHostnameDetails as _getEdgeHostnameDetails,
 } from './edge-hostname-management';
 
-import {
-  listPropertyVersionHostnames,
-} from './property-manager-advanced-tools';
+import { listPropertyVersionHostnames } from './property-manager-advanced-tools';
 
-import {
-  listCPCodes,
-  createCPCode,
-  getCPCode,
-} from './cpcode-tools';
+import { listCPCodes, createCPCode, getCPCode } from './cpcode-tools';
 
-import {
-  listIncludes,
-  createInclude,
-  getInclude,
-} from './includes-tools';
+import { listIncludes, createInclude, getInclude } from './includes-tools';
 
 import {
   bulkActivateProperties,
@@ -89,10 +75,7 @@ import {
 
 import { universalSearchWithCacheHandler } from './universal-search-with-cache';
 
-import {
-  onboardPropertyTool,
-  checkOnboardingStatus,
-} from './property-onboarding-tools';
+import { onboardPropertyTool, checkOnboardingStatus } from './property-onboarding-tools';
 
 // Import all schemas
 import * as schemas from './tool-schemas';
@@ -145,7 +128,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: schemas.ListProductsSchema,
       handler: listProducts,
     },
-    
+
     // Property Version Management
     {
       name: 'create-property-version',
@@ -195,7 +178,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: schemas.GetPropertyVersionSchema,
       handler: getPropertyVersion,
     },
-    
+
     // Property Search and Advanced Operations
     {
       name: 'search-properties',
@@ -215,7 +198,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: schemas.RemovePropertySchema,
       handler: removeProperty,
     },
-    
+
     // DNS Management
     {
       name: 'list-zones',
@@ -259,7 +242,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: schemas.ActivateZoneChangesSchema,
       handler: activateZoneChanges,
     },
-    
+
     // DNS Migration
     {
       name: 'import-from-cloudflare',
@@ -279,7 +262,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: schemas.BulkImportRecordsSchema,
       handler: bulkImportRecords,
     },
-    
+
     // Certificate Management
     {
       name: 'list-certificate-enrollments',
@@ -305,7 +288,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: schemas.GetDVValidationChallengesSchema,
       handler: getDVValidationChallenges,
     },
-    
+
     // Edge Hostname Management
     {
       name: 'create-edge-hostname',
@@ -325,7 +308,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: schemas.GetEdgeHostnameSchema,
       handler: getEdgeHostname,
     },
-    
+
     // Hostname Management
     {
       name: 'add-property-hostname',
@@ -345,7 +328,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: schemas.ListPropertyHostnamesSchema,
       handler: listPropertyVersionHostnames,
     },
-    
+
     // CP Code Management
     {
       name: 'list-cpcodes',
@@ -365,7 +348,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: schemas.GetCPCodeSchema,
       handler: getCPCode,
     },
-    
+
     // Include Management
     {
       name: 'list-includes',
@@ -385,7 +368,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: schemas.GetIncludeSchema,
       handler: getInclude,
     },
-    
+
     // Bulk Operations
     {
       name: 'bulk-activate-properties',
@@ -405,7 +388,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: schemas.BulkUpdatePropertyRulesSchema,
       handler: bulkUpdatePropertyRules,
     },
-    
+
     // Search
     {
       name: 'universal-search',
@@ -413,7 +396,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: schemas.UniversalSearchSchema,
       handler: universalSearchWithCacheHandler,
     },
-    
+
     // Property Onboarding
     {
       name: 'onboard-property',

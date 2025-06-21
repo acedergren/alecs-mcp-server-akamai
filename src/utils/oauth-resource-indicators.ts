@@ -150,10 +150,7 @@ export class ResourceIndicatorValidator {
 
     // Validate scope consistency
     if (indicators.scope) {
-      const scopeValidation = this.validateScopeConsistency(
-        indicators.scope,
-        validatedResources,
-      );
+      const scopeValidation = this.validateScopeConsistency(indicators.scope, validatedResources);
 
       if (scopeValidation.errors) {
         errors.push(...scopeValidation.errors);
@@ -267,7 +264,8 @@ export class ResourceIndicatorValidator {
     for (const resource of resources) {
       // Check if requested scopes include required scopes for resource
       const missingRequired = resource.requiredScopes.filter(
-        scope => !requestedScopes.includes(scope) && !this.hasWildcardScope(requestedScopes, scope),
+        (scope) =>
+          !requestedScopes.includes(scope) && !this.hasWildcardScope(requestedScopes, scope),
       );
 
       if (missingRequired.length > 0) {
@@ -277,14 +275,12 @@ export class ResourceIndicatorValidator {
       }
 
       // Check for resource-specific scopes
-      const resourceSpecificScopes = requestedScopes.filter(scope =>
+      const resourceSpecificScopes = requestedScopes.filter((scope) =>
         scope.includes(resource.uri.resourceId),
       );
 
       if (resourceSpecificScopes.length === 0) {
-        warnings.push(
-          `No resource-specific scopes requested for ${resource.indicator}`,
-        );
+        warnings.push(`No resource-specific scopes requested for ${resource.indicator}`);
       }
     }
 
@@ -325,11 +321,11 @@ export class ResourceIndicatorValidator {
 
     for (const resource of resources) {
       // Add base required scopes
-      resource.requiredScopes.forEach(scope => scopes.add(scope));
+      resource.requiredScopes.forEach((scope) => scopes.add(scope));
 
       // Generate resource-specific scopes
       const resourceScopes = this.generateResourceSpecificScopes(resource);
-      resourceScopes.forEach(scope => scopes.add(scope));
+      resourceScopes.forEach((scope) => scopes.add(scope));
     }
 
     return Array.from(scopes);
@@ -427,8 +423,6 @@ export function parseResourceIndicators(
 /**
  * Format resource indicators for token response
  */
-export function formatResourceIndicators(
-  resources: ValidatedResource[],
-): string[] {
-  return resources.map(r => r.indicator);
+export function formatResourceIndicators(resources: ValidatedResource[]): string[] {
+  return resources.map((r) => r.indicator);
 }

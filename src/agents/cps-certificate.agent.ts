@@ -1,11 +1,4 @@
-import {
-  ProgressBar,
-  Spinner,
-  MultiProgress,
-  format,
-  icons,
-  trackProgress,
-} from '@utils/progress';
+import { ProgressBar, Spinner, MultiProgress, format, icons, trackProgress } from '@utils/progress';
 
 import { EdgeGridAuth } from '../auth/EdgeGridAuth';
 
@@ -279,7 +272,9 @@ export class CPSCertificateAgent {
       console.log(`\n${icons.time} Monitoring validation status...`);
       await this.waitForValidations(enrollmentId);
     } catch (_error) {
-      spinner.fail(`Validation failed: ${_error instanceof Error ? _error.message : String(_error)}`);
+      spinner.fail(
+        `Validation failed: ${_error instanceof Error ? _error.message : String(_error)}`,
+      );
       throw _error;
     }
   }

@@ -81,7 +81,7 @@ export class InstrumentedMCPServer {
         `📊 Observability initialized for ${this.config.observability.environment} environment`,
       );
     } catch (_error) {
-      console.error("[Error]:", error);
+      console.error('[Error]:', error);
     }
   }
 
@@ -122,8 +122,8 @@ export class InstrumentedMCPServer {
 
   private setupCustomHealthChecks(): void {
     if (!this.observability) {
-return;
-}
+      return;
+    }
 
     // MCP Server connectivity health check
     this.observability.diagnostics.registerHealthCheck({
@@ -191,8 +191,8 @@ return;
 
   private setupCustomAlerts(): void {
     if (!this.observability) {
-return;
-}
+      return;
+    }
 
     // High error rate alert
     this.observability.diagnostics.registerAlertRule({
@@ -553,7 +553,7 @@ return;
           console.log('📤 Observability data exported on shutdown');
         }
       } catch (_error) {
-        console.error("[Error]:", error);
+        console.error('[Error]:', error);
       }
 
       this.observability.stop();

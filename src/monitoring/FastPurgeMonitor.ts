@@ -18,7 +18,7 @@ export interface FastPurgeMetrics {
     projectedMonthly: number;
     efficiency: number;
   };
-            }
+}
 
 export interface AlertCondition {
   id: string;
@@ -28,7 +28,7 @@ export interface AlertCondition {
   message: string;
   cooldownMinutes: number;
   lastTriggered?: Date;
-            }
+}
 
 export interface HealthCheckResult {
   overall: 'healthy' | 'degraded' | 'unhealthy';
@@ -45,7 +45,7 @@ export interface HealthCheckResult {
     rateLimitHealth: number;
   };
   recommendations: string[];
-            }
+}
 
 export interface CapacityPlan {
   customer: string;
@@ -65,7 +65,7 @@ export interface CapacityPlan {
     costOptimization: string[];
   };
   alerts: string[];
-            }
+}
 
 export class FastPurgeMonitor {
   private static instance: FastPurgeMonitor;
@@ -84,14 +84,14 @@ export class FastPurgeMonitor {
     this.statusTracker = PurgeStatusTracker.getInstance();
     this.configManager = CustomerConfigManager.getInstance();
     this.initializeAlertConditions();
-              }
+  }
 
   static getInstance(): FastPurgeMonitor {
     if (!FastPurgeMonitor.instance) {
       FastPurgeMonitor.instance = new FastPurgeMonitor();
-                }
+    }
     return FastPurgeMonitor.instance;
-              }
+  }
 
   private initializeAlertConditions(): void {
     this.alertConditions = [
@@ -136,12 +136,12 @@ export class FastPurgeMonitor {
         cooldownMinutes: 15,
       },
     ];
-              }
+  }
 
   async startCollection(intervalMs = 60000): Promise<void> {
     if (this.isCollecting) {
       return;
-                }
+    }
 
     this.isCollecting = true;
     logger.info('Starting FastPurge metrics collection');
@@ -152,16 +152,16 @@ export class FastPurgeMonitor {
 
     // Initial collection
     await this.collectMetrics();
-              }
+  }
 
   async stopCollection(): Promise<void> {
     this.isCollecting = false;
     if (this.collectionInterval) {
       clearInterval(this.collectionInterval);
       this.collectionInterval = undefined;
-                }
+    }
     logger.info('Stopped FastPurge metrics collection');
-              }
+  }
 
   private async collectMetrics(): Promise<void> {
     try {
@@ -173,7 +173,7 @@ export class FastPurgeMonitor {
         // Store metrics
         if (!this.metrics.has(customer)) {
           this.metrics.set(customer, []);
-                    }
+        }
 
         const customerMetrics = this.metrics.get(customer)!;
         customerMetrics.push(metrics);
@@ -187,11 +187,11 @@ export class FastPurgeMonitor {
 
         // Check alerts
         await this.checkAlerts(metrics);
-                  }
+      }
     } catch (_error: any) {
-      logger.error(`Monitor error: ${(_error instanceof Error ? _error.message : String(_error))}`);
-                }
-              }
+      logger.error(`Monitor error: ${_error instanceof Error ? _error.message : String(_error)}`);
+    }
+  }
 
   private async generateMetrics(customer: string): Promise<FastPurgeMetrics> {
     const dashboard = await this.statusTracker.getCustomerDashboard(customer);
@@ -220,7 +220,7 @@ export class FastPurgeMonitor {
         efficiency: this.calculateEfficiency(dashboard),
       },
     };
-              }
+  }
 
   private calculateEfficiency(dashboard: any): number {
     // Calculate efficiency based on success rate, throughput, and average latency
@@ -229,7 +229,7 @@ export class FastPurgeMonitor {
     const latencyWeight = Math.max(0, 100 - dashboard.averageCompletionTime);
 
     return successWeight * 0.5 + throughputWeight * 0.3 + latencyWeight * 0.2;
-              }
+  }
 
   private async checkAlerts(metrics: FastPurgeMetrics): Promise<void> {
     for (const condition of this.alertConditions) {
@@ -243,10 +243,10 @@ export class FastPurgeMonitor {
         ) {
           condition.lastTriggered = now;
           await this.triggerAlert(condition, metrics);
-                    }
-                  }
-                }
-              }
+        }
+      }
+    }
+  }
 
   private async triggerAlert(condition: AlertCondition, metrics: FastPurgeMetrics): Promise<void> {
     const alert = {
@@ -270,7 +270,7 @@ export class FastPurgeMonitor {
 
     // In a production environment, you would send this to your alerting system
     // Examples: PagerDuty, Slack, email, etc.
-              }
+  }
 
   async getHealthCheck(
     customer?: string,
@@ -283,11 +283,11 @@ export class FastPurgeMonitor {
 
       for (const cust of customers) {
         results.set(cust, await this.performHealthCheck(cust));
-                  }
+      }
 
       return results;
-                }
-              }
+    }
+  }
 
   private async performHealthCheck(customer: string): Promise<HealthCheckResult> {
     const dashboard = await this.statusTracker.getCustomerDashboard(customer);
@@ -304,14 +304,14 @@ export class FastPurgeMonitor {
       apiLatency = Date.now() - start;
 
       if (apiLatency > 5000) {
-        apiHealth = "unhealthy";
+        apiHealth = 'unhealthy';
       } else if (apiLatency > 2000) {
-        apiHealth = "degraded";
-            }
+        apiHealth = 'degraded';
+      }
     } catch (_error) {
-              apiHealth = "unhealthy";
+      apiHealth = 'unhealthy';
       apiLatency = -1;
-                }
+    }
 
     // Assess queue health
     const queueHealth: 'healthy' | 'unhealthy' | 'degraded' =
@@ -344,16 +344,16 @@ export class FastPurgeMonitor {
 
     if (apiHealth === 'degraded') {
       recommendations.push('API response times are elevated - consider reducing batch sizes');
-                }
+    }
     if (queueHealth === 'degraded') {
       recommendations.push('High queue failure rate - check error logs and reduce load');
-                }
+    }
     if (rateLimitHealth === 'degraded') {
       recommendations.push('Rate limit capacity low - implement queue-based processing');
-                }
+    }
     if (dashboard.performance.successRate < 98) {
       recommendations.push('Success rate below optimal - review error patterns');
-                }
+    }
 
     return {
       overall,
@@ -366,7 +366,7 @@ export class FastPurgeMonitor {
       },
       recommendations,
     };
-              }
+  }
 
   async getMetricsSummary(customer: string, hoursBack = 24): Promise<any> {
     const customerMetrics = this.metrics.get(customer) || [];
@@ -379,7 +379,7 @@ export class FastPurgeMonitor {
         message: 'No metrics available for the specified time period',
         hoursBack,
       };
-                }
+    }
 
     // Calculate aggregated metrics
     const avgSuccessRate =
@@ -411,11 +411,11 @@ export class FastPurgeMonitor {
         efficiency: recentMetrics[recentMetrics.length - 1]?.costMetrics.efficiency || 0,
       },
     };
-              }
+  }
 
   private calculateTrend(values: number[]): 'increasing' | 'decreasing' | 'stable' {
     if (values.length < 2) {
-      return "stable";
+      return 'stable';
     }
 
     const first = values.slice(0, Math.ceil(values.length / 2));
@@ -427,14 +427,14 @@ export class FastPurgeMonitor {
     const diff = secondAvg - firstAvg;
     const threshold = firstAvg * 0.05; // 5% threshold
 
-          if (diff > threshold) {
-                return "increasing";
-            }
-          if (diff < -threshold) {
-        return "decreasing";
-            }
-                    return "stable";
-              }
+    if (diff > threshold) {
+      return 'increasing';
+    }
+    if (diff < -threshold) {
+      return 'decreasing';
+    }
+    return 'stable';
+  }
 
   async generateCapacityPlan(customer: string): Promise<CapacityPlan> {
     const dashboard = await this.statusTracker.getCustomerDashboard(customer);
@@ -471,21 +471,21 @@ export class FastPurgeMonitor {
       recommendations.rateLimitOptimization.push(
         'Consider spreading operations across multiple time periods',
       );
-                }
+    }
 
     if (dashboard.performance.averageLatency > 10) {
       recommendations.batchingImprovements.push('Optimize batch sizes for better throughput');
       recommendations.batchingImprovements.push(
         'Review object size distribution for batching efficiency',
       );
-                }
+    }
 
     if (growthRate > 0.5) {
       recommendations.costOptimization.push(
         'High growth rate detected - consider cache tag optimization',
       );
       alerts.push('Rapid usage growth may impact costs');
-                }
+    }
 
     return {
       customer,
@@ -494,19 +494,19 @@ export class FastPurgeMonitor {
       recommendations,
       alerts,
     };
-              }
+  }
 
   private calculateGrowthRate(metrics: FastPurgeMetrics[]): number {
     if (metrics.length < 2) {
-return 0;
-            }
+      return 0;
+    }
 
     const recent = metrics.slice(-7); // Last 7 data points
     const older = metrics.slice(-14, -7); // Previous 7 data points
 
     if (older.length === 0) {
-return 0;
-            }
+      return 0;
+    }
 
     const recentAvg =
       recent.reduce((sum, m) => sum + m.costMetrics.operationsToday, 0) / recent.length;
@@ -514,7 +514,7 @@ return 0;
       older.reduce((sum, m) => sum + m.costMetrics.operationsToday, 0) / older.length;
 
     return olderAvg > 0 ? (recentAvg - olderAvg) / olderAvg : 0;
-              }
+  }
 
   async resetMetrics(customer?: string): Promise<void> {
     if (customer) {
@@ -523,8 +523,8 @@ return 0;
     } else {
       this.metrics.clear();
       logger.info('Reset all FastPurge metrics');
-                }
-              }
+    }
+  }
 
   async exportMetrics(customer: string, format: 'json' | 'csv' = 'json'): Promise<string> {
     const customerMetrics = this.metrics.get(customer) || [];
@@ -561,6 +561,6 @@ return 0;
       return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
     } else {
       return JSON.stringify(customerMetrics, null, 2);
-                }
-              }
-            }
+    }
+  }
+}

@@ -43,13 +43,13 @@ export class CircuitBreaker extends EventEmitter {
 
   constructor(config: CircuitBreakerConfig) {
     super();
-    
+
     this.config = {
       failureThreshold: config.failureThreshold || 5,
       successThreshold: config.successThreshold || 2,
       recoveryTimeout: config.recoveryTimeout || 60000, // 1 minute
-      monitorTimeout: config.monitorTimeout || 10000,   // 10 seconds
-      expectedErrors: config.expectedErrors || []
+      monitorTimeout: config.monitorTimeout || 10000, // 10 seconds
+      expectedErrors: config.expectedErrors || [],
     };
 
     this.startTime = Date.now();
@@ -62,11 +62,11 @@ export class CircuitBreaker extends EventEmitter {
       lastFailureTime: null,
       lastSuccessTime: null,
       averageResponseTime: 0,
-      state: this.state
+      state: this.state,
     };
 
     this.startMonitoring();
-    
+
     // Emit initialized event on next tick to allow listeners to be set up
     process.nextTick(() => {
       this.emit('initialized', { state: this.state, config: this.config });
@@ -84,10 +84,10 @@ export class CircuitBreaker extends EventEmitter {
     if (this.state === 'OPEN') {
       if (Date.now() < this.nextAttempt) {
         const _error = new Error('Circuit breaker is OPEN');
-        this.emit('requestRejected', { 
+        this.emit('requestRejected', {
           state: this.state,
           nextAttempt: this.nextAttempt,
-          timeUntilRetry: this.nextAttempt - Date.now()
+          timeUntilRetry: this.nextAttempt - Date.now(),
         });
         throw _error;
       } else {
@@ -99,7 +99,7 @@ export class CircuitBreaker extends EventEmitter {
     try {
       const result = await fn();
       const responseTime = performance.now() - startTime;
-      
+
       this.onSuccess(responseTime);
       return result;
     } catch (_error) {
@@ -116,16 +116,16 @@ export class CircuitBreaker extends EventEmitter {
     this.metrics.successfulRequests++;
     this.metrics.lastSuccessTime = Date.now();
     this.updateResponseTime(responseTime);
-    
+
     this.failures = 0;
-    
+
     if (this.state === 'HALF_OPEN') {
       this.successes++;
-      this.emit('halfOpenSuccess', { 
-        successes: this.successes, 
-        threshold: this.config.successThreshold 
+      this.emit('halfOpenSuccess', {
+        successes: this.successes,
+        threshold: this.config.successThreshold,
       });
-      
+
       if (this.successes >= this.config.successThreshold) {
         this.moveToClosed();
       }
@@ -134,7 +134,7 @@ export class CircuitBreaker extends EventEmitter {
     this.emit('requestSuccess', {
       responseTime,
       state: this.state,
-      totalRequests: this.metrics.totalRequests
+      totalRequests: this.metrics.totalRequests,
     });
   }
 
@@ -148,7 +148,7 @@ export class CircuitBreaker extends EventEmitter {
 
     // Check if this is an expected error that shouldn't trigger circuit breaker
     const isExpectedError = this.config.expectedErrors.some(
-      ExpectedError => _error instanceof ExpectedError
+      (ExpectedError) => _error instanceof ExpectedError,
     );
 
     if (isExpectedError) {
@@ -169,7 +169,7 @@ export class CircuitBreaker extends EventEmitter {
       responseTime,
       failures: this.failures,
       state: this.state,
-      threshold: this.config.failureThreshold
+      threshold: this.config.failureThreshold,
     });
 
     // Move to open if threshold exceeded
@@ -187,12 +187,12 @@ export class CircuitBreaker extends EventEmitter {
     this.metrics.state = this.state;
     this.failures = 0;
     this.successes = 0;
-    
+
     this.emit('stateChange', {
       from: previousState,
       to: this.state,
       timestamp: Date.now(),
-      reason: 'Success threshold reached'
+      reason: 'Success threshold reached',
     });
   }
 
@@ -205,14 +205,14 @@ export class CircuitBreaker extends EventEmitter {
     this.metrics.state = this.state;
     this.metrics.circuitBreakerTrips++;
     this.nextAttempt = Date.now() + this.config.recoveryTimeout;
-    
+
     this.emit('stateChange', {
       from: previousState,
       to: this.state,
       timestamp: Date.now(),
       reason: 'Failure threshold exceeded',
       nextAttempt: this.nextAttempt,
-      recoveryTimeout: this.config.recoveryTimeout
+      recoveryTimeout: this.config.recoveryTimeout,
     });
 
     // Schedule automatic half-open attempt
@@ -220,7 +220,7 @@ export class CircuitBreaker extends EventEmitter {
       if (this.state === 'OPEN') {
         this.emit('recoveryAttemptScheduled', {
           scheduledTime: Date.now(),
-          state: this.state
+          state: this.state,
         });
       }
     }, this.config.recoveryTimeout);
@@ -234,12 +234,12 @@ export class CircuitBreaker extends EventEmitter {
     this.state = 'HALF_OPEN';
     this.metrics.state = this.state;
     this.successes = 0;
-    
+
     this.emit('stateChange', {
       from: previousState,
       to: this.state,
       timestamp: Date.now(),
-      reason: 'Recovery timeout elapsed'
+      reason: 'Recovery timeout elapsed',
     });
   }
 
@@ -265,12 +265,12 @@ export class CircuitBreaker extends EventEmitter {
    */
   private performHealthCheck(): void {
     const stats = this.getStats();
-    
+
     this.emit('healthCheck', {
       state: this.state,
       stats,
       metrics: this.metrics,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     // Emit alerts for concerning metrics
@@ -278,14 +278,15 @@ export class CircuitBreaker extends EventEmitter {
       this.emit('highFailureRate', {
         failureRate: stats.failureRate,
         threshold: 50,
-        state: this.state
+        state: this.state,
       });
     }
 
-    if (stats.averageResponseTime > 10000) { // 10 seconds
+    if (stats.averageResponseTime > 10000) {
+      // 10 seconds
       this.emit('highResponseTime', {
         averageResponseTime: stats.averageResponseTime,
-        threshold: 10000
+        threshold: 10000,
       });
     }
   }
@@ -309,23 +310,21 @@ export class CircuitBreaker extends EventEmitter {
    */
   public getStats(): CircuitBreakerStats {
     const totalRequests = this.metrics.totalRequests;
-    const failureRate = totalRequests > 0 
-      ? (this.metrics.failedRequests / totalRequests) * 100 
-      : 0;
-    const successRate = totalRequests > 0 
-      ? (this.metrics.successfulRequests / totalRequests) * 100 
-      : 0;
+    const failureRate = totalRequests > 0 ? (this.metrics.failedRequests / totalRequests) * 100 : 0;
+    const successRate =
+      totalRequests > 0 ? (this.metrics.successfulRequests / totalRequests) * 100 : 0;
     const uptime = Date.now() - this.startTime;
-    const requestRate = uptime > 0 
-      ? (totalRequests / uptime) * 1000 // requests per second
-      : 0;
+    const requestRate =
+      uptime > 0
+        ? (totalRequests / uptime) * 1000 // requests per second
+        : 0;
 
     return {
       failureRate,
       successRate,
       requestRate,
       averageResponseTime: this.metrics.averageResponseTime,
-      uptime
+      uptime,
     };
   }
 
@@ -334,9 +333,7 @@ export class CircuitBreaker extends EventEmitter {
    */
   public isHealthy(): boolean {
     const stats = this.getStats();
-    return this.state !== 'OPEN' && 
-           stats.failureRate < 50 && 
-           stats.averageResponseTime < 10000;
+    return this.state !== 'OPEN' && stats.failureRate < 50 && stats.averageResponseTime < 10000;
   }
 
   /**
@@ -346,15 +343,15 @@ export class CircuitBreaker extends EventEmitter {
     const previousState = this.state;
     this.state = state;
     this.metrics.state = this.state;
-    
+
     if (state === 'OPEN') {
       this.nextAttempt = Date.now() + this.config.recoveryTimeout;
     }
-    
+
     this.emit('stateForced', {
       from: previousState,
       to: state,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -368,7 +365,7 @@ export class CircuitBreaker extends EventEmitter {
     this.failures = 0;
     this.successes = 0;
     this.nextAttempt = 0;
-    
+
     // Reset metrics but keep historical data
     this.metrics.totalRequests = 0;
     this.metrics.successfulRequests = 0;
@@ -377,10 +374,10 @@ export class CircuitBreaker extends EventEmitter {
     this.metrics.averageResponseTime = 0;
     this.metrics.lastFailureTime = null;
     this.metrics.lastSuccessTime = null;
-    
+
     this.emit('reset', {
       previousState,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -401,11 +398,11 @@ export class CircuitBreaker extends EventEmitter {
     if (this.state === 'CLOSED' || this.state === 'HALF_OPEN') {
       return true;
     }
-    
+
     if (this.state === 'OPEN') {
       return Date.now() >= this.nextAttempt;
     }
-    
+
     return false;
   }
 
@@ -417,14 +414,13 @@ export class CircuitBreaker extends EventEmitter {
       clearInterval(this.monitorTimer);
       this.monitorTimer = null;
     }
-    
+
     this.emit('destroyed', {
       finalState: this.state,
       totalRequests: this.metrics.totalRequests,
-      uptime: Date.now() - this.startTime
+      uptime: Date.now() - this.startTime,
     });
-    
+
     this.removeAllListeners();
   }
 }
-

@@ -3,7 +3,6 @@
  * Provides type definitions for OAuth authentication with customer _context mapping
  */
 
-
 /**
  * OAuth provider types supported
  */

@@ -45,9 +45,9 @@ export interface DNSCacheEntry {
 export class OptimizedHTTPClient extends EventEmitter {
   private httpsAgents = new Map<string, HttpsAgent>();
   private httpAgents = new Map<string, HttpAgent>();
-  private dnsCache = new LRUCache<string, DNSCacheEntry>({ 
-    max: 1000, 
-    ttl: 300000 // 5 minutes
+  private dnsCache = new LRUCache<string, DNSCacheEntry>({
+    max: 1000,
+    ttl: 300000, // 5 minutes
   });
   private metrics: ConnectionMetrics = {
     totalRequests: 0,
@@ -55,14 +55,14 @@ export class OptimizedHTTPClient extends EventEmitter {
     failureCount: 0,
     averageLatency: 0,
     http2Connections: 0,
-    http1Connections: 0
+    http1Connections: 0,
   };
   private config: OptimizedHTTPConfig;
   private healthCheckInterval: NodeJS.Timeout | null = null;
 
   constructor(config: Partial<OptimizedHTTPConfig> = {}) {
     super();
-    
+
     this.config = {
       maxSockets: 25,
       maxFreeSockets: 10,
@@ -75,7 +75,7 @@ export class OptimizedHTTPClient extends EventEmitter {
       baseDelayMs: 1000,
       maxDelayMs: 30000,
       jitterMs: 100,
-      ...config
+      ...config,
     };
 
     this.initializeHealthCheck();
@@ -98,7 +98,7 @@ export class OptimizedHTTPClient extends EventEmitter {
         // Optimize for long-lived connections
         scheduling: 'fifo',
         // Custom DNS lookup with caching
-        lookup: this.createDNSLookup(hostname)
+        lookup: this.createDNSLookup(hostname),
       });
 
       // Monitor agent events
@@ -126,7 +126,7 @@ export class OptimizedHTTPClient extends EventEmitter {
         keepAlive: this.config.keepAlive,
         keepAliveMsecs: this.config.keepAliveMsecs,
         scheduling: 'fifo',
-        lookup: this.createDNSLookup(hostname)
+        lookup: this.createDNSLookup(hostname),
       });
 
       agent.on('free', (socket) => {
@@ -148,7 +148,7 @@ export class OptimizedHTTPClient extends EventEmitter {
     return (hostname: string, _options: any, callback: any) => {
       const cacheKey = `${hostname}:${_options.family || 4}`;
       const cached = this.dnsCache.get(cacheKey);
-      
+
       if (cached && Date.now() - cached.timestamp < cached.ttl) {
         this.emit('dnsCacheHit', { hostname, family: cached.family });
         return callback(null, cached.addresses[0], cached.family);
@@ -157,7 +157,7 @@ export class OptimizedHTTPClient extends EventEmitter {
       // Use Node.js dns module for lookup
       const dns = require('dns');
       const lookupFn = _options.family === 6 ? dns.lookup : dns.lookup;
-      
+
       lookupFn(hostname, _options, (_err: any, address: string, family: number) => {
         if (_err) {
           this.emit('dnsLookupError', { hostname, _error: _err });
@@ -169,7 +169,7 @@ export class OptimizedHTTPClient extends EventEmitter {
           addresses: [address],
           family: family as 4 | 6,
           ttl: 300000, // 5 minutes
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
 
         this.emit('dnsLookupSuccess', { hostname, address, family });
@@ -183,14 +183,14 @@ export class OptimizedHTTPClient extends EventEmitter {
    */
   public async executeRequest(
     options: any,
-    data?: Buffer | string
+    data?: Buffer | string,
   ): Promise<{ response: any; data: Buffer; metrics: any }> {
     const startTime = performance.now();
     this.metrics.totalRequests++;
-    
+
     const hostname = options.hostname || options.host;
     const isHttps = options.protocol === 'https:' || options.port === 443;
-    
+
     // Get appropriate agent
     const agent = isHttps ? this.getHttpsAgent(hostname) : this.getHttpAgent(hostname);
     options.agent = agent;
@@ -208,16 +208,16 @@ export class OptimizedHTTPClient extends EventEmitter {
     while (attempt < this.config.retryAttempts) {
       try {
         const result = await this.makeRequest(options, data);
-        
+
         // Update metrics
         const latency = performance.now() - startTime;
         this.updateLatencyMetrics(latency);
-        
+
         this.emit('requestSuccess', {
           hostname,
           attempt: attempt + 1,
           latency,
-          http2: options.agent.protocol === 'h2'
+          http2: options.agent.protocol === 'h2',
         });
 
         return {
@@ -226,8 +226,8 @@ export class OptimizedHTTPClient extends EventEmitter {
             latency,
             attempt: attempt + 1,
             http2: options.agent.protocol === 'h2',
-            connectionReused: result.socket?.reused || false
-          }
+            connectionReused: result.socket?.reused || false,
+          },
         };
       } catch (_error) {
         lastError = _error as Error;
@@ -253,23 +253,23 @@ export class OptimizedHTTPClient extends EventEmitter {
     return new Promise((resolve, reject) => {
       const protocol = _options.protocol === 'https:' ? 'https' : 'http';
       const mod = require(protocol);
-      
+
       const req = mod._request(_options, (_res: any) => {
         const chunks: Buffer[] = [];
-        
+
         _res.on('data', (chunk: Buffer) => {
           chunks.push(chunk);
         });
-        
+
         _res.on('end', () => {
           const responseData = Buffer.concat(chunks);
           resolve({
             _response: _res,
             data: responseData,
-            socket: _res.socket
+            socket: _res.socket,
           });
         });
-        
+
         _res.on('error', reject);
       });
 
@@ -282,7 +282,7 @@ export class OptimizedHTTPClient extends EventEmitter {
       if (data) {
         req.write(data);
       }
-      
+
       req.end();
     });
   }
@@ -316,8 +316,8 @@ export class OptimizedHTTPClient extends EventEmitter {
    * Get connection reuse rate
    */
   public getConnectionReuseRate(): number {
-    return this.metrics.totalRequests > 0 
-      ? (this.metrics.reuseCount / this.metrics.totalRequests) * 100 
+    return this.metrics.totalRequests > 0
+      ? (this.metrics.reuseCount / this.metrics.totalRequests) * 100
       : 0;
   }
 
@@ -335,31 +335,34 @@ export class OptimizedHTTPClient extends EventEmitter {
    */
   private performHealthCheck(): void {
     const reuseRate = this.getConnectionReuseRate();
-    const failureRate = this.metrics.totalRequests > 0 
-      ? (this.metrics.failureCount / this.metrics.totalRequests) * 100 
-      : 0;
+    const failureRate =
+      this.metrics.totalRequests > 0
+        ? (this.metrics.failureCount / this.metrics.totalRequests) * 100
+        : 0;
 
     this.emit('healthCheck', {
       reuseRate,
       failureRate,
       averageLatency: this.metrics.averageLatency,
-      activeConnections: this.getActiveConnectionCount()
+      activeConnections: this.getActiveConnectionCount(),
     });
 
     // Alert if performance degrades
-    if (reuseRate < 70) { // Target is 90%, alert if below 70%
+    if (reuseRate < 70) {
+      // Target is 90%, alert if below 70%
       this.emit('performanceAlert', {
         type: 'low_reuse_rate',
         value: reuseRate,
-        threshold: 70
+        threshold: 70,
       });
     }
 
-    if (failureRate > 5) { // Alert if failure rate above 5%
+    if (failureRate > 5) {
+      // Alert if failure rate above 5%
       this.emit('performanceAlert', {
         type: 'high_failure_rate',
         value: failureRate,
-        threshold: 5
+        threshold: 5,
       });
     }
   }
@@ -369,17 +372,17 @@ export class OptimizedHTTPClient extends EventEmitter {
    */
   private getActiveConnectionCount(): number {
     let count = 0;
-    
+
     for (const agent of this.httpsAgents.values()) {
       count += Object.keys(agent.sockets).length;
       count += Object.keys(agent.freeSockets).length;
     }
-    
+
     for (const agent of this.httpAgents.values()) {
       count += Object.keys(agent.sockets).length;
       count += Object.keys(agent.freeSockets).length;
     }
-    
+
     return count;
   }
 
@@ -411,7 +414,7 @@ export class OptimizedHTTPClient extends EventEmitter {
     this.httpsAgents.clear();
     this.httpAgents.clear();
     this.dnsCache.clear();
-    
+
     this.emit('destroyed');
   }
 
@@ -419,7 +422,6 @@ export class OptimizedHTTPClient extends EventEmitter {
    * Sleep utility for retry delays
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
-

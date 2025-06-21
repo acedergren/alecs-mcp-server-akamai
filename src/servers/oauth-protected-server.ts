@@ -8,10 +8,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import express, { type Express } from 'express';
 
 import { AkamaiClient } from '@/akamai-client';
-import {
-  OAuthMiddlewareFactory,
-  type OAuthRequest,
-} from '@/middleware/oauth-authorization';
+import { OAuthMiddlewareFactory, type OAuthRequest } from '@/middleware/oauth-authorization';
 import { CustomerConfigManager } from '@/services/customer-config-manager';
 import { OAuthResourceServer } from '@/services/oauth-resource-server';
 import {
@@ -197,7 +194,7 @@ function createOAuthHttpServer(
     oauthMiddleware.authorizeResource(
       ResourceType.PROPERTY,
       OAuthOperation.READ,
-      req => req.params.propertyId,
+      (req) => req.params.propertyId,
     ),
     async (_req: OAuthRequest, res) => {
       const resource = req.oauth?.resource;
@@ -210,7 +207,7 @@ function createOAuthHttpServer(
     oauthMiddleware.authorizeResource(
       ResourceType.PROPERTY,
       OAuthOperation.WRITE,
-      req => req.params.propertyId,
+      (req) => req.params.propertyId,
     ),
     async (_req: OAuthRequest, res) => {
       // Update property logic here
@@ -223,7 +220,7 @@ function createOAuthHttpServer(
     oauthMiddleware.authorizeResource(
       ResourceType.PROPERTY,
       OAuthOperation.ACTIVATE,
-      req => req.params.propertyId,
+      (req) => req.params.propertyId,
     ),
     async (_req: OAuthRequest, res) => {
       // Activation logic here
@@ -249,7 +246,7 @@ function createOAuthHttpServer(
     oauthMiddleware.authorizeResource(
       ResourceType.DNS_ZONE,
       OAuthOperation.READ,
-      req => req.params.zoneId,
+      (req) => req.params.zoneId,
     ),
     async (_req: OAuthRequest, res) => {
       const resource = req.oauth?.resource;
@@ -297,13 +294,15 @@ function createOAuthHttpServer(
   app.use('/api/v1', apiRouter);
 
   // Error handling
-  app.use((_err: any, _req: express.Request, _res: express.Response, _next: express.NextFunction) => {
-    console.error('Server error:', err);
-    res.status(err.status || 500).json({
-      error: err.error || 'server_error',
-      error_description: err.message || 'Internal server error',
-    });
-  });
+  app.use(
+    (_err: any, _req: express.Request, _res: express.Response, _next: express.NextFunction) => {
+      console.error('Server error:', err);
+      res.status(err.status || 500).json({
+        error: err.error || 'server_error',
+        error_description: err.message || 'Internal server error',
+      });
+    },
+  );
 
   // Start server
   app.listen(port, () => {

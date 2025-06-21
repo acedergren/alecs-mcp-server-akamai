@@ -43,23 +43,25 @@ export class EnhancedEdgeGrid extends EventEmitter {
     failedAuth: 0,
     averageAuthTime: 0,
     timeoutCount: 0,
-    circuitBreakerTrips: 0
+    circuitBreakerTrips: 0,
   };
   private originalAuth: ((_req: any) => any) | null = null;
 
   constructor(config: EnhancedEdgeGridConfig = {}) {
     super();
-    
+
     this.config = {
       edgercPath: config.edgercPath || process.env.EDGERC_PATH || '~/.edgerc',
       section: config.section || process.env.EDGERC_SECTION || 'default',
       optimizedClient: config.optimizedClient || new OptimizedHTTPClient(),
-      circuitBreaker: config.circuitBreaker || new CircuitBreaker({
-        failureThreshold: 3,
-        successThreshold: 2,
-        recoveryTimeout: 30000,
-        monitorTimeout: 5000,
-      }),
+      circuitBreaker:
+        config.circuitBreaker ||
+        new CircuitBreaker({
+          failureThreshold: 3,
+          successThreshold: 2,
+          recoveryTimeout: 30000,
+          monitorTimeout: 5000,
+        }),
       timeoutMs: config.timeoutMs || 30000,
       retryAttempts: config.retryAttempts || 3,
       monkeyPatchSDK: config.monkeyPatchSDK !== false,
@@ -68,7 +70,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
     // Initialize EdgeGrid with configuration
     this.edgeGrid = new EdgeGrid({
       path: this.config.edgercPath,
-      section: this.config.section
+      section: this.config.section,
     });
 
     this.optimizedClient = this.config.optimizedClient;
@@ -94,27 +96,29 @@ export class EnhancedEdgeGrid extends EventEmitter {
 
     // Store original auth method
     this.originalAuth = this.edgeGrid.auth.bind(this.edgeGrid);
-    
+
     // Replace with enhanced auth method
     this.edgeGrid.auth = (requestOptions: any) => {
       const startTime = performance.now();
-      
+
       try {
         // Apply original authentication
         const authenticatedOptions = this.originalAuth!(requestOptions);
-        
+
         // Get hostname for agent selection
-        const hostname = authenticatedOptions.hostname || 
-                        authenticatedOptions.host || 
-                        this.extractHostnameFromUrl(authenticatedOptions.url);
-        
+        const hostname =
+          authenticatedOptions.hostname ||
+          authenticatedOptions.host ||
+          this.extractHostnameFromUrl(authenticatedOptions.url);
+
         if (hostname) {
           // Apply optimized HTTP agent
-          const isHttps = authenticatedOptions.protocol === 'https:' || 
-                         authenticatedOptions.port === 443 ||
-                         authenticatedOptions.url?.startsWith('https:');
-          
-          authenticatedOptions.agent = isHttps 
+          const isHttps =
+            authenticatedOptions.protocol === 'https:' ||
+            authenticatedOptions.port === 443 ||
+            authenticatedOptions.url?.startsWith('https:');
+
+          authenticatedOptions.agent = isHttps
             ? this.optimizedClient.getHttpsAgent(hostname)
             : this.optimizedClient.getHttpAgent(hostname);
         }
@@ -123,12 +127,12 @@ export class EnhancedEdgeGrid extends EventEmitter {
         authenticatedOptions.timeout = this.config.timeoutMs;
         authenticatedOptions.keepAlive = true;
         authenticatedOptions.keepAliveMsecs = 60000;
-        
+
         // Add custom headers for optimization
         authenticatedOptions.headers = {
           ...authenticatedOptions.headers,
-          'Connection': 'keep-alive',
-          'Keep-Alive': 'timeout=60, max=100'
+          Connection: 'keep-alive',
+          'Keep-Alive': 'timeout=60, max=100',
         };
 
         // Add account switch key if available
@@ -139,27 +143,27 @@ export class EnhancedEdgeGrid extends EventEmitter {
 
         const authTime = performance.now() - startTime;
         this.updateAuthMetrics(authTime, true);
-        
+
         this.emit('authSuccess', {
           hostname,
           authTime,
           keepAlive: true,
-          http2: authenticatedOptions.agent?.protocol === 'h2'
+          http2: authenticatedOptions.agent?.protocol === 'h2',
         });
 
         return authenticatedOptions;
       } catch (_error) {
         const authTime = performance.now() - startTime;
         this.updateAuthMetrics(authTime, false);
-        
+
         this.emit('authError', { _error, authTime });
         throw _error;
       }
     };
 
-    this.emit('monkeyPatchApplied', { 
+    this.emit('monkeyPatchApplied', {
       originalAuth: !!this.originalAuth,
-      optimizedClient: !!this.optimizedClient 
+      optimizedClient: !!this.optimizedClient,
     });
   }
 
@@ -168,13 +172,13 @@ export class EnhancedEdgeGrid extends EventEmitter {
    */
   public async executeRequest(
     _options: EdgeGridRequestOptions,
-    data?: string | Buffer
+    data?: string | Buffer,
   ): Promise<{ response: any; data: Buffer; metrics: any }> {
     this.metrics.totalRequests++;
-    
+
     return this.circuitBreaker.execute(async () => {
       const startTime = performance.now();
-      
+
       try {
         // Prepare _request _options
         const requestOptions = {
@@ -183,27 +187,24 @@ export class EnhancedEdgeGrid extends EventEmitter {
           headers: _options.headers || {},
           body: data,
           timeout: _options.timeout || this.config.timeoutMs,
-          maxRedirects: _options.maxRedirects || 5
+          maxRedirects: _options.maxRedirects || 5,
         };
 
         // Apply EdgeGrid authentication
         const authenticatedOptions = this.edgeGrid.auth(requestOptions);
-        
+
         // Execute _request through optimized client
-        const result = await this.optimizedClient.executeRequest(
-          authenticatedOptions,
-          data
-        );
+        const result = await this.optimizedClient.executeRequest(authenticatedOptions, data);
 
         const totalTime = performance.now() - startTime;
         this.metrics.successfulAuth++;
-        
+
         this.emit('requestSuccess', {
           path: _options.path,
           method: _options.method,
           totalTime,
           authTime: result.metrics?.authTime,
-          networkTime: result.metrics?.latency
+          networkTime: result.metrics?.latency,
         });
 
         return {
@@ -211,25 +212,25 @@ export class EnhancedEdgeGrid extends EventEmitter {
           metrics: {
             ...result.metrics,
             totalTime,
-            circuitBreakerState: this.circuitBreaker.getState()
-          }
+            circuitBreakerState: this.circuitBreaker.getState(),
+          },
         };
       } catch (_error) {
         const totalTime = performance.now() - startTime;
         this.metrics.failedAuth++;
-        
+
         // Check for timeout
         if (_error instanceof Error && _error.message.includes('timeout')) {
           this.metrics.timeoutCount++;
         }
-        
+
         this.emit('requestError', {
           path: _options.path,
           method: _options.method,
           _error,
-          totalTime
+          totalTime,
         });
-        
+
         throw _error;
       }
     });
@@ -242,7 +243,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
     return this.executeRequest({
       method: 'GET',
       path,
-      headers
+      headers,
     });
   }
 
@@ -252,16 +253,19 @@ export class EnhancedEdgeGrid extends EventEmitter {
   public async post(
     path: string,
     data?: string | Buffer,
-    headers?: Record<string, string>
+    headers?: Record<string, string>,
   ): Promise<any> {
-    return this.executeRequest({
-      method: 'POST',
-      path,
-      headers: {
-        'Content-Type': 'application/json',
-        ...headers
-      }
-    }, data);
+    return this.executeRequest(
+      {
+        method: 'POST',
+        path,
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+      },
+      data,
+    );
   }
 
   /**
@@ -270,16 +274,19 @@ export class EnhancedEdgeGrid extends EventEmitter {
   public async put(
     path: string,
     data?: string | Buffer,
-    headers?: Record<string, string>
+    headers?: Record<string, string>,
   ): Promise<any> {
-    return this.executeRequest({
-      method: 'PUT',
-      path,
-      headers: {
-        'Content-Type': 'application/json',
-        ...headers
-      }
-    }, data);
+    return this.executeRequest(
+      {
+        method: 'PUT',
+        path,
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+      },
+      data,
+    );
   }
 
   /**
@@ -289,7 +296,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
     return this.executeRequest({
       method: 'DELETE',
       path,
-      headers
+      headers,
     });
   }
 
@@ -299,13 +306,13 @@ export class EnhancedEdgeGrid extends EventEmitter {
   private setupEventHandlers(): void {
     this.circuitBreaker.on('stateChange', (state) => {
       this.emit('circuitBreakerStateChange', state);
-      
+
       if (state === 'OPEN') {
         this.metrics.circuitBreakerTrips++;
         this.emit('circuitBreakerTripped', {
           totalRequests: this.metrics.totalRequests,
           failedAuth: this.metrics.failedAuth,
-          successRate: this.getSuccessRate()
+          successRate: this.getSuccessRate(),
         });
       }
     });
@@ -323,8 +330,10 @@ export class EnhancedEdgeGrid extends EventEmitter {
    * Extract hostname from URL
    */
   private extractHostnameFromUrl(url?: string): string | null {
-    if (!url) {return null;}
-    
+    if (!url) {
+      return null;
+    }
+
     try {
       const parsed = new URL(url);
       return parsed.hostname;
@@ -339,7 +348,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
   private updateAuthMetrics(authTime: number, success: boolean): void {
     const totalAuthTime = this.metrics.averageAuthTime * this.metrics.totalRequests;
     this.metrics.averageAuthTime = (totalAuthTime + authTime) / (this.metrics.totalRequests + 1);
-    
+
     if (success) {
       this.metrics.successfulAuth++;
     } else {
@@ -351,8 +360,8 @@ export class EnhancedEdgeGrid extends EventEmitter {
    * Get authentication success rate
    */
   public getSuccessRate(): number {
-    return this.metrics.totalRequests > 0 
-      ? (this.metrics.successfulAuth / this.metrics.totalRequests) * 100 
+    return this.metrics.totalRequests > 0
+      ? (this.metrics.successfulAuth / this.metrics.totalRequests) * 100
       : 0;
   }
 
@@ -407,7 +416,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
     const connectionReuseRate = this.getConnectionReuseRate();
 
     let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
-    
+
     if (circuitBreakerState === 'OPEN' || successRate < 50) {
       status = 'unhealthy';
     } else if (successRate < 80 || connectionReuseRate < 70) {
@@ -419,10 +428,10 @@ export class EnhancedEdgeGrid extends EventEmitter {
       metrics: {
         ...this.metrics,
         successRate,
-        connectionReuseRate
+        connectionReuseRate,
       },
       circuitBreakerState,
-      networkOptimization: networkMetrics
+      networkOptimization: networkMetrics,
     };
   }
 
@@ -437,7 +446,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
 
     this.optimizedClient.destroy();
     this.circuitBreaker.destroy();
-    
+
     this.emit('destroyed');
   }
 }

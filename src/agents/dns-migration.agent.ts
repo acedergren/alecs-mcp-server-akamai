@@ -1,13 +1,7 @@
 import * as dns from 'dns';
 import { promisify } from 'util';
 
-import {
-  ProgressBar,
-  Spinner,
-  MultiProgress,
-  format,
-  icons,
-} from '@utils/progress';
+import { ProgressBar, Spinner, MultiProgress, format, icons } from '@utils/progress';
 
 import { EdgeGridAuth } from '../auth/EdgeGridAuth';
 
@@ -585,14 +579,14 @@ export class DNSMigrationAgent {
     try {
       const params = new URLSearchParams();
       if (options.types) {
-params.append('types', options.types.join(','));
-}
+        params.append('types', options.types.join(','));
+      }
       if (options.search) {
-params.append('search', options.search);
-}
+        params.append('search', options.search);
+      }
       if (options.limit) {
-params.append('page_size', options.limit.toString());
-}
+        params.append('page_size', options.limit.toString());
+      }
 
       const response = await this.auth._request<DnsRecordsetsResponse>({
         method: 'GET',
@@ -691,7 +685,8 @@ params.append('page_size', options.limit.toString());
         path: `/config-dns/v2/zones/${zoneName}/changelists`,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-           comment: "Automated change" }),
+          comment: 'Automated change',
+        }),
       });
 
       const location = response.location || response.headers?.location || '';
@@ -802,8 +797,8 @@ params.append('page_size', options.limit.toString());
 
         for (const line of lines) {
           if (line.trim() === '' || line.startsWith(';')) {
-continue;
-}
+            continue;
+          }
 
           // Simple parser - would need more robust implementation
           const parts = line.split(/\s+/);

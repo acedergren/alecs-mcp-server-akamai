@@ -167,8 +167,8 @@ export class ValkeyCache {
    */
   async get<T = any>(key: string): Promise<T | null> {
     if (!this.isAvailable()) {
-return null;
-}
+      return null;
+    }
 
     try {
       const fullKey = this.buildKey(key);
@@ -196,8 +196,8 @@ return null;
    */
   async set<T = any>(key: string, value: T, ttl: number): Promise<boolean> {
     if (!this.isAvailable()) {
-return false;
-}
+      return false;
+    }
 
     try {
       const fullKey = this.buildKey(key);
@@ -225,8 +225,8 @@ return false;
    */
   async del(keys: string | string[]): Promise<number> {
     if (!this.isAvailable()) {
-return 0;
-}
+      return 0;
+    }
 
     try {
       const keysArray = Array.isArray(keys) ? keys : [keys];
@@ -243,8 +243,8 @@ return 0;
    */
   async ttl(key: string): Promise<number> {
     if (!this.isAvailable()) {
-return -1;
-}
+      return -1;
+    }
 
     try {
       const fullKey = this.buildKey(key);
@@ -308,8 +308,8 @@ return -1;
       await this.sleep(100);
       const cached = await this.get<T>(key);
       if (cached) {
-return cached;
-}
+        return cached;
+      }
 
       // Retry with exponential backoff
       return this.getWithLock(key, ttl, fetchFn, lockTimeout);
@@ -382,8 +382,8 @@ return cached;
    */
   async scanAndDelete(pattern: string): Promise<number> {
     if (!this.isAvailable()) {
-return 0;
-}
+      return 0;
+    }
 
     let deleted = 0;
     const fullPattern = this.buildKey(pattern);
@@ -464,8 +464,8 @@ return 0;
   async getHitRate(_pattern?: string): Promise<number> {
     const total = this.metrics.hits + this.metrics.misses;
     if (total === 0) {
-return 0;
-}
+      return 0;
+    }
     return (this.metrics.hits / total) * 100;
   }
 
@@ -487,8 +487,8 @@ return 0;
    */
   async flushAll(): Promise<void> {
     if (!this.isAvailable()) {
-return;
-}
+      return;
+    }
 
     try {
       await this.client.flushdb();

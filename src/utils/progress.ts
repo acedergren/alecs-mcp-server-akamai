@@ -100,8 +100,8 @@ export class ProgressBar extends EventEmitter {
 
   private formatTime(seconds: number): string {
     if (!isFinite(seconds)) {
-return '∞';
-}
+      return '∞';
+    }
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
@@ -268,8 +268,8 @@ export async function trackProgress<T>(
 
   async function processNext(): Promise<void> {
     if (index >= items.length) {
-return;
-}
+      return;
+    }
 
     const currentIndex = index++;
     const item = items[currentIndex];

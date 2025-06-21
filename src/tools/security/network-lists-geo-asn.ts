@@ -412,7 +412,8 @@ export async function generateASNSecurityRecommendations(
       output += '- AS13335: Cloudflare\n';
       output += '- AS14061: DigitalOcean\n';
       output += '- AS16276: OVH\n';
-      output += '\n**Recommendation:** Monitor rather than block - many legitimate services use these.\n\n';
+      output +=
+        '\n**Recommendation:** Monitor rather than block - many legitimate services use these.\n\n';
     }
 
     // Common VPN/proxy providers (this would be a longer list in practice)

@@ -234,7 +234,7 @@ export class PurgeQueueManager {
   private analyzeConsolidation(items: QueueItem[]): ConsolidationSuggestion | null {
     // Group URLs by domain
     const urlItems = items.filter((item) => item.type === 'url' && item.status === 'pending');
-          if (urlItems.length === 0) {
+    if (urlItems.length === 0) {
       return null;
     }
 
@@ -269,7 +269,7 @@ export class PurgeQueueManager {
       }
     }
 
-                    return null;
+    return null;
   }
 
   async enqueue(_request: FastPurgeRequest & { customer: string }): Promise<QueueItem> {

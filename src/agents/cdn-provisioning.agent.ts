@@ -1,10 +1,4 @@
-import {
-  ProgressBar,
-  Spinner,
-  MultiProgress,
-  format,
-  icons,
-} from '@utils/progress';
+import { ProgressBar, Spinner, MultiProgress, format, icons } from '@utils/progress';
 
 import { EdgeGridAuth } from '../auth/EdgeGridAuth';
 
@@ -863,8 +857,8 @@ export class CDNProvisioningAgent {
       'Apply security template',
       'Add hostnames',
       'Provision certificates',
-      ...(options.activateStaging ? ["Activate to staging"] : []),
-      ...(options.activateProduction ? ["Activate to production"] : []),
+      ...(options.activateStaging ? ['Activate to staging'] : []),
+      ...(options.activateProduction ? ['Activate to production'] : []),
     ];
 
     const progress = new ProgressBar({

@@ -506,8 +506,8 @@ export class TodoGenerator {
 
     const config = rootCauseConfigs[rootCause];
     if (!config) {
-return null;
-}
+      return null;
+    }
 
     return {
       id: `root-cause-${rootCause}-${Date.now()}`,
@@ -795,8 +795,8 @@ return null;
       const priorityDiff =
         this.priorityMatrix[b.priority].weight - this.priorityMatrix[a.priority].weight;
       if (priorityDiff !== 0) {
-return priorityDiff;
-}
+        return priorityDiff;
+      }
 
       return this.effortEstimates[a.effort].hours - this.effortEstimates[b.effort].hours;
     });
@@ -832,8 +832,8 @@ return priorityDiff;
     return items.filter((item) => {
       const key = `${item.title}-${item.type}-${item.priority}`;
       if (seen.has(key)) {
-return false;
-}
+        return false;
+      }
       seen.add(key);
       return true;
     });

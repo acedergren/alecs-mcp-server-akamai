@@ -112,10 +112,7 @@ export function isJsonRpcResponse(message: unknown): message is JsonRpcResponse 
  * Type guard for JSON-RPC notification
  */
 export function isJsonRpcNotification(message: unknown): message is JsonRpcNotification {
-  return (
-    isJsonRpcRequest(message) &&
-    !('id' in message)
-  );
+  return isJsonRpcRequest(message) && !('id' in message);
 }
 
 /**
@@ -170,11 +167,7 @@ export function createJsonRpcSuccess(
  * Validate request ID according to JSON-RPC 2.0 spec
  */
 export function isValidRequestId(id: unknown): id is string | number | null {
-  return (
-    id === null ||
-    typeof id === 'string' ||
-    (typeof id === 'number' && Number.isFinite(id))
-  );
+  return id === null || typeof id === 'string' || (typeof id === 'number' && Number.isFinite(id));
 }
 
 /**

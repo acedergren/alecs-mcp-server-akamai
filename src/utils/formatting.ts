@@ -15,8 +15,8 @@ export function formatContractDisplay(
   showRaw = false,
 ): string {
   if (!contractId) {
-return 'Unknown';
-}
+    return 'Unknown';
+  }
 
   // Remove the 'ctr_' prefix for cleaner display
   const cleanId = contractId.replace(/^ctr_/, '');
@@ -41,8 +41,8 @@ export function formatContractList(
   contractMap?: Record<string, string>,
 ): string {
   if (!contractIds || contractIds.length === 0) {
-return 'None';
-}
+    return 'None';
+  }
 
   return contractIds.map((id) => formatContractDisplay(id, contractMap?.[id])).join(', ');
 }
@@ -60,8 +60,8 @@ export function formatGroupDisplay(
   showRaw = false,
 ): string {
   if (!groupId) {
-return 'Unknown';
-}
+    return 'Unknown';
+  }
 
   // Remove the 'grp_' prefix for cleaner display
   const cleanId = groupId.replace(/^grp_/, '');
@@ -84,8 +84,8 @@ export function formatPropertyDisplay(
   propertyName?: string,
 ): string {
   if (!propertyId) {
-return 'Unknown';
-}
+    return 'Unknown';
+  }
 
   // Remove the 'prp_' prefix for cleaner display
   const cleanId = propertyId.replace(/^prp_/, '');
@@ -105,8 +105,8 @@ return 'Unknown';
  */
 export function formatCPCodeDisplay(cpcodeId: string | undefined, cpcodeName?: string): string {
   if (!cpcodeId) {
-return 'Unknown';
-}
+    return 'Unknown';
+  }
 
   // Remove the 'cpc_' prefix - CP Codes are commonly referred by number only
   const cleanId = cpcodeId.replace(/^cpc_/, '');
@@ -126,8 +126,8 @@ return 'Unknown';
  */
 export function ensurePrefix(identifier: string, expectedPrefix: string): string {
   if (!identifier) {
-return identifier;
-}
+    return identifier;
+  }
   if (identifier.startsWith(expectedPrefix)) {
     return identifier;
   }
@@ -140,8 +140,8 @@ return identifier;
  */
 export function extractContractName(contractType?: string): string | undefined {
   if (!contractType) {
-return undefined;
-}
+    return undefined;
+  }
 
   // Common contract type mappings
   const typeMap: Record<string, string> = {
@@ -179,8 +179,8 @@ export function formatJson(data: any, indent = 2): string {
  */
 export function formatTable(data: any[], columns?: Array<{ key: string; header: string }>): string {
   if (!data || data.length === 0) {
-return 'No data';
-}
+    return 'No data';
+  }
 
   // If no columns specified, use all keys from first item
   const keys = columns ? columns.map((c) => c.key) : Object.keys(data[0]);

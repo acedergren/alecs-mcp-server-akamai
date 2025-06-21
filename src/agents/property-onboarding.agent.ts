@@ -218,7 +218,7 @@ export class PropertyOnboardingAgent {
 
       return result;
     } catch (_error) {
-      console.error("[Error]:", _error);
+      console.error('[Error]:', _error);
       result.errors!.push(
         `Unexpected error: ${_error instanceof Error ? _error.message : String(_error)}`,
       );
@@ -403,7 +403,7 @@ export class PropertyOnboardingAgent {
       console.error('[PropertyOnboarding] Could not extract CP Code ID from response');
       return { success: false };
     } catch (_error) {
-      console.error("[Error]:", _error);
+      console.error('[Error]:', _error);
       return { success: false };
     }
   }
@@ -433,7 +433,7 @@ export class PropertyOnboardingAgent {
 
       return { success: false };
     } catch (_error) {
-      console.error("[Error]:", _error);
+      console.error('[Error]:', _error);
       return { success: false };
     }
   }
@@ -464,7 +464,7 @@ export class PropertyOnboardingAgent {
         edgeHostname,
       };
     } catch (_error) {
-      console.error("[Error]:", _error);
+      console.error('[Error]:', _error);
       return { success: false };
     }
   }
@@ -714,7 +714,7 @@ export class PropertyOnboardingAgent {
         };
       }
     } catch (_error) {
-      console.error("[Error]:", _error);
+      console.error('[Error]:', _error);
       return {
         recordCreated: false,
         warnings: ['Failed to setup DNS automatically'],
@@ -741,7 +741,7 @@ export class PropertyOnboardingAgent {
         rdata: [acmeTarget],
       });
     } catch (_error) {
-      console.error("[Error]:", _error);
+      console.error('[Error]:', _error);
     }
   }
 
@@ -812,7 +812,7 @@ export class PropertyOnboardingAgent {
         activationId: activationIdMatch ? activationIdMatch[1] : undefined,
       };
     } catch (_error) {
-      console.error("[Error]:", _error);
+      console.error('[Error]:', _error);
       return { success: false };
     }
   }

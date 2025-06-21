@@ -139,16 +139,16 @@ export class PurgeStatusTracker {
             // Convert date strings back to Date objects
             operation.createdAt = new Date(operation.createdAt);
             if (operation.startedAt) {
-operation.startedAt = new Date(operation.startedAt);
-}
+              operation.startedAt = new Date(operation.startedAt);
+            }
             if (operation.completedAt) {
-operation.completedAt = new Date(operation.completedAt);
-}
+              operation.completedAt = new Date(operation.completedAt);
+            }
 
             operation.batches.forEach((batch: any) => {
               if (batch.completedAt) {
-batch.completedAt = new Date(batch.completedAt);
-}
+                batch.completedAt = new Date(batch.completedAt);
+              }
             });
 
             operation.errors.forEach((_error: any) => {
@@ -271,8 +271,8 @@ batch.completedAt = new Date(batch.completedAt);
   private async updateOperationStatus(operationId: string): Promise<void> {
     const operation = this.operations.get(operationId);
     if (!operation) {
-return;
-}
+      return;
+    }
 
     try {
       let _completedBatches = 0;
