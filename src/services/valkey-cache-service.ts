@@ -185,7 +185,7 @@ export class ValkeyCache {
         return null;
       }
     } catch (_err) {
-      console.error(`[Valkey] Error getting ${key}:`, err);
+      console.error(`[Valkey] Error getting ${key}:`, _err);
       this.metrics.errors++;
       return null;
     }
@@ -214,7 +214,7 @@ export class ValkeyCache {
       await this.client.setex(fullKey, ttl, serialized);
       return true;
     } catch (_err) {
-      console.error(`[Valkey] Error setting ${key}:`, err);
+      console.error(`[Valkey] Error setting ${key}:`, _err);
       this.metrics.errors++;
       return false;
     }
@@ -233,7 +233,7 @@ export class ValkeyCache {
       const fullKeys = keysArray.map((k) => this.buildKey(k));
       return await this.client.del(...fullKeys);
     } catch (_err) {
-      console.error('[Valkey] Error deleting keys:', err);
+      console.error('[Valkey] Error deleting keys:', _err);
       return 0;
     }
   }
@@ -250,7 +250,7 @@ export class ValkeyCache {
       const fullKey = this.buildKey(key);
       return await this.client.ttl(fullKey);
     } catch (_err) {
-      console.error(`[Valkey] Error getting TTL for ${key}:`, err);
+      console.error(`[Valkey] Error getting TTL for ${key}:`, _err);
       return -1;
     }
   }
@@ -338,7 +338,7 @@ export class ValkeyCache {
       const data = await fetchFn();
       await this.set(key, data, ttl);
     } catch (_err) {
-      console.error(`[Valkey] Background refresh failed for ${key}:`, err);
+      console.error(`[Valkey] Background refresh failed for ${key}:`, _err);
     } finally {
       this.refreshingKeys.delete(key);
     }
@@ -372,7 +372,7 @@ export class ValkeyCache {
 
       return result;
     } catch (_err) {
-      console.error('[Valkey] Error in mget:', err);
+      console.error('[Valkey] Error in mget:', _err);
       return new Map();
     }
   }
@@ -401,7 +401,7 @@ export class ValkeyCache {
             try {
               deleted += await this.client.del(...keys);
             } catch (_err) {
-              console.error('[Valkey] Error deleting batch:', err);
+              console.error('[Valkey] Error deleting batch:', _err);
             }
           }
         });
@@ -421,7 +421,7 @@ export class ValkeyCache {
           try {
             deleted += await this.client.del(...keys);
           } catch (_err) {
-            console.error('[Valkey] Error deleting batch:', err);
+            console.error('[Valkey] Error deleting batch:', _err);
           }
         }
       } while (cursor !== '0');
@@ -494,7 +494,7 @@ export class ValkeyCache {
       await this.client.flushdb();
       console.error('[Valkey] Cache cleared');
     } catch (_err) {
-      console.error('[Valkey] Error flushing cache:', err);
+      console.error('[Valkey] Error flushing cache:', _err);
     }
   }
 

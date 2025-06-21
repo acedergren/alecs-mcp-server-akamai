@@ -1435,7 +1435,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
       solution = '**Solution:** Resource conflict. The operation may already be in progress.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

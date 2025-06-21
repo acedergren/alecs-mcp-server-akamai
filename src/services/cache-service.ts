@@ -71,7 +71,7 @@ export class AkamaiCacheService {
         this.enabled = false;
       });
     } catch (_error) {
-      console.error('[Error]:', error);
+      console.error('[Error]:', _error);
       this.enabled = false;
     }
   }
@@ -91,7 +91,7 @@ export class AkamaiCacheService {
           return JSON.parse(cached);
         }
       } catch (_err) {
-        console.error('[Cache] Error reading from cache:', err);
+        console.error('[Cache] Error reading from cache:', _err);
       }
     }
 
@@ -112,7 +112,7 @@ export class AkamaiCacheService {
         // Also create hostname mapping for quick lookups
         await this.createHostnameMapping(client, customer, properties);
       } catch (_err) {
-        console.error('[Cache] Error writing to cache:', err);
+        console.error('[Cache] Error writing to cache:', _err);
       }
     }
 
@@ -170,7 +170,7 @@ export class AkamaiCacheService {
           }
         }
       } catch (_err) {
-        console.error(`[Cache] Error processing property ${property.propertyId}:`, err);
+        console.error(`[Cache] Error processing property ${property.propertyId}:`, _err);
       }
     }
 
@@ -202,7 +202,7 @@ export class AkamaiCacheService {
           return JSON.parse(cached);
         }
       } catch (_err) {
-        console.error('[Cache] Error reading search cache:', err);
+        console.error('[Cache] Error reading search cache:', _err);
       }
     }
 
@@ -245,7 +245,7 @@ export class AkamaiCacheService {
           }
         }
       } catch (_err) {
-        console.error('[Cache] Error checking hostname map:', err);
+        console.error('[Cache] Error checking hostname map:', _err);
       }
     }
 
@@ -267,7 +267,7 @@ export class AkamaiCacheService {
       try {
         await this.redis.setex(searchKey, this.config.ttl!.search!, JSON.stringify(results));
       } catch (_err) {
-        console.error('[Cache] Error caching search results:', err);
+        console.error('[Cache] Error caching search results:', _err);
       }
     }
 
@@ -303,7 +303,7 @@ export class AkamaiCacheService {
 
       console.error(`[Cache] Invalidated cache for property ${propertyId}`);
     } catch (_err) {
-      console.error('[Cache] Error invalidating cache:', err);
+      console.error('[Cache] Error invalidating cache:', _err);
     }
   }
 
@@ -328,8 +328,8 @@ export class AkamaiCacheService {
         stats: info,
       };
     } catch (_err) {
-      console.error('[Cache] Error getting stats:', err);
-      return { enabled: true, _error: err instanceof Error ? err.message : String(err) };
+      console.error('[Cache] Error getting stats:', _err);
+      return { enabled: true, _error: _err instanceof Error ? _err.message : String(_err) };
     }
   }
 

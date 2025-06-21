@@ -99,7 +99,7 @@ export async function provisionCompleteProperty(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -132,7 +132,7 @@ export async function clonePropertyVersion(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -165,7 +165,7 @@ export async function applyPropertyTemplate(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -201,7 +201,7 @@ export async function provisionAndDeployCertificate(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -227,7 +227,7 @@ export async function automatedDNSValidation(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -252,7 +252,7 @@ export async function processCertificateRenewal(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -285,7 +285,7 @@ export async function importZoneFromCloudflare(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -318,7 +318,7 @@ export async function bulkDNSMigration(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -352,7 +352,7 @@ export async function migrateWebsite(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -383,7 +383,7 @@ export async function provisionSecureWebsite(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }

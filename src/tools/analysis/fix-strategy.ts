@@ -233,12 +233,11 @@ export class FixStrategyOptimizer {
    * Generate strategy overview
    */
   generateStrategyOverview(_analysisResults: AnalysisResults, _todoList: TodoList) {
-    const totalItems = this.todoList._items?.length || 0;
+    const totalItems = _todoList._items?.length || 0;
     const criticalItems =
-      this.todoList._items?.filter((_item) => _item.priority === 'CRITICAL').length || 0;
-    const highItems =
-      this.todoList._items?.filter((_item) => _item.priority === 'HIGH').length || 0;
-    const estimatedHours = this.todoList.metadata?.estimatedTotalHours || 0;
+      _todoList._items?.filter((item) => item.priority === 'CRITICAL').length || 0;
+    const highItems = _todoList._items?.filter((item) => item.priority === 'HIGH').length || 0;
+    const estimatedHours = _todoList.metadata?.estimatedTotalHours || 0;
 
     const _strategicBalance = this.calculateStrategicBalance(_todoList);
     const resourceRequirements = this.calculateResourceRequirements(_todoList);
@@ -262,7 +261,7 @@ export class FixStrategyOptimizer {
    * Calculate strategic balance across fix types
    */
   calculateStrategicBalance(_todoList: TodoList): StrategicBalance {
-    const _items = this.todoList._items || [];
+    const _items = _todoList._items || [];
     const balance = {
       quick_fixes: 0,
       tactical_fixes: 0,
@@ -316,7 +315,7 @@ export class FixStrategyOptimizer {
    * Identify and optimize quick wins
    */
   identifyQuickWins(_todoList: TodoList, _analysisResults: AnalysisResults) {
-    const quickWinCandidates = (this.todoList._items || []).filter((_item) => {
+    const quickWinCandidates = (_todoList._items || []).filter((_item) => {
       const effort = _item.effort_details?.hours || 0;
       const priority = _item.priority_details?.weight || 0;
 
@@ -373,7 +372,7 @@ export class FixStrategyOptimizer {
    * Plan tactical fixes
    */
   planTacticalFixes(_todoList: TodoList, _analysisResults: AnalysisResults) {
-    const tacticalCandidates = (this.todoList._items || []).filter((_item) => {
+    const tacticalCandidates = (_todoList._items || []).filter((_item) => {
       const effort = _item.effort_details?.hours || 0;
       return effort > 4 && effort <= 16;
     });
@@ -435,7 +434,7 @@ export class FixStrategyOptimizer {
    * Plan strategic initiatives
    */
   planStrategicInitiatives(_todoList: TodoList, _analysisResults: AnalysisResults) {
-    const strategicCandidates = (this.todoList._items || []).filter((_item) => {
+    const strategicCandidates = (_todoList._items || []).filter((_item) => {
       const effort = _item.effort_details?.hours || 0;
       return effort > 16;
     });
@@ -490,7 +489,7 @@ export class FixStrategyOptimizer {
    * Optimize resource allocation
    */
   optimizeResourceAllocation(_todoList: TodoList, _analysisResults: AnalysisResults) {
-    const _items = this.todoList._items || [];
+    const _items = _todoList._items || [];
     const resourceNeeds = this.analyzeResourceNeeds(_items);
     const _constraints = this.getResourceConstraints();
     const _allocation = this.calculateOptimalAllocation(resourceNeeds, _constraints);
@@ -565,7 +564,7 @@ export class FixStrategyOptimizer {
    * Generate implementation timeline
    */
   generateTimeline(_todoList: TodoList, _analysisResults: AnalysisResults) {
-    const _items = this.todoList._items || [];
+    const _items = _todoList._items || [];
     const timeline = {
       phases: this.createTimelinePhases(_items),
       milestones: this.createMilestones(_items),
@@ -641,7 +640,7 @@ export class FixStrategyOptimizer {
    * Assess implementation risks
    */
   assessImplementationRisks(_todoList: TodoList, _analysisResults: AnalysisResults) {
-    const _items = this.todoList._items || [];
+    const _items = _todoList._items || [];
     const risks = {
       technical: this.assessTechnicalRisks(_items),
       resource: this.assessResourceRisks(_items),
@@ -685,9 +684,9 @@ export class FixStrategyOptimizer {
    */
   recommendApproachFull(_todoList: TodoList, _analysisResults: AnalysisResults) {
     const criticalCount =
-      this.todoList._items?.filter((_item) => _item.priority === 'CRITICAL').length || 0;
-    const quickWinCount = this.todoList.quickWins?.length || 0;
-    const totalHours = this.todoList.metadata?.estimatedTotalHours || 0;
+      _todoList._items?.filter((_item) => _item.priority === 'CRITICAL').length || 0;
+    const quickWinCount = _todoList.quickWins?.length || 0;
+    const totalHours = _todoList.metadata?.estimatedTotalHours || 0;
 
     if (criticalCount > 3) {
       return {

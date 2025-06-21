@@ -263,7 +263,7 @@ export class TodoGenerator {
     const categoryTodos: TodoItem[] = [];
     const highestSeverity = this.getHighestSeverity(errors);
 
-    switch (category) {
+    switch (_category) {
       case 'AUTH_ERROR':
         categoryTodos.push({
           id: `auth-fix-${Date.now()}`,
@@ -421,13 +421,13 @@ export class TodoGenerator {
       default:
         if (errors.length > 0) {
           categoryTodos.push({
-            id: `generic-fix-${category}-${Date.now()}`,
-            title: `Investigate ${category.replace('_', ' ').toLowerCase()} Issues`,
-            description: `Analyze and resolve ${errors.length} ${category.toLowerCase()} error(s)`,
+            id: `generic-fix-${_category}-${Date.now()}`,
+            title: `Investigate ${_category.replace('_', ' ').toLowerCase()} Issues`,
+            description: `Analyze and resolve ${errors.length} ${_category.toLowerCase()} error(s)`,
             priority: this.mapSeverityToPriority(highestSeverity),
             type: 'bug_fix',
             effort: 'moderate',
-            tags: [category.toLowerCase(), 'investigation'],
+            tags: [_category.toLowerCase(), 'investigation'],
             details: {
               errorCount: errors.length,
               affectedTests: errors.map((e) => e.test || e.suite || '').slice(0, 5),
@@ -648,7 +648,7 @@ export class TodoGenerator {
         tags: ['customer-facing', 'user-experience'],
         details: {
           impactLevel: impactAssessment.customerImpact.level,
-          affectedFeatu_res: impactAssessment.customerImpact.affectedFeatures || [],
+          affectedFeatures: impactAssessment.customerImpact.affectedFeatures || [],
           failureRate: impactAssessment.customerImpact.customerFailureRate,
           suggestedActions: [
             'Prioritize customer-facing functionality fixes',

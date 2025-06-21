@@ -1125,7 +1125,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
       solution = '**Solution:** Ensure the master server allows zone transfers from Akamai IPs.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

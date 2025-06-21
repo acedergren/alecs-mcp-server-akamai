@@ -196,7 +196,7 @@ export async function listZones(
     };
   } catch (_error) {
     spinner.fail('Failed to fetch DNS zones');
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -240,7 +240,7 @@ export async function getZone(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -309,7 +309,7 @@ export async function createZone(
     };
   } catch (_error) {
     spinner.fail(`Failed to create zone: ${args.zone}`);
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -367,7 +367,7 @@ export async function listRecords(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -458,7 +458,7 @@ export async function submitChangeList(
 
         break; // Success, exit retry loop
       } catch (_error: any) {
-        lastError = error;
+        lastError = _error;
 
         // Check if it's a rate limit error
         if (_error.message?.includes('429') || _error.statusCode === 429) {
@@ -550,7 +550,7 @@ export async function submitChangeList(
         }
       } catch (_error) {
         spinner.fail('Failed to monitor activation status');
-        console.error('[Error]:', error);
+        console.error('[Error]:', _error);
         // Don't throw - submission was successful even if monitoring failed
       }
     }
@@ -615,7 +615,7 @@ export async function discardChangeList(
       });
       return; // Success
     } catch (_error: any) {
-      lastError = error;
+      lastError = _error;
 
       // Don't retry on 404 - changelist doesn't exist
       if (_error.message?.includes('404') || _error.statusCode === 404) {
@@ -768,7 +768,7 @@ export async function processMultipleZones(
       }
     } catch (_error: any) {
       const errorMessage: string =
-        _error instanceof Error ? _error.message : String(error || 'Unknown error');
+        _error instanceof Error ? _error.message : String(_error || 'Unknown error');
       result.failed.push({
         zone,
         error: errorMessage,
@@ -954,7 +954,7 @@ export async function upsertRecord(
     };
   } catch (_error) {
     spinner.fail('Failed to update DNS record');
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -1015,7 +1015,7 @@ export async function deleteRecord(
     };
   } catch (_error) {
     spinner.fail('Failed to delete DNS record');
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }

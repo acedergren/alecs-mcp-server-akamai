@@ -139,7 +139,7 @@ export class CustomerContextManager {
    * Get EdgeGrid client for customer
    */
   async getEdgeGridClient(_request: CustomerCredentialRequest): Promise<AkamaiClient> {
-    const { sessionId, customerId, purpose } = request;
+    const { sessionId, customerId, purpose } = _request;
 
     // Get session
     const session = this.oauthManager.getSession(sessionId);
@@ -293,7 +293,7 @@ export class CustomerContextManager {
    * Authorize action
    */
   async authorize(_request: AuthorizationRequest): Promise<AuthorizationDecision> {
-    const { sessionId, resource, action, resourceId, metadata } = request;
+    const { sessionId, resource, action, resourceId, metadata } = _request;
 
     // Get session
     const session = this.oauthManager.getSession(sessionId);

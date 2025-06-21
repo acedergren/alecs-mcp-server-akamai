@@ -460,7 +460,7 @@ async function analyzeWildcardEfficiency(
 
 function findOwnershipPatterns(properties: any[], _options: any = {}): PropertyOwnershipPattern[] {
   const patterns: PropertyOwnershipPattern[] = [];
-  const minProperties = options.minPropertiesForPattern || 3;
+  const minProperties = _options.minPropertiesForPattern || 3;
 
   // Group properties by domain patterns
   const domainGroups = new Map<string, any[]>();

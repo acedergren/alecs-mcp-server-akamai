@@ -119,7 +119,7 @@ export class CertificateValidationMonitor extends EventEmitter {
           await this.retryFailedValidations(enrollmentId);
         }
       } catch (_error) {
-        console.error('[Error]:', error);
+        console.error('[Error]:', _error);
         this.emit(
           'validation:failed',
           enrollmentId,
@@ -170,7 +170,7 @@ export class CertificateValidationMonitor extends EventEmitter {
 
       return answers.some((answer: any) => answer.data?.includes(expectedValue));
     } catch (_error) {
-      console.error('[Error]:', error);
+      console.error('[Error]:', _error);
       return false;
     }
   }
@@ -318,7 +318,7 @@ export class CertificateValidationMonitor extends EventEmitter {
         try {
           await this.triggerDomainValidation(enrollmentId, domain);
         } catch (_error) {
-          console.error('[Error]:', error);
+          console.error('[Error]:', _error);
         }
       }
     }

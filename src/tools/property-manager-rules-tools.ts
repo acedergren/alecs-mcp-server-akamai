@@ -797,7 +797,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
       solution = '**Solution:** Invalid request parameters. Check the input values.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

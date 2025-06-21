@@ -371,7 +371,7 @@ export class TestOrchestrator {
     const scenarios: TestScenario[] = [];
 
     for (const suite of this.suites.values()) {
-      scenarios.push(...suite.scenarios.filter((s) => s.category === category));
+      scenarios.push(...suite.scenarios.filter((s) => s.category === _category));
     }
 
     return scenarios;

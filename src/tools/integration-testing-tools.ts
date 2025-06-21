@@ -134,7 +134,7 @@ export async function runIntegrationTestSuite(
       content: [
         {
           type: 'text',
-          text: `Error running integration tests: ${(error as Error).message}`,
+          text: `Error running integration tests: ${(_error as Error).message}`,
         },
       ],
     };
@@ -242,7 +242,7 @@ export async function checkAPIHealth(
         if (loadTestResult.errors.length > 0) {
           responseText += '\n**Errors Encountered:**\n';
           loadTestResult.errors.forEach((_error) => {
-            responseText += `- ${error}\n`;
+            responseText += `- ${_error}\n`;
           });
         }
       }
@@ -276,7 +276,7 @@ export async function checkAPIHealth(
       content: [
         {
           type: 'text',
-          text: `Error checking API health: ${(error as Error).message}`,
+          text: `Error checking API health: ${(_error as Error).message}`,
         },
       ],
     };
@@ -419,7 +419,7 @@ export async function generateTestData(
       content: [
         {
           type: 'text',
-          text: `Error generating test data: ${(error as Error).message}`,
+          text: `Error generating test data: ${(_error as Error).message}`,
         },
       ],
     };
@@ -490,7 +490,7 @@ export async function validateToolResponses(
         results.push({
           scenario: scenario.name,
           status: 'failed',
-          error: (error as Error).message,
+          error: (_error as Error).message,
         });
       }
     }
@@ -536,7 +536,7 @@ export async function validateToolResponses(
       content: [
         {
           type: 'text',
-          text: `Error validating tool responses: ${(error as Error).message}`,
+          text: `Error validating tool responses: ${(_error as Error).message}`,
         },
       ],
     };
@@ -639,7 +639,7 @@ export async function runLoadTest(
       responseText += `**Unique errors encountered:** ${result.errors.length}\n\n`;
 
       result.errors.forEach((_error, index) => {
-        responseText += `${index + 1}. ${error}\n`;
+        responseText += `${index + 1}. ${_error}\n`;
       });
       responseText += '\n';
     }
@@ -676,7 +676,7 @@ export async function runLoadTest(
       content: [
         {
           type: 'text',
-          text: `Error running load test: ${(error as Error).message}`,
+          text: `Error running load test: ${(_error as Error).message}`,
         },
       ],
     };

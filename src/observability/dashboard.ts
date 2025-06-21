@@ -38,30 +38,30 @@ export class DebugDashboard {
     }
 
     this.server = createServer((_req: IncomingMessage, _res: ServerResponse) => {
-      const url = new URL(req.url || '/', `http://localhost:${this.port}`);
+      const url = new URL(_req.url || '/', `http://localhost:${this.port}`);
 
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET');
+      _res.setHeader('Access-Control-Allow-Origin', '*');
+      _res.setHeader('Access-Control-Allow-Methods', 'GET');
 
       switch (url.pathname) {
         case '/':
-          this.serveDashboard(res);
+          this.serveDashboard(_res);
           break;
         case '/api/health':
-          this.serveHealth(res);
+          this.serveHealth(_res);
           break;
         case '/api/metrics':
-          this.serveMetrics(res);
+          this.serveMetrics(_res);
           break;
         case '/api/operations':
-          this.serveOperations(res);
+          this.serveOperations(_res);
           break;
         case '/api/correlations':
-          this.serveCorrelations(res, url);
+          this.serveCorrelations(_res, url);
           break;
         default:
-          res.writeHead(404);
-          res.end('Not Found');
+          _res.writeHead(404);
+          _res.end('Not Found');
       }
     });
 
@@ -303,39 +303,39 @@ export class DebugDashboard {
 </html>
     `;
 
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(html);
+    _res.writeHead(200, { 'Content-Type': 'text/html' });
+    _res.end(html);
   }
 
   private serveHealth(_res: ServerResponse): void {
     // const health = healthMonitor.getLastStatus() || { status: 'unknown' };
     const health = { status: 'unknown', message: 'Health monitoring not yet implemented' };
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(health));
+    _res.writeHead(200, { 'Content-Type': 'application/json' });
+    _res.end(JSON.stringify(health));
   }
 
   private serveMetrics(_res: ServerResponse): void {
     const metrics = logger.getMetrics();
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(metrics));
+    _res.writeHead(200, { 'Content-Type': 'application/json' });
+    _res.end(JSON.stringify(metrics));
   }
 
   private serveOperations(_res: ServerResponse): void {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(this.recentOperations));
+    _res.writeHead(200, { 'Content-Type': 'application/json' });
+    _res.end(JSON.stringify(this.recentOperations));
   }
 
   private serveCorrelations(_res: ServerResponse, url: URL): void {
     const correlationId = url.searchParams.get('id');
     if (!correlationId) {
-      res.writeHead(400);
-      res.end('Missing correlation ID');
+      _res.writeHead(400);
+      _res.end('Missing correlation ID');
       return;
     }
 
     const logs = logger.getCorrelationLogs(correlationId);
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(logs));
+    _res.writeHead(200, { 'Content-Type': 'application/json' });
+    _res.end(JSON.stringify(logs));
   }
 }
 

@@ -56,7 +56,7 @@ export async function debugSecurePropertyOnboarding(
     if (validationErrors.length > 0) {
       text += '❌ **Validation Failed:**\n';
       validationErrors.forEach((_error) => {
-        text += `- ${error}\n`;
+        text += `- ${_error}\n`;
       });
       text += '\n';
 
@@ -145,7 +145,7 @@ export async function debugSecurePropertyOnboarding(
       } catch (_productError: any) {
         productId = 'prd_fresca';
         text += '⚠️ **Product lookup failed, using default:** Ion (prd_fresca)\n';
-        text += `Error: ${productError.message}\n`;
+        text += `Error: ${_productError.message}\n`;
       }
     } else {
       text += `✅ **Using specified product:** ${formatProductDisplay(productId)}\n`;

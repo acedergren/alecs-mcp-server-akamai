@@ -71,7 +71,7 @@ export async function onboardPropertyTool(
 
     // Execute onboarding workflow
     return await onboardProperty(client, config);
-  }, context);
+  }, _context);
 }
 
 /**
@@ -106,7 +106,7 @@ export async function onboardPropertyWizard(
 
     // The agent will prompt for missing information
     return await onboardProperty(client, config);
-  }, context);
+  }, _context);
 }
 
 /**
@@ -238,7 +238,7 @@ export async function checkOnboardingStatus(
     if (status.errors.length > 0) {
       responseText += '\n## Errors\n';
       status.errors.forEach((_error) => {
-        responseText += `- ${error}\n`;
+        responseText += `- ${_error}\n`;
       });
     }
 
@@ -257,5 +257,5 @@ export async function checkOnboardingStatus(
         },
       ],
     };
-  }, context);
+  }, _context);
 }

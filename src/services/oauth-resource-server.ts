@@ -129,7 +129,7 @@ export class OAuthResourceServer {
       authorization_servers: [this.config.authServerUrl],
       bearer_methods_supported: ['header'],
       mcp_version: '2025-06-18',
-      mcp_featu_res: ['tools', 'resources'],
+      mcp_features: ['tools', 'resources'],
     };
   }
 
@@ -430,14 +430,14 @@ export class OAuthResourceServer {
   async authorizeResourceAccess(
     _context: OAuthResourceAccessContext,
   ): Promise<OAuthAuthorizationDecision> {
-    const { token, resource, operation, method } = context;
+    const { token, resource, operation, method } = _context;
 
     // Check if token is valid for this resource server
     if (!this.isValidAudience(token.aud)) {
       return {
         allowed: false,
         reason: 'Invalid token audience',
-        audit: this.createAuditEntry('DENY', context, 'Invalid audience'),
+        audit: this.createAuditEntry('DENY', _context, 'Invalid audience'),
       };
     }
 
@@ -446,7 +446,7 @@ export class OAuthResourceServer {
       return {
         allowed: false,
         reason: 'Token expired',
-        audit: this.createAuditEntry('DENY', context, 'Token expired'),
+        audit: this.createAuditEntry('DENY', _context, 'Token expired'),
       };
     }
 
@@ -455,7 +455,7 @@ export class OAuthResourceServer {
       return {
         allowed: false,
         reason: `Method ${method} not allowed for resource`,
-        audit: this.createAuditEntry('DENY', context, 'Method not allowed'),
+        audit: this.createAuditEntry('DENY', _context, 'Method not allowed'),
       };
     }
 
@@ -469,7 +469,7 @@ export class OAuthResourceServer {
         allowed: false,
         reason: 'Insufficient scopes',
         missingScopes: hasRequiredScopes.missing,
-        audit: this.createAuditEntry('DENY', context, 'Insufficient scopes'),
+        audit: this.createAuditEntry('DENY', _context, 'Insufficient scopes'),
       };
     }
 
@@ -478,14 +478,14 @@ export class OAuthResourceServer {
       return {
         allowed: false,
         reason: 'Access denied to resource',
-        audit: this.createAuditEntry('DENY', context, 'Ownership check failed'),
+        audit: this.createAuditEntry('DENY', _context, 'Ownership check failed'),
       };
     }
 
     // Authorization successful
     return {
       allowed: true,
-      audit: this.createAuditEntry('ALLOW', context),
+      audit: this.createAuditEntry('ALLOW', _context),
     };
   }
 
@@ -625,9 +625,9 @@ export class OAuthResourceServer {
     return {
       timestamp: new Date().toISOString(),
       decision,
-      resource: context.resource.uri,
-      operation: context.operation,
-      client: context.token.client_id,
+      resource: _context.resource.uri,
+      operation: _context.operation,
+      client: _context.token.client_id,
       reason,
     };
   }

@@ -3,6 +3,7 @@
 ## Current State: 180 Tools Across 43 Files
 
 ### Issues with Current Architecture:
+
 1. **Tool Sprawl**: Too many granular tools that could be combined
 2. **Naming Inconsistencies**: Mix of camelCase, kebab-case, and snake_case
 3. **Redundant Operations**: Multiple tools doing similar things
@@ -12,7 +13,9 @@
 ## Analysis by Category
 
 ### 1. Property Management (47 tools) → Could be 5-7 tools
+
 **Current tools include:**
+
 - listProperties, listPropertiesTreeView, getProperty, createProperty
 - createPropertyVersion, createPropertyVersionEnhanced
 - activateProperty, activatePropertyWithMonitoring
@@ -21,12 +24,15 @@
 - Many more...
 
 **Problems:**
+
 - Too many variations of the same operation (e.g., create vs createEnhanced)
 - Separate tools for what should be parameters
 - Bulk operations as separate tools instead of array parameters
 
 ### 2. DNS Management (33 tools) → Could be 5-6 tools
+
 **Current tools include:**
+
 - listZones, getZone, createZone
 - listRecords, upsertRecord, deleteRecord
 - createMultipleRecordSets (why separate from upsertRecord?)
@@ -34,28 +40,35 @@
 - Many migration-specific tools
 
 **Problems:**
+
 - Import operations could be unified
 - Record operations unnecessarily split
 
 ### 3. Certificate Management (19 tools) → Could be 3-4 tools
+
 **Current tools include:**
+
 - createDVEnrollment, enrollCertificateWithValidation
 - checkDVEnrollmentStatus, monitorCertificateEnrollment
 - deployCertificateToNetwork, linkCertificateToProperty
 - Many validation and monitoring variations
 
 **Problems:**
+
 - Monitoring and status checking should be one tool
 - Enrollment variations could be parameters
 
 ### 4. Hostname Management (20 tools) → Could be 3-4 tools
+
 **Current tools include:**
+
 - Multiple discovery tools
 - Multiple analysis tools
 - Separate bulk operations
 - Edge hostname management split from regular hostnames
 
 ### 5. Other Categories with Similar Issues:
+
 - Rule Tree Management (12 tools) → Could be 2-3 tools
 - Bulk Operations (5 tools) → Should be parameters on base tools
 - Include Management (8 tools) → Could be 2-3 tools
@@ -64,6 +77,7 @@
 ## Proposed Consolidated Architecture
 
 ### Design Principles:
+
 1. **Resource-Oriented**: One primary tool per resource type
 2. **Action as Parameter**: Use an "action" parameter instead of separate tools
 3. **Bulk by Default**: Accept single items or arrays
@@ -73,6 +87,7 @@
 ### Proposed Tool Structure (30-40 tools total):
 
 #### 1. **property** (Replaces 47 tools)
+
 ```yaml
 Actions:
   - list: List properties (with filters, tree view option)
@@ -91,6 +106,7 @@ Parameters:
 ```
 
 #### 2. **dns** (Replaces 33 tools)
+
 ```yaml
 Actions:
   - list-zones: List DNS zones
@@ -109,6 +125,7 @@ Parameters:
 ```
 
 #### 3. **certificate** (Replaces 19 tools)
+
 ```yaml
 Actions:
   - list: List certificate enrollments
@@ -126,6 +143,7 @@ Parameters:
 ```
 
 #### 4. **hostname** (Replaces 20 tools)
+
 ```yaml
 Actions:
   - discover: Discover hostnames (intelligent search)
@@ -140,6 +158,7 @@ Parameters:
 ```
 
 #### 5. **config** (New unified configuration tool)
+
 ```yaml
 Actions:
   - get: Get any configuration (rules, cpcodes, includes)
@@ -154,6 +173,7 @@ Parameters:
 ```
 
 #### 6. **deploy** (Unified activation/deployment)
+
 ```yaml
 Actions:
   - activate: Activate any resource (property, zone, cert, etc.)
@@ -169,6 +189,7 @@ Parameters:
 ```
 
 #### 7. **analytics** (Replaces monitoring/reporting tools)
+
 ```yaml
 Actions:
   - traffic: Get traffic statistics
@@ -184,6 +205,7 @@ Parameters:
 ```
 
 #### 8. **search** (Universal search)
+
 ```yaml
 Single universal search tool that searches across all resources
 Parameters:
@@ -195,16 +217,19 @@ Parameters:
 ### Benefits of Consolidation:
 
 1. **Better User Experience**:
+
    - Easier to discover functionality
    - More intuitive tool names
    - Consistent patterns
 
 2. **Reduced Complexity**:
+
    - From 180 tools to ~35 tools
    - Fewer files to maintain
    - Clearer documentation
 
 3. **More Powerful**:
+
    - Bulk operations built-in
    - Smarter parameter handling
    - Better error messages
@@ -223,15 +248,17 @@ Parameters:
 ### Example Usage Comparisons:
 
 **Old way (multiple tools):**
+
 ```
 - Tool: createProperty
-- Tool: createPropertyVersion  
+- Tool: createPropertyVersion
 - Tool: updatePropertyRules
 - Tool: addPropertyHostname
 - Tool: activateProperty
 ```
 
 **New way (one tool):**
+
 ```
 - Tool: property
   - action: create
@@ -240,6 +267,7 @@ Parameters:
 ```
 
 **Old way (separate bulk tools):**
+
 ```
 - Tool: bulkActivateProperties
 - Tool: bulkCloneProperties
@@ -247,6 +275,7 @@ Parameters:
 ```
 
 **New way (arrays in base tool):**
+
 ```
 - Tool: property
   - action: activate
@@ -256,11 +285,13 @@ Parameters:
 ### Implementation Priority:
 
 1. **High Priority** (Most used, most fragmented):
+
    - property tool
    - dns tool
    - search tool
 
 2. **Medium Priority**:
+
    - certificate tool
    - config tool
    - deploy tool
@@ -270,4 +301,5 @@ Parameters:
    - analytics tool
    - admin tools
 
-This consolidation would dramatically improve the user experience while maintaining all functionality. The key is thoughtful design of the action parameters and smart handling of options.
+This consolidation would dramatically improve the user experience while maintaining all
+functionality. The key is thoughtful design of the action parameters and smart handling of options.

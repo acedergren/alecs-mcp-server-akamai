@@ -984,10 +984,10 @@ export async function updatePropertyWithDefaultDV(
       text += `- Edge Hostname ID: ${edgeHostnameId}\n`;
       text += '- Certificate Type: Default Domain Validation (DV)\n\n';
     } catch (_err) {
-      if (err instanceof Error && err.message.includes('already exists')) {
+      if (_err instanceof Error && _err.message.includes('already exists')) {
         text += `ℹ️ Edge hostname ${edgeHostnameDomain} already exists, proceeding...\n\n`;
       } else {
-        throw err;
+        throw _err;
       }
     }
 
@@ -1165,10 +1165,10 @@ export async function updatePropertyWithCPSCertificate(
       text += `- Edge Hostname ID: ${edgeHostnameId}\n`;
       text += `- Certificate Type: CPS-Managed (Enrollment ${args.certificateEnrollmentId})\n\n`;
     } catch (_err) {
-      if (err instanceof Error && err.message.includes('already exists')) {
+      if (_err instanceof Error && _err.message.includes('already exists')) {
         text += `ℹ️ Edge hostname ${edgeHostnameDomain} already exists, proceeding...\n\n`;
       } else {
-        throw err;
+        throw _err;
       }
     }
 
@@ -1785,7 +1785,7 @@ export async function batchVersionOperations(
           return {
             index,
             success: false,
-            error: error?.message || 'Unknown error',
+            error: _error?.message || 'Unknown error',
             propertyId: op.propertyId,
           };
         }
@@ -1795,18 +1795,18 @@ export async function batchVersionOperations(
 
       allResults.forEach((promiseResult, index) => {
         if (promiseResult.status === 'fulfilled') {
-          const { success, result, _error, propertyId } = promiseResult.value || {};
+          const { success, result, error, propertyId } = promiseResult.value || {};
           if (success && result) {
             results.push({
               propertyId: propertyId || '',
               operation: args.operations[index]?.operation || '',
               result,
             });
-          } else if (_error) {
+          } else if (error) {
             errors.push({
               propertyId: propertyId || '',
               operation: args.operations[index]?.operation || '',
-              _error,
+              error,
             });
           }
         } else {
@@ -1852,7 +1852,7 @@ export async function batchVersionOperations(
           errors.push({
             propertyId: op.propertyId,
             operation: op.operation,
-            error: error?.message || 'Unknown error',
+            error: _error?.message || 'Unknown error',
           });
 
           if (!args.continueOnError) {
@@ -1982,7 +1982,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
       solution = '**Solution:** Resource conflict. The operation may already be in progress.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

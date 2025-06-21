@@ -446,7 +446,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
       // Cancel deployment if possible
       await this.cancelDeployment(enrollmentId);
     } catch (_error) {
-      console.error('[Error]:', error);
+      console.error('[Error]:', _error);
     }
   }
 

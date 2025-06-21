@@ -512,7 +512,7 @@ export class CustomerExperienceImpactAnalyzer {
    * Get failures relevant to a specific persona
    */
   getPersonaRelevantFailures(_personaId: string, testResults: TestResults): TestFailure[] {
-    const persona = this.customerPersonas[personaId];
+    const persona = this.customerPersonas[_personaId];
     if (!persona) {
       return [];
     }

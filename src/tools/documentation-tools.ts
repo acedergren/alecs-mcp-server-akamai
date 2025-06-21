@@ -96,7 +96,7 @@ export async function generateDocumentationIndex(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -161,7 +161,7 @@ export async function generateAPIReference(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -264,7 +264,7 @@ export async function generateFeatureDocumentation(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -336,7 +336,7 @@ export async function updateDocumentation(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -438,7 +438,7 @@ export async function generateChangelog(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -510,7 +510,7 @@ export async function createKnowledgeArticle(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -822,7 +822,7 @@ function formatCategory(_category: string): string {
     other: '🔧 Other Changes',
   };
 
-  return categoryNames[category] || category;
+  return categoryNames[_category] || _category;
 }
 
 function getUniqueContributors(_commits: any[]): string[] {
@@ -870,6 +870,6 @@ async function updateKnowledgeBaseIndex(_articlePath: string, metadata: any): Pr
 
     await fs.writeFile(indexPath, JSON.stringify(index, null, 2));
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
   }
 }

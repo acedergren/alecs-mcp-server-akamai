@@ -528,7 +528,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
       solution = '**Solution:** A CP Code with this name may already exist in this contract/group.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

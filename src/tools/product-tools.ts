@@ -402,7 +402,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
       solution = '**Solution:** Invalid request parameters. Check the product and contract IDs.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

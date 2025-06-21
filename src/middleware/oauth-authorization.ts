@@ -83,7 +83,7 @@ export function createOAuthMiddleware(options: OAuthAuthorizationOptions): Reque
   return async (_req: OAuthRequest, _res: Response, _next: NextFunction) => {
     try {
       // Extract token
-      const token = tokenExtractor(req);
+      const token = tokenExtractor(_req);
 
       if (!token) {
         if (requireAuth) {
@@ -143,7 +143,7 @@ export function createOAuthMiddleware(options: OAuthAuthorizationOptions): Reque
           'server_error',
           _error instanceof Error ? _error.message : 'Unknown _error',
         );
-        errorHandler(oauthError, req, res, next);
+        errorHandler(oauthError, _req, _res, _next);
       }
     }
   };
@@ -223,7 +223,7 @@ export function requireResourceAccess(
         operation,
         method: _req.method,
         path: _req.path,
-        _context: {
+        context: {
           ip: _req.ip,
           userAgent: _req.get('user-agent'),
         },
@@ -256,7 +256,7 @@ export function requireResourceAccess(
           'server_error',
           _error instanceof Error ? _error.message : 'Unknown _error',
         );
-        defaultErrorHandler(oauthError, req, res, next);
+        defaultErrorHandler(oauthError, _req, _res, _next);
       }
     }
   };

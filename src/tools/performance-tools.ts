@@ -101,7 +101,7 @@ export async function getPerformanceAnalysis(
       content: [
         {
           type: 'text',
-          text: `Error generating performance analysis: ${(error as Error).message}`,
+          text: `Error generating performance analysis: ${(_error as Error).message}`,
         },
       ],
     };
@@ -221,7 +221,7 @@ export async function optimizeCache(
       content: [
         {
           type: 'text',
-          text: `Error optimizing cache: ${(error as Error).message}`,
+          text: `Error optimizing cache: ${(_error as Error).message}`,
         },
       ],
     };
@@ -303,10 +303,10 @@ export async function profilePerformance(
             iteration: i,
             duration: Date.now() - startTime,
             cacheHit: false,
-            error: (error as Error).message,
+            error: (_error as Error).message,
           });
 
-          responseText += `- **Iteration ${i}:** Failed - ${(error as Error).message}\n`;
+          responseText += `- **Iteration ${i}:** Failed - ${(_error as Error).message}\n`;
         }
 
         // Small delay between iterations
@@ -432,7 +432,7 @@ export async function profilePerformance(
       content: [
         {
           type: 'text',
-          text: `Error profiling performance: ${(error as Error).message}`,
+          text: `Error profiling performance: ${(_error as Error).message}`,
         },
       ],
     };
@@ -545,7 +545,7 @@ export async function getRealtimeMetrics(
       content: [
         {
           type: 'text',
-          text: `Error monitoring real-time metrics: ${(error as Error).message}`,
+          text: `Error monitoring real-time metrics: ${(_error as Error).message}`,
         },
       ],
     };
@@ -621,7 +621,7 @@ export async function resetPerformanceMonitoring(
       content: [
         {
           type: 'text',
-          text: `Error resetting performance monitoring: ${(error as Error).message}`,
+          text: `Error resetting performance monitoring: ${(_error as Error).message}`,
         },
       ],
     };

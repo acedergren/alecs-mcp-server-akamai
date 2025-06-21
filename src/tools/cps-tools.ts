@@ -689,7 +689,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
         '**Solution:** Specify a valid contract ID. Use "List groups" to find available contracts.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

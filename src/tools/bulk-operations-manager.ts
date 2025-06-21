@@ -145,7 +145,7 @@ class BulkOperationTracker {
         if (result) {
           property.result = result;
         }
-        if (_error) {
+        if (error) {
           property.error = error;
         }
 
@@ -302,7 +302,7 @@ export async function bulkCloneProperties(
           propertyOp.propertyId || 'unknown',
           'failed',
           null,
-          (error as Error).message,
+          (_error as Error).message,
         );
       }
     });
@@ -532,7 +532,7 @@ export async function bulkActivateProperties(
           propertyId,
           'failed',
           null,
-          (error as Error).message,
+          (_error as Error).message,
         );
       }
     });
@@ -773,7 +773,7 @@ export async function bulkUpdatePropertyRules(
           propertyId,
           'failed',
           null,
-          (error as Error).message,
+          (_error as Error).message,
         );
 
         // Attempt rollback if we have rollback data
@@ -787,9 +787,9 @@ export async function bulkUpdatePropertyRules(
               },
               body: { rules: propertyOp.rollbackData.originalRules },
             });
-            propertyOp._error += ' (Rolled back successfully)';
+            propertyOp.error += ' (Rolled back successfully)';
           } catch (_rollbackError) {
-            propertyOp._error += ' (Rollback failed: ' + (rollbackError as Error).message + ')';
+            propertyOp.error += ' (Rollback failed: ' + (_rollbackError as Error).message + ')';
           }
         }
       }
@@ -1012,7 +1012,7 @@ export async function bulkManageHostnames(
               hostname: hostnameOp.hostname,
               action: operation.action,
               success: false,
-              error: (error as Error).message,
+              error: (_error as Error).message,
             });
           }
         }
@@ -1052,7 +1052,7 @@ export async function bulkManageHostnames(
             hostname: h.hostname,
             action: operation.action,
             success: false,
-            error: (error as Error).message,
+            error: (_error as Error).message,
           });
         });
       }
@@ -1235,7 +1235,7 @@ export async function getBulkOperationStatus(
       content: [
         {
           type: 'text',
-          text: `Error retrieving operation status: ${(error as Error).message}`,
+          text: `Error retrieving operation status: ${(_error as Error).message}`,
         },
       ],
     };

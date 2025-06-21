@@ -244,7 +244,7 @@ export class ObservabilityStack extends EventEmitter {
         const status = error ? 'error' : 'success';
 
         // Finish span
-        this.debug.finishSpan(traceId, spanId, _error, {
+        this.debug.finishSpan(traceId, spanId, error, {
           'mcp.status': status,
           'mcp.response_size': response ? JSON.stringify(response).length : 0,
         });
@@ -318,7 +318,7 @@ export class ObservabilityStack extends EventEmitter {
         const status = error ? 'error' : 'success';
 
         // Finish span
-        this.debug.finishSpan(traceId, spanId, _error, {
+        this.debug.finishSpan(traceId, spanId, error, {
           'akamai.status': status,
           'akamai.response_size': response ? JSON.stringify(response).length : 0,
         });

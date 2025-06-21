@@ -251,7 +251,7 @@ export async function getZoneContract(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -488,7 +488,7 @@ export async function getZoneVersion(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -535,7 +535,7 @@ export async function getVersionRecordSets(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -604,7 +604,7 @@ export async function getVersionMasterZoneFile(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', error);
+    console.error('[Error]:', _error);
     throw _error;
   }
 }

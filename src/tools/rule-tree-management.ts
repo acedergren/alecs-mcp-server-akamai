@@ -1282,9 +1282,9 @@ function performRuleMerge(source: any, target: any, _options: RuleMergeOptions):
   result.mergedRules = JSON.parse(JSON.stringify(target));
 
   // Merge based on strategy
-  switch (options.strategy) {
+  switch (_options.strategy) {
     case 'merge':
-      mergeRuleNodes(source, result.mergedRules, '/', result, options);
+      mergeRuleNodes(source, result.mergedRules, '/', result, _options);
       break;
     case 'override':
       result.mergedRules = JSON.parse(JSON.stringify(source));
@@ -1762,7 +1762,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
       solution = '**Solution:** Fix validation errors in the rule tree before proceeding.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

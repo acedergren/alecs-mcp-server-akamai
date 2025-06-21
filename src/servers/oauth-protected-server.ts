@@ -183,7 +183,7 @@ function createOAuthHttpServer(
     async (_req: OAuthRequest, res) => {
       const resources = resourceServer.listResources({
         type: ResourceType.PROPERTY,
-        owner: req.oauth?.token.akamai?.account_id,
+        owner: _req.oauth?.token.akamai?.account_id,
       });
       res.json({ resources });
     },
@@ -194,10 +194,10 @@ function createOAuthHttpServer(
     oauthMiddleware.authorizeResource(
       ResourceType.PROPERTY,
       OAuthOperation.READ,
-      (req) => req.params.propertyId,
+      (_req) => _req.params.propertyId,
     ),
     async (_req: OAuthRequest, res) => {
-      const resource = req.oauth?.resource;
+      const resource = _req.oauth?.resource;
       res.json({ resource });
     },
   );
@@ -207,7 +207,7 @@ function createOAuthHttpServer(
     oauthMiddleware.authorizeResource(
       ResourceType.PROPERTY,
       OAuthOperation.WRITE,
-      (req) => req.params.propertyId,
+      (_req) => _req.params.propertyId,
     ),
     async (_req: OAuthRequest, res) => {
       // Update property logic here
@@ -220,7 +220,7 @@ function createOAuthHttpServer(
     oauthMiddleware.authorizeResource(
       ResourceType.PROPERTY,
       OAuthOperation.ACTIVATE,
-      (req) => req.params.propertyId,
+      (_req) => _req.params.propertyId,
     ),
     async (_req: OAuthRequest, res) => {
       // Activation logic here
@@ -235,7 +235,7 @@ function createOAuthHttpServer(
     async (_req: OAuthRequest, res) => {
       const resources = resourceServer.listResources({
         type: ResourceType.DNS_ZONE,
-        owner: req.oauth?.token.akamai?.account_id,
+        owner: _req.oauth?.token.akamai?.account_id,
       });
       res.json({ resources });
     },
@@ -246,10 +246,10 @@ function createOAuthHttpServer(
     oauthMiddleware.authorizeResource(
       ResourceType.DNS_ZONE,
       OAuthOperation.READ,
-      (req) => req.params.zoneId,
+      (_req) => _req.params.zoneId,
     ),
     async (_req: OAuthRequest, res) => {
-      const resource = req.oauth?.resource;
+      const resource = _req.oauth?.resource;
       res.json({ resource });
     },
   );
@@ -261,7 +261,7 @@ function createOAuthHttpServer(
     async (_req: OAuthRequest, res) => {
       const resources = resourceServer.listResources({
         type: ResourceType.NETWORK_LIST,
-        owner: req.oauth?.token.akamai?.account_id,
+        owner: _req.oauth?.token.akamai?.account_id,
       });
       res.json({ resources });
     },
@@ -274,7 +274,7 @@ function createOAuthHttpServer(
     async (_req: OAuthRequest, res) => {
       const resources = resourceServer.listResources({
         type: ResourceType.CERTIFICATE,
-        owner: req.oauth?.token.akamai?.account_id,
+        owner: _req.oauth?.token.akamai?.account_id,
       });
       res.json({ resources });
     },
@@ -296,10 +296,10 @@ function createOAuthHttpServer(
   // Error handling
   app.use(
     (_err: any, _req: express.Request, _res: express.Response, _next: express.NextFunction) => {
-      console.error('Server error:', err);
-      res.status(err.status || 500).json({
-        error: err.error || 'server_error',
-        error_description: err.message || 'Internal server error',
+      console.error('Server error:', _err);
+      _res.status(_err.status || 500).json({
+        error: _err.error || 'server_error',
+        error_description: _err.message || 'Internal server error',
       });
     },
   );

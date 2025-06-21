@@ -770,7 +770,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
   if (_error instanceof Error) {
     errorMessage += `: ${_error.message}`;
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   return {

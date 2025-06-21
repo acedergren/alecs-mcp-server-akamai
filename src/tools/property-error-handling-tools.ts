@@ -498,7 +498,7 @@ export async function validatePropertyConfiguration(
     } catch (_error) {
       totalErrors++;
       validationResults.push('❌ Basic validation failed');
-      responseText += `❌ Basic property validation failed: ${(error as Error).message}\n\n`;
+      responseText += `❌ Basic property validation failed: ${(_error as Error).message}\n\n`;
     }
 
     // 2. Rule tree validation
@@ -515,7 +515,7 @@ export async function validatePropertyConfiguration(
       } catch (_error) {
         totalErrors++;
         validationResults.push('❌ Rule tree validation failed');
-        responseText += `❌ Rule tree validation failed: ${(error as Error).message}\n\n`;
+        responseText += `❌ Rule tree validation failed: ${(_error as Error).message}\n\n`;
       }
     }
 
@@ -533,7 +533,7 @@ export async function validatePropertyConfiguration(
       } catch (_error) {
         totalErrors++;
         validationResults.push('❌ Hostname validation failed');
-        responseText += `❌ Hostname validation failed: ${(error as Error).message}\n\n`;
+        responseText += `❌ Hostname validation failed: ${(_error as Error).message}\n\n`;
       }
     }
 
@@ -571,7 +571,7 @@ export async function validatePropertyConfiguration(
       } catch (_error) {
         totalWarnings++;
         validationResults.push('⚠️ Certificate validation incomplete');
-        responseText += `⚠️ Certificate validation incomplete: ${(error as Error).message}\n\n`;
+        responseText += `⚠️ Certificate validation incomplete: ${(_error as Error).message}\n\n`;
       }
     }
 

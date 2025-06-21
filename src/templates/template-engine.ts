@@ -131,7 +131,7 @@ export async function collectTemplateInputs(
  * Generate a complete provisioning plan from template and inputs
  */
 export function generateProvisioningPlan(_context: TemplateContext): ProvisioningPlan {
-  const { template, inputs, contractId, groupId, productId, cpCode } = context;
+  const { template, inputs, contractId, groupId, productId, cpCode } = _context;
 
   // Generate property name
   const propertyName = inputs.hostname.replace(/\./g, '-');
@@ -161,7 +161,7 @@ export function generateProvisioningPlan(_context: TemplateContext): Provisionin
 
   // Generate DNS records
   const dnsRecords =
-    template.recommendedDNSRecords?.map((record) => ({
+    template.recommendedDNSRecords?.map((record: any) => ({
       type: record.type,
       name: record.name.replace('{{hostname}}', inputs.hostname),
       value: record.value.replace('{{edgeHostname}}', edgeHostname.hostname),
@@ -328,11 +328,11 @@ export async function provisionPropertyFromTemplate(
   const fullContext: TemplateContext = {
     template,
     inputs: validatedInputs,
-    customer: context.customer || 'default',
-    contractId: context.contractId || 'ctr_C-1234567',
-    groupId: context.groupId || 'grp_12345',
-    productId: context.productId,
-    cpCode: context.cpCode,
+    customer: _context.customer || 'default',
+    contractId: _context.contractId || 'ctr_C-1234567',
+    groupId: _context.groupId || 'grp_12345',
+    productId: _context.productId,
+    cpCode: _context.cpCode,
   };
 
   const plan = generateProvisioningPlan(fullContext);

@@ -46,7 +46,7 @@ services:
     environment:
       NODE_ENV: development
       # Enable TypeScript debugging
-      NODE_OPTIONS: "--inspect=0.0.0.0:9229 --enable-source-maps"
+      NODE_OPTIONS: '--inspect=0.0.0.0:9229 --enable-source-maps'
       # EDGERC_PATH: /home/node/.edgerc
       # DEBUG: "1"
     volumes:
@@ -65,8 +65,8 @@ services:
     tty: true
     ports:
       # Expose debugging port
-      - "9229:9229"
-    command: ["npm", "run", "dev"]
+      - '9229:9229'
+    command: ['npm', 'run', 'dev']
 
   # Test runner service
   alecs-test:
@@ -78,7 +78,7 @@ services:
     container_name: alecs-mcp-test
     environment:
       NODE_ENV: test
-      CI: "true"
+      CI: 'true'
       # Jest configuration
       JEST_JUNIT_OUTPUT_DIR: /app/coverage
       JEST_JUNIT_OUTPUT_NAME: junit.xml
@@ -90,7 +90,7 @@ services:
       - ../../jest.config.js:/app/jest.config.js:ro
       - ../../coverage:/app/coverage
       - ~/.edgerc:/root/.edgerc:ro
-    command: ["npm", "test"]
+    command: ['npm', 'test']
 
   # One-shot build service
   alecs-build:
@@ -106,7 +106,7 @@ services:
       - ../../package.json:/app/package.json:ro
       - ../../tsconfig.json:/app/tsconfig.json:ro
       - ../../tsconfig.build.json:/app/tsconfig.build.json:ro
-    command: ["npm", "run", "build:strict"]
+    command: ['npm', 'run', 'build']
 
   # Interactive launcher service
   alecs-interactive:
@@ -121,38 +121,38 @@ services:
       - ~/.edgerc:/home/alecs/.edgerc:ro
     stdin_open: true
     tty: true
-    command: ["node", "dist/interactive-launcher.js"]
+    command: ['node', 'dist/interactive-launcher.js']
 
   # Individual service containers
   alecs-property:
     extends:
       service: alecs
     container_name: alecs-mcp-property
-    command: ["node", "dist/servers/property-server.js"]
+    command: ['node', 'dist/servers/property-server.js']
 
   alecs-dns:
     extends:
       service: alecs
     container_name: alecs-mcp-dns
-    command: ["node", "dist/servers/dns-server.js"]
+    command: ['node', 'dist/servers/dns-server.js']
 
   alecs-certs:
     extends:
       service: alecs
     container_name: alecs-mcp-certs
-    command: ["node", "dist/servers/certs-server.js"]
+    command: ['node', 'dist/servers/certs-server.js']
 
   alecs-security:
     extends:
       service: alecs
     container_name: alecs-mcp-security
-    command: ["node", "dist/servers/security-server.js"]
+    command: ['node', 'dist/servers/security-server.js']
 
   alecs-reporting:
     extends:
       service: alecs
     container_name: alecs-mcp-reporting
-    command: ["node", "dist/servers/reporting-server.js"]
+    command: ['node', 'dist/servers/reporting-server.js']
 
 # Network configuration
 networks:

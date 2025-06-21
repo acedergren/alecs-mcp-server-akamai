@@ -322,8 +322,8 @@ export class InstrumentedMCPServer {
           {
             toolName,
             customer,
-            error: (error as Error).message,
-            stack: (error as Error).stack,
+            error: (_error as Error).message,
+            stack: (_error as Error).stack,
           },
           'mcp-server',
           instrumentation.traceId,

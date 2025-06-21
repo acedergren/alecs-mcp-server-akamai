@@ -104,7 +104,7 @@ export class CircuitBreaker extends EventEmitter {
       return result;
     } catch (_error) {
       const responseTime = performance.now() - startTime;
-      this.onFailure(error as Error, responseTime);
+      this.onFailure(_error as Error, responseTime);
       throw _error;
     }
   }

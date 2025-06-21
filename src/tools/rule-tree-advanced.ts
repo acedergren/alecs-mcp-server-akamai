@@ -370,7 +370,7 @@ export async function createRuleTreeFromTemplate(
           content: [
             {
               type: 'text',
-              text: `❌ Failed to apply template:\n\n${updateResponse.errors.map((_e: any) => `- ${e.detail}`).join('\n')}`,
+              text: `❌ Failed to apply template:\n\n${updateResponse.errors.map((_e: any) => `- ${_e.detail}`).join('\n')}`,
             },
           ],
         };

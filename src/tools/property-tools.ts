@@ -266,7 +266,7 @@ export async function listProperties(
         },
       ],
     };
-  }, context);
+  }, _context);
 }
 
 /**
@@ -441,7 +441,7 @@ export async function listPropertiesTreeView(
           treeNodes.push(groupNode);
           break; // Only process first contract for now
         } catch (_error) {
-          console.error('[Error]:', error);
+          console.error('[Error]:', _error);
         }
       }
     }
@@ -509,7 +509,7 @@ export async function listPropertiesTreeView(
         },
       ],
     };
-  }, context);
+  }, _context);
 }
 
 /**
@@ -608,7 +608,7 @@ export async function getProperty(
                 foundProperties.push({ property: prop, group });
               });
             } catch (_err) {
-              console.error(`Failed to search in contract ${contractId}:`, err);
+              console.error(`Failed to search in contract ${contractId}:`, _err);
             }
           }
         }
@@ -773,7 +773,7 @@ async function getPropertyById(
           }
         } catch (_err) {
           // Continue searching
-          console.error(`Failed to search in group ${group.groupId}:`, err);
+          console.error(`Failed to search in group ${group.groupId}:`, _err);
         }
       }
 
@@ -1518,7 +1518,7 @@ export async function listProducts(
         },
       ],
     };
-  }, context);
+  }, _context);
 }
 
 /**
@@ -1551,7 +1551,7 @@ function formatError(operation: string, _error: any): MCPToolResponse {
         '**Solution:** Request timed out. The Akamai API might be slow. Try again in a moment.';
     }
   } else {
-    errorMessage += `: ${String(error)}`;
+    errorMessage += `: ${String(_error)}`;
   }
 
   let text = errorMessage;

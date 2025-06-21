@@ -161,7 +161,7 @@ export async function universalSearchHandler(
                 property.hostnames = hostnames;
               }
             } catch (_err) {
-              console.error(`Error checking hostnames for ${property.propertyId}:`, err);
+              console.error(`Error checking hostnames for ${property.propertyId}:`, _err);
             }
           }
 
@@ -174,7 +174,7 @@ export async function universalSearchHandler(
           }
         }
       } catch (_err) {
-        console.error('Property search failed:', err);
+        console.error('Property search failed:', _err);
       }
     }
 

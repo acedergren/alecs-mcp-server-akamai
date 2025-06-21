@@ -18,7 +18,7 @@ RUN npm ci
 COPY src ./src
 
 # Build the application
-RUN npm run build:strict
+RUN npm run build
 
 # Stage 2: Production dependencies
 FROM node:20-alpine AS deps
@@ -76,8 +76,8 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Labels
 LABEL org.opencontainers.image.source="https://github.com/acedergren/alecs-mcp-server-akamai"
-LABEL org.opencontainers.image.description="ALECS - MCP Server for Akamai CDN Management"
+LABEL org.opencontainers.image.description="ALECS - MCP Server for Akamai Edge & Cloud Services Management"
 LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.version="1.3.0"
+LABEL org.opencontainers.image.version="1.4.0"
 LABEL org.opencontainers.image.vendor="ALECS"
 LABEL org.opencontainers.image.title="ALECS MCP Server"

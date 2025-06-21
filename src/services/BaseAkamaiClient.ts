@@ -428,7 +428,7 @@ export class BaseAkamaiClient {
           },
         };
       } catch (_error) {
-        lastError = error as Error;
+        lastError = _error as Error;
         const duration = Date.now() - startTime;
 
         logger.error('API request failed', {

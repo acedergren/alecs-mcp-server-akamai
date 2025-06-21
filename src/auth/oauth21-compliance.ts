@@ -310,7 +310,7 @@ export class OAuth21ComplianceManager {
 
       return true;
     } catch (_error) {
-      logger.error('Authorization server validation error', { issuer, _error: _error });
+      logger.error('Authorization server validation error', { issuer, _error });
       return false;
     }
   }
@@ -350,7 +350,7 @@ export class OAuth21ComplianceManager {
 
       return validatedMetadata;
     } catch (_error) {
-      logger.error('Failed to fetch authorization server metadata', { issuer, _error: _error });
+      logger.error('Failed to fetch authorization server metadata', { issuer, _error });
       throw _error;
     }
   }
