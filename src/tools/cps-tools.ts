@@ -574,7 +574,7 @@ export async function linkCertificateToProperty(
     const updatedHostnames = hostnames.map((h: any) => ({
       ...h,
       certEnrollmentId: args.enrollmentId,
-    ));
+    }));
 
     // Update property hostnames
     await client._request({
