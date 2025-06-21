@@ -32,7 +32,7 @@ const WAFPolicySchema = z.object({
   customer: z.string().optional(),
   configId: z.number(),
   policyName: z.string(),
-  policyMode: z.enum(['ASE_AUTO', 'ASE_MANUAL', 'KRS'],
+  policyMode: z.enum(['ASE_AUTO', 'ASE_MANUAL', 'KRS']),
 });
 
 const SecurityEventsSchema = z.object({
@@ -46,7 +46,7 @@ const ActivationSchema = z.object({
   customer: z.string().optional(),
   configId: z.number(),
   version: z.number(),
-  network: z.enum(['STAGING', 'PRODUCTION'],
+  network: z.enum(['STAGING', 'PRODUCTION']),
 });
 
 /**
@@ -208,7 +208,7 @@ export const createWAFPolicy = {
       const policyData = {
         policyName: parsed.policyName,
         policyMode: parsed.policyMode,
-        ...(args.paranoidLevel && { paranoidLevel: args.paranoidLevel },
+        ...(args.paranoidLevel && { paranoidLevel: args.paranoidLevel }),
       };
 
       const data = await auth._request({
@@ -274,7 +274,7 @@ export const getSecurityEvents = {
       const queryParams = new URLSearchParams({
         from: parsed.from,
         to: parsed.to,
-        ...(args.limit && { limit: args.limit.toString() },
+        ...(args.limit && { limit: args.limit.toString() }),
       });
 
       const response = await auth._request({
@@ -353,7 +353,7 @@ export const activateSecurityConfiguration = {
       const activationData = {
         action: 'ACTIVATE',
         network: parsed.network,
-        ...(args.note && { note: args.note },
+        ...(args.note && { note: args.note }),
       };
 
       const data = await auth._request({

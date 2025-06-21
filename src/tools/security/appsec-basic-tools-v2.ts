@@ -178,7 +178,7 @@ export const createWAFPolicy = {
       const policyData = {
         policyName: args.policyName,
         policyMode: args.policyMode,
-        ...(args.paranoidLevel && { paranoidLevel: args.paranoidLevel },
+        ...(args.paranoidLevel && { paranoidLevel: args.paranoidLevel }),
       };
 
       const response = await client._request({
@@ -331,7 +331,7 @@ export const activateSecurityConfiguration = {
       const activationData = {
         action: 'ACTIVATE',
         network: args.network,
-        ...(args.note && { note: args.note },
+        ...(args.note && { note: args.note }),
       };
 
       const response = await client._request({

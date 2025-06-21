@@ -231,8 +231,8 @@ export async function createEdgeHostnameEnhanced(
             operation: 'create edge hostname',
             parameters: args,
             timestamp: new Date(),
-          },
-        },
+          }),
+        }
       ],
     };
   }
@@ -364,8 +364,8 @@ export async function createBulkEdgeHostnames(
             operation: 'create bulk edge hostnames',
             parameters: args,
             timestamp: new Date(),
-          },
-        },
+          }),
+        }
       ],
     };
   }
@@ -546,8 +546,8 @@ queryParams.groupId = args.groupId;
             operation: 'get edge hostname details',
             parameters: args,
             timestamp: new Date(),
-          },
-        },
+          }),
+        }
       ],
     };
   }
@@ -712,8 +712,8 @@ return;
             operation: 'generate edge hostname recommendations',
             parameters: args,
             timestamp: new Date(),
-          },
-        },
+          }),
+        }
       ],
     };
   }
@@ -848,8 +848,8 @@ export async function validateEdgeHostnameCertificate(
             operation: 'validate edge hostname certificate',
             parameters: args,
             timestamp: new Date(),
-          },
-        },
+          }),
+        }
       ],
     };
   }
@@ -926,8 +926,8 @@ export async function associateCertificateWithEdgeHostname(
             operation: 'associate certificate with edge hostname',
             parameters: args,
             timestamp: new Date(),
-          },
-        },
+          }),
+        }
       ],
     };
   }

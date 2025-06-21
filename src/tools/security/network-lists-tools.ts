@@ -418,8 +418,8 @@ export async function updateNetworkList(
     // Validate elements if provided
     if (options.addElements || options.replaceElements) {
       const elementsToValidate = [
-        ...(options.addElements || [],
-        ...(options.replaceElements || [],
+        ...(options.addElements || []),
+        ...(options.replaceElements || []),
       ];
 
       const invalidElements: string[] = [];
