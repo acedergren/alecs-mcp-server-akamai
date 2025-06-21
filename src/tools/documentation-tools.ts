@@ -634,7 +634,7 @@ function extractToolDefinitions(content: string): any[] {
       tools.push({
         name: functionName,
         description: description.trim(),
-        parameters: extractParameters(match[0],
+        parameters: extractParameters(match[0]),
         returns: extractReturns(jsdoc),
       });
     }

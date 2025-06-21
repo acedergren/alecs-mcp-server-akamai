@@ -106,7 +106,7 @@ export async function createBulkProvisioningPlan(
           {
             type: 'text',
             text: `❌ No valid hostnames found. All ${args.hostnames.length} hostnames failed validation.\n\nPlease fix the validation errors and try again.`,
-          },
+          }
         ],
       };
     }
@@ -346,8 +346,8 @@ export async function createBulkProvisioningPlan(
             operation: 'create bulk provisioning plan',
             parameters: args,
             timestamp: new Date(),
-          },
-        },
+          }),
+        }
       ],
     };
   }
@@ -415,7 +415,7 @@ export async function executeBulkProvisioning(
           {
             type: 'text',
             text: responseText,
-          },
+          }
         ],
       };
     }
@@ -569,8 +569,8 @@ export async function executeBulkProvisioning(
             operation: 'execute bulk provisioning',
             parameters: args,
             timestamp: new Date(),
-          },
-        },
+          }),
+        }
       ],
     };
   }
@@ -713,8 +713,8 @@ export async function validateBulkDNS(
             operation: 'validate bulk DNS',
             parameters: args,
             timestamp: new Date(),
-          },
-        },
+          }),
+        }
       ],
     };
   }
@@ -793,7 +793,7 @@ acc[op.propertyId] = [];
             body: {
               createFromVersion: version,
               createFromVersionEtag: property.latestVersionEtag,
-            },
+            }
           });
 
           version = versionResponse.versionLink?.split('/').pop();
@@ -939,8 +939,8 @@ acc[r.action] = [];
             operation: 'bulk update hostname properties',
             parameters: args,
             timestamp: new Date(),
-          },
-        },
+          }),
+        }
       ],
     };
   }

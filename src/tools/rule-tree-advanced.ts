@@ -427,7 +427,7 @@ export async function createRuleTreeFromTemplate(
             operation: 'create rule tree from template',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };

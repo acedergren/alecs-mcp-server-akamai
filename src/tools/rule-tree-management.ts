@@ -1329,7 +1329,7 @@ function mergeBehaviors(
   options: RuleMergeOptions,
 ): void {
   const targetBehaviorMap = new Map(
-    targetBehaviors.map((b, index) => [b.name, { behavior: b, index }],
+    targetBehaviors.map((b, index) => [b.name, { behavior: b, index }])
   );
 
   sourceBehaviors.forEach((sourceBehavior) => {

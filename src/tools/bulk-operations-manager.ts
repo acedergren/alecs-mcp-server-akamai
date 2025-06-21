@@ -389,7 +389,7 @@ export async function bulkCloneProperties(
             operation: 'bulk clone properties',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -624,7 +624,7 @@ export async function bulkActivateProperties(
             operation: 'bulk activate properties',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -865,7 +865,7 @@ export async function bulkUpdatePropertyRules(
             operation: 'bulk update property rules',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -1134,7 +1134,7 @@ export async function bulkManageHostnames(
             operation: 'bulk manage hostnames',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };

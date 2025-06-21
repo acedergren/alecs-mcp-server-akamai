@@ -436,9 +436,9 @@ export class TestOutputAnalyzer {
       const summaryMatch = line.match(/Tests:\s+(\d+)\s+failed,\s+(\d+)\s+passed,\s+(\d+)\s+total/);
       if (summaryMatch) {
         results.summary = {
-          failedTests: parseInt(summaryMatch[1],
-          passedTests: parseInt(summaryMatch[2],
-          totalTests: parseInt(summaryMatch[3],
+          failedTests: parseInt(summaryMatch[1]),
+          passedTests: parseInt(summaryMatch[2]),
+          totalTests: parseInt(summaryMatch[3]),
           skippedTests: 0,
         };
         continue;

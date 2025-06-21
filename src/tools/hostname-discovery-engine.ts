@@ -369,7 +369,7 @@ params.append('groupId', args.groupId);
           hostnames: [],
         };
       }
-    },
+    })
   );
 
   return propertiesWithHostnames;
