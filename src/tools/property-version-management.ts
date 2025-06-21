@@ -113,11 +113,11 @@ export async function comparePropertyVersions(
         client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version1}/rules`,
           method: 'GET',
-        },
+        }),
         client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version2}/rules`,
           method: 'GET',
-        },
+        }),
       ]);
 
       comparison.differences.rules = compareRuleTrees(rules1.rules, rules2.rules, includeDetails);
@@ -139,11 +139,11 @@ export async function comparePropertyVersions(
         client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version1}/hostnames`,
           method: 'GET',
-        },
+        }),
         client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.version2}/hostnames`,
           method: 'GET',
-        },
+        }),
       ]);
 
       comparison.differences.hostnames = compareHostnames(
@@ -207,7 +207,7 @@ export async function comparePropertyVersions(
             operation: 'compare property versions',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -344,7 +344,7 @@ export async function batchCreateVersions(
             operation: 'batch create versions',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -405,11 +405,11 @@ export async function getVersionTimeline(
 
       // Apply date filters if provided
       if (args.startDate && versionDate < new Date(args.startDate)) {
-continue;
-}
+        continue;
+      }
       if (args.endDate && versionDate > new Date(args.endDate)) {
-continue;
-}
+        continue;
+      }
 
       timeline.timeline.push({
         version: version.propertyVersion,
@@ -461,15 +461,15 @@ continue;
       responseText += `- **Date:** ${date}\n`;
       responseText += `- **Event:** ${event.event}`;
       if (event.network) {
-responseText += ` to ${event.network}`;
-}
+        responseText += ` to ${event.network}`;
+      }
       responseText += '\n';
       if (event.user) {
-responseText += `- **By:** ${event.user}\n`;
-}
+        responseText += `- **By:** ${event.user}\n`;
+      }
       if (event.note) {
-responseText += `- **Note:** ${event.note}\n`;
-}
+        responseText += `- **Note:** ${event.note}\n`;
+      }
       responseText += '\n';
     }
 
@@ -498,7 +498,7 @@ responseText += `- **Note:** ${event.note}\n`;
             operation: 'get version timeline',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -656,7 +656,7 @@ export async function rollbackPropertyVersion(
             operation: 'rollback property version',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -686,11 +686,11 @@ export async function updateVersionMetadata(
       client._request({
         path: `/papi/v1/properties/${args.propertyId}`,
         method: 'GET',
-      },
+      }),
       client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}`,
         method: 'GET',
-      },
+      }),
     ]);
 
     const property = propertyResponse.properties?.items?.[0];
@@ -716,8 +716,8 @@ export async function updateVersionMetadata(
 
       // Add metadata as comments in rule tree
       if (!rules.comments) {
-rules.comments = {};
-}
+        rules.comments = {};
+      }
 
       if (args.metadata.tags) {
         rules.comments.tags = args.metadata.tags.join(', ');
@@ -759,8 +759,10 @@ rules.comments = {};
     responseText += `\n✅ Metadata successfully updated for version ${args.version}\n`;
 
     responseText += '\n## Note\n';
-    responseText += 'Tags and labels are stored as rule comments since PAPI doesn\'t natively support extended metadata.\n';
-    responseText += 'They will be preserved across version updates and can be retrieved when viewing rules.\n';
+    responseText +=
+      "Tags and labels are stored as rule comments since PAPI doesn't natively support extended metadata.\n";
+    responseText +=
+      'They will be preserved across version updates and can be retrieved when viewing rules.\n';
 
     return {
       content: [
@@ -779,7 +781,7 @@ rules.comments = {};
             operation: 'update version metadata',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -821,11 +823,11 @@ export async function mergePropertyVersions(
       client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${args.sourceVersion}/rules`,
         method: 'GET',
-      },
+      }),
       client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${args.targetVersion}/rules`,
         method: 'GET',
-      },
+      }),
     ]);
 
     // Perform merge based on strategy
@@ -924,7 +926,7 @@ export async function mergePropertyVersions(
             operation: 'merge property versions',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -1168,8 +1170,8 @@ function cherryPickChanges(
   // Extract and apply specific paths from source
   for (const path of includePaths) {
     if (excludePaths?.includes(path)) {
-continue;
-}
+      continue;
+    }
 
     const value = getValueAtPath(sourceRules, path);
     if (value !== undefined) {
@@ -1236,8 +1238,8 @@ function getValueAtPath(obj: any, path: string): any {
     }
 
     if (current === undefined) {
-break;
-}
+      break;
+    }
   }
 
   return current;
@@ -1250,8 +1252,8 @@ function setValueAtPath(obj: any, path: string, value: any): void {
   for (let i = 0; i < parts.length - 1; i++) {
     const part = parts[i];
     if (!part) {
-continue;
-}
+      continue;
+    }
 
     if (part.includes('[') && part.includes(']')) {
       const bracketIndex = part.indexOf('[');
@@ -1260,17 +1262,17 @@ continue;
       const index = parseInt(indexStr);
 
       if (!current[key]) {
-current[key] = [];
-}
+        current[key] = [];
+      }
       if (!current[key][index]) {
-current[key][index] = {};
-}
+        current[key][index] = {};
+      }
 
       current = current[key][index];
     } else {
       if (!current[part]) {
-current[part] = {};
-}
+        current[part] = {};
+      }
       current = current[part];
     }
   }
@@ -1283,8 +1285,8 @@ current[part] = {};
     const index = parseInt(indexStr);
 
     if (!current[key]) {
-current[key] = [];
-}
+      current[key] = [];
+    }
     current[key][index] = value;
   } else if (lastPart) {
     current[lastPart] = value;

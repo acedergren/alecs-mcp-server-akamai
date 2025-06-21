@@ -199,14 +199,14 @@ export async function searchPropertiesAdvanced(
 
       // Contract/Group/Product filtering
       if (args.criteria.contractId && property.contractId !== args.criteria.contractId) {
-continue;
-}
+        continue;
+      }
       if (args.criteria.groupId && property.groupId !== args.criteria.groupId) {
-continue;
-}
+        continue;
+      }
       if (args.criteria.productId && property.productId !== args.criteria.productId) {
-continue;
-}
+        continue;
+      }
 
       // Activation status filtering
       if (args.criteria.activationStatus) {
@@ -216,26 +216,26 @@ continue;
         switch (args.criteria.activationStatus) {
           case 'production':
             if (!hasProduction) {
-continue;
-}
+              continue;
+            }
             matchReasons.push('Active in production');
             break;
           case 'staging':
             if (!hasStaging) {
-continue;
-}
+              continue;
+            }
             matchReasons.push('Active in staging');
             break;
           case 'both':
             if (!hasProduction || !hasStaging) {
-continue;
-}
+              continue;
+            }
             matchReasons.push('Active in both networks');
             break;
           case 'none':
             if (hasProduction || hasStaging) {
-continue;
-}
+              continue;
+            }
             matchReasons.push('Not activated');
             break;
         }
@@ -291,11 +291,11 @@ continue;
       // Last modified filtering
       const lastModified = new Date(property.lastModified || property.updateDate);
       if (args.criteria.lastModifiedAfter && lastModified < args.criteria.lastModifiedAfter) {
-continue;
-}
+        continue;
+      }
       if (args.criteria.lastModifiedBefore && lastModified > args.criteria.lastModifiedBefore) {
-continue;
-}
+        continue;
+      }
 
       // Add to results if matches criteria
       if (score > 0 || matchReasons.length > 0 || !hasAnyCriteria(args.criteria)) {
@@ -344,26 +344,26 @@ continue;
     // Search criteria summary
     responseText += '## Search Criteria\n';
     if (args.criteria.name) {
-responseText += `- **Name contains:** ${args.criteria.name}\n`;
-}
+      responseText += `- **Name contains:** ${args.criteria.name}\n`;
+    }
     if (args.criteria.hostname) {
-responseText += `- **Hostname contains:** ${args.criteria.hostname}\n`;
-}
+      responseText += `- **Hostname contains:** ${args.criteria.hostname}\n`;
+    }
     if (args.criteria.edgeHostname) {
-responseText += `- **Edge hostname contains:** ${args.criteria.edgeHostname}\n`;
-}
+      responseText += `- **Edge hostname contains:** ${args.criteria.edgeHostname}\n`;
+    }
     if (args.criteria.contractId) {
-responseText += `- **Contract:** ${args.criteria.contractId}\n`;
-}
+      responseText += `- **Contract:** ${args.criteria.contractId}\n`;
+    }
     if (args.criteria.groupId) {
-responseText += `- **Group:** ${args.criteria.groupId}\n`;
-}
+      responseText += `- **Group:** ${args.criteria.groupId}\n`;
+    }
     if (args.criteria.productId) {
-responseText += `- **Product:** ${args.criteria.productId}\n`;
-}
+      responseText += `- **Product:** ${args.criteria.productId}\n`;
+    }
     if (args.criteria.activationStatus) {
-responseText += `- **Activation status:** ${args.criteria.activationStatus}\n`;
-}
+      responseText += `- **Activation status:** ${args.criteria.activationStatus}\n`;
+    }
     responseText += '\n';
 
     // Results
@@ -425,7 +425,7 @@ responseText += `- **Activation status:** ${args.criteria.activationStatus}\n`;
             operation: 'search properties advanced',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -455,11 +455,11 @@ export async function compareProperties(
       client._request({
         path: `/papi/v1/properties/${args.propertyIdA}`,
         method: 'GET',
-      },
+      }),
       client._request({
         path: `/papi/v1/properties/${args.propertyIdB}`,
         method: 'GET',
-      },
+      }),
     ]);
 
     const propA = propAResponse.properties?.items?.[0];
@@ -525,11 +525,11 @@ export async function compareProperties(
         client._request({
           path: `/papi/v1/properties/${args.propertyIdA}/versions/${versionA}/hostnames`,
           method: 'GET',
-        },
+        }),
         client._request({
           path: `/papi/v1/properties/${args.propertyIdB}/versions/${versionB}/hostnames`,
           method: 'GET',
-        },
+        }),
       ]);
 
       const hostSetA = new Set(hostnamesA.hostnames?.items?.map((h: any) => h.cnameFrom) || []);
@@ -572,14 +572,14 @@ export async function compareProperties(
           headers: {
             Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
           },
-        },
+        }),
         client._request({
           path: `/papi/v1/properties/${args.propertyIdB}/versions/${versionB}/rules`,
           method: 'GET',
           headers: {
             Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
           },
-        },
+        }),
       ]);
 
       // Compare rule structures
@@ -731,7 +731,7 @@ export async function compareProperties(
             operation: 'compare properties',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -1007,7 +1007,7 @@ export async function checkPropertyHealth(
             operation: 'check property health',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -1061,14 +1061,14 @@ export async function detectConfigurationDrift(
         headers: {
           Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
         },
-      },
+      }),
       client._request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${compareVersion}/rules`,
         method: 'GET',
         headers: {
           Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
         },
-      },
+      }),
     ]);
 
     // Check behaviors
@@ -1083,11 +1083,11 @@ export async function detectConfigurationDrift(
         client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${args.baselineVersion}/hostnames`,
           method: 'GET',
-        },
+        }),
         client._request({
           path: `/papi/v1/properties/${args.propertyId}/versions/${compareVersion}/hostnames`,
           method: 'GET',
-        },
+        }),
       ]);
 
       const hostnameDrifts = detectHostnameDrifts(
@@ -1167,7 +1167,7 @@ export async function detectConfigurationDrift(
     // Next steps
     responseText += '\n## Next Steps\n';
     if (drift.driftDetected) {
-      responseText += '1. Review each drift item to verify it\'s intentional\n';
+      responseText += "1. Review each drift item to verify it's intentional\n";
       responseText += '2. Test changes in staging environment\n';
       responseText += '3. Document significant changes\n';
       responseText += '4. Consider updating baseline after verification\n';
@@ -1193,7 +1193,7 @@ export async function detectConfigurationDrift(
             operation: 'detect configuration drift',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -1299,8 +1299,8 @@ export async function bulkUpdateProperties(
           // Add behavior
           if (args.updates.addBehavior) {
             if (!rules.behaviors) {
-rules.behaviors = [];
-}
+              rules.behaviors = [];
+            }
             rules.behaviors.push({
               name: args.updates.addBehavior.name,
               options: args.updates.addBehavior.options,
@@ -1417,7 +1417,7 @@ rules.behaviors = [];
           propertyId,
           propertyName: 'Unknown',
           success: false,
-          message: error instanceof Error ? _error.message : 'Update failed',
+          message: _error instanceof Error ? _error.message : 'Update failed',
         });
       }
     }
@@ -1501,7 +1501,7 @@ rules.behaviors = [];
             operation: 'bulk update properties',
             parameters: args,
             timestamp: new Date(),
-          },
+          }),
         },
       ],
     };
@@ -1515,19 +1515,19 @@ function calculateStringMatch(str1: string, str2: string): number {
   const s2 = str2.toLowerCase();
 
   if (s1 === s2) {
-return 1;
-}
+    return 1;
+  }
   if (s1.includes(s2) || s2.includes(s1)) {
-return 0.8;
-}
+    return 0.8;
+  }
 
   // Simple similarity score
   const maxLen = Math.max(s1.length, s2.length);
   let matches = 0;
   for (let i = 0; i < Math.min(s1.length, s2.length); i++) {
     if (s1[i] === s2[i]) {
-matches++;
-}
+      matches++;
+    }
   }
   return matches / maxLen;
 }

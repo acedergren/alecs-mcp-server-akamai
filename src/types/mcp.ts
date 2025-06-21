@@ -380,7 +380,7 @@ export const ActivatePropertySchema = z.object({
   customer: z.string().optional(),
   propertyId: z.string(),
   version: z.number(),
-  network: z.enum(['STAGING', 'PRODUCTION'],
+  network: z.enum(['STAGING', 'PRODUCTION']),
   emails: z.array(z.string()).optional(),
   note: z.string().optional(),
 });
@@ -388,7 +388,7 @@ export const ActivatePropertySchema = z.object({
 export const CreateZoneSchema = z.object({
   customer: z.string().optional(),
   zone: z.string(),
-  type: z.enum(['PRIMARY', 'SECONDARY', 'ALIAS'],
+  type: z.enum(['PRIMARY', 'SECONDARY', 'ALIAS']),
   contractId: z.string(),
   comment: z.string().optional(),
   signAndServe: z.boolean().optional(),
@@ -412,7 +412,7 @@ export const PurgeByUrlSchema = z.object({
 export const CreateNetworkListSchema = z.object({
   customer: z.string().optional(),
   name: z.string(),
-  type: z.enum(['IP', 'GEO'],
+  type: z.enum(['IP', 'GEO']),
   description: z.string().optional(),
   list: z.array(z.string()).optional(),
 });

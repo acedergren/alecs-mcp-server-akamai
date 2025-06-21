@@ -6,30 +6,30 @@
  */
 
 interface CustomerPersona {
-  name: string;,
-    priority: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
-  painPoints: string[];,
-    journeySteps: string[];
-  businessValue: number;,
-    description: string;
+  name: string;
+  priority: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+  painPoints: string[];
+  journeySteps: string[];
+  businessValue: number;
+  description: string;
 }
 
 interface JourneyStep {
-  step: string;,
-    weight: number;
+  step: string;
+  weight: number;
   critical: boolean;
 }
 
 interface CustomerJourney {
-  name: string;,
-    steps: JourneyStep[];
-  businessImpact: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';,
-    description: string;
+  name: string;
+  steps: JourneyStep[];
+  businessImpact: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+  description: string;
 }
 
 interface BusinessMetric {
-  weight: number;,
-    baseline: number;
+  weight: number;
+  baseline: number;
   target: number;
 }
 
@@ -52,70 +52,70 @@ interface TestResults {
 }
 
 interface PersonaImpact {
-  persona: string;,
-    description: string;
-  priority: string;,
-    businessValue: number;
-  impactScore: number;,
-    riskLevel: string;
-  relevantFailures: number;,
-    impactedPainPoints: string[];
-  affectedJourneySteps: any[];,
-    recommendations: any[];
+  persona: string;
+  description: string;
+  priority: string;
+  businessValue: number;
+  impactScore: number;
+  riskLevel: string;
+  relevantFailures: number;
+  impactedPainPoints: string[];
+  affectedJourneySteps: any[];
+  recommendations: any[];
   estimatedAffectedUsers: string;
 }
 
 interface JourneyImpact {
-  journey: string;,
-    description: string;
-  businessImpact: string;,
-    impactScore: number;
-  riskLevel: string;,
-    relevantFailures: number;
-  affectedSteps: number;,
-    criticalStepsAffected: number;
-  totalSteps: number;,
-    completionRisk: number;
+  journey: string;
+  description: string;
+  businessImpact: string;
+  impactScore: number;
+  riskLevel: string;
+  relevantFailures: number;
+  affectedSteps: number;
+  criticalStepsAffected: number;
+  totalSteps: number;
+  completionRisk: number;
   recommendations: any[];
 }
 
 interface MetricImpact {
-  name: string;,
-    baseline: number;
-  target: number;,
-    projected: number;
-  impact: number;,
-    weight: number;
+  name: string;
+  baseline: number;
+  target: number;
+  projected: number;
+  impact: number;
+  weight: number;
   riskLevel: string;
 }
 
 interface Risk {
-  type: string;,
-    description: string;
-  impact: string;,
-    affectedCustomers: string;
+  type: string;
+  description: string;
+  impact: string;
+  affectedCustomers: string;
   mitigationTime: string;
 }
 
 interface Recommendation {
-  action: string;,
-    reason: string;
-  owner: string;,
-    timeline: string;
+  action: string;
+  reason: string;
+  owner: string;
+  timeline: string;
   channels?: string[];
 }
 
 interface Action {
-  id: string;,
-    description: string;
-  failure: TestFailure;,
-    customerImpact: string;
-  businessValue: string;,
-    urgency: string;
-  priority: number;,
-    estimatedEffort: number;
-  affectedPersonas: string[];,
-    affectedJourneys: string[];
+  id: string;
+  description: string;
+  failure: TestFailure;
+  customerImpact: string;
+  businessValue: string;
+  urgency: string;
+  priority: number;
+  estimatedEffort: number;
+  affectedPersonas: string[];
+  affectedJourneys: string[];
 }
 
 export class CustomerExperienceImpactAnalyzer {
@@ -126,8 +126,8 @@ export class CustomerExperienceImpactAnalyzer {
 
   constructor() {
     this.customerPersonas = {
-      developer: {,
-    name: 'Developer',
+      developer: {
+        name: 'Developer',
         priority: 'HIGH',
         painPoints: ['api_failures', 'authentication_issues', 'documentation_gaps'],
         journeySteps: [
@@ -140,16 +140,16 @@ export class CustomerExperienceImpactAnalyzer {
         businessValue: 0.8,
         description: 'Developers integrating with Akamai services',
       },
-      devops_engineer: {,
-    name: 'DevOps Engineer',
+      devops_engineer: {
+        name: 'DevOps Engineer',
         priority: 'CRITICAL',
         painPoints: ['deployment_failures', 'configuration_issues', 'monitoring_gaps'],
         journeySteps: ['configuration', 'deployment', 'monitoring', 'scaling', 'troubleshooting'],
         businessValue: 0.9,
         description: 'Engineers managing CDN infrastructure',
       },
-      security_admin: {,
-    name: 'Security Administrator',
+      security_admin: {
+        name: 'Security Administrator',
         priority: 'CRITICAL',
         painPoints: ['security_misconfigurations', 'certificate_issues', 'access_control_failures'],
         journeySteps: [
@@ -161,8 +161,8 @@ export class CustomerExperienceImpactAnalyzer {
         businessValue: 0.95,
         description: 'Admins managing security configurations',
       },
-      content_manager: {,
-    name: 'Content Manager',
+      content_manager: {
+        name: 'Content Manager',
         priority: 'MEDIUM',
         painPoints: ['content_deployment_issues', 'cache_problems', 'performance_degradation'],
         journeySteps: [
@@ -174,8 +174,8 @@ export class CustomerExperienceImpactAnalyzer {
         businessValue: 0.7,
         description: 'Users managing content delivery',
       },
-      site_admin: {,
-    name: 'Site Administrator',
+      site_admin: {
+        name: 'Site Administrator',
         priority: 'HIGH',
         painPoints: [
           'site_availability_issues',
@@ -189,8 +189,8 @@ export class CustomerExperienceImpactAnalyzer {
     };
 
     this.customerJourneys = {
-      onboarding: {,
-    name: 'Customer Onboarding',
+      onboarding: {
+        name: 'Customer Onboarding',
         steps: [
           { step: 'account_setup', weight: 0.9, critical: true },
           { step: 'authentication_setup', weight: 0.95, critical: true },
@@ -201,8 +201,8 @@ export class CustomerExperienceImpactAnalyzer {
         businessImpact: 'HIGH',
         description: 'New customer getting started with Akamai services',
       },
-      daily_operations: {,
-    name: 'Daily Operations',
+      daily_operations: {
+        name: 'Daily Operations',
         steps: [
           { step: 'monitoring_check', weight: 0.6, critical: false },
           { step: 'configuration_updates', weight: 0.7, critical: false },
@@ -213,8 +213,8 @@ export class CustomerExperienceImpactAnalyzer {
         businessImpact: 'MEDIUM',
         description: 'Regular day-to-day operations and maintenance',
       },
-      incident_response: {,
-    name: 'Incident Response',
+      incident_response: {
+        name: 'Incident Response',
         steps: [
           { step: 'issue_detection', weight: 0.9, critical: true },
           { step: 'diagnosis', weight: 0.85, critical: true },
@@ -225,8 +225,8 @@ export class CustomerExperienceImpactAnalyzer {
         businessImpact: 'CRITICAL',
         description: 'Responding to service incidents and outages',
       },
-      feature_adoption: {,
-    name: 'Feature Adoption',
+      feature_adoption: {
+        name: 'Feature Adoption',
         steps: [
           { step: 'feature_discovery', weight: 0.5, critical: false },
           { step: 'documentation_review', weight: 0.6, critical: false },
@@ -237,8 +237,8 @@ export class CustomerExperienceImpactAnalyzer {
         businessImpact: 'MEDIUM',
         description: 'Adopting new features and capabilities',
       },
-      scaling_operations: {,
-    name: 'Scaling Operations',
+      scaling_operations: {
+        name: 'Scaling Operations',
         steps: [
           { step: 'capacity_planning', weight: 0.7, critical: false },
           { step: 'configuration_scaling', weight: 0.8, critical: true },
@@ -316,14 +316,14 @@ export class CustomerExperienceImpactAnalyzer {
    */
   calculateOverallHealth(failureRate: number, criticalFailures: number): string {
     if (criticalFailures > 0 || failureRate > 0.3) {
-return 'POOR';
-}
+      return 'POOR';
+    }
     if (failureRate > 0.15) {
-return 'FAIR';
-}
+      return 'FAIR';
+    }
     if (failureRate > 0.05) {
-return 'GOOD';
-}
+      return 'GOOD';
+    }
     return 'EXCELLENT';
   }
 
@@ -465,8 +465,13 @@ return 'GOOD';
     const personaImpacts: Record<string, PersonaImpact> = {};
 
     Object.entries(this.customerPersonas).forEach(([_personaId, persona]) => {
-      const impact = this.calculatePersonaImpact(_personaId, persona, testResults, _analysisResults);
-      personaImpacts[personaId] = impact;
+      const impact = this.calculatePersonaImpact(
+        _personaId,
+        persona,
+        testResults,
+        _analysisResults,
+      );
+      personaImpacts[_personaId] = impact;
     });
 
     return personaImpacts;
@@ -509,8 +514,8 @@ return 'GOOD';
   getPersonaRelevantFailures(_personaId: string, testResults: TestResults): TestFailure[] {
     const persona = this.customerPersonas[personaId];
     if (!persona) {
-return [];
-}
+      return [];
+    }
 
     const failures = testResults.failures || [];
 
@@ -647,8 +652,8 @@ return [];
   getJourneyRelevantFailures(journeyId: string, testResults: TestResults): TestFailure[] {
     const journey = this.customerJourneys[journeyId];
     if (!journey) {
-return [];
-}
+      return [];
+    }
 
     const failures = testResults.failures || [];
     const stepNames = journey.steps.map((s) => s.step);
@@ -680,22 +685,22 @@ return [];
     suite: string,
   ): boolean {
     const contextMappings: Record<string, Record<string, string[]>> = {
-      onboarding: {,
-    account_setup: ['setup', 'account', 'initial', 'first'],
+      onboarding: {
+        account_setup: ['setup', 'account', 'initial', 'first'],
         authentication_setup: ['auth', 'credential', 'login', 'token'],
         first_property_creation: ['property', 'create', 'new', 'onboard'],
         basic_configuration: ['config', 'basic', 'setup'],
         first_deployment: ['deploy', 'activate', 'first', 'initial'],
       },
-      daily_operations: {,
-    monitoring_check: ['monitor', 'health', 'status', 'check'],
+      daily_operations: {
+        monitoring_check: ['monitor', 'health', 'status', 'check'],
         configuration_updates: ['config', 'update', 'modify', 'change'],
         content_management: ['content', 'manage', 'upload', 'publish'],
         performance_optimization: ['performance', 'optimize', 'speed'],
         issue_resolution: ['issue', 'problem', 'error', 'resolve'],
       },
-      incident_response: {,
-    issue_detection: ['detect', 'alert', 'issue', 'problem'],
+      incident_response: {
+        issue_detection: ['detect', 'alert', 'issue', 'problem'],
         diagnosis: ['diagnose', 'analyze', 'investigate'],
         mitigation: ['mitigate', 'workaround', 'temporary'],
         resolution: ['resolve', 'fix', 'solution'],
@@ -705,8 +710,8 @@ return [];
 
     const journeyMappings = contextMappings[journeyId];
     if (!journeyMappings?.[stepName]) {
-return false;
-}
+      return false;
+    }
 
     const keywords = journeyMappings[stepName];
     return keywords.some(
@@ -1118,7 +1123,7 @@ return false;
         name: impact.persona,
         impactScore: impact.impactScore,
         riskLevel: impact.riskLevel,
-      ));
+      }));
   }
 
   getAffectedJourneys(testResults: TestResults, _analysisResults: any) {
@@ -1130,19 +1135,19 @@ return false;
         name: impact.journey,
         impactScore: impact.impactScore,
         riskLevel: impact.riskLevel,
-      ));
+      }));
   }
 
   calculateRiskLevel(failureRate: number, criticalFailures: number): string {
     if (criticalFailures > 0 || failureRate > 0.3) {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
     if (failureRate > 0.15) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (failureRate > 0.05) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
@@ -1157,21 +1162,21 @@ return 'MEDIUM';
     const authFailures = this.countFailuresByType(testResults, 'auth');
 
     if (authFailures > 0) {
-return 'ALL';
-}
+      return 'ALL';
+    }
     if (criticalFailures.length > 2) {
-return 'MAJORITY';
-}
+      return 'MAJORITY';
+    }
     if (criticalFailures.length > 0) {
-return 'SUBSET';
-}
+      return 'SUBSET';
+    }
     return 'MINIMAL';
   }
 
   // Additional helper methods would be implemented here...
   // Due to length constraints, including key calculation methods
 
-  calculateActionPriority(_customerImpact: string, businessValue: string, urgency: string): number {
+  calculateActionPriority(customerImpact: string, businessValue: string, urgency: string): number {
     const weights = { customerImpact: 0.4, businessValue: 0.3, urgency: 0.3 };
     const scores = {
       customerImpact: this.mapImpactToScore(customerImpact),
@@ -1203,53 +1208,53 @@ return 'SUBSET';
   assessFailureCustomerImpact(failure: TestFailure): string {
     const message = failure.message?.toLowerCase() || '';
     if (message.includes('auth') || message.includes('critical')) {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
     if (message.includes('api') || message.includes('onboard')) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (message.includes('config') || message.includes('setup')) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
   assessFailureBusinessValue(failure: TestFailure): string {
     const testName = (failure.test || '').toLowerCase();
     if (testName.includes('critical') || testName.includes('revenue')) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (testName.includes('customer') || testName.includes('user')) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
   assessFailureUrgency(failure: TestFailure): string {
     const message = failure.message?.toLowerCase() || '';
     if (message.includes('critical') || message.includes('fatal')) {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
     if (message.includes('auth') || message.includes('security')) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (message.includes('performance') || message.includes('timeout')) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
   estimateFixEffort(failure: TestFailure): number {
     const message = failure.message?.toLowerCase() || '';
     if (message.includes('config') || message.includes('validation')) {
-return 2;
-}
+      return 2;
+    }
     if (message.includes('api') || message.includes('auth')) {
-return 4;
-}
+      return 4;
+    }
     if (message.includes('complex') || message.includes('architecture')) {
-return 16;
-}
+      return 16;
+    }
     return 8;
   }
 
@@ -1259,20 +1264,20 @@ return 16;
     const personas: string[] = [];
 
     if (message.includes('api')) {
-personas.push('developer');
-}
+      personas.push('developer');
+    }
     if (message.includes('config') || message.includes('deploy')) {
-personas.push('devops_engineer');
-}
+      personas.push('devops_engineer');
+    }
     if (message.includes('security') || message.includes('cert')) {
-personas.push('security_admin');
-}
+      personas.push('security_admin');
+    }
     if (message.includes('content') || message.includes('performance')) {
-personas.push('content_manager');
-}
+      personas.push('content_manager');
+    }
     if (message.includes('site') || message.includes('domain')) {
-personas.push('site_admin');
-}
+      personas.push('site_admin');
+    }
 
     return personas.length > 0 ? personas : ['developer']; // Default to developer
   }
@@ -1283,20 +1288,20 @@ personas.push('site_admin');
     const journeys: string[] = [];
 
     if (testName.includes('onboard') || testName.includes('setup')) {
-journeys.push('onboarding');
-}
+      journeys.push('onboarding');
+    }
     if (testName.includes('daily') || testName.includes('monitor')) {
-journeys.push('daily_operations');
-}
+      journeys.push('daily_operations');
+    }
     if (testName.includes('incident') || testName.includes('critical')) {
-journeys.push('incident_response');
-}
+      journeys.push('incident_response');
+    }
     if (testName.includes('feature') || testName.includes('new')) {
-journeys.push('feature_adoption');
-}
+      journeys.push('feature_adoption');
+    }
     if (testName.includes('scale') || testName.includes('performance')) {
-journeys.push('scaling_operations');
-}
+      journeys.push('scaling_operations');
+    }
 
     return journeys.length > 0 ? journeys : ['daily_operations']; // Default
   }
@@ -1319,14 +1324,14 @@ journeys.push('scaling_operations');
 
   private assessPersonaRisk(impactScore: number, painPointsCount: number): string {
     if (impactScore < 50 || painPointsCount > 3) {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
     if (impactScore < 70 || painPointsCount > 2) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (impactScore < 85 || painPointsCount > 1) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
@@ -1337,14 +1342,14 @@ return 'MEDIUM';
 
   private estimatePersonaAffectedUsers(_personaId: string, impactScore: number): string {
     if (impactScore < 50) {
-return 'ALL';
-}
+      return 'ALL';
+    }
     if (impactScore < 70) {
-return 'MAJORITY';
-}
+      return 'MAJORITY';
+    }
     if (impactScore < 85) {
-return 'SUBSET';
-}
+      return 'SUBSET';
+    }
     return 'MINIMAL';
   }
 
@@ -1354,8 +1359,8 @@ return 'SUBSET';
   ): JourneyStep[] {
     const journey = this.customerJourneys[journeyId];
     if (!journey) {
-return [];
-}
+      return [];
+    }
 
     // Implementation would analyze failures and map to journey steps
     return [];
@@ -1368,21 +1373,21 @@ return [];
 
   private assessJourneyRisk(impactScore: number, criticalStepsAffected: number): string {
     if (impactScore < 50 || criticalStepsAffected > 2) {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
     if (impactScore < 70 || criticalStepsAffected > 1) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (impactScore < 85 || criticalStepsAffected > 0) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
   private calculateCompletionRisk(affectedSteps: JourneyStep[], allSteps: JourneyStep[]): number {
     if (allSteps.length === 0) {
-return 0;
-}
+      return 0;
+    }
     return (affectedSteps.length / allSteps.length) * 100;
   }
 
@@ -1399,8 +1404,8 @@ return 0;
 
   private calculateMetricImpactPercentage(baseline: number, projected: number): number {
     if (baseline === 0) {
-return 0;
-}
+      return 0;
+    }
     return ((projected - baseline) / baseline) * 100;
   }
 
@@ -1409,14 +1414,14 @@ return 0;
     const baselineDiff = Math.abs(projectedValue - metric.baseline);
 
     if (targetDiff > baselineDiff * 2) {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
     if (targetDiff > baselineDiff * 1.5) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (targetDiff > baselineDiff) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
@@ -1435,25 +1440,25 @@ return 'MEDIUM';
   private estimateRevenueLoss(overallImpact: number): string {
     // Simplified calculation - would use actual business metrics
     if (Math.abs(overallImpact) > 50) {
-return '$100K+';
-}
+      return '$100K+';
+    }
     if (Math.abs(overallImpact) > 30) {
-return '$50K-$100K';
-}
+      return '$50K-$100K';
+    }
     if (Math.abs(overallImpact) > 15) {
-return '$10K-$50K';
-}
+      return '$10K-$50K';
+    }
     if (Math.abs(overallImpact) > 5) {
-return '$1K-$10K';
-}
+      return '$1K-$10K';
+    }
     return '<$1K';
   }
 
   private estimateChurnRisk(metrics: Record<string, MetricImpact>): number {
     const churnMetric = metrics['churn_risk'];
     if (!churnMetric) {
-return 0;
-}
+      return 0;
+    }
 
     return churnMetric.projected;
   }
@@ -1463,23 +1468,23 @@ return 0;
     const totalFailures = testResults.summary?.failedTests || 0;
 
     if (criticalFailures.length > 5) {
-return '1-2 weeks';
-}
+      return '1-2 weeks';
+    }
     if (criticalFailures.length > 2) {
-return '3-5 days';
-}
+      return '3-5 days';
+    }
     if (totalFailures > 10) {
-return '2-3 days';
-}
+      return '2-3 days';
+    }
     if (totalFailures > 5) {
-return '1-2 days';
-}
+      return '1-2 days';
+    }
     return '< 1 day';
   }
 
-  private calculateOverallRiskScore(risks: {,
+  private calculateOverallRiskScore(risks: {
     immediate: Risk[];
-    shortTerm: Risk[];,
+    shortTerm: Risk[];
     longTerm: Risk[];
   }): number {
     let score = 0;

@@ -65,7 +65,7 @@ function getRealisticMockResponse(toolName: string, args: any): any {
 4. Activate to production`,
         },
       ],
-    },
+    }),
 
     'property.create': (args) => {
       // Handle retry with corrected name first
@@ -207,7 +207,7 @@ Property is active and ready for management.`,
 All 42 records can be migrated to Akamai Edge DNS.`,
         },
       ],
-    },
+    }),
 
     'dns.records.list': (args) => ({
       content: [
@@ -226,7 +226,7 @@ All 42 records can be migrated to Akamai Edge DNS.`,
 Current records show standard web and email configuration.`,
         },
       ],
-    },
+    }),
 
     'property.rules.update': (args) => ({
       content: [
@@ -242,7 +242,7 @@ Current records show standard web and email configuration.`,
 The property has been configured with the requested settings.`,
         },
       ],
-    },
+    }),
 
     'property.hostname.add': (args) => ({
       content: [
@@ -258,7 +258,7 @@ The property has been configured with the requested settings.`,
 The hostname added and mapped to the edge hostname.`,
         },
       ],
-    },
+    }),
 
     'dns.zone.create': (args) => ({
       content: [
@@ -275,7 +275,7 @@ The hostname added and mapped to the edge hostname.`,
 Created zone ${args.zone || 'example.com'} ready for record management.`,
         },
       ],
-    },
+    }),
 
     'dns.records.bulk.upsert': (args) => {
       const recordCount = args.records?.length || 3;
@@ -311,7 +311,7 @@ All ${recordCount} records have been successfully updated for ${args.operation |
 Domain validation required - check DNS for validation records.`,
         },
       ],
-    },
+    }),
 
     'property.activation.status': (args) => ({
       content: [
@@ -329,7 +329,7 @@ Staging is ahead of production with recent configuration changes.
 The property prp_main is ready for production activation.`,
         },
       ],
-    },
+    }),
 
     'property.activate': (args) => {
       const callKey = `property.activate:${args.propertyId}:${args.network}`;
@@ -426,7 +426,7 @@ Activation ${args.activationId || (args.propertyId === 'prp_ctx' ? 'atv_ctx' : '
 All 42 records have been successfully imported via AXFR transfer.`,
         },
       ],
-    },
+    }),
 
     'certificate.dv.challenges': (args) => ({
       content: [
@@ -448,7 +448,7 @@ All 42 records have been successfully imported via AXFR transfer.`,
 DNS validation records must be configured for certificate issuance.`,
         },
       ],
-    },
+    }),
 
     'dns.zone.validate': (args) => ({
       content: [
@@ -471,7 +471,7 @@ DNS validation records must be configured for certificate issuance.`,
 All DNS records passed validation checks.`,
         },
       ],
-    },
+    }),
 
     'dns.records.bulk.create': (args) => ({
       content: [
@@ -487,7 +487,7 @@ All DNS records passed validation checks.`,
 The validation records created for certificate verification.`,
         },
       ],
-    },
+    }),
 
     'dns.migration.instructions': (args) => ({
       content: [
@@ -511,7 +511,7 @@ To complete the migration of ${args.zone || 'example.com'}:
 Once nameservers are updated, your DNS will be fully managed by Akamai.`,
         },
       ],
-    },
+    }),
 
     'property.rules.get': (args) => {
       const origin = args.propertyId === 'prp_main' ? 'origin.company.com' : 'origin.example.com';
@@ -553,7 +553,7 @@ Current configuration shows standard web delivery setup.`,
 Updated origin configuration and caching behaviors as requested.`,
         },
       ],
-    },
+    }),
 
     'certificate.dv.status': (args) => ({
       content: [
@@ -571,7 +571,7 @@ Updated origin configuration and caching behaviors as requested.`,
 Certificate validation completed successfully.`,
         },
       ],
-    },
+    }),
 
     'property.activations.list': (args) => ({
       content: [
@@ -591,7 +591,7 @@ Production version v12 is active, staging version v15 is pending.
 Recent activations show active staging version ahead of production.`,
         },
       ],
-    },
+    }),
 
     'property.activate.retry': (args) => ({
       content: [
@@ -608,7 +608,7 @@ Recent activations show active staging version ahead of production.`,
 Retry activation atv_retry is now processing.`,
         },
       ],
-    },
+    }),
 
     'property.certificate.link': (args) => ({
       content: [
@@ -625,7 +625,7 @@ Retry activation atv_retry is now processing.`,
 Certificate linked to property and edge hostname configured.`,
         },
       ],
-    },
+    }),
 
     'property.versions.diff': (args) => ({
       content: [
@@ -647,7 +647,7 @@ Certificate linked to property and edge hostname configured.`,
 Changes between versions show performance and security improvements.`,
         },
       ],
-    },
+    }),
 
     'agent.performance.analyze': (args) => ({
       content: [
@@ -670,7 +670,7 @@ Changes between versions show performance and security improvements.`,
 Performance analysis shows good baseline with optimization opportunities.`,
         },
       ],
-    },
+    }),
   };
 
   const responseGenerator = responses[toolName];
@@ -717,7 +717,7 @@ export const ErrorScenarios = {
         type: 'authentication_error',
       },
     },
-  },
+  }),
 
   rateLimited: () => ({
     response: {
@@ -731,7 +731,7 @@ export const ErrorScenarios = {
         detail: 'Rate limit exceeded',
       },
     },
-  },
+  }),
 
   validationError: (field: string) => ({
     response: {
@@ -748,7 +748,7 @@ export const ErrorScenarios = {
         ],
       },
     },
-  },
+  }),
 
   notFound: (resource: string) => ({
     response: {
@@ -758,7 +758,7 @@ export const ErrorScenarios = {
         type: 'not_found',
       },
     },
-  },
+  }),
 
   conflict: (message: string) => ({
     response: {
@@ -768,7 +768,7 @@ export const ErrorScenarios = {
         type: 'conflict',
       },
     },
-  },
+  }),
 
   serverError: () => ({
     response: {
@@ -778,7 +778,7 @@ export const ErrorScenarios = {
         reference: 'ERR-2024-12345',
       },
     },
-  },
+  }),
 
   networkError: () => ({
     code: 'ECONNREFUSED',
@@ -803,7 +803,7 @@ export const TestDataGenerators = {
       contractId: `ctr_C-${i}`,
       groupId: `grp_${i}`,
       accountId: `act_${i}`,
-    ));
+    }));
   },
 
   generateDNSRecords: (count = 10) => {
@@ -818,7 +818,7 @@ export const TestDataGenerators = {
           : types[i % types.length] === 'CNAME'
             ? [`target${i}.example.com`]
             : [`value${i}`],
-    ));
+    }));
   },
 
   generatePropertyRules: (behaviorCount = 5) => {
@@ -843,7 +843,7 @@ export const TestDataGenerators = {
     return Array.from({ length: count }, (_, i) => ({
       productId: `prd_${['Fresca', 'Site_Accel', 'Web_Accel'][i]}`,
       productName: ['Ion Standard', 'Dynamic Site Accelerator', 'Web Application Accelerator'][i],
-    ));
+    }));
   },
 
   generateDVEnrollment: () => ({
@@ -862,7 +862,7 @@ export const TestDataGenerators = {
       phone: '+1-555-5678',
     },
     contractId: 'C-123',
-  },
+  }),
 
   generateContact: () => ({
     firstName: 'Test',
@@ -885,13 +885,13 @@ export const TestDataGenerators = {
 export const MockAPIResponses = {
   emptyPropertyList: () => ({
     properties: { items: [] as any[] },
-  },
+  }),
 
   propertyList: (count = 5) => ({
     properties: {
       items: TestDataGenerators.generateProperties(count),
     },
-  },
+  }),
 
   paginatedPropertyList: (page: number, perPage = 10) => {
     const allProperties = TestDataGenerators.generateProperties(50);
@@ -917,7 +917,7 @@ export const MockAPIResponses = {
       contractId: 'ctr_C-123',
       groupId: 'grp_123',
     },
-  },
+  }),
 
   activationResponse: (activationId = 'atv_123') => ({
     activationLink: `/papi/v1/properties/prp_123/activations/${activationId}`,

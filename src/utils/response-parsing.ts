@@ -39,7 +39,7 @@ export interface AkamaiErrorResponse {
 
 // Property Manager response schemas
 export const PropertyResponseSchemas = {
-  property: z.object({,
+  property: z.object({
     accountId: z.string().optional(),
     contractId: z.string().optional(),
     groupId: z.string().optional(),
@@ -53,9 +53,8 @@ export const PropertyResponseSchemas = {
     productId: z.string().optional(),
     ruleFormat: z.string().optional(),
     hostnames: z.array(z.string()).optional(),
-  },
-
-  propertyVersion: z.object({,
+  }),
+  propertyVersion: z.object({
     propertyVersion: z.number(),
     updatedByUser: z.string().optional(),
     updatedDate: z.string().optional(),
@@ -63,16 +62,15 @@ export const PropertyResponseSchemas = {
     stagingStatus: z.enum(['ACTIVE', 'INACTIVE', 'PENDING', 'ABORTED']).optional(),
     etag: z.string().optional(),
     note: z.string().optional(),
-  },
-
-  activation: z.object({,
+  }),
+  activation: z.object({
     activationId: z.string(),
     propertyName: z.string(),
     propertyId: z.string(),
     propertyVersion: z.number(),
-    network: z.enum(['STAGING', 'PRODUCTION'],
-    activationType: z.enum(['ACTIVATE', 'DEACTIVATE'],
-    status: z.enum(['PENDING', 'ACTIVE', 'FAILED', 'DEACTIVATED', 'ABORTED'],
+    network: z.enum(['STAGING', 'PRODUCTION']),
+    activationType: z.enum(['ACTIVATE', 'DEACTIVATE']),
+    status: z.enum(['PENDING', 'ACTIVE', 'FAILED', 'DEACTIVATED', 'ABORTED']),
     submittedBy: z.string().optional(),
     submittedDate: z.string().optional(),
     activationDate: z.string().optional(),
@@ -88,12 +86,12 @@ export const PropertyResponseSchemas = {
           type: z.string(),
           title: z.string(),
           detail: z.string().optional(),
-        },
+        }),
       )
       .optional(),
-  },
+  }),
 
-  hostname: z.object({,
+  hostname: z.object({
     cnameFrom: z.string(),
     cnameTo: z.string(),
     cnameType: z.enum(['EDGE_HOSTNAME']).optional(),
@@ -111,26 +109,26 @@ export const PropertyResponseSchemas = {
           .array(
             z.object({
               status: z.string(),
-            },
+            }),
           )
           .optional(),
         production: z
           .array(
             z.object({
               status: z.string(),
-            },
+            }),
           )
           .optional(),
       })
       .optional(),
-  },
+  }),
 };
 
 // DNS response schemas
 export const DNSResponseSchemas = {
-  zone: z.object({,
+  zone: z.object({
     zone: z.string(),
-    type: z.enum(['PRIMARY', 'SECONDARY', 'ALIAS'],
+    type: z.enum(['PRIMARY', 'SECONDARY', 'ALIAS']),
     masters: z.array(z.string()).optional(),
     comment: z.string().optional(),
     signAndServe: z.boolean().optional(),
@@ -148,49 +146,48 @@ export const DNSResponseSchemas = {
     activationState: z.enum(['ACTIVE', 'INACTIVE', 'PENDING']).optional(),
     lastActivationDate: z.string().optional(),
     versionId: z.string().optional(),
-  },
+  }),
 
-  record: z.object({,
+  record: z.object({
     name: z.string(),
     type: z.string(),
     ttl: z.number(),
     rdata: z.array(z.string()),
-  },
-
-  changelist: z.object({,
+  }),
+  changelist: z.object({
     zone: z.string(),
     changeId: z.string().optional(),
     status: z.enum(['PENDING', 'ACTIVE', 'FAILED']).optional(),
     submittedDate: z.string().optional(),
     submittedBy: z.string().optional(),
-  },
+  }),
 };
 
 // Certificate response schemas
 export const CertificateResponseSchemas = {
-  enrollment: z.object({,
+  enrollment: z.object({
     id: z.number(),
     productionSlots: z.array(z.string()).optional(),
     stagingSlots: z.array(z.string()).optional(),
     assignedSlots: z.array(z.string()).optional(),
     location: z.string().optional(),
     ra: z.string(),
-    validationType: z.enum(['dv', 'ov', 'ev', 'third-party'],
-    certificateType: z.enum(['san', 'single', 'wildcard'],
-    networkConfiguration: z.object({,
-    geography: z.enum(['core', 'china', 'russia'],
-      secureNetwork: z.enum(['standard-tls', 'enhanced-tls', 'shared-cert'],
+    validationType: z.enum(['dv', 'ov', 'ev', 'third-party']),
+    certificateType: z.enum(['san', 'single', 'wildcard']),
+    networkConfiguration: z.object({
+      geography: z.enum(['core', 'china', 'russia']),
+      secureNetwork: z.enum(['standard-tls', 'enhanced-tls', 'shared-cert']),
       quicEnabled: z.boolean().optional(),
-    },
-    csr: z.object({,
-    cn: z.string(),
+    }),
+    csr: z.object({
+      cn: z.string(),
       sans: z.array(z.string()).optional(),
       c: z.string().optional(),
       st: z.string().optional(),
       l: z.string().optional(),
       o: z.string().optional(),
       ou: z.string().optional(),
-    },
+    }),
     adminContact: z
       .object({
         firstName: z.string(),
@@ -211,60 +208,59 @@ export const CertificateResponseSchemas = {
     maxAllowedSanNames: z.number().optional(),
     maxAllowedWildcardSanNames: z.number().optional(),
     autoRenewalStartTime: z.string().optional(),
-  },
+  }),
 
-  dvChallenge: z.object({,
+  dvChallenge: z.object({
     domain: z.string(),
-    validationStatus: z.enum(['pending', 'processing', 'valid', 'invalid'],
+    validationStatus: z.enum(['pending', 'processing', 'valid', 'invalid']),
     validationRecords: z
       .array(
         z.object({
           hostname: z.string(),
-          recordType: z.enum(['CNAME', 'TXT'],
+          recordType: z.enum(['CNAME', 'TXT']),
           target: z.string(),
-        },
+        }),
       )
       .optional(),
     challenges: z
       .array(
         z.object({
-          type: z.enum(['dns-01', 'http-01'],
-          status: z.enum(['pending', 'processing', 'valid', 'invalid'],
+          type: z.enum(['dns-01', 'http-01']),
+          status: z.enum(['pending', 'processing', 'valid', 'invalid']),
           token: z.string().optional(),
           keyAuthorization: z.string().optional(),
-        },
+        }),
       )
       .optional(),
-    expi_res: z.string().optional(),
-  },
+    expires: z.string().optional(),
+  }),
 };
 
 // Fast Purge response schemas
 export const FastPurgeResponseSchemas = {
-  purgeResponse: z.object({,
+  purgeResponse: z.object({
     _httpStatus: z.number(),
     detail: z.string(),
     estimatedSeconds: z.number(),
     purgeId: z.string(),
     supportId: z.string().optional(),
-  },
-
-  purgeStatus: z.object({,
+  }),
+  purgeStatus: z.object({
     _httpStatus: z.number(),
     detail: z.string(),
-    status: z.enum(['In-Progress', 'Done', 'Error'],
+    status: z.enum(['In-Progress', 'Done', 'Error']),
     submittedBy: z.string().optional(),
     submissionTime: z.string().optional(),
     completionTime: z.string().optional(),
-  },
+  }),
 };
 
 // Network Lists response schemas
 export const NetworkListResponseSchemas = {
-  networkList: z.object({,
+  networkList: z.object({
     uniqueId: z.string(),
     name: z.string(),
-    type: z.enum(['IP', 'GEO', 'ASN'],
+    type: z.enum(['IP', 'GEO', 'ASN']),
     description: z.string().optional(),
     readOnly: z.boolean().optional(),
     shared: z.boolean().optional(),
@@ -282,7 +278,7 @@ export const NetworkListResponseSchemas = {
         update: z.string().optional(),
       })
       .optional(),
-  },
+  }),
 };
 
 /**
@@ -294,8 +290,8 @@ export class ResponseParser {
    */
   static parsePropertyResponse(response: any): any {
     if (!response) {
-return response;
-}
+      return response;
+    }
 
     if (response.properties?.items) {
       return {
@@ -306,7 +302,7 @@ return response;
             // Return partial data if validation fails
             return item;
           }
-        },
+        }),
         pagination: ResponseParser.extractPaginationInfo(response),
       };
     }
@@ -345,8 +341,8 @@ return response;
    */
   static parseDNSResponse(response: any): any {
     if (!response) {
-return response;
-}
+      return response;
+    }
 
     if (response.zones) {
       return {
@@ -474,8 +470,8 @@ return response;
     }
 
     // Extract _error information
-    const parsedError: AkamaiErrorResponse = {,
-    title: errorData.title || errorData._error || 'Unknown Error',
+    const parsedError: AkamaiErrorResponse = {
+      title: errorData.title || errorData._error || 'Unknown Error',
       detail: errorData.detail || errorData.message || errorData._error,
       status: errorData.status || _error.response?.status || _error.status,
       type: errorData.type,
@@ -485,12 +481,12 @@ return response;
 
     // Extract detailed _error information
     if (errorData.errors && Array.isArray(errorData.errors)) {
-      parsedError.errors = errorData.errors.map((_err: any) => ({,
-    type: err.type,
-        title: err.title || err.message,
-        detail: err.detail || err.description,
-        field: err.field || err.path,
-      ));
+      parsedError.errors = errorData.errors.map((_err: any) => ({
+        type: _err.type,
+        title: _err.title || _err.message,
+        detail: _err.detail || _err.description,
+        field: _err.field || _err.path,
+      }));
     }
 
     return parsedError;
@@ -524,9 +520,9 @@ return response;
       // Rate limiting information
       if (response.headers['x-ratelimit-limit']) {
         metadata.rateLimit = {
-          limit: parseInt(response.headers['x-ratelimit-limit'],
-          remaining: parseInt(response.headers['x-ratelimit-remaining'],
-          reset: parseInt(response.headers['x-ratelimit-reset'],
+          limit: parseInt(response.headers['x-ratelimit-limit']),
+          remaining: parseInt(response.headers['x-ratelimit-remaining']),
+          reset: parseInt(response.headers['x-ratelimit-reset']),
         };
       }
 

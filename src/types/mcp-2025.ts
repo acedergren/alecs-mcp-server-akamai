@@ -314,12 +314,12 @@ export const PropertyManagerZodSchemas = {
     groupId: z.string().optional(),
     limit: z.number().optional(),
     includeSubgroups: z.boolean().optional(),
-  },
+  }),
 
   get_property: z.object({
     customer: z.string().optional(),
     propertyId: z.string(),
-  },
+  }),
 
   create_property: z.object({
     customer: z.string().optional(),
@@ -328,16 +328,16 @@ export const PropertyManagerZodSchemas = {
     contractId: z.string(),
     groupId: z.string(),
     ruleFormat: z.string().optional(),
-  },
+  }),
 
   activate_property: z.object({
     customer: z.string().optional(),
     propertyId: z.string(),
     version: z.number(),
-    network: z.enum(['STAGING', 'PRODUCTION'],
+    network: z.enum(['STAGING', 'PRODUCTION']),
     emails: z.array(z.string()).optional(),
     note: z.string().optional(),
-  },
+  }),
 };
 
 /**

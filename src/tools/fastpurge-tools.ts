@@ -189,7 +189,7 @@ export const fastpurgeUrlInvalidate = {
         );
 
         return {
-          ...formatResponse(responses[0],
+          ...formatResponse(responses[0]),
           operationId,
           batchCount: responses.length,
           totalObjects: params.urls.length,
@@ -296,7 +296,7 @@ export const fastpurgeCpcodeInvalidate = {
       );
 
       return {
-        ...formatResponse(responses[0],
+        ...formatResponse(responses[0]),
         operationId,
         batchCount: responses.length,
         totalCpCodes: params.cpCodes.length,
@@ -382,7 +382,7 @@ export const fastpurgeTagInvalidate = {
       );
 
       return {
-        ...formatResponse(responses[0],
+        ...formatResponse(responses[0]),
         operationId,
         batchCount: responses.length,
         totalTags: params.tags.length,
@@ -578,7 +578,7 @@ export const fastpurgeQueueStatus = {
           priority: item.priority,
           createdAt: item.createdAt,
           attempts: item.attempts,
-        ));
+        }));
 
         response.consolidationSuggestions = suggestions;
       }

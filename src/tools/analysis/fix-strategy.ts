@@ -6,29 +6,29 @@
  */
 
 interface StrategyType {
-  name: string;,
-    maxHours: number;
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';,
-    description: string;
+  name: string;
+  maxHours: number;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  description: string;
   icon: string;
 }
 
 interface ResourceType {
-  cost: number;,
-    capability: number;
+  cost: number;
+  capability: number;
   availability: number;
 }
 
 interface FixPattern {
-  strategies: string[];,
-    resources: string[];
-  complexity: 'LOW' | 'MEDIUM' | 'HIGH';,
-    riskFactors: string[];
+  strategies: string[];
+  resources: string[];
+  complexity: 'LOW' | 'MEDIUM' | 'HIGH';
+  riskFactors: string[];
 }
 
 interface DependencyType {
-  blocking: boolean;,
-    delay: number;
+  blocking: boolean;
+  delay: number;
 }
 
 interface TodoItem {
@@ -60,9 +60,9 @@ interface AnalysisResults {
 }
 
 interface StrategicBalance {
-  counts: {,
+  counts: {
     quick_fixes: number;
-    tactical_fixes: number;,
+    tactical_fixes: number;
     strategic_fixes: number;
     architectural_changes: number;
   };
@@ -73,18 +73,18 @@ interface StrategicBalance {
 }
 
 interface ResourceNeeds {
-  [resourceType: string]: {,
+  [resourceType: string]: {
     required: number;
-    preferred: number;,
+    preferred: number;
     _items: TodoItem[];
   };
 }
 
 interface Phase {
-  name: string;,
-    duration: string;
-  description: string;,
-    _items: TodoItem[];
+  name: string;
+  duration: string;
+  description: string;
+  _items: TodoItem[];
   totalEffort?: number;
   actualDuration?: number;
   itemCount?: number;
@@ -92,18 +92,18 @@ interface Phase {
 }
 
 interface Initiative {
-  id: string;,
-    name: string;
-  theme: string;,
-    description: string;
-  _items: TodoItem[];,
-    estimatedEffort: number;
-  priority: number;,
-    complexity: string;
-  businessValue: number;,
-    risks: any[];
-  dependencies: any[];,
-    phases: any[];
+  id: string;
+  name: string;
+  theme: string;
+  description: string;
+  _items: TodoItem[];
+  estimatedEffort: number;
+  priority: number;
+  complexity: string;
+  businessValue: number;
+  risks: any[];
+  dependencies: any[];
+  phases: any[];
 }
 
 interface Risk {
@@ -112,10 +112,10 @@ interface Risk {
 
 interface Metrics {
   [category: string]: {
-    [metric: string]: {,
-    description: string;
-      target: number | string;,
-    measurement: string;
+    [metric: string]: {
+      description: string;
+      target: number | string;
+      measurement: string;
     };
   };
 }
@@ -128,29 +128,29 @@ export class FixStrategyOptimizer {
 
   constructor() {
     this.strategyTypes = {
-      quick_fix: {,
-    name: 'Quick Fix',
+      quick_fix: {
+        name: 'Quick Fix',
         maxHours: 4,
         riskLevel: 'LOW',
         description: 'Simple, low-risk fixes that can be implemented immediately',
         icon: '🚀',
       },
-      tactical_fix: {,
-    name: 'Tactical Fix',
+      tactical_fix: {
+        name: 'Tactical Fix',
         maxHours: 16,
         riskLevel: 'MEDIUM',
         description: 'Focused fixes addressing specific issues without major changes',
         icon: '🎯',
       },
-      strategic_fix: {,
-    name: 'Strategic Fix',
+      strategic_fix: {
+        name: 'Strategic Fix',
         maxHours: 80,
         riskLevel: 'HIGH',
         description: 'Comprehensive solutions requiring significant planning and resources',
         icon: '🏗️',
       },
-      architectural_change: {,
-    name: 'Architectural Change',
+      architectural_change: {
+        name: 'Architectural Change',
         maxHours: 200,
         riskLevel: 'CRITICAL',
         description: 'Major architectural improvements requiring careful planning',
@@ -168,32 +168,32 @@ export class FixStrategyOptimizer {
     };
 
     this.fixPatterns = {
-      authentication: {,
-    strategies: ['credential_validation', 'token_refresh', 'permission_check'],
+      authentication: {
+        strategies: ['credential_validation', 'token_refresh', 'permission_check'],
         resources: ['security_specialist', 'senior_developer'],
         complexity: 'MEDIUM',
         riskFactors: ['security_impact', 'user_access'],
       },
-      configuration: {,
-    strategies: ['config_validation', 'environment_setup', 'default_values'],
+      configuration: {
+        strategies: ['config_validation', 'environment_setup', 'default_values'],
         resources: ['devops_engineer', 'senior_developer'],
         complexity: 'LOW',
         riskFactors: ['deployment_impact'],
       },
-      api_integration: {,
-    strategies: ['request_validation', 'response_handling', 'error_recovery'],
+      api_integration: {
+        strategies: ['request_validation', 'response_handling', 'error_recovery'],
         resources: ['senior_developer', 'junior_developer'],
         complexity: 'MEDIUM',
         riskFactors: ['customer_impact', 'data_integrity'],
       },
-      performance: {,
-    strategies: ['caching', 'optimization', 'parallel_processing'],
+      performance: {
+        strategies: ['caching', 'optimization', 'parallel_processing'],
         resources: ['senior_developer', 'architect'],
         complexity: 'HIGH',
         riskFactors: ['system_stability', 'resource_usage'],
       },
-      infrastructure: {,
-    strategies: ['scaling', 'monitoring', 'redundancy'],
+      infrastructure: {
+        strategies: ['scaling', 'monitoring', 'redundancy'],
         resources: ['devops_engineer', 'architect'],
         complexity: 'HIGH',
         riskFactors: ['system_availability', 'cost_impact'],
@@ -272,14 +272,14 @@ export class FixStrategyOptimizer {
     _items.forEach((_item) => {
       const effort = _item.effort_details?.hours || 0;
       if (effort <= 4) {
-balance.quick_fixes++;
-} else if (effort <= 16) {
-balance.tactical_fixes++;
-} else if (effort <= 80) {
-balance.strategic_fixes++;
-} else {
-balance.architectural_changes++;
-}
+        balance.quick_fixes++;
+      } else if (effort <= 16) {
+        balance.tactical_fixes++;
+      } else if (effort <= 80) {
+        balance.strategic_fixes++;
+      } else {
+        balance.architectural_changes++;
+      }
     });
 
     const total = Object.values(balance).reduce((sum, count) => sum + count, 0);
@@ -344,7 +344,7 @@ balance.architectural_changes++;
       impactEffortRatio: (_item.priority_details?.weight || 0) / (_item.effort_details?.hours || 1),
       customerImpact: this.assessCustomerImpact(_item),
       implementationRisk: this.assessImplementationRisk(_item),
-    ));
+    }));
 
     // Select top quick wins considering dependencies and resource constraints
     const selected: TodoItem[] = [];
@@ -417,8 +417,8 @@ balance.architectural_changes++;
       groups[category].sort((a, b) => {
         const priorityDiff = (b.priority_details?.weight || 0) - (a.priority_details?.weight || 0);
         if (priorityDiff !== 0) {
-return priorityDiff;
-}
+          return priorityDiff;
+        }
 
         // Consider dependencies
         const aDeps = this.getDependencyCount(a);
@@ -468,7 +468,10 @@ return priorityDiff;
           theme: theme,
           description: this.generateInitiativeDescription(theme, _items),
           _items: _items,
-          estimatedEffort: _items.reduce((sum, _item) => sum + (_item.effort_details?.hours || 0), 0),
+          estimatedEffort: _items.reduce(
+            (sum, _item) => sum + (_item.effort_details?.hours || 0),
+            0,
+          ),
           priority: this.calculateInitiativePriority(_items),
           complexity: this.assessInitiativeComplexity(_items),
           businessValue: this.assessInitiativeBusinessValue(_items),
@@ -549,11 +552,11 @@ return priorityDiff;
     // Default resources based on effort and type
     const effort = _item.effort_details?.hours || 0;
     if (effort > 40) {
-return ['architect', 'senior_developer'];
-}
+      return ['architect', 'senior_developer'];
+    }
     if (effort > 16) {
-return ['senior_developer'];
-}
+      return ['senior_developer'];
+    }
     return ['senior_developer', 'junior_developer'];
   }
 
@@ -594,7 +597,7 @@ return ['senior_developer'];
         _items: _items.filter((_item) => {
           const effort = _item.effort_details?.hours || 0;
           return effort > 4 && effort <= 16 && _item.priority !== 'LOW';
-        },
+        }),
       },
       {
         name: 'Strategic Development',
@@ -603,7 +606,7 @@ return ['senior_developer'];
         _items: _items.filter((_item) => {
           const effort = _item.effort_details?.hours || 0;
           return effort > 16 && effort <= 80;
-        },
+        }),
       },
       {
         name: 'Architectural Evolution',
@@ -612,7 +615,7 @@ return ['senior_developer'];
         _items: _items.filter((_item) => {
           const effort = _item.effort_details?.hours || 0;
           return effort > 80;
-        },
+        }),
       },
     ];
 
@@ -744,54 +747,54 @@ return ['senior_developer'];
    * Define success metrics
    */
   defineSuccessMetrics(_todoList: TodoList, _analysisResults: AnalysisResults) {
-    const metrics: Metrics = {,
-    delivery: {
-        completion_rate: {,
-    description: 'Percentage of planned _items completed',
+    const metrics: Metrics = {
+      delivery: {
+        completion_rate: {
+          description: 'Percentage of planned _items completed',
           target: 90,
           measurement: 'completed_items / total_items * 100',
         },
-        timeline_adherence: {,
-    description: 'Adherence to planned timeline',
+        timeline_adherence: {
+          description: 'Adherence to planned timeline',
           target: 85,
           measurement: 'on_time_deliveries / total_deliveries * 100',
         },
-        quality_score: {,
-    description: 'Quality of delivered fixes',
+        quality_score: {
+          description: 'Quality of delivered fixes',
           target: 95,
           measurement: 'fixes_without_regression / total_fixes * 100',
         },
       },
-      impact: {,
-    customer_satisfaction: {
+      impact: {
+        customer_satisfaction: {
           description: 'Customer satisfaction with fixes',
           target: 4.5,
           measurement: 'average_customer_rating',
         },
-        issue_recurrence: {,
-    description: 'Rate of issue recurrence after fixes',
+        issue_recurrence: {
+          description: 'Rate of issue recurrence after fixes',
           target: 5,
           measurement: 'recurring_issues / total_fixes * 100',
         },
-        test_success_rate: {,
-    description: 'Test suite success rate improvement',
+        test_success_rate: {
+          description: 'Test suite success rate improvement',
           target: 95,
           measurement: 'passed_tests / total_tests * 100',
         },
       },
-      efficiency: {,
-    resource_utilization: {
+      efficiency: {
+        resource_utilization: {
           description: 'Efficiency of resource usage',
           target: 80,
           measurement: 'actual_hours / planned_hours * 100',
         },
-        cost_efficiency: {,
-    description: 'Cost per issue resolved',
+        cost_efficiency: {
+          description: 'Cost per issue resolved',
           target: 'baseline - 20%',
           measurement: 'total_cost / issues_resolved',
         },
-        velocity: {,
-    description: 'Issue resolution velocity',
+        velocity: {
+          description: 'Issue resolution velocity',
           target: 'baseline + 30%',
           measurement: 'issues_resolved / time_period',
         },
@@ -815,20 +818,20 @@ return ['senior_developer'];
     const tags = _item.tags || [];
 
     if (tags.includes('authentication') || title.includes('auth')) {
-return 'authentication';
-}
+      return 'authentication';
+    }
     if (tags.includes('configuration') || title.includes('config')) {
-return 'configuration';
-}
+      return 'configuration';
+    }
     if (tags.includes('api') || title.includes('api')) {
-return 'api_integration';
-}
+      return 'api_integration';
+    }
     if (tags.includes('performance') || title.includes('performance')) {
-return 'performance';
-}
+      return 'performance';
+    }
     if (tags.includes('infrastructure') || title.includes('infrastructure')) {
-return 'infrastructure';
-}
+      return 'infrastructure';
+    }
 
     return 'other';
   }
@@ -866,28 +869,28 @@ return 'infrastructure';
     return _items.reduce((sum, _item) => {
       let value = _item.priority_details?.weight || 0;
       if (_item.tags?.includes('customer-facing')) {
-value *= 1.5;
-}
+        value *= 1.5;
+      }
       if (_item.tags?.includes('revenue-impact')) {
-value *= 2.0;
-}
+        value *= 2.0;
+      }
       if (_item.tags?.includes('security')) {
-value *= 1.3;
-}
+        value *= 1.3;
+      }
       return sum + value;
     }, 0);
   }
 
   assessCustomerImpact(_item: TodoItem): string {
     if (_item.tags?.includes('customer-facing')) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (_item.tags?.includes('user-experience')) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     if (_item.priority === 'CRITICAL') {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     return 'LOW';
   }
 
@@ -896,11 +899,11 @@ return 'HIGH';
     const complexity = this.categorizeItem(_item);
 
     if (effort <= 2 && complexity !== 'infrastructure') {
-return 'LOW';
-}
+      return 'LOW';
+    }
     if (effort <= 8 && complexity !== 'authentication') {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'HIGH';
   }
 
@@ -931,14 +934,14 @@ return 'MEDIUM';
     const avgRisk = riskScores.reduce((sum, score) => sum + score, 0) / riskScores.length;
 
     if (avgRisk > 80) {
-return 'CRITICAL';
-}
+      return 'CRITICAL';
+    }
     if (avgRisk > 60) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (avgRisk > 40) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 
@@ -1007,8 +1010,8 @@ return 'MEDIUM';
     candidates.forEach((_item) => {
       const theme = this.categorizeItem(_item);
       if (!themes[theme]) {
-themes[theme] = [];
-}
+        themes[theme] = [];
+      }
       themes[theme].push(_item);
     });
     return themes;
@@ -1040,11 +1043,11 @@ themes[theme] = [];
     const avgEffort =
       _items.reduce((sum, _item) => sum + (_item.effort_details?.hours || 0), 0) / _items.length;
     if (avgEffort > 40) {
-return 'HIGH';
-}
+      return 'HIGH';
+    }
     if (avgEffort > 16) {
-return 'MEDIUM';
-}
+      return 'MEDIUM';
+    }
     return 'LOW';
   }
 

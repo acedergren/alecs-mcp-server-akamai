@@ -57,7 +57,7 @@ class StructuredLogger {
   }
 
   private sanitizeContext(_context: LogContext): LogContext {
-    const sanitized = { ...context };
+    const sanitized = { ..._context };
 
     // Sanitize sensitive fields
     const sensitiveFields = ['client_secret', 'access_token', 'password', 'key'];
@@ -75,36 +75,36 @@ class StructuredLogger {
     if (process.env.ALECS_LOG_FORMAT === 'json') {
       return JSON.stringify({
         ...entry,
-        _context: this.sanitizeContext(entry.context),
+        _context: this.sanitizeContext(entry._context),
       });
     }
 
     // Human-readable format for development
-    const { timestamp, level, message, context } = entry;
-    const sanitizedContext = this.sanitizeContext(context);
+    const { timestamp, level, message, _context } = entry;
+    const sanitizedContext = this.sanitizeContext(_context);
     const contextStr = Object.keys(sanitizedContext)
       .filter((k) => k !== 'correlationId')
       .map((k) => `${k}=${JSON.stringify(sanitizedContext[k])}`)
       .join(' ');
 
-    return `[${timestamp}] ${level} [${context.correlationId}] ${message} ${contextStr}`.trim();
+    return `[${timestamp}] ${level} [${_context.correlationId}] ${message} ${contextStr}`.trim();
   }
 
   log(level: LogLevel, message: string, _context: LogContext): void {
     if (!this.shouldLog(level)) {
-return;
-}
+      return;
+    }
 
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
       message,
-      context,
+      _context,
     };
 
     // Store for correlation analysis
-    const existing = this.correlations.get(context.correlationId) || [];
-    this.correlations.set(context.correlationId, [...existing, entry]);
+    const existing = this.correlations.get(_context.correlationId) || [];
+    this.correlations.set(_context.correlationId, [...existing, entry]);
 
     // Output log
     const formatted = this.formatLogEntry(entry);
@@ -115,29 +115,29 @@ return;
     }
 
     // Update metrics
-    if (context.toolName && context.duration !== undefined) {
+    if (_context.toolName && _context.duration !== undefined) {
       this.metricsCollector.recordToolExecution(
-        context.toolName,
-        context.duration,
-        context.error || false,
+        _context.toolName,
+        _context.duration,
+        _context.error || false,
       );
     }
   }
 
   debug(message: string, _context: LogContext): void {
-    this.log(LogLevel.DEBUG, message, context);
+    this.log(LogLevel.DEBUG, message, _context);
   }
 
   info(message: string, _context: LogContext): void {
-    this.log(LogLevel.INFO, message, context);
+    this.log(LogLevel.INFO, message, _context);
   }
 
   warn(message: string, _context: LogContext): void {
-    this.log(LogLevel.WARN, message, context);
+    this.log(LogLevel.WARN, message, _context);
   }
 
   error(message: string, _context: LogContext): void {
-    this.log(LogLevel.ERROR, message, context);
+    this.log(LogLevel.ERROR, message, _context);
   }
 
   getCorrelationLogs(correlationId: string): LogEntry[] {
@@ -154,8 +154,8 @@ return;
     for (const [correlationId, entries] of this.correlations.entries()) {
       const lastEntry = entries[entries.length - 1];
       if (!lastEntry) {
-continue;
-}
+        continue;
+      }
       const lastTimestamp = new Date(lastEntry.timestamp).getTime();
 
       if (lastTimestamp < cutoff) {
@@ -275,7 +275,7 @@ export function withLogging<T extends (...args: any[]) => Promise<any>>(
         duration,
         error: true,
         errorMessage: _error instanceof Error ? _error.message : String(_error),
-        errorStack: error instanceof Error ? _error.stack : undefined,
+        errorStack: _error instanceof Error ? _error.stack : undefined,
       });
 
       throw _error;
