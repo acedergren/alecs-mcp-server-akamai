@@ -917,7 +917,7 @@ function getHandlerForTool(toolName: string) {
 const reportingToolsWithHandlers = reportingToolsBase.map((tool) => ({
   ...tool,
   handler: getHandlerForTool(tool.name),
-));
+}));
 
 export const reportingToolHandlers = {
   get_traffic_summary: handleGetTrafficSummary,

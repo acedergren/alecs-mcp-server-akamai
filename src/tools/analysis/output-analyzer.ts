@@ -166,7 +166,7 @@ interface SuiteStat {
 
 interface SuitePattern {
   slowestSuites: SuiteStat[];
-  mostFailu_res: SuiteStat[];
+  mostFailures: SuiteStat[];
   suiteStats: SuiteStat[];
 }
 
@@ -853,11 +853,11 @@ return 'MEDIUM';
       runtime: suite.runtime || 0,
       testCount: suite.tests?.length || 0,
       failureCount: suite.tests?.filter((t) => t.status === 'failed').length || 0,
-    ));
+    }));
 
     return {
       slowestSuites: [...suiteStats].sort((a, b) => b.runtime - a.runtime).slice(0, 5),
-      mostFailu_res: [...suiteStats].sort((a, b) => b.failureCount - a.failureCount).slice(0, 5),
+      mostFailures: [...suiteStats].sort((a, b) => b.failureCount - a.failureCount).slice(0, 5),
       suiteStats,
     };
   }

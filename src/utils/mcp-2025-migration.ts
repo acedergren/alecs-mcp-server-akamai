@@ -166,7 +166,7 @@ export function migrateTools(tools: ToolMigrationConfig[]): Array<{
   return tools.map(tool => ({
     definition: createMcp2025Tool(tool.name, tool.description, tool.zodSchema),
     handler: wrapToolHandler(tool.handler, tool.name, tool.version),
-  ));
+  }));
 }
 
 /**

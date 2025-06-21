@@ -945,7 +945,7 @@ return false;
       ...item,
       milestone: this.generateMilestone(item),
       deliverables: this.generateDeliverables(item),
-    ));
+    }));
   }
 
   /**
@@ -1118,7 +1118,7 @@ return false;
       title: `${item.type_details?.icon} ${item.title}`,
       body: this.generateGitHubIssueBody(item),
       labels: this.generateGitHubLabels(item),
-    ));
+    }));
 
     return JSON.stringify(issues, null, 2);
   }
