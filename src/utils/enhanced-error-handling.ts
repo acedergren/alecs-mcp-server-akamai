@@ -144,26 +144,26 @@ export class EnhancedErrorHandler {
    */
   private extractHttpStatus(_error: any): number {
     if (_error.response?.status) {
-return _error.response.status;
-}
+      return _error.response.status;
+    }
     if (_error.status) {
-return _error.status;
-}
+      return _error.status;
+    }
     if (_error.statusCode) {
-return _error.statusCode;
-}
+      return _error.statusCode;
+    }
     if (_error.code === 'ECONNREFUSED') {
-return 503;
-}
+      return 503;
+    }
     if (_error.code === 'ETIMEDOUT') {
-return 408;
-}
+      return 408;
+    }
     if (_error.code === 'ENOTFOUND') {
-return 503;
-}
+      return 503;
+    }
     if (_error.code === 'ECONNRESET') {
-return 503;
-}
+      return 503;
+    }
     return 500;
   }
 
@@ -237,17 +237,17 @@ return 503;
     // Check _error type from Akamai _error response
     if (akamaiError?.type) {
       if (akamaiError.type.includes('authentication')) {
-return ErrorType.AUTHENTICATION;
-}
+        return ErrorType.AUTHENTICATION;
+      }
       if (akamaiError.type.includes('authorization')) {
-return ErrorType.AUTHORIZATION;
-}
+        return ErrorType.AUTHORIZATION;
+      }
       if (akamaiError.type.includes('validation')) {
-return ErrorType.VALIDATION;
-}
+        return ErrorType.VALIDATION;
+      }
       if (akamaiError.type.includes('rate-limit')) {
-return ErrorType.RATE_LIMIT;
-}
+        return ErrorType.RATE_LIMIT;
+      }
     }
 
     // Check for validation errors in errors array
@@ -256,8 +256,8 @@ return ErrorType.RATE_LIMIT;
         (_err: any) => _err.field || _err.type === 'field-_error',
       );
       if (hasFieldErrors) {
-return ErrorType.VALIDATION;
-}
+        return ErrorType.VALIDATION;
+      }
     }
 
     return ErrorType.UNKNOWN;
@@ -545,7 +545,7 @@ return ErrorType.VALIDATION;
       endpoint: _context.endpoint,
       customer: _context.customer,
       errorType: errorResult.errorType,
-      error: errorResult._error,
+      error: errorResult.error,
       requestId: errorResult.requestId,
     });
   }
@@ -565,10 +565,10 @@ return ErrorType.VALIDATION;
       totalAttempts: attempts.length,
       attempts: attempts.map((a) => ({
         attempt: a.attempt,
-        errorType: a._error.errorType,
+        errorType: a.error.errorType,
         delay: a.delay,
       })),
-      finalError: attempts[attempts.length - 1]?._error,
+      finalError: attempts[attempts.length - 1]?.error,
     });
   }
 }

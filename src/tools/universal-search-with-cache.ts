@@ -17,7 +17,7 @@ function getCacheService(): AkamaiCacheService {
     cacheService = new AkamaiCacheService();
     // Initialize in background
     cacheService.initialize().catch((_err) => {
-      console.error('[UniversalSearch] Failed to initialize cache:', err);
+      console.error('[UniversalSearch] Failed to initialize cache:', _err);
     });
   }
   return cacheService;
@@ -138,7 +138,7 @@ export async function universalSearchWithCacheHandler(
             });
           }
         } catch (_err) {
-          console.error('Property ID search failed:', err);
+          console.error('Property ID search failed:', _err);
         }
       }
 
@@ -193,7 +193,7 @@ export async function universalSearchWithCacheHandler(
                   property.hostnames = hostnames;
                 }
               } catch (_err) {
-                console.error(`Error checking hostnames for ${property.propertyId}:`, err);
+                console.error(`Error checking hostnames for ${property.propertyId}:`, _err);
               }
             }
 
@@ -206,7 +206,7 @@ export async function universalSearchWithCacheHandler(
             }
           }
         } catch (_err) {
-          console.error('Property search failed:', err);
+          console.error('Property search failed:', _err);
         }
       }
 
@@ -227,7 +227,7 @@ export async function universalSearchWithCacheHandler(
             });
           }
         } catch (_err) {
-          console.error('Contract search failed:', err);
+          console.error('Contract search failed:', _err);
         }
       }
 
@@ -248,7 +248,7 @@ export async function universalSearchWithCacheHandler(
             });
           }
         } catch (_err) {
-          console.error('Group search failed:', err);
+          console.error('Group search failed:', _err);
         }
       }
     }
@@ -330,7 +330,7 @@ export async function universalSearchWithCacheHandler(
 
 // Helper functions for direct API calls (no cache)
 async function fetchPropertiesDirectly(client: AkamaiClient): Promise<any[]> {
-  const response = await client._request({
+  const response = await client.request({
     path: '/papi/v1/properties',
     method: 'GET',
   });
@@ -338,7 +338,7 @@ async function fetchPropertiesDirectly(client: AkamaiClient): Promise<any[]> {
 }
 
 async function fetchHostnamesDirectly(client: AkamaiClient, property: any): Promise<any[]> {
-  const response = await client._request({
+  const response = await client.request({
     path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames`,
     method: 'GET',
     queryParams: {
@@ -350,7 +350,7 @@ async function fetchHostnamesDirectly(client: AkamaiClient, property: any): Prom
 }
 
 async function fetchContractsDirectly(client: AkamaiClient): Promise<any[]> {
-  const response = await client._request({
+  const response = await client.request({
     path: '/papi/v1/contracts',
     method: 'GET',
   });
@@ -358,7 +358,7 @@ async function fetchContractsDirectly(client: AkamaiClient): Promise<any[]> {
 }
 
 async function fetchGroupsDirectly(client: AkamaiClient): Promise<any[]> {
-  const response = await client._request({
+  const response = await client.request({
     path: '/papi/v1/groups',
     method: 'GET',
   });

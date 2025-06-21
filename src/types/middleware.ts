@@ -199,7 +199,7 @@ export const Middleware = {
       }
 
       if (requireAuth && !_req.customer) {
-        return _res._error('Authentication required', 'AUTH_REQUIRED');
+        return _res.error('Authentication required', 'AUTH_REQUIRED');
       }
 
       _next();
@@ -265,7 +265,7 @@ export const Middleware = {
       const recentRequests = requestTimes.filter((time) => time > windowStart);
 
       if (recentRequests.length >= maxRequests) {
-        return _res._error('Rate limit exceeded', 'RATE_LIMIT_EXCEEDED');
+        return _res.error('Rate limit exceeded', 'RATE_LIMIT_EXCEEDED');
       }
 
       // Add current request
@@ -291,14 +291,14 @@ export const Middleware = {
             requestId: _req.requestId,
             toolName: _req.toolName,
             error: _error instanceof Error ? _error.message : String(_error),
-            stack: includeStackTrace && error instanceof Error ? _error.stack : undefined,
+            stack: includeStackTrace && _error instanceof Error ? _error.stack : undefined,
           });
         }
 
-        if (error instanceof Error) {
-          _res._error(_error.message, _error.name);
+        if (_error instanceof Error) {
+          _res.error(_error.message, _error.name);
         } else {
-          _res._error(String(error), 'UNKNOWN_ERROR');
+          _res.error(String(_error), 'UNKNOWN_ERROR');
         }
       }
     };

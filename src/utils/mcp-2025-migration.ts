@@ -135,13 +135,13 @@ export function wrapToolHandler<T>(
         duration: Date.now() - startTime,
         version,
         tool: toSnakeCase(toolName),
-        errorType: error instanceof Error ? _error.constructor.name : 'UnknownError',
+        errorType: _error instanceof Error ? _error.constructor.name : 'UnknownError',
       };
 
       return createMcp2025Response(
         false,
         undefined as any as T,
-        error instanceof Error ? _error.message : 'Unknown error',
+        _error instanceof Error ? _error.message : 'Unknown error',
         meta,
       );
     }
@@ -163,7 +163,7 @@ export function migrateTools(tools: ToolMigrationConfig[]): Array<{
   definition: Mcp2025ToolDefinition;
   handler: (...args: any[]) => Promise<Mcp2025ToolResponse>;
 }> {
-  return tools.map(tool => ({
+  return tools.map((tool) => ({
     definition: createMcp2025Tool(tool.name, tool.description, tool.zodSchema),
     handler: wrapToolHandler(tool.handler, tool.name, tool.version),
   }));
@@ -241,9 +241,7 @@ export function generateMigrationReport(
  */
 function isValidJsonSchema(schema: any): boolean {
   return (
-    typeof schema === 'object' &&
-    schema.type === 'object' &&
-    typeof schema.properties === 'object'
+    typeof schema === 'object' && schema.type === 'object' && typeof schema.properties === 'object'
   );
 }
 

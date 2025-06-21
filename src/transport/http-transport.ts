@@ -98,19 +98,21 @@ export class HttpServerTransport {
 
     // Only accept POST requests
     if (_req.method !== 'POST') {
-      _res.writeHead(405, { 'Allow': 'POST' });
-      _res.end(JSON.stringify(
-        createJsonRpcError(null, JsonRpcErrorCode.InvalidRequest, 'Only POST method is allowed'),
-      ));
+      _res.writeHead(405, { Allow: 'POST' });
+      _res.end(
+        JSON.stringify(
+          createJsonRpcError(null, JsonRpcErrorCode.InvalidRequest, 'Only POST method is allowed'),
+        ),
+      );
       return;
     }
 
     // Check for JSON-RPC path
     if (_req.url !== '/jsonrpc' && _req.url !== '/') {
       _res.writeHead(404);
-      _res.end(JSON.stringify(
-        createJsonRpcError(null, JsonRpcErrorCode.InvalidRequest, 'Not found'),
-      ));
+      _res.end(
+        JSON.stringify(createJsonRpcError(null, JsonRpcErrorCode.InvalidRequest, 'Not found')),
+      );
       return;
     }
 
@@ -121,18 +123,22 @@ export class HttpServerTransport {
       // Validate JSON-RPC _request
       if (!isJsonRpcRequest(body)) {
         _res.writeHead(400);
-        _res.end(JSON.stringify(
-          createJsonRpcError(null, JsonRpcErrorCode.InvalidRequest, 'Invalid JSON-RPC _request'),
-        ));
+        _res.end(
+          JSON.stringify(
+            createJsonRpcError(null, JsonRpcErrorCode.InvalidRequest, 'Invalid JSON-RPC _request'),
+          ),
+        );
         return;
       }
 
       // Validate _request ID
       if ('id' in body && !isValidRequestId(body.id)) {
         _res.writeHead(400);
-        _res.end(JSON.stringify(
-          createJsonRpcError(null, JsonRpcErrorCode.InvalidRequest, 'Invalid _request ID'),
-        ));
+        _res.end(
+          JSON.stringify(
+            createJsonRpcError(null, JsonRpcErrorCode.InvalidRequest, 'Invalid _request ID'),
+          ),
+        );
         return;
       }
 
@@ -142,24 +148,25 @@ export class HttpServerTransport {
       // Send response
       _res.writeHead(200);
       _res.end(JSON.stringify(response));
-
     } catch (_error) {
       // Handle parsing errors
       if (_error instanceof SyntaxError) {
         _res.writeHead(400);
-        _res.end(JSON.stringify(
-          createJsonRpcError(null, JsonRpcErrorCode.ParseError, 'Parse _error'),
-        ));
+        _res.end(
+          JSON.stringify(createJsonRpcError(null, JsonRpcErrorCode.ParseError, 'Parse _error')),
+        );
       } else {
         _res.writeHead(500);
-        _res.end(JSON.stringify(
-          createJsonRpcError(
-            null,
-            JsonRpcErrorCode.InternalError,
-            'Internal server _error',
-            error instanceof Error ? _error.message : undefined,
+        _res.end(
+          JSON.stringify(
+            createJsonRpcError(
+              null,
+              JsonRpcErrorCode.InternalError,
+              'Internal server _error',
+              _error instanceof Error ? _error.message : undefined,
+            ),
           ),
-        ));
+        );
       }
     }
   }
@@ -171,7 +178,7 @@ export class HttpServerTransport {
     return new Promise((resolve, reject) => {
       let body = '';
 
-      _req.on('data', chunk => {
+      _req.on('data', (chunk) => {
         body += chunk.toString();
       });
 
@@ -217,7 +224,7 @@ export class HttpServerTransport {
       return createJsonRpcError(
         _request.id,
         JsonRpcErrorCode.InternalError,
-        error instanceof Error ? _error.message : 'Unknown _error',
+        _error instanceof Error ? _error.message : 'Unknown _error',
         undefined,
         _request._meta, // Preserve metadata in _error responses
       );
