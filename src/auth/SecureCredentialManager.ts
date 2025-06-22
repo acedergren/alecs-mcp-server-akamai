@@ -50,11 +50,15 @@ export class SecureCredentialManager {
   private static instance: SecureCredentialManager;
   private readonly encryptionConfig: EncryptionConfig;
   private readonly masterKeyHash: string;
+  private readonly masterKey: string;
   private credentials: Map<string, EncryptedCredential> = new Map();
   private rotationTimers: Map<string, NodeJS.Timeout> = new Map();
 
   private constructor(masterKey: string, config?: Partial<EncryptionConfig>) {
     this.encryptionConfig = { ...DEFAULT_ENCRYPTION_CONFIG, ...config };
+
+    // Store master key for encryption/decryption operations
+    this.masterKey = masterKey;
 
     // Store hash of master key for verification
     this.masterKeyHash = createHash('sha256').update(masterKey).digest('hex');
@@ -386,16 +390,19 @@ export class SecureCredentialManager {
         return;
       }
 
+      // Store customerId before rotation (needed for logging after credential is deleted)
+      const customerId = credential.customerId;
+
       // Get current credentials from customer config
-      const currentCreds = CustomerConfigManager.getInstance().getSection(credential.customerId);
+      const currentCreds = CustomerConfigManager.getInstance().getSection(customerId);
 
       // In a real implementation, this would generate new credentials
       // For now, we'll just re-encrypt the existing ones
-      await this.rotateCredentials(credentialId, currentCreds, 'system');
+      const newCredentialId = await this.rotateCredentials(credentialId, currentCreds, 'system');
 
       logger.info('Automatic credential rotation completed', {
-        credentialId,
-        customerId: credential.customerId,
+        credentialId: newCredentialId,
+        customerId,
       });
     } catch (_error) {
       logger.error('Automatic credential rotation failed', {
@@ -433,8 +440,8 @@ export class SecureCredentialManager {
    * Get master key (in production, this would be from a secure key management service)
    */
   private getMasterKey(): string {
-    // In production, this would retrieve from KMS/HSM
-    return process.env.CREDENTIAL_MASTER_KEY || 'default-insecure-key';
+    // Return the master key provided during construction
+    return this.masterKey;
   }
 
   /**

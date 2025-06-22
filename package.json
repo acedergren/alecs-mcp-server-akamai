@@ -23,6 +23,10 @@
     "start:certs": "node dist/servers/certs-server.js",
     "start:reporting": "node dist/servers/reporting-server.js",
     "start:security": "node dist/servers/security-server.js",
+    "start:network-lists": "node dist/servers/network-lists-server.js",
+    "start:performance": "node dist/servers/performance-server.js",
+    "start:appsec": "node dist/servers/appsec-server.js",
+    "start:fastpurge": "node dist/servers/fastpurge-server.js",
     "dev": "tsx src/index.ts",
     "dev:full": "tsx src/index-full.ts",
     "dev:essentials": "tsx src/index-essential.ts",
@@ -36,6 +40,15 @@
     "test:dns": "jest src/__tests__/modular-servers/dns-server.test.ts",
     "test:essentials": "jest src/__tests__/modular-servers/essentials-server.test.ts",
     "test:workflows": "jest src/__tests__/modular-servers/workflow-integration.test.ts",
+    "test:e2e": "jest __tests__/e2e --runInBand",
+    "ci:self-updating-tests": "tsx ci/test-suite-runner.ts",
+    "ci:validate-env": "tsx ci/validation/test-environment-validator.ts",
+    "ci:process-results": "tsx ci/processing/result-processor.ts",
+    "ci:alert-failure": "tsx ci/alerts/failure-alerter.ts",
+    "test:discover": "tsx ci/discovery/tool-discovery.ts",
+    "test:generate": "tsx ci/generation/test-generator.ts",
+    "test:update": "tsx ci/updates/test-updater.ts",
+    "dev:alex-tests": "tsx --watch ci/test-suite-runner.ts --mode=development",
     "lint": "eslint 'src/**/*.ts' --fix",
     "lint:check": "eslint 'src/**/*.ts'",
     "format": "prettier --write 'src/**/*.{ts,json,md}'",
@@ -57,7 +70,22 @@
     "test:health": "node tests/diagnostics/mcp-health-check.js",
     "test:journey": "node tests/workflows/customer-journey.js",
     "test:errors": "node tests/edge-cases/error-scenarios.js",
-    "test:performance": "node --expose-gc tests/performance/load-testing.js"
+    "test:performance": "node --expose-gc tests/performance/load-testing.js",
+    "security:test": "tsx ci/security/run-security-tests.ts",
+    "security:test:quick": "tsx ci/security/run-security-tests.ts --quick",
+    "security:test:auth": "tsx ci/security/run-security-tests.ts --focus=auth",
+    "security:test:report": "tsx ci/security/run-security-tests.ts --format=markdown",
+    "security:scan": "npm audit --production && npm run security:test",
+    "security:fix": "npm audit fix && npm run security:test"
+  },
+  "_moduleAliases": {
+    "@utils": "dist/utils",
+    "@services": "dist/services",
+    "@types": "dist/types",
+    "@agents": "dist/agents",
+    "@config": "dist/config",
+    "@constants": "dist/constants",
+    "@middleware": "dist/middleware"
   },
   "keywords": [
     "mcp",
@@ -82,6 +110,7 @@
     "commander": "^14.0.0",
     "ioredis": "^5.6.1",
     "lru-cache": "^7.18.3",
+    "module-alias": "^2.2.3",
     "zod": "^3.22.0"
   },
   "devDependencies": {

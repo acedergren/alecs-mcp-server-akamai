@@ -932,3 +932,75 @@ export const reportingToolHandlers = {
 
 // Export the tools with handlers
 export const reportingTools = reportingToolsWithHandlers;
+
+// Export handler functions with expected names for modular servers
+export const getTrafficSummary = handleGetTrafficSummary;
+export const getTimeseriesData = handleGetTimeseriesData;
+export const getPerformanceBenchmarks = handleGetPerformanceBenchmarks;
+export const analyzeCachePerformance = async (args: any) => {
+  // Implementation for cache performance analysis
+  return {
+    content: [{
+      type: 'text',
+      text: 'Cache performance analysis not yet implemented'
+    }]
+  };
+};
+export const getCostOptimizationInsights = handleGetCostOptimizationInsights;
+export const analyzeBandwidthUsage = async (args: any) => {
+  // Implementation for bandwidth usage analysis
+  return {
+    content: [{
+      type: 'text',
+      text: 'Bandwidth usage analysis not yet implemented'
+    }]
+  };
+};
+export const createReportingDashboard = handleCreateReportingDashboard;
+export const exportReportData = handleExportReportData;
+export const configureMonitoringAlerts = handleConfigureMonitoringAlerts;
+export const getRealtimeMetrics = async (args: any) => {
+  // Implementation for realtime metrics
+  return {
+    content: [{
+      type: 'text',
+      text: 'Realtime metrics not yet implemented'
+    }]
+  };
+};
+export const analyzeTrafficTrends = async (args: any) => {
+  // Implementation for traffic trends analysis
+  return {
+    content: [{
+      type: 'text',
+      text: 'Traffic trends analysis not yet implemented'
+    }]
+  };
+};
+export const generatePerformanceReport = async (args: any) => {
+  // Implementation for performance report generation
+  return {
+    content: [{
+      type: 'text',
+      text: 'Performance report generation not yet implemented'
+    }]
+  };
+};
+export const analyzeGeographicPerformance = async (args: any) => {
+  // Implementation for geographic performance analysis
+  return {
+    content: [{
+      type: 'text',
+      text: 'Geographic performance analysis not yet implemented'
+    }]
+  };
+};
+export const analyzeErrorPatterns = async (args: any) => {
+  // Implementation for error pattern analysis
+  return {
+    content: [{
+      type: 'text',
+      text: 'Error pattern analysis not yet implemented'
+    }]
+  };
+};
