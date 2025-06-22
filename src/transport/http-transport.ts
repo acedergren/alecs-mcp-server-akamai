@@ -16,6 +16,9 @@ import {
   isValidRequestId,
 } from '../types/jsonrpc';
 
+import { AuthenticationMiddleware, createAuthenticationMiddleware } from '../middleware/authentication';
+import { SecurityMiddleware, createSecurityMiddleware } from '../middleware/security';
+
 /**
  * MCP Protocol version for 2025-06-18 spec
  */
@@ -37,6 +40,12 @@ export interface HttpTransportConfig {
   };
   /** Request timeout in milliseconds */
   timeout?: number;
+  /** Authentication configuration */
+  auth?: {
+    enabled: boolean;
+    /** Allow anonymous access for certain endpoints */
+    allowAnonymous?: string[];
+  };
 }
 
 /**
@@ -47,6 +56,8 @@ export class HttpServerTransport {
   private httpServer: HttpServer | null = null;
   private server: Server | null = null;
   private config: Required<HttpTransportConfig>;
+  private authMiddleware: AuthenticationMiddleware;
+  private securityMiddleware: SecurityMiddleware;
 
   constructor(config: HttpTransportConfig = {}) {
     this.config = {
@@ -54,7 +65,24 @@ export class HttpServerTransport {
       host: config.host ?? 'localhost',
       cors: config.cors ?? { enabled: false },
       timeout: config.timeout ?? 30000,
+      auth: config.auth ?? { enabled: true },
     };
+    
+    // Initialize security middleware with custom rate limiting for MCP
+    this.securityMiddleware = createSecurityMiddleware({
+      windowMs: 60 * 1000,  // 1 minute window
+      maxRequests: 100,      // 100 requests per minute per token
+    });
+    
+    // Initialize authentication middleware
+    this.authMiddleware = createAuthenticationMiddleware(
+      {
+        enabled: this.config.auth.enabled,
+        publicPaths: this.config.auth.allowAnonymous,
+        verbose: process.env.NODE_ENV === 'development',
+      },
+      this.securityMiddleware
+    );
   }
 
   /**
@@ -83,6 +111,16 @@ export class HttpServerTransport {
     // Set MCP-Protocol-Version header on all responses
     _res.setHeader('MCP-Protocol-Version', MCP_PROTOCOL_VERSION);
     _res.setHeader('Content-Type', 'application/json');
+    
+    // Apply authentication and security middleware
+    const authResult = await this.authMiddleware.authenticate(_req, _res);
+    if (!authResult.authenticated) {
+      // Response already handled by middleware
+      return;
+    }
+    
+    // Store token ID for request tracking
+    (_req as any).tokenId = authResult.tokenId;
 
     // Handle CORS if enabled
     if (this.config.cors.enabled) {
@@ -255,6 +293,13 @@ export class HttpServerTransport {
   }
 
   /**
+   * Get security events for monitoring
+   */
+  getSecurityEvents(since?: Date, limit?: number) {
+    return this.securityMiddleware.getSecurityEvents(since, undefined, limit);
+  }
+  
+  /**
    * Close the transport
    */
   async close(): Promise<void> {
@@ -263,6 +308,8 @@ export class HttpServerTransport {
         this.httpServer.close(() => {
           this.httpServer = null;
           this.server = null;
+          // Cleanup middleware resources
+          this.securityMiddleware.destroy();
           resolve();
         });
       } else {

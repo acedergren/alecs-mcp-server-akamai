@@ -27,7 +27,7 @@ describe('OAuthManager', () => {
     (OAuthManager as any).instance = undefined;
     
     // Set up environment variables
-    process.env.OAUTH_PROVIDERS = 'google,github';
+    process.env.OAUTH_PROVIDERS = 'google';
     process.env.OAUTH_GOOGLE_CLIENT_ID = 'google-client-id';
     process.env.OAUTH_GOOGLE_CLIENT_SECRET = 'google-client-secret';
     process.env.OAUTH_GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -35,9 +35,6 @@ describe('OAuthManager', () => {
     process.env.OAUTH_GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v1/userinfo';
     process.env.OAUTH_GOOGLE_REDIRECT_URI = 'http://localhost:3000/callback';
     process.env.OAUTH_GOOGLE_SCOPES = 'email,profile';
-    
-    process.env.OAUTH_GITHUB_CLIENT_ID = 'github-client-id';
-    process.env.OAUTH_GITHUB_CLIENT_SECRET = 'github-client-secret';
     
     oauthManager = OAuthManager.getInstance();
   });
@@ -52,8 +49,6 @@ describe('OAuthManager', () => {
     delete process.env.OAUTH_GOOGLE_USERINFO_URL;
     delete process.env.OAUTH_GOOGLE_REDIRECT_URI;
     delete process.env.OAUTH_GOOGLE_SCOPES;
-    delete process.env.OAUTH_GITHUB_CLIENT_ID;
-    delete process.env.OAUTH_GITHUB_CLIENT_SECRET;
   });
 
   describe('getInstance', () => {
@@ -65,14 +60,16 @@ describe('OAuthManager', () => {
 
     it('should initialize with provider configurations from environment', () => {
       // Set providers to check
-      process.env.OAUTH_PROVIDERS = 'github';
+      process.env.OAUTH_PROVIDERS = 'okta';
+      
+      // Ensure Okta config is incomplete by not setting env vars
       
       // Reset singleton to trigger initialization
       (OAuthManager as any).instance = undefined;
       const manager = OAuthManager.getInstance();
       
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        'OAuth provider github configuration incomplete'
+        'OAuth provider okta configuration incomplete'
       );
       
       delete process.env.OAUTH_PROVIDERS;
