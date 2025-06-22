@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// Register module aliases for runtime path resolution
+import 'module-alias/register';
+
 /**
  * ALECS - MCP Server for Akamai
  * A fully typed MCP server implementation with comprehensive error handling

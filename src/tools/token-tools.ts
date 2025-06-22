@@ -310,7 +310,6 @@ export async function handleRotateApiToken(args: any) {
 
 **Old Token ID:** ${result.oldTokenId} (revoked)
 **New Token ID:** ${result.newToken.tokenId}
-**Description:** ${result.newToken.description || 'N/A'}
 **Expires:** ${result.newToken.expiresAt ? result.newToken.expiresAt.toISOString() : 'Never'}
 
 ## Your New API Token

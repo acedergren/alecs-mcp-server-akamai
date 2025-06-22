@@ -3,9 +3,14 @@
  * Provides basic bearer token authentication without external IDPs
  */
 
-import { createHash, randomBytes } from 'crypto';
-import { SecureCredentialManager } from './SecureCredentialManager';
+import { createHash, randomBytes, createCipheriv, createDecipheriv, scrypt } from 'crypto';
 import { logger } from '../utils/logger';
+import { promisify } from 'util';
+import { writeFile, readFile, mkdir } from 'fs/promises';
+import { join } from 'path';
+import { existsSync } from 'fs';
+
+const scryptAsync = promisify(scrypt);
 
 /**
  * Token metadata stored securely
@@ -54,15 +59,26 @@ export interface TokenRotationResult {
  */
 export class TokenManager {
   private static instance: TokenManager;
-  private credentialManager: SecureCredentialManager;
+  private masterKey: string;
+  private storageDir: string;
   
   // In-memory cache for performance (token hash -> metadata)
   private tokenCache: Map<string, TokenMetadata> = new Map();
   
+  // Encryption configuration
+  private readonly algorithm = 'aes-256-gcm';
+  private readonly saltLength = 32;
+  private readonly ivLength = 16;
+  private readonly tagLength = 16;
+  private readonly keyLength = 32;
+  
   private constructor() {
     // Initialize with master key from environment or generate one
-    const masterKey = process.env.TOKEN_MASTER_KEY || this.generateMasterKey();
-    this.credentialManager = SecureCredentialManager.getInstance(masterKey);
+    this.masterKey = process.env.TOKEN_MASTER_KEY || this.generateMasterKey();
+    this.storageDir = process.env.TOKEN_STORAGE_DIR || join(process.cwd(), '.tokens');
+    
+    // Ensure storage directory exists
+    this.ensureStorageDir();
     
     // Load tokens from storage on startup
     this.loadTokensFromStorage();
@@ -107,12 +123,7 @@ export class TokenManager {
       };
       
       // Store encrypted token metadata
-      await this.credentialManager.storeCredentials(tokenId, {
-        client_token: tokenHash,  // Store hash
-        client_secret: JSON.stringify(metadata),  // Store metadata as JSON
-        access_token: '',  // Not used
-        host: '',  // Not used
-      }, 'tokens');  // Use a fixed namespace for all tokens
+      await this.storeTokenMetadata(metadata);
       
       // Update cache
       this.tokenCache.set(tokenHash, metadata);
@@ -152,7 +163,8 @@ export class TokenManager {
       
       if (!metadata) {
         // Not in cache, check storage
-        metadata = await this.findTokenInStorage(tokenHash);
+        await this.loadTokensFromStorage();
+        metadata = this.tokenCache.get(tokenHash);
         if (!metadata) {
           return { valid: false, error: 'Invalid token' };
         }
@@ -190,30 +202,9 @@ export class TokenManager {
    */
   async listTokens(): Promise<TokenMetadata[]> {
     try {
-      const tokens: TokenMetadata[] = [];
-      
-      // Get all credentials
-      const allCreds = await this.credentialManager.listCredentials();
-      
-      for (const credInfo of allCreds) {
-        // Only process token entries
-        if (credInfo.customerId !== 'tokens') {
-          continue;
-        }
-        
-        // Retrieve and parse metadata
-        const creds = await this.credentialManager.getCredentials(credInfo.credentialId);
-        if (creds && creds.client_secret) {
-          try {
-            const metadata = JSON.parse(creds.client_secret) as TokenMetadata;
-            tokens.push(metadata);
-          } catch (_e) {
-            // Skip invalid entries
-          }
-        }
-      }
-      
-      return tokens;
+      // Reload from storage to ensure fresh data
+      await this.loadTokensFromStorage();
+      return Array.from(this.tokenCache.values());
     } catch (error) {
       logger.error('Failed to list tokens', { error });
       return [];
@@ -226,15 +217,13 @@ export class TokenManager {
   async rotateToken(oldTokenId: string): Promise<TokenRotationResult> {
     try {
       // Get old token metadata
-      const oldCreds = await this.credentialManager.getCredentials(oldTokenId);
-      if (!oldCreds || !oldCreds.client_secret) {
+      const oldMetadata = await this.getTokenMetadata(oldTokenId);
+      if (!oldMetadata) {
         return {
           success: false,
           error: 'Token not found',
         };
       }
-      
-      const oldMetadata = JSON.parse(oldCreds.client_secret) as TokenMetadata;
       
       // Check if token is active
       if (!oldMetadata.isActive) {
@@ -280,19 +269,15 @@ export class TokenManager {
   async revokeToken(tokenId: string): Promise<boolean> {
     try {
       // Get token metadata
-      const creds = await this.credentialManager.getCredentials(tokenId);
-      if (!creds || !creds.client_secret) {
+      const metadata = await this.getTokenMetadata(tokenId);
+      if (!metadata) {
         return false;
       }
       
-      const metadata = JSON.parse(creds.client_secret) as TokenMetadata;
       metadata.isActive = false;
       
       // Update storage
-      await this.credentialManager.storeCredentials(tokenId, {
-        ...creds,
-        client_secret: JSON.stringify(metadata),
-      }, 'tokens');
+      await this.storeTokenMetadata(metadata);
       
       // Remove from cache
       this.tokenCache.delete(metadata.tokenHash);
@@ -335,32 +320,129 @@ export class TokenManager {
   }
   
   /**
-   * Load tokens from storage into cache
+   * Ensure storage directory exists
    */
-  private async loadTokensFromStorage(): Promise<void> {
-    try {
-      const allTokens = await this.listTokens();
-      for (const token of allTokens) {
-        if (token.isActive) {
-          this.tokenCache.set(token.tokenHash, token);
-        }
-      }
-      logger.info(`Loaded ${this.tokenCache.size} active tokens into cache`);
-    } catch (error) {
-      logger.error('Failed to load tokens from storage', { error });
+  private async ensureStorageDir(): Promise<void> {
+    if (!existsSync(this.storageDir)) {
+      await mkdir(this.storageDir, { recursive: true });
     }
   }
   
   /**
-   * Find token in storage by hash
+   * Derive encryption key from master key
    */
-  private async findTokenInStorage(tokenHash: string): Promise<TokenMetadata | null> {
+  private async deriveKey(salt: Buffer): Promise<Buffer> {
+    return (await scryptAsync(this.masterKey, salt, this.keyLength)) as Buffer;
+  }
+  
+  /**
+   * Encrypt data
+   */
+  private async encrypt(data: string): Promise<{ encrypted: string; salt: string; iv: string; authTag: string }> {
+    const salt = randomBytes(this.saltLength);
+    const iv = randomBytes(this.ivLength);
+    const key = await this.deriveKey(salt);
+    
+    const cipher = createCipheriv(this.algorithm, key, iv);
+    const encrypted = Buffer.concat([cipher.update(data, 'utf8'), cipher.final()]);
+    const authTag = (cipher as any).getAuthTag();
+    
+    return {
+      encrypted: encrypted.toString('base64'),
+      salt: salt.toString('base64'),
+      iv: iv.toString('base64'),
+      authTag: authTag.toString('base64'),
+    };
+  }
+  
+  /**
+   * Decrypt data
+   */
+  private async decrypt(encryptedData: { encrypted: string; salt: string; iv: string; authTag: string }): Promise<string> {
+    const salt = Buffer.from(encryptedData.salt, 'base64');
+    const iv = Buffer.from(encryptedData.iv, 'base64');
+    const authTag = Buffer.from(encryptedData.authTag, 'base64');
+    const encrypted = Buffer.from(encryptedData.encrypted, 'base64');
+    
+    const key = await this.deriveKey(salt);
+    const decipher = createDecipheriv(this.algorithm, key, iv);
+    (decipher as any).setAuthTag(authTag);
+    
+    const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
+    return decrypted.toString('utf8');
+  }
+  
+  /**
+   * Store token metadata
+   */
+  private async storeTokenMetadata(metadata: TokenMetadata): Promise<void> {
+    const filename = join(this.storageDir, `${metadata.tokenId}.json`);
+    const encryptedData = await this.encrypt(JSON.stringify(metadata));
+    await writeFile(filename, JSON.stringify(encryptedData), 'utf8');
+  }
+  
+  /**
+   * Get token metadata by ID
+   */
+  private async getTokenMetadata(tokenId: string): Promise<TokenMetadata | null> {
     try {
-      const allTokens = await this.listTokens();
-      return allTokens.find(t => t.tokenHash === tokenHash) || null;
+      const filename = join(this.storageDir, `${tokenId}.json`);
+      const data = await readFile(filename, 'utf8');
+      const encryptedData = JSON.parse(data);
+      const decrypted = await this.decrypt(encryptedData);
+      const metadata = JSON.parse(decrypted) as TokenMetadata;
+      
+      // Convert date strings back to Date objects
+      metadata.createdAt = new Date(metadata.createdAt);
+      if (metadata.lastUsedAt) metadata.lastUsedAt = new Date(metadata.lastUsedAt);
+      if (metadata.expiresAt) metadata.expiresAt = new Date(metadata.expiresAt);
+      
+      return metadata;
     } catch (error) {
-      logger.error('Failed to find token in storage', { error });
+      // Token not found or decryption failed
       return null;
+    }
+  }
+  
+  /**
+   * Load tokens from storage into cache
+   */
+  private async loadTokensFromStorage(): Promise<void> {
+    try {
+      this.tokenCache.clear();
+      
+      // Ensure directory exists
+      await this.ensureStorageDir();
+      
+      // Read directory contents
+      const { readdir } = await import('fs/promises');
+      const dirFiles = await readdir(this.storageDir).catch(() => []);
+      
+      for (const file of dirFiles) {
+        if (file.endsWith('.json')) {
+          try {
+            const data = await readFile(join(this.storageDir, file), 'utf8');
+            const encryptedData = JSON.parse(data);
+            const decrypted = await this.decrypt(encryptedData);
+            const metadata = JSON.parse(decrypted) as TokenMetadata;
+            
+            // Convert date strings back to Date objects
+            metadata.createdAt = new Date(metadata.createdAt);
+            if (metadata.lastUsedAt) metadata.lastUsedAt = new Date(metadata.lastUsedAt);
+            if (metadata.expiresAt) metadata.expiresAt = new Date(metadata.expiresAt);
+            
+            if (metadata.isActive) {
+              this.tokenCache.set(metadata.tokenHash, metadata);
+            }
+          } catch (error) {
+            logger.warn(`Failed to load token file ${file}`, { error });
+          }
+        }
+      }
+      
+      logger.info(`Loaded ${this.tokenCache.size} active tokens into cache`);
+    } catch (error) {
+      logger.error('Failed to load tokens from storage', { error });
     }
   }
 }

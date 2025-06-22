@@ -1,0 +1,120 @@
+{
+  "summary": "# Test Suite Results ⚠️\n\n**Pass Rate:** 36.4% (4/11)\n**Execution Time:** 7.8s\n**Tool Coverage:** 71.4%\n",
+  "testResults": {
+    "totalTests": 11,
+    "passedTests": 4,
+    "failedTests": 7,
+    "skippedTests": 0,
+    "passRate": 0.36363636363636365,
+    "duration": 7814,
+    "testResults": [
+      {
+        "testId": "list-properties-suite",
+        "testName": "list-properties - Test Suite",
+        "status": "failed",
+        "duration": 1257,
+        "error": "Test suite failed"
+      },
+      {
+        "testId": "get-property-suite",
+        "testName": "get-property - Test Suite",
+        "status": "failed",
+        "duration": 1188,
+        "error": "Test suite failed"
+      },
+      {
+        "testId": "create-property-suite",
+        "testName": "create-property - Test Suite",
+        "status": "failed",
+        "duration": 1057,
+        "error": "Test suite failed"
+      },
+      {
+        "testId": "activate-property-suite",
+        "testName": "activate-property - Test Suite",
+        "status": "failed",
+        "duration": 1056,
+        "error": "Test suite failed"
+      },
+      {
+        "testId": "list-contracts-suite",
+        "testName": "list-contracts - Test Suite",
+        "status": "failed",
+        "duration": 1034,
+        "error": "Test suite failed"
+      },
+      {
+        "testId": "create-zone-suite",
+        "testName": "create-zone - Test Suite",
+        "status": "failed",
+        "duration": 1102,
+        "error": "Test suite failed"
+      },
+      {
+        "testId": "create-record-suite",
+        "testName": "create-record - Test Suite",
+        "status": "failed",
+        "duration": 1118,
+        "error": "Test suite failed"
+      },
+      {
+        "testId": "ux-natural-language-understanding",
+        "testName": "UX: Natural Language Understanding",
+        "status": "passed",
+        "duration": 0
+      },
+      {
+        "testId": "ux-error-message-clarity",
+        "testName": "UX: Error Message Clarity",
+        "status": "passed",
+        "duration": 0
+      },
+      {
+        "testId": "ux-workflow-discovery",
+        "testName": "UX: Workflow Discovery",
+        "status": "passed",
+        "duration": 0
+      },
+      {
+        "testId": "ux-context-maintenance",
+        "testName": "UX: Context Maintenance",
+        "status": "passed",
+        "duration": 0
+      }
+    ],
+    "uxIssues": [],
+    "criticalIssues": [],
+    "performance": {
+      "testsPerSecond": 1.4077297158945483,
+      "averageTestDuration": 710.3636363636364,
+      "totalExecutionTime": 7814
+    },
+    "coverage": {
+      "totalTools": 7,
+      "testedTools": 5,
+      "coveragePercentage": 71.42857142857143,
+      "untestablTools": [],
+      "categoryCoverage": {
+        "general": 2,
+        "property-management": 3,
+        "dns-management": 2
+      }
+    }
+  },
+  "detectedChanges": {
+    "newTools": [],
+    "modifiedTools": [],
+    "removedTools": [],
+    "detectionTime": 0
+  },
+  "performance": {
+    "executionTime": 8836,
+    "testsPerSecond": 1.244907197827071,
+    "changeDetectionTime": 0
+  },
+  "recommendations": [
+    "📈 Increase test coverage from 71.4% to at least 80%"
+  ],
+  "alexCommentary": "## 🎯 Alex Rodriguez's Expert Analysis\n\n⚠️ **We've got work to do!** 36.4% pass rate needs improvement.\n\n### ⚡ Performance Insights\n- Tests executed at **1.4 tests/second**\n- Change detection completed in **0ms**\n\n### 💡 Bottom Line\n\n💭 Akamai + AI = The most exciting time to be a test engineer! 🤖\n\nEvery test makes our GenAI revolution stronger. Keep pushing forward! 🎯\n\n\n═══════════════════════════════════════════════════════════════════\n  🎯 Alex Rodriguez - Senior UX Test Engineer @ Akamai\n  📧 alex.rodriguez@solutionsedge.io\n  🌟 \"Making the GenAI revolution PERFECT, one test at a time!\"\n═══════════════════════════════════════════════════════════════════",
+  "generatedAt": "2025-06-22T06:39:45.064Z"
+}

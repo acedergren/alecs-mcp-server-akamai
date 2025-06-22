@@ -240,7 +240,10 @@ export async function getZone(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', _error);
+    // Only log unexpected errors, not 404s which are expected in some scenarios
+    if (!(_error instanceof Error && _error.message.includes('404:'))) {
+      console.error('[Error]:', _error);
+    }
     throw _error;
   }
 }
@@ -1015,7 +1018,10 @@ export async function deleteRecord(
     };
   } catch (_error) {
     spinner.fail('Failed to delete DNS record');
-    console.error('[Error]:', _error);
+    // Only log unexpected errors, not 404s which are expected in some scenarios
+    if (!(_error instanceof Error && _error.message.includes('404:'))) {
+      console.error('[Error]:', _error);
+    }
     throw _error;
   }
 }
