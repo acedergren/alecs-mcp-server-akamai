@@ -1,7 +1,30 @@
 {
   "name": "alecs-mcp-server-akamai",
-  "version": "1.4.0",
-  "description": "Enterprise MCP server for Akamai with OAuth 2.1 authentication and MCP 2025-06-18 compliance",
+  "version": "1.4.3",
+  "description": "ALECS - A Launchgrid for Edge & Cloud services - MCP server for Akamai with agentic AI workflows",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "akamai",
+    "cdn",
+    "edge-computing",
+    "property-manager",
+    "edge-dns",
+    "certificate-management",
+    "alecs",
+    "cli",
+    "enterprise",
+    "multi-customer",
+    "typescript"
+  ],
+  "homepage": "https://github.com/acedergren/alecs-mcp-server-akamai#readme",
+  "bugs": {
+    "url": "https://github.com/acedergren/alecs-mcp-server-akamai/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/acedergren/alecs-mcp-server-akamai.git"
+  },
   "main": "dist/index.js",
   "bin": {
     "alecs": "dist/index.js"
@@ -41,6 +64,11 @@
     "test:essentials": "jest src/__tests__/modular-servers/essentials-server.test.ts",
     "test:workflows": "jest src/__tests__/modular-servers/workflow-integration.test.ts",
     "test:e2e": "jest __tests__/e2e --runInBand",
+    "test:e2e:workflow": "jest __tests__/e2e/workflow-assistants-e2e.test.ts --runInBand",
+    "test:e2e:orchestration": "jest __tests__/e2e/workflow-orchestration-e2e.test.ts --runInBand",
+    "test:e2e:mcp": "jest __tests__/e2e/mcp-server-e2e.test.ts --runInBand",
+    "test:e2e:full": "ts-node scripts/run-e2e-tests.ts",
+    "test:e2e:verbose": "VERBOSE_TESTS=true npm run test:e2e:full",
     "ci:self-updating-tests": "tsx ci/test-suite-runner.ts",
     "ci:validate-env": "tsx ci/validation/test-environment-validator.ts",
     "ci:process-results": "tsx ci/processing/result-processor.ts",

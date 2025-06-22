@@ -67,6 +67,7 @@ tmp/
 temp/
 *.tmp
 *.temp
+nginx/
 
 # MCP server configs (user-specific)
 .mcp.json.local
@@ -95,3 +96,37 @@ sbom/
 claude_desktop_config_*.json
 !examples/claude_desktop_config*.example.json
 CLAUDE.MD
+
+# Security and credentials
+.secrets/
+credentials/
+*.private
+*.secret
+*.key
+*.pem
+*.cert
+.tokens/
+tokens/
+*.token
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# Akamai specific
+.akamai/
+akamai-logs/
+purge-cache/
+
+# MCP specific
+mcp-state/
+.mcp-cache/
+
+# Documentation build
+docs/_build/
+docs/.doctrees/
+
+# Local development
+.local/
+local-test/
+scratch/

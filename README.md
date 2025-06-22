@@ -4,8 +4,7 @@
 
 A comprehensive MCP (Model Context Protocol) server that enables AI assistants to manage Akamai's
 complete edge platform through natural language. ALECS provides enterprise-grade tools for Akamai
-properties, DNS, certificates, security, and performance optimization with OAuth 2.1 authentication
-and MCP 2025-06-18 compliance.
+properties, DNS, certificates, security, and performance optimization.
 
 ## 🎯 What Can ALECS Do for You?
 
@@ -27,7 +26,6 @@ and MCP 2025-06-18 compliance.
 
 ### 🔐 **Enterprise Security & Compliance**
 
-- **OAuth 2.1 Resource Server**: RFC-compliant authentication with scope-based access control
 - **Certificate Lifecycle Management**: DV certificates, Enhanced TLS, and ACME automation
 - **WAF & Bot Protection**: Application security with 95+ security tools
 - **Network Lists**: IP/Geo blocking, allowlists, and threat intelligence integration
@@ -40,39 +38,48 @@ and MCP 2025-06-18 compliance.
 - **Traffic Steering**: Geolocation, failover, and load balancing
 - **ACME Integration**: Automatic certificate validation record management
 
-## 🆕 MCP 2025-06-18 Specification & OAuth 2.1
 
-**ALECS implements comprehensive OAuth 2.1 Resource Server functionality and is compliant with the
-MCP 2025-06-18 specification.**
+## 🤖 Intelligent Workflow Assistants
 
-### 🔐 **OAuth 2.1 Authentication**
+**Transform complex infrastructure tasks into simple conversations.** ALECS includes four AI-powered workflow assistants that understand your business needs and orchestrate multi-step processes automatically:
 
-- **Resource Server Metadata (RFC 9728)**: Standards-compliant discovery endpoints
-- **Token Validation**: JWT and introspection support with caching
-- **Resource Indicators (RFC 8707)**: Fine-grained access control per Akamai resource
-- **Token Binding**: DPoP, mTLS, and client certificate binding support
-- **Security Features**: Token replay prevention, rate limiting, HTTPS enforcement
+### 🏗️ **Infrastructure Workflow Assistant**
+- **Natural Language**: "Launch my e-commerce site globally with PCI compliance"
+- **What It Does**: Orchestrates property creation, SSL setup, security configuration, and activation
+- **Business Focus**: ROI calculations, time-to-market estimates, scaling recommendations
+- **Smart Defaults**: Selects optimal Akamai products based on your business type
 
-### 📋 **MCP 2025-06-18 Compliance**
+### 🌐 **DNS Workflow Assistant**
+- **Natural Language**: "Migrate my domain from Cloudflare without downtime"
+- **What It Does**: Plans migration, validates records, handles cutover, provides rollback
+- **Safety First**: Pre-flight checks, validation steps, and automated rollback plans
+- **Zero Downtime**: Intelligent TTL management and progressive migration
 
-- **Specification Compliant**: Implements MCP 2025-06-18 protocol requirements
-- **Scope-Based Authorization**: Granular tool access control
-- **Protected vs Public Tools**: Configurable authentication requirements
-- **Standards Compliance**: WWW-Authenticate headers, CORS support, RFC error responses
+### 🔒 **Security Workflow Assistant**
+- **Natural Language**: "We're under DDoS attack right now!"
+- **What It Does**: Analyzes threats, applies mitigations, monitors effectiveness
+- **Compliance**: PCI, HIPAA, GDPR compliance workflows with audit trails
+- **Adaptive**: Learns from your security posture and threat landscape
 
-### 🛡️ **Enterprise Security**
+### 📊 **Performance Workflow Assistant**
+- **Natural Language**: "Our mobile checkout is too slow"
+- **What It Does**: Analyzes bottlenecks, optimizes configuration, monitors improvements
+- **Business Metrics**: Conversion impact, revenue calculations, user experience scores
+- **Continuous**: Ongoing optimization based on real-time data
 
-- **Multi-Customer OAuth**: Isolated authentication per Akamai account
-- **Scope Management**: `property:read`, `property:write`, `property:activate` scopes
-- **Security Monitoring**: Real-time authentication and authorization logging
-- **Compliance Testing**: Automated security validation with CI/CD integration
+### 💡 **Why Workflow Assistants?**
+- **No Akamai Expertise Required**: Speak in business terms, get technical excellence
+- **Multi-Step Automation**: Complex workflows executed flawlessly
+- **Progressive Disclosure**: Start simple, dive deep when needed
+- **Cross-Functional**: Assistants work together for comprehensive solutions
+- **Risk Mitigation**: Built-in safety checks and rollback capabilities
 
 ## Core Akamai Capabilities
 
 ### 🚀 **Multi-Customer & Partner Support**
 
 - **Seamless Account Switching**: Multiple Akamai accounts for partners and Akamai personnel
-- **Account-Specific Configurations**: Isolated `.edgerc` sections with OAuth scopes
+- **Account-Specific Configurations**: Isolated `.edgerc` sections per customer
 - **Automatic Key Detection**: Smart account key application and validation
 - **Partner-Ready**: MSP and CSP support with customer isolation
 

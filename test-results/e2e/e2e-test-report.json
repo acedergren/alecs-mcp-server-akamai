@@ -1,0 +1,38 @@
+{
+  "totalTests": 192,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 192,
+  "duration": 28402,
+  "timestamp": "2025-06-22T17:05:28.243Z",
+  "suites": [
+    {
+      "name": "MCP Server E2E Tests",
+      "tests": 64,
+      "passed": 0,
+      "failed": 0,
+      "duration": 5141
+    },
+    {
+      "name": "Domain Assistants E2E Tests",
+      "tests": 64,
+      "passed": 0,
+      "failed": 0,
+      "duration": 4851
+    },
+    {
+      "name": "Workflow Orchestration E2E Tests",
+      "tests": 64,
+      "passed": 0,
+      "failed": 0,
+      "duration": 4725
+    }
+  ],
+  "environment": {
+    "node": "v22.16.0",
+    "platform": "linux",
+    "arch": "x64",
+    "timestamp": "2025-06-22T17:05:28.243Z"
+  },
+  "coverage": null
+}

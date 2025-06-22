@@ -1,11 +1,16 @@
 /**
  * Complete Tool Registration for ALECS Full Server
  * Registers ALL available tools (~180 tools) with proper schemas
+ * Plus Maya Chen's Workflow Assistants for simplified UX
  */
 
-import { type ZodSchema } from 'zod';
+import { z, type ZodSchema } from 'zod';
 
-// Import all tool implementations
+// Import Workflow Assistants (Maya Chen's UX Transformation)
+import {
+  getWorkflowAssistantTools,
+  handleWorkflowAssistantRequest,
+} from './workflows';
 
 // Property Management Tools
 import {
@@ -288,7 +293,6 @@ import * as schemas from './tool-schemas';
 import * as extendedSchemas from './tool-schemas-extended';
 
 // Additional schemas for tools without predefined schemas
-import { z } from 'zod';
 
 // Token Management Schemas
 const GenerateApiTokenSchema = z.object({
@@ -447,7 +451,28 @@ export interface ToolDefinition {
 
 // Register all tools with their schemas
 export function getAllToolDefinitions(): ToolDefinition[] {
+  // Get workflow assistant tools (Maya's UX transformation)
+  const workflowAssistants = getWorkflowAssistantTools().map(tool => ({
+    name: tool.name,
+    description: tool.description || 'Workflow assistant tool',
+    schema: z.object({
+      intent: z.string(),
+      context: z.any().optional(),
+      domain: z.string().optional(),
+      urgency: z.string().optional(),
+      timeframe: z.string().optional(),
+      compare_to: z.string().optional(),
+      safety_mode: z.boolean().optional(),
+      auto_apply: z.boolean().optional(),
+      auto_execute: z.boolean().optional(),
+    }),
+    handler: (client: any, params: any) => handleWorkflowAssistantRequest(tool.name, params),
+  }));
+
   return [
+    // Workflow Assistants (4 business-focused tools that replace 180+ technical tools)
+    ...workflowAssistants,
+
     // Property Management (30+ tools)
     {
       name: 'list-properties',

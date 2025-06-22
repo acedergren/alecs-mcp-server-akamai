@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: ALECS Documentation
+    url: https://github.com/acedergren/alecs-mcp-server-akamai/wiki
+    about: Please check the documentation first
+  - name: Security Vulnerabilities
+    url: mailto:security@alecs.io
+    about: Please report critical security vulnerabilities via email
+  - name: Discussions
+    url: https://github.com/acedergren/alecs-mcp-server-akamai/discussions
+    about: Ask questions and discuss ideas with the community
