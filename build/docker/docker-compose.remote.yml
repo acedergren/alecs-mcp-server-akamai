@@ -1,46 +1,24 @@
 version: '3.8'
 
 services:
-  alecs-websocket:
+  alecs-remote:
     build:
       context: ../..
-      dockerfile: build/docker/Dockerfile.websocket
-    container_name: alecs-mcp-websocket
+      dockerfile: build/docker/Dockerfile.remote
+    container_name: alecs-remote
     ports:
-      - '8082:8082'
+      - '8080:8080'
     environment:
       - NODE_ENV=production
       - TOKEN_MASTER_KEY=${TOKEN_MASTER_KEY:-change-me-in-production}
-      - ALECS_WS_PORT=8082
-      - ALECS_WS_HOST=0.0.0.0
-      - ALECS_WS_PATH=/mcp
+      - ALECS_UNIFIED_REMOTE=true
+      - ALECS_REMOTE_PORT=8080
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
     restart: unless-stopped
-    networks:
-      - alecs-network
-
-  alecs-sse:
-    build:
-      context: ../..
-      dockerfile: build/docker/Dockerfile.sse
-    container_name: alecs-mcp-sse
-    ports:
-      - '3013:3013'
-    environment:
-      - NODE_ENV=production
-      - TOKEN_MASTER_KEY=${TOKEN_MASTER_KEY:-change-me-in-production}
-      - ALECS_SSE_PORT=3013
-      - ALECS_SSE_HOST=0.0.0.0
-      - ALECS_SSE_PATH=/mcp
-    volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
-    restart: unless-stopped
-    networks:
-      - alecs-network
-
-networks:
-  alecs-network:
-    driver: bridge
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:8080/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3

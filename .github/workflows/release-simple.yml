@@ -120,22 +120,12 @@ jobs:
             ghcr.io/${{ github.repository }}:minimal-latest
             ghcr.io/${{ github.repository }}:minimal-${{ env.VERSION }}
 
-      - name: Build and push WebSocket Docker image
+      - name: Build and push Remote Docker image (WebSocket + SSE)
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./build/docker/Dockerfile.websocket
+          file: ./build/docker/Dockerfile.remote
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:websocket-latest
-            ghcr.io/${{ github.repository }}:websocket-${{ env.VERSION }}
-
-      - name: Build and push SSE Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./build/docker/Dockerfile.sse
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:sse-latest
-            ghcr.io/${{ github.repository }}:sse-${{ env.VERSION }}
+            ghcr.io/${{ github.repository }}:remote-latest
+            ghcr.io/${{ github.repository }}:remote-${{ env.VERSION }}

@@ -29,8 +29,7 @@ docker-build: ## Build all Docker images
 	docker build -t alecs-mcp-server:essential -f build/docker/Dockerfile.essential .
 	docker build -t alecs-mcp-server:modular -f build/docker/Dockerfile.modular .
 	docker build -t alecs-mcp-server:minimal -f build/docker/Dockerfile.minimal .
-	docker build -t alecs-mcp-server:websocket -f build/docker/Dockerfile.websocket .
-	docker build -t alecs-mcp-server:sse -f build/docker/Dockerfile.sse .
+	docker build -t alecs-mcp-server:remote -f build/docker/Dockerfile.remote .
 
 docker-build-main: ## Build main Docker image (PM2 all-in-one)
 	docker build -t alecs-mcp-server:latest -f build/docker/Dockerfile .
@@ -47,11 +46,8 @@ docker-build-modular: ## Build Modular Docker image (domain-specific servers)
 docker-build-minimal: ## Build Minimal Docker image (3 tools)
 	docker build -t alecs-mcp-server:minimal -f build/docker/Dockerfile.minimal .
 
-docker-build-websocket: ## Build WebSocket Docker image
-	docker build -t alecs-mcp-server:websocket -f build/docker/Dockerfile.websocket .
-
-docker-build-sse: ## Build SSE Docker image
-	docker build -t alecs-mcp-server:sse -f build/docker/Dockerfile.sse .
+docker-build-remote: ## Build Remote Docker image (WebSocket + SSE)
+	docker build -t alecs-mcp-server:remote -f build/docker/Dockerfile.remote .
 
 docker-run: ## Run main Docker container (PM2 all-in-one)
 	docker-compose up -d
@@ -68,7 +64,7 @@ docker-run-modular: ## Run Modular Docker container (domain-specific servers)
 docker-run-minimal: ## Run Minimal Docker container (3 tools)
 	docker-compose -f build/docker/docker-compose.minimal.yml up -d
 
-docker-run-remote: ## Run remote access containers (WebSocket + SSE)
+docker-run-remote: ## Run unified remote access container (WebSocket + SSE)
 	docker-compose -f build/docker/docker-compose.remote.yml up -d
 
 release-patch: ## Release patch version

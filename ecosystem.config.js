@@ -47,7 +47,7 @@ module.exports = {
       watch: false
     },
     {
-      name: 'alecs-property',
+      name: 'alecs-delivery',
       script: './dist/servers/property-server.js',
       instances: 1,
       exec_mode: 'fork',
@@ -98,40 +98,19 @@ module.exports = {
       watch: false
     },
     {
-      name: 'alecs-websocket',
-      script: './start-websocket-server.js',
+      name: 'alecs-remote',
+      script: './dist/index-remote.js',
       instances: 1,
       exec_mode: 'fork',
       env: {
         NODE_ENV: 'production',
-        ALECS_WS_PORT: process.env.ALECS_WS_PORT || '8082',
-        ALECS_WS_HOST: process.env.ALECS_WS_HOST || '0.0.0.0',
-        ALECS_WS_PATH: process.env.ALECS_WS_PATH || '/mcp',
+        ALECS_UNIFIED_REMOTE: 'true',
+        ALECS_REMOTE_PORT: process.env.ALECS_REMOTE_PORT || '8080',
         TOKEN_MASTER_KEY: process.env.TOKEN_MASTER_KEY,
         DEBUG: '0'
       },
-      error_file: './logs/pm2-websocket-error.log',
-      out_file: './logs/pm2-websocket-out.log',
-      time: true,
-      max_memory_restart: '512M',
-      autorestart: true,
-      watch: false
-    },
-    {
-      name: 'alecs-sse',
-      script: './start-sse-server.js',
-      instances: 1,
-      exec_mode: 'fork',
-      env: {
-        NODE_ENV: 'production',
-        ALECS_SSE_PORT: process.env.ALECS_SSE_PORT || '3013',
-        ALECS_SSE_HOST: process.env.ALECS_SSE_HOST || '0.0.0.0',
-        ALECS_SSE_PATH: process.env.ALECS_SSE_PATH || '/mcp',
-        TOKEN_MASTER_KEY: process.env.TOKEN_MASTER_KEY,
-        DEBUG: '0'
-      },
-      error_file: './logs/pm2-sse-error.log',
-      out_file: './logs/pm2-sse-out.log',
+      error_file: './logs/pm2-remote-error.log',
+      out_file: './logs/pm2-remote-out.log',
       time: true,
       max_memory_restart: '512M',
       autorestart: true,
