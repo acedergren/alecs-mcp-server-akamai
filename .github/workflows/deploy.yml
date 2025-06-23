@@ -1,0 +1,35 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd /opt/alecs-mcp-server
+            git pull origin main
+            npm ci --production
+            npm run build
+            pm2 reload ecosystem.config.js
+            pm2 save
