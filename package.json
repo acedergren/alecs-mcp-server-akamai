@@ -4,18 +4,16 @@
   "description": "ALECS - A Launchgrid for Edge & Cloud services - MCP server for Akamai with agentic AI workflows",
   "keywords": [
     "mcp",
-    "model-context-protocol",
     "akamai",
     "cdn",
-    "edge-computing",
-    "property-manager",
+    "dns",
     "edge-dns",
-    "certificate-management",
-    "alecs",
-    "cli",
-    "enterprise",
-    "multi-customer",
-    "typescript"
+    "claude",
+    "ai",
+    "infrastructure",
+    "edgegrid",
+    "property-manager",
+    "alecs"
   ],
   "homepage": "https://github.com/acedergren/alecs-mcp-server-akamai#readme",
   "bugs": {
@@ -31,6 +29,7 @@
   },
   "scripts": {
     "build": "npm run clean && npm run build:ts",
+    "build:dev": "npm run clean && tsc --project tsconfig.json --noEmitOnError false",
     "build:ts": "tsc --project tsconfig.json",
     "build:strict": "tsc --project tsconfig.build.json",
     "build:watch": "tsc --watch --project tsconfig.json",
@@ -50,6 +49,9 @@
     "start:performance": "node dist/servers/performance-server.js",
     "start:appsec": "node dist/servers/appsec-server.js",
     "start:fastpurge": "node dist/servers/fastpurge-server.js",
+    "start:websocket": "node dist/index-websocket.js",
+    "start:websocket:summary": "./scripts/start-websocket-with-summary.sh",
+    "deploy:websocket:summary": "./scripts/start-websocket-with-summary.sh",
     "dev": "tsx src/index.ts",
     "dev:full": "tsx src/index-full.ts",
     "dev:essentials": "tsx src/index-essential.ts",
@@ -115,30 +117,19 @@
     "@constants": "dist/constants",
     "@middleware": "dist/middleware"
   },
-  "keywords": [
-    "mcp",
-    "akamai",
-    "cdn",
-    "dns",
-    "edge-dns",
-    "claude",
-    "ai",
-    "infrastructure",
-    "edgegrid",
-    "property-manager",
-    "alecs"
-  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.13.0",
     "@types/commander": "^2.12.0",
     "@types/ioredis": "^4.28.10",
+    "@types/ws": "^8.18.1",
     "akamai-edgegrid": "^3.4.0",
     "commander": "^14.0.0",
     "ioredis": "^5.6.1",
     "lru-cache": "^7.18.3",
     "module-alias": "^2.2.3",
+    "ws": "^8.18.2",
     "zod": "^3.22.0"
   },
   "devDependencies": {

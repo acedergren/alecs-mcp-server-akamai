@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  alecs-websocket:
+    build:
+      context: .
+      dockerfile: Dockerfile.websocket
+    container_name: alecs-websocket-server
+    ports:
+      - "8082:8082"
+    environment:
+      - NODE_ENV=production
+      - ALECS_WS_PORT=8082
+      - ALECS_WS_HOST=0.0.0.0
+      - ALECS_WS_PATH=/mcp
+      - TOKEN_MASTER_KEY=${TOKEN_MASTER_KEY:-your-secret-key-here}
+    volumes:
+      - ./data:/app/data
+      - ~/.edgerc:/root/.edgerc:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8082', (r) => process.exit(r.statusCode === 426 ? 0 : 1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  alecs-client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    container_name: alecs-mcp-client
+    environment:
+      - ALECS_WS_URL=ws://alecs-websocket:8082/mcp
+      - ALECS_TOKEN=NJn6J0Z7Hq0WkXGCGnv5ESzGJZTiabHIe9I9u509OyI
+    depends_on:
+      - alecs-websocket
+    stdin_open: true
+    tty: false
+    restart: "no"

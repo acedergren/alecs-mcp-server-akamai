@@ -1,0 +1,18 @@
+FROM node:20-alpine
+
+# Create app directory
+WORKDIR /app
+
+# Copy only what's needed for the client
+COPY package*.json ./
+COPY websocket-client.js ./
+
+# Install only WebSocket dependency
+RUN npm install ws
+
+# Set default environment variables
+ENV ALECS_WS_URL=ws://web01.cloud.solutionsedge.io:8082/mcp
+ENV ALECS_TOKEN=NJn6J0Z7Hq0WkXGCGnv5ESzGJZTiabHIe9I9u509OyI
+
+# Run the WebSocket client
+ENTRYPOINT ["node", "websocket-client.js"]

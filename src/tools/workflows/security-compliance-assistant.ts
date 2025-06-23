@@ -209,8 +209,8 @@ class SecurityAnalyzer {
     
     let threatType = 'general';
     let riskLevel: 'critical' | 'high' | 'medium' | 'low' = 'medium';
-    let complianceNeeds: string[] = [];
-    let recommendedActions: string[] = [];
+    const complianceNeeds: string[] = [];
+    const recommendedActions: string[] = [];
     
     // Detect compliance needs
     if (lowerIntent.includes('payment') || lowerIntent.includes('credit card') || lowerIntent.includes('pci')) {
@@ -452,8 +452,8 @@ class SecurityAnalyzer {
   }
   
   private estimateSecurityCosts(recommendations: any, context?: any): string {
-    let baseCost = 0;
-    let additionalCosts: string[] = [];
+    const baseCost = 0;
+    const additionalCosts: string[] = [];
     
     // Count high-effort items
     const highEffortCount = [

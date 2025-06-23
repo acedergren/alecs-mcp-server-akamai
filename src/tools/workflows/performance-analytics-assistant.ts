@@ -216,7 +216,7 @@ class AnalyticsInsightEngine {
     let performanceGoal = 'general_optimization';
     let affectedMetrics: string[] = [];
     let businessDriver = 'user_experience';
-    let quickWins: string[] = [];
+    const quickWins: string[] = [];
     
     // Identify performance goals
     if (lowerIntent.includes('checkout') || lowerIntent.includes('cart') || lowerIntent.includes('payment')) {
@@ -497,20 +497,20 @@ class PerformanceMonitor {
     let score = 100;
     
     // Deduct for poor response time
-    if (metrics.responseTime > 1000) score -= 20;
-    else if (metrics.responseTime > 500) score -= 10;
+    if (metrics.responseTime > 1000) {score -= 20;}
+    else if (metrics.responseTime > 500) {score -= 10;}
     
     // Deduct for availability issues
-    if (metrics.availability < 99.9) score -= 30;
-    else if (metrics.availability < 99.95) score -= 10;
+    if (metrics.availability < 99.9) {score -= 30;}
+    else if (metrics.availability < 99.95) {score -= 10;}
     
     // Deduct for high error rate
-    if (metrics.errorRate > 5) score -= 30;
-    else if (metrics.errorRate > 1) score -= 15;
+    if (metrics.errorRate > 5) {score -= 30;}
+    else if (metrics.errorRate > 1) {score -= 15;}
     
     // Deduct for poor cache performance
-    if (metrics.cacheHitRate < 80) score -= 10;
-    else if (metrics.cacheHitRate < 90) score -= 5;
+    if (metrics.cacheHitRate < 80) {score -= 10;}
+    else if (metrics.cacheHitRate < 90) {score -= 5;}
     
     return Math.max(0, score);
   }

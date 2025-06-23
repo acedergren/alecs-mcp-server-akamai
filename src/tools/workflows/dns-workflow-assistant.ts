@@ -184,9 +184,9 @@ class DNSAnalyzer {
       riskLevel = 'low';
       
       // Detect specific record types
-      if (lowerIntent.includes('subdomain')) recordTypes.push('A', 'CNAME');
-      if (lowerIntent.includes('www')) recordTypes.push('CNAME');
-      if (lowerIntent.includes('api')) recordTypes.push('A', 'AAAA');
+      if (lowerIntent.includes('subdomain')) {recordTypes.push('A', 'CNAME');}
+      if (lowerIntent.includes('www')) {recordTypes.push('CNAME');}
+      if (lowerIntent.includes('api')) {recordTypes.push('A', 'AAAA');}
     } else if (lowerIntent.includes('fix') || lowerIntent.includes('troubleshoot') || lowerIntent.includes('issue')) {
       operation = 'troubleshoot';
       riskLevel = 'medium';
@@ -249,9 +249,9 @@ class DNSAnalyzer {
     
     // Calculate safety score (0-100)
     let safetyScore = 100;
-    if (context.business_criticality === 'revenue_critical') safetyScore -= 20;
-    if (context.team_expertise === 'need_guidance') safetyScore -= 15;
-    if (context.risk_tolerance === 'zero_downtime') safetyScore -= 10;
+    if (context.business_criticality === 'revenue_critical') {safetyScore -= 20;}
+    if (context.team_expertise === 'need_guidance') {safetyScore -= 15;}
+    if (context.risk_tolerance === 'zero_downtime') {safetyScore -= 10;}
     
     return {
       safetyScore,

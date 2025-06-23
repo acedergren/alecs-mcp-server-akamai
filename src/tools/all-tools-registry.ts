@@ -2,6 +2,7 @@
  * Complete Tool Registration for ALECS Full Server
  * Registers ALL available tools (~180 tools) with proper schemas
  * Plus Maya Chen's Workflow Assistants for simplified UX
+ * Now includes Consolidated Tools for improved architecture
  */
 
 import { z, type ZodSchema } from 'zod';
@@ -11,6 +12,12 @@ import {
   getWorkflowAssistantTools,
   handleWorkflowAssistantRequest,
 } from './workflows';
+
+// Import Consolidated Tools (Maya's Tool Consolidation)
+import {
+  getConsolidatedTools,
+  handleConsolidatedToolRequest,
+} from './consolidated';
 
 // Property Management Tools
 import {
@@ -469,9 +476,20 @@ export function getAllToolDefinitions(): ToolDefinition[] {
     handler: (client: any, params: any) => handleWorkflowAssistantRequest(tool.name, params),
   }));
 
+  // Get consolidated tools (Maya's tool consolidation)
+  const consolidatedTools = getConsolidatedTools().map(tool => ({
+    name: tool.name,
+    description: tool.description || 'Consolidated tool',
+    schema: z.any(), // Consolidated tools define their own schemas
+    handler: (client: any, params: any) => handleConsolidatedToolRequest(tool.name, params),
+  }));
+
   return [
     // Workflow Assistants (4 business-focused tools that replace 180+ technical tools)
     ...workflowAssistants,
+
+    // Consolidated Tools (5 powerful tools that replace scattered functionality)
+    ...consolidatedTools,
 
     // Property Management (30+ tools)
     {
