@@ -165,10 +165,10 @@ export function discoverAssistant(userIntent: string): {
   }
   
   // Secondary scoring
-  if (intent.includes('new') || intent.includes('create')) scores.property += 1;
-  if (intent.includes('email')) scores.dns += 1;
-  if (intent.includes('hack') || intent.includes('threat')) scores.security += 1;
-  if (intent.includes('metric') || intent.includes('report')) scores.performance += 1;
+  if (intent.includes('new') || intent.includes('create')) {scores.property += 1;}
+  if (intent.includes('email')) {scores.dns += 1;}
+  if (intent.includes('hack') || intent.includes('threat')) {scores.security += 1;}
+  if (intent.includes('metric') || intent.includes('report')) {scores.performance += 1;}
   
   // Find best match
   const sortedScores = Object.entries(scores)

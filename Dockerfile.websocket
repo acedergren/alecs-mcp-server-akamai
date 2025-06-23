@@ -1,0 +1,28 @@
+FROM node:20-alpine
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
+# Create app directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy built files and source
+COPY dist/ ./dist/
+COPY src/ ./src/
+COPY websocket-client.js ./
+COPY .edgerc /root/.edgerc
+
+# Make websocket client executable
+RUN chmod +x websocket-client.js
+
+# Expose WebSocket port
+EXPOSE 8082
+
+# Run the WebSocket server
+CMD ["node", "dist/index-websocket.js"]

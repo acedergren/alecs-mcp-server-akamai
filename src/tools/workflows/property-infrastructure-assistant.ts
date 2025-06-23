@@ -316,14 +316,14 @@ class InfrastructureAnalyzer {
   }
   
   private estimateCost(context: Partial<BusinessInfrastructureContext>): string {
-    if (context.scaling_expectation === 'startup') return '$500-1000/month';
-    if (context.scaling_expectation === 'enterprise') return '$5000+/month';
+    if (context.scaling_expectation === 'startup') {return '$500-1000/month';}
+    if (context.scaling_expectation === 'enterprise') {return '$5000+/month';}
     return '$1000-3000/month';
   }
   
   private estimateTime(context: Partial<BusinessInfrastructureContext>): string {
-    if (context.deployment_strategy === 'immediate') return '1-2 days';
-    if (context.deployment_strategy === 'staging_first') return '1-2 weeks';
+    if (context.deployment_strategy === 'immediate') {return '1-2 days';}
+    if (context.deployment_strategy === 'staging_first') {return '1-2 weeks';}
     return '3-5 days';
   }
   
@@ -392,7 +392,7 @@ export async function handlePropertyInfrastructureAssistant(args: any) {
       const workflow = orchestrator.getWorkflow(analysis.suggestedWorkflow);
       if (workflow) {
         response += `I'll execute the **${workflow.name}** workflow which includes:\n\n`;
-        workflow.steps.forEach((step, index) => {
+        workflow.steps.forEach((step: any, index: number) => {
           response += `${index + 1}. ${step.name}\n`;
         });
       }

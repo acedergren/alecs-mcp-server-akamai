@@ -1,0 +1,66 @@
+; Akamai EdgeGrid Authentication Configuration
+; ============================================
+; This file contains credentials for Akamai API access
+; 
+; IMPORTANT: 
+; 1. Copy this file to ~/.edgerc
+; 2. Replace all placeholder values with your actual credentials
+; 3. Keep this file secure - never commit credentials to git!
+;
+; To get your credentials:
+; 1. Log in to Akamai Control Center: https://control.akamai.com
+; 2. Navigate to: Identity & Access → API Credentials
+; 3. Create new credentials with appropriate permissions
+;
+; For ALECS, you'll need access to:
+; - Property Manager (PAPI)
+; - Edge DNS
+; - Certificate Provisioning System (CPS)
+; - Fast Purge
+; - Reporting
+; - Network Lists
+; - Application Security
+
+[default]
+; Primary credentials - used when no section is specified
+client_secret = your-client-secret-here
+host = your-host.luna.akamaiapis.net
+access_token = your-access-token-here
+client_token = your-client-token-here
+
+; Optional: Set max body size for API requests (default: 131072)
+; max-body = 131072
+
+; Optional: Different credentials for staging environment
+[staging]
+client_secret = staging-client-secret-here
+host = staging-host.luna.akamaiapis.net
+access_token = staging-access-token-here
+client_token = staging-client-token-here
+
+; Optional: Different credentials for production environment
+[production]
+client_secret = production-client-secret-here
+host = production-host.luna.akamaiapis.net
+access_token = production-access-token-here
+client_token = production-client-token-here
+
+; Optional: Customer-specific sections for multi-tenant setups
+; [customer1]
+; client_secret = customer1-secret
+; host = customer1-host.luna.akamaiapis.net
+; access_token = customer1-access-token
+; client_token = customer1-client-token
+
+; [customer2]
+; client_secret = customer2-secret
+; host = customer2-host.luna.akamaiapis.net
+; access_token = customer2-access-token
+; client_token = customer2-client-token
+
+; Tips:
+; - You can use environment variables to specify which section to use:
+;   export AKAMAI_EDGERC_SECTION=staging
+; - ALECS supports multi-customer configurations using section names
+; - Each section can have different permission levels
+; - Test your credentials: akamai verify

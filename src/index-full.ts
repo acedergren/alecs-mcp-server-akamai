@@ -6,8 +6,12 @@
  * MCP June 2025 compliant
  */
 
+// Register module aliases before any other imports
+import 'module-alias/register';
+
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import {
   type CallToolRequest,
   CallToolRequestSchema,
@@ -138,7 +142,7 @@ function zodToJsonSchema(schema: ZodSchema): any {
  * Main ALECS MCP Server implementation (Full Version)
  */
 export class ALECSFullServer {
-  private server: Server;
+  public server: Server;
   private toolRegistry: Map<string, ToolRegistryEntry> = new Map();
   private configManager: CustomerConfigManager;
   private requestCounter = 0;

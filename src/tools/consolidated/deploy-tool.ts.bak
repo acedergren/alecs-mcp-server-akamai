@@ -1,0 +1,943 @@
+/**
+ * Unified Deploy Tool - Maya's Vision
+ * 
+ * One tool to deploy anything, anywhere. No more confusion about which activation
+ * endpoint to use or how to coordinate multi-resource deployments.
+ * 
+ * Design Principles:
+ * - Universal deployment interface
+ * - Coordinated multi-resource deployments
+ * - Safety checks and rollback capabilities
+ * - Business-aware scheduling
+ */
+
+import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { z } from 'zod';
+import { getAkamaiClient } from '@utils/auth';
+import { logger } from '@utils/logger';
+import {
+  validateDeployment,
+  generateApprovalProcess,
+  createDeploymentPlan,
+  scheduleDeployment,
+  scheduleMaintenanceDeployment,
+  executeBlueGreen,
+  setupDeploymentMonitoring,
+  sendDeploymentNotifications,
+  getDeploymentsForResources,
+  getAllActiveDeployments,
+  getDeploymentStatus,
+  calculateDeploymentProgress,
+  checkDeploymentHealth,
+  estimateCompletion,
+  generateDeploymentAlerts,
+  formatDeploymentStatus,
+  generateStatusRecommendations,
+  getRecentDeployments,
+  createRollbackPlan,
+  validateRollback,
+  executeRollback,
+  generateManualRollbackSteps,
+  verifyRollback,
+  generateRollbackNextSteps,
+  getAvailableMaintenanceWindows,
+  getBlackoutDates,
+  generateSchedulingRecommendations,
+  validateSchedule,
+  createCoordinatedPlan,
+  validateCoordination,
+  generateCoordinationSuggestions,
+  generateDeploymentTimeline,
+  executeCoordinatedDeployment,
+  validateResourceReadiness,
+  validateDependencies,
+  validateBusinessRules,
+  validateCapacity,
+  validateCompliance,
+  assessDeploymentRisk,
+  generateValidationRecommendations,
+  collectValidationIssues,
+  generatePreflightChecklist,
+  getDeploymentMetrics,
+  getDeploymentLogs,
+  getDeploymentAlerts,
+  calculateDeploymentHealth,
+  analyzeDeploymentTrend,
+  generateMonitoringOverview,
+  aggregateDeploymentMetrics,
+  prioritizeAlerts,
+  predictDeploymentOutcomes,
+  generateMonitoringRecommendations,
+  identifyAutoRollbackCandidates,
+  calculateNextCheckIn,
+  getDeploymentHistoryForResources,
+  getAllDeploymentHistory,
+  analyzeDeploymentPatterns,
+  calculateSuccessRate,
+  calculateAverageDuration,
+  identifyCommonIssues,
+  identifyPeakDeploymentTimes,
+  generateHistoricalInsights,
+  formatAsTimeline,
+  formatAsTable,
+  generateHistoricalRecommendations,
+  exportHistory,
+  selectCanaryResources,
+  monitorCanary,
+  expandResourceGroup,
+  validation,
+} from './deployment-utils';
+
+// Deployment actions
+const DeployActionSchema = z.enum([
+  'deploy',        // Deploy resources
+  'status',        // Check deployment status
+  'rollback',      // Rollback deployment
+  'schedule',      // Schedule deployment
+  'coordinate',    // Coordinate multi-resource deployment
+  'validate',      // Pre-deployment validation
+  'monitor',       // Monitor active deployments
+  'history',       // View deployment history
+]);
+
+// Maya's deployment schema - unified and simple
+const DeployToolSchema = z.object({
+  action: DeployActionSchema,
+  
+  // Flexible resource specification
+  resources: z.union([
+    // Single resource
+    z.object({
+      type: z.enum(['property', 'dns', 'certificate', 'include', 'all']),
+      id: z.string(),
+    }),
+    // Multiple resources
+    z.array(z.object({
+      type: z.enum(['property', 'dns', 'certificate', 'include']),
+      id: z.string(),
+    })),
+    // Resource group
+    z.object({
+      group: z.string(),
+      types: z.array(z.enum(['property', 'dns', 'certificate', 'include'])).optional(),
+    }),
+  ]).optional(),
+  
+  // Deployment options
+  options: z.object({
+    // Target environment
+    network: z.enum(['staging', 'production', 'both']).default('staging'),
+    
+    // Deployment strategy
+    strategy: z.enum([
+      'immediate',      // Deploy now
+      'scheduled',      // Deploy at specific time
+      'maintenance',    // Deploy during maintenance window
+      'canary',         // Gradual rollout
+      'blue-green',     // Blue-green deployment
+    ]).default('immediate'),
+    
+    // Safety options
+    validation: z.object({
+      preCheck: z.boolean().default(true),
+      testTraffic: z.boolean().default(false),
+      requireApproval: z.boolean().default(false),
+      maxRisk: z.enum(['low', 'medium', 'high']).default('medium'),
+    }).optional(),
+    
+    // Rollback options
+    rollback: z.object({
+      automatic: z.boolean().default(true),
+      threshold: z.number().default(5), // Error percentage
+      keepBackup: z.boolean().default(true),
+      window: z.number().default(3600), // Seconds
+    }).optional(),
+    
+    // Scheduling options
+    schedule: z.object({
+      time: z.string().optional(), // ISO datetime
+      timezone: z.string().default('UTC'),
+      maintenanceWindow: z.boolean().default(false),
+      blackoutDates: z.array(z.string()).optional(),
+    }).optional(),
+    
+    // Notifications
+    notifications: z.object({
+      emails: z.array(z.string()).optional(),
+      slack: z.string().optional(),
+      webhook: z.string().optional(),
+      events: z.array(z.enum(['start', 'complete', 'error', 'rollback'])).default(['complete', 'error']),
+    }).optional(),
+    
+    // Coordination options
+    coordination: z.object({
+      parallel: z.boolean().default(false),
+      dependencies: z.array(z.object({
+        from: z.string(),
+        to: z.string(),
+        type: z.enum(['requires', 'blocks']),
+      })).optional(),
+      staggerDelay: z.number().default(300), // Seconds between deployments
+    }).optional(),
+    
+    // Business context
+    businessContext: z.object({
+      reason: z.string().optional(),
+      urgency: z.enum(['low', 'normal', 'high', 'critical']).default('normal'),
+      changeTicket: z.string().optional(),
+      approvedBy: z.string().optional(),
+    }).optional(),
+    
+    // Display options
+    dryRun: z.boolean().default(false),
+    verbose: z.boolean().default(false),
+    format: z.enum(['summary', 'detailed', 'timeline']).default('summary'),
+  }).default({}),
+  
+  // Multi-customer support
+  customer: z.string().optional(),
+});
+
+/**
+ * Deploy Tool Implementation
+ */
+export const deployTool: Tool = {
+  name: 'deploy',
+  description: 'Unified deployment for all resources. Deploy properties, DNS zones, certificates, and more with coordinated workflows and automatic rollback.',
+  inputSchema: {
+    type: 'object',
+    properties: DeployToolSchema.shape,
+    required: ['action'],
+  },
+};
+
+/**
+ * Main handler
+ */
+export async function handleDeployTool(params: z.infer<typeof DeployToolSchema>) {
+  const { action, resources, options, customer } = params;
+  const client = await getAkamaiClient(customer);
+  
+  try {
+    logger.info('Deploy tool request', {
+      action,
+      resourceCount: Array.isArray(resources) ? resources.length : 1,
+      network: options.network,
+      strategy: options.strategy,
+      customer,
+    });
+    
+    switch (action) {
+      case 'deploy':
+        return await handleDeploy(client, resources, options);
+        
+      case 'status':
+        return await handleStatus(client, resources, options);
+        
+      case 'rollback':
+        return await handleRollback(client, resources, options);
+        
+      case 'schedule':
+        return await handleSchedule(client, resources, options);
+        
+      case 'coordinate':
+        return await handleCoordinate(client, resources, options);
+        
+      case 'validate':
+        return await handleValidate(client, resources, options);
+        
+      case 'monitor':
+        return await handleMonitor(client, resources, options);
+        
+      case 'history':
+        return await handleHistory(client, resources, options);
+        
+      default:
+        throw new Error(`Unknown action: ${action}`);
+    }
+  } catch (error) {
+    logger.error('Deploy tool error', { error, action, customer });
+    throw error;
+  }
+}
+
+/**
+ * Deploy resources with intelligent orchestration
+ */
+async function handleDeploy(client: any, resources: any, options: any) {
+  // Normalize resources
+  const deploymentResources = normalizeResources(resources);
+  
+  // Pre-deployment validation
+  if (options.validation?.preCheck) {
+    const validation = await validateDeployment(client, deploymentResources, options);
+    
+    if (!validation.ready) {
+      if (options.dryRun) {
+        return {
+          status: 'dry_run',
+          validation,
+          wouldDeploy: deploymentResources,
+          estimatedTime: estimateDeploymentTime(deploymentResources),
+        };
+      }
+      
+      if (validation.risk === 'high' && options.validation.maxRisk !== 'high') {
+        return {
+          status: 'blocked',
+          reason: 'Deployment risk exceeds threshold',
+          validation,
+          recommendations: validation.recommendations,
+        };
+      }
+    }
+  }
+  
+  // Check for approval if required
+  if (options.validation?.requireApproval && !options.businessContext?.approvedBy) {
+    return {
+      status: 'approval_required',
+      resources: deploymentResources,
+      validation: validation,
+      approvalProcess: generateApprovalProcess(deploymentResources, options),
+    };
+  }
+  
+  // Create deployment plan
+  const deploymentPlan = await createDeploymentPlan(client, deploymentResources, options);
+  
+  // Execute deployment based on strategy
+  let deploymentResult;
+  
+  switch (options.strategy) {
+    case 'immediate':
+      deploymentResult = await executeImmediate(client, deploymentPlan, options);
+      break;
+      
+    case 'scheduled':
+      return await scheduleDeployment(client, deploymentPlan, options);
+      
+    case 'maintenance':
+      return await scheduleMaintenanceDeployment(client, deploymentPlan, options);
+      
+    case 'canary':
+      deploymentResult = await executeCanary(client, deploymentPlan, options);
+      break;
+      
+    case 'blue-green':
+      deploymentResult = await executeBlueGreen(client, deploymentPlan, options);
+      break;
+      
+    default:
+      throw new Error(`Unknown strategy: ${options.strategy}`);
+  }
+  
+  // Set up monitoring
+  if (deploymentResult.status === 'success') {
+    const monitoring = await setupDeploymentMonitoring(
+      client,
+      deploymentResult.deployments,
+      options
+    );
+    
+    deploymentResult.monitoring = monitoring;
+  }
+  
+  // Send notifications
+  await sendDeploymentNotifications(deploymentResult, options);
+  
+  return deploymentResult;
+}
+
+/**
+ * Check deployment status
+ */
+async function handleStatus(client: any, resources: any, options: any) {
+  // Get active deployments
+  const activeDeployments = resources
+    ? await getDeploymentsForResources(client, resources)
+    : await getAllActiveDeployments(client);
+  
+  // Enrich with detailed status
+  const detailedStatus = await Promise.all(
+    activeDeployments.map(async (deployment: any) => {
+      const status = await getDeploymentStatus(client, deployment);
+      const progress = calculateDeploymentProgress(status);
+      const health = await checkDeploymentHealth(client, deployment);
+      
+      return {
+        ...deployment,
+        status,
+        progress,
+        health,
+        estimatedCompletion: estimateCompletion(status, progress),
+        alerts: generateDeploymentAlerts(status, health),
+      };
+    })
+  );
+  
+  // Generate summary
+  const summary = {
+    total: detailedStatus.length,
+    inProgress: detailedStatus.filter(d => d.status.phase === 'deploying').length,
+    completed: detailedStatus.filter(d => d.status.phase === 'completed').length,
+    failed: detailedStatus.filter(d => d.status.phase === 'failed').length,
+    warnings: detailedStatus.filter((d: any) => d.alerts.some((a: any) => a.severity === 'warning')).length,
+  };
+  
+  // Format based on preference
+  const formatted = formatDeploymentStatus(detailedStatus, options.format);
+  
+  return {
+    deployments: formatted,
+    summary,
+    criticalAlerts: detailedStatus
+      .flatMap(d => d.alerts)
+      .filter(a => a.severity === 'critical'),
+    recommendations: generateStatusRecommendations(detailedStatus),
+  };
+}
+
+/**
+ * Rollback deployments
+ */
+async function handleRollback(client: any, resources: any, options: any) {
+  // Identify deployments to rollback
+  const targetDeployments = resources
+    ? await getDeploymentsForResources(client, resources)
+    : await getRecentDeployments(client, options.rollback?.window || 3600);
+  
+  if (targetDeployments.length === 0) {
+    return {
+      status: 'nothing_to_rollback',
+      message: 'No recent deployments found to rollback',
+    };
+  }
+  
+  // Create rollback plan
+  const rollbackPlan = await createRollbackPlan(client, targetDeployments);
+  
+  // Validate rollback safety
+  const validation = await validateRollback(client, rollbackPlan);
+  if (!validation.safe && !options.force) {
+    return {
+      status: 'unsafe_rollback',
+      validation,
+      risks: validation.risks,
+      recommendation: 'Review risks before proceeding',
+    };
+  }
+  
+  // Execute rollback
+  const rollbackResults = [];
+  
+  for (const deployment of rollbackPlan.deployments) {
+    try {
+      const result = await executeRollback(client, deployment, options);
+      rollbackResults.push({
+        deployment: deployment.id,
+        status: 'rolled_back',
+        result,
+        restoredTo: deployment.previousVersion,
+      });
+    } catch (error) {
+      rollbackResults.push({
+        deployment: deployment.id,
+        status: 'rollback_failed',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        manualSteps: generateManualRollbackSteps(deployment),
+      });
+    }
+  }
+  
+  // Verify rollback success
+  const verification = await verifyRollback(client, rollbackResults);
+  
+  return {
+    rollbacks: rollbackResults,
+    verification,
+    summary: {
+      total: rollbackResults.length,
+      successful: rollbackResults.filter(r => r.status === 'rolled_back').length,
+      failed: rollbackResults.filter(r => r.status === 'rollback_failed').length,
+    },
+    nextSteps: generateRollbackNextSteps(rollbackResults, verification),
+  };
+}
+
+/**
+ * Schedule deployments
+ */
+async function handleSchedule(client: any, resources: any, options: any) {
+  if (!options.schedule?.time) {
+    // Interactive scheduling
+    return {
+      status: 'schedule_required',
+      availableWindows: await getAvailableMaintenanceWindows(client),
+      blackoutDates: await getBlackoutDates(client),
+      recommendations: generateSchedulingRecommendations(resources, options),
+    };
+  }
+  
+  // Validate schedule
+  const scheduleValidation = await validateSchedule(options.schedule, options);
+  if (!scheduleValidation.valid) {
+    return {
+      status: 'invalid_schedule',
+      issues: scheduleValidation.issues,
+      suggestions: scheduleValidation.suggestions,
+    };
+  }
+  
+  // Create deployment plan
+  const deploymentPlan = await createDeploymentPlan(client, resources, options);
+  
+  // Schedule deployment
+  const scheduled = await client.scheduleDeployment({
+    plan: deploymentPlan,
+    schedule: options.schedule,
+    notifications: options.notifications,
+    businessContext: options.businessContext,
+  });
+  
+  return {
+    status: 'scheduled',
+    deployment: scheduled,
+    scheduledFor: options.schedule.time,
+    timezone: options.schedule.timezone,
+    estimatedDuration: estimateDeploymentTime(deploymentPlan.resources),
+    notifications: 'You will be notified when deployment begins',
+    cancellation: `To cancel: deploy --action rollback --resources ${scheduled.id}`,
+  };
+}
+
+/**
+ * Coordinate multi-resource deployments
+ */
+async function handleCoordinate(client: any, resources: any, options: any) {
+  if (!Array.isArray(resources) || resources.length < 2) {
+    return {
+      status: 'invalid_request',
+      message: 'Coordination requires multiple resources',
+    };
+  }
+  
+  // Build dependency graph
+  const dependencyGraph = buildDependencyGraph(resources, options.coordination?.dependencies);
+  
+  // Detect circular dependencies
+  const cycles = detectCycles(dependencyGraph);
+  if (cycles.length > 0) {
+    return {
+      status: 'circular_dependencies',
+      cycles,
+      message: 'Cannot deploy due to circular dependencies',
+    };
+  }
+  
+  // Create coordinated deployment plan
+  const coordinatedPlan = createCoordinatedPlan(dependencyGraph, options);
+  
+  // Validate coordination
+  const validation = await validateCoordination(client, coordinatedPlan);
+  if (!validation.feasible) {
+    return {
+      status: 'coordination_issues',
+      validation,
+      conflicts: validation.conflicts,
+      suggestions: await generateCoordinationSuggestions(client, validation),
+    };
+  }
+  
+  // Execute coordinated deployment
+  if (options.dryRun) {
+    return {
+      status: 'dry_run',
+      plan: coordinatedPlan,
+      timeline: await generateDeploymentTimeline(client, coordinatedPlan),
+      estimatedDuration: (await generateDeploymentTimeline(client, coordinatedPlan)).estimatedDuration,
+    };
+  }
+  
+  const coordinationResult = await executeCoordinatedDeployment(
+    client,
+    coordinatedPlan,
+    options
+  );
+  
+  return {
+    status: coordinationResult.status,
+    deployments: coordinationResult.deployments,
+    timeline: coordinationResult.timeline,
+    summary: {
+      total: resources.length,
+      deployed: coordinationResult.deployed,
+      failed: coordinationResult.failed,
+      duration: coordinationResult.duration,
+    },
+    monitoring: coordinationResult.monitoring,
+  };
+}
+
+/**
+ * Validate deployments before execution
+ */
+async function handleValidate(client: any, resources: any, options: any) {
+  const normalizedResources = normalizeResources(resources);
+  
+  // Multi-level validation
+  const validations = await Promise.all([
+    validateResourceReadiness(client, normalizedResources),
+    validateDependencies(client, normalizedResources),
+    validateBusinessRules(client, normalizedResources, options),
+    validateCapacity(client, normalizedResources),
+    validateCompliance(client, normalizedResources),
+  ]);
+  
+  const [readiness, dependencies, businessRules, capacity, compliance] = validations;
+  
+  // Risk assessment
+  const riskAssessment = assessDeploymentRisk(validations);
+  
+  // Generate recommendations
+  const recommendations = generateValidationRecommendations(validations, riskAssessment);
+  
+  // Overall validation result
+  const overallValid = validations.every(v => v.valid);
+  
+  return {
+    valid: overallValid,
+    risk: riskAssessment.level,
+    validations: {
+      readiness,
+      dependencies,
+      businessRules,
+      capacity,
+      compliance,
+    },
+    issues: collectValidationIssues(validations),
+    recommendations,
+    preflightChecklist: generatePreflightChecklist(normalizedResources, validations),
+  };
+}
+
+/**
+ * Monitor active deployments
+ */
+async function handleMonitor(client: any, resources: any, options: any) {
+  // Get deployments to monitor
+  const deployments = resources
+    ? await getDeploymentsForResources(client, resources)
+    : await getAllActiveDeployments(client);
+  
+  // Real-time monitoring data
+  const monitoringData = await Promise.all(
+    deployments.map(async (deployment: any) => {
+      const metrics = await getDeploymentMetrics(client, deployment);
+      const logs = await getDeploymentLogs(client, deployment, { tail: 50 });
+      const alerts = await getDeploymentAlerts(client, deployment);
+      
+      return {
+        deployment,
+        metrics,
+        logs,
+        alerts,
+        health: calculateDeploymentHealth(metrics, alerts),
+        trend: analyzeDeploymentTrend(metrics),
+      };
+    })
+  );
+  
+  // Generate dashboard
+  const dashboard = {
+    overview: generateMonitoringOverview(monitoringData),
+    metrics: aggregateDeploymentMetrics(monitoringData),
+    alerts: prioritizeAlerts(monitoringData.flatMap(m => m.alerts)),
+    predictions: predictDeploymentOutcomes(monitoringData),
+  };
+  
+  // Active issues requiring attention
+  const activeIssues = monitoringData
+    .filter(m => m.health.status === 'unhealthy' || m.alerts.some(a => a.severity === 'critical'))
+    .map(m => ({
+      deployment: m.deployment,
+      issues: m.alerts.filter(a => a.severity === 'critical'),
+      recommendations: generateMonitoringRecommendations(m),
+    }));
+  
+  return {
+    monitoring: options.verbose ? monitoringData : dashboard,
+    activeIssues,
+    autoRollbackCandidates: identifyAutoRollbackCandidates(monitoringData, options),
+    nextCheckIn: calculateNextCheckIn(monitoringData),
+  };
+}
+
+/**
+ * View deployment history
+ */
+async function handleHistory(client: any, resources: any, options: any) {
+  // Get historical deployments
+  const history = resources
+    ? await getDeploymentHistoryForResources(client, resources)
+    : await getAllDeploymentHistory(client, options);
+  
+  // Analyze patterns
+  const analysis = {
+    patterns: analyzeDeploymentPatterns(history),
+    successRate: calculateSuccessRate(history),
+    averageDuration: calculateAverageDuration(history),
+    commonIssues: identifyCommonIssues(history),
+    peakTimes: identifyPeakDeploymentTimes(history),
+  };
+  
+  // Generate insights
+  const insights = generateHistoricalInsights(history, analysis);
+  
+  // Format based on preference
+  const formatted = options.format === 'timeline'
+    ? formatAsTimeline(history)
+    : formatAsTable(history);
+  
+  return {
+    history: formatted,
+    analysis,
+    insights,
+    recommendations: generateHistoricalRecommendations(analysis),
+    export: options.export ? exportHistory(history, options.export) : undefined,
+  };
+}
+
+/**
+ * Deployment Strategies
+ */
+
+async function executeImmediate(client: any, plan: any, options: any) {
+  const deployments = [];
+  const startTime = Date.now();
+  
+  // Deploy in parallel or sequence based on options
+  if (options.coordination?.parallel) {
+    const promises = plan.resources.map(resource =>
+      deployResource(client, resource, options)
+    );
+    
+    const results = await Promise.allSettled(promises);
+    
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        deployments.push({
+          resource: plan.resources[index],
+          status: 'deployed',
+          result: result.value,
+        });
+      } else {
+        deployments.push({
+          resource: plan.resources[index],
+          status: 'failed',
+          error: result.reason,
+        });
+      }
+    });
+  } else {
+    // Sequential deployment with stagger delay
+    for (const resource of plan.resources) {
+      try {
+        const result = await deployResource(client, resource, options);
+        deployments.push({
+          resource,
+          status: 'deployed',
+          result,
+        });
+        
+        // Stagger delay between deployments
+        if (options.coordination?.staggerDelay) {
+          await new Promise(resolve => 
+            setTimeout(resolve, options.coordination.staggerDelay * 1000)
+          );
+        }
+      } catch (error) {
+        deployments.push({
+          resource,
+          status: 'failed',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+        
+        // Stop on first failure unless specified otherwise
+        if (!options.continueOnError) {
+          break;
+        }
+      }
+    }
+  }
+  
+  const duration = Date.now() - startTime;
+  const successCount = deployments.filter(d => d.status === 'deployed').length;
+  
+  return {
+    status: successCount === deployments.length ? 'success' : 'partial',
+    deployments,
+    summary: {
+      total: deployments.length,
+      successful: successCount,
+      failed: deployments.length - successCount,
+      duration: `${Math.round(duration / 1000)}s`,
+    },
+  };
+}
+
+async function executeCanary(client: any, plan: any, options: any) {
+  // Deploy to canary percentage first
+  const canaryPercentage = options.canary?.percentage || 10;
+  const canaryResources = selectCanaryResources(plan.resources, canaryPercentage);
+  
+  // Phase 1: Deploy to canary
+  const canaryResult = await executeImmediate(
+    client,
+    { ...plan, resources: canaryResources },
+    options
+  );
+  
+  if (canaryResult.status !== 'success') {
+    return {
+      status: 'canary_failed',
+      phase: 'canary',
+      result: canaryResult,
+      message: 'Canary deployment failed, aborting full rollout',
+    };
+  }
+  
+  // Monitor canary
+  const monitoringDuration = options.canary?.monitoringDuration || 300; // 5 minutes
+  const canaryHealth = await monitorCanary(client, canaryResult, monitoringDuration);
+  
+  if (!canaryHealth.healthy) {
+    // Rollback canary
+    await executeRollback(client, canaryResult.deployments, options);
+    
+    return {
+      status: 'canary_unhealthy',
+      phase: 'monitoring',
+      health: canaryHealth,
+      message: 'Canary showed issues, rolled back',
+    };
+  }
+  
+  // Phase 2: Full deployment
+  const remainingResources = plan.resources.filter(
+    r => !canaryResources.includes(r)
+  );
+  
+  const fullResult = await executeImmediate(
+    client,
+    { ...plan, resources: remainingResources },
+    options
+  );
+  
+  return {
+    status: fullResult.status,
+    canary: canaryResult,
+    full: fullResult,
+    summary: {
+      total: plan.resources.length,
+      canarySize: canaryResources.length,
+      successful: canaryResult.summary.successful + fullResult.summary.successful,
+    },
+  };
+}
+
+/**
+ * Helper Functions
+ */
+
+function normalizeResources(resources: any): any[] {
+  if (!resources) return [];
+  
+  if (Array.isArray(resources)) {
+    return resources;
+  }
+  
+  if (resources.group) {
+    // Expand group to individual resources
+    return expandResourceGroup(resources);
+  }
+  
+  return [resources];
+}
+
+async function deployResource(client: any, resource: any, options: any) {
+  switch (resource.type) {
+    case 'property':
+      return await client.activateProperty({
+        propertyId: resource.id,
+        network: options.network,
+        note: options.businessContext?.reason,
+      });
+      
+    case 'dns':
+      return await client.activateZone({
+        zone: resource.id,
+        comment: options.businessContext?.reason,
+      });
+      
+    case 'certificate':
+      return await client.deployCertificate({
+        enrollmentId: resource.id,
+        network: options.network,
+      });
+      
+    default:
+      throw new Error(`Unknown resource type: ${resource.type}`);
+  }
+}
+
+function estimateDeploymentTime(resources: any[]): string {
+  const baseTime = 300; // 5 minutes base
+  const perResourceTime = 120; // 2 minutes per resource
+  
+  const totalSeconds = baseTime + (resources.length * perResourceTime);
+  const minutes = Math.ceil(totalSeconds / 60);
+  
+  if (minutes < 60) {
+    return `${minutes} minutes`;
+  } else {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}h ${remainingMinutes}m`;
+  }
+}
+
+function buildDependencyGraph(resources: any[], dependencies: any[]): any {
+  const graph = {
+    nodes: resources.map(r => ({ id: r.id, resource: r })),
+    edges: [],
+  };
+  
+  if (dependencies) {
+    graph.edges = dependencies;
+  }
+  
+  return graph;
+}
+
+function detectCycles(graph: any): any[] {
+  // Simple cycle detection - in real implementation would use proper algorithm
+  const cycles = [];
+  
+  // Check for direct cycles
+  graph.edges.forEach(edge => {
+    const reverse = graph.edges.find(
+      e => e.from === edge.to && e.to === edge.from
+    );
+    if (reverse) {
+      cycles.push([edge.from, edge.to]);
+    }
+  });
+  
+  return cycles;
+}
+
+/**
+ * Export for use in workflow assistants
+ */
+export default handleDeployTool;

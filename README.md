@@ -122,32 +122,111 @@ properties, DNS, certificates, security, and performance optimization.
 - **Template System**: Reusable configurations with intelligent defaults
 - **API-First Design**: REST and GraphQL endpoints with OpenAPI documentation
 
-## Installation
+## 🚀 Quick Start
 
-### Quick Start (Interactive Mode) 🚀
+Get ALECS running in under 5 minutes!
+
+### Prerequisites
+- Node.js 18+ installed ([download here](https://nodejs.org/))
+- Akamai credentials (get them from [Akamai Control Center](https://control.akamai.com))
+
+### Installation
 
 ```bash
-# Clone and install
+# Clone the repository
 git clone https://github.com/acedergren/alecs-mcp-server-akamai.git
 cd alecs-mcp-server-akamai
-npm install
-npm run build
 
-# Start with interactive mode (recommended)
-npm start
+# Run the automated installer
+./install.sh
 ```
 
-The interactive mode will guide you through:
+The installer will:
+✅ Check prerequisites  
+✅ Install dependencies  
+✅ Set up credential templates  
+✅ Build the project  
+✅ Help you choose how to run ALECS  
 
-- Selecting which services to run (Property, DNS, Certificates, Security, Reporting)
-- Configuring your `.edgerc` path
-- Choosing the appropriate server configuration
+### Running ALECS
 
-### NPM Package Installation
+#### Option 1: Docker (Recommended) 🐳
 
 ```bash
-npm install alecs-mcp-server-akamai
+# Start with Docker Compose
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop
+docker-compose down
 ```
+
+#### Option 2: Direct Node.js
+
+```bash
+# Interactive mode (recommended for first time)
+npm start
+
+# Or run specific servers
+npm run start:full         # All tools
+npm run start:websocket    # WebSocket server (for remote access)
+npm run start:property     # Property management only
+```
+
+#### Option 3: Remote Access Servers
+
+Enable remote access to ALECS via WebSocket or SSE/HTTP:
+
+**WebSocket Server** (Recommended for real-time bidirectional communication):
+```bash
+# Start the WebSocket server
+npm run start:websocket
+
+# Or with PM2 for production
+npm run deploy:websocket
+```
+
+**SSE/HTTP Server** (MCP Streamable HTTP transport):
+```bash
+# Start the SSE server
+npm run start:sse
+
+# Or with PM2 for production
+npm run deploy:sse
+```
+
+Both servers support:
+- Secure token-based authentication
+- Multiple concurrent clients
+- Full MCP protocol implementation
+- SSL/TLS support (configure via environment variables)
+
+Generate an API token for either server:
+```bash
+npm run generate-token
+```
+
+#### Option 4: Claude Desktop Integration
+
+For local Claude Desktop integration:
+
+```bash
+# Option A: Direct stdio connection (local only)
+cp claude_desktop_config.json ~/Library/Application\ Support/Claude/  # macOS
+cp claude_desktop_config.json %APPDATA%\Claude\  # Windows
+cp claude_desktop_config.json ~/.config/claude/  # Linux
+
+# Option B: WebSocket connection (local or remote)
+# See the WebSocket Integration section below
+```
+
+### First Steps
+
+1. **Update credentials**: Edit `~/.edgerc` with your Akamai credentials
+2. **Test connection**: Run a simple command to verify setup
+3. **Explore tools**: Use `npm start` to see available tools interactively
 
 ## Configuration
 
@@ -650,6 +729,221 @@ src/
 - **mPulse**: Pull data RUM (Real User Monitoring) API integration
 - **Property activation diffing**: Compare versions before activation
 - **Terraform Export**: Generate Terraform configurations from existing properties
+
+## 🌐 Remote Access Integration
+
+ALECS supports multiple transport protocols for remote access, allowing you to run the server on one machine and connect from Claude Desktop on another.
+
+### Transport Options
+
+1. **WebSocket** - Best for real-time, bidirectional communication
+2. **SSE/HTTP** - MCP standard Streamable HTTP transport (compatible with more clients)
+
+### Setting Up WebSocket Server
+
+1. **Start the WebSocket Server**:
+   ```bash
+   # Development mode
+   npm run start:websocket
+   
+   # Production mode with PM2
+   npm run deploy:websocket
+   ```
+
+2. **Generate Authentication Token**:
+   ```bash
+   # Generate a new API token
+   npm run generate-token
+   # Save the token - it won't be shown again!
+   ```
+
+3. **Configure Environment** (optional):
+   ```bash
+   # Create .env file
+   cat > .env << EOF
+   ALECS_WS_PORT=8082
+   ALECS_WS_HOST=0.0.0.0
+   ALECS_WS_PATH=/mcp
+   TOKEN_MASTER_KEY=your-secret-master-key
+   EOF
+   ```
+
+### Connecting Claude Desktop via WebSocket
+
+#### Method 1: WebSocket Client Bridge (Recommended)
+
+1. **Install the WebSocket client**:
+   ```bash
+   # On the machine running Claude Desktop
+   git clone https://github.com/acedergren/alecs-mcp-server-akamai.git
+   cd alecs-mcp-server-akamai
+   npm install ws
+   ```
+
+2. **Configure Claude Desktop**:
+   ```json
+   {
+     "mcpServers": {
+       "alecs-akamai": {
+         "command": "node",
+         "args": ["/path/to/alecs-mcp-server-akamai/websocket-client.js"],
+         "env": {
+           "ALECS_WS_URL": "ws://your-server:8082/mcp",
+           "ALECS_TOKEN": "your-generated-token"
+         }
+       }
+     }
+   }
+   ```
+
+#### Method 2: Direct WebSocket (if supported by Claude Desktop)
+
+```json
+{
+  "mcpServers": {
+    "alecs-akamai": {
+      "transport": "websocket",
+      "url": "ws://your-server:8082/mcp",
+      "headers": {
+        "Authorization": "Bearer your-generated-token"
+      }
+    }
+  }
+}
+```
+
+#### Method 3: Docker Client
+
+```json
+{
+  "mcpServers": {
+    "alecs-akamai": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "--env", "ALECS_WS_URL=ws://your-server:8082/mcp",
+        "--env", "ALECS_TOKEN=your-generated-token",
+        "alecs-mcp-client"
+      ]
+    }
+  }
+}
+```
+
+### Secure WebSocket (WSS) with HTTPS
+
+For production environments, use secure WebSocket connections:
+
+1. **Configure SSL in environment**:
+   ```bash
+   ALECS_SSL_CERT=/path/to/cert.pem
+   ALECS_SSL_KEY=/path/to/key.pem
+   ```
+
+2. **Or use reverse proxy** (nginx example):
+   ```nginx
+   location /mcp {
+       proxy_pass http://localhost:8082;
+       proxy_http_version 1.1;
+       proxy_set_header Upgrade $http_upgrade;
+       proxy_set_header Connection "upgrade";
+       proxy_set_header Authorization $http_authorization;
+   }
+   ```
+
+3. **Update Claude Desktop config**:
+   ```json
+   {
+     "env": {
+       "ALECS_WS_URL": "wss://your-domain.com/mcp",
+       "ALECS_TOKEN": "your-generated-token"
+     }
+   }
+   ```
+
+### Managing API Tokens
+
+```bash
+# List all tokens
+echo '{"tool": "list-api-tokens"}' | npm run tool
+
+# Revoke a token
+echo '{"tool": "revoke-api-token", "args": {"tokenId": "tok_xxx"}}' | npm run tool
+
+# Validate a token
+echo '{"tool": "validate-api-token", "args": {"token": "your-token"}}' | npm run tool
+```
+
+### WebSocket Troubleshooting
+
+1. **Connection refused**:
+   - Check firewall: `sudo ufw allow 8082` (Ubuntu/Debian)
+   - Verify server is running: `pm2 status`
+   - Check logs: `pm2 logs mcp-akamai-websocket`
+
+2. **Authentication failed**:
+   - Verify token is correct
+   - Check token hasn't expired
+   - Ensure Authorization header is being sent
+
+3. **Connection drops**:
+   - Check network stability
+   - Increase timeout in environment variables
+   - Enable keepalive in WebSocket client
+
+4. **SSL/TLS issues**:
+   - Verify certificate paths
+   - Check certificate validity
+   - Ensure intermediate certificates are included
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### Build Errors
+```bash
+# If you see TypeScript errors during build
+npm run build:dev  # Builds without strict type checking
+
+# Clean rebuild
+npm run clean
+npm run build
+```
+
+#### Authentication Issues
+- **"Invalid credentials"**: Check your `.edgerc` file format and credentials
+- **"Permission denied"**: Ensure your API credentials have the required permissions
+- **"Account not found"**: Verify the account switch key format
+
+#### WebSocket Connection Issues
+- **Port already in use**: Kill existing process or use a different port
+  ```bash
+  lsof -i :8082  # Find process using port
+  kill <PID>     # Kill the process
+  ```
+- **Connection refused**: Check firewall settings and ensure server is running
+
+#### Docker Issues
+- **"Cannot connect to Docker daemon"**: Ensure Docker Desktop is running
+- **Volume mount errors**: Check file permissions and paths in docker-compose.yml
+
+### Debug Mode
+
+Enable debug logging for more information:
+```bash
+ALECS_LOG_LEVEL=debug npm start
+```
+
+### Getting Help
+
+1. Check the [Wiki](https://github.com/acedergren/alecs-mcp-server-akamai/wiki) for detailed guides
+2. Search [existing issues](https://github.com/acedergren/alecs-mcp-server-akamai/issues)
+3. Join our [Discussions](https://github.com/acedergren/alecs-mcp-server-akamai/discussions)
+4. Open a new issue with:
+   - Your environment (OS, Node version)
+   - Steps to reproduce
+   - Error messages/logs
+   - Expected vs actual behavior
 
 ## Contributing
 

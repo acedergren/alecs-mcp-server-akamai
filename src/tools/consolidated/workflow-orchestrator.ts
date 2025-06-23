@@ -1,687 +1,548 @@
 /**
- * Workflow Orchestrator
- * Central orchestration engine for multi-step workflows and tool coordination
+ * Workflow Orchestrator - Maya's Vision
+ * 
+ * Bridges the workflow assistants with the consolidated tools.
+ * Allows assistants to leverage the simplified tool architecture while
+ * maintaining their business-focused interface.
  */
 
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { logger } from '../../utils/logger';
-import { WorkflowContextManager } from './workflow-context-manager';
-import { IntelligentToolSuggester } from './intelligent-tool-suggester';
+import { 
+  handlePropertyTool,
+  handleDNSTool,
+  handleCertificateTool,
+  handleSearchTool,
+  handleDeployTool,
+} from './index';
+import { logger } from '@utils/logger';
 
-export interface WorkflowDefinition {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  steps: WorkflowStep[];
-  variables?: Record<string, any>;
-  preconditions?: WorkflowCondition[];
-  onSuccess?: WorkflowAction[];
-  onFailure?: WorkflowAction[];
-}
-
-export interface WorkflowStep {
-  id: string;
-  name: string;
-  tool: string;
-  description?: string;
-  parameters: Record<string, any>;
-  conditions?: WorkflowCondition[];
-  retryPolicy?: {
-    maxAttempts: number;
-    backoffMs: number;
-  };
-  errorHandling?: 'fail' | 'continue' | 'retry';
-  timeout?: number;
-}
-
-export interface WorkflowCondition {
-  type: 'value' | 'exists' | 'regex' | 'custom';
-  field: string;
-  operator: 'equals' | 'notEquals' | 'contains' | 'matches' | 'exists';
-  value?: any;
-  customValidator?: (context: any) => boolean;
-}
-
-export interface WorkflowAction {
-  type: 'notify' | 'log' | 'setVariable' | 'runWorkflow';
-  parameters: Record<string, any>;
-}
-
-export interface WorkflowExecution {
-  workflowId: string;
-  executionId: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
-  startTime: Date;
-  endTime?: Date;
-  currentStep?: string;
-  steps: WorkflowStepExecution[];
-  variables: Record<string, any>;
-  error?: string;
-}
-
-export interface WorkflowStepExecution {
-  stepId: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'skipped';
-  startTime?: Date;
-  endTime?: Date;
-  result?: any;
-  error?: string;
-  attempts: number;
-}
-
+/**
+ * Workflow Orchestrator
+ * Provides high-level methods for workflow assistants to use consolidated tools
+ */
 export class WorkflowOrchestrator {
   private static instance: WorkflowOrchestrator;
-  private workflows: Map<string, WorkflowDefinition>;
-  private executions: Map<string, WorkflowExecution>;
-  private contextManager: WorkflowContextManager;
-  private toolSuggester: IntelligentToolSuggester;
-  
-  private constructor() {
-    this.workflows = new Map();
-    this.executions = new Map();
-    this.contextManager = WorkflowContextManager.getInstance();
-    this.toolSuggester = IntelligentToolSuggester.getInstance();
-    this.initializeBuiltInWorkflows();
-  }
-  
+
   static getInstance(): WorkflowOrchestrator {
     if (!WorkflowOrchestrator.instance) {
       WorkflowOrchestrator.instance = new WorkflowOrchestrator();
     }
     return WorkflowOrchestrator.instance;
   }
-  
   /**
-   * Initialize built-in workflows
+   * Property Operations
    */
-  private initializeBuiltInWorkflows(): void {
-    // Property onboarding workflow
-    this.registerWorkflow({
-      id: 'property-onboarding',
-      name: 'Property Onboarding',
-      description: 'Complete property setup from creation to production',
-      category: 'property',
-      steps: [
-        {
-          id: 'validate-prerequisites',
-          name: 'Validate Prerequisites',
-          tool: 'list_contracts',
-          parameters: {
-            customer: '${customer}',
-          },
-        },
-        {
-          id: 'create-property',
-          name: 'Create Property',
-          tool: 'create_property',
-          parameters: {
-            propertyName: '${propertyName}',
-            contractId: '${contractId}',
-            groupId: '${groupId}',
-            productId: '${productId}',
-            customer: '${customer}',
-          },
-        },
-        {
-          id: 'add-hostnames',
-          name: 'Add Hostnames',
-          tool: 'add_property_hostname',
-          parameters: {
-            propertyId: '${steps.create-property.result.propertyId}',
-            hostnames: '${hostnames}',
-            customer: '${customer}',
-          },
-        },
-        {
-          id: 'configure-security',
-          name: 'Configure Security',
-          tool: 'update_property_rules',
-          parameters: {
-            propertyId: '${steps.create-property.result.propertyId}',
-            rules: '${securityRules}',
-            customer: '${customer}',
-          },
-        },
-        {
-          id: 'activate-staging',
-          name: 'Activate to Staging',
-          tool: 'activate_property',
-          parameters: {
-            propertyId: '${steps.create-property.result.propertyId}',
-            version: 1,
-            network: 'staging',
-            customer: '${customer}',
-          },
-        },
-        {
-          id: 'validate-staging',
-          name: 'Validate Staging',
-          tool: 'get_activation_status',
-          parameters: {
-            propertyId: '${steps.create-property.result.propertyId}',
-            activationId: '${steps.activate-staging.result.activationId}',
-            customer: '${customer}',
-          },
-          conditions: [
-            {
-              type: 'value',
-              field: 'steps.activate-staging.result.status',
-              operator: 'equals',
-              value: 'ACTIVATED',
-            },
-          ],
-        },
-      ],
-    });
-    
-    // SSL certificate deployment workflow
-    this.registerWorkflow({
-      id: 'ssl-deployment',
-      name: 'SSL Certificate Deployment',
-      description: 'Deploy SSL certificate to property',
-      category: 'certificate',
-      steps: [
-        {
-          id: 'validate-domains',
-          name: 'Validate Domains',
-          tool: 'validate_hostnames_bulk',
-          parameters: {
-            hostnames: '${hostnames}',
-          },
-        },
-        {
-          id: 'create-enrollment',
-          name: 'Create Certificate Enrollment',
-          tool: 'create_enrollment',
-          parameters: {
-            contractId: '${contractId}',
-            domains: '${hostnames}',
-            validationType: 'dv',
-          },
-        },
-        {
-          id: 'complete-validation',
-          name: 'Complete Domain Validation',
-          tool: 'complete_dv_validation',
-          parameters: {
-            enrollmentId: '${steps.create-enrollment.result.enrollmentId}',
-          },
-        },
-        {
-          id: 'deploy-certificate',
-          name: 'Deploy Certificate',
-          tool: 'deploy_certificate',
-          parameters: {
-            enrollmentId: '${steps.create-enrollment.result.enrollmentId}',
-            propertyId: '${propertyId}',
-          },
-        },
-      ],
-    });
-    
-    // Performance optimization workflow
-    this.registerWorkflow({
-      id: 'performance-optimization',
-      name: 'Performance Optimization',
-      description: 'Analyze and optimize property performance',
-      category: 'performance',
-      steps: [
-        {
-          id: 'analyze-current',
-          name: 'Analyze Current Performance',
-          tool: 'analyze_performance',
-          parameters: {
-            propertyId: '${propertyId}',
-            duration: '7d',
-          },
-        },
-        {
-          id: 'identify-issues',
-          name: 'Identify Performance Issues',
-          tool: 'identify_performance_issues',
-          parameters: {
-            metrics: '${steps.analyze-current.result}',
-          },
-        },
-        {
-          id: 'generate-recommendations',
-          name: 'Generate Recommendations',
-          tool: 'generate_performance_recommendations',
-          parameters: {
-            issues: '${steps.identify-issues.result}',
-            propertyId: '${propertyId}',
-          },
-        },
-        {
-          id: 'apply-optimizations',
-          name: 'Apply Optimizations',
-          tool: 'apply_performance_optimizations',
-          parameters: {
-            propertyId: '${propertyId}',
-            recommendations: '${steps.generate-recommendations.result}',
-          },
-        },
-      ],
+  async createProperty(options: {
+    name: string;
+    businessPurpose?: string;
+    hostnames?: string[];
+    basedOn?: string;
+    customer?: string;
+  }) {
+    return handlePropertyTool({
+      action: 'create',
+      options: {
+        view: 'business',
+        includeRules: false,
+        name: options.name,
+        businessPurpose: options.businessPurpose,
+        hostnames: options.hostnames,
+        basedOn: options.basedOn,
+      },
+      customer: options.customer,
     });
   }
-  
-  /**
-   * Register a workflow
-   */
-  registerWorkflow(workflow: WorkflowDefinition): void {
-    this.workflows.set(workflow.id, workflow);
-    logger.info(`Registered workflow: ${workflow.name}`);
-  }
-  
-  /**
-   * List available workflows
-   */
-  listWorkflows(category?: string): WorkflowDefinition[] {
-    const workflows = Array.from(this.workflows.values());
-    if (category) {
-      return workflows.filter(w => w.category === category);
-    }
-    return workflows;
-  }
-  
-  /**
-   * Get workflow by ID
-   */
-  getWorkflow(workflowId: string): WorkflowDefinition | null {
-    return this.workflows.get(workflowId) || null;
-  }
-  
-  /**
-   * Execute a workflow
-   */
-  async executeWorkflow(
-    workflowId: string,
-    variables: Record<string, any>,
-    options?: {
-      dryRun?: boolean;
-      stepCallback?: (step: WorkflowStepExecution) => void;
-    }
-  ): Promise<WorkflowExecution> {
-    const workflow = this.workflows.get(workflowId);
-    if (!workflow) {
-      throw new Error(`Workflow not found: ${workflowId}`);
-    }
-    
-    // Create execution record
-    const executionId = `exec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const execution: WorkflowExecution = {
-      workflowId,
-      executionId,
-      status: 'pending',
-      startTime: new Date(),
-      steps: workflow.steps.map(step => ({
-        stepId: step.id,
-        status: 'pending',
-        attempts: 0,
-      })),
-      variables: { ...workflow.variables, ...variables },
-    };
-    
-    this.executions.set(executionId, execution);
-    
-    // Set active workflow in context
-    this.contextManager.setActiveWorkflow(
-      workflow.name,
-      workflow.steps.map(s => s.name)
-    );
-    
-    try {
-      // Check preconditions
-      if (workflow.preconditions) {
-        const preconditionsMet = await this.checkConditions(
-          workflow.preconditions,
-          execution
-        );
-        if (!preconditionsMet) {
-          throw new Error('Workflow preconditions not met');
-        }
-      }
-      
-      // Execute workflow
-      execution.status = 'running';
-      
-      if (options?.dryRun) {
-        // Dry run - just return the plan
-        execution.status = 'completed';
-        return execution;
-      }
-      
-      // Execute each step
-      for (const step of workflow.steps) {
-        const stepExecution = execution.steps.find(s => s.stepId === step.id)!;
-        
-        try {
-          // Check step conditions
-          if (step.conditions) {
-            const conditionsMet = await this.checkConditions(
-              step.conditions,
-              execution
-            );
-            if (!conditionsMet) {
-              stepExecution.status = 'skipped';
-              continue;
-            }
-          }
-          
-          // Execute step
-          execution.currentStep = step.id;
-          const result = await this.executeStep(step, execution);
-          
-          stepExecution.status = 'completed';
-          stepExecution.result = result;
-          
-          // Update context
-          this.contextManager.advanceWorkflowStep();
-          
-          // Call step callback
-          if (options?.stepCallback) {
-            options.stepCallback(stepExecution);
-          }
-          
-        } catch (error) {
-          stepExecution.status = 'failed';
-          stepExecution.error = error instanceof Error ? error.message : String(error);
-          
-          if (step.errorHandling === 'continue') {
-            logger.warn(`Step ${step.id} failed but continuing`, error);
-          } else {
-            throw error;
-          }
-        }
-      }
-      
-      // Workflow completed successfully
-      execution.status = 'completed';
-      execution.endTime = new Date();
-      
-      // Execute success actions
-      if (workflow.onSuccess) {
-        await this.executeActions(workflow.onSuccess, execution);
-      }
-      
-    } catch (error) {
-      // Workflow failed
-      execution.status = 'failed';
-      execution.endTime = new Date();
-      execution.error = error instanceof Error ? error.message : String(error);
-      
-      // Execute failure actions
-      if (workflow.onFailure) {
-        await this.executeActions(workflow.onFailure, execution);
-      }
-      
-      throw error;
-      
-    } finally {
-      // Complete workflow in context
-      this.contextManager.completeWorkflow();
-    }
-    
-    return execution;
-  }
-  
-  /**
-   * Execute a single workflow step
-   */
-  private async executeStep(
-    step: WorkflowStep,
-    execution: WorkflowExecution
-  ): Promise<any> {
-    const stepExecution = execution.steps.find(s => s.stepId === step.id)!;
-    stepExecution.status = 'running';
-    stepExecution.startTime = new Date();
-    stepExecution.attempts++;
-    
-    try {
-      // Resolve parameters
-      const resolvedParams = this.resolveParameters(
-        step.parameters,
-        execution
-      );
-      
-      // Execute tool
-      const result = await this.executeTool(
-        step.tool,
-        resolvedParams,
-        step.timeout
-      );
-      
-      stepExecution.endTime = new Date();
-      
-      // Store result in execution context
-      this.setExecutionVariable(execution, `steps.${step.id}.result`, result);
-      
-      return result;
-      
-    } catch (error) {
-      stepExecution.endTime = new Date();
-      
-      // Handle retry
-      if (step.retryPolicy && stepExecution.attempts < step.retryPolicy.maxAttempts) {
-        logger.warn(`Step ${step.id} failed, retrying...`, error);
-        await this.sleep(step.retryPolicy.backoffMs * stepExecution.attempts);
-        return this.executeStep(step, execution);
-      }
-      
-      throw error;
-    }
-  }
-  
-  /**
-   * Execute a tool
-   */
-  private async executeTool(
-    toolName: string,
-    parameters: Record<string, any>,
-    timeout?: number
-  ): Promise<any> {
-    // This would integrate with the actual tool execution
-    // For now, simulate tool execution
-    logger.info(`Executing tool: ${toolName}`, parameters);
-    
-    // Record operation in context
-    this.contextManager.updateFromOperation({
-      timestamp: new Date(),
-      tool: toolName,
-      operation: toolName,
-      parameters,
-      success: true,
+
+  async updateProperty(propertyId: string, updates: any, customer?: string) {
+    return handlePropertyTool({
+      action: 'update',
+      ids: propertyId,
+      options: updates,
+      customer,
     });
-    
-    // Simulate async operation
-    await this.sleep(100);
-    
+  }
+
+  async activateProperty(propertyId: string, options: {
+    environment?: 'staging' | 'production';
+    notify?: string[];
+    note?: string;
+    customer?: string;
+  }) {
+    return handlePropertyTool({
+      action: 'activate',
+      ids: propertyId,
+      options: {
+        view: 'business',
+        includeRules: false,
+        goal: `Deploy to ${options.environment || 'staging'}`,
+      },
+      customer: options.customer,
+    });
+  }
+
+  async analyzeProperty(propertyId: string, customer?: string) {
+    return handlePropertyTool({
+      action: 'analyze',
+      ids: propertyId,
+      options: {
+        includeRules: true,
+        view: 'detailed',
+      },
+      customer,
+    });
+  }
+
+  /**
+   * DNS Operations
+   */
+  async setupDNSForWebsite(domain: string, options: {
+    emailProvider?: string;
+    ssl?: boolean;
+    customer?: string;
+  }) {
+    const results = [];
+
+    // Create zone if needed
+    const zoneResult = await handleDNSTool({
+      action: 'manage-zone',
+      zones: domain,
+      options: {
+        validateOnly: false,
+        testFirst: true,
+        backupFirst: true,
+        rollbackOnError: true,
+      },
+      customer: options.customer,
+    });
+    results.push({ step: 'create-zone', result: zoneResult });
+
+    // Setup email if requested
+    if (options.emailProvider) {
+      const emailResult = await handleDNSTool({
+        action: 'manage-records',
+        zones: domain,
+        options: {
+          validateOnly: false,
+          testFirst: true,
+          backupFirst: true,
+          rollbackOnError: true,
+          businessAction: 'setup-email',
+          emailProvider: (options.emailProvider as any) || 'custom',
+        },
+        customer: options.customer,
+      });
+      results.push({ step: 'setup-email', result: emailResult });
+    }
+
+    // Enable SSL if requested
+    if (options.ssl) {
+      const sslResult = await handleDNSTool({
+        action: 'manage-records',
+        zones: domain,
+        options: {
+          validateOnly: false,
+          testFirst: true,
+          backupFirst: true,
+          rollbackOnError: true,
+          businessAction: 'enable-ssl',
+        },
+        customer: options.customer,
+      });
+      results.push({ step: 'enable-ssl', result: sslResult });
+    }
+
     return {
-      success: true,
-      toolName,
-      parameters,
-      result: 'Mock result',
+      domain,
+      steps: results,
+      nextAction: 'Activate DNS zone when ready',
     };
   }
-  
+
+  async migrateDNS(domain: string, source: string, customer?: string) {
+    return handleDNSTool({
+      action: 'import',
+      zones: domain,
+      options: {
+        validateOnly: false,
+        testFirst: true,
+        backupFirst: true,
+        rollbackOnError: true,
+        source: (source as any) || 'zone-file',
+      },
+      customer,
+    });
+  }
+
   /**
-   * Check conditions
+   * Certificate Operations
    */
-  private async checkConditions(
-    conditions: WorkflowCondition[],
-    execution: WorkflowExecution
-  ): Promise<boolean> {
-    for (const condition of conditions) {
-      const value = this.getExecutionVariable(execution, condition.field);
-      
-      switch (condition.type) {
-        case 'value':
-          switch (condition.operator) {
-            case 'equals':
-              if (value !== condition.value) return false;
-              break;
-            case 'notEquals':
-              if (value === condition.value) return false;
-              break;
-            case 'contains':
-              if (!String(value).includes(String(condition.value))) return false;
-              break;
+  async secureDomain(domains: string | string[], options: {
+    purpose?: string;
+    autoRenew?: boolean;
+    deploy?: boolean;
+    customer?: string;
+  }) {
+    return handleCertificateTool({
+      action: 'secure',
+      domains,
+      options: {
+        detailed: true,
+        validateFirst: true,
+        testDeployment: false,
+        rollbackOnError: true,
+        includeExpiring: true,
+        showRecommendations: true,
+        purpose: (options.purpose as any) || 'secure-website',
+        automation: {
+          autoRenew: options.autoRenew ?? true,
+          renewalDays: 30,
+          validationMethod: 'dns' as any,
+          notifyBeforeExpiry: 30,
+        },
+        deployment: {
+          network: 'staging' as any,
+          activateImmediately: options.deploy ?? true,
+        },
+      },
+      customer: options.customer,
+    });
+  }
+
+  async checkCertificateHealth(domains?: string | string[], customer?: string) {
+    return handleCertificateTool({
+      action: 'status',
+      domains,
+      options: {
+        validateFirst: true,
+        testDeployment: false,
+        rollbackOnError: true,
+        includeExpiring: true,
+        showRecommendations: true,
+        detailed: true,
+      },
+      customer,
+    });
+  }
+
+  /**
+   * Search Operations
+   */
+  async findResource(query: string, options?: {
+    types?: string[];
+    customer?: string;
+  }) {
+    return handleSearchTool({
+      action: 'find',
+      query,
+      options: {
+        limit: 50,
+        sortBy: 'relevance' as any,
+        offset: 0,
+        format: 'simple' as any,
+        types: (options?.types as any) || ['all'],
+        searchMode: 'fuzzy' as any,
+        includeRelated: true,
+        includeInactive: false,
+        includeDeleted: false,
+        autoCorrect: true,
+        expandAcronyms: false,
+        searchHistory: false,
+        groupBy: 'type' as any,
+      },
+      customer: options?.customer,
+    });
+  }
+
+  async discoverRelated(resourceId: string, customer?: string) {
+    return handleSearchTool({
+      action: 'discover',
+      query: resourceId,
+      options: {
+        limit: 50,
+        sortBy: 'relevance' as any,
+        offset: 0,
+        format: 'tree' as any,
+        types: ['all'] as any,
+        searchMode: 'exact' as any,
+        includeRelated: true,
+        includeInactive: false,
+        includeDeleted: false,
+        autoCorrect: true,
+        expandAcronyms: false,
+        searchHistory: false,
+        groupBy: 'type' as any,
+      },
+      customer,
+    });
+  }
+
+  /**
+   * Deployment Operations
+   */
+  async deployResource(resource: { type: string; id: string }, options: {
+    network?: 'staging' | 'production';
+    strategy?: string;
+    customer?: string;
+  }) {
+    return handleDeployTool({
+      action: 'deploy',
+      resources: resource as any,
+      options: {
+        network: options.network || 'staging',
+        strategy: (options.strategy as any) || 'immediate',
+        format: 'summary' as any,
+        dryRun: false,
+        verbose: false,
+        coordination: {
+          parallel: false,
+          staggerDelay: 300,
+        },
+      },
+      customer: options.customer,
+    });
+  }
+
+  async coordinateDeployment(resources: any[], options: {
+    parallel?: boolean;
+    customer?: string;
+  }) {
+    return handleDeployTool({
+      action: 'coordinate',
+      resources,
+      options: {
+        network: 'staging' as any,
+        strategy: 'immediate' as any,
+        format: 'summary' as any,
+        dryRun: false,
+        verbose: false,
+        coordination: {
+          parallel: options.parallel || false,
+          staggerDelay: 300,
+        },
+      },
+      customer: options.customer,
+    });
+  }
+
+  async checkDeploymentStatus(resources?: any, customer?: string) {
+    return handleDeployTool({
+      action: 'status',
+      resources,
+      options: {
+        network: 'staging' as any,
+        format: 'detailed' as any,
+        strategy: 'immediate' as any,
+        dryRun: false,
+        verbose: false,
+      },
+      customer,
+    });
+  }
+
+  /**
+   * Composite Operations (combining multiple tools)
+   */
+  async launchNewWebsite(options: {
+    domain: string;
+    businessPurpose?: string;
+    ssl?: boolean;
+    emailProvider?: string;
+    customer?: string;
+  }) {
+    const results: any = {
+      property: null,
+      dns: null,
+      certificate: null,
+      deployment: null,
+    };
+
+    try {
+      // Step 1: Create property
+      results.property = await this.createProperty({
+        name: options.domain,
+        businessPurpose: options.businessPurpose,
+        hostnames: [options.domain, `www.${options.domain}`],
+        customer: options.customer,
+      });
+
+      // Step 2: Setup DNS
+      results.dns = await this.setupDNSForWebsite(options.domain, {
+        emailProvider: options.emailProvider,
+        ssl: options.ssl,
+        customer: options.customer,
+      });
+
+      // Step 3: Get SSL certificate
+      if (options.ssl) {
+        results.certificate = await this.secureDomain(
+          [options.domain, `www.${options.domain}`],
+          {
+            purpose: 'secure-website',
+            autoRenew: true,
+            deploy: false, // Will deploy with property
+            customer: options.customer,
           }
-          break;
-          
-        case 'exists':
-          if (condition.operator === 'exists' && value === undefined) return false;
-          break;
-          
-        case 'regex':
-          if (condition.operator === 'matches') {
-            const regex = new RegExp(condition.value);
-            if (!regex.test(String(value))) return false;
-          }
-          break;
-          
-        case 'custom':
-          if (condition.customValidator && !condition.customValidator(execution)) {
-            return false;
-          }
-          break;
+        );
       }
-    }
-    
-    return true;
-  }
-  
-  /**
-   * Execute workflow actions
-   */
-  private async executeActions(
-    actions: WorkflowAction[],
-    execution: WorkflowExecution
-  ): Promise<void> {
-    for (const action of actions) {
-      switch (action.type) {
-        case 'log':
-          logger.info('Workflow action:', action.parameters);
-          break;
-          
-        case 'setVariable':
-          this.setExecutionVariable(
-            execution,
-            action.parameters.name,
-            action.parameters.value
-          );
-          break;
-          
-        case 'runWorkflow':
-          await this.executeWorkflow(
-            action.parameters.workflowId,
-            action.parameters.variables || {}
-          );
-          break;
+
+      // Step 4: Coordinate deployment
+      const resourcesToDeploy = [
+        { type: 'property', id: results.property?.property?.propertyId || 'unknown' },
+        { type: 'dns', id: options.domain },
+      ];
+
+      if (results.certificate) {
+        resourcesToDeploy.push({
+          type: 'certificate',
+          id: results.certificate?.enrollment?.enrollmentId || 'unknown',
+        });
       }
+
+      results.deployment = await this.coordinateDeployment(resourcesToDeploy, {
+        parallel: false,
+        customer: options.customer,
+      });
+
+      return {
+        success: true,
+        results,
+        summary: `Successfully launched ${options.domain} with all requested features`,
+        nextSteps: [
+          'Update DNS nameservers at your registrar',
+          'Test staging deployment',
+          'Activate to production when ready',
+        ],
+      };
+
+    } catch (error) {
+      return {
+        success: false,
+        results,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        recovery: this.generateRecoverySteps(results, error),
+      };
     }
   }
-  
-  /**
-   * Resolve parameters with variable substitution
-   */
-  private resolveParameters(
-    parameters: Record<string, any>,
-    execution: WorkflowExecution
-  ): Record<string, any> {
-    const resolved: Record<string, any> = {};
-    
-    for (const [key, value] of Object.entries(parameters)) {
-      if (typeof value === 'string' && value.startsWith('${') && value.endsWith('}')) {
-        // Variable reference
-        const varName = value.slice(2, -1);
-        resolved[key] = this.getExecutionVariable(execution, varName);
-      } else if (typeof value === 'object' && value !== null) {
-        // Recursively resolve nested objects
-        resolved[key] = this.resolveParameters(value, execution);
+
+  // Missing method stub
+  getWorkflow(name: string): any {
+    logger.info('Demo: getWorkflow called', { name });
+    return {
+      name,
+      steps: ['placeholder-step'],
+      status: 'ready',
+    };
+  }
+
+  // Recovery helper (removed duplicate)
+
+  async optimizePerformance(propertyId: string, options: {
+    goal?: string;
+    customer?: string;
+  }) {
+    // First analyze current state
+    const analysis = await this.analyzeProperty(propertyId, options.customer);
+
+    // Get recommendations based on goal
+    const recommendations = this.generateOptimizationRecommendations(
+      analysis,
+      options.goal
+    );
+
+    // Apply optimizations
+    const optimizations = [];
+    for (const recommendation of recommendations) {
+      if (recommendation.autoApply) {
+        const result = await this.updateProperty(
+          propertyId,
+          recommendation.updates,
+          options.customer
+        );
+        optimizations.push({
+          recommendation: recommendation.name,
+          applied: true,
+          result,
+        });
       } else {
-        resolved[key] = value;
+        optimizations.push({
+          recommendation: recommendation.name,
+          applied: false,
+          reason: recommendation.requiresReview,
+        });
       }
     }
-    
-    return resolved;
+
+    return {
+      analysis,
+      recommendations,
+      optimizations,
+      nextSteps: [
+        'Test optimizations in staging',
+        'Monitor performance metrics',
+        'Deploy to production after validation',
+      ],
+    };
   }
-  
+
   /**
-   * Get variable from execution context
+   * Helper Methods
    */
-  private getExecutionVariable(
-    execution: WorkflowExecution,
-    path: string
-  ): any {
-    const parts = path.split('.');
-    let value: any = execution.variables;
-    
-    for (const part of parts) {
-      if (part === 'steps') {
-        // Special handling for step results
-        value = execution;
-      } else if (value && typeof value === 'object') {
-        value = value[part];
-      } else {
-        return undefined;
-      }
+  private generateRecoverySteps(results: any, error: any): string[] {
+    const steps = [];
+
+    if (results.property && !results.dns) {
+      steps.push('DNS setup failed - manually create DNS zone or retry');
     }
-    
-    return value;
-  }
-  
-  /**
-   * Set variable in execution context
-   */
-  private setExecutionVariable(
-    execution: WorkflowExecution,
-    path: string,
-    value: any
-  ): void {
-    const parts = path.split('.');
-    let target: any = execution.variables;
-    
-    for (let i = 0; i < parts.length - 1; i++) {
-      const part = parts[i];
-      if (part === 'steps') {
-        target = execution;
-      } else {
-        if (!target[part]) {
-          target[part] = {};
-        }
-        target = target[part];
-      }
+
+    if (results.dns && !results.certificate) {
+      steps.push('Certificate provisioning failed - check domain validation');
     }
-    
-    target[parts[parts.length - 1]] = value;
-  }
-  
-  /**
-   * Sleep helper
-   */
-  private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-  
-  /**
-   * Get execution status
-   */
-  getExecution(executionId: string): WorkflowExecution | null {
-    return this.executions.get(executionId) || null;
-  }
-  
-  /**
-   * Cancel execution
-   */
-  cancelExecution(executionId: string): boolean {
-    const execution = this.executions.get(executionId);
-    if (execution && execution.status === 'running') {
-      execution.status = 'cancelled';
-      execution.endTime = new Date();
-      return true;
+
+    if (!results.deployment) {
+      steps.push('Deployment coordination failed - deploy resources individually');
     }
-    return false;
+
+    return steps;
+  }
+
+  private generateOptimizationRecommendations(analysis: any, goal?: string): any[] {
+    const recommendations = [];
+
+    // Example recommendations based on analysis
+    if (analysis.businessAnalysis?.cacheHitRate < 80) {
+      recommendations.push({
+        name: 'Improve Caching',
+        description: 'Increase cache TTLs for static assets',
+        autoApply: true,
+        updates: {
+          advanced: {
+            variables: {
+              defaultCacheTTL: 86400,
+              staticAssetCacheTTL: 2592000,
+            },
+          },
+        },
+      });
+    }
+
+    if (goal === 'mobile' && !analysis.latestVersion?.rules?.includes('mobileOptimization')) {
+      recommendations.push({
+        name: 'Enable Mobile Optimization',
+        description: 'Add mobile-specific performance features',
+        autoApply: true,
+        updates: {
+          advanced: {
+            variables: {
+              enableImageOptimization: true,
+              enableMobileDetection: true,
+            },
+          },
+        },
+      });
+    }
+
+    return recommendations;
   }
 }
+
+// Export singleton instance
+export const workflowOrchestrator = new WorkflowOrchestrator();

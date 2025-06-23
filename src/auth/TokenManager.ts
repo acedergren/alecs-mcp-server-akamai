@@ -394,8 +394,8 @@ export class TokenManager {
       
       // Convert date strings back to Date objects
       metadata.createdAt = new Date(metadata.createdAt);
-      if (metadata.lastUsedAt) metadata.lastUsedAt = new Date(metadata.lastUsedAt);
-      if (metadata.expiresAt) metadata.expiresAt = new Date(metadata.expiresAt);
+      if (metadata.lastUsedAt) {metadata.lastUsedAt = new Date(metadata.lastUsedAt);}
+      if (metadata.expiresAt) {metadata.expiresAt = new Date(metadata.expiresAt);}
       
       return metadata;
     } catch (error) {
@@ -428,8 +428,8 @@ export class TokenManager {
             
             // Convert date strings back to Date objects
             metadata.createdAt = new Date(metadata.createdAt);
-            if (metadata.lastUsedAt) metadata.lastUsedAt = new Date(metadata.lastUsedAt);
-            if (metadata.expiresAt) metadata.expiresAt = new Date(metadata.expiresAt);
+            if (metadata.lastUsedAt) {metadata.lastUsedAt = new Date(metadata.lastUsedAt);}
+            if (metadata.expiresAt) {metadata.expiresAt = new Date(metadata.expiresAt);}
             
             if (metadata.isActive) {
               this.tokenCache.set(metadata.tokenHash, metadata);
