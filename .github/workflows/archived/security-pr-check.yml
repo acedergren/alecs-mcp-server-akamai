@@ -14,27 +14,27 @@ jobs:
   security-check:
     name: Security Check for PR
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run security linter
         run: |
           echo "## Security Linting Results" >> security-check.md
-          
+
           # Check for common security issues
           echo "### Checking for hardcoded secrets..." >> security-check.md
           if grep -rE "(password|secret|token|key)\s*=\s*[\"'][^\"']+[\"']" src/ --include="*.ts" --include="*.js" | grep -v "test" | grep -v "example"; then
@@ -43,7 +43,7 @@ jobs:
           else
             echo "✅ No hardcoded secrets detected" >> security-check.md
           fi
-          
+
           echo "" >> security-check.md
           echo "### Checking for console.log statements..." >> security-check.md
           if grep -rE "console\.(log|error|warn|info)" src/ --include="*.ts" | grep -v "test"; then
@@ -52,41 +52,41 @@ jobs:
             echo "✅ No console statements found" >> security-check.md
           fi
         continue-on-error: true
-      
+
       - name: Check for security test changes
         run: |
           echo "" >> security-check.md
           echo "### Security Test Changes" >> security-check.md
-          
+
           # Check if security tests were modified
           git diff --name-only origin/main..HEAD | grep -E "(security|auth)" | grep -E "\.test\.(ts|js)$" > changed-security-tests.txt || true
-          
+
           if [ -s changed-security-tests.txt ]; then
             echo "Security test files modified:" >> security-check.md
             cat changed-security-tests.txt | sed 's/^/- /' >> security-check.md
           else
             echo "No security test modifications detected" >> security-check.md
           fi
-      
+
       - name: Run focused security tests
         run: |
           echo "" >> security-check.md
           echo "### Security Test Results" >> security-check.md
-          
+
           # Run only the security tests that might be affected
           npm test -- --testNamePattern="security|auth|middleware.*security|transport.*security" --coverage > test-results.log 2>&1 || true
-          
+
           # Extract results
           grep -E "(PASS|FAIL|Test Suites:|Tests:)" test-results.log >> security-check.md || echo "Test results not available" >> security-check.md
-      
+
       - name: Check for new dependencies
         run: |
           echo "" >> security-check.md
           echo "### Dependency Changes" >> security-check.md
-          
+
           # Check for new dependencies
           git diff origin/main..HEAD -- package.json | grep "^\+" | grep -v "^+++" > new-deps.txt || true
-          
+
           if [ -s new-deps.txt ]; then
             echo "New dependencies added:" >> security-check.md
             cat new-deps.txt >> security-check.md
@@ -96,33 +96,33 @@ jobs:
           else
             echo "No new dependencies added" >> security-check.md
           fi
-      
+
       - name: Generate security score
         run: |
           echo "" >> security-check.md
           echo "### Security Score" >> security-check.md
-          
+
           SCORE=100
           ISSUES=""
-          
+
           # Deduct points for various issues
           if grep -q "⚠️" security-check.md; then
             SCORE=$((SCORE - 10))
             ISSUES="${ISSUES}- Security warnings detected\n"
           fi
-          
+
           if grep -q "FAIL" security-check.md; then
             SCORE=$((SCORE - 20))
             ISSUES="${ISSUES}- Failed security tests\n"
           fi
-          
+
           if grep -q "vulnerabilities" security-check.md; then
             SCORE=$((SCORE - 15))
             ISSUES="${ISSUES}- Dependency vulnerabilities\n"
           fi
-          
+
           echo "**Security Score: ${SCORE}/100**" >> security-check.md
-          
+
           if [ "$SCORE" -lt 80 ]; then
             echo "" >> security-check.md
             echo "**Issues found:**" >> security-check.md
@@ -132,27 +132,27 @@ jobs:
           else
             echo "✅ Security checks passed" >> security-check.md
           fi
-      
+
       - name: Comment on PR
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
             const report = fs.readFileSync('security-check.md', 'utf8');
-            
+
             // Find existing comment
             const comments = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo
             });
-            
+
             const botComment = comments.data.find(comment => 
               comment.user.type === 'Bot' && comment.body.includes('## Security Check Report')
             );
-            
+
             const body = `## Security Check Report\n\n${report}\n\n---\n*Security check performed at ${new Date().toISOString()}*`;
-            
+
             if (botComment) {
               // Update existing comment
               await github.rest.issues.updateComment({
@@ -170,7 +170,7 @@ jobs:
                 body: body
               });
             }
-      
+
       - name: Set check status
         if: always()
         run: |

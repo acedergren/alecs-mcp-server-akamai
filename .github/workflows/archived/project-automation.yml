@@ -25,7 +25,7 @@ jobs:
         with:
           project-url: https://github.com/users/acedergren/projects/4
           github-token: ${{ secrets.PROJECT_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
-          
+
   manage-dependabot-prs:
     name: Manage Dependabot PRs on Project Board
     runs-on: ubuntu-latest
@@ -38,7 +38,7 @@ jobs:
           github-token: ${{ secrets.PROJECT_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
           labeled: dependencies, automated
           label-operator: OR
-          
+
       - name: Auto-label Dependabot PRs
         uses: actions/labeler@v4
         if: ${{ github.event_name == 'pull_request' }}
