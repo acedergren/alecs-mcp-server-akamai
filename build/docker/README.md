@@ -5,23 +5,48 @@ Server.
 
 ## Available Images
 
-### 1. Main Image (All-in-One)
+### 1. Main Image (PM2 All-in-One)
 
 - **Dockerfile**: `Dockerfile`
-- **Description**: Contains all server types, runs with PM2
+- **Description**: Contains all server types, runs with PM2 process manager
 - **Use Case**: Development or when you want everything in one container
 - **Size**: ~300MB
 - **Ports**: 3000-3013, 8082
 
-### 2. Essential Image
+### 2. Full Image (180+ Tools)
+
+- **Dockerfile**: `Dockerfile.full`
+- **Description**: Complete single-process server with all 180+ tools
+- **Use Case**: Maximum functionality in a single process
+- **Size**: ~250MB
+- **Port**: 3000
+
+### 3. Essential Image (15 Tools)
 
 - **Dockerfile**: `Dockerfile.essential`
-- **Description**: Lightweight image with only essential tools (Property & DNS)
+- **Description**: Lightweight image with core tools (Property, DNS, Certificates, FastPurge,
+  Reporting)
 - **Use Case**: Production deployments with basic Akamai management
 - **Size**: ~150MB
 - **Port**: 3001
 
-### 3. WebSocket Image
+### 4. Modular Image (Domain-Specific)
+
+- **Dockerfile**: `Dockerfile.modular`
+- **Description**: Runs 3 focused servers: Property (3010), DNS (3011), Security (3012)
+- **Use Case**: Microservices architecture, isolated functionality
+- **Size**: ~200MB
+- **Ports**: 3010, 3011, 3012
+
+### 5. Minimal Image (3 Tools)
+
+- **Dockerfile**: `Dockerfile.minimal`
+- **Description**: Ultra-lightweight with only 3 basic property tools
+- **Use Case**: Testing, troubleshooting, minimal deployments
+- **Size**: ~100MB
+- **Port**: 3002
+
+### 6. WebSocket Image
 
 - **Dockerfile**: `Dockerfile.websocket`
 - **Description**: WebSocket transport for remote MCP access
@@ -29,7 +54,7 @@ Server.
 - **Size**: ~180MB
 - **Port**: 8082
 
-### 4. SSE Image
+### 7. SSE Image
 
 - **Dockerfile**: `Dockerfile.sse`
 - **Description**: Server-Sent Events transport for HTTP-based MCP access
@@ -48,8 +73,11 @@ make docker-build
 ### Build Individual Images
 
 ```bash
-make docker-build-main       # Main all-in-one image
-make docker-build-essential  # Essential tools only
+make docker-build-main       # Main PM2 all-in-one image
+make docker-build-full       # Full server (180+ tools)
+make docker-build-essential  # Essential tools (15 tools)
+make docker-build-modular    # Modular servers (domain-specific)
+make docker-build-minimal    # Minimal server (3 tools)
 make docker-build-websocket  # WebSocket server
 make docker-build-sse        # SSE server
 ```
@@ -58,43 +86,48 @@ make docker-build-sse        # SSE server
 
 ### Docker Compose Files
 
-1. **docker-compose.yml** (in root)
-
-   - Runs the main all-in-one container
-   - Includes all server types
-
-2. **docker-compose.essential.yml**
-
-   - Runs only the essential server
-   - Minimal resource usage
-
-3. **docker-compose.remote.yml**
-   - Runs WebSocket and SSE servers
-   - For remote MCP access
+1. **docker-compose.yml** (in root) - Main PM2 all-in-one container
+2. **docker-compose.full.yml** - Full server (180+ tools)
+3. **docker-compose.essential.yml** - Essential server (15 tools)
+4. **docker-compose.modular.yml** - Modular servers (Property/DNS/Security)
+5. **docker-compose.minimal.yml** - Minimal server (3 tools)
+6. **docker-compose.remote.yml** - Remote access (WebSocket + SSE)
 
 ### Run Commands
 
 ```bash
-# Main server (all features)
-docker-compose up -d
+# Main server (PM2 all features)
+make docker-run
 
-# Essential server only
-docker-compose -f build/docker/docker-compose.essential.yml up -d
+# Full server (single process, 180+ tools)
+make docker-run-full
+
+# Essential server (15 core tools)
+make docker-run-essential
+
+# Modular servers (domain-specific)
+make docker-run-modular
+
+# Minimal server (3 tools for testing)
+make docker-run-minimal
 
 # Remote access servers (WebSocket + SSE)
-docker-compose -f build/docker/docker-compose.remote.yml up -d
+make docker-run-remote
 ```
 
 ## CI/CD Integration
 
 The GitHub Actions workflow automatically builds and publishes all Docker images on release:
 
-- `ghcr.io/acedergren/alecs-mcp-server-akamai:latest`
-- `ghcr.io/acedergren/alecs-mcp-server-akamai:essential-latest`
-- `ghcr.io/acedergren/alecs-mcp-server-akamai:websocket-latest`
-- `ghcr.io/acedergren/alecs-mcp-server-akamai:sse-latest`
+- `ghcr.io/acedergren/alecs-mcp-server-akamai:latest` (Main PM2)
+- `ghcr.io/acedergren/alecs-mcp-server-akamai:full-latest` (180+ tools)
+- `ghcr.io/acedergren/alecs-mcp-server-akamai:essential-latest` (15 tools)
+- `ghcr.io/acedergren/alecs-mcp-server-akamai:modular-latest` (Domain-specific)
+- `ghcr.io/acedergren/alecs-mcp-server-akamai:minimal-latest` (3 tools)
+- `ghcr.io/acedergren/alecs-mcp-server-akamai:websocket-latest` (Remote WebSocket)
+- `ghcr.io/acedergren/alecs-mcp-server-akamai:sse-latest` (Remote SSE)
 
-Version-tagged images are also created (e.g., `essential-1.4.3`).
+Version-tagged images are also created (e.g., `essential-1.4.3`, `full-1.4.3`).
 
 ## Environment Variables
 

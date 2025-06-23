@@ -25,15 +25,27 @@ dev: ## Start development servers
 ## Docker commands
 docker-build: ## Build all Docker images
 	docker build -t alecs-mcp-server:latest -f build/docker/Dockerfile .
+	docker build -t alecs-mcp-server:full -f build/docker/Dockerfile.full .
 	docker build -t alecs-mcp-server:essential -f build/docker/Dockerfile.essential .
+	docker build -t alecs-mcp-server:modular -f build/docker/Dockerfile.modular .
+	docker build -t alecs-mcp-server:minimal -f build/docker/Dockerfile.minimal .
 	docker build -t alecs-mcp-server:websocket -f build/docker/Dockerfile.websocket .
 	docker build -t alecs-mcp-server:sse -f build/docker/Dockerfile.sse .
 
-docker-build-main: ## Build main Docker image
+docker-build-main: ## Build main Docker image (PM2 all-in-one)
 	docker build -t alecs-mcp-server:latest -f build/docker/Dockerfile .
 
-docker-build-essential: ## Build Essential Docker image
+docker-build-full: ## Build Full Docker image (180+ tools)
+	docker build -t alecs-mcp-server:full -f build/docker/Dockerfile.full .
+
+docker-build-essential: ## Build Essential Docker image (15 tools)
 	docker build -t alecs-mcp-server:essential -f build/docker/Dockerfile.essential .
+
+docker-build-modular: ## Build Modular Docker image (domain-specific servers)
+	docker build -t alecs-mcp-server:modular -f build/docker/Dockerfile.modular .
+
+docker-build-minimal: ## Build Minimal Docker image (3 tools)
+	docker build -t alecs-mcp-server:minimal -f build/docker/Dockerfile.minimal .
 
 docker-build-websocket: ## Build WebSocket Docker image
 	docker build -t alecs-mcp-server:websocket -f build/docker/Dockerfile.websocket .
@@ -41,11 +53,20 @@ docker-build-websocket: ## Build WebSocket Docker image
 docker-build-sse: ## Build SSE Docker image
 	docker build -t alecs-mcp-server:sse -f build/docker/Dockerfile.sse .
 
-docker-run: ## Run main Docker container
+docker-run: ## Run main Docker container (PM2 all-in-one)
 	docker-compose up -d
 
-docker-run-essential: ## Run Essential Docker container
+docker-run-full: ## Run Full Docker container (180+ tools)
+	docker-compose -f build/docker/docker-compose.full.yml up -d
+
+docker-run-essential: ## Run Essential Docker container (15 tools)
 	docker-compose -f build/docker/docker-compose.essential.yml up -d
+
+docker-run-modular: ## Run Modular Docker container (domain-specific servers)
+	docker-compose -f build/docker/docker-compose.modular.yml up -d
+
+docker-run-minimal: ## Run Minimal Docker container (3 tools)
+	docker-compose -f build/docker/docker-compose.minimal.yml up -d
 
 docker-run-remote: ## Run remote access containers (WebSocket + SSE)
 	docker-compose -f build/docker/docker-compose.remote.yml up -d

@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  alecs-minimal:
+    build:
+      context: ../..
+      dockerfile: build/docker/Dockerfile.minimal
+    container_name: alecs-mcp-minimal
+    ports:
+      - '3002:3002'
+    environment:
+      - NODE_ENV=production
+      - EDGERC_PATH=/app/.edgerc
+    volumes:
+      - ~/.edgerc:/app/.edgerc:ro
+      - ./data:/app/data
+      - ./logs:/app/logs
+    restart: unless-stopped

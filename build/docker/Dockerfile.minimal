@@ -1,0 +1,51 @@
+# Multi-stage build for Minimal server (3 tools)
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Production stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install production dependencies only
+RUN npm ci --production && npm cache clean --force
+
+# Copy only minimal server files from builder
+COPY --from=builder /app/dist/index-minimal.js ./dist/
+COPY --from=builder /app/dist/akamai-client.js ./dist/
+COPY --from=builder /app/dist/tools/property-tools.js ./dist/tools/
+COPY --from=builder /app/dist/utils ./dist/utils
+COPY --from=builder /app/dist/types ./dist/types
+COPY --from=builder /app/dist/auth ./dist/auth
+COPY --from=builder /app/dist/core ./dist/core
+
+# Create directories
+RUN mkdir -p data logs
+
+# Use non-root user
+USER node
+
+# Expose port
+EXPOSE 3002
+
+# Health check (minimal server may not have health endpoint)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s \
+  CMD node -e "process.exit(0)" || exit 1
+
+CMD ["node", "dist/index-minimal.js"]

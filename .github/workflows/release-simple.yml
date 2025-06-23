@@ -70,7 +70,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push main Docker image
+      - name: Build and push Main Docker image (PM2 all-in-one)
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -80,7 +80,17 @@ jobs:
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ env.VERSION }}
 
-      - name: Build and push Essential Docker image
+      - name: Build and push Full Docker image (180+ tools)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/docker/Dockerfile.full
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:full-latest
+            ghcr.io/${{ github.repository }}:full-${{ env.VERSION }}
+
+      - name: Build and push Essential Docker image (15 tools)
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -89,6 +99,26 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:essential-latest
             ghcr.io/${{ github.repository }}:essential-${{ env.VERSION }}
+
+      - name: Build and push Modular Docker image (domain-specific servers)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/docker/Dockerfile.modular
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:modular-latest
+            ghcr.io/${{ github.repository }}:modular-${{ env.VERSION }}
+
+      - name: Build and push Minimal Docker image (3 tools)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/docker/Dockerfile.minimal
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:minimal-latest
+            ghcr.io/${{ github.repository }}:minimal-${{ env.VERSION }}
 
       - name: Build and push WebSocket Docker image
         uses: docker/build-push-action@v6
