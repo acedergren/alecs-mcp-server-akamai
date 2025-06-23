@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  alecs-full:
+    build:
+      context: ../..
+      dockerfile: build/docker/Dockerfile.full
+    container_name: alecs-mcp-full
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - EDGERC_PATH=/app/.edgerc
+    volumes:
+      - ~/.edgerc:/app/.edgerc:ro
+      - ./data:/app/data
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3

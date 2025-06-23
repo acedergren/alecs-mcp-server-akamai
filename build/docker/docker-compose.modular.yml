@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  alecs-modular:
+    build:
+      context: ../..
+      dockerfile: build/docker/Dockerfile.modular
+    container_name: alecs-mcp-modular
+    ports:
+      - '3010:3010' # Property server
+      - '3011:3011' # DNS server
+      - '3012:3012' # Security server
+    environment:
+      - NODE_ENV=production
+      - EDGERC_PATH=/app/.edgerc
+    volumes:
+      - ~/.edgerc:/app/.edgerc:ro
+      - ./data:/app/data
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3010/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
