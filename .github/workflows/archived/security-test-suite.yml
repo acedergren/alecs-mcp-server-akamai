@@ -24,34 +24,34 @@ on:
 
 concurrency:
   group: security-tests-${{ github.ref }}
-  cancel-in-progress: false  # Don't cancel security tests
+  cancel-in-progress: false # Don't cancel security tests
 
 jobs:
   security-audit:
     name: Security Vulnerability Audit
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for better analysis
-      
+          fetch-depth: 0 # Full history for better analysis
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run npm audit
         run: |
           echo "## NPM Security Audit" >> $GITHUB_STEP_SUMMARY
           npm audit --json > audit-report.json || true
           npm audit >> $GITHUB_STEP_SUMMARY || echo "No vulnerabilities found" >> $GITHUB_STEP_SUMMARY
-      
+
       - name: Upload audit report
         uses: actions/upload-artifact@v4
         with:
@@ -64,44 +64,44 @@ jobs:
     runs-on: ubuntu-latest
     needs: security-audit
     if: ${{ github.event.inputs.test_scope == 'full' || github.event.inputs.test_scope == 'auth-only' || github.event.inputs.test_scope == null }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build project
         run: npm run build
-      
+
       - name: Run authentication security tests
         run: |
           echo "## Authentication Security Test Results" >> $GITHUB_STEP_SUMMARY
-          
+
           # Run the comprehensive security test suite with auth focus
           npm run security:test:auth --format=markdown > auth-security-report.md || true
-          
+
           # Also run unit tests
           npm test -- __tests__/unit/auth --coverage --verbose >> test-output.log 2>&1 || true
           npm test -- __tests__/unit/middleware/authentication.test.ts --verbose >> test-output.log 2>&1 || true
           npm test -- __tests__/mcp-2025-oauth-compliance.test.ts --verbose >> test-output.log 2>&1 || true
-          
+
           # Add report to summary
           cat auth-security-report.md >> $GITHUB_STEP_SUMMARY
-          
+
           # Extract test summary
           grep -E "(PASS|FAIL|Test Suites:|Tests:)" test-output.log >> $GITHUB_STEP_SUMMARY || true
         env:
           CI: true
           NODE_ENV: test
-      
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -117,35 +117,35 @@ jobs:
     runs-on: ubuntu-latest
     needs: security-audit
     if: ${{ github.event.inputs.test_scope == 'full' || github.event.inputs.test_scope == 'middleware-only' || github.event.inputs.test_scope == null }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build project
         run: npm run build
-      
+
       - name: Run middleware security tests
         run: |
           echo "## Middleware Security Test Results" >> $GITHUB_STEP_SUMMARY
           npm test -- __tests__/unit/middleware/security.test.ts --coverage --verbose >> test-output.log 2>&1
           npm test -- __tests__/unit/middleware/OAuthMiddleware.test.ts --verbose >> test-output.log 2>&1
-          
+
           # Extract test summary
           grep -E "(PASS|FAIL|Test Suites:|Tests:)" test-output.log >> $GITHUB_STEP_SUMMARY || true
         env:
           CI: true
           NODE_ENV: test
-      
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -161,35 +161,35 @@ jobs:
     runs-on: ubuntu-latest
     needs: security-audit
     if: ${{ github.event.inputs.test_scope == 'full' || github.event.inputs.test_scope == 'transport-only' || github.event.inputs.test_scope == null }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build project
         run: npm run build
-      
+
       - name: Run transport security tests
         run: |
           echo "## Transport Security Test Results" >> $GITHUB_STEP_SUMMARY
           npm test -- __tests__/unit/transport/http-transport-security.test.ts --coverage --verbose >> test-output.log 2>&1
           npm test -- __tests__/unit/security-server --verbose >> test-output.log 2>&1
-          
+
           # Extract test summary
           grep -E "(PASS|FAIL|Test Suites:|Tests:)" test-output.log >> $GITHUB_STEP_SUMMARY || true
         env:
           CI: true
           NODE_ENV: test
-      
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -205,43 +205,43 @@ jobs:
     runs-on: ubuntu-latest
     needs: [auth-security-tests, middleware-security-tests, transport-security-tests]
     if: ${{ github.event.inputs.test_scope == 'full' || github.event.inputs.test_scope == 'integration-only' || github.event.inputs.test_scope == null }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build project
         run: npm run build
-      
+
       - name: Run integration security tests
         run: |
           echo "## Integration Security Test Results" >> $GITHUB_STEP_SUMMARY
-          
+
           # Run all security-related integration tests
           npm test -- __tests__/integration/multi-customer-oauth.test.ts --verbose >> test-output.log 2>&1 || true
           npm test -- __tests__/integration/basic-auth-and-contracts.test.ts --verbose >> test-output.log 2>&1 || true
-          
+
           # Run generated security tests
           npm test -- ci/tests/generated/activate-security-configuration.test.ts --verbose >> test-output.log 2>&1 || true
           npm test -- ci/tests/generated/get-security-activation-status.test.ts --verbose >> test-output.log 2>&1 || true
           npm test -- ci/tests/generated/get-security-events.test.ts --verbose >> test-output.log 2>&1 || true
-          
+
           # Extract test summary
           grep -E "(PASS|FAIL|Test Suites:|Tests:)" test-output.log >> $GITHUB_STEP_SUMMARY || true
         env:
           CI: true
           NODE_ENV: test
-          NO_AUTH_TEST: true  # Run without real credentials for safety
-      
+          NO_AUTH_TEST: true # Run without real credentials for safety
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -256,34 +256,34 @@ jobs:
     name: Alex's Comprehensive Security Test
     runs-on: ubuntu-latest
     needs: security-audit
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build project
         run: npm run build
-      
+
       - name: Run Alex's Security Fortress Tests
         run: |
           echo "## 🛡️ Alex's Security Fortress Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Run the comprehensive security test suite
           npm run security:test -- --format=markdown > security-fortress-report.md
-          
+
           # Add to GitHub summary
           cat security-fortress-report.md >> $GITHUB_STEP_SUMMARY
-          
+
           # Also save as artifact
           mkdir -p test-results
           cp security-fortress-report.md test-results/
@@ -292,7 +292,7 @@ jobs:
         env:
           CI: true
           NODE_ENV: test
-      
+
       - name: Upload security fortress results
         if: always()
         uses: actions/upload-artifact@v4
@@ -304,15 +304,22 @@ jobs:
   security-report:
     name: Generate Security Report
     runs-on: ubuntu-latest
-    needs: [auth-security-tests, middleware-security-tests, transport-security-tests, integration-security-tests, comprehensive-security-test]
+    needs:
+      [
+        auth-security-tests,
+        middleware-security-tests,
+        transport-security-tests,
+        integration-security-tests,
+        comprehensive-security-test,
+      ]
     if: always()
-    
+
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: test-artifacts
-      
+
       - name: Generate consolidated security report
         run: |
           echo "# Security Test Suite Report" > security-report.md
@@ -320,7 +327,7 @@ jobs:
           echo "Branch: ${{ github.ref_name }}" >> security-report.md
           echo "Commit: ${{ github.sha }}" >> security-report.md
           echo "" >> security-report.md
-          
+
           # Add test results summary
           echo "## Test Results Summary" >> security-report.md
           for dir in test-artifacts/*/; do
@@ -330,17 +337,17 @@ jobs:
               echo "" >> security-report.md
             fi
           done
-          
+
           # Add to GitHub summary
           cat security-report.md >> $GITHUB_STEP_SUMMARY
-      
+
       - name: Upload security report
         uses: actions/upload-artifact@v4
         with:
           name: security-test-report
           path: security-report.md
           retention-days: 90
-      
+
       - name: Comment PR with results (if PR)
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
@@ -348,7 +355,7 @@ jobs:
           script: |
             const fs = require('fs');
             const report = fs.readFileSync('security-report.md', 'utf8');
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
