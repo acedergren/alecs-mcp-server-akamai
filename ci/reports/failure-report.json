@@ -1,6 +1,0 @@
-{
-  "timestamp": "2025-06-22T07:09:45.124Z",
-  "error": "Server exited with code 1 without providing tools",
-  "stack": "Error: Server exited with code 1 without providing tools\n    at ChildProcess.<anonymous> (/home/alex/alecs-mcp-server-akamai/ci/discovery/DynamicTestDiscovery.ts:108:18)\n    at ChildProcess.emit (node:events:518:28)\n    at maybeClose (node:internal/child_process:1101:16)\n    at ChildProcess._handle.onexit (node:internal/child_process:304:5)",
-  "alexMessage": "🎯 Challenge accepted: test suite failure - This is why I LOVE my job! 🔥"
-}
