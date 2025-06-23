@@ -4,8 +4,8 @@
  */
 
 import { expect } from '@jest/globals';
-import * as matchers from './test/utils/matchers';
-import { mockEdgeGrid } from './test/utils/mocks/edgegrid';
+import * as matchers from './__tests__/utils/matchers';
+import { mockEdgeGrid } from './__tests__/utils/mocks/edgegrid';
 
 // Add custom matchers
 expect.extend(matchers);

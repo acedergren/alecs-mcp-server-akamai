@@ -23,6 +23,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Run CI Diagnostic
+        run: node scripts/ci-diagnostic.js
+
       - name: Lint Check (non-blocking)
         run: npm run lint || true
         continue-on-error: true

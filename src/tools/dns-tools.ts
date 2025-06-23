@@ -877,15 +877,8 @@ export async function ensureCleanChangeList(
   const createRequestId = generateRequestId();
   logOperation('CREATING_CHANGELIST', { zone, requestId: createRequestId });
 
-  await client.request({
-    path: '/config-dns/v2/changelists',
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    queryParams: { zone },
-  });
+  // The changelist is created automatically when you make changes to a zone
+  // No explicit create endpoint is needed
 
   logOperation('CHANGELIST_CREATED', { zone, requestId: createRequestId });
 }
@@ -922,8 +915,8 @@ export async function upsertRecord(
     };
 
     await client.request({
-      path: `/config-dns/v2/changelists/${args.zone}/recordsets/${args.name}/${args.type}`,
-      method: 'PUT',
+      path: `/config-dns/v2/zones/${args.zone}/recordsets`,
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
@@ -933,17 +926,7 @@ export async function upsertRecord(
 
     // Step 3: Submit the change list
     spinner.update('Submitting changes...');
-    const submitResponse = await client.request({
-      path: `/config-dns/v2/changelists/${args.zone}/submit`,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: {
-        comment: args.comment || `Updated ${args.type} record for ${args.name}`,
-      },
-    });
+    const submitResponse = await submitChangeList(client, args.zone, args.comment || `Updated ${args.type} record for ${args.name}`);
 
     spinner.succeed(`Record updated: ${args.name} ${args.type}`);
 

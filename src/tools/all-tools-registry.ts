@@ -96,6 +96,14 @@ import {
   generateMigrationInstructions,
 } from './dns-migration-tools';
 
+// DNS Elicitation Tools
+import {
+  dnsElicitationTool,
+  handleDNSElicitationTool,
+  secureHostnameOnboardingTool,
+  handleSecureHostnameOnboardingTool,
+} from './elicitation';
+
 // Certificate Management Tools
 import {
   listCertificateEnrollments,
@@ -319,6 +327,76 @@ const ValidateApiTokenSchema = z.object({
 
 const RotateApiTokenSchema = z.object({
   tokenId: z.string(),
+});
+
+// DNS Elicitation Schema
+const DNSElicitationSchema = z.object({
+  operation: z.enum([
+    'create',
+    'update',
+    'delete',
+    'list',
+    'check-status',
+    'help',
+  ]).optional(),
+  zone: z.string().optional(),
+  recordName: z.string().optional(),
+  recordType: z.enum([
+    'A',
+    'AAAA',
+    'CNAME',
+    'MX',
+    'TXT',
+    'NS',
+    'SRV',
+    'CAA',
+    'PTR',
+  ]).optional(),
+  recordValue: z.union([z.string(), z.array(z.string())]).optional(),
+  ttl: z.number().optional(),
+  priority: z.number().optional(),
+  weight: z.number().optional(),
+  port: z.number().optional(),
+  confirmAction: z.boolean().optional(),
+  customer: z.string().optional(),
+});
+
+// Secure Hostname Onboarding Schema
+const SecureHostnameOnboardingSchema = z.object({
+  operation: z.enum([
+    'start',
+    'check-requirements',
+    'setup-property',
+    'configure-dns',
+    'configure-security',
+    'activate',
+    'status',
+    'help',
+  ]).optional(),
+  hostname: z.string().optional(),
+  additionalHostnames: z.array(z.string()).optional(),
+  originHostname: z.string().optional(),
+  contractId: z.string().optional(),
+  groupId: z.string().optional(),
+  productId: z.string().optional(),
+  certificateType: z.enum([
+    'default-dv',
+    'dv-san-sni',
+    'third-party',
+    'auto',
+  ]).optional(),
+  migrateDNS: z.boolean().optional(),
+  currentNameservers: z.array(z.string()).optional(),
+  securityLevel: z.enum([
+    'basic',
+    'standard',
+    'enhanced',
+    'custom',
+  ]).optional(),
+  notificationEmails: z.array(z.string()).optional(),
+  confirmAction: z.boolean().optional(),
+  propertyId: z.string().optional(),
+  customer: z.string().optional(),
 });
 
 // FastPurge Schemas
@@ -807,6 +885,20 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       description: 'Generate DNS migration instructions',
       schema: extendedSchemas.GenerateMigrationInstructionsSchema,
       handler: generateMigrationInstructions,
+    },
+
+    // DNS Elicitation Tools
+    {
+      name: 'dns-elicitation',
+      description: 'Interactive DNS record management with guided questions and clear feedback',
+      schema: DNSElicitationSchema,
+      handler: handleDNSElicitationTool,
+    },
+    {
+      name: 'secure-hostname-onboarding',
+      description: 'Comprehensive elicitation workflow for secure hostname onboarding with intelligent defaults',
+      schema: SecureHostnameOnboardingSchema,
+      handler: handleSecureHostnameOnboardingTool,
     },
 
     // Certificate Management (15+ tools)
