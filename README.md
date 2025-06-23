@@ -175,26 +175,38 @@ npm run start:websocket    # WebSocket server (for remote access)
 npm run start:property     # Property management only
 ```
 
-#### Option 3: WebSocket Server (Remote Access)
+#### Option 3: Remote Access Servers
 
-Enable remote access to ALECS via WebSocket:
+Enable remote access to ALECS via WebSocket or SSE/HTTP:
 
+**WebSocket Server** (Recommended for real-time bidirectional communication):
 ```bash
 # Start the WebSocket server
 npm run start:websocket
 
 # Or with PM2 for production
 npm run deploy:websocket
-
-# Generate an API token for authentication
-npm run generate-token
 ```
 
-The WebSocket server listens on port 8082 by default and supports:
+**SSE/HTTP Server** (MCP Streamable HTTP transport):
+```bash
+# Start the SSE server
+npm run start:sse
+
+# Or with PM2 for production
+npm run deploy:sse
+```
+
+Both servers support:
 - Secure token-based authentication
 - Multiple concurrent clients
-- Full MCP protocol over WebSocket
+- Full MCP protocol implementation
 - SSL/TLS support (configure via environment variables)
+
+Generate an API token for either server:
+```bash
+npm run generate-token
+```
 
 #### Option 4: Claude Desktop Integration
 
@@ -718,9 +730,14 @@ src/
 - **Property activation diffing**: Compare versions before activation
 - **Terraform Export**: Generate Terraform configurations from existing properties
 
-## 🌐 WebSocket Integration
+## 🌐 Remote Access Integration
 
-ALECS supports WebSocket connections for remote access, allowing you to run the server on one machine and connect from Claude Desktop on another.
+ALECS supports multiple transport protocols for remote access, allowing you to run the server on one machine and connect from Claude Desktop on another.
+
+### Transport Options
+
+1. **WebSocket** - Best for real-time, bidirectional communication
+2. **SSE/HTTP** - MCP standard Streamable HTTP transport (compatible with more clients)
 
 ### Setting Up WebSocket Server
 
