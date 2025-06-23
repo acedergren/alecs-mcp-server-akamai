@@ -70,7 +70,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push main Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -79,3 +79,33 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ env.VERSION }}
+
+      - name: Build and push Essential Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/docker/Dockerfile.essential
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:essential-latest
+            ghcr.io/${{ github.repository }}:essential-${{ env.VERSION }}
+
+      - name: Build and push WebSocket Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/docker/Dockerfile.websocket
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:websocket-latest
+            ghcr.io/${{ github.repository }}:websocket-${{ env.VERSION }}
+
+      - name: Build and push SSE Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/docker/Dockerfile.sse
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:sse-latest
+            ghcr.io/${{ github.repository }}:sse-${{ env.VERSION }}

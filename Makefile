@@ -22,16 +22,33 @@ clean: ## Clean build artifacts
 dev: ## Start development servers
 	npm run start:websocket:summary
 
-docker-build: ## Build Docker image
-	docker build -f build/docker/Dockerfile -t alecs-mcp-server:latest .
+## Docker commands
+docker-build: ## Build all Docker images
+	docker build -t alecs-mcp-server:latest -f build/docker/Dockerfile .
+	docker build -t alecs-mcp-server:essential -f build/docker/Dockerfile.essential .
+	docker build -t alecs-mcp-server:websocket -f build/docker/Dockerfile.websocket .
+	docker build -t alecs-mcp-server:sse -f build/docker/Dockerfile.sse .
 
-docker-run: ## Run Docker container
-	docker run -it --rm \
-		-p 3000:3000 \
-		-p 3013:3013 \
-		-p 8082:8082 \
-		-v $(PWD)/data:/app/data \
-		alecs-mcp-server:latest
+docker-build-main: ## Build main Docker image
+	docker build -t alecs-mcp-server:latest -f build/docker/Dockerfile .
+
+docker-build-essential: ## Build Essential Docker image
+	docker build -t alecs-mcp-server:essential -f build/docker/Dockerfile.essential .
+
+docker-build-websocket: ## Build WebSocket Docker image
+	docker build -t alecs-mcp-server:websocket -f build/docker/Dockerfile.websocket .
+
+docker-build-sse: ## Build SSE Docker image
+	docker build -t alecs-mcp-server:sse -f build/docker/Dockerfile.sse .
+
+docker-run: ## Run main Docker container
+	docker-compose up -d
+
+docker-run-essential: ## Run Essential Docker container
+	docker-compose -f build/docker/docker-compose.essential.yml up -d
+
+docker-run-remote: ## Run remote access containers (WebSocket + SSE)
+	docker-compose -f build/docker/docker-compose.remote.yml up -d
 
 release-patch: ## Release patch version
 	npm version patch -m "chore: release %s"
