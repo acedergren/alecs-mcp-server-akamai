@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # ALECS v2.0 Main Server - Local Mode (STDIO)
+  alecs-local:
+    build:
+      context: .
+      dockerfile: ./build/docker/Dockerfile.v2
+    environment:
+      - ALECS_MODE=local
+      - AKAMAI_EDGERC_PATH=/app/.edgerc
+    volumes:
+      - ~/.edgerc:/app/.edgerc:ro
+      - ./data:/app/data
+      - ./logs:/app/logs
+    restart: unless-stopped
+    profiles:
+      - local
+
+  # ALECS v2.0 Main Server - Remote Mode (WebSocket + SSE)
+  alecs-remote:
+    build:
+      context: .
+      dockerfile: ./build/docker/Dockerfile.v2
+    environment:
+      - ALECS_MODE=remote
+      - AKAMAI_EDGERC_PATH=/app/.edgerc
+      - ALECS_WS_PORT=8082
+      - ALECS_SSE_PORT=8083
+      - ALECS_WS_HOST=0.0.0.0
+      - ALECS_SSE_HOST=0.0.0.0
+    ports:
+      - "8082:8082"  # WebSocket
+      - "8083:8083"  # SSE
+    volumes:
+      - ~/.edgerc:/app/.edgerc:ro
+      - ./data:/app/data
+      - ./logs:/app/logs
+    restart: unless-stopped
+    profiles:
+      - remote
+
+  # ALECS v2.0 Development Server (All 180+ tools)
+  alecs-dev:
+    build:
+      context: .
+      dockerfile: ./build/docker/Dockerfile.full
+    environment:
+      - AKAMAI_EDGERC_PATH=/app/.edgerc
+    volumes:
+      - ~/.edgerc:/app/.edgerc:ro
+      - ./data:/app/data
+      - ./logs:/app/logs
+    restart: unless-stopped
+    profiles:
+      - dev
+
+volumes:
+  data:
+  logs:
+
+# Usage:
+# Local mode:  docker-compose --profile local up
+# Remote mode: docker-compose --profile remote up  
+# Dev mode:    docker-compose --profile dev up

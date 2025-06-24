@@ -13,6 +13,16 @@ import {
   handleWorkflowAssistantRequest,
 } from './workflows';
 
+// Cache Management Tools
+import {
+  preloadPropertyCache,
+  getCacheStatus,
+  clearPropertyCache,
+  PreloadPropertyCacheSchema,
+  GetCacheStatusSchema,
+  ClearPropertyCacheSchema,
+} from './cache-management-tools';
+
 // Import Consolidated Tools (Maya's Tool Consolidation)
 import {
   getConsolidatedTools,
@@ -1627,6 +1637,26 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       handler: analyzeErrorPatterns,
     },
 
+    // Cache Management Tools (3 tools)
+    {
+      name: 'preload-property-cache',
+      description: 'Preload property name-to-ID mappings into cache for fast lookups',
+      schema: PreloadPropertyCacheSchema,
+      handler: preloadPropertyCache,
+    },
+    {
+      name: 'get-cache-status',
+      description: 'Get property cache status and statistics',
+      schema: GetCacheStatusSchema,
+      handler: getCacheStatus,
+    },
+    {
+      name: 'clear-property-cache',
+      description: 'Clear property cache (all or specific property)',
+      schema: ClearPropertyCacheSchema,
+      handler: clearPropertyCache,
+    },
+    
     // Token Management Tools (5 tools)
     {
       name: 'generate-api-token',

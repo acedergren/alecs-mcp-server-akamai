@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * ALECS - MCP Server for Akamai (Full Version)
- * Complete implementation with all available tools
+ * ALECS - MCP Server for Akamai (Development Version)
+ * Complete implementation with all 180+ individual tools
+ * Use for development, testing, and migration from old toolset
  * MCP June 2025 compliant
  */
 
@@ -29,6 +30,8 @@ import { type BaseMcpParams, type McpToolResponse, type McpToolMetadata } from '
 import { type Mcp2025ToolResponse, type McpResponseMeta } from './types/mcp-2025';
 import { CustomerConfigManager } from './utils/customer-config';
 import { logger } from './utils/logger';
+import { ValkeyCache } from './services/valkey-cache-service';
+import { createPropertyPreloader, PropertyCachePreloader } from './services/property-cache-preloader';
 
 // Import all tools and schemas
 import { getAllToolDefinitions } from './tools/all-tools-registry';
@@ -146,6 +149,8 @@ export class ALECSFullServer {
   private toolRegistry: Map<string, ToolRegistryEntry> = new Map();
   private configManager: CustomerConfigManager;
   private requestCounter = 0;
+  private valkeyCache?: ValkeyCache;
+  private propertyPreloader?: PropertyCachePreloader;
 
   constructor(config?: Partial<ServerConfig>) {
     const serverConfig: ServerConfig = {
@@ -292,6 +297,11 @@ export class ALECSFullServer {
       // Import client dynamically to avoid circular dependencies
       const { AkamaiClient } = await import('./akamai-client.js');
       const client = new AkamaiClient();
+      
+      // Attach property cache if available
+      if (this.propertyPreloader) {
+        (client as any).propertyCache = this.propertyPreloader;
+      }
 
       // Execute tool handler
       const result = await handler(client, params);
@@ -467,6 +477,39 @@ export class ALECSFullServer {
     logger.info('Starting ALECS Full MCP Server');
 
     try {
+      // Initialize Valkey cache if available
+      if (process.env.VALKEY_HOST || process.env.REDIS_HOST) {
+        try {
+          logger.info('Initializing Valkey cache...');
+          this.valkeyCache = new ValkeyCache({
+            nodes: [{
+              host: process.env.VALKEY_HOST || process.env.REDIS_HOST || 'localhost',
+              port: parseInt(process.env.VALKEY_PORT || process.env.REDIS_PORT || '6379'),
+            }],
+            keyPrefix: 'alecs:',
+          });
+          
+          // Initialize property preloader
+          const { AkamaiClient } = await import('./akamai-client.js');
+          const preloadClient = new AkamaiClient();
+          
+          logger.info('Starting property cache preload...');
+          this.propertyPreloader = await createPropertyPreloader(
+            this.valkeyCache,
+            preloadClient,
+            true // Auto-preload in background
+          );
+          
+          logger.info('Property cache preloader initialized');
+        } catch (cacheError) {
+          logger.warn('Failed to initialize cache, continuing without it', {
+            error: cacheError instanceof Error ? cacheError.message : String(cacheError),
+          });
+        }
+      } else {
+        logger.info('Valkey/Redis not configured, running without cache');
+      }
+      
       // Validate configuration
       const customers = this.configManager.listSections();
       logger.info(`Found ${customers.length} customer configurations`, { customers });

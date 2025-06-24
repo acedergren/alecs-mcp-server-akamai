@@ -56,9 +56,28 @@ jobs:
           tag_name: v${{ env.VERSION }}
           name: v${{ env.VERSION }}
           body: |
-            Release v${{ env.VERSION }}
-
-            See [commits](https://github.com/${{ github.repository }}/compare/v${{ env.PREVIOUS_VERSION }}...v${{ env.VERSION }}) for changes.
+            ## ALECS v${{ env.VERSION }} - Consolidated Tools Architecture
+            
+            **Major Release**: Tool consolidation from 180+ tools to 25 business-focused tools.
+            
+            ### Key Changes:
+            - 🎯 **Consolidated Tools**: 25 business-focused tools (down from 180+)
+            - 🏗️ **Two-Server Model**: Main server (alecs) + Development server (alecs-dev)
+            - 📊 **Enhanced Discovery**: Tools categorized by complexity and business context
+            - ⚡ **Better Performance**: Streamlined architecture with faster startup
+            
+            ### Docker Images:
+            - `latest` / `v2-latest`: Main consolidated server (25 tools, local/remote modes)
+            - `dev-latest`: Development server (all 180+ tools)
+            - `modular-latest`: Specialized domain servers (legacy)
+            - `remote-latest`: Remote transport server (legacy)
+            
+            ### Usage:
+            - **Local Mode (STDIO)**: `docker run ghcr.io/${{ github.repository }}:latest`
+            - **Remote Mode (WS + SSE)**: `docker run -e ALECS_MODE=remote -p 8082:8082 -p 8083:8083 ghcr.io/${{ github.repository }}:latest`
+            - **Development**: `docker run ghcr.io/${{ github.repository }}:dev-latest`
+            
+            See [commits](https://github.com/${{ github.repository }}/compare/v${{ env.PREVIOUS_VERSION }}...v${{ env.VERSION }}) and [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for detailed changes.
           draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -70,35 +89,31 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Main Docker image (PM2 all-in-one)
+      - name: Build and push Main Docker image (Consolidated v2.0 - Local/Remote)
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./build/docker/Dockerfile
+          file: ./build/docker/Dockerfile.v2
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ env.VERSION }}
+            ghcr.io/${{ github.repository }}:v2-latest
+            ghcr.io/${{ github.repository }}:v2-${{ env.VERSION }}
 
-      - name: Build and push Full Docker image (180+ tools)
+      - name: Build and push Development Docker image (All 180+ tools)
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./build/docker/Dockerfile.full
           push: true
           tags: |
+            ghcr.io/${{ github.repository }}:dev-latest
+            ghcr.io/${{ github.repository }}:dev-${{ env.VERSION }}
             ghcr.io/${{ github.repository }}:full-latest
             ghcr.io/${{ github.repository }}:full-${{ env.VERSION }}
 
-      - name: Build and push Essential Docker image (15 tools)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./build/docker/Dockerfile.essential
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:essential-latest
-            ghcr.io/${{ github.repository }}:essential-${{ env.VERSION }}
+      # Essential Docker image removed in v2.0 - functionality merged into main server
 
       - name: Build and push Modular Docker image (domain-specific servers)
         uses: docker/build-push-action@v6
@@ -110,15 +125,7 @@ jobs:
             ghcr.io/${{ github.repository }}:modular-latest
             ghcr.io/${{ github.repository }}:modular-${{ env.VERSION }}
 
-      - name: Build and push Minimal Docker image (3 tools)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./build/docker/Dockerfile.minimal
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:minimal-latest
-            ghcr.io/${{ github.repository }}:minimal-${{ env.VERSION }}
+      # Minimal Docker image removed in v2.0 - functionality consolidated
 
       - name: Build and push Remote Docker image (WebSocket + SSE)
         uses: docker/build-push-action@v6

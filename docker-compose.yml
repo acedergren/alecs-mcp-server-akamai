@@ -1,24 +1,26 @@
 version: '3.8'
 
 services:
+  # ALECS v2.0 - Remote Mode (WebSocket + SSE)
   alecs:
     build:
       context: .
-      dockerfile: build/docker/Dockerfile
+      dockerfile: build/docker/Dockerfile.v2
     container_name: alecs-mcp-server
     ports:
-      - '3000:3000' # Main server
-      - '3013:3013' # SSE server
-      - '8082:8082' # WebSocket server
+      - '8082:8082' # WebSocket
+      - '8083:8083' # SSE
     environment:
+      - ALECS_MODE=remote
+      - AKAMAI_EDGERC_PATH=/app/.edgerc
       - NODE_ENV=production
-      - TOKEN_MASTER_KEY=${TOKEN_MASTER_KEY:-development-key}
     volumes:
+      - ~/.edgerc:/app/.edgerc:ro
       - ./data:/app/data
       - ./logs:/app/logs
     restart: unless-stopped
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
+      test: ['CMD', 'nc', '-z', 'localhost', '8082']
       interval: 30s
       timeout: 10s
       retries: 3

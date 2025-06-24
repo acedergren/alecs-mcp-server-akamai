@@ -5,6 +5,119 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-06-23
+
+### 🎯 MAJOR RELEASE - Tool Consolidation & Enhanced UX
+
+This is a breaking change release that fundamentally transforms ALECS from a collection of 180+ individual tools into a streamlined, business-focused platform with 25 consolidated tools.
+
+### Added - Consolidated Tools Architecture
+
+- **🎯 Business-Focused Tools**: 25 consolidated tools organized by business function
+  - **Getting Started** (2 tools): Website onboarding, DNS management
+  - **Property Management** (5 tools): Discovery, creation, configuration, activation, versions
+  - **Certificate Management** (3 tools): Enrollment, monitoring, deployment
+  - **Hostname Management** (3 tools): Assignment, edge hostnames, analysis
+  - **Security** (3 tools): Network lists core, activation, bulk operations
+  - **Analytics & Performance** (4 tools): Traffic, performance, advanced analytics, hostname analysis
+  - **Cost Management** (2 tools): Analysis and optimization
+  - **Troubleshooting** (2 tools): Incident response, diagnostics
+  - **Workflow Assistants** (4 tools): AI-powered assistants for complex tasks
+
+- **📊 Enhanced Tool Discovery**: Tools categorized by complexity and business context
+  - **Complexity Levels**: Beginner, Intermediate, Advanced, Expert
+  - **Business Focus**: Each tool includes business outcome descriptions
+  - **Time Estimates**: Realistic time expectations for each operation
+  - **Prerequisites**: Clear requirements before using each tool
+
+- **🎨 Progressive Disclosure**: Start simple, dive deep when needed
+  - Beginner tools for common tasks
+  - Advanced tools for complex scenarios
+  - Expert tools for edge cases and troubleshooting
+
+- **🔑 Automatic API Token Generation**: Remote mode security enhancement
+  - Auto-generates secure API tokens on remote server startup
+  - Displays formatted connection details with embedded tokens
+  - Provides ready-to-use WebSocket and SSE connection examples
+  - Implements token-based authentication for both transports
+
+### Changed - Server Architecture
+
+- **🏗️ Two-Server Model**: Clean separation of concerns
+  - **`alecs` (Main Server)**: 25 consolidated tools for production use
+  - **`alecs-dev` (Development Server)**: All 180+ legacy tools for migration/development
+
+- **📦 Simplified Deployment**: 
+  - Default: Run consolidated server with `npm start` or `node dist/index.js`
+  - Development: Use `npm run start:dev` or `node dist/index-dev.js`
+  - Legacy modular servers still available for specialized deployments
+
+- **🎯 Intuitive Command Structure**: 
+  - `npm start` → Local mode (STDIO) - perfect for Claude Desktop
+  - `npm run start:remote` → Remote mode (WebSocket + SSE) with auto-generated tokens
+  - `npm run start:dev` → Development server (all 180+ tools)
+
+- **⚡ Performance Improvements**:
+  - Faster tool discovery with pagination support
+  - Reduced memory footprint for main server
+  - Streamlined tool execution with consolidated interfaces
+
+### Removed - Deprecated Server Flavors
+
+- **🗑️ Cleaned Up Legacy Servers**: Removed redundant server configurations
+  - Removed: `index-minimal.ts`, `index-essential.ts`, `index-oauth.ts`
+  - Consolidated functionality into main/dev server architecture
+  - Updated package.json scripts to reflect new structure
+
+### Enhanced - User Experience
+
+- **🎯 Business-Context Driven**: Tools designed around business outcomes
+  - "Launch my e-commerce site globally" vs "create property"
+  - "We're under DDoS attack" vs "configure network lists"
+  - "Our mobile checkout is slow" vs "analyze performance metrics"
+
+- **🧭 Better Navigation**: Tools organized by user journey
+  - Getting started flows for new users
+  - Operational tools for day-to-day management
+  - Advanced tools for complex scenarios
+  - Emergency tools for incident response
+
+- **📚 Enhanced Documentation**: 
+  - Updated README with v2.0 architecture
+  - Clear migration path from v1.x
+  - Business-focused tool descriptions
+  - Deployment option guidance
+
+### Migration Guide
+
+- **For Most Users**: Switch to main server (`alecs`) - no breaking changes in functionality
+- **For Advanced Users**: Development server (`alecs-dev`) maintains all 180+ tools
+- **For Integrations**: Tool names and schemas remain compatible in dev server
+- **For New Deployments**: Use main server for better UX and performance
+
+### Breaking Changes
+
+- **Default Server**: Main server now runs consolidated tools by default
+- **Script Names**: `start:full` → `start:dev`, `dev:full` → `dev:dev`
+- **Tool Discovery**: Main server returns categorized tools with enhanced metadata
+- **Tool Count**: Main server exposes 25 tools instead of 180+ (all functionality preserved through consolidation)
+
+### Technical Details
+
+- **Tool Registry**: New consolidated tool registry with enhanced metadata
+- **Error Handling**: Improved error messages with troubleshooting guidance
+- **Request Context**: Enhanced logging with business context tracking
+- **Validation**: Comprehensive input validation with user-friendly error messages
+
+### Backward Compatibility
+
+- **Full Compatibility**: All existing functionality available in `alecs-dev` server
+- **No Data Loss**: All tools, schemas, and handlers preserved
+- **Gradual Migration**: Users can switch between servers as needed
+- **API Compatibility**: MCP protocol implementation remains unchanged
+
+---
+
 ## [1.5.0] - 2025-06-23
 
 ### Added - Complete CI/CD and Docker Multi-Variant Build System

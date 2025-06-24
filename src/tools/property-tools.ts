@@ -520,15 +520,35 @@ export async function getProperty(
   client: AkamaiClient,
   args: { propertyId: string },
 ): Promise<MCPToolResponse> {
+  const startTime = Date.now();
+  const TIMEOUT_MS = 20000; // 20 second timeout to leave buffer for MCP
+  
   try {
-    const propertyId = args.propertyId;
+    let propertyId = args.propertyId;
 
-    // If not a property ID format, use optimized search
+    // If not a property ID format, check cache first
     if (!propertyId.startsWith('prp_')) {
-      try {
-        // OPTIMIZATION: Limited search to prevent timeouts and memory issues
-        const searchTerm = propertyId.toLowerCase();
-        console.error(`[getProperty] Searching for property: ${searchTerm}`);
+      // Check if property cache is available
+      const cache = (client as any).propertyCache;
+      if (cache) {
+        console.error(`[getProperty] Checking cache for property: ${propertyId}`);
+        const cachedId = await cache.getPropertyIdByName(propertyId);
+        
+        if (cachedId) {
+          console.error(`[getProperty] Found in cache: ${propertyId} -> ${cachedId}`);
+          propertyId = cachedId;
+          // Continue with direct ID lookup below
+        } else {
+          console.error(`[getProperty] Not in cache, falling back to search: ${propertyId}`);
+        }
+      }
+      
+      // If still not a property ID, use search
+      if (!propertyId.startsWith('prp_')) {
+        try {
+          // OPTIMIZATION: Limited search to prevent timeouts and memory issues
+          const searchTerm = propertyId.toLowerCase();
+          console.error(`[getProperty] Searching for property: ${searchTerm}`);
 
         // Get groups first
         const groupsResponse = await client.request({
@@ -548,10 +568,10 @@ export async function getProperty(
         }
 
         // OPTIMIZATION: Limit search to prevent timeouts
-        // Reduced from 5 to 3 groups based on timeout issues in production
-        const MAX_GROUPS_TO_SEARCH = 3;
-        const MAX_PROPERTIES_PER_GROUP = 100;
-        const MAX_TOTAL_PROPERTIES = 300;
+        // Reduced to 2 groups and 50 properties per group for faster response
+        const MAX_GROUPS_TO_SEARCH = 2;
+        const MAX_PROPERTIES_PER_GROUP = 50;
+        const MAX_TOTAL_PROPERTIES = 100;
 
         const foundProperties: Array<{ property: Property; group: any }> = [];
         let totalPropertiesSearched = 0;
@@ -559,6 +579,12 @@ export async function getProperty(
 
         // Search properties with limits
         for (const group of groupsResponse.groups.items) {
+          // Check timeout
+          if (Date.now() - startTime > TIMEOUT_MS) {
+            console.error('[getProperty] Timeout reached during search');
+            break;
+          }
+          
           if (groupsSearched >= MAX_GROUPS_TO_SEARCH) {
             break;
           }
@@ -614,14 +640,18 @@ export async function getProperty(
         }
 
         // Handle search results
+        const timedOut = (Date.now() - startTime) > TIMEOUT_MS;
+        
         if (foundProperties.length === 0) {
           // No matches found in limited search
+          const timeoutNote = timedOut ? '\n\n⏱️ **Note:** Search was stopped due to timeout.' : '';
+          
           return {
             content: [
               {
                 type: 'text',
                 text:
-                  `❌ No properties found matching "${propertyId}" in the first ${groupsSearched} groups (searched ${totalPropertiesSearched} properties).\n\n` +
+                  `❌ No properties found matching "${propertyId}" in the first ${groupsSearched} groups (searched ${totalPropertiesSearched} properties).${timeoutNote}\n\n` +
                   '**Suggestions:**\n' +
                   '1. Use the exact property ID (e.g., prp_12345)\n' +
                   '2. Use "list properties" to browse available properties\n' +
@@ -629,7 +659,8 @@ export async function getProperty(
                   '**Note:** To prevent timeouts, the search was limited to:\n' +
                   `- First ${MAX_GROUPS_TO_SEARCH} groups\n` +
                   `- Maximum ${MAX_PROPERTIES_PER_GROUP} properties per group\n` +
-                  `- Total of ${MAX_TOTAL_PROPERTIES} properties\n\n` +
+                  `- Total of ${MAX_TOTAL_PROPERTIES} properties\n` +
+                  `- ${TIMEOUT_MS/1000} second timeout\n\n` +
                   "If your property wasn't found, please use its exact property ID.",
               },
             ],
@@ -693,12 +724,57 @@ export async function getProperty(
         throw searchError;
       }
     }
+    }
 
     // Get property by ID
+    // First check cache for details
+    const cache = (client as any).propertyCache;
+    if (cache) {
+      const cachedDetails = await cache.getPropertyDetails(propertyId);
+      if (cachedDetails) {
+        console.error(`[getProperty] Using cached details for ${propertyId}`);
+        // Format cached details as response
+        return formatCachedPropertyDetails(cachedDetails);
+      }
+    }
+    
     return await getPropertyById(client, propertyId);
   } catch (_error) {
     return formatError('get property', _error);
   }
+}
+
+/**
+ * Format cached property details as response
+ */
+function formatCachedPropertyDetails(cached: any): MCPToolResponse {
+  let text = `# Property Details: ${cached.propertyName} (from cache)\n\n`;
+  
+  text += '## Basic Information\n';
+  text += `- **Property ID:** ${formatPropertyDisplay(cached.propertyId, cached.propertyName)}\n`;
+  text += `- **Contract:** ${formatContractDisplay(cached.contractId)}\n`;
+  text += `- **Group:** ${formatGroupDisplay(cached.groupId)}\n`;
+  text += `- **Product:** ${cached.productId ? formatProductDisplay(cached.productId) : 'N/A'}\n\n`;
+  
+  text += '## Version Information\n';
+  text += `- **Latest Version:** ${cached.latestVersion || 'N/A'}\n`;
+  text += `- **Production Status:** ${formatStatus(cached.productionStatus)}\n`;
+  text += `- **Staging Status:** ${formatStatus(cached.stagingStatus)}\n\n`;
+  
+  text += '## Available Actions\n';
+  text += `- View rules: \`"Show me the rules for property ${cached.propertyId}"\`\n`;
+  text += `- Update rules: \`"Update property ${cached.propertyId} to use origin server example.com"\`\n`;
+  text += `- Activate: \`"Activate property ${cached.propertyId} to staging"\`\n`;
+  text += `- View activations: \`"Show activation history for property ${cached.propertyId}"\`\n\n`;
+  
+  text += '💡 **Note:** This is cached data. For the latest details, use the property ID directly.';
+  
+  return {
+    content: [{
+      type: 'text',
+      text,
+    }],
+  };
 }
 
 /**
@@ -728,7 +804,7 @@ async function getPropertyById(
       }
 
       // Optimize search: prioritize likely groups and limit total search
-      const MAX_GROUPS_TO_SEARCH = 10;
+      const MAX_GROUPS_TO_SEARCH = 5; // Reduced from 10 to avoid timeouts
 
       // Prioritize groups that might contain the property
       const priorityGroupNames = ['acedergr', 'default', 'production', 'main'];

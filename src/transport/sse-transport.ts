@@ -15,6 +15,7 @@ import { createServer, Server as HttpServer } from 'http';
 import { createServer as createHttpsServer, Server as HttpsServer } from 'https';
 import { readFileSync } from 'fs';
 import { logger } from '@utils/logger';
+import { validateApiToken } from '../utils/token-generator';
 
 interface SSETransportOptions {
   port: number;
@@ -66,12 +67,25 @@ export class SSEServerTransport implements Transport {
 
     // Authentication middleware
     this.app.use(async (req, res, next) => {
+      // Extract token from query params or Authorization header
+      const token = this.extractToken(req);
+      
+      if (!this.authenticateConnection(token)) {
+        logger.warn('SSE connection rejected - invalid token', {
+          remoteAddress: req.ip,
+          token: token ? 'present' : 'missing',
+        });
+        return res.status(401).json({ error: 'Authentication failed' });
+      }
+      
+      // Call custom auth handler if provided
       if (this.options.authHandler) {
         const authorized = await this.options.authHandler(req);
         if (!authorized) {
           return res.status(401).json({ error: 'Unauthorized' });
         }
       }
+      
       next();
     });
 
@@ -238,6 +252,40 @@ export class SSEServerTransport implements Transport {
     });
 
     return Promise.resolve();
+  }
+
+  /**
+   * Extract token from request (query params or Authorization header)
+   */
+  private extractToken(req: Request): string | null {
+    // Try query parameter first
+    const token = req.query.token as string;
+    if (token) return token;
+    
+    // Try Authorization header
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      return authHeader.substring(7);
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Authenticate connection using token
+   */
+  private authenticateConnection(token: string | null): boolean {
+    if (!token) {
+      return false;
+    }
+    
+    // Check against environment token (auto-generated)
+    if (process.env.ALECS_API_TOKEN && token === process.env.ALECS_API_TOKEN) {
+      return true;
+    }
+    
+    // Validate token format
+    return validateApiToken(token);
   }
 
   // Read messages from the queue

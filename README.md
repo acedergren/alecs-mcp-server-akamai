@@ -1,10 +1,10 @@
 # ALECS - MCP Server for Akamai
 
-**ALECS - A LaunchGrid for Edge & Cloud Services**
+**ALECS - A LaunchGrid for Edge & Cloud Services v2.0**
 
-A comprehensive MCP (Model Context Protocol) server that enables AI assistants to manage Akamai's
-complete edge platform through natural language. ALECS provides enterprise-grade tools for Akamai
-properties, DNS, certificates, security, and performance optimization.
+A consolidated MCP (Model Context Protocol) server that provides streamlined, business-focused tools
+for managing Akamai's edge platform through natural language. ALECS v2.0 features enhanced UX with
+25 consolidated tools (down from 180+) organized by business function and complexity level.
 
 ## 🎯 What Can ALECS Do for You?
 
@@ -148,31 +148,81 @@ The installer will:
 ✅ Build the project  
 ✅ Help you choose how to run ALECS  
 
-### Running ALECS
+### Running ALECS v2.0
 
-#### Option 1: Docker (Recommended) 🐳
+#### Server Modes
+
+ALECS v2.0 provides two simple modes:
+
+**Local Mode (Default - STDIO)**:
+```bash
+# For local Claude Desktop integration
+npm start                   # Local mode (default)
+npm run start:local         # Explicit local mode
+node dist/index.js --local  # Direct execution
+```
+
+**Remote Mode (WebSocket + SSE)**:
+```bash
+# For remote access - starts both WebSocket (8082) and SSE (8083)
+npm run start:remote        # Remote mode
+node dist/index.js --remote # Direct execution
+ALECS_MODE=remote npm start # Environment variable
+```
+
+**Development Server**:
+```bash
+# Full server with all 180+ individual tools (for development/migration)
+npm run start:dev
+node dist/index-dev.js
+```
+
+#### 🔑 Automatic API Token Generation
+
+When starting in **remote mode**, ALECS automatically:
+- Generates a secure API token
+- Displays connection URLs with embedded tokens  
+- Shows both WebSocket and SSE endpoints
+- Provides ready-to-use connection examples
+
+Example output:
+```
+🔑 API Token Generated
+═══════════════════════════════════════════════════════
+
+Token ID: tok_a1b2c3d4
+Token:    alecs_xyz123...
+Created:  6/23/2025, 10:30:00 AM
+
+📋 Usage Examples:
+
+• WebSocket connection:
+  ws://localhost:8082/mcp?token=alecs_xyz123...
+
+• SSE connection:
+  http://localhost:8083/mcp?token=alecs_xyz123...
+
+⚠️  IMPORTANT: Save this token securely!
+   It will not be displayed again.
+```
+
+#### Docker Support
 
 ```bash
-# Start with Docker Compose
+# Remote mode (WebSocket + SSE) - Default
 docker-compose up -d
+
+# Local mode (for testing)
+docker-compose --profile local up
+
+# Development server (all 180+ tools)  
+docker-compose --profile dev up
 
 # View logs
 docker-compose logs -f
 
 # Stop
 docker-compose down
-```
-
-#### Option 2: Direct Node.js
-
-```bash
-# Interactive mode (recommended for first time)
-npm start
-
-# Or run specific servers
-npm run start:full         # All tools
-npm run start:websocket    # WebSocket server (for remote access)
-npm run start:property     # Property management only
 ```
 
 #### Option 3: Remote Access Servers
@@ -210,15 +260,18 @@ npm run generate-token
 
 #### Option 4: Claude Desktop Integration
 
-For local Claude Desktop integration:
+For local Claude Desktop integration with v2.0:
 
 ```bash
-# Option A: Direct stdio connection (local only)
+# Option A: Main consolidated server (recommended)
 cp claude_desktop_config.json ~/Library/Application\ Support/Claude/  # macOS
 cp claude_desktop_config.json %APPDATA%\Claude\  # Windows
 cp claude_desktop_config.json ~/.config/claude/  # Linux
 
-# Option B: WebSocket connection (local or remote)
+# Option B: Development server (all 180+ tools)
+# Edit claude_desktop_config.json to use index-dev.js instead
+
+# Option C: WebSocket connection (local or remote)
 # See the WebSocket Integration section below
 ```
 
@@ -251,21 +304,52 @@ account_key = 1-ABCDEF
 
 ### 2. Configure Claude Desktop
 
-ALECS has been completely refactored with a modular architecture for optimal performance and
-flexibility. The project now features:
+ALECS v2.0 features a completely redesigned architecture with consolidated tools for better UX:
 
-- **TypeScript Migration**: 100% TypeScript with full strict mode for enhanced type safety
-- **Modular Architecture**: Services split into focused, independent modules
-- **Interactive Start**: User-friendly CLI for selecting services
-- **Improved Performance**: Up to 80% reduction in memory usage
-- **Better Error Handling**: Comprehensive error handling with unknown catch variables
+- **Consolidated Tools**: 25 business-focused tools (down from 180+)
+- **Enhanced Discovery**: Tools organized by category and complexity level
+- **Better Performance**: Streamlined architecture with faster startup
+- **Improved UX**: Business-context driven interactions with guided workflows
 
-ALECS offers multiple deployment modes:
+#### Option A: Main Server (Recommended) 🚀
 
-#### Option A: Modular Servers (Recommended) 🚀
+Use the consolidated server with 25 business-focused tools:
 
-Deploy focused servers for specific use cases. This approach reduces memory usage by up to 80% and
-improves stability:
+```json
+{
+  "mcpServers": {
+    "alecs": {
+      "command": "node",
+      "args": ["/path/to/alecs-mcp-server-akamai/dist/index.js"],
+      "env": {
+        "AKAMAI_EDGERC_PATH": "~/.edgerc"
+      }
+    }
+  }
+}
+```
+
+#### Option B: Development Server
+
+Use the full server with all 180+ tools (for development/migration):
+
+```json
+{
+  "mcpServers": {
+    "alecs-dev": {
+      "command": "node",
+      "args": ["/path/to/alecs-mcp-server-akamai/dist/index-dev.js"],
+      "env": {
+        "AKAMAI_EDGERC_PATH": "~/.edgerc"
+      }
+    }
+  }
+}
+```
+
+#### Option C: Modular Servers (Legacy)
+
+Specialized servers for specific use cases:
 
 ```json
 {
@@ -283,82 +367,25 @@ improves stability:
       "env": {
         "AKAMAI_EDGERC_PATH": "~/.edgerc"
       }
-    },
-    "alecs-certs": {
-      "command": "node",
-      "args": ["/path/to/alecs-mcp-server-akamai/dist/servers/certs-server.js"],
-      "env": {
-        "AKAMAI_EDGERC_PATH": "~/.edgerc"
-      }
-    },
-    "alecs-reporting": {
-      "command": "node",
-      "args": ["/path/to/alecs-mcp-server-akamai/dist/servers/reporting-server.js"],
-      "env": {
-        "AKAMAI_EDGERC_PATH": "~/.edgerc"
-      }
-    },
-    "alecs-security": {
-      "command": "node",
-      "args": ["/path/to/alecs-mcp-server-akamai/dist/servers/security-server.js"],
-      "env": {
-        "AKAMAI_EDGERC_PATH": "~/.edgerc"
-      }
     }
   }
 }
 ```
 
-**Modular Server Benefits:**
+### Tool Categories in v2.0
 
-- **alecs-property** (32 tools): Property management, activations, and basic certificate support
-- **alecs-dns** (24 tools): DNS zones, records, and migrations
-- **alecs-certs** (22 tools): Full certificate lifecycle management
-- **alecs-reporting** (25 tools): Analytics, metrics, and performance reports
-- **alecs-security** (95 tools): WAF, network lists, bot management, and DDoS protection
+| Category | Tools | Description |
+|----------|--------|-------------|
+| **Getting Started** | 2 | Website onboarding, DNS management |
+| **Property Management** | 8 | Property lifecycle, configuration, activation |
+| **Certificate Management** | 3 | SSL enrollment, monitoring, deployment |
+| **Security** | 3 | Network lists, security policies |
+| **Analytics** | 4 | Traffic, performance, advanced analytics |
+| **Cost Management** | 2 | Cost analysis and optimization |
+| **Troubleshooting** | 2 | Incident response, diagnostics |
+| **Workflows** | 4 | AI-powered assistants for complex tasks |
 
-#### Option B: Monolithic Server (All Features)
-
-For users who need all features in one server:
-
-```json
-{
-  "mcpServers": {
-    "alecs": {
-      "command": "npx",
-      "args": ["alecs-mcp-server-akamai"],
-      "env": {}
-    }
-  }
-}
-```
-
-#### Option C: Essential Server (Core Features Only)
-
-A lightweight option with just the most commonly used features:
-
-```json
-{
-  "mcpServers": {
-    "alecs-essential": {
-      "command": "node",
-      "args": ["/path/to/alecs-mcp-server-akamai/dist/index-essential.js"],
-      "env": {}
-    }
-  }
-}
-```
-
-### Choosing the Right Configuration
-
-| Configuration  | Use Case                        | Memory Usage     | Tool Count       |
-| -------------- | ------------------------------- | ---------------- | ---------------- |
-| **Modular**    | Deploy only what you need       | ~80MB per module | 22-95 per module |
-| **Monolithic** | Need all features at once       | ~512MB           | 198 total        |
-| **Essential**  | Basic property & DNS management | ~200MB           | ~60 tools        |
-
-**Recommendation**: Start with modular servers and add modules as needed. This provides the best
-performance and stability.
+**Recommendation**: Start with the main consolidated server (Option A) for the best user experience.
 
 ## Usage Examples
 
@@ -408,7 +435,58 @@ performance and stability.
 "Delete the old MX record"
 ```
 
-## Available Tools
+## Available Tools in v2.0
+
+### Consolidated Business-Focused Tools
+
+ALECS v2.0 consolidates 180+ technical tools into 25 business-focused tools organized by category:
+
+#### Getting Started
+- `website-onboarding` - Complete guided setup for new websites with security best practices
+- `dns-management` - User-friendly DNS record management with guided workflows
+
+#### Property Management
+- `property-discovery` - Find, search, and analyze Akamai properties
+- `property-creation` - Create new properties with guided configuration
+- `property-configuration` - Configure property settings, rules, and hostnames
+- `property-activation` - Activate properties with safety checks
+- `property-versions` - Manage versions, compare changes, track history
+- `hostname-assignment` - Assign and manage hostnames across properties
+- `edge-hostname-management` - Create edge hostnames with certificate integration
+
+#### Certificate Management
+- `certificate-enrollment` - Enroll SSL certificates with guided domain validation
+- `certificate-monitoring` - Monitor certificate status and expiration
+- `certificate-deployment` - Deploy certificates to properties and edge networks
+
+#### Security
+- `network-lists-core` - Create and manage network lists for security policies
+- `network-lists-activation` - Activate and deploy network list changes
+- `network-lists-bulk` - Bulk operations for network lists
+
+#### Analytics & Performance
+- `traffic-analytics` - Analyze traffic patterns and trends
+- `performance-analytics` - Monitor website performance and optimization
+- `advanced-analytics` - Deep dive analytics for bandwidth and errors
+- `hostname-analysis` - Analyze hostname conflicts and optimization
+
+#### Cost Management
+- `cost-analysis` - Analyze costs, usage patterns, and billing insights
+- `cost-optimization` - Identify and implement cost optimization opportunities
+
+#### Troubleshooting
+- `incident-response` - Guided incident response for outages
+- `troubleshooting` - Diagnostic tools for common issues
+
+#### Workflow Assistants
+- `infrastructure-assistant` - AI assistant for property and infrastructure decisions
+- `dns-assistant` - AI assistant for DNS configuration and domain management
+- `security-assistant` - AI assistant for security and compliance management
+- `performance-assistant` - AI assistant for performance optimization
+
+### Legacy Tools (alecs-dev server)
+
+All 180+ individual tools remain available in the development server for migration and advanced use cases:
 
 ### FastPurge - Content Invalidation
 
@@ -667,34 +745,30 @@ src/
     └── performance-monitor.ts        # Performance tracking
 ```
 
-## Current Capabilities (v1.3.0)
+## What's New in v2.0
 
-### 🎯 New in v1.3.0
+### 🎯 Major Features in v2.0
 
-- **Complete TypeScript Migration**: 100% TypeScript codebase with full strict mode
-- **Modular Architecture**: Services split into focused, independent modules
-- **Interactive CLI**: User-friendly startup with service selection
-- **Enhanced Type Safety**: Comprehensive interfaces and type definitions
-- **Improved Error Handling**: Proper handling of unknown errors in catch blocks
-- **Performance Optimization**: Reduced memory usage and faster startup times
-- **Better Developer Experience**: Full IntelliSense support and type checking
+- **Tool Consolidation**: Reduced from 180+ tools to 25 focused, business-oriented tools
+- **Enhanced Tool Discovery**: Tools categorized by business function and complexity level
+- **Improved User Experience**: Business-context driven interactions with guided workflows
+- **Streamlined Architecture**: Main server (alecs) vs development server (alecs-dev)
+- **Better Performance**: Faster tool discovery and execution with consolidated interfaces
+- **Progressive Disclosure**: Start simple, dive deep when needed with complexity levels
+- **Business Focus**: Tools designed around business outcomes, not technical operations
 
-### ✅ Implemented Features
+### ✅ Consolidated Tool Categories
 
-- **Property Manager**: Full CRUD operations, version management, activation workflow
-- **Edge DNS**: Zone management, record operations, bulk imports, DNSSEC support
-- **Certificate Management**: Default DV certificates with automatic DNS validation
-- **Multi-Account Support**: Seamless account switching (Akamai intenral and channel partners only)
-- **Product Mapping**: Intelligent product selection and recommendations
-- **CP Code Management**: Create and manage CP codes for reporting
-- **Secure Property Onboarding**: Automated HTTPS property setup workflow
-- **DNS Migration**: AXFR transfers, zone file imports, provider-specific guides
-- **Advanced Search**: Property search by name, hostname, edge hostname
-- **Progress Tracking**: Real-time feedback for long-running operations
-- **FastPurge v3**: Intelligent content invalidation with rate limiting and queue management
-- **Version Control**: Comprehensive version comparison, timeline, and rollback
-- **Rule Tree Management**: Validation, optimization, templates, and merging
-- **Bulk Operations**: Multi-property cloning, activation, and rule updates
+- **Getting Started**: Website onboarding with security best practices, user-friendly DNS management
+- **Property Management**: Discovery, creation, configuration, activation, and version management
+- **Certificate Management**: SSL enrollment, monitoring, and deployment workflows
+- **Hostname Management**: Assignment, edge hostname management, and conflict analysis
+- **Security**: Network lists, activation management, and bulk operations
+- **Analytics & Performance**: Traffic analysis, performance monitoring, and advanced insights
+- **Cost Management**: Cost analysis and optimization recommendations
+- **Troubleshooting**: Incident response and diagnostic tools
+- **Workflow Assistants**: AI-powered assistants for complex multi-step processes
+- **All Legacy Tools**: Available in alecs-dev server for development and migration
 
 ### Previous Features (v1.2.0)
 
@@ -705,30 +779,26 @@ src/
 - **Bulk Operations**: Multi-property management with progress tracking
 - **Enhanced Search**: Multi-criteria property search and health checks
 
-### 🚧 Upcoming Features
+### 🚧 Roadmap for v2.x
 
-#### Short term
+#### v2.1 - Enhanced Business Intelligence
 
-- **Network Lists**: IP and geographic access control list management
-- **Image & Video Manager**: Policy creation and management
-- **Simple Edgeworkers**: Edge logic deployment (redirects, forwards, etc.)
+- **Smart Recommendations**: AI-powered optimization suggestions based on usage patterns
+- **Business Impact Analysis**: ROI calculations and business outcome predictions
+- **Compliance Workflows**: Automated compliance checking and reporting
 
-#### Medium term
+#### v2.2 - Advanced Integrations
 
-- **Application Security**: WAF rule management and security policies
-- **Bot Manager**: Bot detection and mitigation configuration
-- **Reporting API**: Traffic analytics and performance metrics
-- **Securiy Metrics**: Security trends and metrcis
+- **Terraform Export**: Generate Infrastructure as Code from ALECS configurations
+- **GitOps Integration**: Version control and CI/CD workflows
+- **Multi-Provider Support**: Hybrid cloud and multi-CDN management
 
-#### Long term Roadmap
+#### v2.3 - Enterprise Features
 
-- **API Definitions and Discovery**: API definition and policy management
-- **Advanced EdgeWorkers**: JavaScript code deployment at the edge
-- **Identity & Access Management**: User and API client management
-- **Media Worflows**: Specific feature for Media delivery properties
-- **mPulse**: Pull data RUM (Real User Monitoring) API integration
-- **Property activation diffing**: Compare versions before activation
-- **Terraform Export**: Generate Terraform configurations from existing properties
+- **Advanced Security**: WAF, Bot Manager, and threat intelligence integration
+- **Media Workflows**: Specialized tools for media delivery optimization
+- **Edge Computing**: EdgeWorkers and edge logic deployment
+- **Real User Monitoring**: mPulse integration for performance insights
 
 ## 🌐 Remote Access Integration
 

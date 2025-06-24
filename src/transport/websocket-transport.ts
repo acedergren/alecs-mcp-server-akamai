@@ -10,6 +10,8 @@ import { readFileSync } from 'fs';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js';
 import { logger } from '../utils/logger';
+import { validateApiToken } from '../utils/token-generator';
+import { URL } from 'url';
 
 export interface WebSocketServerTransportOptions {
   port: number;
@@ -56,9 +58,22 @@ export class WebSocketServerTransport implements Transport {
 
       // Handle WebSocket connections
       this.wss.on('connection', (ws: WebSocket, request) => {
-        logger.info('WebSocket client connected', {
+        // Extract token from query params or Authorization header
+        const token = this.extractToken(request);
+        
+        if (!this.authenticateConnection(token)) {
+          logger.warn('WebSocket connection rejected - invalid token', {
+            remoteAddress: request.socket.remoteAddress,
+            token: token ? 'present' : 'missing',
+          });
+          
+          ws.close(1008, 'Authentication failed');
+          return;
+        }
+        
+        logger.info('WebSocket client connected and authenticated', {
           remoteAddress: request.socket.remoteAddress,
-          headers: request.headers,
+          userAgent: request.headers['user-agent'],
         });
 
         this.clients.add(ws);
@@ -162,6 +177,47 @@ export class WebSocketServerTransport implements Transport {
         this.messageQueue.push({ message, client });
       }
     }
+  }
+
+  /**
+   * Extract token from request (query params or Authorization header)
+   */
+  private extractToken(request: any): string | null {
+    // Try query parameter first
+    if (request.url) {
+      try {
+        const url = new URL(request.url, `http://${request.headers.host}`);
+        const token = url.searchParams.get('token');
+        if (token) return token;
+      } catch (error) {
+        // Ignore URL parsing errors
+      }
+    }
+    
+    // Try Authorization header
+    const authHeader = request.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      return authHeader.substring(7);
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Authenticate connection using token
+   */
+  private authenticateConnection(token: string | null): boolean {
+    if (!token) {
+      return false;
+    }
+    
+    // Check against environment token (auto-generated)
+    if (process.env.ALECS_API_TOKEN && token === process.env.ALECS_API_TOKEN) {
+      return true;
+    }
+    
+    // Validate token format
+    return validateApiToken(token);
   }
 
   async close(): Promise<void> {
