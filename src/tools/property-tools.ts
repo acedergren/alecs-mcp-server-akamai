@@ -520,6 +520,9 @@ export async function getProperty(
   client: AkamaiClient,
   args: { propertyId: string },
 ): Promise<MCPToolResponse> {
+  const startTime = Date.now();
+  const TIMEOUT_MS = 20000; // 20 second timeout to leave buffer for MCP
+
   try {
     const propertyId = args.propertyId;
 
@@ -548,10 +551,10 @@ export async function getProperty(
         }
 
         // OPTIMIZATION: Limit search to prevent timeouts
-        // Reduced from 5 to 3 groups based on timeout issues in production
-        const MAX_GROUPS_TO_SEARCH = 3;
-        const MAX_PROPERTIES_PER_GROUP = 100;
-        const MAX_TOTAL_PROPERTIES = 300;
+        // Reduced to 2 groups and 50 properties per group for faster response
+        const MAX_GROUPS_TO_SEARCH = 2;
+        const MAX_PROPERTIES_PER_GROUP = 50;
+        const MAX_TOTAL_PROPERTIES = 100;
 
         const foundProperties: Array<{ property: Property; group: any }> = [];
         let totalPropertiesSearched = 0;
@@ -559,6 +562,12 @@ export async function getProperty(
 
         // Search properties with limits
         for (const group of groupsResponse.groups.items) {
+          // Check timeout
+          if (Date.now() - startTime > TIMEOUT_MS) {
+            console.error('[getProperty] Timeout reached during search');
+            break;
+          }
+
           if (groupsSearched >= MAX_GROUPS_TO_SEARCH) {
             break;
           }
@@ -615,6 +624,9 @@ export async function getProperty(
 
         // Handle search results
         if (foundProperties.length === 0) {
+          // Check if we hit timeout
+          const hitTimeout = Date.now() - startTime > TIMEOUT_MS;
+
           // No matches found in limited search
           return {
             content: [
@@ -622,6 +634,7 @@ export async function getProperty(
                 type: 'text',
                 text:
                   `❌ No properties found matching "${propertyId}" in the first ${groupsSearched} groups (searched ${totalPropertiesSearched} properties).\n\n` +
+                  (hitTimeout ? '⏱️ **Search was stopped due to timeout.**\n\n' : '') +
                   '**Suggestions:**\n' +
                   '1. Use the exact property ID (e.g., prp_12345)\n' +
                   '2. Use "list properties" to browse available properties\n' +
