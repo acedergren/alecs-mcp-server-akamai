@@ -245,7 +245,7 @@ export class PropertyCachePreloader {
       const groups = groupsResponse.groups?.items || [];
       
       for (const group of groups.slice(0, 1)) { // Only check first group
-        if (!group.contractIds?.length) continue;
+        if (!group.contractIds?.length) {continue;}
         
         const propertiesResponse = await this.client.request({
           path: '/papi/v1/properties',

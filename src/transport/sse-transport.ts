@@ -260,7 +260,7 @@ export class SSEServerTransport implements Transport {
   private extractToken(req: Request): string | null {
     // Try query parameter first
     const token = req.query.token as string;
-    if (token) return token;
+    if (token) {return token;}
     
     // Try Authorization header
     const authHeader = req.headers.authorization;

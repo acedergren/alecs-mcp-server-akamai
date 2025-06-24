@@ -188,7 +188,7 @@ export class WebSocketServerTransport implements Transport {
       try {
         const url = new URL(request.url, `http://${request.headers.host}`);
         const token = url.searchParams.get('token');
-        if (token) return token;
+        if (token) {return token;}
       } catch (error) {
         // Ignore URL parsing errors
       }

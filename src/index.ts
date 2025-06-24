@@ -226,12 +226,12 @@ for (const tool of existingConsolidatedTools) {
   let complexity = ToolComplexity.INTERMEDIATE;
   
   // Categorize based on tool name
-  if (tool.name.includes('dns')) category = ToolCategory.DNS_MANAGEMENT;
-  if (tool.name.includes('certificate') || tool.name.includes('cert')) category = ToolCategory.CERTIFICATE_MANAGEMENT;
-  if (tool.name.includes('security') || tool.name.includes('network-list')) category = ToolCategory.SECURITY;
-  if (tool.name.includes('performance') || tool.name.includes('analytics')) category = ToolCategory.PERFORMANCE;
-  if (tool.name.includes('search')) complexity = ToolComplexity.BEGINNER;
-  if (tool.name.includes('advanced') || tool.name.includes('bulk')) complexity = ToolComplexity.ADVANCED;
+  if (tool.name.includes('dns')) {category = ToolCategory.DNS_MANAGEMENT;}
+  if (tool.name.includes('certificate') || tool.name.includes('cert')) {category = ToolCategory.CERTIFICATE_MANAGEMENT;}
+  if (tool.name.includes('security') || tool.name.includes('network-list')) {category = ToolCategory.SECURITY;}
+  if (tool.name.includes('performance') || tool.name.includes('analytics')) {category = ToolCategory.PERFORMANCE;}
+  if (tool.name.includes('search')) {complexity = ToolComplexity.BEGINNER;}
+  if (tool.name.includes('advanced') || tool.name.includes('bulk')) {complexity = ToolComplexity.ADVANCED;}
 
   consolidatedToolsRegistry.push({
     name: tool.name,

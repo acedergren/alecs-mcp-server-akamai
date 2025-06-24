@@ -54,7 +54,7 @@ export class ServerConfiguration {
   }
 
   private parseBoolean(value: string | undefined, defaultValue: boolean): boolean {
-    if (value === undefined) return defaultValue;
+    if (value === undefined) {return defaultValue;}
     return value.toLowerCase() === 'true' || value === '1';
   }
 
