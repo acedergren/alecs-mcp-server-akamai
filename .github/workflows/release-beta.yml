@@ -1,0 +1,280 @@
+name: Beta Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      beta_version:
+        description: 'Beta version (e.g., 2.0.0-beta.1)'
+        required: true
+        type: string
+      npm_tag:
+        description: 'NPM tag for beta release'
+        required: true
+        type: choice
+        default: 'beta'
+        options:
+          - beta
+          - next
+          - alpha
+          - rc
+
+jobs:
+  beta-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write # For npm provenance
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Set beta version
+        run: |
+          npm version ${{ github.event.inputs.beta_version }} --no-git-tag-version
+          echo "VERSION=${{ github.event.inputs.beta_version }}" >> $GITHUB_ENV
+
+      - name: Create beta commit and tag
+        run: |
+          git add package.json package-lock.json
+          git commit -m "chore: release v${{ env.VERSION }} [skip ci]"
+          git tag -a "v${{ env.VERSION }}" -m "Beta release v${{ env.VERSION }}"
+
+      - name: Push beta tag only (not to main branch)
+        run: |
+          git push origin "v${{ env.VERSION }}"
+
+      - name: Create Beta Release Notes
+        run: |
+          cat > BETA_NOTES.md << 'EOF'
+          ## ALECS v${{ env.VERSION }} - Beta Release
+
+          **⚠️ BETA RELEASE - NOT FOR PRODUCTION USE**
+
+          This is a beta release of ALECS v2.0 with major breaking changes. Please test thoroughly before upgrading production systems.
+
+          ### 🚨 Breaking Changes:
+          - Consolidated from 180+ tools to 25 business-focused tools
+          - Removed separate server flavors (essential, minimal, full, oauth)
+          - Changed default tool set (use dev server for all 180+ tools)
+          - New architecture requires migration from v1.x
+
+          ### 🎯 What's New in v2.0:
+          - **Consolidated Tools**: 25 carefully selected business-focused tools
+          - **Enhanced Discovery**: Tools categorized by complexity and business context
+          - **Property Cache**: Valkey/Redis integration for instant property lookups
+          - **Customer Override**: Configurable section override (disabled by default)
+          - **Better UX**: Visual startup display with configuration info
+          - **Performance**: Faster startup, reduced memory usage
+
+          ### 🐳 Docker Images (Beta):
+          ```bash
+          # Main server (25 tools, local/remote)
+          docker run ghcr.io/${{ github.repository }}:${{ env.VERSION }}
+
+          # Development server (all 180+ tools)
+          docker run ghcr.io/${{ github.repository }}:dev-${{ env.VERSION }}
+
+          # Remote mode
+          docker run -e ALECS_MODE=remote -p 8082:8082 -p 8083:8083 \
+            ghcr.io/${{ github.repository }}:${{ env.VERSION }}
+          ```
+
+          ### 📦 NPM Installation (Beta):
+          ```bash
+          # Install beta version
+          npm install -g alecs-mcp-server-akamai@${{ github.event.inputs.npm_tag }}
+
+          # Or specific version
+          npm install -g alecs-mcp-server-akamai@${{ env.VERSION }}
+          ```
+
+          ### 🧪 Testing Checklist:
+          - [ ] Test tool consolidation (verify 25 tools work correctly)
+          - [ ] Test dev server (verify all 180+ tools still available)
+          - [ ] Test property cache with Valkey/Redis
+          - [ ] Test customer override feature
+          - [ ] Test remote mode (WebSocket + SSE)
+          - [ ] Test Docker images
+          - [ ] Test npm package installation
+          - [ ] Test migration from v1.x
+
+          ### 📋 Known Issues:
+          - Property search limited to 2 groups/100 properties without cache
+          - Some workflows may need adjustment for consolidated tools
+          - Migration guide still in progress
+
+          ### 🔄 Migration from v1.x:
+          1. Review consolidated tool list in README
+          2. Update tool names in your workflows
+          3. Use dev server if you need legacy tools
+          4. Enable property cache for better performance
+          5. Test thoroughly before production deployment
+
+          ### 💬 Feedback:
+          Please report issues with the beta tag: https://github.com/${{ github.repository }}/issues
+
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/v1.5.0...v${{ env.VERSION }}
+          EOF
+
+      - name: Create GitHub Beta Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: v${{ env.VERSION }} (Beta)
+          body_path: BETA_NOTES.md
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Main Beta Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/docker/Dockerfile.v2
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ env.VERSION }}
+            ghcr.io/${{ github.repository }}:v2-beta
+            ghcr.io/${{ github.repository }}:beta
+          build-args: |
+            VERSION=${{ env.VERSION }}
+            BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+            VCS_REF=${{ github.sha }}
+
+      - name: Build and push Development Beta Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/docker/Dockerfile.full
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository }}:dev-${{ env.VERSION }}
+            ghcr.io/${{ github.repository }}:dev-beta
+          build-args: |
+            VERSION=${{ env.VERSION }}
+            BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+            VCS_REF=${{ github.sha }}
+
+      - name: Publish to NPM (Beta)
+        run: |
+          npm publish --tag ${{ github.event.inputs.npm_tag }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create Beta Testing Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Beta Testing: v${{ env.VERSION }}`,
+              body: `## Beta Testing Tracking for v${{ env.VERSION }}
+              
+              ### Testing Status:
+              - [ ] Tool consolidation verified
+              - [ ] Dev server compatibility confirmed
+              - [ ] Property cache tested
+              - [ ] Customer override feature tested
+              - [ ] Remote mode tested
+              - [ ] Docker images tested
+              - [ ] NPM package tested
+              - [ ] Migration guide validated
+              
+              ### Feedback Summary:
+              <!-- Add feedback here -->
+              
+              ### Issues Found:
+              <!-- List any issues discovered -->
+              
+              ### Go/No-Go Decision:
+              - [ ] Ready for stable release
+              - [ ] Needs another beta iteration
+              
+              cc @acedergren`,
+              labels: ['beta-testing', 'v2.0', 'release']
+            });
+
+            console.log(`Created issue #${issue.data.number}`);
+
+      - name: Post to Slack (if configured)
+        if: env.SLACK_WEBHOOK_URL != ''
+        run: |
+          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+            -H 'Content-type: application/json' \
+            -d '{
+              "text": "🚀 ALECS Beta Release v${{ env.VERSION }} is now available!",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*🚀 ALECS Beta Release v${{ env.VERSION }}*\n\n⚠️ Major breaking changes - please test thoroughly!"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*NPM:*\n`npm i -g alecs-mcp-server-akamai@${{ github.event.inputs.npm_tag }}`"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Docker:*\n`docker pull ghcr.io/${{ github.repository }}:beta`"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Release"
+                      },
+                      "url": "https://github.com/${{ github.repository }}/releases/tag/v${{ env.VERSION }}"
+                    }
+                  ]
+                }
+              ]
+            }'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
