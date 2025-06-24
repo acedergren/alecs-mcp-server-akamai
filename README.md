@@ -2,6 +2,9 @@
 
 **ALECS - A LaunchGrid for Edge & Cloud Services v2.0**
 
+> 🚨 **BETA RELEASE**: This is v2.0.0-beta.1 - Please report issues and provide feedback via
+> [GitHub Issues](https://github.com/acedergren/alecs-mcp-server-akamai/issues)
+
 A consolidated MCP (Model Context Protocol) server that provides streamlined, business-focused tools
 for managing Akamai's edge platform through natural language. ALECS v2.0 features enhanced UX with
 25 consolidated tools (down from 180+) organized by business function and complexity level.
@@ -38,36 +41,43 @@ for managing Akamai's edge platform through natural language. ALECS v2.0 feature
 - **Traffic Steering**: Geolocation, failover, and load balancing
 - **ACME Integration**: Automatic certificate validation record management
 
-
 ## 🤖 Intelligent Workflow Assistants
 
-**Transform complex infrastructure tasks into simple conversations.** ALECS includes four AI-powered workflow assistants that understand your business needs and orchestrate multi-step processes automatically:
+**Transform complex infrastructure tasks into simple conversations.** ALECS includes four AI-powered
+workflow assistants that understand your business needs and orchestrate multi-step processes
+automatically:
 
 ### 🏗️ **Infrastructure Workflow Assistant**
+
 - **Natural Language**: "Launch my e-commerce site globally with PCI compliance"
-- **What It Does**: Orchestrates property creation, SSL setup, security configuration, and activation
+- **What It Does**: Orchestrates property creation, SSL setup, security configuration, and
+  activation
 - **Business Focus**: ROI calculations, time-to-market estimates, scaling recommendations
 - **Smart Defaults**: Selects optimal Akamai products based on your business type
 
 ### 🌐 **DNS Workflow Assistant**
+
 - **Natural Language**: "Migrate my domain from Cloudflare without downtime"
 - **What It Does**: Plans migration, validates records, handles cutover, provides rollback
 - **Safety First**: Pre-flight checks, validation steps, and automated rollback plans
 - **Zero Downtime**: Intelligent TTL management and progressive migration
 
 ### 🔒 **Security Workflow Assistant**
+
 - **Natural Language**: "We're under DDoS attack right now!"
 - **What It Does**: Analyzes threats, applies mitigations, monitors effectiveness
 - **Compliance**: PCI, HIPAA, GDPR compliance workflows with audit trails
 - **Adaptive**: Learns from your security posture and threat landscape
 
 ### 📊 **Performance Workflow Assistant**
+
 - **Natural Language**: "Our mobile checkout is too slow"
 - **What It Does**: Analyzes bottlenecks, optimizes configuration, monitors improvements
 - **Business Metrics**: Conversion impact, revenue calculations, user experience scores
 - **Continuous**: Ongoing optimization based on real-time data
 
 ### 💡 **Why Workflow Assistants?**
+
 - **No Akamai Expertise Required**: Speak in business terms, get technical excellence
 - **Multi-Step Automation**: Complex workflows executed flawlessly
 - **Progressive Disclosure**: Start simple, dive deep when needed
@@ -127,6 +137,7 @@ for managing Akamai's edge platform through natural language. ALECS v2.0 feature
 Get ALECS running in under 5 minutes!
 
 ### Prerequisites
+
 - Node.js 18+ installed ([download here](https://nodejs.org/))
 - Akamai credentials (get them from [Akamai Control Center](https://control.akamai.com))
 
@@ -141,12 +152,11 @@ cd alecs-mcp-server-akamai
 ./install.sh
 ```
 
-The installer will:
-✅ Check prerequisites  
+The installer will: ✅ Check prerequisites  
 ✅ Install dependencies  
 ✅ Set up credential templates  
 ✅ Build the project  
-✅ Help you choose how to run ALECS  
+✅ Help you choose how to run ALECS
 
 ### Running ALECS v2.0
 
@@ -155,6 +165,7 @@ The installer will:
 ALECS v2.0 provides two simple modes:
 
 **Local Mode (Default - STDIO)**:
+
 ```bash
 # For local Claude Desktop integration
 npm start                   # Local mode (default)
@@ -163,6 +174,7 @@ node dist/index.js --local  # Direct execution
 ```
 
 **Remote Mode (WebSocket + SSE)**:
+
 ```bash
 # For remote access - starts both WebSocket (8082) and SSE (8083)
 npm run start:remote        # Remote mode
@@ -171,6 +183,7 @@ ALECS_MODE=remote npm start # Environment variable
 ```
 
 **Development Server**:
+
 ```bash
 # Full server with all 180+ individual tools (for development/migration)
 npm run start:dev
@@ -180,12 +193,14 @@ node dist/index-dev.js
 #### 🔑 Automatic API Token Generation
 
 When starting in **remote mode**, ALECS automatically:
+
 - Generates a secure API token
-- Displays connection URLs with embedded tokens  
+- Displays connection URLs with embedded tokens
 - Shows both WebSocket and SSE endpoints
 - Provides ready-to-use connection examples
 
 Example output:
+
 ```
 🔑 API Token Generated
 ═══════════════════════════════════════════════════════
@@ -215,7 +230,7 @@ docker-compose up -d
 # Local mode (for testing)
 docker-compose --profile local up
 
-# Development server (all 180+ tools)  
+# Development server (all 180+ tools)
 docker-compose --profile dev up
 
 # View logs
@@ -230,6 +245,7 @@ docker-compose down
 Enable remote access to ALECS via WebSocket or SSE/HTTP:
 
 **WebSocket Server** (Recommended for real-time bidirectional communication):
+
 ```bash
 # Start the WebSocket server
 npm run start:websocket
@@ -239,6 +255,7 @@ npm run deploy:websocket
 ```
 
 **SSE/HTTP Server** (MCP Streamable HTTP transport):
+
 ```bash
 # Start the SSE server
 npm run start:sse
@@ -248,12 +265,14 @@ npm run deploy:sse
 ```
 
 Both servers support:
+
 - Secure token-based authentication
 - Multiple concurrent clients
 - Full MCP protocol implementation
 - SSL/TLS support (configure via environment variables)
 
 Generate an API token for either server:
+
 ```bash
 npm run generate-token
 ```
@@ -374,16 +393,16 @@ Specialized servers for specific use cases:
 
 ### Tool Categories in v2.0
 
-| Category | Tools | Description |
-|----------|--------|-------------|
-| **Getting Started** | 2 | Website onboarding, DNS management |
-| **Property Management** | 8 | Property lifecycle, configuration, activation |
-| **Certificate Management** | 3 | SSL enrollment, monitoring, deployment |
-| **Security** | 3 | Network lists, security policies |
-| **Analytics** | 4 | Traffic, performance, advanced analytics |
-| **Cost Management** | 2 | Cost analysis and optimization |
-| **Troubleshooting** | 2 | Incident response, diagnostics |
-| **Workflows** | 4 | AI-powered assistants for complex tasks |
+| Category                   | Tools | Description                                   |
+| -------------------------- | ----- | --------------------------------------------- |
+| **Getting Started**        | 2     | Website onboarding, DNS management            |
+| **Property Management**    | 8     | Property lifecycle, configuration, activation |
+| **Certificate Management** | 3     | SSL enrollment, monitoring, deployment        |
+| **Security**               | 3     | Network lists, security policies              |
+| **Analytics**              | 4     | Traffic, performance, advanced analytics      |
+| **Cost Management**        | 2     | Cost analysis and optimization                |
+| **Troubleshooting**        | 2     | Incident response, diagnostics                |
+| **Workflows**              | 4     | AI-powered assistants for complex tasks       |
 
 **Recommendation**: Start with the main consolidated server (Option A) for the best user experience.
 
@@ -442,10 +461,12 @@ Specialized servers for specific use cases:
 ALECS v2.0 consolidates 180+ technical tools into 25 business-focused tools organized by category:
 
 #### Getting Started
+
 - `website-onboarding` - Complete guided setup for new websites with security best practices
 - `dns-management` - User-friendly DNS record management with guided workflows
 
 #### Property Management
+
 - `property-discovery` - Find, search, and analyze Akamai properties
 - `property-creation` - Create new properties with guided configuration
 - `property-configuration` - Configure property settings, rules, and hostnames
@@ -455,30 +476,36 @@ ALECS v2.0 consolidates 180+ technical tools into 25 business-focused tools orga
 - `edge-hostname-management` - Create edge hostnames with certificate integration
 
 #### Certificate Management
+
 - `certificate-enrollment` - Enroll SSL certificates with guided domain validation
 - `certificate-monitoring` - Monitor certificate status and expiration
 - `certificate-deployment` - Deploy certificates to properties and edge networks
 
 #### Security
+
 - `network-lists-core` - Create and manage network lists for security policies
 - `network-lists-activation` - Activate and deploy network list changes
 - `network-lists-bulk` - Bulk operations for network lists
 
 #### Analytics & Performance
+
 - `traffic-analytics` - Analyze traffic patterns and trends
 - `performance-analytics` - Monitor website performance and optimization
 - `advanced-analytics` - Deep dive analytics for bandwidth and errors
 - `hostname-analysis` - Analyze hostname conflicts and optimization
 
 #### Cost Management
+
 - `cost-analysis` - Analyze costs, usage patterns, and billing insights
 - `cost-optimization` - Identify and implement cost optimization opportunities
 
 #### Troubleshooting
+
 - `incident-response` - Guided incident response for outages
 - `troubleshooting` - Diagnostic tools for common issues
 
 #### Workflow Assistants
+
 - `infrastructure-assistant` - AI assistant for property and infrastructure decisions
 - `dns-assistant` - AI assistant for DNS configuration and domain management
 - `security-assistant` - AI assistant for security and compliance management
@@ -486,7 +513,8 @@ ALECS v2.0 consolidates 180+ technical tools into 25 business-focused tools orga
 
 ### Legacy Tools (alecs-dev server)
 
-All 180+ individual tools remain available in the development server for migration and advanced use cases:
+All 180+ individual tools remain available in the development server for migration and advanced use
+cases:
 
 ### FastPurge - Content Invalidation
 
@@ -802,7 +830,8 @@ src/
 
 ## 🌐 Remote Access Integration
 
-ALECS supports multiple transport protocols for remote access, allowing you to run the server on one machine and connect from Claude Desktop on another.
+ALECS supports multiple transport protocols for remote access, allowing you to run the server on one
+machine and connect from Claude Desktop on another.
 
 ### Transport Options
 
@@ -812,15 +841,17 @@ ALECS supports multiple transport protocols for remote access, allowing you to r
 ### Setting Up WebSocket Server
 
 1. **Start the WebSocket Server**:
+
    ```bash
    # Development mode
    npm run start:websocket
-   
+
    # Production mode with PM2
    npm run deploy:websocket
    ```
 
 2. **Generate Authentication Token**:
+
    ```bash
    # Generate a new API token
    npm run generate-token
@@ -843,6 +874,7 @@ ALECS supports multiple transport protocols for remote access, allowing you to r
 #### Method 1: WebSocket Client Bridge (Recommended)
 
 1. **Install the WebSocket client**:
+
    ```bash
    # On the machine running Claude Desktop
    git clone https://github.com/acedergren/alecs-mcp-server-akamai.git
@@ -890,9 +922,13 @@ ALECS supports multiple transport protocols for remote access, allowing you to r
     "alecs-akamai": {
       "command": "docker",
       "args": [
-        "run", "--rm", "-i",
-        "--env", "ALECS_WS_URL=ws://your-server:8082/mcp",
-        "--env", "ALECS_TOKEN=your-generated-token",
+        "run",
+        "--rm",
+        "-i",
+        "--env",
+        "ALECS_WS_URL=ws://your-server:8082/mcp",
+        "--env",
+        "ALECS_TOKEN=your-generated-token",
         "alecs-mcp-client"
       ]
     }
@@ -905,12 +941,14 @@ ALECS supports multiple transport protocols for remote access, allowing you to r
 For production environments, use secure WebSocket connections:
 
 1. **Configure SSL in environment**:
+
    ```bash
    ALECS_SSL_CERT=/path/to/cert.pem
    ALECS_SSL_KEY=/path/to/key.pem
    ```
 
 2. **Or use reverse proxy** (nginx example):
+
    ```nginx
    location /mcp {
        proxy_pass http://localhost:8082;
@@ -947,16 +985,19 @@ echo '{"tool": "validate-api-token", "args": {"token": "your-token"}}' | npm run
 ### WebSocket Troubleshooting
 
 1. **Connection refused**:
+
    - Check firewall: `sudo ufw allow 8082` (Ubuntu/Debian)
    - Verify server is running: `pm2 status`
    - Check logs: `pm2 logs mcp-akamai-websocket`
 
 2. **Authentication failed**:
+
    - Verify token is correct
    - Check token hasn't expired
    - Ensure Authorization header is being sent
 
 3. **Connection drops**:
+
    - Check network stability
    - Increase timeout in environment variables
    - Enable keepalive in WebSocket client
@@ -971,6 +1012,7 @@ echo '{"tool": "validate-api-token", "args": {"token": "your-token"}}' | npm run
 ### Common Issues
 
 #### Build Errors
+
 ```bash
 # If you see TypeScript errors during build
 npm run build:dev  # Builds without strict type checking
@@ -981,11 +1023,13 @@ npm run build
 ```
 
 #### Authentication Issues
+
 - **"Invalid credentials"**: Check your `.edgerc` file format and credentials
 - **"Permission denied"**: Ensure your API credentials have the required permissions
 - **"Account not found"**: Verify the account switch key format
 
 #### WebSocket Connection Issues
+
 - **Port already in use**: Kill existing process or use a different port
   ```bash
   lsof -i :8082  # Find process using port
@@ -994,12 +1038,14 @@ npm run build
 - **Connection refused**: Check firewall settings and ensure server is running
 
 #### Docker Issues
+
 - **"Cannot connect to Docker daemon"**: Ensure Docker Desktop is running
 - **Volume mount errors**: Check file permissions and paths in docker-compose.yml
 
 ### Debug Mode
 
 Enable debug logging for more information:
+
 ```bash
 ALECS_LOG_LEVEL=debug npm start
 ```

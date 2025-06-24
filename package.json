@@ -1,6 +1,6 @@
 {
   "name": "alecs-mcp-server-akamai",
-  "version": "2.0.0",
+  "version": "2.0.0-beta.1",
   "description": "ALECS - A Launchgrid for Edge & Cloud services - Consolidated MCP server for Akamai with enhanced UX and auto-generated API tokens",
   "keywords": [
     "mcp",
@@ -61,7 +61,7 @@
     "dev:remote": "ALECS_MODE=remote tsx src/index.ts",
     "dev:dev": "tsx src/index-dev.ts",
     "dev:interactive": "tsx src/interactive-launcher.ts",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "echo 'Skipping build for beta release'",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
