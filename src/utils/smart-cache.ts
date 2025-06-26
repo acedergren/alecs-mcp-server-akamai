@@ -38,6 +38,7 @@ import { promisify } from 'util';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { BloomFilter } from './bloom-filter';
+import { CircuitBreaker } from './circuit-breaker';
 
 const gzip = promisify(zlib.gzip);
 const gunzip = promisify(zlib.gunzip);
@@ -84,6 +85,7 @@ export interface SmartCacheOptions {
   persistencePath?: string;      // Where to save cache (default: '.cache/smart-cache.json')
   adaptiveTTL?: boolean;         // Adjust TTL based on update patterns (default: true)
   requestCoalescing?: boolean;   // Merge duplicate in-flight requests (default: true)
+  enableCircuitBreaker?: boolean; // Use circuit breaker for fetch operations (default: true)
 }
 
 interface PendingRequest<T> {
@@ -105,6 +107,7 @@ export class SmartCache<T = any> extends EventEmitter {
   private pendingRequests: Map<string, PendingRequest<T>> = new Map(); // Request coalescing
   private negativeCache: Set<string> = new Set();                     // Track non-existent keys
   private negativeCacheBloom: BloomFilter;                            // Bloom filter for negative cache
+  private circuitBreaker: CircuitBreaker;                             // Circuit breaker for fetch operations
   private metrics: CacheMetrics = {
     hits: 0,
     misses: 0,
@@ -134,11 +137,22 @@ export class SmartCache<T = any> extends EventEmitter {
       persistencePath: options.persistencePath || '.cache/smart-cache.json',
       adaptiveTTL: options.adaptiveTTL !== false,
       requestCoalescing: options.requestCoalescing !== false,
+      enableCircuitBreaker: options.enableCircuitBreaker !== false,
     };
     
     // Initialize bloom filter for negative cache
     // Size for expected 10k non-existent keys with 1% false positive rate
     this.negativeCacheBloom = new BloomFilter(10000, 0.01);
+    
+    // Initialize circuit breaker for fetch operations
+    this.circuitBreaker = new CircuitBreaker({
+      failureThreshold: 5,
+      successThreshold: 2,
+      timeout: 30000,        // 30 seconds
+      maxTimeout: 300000,    // 5 minutes
+      windowSize: 60000,     // 1 minute window
+      volumeThreshold: 10
+    });
     
     // Start cleanup interval
     this.cleanupInterval = setInterval(() => {
@@ -359,9 +373,13 @@ export class SmartCache<T = any> extends EventEmitter {
     if (this.options.requestCoalescing) {
       // Check if we're already fetching this key
       if (!this.pendingRequests.has(key)) {
-        // Create new pending request
+        // Create new pending request with circuit breaker if enabled
+        const fetchPromise = this.options.enableCircuitBreaker
+          ? this.circuitBreaker.execute(() => fetchFn())
+          : fetchFn();
+        
         const pendingRequest: PendingRequest<V> = {
-          promise: fetchFn(),
+          promise: fetchPromise,
           callbacks: [],
         };
         
@@ -399,10 +417,17 @@ export class SmartCache<T = any> extends EventEmitter {
     } else {
       // No coalescing
       try {
-        const fresh = await fetchFn();
+        const fresh = this.options.enableCircuitBreaker
+          ? await this.circuitBreaker.execute(() => fetchFn())
+          : await fetchFn();
         await this.set(key, fresh, ttl);
         return fresh;
       } catch (error) {
+        // Add to negative cache
+        this.negativeCache.add(key);
+        this.negativeCacheBloom.add(key);
+        setTimeout(() => this.negativeCache.delete(key), 60000); // Clear after 1 min
+        
         if (cached) return cached; // Return stale on error
         throw error;
       }
@@ -662,7 +687,7 @@ export class SmartCache<T = any> extends EventEmitter {
     const entries = Array.from(this.cache.values());
     const now = Date.now();
     
-    return {
+    const stats = {
       ...this.metrics,
       averageHitCount: entries.length > 0 
         ? entries.reduce((sum, e) => sum + e.hitCount, 0) / entries.length 
@@ -678,6 +703,13 @@ export class SmartCache<T = any> extends EventEmitter {
         return ttlRemaining > 0 && ttlRemaining < 300;
       }).length,
     };
+    
+    // Add circuit breaker status if enabled
+    if (this.options.enableCircuitBreaker) {
+      stats.circuitBreaker = this.circuitBreaker.getStatus();
+    }
+    
+    return stats;
   }
 
   /**
