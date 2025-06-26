@@ -1,0 +1,285 @@
+# MCPX-Eval Configuration for ALECS MCP Server
+# This configuration defines evaluation scenarios for testing
+# the ALECS MCP Server using mcpx-eval framework
+
+[metadata]
+name = "ALECS MCP Server Evaluation Suite"
+version = "1.0.0"
+description = "Comprehensive evaluation of Akamai CDN and DNS management tools"
+author = "ALECS Team"
+
+[settings]
+# MCP server configuration
+server_command = "npm run dev"
+server_timeout = 30000
+# Models to test against
+models = ["claude-3-opus", "claude-3-sonnet", "gpt-4", "gpt-4-turbo"]
+# Output configuration
+output_dir = "./eval-results"
+generate_html = true
+
+# Property Management Evaluations
+
+[[scenarios]]
+name = "property-onboarding-complete"
+description = "Complete property onboarding from scratch"
+prompt = """
+I need to onboard a new website to Akamai CDN. The domain is example-eval.com 
+and the origin server is origin.example-eval.com. Please:
+1. List available contracts and groups
+2. Create a new property
+3. Configure the origin server
+4. Set up SSL with Enhanced TLS
+5. Activate to staging
+6. Provide testing instructions
+"""
+expected_tools = [
+  "list-contracts",
+  "list-groups",
+  "create-property",
+  "get-property-rules",
+  "update-property-rules",
+  "create-edge-hostname",
+  "activate-property"
+]
+success_criteria = [
+  "Property created successfully",
+  "Origin configured correctly",
+  "SSL setup completed",
+  "Activation initiated",
+  "Testing steps provided"
+]
+max_steps = 10
+
+[[scenarios]]
+name = "property-search-and-modify"
+description = "Search for existing property and modify configuration"
+prompt = """
+Find the property for www.example.com and:
+1. Show me its current configuration
+2. Add caching rules for images (cache for 7 days)
+3. Add compression for text/html content
+4. Show me how to test the changes before production
+"""
+expected_tools = [
+  "akamai.search",
+  "get-property",
+  "get-property-rules",
+  "update-property-rules",
+  "create-property-version"
+]
+success_criteria = [
+  "Property found via search",
+  "Current config displayed",
+  "Caching rules added",
+  "Compression configured",
+  "Testing approach explained"
+]
+
+[[scenarios]]
+name = "multi-property-bulk-update"
+description = "Update multiple properties with same configuration"
+prompt = """
+I need to update all properties in the "Web Properties" group to:
+1. Enable HTTP/2
+2. Set security headers (HSTS, X-Frame-Options)
+3. Update error pages
+Can you help me do this efficiently?
+"""
+expected_tools = [
+  "list-properties",
+  "get-property-rules",
+  "update-property-rules",
+  "create-property-version",
+  "activate-property"
+]
+expected_behavior = "Efficient bulk update approach"
+
+# DNS Management Evaluations
+
+[[scenarios]]
+name = "dns-zone-complete-setup"
+description = "Set up a complete DNS zone with various record types"
+prompt = """
+Create a new DNS zone for eval-dns.com with:
+1. A records for www and api pointing to 192.0.2.1
+2. CNAME for blog pointing to blog.platform.com
+3. MX records for email (priority 10: mail1.example.com, priority 20: mail2.example.com)
+4. SPF and DMARC records for email security
+5. CAA record allowing Let's Encrypt
+"""
+expected_tools = [
+  "dns.zone.create",
+  "dns.record.create",
+  "dns.zone.list-records"
+]
+success_criteria = [
+  "Zone created",
+  "All record types added",
+  "Proper formatting for each record type",
+  "Email security configured"
+]
+
+[[scenarios]]
+name = "dns-troubleshooting"
+description = "Diagnose and fix DNS issues"
+prompt = """
+The website example-debug.com is not resolving properly. Can you:
+1. Check the current DNS configuration
+2. Identify any issues
+3. Fix problems found
+4. Verify the fixes
+"""
+expected_tools = [
+  "dns.zone.get",
+  "dns.zone.list-records",
+  "dns.zone.validate",
+  "dns.record.update",
+  "dns.zone.check-propagation"
+]
+problem_solving = true
+
+[[scenarios]]
+name = "dns-migration"
+description = "Migrate DNS from another provider"
+prompt = """
+I need to migrate DNS for migrate-test.com from Cloudflare to Akamai.
+The zone has about 50 records including A, CNAME, MX, TXT, and SRV records.
+How can I do this with minimal downtime?
+"""
+expected_tools = [
+  "dns.zone.create",
+  "dns.record.bulk-create",
+  "dns.zone.import",
+  "dns.zone.validate"
+]
+migration_scenario = true
+
+# Security Configuration Evaluations
+
+[[scenarios]]
+name = "security-waf-setup"
+description = "Configure WAF and security policies"
+prompt = """
+Set up security for api.secure-eval.com:
+1. Enable WAF with OWASP top 10 protection
+2. Configure rate limiting (100 req/min per IP)
+3. Set up geo-blocking for high-risk countries
+4. Enable DDoS protection
+"""
+expected_tools = [
+  "security.waf.create-policy",
+  "security.rate-limit.configure",
+  "security.geo-blocking.configure",
+  "security.ddos.enable"
+]
+security_focused = true
+
+# Performance Optimization Evaluations
+
+[[scenarios]]
+name = "performance-analysis"
+description = "Analyze and optimize website performance"
+prompt = """
+Analyze the performance of slow-site.com and:
+1. Identify performance bottlenecks
+2. Recommend caching improvements
+3. Suggest image optimization
+4. Configure performance monitoring
+"""
+expected_tools = [
+  "akamai.search",
+  "get-property",
+  "reporting.get-performance-metrics",
+  "update-property-rules"
+]
+analytical_task = true
+
+# Multi-Customer Scenarios
+
+[[scenarios]]
+name = "customer-context-switching"
+description = "Work with multiple customer accounts"
+prompt = """
+I need to:
+1. List all properties for customer "Acme Corp"
+2. Then switch to customer "Beta Inc" and list their DNS zones
+3. Compare the CDN usage between both customers
+"""
+expected_tools = [
+  "list-properties",
+  "dns.zone.list",
+  "reporting.get-usage"
+]
+multi_customer = true
+expected_behavior = "Proper customer context handling"
+
+# Error Handling Scenarios
+
+[[scenarios]]
+name = "error-recovery"
+description = "Handle and recover from errors"
+prompt = """
+Try to:
+1. Create a property with an invalid name (containing spaces)
+2. Activate a non-existent property version
+3. Create a DNS record with invalid data
+Show me how you handle these errors and what the correct approach would be.
+"""
+error_scenarios = true
+expected_behavior = "Graceful error handling with helpful guidance"
+
+# Evaluation Criteria
+
+[evaluation]
+# Scoring weights for different aspects
+weights = {
+  correctness = 0.3,      # Did it achieve the goal?
+  efficiency = 0.2,       # How many steps/tools used?
+  explanation = 0.2,      # Quality of explanations
+  error_handling = 0.15,  # How well errors were handled
+  best_practices = 0.15   # Following Akamai best practices
+}
+
+# Specific things to look for
+[evaluation.positive_signals]
+signals = [
+  "Uses search before assuming resource names",
+  "Validates configuration before activation",
+  "Provides testing/verification steps",
+  "Explains implications of changes",
+  "Suggests best practices",
+  "Handles errors gracefully"
+]
+
+[evaluation.negative_signals]
+signals = [
+  "Skips validation steps",
+  "Activates directly to production without testing",
+  "Ignores error messages",
+  "Makes assumptions without checking",
+  "Provides no explanation of actions",
+  "Uses inefficient approaches"
+]
+
+# Comparison Configuration
+
+[comparison]
+# How to compare models
+comparison_metrics = [
+  "task_completion",     # Did it complete the task?
+  "tool_efficiency",     # Number of tool calls needed
+  "response_quality",    # Quality of explanations
+  "error_rate",         # How many errors encountered
+  "best_practice_adherence" # Following platform guidelines
+]
+
+# HTML Report Configuration
+
+[report]
+title = "ALECS MCP Server Evaluation Results"
+include_scenarios = true
+include_tool_usage = true
+include_model_comparison = true
+include_recommendations = true
+highlight_threshold = 0.8  # Highlight scores above this
