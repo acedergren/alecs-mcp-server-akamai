@@ -2,6 +2,41 @@
  * WebSocket Transport for MCP
  * Production-ready implementation with proper session management,
  * authentication, and error handling
+ * 
+ * Features:
+ * - Bidirectional communication over WebSocket
+ * - Session management with unique IDs
+ * - Token-based authentication (via TokenManager)
+ * - Rate limiting per session
+ * - Heartbeat/ping mechanism for connection health
+ * - Request timeout handling
+ * - Message size limits
+ * - SSL/TLS support
+ * - Automatic cleanup of stale sessions
+ * 
+ * Security:
+ * - Requires authentication by default
+ * - Rate limiting prevents abuse
+ * - Message size limits prevent DoS
+ * - Session isolation
+ * 
+ * @example
+ * ```typescript
+ * const transport = new WebSocketServerTransport({
+ *   port: 8080,
+ *   auth: { required: true },
+ *   limits: {
+ *     maxMessagesPerMinute: 100,
+ *     maxMessageSize: 1024 * 1024 // 1MB
+ *   }
+ * });
+ * 
+ * transport.onmessage = (message) => {
+ *   // Handle incoming MCP messages
+ * };
+ * 
+ * await transport.start();
+ * ```
  */
 
 import { WebSocketServer, WebSocket } from 'ws';
@@ -60,7 +95,14 @@ export interface WebSocketServerTransportOptions {
 }
 
 /**
- * Production-ready WebSocket transport
+ * Production-ready WebSocket transport for MCP protocol
+ * Implements the Transport interface from MCP SDK
+ * 
+ * This transport is designed for:
+ * - Long-lived connections requiring bidirectional communication
+ * - Real-time updates and streaming responses
+ * - Multiple concurrent clients with session isolation
+ * - Production deployments with security requirements
  */
 export class WebSocketServerTransport implements Transport {
   private wss?: WebSocketServer;
@@ -83,6 +125,10 @@ export class WebSocketServerTransport implements Transport {
   
   private readonly options: Required<WebSocketServerTransportOptions>;
   
+  /**
+   * Create a new WebSocket transport server
+   * @param options - Configuration options for the WebSocket server
+   */
   constructor(options: WebSocketServerTransportOptions) {
     this.options = {
       port: options.port,

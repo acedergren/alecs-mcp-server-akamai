@@ -1,6 +1,35 @@
 /**
  * Smart Cache - In-Memory LRU Cache with Advanced Features
  * Drop-in replacement for external cache with zero external dependencies
+ * 
+ * Features:
+ * - Multiple eviction policies (LRU, LFU, FIFO)
+ * - Automatic compression for large values
+ * - Request coalescing to prevent cache stampedes
+ * - Adaptive TTL based on update patterns
+ * - Negative caching for non-existent keys
+ * - Optional persistence to disk
+ * - Memory-based size limits
+ * - Pattern-based key tracking
+ * - Event-driven architecture
+ * 
+ * @example
+ * ```typescript
+ * const cache = new SmartCache({
+ *   maxSize: 10000,
+ *   enableCompression: true,
+ *   adaptiveTTL: true
+ * });
+ * 
+ * // Basic usage
+ * await cache.set('key', 'value', 300);
+ * const value = await cache.get('key');
+ * 
+ * // With refresh function
+ * const data = await cache.getWithRefresh('api-data', 600, async () => {
+ *   return await fetchFromAPI();
+ * });
+ * ```
  */
 
 import { EventEmitter } from 'events';
@@ -12,16 +41,19 @@ import * as path from 'path';
 const gzip = promisify(zlib.gzip);
 const gunzip = promisify(zlib.gunzip);
 
+/**
+ * Internal cache entry structure
+ */
 export interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-  ttl: number;
-  hitCount: number;
-  lastAccessed: number;
-  size?: number;
-  compressed?: boolean;
-  updateCount?: number;
-  lastUpdateInterval?: number;
+  data: T;                      // The cached value
+  timestamp: number;            // When the entry was created
+  ttl: number;                 // Time to live in seconds
+  hitCount: number;            // Number of cache hits
+  lastAccessed: number;        // Last access timestamp for LRU
+  size?: number;               // Size in bytes (if tracked)
+  compressed?: boolean;        // Whether data is compressed
+  updateCount?: number;        // Number of updates (for adaptive TTL)
+  lastUpdateInterval?: number; // Time between last two updates
 }
 
 export interface CacheMetrics {
@@ -35,19 +67,22 @@ export interface CacheMetrics {
   totalEntries: number;
 }
 
+/**
+ * Configuration options for SmartCache
+ */
 export interface SmartCacheOptions {
-  maxSize?: number;
-  maxMemoryMB?: number;
-  defaultTTL?: number;
-  enableCompression?: boolean;
-  evictionPolicy?: 'LRU' | 'LFU' | 'FIFO';
-  refreshThreshold?: number;
-  enableMetrics?: boolean;
-  compressionThreshold?: number;
-  enablePersistence?: boolean;
-  persistencePath?: string;
-  adaptiveTTL?: boolean;
-  requestCoalescing?: boolean;
+  maxSize?: number;              // Maximum number of entries (default: 10000)
+  maxMemoryMB?: number;          // Maximum memory usage in MB (default: 100)
+  defaultTTL?: number;           // Default TTL in seconds (default: 300)
+  enableCompression?: boolean;   // Enable compression for large values (default: false)
+  evictionPolicy?: 'LRU' | 'LFU' | 'FIFO'; // Eviction strategy (default: 'LRU')
+  refreshThreshold?: number;     // Refresh when TTL < this percentage (default: 0.2)
+  enableMetrics?: boolean;       // Track cache performance metrics (default: true)
+  compressionThreshold?: number; // Compress values larger than this (default: 10KB)
+  enablePersistence?: boolean;   // Save cache to disk on shutdown (default: false)
+  persistencePath?: string;      // Where to save cache (default: '.cache/smart-cache.json')
+  adaptiveTTL?: boolean;         // Adjust TTL based on update patterns (default: true)
+  requestCoalescing?: boolean;   // Merge duplicate in-flight requests (default: true)
 }
 
 interface PendingRequest<T> {
@@ -58,12 +93,16 @@ interface PendingRequest<T> {
   }>;
 }
 
+/**
+ * High-performance in-memory cache with advanced features
+ * @extends EventEmitter - Emits 'hit', 'miss', 'eviction', 'error' events
+ */
 export class SmartCache<T = any> extends EventEmitter {
-  private cache: Map<string, CacheEntry<T>> = new Map();
-  private keysByPattern: Map<string, Set<string>> = new Map();
-  private refreshingKeys: Set<string> = new Set();
-  private pendingRequests: Map<string, PendingRequest<T>> = new Map();
-  private negativeCache: Set<string> = new Set(); // Track non-existent keys
+  private cache: Map<string, CacheEntry<T>> = new Map();              // Main cache storage
+  private keysByPattern: Map<string, Set<string>> = new Map();        // Track keys by patterns
+  private refreshingKeys: Set<string> = new Set();                    // Keys being refreshed
+  private pendingRequests: Map<string, PendingRequest<T>> = new Map(); // Request coalescing
+  private negativeCache: Set<string> = new Set();                     // Track non-existent keys
   private metrics: CacheMetrics = {
     hits: 0,
     misses: 0,
