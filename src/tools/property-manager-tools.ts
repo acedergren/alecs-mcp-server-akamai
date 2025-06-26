@@ -5,6 +5,7 @@
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+import { createActivationProgress, ProgressManager, type ProgressToken } from '../utils/mcp-progress';
 
 // Extended types for property management
 export interface PropertyVersionDetails {
@@ -628,7 +629,7 @@ export async function activateProperty(
         content: [
           {
             type: 'text',
-            text: `ℹ️ Property ${args.propertyId} version ${version} is already active in PRODUCTION`,
+            text: `[INFO] Property ${args.propertyId} version ${version} is already active in PRODUCTION`,
           },
         ],
       };
@@ -638,7 +639,7 @@ export async function activateProperty(
         content: [
           {
             type: 'text',
-            text: `ℹ️ Property ${args.propertyId} version ${version} is already active in STAGING`,
+            text: `[INFO] Property ${args.propertyId} version ${version} is already active in STAGING`,
           },
         ],
       };
@@ -671,11 +672,18 @@ export async function activateProperty(
 
     const activationId = response.activationLink?.split('/').pop();
 
+    // Create progress token for tracking
+    const progressToken = createActivationProgress(args.propertyId, args.network, activationId);
+    progressToken.start(`Initiating activation of ${property.propertyName} to ${args.network}`);
+
+    // Start monitoring activation status in background
+    monitorActivation(client, args.propertyId, activationId || '', progressToken);
+
     return {
       content: [
         {
           type: 'text',
-          text: `✅ Started activation of property ${property.propertyName} (v${version}) to ${args.network}\n\n**Activation ID:** ${activationId}\n**Status:** In Progress\n\n## Monitoring\n- Check status: "Get activation status ${activationId} for property ${args.propertyId}"\n- View all activations: "List activations for property ${args.propertyId}"\n\n⏱️ Typical activation times:\n- Staging: 5-10 minutes\n- Production: 20-30 minutes`,
+          text: `[SUCCESS] Started activation of property ${property.propertyName} (v${version}) to ${args.network}\n\n**Activation ID:** ${activationId}\n**Progress Token:** ${progressToken.token}\n**Status:** In Progress\n\n## Monitoring\n- Check status: "Get activation status ${activationId} for property ${args.propertyId}"\n- Check progress: "Get progress ${progressToken.token}"\n- View all activations: "List activations for property ${args.propertyId}"\n\n[TIME] Typical activation times:\n- Staging: 5-10 minutes\n- Production: 20-30 minutes\n\n[INFO] Progress updates will be available via the progress token.`,
         },
       ],
     };
@@ -685,7 +693,7 @@ export async function activateProperty(
         content: [
           {
             type: 'text',
-            text: `⚠️ Activation blocked due to warnings. To proceed:\n1. Review warnings: "Show rules for property ${args.propertyId}"\n2. Fix issues or activate with: "Activate property ${args.propertyId} to ${args.network} acknowledging warnings"`,
+            text: `[WARNING] Activation blocked due to warnings. To proceed:\n1. Review warnings: "Show rules for property ${args.propertyId}"\n2. Fix issues or activate with: "Activate property ${args.propertyId} to ${args.network} acknowledging warnings"`,
           },
         ],
       };
@@ -715,18 +723,18 @@ export async function getActivationStatus(
     }
 
     const activation = response.activations.items[0];
-    const statusEmoji =
+    const statusIndicator =
       {
-        ACTIVE: '✅',
-        PENDING: '⏳',
-        ZONE_1: '🔄',
-        ZONE_2: '🔄',
-        ZONE_3: '🔄',
-        ABORTED: '❌',
-        FAILED: '❌',
-        DEACTIVATED: '⚫',
-        PENDING_DEACTIVATION: '⏳',
-        NEW: '🆕',
+        ACTIVE: '[ACTIVE]',
+        PENDING: '[PENDING]',
+        ZONE_1: '[ZONE_1]',
+        ZONE_2: '[ZONE_2]',
+        ZONE_3: '[ZONE_3]',
+        ABORTED: '[ABORTED]',
+        FAILED: '[FAILED]',
+        DEACTIVATED: '[DEACTIVATED]',
+        PENDING_DEACTIVATION: '[PENDING_DEACTIVATION]',
+        NEW: '[NEW]',
       }[
         activation.status as keyof {
           ACTIVE: string;
@@ -740,13 +748,13 @@ export async function getActivationStatus(
           PENDING_DEACTIVATION: string;
           NEW: string;
         }
-      ] || '❓';
+      ] || '[UNKNOWN]';
 
     let text = `# Activation Status: ${activation.activationId}\n\n`;
     text += `**Property:** ${activation.propertyName} (${activation.propertyId})\n`;
     text += `**Version:** ${activation.propertyVersion}\n`;
     text += `**Network:** ${activation.network}\n`;
-    text += `**Status:** ${statusEmoji} ${activation.status}\n`;
+    text += `**Status:** ${statusIndicator} ${activation.status}\n`;
     text += `**Type:** ${activation.activationType}\n`;
     text += `**Submitted:** ${new Date(activation.submitDate).toLocaleString()}\n`;
     text += `**Updated:** ${new Date(activation.updateDate).toLocaleString()}\n`;
@@ -756,7 +764,7 @@ export async function getActivationStatus(
     }
 
     if (activation.fatalError) {
-      text += `\n❌ **Fatal Error:** ${activation.fatalError}\n`;
+      text += `\n[ERROR] **Fatal Error:** ${activation.fatalError}\n`;
     }
 
     if (activation.errors && activation.errors.length > 0) {
@@ -774,12 +782,12 @@ export async function getActivationStatus(
     }
 
     if (activation.status === 'ACTIVE') {
-      text += `\n✅ **Activation Complete!**\n\nYour property is now live on ${activation.network}.`;
+      text += `\n[SUCCESS] **Activation Complete!**\n\nYour property is now live on ${activation.network}.`;
       if (activation.network === 'STAGING') {
         text += `\n\nNext step: Test thoroughly, then activate to production:\n"Activate property ${args.propertyId} to production"`;
       }
     } else if (['PENDING', 'ZONE_1', 'ZONE_2', 'ZONE_3'].includes(activation.status)) {
-      text += '\n\n⏳ **Activation in Progress**\n\nCheck again in a few minutes.';
+      text += '\n\n[PENDING] **Activation in Progress**\n\nCheck again in a few minutes.';
     }
 
     return {
@@ -1998,4 +2006,91 @@ function formatError(operation: string, _error: any): MCPToolResponse {
       },
     ],
   };
+}
+
+/**
+ * Monitor activation progress in the background
+ */
+async function monitorActivation(
+  client: AkamaiClient,
+  propertyId: string,
+  activationId: string,
+  progressToken: ProgressToken
+): Promise<void> {
+  const checkInterval = 30000; // 30 seconds
+  const maxDuration = 3600000; // 1 hour
+  const startTime = Date.now();
+
+  const checkStatus = async () => {
+    try {
+      const response = await client.request({
+        path: `/papi/v1/properties/${propertyId}/activations/${activationId}`,
+        method: 'GET',
+      });
+
+      if (!response.activations?.items?.[0]) {
+        progressToken.fail('Activation not found');
+        return;
+      }
+
+      const activation = response.activations.items[0];
+      const elapsed = Date.now() - startTime;
+
+      // Map activation status to progress
+      const progressMap: Record<string, number> = {
+        NEW: 5,
+        PENDING: 10,
+        ZONE_1: 30,
+        ZONE_2: 60,
+        ZONE_3: 90,
+        ACTIVE: 100,
+        ABORTED: -1,
+        FAILED: -1,
+        DEACTIVATED: -1,
+      };
+
+      const progress = progressMap[activation.status] || 50;
+
+      if (progress === -1) {
+        // Failed status
+        const error = activation.fatalError || activation.errors?.[0]?.detail || 'Activation failed';
+        progressToken.fail(error);
+        return;
+      }
+
+      if (progress === 100) {
+        // Completed
+        progressToken.complete(`Activation completed successfully on ${activation.network}`);
+        return;
+      }
+
+      // Update progress
+      progressToken.update(
+        progress,
+        `Activation ${activation.status} on ${activation.network}`,
+        {
+          activationId,
+          propertyId,
+          network: activation.network,
+          estimatedTimeRemaining: activation.network === 'PRODUCTION' ? 1800 - elapsed/1000 : 600 - elapsed/1000
+        }
+      );
+
+      // Continue monitoring if not complete and not timed out
+      if (elapsed < maxDuration) {
+        setTimeout(checkStatus, checkInterval);
+      } else {
+        progressToken.update(
+          progress,
+          'Activation is taking longer than expected. Continue checking status manually.',
+          { activationId, propertyId }
+        );
+      }
+    } catch (error) {
+      progressToken.fail(`Failed to check activation status: ${error}`);
+    }
+  };
+
+  // Start monitoring after a short delay
+  setTimeout(checkStatus, 5000);
 }
