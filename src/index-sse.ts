@@ -70,8 +70,8 @@ async function startSSEServer() {
 
     // Display startup message
     console.log('\n[DONE] ALECS SSE/HTTP MCP Server is running');
-    console.log(`[EMOJI] Listening on ${process.env.ALECS_SSE_HOST || '0.0.0.0'}:${process.env.ALECS_SSE_PORT || '3000'}`);
-    console.log('\n[EMOJI] Endpoints:');
+    console.log(`[INFO] Listening on ${process.env.ALECS_SSE_HOST || '0.0.0.0'}:${process.env.ALECS_SSE_PORT || '3000'}`);
+    console.log('\n[INFO] Endpoints:');
     console.log(`   POST ${process.env.ALECS_SSE_PATH || '/mcp'}/messages - Send messages to server`);
     console.log(`   GET  ${process.env.ALECS_SSE_PATH || '/mcp'}/sse - Event stream from server`);
     console.log(`   GET  ${process.env.ALECS_SSE_PATH || '/mcp'}/health - Health check`);

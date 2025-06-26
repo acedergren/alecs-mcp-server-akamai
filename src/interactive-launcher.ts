@@ -71,29 +71,25 @@ async function main() {
   console.log('============================\n');
 
   console.log('Choose your server configuration:\n');
-  console.log('1) [TARGET] Minimal - Core features only (7 tools)');
-  console.log('2) [PACKAGE] Modular - Select specific modules');
-  console.log('3) [GLOBAL] Full - All features (~198 tools)');
-  console.log('4) [CONFIG] Custom - Launch individual module');
-  console.log('5) [ERROR] Exit\n');
+  console.log('1) [PACKAGE] Modular - Select specific modules (Recommended)');
+  console.log('2) [GLOBAL] Full - All features (~198 tools)');
+  console.log('3) [CONFIG] Custom - Launch individual module');
+  console.log('4) [ERROR] Exit\n');
 
-  const choice = await question('Enter your choice (1-5): ');
+  const choice = await question('Enter your choice (1-4): ');
 
   switch (choice.trim()) {
     case '1':
-      await launchMinimal();
-      break;
-    case '2':
       await launchModular();
       break;
-    case '3':
+    case '2':
       await launchFull();
       break;
-    case '4':
+    case '3':
       await launchCustom();
       break;
-    case '5':
-      console.log('\n[EMOJI] Goodbye!');
+    case '4':
+      console.log('\n[DONE] Goodbye!');
       rl.close();
       process.exit(0);
       break;
@@ -101,26 +97,6 @@ async function main() {
       console.log('\n[ERROR] Invalid choice. Please try again.');
       await main();
   }
-}
-
-async function launchMinimal() {
-  clearScreen();
-  console.log('[TARGET] Launching Minimal Server...\n');
-  console.log('This includes:');
-  console.log('  • Property listing and details');
-  console.log('  • Property creation');
-  console.log('  • Property activation');
-  console.log('  • Contract listing');
-  console.log('  • DNS zone creation');
-  console.log('  • DNS record management\n');
-
-  const confirm = await question('Continue? (y/n): ');
-  if (confirm.toLowerCase() !== 'y') {
-    await main();
-    return;
-  }
-
-  launchServer('index.js', 'ALECS Minimal');
 }
 
 async function launchModular() {
@@ -162,7 +138,7 @@ async function launchModular() {
   console.log('[PACKAGE] Selected Modules:\n');
   let totalTools = 0;
   for (const module of selectedModules) {
-    console.log(`  [EMOJI] ${module.name} (${module.toolCount} tools)`);
+    console.log(`  [DONE] ${module.name} (${module.toolCount} tools)`);
     totalTools += module.toolCount;
   }
   console.log(`\nTotal tools: ${totalTools}\n`);
@@ -298,7 +274,7 @@ function launchModuleServer(module: ServerModule) {
 
   child.unref();
 
-  console.log(`[EMOJI] ${module.name} started (PID: ${child.pid})`);
+  console.log(`[DONE] ${module.name} started (PID: ${child.pid})`);
 }
 
 interface SetupConfig {
@@ -311,7 +287,7 @@ function showClaudeDesktopInstructions(configs: SetupConfig[]) {
   const userHome = process.env.HOME || process.env.USERPROFILE || '~';
 
   console.log('\n' + '═'.repeat(70));
-  console.log('[EMOJI] Claude Desktop Setup Instructions');
+  console.log('[INFO] Claude Desktop Setup Instructions');
   console.log('═'.repeat(70) + '\n');
 
   console.log('To add these servers to Claude Desktop, use ONE of these methods:\n');
@@ -323,7 +299,7 @@ function showClaudeDesktopInstructions(configs: SetupConfig[]) {
     console.log(`   claude mcp add ${config.name} -s user node ${config.path}`);
   });
 
-  console.log('\n\n[EMOJI] Method 2: Manual Configuration');
+  console.log('\n\n[CONFIG] Method 2: Manual Configuration');
   console.log('─'.repeat(40));
   console.log('\n1. Open your Claude Desktop configuration file:');
   console.log(`   ${userHome}/Library/Application Support/Claude/claude_desktop_config.json`);
@@ -368,7 +344,7 @@ function showClaudeDesktopInstructions(configs: SetupConfig[]) {
 
 // Handle Ctrl+C gracefully
 process.on('SIGINT', () => {
-  console.log('\n\n[EMOJI] Goodbye!');
+  console.log('\n\n[DONE] Goodbye!');
   rl.close();
   process.exit(0);
 });
