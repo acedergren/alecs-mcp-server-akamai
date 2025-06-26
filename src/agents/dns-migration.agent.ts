@@ -1,7 +1,7 @@
 import * as dns from 'dns';
 import { promisify } from 'util';
 
-import { ProgressBar, Spinner, MultiProgress, format, icons } from '@utils/progress';
+import { ProgressBar, Spinner, MultiProgress, format, icons } from '../utils/progress';
 
 import { EdgeGridAuth } from '../auth/EdgeGridAuth';
 

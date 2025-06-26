@@ -1,6 +1,6 @@
 import { type Tool } from '@modelcontextprotocol/sdk/types.js';
-import { ReportingService } from '@services/ReportingService';
-import { logger } from '@utils/logger';
+import { ReportingService } from '../services/ReportingService';
+import { logger } from '../utils/logger';
 
 /**
  * MCP Tools for Akamai Reporting API - Traffic Analytics and Performance Metrics

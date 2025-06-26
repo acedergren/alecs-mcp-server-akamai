@@ -3,7 +3,7 @@
  * Comprehensive tools for managing PAPI includes - essential for modular property management
  */
 
-import { handleApiError } from '@utils/error-handling';
+import { handleApiError } from '../utils/error-handling';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

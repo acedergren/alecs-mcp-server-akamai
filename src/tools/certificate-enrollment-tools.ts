@@ -3,7 +3,7 @@
  * Enhanced tools for certificate enrollment automation and management
  */
 
-import { createCertificateEnrollmentService } from '@services/certificate-enrollment-service';
+import { createCertificateEnrollmentService } from '../services/certificate-enrollment-service';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

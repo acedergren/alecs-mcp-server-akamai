@@ -6,8 +6,8 @@
  * IMPORTANT: This uses Secure by Default (DefaultDV) certificates, NOT regular CPS DV certificates
  */
 
-import { selectBestProduct, formatProductDisplay } from '@utils/product-mapping';
-import { Spinner } from '@utils/progress';
+import { selectBestProduct, formatProductDisplay } from '../utils/product-mapping';
+import { Spinner } from '../utils/progress';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

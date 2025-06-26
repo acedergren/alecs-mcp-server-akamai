@@ -3,7 +3,7 @@
  * MCP tools for performance analysis, optimization, and monitoring
  */
 
-import { globalPerformanceMonitor, responseCache, metadataCache } from '@utils/performance-monitor';
+import { globalPerformanceMonitor, responseCache, metadataCache } from '../utils/performance-monitor';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

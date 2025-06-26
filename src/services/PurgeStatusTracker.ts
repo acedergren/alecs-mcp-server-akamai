@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import * as path from 'path';
 
-import { logger } from '@utils/logger';
+import { logger } from '../utils/logger';
 
 import { FastPurgeService, type FastPurgeResponse } from './FastPurgeService';
 

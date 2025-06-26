@@ -5,8 +5,8 @@
 
 import * as crypto from 'crypto';
 
-import { CustomerConfigManager } from '@utils/customer-config';
-import { logger } from '@utils/logger';
+import { CustomerConfigManager } from '../utils/customer-config';
+import { logger } from '../utils/logger';
 import axios, {
   type AxiosInstance,
   type AxiosError,

@@ -3,7 +3,7 @@
  * Comprehensive edge hostname creation, management, and intelligent recommendations
  */
 
-import { ErrorTranslator } from '@utils/errors';
+import { ErrorTranslator } from '../utils/errors';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

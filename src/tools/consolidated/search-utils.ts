@@ -2,7 +2,7 @@
  * Search utility functions - stubs for compilation
  */
 
-import { logger } from '@utils/logger';
+import { logger } from '../../utils/logger';
 
 // Search functions
 export async function searchProperties(client: any, query: string): Promise<any[]> {

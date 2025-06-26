@@ -3,7 +3,7 @@
  * Production-ready property activation with validation, monitoring, and rollback capabilities
  */
 
-import { ErrorTranslator, ErrorRecovery } from '@utils/errors';
+import { ErrorTranslator, ErrorRecovery } from '../utils/errors';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

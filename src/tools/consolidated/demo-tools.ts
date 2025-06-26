@@ -3,7 +3,7 @@
  * Simplified implementations to demonstrate Maya's vision
  */
 
-import { logger } from '@utils/logger';
+import { logger } from '../../utils/logger';
 
 /**
  * Demo Property Tool

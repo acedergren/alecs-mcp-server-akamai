@@ -1,8 +1,8 @@
-import { FastPurgeService } from '@services/FastPurgeService';
-import { PurgeQueueManager } from '@services/PurgeQueueManager';
-import { PurgeStatusTracker } from '@services/PurgeStatusTracker';
-import { CustomerConfigManager } from '@utils/customer-config';
-import { logger } from '@utils/logger';
+import { FastPurgeService } from '../services/FastPurgeService';
+import { PurgeQueueManager } from '../services/PurgeQueueManager';
+import { PurgeStatusTracker } from '../services/PurgeStatusTracker';
+import { CustomerConfigManager } from '../utils/customer-config';
+import { logger } from '../utils/logger';
 
 export interface FastPurgeMetrics {
   timestamp: Date;

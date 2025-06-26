@@ -7,8 +7,8 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import { getAkamaiClient } from '@utils/auth';
-import { logger } from '@utils/logger';
+import { getAkamaiClient } from '../../utils/auth';
+import { logger } from '../../utils/logger';
 
 // Property actions
 const PropertyActionSchema = z.enum([

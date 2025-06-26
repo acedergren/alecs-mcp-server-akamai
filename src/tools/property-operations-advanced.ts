@@ -3,8 +3,8 @@
  * Comprehensive property management including search, comparison, health checks, and bulk updates
  */
 
-import { ErrorTranslator } from '@utils/errors';
-import { formatPropertyDisplay } from '@utils/formatting';
+import { ErrorTranslator } from '../utils/errors';
+import { formatPropertyDisplay } from '../utils/formatting';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

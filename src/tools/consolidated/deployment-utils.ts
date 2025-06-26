@@ -3,7 +3,7 @@
  * These are temporary stubs to allow compilation during development
  */
 
-import { logger } from '@utils/logger';
+import { logger } from '../../utils/logger';
 
 // Validation functions
 export async function validateDeployment(client: any, resources?: any, options?: any): Promise<any> {

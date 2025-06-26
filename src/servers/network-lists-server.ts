@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 // Register module aliases for runtime path resolution
-import 'module-alias/register';
 
 /**
  * ALECS Network Lists Server
@@ -19,8 +18,8 @@ import {
 import { z } from 'zod';
 
 import { AkamaiClient } from '../akamai-client';
-import { CustomerConfigManager } from '@utils/customer-config';
-import { logger } from '@utils/logger';
+import { CustomerConfigManager } from '../utils/customer-config';
+import { logger } from '../utils/logger';
 
 // Import Network Lists tools
 import {

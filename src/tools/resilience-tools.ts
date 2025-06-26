@@ -9,7 +9,7 @@ import {
   CircuitBreakerState,
   HealthChecker,
   type HealthCheckResult,
-} from '@utils/resilience-manager';
+} from '../utils/resilience-manager';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
