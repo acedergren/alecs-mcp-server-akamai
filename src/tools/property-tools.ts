@@ -45,23 +45,23 @@ function formatDate(dateString: string | undefined): string {
 }
 
 /**
- * Format activation status with appropriate emoji
+ * Format activation status with appropriate indicator
  */
 function formatStatus(status: string | undefined): string {
   if (!status) {
-    return '⚫ INACTIVE';
+    return '[INACTIVE]';
   }
 
   const statusMap: Record<string, string> = {
-    ACTIVE: '🟢 ACTIVE',
-    INACTIVE: '⚫ INACTIVE',
-    PENDING: '🟡 PENDING',
-    FAILED: '🔴 FAILED',
-    DEACTIVATED: '⚪ DEACTIVATED',
-    NEW: '🔵 NEW',
+    ACTIVE: '[ACTIVE]',
+    INACTIVE: '[INACTIVE]',
+    PENDING: '[PENDING]',
+    FAILED: '[FAILED]',
+    DEACTIVATED: '[DEACTIVATED]',
+    NEW: '[NEW]',
   };
 
-  return statusMap[status] || `⚫ ${status}`;
+  return statusMap[status] || `[${status}]`;
 }
 
 /**
@@ -174,7 +174,7 @@ export async function listProperties(
 
       if (!args.contractId && !args.groupId) {
         message +=
-          '\n\n💡 **Tip:** Use the list_groups tool to find available contracts and groups.';
+          '\n\n[TIP] Use the list_groups tool to find available contracts and groups.';
       }
 
       return {
@@ -228,7 +228,7 @@ export async function listProperties(
       text += `## ${formatContractDisplay(contractId)}\n\n`;
 
       for (const prop of contractProps as Property[]) {
-        text += `### 📦 ${prop.propertyName}\n`;
+        text += `### [PROPERTY] ${prop.propertyName}\n`;
         text += `- **Property ID:** ${formatPropertyDisplay(prop.propertyId)}\n`;
         text += `- **Current Version:** ${prop.latestVersion || 'N/A'}\n`;
         text += `- **Production:** ${formatStatus(prop.productionStatus)}\n`;
@@ -244,7 +244,7 @@ export async function listProperties(
     }
 
     if (hasMore) {
-      text += `\n⚠️ **Note:** Only showing first ${MAX_PROPERTIES_TO_DISPLAY} properties out of ${totalProperties} total.\n`;
+      text += `\n[WARNING] **Note:** Only showing first ${MAX_PROPERTIES_TO_DISPLAY} properties out of ${totalProperties} total.\n`;
       text += 'To see more properties:\n';
       text += '- Filter by specific group: `"list properties in group grp_XXXXX"`\n';
       text += '- Search for specific property: `"get property [name or ID]"`\n';
