@@ -89,9 +89,9 @@ const SERVERS: Record<string, ServerDefinition> = {
     description: 'WAF, network lists, bot management',
     toolCount: 95,
   },
-  essentials: {
-    name: 'alecs-essentials',
-    path: 'dist/index-essential.js',
+  minimal: {
+    name: 'alecs-minimal',
+    path: 'dist/index.js',
     description: 'Core features only',
     toolCount: 60,
   },
@@ -144,7 +144,7 @@ program
 program
   .command('install [servers...]')
   .description('Install ALECS servers to Claude Desktop')
-  .option('-m, --mode <mode>', 'Installation mode: all, modular, essentials', 'modular')
+  .option('-m, --mode <mode>', 'Installation mode: all, modular, minimal', 'modular')
   .action((servers: string[], options) => {
     const config = loadConfig();
     const projectRoot = getProjectRoot();
@@ -158,8 +158,8 @@ program
         case 'all':
           serversToInstall = ['property', 'dns', 'certs', 'reporting', 'security'];
           break;
-        case 'essentials':
-          serversToInstall = ['essentials'];
+        case 'minimal':
+          serversToInstall = ['minimal'];
           break;
         case 'modular':
           // Interactive selection

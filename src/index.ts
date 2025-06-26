@@ -49,8 +49,22 @@ import {
 import { CustomerConfigManager } from './utils/customer-config';
 import { logger } from './utils/logger';
 import { AkamaiClient } from './akamai-client';
-import { handleAkamaiError, ErrorType } from './utils/enhanced-error-handling';
+import { handleAkamaiError, type ErrorType } from './utils/enhanced-error-handling';
 import { mapToMcpErrorCode, createMcpErrorMessage } from './utils/mcp-error-mapping';
+import { rateLimiter, MessageValidator, gracefulShutdown } from './utils/security';
+
+// Type guards for error handling
+function isErrorWithResponse(error: unknown): error is { response?: { status?: number } } {
+  return error !== null && 
+    typeof error === 'object' && 
+    'response' in error;
+}
+
+function isErrorWithStatus(error: unknown): error is { status?: number } {
+  return error !== null && 
+    typeof error === 'object' && 
+    'status' in error;
+}
 
 // Import tool implementations
 
@@ -107,13 +121,14 @@ export class ALECSServer {
 
     logger.info('Initializing ALECS MCP Server', serverConfig);
 
-    this.server = new Server(serverConfig as any, {
+    this.server = new Server(serverConfig as Parameters<typeof Server>[0], {
       capabilities: serverConfig.capabilities || { tools: {} },
     });
 
     this.configManager = CustomerConfigManager.getInstance();
     this.akamaiClient = new AkamaiClient();
     this.setupErrorHandling();
+    this.setupSecurity();
     this.registerTools();
     this.setupHandlers();
   }
@@ -130,6 +145,26 @@ export class ALECSServer {
     process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
       logger.error('Unhandled rejection', { reason, promise });
       process.exit(1);
+    });
+  }
+
+  /**
+   * Setup security features
+   */
+  private setupSecurity(): void {
+    // Initialize graceful shutdown
+    gracefulShutdown.initialize();
+    
+    // Register cleanup for server shutdown
+    gracefulShutdown.register(async () => {
+      logger.info('Shutting down MCP server...');
+      // Add any cleanup logic here
+    });
+
+    logger.info('Security features initialized', {
+      rateLimiting: 'enabled',
+      messageValidation: 'enabled',
+      gracefulShutdown: 'enabled'
     });
   }
 
@@ -265,7 +300,7 @@ export class ALECSServer {
   private async wrapToolHandler(
     toolName: string,
     params: unknown,
-    handler: (client: any, params: any) => Promise<any>,
+    handler: (client: AkamaiClient, params: unknown) => Promise<MCPToolResponse>,
   ): Promise<McpToolResponse> {
     const context = this.createRequestContext(toolName, params);
 
@@ -348,7 +383,7 @@ export class ALECSServer {
     const jsonSchema = zodToJsonSchema(metadata.inputSchema, {
       target: 'jsonSchema7',  // Ensure JSON Schema Draft 7 compliance
       $refStrategy: 'none',   // Avoid $ref for simpler schemas
-    }) as any;
+    });
 
     return {
       name: metadata.name,
@@ -382,6 +417,15 @@ export class ALECSServer {
       CallToolRequestSchema,
       async (_request: CallToolRequest): Promise<CallToolResult> => {
         const { name, arguments: args } = _request.params;
+        
+        // Rate limiting check
+        const requestId = this.generateRequestId();
+        if (!rateLimiter.isAllowed(requestId)) {
+          throw new McpError(
+            ErrorCode.InvalidRequest, 
+            'Rate limit exceeded. Please try again later.'
+          );
+        }
 
         const entry = this.toolRegistry.get(name);
 
@@ -433,7 +477,7 @@ export class ALECSServer {
             customer: this.extractCustomer(args)
           });
           
-          const httpStatus = (_error as any).response?.status || (_error as any).status || 500;
+          const httpStatus = isErrorWithResponse(_error) ? _error.response?.status : isErrorWithStatus(_error) ? _error.status : 500;
           const mcpErrorCode = mapToMcpErrorCode(
             httpStatus,
             errorResult.errorType

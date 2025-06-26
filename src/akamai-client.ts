@@ -10,6 +10,21 @@ import * as path from 'path';
 import EdgeGrid = require('akamai-edgegrid');
 
 import { type AkamaiError } from './types';
+import { defaultPool } from './utils/connection-pool';
+
+// EdgeGrid type definitions
+interface EdgeGridRequestOptions {
+  path: string;
+  method: string;
+  headers: Record<string, string>;
+  body?: string;
+  qs?: Record<string, string>;
+}
+
+interface EdgeGridResponse {
+  statusCode: number;
+  headers: Record<string, string>;
+}
 
 export class AkamaiClient {
   private edgeGrid: EdgeGrid;
@@ -23,11 +38,15 @@ export class AkamaiClient {
     this.debug = process.env.DEBUG === '1' || process.env.DEBUG === 'true';
 
     try {
-      // Initialize EdgeGrid client using the SDK
+      // Initialize EdgeGrid client using the SDK with connection pooling
       // The SDK handles all .edgerc parsing automatically
       this.edgeGrid = new EdgeGrid({
         path: edgercPath,
         section: section,
+        // Add connection pool agents for better performance
+        agentOptions: {
+          agent: defaultPool.getHttpsAgent(),
+        },
       });
 
       // If no account switch key provided, try to read it from .edgerc
@@ -71,10 +90,10 @@ export class AkamaiClient {
   /**
    * Make authenticated request to Akamai API
    */
-  async request<T = any>(_options: {
+  async request<T = unknown>(_options: {
     path: string;
     method?: string;
-    body?: any;
+    body?: unknown;
     headers?: Record<string, string>;
     queryParams?: Record<string, string>;
   }): Promise<T> {
@@ -96,7 +115,7 @@ export class AkamaiClient {
       }
 
       // Prepare request _options for EdgeGrid
-      const requestOptions: any = {
+      const requestOptions: EdgeGridRequestOptions = {
         path: requestPath,
         method: _options.method || 'GET',
         headers: {
@@ -133,7 +152,7 @@ export class AkamaiClient {
 
       // Make the request using EdgeGrid's send method
       return new Promise((resolve, reject) => {
-        this.edgeGrid.send((_error: any, response: any, body: any) => {
+        this.edgeGrid.send((_error: unknown, response: EdgeGridResponse, body?: string) => {
           if (_error) {
             try {
               this.handleApiError(_error);
@@ -214,15 +233,16 @@ export class AkamaiClient {
     }
 
     const error = new Error(message);
-    (error as any).statusCode = statusCode;
-    (error as any).akamaiError = errorData;
+    const akamaiError = error as Error & { statusCode: number; akamaiError: AkamaiError };
+    akamaiError.statusCode = statusCode;
+    akamaiError.akamaiError = errorData;
     return error;
   }
 
   /**
    * Handle API errors with user-friendly messages
    */
-  private handleApiError(_error: any): never {
+  private handleApiError(_error: unknown): never {
     if (_error instanceof Error) {
       // Check for specific error types
       if (_error.message.includes('ENOTFOUND') || _error.message.includes('ECONNREFUSED')) {
@@ -317,5 +337,12 @@ export class AkamaiClient {
    */
   withAccountSwitchKey(accountSwitchKey: string): AkamaiClient {
     return new AkamaiClient('default', accountSwitchKey);
+  }
+
+  /**
+   * Get connection pool statistics
+   */
+  getConnectionPoolStats() {
+    return defaultPool.getStats();
   }
 }

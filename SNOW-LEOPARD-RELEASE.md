@@ -1,6 +1,6 @@
 # Snow Leopard Release Plan 🐆
 
-## Version: 1.1.0 - "Snow Leopard"
+## Version: 1.6.0 - "Snow Leopard"
 *A refinement-focused minor update emphasizing stability, performance, and code quality*
 
 ## Release Philosophy
@@ -57,7 +57,7 @@ Just like Apple's Snow Leopard (Mac OS X 10.6), this release contains:
 
 ## Version Comparison
 
-| Aspect | v1.0.x | v1.1.0 "Snow Leopard" |
+| Aspect | v1.5.x | v1.6.0 "Snow Leopard" |
 |--------|--------|----------------------|
 | Entry Points | 8 | 2 |
 | NPM Scripts | 79 | ~20 |
@@ -121,7 +121,7 @@ MCP_TRANSPORT=websocket node dist/index.js
 
 ## Release Notes Preview
 
-### ALECS MCP Server v1.1.0 - "Snow Leopard"
+### ALECS MCP Server v1.6.0 - "Snow Leopard"
 
 This release focuses on refinement and optimization rather than new features. We've cleaned up the codebase, improved performance, and made the system more maintainable.
 
@@ -134,7 +134,7 @@ This release focuses on refinement and optimization rather than new features. We
 
 **Breaking Changes:** None - Full backward compatibility maintained
 
-**Upgrade Guide:** Simply update to v1.1.0. No configuration changes required.
+**Upgrade Guide:** Simply update to v1.6.0. No configuration changes required.
 
 ---
 

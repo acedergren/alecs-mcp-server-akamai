@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// Register module aliases for runtime path resolution
+import 'module-alias/register';
+
 /**
  * ALECS - MCP Server for Akamai (Minimal Test Version)
  * Testing with minimal tools to diagnose Claude Desktop issues
