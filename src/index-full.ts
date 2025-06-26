@@ -12,6 +12,8 @@ import 'module-alias/register';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import { getTransportFromEnv, getTransportDescription } from './config/transport-config';
+import { createTransport, startServerWithTransport } from './utils/transport-factory';
 import {
   type CallToolRequest,
   CallToolRequestSchema,
@@ -423,22 +425,38 @@ export class ALECSFullServer {
       const customers = this.configManager.listSections();
       logger.info(`Found ${customers.length} customer configurations`, { customers });
 
-      // Create and configure transport
-      const transport = new StdioServerTransport();
+      // Determine transport based on configuration
+      const transportConfig = getTransportFromEnv();
+      logger.info(`Using transport: ${getTransportDescription(transportConfig)}`);
+      
+      if (transportConfig.type === 'stdio') {
+        // Use built-in stdio transport
+        const transport = new StdioServerTransport();
 
-      transport.onerror = (_error: Error) => {
-        logger.error('Transport error', { error: _error.message, stack: _error.stack });
-      };
+        transport.onerror = (_error: Error) => {
+          logger.error('Transport error', { error: _error.message, stack: _error.stack });
+        };
 
-      transport.onclose = () => {
-        logger.info('Transport closed, shutting down');
-        process.exit(0);
-      };
+        transport.onclose = () => {
+          logger.info('Transport closed, shutting down');
+          process.exit(0);
+        };
 
-      // Connect server to transport
-      await this.server.connect(transport);
+        await this.server.connect(transport);
+      } else {
+        // Use transport factory for other transports
+        await startServerWithTransport(this.server, transportConfig);
+      }
 
-      logger.info('ALECS Full MCP Server ready and listening');
+      logger.info('ALECS Full MCP Server ready and listening', {
+        transport: getTransportDescription(transportConfig),
+        totalTools: this.toolRegistry.size,
+        categories: Array.from(
+          new Set(
+            Array.from(this.toolRegistry.keys()).map((name) => name.split('.')[0]),
+          ),
+        ),
+      });
     } catch (_error) {
       logger.error('Failed to start server', {
         error: _error instanceof Error ? _error.message : String(_error),
