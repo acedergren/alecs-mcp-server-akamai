@@ -4,7 +4,7 @@
  * Configures transport type based on environment variables
  */
 
-export type TransportType = 'stdio' | 'sse';
+export type TransportType = 'stdio' | 'sse' | 'websocket';
 
 export interface TransportConfig {
   type: TransportType;
@@ -22,6 +22,18 @@ export function getTransportFromEnv(): TransportConfig {
   const transportType = (process.env.MCP_TRANSPORT || 'stdio') as TransportType;
   
   switch (transportType) {
+    case 'websocket':
+      return {
+        type: 'websocket',
+        options: {
+          port: parseInt(process.env.WS_PORT || '8080'),
+          host: process.env.WS_HOST || '0.0.0.0',
+          path: process.env.WS_PATH || '/mcp',
+          auth: (process.env.AUTH_TYPE as any) || 'token',
+          ssl: process.env.SSL_ENABLED === 'true'
+        }
+      };
+      
     case 'sse':
       return {
         type: 'sse',
@@ -47,6 +59,8 @@ export function getTransportDescription(config: TransportConfig): string {
   switch (config.type) {
     case 'stdio':
       return 'Standard I/O (for Claude Desktop)';
+    case 'websocket':
+      return `WebSocket server on ${config.options.host}:${config.options.port}`;
     case 'sse':
       return `Server-Sent Events (Streamable HTTP) on ${config.options.host}:${config.options.port}`;
     default:

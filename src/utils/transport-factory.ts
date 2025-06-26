@@ -14,7 +14,7 @@ let WebSocketServer: any;
 let createHttpServer: any;
 let SSEServerTransport: any;
 let WebSocketServerTransport: any;
-let HttpServerTransport: any;
+let EnhancedWebSocketTransport: any;
 
 async function loadOptionalDependencies() {
   try {
@@ -31,8 +31,8 @@ async function loadOptionalDependencies() {
     const wsModule = await import('../transport/websocket-transport');
     WebSocketServerTransport = wsModule.WebSocketServerTransport;
     
-    const httpModule = await import('../transport/http-transport');
-    HttpServerTransport = httpModule.HttpServerTransport;
+    const enhancedWsModule = await import('../transport/enhanced-websocket-transport');
+    EnhancedWebSocketTransport = enhancedWsModule.EnhancedWebSocketTransport;
   } catch (error) {
     // Optional dependencies not available
   }
@@ -42,6 +42,34 @@ export async function createTransport(config: TransportConfig): Promise<any> {
   switch (config.type) {
     case 'stdio':
       return new StdioServerTransport();
+      
+    case 'websocket':
+      await loadOptionalDependencies();
+      if (!EnhancedWebSocketTransport) {
+        throw new Error('[ERROR] WebSocket transport requires ws. Install with: npm install ws');
+      }
+      
+      const wsPort = config.options.port || 8080;
+      const wsHost = config.options.host || '0.0.0.0';
+      const wsPath = config.options.path || '/mcp';
+      
+      const wsTransport = new EnhancedWebSocketTransport({
+        port: wsPort,
+        host: wsHost,
+        path: wsPath,
+        ssl: config.options.ssl ? {
+          cert: process.env.ALECS_SSL_CERT!,
+          key: process.env.ALECS_SSL_KEY!
+        } : undefined,
+        auth: {
+          required: config.options.auth !== 'none',
+          tokenHeader: 'authorization'
+        }
+      });
+      
+      await wsTransport.start();
+      
+      return wsTransport;
       
     case 'sse':
       await loadOptionalDependencies();
