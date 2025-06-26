@@ -16,4 +16,4 @@ export * from './PurgeStatusTracker';
 export * from './RealTimeMonitoringService';
 export * from './ReportingService';
 export * from './TrafficAnalyticsService';
-export * from './valkey-cache-service';
+export * from './external-cache-service';

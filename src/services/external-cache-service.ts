@@ -9,7 +9,16 @@
  * caching, consider implementing a custom cache adapter.
  */
 
-import Redis, { Cluster, ClusterNode as _ClusterNode } from 'ioredis';
+// Optional dependency - will throw if not installed
+let Redis: any;
+let Cluster: any;
+try {
+  const ioredis = require('ioredis');
+  Redis = ioredis.default || ioredis;
+  Cluster = ioredis.Cluster;
+} catch (error) {
+  // ioredis not installed - this is expected for most users
+}
 
 import { AkamaiClient as _AkamaiClient } from '../akamai-client';
 import { ICache, CacheMetrics as ICacheMetrics } from '../types/cache-interface';
@@ -58,6 +67,9 @@ export const CacheTTL = {
   SEARCH_INDEX: 600, // 10 minutes
 } as const;
 
+/**
+ * @deprecated Use SmartCache instead. External cache support will be removed in v2.0.0.
+ */
 export class ExternalCache implements ICache {
   private client: Redis | Cluster;
   private readonly prefix: string;
@@ -76,6 +88,13 @@ export class ExternalCache implements ICache {
       '   Please migrate to SmartCache for better performance and zero dependencies.\n' +
       '   See CACHE_CONFIGURATION.md for migration instructions.\n'
     );
+    
+    if (!Redis) {
+      throw new Error(
+        'External cache requires ioredis to be installed. ' +
+        'Run "npm install ioredis" or migrate to SmartCache for zero dependencies.'
+      );
+    }
     
     this.prefix = config.keyPrefix || 'akamai:';
 

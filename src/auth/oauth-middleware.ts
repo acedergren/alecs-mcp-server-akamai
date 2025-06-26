@@ -1,12 +1,16 @@
 /**
  * OAuth 2.1 Middleware for MCP Server
  * Provides authentication and authorization for MCP tool calls
+ * 
+ * @deprecated OAuth support is deprecated in favor of API key authentication.
+ * This middleware will be removed in v2.0.0. Please use the TokenManager
+ * for API key-based authentication instead.
  */
 
 import type { CallToolRequest } from '@modelcontextprotocol/sdk/types.js';
 import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 
-import { ValkeyCache } from '../services/valkey-cache-service';
+import { ICache } from '../types/cache-interface';
 import { logger } from '../utils/logger';
 
 import { OAuth21ComplianceManager, TokenBindingType } from './oauth21-compliance';
@@ -69,15 +73,23 @@ interface RateLimitEntry {
 
 /**
  * OAuth 2.1 Middleware
+ * @deprecated Use TokenManager for API key authentication. Will be removed in v2.0.0.
  */
 export class OAuthMiddleware {
   private config: OAuthMiddlewareConfig;
   private tokenValidator: TokenValidator;
   private complianceManager: OAuth21ComplianceManager;
-  private cache?: ValkeyCache;
+  private cache?: ICache;
   private rateLimitMap: Map<string, RateLimitEntry> = new Map();
 
-  constructor(config: OAuthMiddlewareConfig, cache?: ValkeyCache) {
+  constructor(config: OAuthMiddlewareConfig, cache?: ICache) {
+    console.warn(
+      '\n[WARNING] DEPRECATION WARNING: OAuth middleware is deprecated.\n' +
+      '  Please migrate to API key authentication using TokenManager.\n' +
+      '  OAuth support will be removed in v2.0.0.\n' +
+      '  Set TOKEN_MASTER_KEY environment variable for API key auth.\n'
+    );
+    
     this.config = config;
     this.cache = cache;
 
@@ -439,11 +451,12 @@ export class OAuthMiddleware {
 
 /**
  * Create OAuth-protected MCP server configuration
+ * @deprecated Use API key authentication via TokenManager. Will be removed in v2.0.0.
  */
 export function createOAuthProtectedServer(
   baseConfig: any,
   oauthConfig: OAuthMiddlewareConfig,
-  cache?: ValkeyCache,
+  cache?: ICache,
 ): any {
   const middleware = new OAuthMiddleware(oauthConfig, cache);
 
