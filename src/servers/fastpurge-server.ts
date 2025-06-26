@@ -98,10 +98,10 @@ class FastPurgeServer {
 
     this.client = new AkamaiClient();
     this.configManager = CustomerConfigManager.getInstance();
-    
+
     this.registerTools();
     this.setupHandlers();
-    
+
     logger.info('FastPurge Server initialized', {
       toolCount: this.tools.size,
     });
@@ -168,12 +168,14 @@ class FastPurgeServer {
         // This would handle bulk URL purging
         const urls = params.urls || [];
         const batches = Math.ceil(urls.length / params.batchSize);
-        
+
         return {
-          content: [{
-            type: 'text',
-            text: `Bulk URL purge initiated:\n- Total URLs: ${urls.length}\n- Batches: ${batches}\n- Estimated time: ${batches * 2} minutes`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `Bulk URL purge initiated:\n- Total URLs: ${urls.length}\n- Batches: ${batches}\n- Estimated time: ${batches * 2} minutes`,
+            },
+          ],
         };
       },
     });
@@ -190,10 +192,12 @@ class FastPurgeServer {
       }),
       handler: async (client, params) => {
         return {
-          content: [{
-            type: 'text',
-            text: `Pattern-based purge ${params.dryRun ? '(DRY RUN)' : ''}:\n- Patterns: ${params.patterns.join(', ')}\n- Estimated matches: 1,234 URLs`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `Pattern-based purge ${params.dryRun ? '(DRY RUN)' : ''}:\n- Patterns: ${params.patterns.join(', ')}\n- Estimated matches: 1,234 URLs`,
+            },
+          ],
         };
       },
     });
@@ -211,10 +215,12 @@ class FastPurgeServer {
       }),
       handler: async (client, params) => {
         return {
-          content: [{
-            type: 'text',
-            text: `Purge scheduled for ${params.scheduleTime}:\n- Type: ${params.type}\n- Items: ${params.values.length}\n- Network: ${params.network}`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `Purge scheduled for ${params.scheduleTime}:\n- Type: ${params.type}\n- Items: ${params.values.length}\n- Network: ${params.network}`,
+            },
+          ],
         };
       },
     });
@@ -231,10 +237,12 @@ class FastPurgeServer {
       }),
       handler: async (client, params) => {
         return {
-          content: [{
-            type: 'text',
-            text: `FastPurge History (last ${params.limit} operations):\n- URL purges: 45\n- CP Code purges: 12\n- Tag purges: 8\n- Average completion time: 3.2 seconds`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `FastPurge History (last ${params.limit} operations):\n- URL purges: 45\n- CP Code purges: 12\n- Tag purges: 8\n- Average completion time: 3.2 seconds`,
+            },
+          ],
         };
       },
     });
@@ -250,10 +258,12 @@ class FastPurgeServer {
       }),
       handler: async (client, params) => {
         return {
-          content: [{
-            type: 'text',
-            text: `Smart Purge Recommendations for ${params.propertyId}:\n1. Purge /api/v2/* - Detected API version update\n2. Purge /images/banner-*.jpg - Changed assets detected\n3. Consider tag-based purging for product-* tags`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `Smart Purge Recommendations for ${params.propertyId}:\n1. Purge /api/v2/* - Detected API version update\n2. Purge /images/banner-*.jpg - Changed assets detected\n3. Consider tag-based purging for product-* tags`,
+            },
+          ],
         };
       },
     });
@@ -270,10 +280,12 @@ class FastPurgeServer {
       }),
       handler: async (client, params) => {
         return {
-          content: [{
-            type: 'text',
-            text: `Purge Validation Results:\n- URLs checked: ${params.urls?.length || 0}\n- Successfully purged: 98%\n- Edge servers checked: 142/145\n- Propagation time: 3.8 seconds`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `Purge Validation Results:\n- URLs checked: ${params.urls?.length || 0}\n- Successfully purged: 98%\n- Edge servers checked: 142/145\n- Propagation time: 3.8 seconds`,
+            },
+          ],
         };
       },
     });
@@ -297,16 +309,13 @@ class FastPurgeServer {
 
       const tool = this.tools.get(name);
       if (!tool) {
-        throw new McpError(
-          ErrorCode.MethodNotFound,
-          `Unknown tool: ${name}`
-        );
+        throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
       }
 
       try {
         const validatedArgs = tool.schema.parse(args);
         const result = await tool.handler(this.client, validatedArgs);
-        
+
         return {
           content: result.content || [
             {
@@ -319,7 +328,7 @@ class FastPurgeServer {
         if (error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map(e => e.message).join(', ')}`
+            `Invalid parameters: ${error.errors.map((e) => e.message).join(', ')}`,
           );
         }
         throw error;

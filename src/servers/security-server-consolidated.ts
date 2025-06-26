@@ -16,14 +16,8 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 
 // Import consolidated tools and workflow assistant
-import { 
-  searchTool, 
-  handleSearchTool 
-} from '../tools/consolidated/search-tool';
-import { 
-  deployTool, 
-  handleDeployTool 
-} from '../tools/consolidated/deploy-tool-simple';
+import { searchTool, handleSearchTool } from '../tools/consolidated/search-tool';
+import { deployTool, handleDeployTool } from '../tools/consolidated/deploy-tool-simple';
 import { handleSecurityWorkflowAssistantRequest } from './workflow-assistant-stubs';
 
 import { logger } from '../utils/logger';
@@ -59,41 +53,48 @@ class ConsolidatedSecurityServer {
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       logger.info('📋 Consolidated security tools list requested');
-      
+
       return {
         tools: [
           // Intelligent Security Assistant - primary interface
           {
             name: 'security-assistant',
-            description: 'Intelligent Security assistant - protects your business without operational complexity. Just describe your security needs.',
+            description:
+              'Intelligent Security assistant - protects your business without operational complexity. Just describe your security needs.',
             inputSchema: {
               type: 'object',
               properties: {
                 intent: { type: 'string', description: 'What security goal you want to achieve' },
                 context: { type: 'string', description: 'Business context or application details' },
                 domain: { type: 'string', description: 'Domain or property to protect' },
-                urgency: { type: 'string', description: 'Urgency level: low, medium, high, critical' },
-                compliance: { type: 'string', description: 'Compliance requirements (PCI, GDPR, SOC2, etc.)' },
+                urgency: {
+                  type: 'string',
+                  description: 'Urgency level: low, medium, high, critical',
+                },
+                compliance: {
+                  type: 'string',
+                  description: 'Compliance requirements (PCI, GDPR, SOC2, etc.)',
+                },
                 customer: { type: 'string', description: 'Customer context' },
               },
               required: ['intent'],
             },
           },
-          
+
           // Search for security-related resources
           {
             name: searchTool.name,
             description: 'Search security policies, network lists, and protection rules',
             inputSchema: searchTool.inputSchema,
           },
-          
+
           // Deploy security configurations
           {
             name: deployTool.name,
             description: 'Deploy security changes with validation and monitoring',
             inputSchema: deployTool.inputSchema,
           },
-          
+
           // Business workflow shortcuts
           {
             name: 'protect-website',
@@ -102,34 +103,34 @@ class ConsolidatedSecurityServer {
               type: 'object',
               properties: {
                 domain: { type: 'string', description: 'Website domain to protect' },
-                business_type: { 
-                  type: 'string', 
+                business_type: {
+                  type: 'string',
                   description: 'Business type: ecommerce, saas, media, api, corporate',
-                  enum: ['ecommerce', 'saas', 'media', 'api', 'corporate', 'other']
+                  enum: ['ecommerce', 'saas', 'media', 'api', 'corporate', 'other'],
                 },
-                threat_level: { 
-                  type: 'string', 
+                threat_level: {
+                  type: 'string',
                   description: 'Expected threat level: low, medium, high',
                   enum: ['low', 'medium', 'high'],
-                  default: 'medium'
+                  default: 'medium',
                 },
                 customer: { type: 'string', description: 'Customer context' },
               },
               required: ['domain', 'business_type'],
             },
           },
-          
+
           {
             name: 'security-audit',
             description: 'Comprehensive security audit with business recommendations',
             inputSchema: {
               type: 'object',
               properties: {
-                scope: { 
-                  type: 'string', 
+                scope: {
+                  type: 'string',
                   description: 'Audit scope: property, domain, account',
                   enum: ['property', 'domain', 'account'],
-                  default: 'property'
+                  default: 'property',
                 },
                 target: { type: 'string', description: 'Property ID or domain to audit' },
                 compliance_check: { type: 'boolean', description: 'Include compliance analysis' },
@@ -137,22 +138,29 @@ class ConsolidatedSecurityServer {
               },
             },
           },
-          
+
           {
             name: 'incident-response',
             description: 'Immediate incident response and mitigation',
             inputSchema: {
               type: 'object',
               properties: {
-                incident_type: { 
-                  type: 'string', 
+                incident_type: {
+                  type: 'string',
                   description: 'Type of incident: ddos, bot_attack, data_breach, malware',
-                  enum: ['ddos', 'bot_attack', 'data_breach', 'malware', 'suspicious_traffic', 'other']
+                  enum: [
+                    'ddos',
+                    'bot_attack',
+                    'data_breach',
+                    'malware',
+                    'suspicious_traffic',
+                    'other',
+                  ],
                 },
-                severity: { 
-                  type: 'string', 
+                severity: {
+                  type: 'string',
                   description: 'Incident severity: low, medium, high, critical',
-                  enum: ['low', 'medium', 'high', 'critical']
+                  enum: ['low', 'medium', 'high', 'critical'],
                 },
                 affected_resource: { type: 'string', description: 'Affected domain or property' },
                 description: { type: 'string', description: 'Incident description' },
@@ -209,7 +217,11 @@ class ConsolidatedSecurityServer {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handleDeployTool(args || { action: 'status' }), null, 2),
+                  text: JSON.stringify(
+                    await handleDeployTool(args || { action: 'status' }),
+                    null,
+                    2,
+                  ),
                 },
               ],
             };
@@ -342,11 +354,13 @@ class ConsolidatedSecurityServer {
         criticalIssues: audit.criticalIssues,
         businessImpact: audit.businessImpact,
       },
-      compliance: compliance_check ? {
-        standards: ['PCI DSS', 'SOC 2', 'ISO 27001'],
-        complianceScore: '94%',
-        gaps: audit.complianceGaps,
-      } : null,
+      compliance: compliance_check
+        ? {
+            standards: ['PCI DSS', 'SOC 2', 'ISO 27001'],
+            complianceScore: '94%',
+            gaps: audit.complianceGaps,
+          }
+        : null,
       actionPlan: audit.actionPlan,
     };
   }
@@ -497,11 +511,7 @@ class ConsolidatedSecurityServer {
           'Scale edge capacity',
           'Monitor traffic patterns',
         ],
-        mitigationSteps: [
-          'Implement rate limiting',
-          'Block malicious IPs',
-          'Optimize caching',
-        ],
+        mitigationSteps: ['Implement rate limiting', 'Block malicious IPs', 'Optimize caching'],
         escalation: ['Security Team', 'Engineering', 'Customer Success'],
       },
       bot_attack: {
@@ -511,11 +521,7 @@ class ConsolidatedSecurityServer {
           'Increase monitoring',
           'Analyze traffic patterns',
         ],
-        mitigationSteps: [
-          'Implement CAPTCHA',
-          'Block bot signatures',
-          'Update WAF rules',
-        ],
+        mitigationSteps: ['Implement CAPTCHA', 'Block bot signatures', 'Update WAF rules'],
         escalation: ['Security Team', 'Product Team'],
       },
     };
@@ -528,10 +534,10 @@ class ConsolidatedSecurityServer {
    */
   async run() {
     logger.info('🚀 Starting consolidated security server...');
-    
+
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    
+
     logger.info('✅ Consolidated Security Server ready and listening');
   }
 }

@@ -6,7 +6,11 @@
 import { logger } from '@utils/logger';
 
 // Validation functions
-export async function validateDeployment(client: any, resources?: any, options?: any): Promise<any> {
+export async function validateDeployment(
+  client: any,
+  resources?: any,
+  options?: any,
+): Promise<any> {
   logger.info('Demo: validateDeployment called', { resources, options });
   return {
     ready: true,
@@ -27,7 +31,11 @@ export async function generateApprovalProcess(resources?: any, options?: any): P
 }
 
 // Planning functions
-export async function createDeploymentPlan(client: any, resources?: any, options?: any): Promise<any> {
+export async function createDeploymentPlan(
+  client: any,
+  resources?: any,
+  options?: any,
+): Promise<any> {
   logger.info('Demo: createDeploymentPlan called', { resources, options });
   return {
     steps: ['Validate', 'Deploy', 'Monitor'],
@@ -37,7 +45,11 @@ export async function createDeploymentPlan(client: any, resources?: any, options
 }
 
 // Scheduling functions
-export async function scheduleDeployment(client: any, resources?: any, options?: any): Promise<any> {
+export async function scheduleDeployment(
+  client: any,
+  resources?: any,
+  options?: any,
+): Promise<any> {
   logger.info('Demo: scheduleDeployment called', { resources, options });
   return {
     scheduled: true,
@@ -46,7 +58,11 @@ export async function scheduleDeployment(client: any, resources?: any, options?:
   };
 }
 
-export async function scheduleMaintenanceDeployment(client: any, resources?: any, options?: any): Promise<any> {
+export async function scheduleMaintenanceDeployment(
+  client: any,
+  resources?: any,
+  options?: any,
+): Promise<any> {
   logger.info('Demo: scheduleMaintenanceDeployment called', { resources, options });
   return {
     scheduled: true,
@@ -67,7 +83,11 @@ export async function executeBlueGreen(client: any, resources?: any, options?: a
 }
 
 // Monitoring functions
-export async function setupDeploymentMonitoring(client: any, deploymentId?: any, options?: any): Promise<any> {
+export async function setupDeploymentMonitoring(
+  client: any,
+  deploymentId?: any,
+  options?: any,
+): Promise<any> {
   logger.info('Demo: setupDeploymentMonitoring called', { deploymentId, options });
   return {
     monitoringId: 'monitor-demo-789',
@@ -77,12 +97,20 @@ export async function setupDeploymentMonitoring(client: any, deploymentId?: any,
 }
 
 // Notification functions
-export async function sendDeploymentNotifications(client: any, deploymentId?: any, event?: any): Promise<void> {
+export async function sendDeploymentNotifications(
+  client: any,
+  deploymentId?: any,
+  event?: any,
+): Promise<void> {
   logger.info('Demo: sendDeploymentNotifications called', { deploymentId, event });
 }
 
 // Status functions
-export async function getDeploymentsForResources(client: any, resources?: any, options?: any): Promise<any[]> {
+export async function getDeploymentsForResources(
+  client: any,
+  resources?: any,
+  options?: any,
+): Promise<any[]> {
   logger.info('Demo: getDeploymentsForResources called', { resources, options });
   return [
     {
@@ -114,7 +142,10 @@ export async function getDeploymentStatus(client: any, deploymentId?: any): Prom
   };
 }
 
-export async function calculateDeploymentProgress(client: any, deploymentId?: any): Promise<number> {
+export async function calculateDeploymentProgress(
+  client: any,
+  deploymentId?: any,
+): Promise<number> {
   logger.info('Demo: calculateDeploymentProgress called', { deploymentId });
   return 100;
 }
@@ -157,12 +188,12 @@ export async function formatDeploymentStatus(status: any, format?: any): Promise
   };
 }
 
-export async function generateStatusRecommendations(client: any, deployments?: any[]): Promise<any[]> {
+export async function generateStatusRecommendations(
+  client: any,
+  deployments?: any[],
+): Promise<any[]> {
   logger.info('Demo: generateStatusRecommendations called', { deployments });
-  return [
-    'All deployments are healthy',
-    'Consider scheduling maintenance window for updates',
-  ];
+  return ['All deployments are healthy', 'Consider scheduling maintenance window for updates'];
 }
 
 export async function getRecentDeployments(client: any, limit: number = 10): Promise<any[]> {
@@ -195,7 +226,11 @@ export async function validateRollback(client: any, deploymentId?: any): Promise
   };
 }
 
-export async function executeRollback(client: any, deploymentId?: any, options?: any): Promise<any> {
+export async function executeRollback(
+  client: any,
+  deploymentId?: any,
+  options?: any,
+): Promise<any> {
   logger.info('Demo: executeRollback called', { deploymentId, options });
   return {
     rollbackId: 'rollback-demo-123',
@@ -204,7 +239,10 @@ export async function executeRollback(client: any, deploymentId?: any, options?:
   };
 }
 
-export async function generateManualRollbackSteps(client: any, deploymentId?: any): Promise<string[]> {
+export async function generateManualRollbackSteps(
+  client: any,
+  deploymentId?: any,
+): Promise<string[]> {
   logger.info('Demo: generateManualRollbackSteps called', { deploymentId });
   return [
     '1. Access Akamai Control Center',
@@ -243,7 +281,7 @@ export async function getAvailableMaintenanceWindows(client?: any): Promise<any[
       type: 'regular',
     },
     {
-      start: '2025-06-24T02:00:00Z', 
+      start: '2025-06-24T02:00:00Z',
       end: '2025-06-24T04:00:00Z',
       type: 'regular',
     },
@@ -255,7 +293,10 @@ export async function getBlackoutDates(client: any): Promise<string[]> {
   return ['2025-12-25', '2025-01-01']; // Holiday blackouts
 }
 
-export async function generateSchedulingRecommendations(client: any, options?: any): Promise<string[]> {
+export async function generateSchedulingRecommendations(
+  client: any,
+  options?: any,
+): Promise<string[]> {
   logger.info('Demo: generateSchedulingRecommendations called', { options });
   return [
     'Schedule during maintenance window for safety',
@@ -274,7 +315,11 @@ export async function validateSchedule(client: any, schedule: any, options?: any
 }
 
 // Coordination functions
-export async function createCoordinatedPlan(client: any, resources: any, options?: any): Promise<any> {
+export async function createCoordinatedPlan(
+  client: any,
+  resources: any,
+  options?: any,
+): Promise<any> {
   logger.info('Demo: createCoordinatedPlan called', { resources, options });
   return {
     resources,
@@ -293,7 +338,10 @@ export async function validateCoordination(client: any, plan: any): Promise<any>
   };
 }
 
-export async function generateCoordinationSuggestions(client: any, resources: any): Promise<string[]> {
+export async function generateCoordinationSuggestions(
+  client: any,
+  resources: any,
+): Promise<string[]> {
   logger.info('Demo: generateCoordinationSuggestions called', { resources });
   return [
     'Deploy certificates before properties',
@@ -307,15 +355,27 @@ export async function generateDeploymentTimeline(client: any, plan?: any): Promi
   return {
     timeline: [
       { step: 'Validation', duration: '2 minutes', startTime: new Date().toISOString() },
-      { step: 'Deployment', duration: '5 minutes', startTime: new Date(Date.now() + 2*60*1000).toISOString() },
-      { step: 'Monitoring', duration: '8 minutes', startTime: new Date(Date.now() + 7*60*1000).toISOString() },
+      {
+        step: 'Deployment',
+        duration: '5 minutes',
+        startTime: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+      },
+      {
+        step: 'Monitoring',
+        duration: '8 minutes',
+        startTime: new Date(Date.now() + 7 * 60 * 1000).toISOString(),
+      },
     ],
     estimatedDuration: '15 minutes',
   };
 }
 
 // Additional deployment coordination functions
-export async function executeCoordinatedDeployment(client: any, plan: any, options?: any): Promise<any> {
+export async function executeCoordinatedDeployment(
+  client: any,
+  plan: any,
+  options?: any,
+): Promise<any> {
   logger.info('Demo: executeCoordinatedDeployment called', { plan, options });
   return {
     deploymentId: 'coord-deploy-123',
@@ -348,7 +408,11 @@ export async function validateDependencies(client: any, resources: any): Promise
   };
 }
 
-export async function validateBusinessRules(client: any, resources: any, options?: any): Promise<any> {
+export async function validateBusinessRules(
+  client: any,
+  resources: any,
+  options?: any,
+): Promise<any> {
   logger.info('Demo: validateBusinessRules called', { resources, options });
   return {
     compliant: true,
@@ -376,7 +440,11 @@ export async function validateCompliance(client: any, resources: any): Promise<a
   };
 }
 
-export async function assessDeploymentRisk(client: any, resources: any, options?: any): Promise<any> {
+export async function assessDeploymentRisk(
+  client: any,
+  resources: any,
+  options?: any,
+): Promise<any> {
   logger.info('Demo: assessDeploymentRisk called', { resources, options });
   return {
     level: 'low',
@@ -387,7 +455,10 @@ export async function assessDeploymentRisk(client: any, resources: any, options?
   };
 }
 
-export async function generateValidationRecommendations(client: any, validation: any): Promise<string[]> {
+export async function generateValidationRecommendations(
+  client: any,
+  validation: any,
+): Promise<string[]> {
   logger.info('Demo: generateValidationRecommendations called', { validation });
   return [
     'Deploy during maintenance window for safety',
@@ -518,8 +589,10 @@ export async function prioritizeAlerts(client: any, alerts: any[]): Promise<any[
   logger.info('Demo: prioritizeAlerts called', { alerts });
   return (alerts || []).sort((a: any, b: any) => {
     const severityOrder = { critical: 3, warning: 2, info: 1 };
-    return (severityOrder[b.severity as keyof typeof severityOrder] || 0) - 
-           (severityOrder[a.severity as keyof typeof severityOrder] || 0);
+    return (
+      (severityOrder[b.severity as keyof typeof severityOrder] || 0) -
+      (severityOrder[a.severity as keyof typeof severityOrder] || 0)
+    );
   });
 }
 
@@ -535,14 +608,14 @@ export async function predictDeploymentOutcomes(client: any, metrics: any): Prom
       completion: '95% likely within 10 minutes',
       issues: 'Minimal risk detected',
     },
-    recommendations: [
-      'Proceed with deployment',
-      'Monitor response times',
-    ],
+    recommendations: ['Proceed with deployment', 'Monitor response times'],
   };
 }
 
-export async function generateMonitoringRecommendations(client: any, health: any): Promise<string[]> {
+export async function generateMonitoringRecommendations(
+  client: any,
+  health: any,
+): Promise<string[]> {
   logger.info('Demo: generateMonitoringRecommendations called', { health });
   return [
     'Continue monitoring for next 2 hours',
@@ -552,7 +625,10 @@ export async function generateMonitoringRecommendations(client: any, health: any
 }
 
 // Additional monitoring functions
-export async function identifyAutoRollbackCandidates(client: any, deployments: any[]): Promise<any[]> {
+export async function identifyAutoRollbackCandidates(
+  client: any,
+  deployments: any[],
+): Promise<any[]> {
   logger.info('Demo: identifyAutoRollbackCandidates called', { deployments });
   return [];
 }
@@ -563,7 +639,10 @@ export async function calculateNextCheckIn(client: any, deployment: any): Promis
 }
 
 // Historical analysis functions
-export async function getDeploymentHistoryForResources(client: any, resources: any): Promise<any[]> {
+export async function getDeploymentHistoryForResources(
+  client: any,
+  resources: any,
+): Promise<any[]> {
   logger.info('Demo: getDeploymentHistoryForResources called', { resources });
   return [
     {
@@ -688,7 +767,10 @@ export async function formatAsTable(history: any[]): Promise<any> {
   };
 }
 
-export async function generateHistoricalRecommendations(client: any, insights: any): Promise<string[]> {
+export async function generateHistoricalRecommendations(
+  client: any,
+  insights: any,
+): Promise<string[]> {
   logger.info('Demo: generateHistoricalRecommendations called', { insights });
   return [
     'Schedule deployments on Tuesday-Wednesday for optimal success',
@@ -708,13 +790,21 @@ export async function exportHistory(client: any, history: any[], format: string)
 }
 
 // Final missing functions
-export async function selectCanaryResources(client: any, resources: any[], percentage: number): Promise<any[]> {
+export async function selectCanaryResources(
+  client: any,
+  resources: any[],
+  percentage: number,
+): Promise<any[]> {
   logger.info('Demo: selectCanaryResources called', { resources, percentage });
   const count = Math.max(1, Math.floor((resources?.length || 0) * (percentage / 100)));
   return (resources || []).slice(0, count);
 }
 
-export async function monitorCanary(client: any, canaryDeployment: any, options?: any): Promise<any> {
+export async function monitorCanary(
+  client: any,
+  canaryDeployment: any,
+  options?: any,
+): Promise<any> {
   logger.info('Demo: monitorCanary called', { canaryDeployment, options });
   return {
     deploymentId: canaryDeployment.id,

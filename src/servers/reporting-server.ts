@@ -56,11 +56,13 @@ const TimeseriesDataSchema = z.object({
   startDate: z.string(),
   endDate: z.string(),
   granularity: z.enum(['5min', '15min', 'hour', 'day']).optional(),
-  filters: z.object({
-    cpCodes: z.array(z.number()).optional(),
-    hostnames: z.array(z.string()).optional(),
-    countries: z.array(z.string()).optional(),
-  }).optional(),
+  filters: z
+    .object({
+      cpCodes: z.array(z.number()).optional(),
+      hostnames: z.array(z.string()).optional(),
+      countries: z.array(z.string()).optional(),
+    })
+    .optional(),
 });
 
 const PerformanceBenchmarksSchema = z.object({
@@ -96,11 +98,13 @@ const BandwidthUsageSchema = z.object({
 const DashboardSchema = z.object({
   customer: z.string().optional(),
   name: z.string(),
-  widgets: z.array(z.object({
-    type: z.enum(['traffic', 'performance', 'errors', 'cache', 'geo-map']),
-    metrics: z.array(z.string()),
-    filters: z.any().optional(),
-  })),
+  widgets: z.array(
+    z.object({
+      type: z.enum(['traffic', 'performance', 'errors', 'cache', 'geo-map']),
+      metrics: z.array(z.string()),
+      filters: z.any().optional(),
+    }),
+  ),
   refreshInterval: z.number().optional(),
 });
 
@@ -115,14 +119,16 @@ const ExportReportSchema = z.object({
 
 const MonitoringAlertsSchema = z.object({
   customer: z.string().optional(),
-  alerts: z.array(z.object({
-    name: z.string(),
-    metric: z.string(),
-    threshold: z.number(),
-    condition: z.enum(['above', 'below', 'equals']),
-    duration: z.string().optional(),
-    recipients: z.array(z.string()),
-  })),
+  alerts: z.array(
+    z.object({
+      name: z.string(),
+      metric: z.string(),
+      threshold: z.number(),
+      condition: z.enum(['above', 'below', 'equals']),
+      duration: z.string().optional(),
+      recipients: z.array(z.string()),
+    }),
+  ),
 });
 
 const RealtimeMetricsSchema = z.object({
@@ -197,10 +203,10 @@ class ReportingServer {
 
     this.client = new AkamaiClient();
     this.configManager = CustomerConfigManager.getInstance();
-    
+
     this.registerTools();
     this.setupHandlers();
-    
+
     logger.info('Reporting Server initialized', {
       toolCount: this.tools.size,
     });
@@ -323,13 +329,16 @@ class ReportingServer {
       }),
       handler: async (client, params) => {
         return {
-          content: [{
-            type: 'text',
-            text: `Traffic Peak Predictions (next ${params.forecastDays} days):\n` +
-                  `- Expected peak: Day 7 at 14:00 UTC (95% confidence)\n` +
-                  `- Estimated traffic: 2.3x normal volume\n` +
-                  `- Recommended actions: Pre-scale origin capacity, enable burst protection`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text:
+                `Traffic Peak Predictions (next ${params.forecastDays} days):\n` +
+                `- Expected peak: Day 7 at 14:00 UTC (95% confidence)\n` +
+                `- Estimated traffic: 2.3x normal volume\n` +
+                `- Recommended actions: Pre-scale origin capacity, enable burst protection`,
+            },
+          ],
         };
       },
     });
@@ -345,14 +354,17 @@ class ReportingServer {
       }),
       handler: async (client, params) => {
         return {
-          content: [{
-            type: 'text',
-            text: `Anomaly Detection Results:\n` +
-                  `- 🔴 High error rate spike detected 2 hours ago\n` +
-                  `- 🟡 Unusual traffic pattern from AS12345\n` +
-                  `- 🟢 Response times normal despite traffic increase\n` +
-                  `Recommended: Investigate error spike on /api/v2/* endpoints`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text:
+                `Anomaly Detection Results:\n` +
+                `- 🔴 High error rate spike detected 2 hours ago\n` +
+                `- 🟡 Unusual traffic pattern from AS12345\n` +
+                `- 🟢 Response times normal despite traffic increase\n` +
+                `Recommended: Investigate error spike on /api/v2/* endpoints`,
+            },
+          ],
         };
       },
     });
@@ -368,18 +380,21 @@ class ReportingServer {
       }),
       handler: async (client, params) => {
         return {
-          content: [{
-            type: 'text',
-            text: `Content Popularity Analysis (${params.period}):\n` +
-                  `Top Content:\n` +
-                  `1. /assets/main.js - 45M requests (cacheable)\n` +
-                  `2. /api/user/profile - 23M requests (dynamic)\n` +
-                  `3. /images/logo.png - 18M requests (cached)\n\n` +
-                  `Optimization Opportunities:\n` +
-                  `- Enable caching for /api/products/* (12M requests)\n` +
-                  `- Increase TTL for /assets/* from 1h to 24h\n` +
-                  `- Consider CDN prefetch for trending content`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text:
+                `Content Popularity Analysis (${params.period}):\n` +
+                `Top Content:\n` +
+                `1. /assets/main.js - 45M requests (cacheable)\n` +
+                `2. /api/user/profile - 23M requests (dynamic)\n` +
+                `3. /images/logo.png - 18M requests (cached)\n\n` +
+                `Optimization Opportunities:\n` +
+                `- Enable caching for /api/products/* (12M requests)\n` +
+                `- Increase TTL for /assets/* from 1h to 24h\n` +
+                `- Consider CDN prefetch for trending content`,
+            },
+          ],
         };
       },
     });
@@ -401,16 +416,19 @@ class ReportingServer {
       }),
       handler: async (client, params) => {
         return {
-          content: [{
-            type: 'text',
-            text: `SLA Compliance Report:\n` +
-                  `Period: ${params.period.start} to ${params.period.end}\n\n` +
-                  `✅ Availability: 99.95% (Target: ${params.slaTargets.availability}%)\n` +
-                  `✅ Avg Response Time: 145ms (Target: <${params.slaTargets.responseTime}ms)\n` +
-                  `⚠️  Error Rate: 0.12% (Target: <${params.slaTargets.errorRate}%)\n\n` +
-                  `SLA Credits: None required\n` +
-                  `Violations: 1 (Error rate exceeded on 2024-01-15)`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text:
+                `SLA Compliance Report:\n` +
+                `Period: ${params.period.start} to ${params.period.end}\n\n` +
+                `✅ Availability: 99.95% (Target: ${params.slaTargets.availability}%)\n` +
+                `✅ Avg Response Time: 145ms (Target: <${params.slaTargets.responseTime}ms)\n` +
+                `⚠️  Error Rate: 0.12% (Target: <${params.slaTargets.errorRate}%)\n\n` +
+                `SLA Credits: None required\n` +
+                `Violations: 1 (Error rate exceeded on 2024-01-15)`,
+            },
+          ],
         };
       },
     });
@@ -434,16 +452,13 @@ class ReportingServer {
 
       const tool = this.tools.get(name);
       if (!tool) {
-        throw new McpError(
-          ErrorCode.MethodNotFound,
-          `Unknown tool: ${name}`
-        );
+        throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
       }
 
       try {
         const validatedArgs = tool.schema.parse(args);
         const result = await tool.handler(this.client, validatedArgs);
-        
+
         return {
           content: result.content || [
             {
@@ -456,7 +471,7 @@ class ReportingServer {
         if (error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map(e => e.message).join(', ')}`
+            `Invalid parameters: ${error.errors.map((e) => e.message).join(', ')}`,
           );
         }
         throw error;

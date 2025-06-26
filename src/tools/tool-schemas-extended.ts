@@ -43,21 +43,25 @@ export const GetVersionDiffSchema = BaseToolSchema.extend({
 });
 
 export const BatchVersionOperationsSchema = BaseToolSchema.extend({
-  operations: z.array(z.object({
-    propertyId: z.string(),
-    action: z.enum(['create', 'activate', 'rollback']),
-    params: z.any(),
-  })),
+  operations: z.array(
+    z.object({
+      propertyId: z.string(),
+      action: z.enum(['create', 'activate', 'rollback']),
+      params: z.any(),
+    }),
+  ),
 });
 
 export const SearchPropertiesAdvancedSchema = BaseToolSchema.extend({
   searchTerm: z.string().optional(),
-  filters: z.object({
-    contractId: z.string().optional(),
-    groupId: z.string().optional(),
-    productId: z.string().optional(),
-    status: z.enum(['active', 'inactive', 'pending']).optional(),
-  }).optional(),
+  filters: z
+    .object({
+      contractId: z.string().optional(),
+      groupId: z.string().optional(),
+      productId: z.string().optional(),
+      status: z.enum(['active', 'inactive', 'pending']).optional(),
+    })
+    .optional(),
 });
 
 export const CancelPropertyActivationSchema = BaseToolSchema.extend({
@@ -84,12 +88,14 @@ export const CheckPropertyHealthSchema = BaseToolSchema.extend({
 // DNS Advanced Schemas
 export const CreateMultipleRecordSetsSchema = BaseToolSchema.extend({
   zone: z.string(),
-  recordSets: z.array(z.object({
-    name: z.string(),
-    type: z.string(),
-    ttl: z.number(),
-    rdata: z.array(z.string()),
-  })),
+  recordSets: z.array(
+    z.object({
+      name: z.string(),
+      type: z.string(),
+      ttl: z.number(),
+      rdata: z.array(z.string()),
+    }),
+  ),
 });
 
 export const GetRecordSetSchema = BaseToolSchema.extend({
@@ -99,11 +105,13 @@ export const GetRecordSetSchema = BaseToolSchema.extend({
 });
 
 export const SubmitBulkZoneCreateRequestSchema = BaseToolSchema.extend({
-  zones: z.array(z.object({
-    zone: z.string(),
-    type: z.enum(['PRIMARY', 'SECONDARY']),
-    masters: z.array(z.string()).optional(),
-  })),
+  zones: z.array(
+    z.object({
+      zone: z.string(),
+      type: z.enum(['PRIMARY', 'SECONDARY']),
+      masters: z.array(z.string()).optional(),
+    }),
+  ),
 });
 
 export const GetZonesDNSSECStatusSchema = BaseToolSchema.extend({
@@ -151,11 +159,13 @@ export const GetZoneContractSchema = BaseToolSchema.extend({
 export const ImportZoneViaAXFRSchema = BaseToolSchema.extend({
   zone: z.string(),
   masterServer: z.string(),
-  tsigKey: z.object({
-    name: z.string(),
-    algorithm: z.string(),
-    secret: z.string(),
-  }).optional(),
+  tsigKey: z
+    .object({
+      name: z.string(),
+      algorithm: z.string(),
+      secret: z.string(),
+    })
+    .optional(),
 });
 
 export const ConvertZoneToPrimarySchema = BaseToolSchema.extend({
@@ -231,11 +241,13 @@ export const CreateEdgeHostnameEnhancedSchema = BaseToolSchema.extend({
 });
 
 export const CreateBulkEdgeHostnamesSchema = BaseToolSchema.extend({
-  edgeHostnames: z.array(z.object({
-    domainPrefix: z.string(),
-    domainSuffix: z.string(),
-    productId: z.string(),
-  })),
+  edgeHostnames: z.array(
+    z.object({
+      domainPrefix: z.string(),
+      domainSuffix: z.string(),
+      productId: z.string(),
+    }),
+  ),
 });
 
 export const GetEdgeHostnameDetailsSchema = BaseToolSchema.extend({
@@ -297,11 +309,13 @@ export const ValidateHostnamesBulkSchema = BaseToolSchema.extend({
 });
 
 export const BulkManageHostnamesSchema = BaseToolSchema.extend({
-  operations: z.array(z.object({
-    hostname: z.string(),
-    action: z.enum(['add', 'remove', 'move']),
-    propertyId: z.string(),
-  })),
+  operations: z.array(
+    z.object({
+      hostname: z.string(),
+      action: z.enum(['add', 'remove', 'move']),
+      propertyId: z.string(),
+    }),
+  ),
 });
 
 // Rule Tree Management Schemas
@@ -440,11 +454,13 @@ export const ExportNetworkListToCSVSchema = BaseToolSchema.extend({
 });
 
 export const BulkUpdateNetworkListsSchema = BaseToolSchema.extend({
-  updates: z.array(z.object({
-    networkListId: z.string(),
-    elements: z.array(z.string()),
-    mode: z.enum(['add', 'remove', 'replace']),
-  })),
+  updates: z.array(
+    z.object({
+      networkListId: z.string(),
+      elements: z.array(z.string()),
+      mode: z.enum(['add', 'remove', 'replace']),
+    }),
+  ),
 });
 
 export const MergeNetworkListsSchema = BaseToolSchema.extend({
@@ -505,15 +521,19 @@ export const ProfilePerformanceSchema = BaseToolSchema.extend({
 
 export const GetRealtimeMetricsSchema = BaseToolSchema.extend({
   propertyId: z.string().optional(),
-  metrics: z.array(z.enum([
-    'bandwidth',
-    'requests',
-    'errors',
-    'cache_hit_rate',
-    'latency',
-    'cpu_usage',
-    'memory_usage'
-  ])).optional(),
+  metrics: z
+    .array(
+      z.enum([
+        'bandwidth',
+        'requests',
+        'errors',
+        'cache_hit_rate',
+        'latency',
+        'cpu_usage',
+        'memory_usage',
+      ]),
+    )
+    .optional(),
   interval: z.number().optional().default(5000),
 });
 
@@ -550,10 +570,12 @@ export const AnalyzeBandwidthUsageSchema = BaseToolSchema.extend({
 
 export const CreateReportingDashboardSchema = BaseToolSchema.extend({
   name: z.string(),
-  widgets: z.array(z.object({
-    type: z.string(),
-    config: z.any(),
-  })),
+  widgets: z.array(
+    z.object({
+      type: z.string(),
+      config: z.any(),
+    }),
+  ),
 });
 
 export const ExportReportDataSchema = BaseToolSchema.extend({
@@ -564,12 +586,14 @@ export const ExportReportDataSchema = BaseToolSchema.extend({
 });
 
 export const ConfigureMonitoringAlertsSchema = BaseToolSchema.extend({
-  alerts: z.array(z.object({
-    name: z.string(),
-    metric: z.string(),
-    threshold: z.number(),
-    action: z.enum(['email', 'webhook', 'sms']),
-  })),
+  alerts: z.array(
+    z.object({
+      name: z.string(),
+      metric: z.string(),
+      threshold: z.number(),
+      action: z.enum(['email', 'webhook', 'sms']),
+    }),
+  ),
 });
 
 export const GetReportingRealtimeMetricsSchema = BaseToolSchema.extend({

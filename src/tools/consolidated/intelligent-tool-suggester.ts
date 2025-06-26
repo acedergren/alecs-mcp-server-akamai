@@ -1,6 +1,6 @@
 /**
  * Intelligent Tool Suggester - Maya's Vision
- * 
+ *
  * Smart recommendation engine that suggests the best tools and workflows
  * based on user intent, context, and business goals.
  */
@@ -52,12 +52,14 @@ export class IntelligentToolSuggester {
         action: 'create',
         confidence: 0.95,
         reasoning: 'Launching requires creating optimized property configuration',
-        alternatives: [{
-          tool: 'workflow',
-          action: 'launch-website',
-          confidence: 0.9,
-          reasoning: 'Use guided workflow for complete launch experience',
-        }],
+        alternatives: [
+          {
+            tool: 'workflow',
+            action: 'launch-website',
+            confidence: 0.9,
+            reasoning: 'Use guided workflow for complete launch experience',
+          },
+        ],
       });
     }
 
@@ -165,32 +167,32 @@ export class IntelligentToolSuggester {
    */
   private isLaunchIntent(intent: string): boolean {
     const launchKeywords = ['launch', 'create', 'start', 'new', 'begin', 'deploy', 'publish'];
-    return launchKeywords.some(keyword => intent.toLowerCase().includes(keyword));
+    return launchKeywords.some((keyword) => intent.toLowerCase().includes(keyword));
   }
 
   private isSecurityIntent(intent: string): boolean {
     const securityKeywords = ['secure', 'ssl', 'certificate', 'https', 'protect', 'encrypt'];
-    return securityKeywords.some(keyword => intent.toLowerCase().includes(keyword));
+    return securityKeywords.some((keyword) => intent.toLowerCase().includes(keyword));
   }
 
   private isPerformanceIntent(intent: string): boolean {
     const performanceKeywords = ['optimize', 'speed', 'fast', 'performance', 'cache', 'slow'];
-    return performanceKeywords.some(keyword => intent.toLowerCase().includes(keyword));
+    return performanceKeywords.some((keyword) => intent.toLowerCase().includes(keyword));
   }
 
   private isDNSIntent(intent: string): boolean {
     const dnsKeywords = ['dns', 'domain', 'subdomain', 'nameserver', 'record', 'email'];
-    return dnsKeywords.some(keyword => intent.toLowerCase().includes(keyword));
+    return dnsKeywords.some((keyword) => intent.toLowerCase().includes(keyword));
   }
 
   private isMigrationIntent(intent: string): boolean {
     const migrationKeywords = ['migrate', 'move', 'transfer', 'import', 'switch'];
-    return migrationKeywords.some(keyword => intent.toLowerCase().includes(keyword));
+    return migrationKeywords.some((keyword) => intent.toLowerCase().includes(keyword));
   }
 
   private isOptimizationIntent(intent: string): boolean {
     const optimizationKeywords = ['optimize', 'improve', 'enhance', 'boost', 'tune'];
-    return optimizationKeywords.some(keyword => intent.toLowerCase().includes(keyword));
+    return optimizationKeywords.some((keyword) => intent.toLowerCase().includes(keyword));
   }
 }
 

@@ -1,7 +1,7 @@
 /**
  * Security & Compliance Domain Assistant
  * Maya Chen's UX Transformation: Making security approachable without compromising protection
- * 
+ *
  * "Security is often seen as a barrier to business. This assistant turns it into an enabler by
  * translating business needs into security policies automatically."
  */
@@ -29,13 +29,15 @@ export interface BusinessSecurityContext {
  */
 export const securityComplianceAssistant: Tool = {
   name: 'security',
-  description: 'Maya\'s Security assistant for ALECS - I protect your business without getting in the way',
+  description:
+    "Maya's Security assistant for ALECS - I protect your business without getting in the way",
   inputSchema: {
     type: 'object',
     properties: {
       intent: {
         type: 'string',
-        description: 'What security goal do you have? (e.g., "Protect customer payment data", "Block malicious bots", "Meet GDPR requirements")',
+        description:
+          'What security goal do you have? (e.g., "Protect customer payment data", "Block malicious bots", "Meet GDPR requirements")',
       },
       context: {
         type: 'object',
@@ -49,7 +51,13 @@ export const securityComplianceAssistant: Tool = {
             type: 'array',
             items: {
               type: 'string',
-              enum: ['bot_attacks', 'data_breaches', 'slow_performance', 'compliance_gaps', 'fraud'],
+              enum: [
+                'bot_attacks',
+                'data_breaches',
+                'slow_performance',
+                'compliance_gaps',
+                'fraud',
+              ],
             },
           },
           security_maturity: {
@@ -198,7 +206,10 @@ class SecurityAnalyzer {
   /**
    * Analyze security intent and map to technical requirements
    */
-  analyzeIntent(intent: string, context?: any): {
+  analyzeIntent(
+    intent: string,
+    context?: any,
+  ): {
     threatType: string;
     riskLevel: 'critical' | 'high' | 'medium' | 'low';
     complianceNeeds: string[];
@@ -206,55 +217,79 @@ class SecurityAnalyzer {
     businessImpact: string;
   } {
     const lowerIntent = intent.toLowerCase();
-    
+
     let threatType = 'general';
     let riskLevel: 'critical' | 'high' | 'medium' | 'low' = 'medium';
     const complianceNeeds: string[] = [];
     const recommendedActions: string[] = [];
-    
+
     // Detect compliance needs
-    if (lowerIntent.includes('payment') || lowerIntent.includes('credit card') || lowerIntent.includes('pci')) {
+    if (
+      lowerIntent.includes('payment') ||
+      lowerIntent.includes('credit card') ||
+      lowerIntent.includes('pci')
+    ) {
       threatType = 'payment_security';
       riskLevel = 'high';
       complianceNeeds.push('pci');
       recommendedActions.push('Enable payment data protection', 'Configure fraud detection');
     }
-    
-    if (lowerIntent.includes('gdpr') || lowerIntent.includes('privacy') || lowerIntent.includes('european')) {
+
+    if (
+      lowerIntent.includes('gdpr') ||
+      lowerIntent.includes('privacy') ||
+      lowerIntent.includes('european')
+    ) {
       complianceNeeds.push('gdpr');
       recommendedActions.push('Configure data residency', 'Enable privacy controls');
     }
-    
-    if (lowerIntent.includes('health') || lowerIntent.includes('medical') || lowerIntent.includes('hipaa')) {
+
+    if (
+      lowerIntent.includes('health') ||
+      lowerIntent.includes('medical') ||
+      lowerIntent.includes('hipaa')
+    ) {
       threatType = 'healthcare_security';
       riskLevel = 'high';
       complianceNeeds.push('hipaa');
       recommendedActions.push('Enable PHI protection', 'Configure audit logging');
     }
-    
+
     // Detect active threats
-    if (lowerIntent.includes('attack') || lowerIntent.includes('bot') || lowerIntent.includes('ddos')) {
+    if (
+      lowerIntent.includes('attack') ||
+      lowerIntent.includes('bot') ||
+      lowerIntent.includes('ddos')
+    ) {
       threatType = 'active_attack';
       riskLevel = 'critical';
       recommendedActions.push('Immediate threat response', 'Enable protective measures');
     }
-    
-    if (lowerIntent.includes('fraud') || lowerIntent.includes('fake') || lowerIntent.includes('stolen')) {
+
+    if (
+      lowerIntent.includes('fraud') ||
+      lowerIntent.includes('fake') ||
+      lowerIntent.includes('stolen')
+    ) {
       threatType = 'fraud_prevention';
       riskLevel = 'high';
       recommendedActions.push('Enable fraud detection', 'Configure behavior analysis');
     }
-    
+
     // Detect security improvements
-    if (lowerIntent.includes('improve') || lowerIntent.includes('enhance') || lowerIntent.includes('strengthen')) {
+    if (
+      lowerIntent.includes('improve') ||
+      lowerIntent.includes('enhance') ||
+      lowerIntent.includes('strengthen')
+    ) {
       threatType = 'security_improvement';
       riskLevel = 'low';
       recommendedActions.push('Security assessment', 'Best practice implementation');
     }
-    
+
     // Business impact assessment
     const businessImpact = this.assessBusinessImpact(threatType, riskLevel, context);
-    
+
     return {
       threatType,
       riskLevel,
@@ -263,13 +298,13 @@ class SecurityAnalyzer {
       businessImpact,
     };
   }
-  
+
   /**
    * Generate security recommendations based on business context
    */
   generateRecommendations(
     analysis: any,
-    context?: BusinessSecurityContext
+    context?: BusinessSecurityContext,
   ): {
     immediate: SecurityRecommendation[];
     shortTerm: SecurityRecommendation[];
@@ -285,7 +320,7 @@ class SecurityAnalyzer {
       shortTerm: [],
       longTerm: [],
     };
-    
+
     // Immediate actions for critical threats
     if (analysis.riskLevel === 'critical') {
       recommendations.immediate.push({
@@ -296,7 +331,7 @@ class SecurityAnalyzer {
         implementation: 'One-click activation available',
       });
     }
-    
+
     // Compliance-based recommendations
     if (analysis.complianceNeeds.includes('pci')) {
       recommendations.immediate.push({
@@ -306,7 +341,7 @@ class SecurityAnalyzer {
         impact: 'high',
         implementation: 'Pre-configured PCI template available',
       });
-      
+
       recommendations.shortTerm.push({
         action: 'Configure Bot Manager',
         description: 'Prevent card testing and fraud attempts',
@@ -315,7 +350,7 @@ class SecurityAnalyzer {
         implementation: 'Requires behavior rule configuration',
       });
     }
-    
+
     // Business type specific recommendations
     if (context?.business_type === 'financial') {
       recommendations.shortTerm.push({
@@ -326,7 +361,7 @@ class SecurityAnalyzer {
         implementation: 'Phased rollout recommended',
       });
     }
-    
+
     if (context?.business_type === 'retail') {
       recommendations.immediate.push({
         action: 'Bot Protection for Inventory',
@@ -336,7 +371,7 @@ class SecurityAnalyzer {
         implementation: 'Bot Manager configuration',
       });
     }
-    
+
     // Long-term security posture improvements
     recommendations.longTerm.push({
       action: 'Implement Security Operations Center (SOC)',
@@ -345,30 +380,27 @@ class SecurityAnalyzer {
       impact: 'high',
       implementation: 'Akamai managed security services',
     });
-    
+
     // Cost estimation
     const costEstimate = this.estimateSecurityCosts(recommendations, context);
-    
+
     return {
       ...recommendations,
       costEstimate,
     };
   }
-  
+
   /**
    * Create implementation plan with business-friendly steps
    */
-  createImplementationPlan(
-    recommendations: any,
-    urgency: string
-  ): ImplementationPlan {
+  createImplementationPlan(recommendations: any, urgency: string): ImplementationPlan {
     const plan: ImplementationPlan = {
       phases: [],
       timeline: '',
       requiredResources: [],
       successCriteria: [],
     };
-    
+
     // Phase 1: Immediate protection
     if (urgency === 'immediate_threat') {
       plan.phases.push({
@@ -383,22 +415,21 @@ class SecurityAnalyzer {
         requiredApprovals: ['Security team lead'],
       });
     }
-    
+
     // Phase 2: Core security
     plan.phases.push({
       name: 'Core Security Setup',
       duration: '1-2 weeks',
-      steps: [
-        'Configure WAF rules',
-        'Set up bot detection',
-        'Enable SSL/TLS',
-        'Configure logging',
-      ],
+      steps: ['Configure WAF rules', 'Set up bot detection', 'Enable SSL/TLS', 'Configure logging'],
       requiredApprovals: ['IT Manager', 'Security Officer'],
     });
-    
+
     // Phase 3: Compliance alignment
-    if (recommendations.immediate.some((r: any) => r.action.includes('PCI') || r.action.includes('GDPR'))) {
+    if (
+      recommendations.immediate.some(
+        (r: any) => r.action.includes('PCI') || r.action.includes('GDPR'),
+      )
+    ) {
       plan.phases.push({
         name: 'Compliance Configuration',
         duration: '2-4 weeks',
@@ -411,7 +442,7 @@ class SecurityAnalyzer {
         requiredApprovals: ['Compliance Officer', 'Legal'],
       });
     }
-    
+
     // Timeline based on urgency
     if (urgency === 'immediate_threat') {
       plan.timeline = 'Start immediately, core protection within 24 hours';
@@ -420,14 +451,14 @@ class SecurityAnalyzer {
     } else {
       plan.timeline = 'Phased approach over 4-6 weeks';
     }
-    
+
     // Resources needed
     plan.requiredResources = [
       'Security administrator (10-20 hours)',
       'Application owner (5-10 hours)',
       'Compliance team (if applicable)',
     ];
-    
+
     // Success criteria
     plan.successCriteria = [
       'All critical vulnerabilities addressed',
@@ -435,10 +466,10 @@ class SecurityAnalyzer {
       'Security monitoring active',
       'Incident response plan tested',
     ];
-    
+
     return plan;
   }
-  
+
   private assessBusinessImpact(threatType: string, riskLevel: string, context?: any): string {
     const impacts: Record<string, string> = {
       'payment_security:high': 'Risk of payment fraud and PCI non-compliance fines',
@@ -447,21 +478,21 @@ class SecurityAnalyzer {
       'fraud_prevention:high': 'Financial losses and customer trust impact',
       'security_improvement:low': 'Opportunity to strengthen security posture proactively',
     };
-    
+
     return impacts[`${threatType}:${riskLevel}`] || 'Security enhancement opportunity';
   }
-  
+
   private estimateSecurityCosts(recommendations: any, context?: any): string {
     const baseCost = 0;
     const additionalCosts: string[] = [];
-    
+
     // Count high-effort items
     const highEffortCount = [
       ...recommendations.immediate,
       ...recommendations.shortTerm,
       ...recommendations.longTerm,
     ].filter((r: any) => r.effort === 'high').length;
-    
+
     if (highEffortCount > 3) {
       return 'Enterprise security package recommended - Contact sales for pricing';
     } else if (highEffortCount > 1) {
@@ -507,7 +538,7 @@ class SecurityValidator {
    */
   async validateConfiguration(
     config: any,
-    context: BusinessSecurityContext
+    context: BusinessSecurityContext,
   ): Promise<{
     valid: boolean;
     warnings: string[];
@@ -517,7 +548,7 @@ class SecurityValidator {
     const warnings: string[] = [];
     const blockers: string[] = [];
     const suggestions: string[] = [];
-    
+
     // Check for conflicting rules
     if (config.waf && config.rateLimit) {
       if (config.rateLimit.threshold < 10 && context.user_base === 'b2c') {
@@ -525,23 +556,23 @@ class SecurityValidator {
         suggestions.push('Consider behavior-based rate limiting instead');
       }
     }
-    
+
     // Validate compliance requirements
     if (context.compliance_requirements.includes('pci') && !config.waf) {
       blockers.push('PCI compliance requires WAF protection');
     }
-    
+
     if (context.compliance_requirements.includes('gdpr') && !config.geoControls) {
       warnings.push('GDPR may require geographic access controls');
       suggestions.push('Enable EU data residency controls');
     }
-    
+
     // Check security maturity alignment
     if (context.business_type === 'financial' && !config.botManager) {
       warnings.push('Financial services should enable bot protection');
       suggestions.push('Bot Manager prevents automated attacks');
     }
-    
+
     return {
       valid: blockers.length === 0,
       warnings,
@@ -549,7 +580,7 @@ class SecurityValidator {
       suggestions,
     };
   }
-  
+
   /**
    * Generate security testing plan
    */
@@ -587,15 +618,15 @@ class SecurityValidator {
 export async function handleSecurityComplianceAssistant(args: any) {
   const analyzer = new SecurityAnalyzer();
   const validator = new SecurityValidator();
-  
+
   try {
     // Analyze security intent
     const analysis = analyzer.analyzeIntent(args.intent, args.context);
-    
+
     // Build response
     let response = `# Security & Compliance Assistant\n\n`;
     response += `I'll help you **${args.intent}**.\n\n`;
-    
+
     // Risk assessment
     const riskEmoji = {
       critical: '🔴',
@@ -603,30 +634,30 @@ export async function handleSecurityComplianceAssistant(args: any) {
       medium: '🟡',
       low: '🟢',
     }[analysis.riskLevel];
-    
+
     response += `**Risk Level:** ${riskEmoji} ${analysis.riskLevel.toUpperCase()}\n`;
     response += `**Business Impact:** ${analysis.businessImpact}\n\n`;
-    
+
     // Compliance needs
     if (analysis.complianceNeeds.length > 0) {
       response += `## Compliance Requirements\n\n`;
-      analysis.complianceNeeds.forEach(compliance => {
+      analysis.complianceNeeds.forEach((compliance) => {
         if (COMPLIANCE_TEMPLATES[compliance as keyof typeof COMPLIANCE_TEMPLATES]) {
           const template = COMPLIANCE_TEMPLATES[compliance as keyof typeof COMPLIANCE_TEMPLATES];
           response += `### ${template.name}\n`;
           response += `${template.description}\n\n`;
           response += `**What I'll Configure:**\n`;
-          template.akamaiFeatures.forEach(feature => {
+          template.akamaiFeatures.forEach((feature) => {
             response += `- ${feature}\n`;
           });
           response += '\n';
         }
       });
     }
-    
+
     // Generate recommendations
     const recommendations = analyzer.generateRecommendations(analysis, args.context);
-    
+
     if (recommendations.immediate.length > 0) {
       response += `## Immediate Actions Required\n\n`;
       recommendations.immediate.forEach((rec, index) => {
@@ -636,7 +667,7 @@ export async function handleSecurityComplianceAssistant(args: any) {
         response += `- How: ${rec.implementation}\n\n`;
       });
     }
-    
+
     if (recommendations.shortTerm.length > 0) {
       response += `## Short-term Improvements (1-4 weeks)\n\n`;
       recommendations.shortTerm.forEach((rec, index) => {
@@ -645,7 +676,7 @@ export async function handleSecurityComplianceAssistant(args: any) {
         response += `- Effort: ${rec.effort} | Impact: ${rec.impact}\n\n`;
       });
     }
-    
+
     if (recommendations.longTerm.length > 0) {
       response += `## Long-term Security Strategy\n\n`;
       recommendations.longTerm.forEach((rec, index) => {
@@ -653,17 +684,17 @@ export async function handleSecurityComplianceAssistant(args: any) {
         response += `${rec.description}\n\n`;
       });
     }
-    
+
     // Cost estimate
     response += `## Investment Estimate\n\n`;
     response += `${recommendations.costEstimate}\n\n`;
-    
+
     // Implementation plan
     if (args.urgency) {
       const plan = analyzer.createImplementationPlan(recommendations, args.urgency);
       response += `## Implementation Plan\n\n`;
       response += `**Timeline:** ${plan.timeline}\n\n`;
-      
+
       plan.phases.forEach((phase, index) => {
         response += `### Phase ${index + 1}: ${phase.name}\n`;
         response += `Duration: ${phase.duration}\n\n`;
@@ -674,15 +705,18 @@ export async function handleSecurityComplianceAssistant(args: any) {
         response += '\n';
       });
     }
-    
+
     // Active threat response
     if (analysis.riskLevel === 'critical' && analysis.threatType === 'active_attack') {
       response += `## ⚠️ IMMEDIATE THREAT RESPONSE\n\n`;
       response += `I've detected an active threat situation. Here's what to do RIGHT NOW:\n\n`;
-      
-      const threatType = args.intent.includes('bot') ? 'bot_attack' : 
-                        args.intent.includes('ddos') ? 'ddos_attack' : 'bot_attack';
-      
+
+      const threatType = args.intent.includes('bot')
+        ? 'bot_attack'
+        : args.intent.includes('ddos')
+          ? 'ddos_attack'
+          : 'bot_attack';
+
       if (THREAT_RESPONSES[threatType as keyof typeof THREAT_RESPONSES]) {
         const threatResponse = THREAT_RESPONSES[threatType as keyof typeof THREAT_RESPONSES];
         response += `### ${threatResponse.name}\n\n`;
@@ -697,7 +731,7 @@ export async function handleSecurityComplianceAssistant(args: any) {
           });
         }
       }
-      
+
       if (args.auto_apply) {
         response += `\n### 🚀 Auto-Protection Status\n\n`;
         response += `Ready to apply emergency protection measures.\n`;
@@ -708,10 +742,10 @@ export async function handleSecurityComplianceAssistant(args: any) {
         response += `**Confirm to proceed with automatic protection.**\n`;
       }
     }
-    
+
     // Next steps
     response += `\n## Next Steps\n\n`;
-    
+
     if (!args.context) {
       response += `To provide more specific recommendations, please tell me:\n\n`;
       response += `1. **What type of business are you protecting?**\n`;
@@ -721,12 +755,12 @@ export async function handleSecurityComplianceAssistant(args: any) {
       response += `   - Media/Entertainment\n`;
       response += `   - Government\n`;
       response += `   - Other\n\n`;
-      
+
       response += `2. **What's your current security situation?**\n`;
       response += `   - Just starting with security\n`;
       response += `   - Basic protection in place\n`;
       response += `   - Advanced security user\n\n`;
-      
+
       response += `3. **Any specific compliance requirements?**\n`;
       response += `   - PCI DSS (payment cards)\n`;
       response += `   - HIPAA (healthcare)\n`;
@@ -740,34 +774,38 @@ export async function handleSecurityComplianceAssistant(args: any) {
       response += `4. **Schedule implementation based on the plan**\n`;
       response += `5. **Set up monitoring and alerting**\n`;
     }
-    
+
     response += `\nI'm here to make security simple and effective. Let me know how you'd like to proceed!\n`;
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: response,
-      }],
+      content: [
+        {
+          type: 'text',
+          text: response,
+        },
+      ],
     };
-    
   } catch (error) {
     logger.error('Security Assistant Error:', error);
-    
+
     return {
-      content: [{
-        type: 'text',
-        text: `I want to help secure your business, but I need more information.\n\n` +
-              `Please tell me:\n` +
-              `1. What security concern do you have?\n` +
-              `2. What type of business are you protecting?\n` +
-              `3. Are you facing an immediate threat?\n\n` +
-              `Examples of what I can help with:\n` +
-              `- "Protect our e-commerce site from bots"\n` +
-              `- "Meet PCI compliance for payment processing"\n` +
-              `- "Stop a DDoS attack happening now"\n` +
-              `- "Improve our overall security posture"\n\n` +
-              `Security doesn't have to be complicated. Let's protect your business together!`,
-      }],
+      content: [
+        {
+          type: 'text',
+          text:
+            `I want to help secure your business, but I need more information.\n\n` +
+            `Please tell me:\n` +
+            `1. What security concern do you have?\n` +
+            `2. What type of business are you protecting?\n` +
+            `3. Are you facing an immediate threat?\n\n` +
+            `Examples of what I can help with:\n` +
+            `- "Protect our e-commerce site from bots"\n` +
+            `- "Meet PCI compliance for payment processing"\n` +
+            `- "Stop a DDoS attack happening now"\n` +
+            `- "Improve our overall security posture"\n\n` +
+            `Security doesn't have to be complicated. Let's protect your business together!`,
+        },
+      ],
     };
   }
 }
@@ -782,24 +820,24 @@ export class SecurityDashboard {
    */
   generatePostureSummary(data: any): string {
     let summary = `## Security Posture Overview\n\n`;
-    
+
     // Overall score with visual indicator
     const score = data.overallScore || 75;
     const scoreEmoji = score >= 90 ? '🟢' : score >= 70 ? '🟡' : score >= 50 ? '🟠' : '🔴';
-    
+
     summary += `### Overall Security Score: ${scoreEmoji} ${score}/100\n\n`;
-    
+
     // Key metrics
     summary += `**Protected Assets**\n`;
     summary += `- Web Applications: ${data.protectedApps || 0}\n`;
     summary += `- APIs: ${data.protectedAPIs || 0}\n`;
     summary += `- Domains: ${data.protectedDomains || 0}\n\n`;
-    
+
     summary += `**Threat Prevention (Last 30 Days)**\n`;
     summary += `- Attacks Blocked: ${data.attacksBlocked || '0'}\n`;
     summary += `- Malicious Bots Stopped: ${data.botsBlocked || '0'}\n`;
     summary += `- DDoS Attempts Mitigated: ${data.ddosMitigated || '0'}\n\n`;
-    
+
     summary += `**Compliance Status**\n`;
     if (data.compliance) {
       Object.entries(data.compliance).forEach(([standard, status]) => {
@@ -809,7 +847,7 @@ export class SecurityDashboard {
     } else {
       summary += `- No compliance requirements configured\n`;
     }
-    
+
     return summary;
   }
 }

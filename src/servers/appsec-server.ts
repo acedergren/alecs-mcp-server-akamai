@@ -106,10 +106,10 @@ class AppSecServer {
 
     this.client = new AkamaiClient();
     this.configManager = CustomerConfigManager.getInstance();
-    
+
     this.registerTools();
     this.setupHandlers();
-    
+
     logger.info('AppSec Server initialized', {
       toolCount: this.tools.size,
     });
@@ -162,10 +162,12 @@ class AppSecServer {
       handler: async (client, params) => {
         // This would analyze attack patterns
         return {
-          content: [{
-            type: 'text',
-            text: `Attack Analytics for config ${params.configId}:\n- SQL Injection: 45%\n- XSS: 30%\n- RFI: 15%\n- Other: 10%`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `Attack Analytics for config ${params.configId}:\n- SQL Injection: 45%\n- XSS: 30%\n- RFI: 15%\n- Other: 10%`,
+            },
+          ],
         };
       },
     });
@@ -179,19 +181,23 @@ class AppSecServer {
         configId: z.number(),
         version: z.number(),
         policyId: z.string(),
-        rules: z.array(z.object({
-          name: z.string(),
-          threshold: z.number(),
-          window: z.number(),
-          action: z.enum(['alert', 'deny', 'challenge']),
-        })),
+        rules: z.array(
+          z.object({
+            name: z.string(),
+            threshold: z.number(),
+            window: z.number(),
+            action: z.enum(['alert', 'deny', 'challenge']),
+          }),
+        ),
       }),
       handler: async (client, params) => {
         return {
-          content: [{
-            type: 'text',
-            text: `Rate control rules configured for policy ${params.policyId}`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `Rate control rules configured for policy ${params.policyId}`,
+            },
+          ],
         };
       },
     });
@@ -205,18 +211,22 @@ class AppSecServer {
         configId: z.number(),
         version: z.number(),
         policyId: z.string(),
-        apiEndpoints: z.array(z.object({
-          path: z.string(),
-          methods: z.array(z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])),
-          authentication: z.enum(['apikey', 'oauth', 'jwt']).optional(),
-        })),
+        apiEndpoints: z.array(
+          z.object({
+            path: z.string(),
+            methods: z.array(z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])),
+            authentication: z.enum(['apikey', 'oauth', 'jwt']).optional(),
+          }),
+        ),
       }),
       handler: async (client, params) => {
         return {
-          content: [{
-            type: 'text',
-            text: `API security configured for ${params.apiEndpoints.length} endpoints`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `API security configured for ${params.apiEndpoints.length} endpoints`,
+            },
+          ],
         };
       },
     });
@@ -239,10 +249,12 @@ class AppSecServer {
       }),
       handler: async (client, params) => {
         return {
-          content: [{
-            type: 'text',
-            text: `Bot management configured for policy ${params.policyId}`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `Bot management configured for policy ${params.policyId}`,
+            },
+          ],
         };
       },
     });
@@ -273,10 +285,12 @@ class AppSecServer {
       }),
       handler: async (client, params) => {
         return {
-          content: [{
-            type: 'text',
-            text: `Security Recommendations for config ${params.configId}:\n1. Enable rate limiting on /api/* endpoints\n2. Add geo-blocking for high-risk countries\n3. Update WAF rules to latest version\n4. Enable bot management for login pages`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `Security Recommendations for config ${params.configId}:\n1. Enable rate limiting on /api/* endpoints\n2. Add geo-blocking for high-risk countries\n3. Update WAF rules to latest version\n4. Enable bot management for login pages`,
+            },
+          ],
         };
       },
     });
@@ -292,10 +306,12 @@ class AppSecServer {
       }),
       handler: async (client, params) => {
         return {
-          content: [{
-            type: 'text',
-            text: `Compliance Check Results:\n- ${params.standard || 'OWASP'} Compliance: 87%\n- Critical Issues: 2\n- Warnings: 5\n- Passed Controls: 43/50`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `Compliance Check Results:\n- ${params.standard || 'OWASP'} Compliance: 87%\n- Critical Issues: 2\n- Warnings: 5\n- Passed Controls: 43/50`,
+            },
+          ],
         };
       },
     });
@@ -319,16 +335,13 @@ class AppSecServer {
 
       const tool = this.tools.get(name);
       if (!tool) {
-        throw new McpError(
-          ErrorCode.MethodNotFound,
-          `Unknown tool: ${name}`
-        );
+        throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
       }
 
       try {
         const validatedArgs = tool.schema.parse(args);
         const result = await tool.handler(this.client, validatedArgs);
-        
+
         return {
           content: result.content || [
             {
@@ -341,7 +354,7 @@ class AppSecServer {
         if (error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map(e => e.message).join(', ')}`
+            `Invalid parameters: ${error.errors.map((e) => e.message).join(', ')}`,
           );
         }
         throw error;

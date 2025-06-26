@@ -11,7 +11,7 @@ import { logger } from '@utils/logger';
 // Deployment actions
 const DeployActionSchema = z.enum([
   'deploy',
-  'status', 
+  'status',
   'rollback',
   'schedule',
   'coordinate',
@@ -24,17 +24,23 @@ const DeployActionSchema = z.enum([
 const DeployToolSchema = z.object({
   action: DeployActionSchema,
   resources: z.any().optional(),
-  options: z.object({
-    network: z.enum(['staging', 'production', 'both']).default('staging'),
-    strategy: z.enum(['immediate', 'scheduled', 'maintenance', 'canary', 'blue-green']).default('immediate'),
-    format: z.enum(['detailed', 'summary', 'timeline']).default('summary'),
-    dryRun: z.boolean().default(false),
-    verbose: z.boolean().default(false),
-    coordination: z.object({
-      parallel: z.boolean().default(false),
-      staggerDelay: z.number().default(300),
-    }).optional(),
-  }).default({}),
+  options: z
+    .object({
+      network: z.enum(['staging', 'production', 'both']).default('staging'),
+      strategy: z
+        .enum(['immediate', 'scheduled', 'maintenance', 'canary', 'blue-green'])
+        .default('immediate'),
+      format: z.enum(['detailed', 'summary', 'timeline']).default('summary'),
+      dryRun: z.boolean().default(false),
+      verbose: z.boolean().default(false),
+      coordination: z
+        .object({
+          parallel: z.boolean().default(false),
+          staggerDelay: z.number().default(300),
+        })
+        .optional(),
+    })
+    .default({}),
   customer: z.string().optional(),
 });
 
@@ -43,7 +49,8 @@ const DeployToolSchema = z.object({
  */
 export const deployTool: Tool = {
   name: 'deploy',
-  description: 'Unified deployment for all resources. Deploy properties, DNS zones, certificates, and more with coordinated workflows and automatic rollback.',
+  description:
+    'Unified deployment for all resources. Deploy properties, DNS zones, certificates, and more with coordinated workflows and automatic rollback.',
   inputSchema: {
     type: 'object',
     properties: DeployToolSchema.shape,
@@ -57,21 +64,23 @@ export const deployTool: Tool = {
 export async function handleDeployTool(params: z.infer<typeof DeployToolSchema>) {
   const { action, resources, options, customer } = params;
   const client = await getAkamaiClient(customer);
-  
+
   logger.info('Deploy tool request', { action, resources, options });
-  
+
   try {
     switch (action) {
       case 'deploy':
         return {
           status: 'success',
-          deployments: [{
-            resource: resources,
-            status: 'deployed',
-            network: options.network,
-            activationId: 'act-demo-' + Date.now(),
-            estimatedTime: '5-10 minutes',
-          }],
+          deployments: [
+            {
+              resource: resources,
+              status: 'deployed',
+              network: options.network,
+              activationId: 'act-demo-' + Date.now(),
+              estimatedTime: '5-10 minutes',
+            },
+          ],
           summary: {
             total: 1,
             successful: 1,
@@ -79,18 +88,20 @@ export async function handleDeployTool(params: z.infer<typeof DeployToolSchema>)
             duration: '2m 15s',
           },
         };
-        
+
       case 'status':
         return {
-          deployments: [{
-            id: 'act-demo-123',
-            resource: 'demo-resource',
-            status: 'active',
-            network: 'production',
-            progress: 100,
-            health: 'healthy',
-            lastUpdate: new Date().toISOString(),
-          }],
+          deployments: [
+            {
+              id: 'act-demo-123',
+              resource: 'demo-resource',
+              status: 'active',
+              network: 'production',
+              progress: 100,
+              health: 'healthy',
+              lastUpdate: new Date().toISOString(),
+            },
+          ],
           summary: {
             total: 1,
             active: 1,
@@ -98,7 +109,7 @@ export async function handleDeployTool(params: z.infer<typeof DeployToolSchema>)
             failed: 0,
           },
         };
-        
+
       case 'coordinate':
         return {
           status: 'coordinated',
@@ -115,7 +126,7 @@ export async function handleDeployTool(params: z.infer<typeof DeployToolSchema>)
             ],
           },
         };
-        
+
       case 'validate':
         return {
           status: 'validated',
@@ -124,7 +135,7 @@ export async function handleDeployTool(params: z.infer<typeof DeployToolSchema>)
           ready: true,
           recommendations: ['All systems ready for deployment'],
         };
-        
+
       default:
         return {
           status: 'success',
@@ -133,7 +144,6 @@ export async function handleDeployTool(params: z.infer<typeof DeployToolSchema>)
           data: {},
         };
     }
-    
   } catch (error) {
     logger.error('Deploy tool error', { error, action, customer });
     return {

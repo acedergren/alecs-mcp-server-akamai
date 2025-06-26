@@ -64,15 +64,19 @@ const ProfilePerformanceSchema = z.object({
 const GetRealtimeMetricsSchema = z.object({
   customer: z.string().optional(),
   propertyId: z.string().optional(),
-  metrics: z.array(z.enum([
-    'bandwidth',
-    'requests',
-    'errors',
-    'cache_hit_rate',
-    'latency',
-    'cpu_usage',
-    'memory_usage'
-  ])).optional(),
+  metrics: z
+    .array(
+      z.enum([
+        'bandwidth',
+        'requests',
+        'errors',
+        'cache_hit_rate',
+        'latency',
+        'cpu_usage',
+        'memory_usage',
+      ]),
+    )
+    .optional(),
   interval: z.number().optional().default(5000), // milliseconds
 });
 
@@ -121,10 +125,10 @@ class PerformanceServer {
 
     this.client = new AkamaiClient();
     this.configManager = CustomerConfigManager.getInstance();
-    
+
     this.registerTools();
     this.setupHandlers();
-    
+
     logger.info('Performance Server initialized', {
       toolCount: this.tools.size,
     });
@@ -230,10 +234,12 @@ class PerformanceServer {
           duration: '7d',
         });
         return {
-          content: [{
-            type: 'text',
-            text: `Performance Bottleneck Analysis:\n${JSON.stringify(analysis, null, 2)}`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `Performance Bottleneck Analysis:\n${JSON.stringify(analysis, null, 2)}`,
+            },
+          ],
         };
       },
     });
@@ -249,10 +255,12 @@ class PerformanceServer {
       handler: async (client, params) => {
         const analysis = await getPerformanceAnalysis(client, params);
         return {
-          content: [{
-            type: 'text',
-            text: `Performance Optimization Recommendations:\n${JSON.stringify(analysis, null, 2)}`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `Performance Optimization Recommendations:\n${JSON.stringify(analysis, null, 2)}`,
+            },
+          ],
         };
       },
     });
@@ -263,18 +271,22 @@ class PerformanceServer {
       schema: z.object({
         customer: z.string().optional(),
         propertyId: z.string().optional(),
-        changes: z.array(z.object({
-          type: z.string(),
-          value: z.any(),
-        })),
+        changes: z.array(
+          z.object({
+            type: z.string(),
+            value: z.any(),
+          }),
+        ),
       }),
       handler: async (client, params) => {
         // This would simulate the impact of changes
         return {
-          content: [{
-            type: 'text',
-            text: `Performance Impact Simulation:\n- Estimated improvement: 15-20%\n- Risk level: Low\n- Recommended for production: Yes`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `Performance Impact Simulation:\n- Estimated improvement: 15-20%\n- Risk level: Low\n- Recommended for production: Yes`,
+            },
+          ],
         };
       },
     });
@@ -291,10 +303,12 @@ class PerformanceServer {
       handler: async (client, params) => {
         const analysis = await getPerformanceAnalysis(client, params);
         return {
-          content: [{
-            type: 'text',
-            text: `Performance report generated successfully. Format: ${params.format || 'json'}`,
-          }],
+          content: [
+            {
+              type: 'text',
+              text: `Performance report generated successfully. Format: ${params.format || 'json'}`,
+            },
+          ],
           data: analysis,
         };
       },
@@ -319,16 +333,13 @@ class PerformanceServer {
 
       const tool = this.tools.get(name);
       if (!tool) {
-        throw new McpError(
-          ErrorCode.MethodNotFound,
-          `Unknown tool: ${name}`
-        );
+        throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
       }
 
       try {
         const validatedArgs = tool.schema.parse(args);
         const result = await tool.handler(this.client, validatedArgs);
-        
+
         return {
           content: result.content || [
             {
@@ -341,7 +352,7 @@ class PerformanceServer {
         if (error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map(e => e.message).join(', ')}`
+            `Invalid parameters: ${error.errors.map((e) => e.message).join(', ')}`,
           );
         }
         throw error;

@@ -16,7 +16,10 @@ import {
   isValidRequestId,
 } from '../types/jsonrpc';
 
-import { AuthenticationMiddleware, createAuthenticationMiddleware } from '../middleware/authentication';
+import {
+  AuthenticationMiddleware,
+  createAuthenticationMiddleware,
+} from '../middleware/authentication';
 import { SecurityMiddleware, createSecurityMiddleware } from '../middleware/security';
 
 /**
@@ -67,13 +70,13 @@ export class HttpServerTransport {
       timeout: config.timeout ?? 30000,
       auth: config.auth ?? { enabled: true },
     };
-    
+
     // Initialize security middleware with custom rate limiting for MCP
     this.securityMiddleware = createSecurityMiddleware({
-      windowMs: 60 * 1000,  // 1 minute window
-      maxRequests: 100,      // 100 requests per minute per token
+      windowMs: 60 * 1000, // 1 minute window
+      maxRequests: 100, // 100 requests per minute per token
     });
-    
+
     // Initialize authentication middleware
     this.authMiddleware = createAuthenticationMiddleware(
       {
@@ -81,7 +84,7 @@ export class HttpServerTransport {
         publicPaths: this.config.auth.allowAnonymous,
         verbose: process.env.NODE_ENV === 'development',
       },
-      this.securityMiddleware
+      this.securityMiddleware,
     );
   }
 
@@ -111,14 +114,14 @@ export class HttpServerTransport {
     // Set MCP-Protocol-Version header on all responses
     _res.setHeader('MCP-Protocol-Version', MCP_PROTOCOL_VERSION);
     _res.setHeader('Content-Type', 'application/json');
-    
+
     // Apply authentication and security middleware
     const authResult = await this.authMiddleware.authenticate(_req, _res);
     if (!authResult.authenticated) {
       // Response already handled by middleware
       return;
     }
-    
+
     // Store token ID for request tracking
     (_req as any).tokenId = authResult.tokenId;
 
@@ -298,7 +301,7 @@ export class HttpServerTransport {
   getSecurityEvents(since?: Date, limit?: number) {
     return this.securityMiddleware.getSecurityEvents(since, undefined, limit);
   }
-  
+
   /**
    * Close the transport
    */

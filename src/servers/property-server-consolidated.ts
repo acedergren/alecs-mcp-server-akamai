@@ -16,18 +16,9 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 
 // Import consolidated tools
-import { 
-  propertyTool, 
-  handlePropertyTool 
-} from '../tools/consolidated/property-tool';
-import { 
-  searchTool, 
-  handleSearchTool 
-} from '../tools/consolidated/search-tool';
-import { 
-  deployTool, 
-  handleDeployTool 
-} from '../tools/consolidated/deploy-tool-simple';
+import { propertyTool, handlePropertyTool } from '../tools/consolidated/property-tool';
+import { searchTool, handleSearchTool } from '../tools/consolidated/search-tool';
+import { deployTool, handleDeployTool } from '../tools/consolidated/deploy-tool-simple';
 
 // Import workflow orchestrator for advanced workflows
 import { WorkflowOrchestrator } from '../tools/consolidated/workflow-orchestrator';
@@ -67,7 +58,7 @@ class ConsolidatedPropertyServer {
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       logger.info('📋 Consolidated tools list requested');
-      
+
       return {
         tools: [
           // Core consolidated tools for property management
@@ -86,7 +77,7 @@ class ConsolidatedPropertyServer {
             description: deployTool.description,
             inputSchema: deployTool.inputSchema,
           },
-          
+
           // Business workflow shortcuts
           {
             name: 'create-ecommerce-property',
@@ -101,7 +92,7 @@ class ConsolidatedPropertyServer {
               required: ['name', 'hostname'],
             },
           },
-          
+
           {
             name: 'optimize-property-performance',
             description: 'Analyze and optimize property for performance',
@@ -131,7 +122,11 @@ class ConsolidatedPropertyServer {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handlePropertyTool(args || { action: 'list' }), null, 2),
+                  text: JSON.stringify(
+                    await handlePropertyTool(args || { action: 'list' }),
+                    null,
+                    2,
+                  ),
                 },
               ],
             };
@@ -141,7 +136,11 @@ class ConsolidatedPropertyServer {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handleSearchTool(args || { action: 'find', query: '' }), null, 2),
+                  text: JSON.stringify(
+                    await handleSearchTool(args || { action: 'find', query: '' }),
+                    null,
+                    2,
+                  ),
                 },
               ],
             };
@@ -151,7 +150,11 @@ class ConsolidatedPropertyServer {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handleDeployTool(args || { action: 'status' }), null, 2),
+                  text: JSON.stringify(
+                    await handleDeployTool(args || { action: 'status' }),
+                    null,
+                    2,
+                  ),
                 },
               ],
             };
@@ -244,10 +247,10 @@ class ConsolidatedPropertyServer {
    */
   async run() {
     logger.info('🚀 Starting consolidated property server...');
-    
+
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    
+
     logger.info('✅ Consolidated Property Server ready and listening');
   }
 }

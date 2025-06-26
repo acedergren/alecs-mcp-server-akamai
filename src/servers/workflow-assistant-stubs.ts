@@ -10,9 +10,9 @@ import { logger } from '../utils/logger';
  */
 export async function handleDNSWorkflowAssistantRequest(args: any): Promise<string> {
   logger.info('DNS workflow assistant called', args);
-  
+
   const intent = args?.intent || 'help';
-  
+
   return `# DNS Assistant Response
 
 I understand you want to: **${intent}**
@@ -38,10 +38,10 @@ Our consolidated DNS tools handle complexity for you while maintaining safety an
  */
 export async function handleSecurityWorkflowAssistantRequest(args: any): Promise<string> {
   logger.info('Security workflow assistant called', args);
-  
+
   const intent = args?.intent || 'help';
   const domain = args?.domain || 'your domain';
-  
+
   return `# Security Assistant Response
 
 I understand you want to: **${intent}**
@@ -71,13 +71,13 @@ I understand you want to: **${intent}**
 }
 
 /**
- * Performance Workflow Assistant stub  
+ * Performance Workflow Assistant stub
  */
 export async function handlePerformanceWorkflowAssistantRequest(args: any): Promise<string> {
   logger.info('Performance workflow assistant called', args);
-  
+
   const intent = args?.intent || 'help';
-  
+
   return `# Performance Assistant Response
 
 I understand you want to: **${intent}**
@@ -111,9 +111,9 @@ I understand you want to: **${intent}**
  */
 export async function handleInfrastructureWorkflowAssistantRequest(args: any): Promise<string> {
   logger.info('Infrastructure workflow assistant called', args);
-  
+
   const intent = args?.intent || 'help';
-  
+
   return `# Infrastructure Assistant Response
 
 I understand you want to: **${intent}**

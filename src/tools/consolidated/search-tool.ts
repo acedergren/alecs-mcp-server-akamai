@@ -9,33 +9,46 @@ import { getAkamaiClient } from '@utils/auth';
 import { logger } from '@utils/logger';
 
 // Search actions
-const SearchActionSchema = z.enum([
-  'find',
-  'locate',
-  'discover',
-  'analyze',
-  'suggest',
-]);
+const SearchActionSchema = z.enum(['find', 'locate', 'discover', 'analyze', 'suggest']);
 
 // Simplified schema for working build
 const SearchToolSchema = z.object({
   action: SearchActionSchema,
   query: z.union([z.string(), z.object({ text: z.string() })]),
-  options: z.object({
-    limit: z.number().default(50),
-    sortBy: z.enum(['status', 'name', 'modified', 'created', 'relevance']).default('relevance'),
-    offset: z.number().default(0),
-    format: z.enum(['detailed', 'simple', 'tree', 'graph']).default('simple'),
-    types: z.array(z.enum(['property', 'all', 'contract', 'hostname', 'certificate', 'cpcode', 'activation', 'group', 'user', 'dns-zone', 'dns-record', 'alert'])).default(['all']),
-    searchMode: z.enum(['exact', 'fuzzy', 'semantic', 'regex']).default('fuzzy'),
-    includeRelated: z.boolean().default(false),
-    includeInactive: z.boolean().default(false),
-    includeDeleted: z.boolean().default(false),
-    autoCorrect: z.boolean().default(true),
-    expandAcronyms: z.boolean().default(false),
-    searchHistory: z.boolean().default(false),
-    groupBy: z.enum(['status', 'type', 'date', 'none']).default('none'),
-  }).default({}),
+  options: z
+    .object({
+      limit: z.number().default(50),
+      sortBy: z.enum(['status', 'name', 'modified', 'created', 'relevance']).default('relevance'),
+      offset: z.number().default(0),
+      format: z.enum(['detailed', 'simple', 'tree', 'graph']).default('simple'),
+      types: z
+        .array(
+          z.enum([
+            'property',
+            'all',
+            'contract',
+            'hostname',
+            'certificate',
+            'cpcode',
+            'activation',
+            'group',
+            'user',
+            'dns-zone',
+            'dns-record',
+            'alert',
+          ]),
+        )
+        .default(['all']),
+      searchMode: z.enum(['exact', 'fuzzy', 'semantic', 'regex']).default('fuzzy'),
+      includeRelated: z.boolean().default(false),
+      includeInactive: z.boolean().default(false),
+      includeDeleted: z.boolean().default(false),
+      autoCorrect: z.boolean().default(true),
+      expandAcronyms: z.boolean().default(false),
+      searchHistory: z.boolean().default(false),
+      groupBy: z.enum(['status', 'type', 'date', 'none']).default('none'),
+    })
+    .default({}),
   customer: z.string().optional(),
 });
 
@@ -44,7 +57,8 @@ const SearchToolSchema = z.object({
  */
 export const searchTool: Tool = {
   name: 'search',
-  description: 'Universal search across all Akamai resources. Find anything with natural language - properties, hostnames, certificates, DNS records, and more.',
+  description:
+    'Universal search across all Akamai resources. Find anything with natural language - properties, hostnames, certificates, DNS records, and more.',
   inputSchema: {
     type: 'object',
     properties: SearchToolSchema.shape,
@@ -58,12 +72,12 @@ export const searchTool: Tool = {
 export async function handleSearchTool(params: z.infer<typeof SearchToolSchema>) {
   const { action, query, options, customer } = params;
   const client = await getAkamaiClient(customer);
-  
+
   logger.info('Search tool request', { action, query, options });
-  
+
   try {
     const searchText = typeof query === 'string' ? query : query.text;
-    
+
     switch (action) {
       case 'find':
         return {
@@ -108,7 +122,7 @@ export async function handleSearchTool(params: z.infer<typeof SearchToolSchema>)
             'Analyze performance metrics',
           ],
         };
-        
+
       case 'locate':
         return {
           found: true,
@@ -123,13 +137,9 @@ export async function handleSearchTool(params: z.infer<typeof SearchToolSchema>)
             certificates: ['cert-12345'],
             activations: ['act-789'],
           },
-          actions: [
-            'View configuration',
-            'Update settings', 
-            'Deploy changes',
-          ],
+          actions: ['View configuration', 'Update settings', 'Deploy changes'],
         };
-        
+
       case 'discover':
         return {
           query: searchText,
@@ -144,7 +154,7 @@ export async function handleSearchTool(params: z.infer<typeof SearchToolSchema>)
             clusters: 1,
           },
         };
-        
+
       case 'analyze':
         return {
           query: searchText,
@@ -162,7 +172,7 @@ export async function handleSearchTool(params: z.infer<typeof SearchToolSchema>)
             'SSL certificates follow naming convention',
           ],
         };
-        
+
       default:
         return {
           status: 'success',
@@ -171,7 +181,6 @@ export async function handleSearchTool(params: z.infer<typeof SearchToolSchema>)
           data: {},
         };
     }
-    
   } catch (error) {
     logger.error('Search tool error', { error, action, customer });
     return {

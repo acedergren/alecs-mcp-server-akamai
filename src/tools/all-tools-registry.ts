@@ -8,16 +8,10 @@
 import { z, type ZodSchema } from 'zod';
 
 // Import Workflow Assistants (Maya Chen's UX Transformation)
-import {
-  getWorkflowAssistantTools,
-  handleWorkflowAssistantRequest,
-} from './workflows';
+import { getWorkflowAssistantTools, handleWorkflowAssistantRequest } from './workflows';
 
 // Import Consolidated Tools (Maya's Tool Consolidation)
-import {
-  getConsolidatedTools,
-  handleConsolidatedToolRequest,
-} from './consolidated';
+import { getConsolidatedTools, handleConsolidatedToolRequest } from './consolidated';
 
 // Property Management Tools
 import {
@@ -459,7 +453,7 @@ export interface ToolDefinition {
 // Register all tools with their schemas
 export function getAllToolDefinitions(): ToolDefinition[] {
   // Get workflow assistant tools (Maya's UX transformation)
-  const workflowAssistants = getWorkflowAssistantTools().map(tool => ({
+  const workflowAssistants = getWorkflowAssistantTools().map((tool) => ({
     name: tool.name,
     description: tool.description || 'Workflow assistant tool',
     schema: z.object({
@@ -477,7 +471,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
   }));
 
   // Get consolidated tools (Maya's tool consolidation)
-  const consolidatedTools = getConsolidatedTools().map(tool => ({
+  const consolidatedTools = getConsolidatedTools().map((tool) => ({
     name: tool.name,
     description: tool.description || 'Consolidated tool',
     schema: z.any(), // Consolidated tools define their own schemas
@@ -1286,13 +1280,14 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'create-network-list',
       description: 'Create a new network list',
       schema: CreateNetworkListSchema,
-      handler: (client, params) => createNetworkList(
-        params.name,
-        params.type,
-        params.elements,
-        params.customer,
-        params.options
-      ),
+      handler: (client, params) =>
+        createNetworkList(
+          params.name,
+          params.type,
+          params.elements,
+          params.customer,
+          params.options,
+        ),
     },
     {
       name: 'update-network-list',

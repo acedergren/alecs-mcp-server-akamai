@@ -1,9 +1,9 @@
 /**
  * Consolidated Certificate Tool - Maya's Vision
- * 
+ *
  * SSL/TLS certificate management that just works. No more expired certificates,
  * no more validation nightmares, no more manual processes.
- * 
+ *
  * Design Principles:
  * - Automation first - handle the complexity for users
  * - Proactive monitoring - never let a cert expire
@@ -27,75 +27,82 @@ async function getAkamaiClient(customer?: string): Promise<any> {
 
 // Business-focused certificate actions
 const CertificateActionSchema = z.enum([
-  'list',          // Show my certificates
-  'secure',        // Get SSL for domains (auto-detects best method)
-  'status',        // Check certificate health
-  'renew',         // Renew expiring certs
-  'automate',      // Set up auto-renewal
-  'validate',      // Handle validation challenges
-  'deploy',        // Deploy to properties
-  'monitor',       // Real-time monitoring
-  'troubleshoot',  // Fix certificate issues
+  'list', // Show my certificates
+  'secure', // Get SSL for domains (auto-detects best method)
+  'status', // Check certificate health
+  'renew', // Renew expiring certs
+  'automate', // Set up auto-renewal
+  'validate', // Handle validation challenges
+  'deploy', // Deploy to properties
+  'monitor', // Real-time monitoring
+  'troubleshoot', // Fix certificate issues
 ]);
 
 // Maya's certificate schema - simplicity first
 const CertificateToolSchema = z.object({
   action: CertificateActionSchema,
-  
+
   // Flexible domain handling
-  domains: z.union([
-    z.string(),
-    z.array(z.string())
-  ]).optional(),
-  
+  domains: z.union([z.string(), z.array(z.string())]).optional(),
+
   // Smart options
-  options: z.object({
-    // Business intent
-    purpose: z.enum([
-      'secure-website',      // Standard HTTPS
-      'wildcard',           // Secure all subdomains
-      'multi-domain',       // Multiple unrelated domains
-      'api-security',       // API endpoint protection
-      'compliance',         // Meet compliance requirements
-    ]).optional(),
-    
-    // Automation preferences
-    automation: z.object({
-      autoRenew: z.boolean().default(true),
-      renewalDays: z.number().default(30),
-      validationMethod: z.enum(['dns', 'http', 'email', 'auto']).default('auto'),
-      notifyBeforeExpiry: z.number().default(14),
-    }).optional(),
-    
-    // Deployment options
-    deployment: z.object({
-      propertyIds: z.array(z.string()).optional(),
-      network: z.enum(['staging', 'production', 'both']).default('both'),
-      activateImmediately: z.boolean().default(true),
-    }).optional(),
-    
-    // Certificate preferences
-    certificateType: z.enum(['DV', 'EV', 'OV']).optional(),
-    provider: z.enum(['lets-encrypt', 'akamai', 'third-party']).optional(),
-    
-    // Monitoring options
-    monitoring: z.object({
-      enableAlerts: z.boolean().default(true),
-      alertChannels: z.array(z.enum(['email', 'slack', 'webhook'])).optional(),
-      checkFrequency: z.enum(['hourly', 'daily', 'weekly']).default('daily'),
-    }).optional(),
-    
-    // Safety options
-    validateFirst: z.boolean().default(true),
-    testDeployment: z.boolean().default(true),
-    rollbackOnError: z.boolean().default(true),
-    
-    // Display options
-    includeExpiring: z.boolean().default(true),
-    showRecommendations: z.boolean().default(true),
-    detailed: z.boolean().default(false),
-  }).default({}),
-  
+  options: z
+    .object({
+      // Business intent
+      purpose: z
+        .enum([
+          'secure-website', // Standard HTTPS
+          'wildcard', // Secure all subdomains
+          'multi-domain', // Multiple unrelated domains
+          'api-security', // API endpoint protection
+          'compliance', // Meet compliance requirements
+        ])
+        .optional(),
+
+      // Automation preferences
+      automation: z
+        .object({
+          autoRenew: z.boolean().default(true),
+          renewalDays: z.number().default(30),
+          validationMethod: z.enum(['dns', 'http', 'email', 'auto']).default('auto'),
+          notifyBeforeExpiry: z.number().default(14),
+        })
+        .optional(),
+
+      // Deployment options
+      deployment: z
+        .object({
+          propertyIds: z.array(z.string()).optional(),
+          network: z.enum(['staging', 'production', 'both']).default('both'),
+          activateImmediately: z.boolean().default(true),
+        })
+        .optional(),
+
+      // Certificate preferences
+      certificateType: z.enum(['DV', 'EV', 'OV']).optional(),
+      provider: z.enum(['lets-encrypt', 'akamai', 'third-party']).optional(),
+
+      // Monitoring options
+      monitoring: z
+        .object({
+          enableAlerts: z.boolean().default(true),
+          alertChannels: z.array(z.enum(['email', 'slack', 'webhook'])).optional(),
+          checkFrequency: z.enum(['hourly', 'daily', 'weekly']).default('daily'),
+        })
+        .optional(),
+
+      // Safety options
+      validateFirst: z.boolean().default(true),
+      testDeployment: z.boolean().default(true),
+      rollbackOnError: z.boolean().default(true),
+
+      // Display options
+      includeExpiring: z.boolean().default(true),
+      showRecommendations: z.boolean().default(true),
+      detailed: z.boolean().default(false),
+    })
+    .default({}),
+
   // Multi-customer support
   customer: z.string().optional(),
 });
@@ -105,7 +112,8 @@ const CertificateToolSchema = z.object({
  */
 export const certificateTool: Tool = {
   name: 'certificate',
-  description: 'Comprehensive SSL/TLS certificate management. From automated provisioning to proactive monitoring, never worry about certificate expiry again.',
+  description:
+    'Comprehensive SSL/TLS certificate management. From automated provisioning to proactive monitoring, never worry about certificate expiry again.',
   inputSchema: {
     type: 'object',
     properties: CertificateToolSchema.shape,
@@ -119,7 +127,7 @@ export const certificateTool: Tool = {
 export async function handleCertificateTool(params: z.infer<typeof CertificateToolSchema>) {
   const { action, domains, options, customer } = params;
   const client = await getAkamaiClient(customer);
-  
+
   try {
     logger.info('Certificate tool request', {
       action,
@@ -127,35 +135,35 @@ export async function handleCertificateTool(params: z.infer<typeof CertificateTo
       automation: options.automation?.autoRenew,
       customer,
     });
-    
+
     switch (action) {
       case 'list':
         return await handleList(client, options);
-        
+
       case 'secure':
         return await handleSecure(client, domains, options);
-        
+
       case 'status':
         return await handleStatus(client, domains, options);
-        
+
       case 'renew':
         return await handleRenew(client, domains, options);
-        
+
       case 'automate':
         return await handleAutomate(client, domains, options);
-        
+
       case 'validate':
         return await handleValidate(client, domains, options);
-        
+
       case 'deploy':
         return await handleDeploy(client, domains, options);
-        
+
       case 'monitor':
         return await handleMonitor(client, domains, options);
-        
+
       case 'troubleshoot':
         return await handleTroubleshoot(client, domains, options);
-        
+
       default:
         throw new Error(`Unknown action: ${action}`);
     }
@@ -170,13 +178,13 @@ export async function handleCertificateTool(params: z.infer<typeof CertificateTo
  */
 async function handleList(client: any, options: any) {
   const enrollments = await client.listEnrollments();
-  
+
   // Enrich with health and recommendations
   const enrichedEnrollments = await Promise.all(
     enrollments.map(async (enrollment: any) => {
       const health = await checkCertificateHealth(enrollment);
       const recommendations = generateCertificateRecommendations(enrollment, health);
-      
+
       return {
         ...enrollment,
         health,
@@ -184,26 +192,26 @@ async function handleList(client: any, options: any) {
         daysUntilExpiry: calculateDaysUntilExpiry(enrollment.expires),
         autoRenewEnabled: enrollment.autoRenew || false,
       };
-    })
+    }),
   );
-  
+
   // Group by status
   const grouped = {
-    healthy: enrichedEnrollments.filter(e => e.health.status === 'healthy'),
-    expiring: enrichedEnrollments.filter(e => e.health.status === 'expiring'),
-    expired: enrichedEnrollments.filter(e => e.health.status === 'expired'),
-    issues: enrichedEnrollments.filter(e => e.health.status === 'issue'),
+    healthy: enrichedEnrollments.filter((e) => e.health.status === 'healthy'),
+    expiring: enrichedEnrollments.filter((e) => e.health.status === 'expiring'),
+    expired: enrichedEnrollments.filter((e) => e.health.status === 'expired'),
+    issues: enrichedEnrollments.filter((e) => e.health.status === 'issue'),
   };
-  
+
   // Generate summary
   const summary = {
     total: enrollments.length,
     healthy: grouped.healthy.length,
     needsAttention: grouped.expiring.length + grouped.expired.length + grouped.issues.length,
-    autoRenewEnabled: enrichedEnrollments.filter(e => e.autoRenewEnabled).length,
+    autoRenewEnabled: enrichedEnrollments.filter((e) => e.autoRenewEnabled).length,
     recommendations: generateOverallRecommendations(grouped),
   };
-  
+
   return {
     summary,
     certificates: options.detailed ? enrichedEnrollments : grouped,
@@ -218,12 +226,12 @@ async function handleSecure(client: any, domains: string | string[] | undefined,
   if (!domains) {
     throw new Error('Domain(s) required for secure action');
   }
-  
+
   const domainList = Array.isArray(domains) ? domains : [domains];
-  
+
   // Analyze domains to determine best certificate strategy
   const strategy = await analyzeCertificateStrategy(domainList, options);
-  
+
   // Check for existing certificates
   const existing = await checkExistingCertificates(client, domainList);
   if (existing.hasValid && !options.force) {
@@ -234,7 +242,7 @@ async function handleSecure(client: any, domains: string | string[] | undefined,
       recommendation: existing.recommendations,
     };
   }
-  
+
   // Validate domains first
   if (options.validateFirst) {
     const validation = await validateDomains(domainList);
@@ -247,10 +255,10 @@ async function handleSecure(client: any, domains: string | string[] | undefined,
       };
     }
   }
-  
+
   // Create enrollment based on strategy
   const enrollment = await createSmartEnrollment(client, strategy, options);
-  
+
   // Handle validation automatically
   if (strategy.validationMethod === 'auto') {
     const validated = await autoValidate(client, enrollment, options);
@@ -263,16 +271,16 @@ async function handleSecure(client: any, domains: string | string[] | undefined,
       };
     }
   }
-  
+
   // Deploy if requested
   if (options.deployment?.activateImmediately) {
     const deployment = await deployToProperties(
       client,
       enrollment,
       options.deployment.propertyIds,
-      options.deployment.network
+      options.deployment.network,
     );
-    
+
     return {
       status: 'secured',
       enrollment,
@@ -281,7 +289,7 @@ async function handleSecure(client: any, domains: string | string[] | undefined,
       message: `Successfully secured ${domainList.length} domain(s)`,
     };
   }
-  
+
   return {
     status: 'enrollment_created',
     enrollment,
@@ -297,16 +305,16 @@ async function handleSecure(client: any, domains: string | string[] | undefined,
  * Check certificate status with proactive alerts
  */
 async function handleStatus(client: any, domains: string | string[] | undefined, options: any) {
-  const enrollments = domains 
+  const enrollments = domains
     ? await getEnrollmentsForDomains(client, domains)
     : await client.listEnrollments();
-  
+
   const statusReports = await Promise.all(
     enrollments.map(async (enrollment: any) => {
       const status = await getDetailedStatus(client, enrollment.enrollmentId);
       const health = await checkCertificateHealth(enrollment);
       const deployment = await getDeploymentStatus(client, enrollment.enrollmentId);
-      
+
       return {
         enrollmentId: enrollment.enrollmentId,
         domains: enrollment.domains,
@@ -322,17 +330,17 @@ async function handleStatus(client: any, domains: string | string[] | undefined,
         },
         recommendations: generateStatusRecommendations(status, health, deployment),
       };
-    })
+    }),
   );
-  
+
   // Generate alerts
   const alerts = generateCertificateAlerts(statusReports);
-  
+
   return {
     certificates: statusReports,
     alerts,
     summary: generateStatusSummary(statusReports),
-    actionRequired: alerts.filter(a => a.severity === 'critical' || a.severity === 'warning'),
+    actionRequired: alerts.filter((a) => a.severity === 'critical' || a.severity === 'warning'),
   };
 }
 
@@ -344,7 +352,7 @@ async function handleRenew(client: any, domains: string | string[] | undefined, 
   const candidates = domains
     ? await getEnrollmentsForDomains(client, domains)
     : await getExpiringEnrollments(client, options.automation?.renewalDays || 30);
-  
+
   if (candidates.length === 0) {
     return {
       status: 'none_needed',
@@ -352,9 +360,9 @@ async function handleRenew(client: any, domains: string | string[] | undefined, 
       nextExpiry: await getNextExpiryDate(client),
     };
   }
-  
+
   const results = [];
-  
+
   for (const enrollment of candidates) {
     try {
       // Check if auto-renewable
@@ -367,17 +375,17 @@ async function handleRenew(client: any, domains: string | string[] | undefined, 
         });
         continue;
       }
-      
+
       // Initiate renewal
       const renewal = await client.renewEnrollment({
         enrollmentId: enrollment.enrollmentId,
         validationMethod: options.automation?.validationMethod || enrollment.validationMethod,
       });
-      
+
       // Auto-validate if possible
       if (options.automation?.validationMethod === 'auto') {
         const validated = await autoValidate(client, renewal, options);
-        
+
         results.push({
           enrollmentId: enrollment.enrollmentId,
           status: validated.success ? 'renewed' : 'validation_pending',
@@ -392,7 +400,6 @@ async function handleRenew(client: any, domains: string | string[] | undefined, 
           nextSteps: generateRenewalSteps(renewal),
         });
       }
-      
     } catch (error) {
       results.push({
         enrollmentId: enrollment.enrollmentId,
@@ -402,14 +409,16 @@ async function handleRenew(client: any, domains: string | string[] | undefined, 
       });
     }
   }
-  
+
   return {
     renewals: results,
     summary: {
       total: candidates.length,
-      successful: results.filter(r => r.status === 'renewed').length,
-      pending: results.filter(r => r.status === 'validation_pending' || r.status === 'renewal_initiated').length,
-      failed: results.filter(r => r.status === 'error').length,
+      successful: results.filter((r) => r.status === 'renewed').length,
+      pending: results.filter(
+        (r) => r.status === 'validation_pending' || r.status === 'renewal_initiated',
+      ).length,
+      failed: results.filter((r) => r.status === 'error').length,
     },
     monitoring: 'Renewal status will be monitored and you will be notified of any issues',
   };
@@ -422,9 +431,9 @@ async function handleAutomate(client: any, domains: string | string[] | undefine
   const enrollments = domains
     ? await getEnrollmentsForDomains(client, domains)
     : await client.listEnrollments();
-  
+
   const automationResults = [];
-  
+
   for (const enrollment of enrollments) {
     // Skip third-party certificates
     if (enrollment.certificateType === 'third-party') {
@@ -436,7 +445,7 @@ async function handleAutomate(client: any, domains: string | string[] | undefine
       });
       continue;
     }
-    
+
     // Enable automation
     const automation = await client.updateEnrollment({
       enrollmentId: enrollment.enrollmentId,
@@ -447,14 +456,14 @@ async function handleAutomate(client: any, domains: string | string[] | undefine
         notificationDays: options.automation?.notifyBeforeExpiry || 14,
       },
     });
-    
+
     // Set up monitoring
     const monitoring = await setupCertificateMonitoring(
       client,
       enrollment.enrollmentId,
-      options.monitoring
+      options.monitoring,
     );
-    
+
     automationResults.push({
       enrollmentId: enrollment.enrollmentId,
       status: 'automated',
@@ -468,13 +477,13 @@ async function handleAutomate(client: any, domains: string | string[] | undefine
       ],
     });
   }
-  
+
   return {
     automations: automationResults,
     summary: {
       total: enrollments.length,
-      automated: automationResults.filter(r => r.status === 'automated').length,
-      notSupported: automationResults.filter(r => r.status === 'not_supported').length,
+      automated: automationResults.filter((r) => r.status === 'automated').length,
+      notSupported: automationResults.filter((r) => r.status === 'not_supported').length,
     },
     recommendations: generateAutomationRecommendations(automationResults),
   };
@@ -486,21 +495,21 @@ async function handleAutomate(client: any, domains: string | string[] | undefine
 async function handleValidate(client: any, domains: string | string[] | undefined, options: any) {
   // Get pending validations
   const pendingValidations = await getPendingValidations(client, domains);
-  
+
   if (pendingValidations.length === 0) {
     return {
       status: 'none_pending',
       message: 'No validations pending',
     };
   }
-  
+
   const results = [];
-  
+
   for (const validation of pendingValidations) {
     // Try multiple validation methods
     const methods = ['dns', 'http', 'email'];
     let validated = false;
-    
+
     for (const method of methods) {
       try {
         if (method === 'dns' && validation.dnsChallenge) {
@@ -540,7 +549,7 @@ async function handleValidate(client: any, domains: string | string[] | undefine
         logger.warn(`Validation method ${method} failed for ${validation.domain}`, { error });
       }
     }
-    
+
     if (validated) {
       results.push({
         domain: validation.domain,
@@ -549,13 +558,13 @@ async function handleValidate(client: any, domains: string | string[] | undefine
       });
     }
   }
-  
+
   return {
     validations: results,
     summary: {
       total: pendingValidations.length,
-      validated: results.filter(r => r.status === 'validated').length,
-      pending: results.filter(r => r.status !== 'validated').length,
+      validated: results.filter((r) => r.status === 'validated').length,
+      pending: results.filter((r) => r.status !== 'validated').length,
     },
     nextSteps: generateValidationNextSteps(results),
   };
@@ -567,21 +576,21 @@ async function handleValidate(client: any, domains: string | string[] | undefine
 async function handleDeploy(client: any, domains: string | string[] | undefined, options: any) {
   // Get certificates ready for deployment
   const certificates = await getDeployableCertificates(client, domains);
-  
+
   if (certificates.length === 0) {
     return {
       status: 'none_ready',
       message: 'No certificates ready for deployment',
     };
   }
-  
+
   // Get target properties
-  const targetProperties = options.deployment?.propertyIds 
+  const targetProperties = options.deployment?.propertyIds
     ? await client.getProperties({ ids: options.deployment.propertyIds })
     : await findPropertiesForDomains(client, domains);
-  
+
   const deployments = [];
-  
+
   for (const cert of certificates) {
     for (const property of targetProperties) {
       try {
@@ -599,14 +608,14 @@ async function handleDeploy(client: any, domains: string | string[] | undefined,
             continue;
           }
         }
-        
+
         // Deploy to network
         const deployment = await client.deployCertificate({
           enrollmentId: cert.enrollmentId,
           propertyId: property.propertyId,
           network: options.deployment?.network || 'production',
         });
-        
+
         deployments.push({
           certificate: cert.enrollmentId,
           property: property.propertyId,
@@ -614,12 +623,11 @@ async function handleDeploy(client: any, domains: string | string[] | undefined,
           network: deployment.network,
           activationId: deployment.activationId,
         });
-        
       } catch (error) {
         if (options.rollbackOnError) {
           await rollbackDeployment(client, cert.enrollmentId, property.propertyId);
         }
-        
+
         deployments.push({
           certificate: cert.enrollmentId,
           property: property.propertyId,
@@ -630,16 +638,16 @@ async function handleDeploy(client: any, domains: string | string[] | undefined,
       }
     }
   }
-  
+
   return {
     deployments,
     summary: {
       total: deployments.length,
-      successful: deployments.filter(d => d.status === 'deployed').length,
-      failed: deployments.filter(d => d.status === 'failed').length,
-      incompatible: deployments.filter(d => d.status === 'incompatible').length,
+      successful: deployments.filter((d) => d.status === 'deployed').length,
+      failed: deployments.filter((d) => d.status === 'failed').length,
+      incompatible: deployments.filter((d) => d.status === 'incompatible').length,
     },
-    monitoring: setupDeploymentMonitoring(deployments.filter(d => d.status === 'deployed')),
+    monitoring: setupDeploymentMonitoring(deployments.filter((d) => d.status === 'deployed')),
   };
 }
 
@@ -650,13 +658,13 @@ async function handleMonitor(client: any, domains: string | string[] | undefined
   const enrollments = domains
     ? await getEnrollmentsForDomains(client, domains)
     : await client.listEnrollments();
-  
+
   const monitoringData = await Promise.all(
     enrollments.map(async (enrollment: any) => {
       const health = await performHealthCheck(client, enrollment);
       const coverage = await checkCertificateCoverage(client, enrollment);
       const compliance = await checkCompliance(enrollment);
-      
+
       return {
         enrollmentId: enrollment.enrollmentId,
         domains: enrollment.domains,
@@ -666,21 +674,21 @@ async function handleMonitor(client: any, domains: string | string[] | undefined
         alerts: generateMonitoringAlerts(health, coverage, compliance),
         trend: await getCertificateTrend(client, enrollment.enrollmentId),
       };
-    })
+    }),
   );
-  
+
   // Real-time status
   const realtimeStatus = {
-    allHealthy: monitoringData.every(m => m.health.status === 'healthy'),
-    expiringCerts: monitoringData.filter(m => m.health.daysUntilExpiry < 30).length,
-    coverageGaps: monitoringData.filter(m => m.coverage.gaps.length > 0).length,
-    complianceIssues: monitoringData.filter(m => !m.compliance.compliant).length,
+    allHealthy: monitoringData.every((m) => m.health.status === 'healthy'),
+    expiringCerts: monitoringData.filter((m) => m.health.daysUntilExpiry < 30).length,
+    coverageGaps: monitoringData.filter((m) => m.coverage.gaps.length > 0).length,
+    complianceIssues: monitoringData.filter((m) => !m.compliance.compliant).length,
   };
-  
+
   return {
     monitoring: monitoringData,
     status: realtimeStatus,
-    alerts: monitoringData.flatMap(m => m.alerts),
+    alerts: monitoringData.flatMap((m) => m.alerts),
     recommendations: generateMonitoringRecommendations(monitoringData),
     dashboard: generateMonitoringDashboard(monitoringData),
   };
@@ -689,14 +697,18 @@ async function handleMonitor(client: any, domains: string | string[] | undefined
 /**
  * Troubleshoot certificate issues
  */
-async function handleTroubleshoot(client: any, domains: string | string[] | undefined, options: any) {
+async function handleTroubleshoot(
+  client: any,
+  domains: string | string[] | undefined,
+  options: any,
+) {
   const issues = await detectCertificateIssues(client, domains);
-  
+
   const troubleshooting = await Promise.all(
     issues.map(async (issue: any) => {
       const diagnosis = await diagnoseCertificateIssue(client, issue);
       const solutions = generateCertificateSolutions(diagnosis);
-      
+
       // Try auto-fix for simple issues
       let autoFixed = false;
       if (diagnosis.autoFixable && options.autoFix) {
@@ -707,7 +719,7 @@ async function handleTroubleshoot(client: any, domains: string | string[] | unde
           logger.warn('Auto-fix failed', { issue, error });
         }
       }
-      
+
       return {
         issue,
         diagnosis,
@@ -715,15 +727,15 @@ async function handleTroubleshoot(client: any, domains: string | string[] | unde
         autoFixed,
         testCommands: generateTestCommands(issue),
       };
-    })
+    }),
   );
-  
+
   return {
     issues: troubleshooting,
     summary: {
       total: issues.length,
-      autoFixed: troubleshooting.filter(t => t.autoFixed).length,
-      requiresAction: troubleshooting.filter(t => !t.autoFixed).length,
+      autoFixed: troubleshooting.filter((t) => t.autoFixed).length,
+      requiresAction: troubleshooting.filter((t) => !t.autoFixed).length,
     },
     commonPatterns: identifyCommonPatterns(troubleshooting),
     preventionTips: generatePreventionTips(troubleshooting),
@@ -736,10 +748,10 @@ async function handleTroubleshoot(client: any, domains: string | string[] | unde
 
 async function checkCertificateHealth(enrollment: any) {
   const daysUntilExpiry = calculateDaysUntilExpiry(enrollment.expires);
-  
+
   let status = 'healthy';
   const issues = [];
-  
+
   if (daysUntilExpiry < 0) {
     status = 'expired';
     issues.push('Certificate has expired');
@@ -750,11 +762,11 @@ async function checkCertificateHealth(enrollment: any) {
     status = 'expiring';
     issues.push('Certificate expiring soon');
   }
-  
+
   if (!enrollment.autoRenew && daysUntilExpiry < 60) {
     issues.push('Auto-renewal not enabled');
   }
-  
+
   return {
     status,
     daysUntilExpiry,
@@ -772,15 +784,15 @@ function calculateDaysUntilExpiry(expiryDate: string): number {
 
 async function analyzeCertificateStrategy(domains: string[], options: any) {
   // Check if wildcard would be better
-  const subdomainCount = domains.filter(d => d.split('.').length > 2).length;
+  const subdomainCount = domains.filter((d) => d.split('.').length > 2).length;
   const shouldUseWildcard = subdomainCount > 5 && !options.purpose;
-  
+
   // Determine certificate type
   let certificateType = 'DV'; // Default
   if (options.purpose === 'compliance' || options.certificateType === 'EV') {
     certificateType = 'EV';
   }
-  
+
   // Choose validation method
   let validationMethod = options.automation?.validationMethod || 'auto';
   if (validationMethod === 'auto') {
@@ -788,7 +800,7 @@ async function analyzeCertificateStrategy(domains: string[], options: any) {
     const hasDNSAccess = await checkDNSAccess(domains[0]);
     validationMethod = hasDNSAccess ? 'dns' : 'http';
   }
-  
+
   return {
     domains: shouldUseWildcard ? [`*.${extractBaseDomain(domains[0])}`] : domains,
     certificateType,
@@ -801,14 +813,14 @@ async function analyzeCertificateStrategy(domains: string[], options: any) {
 async function autoValidate(client: any, enrollment: any, options: any) {
   const maxAttempts = 5;
   const delayMs = 30000; // 30 seconds between attempts
-  
+
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       // Get validation challenges
       const challenges = await client.getValidationChallenges({
         enrollmentId: enrollment.enrollmentId,
       });
-      
+
       // Try to complete each challenge
       const results = await Promise.all(
         challenges.map(async (challenge: any) => {
@@ -816,7 +828,7 @@ async function autoValidate(client: any, enrollment: any, options: any) {
             // Auto-create DNS record if we have access
             const created = await createDNSValidationRecord(challenge);
             if (created) {
-              await new Promise(resolve => setTimeout(resolve, 10000)); // Wait for DNS propagation
+              await new Promise((resolve) => setTimeout(resolve, 10000)); // Wait for DNS propagation
               return await client.completeValidation({
                 enrollmentId: enrollment.enrollmentId,
                 challengeId: challenge.id,
@@ -833,25 +845,24 @@ async function autoValidate(client: any, enrollment: any, options: any) {
             }
           }
           return null;
-        })
+        }),
       );
-      
+
       // Check if all validated
-      const allValidated = results.every(r => r && r.status === 'validated');
+      const allValidated = results.every((r) => r && r.status === 'validated');
       if (allValidated) {
         return { success: true, attempts: attempt };
       }
-      
     } catch (error) {
       logger.warn(`Auto-validation attempt ${attempt} failed`, { error });
     }
-    
+
     // Wait before next attempt
     if (attempt < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, delayMs));
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
   }
-  
+
   return {
     success: false,
     attempts: maxAttempts,
@@ -861,7 +872,7 @@ async function autoValidate(client: any, enrollment: any, options: any) {
 
 function generateCertificateRecommendations(enrollment: any, health: any) {
   const recommendations = [];
-  
+
   if (!enrollment.autoRenew) {
     recommendations.push({
       priority: 'high',
@@ -870,7 +881,7 @@ function generateCertificateRecommendations(enrollment: any, health: any) {
       impact: 'Eliminate downtime risk',
     });
   }
-  
+
   if (health.daysUntilExpiry < 60 && health.daysUntilExpiry > 30) {
     recommendations.push({
       priority: 'medium',
@@ -879,7 +890,7 @@ function generateCertificateRecommendations(enrollment: any, health: any) {
       impact: 'Avoid last-minute issues',
     });
   }
-  
+
   if (enrollment.certificateType === 'DV' && enrollment.domains.length > 10) {
     recommendations.push({
       priority: 'low',
@@ -888,7 +899,7 @@ function generateCertificateRecommendations(enrollment: any, health: any) {
       impact: 'Reduce complexity',
     });
   }
-  
+
   return recommendations;
 }
 
@@ -912,30 +923,37 @@ function generateDNSInstructions(challenge: any) {
 
 function generateMonitoringDashboard(monitoringData: any[]) {
   const totalCerts = monitoringData.length;
-  const healthyCerts = monitoringData.filter(m => m.health.status === 'healthy').length;
+  const healthyCerts = monitoringData.filter((m) => m.health.status === 'healthy').length;
   const healthPercentage = Math.round((healthyCerts / totalCerts) * 100);
-  
+
   return {
     overview: {
       total: totalCerts,
       healthy: healthyCerts,
       healthPercentage,
-      score: healthPercentage >= 95 ? 'A+' : healthPercentage >= 90 ? 'A' : healthPercentage >= 80 ? 'B' : 'C',
+      score:
+        healthPercentage >= 95
+          ? 'A+'
+          : healthPercentage >= 90
+            ? 'A'
+            : healthPercentage >= 80
+              ? 'B'
+              : 'C',
     },
     metrics: {
       avgDaysToExpiry: Math.round(
-        monitoringData.reduce((sum, m) => sum + m.health.daysUntilExpiry, 0) / totalCerts
+        monitoringData.reduce((sum, m) => sum + m.health.daysUntilExpiry, 0) / totalCerts,
       ),
       autoRenewalRate: Math.round(
-        (monitoringData.filter(m => m.health.autoRenew).length / totalCerts) * 100
+        (monitoringData.filter((m) => m.health.autoRenew).length / totalCerts) * 100,
       ),
       coverageRate: Math.round(
-        (monitoringData.filter(m => m.coverage.gaps.length === 0).length / totalCerts) * 100
+        (monitoringData.filter((m) => m.coverage.gaps.length === 0).length / totalCerts) * 100,
       ),
     },
     trends: {
-      expiringNext30Days: monitoringData.filter(m => m.health.daysUntilExpiry <= 30).length,
-      recentRenewals: monitoringData.filter(m => m.trend === 'recently_renewed').length,
+      expiringNext30Days: monitoringData.filter((m) => m.health.daysUntilExpiry <= 30).length,
+      recentRenewals: monitoringData.filter((m) => m.trend === 'recently_renewed').length,
     },
   };
 }
@@ -989,7 +1007,12 @@ function generateValidationSteps(validated: any): string[] {
   return ['Complete DNS validation', 'Wait for certificate issuance'];
 }
 
-async function deployToProperties(client: any, enrollment: any, propertyIds: any, network: any): Promise<any> {
+async function deployToProperties(
+  client: any,
+  enrollment: any,
+  propertyIds: any,
+  network: any,
+): Promise<any> {
   return { deployed: true, activationId: 'act-123' };
 }
 
@@ -1041,7 +1064,11 @@ function generateRenewalFallback(enrollment: any): string[] {
   return ['Try manual renewal process'];
 }
 
-async function setupCertificateMonitoring(client: any, enrollmentId: string, monitoring: any): Promise<any> {
+async function setupCertificateMonitoring(
+  client: any,
+  enrollmentId: string,
+  monitoring: any,
+): Promise<any> {
   return { enabled: true };
 }
 

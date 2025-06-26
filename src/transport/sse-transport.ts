@@ -1,7 +1,7 @@
 /**
  * Server-Sent Events (SSE) Transport for MCP
  * Implements the Streamable HTTP transport from MCP spec 2025-03-26
- * 
+ *
  * This transport uses:
  * - POST /messages for client-to-server messages
  * - GET /sse for server-to-client event stream
@@ -81,11 +81,11 @@ export class SSEServerTransport implements Transport {
     this.app.post(`${basePath}/messages`, async (req, res) => {
       try {
         const message = req.body as JSONRPCMessage;
-        const clientId = req.headers['x-client-id'] as string || 'default';
-        
-        logger.info('Received message via SSE transport', { 
-          clientId, 
-          method: 'method' in message ? message.method : 'response' 
+        const clientId = (req.headers['x-client-id'] as string) || 'default';
+
+        logger.info('Received message via SSE transport', {
+          clientId,
+          method: 'method' in message ? message.method : 'response',
         });
 
         // Process the message
@@ -101,8 +101,8 @@ export class SSEServerTransport implements Transport {
 
     // GET /sse - Server to client event stream
     this.app.get(`${basePath}/sse`, (req, res) => {
-      const clientId = req.headers['x-client-id'] as string || `client-${Date.now()}`;
-      
+      const clientId = (req.headers['x-client-id'] as string) || `client-${Date.now()}`;
+
       // Set SSE headers
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
@@ -113,7 +113,7 @@ export class SSEServerTransport implements Transport {
       const client: SSEClient = {
         id: clientId,
         response: res,
-        lastActivity: Date.now()
+        lastActivity: Date.now(),
       };
       this.clients.set(clientId, client);
 
@@ -135,9 +135,9 @@ export class SSEServerTransport implements Transport {
       req.on('close', () => {
         clearInterval(heartbeat);
         this.clients.delete(clientId);
-        logger.info('SSE client disconnected', { 
-          clientId, 
-          remainingClients: this.clients.size 
+        logger.info('SSE client disconnected', {
+          clientId,
+          remainingClients: this.clients.size,
         });
       });
     });
@@ -148,7 +148,7 @@ export class SSEServerTransport implements Transport {
         status: 'healthy',
         transport: 'sse',
         clients: this.clients.size,
-        uptime: process.uptime()
+        uptime: process.uptime(),
       });
     });
   }
@@ -160,26 +160,22 @@ export class SSEServerTransport implements Transport {
         if (this.options.ssl) {
           const sslOptions = {
             cert: readFileSync(this.options.ssl.cert),
-            key: readFileSync(this.options.ssl.key)
+            key: readFileSync(this.options.ssl.key),
           };
           this.server = createHttpsServer(sslOptions, this.app);
         } else {
           this.server = createServer(this.app);
         }
 
-        this.server.listen(
-          this.options.port,
-          this.options.host || '0.0.0.0',
-          () => {
-            logger.info('SSE transport server started', {
-              port: this.options.port,
-              host: this.options.host || '0.0.0.0',
-              ssl: !!this.options.ssl,
-              path: this.options.path || '/'
-            });
-            resolve();
-          }
-        );
+        this.server.listen(this.options.port, this.options.host || '0.0.0.0', () => {
+          logger.info('SSE transport server started', {
+            port: this.options.port,
+            host: this.options.host || '0.0.0.0',
+            ssl: !!this.options.ssl,
+            path: this.options.path || '/',
+          });
+          resolve();
+        });
 
         this.server.on('error', (error) => {
           logger.error('SSE server error', { error });
@@ -195,7 +191,9 @@ export class SSEServerTransport implements Transport {
   async close(): Promise<void> {
     // Close all SSE connections
     for (const [clientId, client] of this.clients) {
-      client.response.write(`event: shutdown\ndata: ${JSON.stringify({ message: 'Server shutting down' })}\n\n`);
+      client.response.write(
+        `event: shutdown\ndata: ${JSON.stringify({ message: 'Server shutting down' })}\n\n`,
+      );
       client.response.end();
     }
     this.clients.clear();
@@ -232,9 +230,9 @@ export class SSEServerTransport implements Transport {
       }
     }
 
-    logger.debug('Sent message to SSE clients', { 
-      clientsSent: sent, 
-      totalClients: this.clients.size 
+    logger.debug('Sent message to SSE clients', {
+      clientsSent: sent,
+      totalClients: this.clients.size,
     });
 
     return Promise.resolve();
@@ -258,14 +256,14 @@ export class SSEServerTransport implements Transport {
 
         // This shouldn't happen, but handle it
         return { done: true } as IteratorResult<JSONRPCMessage>;
-      }
+      },
     };
   }
 }
 
 /**
  * Example usage:
- * 
+ *
  * const sseTransport = new SSEServerTransport({
  *   port: 3000,
  *   path: '/mcp',
@@ -274,9 +272,9 @@ export class SSEServerTransport implements Transport {
  *     return validateToken(token);
  *   }
  * });
- * 
+ *
  * await sseTransport.start();
- * 
+ *
  * // Connect to MCP server
  * await mcpServer.connect(sseTransport);
  */

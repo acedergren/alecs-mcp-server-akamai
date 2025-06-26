@@ -16,18 +16,9 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 
 // Import consolidated tools
-import { 
-  certificateTool, 
-  handleCertificateTool 
-} from '../tools/consolidated/certificate-tool';
-import { 
-  searchTool, 
-  handleSearchTool 
-} from '../tools/consolidated/search-tool';
-import { 
-  deployTool, 
-  handleDeployTool 
-} from '../tools/consolidated/deploy-tool-simple';
+import { certificateTool, handleCertificateTool } from '../tools/consolidated/certificate-tool';
+import { searchTool, handleSearchTool } from '../tools/consolidated/search-tool';
+import { deployTool, handleDeployTool } from '../tools/consolidated/deploy-tool-simple';
 
 import { logger } from '../utils/logger';
 
@@ -62,7 +53,7 @@ class ConsolidatedCertificateServer {
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       logger.info('📋 Consolidated certificate tools list requested');
-      
+
       return {
         tools: [
           // Core consolidated certificate tool
@@ -71,21 +62,21 @@ class ConsolidatedCertificateServer {
             description: certificateTool.description,
             inputSchema: certificateTool.inputSchema,
           },
-          
+
           // Search for certificates and related resources
           {
             name: searchTool.name,
             description: 'Search certificates, domains, and SSL-related resources',
             inputSchema: searchTool.inputSchema,
           },
-          
+
           // Deploy certificates with coordination
           {
             name: deployTool.name,
             description: 'Deploy certificates with validation and monitoring',
             inputSchema: deployTool.inputSchema,
           },
-          
+
           // Business workflow shortcuts
           {
             name: 'secure-domain',
@@ -95,13 +86,17 @@ class ConsolidatedCertificateServer {
               properties: {
                 domain: { type: 'string', description: 'Domain to secure (e.g., example.com)' },
                 includeSubdomains: { type: 'boolean', description: 'Include *.domain wildcard' },
-                autoRenew: { type: 'boolean', description: 'Enable automatic renewal', default: true },
+                autoRenew: {
+                  type: 'boolean',
+                  description: 'Enable automatic renewal',
+                  default: true,
+                },
                 customer: { type: 'string', description: 'Customer context' },
               },
               required: ['domain'],
             },
           },
-          
+
           {
             name: 'certificate-health-check',
             description: 'Check certificate health and get renewal recommendations',
@@ -109,21 +104,36 @@ class ConsolidatedCertificateServer {
               type: 'object',
               properties: {
                 domain: { type: 'string', description: 'Domain to check (optional)' },
-                days_ahead: { type: 'number', description: 'Days ahead to check for expiry', default: 30 },
+                days_ahead: {
+                  type: 'number',
+                  description: 'Days ahead to check for expiry',
+                  default: 30,
+                },
                 customer: { type: 'string', description: 'Customer context' },
               },
             },
           },
-          
+
           {
             name: 'bulk-certificate-renewal',
             description: 'Renew multiple certificates with business impact analysis',
             inputSchema: {
               type: 'object',
               properties: {
-                domains: { type: 'array', items: { type: 'string' }, description: 'Domains to renew' },
-                schedule: { type: 'string', description: 'When to renew: now, maintenance, scheduled' },
-                notify: { type: 'boolean', description: 'Send business notifications', default: true },
+                domains: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Domains to renew',
+                },
+                schedule: {
+                  type: 'string',
+                  description: 'When to renew: now, maintenance, scheduled',
+                },
+                notify: {
+                  type: 'boolean',
+                  description: 'Send business notifications',
+                  default: true,
+                },
                 customer: { type: 'string', description: 'Customer context' },
               },
             },
@@ -144,7 +154,11 @@ class ConsolidatedCertificateServer {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handleCertificateTool(args || { action: 'list' }), null, 2),
+                  text: JSON.stringify(
+                    await handleCertificateTool(args || { action: 'list' }),
+                    null,
+                    2,
+                  ),
                 },
               ],
             };
@@ -174,7 +188,11 @@ class ConsolidatedCertificateServer {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handleDeployTool(args || { action: 'status' }), null, 2),
+                  text: JSON.stringify(
+                    await handleDeployTool(args || { action: 'status' }),
+                    null,
+                    2,
+                  ),
                 },
               ],
             };
@@ -350,10 +368,10 @@ class ConsolidatedCertificateServer {
         renewalResults.push({ domain, status: 'success', result: renewResult });
         successfulRenewals++;
       } catch (error) {
-        renewalResults.push({ 
-          domain, 
-          status: 'failed', 
-          error: error instanceof Error ? error.message : 'Unknown error' 
+        renewalResults.push({
+          domain,
+          status: 'failed',
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }
@@ -459,10 +477,10 @@ class ConsolidatedCertificateServer {
    */
   async run() {
     logger.info('🚀 Starting consolidated certificate server...');
-    
+
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    
+
     logger.info('✅ Consolidated Certificate Server ready and listening');
   }
 }

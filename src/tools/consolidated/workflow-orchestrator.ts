@@ -1,12 +1,12 @@
 /**
  * Workflow Orchestrator - Maya's Vision
- * 
+ *
  * Bridges the workflow assistants with the consolidated tools.
  * Allows assistants to leverage the simplified tool architecture while
  * maintaining their business-focused interface.
  */
 
-import { 
+import {
   handlePropertyTool,
   handleDNSTool,
   handleCertificateTool,
@@ -61,12 +61,15 @@ export class WorkflowOrchestrator {
     });
   }
 
-  async activateProperty(propertyId: string, options: {
-    environment?: 'staging' | 'production';
-    notify?: string[];
-    note?: string;
-    customer?: string;
-  }) {
+  async activateProperty(
+    propertyId: string,
+    options: {
+      environment?: 'staging' | 'production';
+      notify?: string[];
+      note?: string;
+      customer?: string;
+    },
+  ) {
     return handlePropertyTool({
       action: 'activate',
       ids: propertyId,
@@ -94,11 +97,14 @@ export class WorkflowOrchestrator {
   /**
    * DNS Operations
    */
-  async setupDNSForWebsite(domain: string, options: {
-    emailProvider?: string;
-    ssl?: boolean;
-    customer?: string;
-  }) {
+  async setupDNSForWebsite(
+    domain: string,
+    options: {
+      emailProvider?: string;
+      ssl?: boolean;
+      customer?: string;
+    },
+  ) {
     const results = [];
 
     // Create zone if needed
@@ -175,12 +181,15 @@ export class WorkflowOrchestrator {
   /**
    * Certificate Operations
    */
-  async secureDomain(domains: string | string[], options: {
-    purpose?: string;
-    autoRenew?: boolean;
-    deploy?: boolean;
-    customer?: string;
-  }) {
+  async secureDomain(
+    domains: string | string[],
+    options: {
+      purpose?: string;
+      autoRenew?: boolean;
+      deploy?: boolean;
+      customer?: string;
+    },
+  ) {
     return handleCertificateTool({
       action: 'secure',
       domains,
@@ -226,10 +235,13 @@ export class WorkflowOrchestrator {
   /**
    * Search Operations
    */
-  async findResource(query: string, options?: {
-    types?: string[];
-    customer?: string;
-  }) {
+  async findResource(
+    query: string,
+    options?: {
+      types?: string[];
+      customer?: string;
+    },
+  ) {
     return handleSearchTool({
       action: 'find',
       query,
@@ -278,11 +290,14 @@ export class WorkflowOrchestrator {
   /**
    * Deployment Operations
    */
-  async deployResource(resource: { type: string; id: string }, options: {
-    network?: 'staging' | 'production';
-    strategy?: string;
-    customer?: string;
-  }) {
+  async deployResource(
+    resource: { type: string; id: string },
+    options: {
+      network?: 'staging' | 'production';
+      strategy?: string;
+      customer?: string;
+    },
+  ) {
     return handleDeployTool({
       action: 'deploy',
       resources: resource as any,
@@ -301,10 +316,13 @@ export class WorkflowOrchestrator {
     });
   }
 
-  async coordinateDeployment(resources: any[], options: {
-    parallel?: boolean;
-    customer?: string;
-  }) {
+  async coordinateDeployment(
+    resources: any[],
+    options: {
+      parallel?: boolean;
+      customer?: string;
+    },
+  ) {
     return handleDeployTool({
       action: 'coordinate',
       resources,
@@ -373,15 +391,12 @@ export class WorkflowOrchestrator {
 
       // Step 3: Get SSL certificate
       if (options.ssl) {
-        results.certificate = await this.secureDomain(
-          [options.domain, `www.${options.domain}`],
-          {
-            purpose: 'secure-website',
-            autoRenew: true,
-            deploy: false, // Will deploy with property
-            customer: options.customer,
-          }
-        );
+        results.certificate = await this.secureDomain([options.domain, `www.${options.domain}`], {
+          purpose: 'secure-website',
+          autoRenew: true,
+          deploy: false, // Will deploy with property
+          customer: options.customer,
+        });
       }
 
       // Step 4: Coordinate deployment
@@ -412,7 +427,6 @@ export class WorkflowOrchestrator {
           'Activate to production when ready',
         ],
       };
-
     } catch (error) {
       return {
         success: false,
@@ -435,18 +449,18 @@ export class WorkflowOrchestrator {
 
   // Recovery helper (removed duplicate)
 
-  async optimizePerformance(propertyId: string, options: {
-    goal?: string;
-    customer?: string;
-  }) {
+  async optimizePerformance(
+    propertyId: string,
+    options: {
+      goal?: string;
+      customer?: string;
+    },
+  ) {
     // First analyze current state
     const analysis = await this.analyzeProperty(propertyId, options.customer);
 
     // Get recommendations based on goal
-    const recommendations = this.generateOptimizationRecommendations(
-      analysis,
-      options.goal
-    );
+    const recommendations = this.generateOptimizationRecommendations(analysis, options.goal);
 
     // Apply optimizations
     const optimizations = [];
@@ -455,7 +469,7 @@ export class WorkflowOrchestrator {
         const result = await this.updateProperty(
           propertyId,
           recommendation.updates,
-          options.customer
+          options.customer,
         );
         optimizations.push({
           recommendation: recommendation.name,

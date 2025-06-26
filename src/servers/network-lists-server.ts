@@ -138,10 +138,10 @@ class NetworkListsServer {
 
     this.client = new AkamaiClient();
     this.configManager = CustomerConfigManager.getInstance();
-    
+
     this.registerTools();
     this.setupHandlers();
-    
+
     logger.info('Network Lists Server initialized', {
       toolCount: this.tools.size,
     });
@@ -167,13 +167,14 @@ class NetworkListsServer {
       name: 'create-network-list',
       description: 'Create a new network list',
       schema: CreateNetworkListSchema,
-      handler: async (client, params) => createNetworkList(
-        params.name,
-        params.type,
-        params.elements,
-        params.customer,
-        params.options
-      ),
+      handler: async (client, params) =>
+        createNetworkList(
+          params.name,
+          params.type,
+          params.elements,
+          params.customer,
+          params.options,
+        ),
     });
 
     this.registerTool({
@@ -269,11 +270,13 @@ class NetworkListsServer {
       description: 'Update multiple network lists in bulk',
       schema: z.object({
         customer: z.string().optional(),
-        updates: z.array(z.object({
-          networkListId: z.string(),
-          elements: z.array(z.string()),
-          mode: z.enum(['add', 'remove', 'replace']),
-        })),
+        updates: z.array(
+          z.object({
+            networkListId: z.string(),
+            elements: z.array(z.string()),
+            mode: z.enum(['add', 'remove', 'replace']),
+          }),
+        ),
       }),
       handler: bulkUpdateNetworkLists,
     });
@@ -377,16 +380,13 @@ class NetworkListsServer {
 
       const tool = this.tools.get(name);
       if (!tool) {
-        throw new McpError(
-          ErrorCode.MethodNotFound,
-          `Unknown tool: ${name}`
-        );
+        throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
       }
 
       try {
         const validatedArgs = tool.schema.parse(args);
         const result = await tool.handler(this.client, validatedArgs);
-        
+
         return {
           content: result.content || [
             {
@@ -399,7 +399,7 @@ class NetworkListsServer {
         if (error instanceof z.ZodError) {
           throw new McpError(
             ErrorCode.InvalidParams,
-            `Invalid parameters: ${error.errors.map(e => e.message).join(', ')}`
+            `Invalid parameters: ${error.errors.map((e) => e.message).join(', ')}`,
           );
         }
         throw error;

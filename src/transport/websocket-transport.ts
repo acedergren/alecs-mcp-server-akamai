@@ -26,7 +26,7 @@ export class WebSocketServerTransport implements Transport {
   private httpServer?: HttpServer | HttpsServer;
   private clients: Set<WebSocket> = new Set();
   private messageQueue: Array<{ message: JSONRPCMessage; client: WebSocket }> = [];
-  
+
   onclose?: () => void;
   onerror?: (error: Error) => void;
   onmessage?: (message: JSONRPCMessage) => void;
@@ -68,10 +68,10 @@ export class WebSocketServerTransport implements Transport {
           try {
             const message = JSON.parse(data.toString()) as JSONRPCMessage;
             logger.debug('Received WebSocket message', { message });
-            
+
             // Store which client sent this message for response routing
             (ws as any)._lastRequestId = (message as any).id;
-            
+
             if (this.onmessage) {
               this.onmessage(message);
             }
@@ -87,7 +87,7 @@ export class WebSocketServerTransport implements Transport {
         ws.on('close', () => {
           logger.info('WebSocket client disconnected');
           this.clients.delete(ws);
-          
+
           if (this.clients.size === 0 && this.onclose) {
             this.onclose();
           }
@@ -139,7 +139,7 @@ export class WebSocketServerTransport implements Transport {
 
   async send(message: JSONRPCMessage): Promise<void> {
     const messageStr = JSON.stringify(message);
-    
+
     // If this is a response, try to route it to the correct client
     if ('id' in message && !('method' in message)) {
       // This is a response, find the client that made the request
@@ -152,7 +152,7 @@ export class WebSocketServerTransport implements Transport {
         }
       }
     }
-    
+
     // Otherwise, broadcast to all connected clients
     for (const client of this.clients) {
       if (client.readyState === WebSocket.OPEN) {
@@ -166,13 +166,13 @@ export class WebSocketServerTransport implements Transport {
 
   async close(): Promise<void> {
     logger.info('Closing WebSocket server');
-    
+
     // Close all client connections
     for (const client of this.clients) {
       client.close();
     }
     this.clients.clear();
-    
+
     // Close WebSocket server
     if (this.wss) {
       await new Promise<void>((resolve) => {
@@ -181,7 +181,7 @@ export class WebSocketServerTransport implements Transport {
         });
       });
     }
-    
+
     // Close HTTP server
     if (this.httpServer) {
       await new Promise<void>((resolve) => {
@@ -190,7 +190,7 @@ export class WebSocketServerTransport implements Transport {
         });
       });
     }
-    
+
     if (this.onclose) {
       this.onclose();
     }

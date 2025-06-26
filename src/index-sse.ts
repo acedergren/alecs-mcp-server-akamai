@@ -29,10 +29,13 @@ async function startSSEServer() {
     const sseTransport = new SSEServerTransport({
       port: parseInt(process.env.ALECS_SSE_PORT || '3000', 10),
       host: process.env.ALECS_SSE_HOST || '0.0.0.0',
-      ssl: process.env.ALECS_SSL_CERT && process.env.ALECS_SSL_KEY ? {
-        cert: process.env.ALECS_SSL_CERT,
-        key: process.env.ALECS_SSL_KEY,
-      } : undefined,
+      ssl:
+        process.env.ALECS_SSL_CERT && process.env.ALECS_SSL_KEY
+          ? {
+              cert: process.env.ALECS_SSL_CERT,
+              key: process.env.ALECS_SSL_KEY,
+            }
+          : undefined,
       path: process.env.ALECS_SSE_PATH || '/mcp',
       authHandler: async (req) => {
         const authHeader = req.headers.authorization;
@@ -46,7 +49,7 @@ async function startSSEServer() {
         } catch {
           return false;
         }
-      }
+      },
     });
 
     // Set up transport callbacks
@@ -70,9 +73,13 @@ async function startSSEServer() {
 
     // Display startup message
     console.log('\n✅ ALECS SSE/HTTP MCP Server is running');
-    console.log(`📡 Listening on ${process.env.ALECS_SSE_HOST || '0.0.0.0'}:${process.env.ALECS_SSE_PORT || '3000'}`);
+    console.log(
+      `📡 Listening on ${process.env.ALECS_SSE_HOST || '0.0.0.0'}:${process.env.ALECS_SSE_PORT || '3000'}`,
+    );
     console.log('\n🔗 Endpoints:');
-    console.log(`   POST ${process.env.ALECS_SSE_PATH || '/mcp'}/messages - Send messages to server`);
+    console.log(
+      `   POST ${process.env.ALECS_SSE_PATH || '/mcp'}/messages - Send messages to server`,
+    );
     console.log(`   GET  ${process.env.ALECS_SSE_PATH || '/mcp'}/sse - Event stream from server`);
     console.log(`   GET  ${process.env.ALECS_SSE_PATH || '/mcp'}/health - Health check`);
     console.log('\n💡 To see connection details and generate a token, run:');
@@ -90,7 +97,6 @@ async function startSSEServer() {
       await sseTransport.close();
       process.exit(0);
     });
-
   } catch (error) {
     logger.error('Failed to start SSE server', {
       error: error instanceof Error ? error.message : String(error),

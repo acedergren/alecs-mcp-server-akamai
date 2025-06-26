@@ -16,18 +16,9 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 
 // Import consolidated tools
-import { 
-  dnsTool, 
-  handleDNSTool 
-} from '../tools/consolidated/dns-tool';
-import { 
-  searchTool, 
-  handleSearchTool 
-} from '../tools/consolidated/search-tool';
-import { 
-  deployTool, 
-  handleDeployTool 
-} from '../tools/consolidated/deploy-tool-simple';
+import { dnsTool, handleDNSTool } from '../tools/consolidated/dns-tool';
+import { searchTool, handleSearchTool } from '../tools/consolidated/search-tool';
+import { deployTool, handleDeployTool } from '../tools/consolidated/deploy-tool-simple';
 
 // Import workflow assistant stub
 import { handleDNSWorkflowAssistantRequest } from './workflow-assistant-stubs';
@@ -65,7 +56,7 @@ class ConsolidatedDNSServer {
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       logger.info('📋 Consolidated DNS tools list requested');
-      
+
       return {
         tools: [
           // Core consolidated DNS tool
@@ -74,25 +65,26 @@ class ConsolidatedDNSServer {
             description: dnsTool.description,
             inputSchema: dnsTool.inputSchema,
           },
-          
+
           // Universal search for DNS resources
           {
             name: searchTool.name,
             description: 'Search DNS zones, records, and related resources',
             inputSchema: searchTool.inputSchema,
           },
-          
+
           // Deployment coordination
           {
             name: deployTool.name,
             description: 'Deploy DNS changes with validation and rollback',
             inputSchema: deployTool.inputSchema,
           },
-          
+
           // DNS workflow assistant
           {
             name: 'dns-assistant',
-            description: 'Intelligent DNS assistant - describe what you need and we\'ll handle the complexity',
+            description:
+              "Intelligent DNS assistant - describe what you need and we'll handle the complexity",
             inputSchema: {
               type: 'object',
               properties: {
@@ -104,7 +96,7 @@ class ConsolidatedDNSServer {
               required: ['intent'],
             },
           },
-          
+
           // Business workflow shortcuts
           {
             name: 'setup-new-domain',
@@ -113,17 +105,17 @@ class ConsolidatedDNSServer {
               type: 'object',
               properties: {
                 domain: { type: 'string', description: 'Domain name (e.g., example.com)' },
-                purpose: { 
-                  type: 'string', 
+                purpose: {
+                  type: 'string',
                   description: 'Purpose: website, api, email, cdn',
-                  enum: ['website', 'api', 'email', 'cdn', 'mixed']
+                  enum: ['website', 'api', 'email', 'cdn', 'mixed'],
                 },
                 customer: { type: 'string', description: 'Customer context' },
               },
               required: ['domain', 'purpose'],
             },
           },
-          
+
           {
             name: 'migrate-dns-records',
             description: 'Safely migrate DNS records from another provider',
@@ -154,7 +146,11 @@ class ConsolidatedDNSServer {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handleDNSTool(args || { action: 'list-zones' }), null, 2),
+                  text: JSON.stringify(
+                    await handleDNSTool(args || { action: 'list-zones' }),
+                    null,
+                    2,
+                  ),
                 },
               ],
             };
@@ -184,7 +180,11 @@ class ConsolidatedDNSServer {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handleDeployTool(args || { action: 'status' }), null, 2),
+                  text: JSON.stringify(
+                    await handleDeployTool(args || { action: 'status' }),
+                    null,
+                    2,
+                  ),
                 },
               ],
             };
@@ -342,26 +342,26 @@ class ConsolidatedDNSServer {
           { name: '@', type: 'MX', rdata: ['10 mail.example.com'] },
           { name: '@', type: 'TXT', rdata: ['"v=spf1 include:_spf.example.com ~all"'] },
         ];
-        
+
       case 'api':
         return [
           { name: 'api', type: 'A', rdata: ['192.0.2.2'] },
           { name: 'api-staging', type: 'A', rdata: ['192.0.2.3'] },
         ];
-        
+
       case 'email':
         return [
           { name: '@', type: 'MX', rdata: ['10 mail.example.com'] },
           { name: '@', type: 'TXT', rdata: ['"v=spf1 include:_spf.example.com ~all"'] },
           { name: 'mail', type: 'A', rdata: ['192.0.2.4'] },
         ];
-        
+
       case 'cdn':
         return [
           { name: 'cdn', type: 'CNAME', rdata: ['example.com.edgesuite.net'] },
           { name: 'assets', type: 'CNAME', rdata: ['assets.example.com.edgesuite.net'] },
         ];
-        
+
       default:
         return baseRecords;
     }
@@ -372,10 +372,10 @@ class ConsolidatedDNSServer {
    */
   async run() {
     logger.info('🚀 Starting consolidated DNS server...');
-    
+
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    
+
     logger.info('✅ Consolidated DNS Server ready and listening');
   }
 }

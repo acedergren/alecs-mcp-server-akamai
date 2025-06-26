@@ -27,10 +27,13 @@ async function startWebSocketServer() {
     const wsTransport = new WebSocketServerTransport({
       port: parseInt(process.env.ALECS_WS_PORT || '8082', 10),
       host: process.env.ALECS_WS_HOST || '0.0.0.0',
-      ssl: process.env.ALECS_SSL_CERT && process.env.ALECS_SSL_KEY ? {
-        cert: process.env.ALECS_SSL_CERT,
-        key: process.env.ALECS_SSL_KEY,
-      } : undefined,
+      ssl:
+        process.env.ALECS_SSL_CERT && process.env.ALECS_SSL_KEY
+          ? {
+              cert: process.env.ALECS_SSL_CERT,
+              key: process.env.ALECS_SSL_KEY,
+            }
+          : undefined,
       path: process.env.ALECS_WS_PATH || '/mcp',
     });
 
@@ -55,7 +58,9 @@ async function startWebSocketServer() {
 
     // Display startup message
     console.log('\n✅ ALECS WebSocket MCP Server is running');
-    console.log(`📡 Listening on ${process.env.ALECS_WS_HOST || '0.0.0.0'}:${process.env.ALECS_WS_PORT || '8082'}`);
+    console.log(
+      `📡 Listening on ${process.env.ALECS_WS_HOST || '0.0.0.0'}:${process.env.ALECS_WS_PORT || '8082'}`,
+    );
     console.log('\n💡 To see connection details and generate a token, run:');
     console.log('   npm run start:websocket:summary\n');
 
@@ -71,7 +76,6 @@ async function startWebSocketServer() {
       await wsTransport.close();
       process.exit(0);
     });
-
   } catch (error) {
     logger.error('Failed to start WebSocket server', {
       error: error instanceof Error ? error.message : String(error),

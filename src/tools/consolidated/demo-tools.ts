@@ -10,9 +10,9 @@ import { logger } from '@utils/logger';
  */
 export async function demoPropertyTool(params: any) {
   const { action, ids, options = {} } = params;
-  
+
   logger.info('Demo Property Tool', { action, ids });
-  
+
   switch (action) {
     case 'list':
       return {
@@ -26,7 +26,7 @@ export async function demoPropertyTool(params: any) {
             hostnames: ['example.com', 'www.example.com'],
           },
           {
-            id: 'prp_67890', 
+            id: 'prp_67890',
             name: 'api.example.com',
             status: 'active',
             lastModified: '2025-06-20T15:30:00Z',
@@ -44,7 +44,7 @@ export async function demoPropertyTool(params: any) {
           'API property could benefit from rate limiting configuration',
         ],
       };
-      
+
     case 'create':
       return {
         property: {
@@ -55,13 +55,13 @@ export async function demoPropertyTool(params: any) {
         },
         nextSteps: [
           'Add hostnames to property',
-          'Configure SSL certificates', 
+          'Configure SSL certificates',
           'Test in staging environment',
           'Activate to production',
         ],
         estimatedGoLiveTime: '2-4 hours for staging, then 4-6 hours for production',
       };
-      
+
     case 'analyze':
       return {
         propertyId: ids,
@@ -88,7 +88,7 @@ export async function demoPropertyTool(params: any) {
           riskFactors: ['Single point of failure in origin'],
         },
       };
-      
+
     default:
       return { message: `Demo: ${action} action would be executed` };
   }
@@ -99,9 +99,9 @@ export async function demoPropertyTool(params: any) {
  */
 export async function demoDNSTool(params: any) {
   const { action, zones, options = {} } = params;
-  
+
   logger.info('Demo DNS Tool', { action, zones });
-  
+
   switch (action) {
     case 'list-zones':
       return {
@@ -119,7 +119,7 @@ export async function demoDNSTool(params: any) {
           },
           {
             zone: 'test.example.com',
-            type: 'PRIMARY', 
+            type: 'PRIMARY',
             status: 'pending',
             health: {
               status: 'warning',
@@ -140,7 +140,7 @@ export async function demoDNSTool(params: any) {
           'Add CAA records for SSL security',
         ],
       };
-      
+
     case 'manage-records':
       if (options.businessAction === 'setup-email') {
         return {
@@ -149,7 +149,12 @@ export async function demoDNSTool(params: any) {
           provider: options.emailProvider || 'google-workspace',
           records: [
             { type: 'MX', name: '@', value: '1 aspmx.l.google.com', status: 'created' },
-            { type: 'TXT', name: '@', value: 'v=spf1 include:_spf.google.com ~all', status: 'created' },
+            {
+              type: 'TXT',
+              name: '@',
+              value: 'v=spf1 include:_spf.google.com ~all',
+              status: 'created',
+            },
           ],
           testInstructions: [
             '1. Wait 5-10 minutes for DNS propagation',
@@ -158,18 +163,19 @@ export async function demoDNSTool(params: any) {
           ],
         };
       }
-      
+
       return {
         zone: zones,
-        results: options.records?.map((r: any) => ({
-          name: r.name,
-          type: r.type,
-          status: 'created',
-        })) || [],
+        results:
+          options.records?.map((r: any) => ({
+            name: r.name,
+            type: r.type,
+            status: 'created',
+          })) || [],
         status: 'pending_activation',
         activationRequired: true,
       };
-      
+
     default:
       return { message: `Demo: ${action} action would be executed for zones: ${zones}` };
   }
@@ -180,9 +186,9 @@ export async function demoDNSTool(params: any) {
  */
 export async function demoCertificateTool(params: any) {
   const { action, domains, options = {} } = params;
-  
+
   logger.info('Demo Certificate Tool', { action, domains });
-  
+
   switch (action) {
     case 'list':
       return {
@@ -223,7 +229,7 @@ export async function demoCertificateTool(params: any) {
           'Set up expiry notifications',
         ],
       };
-      
+
     case 'secure':
       return {
         status: 'secured',
@@ -244,7 +250,7 @@ export async function demoCertificateTool(params: any) {
           'Monitoring enabled for expiry tracking',
         ],
       };
-      
+
     default:
       return { message: `Demo: ${action} action would be executed for domains: ${domains}` };
   }
@@ -255,13 +261,13 @@ export async function demoCertificateTool(params: any) {
  */
 export async function demoSearchTool(params: any) {
   const { action, query, options = {} } = params;
-  
+
   logger.info('Demo Search Tool', { action, query });
-  
+
   switch (action) {
     case 'find':
       const searchTerm = typeof query === 'string' ? query : query.text;
-      
+
       return {
         query: searchTerm,
         results: [
@@ -304,7 +310,7 @@ export async function demoSearchTool(params: any) {
           'Analyze performance metrics',
         ],
       };
-      
+
     case 'locate':
       return {
         found: true,
@@ -319,13 +325,9 @@ export async function demoSearchTool(params: any) {
           certificates: ['cert-12345'],
           activations: ['act-789'],
         },
-        actions: [
-          'View configuration',
-          'Update settings',
-          'Deploy changes',
-        ],
+        actions: ['View configuration', 'Update settings', 'Deploy changes'],
       };
-      
+
     default:
       return { message: `Demo: ${action} search would be executed for: ${query}` };
   }
@@ -336,9 +338,9 @@ export async function demoSearchTool(params: any) {
  */
 export async function demoDeployTool(params: any) {
   const { action, resources, options = {} } = params;
-  
+
   logger.info('Demo Deploy Tool', { action, resources });
-  
+
   switch (action) {
     case 'deploy':
       return {
@@ -363,7 +365,7 @@ export async function demoDeployTool(params: any) {
           checkFrequency: 'every 5 minutes',
         },
       };
-      
+
     case 'status':
       return {
         deployments: [
@@ -393,7 +395,7 @@ export async function demoDeployTool(params: any) {
           failed: 0,
         },
       };
-      
+
     default:
       return { message: `Demo: ${action} deployment action would be executed` };
   }

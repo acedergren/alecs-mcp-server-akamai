@@ -31,12 +31,12 @@ export const generateApiToken: Tool = {
 export async function handleGenerateApiToken(args: any) {
   try {
     const tokenManager = TokenManager.getInstance();
-    
+
     const result = await tokenManager.generateToken({
       description: args.description,
       expiresInDays: args.expiresInDays,
     });
-    
+
     return {
       content: [
         {
@@ -104,7 +104,7 @@ export async function handleListApiTokens(_args: any) {
   try {
     const tokenManager = TokenManager.getInstance();
     const tokens = await tokenManager.listTokens();
-    
+
     if (tokens.length === 0) {
       return {
         content: [
@@ -115,20 +115,24 @@ export async function handleListApiTokens(_args: any) {
         ],
       };
     }
-    
-    const tokenList = tokens.map(token => {
-      const status = !token.isActive ? '🔴 Revoked' : 
-                    (token.expiresAt && new Date() > token.expiresAt) ? '🟡 Expired' : 
-                    '🟢 Active';
-      
-      return `### ${token.tokenId}
+
+    const tokenList = tokens
+      .map((token) => {
+        const status = !token.isActive
+          ? '🔴 Revoked'
+          : token.expiresAt && new Date() > token.expiresAt
+            ? '🟡 Expired'
+            : '🟢 Active';
+
+        return `### ${token.tokenId}
 **Status:** ${status}
 **Description:** ${token.description || 'N/A'}
 **Created:** ${token.createdAt.toISOString()}
 **Last Used:** ${token.lastUsedAt ? token.lastUsedAt.toISOString() : 'Never'}
 **Expires:** ${token.expiresAt ? token.expiresAt.toISOString() : 'Never'}`;
-    }).join('\n\n');
-    
+      })
+      .join('\n\n');
+
     return {
       content: [
         {
@@ -180,7 +184,7 @@ export async function handleRevokeApiToken(args: any) {
   try {
     const tokenManager = TokenManager.getInstance();
     const success = await tokenManager.revokeToken(args.tokenId);
-    
+
     if (success) {
       return {
         content: [
@@ -237,7 +241,7 @@ export async function handleValidateApiToken(args: any) {
   try {
     const tokenManager = TokenManager.getInstance();
     const result = await tokenManager.validateToken(args.token);
-    
+
     if (result.valid) {
       return {
         content: [
@@ -300,7 +304,7 @@ export async function handleRotateApiToken(args: any) {
   try {
     const tokenManager = TokenManager.getInstance();
     const result = await tokenManager.rotateToken(args.tokenId);
-    
+
     if (result.success && result.newToken) {
       return {
         content: [
