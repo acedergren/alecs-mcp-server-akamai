@@ -30,6 +30,9 @@ import { type BaseMcpParams, type McpToolResponse, type McpToolMetadata } from '
 import { type Mcp2025ToolResponse, type McpResponseMeta } from './types/mcp-2025';
 import { CustomerConfigManager } from './utils/customer-config';
 import { logger } from './utils/logger';
+import { AkamaiClient } from './akamai-client';
+import { handleAkamaiError, ErrorType } from './utils/enhanced-error-handling';
+import { mapToMcpErrorCode, createMcpErrorMessage } from './utils/mcp-error-mapping';
 
 // Import all tools and schemas
 import { getAllToolDefinitions } from './tools/all-tools-registry';
@@ -75,6 +78,7 @@ export class ALECSFullServer {
   private toolRegistry: Map<string, ToolRegistryEntry> = new Map();
   private configManager: CustomerConfigManager;
   private requestCounter = 0;
+  private akamaiClient: AkamaiClient;
 
   constructor(config?: Partial<ServerConfig>) {
     const serverConfig: ServerConfig = {
@@ -93,6 +97,7 @@ export class ALECSFullServer {
     });
 
     this.configManager = CustomerConfigManager.getInstance();
+    this.akamaiClient = new AkamaiClient();
     this.setupErrorHandling();
     this.registerAllTools();
     this.setupHandlers();
@@ -218,12 +223,8 @@ export class ALECSFullServer {
       const customer = this.extractCustomer(params) || 'default';
       this.validateCustomerContext(customer);
 
-      // Import client dynamically to avoid circular dependencies
-      const { AkamaiClient } = await import('./akamai-client.js');
-      const client = new AkamaiClient();
-
-      // Execute tool handler
-      const result = await handler(client, params);
+      // Execute tool handler with pre-instantiated client
+      const result = await handler(this.akamaiClient, params);
 
       const duration = Date.now() - context.startTime;
 
@@ -360,20 +361,17 @@ export class ALECSFullServer {
             throw new McpError(ErrorCode.InternalError, result.error || 'Tool execution failed');
           }
 
-          // Format response with MCP 2025 metadata if available
-          let responseText = JSON.stringify(result.data, null, 2);
-
-          // Check if the result has metadata (cast to check)
-          const resultWithMeta = result as any;
-          if (resultWithMeta._meta) {
-            responseText += `\n\n---\n_meta: ${JSON.stringify(resultWithMeta._meta, null, 2)}`;
+          // Check if result.data already has the MCP content format
+          if (result.data && typeof result.data === 'object' && 'content' in result.data) {
+            return result.data as CallToolResult;
           }
-
+          
+          // For backward compatibility, wrap non-content responses
           return {
             content: [
               {
                 type: 'text',
-                text: responseText,
+                text: typeof result.data === 'string' ? result.data : JSON.stringify(result.data, null, 2),
               },
             ],
           };
@@ -389,7 +387,26 @@ export class ALECSFullServer {
             throw _error;
           }
 
-          throw new McpError(ErrorCode.InternalError, this.formatError(_error));
+          // Map Akamai errors to MCP error codes
+          const errorResult = handleAkamaiError(_error, {
+            operation: `execute tool ${name}`,
+            endpoint: 'unknown',
+            customer: this.extractCustomer(args)
+          });
+          
+          const httpStatus = (_error as any).response?.status || (_error as any).status || 500;
+          const mcpErrorCode = mapToMcpErrorCode(
+            httpStatus,
+            errorResult.errorType
+          );
+          
+          const mcpMessage = createMcpErrorMessage(
+            errorResult.userMessage || this.formatError(_error),
+            errorResult.errorCode,
+            errorResult.requestId
+          );
+
+          throw new McpError(mcpErrorCode, mcpMessage);
         }
       },
     );
