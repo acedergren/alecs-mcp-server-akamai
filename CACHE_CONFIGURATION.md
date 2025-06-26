@@ -45,7 +45,7 @@ CACHE_PERSISTENCE_PATH=.cache/smart-cache.json  # Where to save cache
 CACHE_ADAPTIVE_TTL=true        # Adjust TTL based on update patterns (default: true)
 CACHE_REQUEST_COALESCING=true  # Merge duplicate requests (default: true)
 
-# External cache configuration (Redis-compatible: Redis, Valkey, KeyDB, etc.)
+# External cache configuration (DEPRECATED - will be removed in v2.0.0)
 CACHE_HOST=localhost          # Cache server host
 CACHE_PORT=6379              # Cache server port
 CACHE_PASSWORD=              # Cache server password (optional)
