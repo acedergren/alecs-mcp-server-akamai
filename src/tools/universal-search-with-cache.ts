@@ -1,6 +1,6 @@
 /**
- * Universal Akamai Search Tool - With Valkey Caching
- * Dramatically improved performance through intelligent caching
+ * Universal Akamai Search Tool - With Intelligent Caching
+ * Dramatically improved performance through smart caching
  */
 
 import { AkamaiCacheService } from '@services/akamai-cache-service';

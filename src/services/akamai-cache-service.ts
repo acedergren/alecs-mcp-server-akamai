@@ -4,8 +4,9 @@
  */
 
 import { type AkamaiClient } from '../akamai-client';
-
-import { ValkeyCache, CacheTTL } from './valkey-cache-service';
+import { ICache } from '../types/cache-interface';
+import { getDefaultCache } from './cache-factory';
+import { CacheTTL } from './external-cache-service';
 
 export interface PropertySearchResult {
   type:
@@ -20,30 +21,40 @@ export interface PropertySearchResult {
 }
 
 export class AkamaiCacheService {
-  private cache: ValkeyCache;
+  private cache: ICache;
+  private initialized = false;
 
-  constructor(cache?: ValkeyCache) {
-    this.cache =
-      cache ||
-      new ValkeyCache({
-        mode: 'single',
-        keyPrefix: 'akamai:',
-        enableOfflineQueue: true,
-        lazyConnect: true,
-      });
+  constructor(cache?: ICache) {
+    // Cache will be initialized on first use if not provided
+    this.cache = cache!;
   }
 
   /**
    * Initialize cache connection
    */
   async initialize(): Promise<void> {
-    await this.cache.connect();
+    if (!this.initialized) {
+      if (!this.cache) {
+        this.cache = await getDefaultCache();
+      }
+      this.initialized = true;
+    }
+  }
+
+  /**
+   * Ensure cache is initialized
+   */
+  private async ensureInitialized(): Promise<void> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
   }
 
   /**
    * Get all properties with caching
    */
   async getProperties(client: AkamaiClient, customer = 'default'): Promise<any[]> {
+    await this.ensureInitialized();
     const cacheKey = `${customer}:properties:all`;
 
     return this.cache.getWithRefresh(
@@ -79,6 +90,7 @@ export class AkamaiCacheService {
     propertyId: string,
     customer = 'default',
   ): Promise<any | null> {
+    await this.ensureInitialized();
     const cacheKey = `${customer}:property:${propertyId}`;
 
     return this.cache.getWithRefresh(
@@ -103,6 +115,7 @@ export class AkamaiCacheService {
     property: any,
     customer = 'default',
   ): Promise<any[]> {
+    await this.ensureInitialized();
     const cacheKey = `${customer}:property:${property.propertyId}:hostnames`;
 
     return this.cache.getWithRefresh(
@@ -187,6 +200,7 @@ export class AkamaiCacheService {
     query: string,
     customer = 'default',
   ): Promise<PropertySearchResult[]> {
+    await this.ensureInitialized();
     const searchKey = `${customer}:search:${query.toLowerCase()}`;
 
     // Try cache first
@@ -263,6 +277,7 @@ export class AkamaiCacheService {
    * Get contracts with caching
    */
   async getContracts(client: AkamaiClient, customer = 'default'): Promise<any[]> {
+    await this.ensureInitialized();
     const cacheKey = `${customer}:contracts:all`;
 
     return this.cache.getWithRefresh(cacheKey, CacheTTL.CONTRACTS, async () => {
@@ -278,6 +293,7 @@ export class AkamaiCacheService {
    * Get groups with caching
    */
   async getGroups(client: AkamaiClient, customer = 'default'): Promise<any[]> {
+    await this.ensureInitialized();
     const cacheKey = `${customer}:groups:all`;
 
     return this.cache.getWithRefresh(cacheKey, CacheTTL.GROUPS, async () => {
@@ -293,6 +309,7 @@ export class AkamaiCacheService {
    * Invalidate property cache
    */
   async invalidateProperty(propertyId: string, customer = 'default'): Promise<void> {
+    await this.ensureInitialized();
     console.error(`[Cache] Invalidating cache for property ${propertyId}`);
 
     const keys = [
@@ -319,6 +336,7 @@ export class AkamaiCacheService {
    * Warm cache for a customer
    */
   async warmCache(client: AkamaiClient, customer = 'default'): Promise<void> {
+    await this.ensureInitialized();
     console.error(`[Cache] Starting cache warming for customer: ${customer}`);
     const startTime = Date.now();
 
@@ -341,6 +359,7 @@ export class AkamaiCacheService {
    * Get cache statistics
    */
   async getStats(): Promise<any> {
+    await this.ensureInitialized();
     const metrics = this.cache.getMetrics();
 
     return {
@@ -355,6 +374,7 @@ export class AkamaiCacheService {
    * Clear all cache
    */
   async clearCache(): Promise<void> {
+    await this.ensureInitialized();
     await this.cache.flushAll();
   }
 
@@ -362,6 +382,8 @@ export class AkamaiCacheService {
    * Close cache connection
    */
   async close(): Promise<void> {
-    await this.cache.close();
+    if (this.initialized && this.cache) {
+      await this.cache.close();
+    }
   }
 }

@@ -71,7 +71,7 @@ async function main() {
   console.log('============================\n');
 
   console.log('Choose your server configuration:\n');
-  console.log('1) 🎯 Essentials - Core features only (~60 tools)');
+  console.log('1) 🎯 Minimal - Core features only (7 tools)');
   console.log('2) 📦 Modular - Select specific modules');
   console.log('3) 🌐 Full - All features (~198 tools)');
   console.log('4) 🔧 Custom - Launch individual module');
@@ -81,7 +81,7 @@ async function main() {
 
   switch (choice.trim()) {
     case '1':
-      await launchEssentials();
+      await launchMinimal();
       break;
     case '2':
       await launchModular();
@@ -103,13 +103,16 @@ async function main() {
   }
 }
 
-async function launchEssentials() {
+async function launchMinimal() {
   clearScreen();
-  console.log('🎯 Launching Essentials Server...\n');
+  console.log('🎯 Launching Minimal Server...\n');
   console.log('This includes:');
-  console.log('  • Core property management');
-  console.log('  • Basic DNS operations');
-  console.log('  • Essential certificate features\n');
+  console.log('  • Property listing and details');
+  console.log('  • Property creation');
+  console.log('  • Property activation');
+  console.log('  • Contract listing');
+  console.log('  • DNS zone creation');
+  console.log('  • DNS record management\n');
 
   const confirm = await question('Continue? (y/n): ');
   if (confirm.toLowerCase() !== 'y') {
@@ -117,7 +120,7 @@ async function launchEssentials() {
     return;
   }
 
-  launchServer('index-essential.js', 'ALECS Essentials');
+  launchServer('index.js', 'ALECS Minimal');
 }
 
 async function launchModular() {

@@ -38,7 +38,6 @@
     "prebuild": "echo 'Skipping type check for development build'",
     "start": "node dist/interactive-launcher.js",
     "start:interactive": "node dist/interactive-launcher.js",
-    "start:essentials": "node dist/index-essential.js",
     "start:full": "node dist/index-full.js",
     "start:property": "node dist/servers/property-server.js",
     "start:dns": "node dist/servers/dns-server.js",
@@ -57,7 +56,6 @@
     "deploy:remote": "pm2 start ecosystem.config.js --only alecs-remote",
     "dev": "tsx src/index.ts",
     "dev:full": "tsx src/index-full.ts",
-    "dev:essentials": "tsx src/index-essential.ts",
     "dev:interactive": "tsx src/interactive-launcher.ts",
     "prepublishOnly": "npm run build",
     "test": "jest",
@@ -66,7 +64,6 @@
     "test:modular": "jest src/__tests__/modular-servers",
     "test:property": "jest src/__tests__/modular-servers/property-server.test.ts",
     "test:dns": "jest src/__tests__/modular-servers/dns-server.test.ts",
-    "test:essentials": "jest src/__tests__/modular-servers/essentials-server.test.ts",
     "test:workflows": "jest src/__tests__/modular-servers/workflow-integration.test.ts",
     "test:e2e": "jest __tests__/e2e --runInBand",
     "test:e2e:workflow": "jest __tests__/e2e/workflow-assistants-e2e.test.ts --runInBand",
@@ -125,12 +122,10 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.13.0",
     "@types/commander": "^2.12.0",
-    "@types/ioredis": "^4.28.10",
     "@types/ws": "^8.18.1",
     "akamai-edgegrid": "^3.4.0",
     "commander": "^14.0.0",
     "express": "^4.21.2",
-    "ioredis": "^5.6.1",
     "lru-cache": "^7.18.3",
     "module-alias": "^2.2.3",
     "ws": "^8.18.2",
@@ -161,6 +156,10 @@
     "tsx": "^4.20.3",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.34.1"
+  },
+  "optionalDependencies": {
+    "ioredis": "^5.6.1",
+    "@types/ioredis": "^4.28.10"
   },
   "files": [
     "dist/",
