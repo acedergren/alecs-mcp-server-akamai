@@ -1,6 +1,20 @@
 /**
  * EdgeGrid authentication wrapper for Akamai API requests
  * Uses the official akamai-edgegrid SDK for authentication
+ * 
+ * This is the core client that handles all communication with Akamai APIs.
+ * It manages:
+ * - EdgeGrid authentication (API key, secret, access token)
+ * - Account switching for multi-customer support
+ * - Connection pooling for performance
+ * - Error handling and retry logic
+ * - Request/response logging in debug mode
+ * 
+ * @example
+ * ```typescript
+ * const client = new AkamaiClient('production', 'account-switch-key');
+ * const properties = await client.request({ path: '/papi/v1/properties' });
+ * ```
  */
 
 import * as fs from 'fs';
@@ -27,11 +41,16 @@ interface EdgeGridResponse {
 }
 
 export class AkamaiClient {
-  private edgeGrid: EdgeGrid;
-  private accountSwitchKey?: string;
-  private debug: boolean;
-  private section: string;
+  private edgeGrid: EdgeGrid;  // EdgeGrid SDK instance for auth
+  private accountSwitchKey?: string;  // Optional key for multi-customer support
+  private debug: boolean;  // Enable detailed logging when DEBUG=1
+  private section: string;  // Which section to use from .edgerc file
 
+  /**
+   * Initialize a new Akamai API client
+   * @param section - Section name from .edgerc file (default: 'default')
+   * @param accountSwitchKey - Optional key for accessing different customer accounts
+   */
   constructor(section = 'default', accountSwitchKey?: string) {
     this.section = section;
     const edgercPath = this.getEdgeRcPath();
@@ -75,6 +94,8 @@ export class AkamaiClient {
 
   /**
    * Get path to .edgerc file
+   * Checks EDGERC_PATH env var first, then defaults to ~/.edgerc
+   * @returns Absolute path to .edgerc file
    */
   private getEdgeRcPath(): string {
     // Check environment variable first
@@ -89,6 +110,16 @@ export class AkamaiClient {
 
   /**
    * Make authenticated request to Akamai API
+   * Handles EdgeGrid authentication, account switching, and error handling
+   * 
+   * @param options - Request configuration
+   * @param options.path - API endpoint path (e.g., '/papi/v1/properties')
+   * @param options.method - HTTP method (default: 'GET')
+   * @param options.body - Request body for POST/PUT/PATCH
+   * @param options.headers - Additional headers
+   * @param options.queryParams - URL query parameters
+   * @returns Parsed JSON response
+   * @throws AkamaiError for API errors
    */
   async request<T = unknown>(_options: {
     path: string;

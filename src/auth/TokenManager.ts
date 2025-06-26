@@ -1,6 +1,34 @@
 /**
  * Simple Token Authentication Manager for MCP Remote Access
  * Provides basic bearer token authentication without external IDPs
+ * 
+ * This is the recommended authentication method for ALECS MCP Server.
+ * It provides:
+ * - Secure token generation and storage
+ * - Token rotation capabilities
+ * - Expiration management
+ * - In-memory caching for performance
+ * - Encrypted storage on disk
+ * 
+ * Usage:
+ * 1. Set TOKEN_MASTER_KEY environment variable (or let it auto-generate)
+ * 2. Generate tokens using generateToken()
+ * 3. Validate tokens in requests using validateToken()
+ * 
+ * @example
+ * ```typescript
+ * const tokenManager = TokenManager.getInstance();
+ * const { token, tokenId } = await tokenManager.generateToken({
+ *   description: 'CI/CD Pipeline Token',
+ *   expiresInDays: 90
+ * });
+ * 
+ * // Later, validate the token
+ * const result = await tokenManager.validateToken(bearerToken);
+ * if (result.valid) {
+ *   // Token is valid, proceed with request
+ * }
+ * ```
  */
 
 import { createHash, randomBytes, createCipheriv, createDecipheriv, scrypt } from 'crypto';
@@ -55,7 +83,14 @@ export interface TokenRotationResult {
 
 /**
  * Simple token-based authentication manager
- * Uses SecureCredentialManager for secure token storage
+ * Uses AES-256-GCM encryption for secure token storage
+ * 
+ * Security features:
+ * - Tokens are never stored in plain text
+ * - SHA-256 hashing for token comparison
+ * - AES-256-GCM encryption for metadata storage
+ * - Automatic key derivation using scrypt
+ * - Secure random token generation
  */
 export class TokenManager {
   private static instance: TokenManager;
@@ -85,7 +120,9 @@ export class TokenManager {
   }
   
   /**
-   * Get singleton instance
+   * Get singleton instance of TokenManager
+   * Creates instance on first call, reuses afterwards
+   * @returns The TokenManager singleton instance
    */
   static getInstance(): TokenManager {
     if (!TokenManager.instance) {
@@ -96,6 +133,12 @@ export class TokenManager {
   
   /**
    * Generate a new API token
+   * Creates a cryptographically secure random token and stores its metadata
+   * 
+   * @param params - Token generation parameters
+   * @param params.description - Human-readable description of token purpose
+   * @param params.expiresInDays - Number of days until token expires (optional)
+   * @returns Generated token details (only time token is shown in plain text)
    */
   async generateToken(params: {
     description?: string;
