@@ -10,11 +10,8 @@ import { TransportConfig, getTransportFromEnv } from '../config/transport-config
 
 // Lazy load optional transports to avoid dependency errors
 let express: any;
-let WebSocketServer: any;
-let createHttpServer: any;
-let SSEServerTransport: any;
 let WebSocketServerTransport: any;
-let EnhancedWebSocketTransport: any;
+let SSEServerTransport: any;
 
 async function loadOptionalDependencies() {
   try {
@@ -31,8 +28,8 @@ async function loadOptionalDependencies() {
     const wsModule = await import('../transport/websocket-transport');
     WebSocketServerTransport = wsModule.WebSocketServerTransport;
     
-    const enhancedWsModule = await import('../transport/enhanced-websocket-transport');
-    EnhancedWebSocketTransport = enhancedWsModule.EnhancedWebSocketTransport;
+    const wsModule = await import('../transport/websocket-transport');
+    WebSocketServerTransport = wsModule.WebSocketServerTransport;
   } catch (error) {
     // Optional dependencies not available
   }
@@ -45,7 +42,7 @@ export async function createTransport(config: TransportConfig): Promise<any> {
       
     case 'websocket':
       await loadOptionalDependencies();
-      if (!EnhancedWebSocketTransport) {
+      if (!WebSocketServerTransport) {
         throw new Error('[ERROR] WebSocket transport requires ws. Install with: npm install ws');
       }
       
@@ -53,7 +50,7 @@ export async function createTransport(config: TransportConfig): Promise<any> {
       const wsHost = config.options.host || '0.0.0.0';
       const wsPath = config.options.path || '/mcp';
       
-      const wsTransport = new EnhancedWebSocketTransport({
+      const wsTransport = new WebSocketServerTransport({
         port: wsPort,
         host: wsHost,
         path: wsPath,

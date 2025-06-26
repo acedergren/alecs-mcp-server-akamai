@@ -4,7 +4,7 @@
  */
 
 import { ICache } from '../types/cache-interface';
-import { EnhancedSmartCache } from '../utils/enhanced-smart-cache';
+import { SmartCache } from '../utils/smart-cache';
 import { createExternalCache, isExternalCacheAvailable } from './external-cache-loader';
 import { logger } from '../utils/logger';
 
@@ -68,7 +68,7 @@ export class CacheFactory {
   }
 
   private static createSmartCache(options?: any): ICache {
-    const smartCache = new EnhancedSmartCache({
+    const smartCache = new SmartCache({
       maxSize: options?.maxSize || parseInt(process.env.CACHE_MAX_SIZE || '10000'),
       maxMemoryMB: options?.maxMemoryMB || parseInt(process.env.CACHE_MAX_MEMORY_MB || '100'),
       defaultTTL: options?.defaultTTL || parseInt(process.env.CACHE_DEFAULT_TTL || '300'),

@@ -1,6 +1,6 @@
 /**
- * Enhanced Smart Cache - In-Memory LRU Cache with Advanced Features
- * Drop-in replacement for ValkeyCache with zero external dependencies
+ * Smart Cache - In-Memory LRU Cache with Advanced Features
+ * Drop-in replacement for external cache with zero external dependencies
  */
 
 import { EventEmitter } from 'events';
@@ -58,7 +58,7 @@ interface PendingRequest<T> {
   }>;
 }
 
-export class EnhancedSmartCache<T = any> extends EventEmitter {
+export class SmartCache<T = any> extends EventEmitter {
   private cache: Map<string, CacheEntry<T>> = new Map();
   private keysByPattern: Map<string, Set<string>> = new Map();
   private refreshingKeys: Set<string> = new Set();
