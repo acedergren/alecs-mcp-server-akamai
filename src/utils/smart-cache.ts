@@ -86,6 +86,8 @@ export interface SmartCacheOptions {
   adaptiveTTL?: boolean;         // Adjust TTL based on update patterns (default: true)
   requestCoalescing?: boolean;   // Merge duplicate in-flight requests (default: true)
   enableCircuitBreaker?: boolean; // Use circuit breaker for fetch operations (default: true)
+  enableSegmentation?: boolean;  // Enable cache segmentation (default: true)
+  segmentSize?: number;          // Max entries per segment (default: 1000)
 }
 
 interface PendingRequest<T> {
@@ -100,8 +102,19 @@ interface PendingRequest<T> {
  * High-performance in-memory cache with advanced features
  * @extends EventEmitter - Emits 'hit', 'miss', 'eviction', 'error' events
  */
+/**
+ * Cache segment for organizing entries
+ */
+interface CacheSegment<T> {
+  entries: Map<string, CacheEntry<T>>;
+  accessCount: number;
+  lastAccessed: number;
+}
+
 export class SmartCache<T = any> extends EventEmitter {
   private cache: Map<string, CacheEntry<T>> = new Map();              // Main cache storage
+  private segments: Map<string, CacheSegment<T>> = new Map();         // Segmented cache storage
+  private keyToSegment: Map<string, string> = new Map();              // Key to segment mapping
   private keysByPattern: Map<string, Set<string>> = new Map();        // Track keys by patterns
   private refreshingKeys: Set<string> = new Set();                    // Keys being refreshed
   private pendingRequests: Map<string, PendingRequest<T>> = new Map(); // Request coalescing
@@ -138,6 +151,8 @@ export class SmartCache<T = any> extends EventEmitter {
       adaptiveTTL: options.adaptiveTTL !== false,
       requestCoalescing: options.requestCoalescing !== false,
       enableCircuitBreaker: options.enableCircuitBreaker !== false,
+      enableSegmentation: options.enableSegmentation !== false,
+      segmentSize: options.segmentSize || 1000,
     };
     
     // Initialize bloom filter for negative cache
@@ -183,7 +198,7 @@ export class SmartCache<T = any> extends EventEmitter {
       }
     }
     
-    const entry = this.cache.get(key);
+    const entry = this.options.enableSegmentation ? this.getFromSegment(key) : this.cache.get(key);
     
     if (!entry) {
       this.metrics.misses++;
@@ -279,7 +294,11 @@ export class SmartCache<T = any> extends EventEmitter {
         lastUpdateInterval,
       };
       
-      this.cache.set(key, entry as unknown as CacheEntry<T>);
+      if (this.options.enableSegmentation) {
+        this.setInSegment(key, entry as unknown as CacheEntry<T>);
+      } else {
+        this.cache.set(key, entry as unknown as CacheEntry<T>);
+      }
       this.addToPatterns(key);
       this.updateMetrics();
       
@@ -303,7 +322,22 @@ export class SmartCache<T = any> extends EventEmitter {
     let deleted = 0;
     
     for (const key of keysArray) {
-      if (this.cache.delete(key)) {
+      let wasDeleted = false;
+      
+      if (this.options.enableSegmentation) {
+        const segmentName = this.keyToSegment.get(key);
+        if (segmentName) {
+          const segment = this.segments.get(segmentName);
+          if (segment && segment.entries.delete(key)) {
+            this.keyToSegment.delete(key);
+            wasDeleted = true;
+          }
+        }
+      } else {
+        wasDeleted = this.cache.delete(key);
+      }
+      
+      if (wasDeleted) {
         this.removeFromPatterns(key);
         deleted++;
         this.emit('delete', key);
@@ -642,11 +676,23 @@ export class SmartCache<T = any> extends EventEmitter {
   }
 
   private updateMetrics(): void {
-    this.metrics.totalEntries = this.cache.size;
-    this.metrics.memoryUsage = 0;
-    
-    for (const entry of Array.from(this.cache.values())) {
-      this.metrics.memoryUsage += entry.size || 0;
+    if (this.options.enableSegmentation) {
+      this.metrics.totalEntries = 0;
+      this.metrics.memoryUsage = 0;
+      
+      for (const segment of this.segments.values()) {
+        this.metrics.totalEntries += segment.entries.size;
+        for (const entry of segment.entries.values()) {
+          this.metrics.memoryUsage += entry.size || 0;
+        }
+      }
+    } else {
+      this.metrics.totalEntries = this.cache.size;
+      this.metrics.memoryUsage = 0;
+      
+      for (const entry of Array.from(this.cache.values())) {
+        this.metrics.memoryUsage += entry.size || 0;
+      }
     }
     
     this.updateHitRate();
@@ -709,7 +755,96 @@ export class SmartCache<T = any> extends EventEmitter {
       stats.circuitBreaker = this.circuitBreaker.getStatus();
     }
     
+    // Add segmentation stats if enabled
+    if (this.options.enableSegmentation) {
+      stats.segments = {
+        count: this.segments.size,
+        details: Array.from(this.segments.entries()).map(([name, segment]) => ({
+          name,
+          entries: segment.entries.size,
+          accessCount: segment.accessCount,
+          lastAccessed: segment.lastAccessed
+        })).sort((a, b) => b.accessCount - a.accessCount).slice(0, 10) // Top 10 segments
+      };
+    }
+    
     return stats;
+  }
+
+  /**
+   * Get segment name for a key
+   */
+  private getSegmentName(key: string): string {
+    // Use first part of key as segment (e.g., "property:123" -> "property")
+    const parts = key.split(':');
+    return parts[0] || 'default';
+  }
+  
+  /**
+   * Get entry from segmented cache
+   */
+  private getFromSegment(key: string): CacheEntry<T> | undefined {
+    const segmentName = this.keyToSegment.get(key);
+    if (!segmentName) return undefined;
+    
+    const segment = this.segments.get(segmentName);
+    if (!segment) return undefined;
+    
+    // Update segment access stats
+    segment.accessCount++;
+    segment.lastAccessed = Date.now();
+    
+    return segment.entries.get(key);
+  }
+  
+  /**
+   * Set entry in segmented cache
+   */
+  private setInSegment(key: string, entry: CacheEntry<T>): void {
+    const segmentName = this.getSegmentName(key);
+    
+    // Get or create segment
+    let segment = this.segments.get(segmentName);
+    if (!segment) {
+      segment = {
+        entries: new Map(),
+        accessCount: 0,
+        lastAccessed: Date.now()
+      };
+      this.segments.set(segmentName, segment);
+    }
+    
+    // Check segment size limit
+    if (segment.entries.size >= this.options.segmentSize) {
+      this.evictFromSegment(segment);
+    }
+    
+    segment.entries.set(key, entry);
+    this.keyToSegment.set(key, segmentName);
+  }
+  
+  /**
+   * Evict from a specific segment
+   */
+  private evictFromSegment(segment: CacheSegment<T>): void {
+    let keyToEvict: string | null = null;
+    let oldestTime = Date.now();
+    
+    // Find LRU key in segment
+    for (const [key, entry] of segment.entries) {
+      if (entry.lastAccessed < oldestTime) {
+        oldestTime = entry.lastAccessed;
+        keyToEvict = key;
+      }
+    }
+    
+    if (keyToEvict) {
+      segment.entries.delete(keyToEvict);
+      this.keyToSegment.delete(keyToEvict);
+      this.removeFromPatterns(keyToEvict);
+      this.metrics.evictions++;
+      this.emit('evict', keyToEvict);
+    }
   }
 
   /**
