@@ -5,9 +5,7 @@
  * 
  * Usage:
  * - Default (stdio for Claude Desktop): npm start
- * - HTTP API: MCP_TRANSPORT=http npm start
- * - WebSocket: MCP_TRANSPORT=websocket npm start
- * - SSE: MCP_TRANSPORT=sse npm start
+ * - Remote (SSE/Streamable HTTP): MCP_TRANSPORT=sse npm start
  * - Specific module: npm start:property
  */
 
