@@ -1,6 +1,6 @@
-import { EdgeGridClient } from '@utils/edgegrid-client';
-import { logger } from '@utils/logger';
-import { PerformanceMonitor } from '@utils/performance-monitor';
+import { EdgeGridClient } from '../utils/edgegrid-client';
+import { logger } from '../utils/logger';
+import { PerformanceMonitor } from '../utils/performance-monitor';
 
 export interface TrafficPattern {
   type: 'peak' | 'valley' | 'spike' | 'trend' | 'seasonality';

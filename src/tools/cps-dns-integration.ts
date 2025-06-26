@@ -3,7 +3,7 @@
  * Automatically creates ACME validation records in EdgeDNS
  */
 
-import { ProgressBar, Spinner } from '@utils/progress';
+import { ProgressBar, Spinner } from '../utils/progress';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

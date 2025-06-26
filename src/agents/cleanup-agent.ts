@@ -15,7 +15,7 @@ import * as path from 'path';
 import { stdin as input, stdout as output } from 'process';
 import * as readline from 'readline/promises';
 
-import { ProgressBar, Spinner } from '@utils/progress';
+import { ProgressBar, Spinner } from '../utils/progress';
 
 interface FileInfo {
   path: string;

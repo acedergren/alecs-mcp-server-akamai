@@ -3,7 +3,7 @@
  * This version provides detailed error information and step-by-step feedback
  */
 
-import { selectBestProduct, formatProductDisplay } from '@utils/product-mapping';
+import { selectBestProduct, formatProductDisplay } from '../utils/product-mapping';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

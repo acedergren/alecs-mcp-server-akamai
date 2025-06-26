@@ -6,9 +6,9 @@
 import {
   type CDNProvisioningAgent,
   createCDNProvisioningAgent,
-} from '@agents/cdn-provisioning.agent';
-import { type CPSCertificateAgent, createCPSCertificateAgent } from '@agents/cps-certificate.agent';
-import { type DNSMigrationAgent, createDNSMigrationAgent } from '@agents/dns-migration.agent';
+} from '../agents/cdn-provisioning.agent';
+import { type CPSCertificateAgent, createCPSCertificateAgent } from '../agents/cps-certificate.agent';
+import { type DNSMigrationAgent, createDNSMigrationAgent } from '../agents/dns-migration.agent';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type AkamaiOrchestrator, createOrchestrator } from '../orchestration/index';

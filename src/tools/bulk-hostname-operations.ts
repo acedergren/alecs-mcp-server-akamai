@@ -3,7 +3,7 @@
  * Handles bulk hostname provisioning, DNS validation, and property assignment
  */
 
-import { ErrorTranslator } from '@utils/errors';
+import { ErrorTranslator } from '../utils/errors';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

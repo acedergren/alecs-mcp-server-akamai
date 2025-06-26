@@ -3,7 +3,7 @@
  * Comprehensive version management including comparison, metadata, batch operations, and rollback
  */
 
-import { ErrorTranslator } from '@utils/errors';
+import { ErrorTranslator } from '../utils/errors';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

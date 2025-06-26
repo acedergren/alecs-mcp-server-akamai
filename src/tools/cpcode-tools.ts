@@ -9,12 +9,12 @@ import {
   formatGroupDisplay,
   formatCPCodeDisplay,
   ensurePrefix,
-} from '@utils/formatting';
+} from '../utils/formatting';
 import {
   getProductFriendlyName,
   formatProductDisplay,
   selectBestProduct,
-} from '@utils/product-mapping';
+} from '../utils/product-mapping';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

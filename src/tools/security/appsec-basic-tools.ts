@@ -4,9 +4,9 @@
  * Essential WAF policy management and security configuration tools.
  */
 
-import { getCustomerConfig, hasCustomer } from '@utils/customer-config';
-import { formatJson, formatTable } from '@utils/formatting';
-import { ResilienceManager, OperationType } from '@utils/resilience-manager';
+import { getCustomerConfig, hasCustomer } from '../../utils/customer-config';
+import { formatJson, formatTable } from '../../utils/formatting';
+import { ResilienceManager, OperationType } from '../../utils/resilience-manager';
 import { z } from 'zod';
 
 import { AkamaiClient } from '../../akamai-client';

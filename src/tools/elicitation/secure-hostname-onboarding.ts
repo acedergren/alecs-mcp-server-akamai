@@ -11,10 +11,10 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import { getAkamaiClient } from '@utils/auth';
-import { logger } from '@utils/logger';
-import { Spinner, format, icons } from '@utils/progress';
-import { selectBestProduct } from '@utils/product-mapping';
+import { getAkamaiClient } from '../../utils/auth';
+import { logger } from '../../utils/logger';
+import { Spinner, format, icons } from '../../utils/progress';
+import { selectBestProduct } from '../../utils/product-mapping';
 import type { AkamaiClient } from '../../akamai-client';
 import type { MCPToolResponse } from '../../types';
 

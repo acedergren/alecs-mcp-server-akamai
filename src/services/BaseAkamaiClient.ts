@@ -2,7 +2,7 @@
  * Base Akamai API client with TypeScript generics and comprehensive error handling
  */
 
-import { logger } from '@utils/logger';
+import { logger } from '../utils/logger';
 import { z, type ZodSchema } from 'zod';
 
 import {

@@ -3,7 +3,7 @@
  * Comprehensive rule validation, templates, optimization, and analysis
  */
 
-import { ErrorTranslator } from '@utils/errors';
+import { ErrorTranslator } from '../utils/errors';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

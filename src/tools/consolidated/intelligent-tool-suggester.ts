@@ -5,7 +5,7 @@
  * based on user intent, context, and business goals.
  */
 
-import { logger } from '@utils/logger';
+import { logger } from '../../utils/logger';
 
 export interface ToolSuggestion {
   tool: string;

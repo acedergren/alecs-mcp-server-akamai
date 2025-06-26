@@ -3,8 +3,8 @@
  * Dramatically improved performance through smart caching
  */
 
-import { AkamaiCacheService } from '@services/akamai-cache-service';
-import { handleApiError } from '@utils/error-handling';
+import { AkamaiCacheService } from '../services/akamai-cache-service';
+import { handleApiError } from '../utils/error-handling';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

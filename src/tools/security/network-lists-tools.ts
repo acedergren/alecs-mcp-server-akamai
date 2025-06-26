@@ -4,7 +4,7 @@
  * Supports whitelisting, blacklisting, geo-blocking, and security policy integration
  */
 
-import { formatContractDisplay, formatGroupDisplay, ensurePrefix } from '@utils/formatting';
+import { formatContractDisplay, formatGroupDisplay, ensurePrefix } from '../../utils/formatting';
 
 import { AkamaiClient } from '../../akamai-client';
 import {

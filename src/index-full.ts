@@ -5,10 +5,6 @@
  * Complete implementation with all available tools
  * MCP June 2025 compliant
  */
-
-// Register module aliases before any other imports
-import 'module-alias/register';
-
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';

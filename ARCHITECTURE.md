@@ -15,16 +15,10 @@ ALECS (Akamai Legacy Edge Configuration Server) uses a modular architecture that
 
 ```
 src/
-├── index.ts                 # Main entry point (interactive launcher)
-├── index-unified.ts         # Unified transport handler
-├── index-full.ts           # Full server implementation
+├── index.ts                # Main entry point (streamlined)
+├── index-full.ts          # Full server implementation
 ├── config/
-│   └── transport-config.ts  # Transport configuration
-├── launchers/              # Transport-specific launchers
-│   ├── stdio.ts           # Claude Desktop (stdio)
-│   ├── http.ts            # HTTP REST API
-│   ├── websocket.ts       # WebSocket
-│   └── sse.ts             # Server-Sent Events
+│   └── transport-config.ts # Transport configuration
 ├── servers/               # Modular service implementations
 │   ├── property-server.ts # Property management
 │   ├── dns-server.ts      # DNS management
@@ -87,14 +81,7 @@ SSE_PATH=/mcp/sse
 
 ## Usage Examples
 
-### Interactive Mode (Default)
-```bash
-npm start
-# or
-node dist/index.js
-```
-
-### Direct Transport Launch
+### Default Mode (stdio for Claude Desktop)
 ```bash
 # Standard I/O (Claude Desktop)
 MCP_TRANSPORT=stdio npm start
@@ -109,19 +96,19 @@ MCP_TRANSPORT=websocket WS_PORT=8080 npm start
 MCP_TRANSPORT=sse SSE_PORT=3001 npm start
 ```
 
-### Using Transport Launchers
+### Environment-Based Transport Selection
 ```bash
-# Claude Desktop
-node dist/launchers/stdio.js
+# Default (stdio)
+npm start
 
-# HTTP API
-node dist/launchers/http.js
+# HTTP
+MCP_TRANSPORT=http npm start
 
-# WebSocket
-node dist/launchers/websocket.js
+# WebSocket  
+MCP_TRANSPORT=websocket npm start
 
 # SSE
-node dist/launchers/sse.js
+MCP_TRANSPORT=sse npm start
 ```
 
 ### Modular Servers

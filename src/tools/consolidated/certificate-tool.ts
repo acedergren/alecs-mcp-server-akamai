@@ -13,7 +13,7 @@
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import { logger } from '@utils/logger';
+import { logger } from '../../utils/logger';
 
 // Stub implementation - would be imported from actual utils
 async function getAkamaiClient(customer?: string): Promise<any> {

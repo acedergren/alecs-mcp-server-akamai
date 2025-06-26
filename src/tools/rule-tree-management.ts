@@ -3,7 +3,7 @@
  * Provides comprehensive rule tree manipulation, validation, and optimization capabilities
  */
 
-import { logger } from '@utils/logger';
+import { logger } from '../utils/logger';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

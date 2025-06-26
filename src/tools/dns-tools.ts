@@ -5,7 +5,7 @@
 
 import { createHash } from 'crypto';
 
-import { Spinner, format, icons } from '@utils/progress';
+import { Spinner, format, icons } from '../utils/progress';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

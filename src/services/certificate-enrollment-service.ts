@@ -3,7 +3,7 @@
  * Comprehensive service for managing certificate enrollment lifecycle with DefaultDV focus
  */
 
-import { PerformanceMonitor } from '@utils/performance-monitor';
+import { PerformanceMonitor } from '../utils/performance-monitor';
 
 import { type AkamaiClient } from '../akamai-client';
 import {

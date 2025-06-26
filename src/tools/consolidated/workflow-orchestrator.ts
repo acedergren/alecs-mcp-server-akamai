@@ -13,7 +13,7 @@ import {
   handleSearchTool,
   handleDeployTool,
 } from './index';
-import { logger } from '@utils/logger';
+import { logger } from '../../utils/logger';
 
 /**
  * Workflow Orchestrator

@@ -8,17 +8,17 @@ import {
   formatGroupDisplay,
   formatPropertyDisplay,
   ensurePrefix,
-} from '@utils/formatting';
+} from '../utils/formatting';
 import {
   validateParameters,
   PropertyManagerSchemas,
   formatQueryParameters,
   ensureAkamaiIdFormat,
-} from '@utils/parameter-validation';
-import { formatProductDisplay } from '@utils/product-mapping';
-import { parseAkamaiResponse } from '@utils/response-parsing';
-import { withToolErrorHandling, type ErrorContext } from '@utils/tool-error-handling';
-import { type TreeNode, renderTree, generateTreeSummary, formatGroupNode } from '@utils/tree-view';
+} from '../utils/parameter-validation';
+import { formatProductDisplay } from '../utils/product-mapping';
+import { parseAkamaiResponse } from '../utils/response-parsing';
+import { withToolErrorHandling, type ErrorContext } from '../utils/tool-error-handling';
+import { type TreeNode, renderTree, generateTreeSummary, formatGroupNode } from '../utils/tree-view';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse, type Property } from '../types';

@@ -14,7 +14,7 @@ import { EventEmitter } from 'events';
 import { createServer, Server as HttpServer } from 'http';
 import { createServer as createHttpsServer, Server as HttpsServer } from 'https';
 import { readFileSync } from 'fs';
-import { logger } from '@utils/logger';
+import { logger } from '../utils/logger';
 
 interface SSETransportOptions {
   port: number;

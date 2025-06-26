@@ -3,7 +3,7 @@
  * Critical for production deployments and preventing activation failures
  */
 
-import { handleApiError } from '@utils/error-handling';
+import { handleApiError } from '../utils/error-handling';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

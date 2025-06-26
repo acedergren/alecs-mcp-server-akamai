@@ -1,4 +1,4 @@
-import { ProgressBar, Spinner, MultiProgress, format, icons, trackProgress } from '@utils/progress';
+import { ProgressBar, Spinner, MultiProgress, format, icons, trackProgress } from '../utils/progress';
 
 import { EdgeGridAuth } from '../auth/EdgeGridAuth';
 

@@ -3,7 +3,7 @@
  * One tool to search everything in Akamai with an impressive UX
  */
 
-import { handleApiError } from '@utils/error-handling';
+import { handleApiError } from '../utils/error-handling';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
