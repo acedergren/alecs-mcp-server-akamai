@@ -21,6 +21,7 @@ import {
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z, type ZodSchema } from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 import {
   // listZones,
@@ -342,58 +343,19 @@ export class ALECSServer {
    * Convert tool metadata to MCP tool format
    */
   private toolMetadataToMcpTool(metadata: McpToolMetadata): Tool {
-    const zodSchemaToJsonSchema = (schema: ZodSchema): any => {
-      // This is a simplified conversion - in production, use a proper converter
-      const shape = (schema as any)._def?.shape?.() || {};
-      const properties: Record<string, any> = {};
-      const required: string[] = [];
-
-      for (const [key, value] of Object.entries(shape)) {
-        const zodType = (value as any)._def?.typeName;
-
-        properties[key] = {
-          type: this.zodTypeToJsonType(zodType),
-          description: (value as any)._def?.description,
-        };
-
-        if (!(value as any).isOptional()) {
-          required.push(key);
-        }
-      }
-
-      return {
-        type: 'object',
-        properties,
-        required: required.length > 0 ? required : undefined,
-      };
-    };
+    // Use the proper zod-to-json-schema converter for MCP compliance
+    const jsonSchema = zodToJsonSchema(metadata.inputSchema, {
+      target: 'jsonSchema7',  // Ensure JSON Schema Draft 7 compliance
+      $refStrategy: 'none',   // Avoid $ref for simpler schemas
+    }) as any;
 
     return {
       name: metadata.name,
       description: metadata.description,
-      inputSchema: zodSchemaToJsonSchema(metadata.inputSchema),
+      inputSchema: jsonSchema,
     };
   }
 
-  /**
-   * Convert Zod type to JSON Schema type
-   */
-  private zodTypeToJsonType(zodType: string): string {
-    switch (zodType) {
-      case 'ZodString':
-        return 'string';
-      case 'ZodNumber':
-        return 'number';
-      case 'ZodBoolean':
-        return 'boolean';
-      case 'ZodArray':
-        return 'array';
-      case 'ZodObject':
-        return 'object';
-      default:
-        return 'string';
-    }
-  }
 
   /**
    * Setup MCP request handlers

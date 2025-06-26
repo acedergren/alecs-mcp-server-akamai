@@ -23,6 +23,7 @@ import {
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z, type ZodSchema } from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 import { ConfigurationError, ConfigErrorType } from './types/config';
 import { type BaseMcpParams, type McpToolResponse, type McpToolMetadata } from './types/mcp';
@@ -64,79 +65,7 @@ interface ServerConfig {
   };
 }
 
-/**
- * Convert Zod schema to JSON Schema for MCP 2025 compliance
- */
-function zodToJsonSchema(schema: ZodSchema): any {
-  const zodDef = (schema as any)._def;
 
-  if (zodDef.typeName === 'ZodObject') {
-    const shape = zodDef.shape() || {};
-    const properties: Record<string, any> = {};
-    const required: string[] = [];
-
-    for (const [key, value] of Object.entries(shape)) {
-      const fieldSchema = value as any;
-      const fieldDef = fieldSchema._def;
-
-      // Get description
-      const description = fieldDef.description;
-
-      // Determine type
-      let type = 'string';
-      if (fieldDef.typeName === 'ZodNumber') {
-        type = 'number';
-      } else if (fieldDef.typeName === 'ZodBoolean') {
-        type = 'boolean';
-      } else if (fieldDef.typeName === 'ZodArray') {
-        type = 'array';
-      } else if (fieldDef.typeName === 'ZodObject') {
-        type = 'object';
-      } else if (fieldDef.typeName === 'ZodEnum') {
-        properties[key] = {
-          type: 'string',
-          enum: fieldDef.values,
-          description,
-        };
-        if (!fieldSchema.isOptional()) {
-          required.push(key);
-        }
-        continue;
-      }
-
-      properties[key] = {
-        type,
-        description,
-      };
-
-      // Handle arrays
-      if (fieldDef.typeName === 'ZodArray') {
-        const innerType = fieldDef.type._def.typeName;
-        if (innerType === 'ZodString') {
-          properties[key].items = { type: 'string' };
-        } else if (innerType === 'ZodNumber') {
-          properties[key].items = { type: 'number' };
-        } else if (innerType === 'ZodObject') {
-          properties[key].items = { type: 'object' };
-        }
-      }
-
-      // Check if required
-      if (!fieldSchema.isOptional()) {
-        required.push(key);
-      }
-    }
-
-    return {
-      type: 'object',
-      properties,
-      required: required.length > 0 ? required : undefined,
-      additionalProperties: false,
-    };
-  }
-
-  return { type: 'string' };
-}
 
 /**
  * Main ALECS MCP Server implementation (Full Version)
@@ -376,10 +305,16 @@ export class ALECSFullServer {
    * Convert tool metadata to MCP tool format with MCP 2025 compliance
    */
   private toolMetadataToMcpTool(metadata: McpToolMetadata): Tool {
+    // Use the proper zod-to-json-schema converter for MCP compliance
+    const jsonSchema = zodToJsonSchema(metadata.inputSchema, {
+      target: 'jsonSchema7',  // Ensure JSON Schema Draft 7 compliance
+      $refStrategy: 'none',   // Avoid $ref for simpler schemas
+    }) as any;
+
     return {
       name: metadata.name,
       description: metadata.description,
-      inputSchema: zodToJsonSchema(metadata.inputSchema),
+      inputSchema: jsonSchema,
     };
   }
 
