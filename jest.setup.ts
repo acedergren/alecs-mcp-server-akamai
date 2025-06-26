@@ -4,6 +4,7 @@
  */
 
 import { TextEncoder, TextDecoder } from 'util';
+import { beforeAll, afterAll, jest } from '@jest/globals';
 
 // Set test environment
 process.env.NODE_ENV = 'test';

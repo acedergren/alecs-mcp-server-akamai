@@ -37,6 +37,7 @@ import * as zlib from 'zlib';
 import { promisify } from 'util';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { BloomFilter } from './bloom-filter';
 
 const gzip = promisify(zlib.gzip);
 const gunzip = promisify(zlib.gunzip);
@@ -103,6 +104,7 @@ export class SmartCache<T = any> extends EventEmitter {
   private refreshingKeys: Set<string> = new Set();                    // Keys being refreshed
   private pendingRequests: Map<string, PendingRequest<T>> = new Map(); // Request coalescing
   private negativeCache: Set<string> = new Set();                     // Track non-existent keys
+  private negativeCacheBloom: BloomFilter;                            // Bloom filter for negative cache
   private metrics: CacheMetrics = {
     hits: 0,
     misses: 0,
@@ -134,6 +136,10 @@ export class SmartCache<T = any> extends EventEmitter {
       requestCoalescing: options.requestCoalescing !== false,
     };
     
+    // Initialize bloom filter for negative cache
+    // Size for expected 10k non-existent keys with 1% false positive rate
+    this.negativeCacheBloom = new BloomFilter(10000, 0.01);
+    
     // Start cleanup interval
     this.cleanupInterval = setInterval(() => {
       this.cleanup();
@@ -153,11 +159,14 @@ export class SmartCache<T = any> extends EventEmitter {
    * Get value from cache (async for compatibility)
    */
   async get<V = T>(key: string): Promise<V | null> {
-    // Check negative cache first
-    if (this.negativeCache.has(key)) {
-      this.metrics.hits++; // Negative hit is still a hit
-      this.updateHitRate();
-      return null;
+    // Check bloom filter first for negative cache
+    if (this.negativeCacheBloom.has(key)) {
+      // Might be in negative cache, verify with actual set
+      if (this.negativeCache.has(key)) {
+        this.metrics.hits++; // Negative hit is still a hit
+        this.updateHitRate();
+        return null;
+      }
     }
     
     const entry = this.cache.get(key);
@@ -348,12 +357,18 @@ export class SmartCache<T = any> extends EventEmitter {
     
     // Fetch with request coalescing
     if (this.options.requestCoalescing) {
-      const pendingRequest: PendingRequest<V> = {
-        promise: fetchFn(),
-        callbacks: [],
-      };
+      // Check if we're already fetching this key
+      if (!this.pendingRequests.has(key)) {
+        // Create new pending request
+        const pendingRequest: PendingRequest<V> = {
+          promise: fetchFn(),
+          callbacks: [],
+        };
+        
+        this.pendingRequests.set(key, pendingRequest as any);
+      }
       
-      this.pendingRequests.set(key, pendingRequest as any);
+      const pendingRequest = this.pendingRequests.get(key)!;
       
       try {
         const result = await pendingRequest.promise;
@@ -371,8 +386,9 @@ export class SmartCache<T = any> extends EventEmitter {
           reject(error);
         }
         
-        // Add to negative cache
+        // Add to negative cache with bloom filter
         this.negativeCache.add(key);
+        this.negativeCacheBloom.add(key);
         setTimeout(() => this.negativeCache.delete(key), 60000); // Clear after 1 min
         
         if (cached) return cached; // Return stale on error
@@ -432,6 +448,22 @@ export class SmartCache<T = any> extends EventEmitter {
    */
   getMetrics(): CacheMetrics {
     return { ...this.metrics };
+  }
+
+  /**
+   * Batch get multiple keys
+   */
+  async mget<V = T>(keys: string[]): Promise<Map<string, V>> {
+    const result = new Map<string, V>();
+    
+    for (const key of keys) {
+      const value = await this.get<V>(key);
+      if (value !== null) {
+        result.set(key, value);
+      }
+    }
+    
+    return result;
   }
 
   /**

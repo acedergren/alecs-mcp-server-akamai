@@ -14,9 +14,6 @@ import { AkamaiClient } from '../../src/akamai-client';
 
 // Mock the AkamaiClient
 jest.mock('../../src/akamai-client');
-jest.mock('@ai-sdk/openai', () => ({
-  openai: jest.fn(() => 'mock-model')
-}));
 
 describe('MCP Evaluation Suite', () => {
   let server: ALECSFullServer;
@@ -38,6 +35,7 @@ describe('MCP Evaluation Suite', () => {
   });
   
   afterAll(() => {
+    // @ts-ignore
     delete global.evalServer;
     jest.restoreAllMocks();
   });
