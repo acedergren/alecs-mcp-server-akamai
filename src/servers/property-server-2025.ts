@@ -56,7 +56,7 @@ class PropertyALECSServer2025 {
   private tools: Map<string, Mcp2025ToolDefinition> = new Map();
 
   constructor() {
-    log('INFO', '🏢 ALECS Property Server 2025 starting...');
+    log('INFO', '[EMOJI] ALECS Property Server 2025 starting...');
 
     this.server = new Server(
       {
@@ -74,7 +74,7 @@ class PropertyALECSServer2025 {
     this.registerTools();
     this.setupHandlers();
 
-    log('INFO', `✅ Server initialized with ${this.tools.size} tools`);
+    log('INFO', `[DONE] Server initialized with ${this.tools.size} tools`);
   }
 
   private registerTools() {
@@ -367,7 +367,7 @@ class PropertyALECSServer2025 {
     log('INFO', 'Starting server transport...');
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    log('INFO', '🚀 Property Server 2025 is running');
+    log('INFO', '[DEPLOY] Property Server 2025 is running');
   }
 }
 

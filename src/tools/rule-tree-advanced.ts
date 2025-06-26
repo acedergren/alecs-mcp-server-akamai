@@ -198,7 +198,7 @@ export async function validateRuleTree(
       responseText += `**Property:** ${propertyName} (${args.propertyId})\n`;
       responseText += `**Version:** ${version}\n`;
     }
-    responseText += `**Validation Result:** ${validation.valid ? '✅ VALID' : '❌ INVALID'}\n\n`;
+    responseText += `**Validation Result:** ${validation.valid ? '[DONE] VALID' : '[ERROR] INVALID'}\n\n`;
 
     // Statistics
     if (args.includeStatistics) {
@@ -213,7 +213,7 @@ export async function validateRuleTree(
 
     // Errors
     if (validation.errors.length > 0) {
-      responseText += `## ❌ Errors (${validation.errors.length})\n`;
+      responseText += `## [ERROR] Errors (${validation.errors.length})\n`;
       validation.errors.forEach((_error, idx) => {
         responseText += `${idx + 1}. **${_error.severity}** at \`${_error.path}\`\n`;
         responseText += `   - ${_error.message}\n`;
@@ -226,7 +226,7 @@ export async function validateRuleTree(
 
     // Warnings
     if (validation.warnings.length > 0) {
-      responseText += `## ⚠️ Warnings (${validation.warnings.length})\n`;
+      responseText += `## [WARNING] Warnings (${validation.warnings.length})\n`;
       validation.warnings.forEach((warning, idx) => {
         responseText += `${idx + 1}. **${warning.severity}** at \`${warning.path}\`\n`;
         responseText += `   - ${warning.message}\n`;
@@ -239,16 +239,16 @@ export async function validateRuleTree(
 
     // Optimization suggestions
     if (validation.suggestions.length > 0) {
-      responseText += `## 💡 Optimization Suggestions (${validation.suggestions.length})\n`;
+      responseText += `## [INFO] Optimization Suggestions (${validation.suggestions.length})\n`;
       validation.suggestions.forEach((suggestion, idx) => {
         const icon =
           suggestion.type === 'PERFORMANCE'
-            ? '🚀'
+            ? '[DEPLOY]'
             : suggestion.type === 'SECURITY'
-              ? '🔒'
+              ? '[SECURE]'
               : suggestion.type === 'COST'
-                ? '💰'
-                : '✨';
+                ? '[EMOJI]'
+                : '[FEATURE]';
         responseText += `${idx + 1}. ${icon} **${suggestion.type}** - ${suggestion.impact}\n`;
         responseText += `   - **Path:** \`${suggestion.path}\`\n`;
         responseText += `   - **Effort:** ${suggestion.effort}\n`;
@@ -267,7 +267,7 @@ export async function validateRuleTree(
       responseText += '1. Review warnings and apply recommendations\n';
       responseText += '2. Consider optimization suggestions\n';
     } else {
-      responseText += '✅ Rule tree is valid and ready for use\n';
+      responseText += '[DONE] Rule tree is valid and ready for use\n';
     }
 
     return {
@@ -323,7 +323,7 @@ export async function createRuleTreeFromTemplate(
         content: [
           {
             type: 'text',
-            text: `❌ Template variable validation failed:\n\n${validationErrors.map((e) => `- ${e}`).join('\n')}`,
+            text: `[ERROR] Template variable validation failed:\n\n${validationErrors.map((e) => `- ${e}`).join('\n')}`,
           },
         ],
       };
@@ -345,12 +345,12 @@ export async function createRuleTreeFromTemplate(
       });
 
       const validationText = validationResult.content[0]?.text || '';
-      if (validationText.includes('❌ INVALID')) {
+      if (validationText.includes('[ERROR] INVALID')) {
         return {
           content: [
             {
               type: 'text',
-              text: `❌ Template generated invalid rule tree:\n\n${validationText}`,
+              text: `[ERROR] Template generated invalid rule tree:\n\n${validationText}`,
             },
           ],
         };
@@ -370,7 +370,7 @@ export async function createRuleTreeFromTemplate(
           content: [
             {
               type: 'text',
-              text: `❌ Failed to apply template:\n\n${updateResponse.errors.map((_e: any) => `- ${_e.detail}`).join('\n')}`,
+              text: `[ERROR] Failed to apply template:\n\n${updateResponse.errors.map((_e: any) => `- ${_e.detail}`).join('\n')}`,
             },
           ],
         };
@@ -393,7 +393,7 @@ export async function createRuleTreeFromTemplate(
 
     if (args.propertyId && args.version) {
       responseText += '## Property Updated\n';
-      responseText += `✅ Successfully applied template to property ${args.propertyId} version ${args.version}\n\n`;
+      responseText += `[DONE] Successfully applied template to property ${args.propertyId} version ${args.version}\n\n`;
     } else {
       responseText += '## Generated Rule Tree\n';
       responseText += `\`\`\`json\n${JSON.stringify(rules, null, 2)}\n\`\`\`\n\n`;
@@ -495,7 +495,7 @@ export async function analyzeRuleTreePerformance(
 
     // Critical findings
     if (analysis.criticalFindings.length > 0) {
-      responseText += '## 🚨 Critical Findings\n';
+      responseText += '## [EMOJI] Critical Findings\n';
       analysis.criticalFindings.forEach((finding: any, idx: number) => {
         responseText += `${idx + 1}. **${finding.type}**: ${finding.description}\n`;
         responseText += `   - **Impact:** ${finding.impact}\n`;
@@ -506,7 +506,7 @@ export async function analyzeRuleTreePerformance(
 
     // Performance bottlenecks
     if (analysis.bottlenecks.length > 0) {
-      responseText += '## 🐌 Performance Bottlenecks\n';
+      responseText += '## [EMOJI] Performance Bottlenecks\n';
       analysis.bottlenecks.forEach((bottleneck: any, idx: number) => {
         responseText += `${idx + 1}. **${bottleneck.behavior}** at \`${bottleneck.path}\`\n`;
         responseText += `   - **Issue:** ${bottleneck.issue}\n`;
@@ -516,7 +516,7 @@ export async function analyzeRuleTreePerformance(
     }
 
     // Caching analysis
-    responseText += '## 💾 Caching Analysis\n';
+    responseText += '## [SAVE] Caching Analysis\n';
     responseText += `- **Static Content Coverage:** ${analysis.caching.staticCoverage}%\n`;
     responseText += `- **Dynamic Content Strategy:** ${analysis.caching.dynamicStrategy}\n`;
     responseText += `- **TTL Optimization:** ${analysis.caching.ttlOptimization}\n`;
@@ -524,7 +524,7 @@ export async function analyzeRuleTreePerformance(
 
     // Recommendations
     if (args.includeRecommendations && analysis.recommendations.length > 0) {
-      responseText += '## 📋 Recommendations\n';
+      responseText += '## [EMOJI] Recommendations\n';
       analysis.recommendations.forEach((rec: any, idx: number) => {
         responseText += `${idx + 1}. **${rec.priority} Priority**: ${rec.title}\n`;
         responseText += `   - ${rec.description}\n`;
@@ -535,7 +535,7 @@ export async function analyzeRuleTreePerformance(
     }
 
     // Rule efficiency breakdown
-    responseText += '## 📊 Rule Efficiency Breakdown\n';
+    responseText += '## [METRICS] Rule Efficiency Breakdown\n';
     responseText += '```\n';
     responseText += `Default Rule:     ${analysis.efficiency.default}% efficient\n`;
     responseText += `Path-based Rules: ${analysis.efficiency.pathBased}% efficient\n`;
@@ -546,16 +546,16 @@ export async function analyzeRuleTreePerformance(
     // Next steps
     responseText += '## Next Steps\n';
     if (analysis.optimizationPotential > 70) {
-      responseText += '⚡ High optimization potential detected!\n';
+      responseText += '[FAST] High optimization potential detected!\n';
       responseText += '1. Apply recommended optimizations\n';
       responseText += '2. Consolidate redundant rules\n';
       responseText += '3. Implement caching improvements\n';
     } else if (analysis.optimizationPotential > 30) {
-      responseText += '💡 Moderate optimization opportunities available\n';
+      responseText += '[INFO] Moderate optimization opportunities available\n';
       responseText += '1. Review critical findings\n';
       responseText += '2. Apply high-priority recommendations\n';
     } else {
-      responseText += '✅ Rule tree is well-optimized\n';
+      responseText += '[DONE] Rule tree is well-optimized\n';
       responseText += '1. Monitor performance metrics\n';
       responseText += '2. Review periodically for improvements\n';
     }
@@ -628,7 +628,7 @@ export async function detectRuleConflicts(
     responseText += `**Total Conflicts Found:** ${conflicts.length}\n\n`;
 
     if (conflicts.length === 0) {
-      responseText += '✅ No conflicts detected in the rule tree!\n\n';
+      responseText += '[DONE] No conflicts detected in the rule tree!\n\n';
       responseText += 'The rule configuration appears to be consistent and conflict-free.\n';
     } else {
       // Group conflicts by severity
@@ -637,7 +637,7 @@ export async function detectRuleConflicts(
       const lowSeverity = conflicts.filter((c) => c.severity === 'LOW');
 
       if (highSeverity.length > 0) {
-        responseText += `## 🔴 High Severity Conflicts (${highSeverity.length})\n`;
+        responseText += `## [EMOJI] High Severity Conflicts (${highSeverity.length})\n`;
         highSeverity.forEach((conflict, idx) => {
           responseText += `${idx + 1}. **${conflict.type}**\n`;
           responseText += `   - **Description:** ${conflict.description}\n`;
@@ -649,7 +649,7 @@ export async function detectRuleConflicts(
       }
 
       if (mediumSeverity.length > 0) {
-        responseText += `## 🟡 Medium Severity Conflicts (${mediumSeverity.length})\n`;
+        responseText += `## [EMOJI] Medium Severity Conflicts (${mediumSeverity.length})\n`;
         mediumSeverity.forEach((conflict, idx) => {
           responseText += `${idx + 1}. **${conflict.type}**\n`;
           responseText += `   - **Description:** ${conflict.description}\n`;
@@ -660,7 +660,7 @@ export async function detectRuleConflicts(
       }
 
       if (lowSeverity.length > 0) {
-        responseText += `## 🟢 Low Severity Conflicts (${lowSeverity.length})\n`;
+        responseText += `## [EMOJI] Low Severity Conflicts (${lowSeverity.length})\n`;
         lowSeverity.forEach((conflict, idx) => {
           responseText += `${idx + 1}. **${conflict.type}**: ${conflict.description}\n`;
         });
@@ -669,7 +669,7 @@ export async function detectRuleConflicts(
     }
 
     // Add dependency information
-    responseText += '## 📋 Behavior Dependencies\n';
+    responseText += '## [EMOJI] Behavior Dependencies\n';
     responseText += 'Common behavior dependencies to be aware of:\n';
     responseText += '- **caching** works best with **cpCode** for reporting\n';
     responseText += '- **gzipResponse** should be ordered after **caching**\n';
@@ -810,7 +810,7 @@ export async function listRuleTemplates(
       content: [
         {
           type: 'text',
-          text: `❌ Failed to list rule templates: ${_error instanceof Error ? _error.message : String(_error)}`,
+          text: `[ERROR] Failed to list rule templates: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };

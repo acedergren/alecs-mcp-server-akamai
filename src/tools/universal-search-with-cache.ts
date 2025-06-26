@@ -77,7 +77,7 @@ export async function universalSearchWithCacheHandler(
     const customer = args.customer || 'default';
     const cache = getCacheService();
 
-    console.error(`🔍 Universal search for: "${args.query}"`);
+    console.error(`[SEARCH] Universal search for: "${args.query}"`);
     console.error(`Detected query types: ${queryTypes.join(', ')}`);
     console.error(`Cache: ${useCache ? 'enabled' : 'disabled'}`);
 
@@ -265,24 +265,24 @@ export async function universalSearchWithCacheHandler(
     }
 
     // Format response
-    let responseText = `🔍 **Search Results for "${args.query}"**\n\n`;
+    let responseText = `[SEARCH] **Search Results for "${args.query}"**\n\n`;
 
     if (results.matches.length === 0) {
-      responseText += '❌ No matches found.\n\n💡 Try searching for:\n';
+      responseText += '[ERROR] No matches found.\n\n[INFO] Try searching for:\n';
       responseText += '• Full hostname (e.g., www.example.com)\n';
       responseText += '• Property name or ID (prp_12345)\n';
       responseText += '• Contract ID (ctr_X-XXXXX)\n';
       responseText += '• Group ID (grp_12345)\n';
     } else {
-      responseText += `✅ Found ${results.summary.totalMatches} match${results.summary.totalMatches > 1 ? 'es' : ''}\n`;
-      responseText += `⏱️ Search time: ${results.performance.searchTimeMs}ms`;
+      responseText += `[DONE] Found ${results.summary.totalMatches} match${results.summary.totalMatches > 1 ? 'es' : ''}\n`;
+      responseText += `[EMOJI]️ Search time: ${results.performance.searchTimeMs}ms`;
       responseText += results.performance.cacheHit ? ' (from cache)\n\n' : ' (from API)\n\n';
 
       for (const match of results.matches) {
         const r = match.resource;
 
         if (match.type === 'property') {
-          responseText += `📦 **${r.propertyName}** \`${r.propertyId}\`\n`;
+          responseText += `[PACKAGE] **${r.propertyName}** \`${r.propertyId}\`\n`;
           responseText += `• Contract: \`${r.contractId}\`\n`;
           responseText += `• Group: \`${r.groupId}\`\n`;
           responseText += `• Version: Latest v${r.latestVersion}, Production v${r.productionVersion || 'None'}, Staging v${r.stagingVersion || 'None'}\n`;
@@ -299,17 +299,17 @@ export async function universalSearchWithCacheHandler(
           }
           responseText += '\n';
         } else if (match.type === 'contract') {
-          responseText += `📄 **Contract** \`${r.contractId}\`\n`;
+          responseText += `[FILE] **Contract** \`${r.contractId}\`\n`;
           responseText += `• Type: ${r.contractTypeName || 'Standard'}\n\n`;
         } else if (match.type === 'group') {
-          responseText += `🏢 **${r.groupName}** \`${r.groupId}\`\n\n`;
+          responseText += `[EMOJI] **${r.groupName}** \`${r.groupId}\`\n\n`;
         }
       }
     }
 
     // Add cache statistics if available
     if (cacheStats && useCache) {
-      responseText += '\n📊 **Cache Performance:**\n';
+      responseText += '\n[METRICS] **Cache Performance:**\n';
       responseText += `• Hit Rate: ${cacheStats.hitRatePercent}\n`;
       responseText += `• API Calls Saved: ${cacheStats.apiCallsSaved}\n`;
       responseText += `• Estimated Savings: ${cacheStats.estimatedCostSavings}\n`;

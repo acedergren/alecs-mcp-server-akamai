@@ -154,9 +154,9 @@ export async function optimizeCache(
     if (args.targetHitRate) {
       responseText += `- **Target Hit Rate:** ${args.targetHitRate}%\n`;
       if (analysis.cacheHitRate < args.targetHitRate) {
-        responseText += '- **Status:** ⚠️ Below target\n';
+        responseText += '- **Status:** [WARNING] Below target\n';
       } else {
-        responseText += '- **Status:** ✅ Above target\n';
+        responseText += '- **Status:** [DONE] Above target\n';
       }
     }
     responseText += '\n';
@@ -518,17 +518,17 @@ export async function getRealtimeMetrics(
 
       // Trends and recommendations
       if (Math.abs(memoryTrend) > 10) {
-        responseText += `⚠️ **Memory Alert:** Significant memory change (${memoryTrend.toFixed(1)}MB)\n`;
+        responseText += `[WARNING] **Memory Alert:** Significant memory change (${memoryTrend.toFixed(1)}MB)\n`;
       }
 
       if (maxActiveOps > 10) {
-        responseText += `⚠️ **Concurrency Alert:** High number of concurrent operations (${maxActiveOps})\n`;
+        responseText += `[WARNING] **Concurrency Alert:** High number of concurrent operations (${maxActiveOps})\n`;
       }
 
       if (avgOpsPerSecond > 5) {
-        responseText += `📈 **High Activity:** System is processing ${avgOpsPerSecond.toFixed(1)} operations per second\n`;
+        responseText += `[GROWTH] **High Activity:** System is processing ${avgOpsPerSecond.toFixed(1)} operations per second\n`;
       } else if (avgOpsPerSecond < 0.5) {
-        responseText += '📉 **Low Activity:** System is idle or processing few operations\n';
+        responseText += '[EMOJI] **Low Activity:** System is idle or processing few operations\n';
       }
     }
 
@@ -606,7 +606,7 @@ export async function resetPerformanceMonitoring(
     responseText += `- **Metadata Cache Size:** ${metadataCache.size()}\n`;
 
     responseText +=
-      '\n✅ **Performance monitoring has been reset and is ready for fresh data collection.**';
+      '\n[DONE] **Performance monitoring has been reset and is ready for fresh data collection.**';
 
     return {
       content: [

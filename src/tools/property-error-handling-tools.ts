@@ -96,13 +96,13 @@ export async function getValidationErrors(
     const canActivate = errors.length === 0;
 
     responseText += '## Validation Summary\n\n';
-    responseText += `- **Errors:** ${errors.length} ${errors.length === 0 ? '✅' : '❌'}\n`;
-    responseText += `- **Warnings:** ${warnings.length} ${warnings.length === 0 ? '✅' : '⚠️'}\n`;
-    responseText += `- **Can Activate:** ${canActivate ? 'Yes ✅' : 'No ❌'}\n\n`;
+    responseText += `- **Errors:** ${errors.length} ${errors.length === 0 ? '[DONE]' : '[ERROR]'}\n`;
+    responseText += `- **Warnings:** ${warnings.length} ${warnings.length === 0 ? '[DONE]' : '[WARNING]'}\n`;
+    responseText += `- **Can Activate:** ${canActivate ? 'Yes [DONE]' : 'No [ERROR]'}\n\n`;
 
     // Critical errors that prevent activation
     if (errors.length > 0) {
-      responseText += '## ❌ Critical Errors (Must Fix Before Activation)\n\n';
+      responseText += '## [ERROR] Critical Errors (Must Fix Before Activation)\n\n';
       errors.forEach((_error: PropertyError, index: number) => {
         responseText += `### Error ${index + 1}: ${_error.title}\n`;
         responseText += `- **Type:** ${_error.type}\n`;
@@ -123,7 +123,7 @@ export async function getValidationErrors(
 
     // Warnings that should be acknowledged
     if (warnings.length > 0) {
-      responseText += '## ⚠️ Warnings (Recommend Review Before Activation)\n\n';
+      responseText += '## [WARNING] Warnings (Recommend Review Before Activation)\n\n';
       warnings.forEach((warning: PropertyWarning, index: number) => {
         responseText += `### Warning ${index + 1}: ${warning.title}\n`;
         responseText += `- **Type:** ${warning.type}\n`;
@@ -167,7 +167,7 @@ export async function getValidationErrors(
     }
 
     if (canActivate && warnings.length === 0) {
-      responseText += '### ✅ Ready for Activation\n\n';
+      responseText += '### [DONE] Ready for Activation\n\n';
       responseText +=
         'Property version passes all validation checks and is ready for deployment.\n\n';
       responseText += 'Recommended activation command:\n';
@@ -299,7 +299,7 @@ export async function overrideErrors(
 
     responseText += `**Override Date:** ${new Date().toISOString()}\n\n`;
 
-    responseText += '## ⚠️ WARNING: ERRORS HAVE BEEN OVERRIDDEN\n\n';
+    responseText += '## [WARNING] WARNING: ERRORS HAVE BEEN OVERRIDDEN\n\n';
     responseText += 'The following critical errors have been forcibly overridden:\n\n';
 
     args.errors.forEach((messageId, index) => {
@@ -307,7 +307,7 @@ export async function overrideErrors(
     });
     responseText += '\n';
 
-    responseText += '## ⚠️ IMPORTANT CONSIDERATIONS\n\n';
+    responseText += '## [WARNING] IMPORTANT CONSIDERATIONS\n\n';
     responseText += '- **High Risk Deployment** - Overriding errors bypasses safety checks\n';
     responseText += '- **Monitor Closely** - Watch for service disruptions after activation\n';
     responseText += '- **Have Rollback Plan** - Be prepared to quickly revert if issues occur\n';
@@ -493,12 +493,12 @@ export async function validatePropertyConfiguration(
         customer: args.customer,
       });
 
-      validationResults.push('✅ Basic validation completed');
-      responseText += '✅ Basic property validation completed\n\n';
+      validationResults.push('[DONE] Basic validation completed');
+      responseText += '[DONE] Basic property validation completed\n\n';
     } catch (_error) {
       totalErrors++;
-      validationResults.push('❌ Basic validation failed');
-      responseText += `❌ Basic property validation failed: ${(_error as Error).message}\n\n`;
+      validationResults.push('[ERROR] Basic validation failed');
+      responseText += `[ERROR] Basic property validation failed: ${(_error as Error).message}\n\n`;
     }
 
     // 2. Rule tree validation
@@ -510,12 +510,12 @@ export async function validatePropertyConfiguration(
           method: 'GET',
         });
 
-        validationResults.push('✅ Rule tree validation passed');
-        responseText += '✅ Rule tree structure and logic validated\n\n';
+        validationResults.push('[DONE] Rule tree validation passed');
+        responseText += '[DONE] Rule tree structure and logic validated\n\n';
       } catch (_error) {
         totalErrors++;
-        validationResults.push('❌ Rule tree validation failed');
-        responseText += `❌ Rule tree validation failed: ${(_error as Error).message}\n\n`;
+        validationResults.push('[ERROR] Rule tree validation failed');
+        responseText += `[ERROR] Rule tree validation failed: ${(_error as Error).message}\n\n`;
       }
     }
 
@@ -528,12 +528,12 @@ export async function validatePropertyConfiguration(
           method: 'GET',
         });
 
-        validationResults.push('✅ Hostname validation passed');
-        responseText += '✅ All hostnames properly configured and validated\n\n';
+        validationResults.push('[DONE] Hostname validation passed');
+        responseText += '[DONE] All hostnames properly configured and validated\n\n';
       } catch (_error) {
         totalErrors++;
-        validationResults.push('❌ Hostname validation failed');
-        responseText += `❌ Hostname validation failed: ${(_error as Error).message}\n\n`;
+        validationResults.push('[ERROR] Hostname validation failed');
+        responseText += `[ERROR] Hostname validation failed: ${(_error as Error).message}\n\n`;
       }
     }
 
@@ -561,17 +561,17 @@ export async function validatePropertyConfiguration(
         });
 
         if (certIssues === 0) {
-          validationResults.push('✅ Certificate validation passed');
-          responseText += '✅ All certificates active and properly deployed\n\n';
+          validationResults.push('[DONE] Certificate validation passed');
+          responseText += '[DONE] All certificates active and properly deployed\n\n';
         } else {
           totalWarnings++;
-          validationResults.push('⚠️ Certificate issues detected');
-          responseText += `⚠️ ${certIssues} certificate issues detected\n\n`;
+          validationResults.push('[WARNING] Certificate issues detected');
+          responseText += `[WARNING] ${certIssues} certificate issues detected\n\n`;
         }
       } catch (_error) {
         totalWarnings++;
-        validationResults.push('⚠️ Certificate validation incomplete');
-        responseText += `⚠️ Certificate validation incomplete: ${(_error as Error).message}\n\n`;
+        validationResults.push('[WARNING] Certificate validation incomplete');
+        responseText += `[WARNING] Certificate validation incomplete: ${(_error as Error).message}\n\n`;
       }
     }
 
@@ -579,7 +579,7 @@ export async function validatePropertyConfiguration(
     responseText += '## Validation Summary\n\n';
     responseText += `- **Total Errors:** ${totalErrors}\n`;
     responseText += `- **Total Warnings:** ${totalWarnings}\n`;
-    responseText += `- **Overall Status:** ${totalErrors === 0 ? 'PASS ✅' : 'FAIL ❌'}\n\n`;
+    responseText += `- **Overall Status:** ${totalErrors === 0 ? 'PASS [DONE]' : 'FAIL [ERROR]'}\n\n`;
 
     responseText += '### Validation Results\n\n';
     validationResults.forEach((result) => {
@@ -590,19 +590,19 @@ export async function validatePropertyConfiguration(
     // Recommendations
     responseText += '## Recommendations\n\n';
     if (totalErrors === 0 && totalWarnings === 0) {
-      responseText += '✅ **Ready for Activation** - All validation checks passed\n\n';
+      responseText += '[DONE] **Ready for Activation** - All validation checks passed\n\n';
       responseText += 'Proceed with activation:\n';
       responseText += '```\n';
       responseText += `activateProperty --propertyId ${args.propertyId} --version ${args.version} --network STAGING\n`;
       responseText += '```\n';
     } else if (totalErrors === 0) {
-      responseText += '⚠️ **Review Warnings** - Address warnings before production deployment\n\n';
+      responseText += '[WARNING] **Review Warnings** - Address warnings before production deployment\n\n';
       responseText += 'Consider staging deployment first:\n';
       responseText += '```\n';
       responseText += `activateProperty --propertyId ${args.propertyId} --version ${args.version} --network STAGING\n`;
       responseText += '```\n';
     } else {
-      responseText += '❌ **Fix Errors First** - Cannot activate with validation errors\n\n';
+      responseText += '[ERROR] **Fix Errors First** - Cannot activate with validation errors\n\n';
       responseText += '1. Review detailed error information\n';
       responseText += '2. Update property configuration\n';
       responseText += '3. Re-run comprehensive validation\n';

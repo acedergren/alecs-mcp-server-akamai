@@ -92,7 +92,7 @@ export async function validateGeographicCodes(
     const validCodes: GeographicLocation[] = [];
     const invalidCodes: string[] = [];
 
-    let output = '🗺️ **Geographic Code Validation**\n\n';
+    let output = '[EMOJI]️ **Geographic Code Validation**\n\n';
     output += `Validating ${codes.length} geographic codes...\n\n`;
 
     for (const code of codes) {
@@ -136,19 +136,19 @@ export async function validateGeographicCodes(
     }
 
     if (validCodes.length > 0) {
-      output += `✅ **Valid Codes (${validCodes.length}):**\n`;
+      output += `[DONE] **Valid Codes (${validCodes.length}):**\n`;
       for (const geo of validCodes) {
         if (geo.subdivisionCode) {
-          output += `🏛️ ${geo.countryCode}-${geo.subdivisionCode}: ${geo.subdivisionName}\n`;
+          output += `[EMOJI]️ ${geo.countryCode}-${geo.subdivisionCode}: ${geo.subdivisionName}\n`;
         } else {
-          output += `🌍 ${geo.countryCode}: ${geo.countryName}\n`;
+          output += `[EMOJI] ${geo.countryCode}: ${geo.countryName}\n`;
         }
       }
       output += '\n';
     }
 
     if (invalidCodes.length > 0) {
-      output += `❌ **Invalid Codes (${invalidCodes.length}):**\n`;
+      output += `[ERROR] **Invalid Codes (${invalidCodes.length}):**\n`;
       for (const code of invalidCodes) {
         output += `- ${code}\n`;
       }
@@ -192,7 +192,7 @@ export async function getASNInformation(
     const validASNs: ASNInfo[] = [];
     const invalidASNs: string[] = [];
 
-    let output = '🏢 **ASN Information Lookup**\n\n';
+    let output = '[EMOJI] **ASN Information Lookup**\n\n';
     output += `Looking up ${asns.length} ASN${asns.length !== 1 ? 's' : ''}...\n\n`;
 
     for (const asnInput of asns) {
@@ -226,9 +226,9 @@ export async function getASNInformation(
     }
 
     if (validASNs.length > 0) {
-      output += `✅ **Valid ASNs (${validASNs.length}):**\n`;
+      output += `[DONE] **Valid ASNs (${validASNs.length}):**\n`;
       for (const asn of validASNs) {
-        output += `🏢 AS${asn.asn}: ${asn.name}\n`;
+        output += `[EMOJI] AS${asn.asn}: ${asn.name}\n`;
         if (asn.description && asn.description !== asn.name) {
           output += `   Description: ${asn.description}\n`;
         }
@@ -237,7 +237,7 @@ export async function getASNInformation(
     }
 
     if (invalidASNs.length > 0) {
-      output += `❌ **Invalid ASNs (${invalidASNs.length}):**\n`;
+      output += `[ERROR] **Invalid ASNs (${invalidASNs.length}):**\n`;
       for (const asn of invalidASNs) {
         output += `- ${asn}\n`;
       }
@@ -282,7 +282,7 @@ export async function generateGeographicBlockingRecommendations(
   } = {},
 ): Promise<MCPToolResponse> {
   try {
-    let output = '🛡️ **Geographic Blocking Recommendations**\n\n';
+    let output = '[SHIELD] **Geographic Blocking Recommendations**\n\n';
 
     const purpose = options.purpose || 'security';
     output += `**Purpose:** ${purpose.charAt(0).toUpperCase() + purpose.slice(1)}\n\n`;
@@ -341,7 +341,7 @@ export async function generateGeographicBlockingRecommendations(
       output += '**Currently Allowed Regions:**\n';
       for (const region of options.allowedRegions) {
         const name = COMMON_GEO_CODES[region as keyof typeof COMMON_GEO_CODES] || region;
-        output += `✅ ${region}: ${name}\n`;
+        output += `[DONE] ${region}: ${name}\n`;
       }
       output += '\n';
     }
@@ -350,7 +350,7 @@ export async function generateGeographicBlockingRecommendations(
       output += '**Currently Blocked Regions:**\n';
       for (const region of options.blockedRegions) {
         const name = COMMON_GEO_CODES[region as keyof typeof COMMON_GEO_CODES] || region;
-        output += `❌ ${region}: ${name}\n`;
+        output += `[ERROR] ${region}: ${name}\n`;
       }
       output += '\n';
     }
@@ -397,14 +397,14 @@ export async function generateASNSecurityRecommendations(
   } = {},
 ): Promise<MCPToolResponse> {
   try {
-    let output = '🛡️ **ASN Security Recommendations**\n\n';
+    let output = '[SHIELD] **ASN Security Recommendations**\n\n';
 
     const purpose = options.purpose || 'bot-protection';
     output += `**Purpose:** ${purpose.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}\n\n`;
 
     // Cloud providers
     if (options.includeCloudProviders !== false) {
-      output += '**☁️ Cloud Provider ASNs:**\n';
+      output += '**[EMOJI]️ Cloud Provider ASNs:**\n';
       output += 'These may host both legitimate services and malicious bots:\n';
       output += '- AS16509: Amazon Web Services\n';
       output += '- AS8075: Microsoft Azure\n';
@@ -418,7 +418,7 @@ export async function generateASNSecurityRecommendations(
 
     // Common VPN/proxy providers (this would be a longer list in practice)
     if (options.includeVPNProviders) {
-      output += '**🔒 Common VPN/Proxy Provider ASNs:**\n';
+      output += '**[SECURE] Common VPN/Proxy Provider ASNs:**\n';
       output += 'Consider blocking if VPN traffic is not desired:\n';
       output += '- AS63023: AS-DFRI (Often used by VPN services)\n';
       output += '- AS49981: WorldStream (Hosting/VPN provider)\n';
@@ -428,7 +428,7 @@ export async function generateASNSecurityRecommendations(
 
     // Residential ISPs
     if (options.includeResidentialISPs) {
-      output += '**🏠 Major Residential ISP ASNs:**\n';
+      output += '**[EMOJI] Major Residential ISP ASNs:**\n';
       output += 'Generally legitimate traffic, block only if necessary:\n';
       output += '- AS7922: Comcast\n';
       output += '- AS20115: Charter/Spectrum\n';
@@ -440,7 +440,7 @@ export async function generateASNSecurityRecommendations(
 
     switch (purpose) {
       case 'bot-protection':
-        output += '**🤖 Bot Protection Strategy:**\n';
+        output += '**[AI] Bot Protection Strategy:**\n';
         output += '1. Focus on hosting providers with poor abuse handling\n';
         output += '2. Monitor cloud providers for unusual patterns\n';
         output += '3. Use rate limiting in addition to ASN blocking\n';
@@ -448,7 +448,7 @@ export async function generateASNSecurityRecommendations(
         break;
 
       case 'fraud-prevention':
-        output += '**🚫 Fraud Prevention Strategy:**\n';
+        output += '**[EMOJI] Fraud Prevention Strategy:**\n';
         output += '1. Block known fraud-hosting ASNs\n';
         output += '2. Monitor anonymization services\n';
         output += '3. Flag transactions from VPN/proxy ASNs\n';
@@ -456,7 +456,7 @@ export async function generateASNSecurityRecommendations(
         break;
 
       case 'compliance':
-        output += '**📋 Compliance Strategy:**\n';
+        output += '**[EMOJI] Compliance Strategy:**\n';
         output += '1. Document ASN blocking rationale\n';
         output += '2. Regular review of blocked ASNs\n';
         output += '3. Appeal process for false positives\n';
@@ -497,7 +497,7 @@ export async function generateASNSecurityRecommendations(
  * List common geographic codes for reference
  */
 export async function listCommonGeographicCodes(): Promise<MCPToolResponse> {
-  let output = '🗺️ **Common Geographic Codes Reference**\n\n';
+  let output = '[EMOJI]️ **Common Geographic Codes Reference**\n\n';
 
   output += '**Major Countries (ISO 3166-1 alpha-2):**\n';
   const countries = Object.entries(COMMON_GEO_CODES)

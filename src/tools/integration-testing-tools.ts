@@ -90,10 +90,10 @@ export async function runIntegrationTestSuite(
     const summary = framework.getTestSummary();
     responseText += '## Test Summary\n\n';
     responseText += `- **Total Tests:** ${summary.total}\n`;
-    responseText += `- **Passed:** ${summary.passed} ✅\n`;
-    responseText += `- **Failed:** ${summary.failed} ❌\n`;
-    responseText += `- **Skipped:** ${summary.skipped} ⏭️\n`;
-    responseText += `- **Error:** ${summary.error} 💥\n`;
+    responseText += `- **Passed:** ${summary.passed} [DONE]\n`;
+    responseText += `- **Failed:** ${summary.failed} [ERROR]\n`;
+    responseText += `- **Skipped:** ${summary.skipped} [EMOJI]️\n`;
+    responseText += `- **Error:** ${summary.error} [EMOJI]\n`;
     responseText += `- **Success Rate:** ${summary.successRate.toFixed(1)}%\n`;
     responseText += `- **Average Duration:** ${summary.averageDuration.toFixed(0)}ms\n\n`;
 
@@ -106,19 +106,19 @@ export async function runIntegrationTestSuite(
     // Recommendations
     responseText += '## Recommendations\n\n';
     if (summary.failed > 0) {
-      responseText += `⚠️ **${summary.failed} test(s) failed** - Review failed tests and address issues\n`;
+      responseText += `[WARNING] **${summary.failed} test(s) failed** - Review failed tests and address issues\n`;
     }
     if (summary.successRate < 90) {
-      responseText += '⚠️ **Success rate below 90%** - Consider improving test stability\n';
+      responseText += '[WARNING] **Success rate below 90%** - Consider improving test stability\n';
     }
     if (summary.averageDuration > 5000) {
-      responseText += '⚠️ **Average test duration over 5s** - Consider performance optimization\n';
+      responseText += '[WARNING] **Average test duration over 5s** - Consider performance optimization\n';
     }
     if (summary.total === 0) {
       responseText += 'ℹ️ **No tests executed** - Check test suite selection criteria\n';
     }
     if (summary.passed === summary.total && summary.total > 0) {
-      responseText += '✅ **All tests passed!** - System is functioning correctly\n';
+      responseText += '[DONE] **All tests passed!** - System is functioning correctly\n';
     }
 
     return {
@@ -185,9 +185,9 @@ export async function checkAPIHealth(
         .reduce((sum, r) => sum + r.responseTime, 0) / (healthy || 1);
 
     responseText += '## Health Summary\n\n';
-    responseText += `- **Healthy:** ${healthy}/${endpoints.length} ✅\n`;
-    responseText += `- **Unhealthy:** ${unhealthy}/${endpoints.length} ❌\n`;
-    responseText += `- **Timeout:** ${timeout}/${endpoints.length} ⏱️\n`;
+    responseText += `- **Healthy:** ${healthy}/${endpoints.length} [DONE]\n`;
+    responseText += `- **Unhealthy:** ${unhealthy}/${endpoints.length} [ERROR]\n`;
+    responseText += `- **Timeout:** ${timeout}/${endpoints.length} [EMOJI]️\n`;
     responseText += `- **Overall Status:** ${healthy === endpoints.length ? 'HEALTHY' : 'DEGRADED'}\n`;
     responseText += `- **Average Response Time:** ${averageResponseTime.toFixed(0)}ms\n\n`;
 
@@ -195,7 +195,7 @@ export async function checkAPIHealth(
     responseText += '## Endpoint Details\n\n';
     for (const result of healthResults) {
       const statusIcon =
-        result.status === 'healthy' ? '✅' : result.status === 'timeout' ? '⏱️' : '❌';
+        result.status === 'healthy' ? '[DONE]' : result.status === 'timeout' ? '[EMOJI]️' : '[ERROR]';
 
       responseText += `### ${result.endpoint}\n`;
       responseText += `- **Status:** ${statusIcon} ${result.status.toUpperCase()}\n`;
@@ -251,16 +251,16 @@ export async function checkAPIHealth(
     // Health recommendations
     responseText += '## Recommendations\n\n';
     if (unhealthy > 0) {
-      responseText += `⚠️ **${unhealthy} endpoint(s) unhealthy** - Check API service status\n`;
+      responseText += `[WARNING] **${unhealthy} endpoint(s) unhealthy** - Check API service status\n`;
     }
     if (timeout > 0) {
-      responseText += `⚠️ **${timeout} endpoint(s) timing out** - Check network connectivity\n`;
+      responseText += `[WARNING] **${timeout} endpoint(s) timing out** - Check network connectivity\n`;
     }
     if (averageResponseTime > 3000) {
-      responseText += '⚠️ **High average response time** - API may be experiencing load\n';
+      responseText += '[WARNING] **High average response time** - API may be experiencing load\n';
     }
     if (healthy === endpoints.length) {
-      responseText += '✅ **All endpoints healthy** - API services are functioning normally\n';
+      responseText += '[DONE] **All endpoints healthy** - API services are functioning normally\n';
     }
 
     return {
@@ -504,7 +504,7 @@ export async function validateToolResponses(
     responseText += `**Summary:** ${passed}/${total} validations passed\n\n`;
 
     for (const result of results) {
-      const statusIcon = result.status === 'passed' ? '✅' : '❌';
+      const statusIcon = result.status === 'passed' ? '[DONE]' : '[ERROR]';
       responseText += `${statusIcon} **${result.scenario}**\n`;
       if (result.details) {
         responseText += `   ${result.details}\n`;
@@ -518,9 +518,9 @@ export async function validateToolResponses(
     // Recommendations
     responseText += '## Recommendations\n\n';
     if (passed === total) {
-      responseText += '✅ **All validations passed** - MCP tool responses are well-structured\n';
+      responseText += '[DONE] **All validations passed** - MCP tool responses are well-structured\n';
     } else {
-      responseText += `⚠️ **${total - passed} validation(s) failed** - Review tool response formats\n`;
+      responseText += `[WARNING] **${total - passed} validation(s) failed** - Review tool response formats\n`;
     }
 
     return {
@@ -605,31 +605,31 @@ export async function runLoadTest(
       const responseTimeVariance = result.maxResponseTime - result.minResponseTime;
 
       if (successRate >= 99) {
-        responseText += `✅ **Excellent reliability** - ${successRate.toFixed(1)}% success rate\n`;
+        responseText += `[DONE] **Excellent reliability** - ${successRate.toFixed(1)}% success rate\n`;
       } else if (successRate >= 95) {
-        responseText += `⚠️ **Good reliability** - ${successRate.toFixed(1)}% success rate\n`;
+        responseText += `[WARNING] **Good reliability** - ${successRate.toFixed(1)}% success rate\n`;
       } else {
-        responseText += `❌ **Poor reliability** - ${successRate.toFixed(1)}% success rate\n`;
+        responseText += `[ERROR] **Poor reliability** - ${successRate.toFixed(1)}% success rate\n`;
       }
 
       if (result.averageResponseTime < 1000) {
-        responseText += `✅ **Good performance** - ${result.averageResponseTime.toFixed(0)}ms average response time\n`;
+        responseText += `[DONE] **Good performance** - ${result.averageResponseTime.toFixed(0)}ms average response time\n`;
       } else if (result.averageResponseTime < 3000) {
-        responseText += `⚠️ **Moderate performance** - ${result.averageResponseTime.toFixed(0)}ms average response time\n`;
+        responseText += `[WARNING] **Moderate performance** - ${result.averageResponseTime.toFixed(0)}ms average response time\n`;
       } else {
-        responseText += `❌ **Poor performance** - ${result.averageResponseTime.toFixed(0)}ms average response time\n`;
+        responseText += `[ERROR] **Poor performance** - ${result.averageResponseTime.toFixed(0)}ms average response time\n`;
       }
 
       if (responseTimeVariance < 2000) {
-        responseText += `✅ **Consistent performance** - ${responseTimeVariance}ms variance\n`;
+        responseText += `[DONE] **Consistent performance** - ${responseTimeVariance}ms variance\n`;
       } else {
-        responseText += `⚠️ **Variable performance** - ${responseTimeVariance}ms variance\n`;
+        responseText += `[WARNING] **Variable performance** - ${responseTimeVariance}ms variance\n`;
       }
 
       if (result.requestsPerSecond > 5) {
-        responseText += `✅ **Good throughput** - ${result.requestsPerSecond.toFixed(2)} requests/second\n`;
+        responseText += `[DONE] **Good throughput** - ${result.requestsPerSecond.toFixed(2)} requests/second\n`;
       } else {
-        responseText += `⚠️ **Low throughput** - ${result.requestsPerSecond.toFixed(2)} requests/second\n`;
+        responseText += `[WARNING] **Low throughput** - ${result.requestsPerSecond.toFixed(2)} requests/second\n`;
       }
     }
 
@@ -648,19 +648,19 @@ export async function runLoadTest(
     responseText += '## Recommendations\n\n';
 
     if (result.failedRequests > 0) {
-      responseText += `⚠️ **${result.failedRequests} requests failed** - Review error handling and retry logic\n`;
+      responseText += `[WARNING] **${result.failedRequests} requests failed** - Review error handling and retry logic\n`;
     }
 
     if (result.averageResponseTime > 2000) {
-      responseText += '⚠️ **High response times** - Consider caching or API optimization\n';
+      responseText += '[WARNING] **High response times** - Consider caching or API optimization\n';
     }
 
     if (result.requestsPerSecond < 2) {
-      responseText += '⚠️ **Low throughput** - API may need performance tuning\n';
+      responseText += '[WARNING] **Low throughput** - API may need performance tuning\n';
     }
 
     if (result.successfulRequests === result.totalRequests && result.averageResponseTime < 1000) {
-      responseText += '✅ **Excellent performance** - API is handling load well\n';
+      responseText += '[DONE] **Excellent performance** - API is handling load well\n';
     }
 
     return {

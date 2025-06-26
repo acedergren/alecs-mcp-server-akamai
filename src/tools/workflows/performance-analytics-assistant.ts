@@ -464,7 +464,7 @@ class PerformanceMonitor {
     
     // Health indicator
     const healthScore = this.calculateHealthScore(metrics);
-    const healthEmoji = healthScore >= 90 ? '🟢' : healthScore >= 70 ? '🟡' : healthScore >= 50 ? '🟠' : '🔴';
+    const healthEmoji = healthScore >= 90 ? '[EMOJI]' : healthScore >= 70 ? '[EMOJI]' : healthScore >= 50 ? '[EMOJI]' : '[EMOJI]';
     
     summary += `### Overall Health: ${healthEmoji} ${healthScore}/100\n\n`;
     
@@ -477,7 +477,7 @@ class PerformanceMonitor {
     
     // Alerts
     if (metrics.activeAlerts && metrics.activeAlerts.length > 0) {
-      summary += `**⚠️ Active Alerts**\n`;
+      summary += `**[WARNING] Active Alerts**\n`;
       metrics.activeAlerts.forEach((alert: any) => {
         summary += `- ${alert.severity}: ${alert.message}\n`;
       });
@@ -555,7 +555,7 @@ export async function handlePerformanceAnalyticsAssistant(args: any) {
     
     // Quick wins
     if (analysis.quickWins.length > 0) {
-      response += `## 🚀 Quick Wins Available\n\n`;
+      response += `## [DEPLOY] Quick Wins Available\n\n`;
       response += `I can implement these improvements immediately:\n\n`;
       analysis.quickWins.forEach((win, index) => {
         response += `${index + 1}. **${win}**\n`;
@@ -587,7 +587,7 @@ export async function handlePerformanceAnalyticsAssistant(args: any) {
       const opportunityInsights = insights.filter(i => i.type === 'opportunity');
       
       if (criticalInsights.length > 0) {
-        response += `### 🔴 Critical Issues\n\n`;
+        response += `### [EMOJI] Critical Issues\n\n`;
         criticalInsights.forEach(insight => {
           response += `**${insight.metric}**\n`;
           response += `- Finding: ${insight.finding}\n`;
@@ -598,7 +598,7 @@ export async function handlePerformanceAnalyticsAssistant(args: any) {
       }
       
       if (warningInsights.length > 0) {
-        response += `### 🟡 Warnings\n\n`;
+        response += `### [EMOJI] Warnings\n\n`;
         warningInsights.forEach(insight => {
           response += `**${insight.metric}**\n`;
           response += `- ${insight.finding}\n`;
@@ -607,7 +607,7 @@ export async function handlePerformanceAnalyticsAssistant(args: any) {
       }
       
       if (opportunityInsights.length > 0) {
-        response += `### 💡 Opportunities\n\n`;
+        response += `### [INFO] Opportunities\n\n`;
         opportunityInsights.forEach(insight => {
           response += `**${insight.metric}**\n`;
           response += `- ${insight.finding}\n`;
@@ -683,7 +683,7 @@ export async function handlePerformanceAnalyticsAssistant(args: any) {
       response += `5. **Set up monitoring to track improvements**\n`;
     }
     
-    response += `\nPerformance is a journey, not a destination. Let's make your site fly! 🚀\n`;
+    response += `\nPerformance is a journey, not a destination. Let's make your site fly! [DEPLOY]\n`;
     
     return {
       content: [{

@@ -35,9 +35,9 @@ const colors = {
 
 const log = {
   info: (msg: string) => console.log(`${colors.blue}ℹ${colors.reset}  ${msg}`),
-  success: (msg: string) => console.log(`${colors.green}✅${colors.reset} ${msg}`),
-  warning: (msg: string) => console.log(`${colors.yellow}⚠️${colors.reset}  ${msg}`),
-  error: (msg: string) => console.log(`${colors.red}❌${colors.reset} ${msg}`),
+  success: (msg: string) => console.log(`${colors.green}[DONE]${colors.reset} ${msg}`),
+  warning: (msg: string) => console.log(`${colors.yellow}[WARNING]${colors.reset}  ${msg}`),
+  error: (msg: string) => console.log(`${colors.red}[ERROR]${colors.reset} ${msg}`),
 };
 
 interface ClaudeConfig {
@@ -163,7 +163,7 @@ program
           break;
         case 'modular':
           // Interactive selection
-          console.log('\n📦 Select modules to install:\n');
+          console.log('\n[PACKAGE] Select modules to install:\n');
           serversToInstall = ['property', 'dns']; // Default selection
           log.info('Installing default modules: property, dns');
           log.info('To select specific modules, use: alecs install property dns certs');
@@ -263,11 +263,11 @@ program
       return;
     }
 
-    console.log('\n📋 Installed ALECS Servers:\n');
+    console.log('\n[EMOJI] Installed ALECS Servers:\n');
     for (const [name, _serverConfig] of alecsServers) {
       const serverDef = Object.values(SERVERS).find((s) => s.name === name);
       const desc = serverDef ? `- ${serverDef.description} (${serverDef.toolCount} tools)` : '';
-      console.log(`  ${colors.green}●${colors.reset} ${name} ${desc}`);
+      console.log(`  ${colors.green}[EMOJI]${colors.reset} ${name} ${desc}`);
     }
     console.log('');
   });
@@ -309,26 +309,26 @@ program
     const config = loadConfig();
     const alecsServers = Object.keys(config.mcpServers).filter((key) => key.startsWith('alecs-'));
 
-    console.log('\n🔍 ALECS Status Check:\n');
-    console.log(`Claude Desktop: ${colors.green}✓ Installed${colors.reset}`);
+    console.log('\n[SEARCH] ALECS Status Check:\n');
+    console.log(`Claude Desktop: ${colors.green}[EMOJI] Installed${colors.reset}`);
     console.log(`Config path: ${CONFIG_PATH}`);
     console.log(`ALECS servers: ${alecsServers.length} installed`);
 
     // Check if .edgerc exists
     const edgercPath = path.join(os.homedir(), '.edgerc');
     if (fs.existsSync(edgercPath)) {
-      console.log(`Akamai credentials: ${colors.green}✓ Found${colors.reset}`);
+      console.log(`Akamai credentials: ${colors.green}[EMOJI] Found${colors.reset}`);
     } else {
-      console.log(`Akamai credentials: ${colors.red}✗ Not found${colors.reset}`);
+      console.log(`Akamai credentials: ${colors.red}[EMOJI] Not found${colors.reset}`);
       log.warning('\nCreate ~/.edgerc with your Akamai credentials');
     }
 
     // Check if project is built
     const projectRoot = getProjectRoot();
     if (fs.existsSync(path.join(projectRoot, 'dist'))) {
-      console.log(`Project build: ${colors.green}✓ Found${colors.reset}`);
+      console.log(`Project build: ${colors.green}[EMOJI] Found${colors.reset}`);
     } else {
-      console.log(`Project build: ${colors.red}✗ Not found${colors.reset}`);
+      console.log(`Project build: ${colors.red}[EMOJI] Not found${colors.reset}`);
       log.warning('\nRun "npm run build" to build the project');
     }
 

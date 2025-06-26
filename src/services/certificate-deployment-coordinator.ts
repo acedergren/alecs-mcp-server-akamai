@@ -525,11 +525,11 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
         for (const [propertyId, state] of this.propertyStates) {
           const statusEmoji =
             {
-              linked: '✅',
-              failed: '❌',
-              linking: '🔄',
-              pending: '⏳',
-            }[state.status] || '❓';
+              linked: '[DONE]',
+              failed: '[ERROR]',
+              linking: '[EMOJI]',
+              pending: '[EMOJI]',
+            }[state.status] || '[EMOJI]';
 
           report += `- ${statusEmoji} **${state.propertyName || propertyId}**\n`;
           report += `  - Status: ${state.status}\n`;

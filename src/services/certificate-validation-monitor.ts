@@ -356,15 +356,15 @@ export class CertificateValidationMonitor extends EventEmitter {
     for (const [domain, state] of domainStates) {
       const statusEmoji =
         {
-          [ValidationStatus.VALIDATED]: '✅',
-          [ValidationStatus.FAILED]: '❌',
-          [ValidationStatus.VALIDATION_IN_PROGRESS]: '🔄',
-          [ValidationStatus.DNS_RECORD_CREATED]: '📝',
-          [ValidationStatus.DNS_PROPAGATED]: '🌐',
-          [ValidationStatus.VALIDATION_TRIGGERED]: '🔐',
-          [ValidationStatus.PENDING]: '⏳',
-          [ValidationStatus.EXPIRED]: '⚠️',
-        }[state.status] || '❓';
+          [ValidationStatus.VALIDATED]: '[DONE]',
+          [ValidationStatus.FAILED]: '[ERROR]',
+          [ValidationStatus.VALIDATION_IN_PROGRESS]: '[EMOJI]',
+          [ValidationStatus.DNS_RECORD_CREATED]: '[DOCS]',
+          [ValidationStatus.DNS_PROPAGATED]: '[GLOBAL]',
+          [ValidationStatus.VALIDATION_TRIGGERED]: '[EMOJI]',
+          [ValidationStatus.PENDING]: '[EMOJI]',
+          [ValidationStatus.EXPIRED]: '[WARNING]',
+        }[state.status] || '[EMOJI]';
 
       report += `### ${statusEmoji} ${domain}\n`;
       report += `- **Status:** ${state.status}\n`;

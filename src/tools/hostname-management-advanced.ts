@@ -188,12 +188,12 @@ export async function analyzeHostnameOwnership(
 
     // Available hostnames
     if (statusGroups.available.length > 0) {
-      responseText += `## ✅ Available Hostnames (${statusGroups.available.length})\n`;
+      responseText += `## [DONE] Available Hostnames (${statusGroups.available.length})\n`;
       statusGroups.available.forEach((analysis) => {
         responseText += `- **${analysis.hostname}** - Ready for provisioning\n`;
         if (analysis.recommendations.length > 0) {
           analysis.recommendations.forEach((rec) => {
-            responseText += `  - 💡 ${rec.recommendation}\n`;
+            responseText += `  - [INFO] ${rec.recommendation}\n`;
           });
         }
       });
@@ -202,7 +202,7 @@ export async function analyzeHostnameOwnership(
 
     // In-use hostnames
     if (statusGroups['in-use'].length > 0) {
-      responseText += `## 🔒 In-Use Hostnames (${statusGroups['in-use'].length})\n`;
+      responseText += `## [SECURE] In-Use Hostnames (${statusGroups['in-use'].length})\n`;
       statusGroups['in-use'].forEach((analysis) => {
         const prop = analysis.currentProperty!;
         responseText += `- **${analysis.hostname}**\n`;
@@ -218,7 +218,7 @@ export async function analyzeHostnameOwnership(
 
     // Conflicting hostnames
     if (statusGroups.conflict.length > 0) {
-      responseText += `## ⚠️ Conflicting Hostnames (${statusGroups.conflict.length})\n`;
+      responseText += `## [WARNING] Conflicting Hostnames (${statusGroups.conflict.length})\n`;
       statusGroups.conflict.forEach((analysis) => {
         responseText += `- **${analysis.hostname}**\n`;
         analysis.conflicts.forEach((conflict) => {
@@ -237,7 +237,7 @@ export async function analyzeHostnameOwnership(
 
     // Invalid hostnames
     if (statusGroups.invalid.length > 0) {
-      responseText += `## ❌ Invalid Hostnames (${statusGroups.invalid.length})\n`;
+      responseText += `## [ERROR] Invalid Hostnames (${statusGroups.invalid.length})\n`;
       statusGroups.invalid.forEach((analysis) => {
         responseText += `- **${analysis.hostname}**\n`;
         analysis.validationIssues.forEach((issue) => {
@@ -249,7 +249,7 @@ export async function analyzeHostnameOwnership(
 
     // Summary recommendations
     if (args.includeRecommendations) {
-      responseText += '## 📋 Provisioning Recommendations\n';
+      responseText += '## [EMOJI] Provisioning Recommendations\n';
       const availableCount = statusGroups.available.length;
       if (availableCount > 0) {
         if (availableCount > 5) {
@@ -373,7 +373,7 @@ export async function generateEdgeHostnameRecommendations(
       recs.forEach((rec) => {
         responseText += `### ${rec.hostname}\n`;
         responseText += `- **Edge Hostname:** \`${rec.suggestedEdgeHostname}\`\n`;
-        responseText += `- **Secure:** ${rec.secure ? '✅ Yes' : '❌ No'}\n`;
+        responseText += `- **Secure:** ${rec.secure ? '[DONE] Yes' : '[ERROR] No'}\n`;
         responseText += `- **Certificate:** ${rec.certificateType}\n`;
         responseText += `- **IP Version:** ${rec.ipVersion}\n`;
         responseText += `- **Rationale:** ${rec.rationale}\n\n`;
@@ -534,13 +534,13 @@ export async function validateHostnamesBulk(
     // Format response
     let responseText = '# Bulk Hostname Validation Results\n\n';
     responseText += `**Total Hostnames:** ${validation.totalHostnames}\n`;
-    responseText += `**Valid:** ${validation.validHostnames.length} ✅\n`;
-    responseText += `**Invalid:** ${validation.invalidHostnames.length} ❌\n`;
-    responseText += `**Conflicts:** ${validation.conflicts.length} ⚠️\n\n`;
+    responseText += `**Valid:** ${validation.validHostnames.length} [DONE]\n`;
+    responseText += `**Invalid:** ${validation.invalidHostnames.length} [ERROR]\n`;
+    responseText += `**Conflicts:** ${validation.conflicts.length} [WARNING]\n\n`;
 
     // Valid hostnames
     if (validation.validHostnames.length > 0) {
-      responseText += `## ✅ Valid Hostnames (${validation.validHostnames.length})\n`;
+      responseText += `## [DONE] Valid Hostnames (${validation.validHostnames.length})\n`;
       validation.validHostnames.forEach((hostname) => {
         responseText += `- ${hostname}\n`;
       });
@@ -549,7 +549,7 @@ export async function validateHostnamesBulk(
 
     // Invalid hostnames
     if (validation.invalidHostnames.length > 0) {
-      responseText += `## ❌ Invalid Hostnames (${validation.invalidHostnames.length})\n`;
+      responseText += `## [ERROR] Invalid Hostnames (${validation.invalidHostnames.length})\n`;
       validation.invalidHostnames.forEach(({ hostname, reason }) => {
         responseText += `- **${hostname}**: ${reason}\n`;
       });
@@ -558,7 +558,7 @@ export async function validateHostnamesBulk(
 
     // Conflicts
     if (validation.conflicts.length > 0) {
-      responseText += `## ⚠️ Hostname Conflicts (${validation.conflicts.length})\n`;
+      responseText += `## [WARNING] Hostname Conflicts (${validation.conflicts.length})\n`;
       validation.conflicts.forEach(({ hostname, conflicts }) => {
         responseText += `- **${hostname}**\n`;
         conflicts.forEach((conflict) => {
@@ -570,7 +570,7 @@ export async function validateHostnamesBulk(
 
     // Recommendations
     if (validation.recommendations.length > 0) {
-      responseText += '## 💡 Recommendations\n';
+      responseText += '## [INFO] Recommendations\n';
       validation.recommendations.forEach(({ hostname, recommendations }) => {
         responseText += `- **${hostname}**\n`;
         recommendations.forEach((rec) => {
@@ -680,12 +680,12 @@ export async function findOptimalPropertyAssignment(
       const matchingProperty = findMatchingProperty(groupName, hostnames, existingProperties);
 
       if (matchingProperty) {
-        responseText += '### ♻️ Reuse Existing Property\n';
+        responseText += '### [EMOJI]️ Reuse Existing Property\n';
         responseText += `- **Property:** ${matchingProperty.propertyName} (${matchingProperty.propertyId})\n`;
         responseText += `- **Current Hostnames:** ${matchingProperty.hostnameCount || 0}\n`;
         responseText += `- **Available Capacity:** ${maxPerProperty - (matchingProperty.hostnameCount || 0)}\n\n`;
       } else {
-        responseText += '### 🆕 Create New Property\n';
+        responseText += '### [EMOJI] Create New Property\n';
         responseText += `- **Suggested Name:** ${generatePropertyName(groupName, hostnames)}\n`;
         responseText += '- **Product:** Ion (recommended for mixed content)\n';
         responseText += '- **Rule Template:** Auto-select based on content type\n\n';
@@ -704,12 +704,12 @@ export async function findOptimalPropertyAssignment(
     });
 
     // Optimization recommendations
-    responseText += '## 📊 Optimization Analysis\n';
+    responseText += '## [METRICS] Optimization Analysis\n';
 
     // Certificate optimization
     const wildcardOpportunities = findWildcardOpportunities(args.hostnames);
     if (wildcardOpportunities.length > 0) {
-      responseText += '### 🔐 Certificate Optimization\n';
+      responseText += '### [EMOJI] Certificate Optimization\n';
       wildcardOpportunities.forEach((opp) => {
         responseText += `- Use wildcard certificate for \`*.${opp.domain}\` (covers ${opp.count} hostnames)\n`;
       });
@@ -717,13 +717,13 @@ export async function findOptimalPropertyAssignment(
     }
 
     // Performance recommendations
-    responseText += '### ⚡ Performance Recommendations\n';
+    responseText += '### [FAST] Performance Recommendations\n';
     responseText += '- Group API endpoints separately for optimized caching rules\n';
     responseText += '- Separate static assets into dedicated properties\n';
     responseText += '- Use shared CP codes for related hostnames\n\n';
 
     // Implementation plan
-    responseText += '## 🚀 Implementation Plan\n';
+    responseText += '## [DEPLOY] Implementation Plan\n';
     let step = 1;
 
     // Properties to create
@@ -814,7 +814,7 @@ export async function createHostnameProvisioningPlan(
         content: [
           {
             type: 'text',
-            text: '❌ No valid hostnames found. Please fix validation errors and try again.',
+            text: '[ERROR] No valid hostnames found. Please fix validation errors and try again.',
           },
         ],
       };
@@ -868,7 +868,7 @@ export async function createHostnameProvisioningPlan(
     responseText += '\n';
 
     // Execution timeline
-    responseText += '## 📅 Execution Timeline\n\n';
+    responseText += '## [EMOJI] Execution Timeline\n\n';
     responseText += '### Day 1: Preparation\n';
     responseText += '- Validate all prerequisites\n';
     responseText += '- Create required properties\n';
@@ -890,14 +890,14 @@ export async function createHostnameProvisioningPlan(
     responseText += '- Activate to production\n\n';
 
     // Risk assessment
-    responseText += '## ⚠️ Risk Assessment\n';
+    responseText += '## [WARNING] Risk Assessment\n';
     responseText += '- **DNS Cutover Risk:** Low (using CNAME records)\n';
     responseText += '- **Certificate Risk:** Low (using DefaultDV)\n';
     responseText += '- **Downtime Risk:** None (gradual DNS transition)\n';
     responseText += '- **Rollback Strategy:** Keep original DNS records until verified\n\n';
 
     // Automation commands
-    responseText += '## 🤖 Automation Commands\n';
+    responseText += '## [AI] Automation Commands\n';
     responseText += '```bash\n';
     responseText += '# Create properties\n';
     responseText += `akamai property create --name "property-name" --product ${args.productId || 'prd_Ion'} --contract ${args.contractId} --group ${args.groupId}\n\n`;
@@ -909,7 +909,7 @@ export async function createHostnameProvisioningPlan(
       'akamai property hostname add --property "property-id" --hostname "hostname" --edgehostname "edge-hostname"\n';
     responseText += '```\n\n';
 
-    responseText += '## ✅ Ready to Execute?\n';
+    responseText += '## [DONE] Ready to Execute?\n';
     responseText += `This plan will provision ${validHostnames.length} hostnames across multiple properties with DefaultDV certificates.\n\n`;
     responseText += '**Next Step:** Execute the plan with:\n';
     responseText += `\`Execute hostname provisioning plan for ${validHostnames.length} hostnames\``;
@@ -1288,7 +1288,7 @@ function findWildcardOpportunities(hostnames: string[]): Array<{ domain: string;
 
 function extractValidHostnames(validationResult: MCPToolResponse): string[] {
   const text = validationResult.content[0]?.text || '';
-  const validSection = text.split('## ✅ Valid Hostnames')[1]?.split('##')[0] || '';
+  const validSection = text.split('## [DONE] Valid Hostnames')[1]?.split('##')[0] || '';
 
   return validSection
     .split('\n')

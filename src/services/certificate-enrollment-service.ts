@@ -157,7 +157,7 @@ export class CertificateEnrollmentService {
       this.activeEnrollments.set(enrollmentId, enrollmentState);
       this.logWorkflowEvent('enrollment_created', { enrollmentId, domains });
 
-      let workflowSteps = '✅ Certificate Enrollment Created\n\n';
+      let workflowSteps = '[DONE] Certificate Enrollment Created\n\n';
       workflowSteps += `**Enrollment ID:** ${enrollmentId}\n`;
       workflowSteps += `**Domains:** ${domains.join(', ')}\n`;
       workflowSteps += `**Network:** ${args.enhancedTLS !== false ? 'Enhanced TLS' : 'Standard TLS'}\n\n`;
@@ -227,7 +227,7 @@ export class CertificateEnrollmentService {
         content: [
           {
             type: 'text',
-            text: `❌ Certificate enrollment failed: ${errorMessage}\n\nCheck the logs for more details.`,
+            text: `[ERROR] Certificate enrollment failed: ${errorMessage}\n\nCheck the logs for more details.`,
           },
         ],
       };
@@ -264,7 +264,7 @@ export class CertificateEnrollmentService {
         content: [
           {
             type: 'text',
-            text: `❌ Validation failed: ${_error instanceof Error ? _error.message : String(_error)}`,
+            text: `[ERROR] Validation failed: ${_error instanceof Error ? _error.message : String(_error)}`,
           },
         ],
       };
@@ -287,12 +287,12 @@ export class CertificateEnrollmentService {
         ? statusResponse.content[0]?.text || ''
         : '';
 
-      if (!statusText.includes('✅') || !statusText.includes('validated')) {
+      if (!statusText.includes('[DONE]') || !statusText.includes('validated')) {
         return {
           content: [
             {
               type: 'text',
-              text: `❌ Certificate must be validated before deployment\n\nCurrent status:\n${statusText}`,
+              text: `[ERROR] Certificate must be validated before deployment\n\nCurrent status:\n${statusText}`,
             },
           ],
         };
@@ -319,7 +319,7 @@ export class CertificateEnrollmentService {
         content: [
           {
             type: 'text',
-            text: `❌ Deployment failed: ${_error instanceof Error ? _error.message : String(_error)}`,
+            text: `[ERROR] Deployment failed: ${_error instanceof Error ? _error.message : String(_error)}`,
           },
         ],
       };
@@ -373,7 +373,7 @@ export class CertificateEnrollmentService {
         report += '\n\n## Performance Metrics\n\n';
         enrollmentMetrics.forEach((metric: any) => {
           report += `- **Duration:** ${metric.duration}ms\n`;
-          report += `- **Success:** ${metric.success ? '✅' : '❌'}\n`;
+          report += `- **Success:** ${metric.success ? '[DONE]' : '[ERROR]'}\n`;
         });
       }
 
@@ -390,7 +390,7 @@ export class CertificateEnrollmentService {
         content: [
           {
             type: 'text',
-            text: `❌ Failed to monitor certificate: ${_error instanceof Error ? _error.message : String(_error)}`,
+            text: `[ERROR] Failed to monitor certificate: ${_error instanceof Error ? _error.message : String(_error)}`,
           },
         ],
       };
@@ -444,7 +444,7 @@ export class CertificateEnrollmentService {
     enrollmentId: number,
     enrollmentState: EnrollmentState,
   ): Promise<string> {
-    let validationSteps = '## 🔐 Automated DNS Validation\n\n';
+    let validationSteps = '## [EMOJI] Automated DNS Validation\n\n';
 
     try {
       enrollmentState.status = 'validating';
@@ -491,9 +491,9 @@ export class CertificateEnrollmentService {
               zone,
               comment: `ACME validation for certificate ${enrollmentId}`,
             });
-            validationSteps += `✅ Activated zone: ${zone}\n`;
+            validationSteps += `[DONE] Activated zone: ${zone}\n`;
           } catch (_error) {
-            validationSteps += `⚠️ Zone ${zone} activation skipped: ${_error instanceof Error ? _error.message : 'Unknown error'}\n`;
+            validationSteps += `[WARNING] Zone ${zone} activation skipped: ${_error instanceof Error ? _error.message : 'Unknown error'}\n`;
           }
         }
         validationSteps += '\n';
@@ -514,7 +514,7 @@ export class CertificateEnrollmentService {
         : '';
 
       // Update final state
-      const isValidated = validationSteps.includes('✅') && !validationSteps.includes('Failed');
+      const isValidated = validationSteps.includes('[DONE]') && !validationSteps.includes('Failed');
       if (isValidated) {
         enrollmentState.status = 'validated';
         enrollmentState.domains.forEach((domain) => {
@@ -532,7 +532,7 @@ export class CertificateEnrollmentService {
       enrollmentState.status = 'failed';
       const errorMsg = _error instanceof Error ? _error.message : String(_error);
       enrollmentState.errors.push(`Validation error: ${errorMsg}`);
-      validationSteps += `\n❌ Validation failed: ${errorMsg}\n`;
+      validationSteps += `\n[ERROR] Validation failed: ${errorMsg}\n`;
     }
 
     enrollmentState.lastUpdated = new Date();
@@ -544,7 +544,7 @@ export class CertificateEnrollmentService {
     network: 'staging' | 'production',
     enrollmentState: EnrollmentState,
   ): Promise<string> {
-    let deploymentSteps = '## 🚀 Automated Certificate Deployment\n\n';
+    let deploymentSteps = '## [DEPLOY] Automated Certificate Deployment\n\n';
     deploymentSteps += `**Target Network:** ${network.toUpperCase()}\n\n`;
 
     try {
@@ -572,8 +572,8 @@ export class CertificateEnrollmentService {
         },
       });
 
-      deploymentSteps += '✅ Deployment initiated\n';
-      deploymentSteps += '⏳ Deployment typically takes 30-60 minutes\n\n';
+      deploymentSteps += '[DONE] Deployment initiated\n';
+      deploymentSteps += '[EMOJI] Deployment typically takes 30-60 minutes\n\n';
 
       // Update state
       enrollmentState.deploymentStatus.status = 'in-progress';
@@ -604,7 +604,7 @@ export class CertificateEnrollmentService {
         enrollmentState.deploymentStatus.error = errorMsg;
       }
 
-      deploymentSteps += `\n❌ Deployment failed: ${errorMsg}\n`;
+      deploymentSteps += `\n[ERROR] Deployment failed: ${errorMsg}\n`;
     }
 
     enrollmentState.lastUpdated = new Date();
@@ -636,15 +636,15 @@ export class CertificateEnrollmentService {
 
   private formatEventType(type: WorkflowEvent['type']): string {
     const eventLabels: Record<WorkflowEvent['type'], string> = {
-      enrollment_created: '📋 Enrollment Created',
-      validation_started: '🔐 Validation Started',
-      dns_record_created: '📝 DNS Records Created',
-      domain_validated: '✅ Domain Validated',
-      all_domains_validated: '✅ All Domains Validated',
-      deployment_started: '🚀 Deployment Started',
-      deployment_completed: '✅ Deployment Completed',
-      workflow_completed: '🎉 Workflow Completed',
-      workflow_failed: '❌ Workflow Failed',
+      enrollment_created: '[EMOJI] Enrollment Created',
+      validation_started: '[EMOJI] Validation Started',
+      dns_record_created: '[DOCS] DNS Records Created',
+      domain_validated: '[DONE] Domain Validated',
+      all_domains_validated: '[DONE] All Domains Validated',
+      deployment_started: '[DEPLOY] Deployment Started',
+      deployment_completed: '[DONE] Deployment Completed',
+      workflow_completed: '[SUCCESS] Workflow Completed',
+      workflow_failed: '[ERROR] Workflow Failed',
     };
 
     return eventLabels[type] || type;

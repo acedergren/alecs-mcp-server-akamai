@@ -58,7 +58,7 @@ export function renderTree(
     }
 
     // Add icon based on type
-    const icon = node.type === 'group' ? '📁' : '📦';
+    const icon = node.type === 'group' ? '[EMOJI]' : '[PACKAGE]';
     line += `${icon} ${node.name}`;
 
     // Add metadata

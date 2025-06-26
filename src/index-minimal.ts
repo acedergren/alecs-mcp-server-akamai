@@ -42,7 +42,7 @@ class MinimalALECSServer {
   private client: AkamaiClient;
 
   constructor() {
-    console.error('🚀 ALECS Minimal Server starting...');
+    console.error('[DEPLOY] ALECS Minimal Server starting...');
 
     this.server = new Server(
       {
@@ -126,8 +126,8 @@ class MinimalALECSServer {
     this.server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> => {
       const { name, arguments: args } = request.params;
 
-      console.error(`🔧 Tool called: ${name}`);
-      console.error('📝 Arguments:', JSON.stringify(args, null, 2));
+      console.error(`[CONFIG] Tool called: ${name}`);
+      console.error('[DOCS] Arguments:', JSON.stringify(args, null, 2));
 
       const client = this.client;
 
@@ -174,7 +174,7 @@ class MinimalALECSServer {
   }
 
   async start() {
-    console.error('📍 Looking for credentials in ~/.edgerc');
+    console.error('[EMOJI] Looking for credentials in ~/.edgerc');
 
     const transport = new StdioServerTransport();
 
@@ -184,13 +184,13 @@ class MinimalALECSServer {
     };
 
     transport.onclose = () => {
-      console.error('🔌 Transport closed');
+      console.error('[EMOJI] Transport closed');
       process.exit(0);
     };
 
     await this.server.connect(transport);
 
-    console.error('✅ Server ready, waiting for connections...');
+    console.error('[DONE] Server ready, waiting for connections...');
   }
 }
 
@@ -212,7 +212,7 @@ process.on('uncaughtException', (_error) => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled rejection at:', promise, 'reason:', reason);
+  console.error('[ERROR] Unhandled rejection at:', promise, 'reason:', reason);
   process.exit(1);
 });
 

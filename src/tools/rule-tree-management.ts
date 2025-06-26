@@ -270,7 +270,7 @@ export async function updatePropertyRulesEnhanced(
     });
 
     if (!validation.isValid && !args.validateOnly) {
-      let text = '❌ **Rule Validation Failed**\n\n';
+      let text = '[ERROR] **Rule Validation Failed**\n\n';
       text += `**Errors Found:** ${validation.errors.length}\n\n`;
 
       validation.errors.slice(0, 5).forEach((_error, index) => {
@@ -306,7 +306,7 @@ export async function updatePropertyRulesEnhanced(
     }
 
     if (args.validateOnly || args.dryRun) {
-      let text = `✅ **Rule Validation ${args.dryRun ? 'and Dry Run ' : ''}Successful**\n\n`;
+      let text = `[DONE] **Rule Validation ${args.dryRun ? 'and Dry Run ' : ''}Successful**\n\n`;
 
       text += '**Validation Summary:**\n';
       text += `- Errors: ${validation.errors.length}\n`;
@@ -361,7 +361,7 @@ export async function updatePropertyRulesEnhanced(
       },
     });
 
-    let text = '✅ **Property Rules Updated Successfully**\n\n';
+    let text = '[DONE] **Property Rules Updated Successfully**\n\n';
     text += `Property: ${args.propertyId}\n`;
     text += `Version: ${args.version}\n`;
 
@@ -412,7 +412,7 @@ export async function createRuleFromTemplate(
         content: [
           {
             type: 'text',
-            text: `❌ Template '${args.templateId}' not found.\n\nAvailable templates:\n${availableTemplates.map((t) => `- ${t}`).join('\n')}`,
+            text: `[ERROR] Template '${args.templateId}' not found.\n\nAvailable templates:\n${availableTemplates.map((t) => `- ${t}`).join('\n')}`,
           },
         ],
       };
@@ -426,7 +426,7 @@ export async function createRuleFromTemplate(
           content: [
             {
               type: 'text',
-              text: `❌ Required variable '${varName}' not provided.\n\nRequired variables:\n${Object.entries(
+              text: `[ERROR] Required variable '${varName}' not provided.\n\nRequired variables:\n${Object.entries(
                 template.variables,
               )
                 .filter(([_, v]) => v.required)
@@ -455,14 +455,14 @@ export async function createRuleFromTemplate(
           content: [
             {
               type: 'text',
-              text: `❌ Generated rule tree validation failed.\n\nErrors:\n${validation.errors.map((e) => `- ${e.message}`).join('\n')}`,
+              text: `[ERROR] Generated rule tree validation failed.\n\nErrors:\n${validation.errors.map((e) => `- ${e.message}`).join('\n')}`,
             },
           ],
         };
       }
     }
 
-    let text = '✅ **Rule Tree Created from Template**\n\n';
+    let text = '[DONE] **Rule Tree Created from Template**\n\n';
     text += `**Template:** ${template.name}\n`;
     text += `**Category:** ${template.category}\n`;
     text += `**Description:** ${template.description}\n\n`;
@@ -521,9 +521,9 @@ export async function validateRuleTree(
       includePerformance: args.includePerformance || false,
     });
 
-    let text = '📋 **Rule Tree Validation Report**\n\n';
+    let text = '[EMOJI] **Rule Tree Validation Report**\n\n';
 
-    const statusIcon = validation.isValid ? '✅' : '❌';
+    const statusIcon = validation.isValid ? '[DONE]' : '[ERROR]';
     text += `**Overall Status:** ${statusIcon} ${validation.isValid ? 'Valid' : 'Invalid'}\n\n`;
 
     text += '**Sco_res:**\n';
@@ -536,7 +536,7 @@ export async function validateRuleTree(
     text += `- Suggestions: ${validation.suggestions.length}\n\n`;
 
     if (validation.errors.length > 0) {
-      text += '**🚨 Errors (must fix):**\n';
+      text += '**[EMOJI] Errors (must fix):**\n';
       validation.errors.forEach((_error, index) => {
         text += `${index + 1}. [${_error.severity}] ${_error.type}\n`;
         text += `   Path: ${_error.path}\n`;
@@ -549,7 +549,7 @@ export async function validateRuleTree(
     }
 
     if (validation.warnings.length > 0) {
-      text += '**⚠️ Warnings (should review):**\n';
+      text += '**[WARNING] Warnings (should review):**\n';
       validation.warnings.slice(0, 10).forEach((warning, index) => {
         text += `${index + 1}. [${warning.type}] ${warning.message}\n`;
         text += `   Path: ${warning.path}\n`;
@@ -562,7 +562,7 @@ export async function validateRuleTree(
     }
 
     if (validation.suggestions.length > 0) {
-      text += '**💡 Optimization Suggestions:**\n';
+      text += '**[INFO] Optimization Suggestions:**\n';
       validation.suggestions.slice(0, 10).forEach((suggestion, index) => {
         text += `${index + 1}. [${suggestion.impact}] ${suggestion.type}\n`;
         text += `   ${suggestion.description}\n`;
@@ -633,7 +633,7 @@ export async function mergeRuleTrees(
       });
 
       if (!validation.isValid) {
-        let text = '⚠️ **Rule Merge Completed with Validation Issues**\n\n';
+        let text = '[WARNING] **Rule Merge Completed with Validation Issues**\n\n';
         text += '**Merge Summary:**\n';
         text += `- Rules merged: ${mergeResult.rulesAdded}\n`;
         text += `- Conflicts resolved: ${mergeResult.conflictsResolved}\n`;
@@ -658,7 +658,7 @@ export async function mergeRuleTrees(
       }
     }
 
-    let text = '✅ **Rule Trees Merged Successfully**\n\n';
+    let text = '[DONE] **Rule Trees Merged Successfully**\n\n';
     text += '**Merge Configuration:**\n';
     text += `- Strategy: ${options.strategy}\n`;
     text += `- Conflict Resolution: ${options.conflictResolution}\n`;
@@ -742,7 +742,7 @@ export async function optimizeRuleTree(
     // Re-analyze for comparison
     const newAnalysis = analyzeRulePerformance(optimizedRules);
 
-    let text = '🚀 **Rule Tree Optimization Report**\n\n';
+    let text = '[DEPLOY] **Rule Tree Optimization Report**\n\n';
     text += `**Optimization Level:** ${level}\n`;
     text += `**Target Metrics:** ${metrics.join(', ')}\n\n`;
 
@@ -769,7 +769,7 @@ export async function optimizeRuleTree(
     }
 
     if (newAnalysis.criticalIssues.length > 0) {
-      text += '**⚠️ Remaining Critical Issues:**\n';
+      text += '**[WARNING] Remaining Critical Issues:**\n';
       newAnalysis.criticalIssues.forEach((issue, index) => {
         text += `${index + 1}. ${issue}\n`;
       });
@@ -785,11 +785,11 @@ export async function optimizeRuleTree(
     text += '\n```\n';
 
     text += '\n**Best Practices Applied:**\n';
-    text += '- ✅ Cache headers optimized for static content\n';
-    text += '- ✅ Compression enabled for text-based resources\n';
-    text += '- ✅ HTTP/2 and Server Push configured\n';
-    text += '- ✅ Image optimization behaviors added\n';
-    text += '- ✅ Mobile detection and optimization\n';
+    text += '- [DONE] Cache headers optimized for static content\n';
+    text += '- [DONE] Compression enabled for text-based resources\n';
+    text += '- [DONE] HTTP/2 and Server Push configured\n';
+    text += '- [DONE] Image optimization behaviors added\n';
+    text += '- [DONE] Mobile detection and optimization\n';
 
     text += '\n**Next Steps:**\n';
     text += '- Review and validate optimized rules\n';
@@ -833,7 +833,7 @@ export async function listRuleTemplates(
       templates = templates.filter((t) => args.tags!.some((tag) => t.tags.includes(tag)));
     }
 
-    let text = '📚 **Available Rule Templates**\n\n';
+    let text = '[DOCS] **Available Rule Templates**\n\n';
 
     if (templates.length === 0) {
       text += 'No templates found matching your criteria.\n';
@@ -852,7 +852,7 @@ export async function listRuleTemplates(
         text += `**${category.charAt(0).toUpperCase() + category.slice(1)}:**\n`;
 
         categoryTemplates.forEach((template) => {
-          text += `\n📋 **${template.name}** (${template.id})\n`;
+          text += `\n[EMOJI] **${template.name}** (${template.id})\n`;
           text += `   ${template.description}\n`;
           text += `   Tags: ${template.tags.join(', ')}\n`;
           text += `   Variables: ${Object.keys(template.variables).length}\n`;
@@ -1744,7 +1744,7 @@ function applySecurityOptimization(rules: any, _optimization: RuleOptimizationSu
  * Format error responses
  */
 function formatError(operation: string, _error: any): MCPToolResponse {
-  let errorMessage = `❌ Failed to ${operation}`;
+  let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 
   if (_error instanceof Error) {

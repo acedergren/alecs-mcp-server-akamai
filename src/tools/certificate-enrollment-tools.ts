@@ -156,13 +156,13 @@ export async function getCertificateDeploymentStatus(
       deps.forEach((dep: any) => {
         const statusEmoji = (() => {
           const statusMap: Record<string, string> = {
-            active: '✅',
-            pending: '⏳',
-            'in-progress': '🔄',
-            failed: '❌',
-            expired: '⚠️',
+            active: '[DONE]',
+            pending: '[EMOJI]',
+            'in-progress': '[EMOJI]',
+            failed: '[ERROR]',
+            expired: '[WARNING]',
           };
-          return statusMap[dep.deploymentStatus] || '❓';
+          return statusMap[dep.deploymentStatus] || '[EMOJI]';
         })();
 
         text += `### ${statusEmoji} Deployment ${dep.deploymentId || 'Current'}\n`;
@@ -206,7 +206,7 @@ export async function getCertificateDeploymentStatus(
       content: [
         {
           type: 'text',
-          text: `❌ Failed to get deployment status: ${_error instanceof Error ? _error.message : String(_error)}`,
+          text: `[ERROR] Failed to get deployment status: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };
@@ -264,7 +264,7 @@ export async function renewCertificate(
       },
     });
 
-    steps += '✅ Renewal initiated\n\n';
+    steps += '[DONE] Renewal initiated\n\n';
 
     // Step 3: Handle validation if auto-validate
     if (args.autoValidate) {
@@ -310,7 +310,7 @@ export async function renewCertificate(
       content: [
         {
           type: 'text',
-          text: `❌ Failed to renew certificate: ${_error instanceof Error ? _error.message : String(_error)}`,
+          text: `[ERROR] Failed to renew certificate: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };
@@ -383,10 +383,10 @@ export async function cleanupValidationRecords(
           type: 'TXT',
           comment: `Cleanup ACME validation for enrollment ${args.enrollmentId}`,
         });
-        text += `✅ Deleted: ${record.recordName} from ${record.zone}\n`;
+        text += `[DONE] Deleted: ${record.recordName} from ${record.zone}\n`;
         deleted++;
       } catch (_error) {
-        text += `❌ Failed to delete ${record.recordName}: ${_error instanceof Error ? _error.message : 'Unknown _error'}\n`;
+        text += `[ERROR] Failed to delete ${record.recordName}: ${_error instanceof Error ? _error.message : 'Unknown _error'}\n`;
         failed++;
       }
     }
@@ -396,7 +396,7 @@ export async function cleanupValidationRecords(
     text += `- **Failed:** ${failed}\n`;
 
     if (deleted > 0) {
-      text += '\n✅ Validation records cleaned up successfully';
+      text += '\n[DONE] Validation records cleaned up successfully';
     }
 
     return {
@@ -412,7 +412,7 @@ export async function cleanupValidationRecords(
       content: [
         {
           type: 'text',
-          text: `❌ Failed to cleanup validation records: ${_error instanceof Error ? _error.message : String(_error)}`,
+          text: `[ERROR] Failed to cleanup validation records: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };
@@ -475,13 +475,13 @@ export async function getCertificateValidationHistory(
       entries.forEach((entry: any) => {
         const statusEmoji = (() => {
           const statusMap: Record<string, string> = {
-            completed: '✅',
-            pending: '⏳',
-            'in-progress': '🔄',
-            failed: '❌',
-            expired: '⚠️',
+            completed: '[DONE]',
+            pending: '[EMOJI]',
+            'in-progress': '[EMOJI]',
+            failed: '[ERROR]',
+            expired: '[WARNING]',
           };
-          return statusMap[entry.status] || '❓';
+          return statusMap[entry.status] || '[EMOJI]';
         })();
 
         text += `### ${statusEmoji} ${entry.validationMethod || 'dns-01'} - ${entry.status}\n`;
@@ -520,7 +520,7 @@ export async function getCertificateValidationHistory(
       content: [
         {
           type: 'text',
-          text: `❌ Failed to get validation history: ${_error instanceof Error ? _error.message : String(_error)}`,
+          text: `[ERROR] Failed to get validation history: ${_error instanceof Error ? _error.message : String(_error)}`,
         },
       ],
     };

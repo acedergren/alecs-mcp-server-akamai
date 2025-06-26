@@ -598,10 +598,10 @@ export async function handleSecurityComplianceAssistant(args: any) {
     
     // Risk assessment
     const riskEmoji = {
-      critical: '🔴',
-      high: '🟠',
-      medium: '🟡',
-      low: '🟢',
+      critical: '[EMOJI]',
+      high: '[EMOJI]',
+      medium: '[EMOJI]',
+      low: '[EMOJI]',
     }[analysis.riskLevel];
     
     response += `**Risk Level:** ${riskEmoji} ${analysis.riskLevel.toUpperCase()}\n`;
@@ -677,7 +677,7 @@ export async function handleSecurityComplianceAssistant(args: any) {
     
     // Active threat response
     if (analysis.riskLevel === 'critical' && analysis.threatType === 'active_attack') {
-      response += `## ⚠️ IMMEDIATE THREAT RESPONSE\n\n`;
+      response += `## [WARNING] IMMEDIATE THREAT RESPONSE\n\n`;
       response += `I've detected an active threat situation. Here's what to do RIGHT NOW:\n\n`;
       
       const threatType = args.intent.includes('bot') ? 'bot_attack' : 
@@ -699,7 +699,7 @@ export async function handleSecurityComplianceAssistant(args: any) {
       }
       
       if (args.auto_apply) {
-        response += `\n### 🚀 Auto-Protection Status\n\n`;
+        response += `\n### [DEPLOY] Auto-Protection Status\n\n`;
         response += `Ready to apply emergency protection measures.\n`;
         response += `This will:\n`;
         response += `- Enable immediate threat blocking\n`;
@@ -785,7 +785,7 @@ export class SecurityDashboard {
     
     // Overall score with visual indicator
     const score = data.overallScore || 75;
-    const scoreEmoji = score >= 90 ? '🟢' : score >= 70 ? '🟡' : score >= 50 ? '🟠' : '🔴';
+    const scoreEmoji = score >= 90 ? '[EMOJI]' : score >= 70 ? '[EMOJI]' : score >= 50 ? '[EMOJI]' : '[EMOJI]';
     
     summary += `### Overall Security Score: ${scoreEmoji} ${score}/100\n\n`;
     
@@ -803,7 +803,7 @@ export class SecurityDashboard {
     summary += `**Compliance Status**\n`;
     if (data.compliance) {
       Object.entries(data.compliance).forEach(([standard, status]) => {
-        const statusEmoji = status === 'compliant' ? '✅' : status === 'partial' ? '⚠️' : '❌';
+        const statusEmoji = status === 'compliant' ? '[DONE]' : status === 'partial' ? '[WARNING]' : '[ERROR]';
         summary += `- ${standard.toUpperCase()}: ${statusEmoji} ${status}\n`;
       });
     } else {

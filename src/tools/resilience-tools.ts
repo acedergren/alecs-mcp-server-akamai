@@ -529,26 +529,26 @@ export async function getErrorRecoverySuggestions(
 function getStatusEmoji(status: string): string {
   switch (status) {
     case 'HEALTHY':
-      return '🟢';
+      return '[EMOJI]';
     case 'DEGRADED':
-      return '🟡';
+      return '[EMOJI]';
     case 'UNHEALTHY':
-      return '🔴';
+      return '[EMOJI]';
     default:
-      return '⚪';
+      return '[EMOJI]';
   }
 }
 
 function getCircuitBreakerEmoji(state: CircuitBreakerState): string {
   switch (state) {
     case CircuitBreakerState.CLOSED:
-      return '🟢';
+      return '[EMOJI]';
     case CircuitBreakerState.HALF_OPEN:
-      return '🟡';
+      return '[EMOJI]';
     case CircuitBreakerState.OPEN:
-      return '🔴';
+      return '[EMOJI]';
     default:
-      return '⚪';
+      return '[EMOJI]';
   }
 }
 

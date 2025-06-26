@@ -51,7 +51,7 @@ export async function listCPCodes(
         content: [
           {
             type: 'text',
-            text: 'No CP Codes found in your account.\n\n💡 **Tip:** CP Codes are automatically created when you create properties, or you can create them manually for specific reporting needs.',
+            text: 'No CP Codes found in your account.\n\n[INFO] **Tip:** CP Codes are automatically created when you create properties, or you can create them manually for specific reporting needs.',
           },
         ],
       };
@@ -160,7 +160,7 @@ export async function getCPCode(
         content: [
           {
             type: 'text',
-            text: `❌ CP Code ${args.cpcodeId} not found.\n\n💡 **Tip:** Use \`"List CP Codes"\` to see all available CP Codes in your account.`,
+            text: `[ERROR] CP Code ${args.cpcodeId} not found.\n\n[INFO] **Tip:** Use \`"List CP Codes"\` to see all available CP Codes in your account.`,
           },
         ],
       };
@@ -283,7 +283,7 @@ export async function createCPCode(
         content: [
           {
             type: 'text',
-            text: `❌ Cannot create CP Code - validation errors:\n\n${validationErrors.map((e) => `- ${e}`).join('\n')}\n\n💡 **Tip:** Use \`"List groups"\` to find valid contract and group IDs.`,
+            text: `[ERROR] Cannot create CP Code - validation errors:\n\n${validationErrors.map((e) => `- ${e}`).join('\n')}\n\n[INFO] **Tip:** Use \`"List groups"\` to find valid contract and group IDs.`,
           },
         ],
       };
@@ -345,7 +345,7 @@ export async function createCPCode(
     const numericId = cpcodeId?.replace('cpc_', '');
 
     // Format success response
-    let text = '✅ **CP Code Created Successfully!**\n\n';
+    let text = '[DONE] **CP Code Created Successfully!**\n\n';
 
     text += '## CP Code Details\n';
     text += `- **Name:** ${args.cpcodeName}\n`;
@@ -355,7 +355,7 @@ export async function createCPCode(
     text += `- **Contract:** ${formatContractDisplay(args.contractId)}\n`;
     text += `- **Group:** ${formatGroupDisplay(args.groupId)}\n`;
     text += `- **Time Zone:** ${args.timeZone || 'GMT'}\n`;
-    text += '- **Status:** 🆕 NEW (Ready for use)\n\n';
+    text += '- **Status:** [EMOJI] NEW (Ready for use)\n\n';
 
     text += '## Next Steps\n\n';
     text += '### 1. Assign to Property\n';
@@ -437,7 +437,7 @@ export async function searchCPCodes(
         content: [
           {
             type: 'text',
-            text: 'No CP Codes found to search.\n\n💡 **Tip:** Create a CP Code first or check your contract/group permissions.',
+            text: 'No CP Codes found to search.\n\n[INFO] **Tip:** Create a CP Code first or check your contract/group permissions.',
           },
         ],
       };
@@ -505,7 +505,7 @@ export async function searchCPCodes(
  * Format error responses with helpful guidance
  */
 function formatError(operation: string, _error: any): MCPToolResponse {
-  let errorMessage = `❌ Failed to ${operation}`;
+  let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 
   if (_error instanceof Error) {

@@ -368,7 +368,7 @@ export async function searchPropertiesAdvanced(
 
     // Results
     if (limitedResults.length === 0) {
-      responseText += '❌ No properties found matching the search criteria.\n';
+      responseText += '[ERROR] No properties found matching the search criteria.\n';
     } else {
       limitedResults.forEach((result, index) => {
         responseText += `## ${index + 1}. ${result.propertyName}\n`;
@@ -938,28 +938,28 @@ export async function checkPropertyHealth(
       const lowIssues = healthCheck.issues.filter((i) => i.severity === 'low');
 
       if (criticalIssues.length > 0) {
-        responseText += '### 🔴 Critical Issues\n';
+        responseText += '### [EMOJI] Critical Issues\n';
         criticalIssues.forEach((issue) => {
           responseText += formatIssue(issue);
         });
       }
 
       if (highIssues.length > 0) {
-        responseText += '### 🟠 High Priority Issues\n';
+        responseText += '### [EMOJI] High Priority Issues\n';
         highIssues.forEach((issue) => {
           responseText += formatIssue(issue);
         });
       }
 
       if (mediumIssues.length > 0) {
-        responseText += '### 🟡 Medium Priority Issues\n';
+        responseText += '### [EMOJI] Medium Priority Issues\n';
         mediumIssues.forEach((issue) => {
           responseText += formatIssue(issue);
         });
       }
 
       if (lowIssues.length > 0) {
-        responseText += '### 🟢 Low Priority Issues\n';
+        responseText += '### [EMOJI] Low Priority Issues\n';
         lowIssues.forEach((issue) => {
           responseText += formatIssue(issue);
         });
@@ -968,7 +968,7 @@ export async function checkPropertyHealth(
 
     // Recommendations
     if (healthCheck.recommendations.length > 0) {
-      responseText += '## 💡 Recommendations\n\n';
+      responseText += '## [INFO] Recommendations\n\n';
       healthCheck.recommendations.forEach((rec) => {
         responseText += `- ${rec}\n`;
       });
@@ -1121,7 +1121,7 @@ export async function detectConfigurationDrift(
     responseText += `**Baseline Version:** ${args.baselineVersion}\n`;
     responseText += `**Compare Version:** ${compareVersion}\n`;
     responseText += `**Drift Score:** ${drift.driftScore}/100\n`;
-    responseText += `**Drift Status:** ${drift.driftDetected ? '⚠️ DRIFT DETECTED' : '✅ NO DRIFT'}\n\n`;
+    responseText += `**Drift Status:** ${drift.driftDetected ? '[WARNING] DRIFT DETECTED' : '[DONE] NO DRIFT'}\n\n`;
 
     if (drift.drifts.length > 0) {
       responseText += `## Drift Details (${drift.drifts.length} items)\n\n`;
@@ -1132,21 +1132,21 @@ export async function detectConfigurationDrift(
       const lowImpact = drift.drifts.filter((d) => d.impact === 'low');
 
       if (highImpact.length > 0) {
-        responseText += '### 🔴 High Impact Changes\n';
+        responseText += '### [EMOJI] High Impact Changes\n';
         highImpact.forEach((drift) => {
           responseText += formatDrift(drift);
         });
       }
 
       if (mediumImpact.length > 0) {
-        responseText += '### 🟡 Medium Impact Changes\n';
+        responseText += '### [EMOJI] Medium Impact Changes\n';
         mediumImpact.forEach((drift) => {
           responseText += formatDrift(drift);
         });
       }
 
       if (lowImpact.length > 0) {
-        responseText += '### 🟢 Low Impact Changes\n';
+        responseText += '### [EMOJI] Low Impact Changes\n';
         lowImpact.forEach((drift) => {
           responseText += formatDrift(drift);
         });
@@ -1451,7 +1451,7 @@ export async function bulkUpdateProperties(
     const failed = results.filter((r) => !r.success);
 
     if (successful.length > 0) {
-      responseText += `### ✅ Successful Updates (${successful.length})\n`;
+      responseText += `### [DONE] Successful Updates (${successful.length})\n`;
       successful.forEach((result) => {
         responseText += `- **${result.propertyName}** (${result.propertyId})`;
         if (result.newVersion) {
@@ -1463,7 +1463,7 @@ export async function bulkUpdateProperties(
     }
 
     if (failed.length > 0) {
-      responseText += `### ❌ Failed Updates (${failed.length})\n`;
+      responseText += `### [ERROR] Failed Updates (${failed.length})\n`;
       failed.forEach((result) => {
         responseText += `- **${result.propertyName}** (${result.propertyId})\n`;
         responseText += `  Error: ${result.message}\n`;
@@ -1762,14 +1762,14 @@ function getHealthEmoji(status: string): string {
   switch (status) {
     case 'healthy':
     case 'pass':
-      return '✅';
+      return '[DONE]';
     case 'warning':
-      return '⚠️';
+      return '[WARNING]';
     case 'critical':
     case 'fail':
-      return '❌';
+      return '[ERROR]';
     default:
-      return '❓';
+      return '[EMOJI]';
   }
 }
 

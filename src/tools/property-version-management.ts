@@ -182,7 +182,7 @@ export async function comparePropertyVersions(
     }
 
     if (comparison.differences.summary.totalChanges === 0) {
-      responseText += `✅ **No differences found** between version ${args.version1} and version ${args.version2}.\n`;
+      responseText += `[DONE] **No differences found** between version ${args.version1} and version ${args.version2}.\n`;
     } else {
       responseText += '## Next Steps\n';
       responseText += '- Review changes carefully before activation\n';
@@ -303,7 +303,7 @@ export async function batchCreateVersions(
     responseText += `**Failed:** ${results.filter((r) => !r.success).length}\n\n`;
 
     if (results.some((r) => r.success)) {
-      responseText += '## ✅ Successful Versions\n';
+      responseText += '## [DONE] Successful Versions\n';
       results
         .filter((r) => r.success)
         .forEach((result) => {
@@ -313,7 +313,7 @@ export async function batchCreateVersions(
     }
 
     if (results.some((r) => !r.success)) {
-      responseText += '## ❌ Failed Versions\n';
+      responseText += '## [ERROR] Failed Versions\n';
       results
         .filter((r) => !r.success)
         .forEach((result) => {
@@ -455,7 +455,7 @@ export async function getVersionTimeline(
 
     for (const event of timeline.timeline) {
       const date = new Date(event.date).toLocaleString();
-      const icon = event.event === 'created' ? '📝' : event.event === 'activated' ? '🚀' : '📋';
+      const icon = event.event === 'created' ? '[DOCS]' : event.event === 'activated' ? '[DEPLOY]' : '[EMOJI]';
 
       responseText += `### ${icon} Version ${event.version}\n`;
       responseText += `- **Date:** ${date}\n`;
@@ -618,12 +618,12 @@ export async function rollbackPropertyVersion(
     responseText += `**Hostnames:** ${preserveHostnames ? 'Preserved' : 'Restored from target'}\n\n`;
 
     responseText += '## Rollback Summary\n';
-    responseText += `✅ Successfully created version ${newVersion} based on version ${args.targetVersion}\n`;
+    responseText += `[DONE] Successfully created version ${newVersion} based on version ${args.targetVersion}\n`;
     if (preserveHostnames) {
-      responseText += `✅ Preserved ${currentHostnames.length} hostname(s) from current version\n`;
+      responseText += `[DONE] Preserved ${currentHostnames.length} hostname(s) from current version\n`;
     }
     if (backupVersion) {
-      responseText += `✅ Created backup in version ${backupVersion}\n`;
+      responseText += `[DONE] Created backup in version ${backupVersion}\n`;
     }
     responseText += '\n';
 
@@ -636,7 +636,7 @@ export async function rollbackPropertyVersion(
     responseText += `   \`activate_property propertyId=${args.propertyId} version=${newVersion} network=PRODUCTION\`\n`;
 
     if (backupVersion) {
-      responseText += `\n💡 **Tip:** If you need to restore the pre-rollback state, use version ${backupVersion}`;
+      responseText += `\n[INFO] **Tip:** If you need to restore the pre-rollback state, use version ${backupVersion}`;
     }
 
     return {
@@ -756,7 +756,7 @@ export async function updateVersionMetadata(
       });
     }
 
-    responseText += `\n✅ Metadata successfully updated for version ${args.version}\n`;
+    responseText += `\n[DONE] Metadata successfully updated for version ${args.version}\n`;
 
     responseText += '\n## Note\n';
     responseText +=
@@ -886,7 +886,7 @@ export async function mergePropertyVersions(
     responseText += '\n';
 
     responseText += '## Merge Summary\n';
-    responseText += `✅ ${mergeDescription}\n`;
+    responseText += `[DONE] ${mergeDescription}\n`;
 
     if (args.includePaths) {
       responseText += '\n### Included Paths\n';
@@ -1070,7 +1070,7 @@ function formatDifferences(diffs: VersionDiff[], includeDetails: boolean): strin
   const modified = diffs.filter((d) => d.type === 'modified');
 
   if (added.length > 0) {
-    text += `### ➕ Added (${added.length})\n`;
+    text += `### [EMOJI] Added (${added.length})\n`;
     added.forEach((diff) => {
       text += `- ${diff.description || diff.path}\n`;
       if (includeDetails && diff.newValue) {
@@ -1081,7 +1081,7 @@ function formatDifferences(diffs: VersionDiff[], includeDetails: boolean): strin
   }
 
   if (removed.length > 0) {
-    text += `### ➖ Removed (${removed.length})\n`;
+    text += `### [EMOJI] Removed (${removed.length})\n`;
     removed.forEach((diff) => {
       text += `- ${diff.description || diff.path}\n`;
       if (includeDetails && diff.oldValue) {
@@ -1092,7 +1092,7 @@ function formatDifferences(diffs: VersionDiff[], includeDetails: boolean): strin
   }
 
   if (modified.length > 0) {
-    text += `### 🔄 Modified (${modified.length})\n`;
+    text += `### [EMOJI] Modified (${modified.length})\n`;
     modified.forEach((diff) => {
       text += `- ${diff.description || diff.path}\n`;
       if (includeDetails) {
@@ -1117,7 +1117,7 @@ function formatHostnameDifferences(diffs: VersionDiff[]): string {
   const modified = diffs.filter((d) => d.type === 'modified');
 
   if (added.length > 0) {
-    text += `### ➕ Added Hostnames (${added.length})\n`;
+    text += `### [EMOJI] Added Hostnames (${added.length})\n`;
     added.forEach((diff) => {
       const hostname = diff.newValue?.cnameFrom || diff.path.split('/').pop();
       const edgeHostname = diff.newValue?.cnameTo || 'N/A';
@@ -1127,7 +1127,7 @@ function formatHostnameDifferences(diffs: VersionDiff[]): string {
   }
 
   if (removed.length > 0) {
-    text += `### ➖ Removed Hostnames (${removed.length})\n`;
+    text += `### [EMOJI] Removed Hostnames (${removed.length})\n`;
     removed.forEach((diff) => {
       const hostname = diff.oldValue?.cnameFrom || diff.path.split('/').pop();
       text += `- **${hostname}**\n`;
@@ -1136,7 +1136,7 @@ function formatHostnameDifferences(diffs: VersionDiff[]): string {
   }
 
   if (modified.length > 0) {
-    text += `### 🔄 Modified Hostnames (${modified.length})\n`;
+    text += `### [EMOJI] Modified Hostnames (${modified.length})\n`;
     modified.forEach((diff) => {
       const hostname = diff.path.split('/')[2];
       text += `- **${hostname}**: ${diff.oldValue} → ${diff.newValue}\n`;

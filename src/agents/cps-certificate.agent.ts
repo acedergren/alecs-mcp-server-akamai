@@ -533,8 +533,8 @@ export class CPSCertificateAgent {
               : val.status === 'failed'
                 ? icons.error
                 : val.status === 'in-progress'
-                  ? '⏳'
-                  : '⏸️';
+                  ? '[EMOJI]'
+                  : '[EMOJI]️';
           console.log(`  ${statusIcon} ${val.domain}: ${val.status}`);
         });
       }

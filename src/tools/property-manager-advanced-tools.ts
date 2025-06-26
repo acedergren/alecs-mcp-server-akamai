@@ -39,7 +39,7 @@ export async function listEdgeHostnames(
         content: [
           {
             type: 'text',
-            text: `No edge hostnames found${args.contractId ? ` for contract ${args.contractId}` : ''}.\n\n💡 **Tip:** Edge hostnames are created automatically when you:\n- Create properties\n- Use the "create_edge_hostname" tool`,
+            text: `No edge hostnames found${args.contractId ? ` for contract ${args.contractId}` : ''}.\n\n[INFO] **Tip:** Edge hostnames are created automatically when you:\n- Create properties\n- Use the "create_edge_hostname" tool`,
           },
         ],
       };
@@ -61,7 +61,7 @@ export async function listEdgeHostnames(
     for (const eh of response.edgeHostnames.items) {
       const hostname = eh.edgeHostnameDomain || `${eh.domainPrefix}.${eh.domainSuffix}`;
       const product = eh.productId || 'Unknown';
-      const secure = eh.secure ? '🔒 Yes' : '❌ No';
+      const secure = eh.secure ? '[SECURE] Yes' : '[ERROR] No';
       const status = eh.status || 'Active';
       const serial = eh.mapDetails?.serialNumber || 'N/A';
 
@@ -122,7 +122,7 @@ export async function getEdgeHostname(
           content: [
             {
               type: 'text',
-              text: `❌ Edge hostname "${args.edgeHostnameId}" not found.\n\n💡 **Tip:** Use "list_edge_hostnames" to see available edge hostnames.`,
+              text: `[ERROR] Edge hostname "${args.edgeHostnameId}" not found.\n\n[INFO] **Tip:** Use "list_edge_hostnames" to see available edge hostnames.`,
             },
           ],
         };
@@ -216,7 +216,7 @@ export async function cloneProperty(
         content: [
           {
             type: 'text',
-            text: `❌ Source property ${args.sourcePropertyId} not found.\n\n💡 **Tip:** Use "list_properties" to find valid property IDs.`,
+            text: `[ERROR] Source property ${args.sourcePropertyId} not found.\n\n[INFO] **Tip:** Use "list_properties" to find valid property IDs.`,
           },
         ],
       };
@@ -250,7 +250,7 @@ export async function cloneProperty(
 
     const newPropertyId = cloneResponse.propertyLink?.split('/').pop()?.split('?')[0];
 
-    let text = '✅ **Property Cloned Successfully!**\n\n';
+    let text = '[DONE] **Property Cloned Successfully!**\n\n';
     text += '## Clone Details\n';
     text += `- **New Property Name:** ${args.propertyName}\n`;
     text += `- **New Property ID:** ${newPropertyId}\n`;
@@ -261,17 +261,17 @@ export async function cloneProperty(
     text += `- **Hostnames Cloned:** ${args.cloneHostnames ? 'Yes' : 'No'}\n\n`;
 
     text += '## What Was Cloned\n';
-    text += '✅ Property configuration and rules\n';
-    text += '✅ Origin server settings\n';
-    text += '✅ Caching behaviors\n';
-    text += '✅ Performance optimizations\n';
+    text += '[DONE] Property configuration and rules\n';
+    text += '[DONE] Origin server settings\n';
+    text += '[DONE] Caching behaviors\n';
+    text += '[DONE] Performance optimizations\n';
     if (args.cloneHostnames) {
-      text += '✅ Property hostnames\n';
+      text += '[DONE] Property hostnames\n';
     } else {
-      text += '❌ Property hostnames (need to be added manually)\n';
+      text += '[ERROR] Property hostnames (need to be added manually)\n';
     }
-    text += '❌ SSL certificates (need separate enrollment)\n';
-    text += '❌ Activation status (starts as NEW)\n\n';
+    text += '[ERROR] SSL certificates (need separate enrollment)\n';
+    text += '[ERROR] Activation status (starts as NEW)\n\n';
 
     text += '## Next Steps\n';
     text += `1. Review configuration: \`"Get property ${newPropertyId}"\`\n`;
@@ -319,7 +319,7 @@ export async function removeProperty(
         content: [
           {
             type: 'text',
-            text: `❌ Property ${args.propertyId} not found.`,
+            text: `[ERROR] Property ${args.propertyId} not found.`,
           },
         ],
       };
@@ -331,7 +331,7 @@ export async function removeProperty(
         content: [
           {
             type: 'text',
-            text: `❌ Cannot delete property "${property.propertyName}" (${args.propertyId}).\n\n**Reason:** Property has active versions:\n- Production: ${property.productionVersion || 'None'}\n- Staging: ${property.stagingVersion || 'None'}\n\n**Solution:** Deactivate all versions first:\n1. \`"Deactivate property ${args.propertyId} from production"\`\n2. \`"Deactivate property ${args.propertyId} from staging"\`\n3. Then retry deletion`,
+            text: `[ERROR] Cannot delete property "${property.propertyName}" (${args.propertyId}).\n\n**Reason:** Property has active versions:\n- Production: ${property.productionVersion || 'None'}\n- Staging: ${property.stagingVersion || 'None'}\n\n**Solution:** Deactivate all versions first:\n1. \`"Deactivate property ${args.propertyId} from production"\`\n2. \`"Deactivate property ${args.propertyId} from staging"\`\n3. Then retry deletion`,
           },
         ],
       };
@@ -351,7 +351,7 @@ export async function removeProperty(
       content: [
         {
           type: 'text',
-          text: `✅ **Property Deleted Successfully**\n\n**Deleted Property:**\n- Name: ${property.propertyName}\n- ID: ${args.propertyId}\n- Contract: ${property.contractId}\n- Group: ${property.groupId}\n\n⚠️ **Note:** This action cannot be undone.`,
+          text: `[DONE] **Property Deleted Successfully**\n\n**Deleted Property:**\n- Name: ${property.propertyName}\n- ID: ${args.propertyId}\n- Contract: ${property.contractId}\n- Group: ${property.groupId}\n\n[WARNING] **Note:** This action cannot be undone.`,
         },
       ],
     };
@@ -386,7 +386,7 @@ export async function listPropertyVersions(
         content: [
           {
             type: 'text',
-            text: `No versions found for property ${args.propertyId}.\n\n💡 **Tip:** Verify the property ID is correct.`,
+            text: `No versions found for property ${args.propertyId}.\n\n[INFO] **Tip:** Verify the property ID is correct.`,
           },
         ],
       };
@@ -411,11 +411,11 @@ export async function listPropertyVersions(
 
     for (const version of response.versions.items) {
       const versionNum = version.propertyVersion;
-      let status = '🔵 Draft';
+      let status = '[EMOJI] Draft';
       if (property?.productionVersion === versionNum) {
-        status = '🟢 Production';
+        status = '[EMOJI] Production';
       } else if (property?.stagingVersion === versionNum) {
-        status = '🟡 Staging';
+        status = '[EMOJI] Staging';
       }
 
       const updatedBy = version.updatedByUser || 'Unknown';
@@ -428,9 +428,9 @@ export async function listPropertyVersions(
     }
 
     text += '\n## Version Status Legend\n';
-    text += '- 🟢 **Production**: Currently active in production\n';
-    text += '- 🟡 **Staging**: Currently active in staging\n';
-    text += '- 🔵 **Draft**: Not activated\n\n';
+    text += '- [EMOJI] **Production**: Currently active in production\n';
+    text += '- [EMOJI] **Staging**: Currently active in staging\n';
+    text += '- [EMOJI] **Draft**: Not activated\n\n';
 
     text += '## Next Steps\n';
     text += `- View version details: \`"Get property ${args.propertyId} version 5"\`\n`;
@@ -474,7 +474,7 @@ export async function getPropertyVersion(
         content: [
           {
             type: 'text',
-            text: `❌ Version ${args.version} not found for property ${args.propertyId}.`,
+            text: `[ERROR] Version ${args.version} not found for property ${args.propertyId}.`,
           },
         ],
       };
@@ -505,17 +505,17 @@ export async function getPropertyVersion(
     text += '## Activation Status\n';
     const versionNum = version.propertyVersion;
     if (property?.productionVersion === versionNum) {
-      text += '- ✅ **Currently active in PRODUCTION**\n';
+      text += '- [DONE] **Currently active in PRODUCTION**\n';
       text += `- Production Status: ${version.productionStatus || 'ACTIVE'}\n`;
     } else {
-      text += '- ❌ Not active in production\n';
+      text += '- [ERROR] Not active in production\n';
     }
 
     if (property?.stagingVersion === versionNum) {
-      text += '- ✅ **Currently active in STAGING**\n';
+      text += '- [DONE] **Currently active in STAGING**\n';
       text += `- Staging Status: ${version.stagingStatus || 'ACTIVE'}\n`;
     } else {
-      text += '- ❌ Not active in staging\n';
+      text += '- [ERROR] Not active in staging\n';
     }
     text += '\n';
 
@@ -564,7 +564,7 @@ export async function getLatestPropertyVersion(
         content: [
           {
             type: 'text',
-            text: `❌ Property ${args.propertyId} not found.`,
+            text: `[ERROR] Property ${args.propertyId} not found.`,
           },
         ],
       };
@@ -594,7 +594,7 @@ export async function getLatestPropertyVersion(
         content: [
           {
             type: 'text',
-            text: `❌ No ${versionType.toLowerCase()} version found for property "${property.propertyName}".\n\n💡 **Tip:** This property may not have been activated to ${versionType.toLowerCase()} yet.`,
+            text: `[ERROR] No ${versionType.toLowerCase()} version found for property "${property.propertyName}".\n\n[INFO] **Tip:** This property may not have been activated to ${versionType.toLowerCase()} yet.`,
           },
         ],
       };
@@ -626,9 +626,9 @@ export async function getLatestPropertyVersion(
     text += '\n';
 
     text += '## Status Summary\n';
-    text += `- **Latest Version:** v${property.latestVersion}${targetVersion === property.latestVersion ? ' ✅ (this version)' : ''}\n`;
-    text += `- **Production Version:** ${property.productionVersion ? `v${property.productionVersion}` : 'None'}${targetVersion === property.productionVersion ? ' ✅ (this version)' : ''}\n`;
-    text += `- **Staging Version:** ${property.stagingVersion ? `v${property.stagingVersion}` : 'None'}${targetVersion === property.stagingVersion ? ' ✅ (this version)' : ''}\n\n`;
+    text += `- **Latest Version:** v${property.latestVersion}${targetVersion === property.latestVersion ? ' [DONE] (this version)' : ''}\n`;
+    text += `- **Production Version:** ${property.productionVersion ? `v${property.productionVersion}` : 'None'}${targetVersion === property.productionVersion ? ' [DONE] (this version)' : ''}\n`;
+    text += `- **Staging Version:** ${property.stagingVersion ? `v${property.stagingVersion}` : 'None'}${targetVersion === property.stagingVersion ? ' [DONE] (this version)' : ''}\n\n`;
 
     text += '## Next Steps\n';
     text += `- View rules: \`"Get property ${args.propertyId} version ${targetVersion} rules"\`\n`;
@@ -675,7 +675,7 @@ export async function cancelPropertyActivation(
         content: [
           {
             type: 'text',
-            text: `❌ Activation ${args.activationId} not found for property ${args.propertyId}.`,
+            text: `[ERROR] Activation ${args.activationId} not found for property ${args.propertyId}.`,
           },
         ],
       };
@@ -688,7 +688,7 @@ export async function cancelPropertyActivation(
         content: [
           {
             type: 'text',
-            text: `❌ Cannot cancel activation ${args.activationId}.\n\n**Status:** ${activation.status}\n**Reason:** Activation can only be cancelled when status is PENDING or in progress.\n\n💡 **Tip:** If the activation is already ACTIVE, you can roll back by activating a previous version.`,
+            text: `[ERROR] Cannot cancel activation ${args.activationId}.\n\n**Status:** ${activation.status}\n**Reason:** Activation can only be cancelled when status is PENDING or in progress.\n\n[INFO] **Tip:** If the activation is already ACTIVE, you can roll back by activating a previous version.`,
           },
         ],
       };
@@ -704,7 +704,7 @@ export async function cancelPropertyActivation(
       content: [
         {
           type: 'text',
-          text: `✅ **Activation Cancelled Successfully**\n\n**Cancelled Activation:**\n- Activation ID: ${args.activationId}\n- Property: ${activation.propertyName}\n- Version: v${activation.propertyVersion}\n- Network: ${activation.network}\n- Previous Status: ${activation.status}\n\n**What Happens Next:**\n- The activation process has been stopped\n- The currently active version (if any) remains active\n- You can create a new activation when ready\n\n**Next Steps:**\n- Fix any issues with version ${activation.propertyVersion}\n- Create new activation: \`"Activate property ${args.propertyId} version ${activation.propertyVersion} to ${activation.network.toLowerCase()}"\`\n- Or activate a different version: \`"List versions for property ${args.propertyId}"\``,
+          text: `[DONE] **Activation Cancelled Successfully**\n\n**Cancelled Activation:**\n- Activation ID: ${args.activationId}\n- Property: ${activation.propertyName}\n- Version: v${activation.propertyVersion}\n- Network: ${activation.network}\n- Previous Status: ${activation.status}\n\n**What Happens Next:**\n- The activation process has been stopped\n- The currently active version (if any) remains active\n- You can create a new activation when ready\n\n**Next Steps:**\n- Fix any issues with version ${activation.propertyVersion}\n- Create new activation: \`"Activate property ${args.propertyId} version ${activation.propertyVersion} to ${activation.network.toLowerCase()}"\`\n- Or activate a different version: \`"List versions for property ${args.propertyId}"\``,
         },
       ],
     };
@@ -805,7 +805,7 @@ export async function searchProperties(
         content: [
           {
             type: 'text',
-            text: '❌ **No search criteria provided**\n\nPlease specify at least one of:\n- propertyName\n- hostname\n- edgeHostname\n- contractId\n- groupId\n- productId\n- activationStatus\n\nOr use legacy format with searchTerm parameter.',
+            text: '[ERROR] **No search criteria provided**\n\nPlease specify at least one of:\n- propertyName\n- hostname\n- edgeHostname\n- contractId\n- groupId\n- productId\n- activationStatus\n\nOr use legacy format with searchTerm parameter.',
           },
         ],
       };
@@ -1045,10 +1045,10 @@ function formatSearchResults(
 
   for (const result of results) {
     const status = result.productionVersion
-      ? '🟢 Prod'
+      ? '[EMOJI] Prod'
       : result.stagingVersion
-        ? '🟡 Stage'
-        : '🔵 Draft';
+        ? '[EMOJI] Stage'
+        : '[EMOJI] Draft';
 
     const matchedFields = [...new Set(result.matchedOn.map((m) => m.field))].join(', ');
 
@@ -1330,7 +1330,7 @@ export async function listPropertyVersionHostnames(
           content: [
             {
               type: 'text',
-              text: `❌ Property ${args.propertyId} not found.`,
+              text: `[ERROR] Property ${args.propertyId} not found.`,
             },
           ],
         };
@@ -1351,7 +1351,7 @@ export async function listPropertyVersionHostnames(
         content: [
           {
             type: 'text',
-            text: `No hostnames configured for property ${args.propertyId} version ${version}.\n\n💡 **Tip:** Add hostnames using:\n\`"Add hostname www.example.com to property ${args.propertyId}"\``,
+            text: `No hostnames configured for property ${args.propertyId} version ${version}.\n\n[INFO] **Tip:** Add hostnames using:\n\`"Add hostname www.example.com to property ${args.propertyId}"\``,
           },
         ],
       };
@@ -1373,14 +1373,14 @@ export async function listPropertyVersionHostnames(
     }
 
     if (args.validateCnames && response.errors?.length > 0) {
-      text += '\n## ⚠️ Validation Errors\n';
+      text += '\n## [WARNING] Validation Errors\n';
       for (const _error of response.errors) {
         text += `- ${_error.detail}\n`;
       }
     }
 
     if (args.validateCnames && response.warnings?.length > 0) {
-      text += '\n## ⚠️ Warnings\n';
+      text += '\n## [WARNING] Warnings\n';
       for (const warning of response.warnings) {
         text += `- ${warning.detail}\n`;
       }
@@ -1416,7 +1416,7 @@ export async function listPropertyVersionHostnames(
  * Format error responses with helpful guidance
  */
 function formatError(operation: string, _error: any): MCPToolResponse {
-  let errorMessage = `❌ Failed to ${operation}`;
+  let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 
   if (_error instanceof Error) {

@@ -45,7 +45,7 @@ export async function createACMEValidationRecords(
       ? challengesResponse.content[0]?.text || ''
       : '';
 
-    if (responseText.includes('❌') || responseText.includes('Error')) {
+    if (responseText.includes('[ERROR]') || responseText.includes('Error')) {
       return challengesResponse;
     }
 
@@ -61,13 +61,13 @@ export async function createACMEValidationRecords(
         content: [
           {
             type: 'text',
-            text: '✅ No DNS validation records needed - certificate may already be validated!',
+            text: '[DONE] No DNS validation records needed - certificate may already be validated!',
           },
         ],
       };
     }
 
-    console.log(`\n📋 Found ${records.length} ACME validation records to create`);
+    console.log(`\n[EMOJI] Found ${records.length} ACME validation records to create`);
 
     // Create records
     const progressBar = new ProgressBar({ total: records.length });
@@ -128,7 +128,7 @@ export async function createACMEValidationRecords(
     progressBar.finish('ACME validation records processed');
 
     // Generate report
-    let report = '# 🔐 ACME DNS Validation Records Created\n\n';
+    let report = '# [EMOJI] ACME DNS Validation Records Created\n\n';
     report += '## Summary\n';
     report += `- **Enrollment ID**: ${args.enrollmentId}\n`;
     report += `- **Total Records**: ${records.length}\n`;
@@ -136,7 +136,7 @@ export async function createACMEValidationRecords(
     report += `- **Failed**: ${results.failed}\n\n`;
 
     if (results.successful > 0) {
-      report += '## ✅ Created Records\n\n';
+      report += '## [DONE] Created Records\n\n';
       report += 'The following ACME validation records were created:\n\n';
 
       for (const record of records) {
@@ -148,19 +148,19 @@ export async function createACMEValidationRecords(
     }
 
     if (results.errors.length > 0) {
-      report += '## ❌ Failed Records\n\n';
+      report += '## [ERROR] Failed Records\n\n';
       results.errors.forEach((err) => {
         report += `- **${err.record}**: ${err.error}\n`;
       });
       report += '\n';
     }
 
-    report += '## 🕐 Next Steps\n\n';
+    report += '## [EMOJI] Next Steps\n\n';
     report += '1. **Wait for DNS propagation** (usually 5-15 minutes)\n';
     report += `2. **Check validation status**: "Check DV enrollment status ${args.enrollmentId}"\n`;
     report += '3. **Certificate deployment** will begin automatically after validation\n\n';
 
-    report += '## 🧹 Cleanup\n\n';
+    report += '## [EMOJI] Cleanup\n\n';
     report += 'After the certificate is issued, you can safely remove these TXT records.\n';
     report += 'They are only needed for initial validation.\n';
 
@@ -178,7 +178,7 @@ export async function createACMEValidationRecords(
       content: [
         {
           type: 'text',
-          text: `❌ Failed to create ACME validation records: ${_error instanceof Error ? _error.message : 'Unknown _error'}`,
+          text: `[ERROR] Failed to create ACME validation records: ${_error instanceof Error ? _error.message : 'Unknown _error'}`,
         },
       ],
     };
@@ -199,7 +199,7 @@ function parseACMERecords(content: string): ACMERecord[] {
 
   for (const line of lines) {
     // Detect domain sections
-    const domainMatch = line.match(/###\s+[✅❌⏳🔄❓]\s+(.+)/u);
+    const domainMatch = line.match(/###\s+[[DONE][ERROR][EMOJI][EMOJI][EMOJI]]\s+(.+)/u);
     if (domainMatch && domainMatch[1]) {
       currentDomain = domainMatch[1];
       continue;
@@ -267,9 +267,9 @@ export async function monitorCertificateValidation(
   const checkInterval = (args.checkIntervalSeconds || 30) * 1000;
   const startTime = Date.now();
 
-  console.log(`\n🔍 Monitoring certificate validation for enrollment ${args.enrollmentId}`);
+  console.log(`\n[SEARCH] Monitoring certificate validation for enrollment ${args.enrollmentId}`);
   console.log(
-    `⏱️  Will check every ${args.checkIntervalSeconds || 30} seconds for up to ${args.maxWaitMinutes || 30} minutes\n`,
+    `[EMOJI]️  Will check every ${args.checkIntervalSeconds || 30} seconds for up to ${args.maxWaitMinutes || 30} minutes\n`,
   );
 
   const spinner = new Spinner();
@@ -302,24 +302,24 @@ export async function monitorCertificateValidation(
       );
 
       // Display current status
-      console.log(`\n📊 Validation Status at ${new Date().toLocaleTimeString()}`);
+      console.log(`\n[METRICS] Validation Status at ${new Date().toLocaleTimeString()}`);
       console.log(`${'─'.repeat(50)}`);
 
       enrollment.allowedDomains.forEach((domain: any) => {
         const statusMap: Record<string, string> = {
-          VALIDATED: '✅',
-          PENDING: '⏳',
-          IN_PROGRESS: '🔄',
-          ERROR: '❌',
-          EXPIRED: '⚠️',
+          VALIDATED: '[DONE]',
+          PENDING: '[EMOJI]',
+          IN_PROGRESS: '[EMOJI]',
+          ERROR: '[ERROR]',
+          EXPIRED: '[WARNING]',
         };
-        const emoji = statusMap[domain.validationStatus] || '❓';
+        const emoji = statusMap[domain.validationStatus] || '[EMOJI]';
 
         console.log(`${emoji} ${domain.name}: ${domain.validationStatus}`);
       });
 
       if (errorDomains.length > 0) {
-        console.log(`\n❌ Validation failed for ${errorDomains.length} domain(s)`);
+        console.log(`\n[ERROR] Validation failed for ${errorDomains.length} domain(s)`);
         return {
           content: [
             {
@@ -331,14 +331,14 @@ export async function monitorCertificateValidation(
       }
 
       if (allValidated) {
-        console.log('\n✅ All domains validated successfully!');
-        console.log('🚀 Certificate deployment will begin automatically.');
+        console.log('\n[DONE] All domains validated successfully!');
+        console.log('[DEPLOY] Certificate deployment will begin automatically.');
 
         return {
           content: [
             {
               type: 'text',
-              text: `# ✅ Certificate Validation Complete!\n\nAll domains have been successfully validated. Certificate deployment is now in progress.\n\n**Next steps:**\n1. Wait for deployment (typically 30-60 minutes)\n2. Check status: "Check DV enrollment status ${args.enrollmentId}"\n3. Link to property once active`,
+              text: `# [DONE] Certificate Validation Complete!\n\nAll domains have been successfully validated. Certificate deployment is now in progress.\n\n**Next steps:**\n1. Wait for deployment (typically 30-60 minutes)\n2. Check status: "Check DV enrollment status ${args.enrollmentId}"\n3. Link to property once active`,
             },
           ],
         };
@@ -346,7 +346,7 @@ export async function monitorCertificateValidation(
 
       // Show progress
       const elapsedMinutes = Math.floor((Date.now() - startTime) / 60000);
-      console.log(`\n⏳ Waiting for validation... (${elapsedMinutes} minutes elapsed)`);
+      console.log(`\n[EMOJI] Waiting for validation... (${elapsedMinutes} minutes elapsed)`);
       console.log(`   ${pendingDomains.length} domain(s) still pending validation`);
 
       // Wait before next check
@@ -354,7 +354,7 @@ export async function monitorCertificateValidation(
     } catch (_error) {
       spinner.stop();
       console.error(
-        `\n❌ Error checking validation status: ${_error instanceof Error ? _error.message : 'Unknown _error'}`,
+        `\n[ERROR] Error checking validation status: ${_error instanceof Error ? _error.message : 'Unknown _error'}`,
       );
       await new Promise((resolve) => setTimeout(resolve, checkInterval));
     }
@@ -364,7 +364,7 @@ export async function monitorCertificateValidation(
     content: [
       {
         type: 'text',
-        text: `⏱️ Validation monitoring timed out after ${args.maxWaitMinutes || 30} minutes. Please check the status manually: "Check DV enrollment status ${args.enrollmentId}"`,
+        text: `[EMOJI]️ Validation monitoring timed out after ${args.maxWaitMinutes || 30} minutes. Please check the status manually: "Check DV enrollment status ${args.enrollmentId}"`,
       },
     ],
   };

@@ -137,7 +137,7 @@ export async function createPropertyVersion(
       content: [
         {
           type: 'text',
-          text: `✅ Created new property version ${newVersion} based on version ${baseVersion}${args.note ? `\nNote: ${args.note}` : ''}\n\nNext steps:\n- Update rules: "Update rules for property ${args.propertyId} version ${newVersion}"\n- Activate: "Activate property ${args.propertyId} version ${newVersion} to staging"`,
+          text: `[DONE] Created new property version ${newVersion} based on version ${baseVersion}${args.note ? `\nNote: ${args.note}` : ''}\n\nNext steps:\n- Update rules: "Update rules for property ${args.propertyId} version ${newVersion}"\n- Activate: "Activate property ${args.propertyId} version ${newVersion} to staging"`,
         },
       ],
     };
@@ -187,7 +187,7 @@ export async function getPropertyRules(
 
     // Function to format rules recursively
     function formatRule(rule: any, indent = ''): string {
-      let output = `${indent}📋 **${rule.name}**\n`;
+      let output = `${indent}[EMOJI] **${rule.name}**\n`;
 
       if (rule.criteria?.length > 0) {
         output += `${indent}  Criteria:\n`;
@@ -336,10 +336,10 @@ export async function updatePropertyRules(
       });
     }
 
-    let text = `✅ Successfully updated property rules for ${args.propertyId} (v${version})\n\n`;
+    let text = `[DONE] Successfully updated property rules for ${args.propertyId} (v${version})\n\n`;
 
     if (response.errors?.length > 0) {
-      text += '⚠️ **Validation Errors:**\n';
+      text += '[WARNING] **Validation Errors:**\n';
       response.errors.forEach((_error: any) => {
         text += `- ${_error.detail}\n`;
       });
@@ -347,7 +347,7 @@ export async function updatePropertyRules(
     }
 
     if (response.warnings?.length > 0) {
-      text += '⚠️ **Warnings:**\n';
+      text += '[WARNING] **Warnings:**\n';
       response.warnings.forEach((warning: any) => {
         text += `- ${warning.detail}\n`;
       });
@@ -440,7 +440,7 @@ export async function createEdgeHostname(
       content: [
         {
           type: 'text',
-          text: `✅ Created edge hostname: ${edgeHostname}\n\n**Edge Hostname ID:** ${edgeHostnameId}\n**Type:** ${args.secure || domainSuffix.includes('edgekey') ? 'Enhanced TLS (HTTPS)' : 'Standard TLS'}\n**IP Version:** ${args.ipVersion || 'IPV4'}\n\n## Next Steps\n- Add hostname to property: "Add hostname www.example.com to property ${args.propertyId} using edge hostname ${edgeHostname}"\n- Create DNS CNAME: "Create CNAME record www.example.com pointing to ${edgeHostname}"`,
+          text: `[DONE] Created edge hostname: ${edgeHostname}\n\n**Edge Hostname ID:** ${edgeHostnameId}\n**Type:** ${args.secure || domainSuffix.includes('edgekey') ? 'Enhanced TLS (HTTPS)' : 'Standard TLS'}\n**IP Version:** ${args.ipVersion || 'IPV4'}\n\n## Next Steps\n- Add hostname to property: "Add hostname www.example.com to property ${args.propertyId} using edge hostname ${edgeHostname}"\n- Create DNS CNAME: "Create CNAME record www.example.com pointing to ${edgeHostname}"`,
         },
       ],
     };
@@ -507,7 +507,7 @@ export async function addPropertyHostname(
       content: [
         {
           type: 'text',
-          text: `✅ Added hostname ${args.hostname} to property ${args.propertyId} (v${version})\n\n**Hostname:** ${args.hostname}\n**Edge Hostname:** ${args.edgeHostname}\n\n## Next Steps\n1. Create DNS CNAME: "Create CNAME record ${args.hostname} pointing to ${args.edgeHostname}"\n2. Activate property: "Activate property ${args.propertyId} to staging"\n3. If using HTTPS, enroll certificate: "Enroll DV certificate for ${args.hostname}"`,
+          text: `[DONE] Added hostname ${args.hostname} to property ${args.propertyId} (v${version})\n\n**Hostname:** ${args.hostname}\n**Edge Hostname:** ${args.edgeHostname}\n\n## Next Steps\n1. Create DNS CNAME: "Create CNAME record ${args.hostname} pointing to ${args.edgeHostname}"\n2. Activate property: "Activate property ${args.propertyId} to staging"\n3. If using HTTPS, enroll certificate: "Enroll DV certificate for ${args.hostname}"`,
         },
       ],
     };
@@ -559,7 +559,7 @@ export async function removePropertyHostname(
         content: [
           {
             type: 'text',
-            text: `❌ Hostname ${args.hostname} not found in property ${args.propertyId}`,
+            text: `[ERROR] Hostname ${args.hostname} not found in property ${args.propertyId}`,
           },
         ],
       };
@@ -581,7 +581,7 @@ export async function removePropertyHostname(
       content: [
         {
           type: 'text',
-          text: `✅ Removed hostname ${args.hostname} from property ${args.propertyId} (v${version})\n\n## Next Steps\n- Remove DNS CNAME record for ${args.hostname}\n- Activate property: "Activate property ${args.propertyId} to staging"`,
+          text: `[DONE] Removed hostname ${args.hostname} from property ${args.propertyId} (v${version})\n\n## Next Steps\n- Remove DNS CNAME record for ${args.hostname}\n- Activate property: "Activate property ${args.propertyId} to staging"`,
         },
       ],
     };
@@ -861,16 +861,16 @@ export async function listPropertyActivations(
       for (const act of sortedActivations) {
         const statusEmoji =
           {
-            ACTIVE: '✅',
-            PENDING: '⏳',
-            ZONE_1: '🔄',
-            ZONE_2: '🔄',
-            ZONE_3: '🔄',
-            ABORTED: '❌',
-            FAILED: '❌',
-            DEACTIVATED: '⚫',
-            PENDING_DEACTIVATION: '⏳',
-            NEW: '🆕',
+            ACTIVE: '[DONE]',
+            PENDING: '[EMOJI]',
+            ZONE_1: '[EMOJI]',
+            ZONE_2: '[EMOJI]',
+            ZONE_3: '[EMOJI]',
+            ABORTED: '[ERROR]',
+            FAILED: '[ERROR]',
+            DEACTIVATED: '[EMOJI]',
+            PENDING_DEACTIVATION: '[EMOJI]',
+            NEW: '[EMOJI]',
           }[
             act.status as keyof {
               ACTIVE: string;
@@ -884,7 +884,7 @@ export async function listPropertyActivations(
               PENDING_DEACTIVATION: string;
               NEW: string;
             }
-          ] || '❓';
+          ] || '[EMOJI]';
 
         text += `### ${statusEmoji} v${act.propertyVersion} - ${act.status}\n`;
         text += `- **ID:** ${act.activationId}\n`;
@@ -988,7 +988,7 @@ export async function updatePropertyWithDefaultDV(
       });
 
       const edgeHostnameId = edgeHostnameResponse.edgeHostnameLink?.split('/').pop()?.split('?')[0];
-      text += '✅ **Step 1 Complete:** Edge hostname created\n';
+      text += '[DONE] **Step 1 Complete:** Edge hostname created\n';
       text += `- Edge Hostname ID: ${edgeHostnameId}\n`;
       text += '- Certificate Type: Default Domain Validation (DV)\n\n';
     } catch (_err) {
@@ -1011,7 +1011,7 @@ export async function updatePropertyWithDefaultDV(
     );
 
     if (existingHostname) {
-      text += `⚠️ **Note:** Hostname ${args.hostname} already exists in property\n`;
+      text += `[WARNING] **Note:** Hostname ${args.hostname} already exists in property\n`;
       text += `Current mapping: ${args.hostname} → ${existingHostname.cnameTo}\n\n`;
     } else {
       // Add the hostname
@@ -1033,7 +1033,7 @@ export async function updatePropertyWithDefaultDV(
         },
       });
 
-      text += '✅ **Step 2 Complete:** Hostname added to property\n\n';
+      text += '[DONE] **Step 2 Complete:** Hostname added to property\n\n';
     }
 
     // Step 3: Domain validation instructions
@@ -1061,10 +1061,10 @@ export async function updatePropertyWithDefaultDV(
     text += `   \`"Activate property ${args.propertyId} version ${version} to production"\`\n\n`;
 
     text += '## Benefits of Default DV\n';
-    text += '- ✅ Automatic certificate provisioning\n';
-    text += '- ✅ No manual certificate management\n';
-    text += '- ✅ Auto-renewal before expiration\n';
-    text += '- ✅ Enhanced TLS with HTTP/2 support\n';
+    text += '- [DONE] Automatic certificate provisioning\n';
+    text += '- [DONE] No manual certificate management\n';
+    text += '- [DONE] Auto-renewal before expiration\n';
+    text += '- [DONE] Enhanced TLS with HTTP/2 support\n';
 
     return {
       content: [
@@ -1130,7 +1130,7 @@ export async function updatePropertyWithCPSCertificate(
     // Step 1: Verify certificate enrollment
     text += '## Step 1: Verifying Certificate Enrollment\n';
     text += `Certificate Enrollment ID: ${args.certificateEnrollmentId}\n\n`;
-    text += '⚠️ **Important:** Ensure this certificate enrollment:\n';
+    text += '[WARNING] **Important:** Ensure this certificate enrollment:\n';
     text += `- Includes ${args.hostname} as CN or SAN\n`;
     text += '- Is in ACTIVE status\n';
     text += `- Matches the TLS version (${tlsVersion})\n\n`;
@@ -1169,7 +1169,7 @@ export async function updatePropertyWithCPSCertificate(
       });
 
       const edgeHostnameId = edgeHostnameResponse.edgeHostnameLink?.split('/').pop()?.split('?')[0];
-      text += '✅ **Step 2 Complete:** Edge hostname created\n';
+      text += '[DONE] **Step 2 Complete:** Edge hostname created\n';
       text += `- Edge Hostname ID: ${edgeHostnameId}\n`;
       text += `- Certificate Type: CPS-Managed (Enrollment ${args.certificateEnrollmentId})\n\n`;
     } catch (_err) {
@@ -1192,7 +1192,7 @@ export async function updatePropertyWithCPSCertificate(
     );
 
     if (existingHostname) {
-      text += `⚠️ **Note:** Hostname ${args.hostname} already exists in property\n`;
+      text += `[WARNING] **Note:** Hostname ${args.hostname} already exists in property\n`;
       text += `Current mapping: ${args.hostname} → ${existingHostname.cnameTo}\n\n`;
     } else {
       // Add the hostname
@@ -1226,7 +1226,7 @@ export async function updatePropertyWithCPSCertificate(
         },
       });
 
-      text += '✅ **Step 3 Complete:** Hostname added to property\n\n';
+      text += '[DONE] **Step 3 Complete:** Hostname added to property\n\n';
     }
 
     // Step 4: Next steps
@@ -1249,16 +1249,16 @@ export async function updatePropertyWithCPSCertificate(
     text += `   \`"Activate property ${args.propertyId} version ${version} to production"\`\n\n`;
 
     text += '## CPS Certificate Benefits\n';
-    text += '- ✅ Full control over certificate details\n';
-    text += '- ✅ Support for wildcard and multi-domain certificates\n';
-    text += '- ✅ Custom certificate chain\n';
+    text += '- [DONE] Full control over certificate details\n';
+    text += '- [DONE] Support for wildcard and multi-domain certificates\n';
+    text += '- [DONE] Custom certificate chain\n';
     if (tlsVersion === 'ENHANCED_TLS') {
-      text += '- ✅ Enhanced TLS with HTTP/2\n';
-      text += '- ✅ Advanced cipher suites\n';
-      text += '- ✅ Optimized for performance\n';
+      text += '- [DONE] Enhanced TLS with HTTP/2\n';
+      text += '- [DONE] Advanced cipher suites\n';
+      text += '- [DONE] Optimized for performance\n';
     } else {
-      text += '- ✅ Standard TLS compatibility\n';
-      text += '- ✅ Broad client support\n';
+      text += '- [DONE] Standard TLS compatibility\n';
+      text += '- [DONE] Broad client support\n';
     }
 
     return {
@@ -1361,7 +1361,7 @@ export async function createPropertyVersionEnhanced(
       }
     }
 
-    const text = `✅ Created enhanced property version ${newVersion}${baseVersion ? ` based on version ${baseVersion}` : ''}
+    const text = `[DONE] Created enhanced property version ${newVersion}${baseVersion ? ` based on version ${baseVersion}` : ''}
 ${args.note ? `\nNote: ${args.note}` : ''}
 ${args.tags ? `\nTags: ${args.tags.join(', ')}` : ''}
 
@@ -1461,10 +1461,10 @@ export async function getVersionDiff(
       }
     }
 
-    let text = `📊 **Version Comparison: ${args.version1} vs ${args.version2}**\n\n`;
+    let text = `[METRICS] **Version Comparison: ${args.version1} vs ${args.version2}**\n\n`;
 
     if (differences.length === 0) {
-      text += '✅ No differences found between versions';
+      text += '[DONE] No differences found between versions';
     } else {
       text += `**Summary:** ${differences.length} difference category found\n\n`;
 
@@ -1551,21 +1551,21 @@ export async function listPropertyVersionsEnhanced(
     const totalVersions = versions.length;
     const paginatedVersions = versions.slice(offset, offset + limit);
 
-    let text = `📋 **Property Versions for ${args.propertyId}**\n\n`;
+    let text = `[EMOJI] **Property Versions for ${args.propertyId}**\n\n`;
     text += `**Total:** ${totalVersions} versions | **Showing:** ${offset + 1}-${Math.min(offset + limit, totalVersions)}\n\n`;
 
     for (const version of paginatedVersions) {
       const isActive = version.stagingStatus === 'ACTIVE' || version.productionStatus === 'ACTIVE';
-      const statusIcon = isActive ? '🟢' : '⚪';
+      const statusIcon = isActive ? '[EMOJI]' : '[EMOJI]';
 
       text += `${statusIcon} **Version ${version.propertyVersion}**\n`;
       text += `  └ Updated: ${version.updatedDate} by ${version.updatedByUser}\n`;
 
       if (version.stagingStatus === 'ACTIVE') {
-        text += '  └ 🟡 Active on STAGING\n';
+        text += '  └ [EMOJI] Active on STAGING\n';
       }
       if (version.productionStatus === 'ACTIVE') {
-        text += '  └ 🔴 Active on PRODUCTION\n';
+        text += '  └ [EMOJI] Active on PRODUCTION\n';
       }
 
       if (version.note) {
@@ -1688,12 +1688,12 @@ export async function rollbackPropertyVersion(
       });
     }
 
-    let text = '🔄 **Property Rollback Completed**\n\n';
-    text += `✅ Rolled back to version ${args.targetVersion}\n`;
-    text += `📦 New version created: ${newVersionId}\n`;
+    let text = '[EMOJI] **Property Rollback Completed**\n\n';
+    text += `[DONE] Rolled back to version ${args.targetVersion}\n`;
+    text += `[PACKAGE] New version created: ${newVersionId}\n`;
 
     if (backupVersionId) {
-      text += `💾 Backup version created: ${backupVersionId}\n`;
+      text += `[SAVE] Backup version created: ${backupVersionId}\n`;
     }
 
     // Auto-activate if requested
@@ -1709,9 +1709,9 @@ export async function rollbackPropertyVersion(
             acknowledgeAllWarnings: true,
           },
         });
-        text += `🚀 Auto-activated on ${args.network.toUpperCase()}\n`;
+        text += `[DEPLOY] Auto-activated on ${args.network.toUpperCase()}\n`;
       } catch (_activationError) {
-        text += '⚠️ Rollback completed but auto-activation failed. Manual activation required.\n';
+        text += '[WARNING] Rollback completed but auto-activation failed. Manual activation required.\n';
       }
     }
 
@@ -1870,11 +1870,11 @@ export async function batchVersionOperations(
       }
     }
 
-    let text = '📋 **Batch Version Operations Results**\n\n';
+    let text = '[EMOJI] **Batch Version Operations Results**\n\n';
     text += `**Summary:** ${results.length} successful, ${errors.length} failed\n\n`;
 
     if (results.length > 0) {
-      text += '✅ **Successful Operations:**\n';
+      text += '[DONE] **Successful Operations:**\n';
       results.forEach((result, index) => {
         text += `${index + 1}. ${result.propertyId} - ${result.operation}\n`;
       });
@@ -1882,7 +1882,7 @@ export async function batchVersionOperations(
     }
 
     if (errors.length > 0) {
-      text += '❌ **Failed Operations:**\n';
+      text += '[ERROR] **Failed Operations:**\n';
       errors.forEach((_error, index) => {
         text += `${index + 1}. ${_error.propertyId} - ${_error.operation}: ${_error.error}\n`;
       });
@@ -1970,7 +1970,7 @@ function compareHostnames(hostnames1: any[], hostnames2: any[]): any[] {
  * Format error responses with helpful guidance
  */
 function formatError(operation: string, _error: any): MCPToolResponse {
-  let errorMessage = `❌ Failed to ${operation}`;
+  let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 
   if (_error instanceof Error) {

@@ -39,7 +39,7 @@ class ConsolidatedCertificateServer {
   private server: Server;
 
   constructor() {
-    logger.info('🔒 ALECS Consolidated Certificate Server starting...');
+    logger.info('[SECURE] ALECS Consolidated Certificate Server starting...');
 
     this.server = new Server(
       {
@@ -61,7 +61,7 @@ class ConsolidatedCertificateServer {
 
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      logger.info('📋 Consolidated certificate tools list requested');
+      logger.info('[EMOJI] Consolidated certificate tools list requested');
       
       return {
         tools: [
@@ -135,7 +135,7 @@ class ConsolidatedCertificateServer {
     // Handle tool execution
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
-      logger.info('🔧 Certificate tool execution requested', { name, args });
+      logger.info('[CONFIG] Certificate tool execution requested', { name, args });
 
       try {
         switch (name) {
@@ -458,12 +458,12 @@ class ConsolidatedCertificateServer {
    * Start the server
    */
   async run() {
-    logger.info('🚀 Starting consolidated certificate server...');
+    logger.info('[DEPLOY] Starting consolidated certificate server...');
     
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     
-    logger.info('✅ Consolidated Certificate Server ready and listening');
+    logger.info('[DONE] Consolidated Certificate Server ready and listening');
   }
 }
 
@@ -471,7 +471,7 @@ class ConsolidatedCertificateServer {
 if (require.main === module) {
   const server = new ConsolidatedCertificateServer();
   server.run().catch((error) => {
-    logger.error('❌ Certificate Server startup failed', { error });
+    logger.error('[ERROR] Certificate Server startup failed', { error });
     process.exit(1);
   });
 }

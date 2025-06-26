@@ -105,7 +105,7 @@ export async function createBulkProvisioningPlan(
         content: [
           {
             type: 'text',
-            text: `❌ No valid hostnames found. All ${args.hostnames.length} hostnames failed validation.\n\nPlease fix the validation errors and try again.`,
+            text: `[ERROR] No valid hostnames found. All ${args.hostnames.length} hostnames failed validation.\n\nPlease fix the validation errors and try again.`,
           },
         ],
       };
@@ -231,8 +231,8 @@ export async function createBulkProvisioningPlan(
     let responseText = '# Bulk Hostname Provisioning Plan\n\n';
     responseText += '## Summary\n';
     responseText += `- **Total Hostnames:** ${args.hostnames.length}\n`;
-    responseText += `- **Valid Hostnames:** ${validHostnames.length} ✅\n`;
-    responseText += `- **Invalid Hostnames:** ${invalidHostnames.length} ❌\n`;
+    responseText += `- **Valid Hostnames:** ${validHostnames.length} [DONE]\n`;
+    responseText += `- **Invalid Hostnames:** ${invalidHostnames.length} [ERROR]\n`;
     responseText += `- **Contract:** ${args.contractId}\n`;
     responseText += `- **Group:** ${args.groupId}\n`;
     responseText += `- **Product:** ${args.productId || 'Ion (auto-selected)'}\n\n`;
@@ -245,7 +245,7 @@ export async function createBulkProvisioningPlan(
 
     // Validation results
     if (invalidHostnames.length > 0) {
-      responseText += `## ❌ Invalid Hostnames (${invalidHostnames.length})\n`;
+      responseText += `## [ERROR] Invalid Hostnames (${invalidHostnames.length})\n`;
       responseText += 'The following hostnames failed validation and will be excluded:\n';
       invalidHostnames.slice(0, 5).forEach((h) => {
         responseText += `- ${h.hostname}: ${h.reason}\n`;
@@ -390,7 +390,7 @@ export async function executeBulkProvisioning(
     responseText += `**Started:** ${operation.startTime.toISOString()}\n\n`;
 
     if (args.dryRun) {
-      responseText += '## 🔍 Dry Run Mode\n';
+      responseText += '## [SEARCH] Dry Run Mode\n';
       responseText += 'This is a simulation. No actual changes will be made.\n\n';
     }
 
@@ -402,13 +402,13 @@ export async function executeBulkProvisioning(
     const validHostnames = extractValidHostnamesFromResult(validationResult);
 
     responseText += `- Validated ${args.hostnames.length} hostnames\n`;
-    responseText += `- Valid: ${validHostnames.length} ✅\n`;
-    responseText += `- Invalid: ${args.hostnames.length - validHostnames.length} ❌\n\n`;
+    responseText += `- Valid: ${validHostnames.length} [DONE]\n`;
+    responseText += `- Invalid: ${args.hostnames.length - validHostnames.length} [ERROR]\n\n`;
 
     if (validHostnames.length === 0) {
       operation.status = 'failed';
       operation.endTime = new Date();
-      responseText += '\n❌ Operation failed: No valid hostnames to provision.\n';
+      responseText += '\n[ERROR] Operation failed: No valid hostnames to provision.\n';
 
       return {
         content: [
@@ -434,8 +434,8 @@ export async function executeBulkProvisioning(
       });
 
       const edgeHostnameData = extractBulkEdgeHostnameResults(edgeHostnameResult);
-      responseText += `- Created ${edgeHostnameData.successful.length} edge hostnames ✅\n`;
-      responseText += `- Failed ${edgeHostnameData.failed.length} edge hostnames ❌\n\n`;
+      responseText += `- Created ${edgeHostnameData.successful.length} edge hostnames [DONE]\n`;
+      responseText += `- Failed ${edgeHostnameData.failed.length} edge hostnames [ERROR]\n\n`;
 
       // Update operation results
       edgeHostnameData.successful.forEach((eh) => {
@@ -513,8 +513,8 @@ export async function executeBulkProvisioning(
     responseText += '### Results\n';
     responseText += `- **Total Hostnames:** ${operation.totalHostnames}\n`;
     responseText += `- **Processed:** ${operation.processedHostnames}\n`;
-    responseText += `- **Successful:** ${operation.successfulHostnames} ✅\n`;
-    responseText += `- **Failed:** ${operation.failedHostnames} ❌\n\n`;
+    responseText += `- **Successful:** ${operation.successfulHostnames} [DONE]\n`;
+    responseText += `- **Failed:** ${operation.failedHostnames} [ERROR]\n\n`;
 
     if (operation.results.length > 0 && !args.dryRun) {
       responseText += '### Successful Provisions (First 10)\n';
@@ -625,13 +625,13 @@ export async function validateBulkDNS(
     const pendingCount = results.filter((r) => r.status === 'pending').length;
 
     responseText += '## Summary\n';
-    responseText += `- **Valid:** ${validCount} ✅\n`;
-    responseText += `- **Invalid:** ${invalidCount} ❌\n`;
-    responseText += `- **Pending:** ${pendingCount} ⏳\n\n`;
+    responseText += `- **Valid:** ${validCount} [DONE]\n`;
+    responseText += `- **Invalid:** ${invalidCount} [ERROR]\n`;
+    responseText += `- **Pending:** ${pendingCount} [EMOJI]\n\n`;
 
     // Group by status
     if (validCount > 0) {
-      responseText += `## ✅ Valid DNS Configuration (${validCount})\n`;
+      responseText += `## [DONE] Valid DNS Configuration (${validCount})\n`;
       results
         .filter((r) => r.status === 'valid')
         .slice(0, 10)
@@ -645,7 +645,7 @@ export async function validateBulkDNS(
     }
 
     if (invalidCount > 0) {
-      responseText += `## ❌ Invalid DNS Configuration (${invalidCount})\n`;
+      responseText += `## [ERROR] Invalid DNS Configuration (${invalidCount})\n`;
       results
         .filter((r) => r.status === 'invalid')
         .forEach((result) => {
@@ -658,7 +658,7 @@ export async function validateBulkDNS(
     }
 
     if (pendingCount > 0) {
-      responseText += `## ⏳ Pending Propagation (${pendingCount})\n`;
+      responseText += `## [EMOJI] Pending Propagation (${pendingCount})\n`;
       results
         .filter((r) => r.status === 'pending')
         .forEach((result) => {
@@ -690,7 +690,7 @@ export async function validateBulkDNS(
       responseText += '2. Wait for DNS propagation (typically 5-30 minutes)\n';
       responseText += '3. Re-run validation: `Validate DNS for hostnames`\n';
     } else if (validCount === args.hostnames.length) {
-      responseText += '✅ All DNS records are configured correctly!\n';
+      responseText += '[DONE] All DNS records are configured correctly!\n';
       responseText += '1. Proceed with property activation\n';
       responseText += '2. Test HTTPS connectivity\n';
       responseText += '3. Monitor for any issues\n';
@@ -873,11 +873,11 @@ export async function bulkUpdateHostnameProperties(
     let responseText = '# Bulk Hostname Property Update Results\n\n';
     responseText += `**Total Operations:** ${args.operations.length}\n`;
     responseText += `**Properties Updated:** ${Object.keys(operationsByProperty).length}\n`;
-    responseText += `**Successful:** ${results.successful.length} ✅\n`;
-    responseText += `**Failed:** ${results.failed.length} ❌\n\n`;
+    responseText += `**Successful:** ${results.successful.length} [DONE]\n`;
+    responseText += `**Failed:** ${results.failed.length} [ERROR]\n\n`;
 
     if (results.successful.length > 0) {
-      responseText += `## ✅ Successful Updates (${results.successful.length})\n`;
+      responseText += `## [DONE] Successful Updates (${results.successful.length})\n`;
 
       // Group by action
       const byAction = results.successful.reduce(
@@ -904,7 +904,7 @@ export async function bulkUpdateHostnameProperties(
     }
 
     if (results.failed.length > 0) {
-      responseText += `## ❌ Failed Updates (${results.failed.length})\n`;
+      responseText += `## [ERROR] Failed Updates (${results.failed.length})\n`;
       results.failed.forEach((result) => {
         responseText += `- **${result.hostname}**: ${result.error}\n`;
       });
@@ -919,7 +919,7 @@ export async function bulkUpdateHostnameProperties(
       responseText += '4. Monitor for any issues\n';
     }
     if (results.failed.length > 0) {
-      responseText += '\n⚠️ Review and fix failed updates before proceeding.\n';
+      responseText += '\n[WARNING] Review and fix failed updates before proceeding.\n';
     }
 
     return {
@@ -977,7 +977,7 @@ function estimatePropertyCount(hostnames: string[], strategy?: string): number {
 
 function extractValidHostnamesFromResult(result: MCPToolResponse): string[] {
   const text = result.content[0]?.text || '';
-  const validSection = text.split('## ✅ Valid Hostnames')[1]?.split('##')[0] || '';
+  const validSection = text.split('## [DONE] Valid Hostnames')[1]?.split('##')[0] || '';
 
   return validSection
     .split('\n')
@@ -990,7 +990,7 @@ function extractInvalidHostnamesFromResult(
   result: MCPToolResponse,
 ): Array<{ hostname: string; reason: string }> {
   const text = result.content[0]?.text || '';
-  const invalidSection = text.split('## ❌ Invalid Hostnames')[1]?.split('##')[0] || '';
+  const invalidSection = text.split('## [ERROR] Invalid Hostnames')[1]?.split('##')[0] || '';
 
   const invalid: Array<{ hostname: string; reason: string }> = [];
   const lines = invalidSection.split('\n').filter((line) => line.startsWith('- **'));

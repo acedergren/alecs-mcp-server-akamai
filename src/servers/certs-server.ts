@@ -76,7 +76,7 @@ class CertsALECSServer {
   private client: AkamaiClient;
 
   constructor() {
-    log('INFO', '🔐 ALECS Certificates Server starting...');
+    log('INFO', '[EMOJI] ALECS Certificates Server starting...');
     log('INFO', 'Node version:', { version: process.version });
     log('INFO', 'Working directory:', { cwd: process.cwd() });
 
@@ -95,9 +95,9 @@ class CertsALECSServer {
     try {
       log('INFO', 'Initializing Akamai client...');
       this.client = new AkamaiClient();
-      log('INFO', '✅ Akamai client initialized successfully');
+      log('INFO', '[DONE] Akamai client initialized successfully');
     } catch (_error) {
-      log('ERROR', '❌ Failed to initialize Akamai client', {
+      log('ERROR', '[ERROR] Failed to initialize Akamai client', {
         error: _error instanceof Error ? _error.message : String(_error),
       });
       throw _error;
@@ -111,7 +111,7 @@ class CertsALECSServer {
 
     // List all certificate tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      log('INFO', '📋 Tools list requested');
+      log('INFO', '[EMOJI] Tools list requested');
       const tools = [
         // Basic DV Certificate Tools
         {
@@ -566,7 +566,7 @@ class CertsALECSServer {
         },
       ];
 
-      log('INFO', `✅ Returning ${tools.length} tools`);
+      log('INFO', `[DONE] Returning ${tools.length} tools`);
       return { tools };
     });
 
@@ -574,7 +574,7 @@ class CertsALECSServer {
     this.server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> => {
       const { name, arguments: args } = request.params;
 
-      log('INFO', `🔧 Tool called: ${name}`, { args });
+      log('INFO', `[CONFIG] Tool called: ${name}`, { args });
 
       const startTime = Date.now();
       const client = this.client;
@@ -666,12 +666,12 @@ class CertsALECSServer {
         }
 
         const duration = Date.now() - startTime;
-        log('INFO', `✅ Tool ${name} completed in ${duration}ms`);
+        log('INFO', `[DONE] Tool ${name} completed in ${duration}ms`);
 
         return result;
       } catch (_error) {
         const duration = Date.now() - startTime;
-        log('ERROR', `❌ Tool ${name} failed after ${duration}ms`, {
+        log('ERROR', `[ERROR] Tool ${name} failed after ${duration}ms`, {
           error:
             _error instanceof Error
               ? {
@@ -699,37 +699,37 @@ class CertsALECSServer {
       }
     });
 
-    log('INFO', '✅ Request handlers set up successfully');
+    log('INFO', '[DONE] Request handlers set up successfully');
   }
 
   async start() {
-    log('INFO', '📍 Starting server connection...');
+    log('INFO', '[EMOJI] Starting server connection...');
 
     const transport = new StdioServerTransport();
 
     // Add error handling for transport
     transport.onerror = (_error: Error) => {
-      log('ERROR', '❌ Transport error', {
+      log('ERROR', '[ERROR] Transport error', {
         message: _error.message,
         stack: _error.stack,
       });
     };
 
     transport.onclose = () => {
-      log('INFO', '🔌 Transport closed, shutting down...');
+      log('INFO', '[EMOJI] Transport closed, shutting down...');
       process.exit(0);
     };
 
     try {
       await this.server.connect(transport);
-      log('INFO', '✅ Server connected and ready for MCP connections');
-      log('INFO', '📊 Server stats', {
+      log('INFO', '[DONE] Server connected and ready for MCP connections');
+      log('INFO', '[METRICS] Server stats', {
         toolCount: 22,
         memoryUsage: process.memoryUsage(),
         uptime: process.uptime(),
       });
     } catch (_error) {
-      log('ERROR', '❌ Failed to connect server', {
+      log('ERROR', '[ERROR] Failed to connect server', {
         error:
           _error instanceof Error
             ? {
@@ -745,7 +745,7 @@ class CertsALECSServer {
 
 // Main entry point
 async function main() {
-  log('INFO', '🎯 ALECS Certificates Server main() started');
+  log('INFO', '[TARGET] ALECS Certificates Server main() started');
 
   try {
     const server = new CertsALECSServer();
@@ -753,14 +753,14 @@ async function main() {
 
     // Set up periodic status logging
     setInterval(() => {
-      log('DEBUG', '💓 Server heartbeat', {
+      log('DEBUG', '[EMOJI] Server heartbeat', {
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         pid: process.pid,
       });
     }, 30000); // Every 30 seconds
   } catch (_error) {
-    log('ERROR', '❌ Failed to start server', {
+    log('ERROR', '[ERROR] Failed to start server', {
       error:
         _error instanceof Error
           ? {
@@ -775,7 +775,7 @@ async function main() {
 
 // Handle uncaught errors
 process.on('uncaughtException', (_error) => {
-  log('ERROR', '❌ Uncaught exception', {
+  log('ERROR', '[ERROR] Uncaught exception', {
     error: {
       message: _error.message,
       stack: _error.stack,
@@ -785,7 +785,7 @@ process.on('uncaughtException', (_error) => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  log('ERROR', '❌ Unhandled rejection', {
+  log('ERROR', '[ERROR] Unhandled rejection', {
     reason:
       reason instanceof Error
         ? {
@@ -800,15 +800,15 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Handle signals
 process.on('SIGTERM', () => {
-  log('INFO', '📛 SIGTERM received, shutting down gracefully...');
+  log('INFO', '[EMOJI] SIGTERM received, shutting down gracefully...');
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
-  log('INFO', '📛 SIGINT received, shutting down gracefully...');
+  log('INFO', '[EMOJI] SIGINT received, shutting down gracefully...');
   process.exit(0);
 });
 
 // Start the server
-log('INFO', '🚀 Initiating ALECS Certificates Server...');
+log('INFO', '[DEPLOY] Initiating ALECS Certificates Server...');
 main();

@@ -125,7 +125,7 @@ export async function importNetworkListFromCSV(
           content: [
             {
               type: 'text',
-              text: `❌ **Validation Failed**\n\nInvalid elements for ${currentList.type} list:\n${invalidElements.slice(0, 20).join('\n')}${invalidElements.length > 20 ? `\n... and ${invalidElements.length - 20} more` : ''}\n\nUse skipInvalid option to import only valid elements.`,
+              text: `[ERROR] **Validation Failed**\n\nInvalid elements for ${currentList.type} list:\n${invalidElements.slice(0, 20).join('\n')}${invalidElements.length > 20 ? `\n... and ${invalidElements.length - 20} more` : ''}\n\nUse skipInvalid option to import only valid elements.`,
             },
           ],
         };
@@ -143,7 +143,7 @@ export async function importNetworkListFromCSV(
       };
     }
 
-    let output = '📊 **CSV Import Analysis**\n\n';
+    let output = '[METRICS] **CSV Import Analysis**\n\n';
     output += `**List:** ${currentList.name} (${currentList.uniqueId})\n`;
     output += `**Type:** ${currentList.type}\n`;
     output += `**CSV Elements:** ${elements.length}\n`;
@@ -154,7 +154,7 @@ export async function importNetworkListFromCSV(
     }
 
     if (options.dryRun) {
-      output += '\n**🔍 Dry Run Mode - No Changes Made**\n';
+      output += '\n**[SEARCH] Dry Run Mode - No Changes Made**\n';
       output += `**Operation:** ${options.operation || 'replace'}\n`;
       output += `**Current List Size:** ${currentList.elementCount}\n`;
 
@@ -222,14 +222,14 @@ export async function importNetworkListFromCSV(
 
     const updatedList: NetworkList = response;
 
-    output += '\n✅ **Import Completed Successfully**\n';
+    output += '\n[DONE] **Import Completed Successfully**\n';
     output += `**Operation:** ${options.operation || 'replace'}\n`;
     output += `**Previous Size:** ${currentList.elementCount}\n`;
     output += `**New Size:** ${updatedList.elementCount}\n`;
     output += `**Updated:** ${new Date(updatedList.updateDate).toLocaleString()}\n`;
 
     if (invalidElements.length > 0 && options.skipInvalid) {
-      output += '\n⚠️ **Skipped Invalid Elements:**\n';
+      output += '\n[WARNING] **Skipped Invalid Elements:**\n';
       invalidElements.slice(0, 10).forEach((element) => {
         output += `- ${element}\n`;
       });
@@ -318,7 +318,7 @@ export async function exportNetworkListToCSV(
       csvContent += `${element},\n`;
     }
 
-    let output = '📄 **Network List CSV Export**\n\n';
+    let output = '[FILE] **Network List CSV Export**\n\n';
     output += `**List:** ${list.name} (${list.uniqueId})\n`;
     output += `**Type:** ${list.type}\n`;
     output += `**Elements:** ${list.elementCount}\n`;
@@ -369,7 +369,7 @@ export async function bulkUpdateNetworkLists(
       elementsRemoved?: number;
     }> = [];
 
-    let output = '🔄 **Bulk Network List Update**\n\n';
+    let output = '[EMOJI] **Bulk Network List Update**\n\n';
     output += `Processing ${updates.length} network lists...\n\n`;
 
     for (const update of updates) {
@@ -441,7 +441,7 @@ export async function bulkUpdateNetworkLists(
               error: `Invalid elements: ${invalidElements.slice(0, 5).join(', ')}${invalidElements.length > 5 ? '...' : ''}`,
             });
 
-            output += `❌ ${update.uniqueId}: Invalid elements\n`;
+            output += `[ERROR] ${update.uniqueId}: Invalid elements\n`;
 
             if (!options.continueOnError) {
               break;
@@ -483,7 +483,7 @@ export async function bulkUpdateNetworkLists(
           elementsRemoved: validRemove.length,
         });
 
-        output += `✅ ${update.uniqueId}: +${validAdd.length} -${validRemove.length}\n`;
+        output += `[DONE] ${update.uniqueId}: +${validAdd.length} -${validRemove.length}\n`;
       } catch (_error) {
         const akamaiError = _error as AkamaiError;
         results.push({
@@ -492,7 +492,7 @@ export async function bulkUpdateNetworkLists(
           error: akamaiError.title || akamaiError.detail || 'Unknown _error',
         });
 
-        output += `❌ ${update.uniqueId}: ${akamaiError.title}\n`;
+        output += `[ERROR] ${update.uniqueId}: ${akamaiError.title}\n`;
 
         if (!options.continueOnError) {
           break;
@@ -506,10 +506,10 @@ export async function bulkUpdateNetworkLists(
     const totalRemoved = results.reduce((sum, r) => sum + (r.elementsRemoved || 0), 0);
 
     output += '\n**Summary:**\n';
-    output += `✅ Successful: ${successful}\n`;
-    output += `❌ Failed: ${failed}\n`;
-    output += `➕ Total Elements Added: ${totalAdded}\n`;
-    output += `➖ Total Elements Removed: ${totalRemoved}\n`;
+    output += `[DONE] Successful: ${successful}\n`;
+    output += `[ERROR] Failed: ${failed}\n`;
+    output += `[EMOJI] Total Elements Added: ${totalAdded}\n`;
+    output += `[EMOJI] Total Elements Removed: ${totalRemoved}\n`;
 
     return {
       content: [
@@ -574,7 +574,7 @@ export async function mergeNetworkLists(
         content: [
           {
             type: 'text',
-            text: `❌ Cannot merge lists of different types: ${[...new Set(listTypes)].join(', ')}`,
+            text: `[ERROR] Cannot merge lists of different types: ${[...new Set(listTypes)].join(', ')}`,
           },
         ],
       };
@@ -625,7 +625,7 @@ export async function mergeNetworkLists(
 
     const updatedList: NetworkList = updateResponse;
 
-    let output = '🔄 **Network List Merge Completed**\n\n';
+    let output = '[EMOJI] **Network List Merge Completed**\n\n';
     output += `**Operation:** ${options.operation || 'union'}\n`;
     output += `**Target List:** ${targetList.name} (${targetListId})\n`;
     output += `**Source Lists:** ${sourceLists.length}\n`;
@@ -649,10 +649,10 @@ export async function mergeNetworkLists(
             path: `/network-list/v2/network-lists/${sourceList.uniqueId}`,
             method: 'DELETE',
           });
-          output += `✅ Deleted ${sourceList.name}\n`;
+          output += `[DONE] Deleted ${sourceList.name}\n`;
         } catch (_error) {
           const akamaiError = _error as AkamaiError;
-          output += `❌ Failed to delete ${sourceList.name}: ${akamaiError.title}\n`;
+          output += `[ERROR] Failed to delete ${sourceList.name}: ${akamaiError.title}\n`;
         }
       }
     }

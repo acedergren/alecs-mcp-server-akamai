@@ -423,16 +423,16 @@ async function handleStartOnboarding(
   
   text += `## Certificate Options\n\n`;
   if (certOptions.hasDefaultDV) {
-    text += `✅ **Secure by Default (DefaultDV)** - Recommended\n`;
+    text += `[DONE] **Secure by Default (DefaultDV)** - Recommended\n`;
     text += `   Instant HTTPS with automatic certificate provisioning\n`;
   }
   if (certOptions.existingCertificates.length > 0) {
-    text += `✅ **Existing Certificates Found:**\n`;
+    text += `[DONE] **Existing Certificates Found:**\n`;
     certOptions.existingCertificates.forEach(cert => {
       text += `   - ${cert.cn} (${cert.certificateType})\n`;
     });
   }
-  text += `✅ **DV SAN SNI** - Standard domain validation\n`;
+  text += `[DONE] **DV SAN SNI** - Standard domain validation\n`;
   text += `   Requires DNS validation (automated)\n\n`;
   
   text += `## Recommended Configuration\n\n`;
@@ -492,7 +492,7 @@ async function handleCheckRequirements(
       method: 'GET',
     });
   } catch (error) {
-    issues.push(`❌ Contract ${params.contractId} not accessible`);
+    issues.push(`[ERROR] Contract ${params.contractId} not accessible`);
   }
   
   // Check certificate options
@@ -526,8 +526,8 @@ async function handleCheckRequirements(
   }
   
   text += `## Certificate Options Available\n\n`;
-  text += `- Default DV: ${certOptions.hasDefaultDV ? '✅ Available' : '❌ Not available'}\n`;
-  text += `- DV SAN SNI: ✅ Available\n`;
+  text += `- Default DV: ${certOptions.hasDefaultDV ? '[DONE] Available' : '[ERROR] Not available'}\n`;
+  text += `- DV SAN SNI: [DONE] Available\n`;
   text += `- Existing Certificates: ${certOptions.existingCertificates.length}\n\n`;
   
   if (recommendations.length > 0) {
@@ -624,7 +624,7 @@ async function handleSetupProperty(
       state.propertyId = propMatch[1];
       state.propertyName = propertyName;
       spinner.succeed(`Created property: ${state.propertyId}`);
-      steps.push(`✅ Created property: ${propertyName}`);
+      steps.push(`[DONE] Created property: ${propertyName}`);
       state.completedSteps.push('property-created');
     }
     
@@ -641,7 +641,7 @@ async function handleSetupProperty(
     if (cpCodeMatch?.[1]) {
       state.cpCodeId = parseInt(cpCodeMatch[1]);
       spinner.succeed(`Created CP Code: ${state.cpCodeId}`);
-      steps.push(`✅ Created CP Code: ${state.cpCodeId}`);
+      steps.push(`[DONE] Created CP Code: ${state.cpCodeId}`);
       state.completedSteps.push('cpcode-created');
     }
     
@@ -682,8 +682,8 @@ async function handleSetupProperty(
       state.certificateType = 'DefaultDV';
       
       spinner.succeed('Created Secure by Default edge hostname');
-      steps.push(`✅ Created edge hostname: ${edgeHostnameDomain}`);
-      steps.push('✅ DefaultDV certificate automatically provisioned');
+      steps.push(`[DONE] Created edge hostname: ${edgeHostnameDomain}`);
+      steps.push('[DONE] DefaultDV certificate automatically provisioned');
       state.completedSteps.push('edge-hostname-created');
     } else {
       // For DV SAN SNI, we'll need to create certificate enrollment
@@ -692,7 +692,7 @@ async function handleSetupProperty(
       state.certificateType = 'DV SAN SNI';
       
       spinner.succeed('Edge hostname prepared for DV SAN SNI');
-      steps.push('⏳ DV SAN SNI certificate enrollment required');
+      steps.push('[EMOJI] DV SAN SNI certificate enrollment required');
       state.recommendations.push('Complete certificate enrollment and validation');
     }
     
@@ -758,7 +758,7 @@ async function handleSetupProperty(
     });
     
     spinner.succeed('Property rules configured');
-    steps.push('✅ Configured property with secure settings');
+    steps.push('[DONE] Configured property with secure settings');
     state.completedSteps.push('rules-configured');
     
     // Step 5: Add hostnames
@@ -771,7 +771,7 @@ async function handleSetupProperty(
         hostname,
         edgeHostname: edgeHostnameDomain,
       });
-      steps.push(`✅ Added hostname: ${hostname}`);
+      steps.push(`[DONE] Added hostname: ${hostname}`);
     }
     
     spinner.succeed('All hostnames added');
@@ -791,16 +791,16 @@ async function handleSetupProperty(
         state.securityConfigId = securityResult.securityConfigId;
         state.wafPolicyId = securityResult.wafPolicyId;
         spinner.succeed('Security configuration created');
-        steps.push('✅ WAF policy created in alert mode');
+        steps.push('[DONE] WAF policy created in alert mode');
         state.completedSteps.push('security-configured');
       } else {
         spinner.warn(securityResult.status);
-        steps.push(`⚠️ ${securityResult.status}`);
+        steps.push(`[WARNING] ${securityResult.status}`);
       }
     }
     
     // Generate comprehensive response
-    let text = `# ✅ Property Setup Complete!\n\n`;
+    let text = `# [DONE] Property Setup Complete!\n\n`;
     text += `## Summary\n\n`;
     text += `- **Property Name:** ${propertyName}\n`;
     text += `- **Property ID:** ${state.propertyId}\n`;
@@ -1223,7 +1223,7 @@ async function handleCheckStatus(
     
     steps.forEach(step => {
       const completed = state.completedSteps.includes(step.id);
-      text += `${completed ? '✅' : '⏳'} ${step.name}\n`;
+      text += `${completed ? '[DONE]' : '[EMOJI]'} ${step.name}\n`;
     });
     
     text += `\n## Next Actions\n`;

@@ -25,7 +25,7 @@ export async function debugSecurePropertyOnboarding(
     customer?: string;
   },
 ): Promise<MCPToolResponse> {
-  let text = '# 🔍 Debug: Secure Property Onboarding\n\n';
+  let text = '# [SEARCH] Debug: Secure Property Onboarding\n\n';
   text += `**Target:** ${args.propertyName}\n`;
   text += `**Hostnames:** ${args.hostnames.join(', ')}\n`;
   text += `**Origin:** ${args.originHostname}\n`;
@@ -54,7 +54,7 @@ export async function debugSecurePropertyOnboarding(
     }
 
     if (validationErrors.length > 0) {
-      text += '❌ **Validation Failed:**\n';
+      text += '[ERROR] **Validation Failed:**\n';
       validationErrors.forEach((_error) => {
         text += `- ${_error}\n`;
       });
@@ -70,7 +70,7 @@ export async function debugSecurePropertyOnboarding(
       };
     }
 
-    text += '✅ **Input validation passed**\n\n';
+    text += '[DONE] **Input validation passed**\n\n';
 
     // Step 2: Test API connectivity
     text += '## Step 2: API Connectivity Test\n';
@@ -81,16 +81,16 @@ export async function debugSecurePropertyOnboarding(
       });
 
       if (groupsResponse.groups?.items) {
-        text += `✅ **API connectivity working** (found ${groupsResponse.groups.items.length} groups)\n`;
+        text += `[DONE] **API connectivity working** (found ${groupsResponse.groups.items.length} groups)\n`;
 
         // Verify the specified group exists
         const targetGroup = groupsResponse.groups.items.find(
           (g: any) => g.groupId === args.groupId,
         );
         if (targetGroup) {
-          text += `✅ **Target group found:** ${targetGroup.groupName}\n`;
+          text += `[DONE] **Target group found:** ${targetGroup.groupName}\n`;
         } else {
-          text += `❌ **Target group ${args.groupId} not found**\n`;
+          text += `[ERROR] **Target group ${args.groupId} not found**\n`;
           text += 'Available groups:\n';
           groupsResponse.groups.items.slice(0, 5).forEach((g: any) => {
             text += `- ${g.groupId}: ${g.groupName}\n`;
@@ -98,10 +98,10 @@ export async function debugSecurePropertyOnboarding(
           text += '\n';
         }
       } else {
-        text += '❌ **API connectivity issue** - unexpected response format\n';
+        text += '[ERROR] **API connectivity issue** - unexpected response format\n';
       }
     } catch (apiError: any) {
-      text += `❌ **API connectivity failed:** ${apiError.message}\n`;
+      text += `[ERROR] **API connectivity failed:** ${apiError.message}\n`;
       text += '\n';
 
       return {
@@ -133,22 +133,22 @@ export async function debugSecurePropertyOnboarding(
           const bestProduct = selectBestProduct(productsResponse.products.items);
           if (bestProduct) {
             productId = bestProduct.productId;
-            text += `✅ **Auto-selected product:** ${formatProductDisplay(bestProduct.productId, bestProduct.productName)}\n`;
+            text += `[DONE] **Auto-selected product:** ${formatProductDisplay(bestProduct.productId, bestProduct.productName)}\n`;
           } else {
             productId = 'prd_fresca';
-            text += '⚠️ **Using default product:** Ion (prd_fresca)\n';
+            text += '[WARNING] **Using default product:** Ion (prd_fresca)\n';
           }
         } else {
           productId = 'prd_fresca';
-          text += '⚠️ **No products found, using default:** Ion (prd_fresca)\n';
+          text += '[WARNING] **No products found, using default:** Ion (prd_fresca)\n';
         }
       } catch (_productError: any) {
         productId = 'prd_fresca';
-        text += '⚠️ **Product lookup failed, using default:** Ion (prd_fresca)\n';
+        text += '[WARNING] **Product lookup failed, using default:** Ion (prd_fresca)\n';
         text += `Error: ${_productError.message}\n`;
       }
     } else {
-      text += `✅ **Using specified product:** ${formatProductDisplay(productId)}\n`;
+      text += `[DONE] **Using specified product:** ${formatProductDisplay(productId)}\n`;
     }
     text += '\n';
 
@@ -164,18 +164,18 @@ export async function debugSecurePropertyOnboarding(
         groupId: args.groupId,
       });
 
-      if (createPropResult.content[0]?.text.includes('✅')) {
+      if (createPropResult.content[0]?.text.includes('[DONE]')) {
         // Extract property ID from response
         const propMatch = createPropResult.content[0].text.match(/Property ID:\*\* (\w+)/);
         if (propMatch?.[1]) {
           propertyId = propMatch[1];
-          text += `✅ **Property created successfully:** ${propertyId}\n`;
+          text += `[DONE] **Property created successfully:** ${propertyId}\n`;
         } else {
-          text += '⚠️ **Property created but ID extraction failed**\n';
+          text += '[WARNING] **Property created but ID extraction failed**\n';
           text += `Response: ${createPropResult.content[0].text.substring(0, 200)}...\n`;
         }
       } else {
-        text += '❌ **Property creation failed**\n';
+        text += '[ERROR] **Property creation failed**\n';
         text += `Response: ${createPropResult.content[0]?.text || 'No response'}\n`;
 
         return {
@@ -188,7 +188,7 @@ export async function debugSecurePropertyOnboarding(
         };
       }
     } catch (propError: any) {
-      text += `❌ **Property creation exception:** ${propError.message}\n`;
+      text += `[ERROR] **Property creation exception:** ${propError.message}\n`;
 
       return {
         content: [
@@ -212,10 +212,10 @@ export async function debugSecurePropertyOnboarding(
         });
 
         if (!propertyResponse.properties?.items?.[0]) {
-          text += `❌ **Cannot retrieve property details for ${propertyId}**\n`;
+          text += `[ERROR] **Cannot retrieve property details for ${propertyId}**\n`;
         } else {
           const property = propertyResponse.properties.items[0];
-          text += '✅ **Property details retrieved**\n';
+          text += '[DONE] **Property details retrieved**\n';
           text += `- Contract: ${property.contractId}\n`;
           text += `- Group: ${property.groupId}\n`;
           text += `- Product: ${formatProductDisplay(property.productId)}\n`;
@@ -244,31 +244,31 @@ export async function debugSecurePropertyOnboarding(
             if (edgeResponse.edgeHostnameLink) {
               const edgeHostnameId = edgeResponse.edgeHostnameLink.split('/').pop();
               const edgeHostnameDomain = `${edgeHostnamePrefix}.edgekey.net`;
-              text += `✅ **Edge hostname created:** ${edgeHostnameDomain}\n`;
+              text += `[DONE] **Edge hostname created:** ${edgeHostnameDomain}\n`;
               text += `- ID: ${edgeHostnameId}\n`;
             } else {
-              text += '❌ **Edge hostname creation failed** - no link returned\n';
+              text += '[ERROR] **Edge hostname creation failed** - no link returned\n';
               text += `Response: ${JSON.stringify(edgeResponse, null, 2)}\n`;
             }
           } catch (edgeError: any) {
-            text += `❌ **Edge hostname creation exception:** ${edgeError.message}\n`;
+            text += `[ERROR] **Edge hostname creation exception:** ${edgeError.message}\n`;
             if (edgeError.response?.data) {
               text += `API Response: ${JSON.stringify(edgeError.response.data, null, 2)}\n`;
             }
           }
         }
       } catch (propDetailError: any) {
-        text += `❌ **Property detail retrieval failed:** ${propDetailError.message}\n`;
+        text += `[ERROR] **Property detail retrieval failed:** ${propDetailError.message}\n`;
       }
     } else {
-      text += '⏭️ **Skipped - no property ID available**\n';
+      text += '[EMOJI]️ **Skipped - no property ID available**\n';
     }
     text += '\n';
 
     // Summary
     text += '## Summary\n';
     if (propertyId) {
-      text += '✅ **Property creation successful**\n';
+      text += '[DONE] **Property creation successful**\n';
       text += '\n';
       text += '**Next steps to complete manually:**\n';
       text += `1. Create edge hostname: \`"Create edge hostname for property ${propertyId} with prefix ${args.propertyName.toLowerCase().replace(/[^a-z0-9-]/g, '-')}"\`\n`;
@@ -276,7 +276,7 @@ export async function debugSecurePropertyOnboarding(
       text += '3. Add hostnames to property\n';
       text += '4. Activate to staging\n';
     } else {
-      text += '❌ **Property creation failed** - cannot proceed with automation\n';
+      text += '[ERROR] **Property creation failed** - cannot proceed with automation\n';
     }
 
     return {
@@ -288,7 +288,7 @@ export async function debugSecurePropertyOnboarding(
       ],
     };
   } catch (_error: any) {
-    text += '\n## ❌ Unexpected Error\n';
+    text += '\n## [ERROR] Unexpected Error\n';
     text += `**Message:** ${_error.message}\n`;
     text += `**Stack:** ${_error.stack}\n`;
 
@@ -316,7 +316,7 @@ export async function testBasicPropertyCreation(
   },
 ): Promise<MCPToolResponse> {
   try {
-    let text = '# 🧪 Basic Property Creation Test\n\n';
+    let text = '# [TEST] Basic Property Creation Test\n\n';
 
     // Test 1: API connectivity
     text += '## Test 1: API Connectivity\n';
@@ -325,9 +325,9 @@ export async function testBasicPropertyCreation(
         path: '/papi/v1/groups',
         method: 'GET',
       });
-      text += `✅ API accessible (found ${response.groups?.items?.length || 0} groups)\n\n`;
+      text += `[DONE] API accessible (found ${response.groups?.items?.length || 0} groups)\n\n`;
     } catch (apiError: any) {
-      text += `❌ API not accessible: ${apiError.message}\n\n`;
+      text += `[ERROR] API not accessible: ${apiError.message}\n\n`;
       return {
         content: [
           {
@@ -354,13 +354,13 @@ export async function testBasicPropertyCreation(
         const bestProduct = selectBestProduct(productsResponse.products.items);
         if (bestProduct) {
           productId = bestProduct.productId;
-          text += `✅ Selected product: ${formatProductDisplay(bestProduct.productId, bestProduct.productName)}\n\n`;
+          text += `[DONE] Selected product: ${formatProductDisplay(bestProduct.productId, bestProduct.productName)}\n\n`;
         } else {
-          text += '⚠️ Using default product: Ion (prd_fresca)\n\n';
+          text += '[WARNING] Using default product: Ion (prd_fresca)\n\n';
         }
       }
     } catch (_productError: any) {
-      text += '⚠️ Product lookup failed, using default: Ion (prd_fresca)\n\n';
+      text += '[WARNING] Product lookup failed, using default: Ion (prd_fresca)\n\n';
     }
 
     // Test 3: Property creation
@@ -388,7 +388,7 @@ export async function testBasicPropertyCreation(
       content: [
         {
           type: 'text',
-          text: `❌ Test failed: ${_error.message}`,
+          text: `[ERROR] Test failed: ${_error.message}`,
         },
       ],
     };

@@ -133,28 +133,28 @@ export class FixStrategyOptimizer {
         maxHours: 4,
         riskLevel: 'LOW',
         description: 'Simple, low-risk fixes that can be implemented immediately',
-        icon: '🚀',
+        icon: '[DEPLOY]',
       },
       tactical_fix: {
         name: 'Tactical Fix',
         maxHours: 16,
         riskLevel: 'MEDIUM',
         description: 'Focused fixes addressing specific issues without major changes',
-        icon: '🎯',
+        icon: '[TARGET]',
       },
       strategic_fix: {
         name: 'Strategic Fix',
         maxHours: 80,
         riskLevel: 'HIGH',
         description: 'Comprehensive solutions requiring significant planning and resources',
-        icon: '🏗️',
+        icon: '[BUILD]',
       },
       architectural_change: {
         name: 'Architectural Change',
         maxHours: 200,
         riskLevel: 'CRITICAL',
         description: 'Major architectural improvements requiring careful planning',
-        icon: '🏛️',
+        icon: '[EMOJI]️',
       },
     };
 

@@ -169,10 +169,10 @@ export async function createEdgeHostnameEnhanced(
     const edgeHostname = `${args.domainPrefix}.${domainSuffix.replace(/^\./, '')}`;
 
     // Format response
-    let responseText = '# ✅ Edge Hostname Created Successfully\n\n';
+    let responseText = '# [DONE] Edge Hostname Created Successfully\n\n';
     responseText += `**Edge Hostname:** \`${edgeHostname}\`\n`;
     responseText += `**Edge Hostname ID:** ${edgeHostnameId}\n`;
-    responseText += `**Type:** ${secure ? '🔒 Enhanced TLS (HTTPS)' : '🔓 Standard (HTTP)'}\n`;
+    responseText += `**Type:** ${secure ? '[SECURE] Enhanced TLS (HTTPS)' : '[EMOJI] Standard (HTTP)'}\n`;
     responseText += `**Network:** ${domainSuffix}\n`;
     responseText += `**IP Version:** ${ipVersion}\n`;
 
@@ -206,7 +206,7 @@ export async function createEdgeHostnameEnhanced(
     responseText += '4. Verify SSL certificate (if secure)\n';
 
     if (secure && !args.certificateEnrollmentId) {
-      responseText += '\n## ⚠️ Certificate Required\n';
+      responseText += '\n## [WARNING] Certificate Required\n';
       responseText +=
         'This is a secure edge hostname but no certificate enrollment was specified.\n';
       responseText += "You'll need to:\n";
@@ -310,13 +310,13 @@ export async function createBulkEdgeHostnames(
     // Format response
     let responseText = '# Bulk Edge Hostname Creation Results\n\n';
     responseText += `**Total Requested:** ${args.hostnames.length}\n`;
-    responseText += `**Successful:** ${results.successful.length} ✅\n`;
-    responseText += `**Failed:** ${results.failed.length} ❌\n`;
+    responseText += `**Successful:** ${results.successful.length} [DONE]\n`;
+    responseText += `**Failed:** ${results.failed.length} [ERROR]\n`;
     responseText += `**Domain Suffix:** ${args.domainSuffix}\n`;
     responseText += `**Secure:** ${args.secure ? 'Yes' : 'No'}\n\n`;
 
     if (results.successful.length > 0) {
-      responseText += `## ✅ Successfully Created (${results.successful.length})\n`;
+      responseText += `## [DONE] Successfully Created (${results.successful.length})\n`;
       responseText += '| Hostname | Edge Hostname | ID |\n';
       responseText += '|----------|---------------|----|\n';
 
@@ -327,7 +327,7 @@ export async function createBulkEdgeHostnames(
     }
 
     if (results.failed.length > 0) {
-      responseText += `## ❌ Failed Creations (${results.failed.length})\n`;
+      responseText += `## [ERROR] Failed Creations (${results.failed.length})\n`;
       results.failed.forEach((result) => {
         responseText += `- **${result.hostname}**: ${result.error}\n`;
       });
@@ -416,7 +416,7 @@ export async function getEdgeHostnameDetails(
           content: [
             {
               type: 'text',
-              text: `❌ Edge hostname "${args.edgeHostnameDomain}" not found.\n\nTip: Use "List edge hostnames" to see available edge hostnames.`,
+              text: `[ERROR] Edge hostname "${args.edgeHostnameDomain}" not found.\n\nTip: Use "List edge hostnames" to see available edge hostnames.`,
             },
           ],
         };
@@ -451,7 +451,7 @@ export async function getEdgeHostnameDetails(
     responseText += `- **Edge Hostname ID:** ${eh.edgeHostnameId}\n`;
     responseText += `- **Domain:** ${eh.edgeHostnameDomain || `${eh.domainPrefix}.${eh.domainSuffix}`}\n`;
     responseText += `- **Product:** ${eh.productId || 'Unknown'}\n`;
-    responseText += `- **Secure (HTTPS):** ${eh.secure ? '🔒 Yes' : '🔓 No'}\n`;
+    responseText += `- **Secure (HTTPS):** ${eh.secure ? '[SECURE] Yes' : '[EMOJI] No'}\n`;
     responseText += `- **IP Version:** ${eh.ipVersionBehavior || 'IPV4'}\n`;
     responseText += `- **Status:** ${eh.status || 'Active'}\n`;
     responseText += `- **Network:** ${eh.secureNetwork || 'Standard'}\n\n`;
@@ -632,7 +632,7 @@ export async function generateEdgeHostnameRecommendations(
       recs.forEach((rec) => {
         responseText += `#### ${rec.hostname}\n`;
         responseText += `- **Edge Hostname:** \`${rec.recommendedPrefix}${rec.recommendedSuffix}\`\n`;
-        responseText += `- **Secure:** ${rec.secure ? '🔒 Yes' : '🔓 No'}\n`;
+        responseText += `- **Secure:** ${rec.secure ? '[SECURE] Yes' : '[EMOJI] No'}\n`;
         responseText += `- **Certificate Strategy:** ${rec.certificateStrategy}\n`;
         responseText += `- **IP Version:** ${rec.ipVersion}\n`;
         responseText += `- **Rationale:** ${rec.rationale}\n`;
@@ -653,7 +653,7 @@ export async function generateEdgeHostnameRecommendations(
 
     if (nonSecureCount > 0 && args.securityRequirement !== 'maximum') {
       responseText +=
-        '\n💡 **Cost Saving Tip:** Using non-secure edge hostnames for static content can reduce costs.\n';
+        '\n[INFO] **Cost Saving Tip:** Using non-secure edge hostnames for static content can reduce costs.\n';
     }
 
     // Certificate strategy summary
@@ -672,7 +672,7 @@ export async function generateEdgeHostnameRecommendations(
 
     if (certStrategies['DEFAULT_DV'] && certStrategies['DEFAULT_DV'] > 0) {
       responseText +=
-        '\n✅ **DefaultDV Recommended:** Fastest deployment with automatic certificate provisioning.\n';
+        '\n[DONE] **DefaultDV Recommended:** Fastest deployment with automatic certificate provisioning.\n';
     }
 
     // Implementation commands
@@ -771,7 +771,7 @@ export async function validateEdgeHostnameCertificate(
     responseText += '## Certificate Status\n';
 
     if (eh.certEnrollmentId) {
-      responseText += '✅ **Certificate Associated**\n';
+      responseText += '[DONE] **Certificate Associated**\n';
       responseText += `- **Enrollment ID:** ${eh.certEnrollmentId}\n`;
       responseText += `- **Status:** ${eh.certStatus || 'Unknown'}\n\n`;
 
@@ -794,7 +794,7 @@ export async function validateEdgeHostnameCertificate(
         // Certificate details not accessible
       }
     } else {
-      responseText += '❌ **No Certificate Associated**\n\n';
+      responseText += '[ERROR] **No Certificate Associated**\n\n';
       responseText += '### Required Actions\n';
       responseText += '1. Create a certificate enrollment\n';
       responseText += '2. Complete domain validation\n';
@@ -814,10 +814,10 @@ export async function validateEdgeHostnameCertificate(
       if (eh.certEnrollmentId) {
         // Check if hostname would be covered
         responseText +=
-          "⚠️ **Note:** Certificate coverage verification requires checking the certificate's CN and SANs.\n";
+          "[WARNING] **Note:** Certificate coverage verification requires checking the certificate's CN and SANs.\n";
       } else {
         responseText +=
-          '❌ **Not Covered:** No certificate is associated with this edge hostname.\n';
+          '[ERROR] **Not Covered:** No certificate is associated with this edge hostname.\n';
       }
     }
 
@@ -896,7 +896,7 @@ export async function associateCertificateWithEdgeHostname(
     const eh = ehResponse.edgeHostnames?.items?.[0];
     const edgeHostnameDomain = eh?.edgeHostnameDomain || 'Unknown';
 
-    let responseText = '# ✅ Certificate Associated Successfully\n\n';
+    let responseText = '# [DONE] Certificate Associated Successfully\n\n';
     responseText += `**Edge Hostname:** ${edgeHostnameDomain}\n`;
     responseText += `**Certificate Enrollment ID:** ${args.certificateEnrollmentId}\n`;
     responseText += '**Status:** Certificate association in progress\n\n';

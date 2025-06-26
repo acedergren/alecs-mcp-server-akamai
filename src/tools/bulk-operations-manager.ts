@@ -330,7 +330,7 @@ export async function bulkCloneProperties(
     responseText += `**Failed:** ${operation.failedItems}\n\n`;
 
     if (operation.successfulItems > 0) {
-      responseText += `## ✅ Successfully Cloned (${operation.successfulItems})\n`;
+      responseText += `## [DONE] Successfully Cloned (${operation.successfulItems})\n`;
       operation.properties
         .filter((p) => p.status === 'completed')
         .forEach((p) => {
@@ -342,7 +342,7 @@ export async function bulkCloneProperties(
     }
 
     if (operation.failedItems > 0) {
-      responseText += `\n## ❌ Failed Clones (${operation.failedItems})\n`;
+      responseText += `\n## [ERROR] Failed Clones (${operation.failedItems})\n`;
       operation.properties
         .filter((p) => p.status === 'failed')
         .forEach((p) => {
@@ -560,7 +560,7 @@ export async function bulkActivateProperties(
     responseText += `**Skipped:** ${operation.properties.filter((p) => p.status === 'skipped').length}\n\n`;
 
     if (operation.successfulItems > 0) {
-      responseText += `## ✅ Successfully Activated (${operation.successfulItems})\n`;
+      responseText += `## [DONE] Successfully Activated (${operation.successfulItems})\n`;
       operation.properties
         .filter((p) => p.status === 'completed')
         .forEach((p) => {
@@ -574,7 +574,7 @@ export async function bulkActivateProperties(
 
     const skipped = operation.properties.filter((p) => p.status === 'skipped');
     if (skipped.length > 0) {
-      responseText += `\n## ⏭️ Skipped (${skipped.length})\n`;
+      responseText += `\n## [EMOJI]️ Skipped (${skipped.length})\n`;
       skipped.forEach((p) => {
         responseText += `- **${p.propertyName}** (${p.propertyId})\n`;
         responseText += `  ${p.result?.message}\n`;
@@ -582,7 +582,7 @@ export async function bulkActivateProperties(
     }
 
     if (operation.failedItems > 0) {
-      responseText += `\n## ❌ Failed Activations (${operation.failedItems})\n`;
+      responseText += `\n## [ERROR] Failed Activations (${operation.failedItems})\n`;
       operation.properties
         .filter((p) => p.status === 'failed')
         .forEach((p) => {
@@ -821,7 +821,7 @@ export async function bulkUpdatePropertyRules(
     responseText += '\n';
 
     if (operation.successfulItems > 0) {
-      responseText += `## ✅ Successfully Updated (${operation.successfulItems})\n`;
+      responseText += `## [DONE] Successfully Updated (${operation.successfulItems})\n`;
       operation.properties
         .filter((p) => p.status === 'completed')
         .forEach((p) => {
@@ -831,7 +831,7 @@ export async function bulkUpdatePropertyRules(
     }
 
     if (operation.failedItems > 0) {
-      responseText += `\n## ❌ Failed Updates (${operation.failedItems})\n`;
+      responseText += `\n## [ERROR] Failed Updates (${operation.failedItems})\n`;
       operation.properties
         .filter((p) => p.status === 'failed')
         .forEach((p) => {
@@ -1093,7 +1093,7 @@ export async function bulkManageHostnames(
       responseText += `Success: ${propSuccess}, Failed: ${propFail}\n\n`;
 
       if (propSuccess > 0) {
-        responseText += '**✅ Successful:**\n';
+        responseText += '**[DONE] Successful:**\n';
         propResults
           .filter((r) => r.success)
           .forEach((r) => {
@@ -1102,7 +1102,7 @@ export async function bulkManageHostnames(
       }
 
       if (propFail > 0) {
-        responseText += '\n**❌ Failed:**\n';
+        responseText += '\n**[ERROR] Failed:**\n';
         propResults
           .filter((r) => !r.success)
           .forEach((r) => {

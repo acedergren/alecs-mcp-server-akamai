@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "alecs-akamai-property": {
+      "command": "node",
+      "args": [
+        "/Users/acedergr/Projects/alecs-mcp-server-akamai/alecs-mcp-server-akamai/dist/servers/property-server.js"
+      ],
+      "env": {
+        "AKAMAI_EDGERC_PATH": "~/.edgerc"
+      }
+    }
+  }
+}

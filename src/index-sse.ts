@@ -69,13 +69,13 @@ async function startSSEServer() {
     });
 
     // Display startup message
-    console.log('\n✅ ALECS SSE/HTTP MCP Server is running');
-    console.log(`📡 Listening on ${process.env.ALECS_SSE_HOST || '0.0.0.0'}:${process.env.ALECS_SSE_PORT || '3000'}`);
-    console.log('\n🔗 Endpoints:');
+    console.log('\n[DONE] ALECS SSE/HTTP MCP Server is running');
+    console.log(`[EMOJI] Listening on ${process.env.ALECS_SSE_HOST || '0.0.0.0'}:${process.env.ALECS_SSE_PORT || '3000'}`);
+    console.log('\n[EMOJI] Endpoints:');
     console.log(`   POST ${process.env.ALECS_SSE_PATH || '/mcp'}/messages - Send messages to server`);
     console.log(`   GET  ${process.env.ALECS_SSE_PATH || '/mcp'}/sse - Event stream from server`);
     console.log(`   GET  ${process.env.ALECS_SSE_PATH || '/mcp'}/health - Health check`);
-    console.log('\n💡 To see connection details and generate a token, run:');
+    console.log('\n[INFO] To see connection details and generate a token, run:');
     console.log('   npm run start:sse:summary\n');
 
     // Handle shutdown gracefully

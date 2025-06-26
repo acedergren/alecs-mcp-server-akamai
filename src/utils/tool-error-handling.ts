@@ -22,7 +22,7 @@ export type { ErrorContext, RetryConfig };
 export function formatErrorResponse(_error: any, _context: ErrorContext): MCPToolResponse {
   const errorResult = handleAkamaiError(_error, _context);
 
-  let errorMessage = `❌ Failed to ${_context.operation || 'complete operation'}`;
+  let errorMessage = `[ERROR] Failed to ${_context.operation || 'complete operation'}`;
 
   // Add specific _error details
   if (errorResult.userMessage) {

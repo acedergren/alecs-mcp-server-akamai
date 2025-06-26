@@ -404,11 +404,11 @@ export async function collectValidationIssues(validations: any[]): Promise<any[]
 export async function generatePreflightChecklist(client: any, resources: any): Promise<string[]> {
   logger.info('Demo: generatePreflightChecklist called', { resources });
   return [
-    '✅ Resources validated',
-    '✅ Dependencies checked',
-    '✅ Business rules compliant',
-    '✅ Capacity sufficient',
-    '✅ Compliance verified',
+    '[DONE] Resources validated',
+    '[DONE] Dependencies checked',
+    '[DONE] Business rules compliant',
+    '[DONE] Capacity sufficient',
+    '[DONE] Compliance verified',
   ];
 }
 

@@ -186,24 +186,24 @@ export async function analyzeHostnameConflicts(
     responseText += `**Analysis Date:** ${new Date().toISOString()}\n\n`;
 
     if (conflicts.length === 0) {
-      responseText += '## ✅ No Conflicts Detected\n\n';
+      responseText += '## [DONE] No Conflicts Detected\n\n';
       responseText += 'All target hostnames are available for configuration.\n\n';
     } else {
-      responseText += '## ⚠️ Conflicts Detected\n\n';
+      responseText += '## [WARNING] Conflicts Detected\n\n';
 
       const criticalConflicts = conflicts.filter((c) => c.severity === 'critical');
       const warningConflicts = conflicts.filter((c) => c.severity === 'warning');
       const infoConflicts = conflicts.filter((c) => c.severity === 'info');
 
       if (criticalConflicts.length > 0) {
-        responseText += `### ❌ Critical Conflicts (${criticalConflicts.length})\n\n`;
+        responseText += `### [ERROR] Critical Conflicts (${criticalConflicts.length})\n\n`;
         criticalConflicts.forEach((conflict, index) => {
           responseText += buildConflictReport(conflict, index + 1);
         });
       }
 
       if (warningConflicts.length > 0) {
-        responseText += `### ⚠️ Warning Conflicts (${warningConflicts.length})\n\n`;
+        responseText += `### [WARNING] Warning Conflicts (${warningConflicts.length})\n\n`;
         warningConflicts.forEach((conflict, index) => {
           responseText += buildConflictReport(conflict, index + 1);
         });

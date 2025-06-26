@@ -36,7 +36,7 @@ export async function listAvailableBehaviors(
           content: [
             {
               type: 'text',
-              text: `❌ Property ${args.propertyId} not found.`,
+              text: `[ERROR] Property ${args.propertyId} not found.`,
             },
           ],
         };
@@ -100,7 +100,7 @@ export async function listAvailableBehaviors(
           text += `- **Description:** ${behavior.description}\n`;
         }
         if (behavior.deprecated) {
-          text += `- ⚠️ **Deprecated:** Use ${behavior.deprecatedMessage || 'alternative behavior'}\n`;
+          text += `- [WARNING] **Deprecated:** Use ${behavior.deprecatedMessage || 'alternative behavior'}\n`;
         }
         text += '\n';
       }
@@ -174,7 +174,7 @@ export async function listAvailableCriteria(
           content: [
             {
               type: 'text',
-              text: `❌ Property ${args.propertyId} not found.`,
+              text: `[ERROR] Property ${args.propertyId} not found.`,
             },
           ],
         };
@@ -238,7 +238,7 @@ export async function listAvailableCriteria(
           text += `- **Description:** ${criterion.description}\n`;
         }
         if (criterion.deprecated) {
-          text += `- ⚠️ **Deprecated:** Use ${criterion.deprecatedMessage || 'alternative criterion'}\n`;
+          text += `- [WARNING] **Deprecated:** Use ${criterion.deprecatedMessage || 'alternative criterion'}\n`;
         }
         text += '\n';
       }
@@ -312,7 +312,7 @@ export async function patchPropertyRules(
         content: [
           {
             type: 'text',
-            text: `❌ Property ${args.propertyId} not found.`,
+            text: `[ERROR] Property ${args.propertyId} not found.`,
           },
         ],
       };
@@ -331,13 +331,13 @@ export async function patchPropertyRules(
       body: args.patches,
     });
 
-    let text = '✅ **Rule Tree Patched Successfully**\n\n';
+    let text = '[DONE] **Rule Tree Patched Successfully**\n\n';
     text += `**Property:** ${property.propertyName} (${args.propertyId})\n`;
     text += `**Version:** ${version}\n`;
     text += `**Patches Applied:** ${args.patches.length}\n\n`;
 
     if (response.errors?.length > 0) {
-      text += '## ⚠️ Validation Errors\n';
+      text += '## [WARNING] Validation Errors\n';
       for (const _error of response.errors) {
         text += `- ${_error.detail}\n`;
       }
@@ -345,7 +345,7 @@ export async function patchPropertyRules(
     }
 
     if (response.warnings?.length > 0) {
-      text += '## ⚠️ Warnings\n';
+      text += '## [WARNING] Warnings\n';
       for (const warning of response.warnings) {
         text += `- ${warning.detail}\n`;
       }
@@ -427,7 +427,7 @@ export async function bulkSearchProperties(
       throw new Error('Failed to initiate bulk search');
     }
 
-    let text = '✅ **Bulk Search Initiated**\n\n';
+    let text = '[DONE] **Bulk Search Initiated**\n\n';
     text += `**Search ID:** ${bulkSearchId}\n`;
     text += `**JSONPath Query:** \`${args.jsonPath}\`\n`;
     text += `**Network:** ${args.network || 'All versions'}\n`;
@@ -487,7 +487,7 @@ export async function getBulkSearchResults(
         content: [
           {
             type: 'text',
-            text: `❌ Bulk search ${args.bulkSearchId} not found.`,
+            text: `[ERROR] Bulk search ${args.bulkSearchId} not found.`,
           },
         ],
       };
@@ -498,7 +498,7 @@ export async function getBulkSearchResults(
     text += `**Progress:** ${response.searchProgress || 0}%\n`;
 
     if (response.searchStatus === 'IN_PROGRESS') {
-      text += '\n⏳ **Search still in progress...**\n';
+      text += '\n[EMOJI] **Search still in progress...**\n';
       text += 'Check again in a few moments:\n';
       text += `\`"Get bulk search results ${args.bulkSearchId}"\`\n`;
       return {
@@ -544,7 +544,7 @@ export async function getBulkSearchResults(
         }
       }
     } else if (response.searchStatus === 'FAILED') {
-      text += '\n❌ **Search Failed**\n';
+      text += '\n[ERROR] **Search Failed**\n';
       text += `Error: ${response.searchError || 'Unknown error'}\n`;
     }
 
@@ -665,10 +665,10 @@ export async function resumeDomainValidation(
     }
 
     text += '\n## Validation Process\n';
-    text += '1. ✅ Validation challenges have been set up\n';
-    text += '2. ⏳ Resuming validation process...\n';
-    text += '3. ⏱️ Akamai will check the validation challenges\n';
-    text += '4. ✅ Certificate will be issued upon successful validation\n\n';
+    text += '1. [DONE] Validation challenges have been set up\n';
+    text += '2. [EMOJI] Resuming validation process...\n';
+    text += '3. [EMOJI]️ Akamai will check the validation challenges\n';
+    text += '4. [DONE] Certificate will be issued upon successful validation\n\n';
 
     text += '## Expected Timeline\n';
     text += '- **HTTP Validation:** 5-15 minutes\n';
@@ -752,11 +752,11 @@ export async function getPropertyAuditHistory(
 
     text += '\n## Audit Categories\n';
     text += 'A complete audit history includes:\n';
-    text += '- ✅ **Activations**: Version deployments to staging/production\n';
-    text += '- 📝 **Rule Changes**: Modifications to property configuration\n';
-    text += '- 🏷️ **Hostname Changes**: Added or removed domains\n';
-    text += '- 🔐 **Certificate Updates**: SSL/TLS certificate changes\n';
-    text += '- 👥 **Permission Changes**: User access modifications\n\n';
+    text += '- [DONE] **Activations**: Version deployments to staging/production\n';
+    text += '- [DOCS] **Rule Changes**: Modifications to property configuration\n';
+    text += '- [EMOJI]️ **Hostname Changes**: Added or removed domains\n';
+    text += '- [EMOJI] **Certificate Updates**: SSL/TLS certificate changes\n';
+    text += '- [EMOJI] **Permission Changes**: User access modifications\n\n';
 
     text += '## Next Steps\n';
     text += '- View version differences: `"Compare property versions"`\n';
@@ -780,7 +780,7 @@ export async function getPropertyAuditHistory(
  * Format error responses with helpful guidance
  */
 function formatError(operation: string, _error: any): MCPToolResponse {
-  let errorMessage = `❌ Failed to ${operation}`;
+  let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 
   if (_error instanceof Error) {

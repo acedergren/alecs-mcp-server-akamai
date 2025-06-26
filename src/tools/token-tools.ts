@@ -41,7 +41,7 @@ export async function handleGenerateApiToken(args: any) {
       content: [
         {
           type: 'text',
-          text: `✅ API Token Generated Successfully
+          text: `[DONE] API Token Generated Successfully
 
 **Token ID:** ${result.tokenId}
 **Description:** ${args.description || 'N/A'}
@@ -53,7 +53,7 @@ export async function handleGenerateApiToken(args: any) {
 ${result.token}
 \`\`\`
 
-⚠️ **IMPORTANT:** Save this token securely. It will not be shown again.
+[WARNING] **IMPORTANT:** Save this token securely. It will not be shown again.
 
 ## Usage
 
@@ -81,7 +81,7 @@ curl -H "Authorization: Bearer ${result.token}" \\
       content: [
         {
           type: 'text',
-          text: `❌ Failed to generate API token: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          text: `[ERROR] Failed to generate API token: ${error instanceof Error ? error.message : 'Unknown error'}`,
         },
       ],
     };
@@ -117,9 +117,9 @@ export async function handleListApiTokens(_args: any) {
     }
     
     const tokenList = tokens.map(token => {
-      const status = !token.isActive ? '🔴 Revoked' : 
-                    (token.expiresAt && new Date() > token.expiresAt) ? '🟡 Expired' : 
-                    '🟢 Active';
+      const status = !token.isActive ? '[EMOJI] Revoked' : 
+                    (token.expiresAt && new Date() > token.expiresAt) ? '[EMOJI] Expired' : 
+                    '[EMOJI] Active';
       
       return `### ${token.tokenId}
 **Status:** ${status}
@@ -151,7 +151,7 @@ ${tokenList}
       content: [
         {
           type: 'text',
-          text: `❌ Failed to list API tokens: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          text: `[ERROR] Failed to list API tokens: ${error instanceof Error ? error.message : 'Unknown error'}`,
         },
       ],
     };
@@ -186,7 +186,7 @@ export async function handleRevokeApiToken(args: any) {
         content: [
           {
             type: 'text',
-            text: `✅ Token ${args.tokenId} has been revoked successfully.
+            text: `[DONE] Token ${args.tokenId} has been revoked successfully.
 
 The token can no longer be used for authentication.`,
           },
@@ -197,7 +197,7 @@ The token can no longer be used for authentication.`,
         content: [
           {
             type: 'text',
-            text: `❌ Failed to revoke token ${args.tokenId}. Token may not exist.`,
+            text: `[ERROR] Failed to revoke token ${args.tokenId}. Token may not exist.`,
           },
         ],
       };
@@ -208,7 +208,7 @@ The token can no longer be used for authentication.`,
       content: [
         {
           type: 'text',
-          text: `❌ Failed to revoke API token: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          text: `[ERROR] Failed to revoke API token: ${error instanceof Error ? error.message : 'Unknown error'}`,
         },
       ],
     };
@@ -243,7 +243,7 @@ export async function handleValidateApiToken(args: any) {
         content: [
           {
             type: 'text',
-            text: `✅ Token is valid
+            text: `[DONE] Token is valid
 
 **Token ID:** ${result.tokenId}
 
@@ -256,7 +256,7 @@ This token can be used for API access.`,
         content: [
           {
             type: 'text',
-            text: `❌ Token is invalid
+            text: `[ERROR] Token is invalid
 
 **Error:** ${result.error || 'Unknown validation error'}
 
@@ -271,7 +271,7 @@ This token cannot be used for API access.`,
       content: [
         {
           type: 'text',
-          text: `❌ Failed to validate API token: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          text: `[ERROR] Failed to validate API token: ${error instanceof Error ? error.message : 'Unknown error'}`,
         },
       ],
     };
@@ -306,7 +306,7 @@ export async function handleRotateApiToken(args: any) {
         content: [
           {
             type: 'text',
-            text: `✅ Token Rotated Successfully
+            text: `[DONE] Token Rotated Successfully
 
 **Old Token ID:** ${result.oldTokenId} (revoked)
 **New Token ID:** ${result.newToken.tokenId}
@@ -318,7 +318,7 @@ export async function handleRotateApiToken(args: any) {
 ${result.newToken.token}
 \`\`\`
 
-⚠️ **IMPORTANT:** Save this token securely. The old token has been revoked and can no longer be used.
+[WARNING] **IMPORTANT:** Save this token securely. The old token has been revoked and can no longer be used.
 
 ## Update Your Applications
 
@@ -331,7 +331,7 @@ Replace the old token with this new token in all your applications and scripts.`
         content: [
           {
             type: 'text',
-            text: `❌ Failed to rotate token: ${result.error || 'Unknown error'}`,
+            text: `[ERROR] Failed to rotate token: ${result.error || 'Unknown error'}`,
           },
         ],
       };
@@ -342,7 +342,7 @@ Replace the old token with this new token in all your applications and scripts.`
       content: [
         {
           type: 'text',
-          text: `❌ Failed to rotate API token: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          text: `[ERROR] Failed to rotate API token: ${error instanceof Error ? error.message : 'Unknown error'}`,
         },
       ],
     };

@@ -372,24 +372,24 @@ class DNSSafetyValidator {
     const checklist: string[] = [];
     
     if (riskLevel === 'high') {
-      checklist.push('✓ Current DNS configuration backed up');
-      checklist.push('✓ Rollback plan documented and tested');
-      checklist.push('✓ Stakeholders notified of maintenance');
-      checklist.push('✓ Support contacts available');
+      checklist.push('[EMOJI] Current DNS configuration backed up');
+      checklist.push('[EMOJI] Rollback plan documented and tested');
+      checklist.push('[EMOJI] Stakeholders notified of maintenance');
+      checklist.push('[EMOJI] Support contacts available');
     }
     
     if (operation === 'migration') {
-      checklist.push('✓ TTLs lowered 24 hours before migration');
-      checklist.push('✓ All records inventoried and documented');
-      checklist.push('✓ Preview testing completed');
-      checklist.push('✓ Monitoring alerts configured');
+      checklist.push('[EMOJI] TTLs lowered 24 hours before migration');
+      checklist.push('[EMOJI] All records inventoried and documented');
+      checklist.push('[EMOJI] Preview testing completed');
+      checklist.push('[EMOJI] Monitoring alerts configured');
     }
     
     if (operation === 'email_setup') {
-      checklist.push('✓ Email service provider settings confirmed');
-      checklist.push('✓ SPF, DKIM, DMARC records prepared');
-      checklist.push('✓ Test email account ready');
-      checklist.push('✓ Email routing tested');
+      checklist.push('[EMOJI] Email service provider settings confirmed');
+      checklist.push('[EMOJI] SPF, DKIM, DMARC records prepared');
+      checklist.push('[EMOJI] Test email account ready');
+      checklist.push('[EMOJI] Email routing tested');
     }
     
     return checklist;
@@ -412,7 +412,7 @@ export async function handleDNSDomainAssistant(args: any) {
     response += `I'll help you **${args.intent}**${args.domain ? ` for ${args.domain}` : ''}.\n\n`;
     
     // Safety indicator
-    const safetyEmoji = analysis.riskLevel === 'low' ? '🟢' : analysis.riskLevel === 'medium' ? '🟡' : '🔴';
+    const safetyEmoji = analysis.riskLevel === 'low' ? '[EMOJI]' : analysis.riskLevel === 'medium' ? '[EMOJI]' : '[EMOJI]';
     response += `**Safety Level:** ${safetyEmoji} ${analysis.riskLevel.toUpperCase()} RISK\n`;
     response += `**Estimated Time:** ${analysis.estimatedTime}\n`;
     response += `**Downtime Required:** ${analysis.requiresDowntime ? 'Yes' : 'No'}\n\n`;
@@ -506,7 +506,7 @@ async function generateMigrationGuidance(
     
     response += `**Special Considerations:**\n`;
     migration.specialConsiderations.forEach((consideration: string) => {
-      response += `- ⚠️ ${consideration}\n`;
+      response += `- [WARNING] ${consideration}\n`;
     });
     
     if ('migrationSteps' in migration && migration.migrationSteps) {
@@ -530,12 +530,12 @@ async function generateMigrationGuidance(
       if (safety.risks.length > 0) {
         response += `**Identified Risks:**\n`;
         safety.risks.forEach(risk => {
-          response += `- ⚠️ ${risk}\n`;
+          response += `- [WARNING] ${risk}\n`;
         });
         
         response += `\n**Mitigations:**\n`;
         safety.mitigations.forEach(mitigation => {
-          response += `- ✅ ${mitigation}\n`;
+          response += `- [DONE] ${mitigation}\n`;
         });
       }
       

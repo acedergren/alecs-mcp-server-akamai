@@ -172,7 +172,7 @@ export async function activatePropertyToProduction(
   let responseText = '';
 
   if (result.success) {
-    responseText = '# ✅ Production Activation Initiated\n\n';
+    responseText = '# [DONE] Production Activation Initiated\n\n';
     responseText += `**Activation ID:** ${result.activationId}\n`;
     responseText += `**Status:** ${result.status}\n`;
     responseText += `**Estimated Completion:** ${result.estimatedCompletionTime}\n\n`;
@@ -180,7 +180,7 @@ export async function activatePropertyToProduction(
     responseText += '## Important Notes\n\n';
     if (result.warnings && result.warnings.length > 0) {
       result.warnings.forEach((warning) => {
-        responseText += `⚠️ ${warning}\n`;
+        responseText += `[WARNING] ${warning}\n`;
       });
       responseText += '\n';
     }
@@ -191,7 +191,7 @@ export async function activatePropertyToProduction(
     responseText += '3. Update DNS records to point to the Akamai edge hostname\n';
     responseText += '4. Monitor traffic and performance in Control Center\n';
   } else {
-    responseText = '# ❌ Production Activation Failed\n\n';
+    responseText = '# [ERROR] Production Activation Failed\n\n';
     if (result.errors && result.errors.length > 0) {
       responseText += '## Errors\n\n';
       result.errors.forEach((_error) => {

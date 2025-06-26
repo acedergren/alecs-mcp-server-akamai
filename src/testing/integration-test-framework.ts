@@ -221,10 +221,10 @@ export class IntegrationTestFramework {
     // Summary
     report += '## Summary\n\n';
     report += `- **Total Tests:** ${summary.total}\n`;
-    report += `- **Passed:** ${summary.passed} ✅\n`;
-    report += `- **Failed:** ${summary.failed} ❌\n`;
-    report += `- **Skipped:** ${summary.skipped} ⏭️\n`;
-    report += `- **Error:** ${summary.error} 💥\n`;
+    report += `- **Passed:** ${summary.passed} [DONE]\n`;
+    report += `- **Failed:** ${summary.failed} [ERROR]\n`;
+    report += `- **Skipped:** ${summary.skipped} [EMOJI]️\n`;
+    report += `- **Error:** ${summary.error} [EMOJI]\n`;
     report += `- **Success Rate:** ${summary.successRate.toFixed(1)}%\n`;
     report += `- **Average Duration:** ${summary.averageDuration.toFixed(0)}ms\n\n`;
 
@@ -290,15 +290,15 @@ export class IntegrationTestFramework {
   private getStatusIcon(status: string): string {
     switch (status) {
       case 'passed':
-        return '✅';
+        return '[DONE]';
       case 'failed':
-        return '❌';
+        return '[ERROR]';
       case 'skipped':
-        return '⏭️';
+        return '[EMOJI]️';
       case 'error':
-        return '💥';
+        return '[EMOJI]';
       default:
-        return '❓';
+        return '[EMOJI]';
     }
   }
 

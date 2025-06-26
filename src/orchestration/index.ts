@@ -194,7 +194,7 @@ export class AkamaiOrchestrator {
       `${icons.lock} Certificate: ${format.green(_options.certificateType || 'default-dv')}`,
     );
     console.log(
-      `${icons.shield} Security: WAF ${_options.enableWAF ? '✓' : '✗'} | DDoS ${_options.enableDDoS ? '✓' : '✗'}`,
+      `${icons.shield} Security: WAF ${_options.enableWAF ? '[EMOJI]' : '[EMOJI]'} | DDoS ${_options.enableDDoS ? '[EMOJI]' : '[EMOJI]'}`,
     );
     console.log(format.dim('═'.repeat(60)));
 

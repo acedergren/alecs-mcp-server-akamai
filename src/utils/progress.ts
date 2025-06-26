@@ -153,17 +153,17 @@ export class Spinner {
 
   succeed(message?: string): void {
     this.stop();
-    this.stream.write(`\r✅ ${message || this.lastMessage}\n`);
+    this.stream.write(`\r[DONE] ${message || this.lastMessage}\n`);
   }
 
   fail(message?: string): void {
     this.stop();
-    this.stream.write(`\r❌ ${message || this.lastMessage}\n`);
+    this.stream.write(`\r[ERROR] ${message || this.lastMessage}\n`);
   }
 
   warn(message?: string): void {
     this.stop();
-    this.stream.write(`\r⚠️  ${message || this.lastMessage}\n`);
+    this.stream.write(`\r[WARNING]  ${message || this.lastMessage}\n`);
   }
 
   info(message?: string): void {
