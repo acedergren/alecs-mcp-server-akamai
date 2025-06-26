@@ -37,21 +37,14 @@ src/
 - Default mode for Claude Desktop
 - Direct process communication
 - No network exposure
+- Local integrations only
 
-### 2. HTTP
-- REST-style API
-- CORS support
-- Optional OAuth 2.1 authentication
-
-### 3. WebSocket
-- Bidirectional communication
+### 2. Server-Sent Events (SSE) / Streamable HTTP
+- Remote server communication
+- HTTP POST for client-to-server
+- SSE stream for server-to-client responses
 - Token-based authentication
-- Real-time updates
-
-### 4. Server-Sent Events (SSE)
-- One-way server-to-client streaming
-- HTTP-based
-- Ideal for progress updates
+- CORS support for web clients
 
 ## Configuration
 
@@ -59,55 +52,34 @@ Transport selection via environment variables:
 
 ```bash
 # Transport type
-MCP_TRANSPORT=stdio|http|websocket|sse
+MCP_TRANSPORT=stdio|sse
 
-# HTTP Configuration
-HTTP_PORT=3000
-HTTP_HOST=0.0.0.0
-HTTP_PATH=/mcp
-CORS_ENABLED=true
-AUTH_TYPE=none|oauth|token
-
-# WebSocket Configuration
-WS_PORT=8080
-WS_HOST=0.0.0.0
-WS_PATH=/mcp
-
-# SSE Configuration
+# SSE Configuration (for remote servers)
 SSE_PORT=3001
 SSE_HOST=0.0.0.0
 SSE_PATH=/mcp/sse
+CORS_ENABLED=true
+AUTH_TYPE=none|token
+TOKEN_MASTER_KEY=your-secret-key
 ```
 
 ## Usage Examples
 
 ### Default Mode (stdio for Claude Desktop)
 ```bash
-# Standard I/O (Claude Desktop)
-MCP_TRANSPORT=stdio npm start
+# Standard I/O (Claude Desktop) - Default
+npm start
 
-# HTTP Server
-MCP_TRANSPORT=http HTTP_PORT=3000 npm start
-
-# WebSocket Server
-MCP_TRANSPORT=websocket WS_PORT=8080 npm start
-
-# SSE Server
+# SSE Server (Remote)
 MCP_TRANSPORT=sse SSE_PORT=3001 npm start
 ```
 
 ### Environment-Based Transport Selection
 ```bash
-# Default (stdio)
+# Default (stdio for local/Claude Desktop)
 npm start
 
-# HTTP
-MCP_TRANSPORT=http npm start
-
-# WebSocket  
-MCP_TRANSPORT=websocket npm start
-
-# SSE
+# Remote server (SSE/Streamable HTTP)
 MCP_TRANSPORT=sse npm start
 ```
 

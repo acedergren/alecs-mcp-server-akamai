@@ -43,57 +43,6 @@ export async function createTransport(config: TransportConfig): Promise<any> {
     case 'stdio':
       return new StdioServerTransport();
       
-    case 'http':
-      await loadOptionalDependencies();
-      if (!HttpServerTransport) {
-        throw new Error('[ERROR] HTTP transport requires express. Install with: npm install express');
-      }
-      
-      const httpApp = express();
-      const httpTransport = new HttpServerTransport(httpApp, {
-        path: config.options.path || '/mcp',
-        cors: config.options.cors !== false,
-        auth: config.options.auth || 'none'
-      });
-      
-      // Start HTTP server
-      const httpPort = config.options.port || 3000;
-      const httpHost = config.options.host || '0.0.0.0';
-      
-      httpApp.listen(httpPort, httpHost, () => {
-        console.log(`[DONE] HTTP server listening on ${httpHost}:${httpPort}${config.options.path || '/mcp'}`);
-        if (config.options.auth === 'oauth') {
-          console.log('[INFO] OAuth authentication enabled');
-        }
-      });
-      
-      return httpTransport;
-      
-    case 'websocket':
-      await loadOptionalDependencies();
-      if (!WebSocketServer || !createHttpServer) {
-        throw new Error('[ERROR] WebSocket transport requires ws. Install with: npm install ws');
-      }
-      
-      const wsPort = config.options.port || 8080;
-      const wsHost = config.options.host || '0.0.0.0';
-      const wsPath = config.options.path || '/mcp';
-      
-      const wsServer = createHttpServer();
-      const wss = new WebSocketServer({ server: wsServer, path: wsPath });
-      const wsTransport = new WebSocketServerTransport(wss);
-      
-      await wsTransport.start();
-      
-      wsServer.listen(wsPort, wsHost, () => {
-        console.log(`[DONE] WebSocket server listening on ws://${wsHost}:${wsPort}${wsPath}`);
-        if (config.options.auth === 'token') {
-          console.log('[INFO] Token authentication enabled via TOKEN_MASTER_KEY');
-        }
-      });
-      
-      return wsTransport;
-      
     case 'sse':
       await loadOptionalDependencies();
       if (!express || !SSEServerTransport) {
