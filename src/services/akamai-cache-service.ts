@@ -379,6 +379,26 @@ export class AkamaiCacheService {
   }
 
   /**
+   * Generic cached wrapper method for any API call
+   */
+  async cached<T>(
+    key: string,
+    ttl: number,
+    fetchFn: () => Promise<T>,
+    customer = 'default'
+  ): Promise<T> {
+    await this.ensureInitialized();
+    const cacheKey = `${customer}:${key}`;
+    
+    return this.cache.getWithRefresh(
+      cacheKey,
+      ttl,
+      fetchFn,
+      { refreshThreshold: 0.2, softTTL: Math.floor(ttl * 0.1) }
+    );
+  }
+
+  /**
    * Close cache connection
    */
   async close(): Promise<void> {

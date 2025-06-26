@@ -6,7 +6,8 @@
  */
 
 import { EvalFunction, EvalConfig, grade } from './mcp-eval-framework';
-import { openai } from '@ai-sdk/openai';
+// import { openai } from '@ai-sdk/openai';
+const openai = (model: string) => model; // Mock for testing
 import { ALECSFullServer } from '../../src/index-full';
 
 export const dnsZoneCreationEval: EvalFunction = {

@@ -272,6 +272,8 @@ async function outputResults(
   results: EvalSuiteResult,
   options: NonNullable<EvalConfig['options']>['output']
 ): Promise<void> {
+  if (!options) return;
+  
   if (options.console) {
     console.log('\n=== Evaluation Summary ===');
     console.log(`Total Evals: ${results.totalEvals}`);

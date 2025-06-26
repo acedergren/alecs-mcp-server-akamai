@@ -50,6 +50,11 @@ export interface ICache {
   ): Promise<T>;
 
   /**
+   * Batch get multiple keys
+   */
+  mget<T = any>(keys: string[]): Promise<Map<string, T>>;
+
+  /**
    * Scan and delete keys matching pattern
    */
   scanAndDelete(pattern: string): Promise<number>;
