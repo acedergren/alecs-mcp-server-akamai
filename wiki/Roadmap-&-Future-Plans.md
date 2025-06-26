@@ -4,7 +4,7 @@
 
 ALECS aims to be the definitive MCP server for Akamai, providing comprehensive CDN management capabilities to AI assistants while maintaining enterprise-grade security and reliability.
 
-## Current Status (v1.4.0)
+## Current Status (v1.6.0 - Snow Leopard)
 
 ### ✅ Completed
 - MCP 2025-06-18 protocol compliance
@@ -14,12 +14,16 @@ ALECS aims to be the definitive MCP server for Akamai, providing comprehensive C
 - Rate limiting and security
 - Docker deployment
 - Comprehensive test suite
+- SmartCache (zero-dependency in-memory caching)
+- Simplified architecture (removed minimal version)
+- OAuth deprecation with migration path
+- MCP evaluation framework
 
 ### 🚧 In Progress
 - WebSocket transport implementation
 - Enhanced error recovery
-- Performance optimizations
-- Documentation improvements
+- Cache performance optimizations (Phase 1 & 2)
+- MCP compliance testing
 
 ## Q1 2025 Roadmap
 
@@ -54,11 +58,21 @@ ALECS aims to be the definitive MCP server for Akamai, providing comprehensive C
 ### 4. Performance & Scalability
 **Goal:** Handle enterprise workloads
 
-- [ ] Redis caching layer
+- [ ] ~~Redis caching layer~~ (Replaced by SmartCache improvements)
 - [ ] Horizontal scaling support
 - [ ] Request queuing system
 - [ ] Batch operation optimization
 - [ ] Response streaming
+
+#### Cache Performance Phase 2 (Q1 2025)
+**Goal:** Make SmartCache super fast
+
+- [ ] Bloom filter for negative cache
+- [ ] Circuit breaker pattern
+- [ ] Cache segmentation
+- [ ] Background refresh capabilities
+- [ ] Memory-efficient key storage
+- [ ] Advanced eviction algorithms (LRU-K)
 
 ### 5. Developer Experience
 **Goal:** Best-in-class DX
@@ -77,6 +91,18 @@ ALECS aims to be the definitive MCP server for Akamai, providing comprehensive C
 - [ ] Grafana dashboards
 - [ ] Custom alerting rules
 - [ ] SLA monitoring
+
+#### Cache Observability (Phase 3)
+**Goal:** Deep cache performance insights
+
+- [ ] Cache operation tracing with OpenTelemetry
+- [ ] Detailed cache metrics (p50/p99 latencies)
+- [ ] Cache analytics dashboard
+- [ ] Hot key detection and monitoring
+- [ ] Memory usage profiling
+- [ ] Eviction reason tracking
+- [ ] Cache coherence monitoring
+- [ ] Real-time cache performance alerts
 
 ## Q3 2025 Roadmap
 
