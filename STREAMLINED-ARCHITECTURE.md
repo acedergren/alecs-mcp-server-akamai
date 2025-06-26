@@ -46,8 +46,12 @@ src/
 npm start
 ```
 
-### 2. Remote Server (SSE/Streamable HTTP)
+### 2. Remote Server Options
 ```bash
+# WebSocket (bidirectional, real-time)
+MCP_TRANSPORT=websocket npm start
+
+# SSE (Streamable HTTP, one-way streaming)
 MCP_TRANSPORT=sse npm start
 ```
 
@@ -72,15 +76,16 @@ npm start:security
 
 ### Old Way
 ```bash
-node dist/index-sse.js
 node dist/index-websocket.js
+node dist/index-sse.js
 node dist/interactive-launcher.js
 ```
 
 ### New Way
 ```bash
-MCP_TRANSPORT=sse npm start  # Remote server
-npm start  # Local (stdio) by default
+MCP_TRANSPORT=websocket npm start  # WebSocket server
+MCP_TRANSPORT=sse npm start        # SSE server
+npm start                          # stdio (default)
 ```
 
 ## Configuration
@@ -89,15 +94,20 @@ All configuration via environment variables:
 
 ```bash
 # Transport
-MCP_TRANSPORT=stdio|sse  # stdio (default) for local, sse for remote
+MCP_TRANSPORT=stdio|websocket|sse  # stdio (default), websocket, or sse
 
-# SSE Options (for remote servers)
+# WebSocket Options
+WS_PORT=8080
+WS_HOST=0.0.0.0
+WS_PATH=/mcp
+
+# SSE Options
 SSE_PORT=3001
 SSE_HOST=0.0.0.0
 SSE_PATH=/mcp/sse
-CORS_ENABLED=true
 
-# Authentication
+# Common Options
+CORS_ENABLED=true
 AUTH_TYPE=none|token
 TOKEN_MASTER_KEY=your-secret-key
 ```

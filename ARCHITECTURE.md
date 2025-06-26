@@ -39,8 +39,15 @@ src/
 - No network exposure
 - Local integrations only
 
-### 2. Server-Sent Events (SSE) / Streamable HTTP
-- Remote server communication
+### 2. WebSocket
+- Bidirectional communication
+- Persistent connection
+- Real-time updates
+- Token-based authentication
+- Ideal for interactive sessions
+
+### 3. Server-Sent Events (SSE) / Streamable HTTP
+- One-way server-to-client streaming
 - HTTP POST for client-to-server
 - SSE stream for server-to-client responses
 - Token-based authentication
@@ -52,15 +59,25 @@ Transport selection via environment variables:
 
 ```bash
 # Transport type
-MCP_TRANSPORT=stdio|sse
+MCP_TRANSPORT=stdio|websocket|sse
 
-# SSE Configuration (for remote servers)
+# WebSocket Configuration
+WS_PORT=8080
+WS_HOST=0.0.0.0
+WS_PATH=/mcp
+
+# SSE Configuration
 SSE_PORT=3001
 SSE_HOST=0.0.0.0
 SSE_PATH=/mcp/sse
+
+# Common Configuration
 CORS_ENABLED=true
 AUTH_TYPE=none|token
 TOKEN_MASTER_KEY=your-secret-key
+SSL_ENABLED=true
+ALECS_SSL_CERT=/path/to/cert.pem
+ALECS_SSL_KEY=/path/to/key.pem
 ```
 
 ## Usage Examples
@@ -70,7 +87,10 @@ TOKEN_MASTER_KEY=your-secret-key
 # Standard I/O (Claude Desktop) - Default
 npm start
 
-# SSE Server (Remote)
+# WebSocket Server
+MCP_TRANSPORT=websocket WS_PORT=8080 npm start
+
+# SSE Server
 MCP_TRANSPORT=sse SSE_PORT=3001 npm start
 ```
 
@@ -79,7 +99,10 @@ MCP_TRANSPORT=sse SSE_PORT=3001 npm start
 # Default (stdio for local/Claude Desktop)
 npm start
 
-# Remote server (SSE/Streamable HTTP)
+# WebSocket (bidirectional remote)
+MCP_TRANSPORT=websocket npm start
+
+# SSE (Streamable HTTP remote)
 MCP_TRANSPORT=sse npm start
 ```
 
