@@ -1,0 +1,374 @@
+{
+  "total": 79,
+  "categories": {
+    "build": [
+      {
+        "name": "build",
+        "cmd": "npm run clean && npm run build:ts"
+      },
+      {
+        "name": "build:dev",
+        "cmd": "npm run clean && tsc --project tsconfig.json --noEmitOnError false"
+      },
+      {
+        "name": "build:ts",
+        "cmd": "tsc --project tsconfig.json"
+      },
+      {
+        "name": "build:strict",
+        "cmd": "tsc --project tsconfig.build.json"
+      },
+      {
+        "name": "build:watch",
+        "cmd": "tsc --watch --project tsconfig.json"
+      },
+      {
+        "name": "build:check",
+        "cmd": "tsc --noEmit --project tsconfig.json"
+      },
+      {
+        "name": "prebuild",
+        "cmd": "echo 'Skipping type check for development build'"
+      }
+    ],
+    "test": [
+      {
+        "name": "test",
+        "cmd": "jest"
+      },
+      {
+        "name": "test:watch",
+        "cmd": "jest --watch"
+      },
+      {
+        "name": "test:coverage",
+        "cmd": "jest --coverage"
+      },
+      {
+        "name": "test:modular",
+        "cmd": "jest src/__tests__/modular-servers"
+      },
+      {
+        "name": "test:property",
+        "cmd": "jest src/__tests__/modular-servers/property-server.test.ts"
+      },
+      {
+        "name": "test:dns",
+        "cmd": "jest src/__tests__/modular-servers/dns-server.test.ts"
+      },
+      {
+        "name": "test:workflows",
+        "cmd": "jest src/__tests__/modular-servers/workflow-integration.test.ts"
+      },
+      {
+        "name": "test:e2e",
+        "cmd": "jest __tests__/e2e --runInBand"
+      },
+      {
+        "name": "test:e2e:workflow",
+        "cmd": "jest __tests__/e2e/workflow-assistants-e2e.test.ts --runInBand"
+      },
+      {
+        "name": "test:e2e:orchestration",
+        "cmd": "jest __tests__/e2e/workflow-orchestration-e2e.test.ts --runInBand"
+      },
+      {
+        "name": "test:e2e:mcp",
+        "cmd": "jest __tests__/e2e/mcp-server-e2e.test.ts --runInBand"
+      },
+      {
+        "name": "test:e2e:full",
+        "cmd": "ts-node scripts/run-e2e-tests.ts"
+      },
+      {
+        "name": "test:e2e:verbose",
+        "cmd": "VERBOSE_TESTS=true npm run test:e2e:full"
+      },
+      {
+        "name": "ci:self-updating-tests",
+        "cmd": "tsx ci/test-suite-runner.ts"
+      },
+      {
+        "name": "test:discover",
+        "cmd": "tsx ci/discovery/tool-discovery.ts"
+      },
+      {
+        "name": "test:generate",
+        "cmd": "tsx ci/generation/test-generator.ts"
+      },
+      {
+        "name": "test:update",
+        "cmd": "tsx ci/updates/test-updater.ts"
+      },
+      {
+        "name": "dev:alex-tests",
+        "cmd": "tsx --watch ci/test-suite-runner.ts --mode=development"
+      },
+      {
+        "name": "test:validate",
+        "cmd": "node tests/run-comprehensive-validation.js"
+      },
+      {
+        "name": "test:health",
+        "cmd": "node tests/diagnostics/mcp-health-check.js"
+      },
+      {
+        "name": "test:journey",
+        "cmd": "node tests/workflows/customer-journey.js"
+      },
+      {
+        "name": "test:errors",
+        "cmd": "node tests/edge-cases/error-scenarios.js"
+      },
+      {
+        "name": "test:performance",
+        "cmd": "node --expose-gc tests/performance/load-testing.js"
+      },
+      {
+        "name": "security:test",
+        "cmd": "tsx ci/security/run-security-tests.ts"
+      },
+      {
+        "name": "security:test:quick",
+        "cmd": "tsx ci/security/run-security-tests.ts --quick"
+      },
+      {
+        "name": "security:test:auth",
+        "cmd": "tsx ci/security/run-security-tests.ts --focus=auth"
+      },
+      {
+        "name": "security:test:report",
+        "cmd": "tsx ci/security/run-security-tests.ts --format=markdown"
+      }
+    ],
+    "dev": [
+      {
+        "name": "dev",
+        "cmd": "tsx src/index.ts"
+      },
+      {
+        "name": "dev:full",
+        "cmd": "tsx src/index-full.ts"
+      },
+      {
+        "name": "dev:interactive",
+        "cmd": "tsx src/interactive-launcher.ts"
+      },
+      {
+        "name": "typecheck:dev",
+        "cmd": "tsc --noEmit --project tsconfig.json"
+      },
+      {
+        "name": "typecheck:watch",
+        "cmd": "tsc --noEmit --watch --project tsconfig.json"
+      }
+    ],
+    "deploy": [
+      {
+        "name": "deploy:websocket:summary",
+        "cmd": "./scripts/start-websocket-with-summary.sh"
+      },
+      {
+        "name": "deploy:remote",
+        "cmd": "pm2 start ecosystem.config.js --only alecs-remote"
+      }
+    ],
+    "utils": [
+      {
+        "name": "clean",
+        "cmd": "rm -rf dist .tsbuildinfo"
+      },
+      {
+        "name": "start",
+        "cmd": "node dist/interactive-launcher.js"
+      },
+      {
+        "name": "start:interactive",
+        "cmd": "node dist/interactive-launcher.js"
+      },
+      {
+        "name": "start:full",
+        "cmd": "node dist/index-full.js"
+      },
+      {
+        "name": "start:property",
+        "cmd": "node dist/servers/property-server.js"
+      },
+      {
+        "name": "start:dns",
+        "cmd": "node dist/servers/dns-server.js"
+      },
+      {
+        "name": "start:certs",
+        "cmd": "node dist/servers/certs-server.js"
+      },
+      {
+        "name": "start:reporting",
+        "cmd": "node dist/servers/reporting-server.js"
+      },
+      {
+        "name": "start:security",
+        "cmd": "node dist/servers/security-server.js"
+      },
+      {
+        "name": "start:network-lists",
+        "cmd": "node dist/servers/network-lists-server.js"
+      },
+      {
+        "name": "start:performance",
+        "cmd": "node dist/servers/performance-server.js"
+      },
+      {
+        "name": "start:appsec",
+        "cmd": "node dist/servers/appsec-server.js"
+      },
+      {
+        "name": "start:fastpurge",
+        "cmd": "node dist/servers/fastpurge-server.js"
+      },
+      {
+        "name": "start:websocket",
+        "cmd": "node dist/index-websocket.js"
+      },
+      {
+        "name": "start:websocket:summary",
+        "cmd": "./scripts/start-websocket-with-summary.sh"
+      },
+      {
+        "name": "start:sse",
+        "cmd": "node dist/index-sse.js"
+      },
+      {
+        "name": "start:remote",
+        "cmd": "node dist/index-remote.js"
+      },
+      {
+        "name": "prepublishOnly",
+        "cmd": "npm run build"
+      },
+      {
+        "name": "ci:validate-env",
+        "cmd": "tsx ci/validation/test-environment-validator.ts"
+      },
+      {
+        "name": "ci:process-results",
+        "cmd": "tsx ci/processing/result-processor.ts"
+      },
+      {
+        "name": "ci:alert-failure",
+        "cmd": "tsx ci/alerts/failure-alerter.ts"
+      },
+      {
+        "name": "lint",
+        "cmd": "eslint 'src/**/*.ts' --fix"
+      },
+      {
+        "name": "lint:check",
+        "cmd": "eslint 'src/**/*.ts'"
+      },
+      {
+        "name": "format",
+        "cmd": "prettier --write 'src/**/*.{ts,json,md}'"
+      },
+      {
+        "name": "format:check",
+        "cmd": "prettier --check 'src/**/*.{ts,json,md}'"
+      },
+      {
+        "name": "typecheck",
+        "cmd": "tsc --noEmit --project tsconfig.build.json"
+      },
+      {
+        "name": "typecheck:strict",
+        "cmd": "tsc --noEmit --project tsconfig.build.json"
+      },
+      {
+        "name": "postinstall",
+        "cmd": "npm run build:check || true"
+      },
+      {
+        "name": "prepare",
+        "cmd": "npm run build"
+      },
+      {
+        "name": "demo:agents",
+        "cmd": "tsx examples/agent-demo.ts"
+      },
+      {
+        "name": "cleanup",
+        "cmd": "tsx src/agents/cleanup-agent.ts"
+      },
+      {
+        "name": "cleanup:dry",
+        "cmd": "tsx src/agents/cleanup-agent.ts --dry-run"
+      },
+      {
+        "name": "cleanup:interactive",
+        "cmd": "tsx src/agents/cleanup-agent.ts --interactive"
+      },
+      {
+        "name": "sbom",
+        "cmd": "./scripts/generate-sbom.sh"
+      },
+      {
+        "name": "licenses",
+        "cmd": "npx license-checker --summary"
+      },
+      {
+        "name": "audit",
+        "cmd": "npm audit"
+      },
+      {
+        "name": "security:scan",
+        "cmd": "npm audit --production && npm run security:test"
+      },
+      {
+        "name": "security:fix",
+        "cmd": "npm audit fix && npm run security:test"
+      }
+    ],
+    "deprecated": []
+  },
+  "duplicates": [
+    [
+      "tsc --noEmit --project tsconfig.json",
+      [
+        "build:check",
+        "typecheck:dev"
+      ]
+    ],
+    [
+      "node dist/interactive-launcher.js",
+      [
+        "start",
+        "start:interactive"
+      ]
+    ],
+    [
+      "./scripts/start-websocket-with-summary.sh",
+      [
+        "start:websocket:summary",
+        "deploy:websocket:summary"
+      ]
+    ],
+    [
+      "npm run build",
+      [
+        "prepublishOnly",
+        "prepare"
+      ]
+    ],
+    [
+      "tsc --noEmit --project tsconfig.build.json",
+      [
+        "typecheck",
+        "typecheck:strict"
+      ]
+    ]
+  ],
+  "recommendations": [
+    "Consolidate build scripts into build:dev and build:prod",
+    "Reduce test variations - keep only essential test commands",
+    "Remove 5 duplicate scripts"
+  ]
+}
