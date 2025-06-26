@@ -139,7 +139,7 @@ class PropertyALECSServer {
               },
               useCache: {
                 type: 'boolean',
-                description: 'Use Valkey cache for faster results (default: true)',
+                description: 'Use cache for faster results (default: true)',
               },
               warmCache: {
                 type: 'boolean',
@@ -161,7 +161,7 @@ class PropertyALECSServer {
               groupId: { type: 'string', description: 'Optional: Filter by group ID' },
               useCache: {
                 type: 'boolean',
-                description: 'Use Valkey cache for faster results (default: true)',
+                description: 'Use cache for faster results (default: true)',
               },
               warmCache: {
                 type: 'boolean',

@@ -268,7 +268,7 @@ export class SmartCache<T = any> extends EventEmitter {
   }
 
   /**
-   * Smart get with automatic refresh (compatible with ValkeyCache)
+   * Smart get with automatic refresh
    */
   async getWithRefresh<V>(
     key: string,
