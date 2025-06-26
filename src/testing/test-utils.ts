@@ -102,7 +102,7 @@ function getRealisticMockResponse(toolName: string, args: any): any {
           content: [
             {
               type: 'text',
-              text: `✅ **Property Created Successfully!**
+              text: `[DONE] **Property Created Successfully!**
 
 ## Property Details
 - **Name:** ${args.propertyName}
@@ -110,7 +110,7 @@ function getRealisticMockResponse(toolName: string, args: any): any {
 - **Product:** Ion Standard
 - **Contract:** Contract ${args.contractId}
 - **Group:** Group ${args.groupId}
-- **Status:** 🔵 NEW (Not yet activated)
+- **Status:** [EMOJI] NEW (Not yet activated)
 
 Successfully created property with corrected name.`,
             },
@@ -123,7 +123,7 @@ Successfully created property with corrected name.`,
           content: [
             {
               type: 'text',
-              text: `❌ Cannot create property - validation errors:
+              text: `[ERROR] Cannot create property - validation errors:
 
 - Property name contains invalid characters
 - Suggested name: ${args.propertyName.replace(/[^a-zA-Z0-9.-]/g, '-')}
@@ -141,7 +141,7 @@ Would you like me to retry with the corrected name?`,
         content: [
           {
             type: 'text',
-            text: `✅ **Property Created Successfully!**
+            text: `[DONE] **Property Created Successfully!**
 
 ## Property Details
 - **Name:** ${args.propertyName}
@@ -149,7 +149,7 @@ Would you like me to retry with the corrected name?`,
 - **Product:** ${args.productName || 'Ion Standard'}
 - **Contract:** ${args.contractId}
 - **Group:** ${args.groupId}
-- **Status:** 🔵 NEW (Not yet activated)
+- **Status:** [EMOJI] NEW (Not yet activated)
 
 The property has been created and is ready for configuration.`,
           },
@@ -183,13 +183,13 @@ Total: 2 properties`,
       content: [
         {
           type: 'text',
-          text: `✅ **DNS Zone Created Successfully!**
+          text: `[DONE] **DNS Zone Created Successfully!**
 
 ## Zone Details
 - **Domain:** ${args.zone}
 - **Type:** ${args.type}
 - **Contract:** ${args.contractId}
-- **Status:** 🟢 ACTIVE
+- **Status:** [EMOJI] ACTIVE
 
 The zone is now ready for DNS record configuration.`,
         },
@@ -200,7 +200,7 @@ The zone is now ready for DNS record configuration.`,
       content: [
         {
           type: 'text',
-          text: `✅ **DNS Record Updated**
+          text: `[DONE] **DNS Record Updated**
 
 ## Record Details
 - **Name:** ${args.name}.${args.zone}
@@ -217,7 +217,7 @@ The DNS record has been ${args.isUpdate ? 'updated' : 'created'}.`,
       content: [
         {
           type: 'text',
-          text: `✅ **Activation Started**
+          text: `[DONE] **Activation Started**
 
 ## Activation Details
 - **Property:** ${args.propertyId}
@@ -225,7 +225,7 @@ The DNS record has been ${args.isUpdate ? 'updated' : 'created'}.`,
 - **Network:** ${args.network}
 - **Activation ID:** atv_${Date.now()}
 
-⏳ Activation typically takes 5-10 minutes for STAGING and 15-30 minutes for PRODUCTION.`,
+[EMOJI] Activation typically takes 5-10 minutes for STAGING and 15-30 minutes for PRODUCTION.`,
         },
       ],
     }),
@@ -237,11 +237,11 @@ The DNS record has been ${args.isUpdate ? 'updated' : 'created'}.`,
           text: `## Activation Status
 
 ### STAGING Network
-- **Version 4:** 🟢 ACTIVE
+- **Version 4:** [EMOJI] ACTIVE
 - **Activated:** 2024-01-15 10:30 UTC
 
 ### PRODUCTION Network
-- **Version 3:** 🟢 ACTIVE
+- **Version 3:** [EMOJI] ACTIVE
 - **Activated:** 2024-01-10 14:45 UTC`,
         },
       ],
@@ -251,13 +251,13 @@ The DNS record has been ${args.isUpdate ? 'updated' : 'created'}.`,
       content: [
         {
           type: 'text',
-          text: `✅ **DV Certificate Enrollment Created**
+          text: `[DONE] **DV Certificate Enrollment Created**
 
 ## Enrollment Details
 - **ID:** enr_${Date.now()}
 - **Common Name:** ${args.cn}
 - **SANs:** ${args.sans?.join(', ') || 'None'}
-- **Status:** 🟡 PENDING_VALIDATION
+- **Status:** [EMOJI] PENDING_VALIDATION
 
 ## Next Steps
 1. Complete domain validation

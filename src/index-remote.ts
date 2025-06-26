@@ -23,7 +23,7 @@ const USE_UNIFIED_PORT = process.env.ALECS_UNIFIED_REMOTE === 'true';
 const UNIFIED_PORT = parseInt(process.env.ALECS_REMOTE_PORT || '8080');
 
 async function startUnifiedRemoteServer() {
-  console.log('🚀 Starting ALECS Unified Remote Access Server...');
+  console.log('[DEPLOY] Starting ALECS Unified Remote Access Server...');
 
   if (USE_UNIFIED_PORT) {
     // Single port mode - both transports on same port
@@ -56,10 +56,10 @@ async function startUnifiedRemoteServer() {
 
     // Start unified server
     server.listen(UNIFIED_PORT, '0.0.0.0', () => {
-      console.log(`✅ Unified Remote Server listening on port ${UNIFIED_PORT}`);
-      console.log(`   📡 WebSocket: ws://localhost:${UNIFIED_PORT}/mcp/websocket`);
-      console.log(`   📡 SSE: http://localhost:${UNIFIED_PORT}/mcp/sse`);
-      console.log('\n🔐 Authentication: Use TOKEN_MASTER_KEY environment variable');
+      console.log(`[DONE] Unified Remote Server listening on port ${UNIFIED_PORT}`);
+      console.log(`   [EMOJI] WebSocket: ws://localhost:${UNIFIED_PORT}/mcp/websocket`);
+      console.log(`   [EMOJI] SSE: http://localhost:${UNIFIED_PORT}/mcp/sse`);
+      console.log('\n[EMOJI] Authentication: Use TOKEN_MASTER_KEY environment variable');
     });
   } else {
     // Dual port mode - separate ports for each transport
@@ -76,8 +76,8 @@ async function startUnifiedRemoteServer() {
     await alecsServerSSE.connect(sseTransport);
 
     sseApp.listen(SSE_PORT, '0.0.0.0', () => {
-      console.log(`✅ SSE Server listening on port ${SSE_PORT}`);
-      console.log(`   📡 SSE: http://localhost:${SSE_PORT}/mcp`);
+      console.log(`[DONE] SSE Server listening on port ${SSE_PORT}`);
+      console.log(`   [EMOJI] SSE: http://localhost:${SSE_PORT}/mcp`);
     });
 
     // Start WebSocket server
@@ -91,11 +91,11 @@ async function startUnifiedRemoteServer() {
     await alecsServerWS.connect(wsTransport);
 
     wsServer.listen(WEBSOCKET_PORT, '0.0.0.0', () => {
-      console.log(`✅ WebSocket Server listening on port ${WEBSOCKET_PORT}`);
-      console.log(`   📡 WebSocket: ws://localhost:${WEBSOCKET_PORT}/mcp`);
+      console.log(`[DONE] WebSocket Server listening on port ${WEBSOCKET_PORT}`);
+      console.log(`   [EMOJI] WebSocket: ws://localhost:${WEBSOCKET_PORT}/mcp`);
     });
 
-    console.log('\n🔐 Authentication: Use TOKEN_MASTER_KEY environment variable');
+    console.log('\n[EMOJI] Authentication: Use TOKEN_MASTER_KEY environment variable');
   }
 }
 
@@ -112,7 +112,7 @@ process.on('uncaughtException', (error) => {
 
 // Graceful shutdown
 process.on('SIGINT', () => {
-  console.log('\n👋 Shutting down gracefully...');
+  console.log('\n[EMOJI] Shutting down gracefully...');
   process.exit(0);
 });
 

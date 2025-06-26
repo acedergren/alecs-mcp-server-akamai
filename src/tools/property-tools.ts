@@ -487,7 +487,7 @@ export async function listPropertiesTreeView(
     }
 
     if (totalProperties > 100) {
-      output += `\n⚠️ **Note**: This group hierarchy contains ${totalProperties} properties across ${totalGroups} groups.\n`;
+      output += `\n[WARNING] **Note**: This group hierarchy contains ${totalProperties} properties across ${totalGroups} groups.\n`;
     }
 
     output += '\n## Property Tree\n\n';
@@ -633,8 +633,8 @@ export async function getProperty(
               {
                 type: 'text',
                 text:
-                  `❌ No properties found matching "${propertyId}" in the first ${groupsSearched} groups (searched ${totalPropertiesSearched} properties).\n\n` +
-                  (hitTimeout ? '⏱️ **Search was stopped due to timeout.**\n\n' : '') +
+                  `[ERROR] No properties found matching "${propertyId}" in the first ${groupsSearched} groups (searched ${totalPropertiesSearched} properties).\n\n` +
+                  (hitTimeout ? '[EMOJI]️ **Search was stopped due to timeout.**\n\n' : '') +
                   '**Suggestions:**\n' +
                   '1. Use the exact property ID (e.g., prp_12345)\n' +
                   '2. Use "list properties" to browse available properties\n' +
@@ -661,7 +661,7 @@ export async function getProperty(
         }
 
         // Multiple matches found - show list
-        let text = `🔍 Found ${foundProperties.length} properties matching "${propertyId}":\n\n`;
+        let text = `[SEARCH] Found ${foundProperties.length} properties matching "${propertyId}":\n\n`;
 
         // Show up to 10 matches
         const matchesToShow = foundProperties.slice(0, 10);
@@ -680,7 +680,7 @@ export async function getProperty(
         text += '**To get details for a specific property, use its ID:**\n';
         text += `Example: "get property ${matchesToShow[0]?.property.propertyId}"\n\n`;
         text +=
-          '💡 **Tip:** Using the exact property ID (prp_XXXXX) is always faster and more reliable.';
+          '[INFO] **Tip:** Using the exact property ID (prp_XXXXX) is always faster and more reliable.';
 
         return {
           content: [
@@ -697,7 +697,7 @@ export async function getProperty(
             content: [
               {
                 type: 'text',
-                text: `❌ No property found matching "${propertyId}".\n\n💡 **Tips:**\n- For property names: Use the exact name (case-insensitive)\n- For hostnames: Use the full domain (e.g., www.example.com)\n- For property IDs: Use the format prp_12345\n- Use list_properties to see all available properties`,
+                text: `[ERROR] No property found matching "${propertyId}".\n\n[INFO] **Tips:**\n- For property names: Use the exact name (case-insensitive)\n- For hostnames: Use the full domain (e.g., www.example.com)\n- For property IDs: Use the format prp_12345\n- Use list_properties to see all available properties`,
               },
             ],
           };
@@ -795,7 +795,7 @@ async function getPropertyById(
           content: [
             {
               type: 'text',
-              text: `Property ${propertyId} not found in first ${MAX_GROUPS_TO_SEARCH} groups searched.\n\n💡 **Tips:**\n- Verify the property ID is correct (format: prp_12345)\n- Use list_properties to browse all available properties\n- Try searching with a more specific group or contract filter\n- The property might exist in a group that wasn't searched`,
+              text: `Property ${propertyId} not found in first ${MAX_GROUPS_TO_SEARCH} groups searched.\n\n[INFO] **Tips:**\n- Verify the property ID is correct (format: prp_12345)\n- Use list_properties to browse all available properties\n- Try searching with a more specific group or contract filter\n- The property might exist in a group that wasn't searched`,
             },
           ],
         };
@@ -929,7 +929,7 @@ async function getPropertyById(
     text += `- View activations: \`"Show activation history for property ${propertyId}"\`\n`;
 
     if (!prop.productionVersion) {
-      text += '\n⚠️ **Note:** This property has never been activated to production.';
+      text += '\n[WARNING] **Note:** This property has never been activated to production.';
     }
 
     return {
@@ -996,7 +996,7 @@ export async function createProperty(
         content: [
           {
             type: 'text',
-            text: `❌ Cannot create property - validation errors:\n\n${validationErrors.map((e) => `- ${e}`).join('\n')}\n\n💡 **Tip:** Use the list_groups tool to find valid contract and group IDs.`,
+            text: `[ERROR] Cannot create property - validation errors:\n\n${validationErrors.map((e) => `- ${e}`).join('\n')}\n\n[INFO] **Tip:** Use the list_groups tool to find valid contract and group IDs.`,
           },
         ],
       };
@@ -1047,7 +1047,7 @@ export async function createProperty(
     const propertyId = response.propertyLink.split('/').pop()?.split('?')[0];
 
     // Format success response with comprehensive next steps
-    let text = '✅ **Property Created Successfully!**\n\n';
+    let text = '[DONE] **Property Created Successfully!**\n\n';
 
     text += '## Property Details\n';
     text += `- **Name:** ${args.propertyName}\n`;
@@ -1056,7 +1056,7 @@ export async function createProperty(
     text += `- **Contract:** ${formatContractDisplay(args.contractId)}\n`;
     text += `- **Group:** ${formatGroupDisplay(args.groupId)}\n`;
     text += `- **Rule Format:** ${ruleFormat}\n`;
-    text += '- **Status:** 🔵 NEW (Not yet activated)\n\n';
+    text += '- **Status:** [EMOJI] NEW (Not yet activated)\n\n';
 
     text += '## Required Next Steps\n\n';
     text += '### 1. Create Edge Hostname\n';
@@ -1102,7 +1102,7 @@ export async function createProperty(
           content: [
             {
               type: 'text',
-              text: `❌ A property with name '${args.propertyName}' already exists in this contract/group.\n\n**Solutions:**\n- Choose a different property name\n- Use list_properties to see existing properties\n- Check if the property exists in a different group`,
+              text: `[ERROR] A property with name '${args.propertyName}' already exists in this contract/group.\n\n**Solutions:**\n- Choose a different property name\n- Use list_properties to see existing properties\n- Check if the property exists in a different group`,
             },
           ],
         };
@@ -1113,7 +1113,7 @@ export async function createProperty(
           content: [
             {
               type: 'text',
-              text: `❌ Invalid product ID: ${args.productId}\n\n**Common Product IDs:**\n- prd_fresca - Ion (Preferred)\n- prd_Site_Accel - DSA\n- prd_Web_Accel - WAA\n- prd_Download_Delivery - DD\n- prd_Adaptive_Media_Delivery - AMD\n\nUse list_products to see which products are available in your contract.`,
+              text: `[ERROR] Invalid product ID: ${args.productId}\n\n**Common Product IDs:**\n- prd_fresca - Ion (Preferred)\n- prd_Site_Accel - DSA\n- prd_Web_Accel - WAA\n- prd_Download_Delivery - DD\n- prd_Adaptive_Media_Delivery - AMD\n\nUse list_products to see which products are available in your contract.`,
             },
           ],
         };
@@ -1143,7 +1143,7 @@ export async function listContracts(
         content: [
           {
             type: 'text',
-            text: 'No contracts found in your account.\n\n⚠️ This might indicate a permissions issue with your API credentials.',
+            text: 'No contracts found in your account.\n\n[WARNING] This might indicate a permissions issue with your API credentials.',
           },
         ],
       };
@@ -1165,7 +1165,7 @@ export async function listContracts(
           content: [
             {
               type: 'text',
-              text: `No contracts found matching "${args.searchTerm}".\n\n💡 **Tip:** Try a partial contract ID or type name.`,
+              text: `No contracts found matching "${args.searchTerm}".\n\n[INFO] **Tip:** Try a partial contract ID or type name.`,
             },
           ],
         };
@@ -1193,7 +1193,7 @@ export async function listContracts(
     text += '- Enrolling certificates\n\n';
     text += 'Example usage:\n';
     text += '`"Create property in contract C-1234567"` (you can omit the ctr_ prefix)\n\n';
-    text += '💡 **Tip:** Use `list_groups` to see which groups have access to each contract.';
+    text += '[INFO] **Tip:** Use `list_groups` to see which groups have access to each contract.';
 
     return {
       content: [
@@ -1227,7 +1227,7 @@ export async function listGroups(
         content: [
           {
             type: 'text',
-            text: 'No groups found in your account.\n\n⚠️ This might indicate a permissions issue with your API credentials.',
+            text: 'No groups found in your account.\n\n[WARNING] This might indicate a permissions issue with your API credentials.',
           },
         ],
       };
@@ -1250,7 +1250,7 @@ export async function listGroups(
           content: [
             {
               type: 'text',
-              text: `No groups found matching "${args.searchTerm}".\n\n💡 **Tip:** Try a partial name or group ID.`,
+              text: `No groups found matching "${args.searchTerm}".\n\n[INFO] **Tip:** Try a partial name or group ID.`,
             },
           ],
         };
@@ -1275,7 +1275,7 @@ export async function listGroups(
 
     // Function to recursively display groups
     function displayGroup(group: (typeof groups)[0], indent = ''): string {
-      let output = `${indent}📁 **${group.groupName}**\n`;
+      let output = `${indent}[EMOJI] **${group.groupName}**\n`;
       output += `${indent}   Group ID: ${formatGroupDisplay(group.groupId, undefined, true)}\n`;
 
       if (group.contractIds && group.contractIds.length > 0) {
@@ -1347,7 +1347,7 @@ export async function listGroups(
     text += '2. **Contract ID** - Choose based on your billing arrangement\n\n';
     text += 'Example:\n';
     text += '`"Create a new property called my-site in group 12345 with contract C-1234567"`\n\n';
-    text += '💡 **Tips:**\n';
+    text += '[INFO] **Tips:**\n';
     text += '- You can omit the prefixes (ctr_, grp_) when referencing IDs\n';
     text +=
       '- Properties inherit permissions from their group, so choose the appropriate group for access control';
@@ -1397,7 +1397,7 @@ export async function listProducts(
         content: [
           {
             type: 'text',
-            text: `No products found for contract ${contractId}.\n\n⚠️ This might indicate:\n- Invalid contract ID\n- No products enabled on this contract\n- Permissions issue with your API credentials`,
+            text: `No products found for contract ${contractId}.\n\n[WARNING] This might indicate:\n- Invalid contract ID\n- No products enabled on this contract\n- Permissions issue with your API credentials`,
           },
         ],
       };
@@ -1448,7 +1448,7 @@ export async function listProducts(
 
     // Display by category
     if (deliveryProducts.length > 0) {
-      text += '## 📦 Content Delivery Products\n\n';
+      text += '## [PACKAGE] Content Delivery Products\n\n';
       text += '| Product ID | Product Name | Friendly Name | Use Case |\n';
       text += '|------------|--------------|---------------|----------|\n';
 
@@ -1470,7 +1470,7 @@ export async function listProducts(
     }
 
     if (securityProducts.length > 0) {
-      text += '## 🔒 Security Products\n\n';
+      text += '## [SECURE] Security Products\n\n';
       text += '| Product ID | Product Name | Friendly Name |\n';
       text += '|------------|--------------|---------------|\n';
 
@@ -1481,7 +1481,7 @@ export async function listProducts(
     }
 
     if (otherProducts.length > 0) {
-      text += '## 🔧 Other Products\n\n';
+      text += '## [CONFIG] Other Products\n\n';
       text += '| Product ID | Product Name | Friendly Name |\n';
       text += '|------------|--------------|---------------|\n';
 
@@ -1515,7 +1515,7 @@ export async function listProducts(
     }
 
     if (newMappings.length > 0) {
-      text += '\n\n## 📝 New Product Mappings Discovered\n\n';
+      text += '\n\n## [DOCS] New Product Mappings Discovered\n\n';
       text += "The following products don't have friendly name mappings yet:\n\n";
       text += '```typescript\n';
       text += newMappings.join(',\n');
@@ -1538,7 +1538,7 @@ export async function listProducts(
  * Format error responses with helpful guidance
  */
 function formatError(operation: string, _error: any): MCPToolResponse {
-  let errorMessage = `❌ Failed to ${operation}`;
+  let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 
   if (_error instanceof Error) {

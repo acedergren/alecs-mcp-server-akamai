@@ -99,7 +99,7 @@ export async function importZoneViaAXFR(
       content: [
         {
           type: 'text',
-          text: `✅ Started AXFR import for zone ${args.zone}\n\n**Master Server:** ${args.masterServer}\n**Type:** Secondary Zone\n${args.tsigKey ? '**TSIG:** Configured\n' : ''}\n## Import Status\n\nThe zone transfer has been initiated. This typically takes 5-15 minutes depending on zone size.\n\n## Next Steps\n\n1. **Check Import Status:**\n   "Get zone ${args.zone}"\n\n2. **Convert to Primary Zone:**\n   Once imported, convert to primary for full control:\n   "Convert zone ${args.zone} to primary"\n\n3. **Review Records:**\n   "List records in zone ${args.zone}"\n\n## Migration Timeline\n\n- Zone transfer: 5-15 minutes\n- DNS propagation: 5-30 minutes (depends on TTL)\n- Full migration: 24-48 hours (wait for old TTLs to expire)\n\n⚠️ **Important:** Keep the original nameservers active during migration!`,
+          text: `[DONE] Started AXFR import for zone ${args.zone}\n\n**Master Server:** ${args.masterServer}\n**Type:** Secondary Zone\n${args.tsigKey ? '**TSIG:** Configured\n' : ''}\n## Import Status\n\nThe zone transfer has been initiated. This typically takes 5-15 minutes depending on zone size.\n\n## Next Steps\n\n1. **Check Import Status:**\n   "Get zone ${args.zone}"\n\n2. **Convert to Primary Zone:**\n   Once imported, convert to primary for full control:\n   "Convert zone ${args.zone} to primary"\n\n3. **Review Records:**\n   "List records in zone ${args.zone}"\n\n## Migration Timeline\n\n- Zone transfer: 5-15 minutes\n- DNS propagation: 5-30 minutes (depends on TTL)\n- Full migration: 24-48 hours (wait for old TTLs to expire)\n\n[WARNING] **Important:** Keep the original nameservers active during migration!`,
         },
       ],
     };
@@ -166,7 +166,7 @@ export async function parseZoneFile(
     text += `- **Estimated Migration Time:** ${estimateMigrationTime(totalRecords)}\n\n`;
 
     if (unsupportedTypes.size > 0) {
-      text += '## ⚠️ Unsupported Record Types\n\n';
+      text += '## [WARNING] Unsupported Record Types\n\n';
       text += 'The following record types need manual migration:\n';
       Array.from(unsupportedTypes).forEach((type) => {
         text += `- ${type}\n`;
@@ -175,7 +175,7 @@ export async function parseZoneFile(
     }
 
     if (conflicts.length > 0) {
-      text += '## 🔍 Issues Requiring Attention\n\n';
+      text += '## [SEARCH] Issues Requiring Attention\n\n';
       for (const conflict of conflicts) {
         text += `### ${conflict.record}\n`;
         text += `- **Issue:** ${conflict.issue}\n`;
@@ -200,7 +200,7 @@ export async function parseZoneFile(
       const validationResults = await validateDNSRecords(records.slice(0, 5)); // Validate first 5
 
       for (const result of validationResults) {
-        text += `- **${result.name} ${result.type}:** ${result.valid ? '✅ Valid' : '❌ ' + result.error}\n`;
+        text += `- **${result.name} ${result.type}:** ${result.valid ? '[DONE] Valid' : '[ERROR] ' + result.error}\n`;
       }
       text += '\n';
     }
@@ -322,13 +322,13 @@ export async function bulkImportRecords(
     let text = `# Bulk Import Results - ${args.zone}\n\n`;
     text += '## Summary\n\n';
     text += `- **Total Records:** ${records.length}\n`;
-    text += `- **Successfully Imported:** ${successCount} ✅\n`;
-    text += `- **Failed:** ${errors.length} ❌\n`;
+    text += `- **Successfully Imported:** ${successCount} [DONE]\n`;
+    text += `- **Failed:** ${errors.length} [ERROR]\n`;
     text += `- **Request ID:** ${submitResponse.requestId || submitResponse.changeListId || 'N/A'}\n`;
     text += `- **Status:** ${successCount > 0 ? 'Changes submitted' : 'No changes made'}\n\n`;
 
     if (errors.length > 0) {
-      text += '## ❌ Failed Records\n\n';
+      text += '## [ERROR] Failed Records\n\n';
       errors.slice(0, 20).forEach((_error) => {
         text += `- **${_error.record}:** ${_error.error}\n`;
       });
@@ -344,7 +344,7 @@ export async function bulkImportRecords(
     text += '3. **Fix Failed Records:**\n   Review and manually add any failed records\n\n';
 
     if (successCount > 0) {
-      text += '## 🎉 Success!\n\n';
+      text += '## [SUCCESS] Success!\n\n';
       text += 'Your DNS records have been imported to Akamai Edge DNS.\n\n';
       text += '**Akamai Nameservers:**\n';
       text += '- use.akadns.net\n';
@@ -352,7 +352,7 @@ export async function bulkImportRecords(
       text += '- use2.akadns.net\n';
       text += '- use3.akadns.net\n\n';
       text +=
-        "⚠️ **Important:** Don't update your domain registrar until you've verified all records are working correctly!";
+        "[WARNING] **Important:** Don't update your domain registrar until you've verified all records are working correctly!";
     }
 
     return {
@@ -414,7 +414,7 @@ export async function convertZoneToPrimary(
       content: [
         {
           type: 'text',
-          text: `✅ Successfully converted ${args.zone} to PRIMARY zone\n\n## What Changed\n\n- **Before:** Secondary zone (read-only, synced from master)\n- **After:** Primary zone (full control, authoritative)\n\n## Benefits\n\n- Full control over all DNS records\n- Can add, modify, delete records\n- No dependency on external master server\n- Integrated with Akamai CDN services\n\n## Next Steps\n\n1. **Review Records:**\n   "List records in zone ${args.zone}"\n\n2. **Add CDN Records:**\n   "Create CNAME record www.${args.zone} pointing to www.${args.zone}.edgesuite.net"\n\n3. **Update Nameservers:**\n   Update your domain registrar to use Akamai nameservers`,
+          text: `[DONE] Successfully converted ${args.zone} to PRIMARY zone\n\n## What Changed\n\n- **Before:** Secondary zone (read-only, synced from master)\n- **After:** Primary zone (full control, authoritative)\n\n## Benefits\n\n- Full control over all DNS records\n- Can add, modify, delete records\n- No dependency on external master server\n- Integrated with Akamai CDN services\n\n## Next Steps\n\n1. **Review Records:**\n   "List records in zone ${args.zone}"\n\n2. **Add CDN Records:**\n   "Create CNAME record www.${args.zone} pointing to www.${args.zone}.edgesuite.net"\n\n3. **Update Nameservers:**\n   Update your domain registrar to use Akamai nameservers`,
         },
       ],
     };
@@ -540,7 +540,7 @@ export async function generateMigrationInstructions(
     text += '1. **Immediate:** Change nameservers back at registrar\n';
     text += '2. **Wait:** 5-15 minutes for registrar update\n';
     text += '3. **Force:** Flush DNS caches if critical\n\n';
-    text += '⚠️ **Keep old nameservers active for at least 7 days!**\n\n';
+    text += '[WARNING] **Keep old nameservers active for at least 7 days!**\n\n';
 
     text += '## Support Contacts\n\n';
     text += '- **Akamai Support:** support@akamai.com\n';
@@ -719,7 +719,7 @@ export async function importFromCloudflare(
     text += '   - Add CNAME records for CDN delivery\n\n';
 
     if (allRecords.some((r: any) => r.proxied)) {
-      text += '⚠️ **Note:** Some records were proxied through Cloudflare.\n';
+      text += '[WARNING] **Note:** Some records were proxied through Cloudflare.\n';
       text += 'You may need to configure similar security features in Akamai.\n';
     }
 
@@ -1110,7 +1110,7 @@ const globalMigrationCache = new Map<string, DNSRecordSet[]>();
  * Format error responses
  */
 function formatError(operation: string, _error: any): MCPToolResponse {
-  let errorMessage = `❌ Failed to ${operation}`;
+  let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 
   if (_error instanceof Error) {

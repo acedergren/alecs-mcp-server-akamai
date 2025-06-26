@@ -234,7 +234,7 @@ export async function validatePropertyActivation(
     responseText += `**Version:** ${version}\n`;
     responseText += `**Target Network:** ${args.network}\n\n`;
 
-    responseText += `## Validation Result: ${validation.valid ? '✅ PASSED' : '❌ FAILED'}\n\n`;
+    responseText += `## Validation Result: ${validation.valid ? '[DONE] PASSED' : '[ERROR] FAILED'}\n\n`;
 
     if (validation.errors.length > 0) {
       responseText += `### Errors (${validation.errors.length})\n`;
@@ -264,7 +264,7 @@ export async function validatePropertyActivation(
     if (validation.preflightChecks.length > 0) {
       responseText += '### Preflight Checks\n';
       validation.preflightChecks.forEach((check) => {
-        const icon = check.status === 'PASSED' ? '✅' : check.status === 'FAILED' ? '❌' : '⚠️';
+        const icon = check.status === 'PASSED' ? '[DONE]' : check.status === 'FAILED' ? '[ERROR]' : '[WARNING]';
         responseText += `- ${icon} **${check.name}**: ${check.message}\n`;
         if (check.details) {
           responseText += `  - ${check.details}\n`;
@@ -331,12 +331,12 @@ export async function activatePropertyWithMonitoring(
 
       // Parse validation result to check if valid
       const validationText = validationResult.content[0]?.text || '';
-      if (validationText.includes('❌ FAILED')) {
+      if (validationText.includes('[ERROR] FAILED')) {
         return {
           content: [
             {
               type: 'text',
-              text: `❌ Activation blocked due to validation failures\n\n${validationText}\n\nFix the errors above before proceeding with activation.`,
+              text: `[ERROR] Activation blocked due to validation failures\n\n${validationText}\n\nFix the errors above before proceeding with activation.`,
             },
           ],
         };
@@ -383,7 +383,7 @@ export async function activatePropertyWithMonitoring(
         content: [
           {
             type: 'text',
-            text: `✅ Started activation of property ${property.propertyName} (v${version}) to ${args.network}\n\n**Activation ID:** ${activationId}\n**Status:** In Progress\n\nTo monitor progress:\n\`\`\`\nGet activation progress ${activationId} for property ${args.propertyId}\n\`\`\``,
+            text: `[DONE] Started activation of property ${property.propertyName} (v${version}) to ${args.network}\n\n**Activation ID:** ${activationId}\n**Status:** In Progress\n\nTo monitor progress:\n\`\`\`\nGet activation progress ${activationId} for property ${args.propertyId}\n\`\`\``,
           },
         ],
       };
@@ -459,7 +459,7 @@ export async function activatePropertyWithMonitoring(
       content: [
         {
           type: 'text',
-          text: `⏱️ Activation timeout reached\n\n**Property:** ${property.propertyName}\n**Version:** ${version}\n**Network:** ${args.network}\n**Activation ID:** ${activationId}\n\nThe activation is still in progress. Continue monitoring with:\n\`\`\`\nGet activation progress ${activationId} for property ${args.propertyId}\n\`\`\``,
+          text: `[EMOJI]️ Activation timeout reached\n\n**Property:** ${property.propertyName}\n**Version:** ${version}\n**Network:** ${args.network}\n**Activation ID:** ${activationId}\n\nThe activation is still in progress. Continue monitoring with:\n\`\`\`\nGet activation progress ${activationId} for property ${args.propertyId}\n\`\`\``,
         },
       ],
     };
@@ -529,7 +529,7 @@ export async function getActivationProgress(
 
     // Errors and warnings
     if (progress.errors && progress.errors.length > 0) {
-      responseText += `### ❌ Errors (${progress.errors.length})\n`;
+      responseText += `### [ERROR] Errors (${progress.errors.length})\n`;
       progress.errors.forEach((_error, index) => {
         responseText += `${index + 1}. **${_error.type}**: ${_error.detail}\n`;
       });
@@ -537,7 +537,7 @@ export async function getActivationProgress(
     }
 
     if (progress.warnings && progress.warnings.length > 0) {
-      responseText += `### ⚠️ Warnings (${progress.warnings.length})\n`;
+      responseText += `### [WARNING] Warnings (${progress.warnings.length})\n`;
       progress.warnings.forEach((warning, index) => {
         responseText += `${index + 1}. **${warning.type}**: ${warning.detail}\n`;
       });
@@ -547,16 +547,16 @@ export async function getActivationProgress(
     // Next steps based on status
     responseText += '### Next Steps\n';
     if (progress.status.state === 'ACTIVE') {
-      responseText += '✅ Activation completed successfully!\n';
+      responseText += '[DONE] Activation completed successfully!\n';
       responseText += `- Test your property: https://${activation.propertyName}\n`;
       responseText += '- Monitor performance in Control Center\n';
     } else if (progress.status.state === 'FAILED' || progress.status.state === 'ABORTED') {
-      responseText += '❌ Activation failed. Options:\n';
+      responseText += '[ERROR] Activation failed. Options:\n';
       responseText += '1. Review errors above and fix issues\n';
       responseText += '2. Create new property version with fixes\n';
       responseText += '3. Contact Akamai support with activation ID\n';
     } else {
-      responseText += '⏳ Activation in progress...\n';
+      responseText += '[EMOJI] Activation in progress...\n';
       responseText += '- Continue monitoring this activation\n';
       responseText += '- Check again in a few minutes\n';
     }
@@ -810,7 +810,7 @@ function formatActivationSuccess(
   const minutes = Math.round(duration / 60000);
 
   return (
-    '✅ **Activation Completed Successfully!**\n\n' +
+    '[DONE] **Activation Completed Successfully!**\n\n' +
     `**Property:** ${property.propertyName}\n` +
     `**Version:** ${version}\n` +
     `**Network:** ${network}\n` +
@@ -819,7 +819,7 @@ function formatActivationSuccess(
     '1. **Test your property**: Visit your website to verify changes\n' +
     '2. **Monitor performance**: Check Control Center for metrics\n' +
     '3. **Clear cache if needed**: Use Fast Purge for immediate updates\n\n' +
-    `${network === 'STAGING' ? '💡 **Tip**: Test thoroughly before activating to PRODUCTION' : '🎉 **Congratulations!** Your property is now live in production.'}`
+    `${network === 'STAGING' ? '[INFO] **Tip**: Test thoroughly before activating to PRODUCTION' : '[SUCCESS] **Congratulations!** Your property is now live in production.'}`
   );
 }
 
@@ -830,7 +830,7 @@ function formatActivationFailure(
   progress: ActivationProgress,
 ): string {
   let response =
-    '❌ **Activation Failed**\n\n' +
+    '[ERROR] **Activation Failed**\n\n' +
     `**Property:** ${property.propertyName}\n` +
     `**Version:** ${version}\n` +
     `**Network:** ${network}\n` +
@@ -923,7 +923,7 @@ export async function cancelPropertyActivation(
         content: [
           {
             type: 'text',
-            text: `⚠️ Cannot cancel activation\n\n**Activation ID:** ${args.activationId}\n**Current Status:** ${activation.status}\n\nOnly PENDING activations can be cancelled. This activation has already progressed beyond the cancellable stage.`,
+            text: `[WARNING] Cannot cancel activation\n\n**Activation ID:** ${args.activationId}\n**Current Status:** ${activation.status}\n\nOnly PENDING activations can be cancelled. This activation has already progressed beyond the cancellable stage.`,
           },
         ],
       };
@@ -939,7 +939,7 @@ export async function cancelPropertyActivation(
       content: [
         {
           type: 'text',
-          text: `✅ Activation cancelled successfully\n\n**Activation ID:** ${args.activationId}\n**Property:** ${activation.propertyName}\n**Version:** ${activation.propertyVersion}\n**Network:** ${activation.network}\n\nThe activation has been cancelled and will not proceed.`,
+          text: `[DONE] Activation cancelled successfully\n\n**Activation ID:** ${args.activationId}\n**Property:** ${activation.propertyName}\n**Version:** ${activation.propertyVersion}\n**Network:** ${activation.network}\n\nThe activation has been cancelled and will not proceed.`,
         },
       ],
     };

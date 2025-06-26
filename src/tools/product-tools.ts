@@ -30,7 +30,7 @@ export async function listProducts(
         content: [
           {
             type: 'text',
-            text: '❌ Contract ID is required.\n\n💡 **Tip:** Use `list_contracts` to find valid contract IDs.',
+            text: '[ERROR] Contract ID is required.\n\n[INFO] **Tip:** Use `list_contracts` to find valid contract IDs.',
           },
         ],
       };
@@ -51,7 +51,7 @@ export async function listProducts(
         content: [
           {
             type: 'text',
-            text: `No products found for contract ${formatContractDisplay(contractId)}.\n\n⚠️ This could mean:\n- The contract has no products assigned\n- Your API credentials lack access to this contract\n- The contract ID is invalid`,
+            text: `No products found for contract ${formatContractDisplay(contractId)}.\n\n[WARNING] This could mean:\n- The contract has no products assigned\n- Your API credentials lack access to this contract\n- The contract ID is invalid`,
           },
         ],
       };
@@ -82,7 +82,7 @@ export async function listProducts(
     // Add best product recommendation
     const bestProduct = selectBestProduct(response.products.items);
     if (bestProduct) {
-      text += '## 🎯 Recommended Product\n\n';
+      text += '## [TARGET] Recommended Product\n\n';
       text += `**${formatProductDisplay(bestProduct.productId, bestProduct.productName)}**\n`;
       text +=
         'Ion products are preferred for most use cases due to their modern features and performance.\n\n';
@@ -140,7 +140,7 @@ export async function getProduct(
         content: [
           {
             type: 'text',
-            text: '❌ Invalid product ID format. Product IDs should start with "prd_".\n\n💡 **Tip:** Use `list_products` to find valid product IDs.',
+            text: '[ERROR] Invalid product ID format. Product IDs should start with "prd_".\n\n[INFO] **Tip:** Use `list_products` to find valid product IDs.',
           },
         ],
       };
@@ -151,7 +151,7 @@ export async function getProduct(
         content: [
           {
             type: 'text',
-            text: '❌ Invalid contract ID format. Contract IDs should start with "ctr_".\n\n💡 **Tip:** Use `list_contracts` to find valid contract IDs.',
+            text: '[ERROR] Invalid contract ID format. Contract IDs should start with "ctr_".\n\n[INFO] **Tip:** Use `list_contracts` to find valid contract IDs.',
           },
         ],
       };
@@ -173,7 +173,7 @@ export async function getProduct(
         content: [
           {
             type: 'text',
-            text: `❌ Product ${args.productId} not found in contract ${args.contractId}.\n\n💡 **Tip:** Use \`list_products for contract ${args.contractId}\` to see available products.`,
+            text: `[ERROR] Product ${args.productId} not found in contract ${args.contractId}.\n\n[INFO] **Tip:** Use \`list_products for contract ${args.contractId}\` to see available products.`,
           },
         ],
       };
@@ -250,7 +250,7 @@ export async function listUseCases(
         content: [
           {
             type: 'text',
-            text: '❌ Invalid product ID format. Product IDs should start with "prd_".\n\n💡 **Tip:** Use `list_products` to find valid product IDs.',
+            text: '[ERROR] Invalid product ID format. Product IDs should start with "prd_".\n\n[INFO] **Tip:** Use `list_products` to find valid product IDs.',
           },
         ],
       };
@@ -363,7 +363,7 @@ export async function listUseCases(
     text += '## Edge Hostname Creation Example\n';
     text += `\`"Create edge hostname www.example.com.edgekey.net for property prp_12345 with product ${args.productId}"\`\n\n`;
     text +=
-      '💡 **Note:** Use cases are automatically configured when creating edge hostnames through the standard MCP tools.';
+      '[INFO] **Note:** Use cases are automatically configured when creating edge hostnames through the standard MCP tools.';
 
     return {
       content: [
@@ -382,7 +382,7 @@ export async function listUseCases(
  * Format error responses with helpful guidance
  */
 function formatError(operation: string, _error: any): MCPToolResponse {
-  let errorMessage = `❌ Failed to ${operation}`;
+  let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 
   if (_error instanceof Error) {
@@ -467,7 +467,7 @@ export async function listBillingProducts(
         content: [
           {
             type: 'text',
-            text: `No billing products found for contract ${formatContractDisplay(contractId)} in ${year}-${month}.\n\n⚠️ This could mean:\n- No usage in the specified period\n- The contract has no active products\n- Your API credentials lack billing access`,
+            text: `No billing products found for contract ${formatContractDisplay(contractId)} in ${year}-${month}.\n\n[WARNING] This could mean:\n- No usage in the specified period\n- The contract has no active products\n- Your API credentials lack billing access`,
           },
         ],
       };
@@ -524,7 +524,7 @@ export async function listBillingProducts(
         category = 'DNS';
       }
 
-      const mappingDisplay = isNewMapping ? '❌ No mapping' : `✅ ${currentMapping}`;
+      const mappingDisplay = isNewMapping ? '[ERROR] No mapping' : `[DONE] ${currentMapping}`;
       text += `| \`${productId}\` | ${billingName} | ${mappingDisplay} | ${category} |\n`;
 
       if (isNewMapping) {
@@ -553,7 +553,7 @@ export async function listBillingProducts(
 
     // Suggest new mappings
     if (productMappings.size > 0) {
-      text += '\n## 📝 Suggested New Product Mappings\n\n';
+      text += '\n## [DOCS] Suggested New Product Mappings\n\n';
       text += "The following products from billing don't have friendly name mappings:\n\n";
       text += '```typescript\n';
       text += '// Add to PRODUCT_NAME_MAP in product-mapping.ts:\n';

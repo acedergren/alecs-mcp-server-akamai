@@ -16,17 +16,17 @@ import {
  */
 function formatActivationStatus(status: string | undefined): string {
   if (!status) {
-    return '⚫ INACTIVE';
+    return '[EMOJI] INACTIVE';
   }
 
   const statusMap: Record<string, string> = {
-    ACTIVE: '🟢 ACTIVE',
-    INACTIVE: '⚫ INACTIVE',
-    PENDING: '🟡 PENDING',
-    FAILED: '🔴 FAILED',
+    ACTIVE: '[EMOJI] ACTIVE',
+    INACTIVE: '[EMOJI] INACTIVE',
+    PENDING: '[EMOJI] PENDING',
+    FAILED: '[EMOJI] FAILED',
   };
 
-  return statusMap[status] || `⚫ ${status}`;
+  return statusMap[status] || `[EMOJI] ${status}`;
 }
 
 /**
@@ -93,7 +93,7 @@ export async function activateNetworkList(
 
     const activation: NetworkListActivation = response;
 
-    let output = '🚀 **Network List Activation Initiated**\n\n';
+    let output = '[DEPLOY] **Network List Activation Initiated**\n\n';
     output += `**List:** ${list.name} (${list.uniqueId})\n`;
     output += `**Network:** ${network}\n`;
     output += `**Activation ID:** ${activation.activationId}\n`;
@@ -104,7 +104,7 @@ export async function activateNetworkList(
     }
 
     if (activation.status === 'PENDING') {
-      output += '\n**⏳ Activation in progress...**\n';
+      output += '\n**[EMOJI] Activation in progress...**\n';
       output += 'Use the activation ID to monitor progress.\n';
       output += `Typical activation time: 2-5 minutes for ${network.toLowerCase()}\n`;
     }
@@ -147,7 +147,7 @@ export async function getNetworkListActivationStatus(
 
     const activation: NetworkListActivation = response;
 
-    let output = '📊 **Network List Activation Status**\n\n';
+    let output = '[METRICS] **Network List Activation Status**\n\n';
     output += `**Activation ID:** ${activation.activationId}\n`;
     output += `**List:** ${activation.name} (${activation.uniqueId})\n`;
     output += `**Network:** ${activation.network}\n`;
@@ -159,13 +159,13 @@ export async function getNetworkListActivationStatus(
     }
 
     if (activation.status === 'PENDING') {
-      output += '\n⏳ **Activation still in progress**\n';
+      output += '\n[EMOJI] **Activation still in progress**\n';
       output += 'Check again in a few minutes for updates.\n';
     } else if (activation.status === 'ACTIVE') {
-      output += '\n✅ **Activation completed successfully**\n';
+      output += '\n[DONE] **Activation completed successfully**\n';
       output += 'The network list is now active and enforcing policies.\n';
     } else if (activation.status === 'FAILED') {
-      output += '\n❌ **Activation failed**\n';
+      output += '\n[ERROR] **Activation failed**\n';
       output += 'Please check the activation details and try again.\n';
     }
 
@@ -239,10 +239,10 @@ export async function listNetworkListActivations(
       return new Date(b.activationId).getTime() - new Date(a.activationId).getTime();
     });
 
-    let output = `📋 **Network List Activations** (${activations.length})\n\n`;
+    let output = `[EMOJI] **Network List Activations** (${activations.length})\n\n`;
 
     for (const activation of activations) {
-      output += `🚀 **${activation.name}**\n`;
+      output += `[DEPLOY] **${activation.name}**\n`;
       output += `   ID: ${activation.uniqueId}\n`;
       output += `   Activation: ${activation.activationId}\n`;
       output += `   Network: ${activation.network}\n`;
@@ -332,7 +332,7 @@ export async function deactivateNetworkList(
 
     const activation: NetworkListActivation = response;
 
-    let output = '🛑 **Network List Deactivation Initiated**\n\n';
+    let output = '[EMOJI] **Network List Deactivation Initiated**\n\n';
     output += `**List:** ${list.name} (${list.uniqueId})\n`;
     output += `**Network:** ${network}\n`;
     output += `**Activation ID:** ${activation.activationId}\n`;
@@ -343,7 +343,7 @@ export async function deactivateNetworkList(
     }
 
     output +=
-      '\n⚠️ **Warning:** Deactivating this list will remove its security policies from the edge network.\n';
+      '\n[WARNING] **Warning:** Deactivating this list will remove its security policies from the edge network.\n';
     output +=
       'Traffic that was previously blocked/allowed by this list will no longer be filtered.\n';
 
@@ -388,7 +388,7 @@ export async function bulkActivateNetworkLists(
     const client = new AkamaiClient(customer);
     const results: Array<{ uniqueId: string; activationId?: string; error?: string }> = [];
 
-    let output = '🚀 **Bulk Network List Activation**\n\n';
+    let output = '[DEPLOY] **Bulk Network List Activation**\n\n';
     output += `Activating ${activations.length} network lists...\n\n`;
 
     // Process each activation
@@ -421,7 +421,7 @@ export async function bulkActivateNetworkLists(
           activationId: activationResult.activationId,
         });
 
-        output += `✅ ${activation.uniqueId} → ${activation.network} (${activationResult.activationId})\n`;
+        output += `[DONE] ${activation.uniqueId} → ${activation.network} (${activationResult.activationId})\n`;
       } catch (_error) {
         const akamaiError = _error as AkamaiError;
         results.push({
@@ -429,7 +429,7 @@ export async function bulkActivateNetworkLists(
           error: akamaiError.title || akamaiError.detail || 'Unknown _error',
         });
 
-        output += `❌ ${activation.uniqueId} → ${activation.network} (Error: ${akamaiError.title})\n`;
+        output += `[ERROR] ${activation.uniqueId} → ${activation.network} (Error: ${akamaiError.title})\n`;
       }
     }
 
@@ -437,11 +437,11 @@ export async function bulkActivateNetworkLists(
     const failed = results.filter((r) => r.error).length;
 
     output += '\n**Summary:**\n';
-    output += `✅ Successful: ${successful}\n`;
-    output += `❌ Failed: ${failed}\n`;
+    output += `[DONE] Successful: ${successful}\n`;
+    output += `[ERROR] Failed: ${failed}\n`;
 
     if (options.waitForCompletion && successful > 0) {
-      output += '\n⏳ Waiting for activations to complete...\n';
+      output += '\n[EMOJI] Waiting for activations to complete...\n';
       // Note: This would require polling logic in a real implementation
       output += '(Monitoring activation status - this may take 2-5 minutes per network)\n';
     }

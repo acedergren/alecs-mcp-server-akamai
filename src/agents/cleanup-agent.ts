@@ -135,7 +135,7 @@ class CleanupAgent {
   }
 
   async run(): Promise<void> {
-    console.log('🧹 ALECS Cleanup Agent');
+    console.log('[EMOJI] ALECS Cleanup Agent');
     console.log('=====================');
     console.log(`Project Root: ${this.projectRoot}`);
     console.log(`Mode: ${this.dryRun ? 'DRY RUN' : 'LIVE'}`);
@@ -153,7 +153,7 @@ class CleanupAgent {
       if (!this.dryRun && this.interactive) {
         const proceed = await this.confirmPlan();
         if (!proceed) {
-          console.log('❌ Cleanup cancelled by user');
+          console.log('[ERROR] Cleanup cancelled by user');
           return;
         }
       }
@@ -343,19 +343,19 @@ class CleanupAgent {
   }
 
   private displayPlan(plan: CleanupPlan): void {
-    console.log('\n📋 Cleanup Plan');
+    console.log('\n[EMOJI] Cleanup Plan');
     console.log('==============\n');
 
     // Essential files (summary only)
     console.log(
-      `✅ Essential Files: ${plan.essential.length} files (${this.formatSize(
+      `[DONE] Essential Files: ${plan.essential.length} files (${this.formatSize(
         plan.essential.reduce((sum, f) => sum + f.size, 0),
       )})`,
     );
 
     // Files to archive
     if (plan.archive.length > 0) {
-      console.log(`\n📦 Files to Archive (move to .old): ${plan.archive.length} files`);
+      console.log(`\n[PACKAGE] Files to Archive (move to .old): ${plan.archive.length} files`);
       for (const file of plan.archive.slice(0, 10)) {
         console.log(`  - ${file.path} (${this.formatSize(file.size)}) - ${file.reason}`);
       }
@@ -366,7 +366,7 @@ class CleanupAgent {
 
     // Files to delete
     if (plan.delete.length > 0) {
-      console.log(`\n🗑️  Files to Delete: ${plan.delete.length} files`);
+      console.log(`\n[EMOJI]️  Files to Delete: ${plan.delete.length} files`);
       for (const file of plan.delete.slice(0, 10)) {
         console.log(`  - ${file.path} (${this.formatSize(file.size)}) - ${file.reason}`);
       }
@@ -377,7 +377,7 @@ class CleanupAgent {
 
     // Files needing review
     if (plan.review.length > 0) {
-      console.log(`\n🔍 Files Needing Review: ${plan.review.length} files`);
+      console.log(`\n[SEARCH] Files Needing Review: ${plan.review.length} files`);
       for (const file of plan.review.slice(0, 10)) {
         console.log(`  - ${file.path} (${this.formatSize(file.size)}) - ${file.reason}`);
       }
@@ -387,7 +387,7 @@ class CleanupAgent {
     }
 
     // Summary
-    console.log('\n📊 Summary');
+    console.log('\n[METRICS] Summary');
     console.log('----------');
     console.log(
       `Total files: ${plan.essential.length + plan.archive.length + plan.delete.length + plan.review.length}`,
@@ -486,26 +486,26 @@ class CleanupAgent {
   }
 
   private displayResult(result: CleanupResult): void {
-    console.log('\n✨ Cleanup Results');
+    console.log('\n[FEATURE] Cleanup Results');
     console.log('==================\n');
 
     if (result.moved.length > 0) {
-      console.log(`📦 Moved to .old: ${result.moved.length} files`);
+      console.log(`[PACKAGE] Moved to .old: ${result.moved.length} files`);
     }
 
     if (result.deleted.length > 0) {
-      console.log(`🗑️  Deleted: ${result.deleted.length} files`);
+      console.log(`[EMOJI]️  Deleted: ${result.deleted.length} files`);
     }
 
     if (result.errors.length > 0) {
-      console.log(`\n❌ Errors: ${result.errors.length}`);
+      console.log(`\n[ERROR] Errors: ${result.errors.length}`);
       for (const _error of result.errors) {
         console.log(`  - ${_error.file}: ${_error.error}`);
       }
     }
 
-    console.log(`\n💾 Space saved: ${this.formatSize(result.savedSpace)}`);
-    console.log(`📝 Backup saved to: ${path.basename(this.backupPath)}`);
+    console.log(`\n[SAVE] Space saved: ${this.formatSize(result.savedSpace)}`);
+    console.log(`[DOCS] Backup saved to: ${path.basename(this.backupPath)}`);
   }
 
   private async saveBackup(plan: CleanupPlan, result: CleanupResult): Promise<void> {
@@ -520,7 +520,7 @@ class CleanupAgent {
   }
 
   async undo(backupFile: string): Promise<void> {
-    console.log('🔄 Undoing cleanup...\n');
+    console.log('[EMOJI] Undoing cleanup...\n');
 
     try {
       const backupData = await fs.readFile(backupFile, 'utf-8');
@@ -533,11 +533,11 @@ class CleanupAgent {
 
         if (existsSync(oldPath)) {
           await fs.rename(oldPath, originalPath);
-          console.log(`✅ Restored: ${file}`);
+          console.log(`[DONE] Restored: ${file}`);
         }
       }
 
-      console.log('\n✅ Undo complete');
+      console.log('\n[DONE] Undo complete');
       console.log('Note: Deleted files cannot be restored');
     } catch (_error) {
       console.error('[Error]:', _error);

@@ -461,21 +461,21 @@ export class TestOutputAnalyzer {
       }
 
       // Parse individual test results
-      const testMatch = line.match(/^\s*[✓✗×]\s+(.+?)(?:\s+\((\d+)\s*ms\))?$/);
+      const testMatch = line.match(/^\s*[[EMOJI][EMOJI]×]\s+(.+?)(?:\s+\((\d+)\s*ms\))?$/);
       if (testMatch && currentSuite) {
         currentSuite.tests.push({
           name: testMatch[1],
-          status: line.includes('✓') ? 'passed' : 'failed',
+          status: line.includes('[EMOJI]') ? 'passed' : 'failed',
           runtime: testMatch[2] ? parseInt(testMatch[2]) : 0,
         });
         continue;
       }
 
       // Parse failure details
-      if (line.includes('FAIL') && line.includes('●')) {
+      if (line.includes('FAIL') && line.includes('[EMOJI]')) {
         inFailureSection = true;
         currentFailure = {
-          test: line.replace(/^\s*●\s*/, '').trim(),
+          test: line.replace(/^\s*[EMOJI]\s*/, '').trim(),
           message: '',
           suite: currentSuite?.name || 'Unknown',
         };

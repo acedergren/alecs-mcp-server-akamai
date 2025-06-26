@@ -43,7 +43,7 @@ class ConsolidatedPropertyServer {
   private orchestrator: WorkflowOrchestrator;
 
   constructor() {
-    logger.info('🏢 ALECS Consolidated Property Server starting...');
+    logger.info('[EMOJI] ALECS Consolidated Property Server starting...');
 
     this.server = new Server(
       {
@@ -66,7 +66,7 @@ class ConsolidatedPropertyServer {
 
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      logger.info('📋 Consolidated tools list requested');
+      logger.info('[EMOJI] Consolidated tools list requested');
       
       return {
         tools: [
@@ -122,7 +122,7 @@ class ConsolidatedPropertyServer {
     // Handle tool execution
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
-      logger.info('🔧 Tool execution requested', { name, args });
+      logger.info('[CONFIG] Tool execution requested', { name, args });
 
       try {
         switch (name) {
@@ -243,12 +243,12 @@ class ConsolidatedPropertyServer {
    * Start the server
    */
   async run() {
-    logger.info('🚀 Starting consolidated property server...');
+    logger.info('[DEPLOY] Starting consolidated property server...');
     
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     
-    logger.info('✅ Consolidated Property Server ready and listening');
+    logger.info('[DONE] Consolidated Property Server ready and listening');
   }
 }
 
@@ -256,7 +256,7 @@ class ConsolidatedPropertyServer {
 if (require.main === module) {
   const server = new ConsolidatedPropertyServer();
   server.run().catch((error) => {
-    logger.error('❌ Server startup failed', { error });
+    logger.error('[ERROR] Server startup failed', { error });
     process.exit(1);
   });
 }

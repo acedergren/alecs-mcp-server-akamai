@@ -52,7 +52,7 @@ export async function universalSearchHandler(
     const queryTypes = detectQueryType(args.query);
     const detailed = args.detailed !== false;
 
-    console.error(`🔍 Universal search for: "${args.query}"`);
+    console.error(`[SEARCH] Universal search for: "${args.query}"`);
     console.error(`Detected query types: ${queryTypes.join(', ')}`);
 
     const results: any = {
@@ -229,22 +229,22 @@ export async function universalSearchHandler(
     results.summary.resourceTypes = [...new Set(results.matches.map((m: any) => m.type))];
 
     // Format response
-    let responseText = `🔍 **Search Results for "${args.query}"**\n\n`;
+    let responseText = `[SEARCH] **Search Results for "${args.query}"**\n\n`;
 
     if (results.matches.length === 0) {
-      responseText += '❌ No matches found.\n\n💡 Try searching for:\n';
+      responseText += '[ERROR] No matches found.\n\n[INFO] Try searching for:\n';
       responseText += '• Full hostname (e.g., www.example.com)\n';
       responseText += '• Property name or ID (prp_12345)\n';
       responseText += '• Contract ID (ctr_X-XXXXX)\n';
       responseText += '• Group ID (grp_12345)\n';
     } else {
-      responseText += `✅ Found ${results.summary.totalMatches} match${results.summary.totalMatches > 1 ? 'es' : ''}\n\n`;
+      responseText += `[DONE] Found ${results.summary.totalMatches} match${results.summary.totalMatches > 1 ? 'es' : ''}\n\n`;
 
       for (const match of results.matches) {
         const r = match.resource;
 
         if (match.type === 'property') {
-          responseText += `📦 **${r.propertyName}** \`${r.propertyId}\`\n`;
+          responseText += `[PACKAGE] **${r.propertyName}** \`${r.propertyId}\`\n`;
           responseText += `• Contract: \`${r.contractId}\`\n`;
           responseText += `• Group: \`${r.groupId}\`\n`;
           responseText += `• Version: Latest v${r.latestVersion}, Production v${r.productionVersion || 'None'}, Staging v${r.stagingVersion || 'None'}\n`;
@@ -261,10 +261,10 @@ export async function universalSearchHandler(
           }
           responseText += '\n';
         } else if (match.type === 'contract') {
-          responseText += `📄 **Contract** \`${r.contractId}\`\n`;
+          responseText += `[FILE] **Contract** \`${r.contractId}\`\n`;
           responseText += `• Type: ${r.contractTypeName || 'Standard'}\n\n`;
         } else if (match.type === 'group') {
-          responseText += `🏢 **${r.groupName}** \`${r.groupId}\`\n\n`;
+          responseText += `[EMOJI] **${r.groupName}** \`${r.groupId}\`\n\n`;
         }
       }
     }

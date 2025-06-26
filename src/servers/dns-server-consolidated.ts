@@ -42,7 +42,7 @@ class ConsolidatedDNSServer {
   private server: Server;
 
   constructor() {
-    logger.info('🌐 ALECS Consolidated DNS Server starting...');
+    logger.info('[GLOBAL] ALECS Consolidated DNS Server starting...');
 
     this.server = new Server(
       {
@@ -64,7 +64,7 @@ class ConsolidatedDNSServer {
 
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      logger.info('📋 Consolidated DNS tools list requested');
+      logger.info('[EMOJI] Consolidated DNS tools list requested');
       
       return {
         tools: [
@@ -145,7 +145,7 @@ class ConsolidatedDNSServer {
     // Handle tool execution
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
-      logger.info('🔧 DNS tool execution requested', { name, args });
+      logger.info('[CONFIG] DNS tool execution requested', { name, args });
 
       try {
         switch (name) {
@@ -371,12 +371,12 @@ class ConsolidatedDNSServer {
    * Start the server
    */
   async run() {
-    logger.info('🚀 Starting consolidated DNS server...');
+    logger.info('[DEPLOY] Starting consolidated DNS server...');
     
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     
-    logger.info('✅ Consolidated DNS Server ready and listening');
+    logger.info('[DONE] Consolidated DNS Server ready and listening');
   }
 }
 
@@ -384,7 +384,7 @@ class ConsolidatedDNSServer {
 if (require.main === module) {
   const server = new ConsolidatedDNSServer();
   server.run().catch((error) => {
-    logger.error('❌ DNS Server startup failed', { error });
+    logger.error('[ERROR] DNS Server startup failed', { error });
     process.exit(1);
   });
 }

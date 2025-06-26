@@ -51,17 +51,17 @@ function validateASN(asn: string): boolean {
  */
 function formatActivationStatus(status: string | undefined): string {
   if (!status) {
-    return '⚫ INACTIVE';
+    return '[EMOJI] INACTIVE';
   }
 
   const statusMap: Record<string, string> = {
-    ACTIVE: '🟢 ACTIVE',
-    INACTIVE: '⚫ INACTIVE',
-    PENDING: '🟡 PENDING',
-    FAILED: '🔴 FAILED',
+    ACTIVE: '[EMOJI] ACTIVE',
+    INACTIVE: '[EMOJI] INACTIVE',
+    PENDING: '[EMOJI] PENDING',
+    FAILED: '[EMOJI] FAILED',
   };
 
-  return statusMap[status] || `⚫ ${status}`;
+  return statusMap[status] || `[EMOJI] ${status}`;
 }
 
 /**
@@ -69,9 +69,9 @@ function formatActivationStatus(status: string | undefined): string {
  */
 function formatListType(type: string): string {
   const typeMap: Record<string, string> = {
-    IP: '🌐 IP Address List',
-    GEO: '🗺️ Geographic List',
-    ASN: '🏢 ASN List',
+    IP: '[GLOBAL] IP Address List',
+    GEO: '[EMOJI]️ Geographic List',
+    ASN: '[EMOJI] ASN List',
   };
 
   return typeMap[type] || type;
@@ -135,7 +135,7 @@ export async function listNetworkLists(
     let output = `Found ${lists.length} network list${lists.length !== 1 ? 's' : ''}:\n\n`;
 
     for (const list of lists) {
-      output += `📋 **${list.name}** (${list.uniqueId})\n`;
+      output += `[EMOJI] **${list.name}** (${list.uniqueId})\n`;
       output += `   Type: ${formatListType(list.type)}\n`;
       output += `   Elements: ${list.elementCount}\n`;
 
@@ -213,7 +213,7 @@ export async function getNetworkList(
 
     const list: NetworkList = response;
 
-    let output = '📋 **Network List Details**\n\n';
+    let output = '[EMOJI] **Network List Details**\n\n';
     output += `**Name:** ${list.name}\n`;
     output += `**ID:** ${list.uniqueId}\n`;
     output += `**Type:** ${formatListType(list.type)}\n`;
@@ -350,7 +350,7 @@ export async function createNetworkList(
 
     const newList: NetworkList = response;
 
-    let output = '✅ **Network List Created Successfully**\n\n';
+    let output = '[DONE] **Network List Created Successfully**\n\n';
     output += `**Name:** ${newList.name}\n`;
     output += `**ID:** ${newList.uniqueId}\n`;
     output += `**Type:** ${formatListType(newList.type)}\n`;
@@ -493,7 +493,7 @@ export async function updateNetworkList(
 
     const updatedList: NetworkList = response;
 
-    let output = '✅ **Network List Updated Successfully**\n\n';
+    let output = '[DONE] **Network List Updated Successfully**\n\n';
     output += `**Name:** ${updatedList.name}\n`;
     output += `**ID:** ${updatedList.uniqueId}\n`;
     output += `**Type:** ${formatListType(updatedList.type)}\n`;
@@ -561,7 +561,7 @@ export async function deleteNetworkList(
         content: [
           {
             type: 'text',
-            text: `❌ Cannot delete network list "${list.name}" (${uniqueId})\n\nThe list is currently active on ${list.productionStatus === 'ACTIVE' ? 'production' : ''} ${list.stagingStatus === 'ACTIVE' ? 'staging' : ''} network(s).\n\nPlease deactivate the list first before deletion.`,
+            text: `[ERROR] Cannot delete network list "${list.name}" (${uniqueId})\n\nThe list is currently active on ${list.productionStatus === 'ACTIVE' ? 'production' : ''} ${list.stagingStatus === 'ACTIVE' ? 'staging' : ''} network(s).\n\nPlease deactivate the list first before deletion.`,
           },
         ],
       };
@@ -576,7 +576,7 @@ export async function deleteNetworkList(
       content: [
         {
           type: 'text',
-          text: `✅ **Network List Deleted Successfully**\n\nDeleted "${list.name}" (${uniqueId}) - ${formatListType(list.type)}`,
+          text: `[DONE] **Network List Deleted Successfully**\n\nDeleted "${list.name}" (${uniqueId}) - ${formatListType(list.type)}`,
         },
       ],
     };

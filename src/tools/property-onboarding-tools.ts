@@ -210,24 +210,24 @@ export async function checkOnboardingStatus(
     let responseText = `# Onboarding Status for ${args.hostname}\n\n`;
 
     if (status.property?.found) {
-      responseText += '✅ **Property:** Found\n';
+      responseText += '[DONE] **Property:** Found\n';
       if (args.propertyId) {
         responseText += `   - Property ID: ${args.propertyId}\n`;
       }
     } else {
-      responseText += '❌ **Property:** Not found\n';
+      responseText += '[ERROR] **Property:** Not found\n';
     }
 
     if (status.edgeHostname?.found) {
-      responseText += '✅ **Edge Hostname:** Configured\n';
+      responseText += '[DONE] **Edge Hostname:** Configured\n';
     } else {
-      responseText += '⚠️  **Edge Hostname:** Not found\n';
+      responseText += '[WARNING]  **Edge Hostname:** Not found\n';
     }
 
     if (status.dnsRecord?.found) {
-      responseText += '✅ **DNS Record:** Found in Edge DNS\n';
+      responseText += '[DONE] **DNS Record:** Found in Edge DNS\n';
     } else {
-      responseText += '⚠️  **DNS Record:** Not in Edge DNS (may be with external provider)\n';
+      responseText += '[WARNING]  **DNS Record:** Not in Edge DNS (may be with external provider)\n';
     }
 
     if (status.activations) {

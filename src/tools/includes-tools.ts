@@ -562,20 +562,20 @@ export async function getIncludeActivationStatus(
     responseText += '## Status Details\n\n';
     switch (activation.status) {
       case 'ACTIVE':
-        responseText += `✅ **Activation Complete** - Include is now live on ${activation.network}\n`;
+        responseText += `[DONE] **Activation Complete** - Include is now live on ${activation.network}\n`;
         if (activation.updateDate) {
           responseText += `Completed: ${new Date(activation.updateDate).toISOString()}\n`;
         }
         break;
       case 'PENDING':
-        responseText += '⏳ **Activation in Progress** - Include is being deployed\n';
+        responseText += '[EMOJI] **Activation in Progress** - Include is being deployed\n';
         responseText += 'This typically takes 1-20 minutes depending on network\n';
         break;
       case 'FAILED':
-        responseText += '❌ **Activation Failed** - Deployment encountered errors\n';
+        responseText += '[ERROR] **Activation Failed** - Deployment encountered errors\n';
         break;
       case 'DEACTIVATED':
-        responseText += '🔄 **Deactivated** - Include has been deactivated\n';
+        responseText += '[EMOJI] **Deactivated** - Include has been deactivated\n';
         break;
       default:
         responseText += `Status: ${activation.status}\n`;
@@ -584,20 +584,20 @@ export async function getIncludeActivationStatus(
     // Warnings and errors
     if (activation.fatalError) {
       responseText += '\n## Fatal Error\n\n';
-      responseText += `❌ ${activation.fatalError}\n`;
+      responseText += `[ERROR] ${activation.fatalError}\n`;
     }
 
     if (activation.warnings && activation.warnings.length > 0) {
       responseText += '\n## Warnings\n\n';
       activation.warnings.forEach((warning: any) => {
-        responseText += `⚠️ **${warning.title}**: ${warning.detail}\n`;
+        responseText += `[WARNING] **${warning.title}**: ${warning.detail}\n`;
       });
     }
 
     if (activation.errors && activation.errors.length > 0) {
       responseText += '\n## Errors\n\n';
       activation.errors.forEach((_error: any) => {
-        responseText += `❌ **${_error.title}**: ${_error.detail}\n`;
+        responseText += `[ERROR] **${_error.title}**: ${_error.detail}\n`;
       });
     }
 
@@ -656,12 +656,12 @@ export async function listIncludeActivations(
       stagingActivations.forEach((activation: any) => {
         const statusIcon =
           activation.status === 'ACTIVE'
-            ? '✅'
+            ? '[DONE]'
             : activation.status === 'PENDING'
-              ? '⏳'
+              ? '[EMOJI]'
               : activation.status === 'FAILED'
-                ? '❌'
-                : '❓';
+                ? '[ERROR]'
+                : '[EMOJI]';
 
         responseText += `### ${statusIcon} Version ${activation.includeVersion}\n`;
         responseText += `- **Activation ID:** ${activation.activationId}\n`;
@@ -682,12 +682,12 @@ export async function listIncludeActivations(
       productionActivations.forEach((activation: any) => {
         const statusIcon =
           activation.status === 'ACTIVE'
-            ? '✅'
+            ? '[DONE]'
             : activation.status === 'PENDING'
-              ? '⏳'
+              ? '[EMOJI]'
               : activation.status === 'FAILED'
-                ? '❌'
-                : '❓';
+                ? '[ERROR]'
+                : '[EMOJI]';
 
         responseText += `### ${statusIcon} Version ${activation.includeVersion}\n`;
         responseText += `- **Activation ID:** ${activation.activationId}\n`;

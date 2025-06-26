@@ -205,11 +205,11 @@ export class PropertyOnboardingAgent {
       // Success!
       result.success = true;
       result.nextSteps!.push(
-        `✅ Property ${result.propertyId} created and activated to STAGING`,
-        `🌐 Edge hostname: ${result.edgeHostname}`,
-        `🧪 Test in staging: curl -H "Host: ${validatedConfig.hostname}" https://${result.edgeHostname}`,
+        `[DONE] Property ${result.propertyId} created and activated to STAGING`,
+        `[GLOBAL] Edge hostname: ${result.edgeHostname}`,
+        `[TEST] Test in staging: curl -H "Host: ${validatedConfig.hostname}" https://${result.edgeHostname}`,
         '',
-        '⏳ Production activation:',
+        '[EMOJI] Production activation:',
         '   - New hostnames take 10-60 minutes to propagate',
         '   - Test thoroughly in staging first',
         '   - Use property.activate tool to push to production when ready',
@@ -837,7 +837,7 @@ export async function onboardProperty(
   let responseText = '';
 
   if (result.success) {
-    responseText = '# ✅ Property Onboarding Successful\n\n';
+    responseText = '# [DONE] Property Onboarding Successful\n\n';
     responseText += `**Property ID:** ${result.propertyId}\n`;
     responseText += `**Edge Hostname:** ${result.edgeHostname}\n`;
     if (result.activationId) {
@@ -848,7 +848,7 @@ export async function onboardProperty(
       responseText += `- ${step}\n`;
     });
   } else {
-    responseText = '# ❌ Property Onboarding Failed\n\n';
+    responseText = '# [ERROR] Property Onboarding Failed\n\n';
     if (result.errors && result.errors.length > 0) {
       responseText += '## Errors\n\n';
       result.errors.forEach((_error) => {

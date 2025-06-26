@@ -67,15 +67,15 @@ const modules: ServerModule[] = [
 async function main() {
   clearScreen();
 
-  console.log('🚀 ALECS MCP Server Launcher');
+  console.log('[DEPLOY] ALECS MCP Server Launcher');
   console.log('============================\n');
 
   console.log('Choose your server configuration:\n');
-  console.log('1) 🎯 Minimal - Core features only (7 tools)');
-  console.log('2) 📦 Modular - Select specific modules');
-  console.log('3) 🌐 Full - All features (~198 tools)');
-  console.log('4) 🔧 Custom - Launch individual module');
-  console.log('5) ❌ Exit\n');
+  console.log('1) [TARGET] Minimal - Core features only (7 tools)');
+  console.log('2) [PACKAGE] Modular - Select specific modules');
+  console.log('3) [GLOBAL] Full - All features (~198 tools)');
+  console.log('4) [CONFIG] Custom - Launch individual module');
+  console.log('5) [ERROR] Exit\n');
 
   const choice = await question('Enter your choice (1-5): ');
 
@@ -93,19 +93,19 @@ async function main() {
       await launchCustom();
       break;
     case '5':
-      console.log('\n👋 Goodbye!');
+      console.log('\n[EMOJI] Goodbye!');
       rl.close();
       process.exit(0);
       break;
     default:
-      console.log('\n❌ Invalid choice. Please try again.');
+      console.log('\n[ERROR] Invalid choice. Please try again.');
       await main();
   }
 }
 
 async function launchMinimal() {
   clearScreen();
-  console.log('🎯 Launching Minimal Server...\n');
+  console.log('[TARGET] Launching Minimal Server...\n');
   console.log('This includes:');
   console.log('  • Property listing and details');
   console.log('  • Property creation');
@@ -125,7 +125,7 @@ async function launchMinimal() {
 
 async function launchModular() {
   clearScreen();
-  console.log('📦 Modular Server Configuration\n');
+  console.log('[PACKAGE] Modular Server Configuration\n');
   console.log('Select modules to launch:\n');
 
   const selectedModules: ServerModule[] = [];
@@ -153,16 +153,16 @@ async function launchModular() {
   }
 
   if (selectedModules.length === 0) {
-    console.log('\n❌ No modules selected.');
+    console.log('\n[ERROR] No modules selected.');
     await main();
     return;
   }
 
   clearScreen();
-  console.log('📦 Selected Modules:\n');
+  console.log('[PACKAGE] Selected Modules:\n');
   let totalTools = 0;
   for (const module of selectedModules) {
-    console.log(`  ✓ ${module.name} (${module.toolCount} tools)`);
+    console.log(`  [EMOJI] ${module.name} (${module.toolCount} tools)`);
     totalTools += module.toolCount;
   }
   console.log(`\nTotal tools: ${totalTools}\n`);
@@ -174,7 +174,7 @@ async function launchModular() {
   }
 
   // Launch each selected module in a separate process
-  console.log('\n🚀 Launching modules...\n');
+  console.log('\n[DEPLOY] Launching modules...\n');
 
   // Prepare setup instructions
   const setupConfigs = selectedModules.map((module) => ({
@@ -187,8 +187,8 @@ async function launchModular() {
     launchModuleServer(module);
   }
 
-  console.log('\n✅ All selected modules launched!');
-  console.log('\n📝 Note: Each module runs as a separate MCP server.');
+  console.log('\n[DONE] All selected modules launched!');
+  console.log('\n[DOCS] Note: Each module runs as a separate MCP server.');
   console.log('You can use them independently in Claude Desktop.\n');
 
   // Show Claude Desktop setup instructions for all selected modules
@@ -199,8 +199,8 @@ async function launchModular() {
 
 async function launchFull() {
   clearScreen();
-  console.log('🌐 Launching Full Server...\n');
-  console.log('⚠️  Warning: This loads all 198 tools and may use significant memory.\n');
+  console.log('[GLOBAL] Launching Full Server...\n');
+  console.log('[WARNING]  Warning: This loads all 198 tools and may use significant memory.\n');
 
   const confirm = await question('Continue? (y/n): ');
   if (confirm.toLowerCase() !== 'y') {
@@ -213,7 +213,7 @@ async function launchFull() {
 
 async function launchCustom() {
   clearScreen();
-  console.log('🔧 Custom Module Launch\n');
+  console.log('[CONFIG] Custom Module Launch\n');
   console.log('Available modules:\n');
 
   for (let i = 0; i < modules.length; i++) {
@@ -227,7 +227,7 @@ async function launchCustom() {
 
   if (index >= 0 && index < modules.length) {
     const module = modules[index];
-    console.log(`\n🚀 Launching ${module.name}...\n`);
+    console.log(`\n[DEPLOY] Launching ${module.name}...\n`);
 
     // Show setup instructions for the selected module
     showClaudeDesktopInstructions([
@@ -241,7 +241,7 @@ async function launchCustom() {
     launchModuleServer(module);
     rl.close();
   } else {
-    console.log('\n❌ Invalid selection.');
+    console.log('\n[ERROR] Invalid selection.');
     await main();
   }
 }
@@ -270,7 +270,7 @@ function launchServer(serverFile: string, name: string) {
   });
 
   child.on('error', (_error) => {
-    console.error(`❌ Failed to start server: ${_error.message}`);
+    console.error(`[ERROR] Failed to start server: ${_error.message}`);
     process.exit(1);
   });
 
@@ -298,7 +298,7 @@ function launchModuleServer(module: ServerModule) {
 
   child.unref();
 
-  console.log(`✓ ${module.name} started (PID: ${child.pid})`);
+  console.log(`[EMOJI] ${module.name} started (PID: ${child.pid})`);
 }
 
 interface SetupConfig {
@@ -311,11 +311,11 @@ function showClaudeDesktopInstructions(configs: SetupConfig[]) {
   const userHome = process.env.HOME || process.env.USERPROFILE || '~';
 
   console.log('\n' + '═'.repeat(70));
-  console.log('📋 Claude Desktop Setup Instructions');
+  console.log('[EMOJI] Claude Desktop Setup Instructions');
   console.log('═'.repeat(70) + '\n');
 
   console.log('To add these servers to Claude Desktop, use ONE of these methods:\n');
-  console.log('🔧 Method 1: Using Claude Code (Recommended)');
+  console.log('[CONFIG] Method 1: Using Claude Code (Recommended)');
   console.log('─'.repeat(40));
 
   configs.forEach((config, index) => {
@@ -323,7 +323,7 @@ function showClaudeDesktopInstructions(configs: SetupConfig[]) {
     console.log(`   claude mcp add ${config.name} -s user node ${config.path}`);
   });
 
-  console.log('\n\n💻 Method 2: Manual Configuration');
+  console.log('\n\n[EMOJI] Method 2: Manual Configuration');
   console.log('─'.repeat(40));
   console.log('\n1. Open your Claude Desktop configuration file:');
   console.log(`   ${userHome}/Library/Application Support/Claude/claude_desktop_config.json`);
@@ -349,7 +349,7 @@ function showClaudeDesktopInstructions(configs: SetupConfig[]) {
 
   console.log('\n3. Restart Claude Desktop to load the new server(s)');
 
-  console.log('\n\n📚 Usage Examples');
+  console.log('\n\n[DOCS] Usage Examples');
   console.log('─'.repeat(40));
   console.log('\nOnce added, you can use these servers in Claude by:');
   console.log('• Asking questions about your Akamai properties');
@@ -368,7 +368,7 @@ function showClaudeDesktopInstructions(configs: SetupConfig[]) {
 
 // Handle Ctrl+C gracefully
 process.on('SIGINT', () => {
-  console.log('\n\n👋 Goodbye!');
+  console.log('\n\n[EMOJI] Goodbye!');
   rl.close();
   process.exit(0);
 });

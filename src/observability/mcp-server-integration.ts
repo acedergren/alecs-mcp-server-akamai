@@ -54,7 +54,7 @@ export class InstrumentedMCPServer {
 
   private initializeObservability(): void {
     if (!this.config.observability.enabled) {
-      console.log('📊 Observability disabled');
+      console.log('[METRICS] Observability disabled');
       return;
     }
 
@@ -78,7 +78,7 @@ export class InstrumentedMCPServer {
       this.setupCustomAlerts();
 
       console.log(
-        `📊 Observability initialized for ${this.config.observability.environment} environment`,
+        `[METRICS] Observability initialized for ${this.config.observability.environment} environment`,
       );
     } catch (_error) {
       console.error('[Error]:', _error);
@@ -524,7 +524,7 @@ export class InstrumentedMCPServer {
     await this.server.connect(transport);
 
     console.log(
-      `🚀 Akamai MCP Server started with ${this.observability ? 'full' : 'basic'} observability`,
+      `[DEPLOY] Akamai MCP Server started with ${this.observability ? 'full' : 'basic'} observability`,
     );
 
     if (this.observability) {
@@ -545,12 +545,12 @@ export class InstrumentedMCPServer {
       // Export final metrics before shutdown
       try {
         await this.observability.generateHealthReport();
-        console.log('📊 Final observability report generated');
+        console.log('[METRICS] Final observability report generated');
 
         // Optionally export to file or send to monitoring
         if (process.env.EXPORT_ON_SHUTDOWN === 'true') {
           await this.observability.exportObservabilityData();
-          console.log('📤 Observability data exported on shutdown');
+          console.log('[EMOJI] Observability data exported on shutdown');
         }
       } catch (_error) {
         console.error('[Error]:', _error);
@@ -559,7 +559,7 @@ export class InstrumentedMCPServer {
       this.observability.stop();
     }
 
-    console.log('🛑 MCP Server stopped');
+    console.log('[EMOJI] MCP Server stopped');
   }
 
   getObservability(): ObservabilityStack | null {

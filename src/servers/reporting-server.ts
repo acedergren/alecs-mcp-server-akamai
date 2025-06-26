@@ -348,9 +348,9 @@ class ReportingServer {
           content: [{
             type: 'text',
             text: `Anomaly Detection Results:\n` +
-                  `- 🔴 High error rate spike detected 2 hours ago\n` +
-                  `- 🟡 Unusual traffic pattern from AS12345\n` +
-                  `- 🟢 Response times normal despite traffic increase\n` +
+                  `- [EMOJI] High error rate spike detected 2 hours ago\n` +
+                  `- [EMOJI] Unusual traffic pattern from AS12345\n` +
+                  `- [EMOJI] Response times normal despite traffic increase\n` +
                   `Recommended: Investigate error spike on /api/v2/* endpoints`,
           }],
         };
@@ -405,9 +405,9 @@ class ReportingServer {
             type: 'text',
             text: `SLA Compliance Report:\n` +
                   `Period: ${params.period.start} to ${params.period.end}\n\n` +
-                  `✅ Availability: 99.95% (Target: ${params.slaTargets.availability}%)\n` +
-                  `✅ Avg Response Time: 145ms (Target: <${params.slaTargets.responseTime}ms)\n` +
-                  `⚠️  Error Rate: 0.12% (Target: <${params.slaTargets.errorRate}%)\n\n` +
+                  `[DONE] Availability: 99.95% (Target: ${params.slaTargets.availability}%)\n` +
+                  `[DONE] Avg Response Time: 145ms (Target: <${params.slaTargets.responseTime}ms)\n` +
+                  `[WARNING]  Error Rate: 0.12% (Target: <${params.slaTargets.errorRate}%)\n\n` +
                   `SLA Credits: None required\n` +
                   `Violations: 1 (Error rate exceeded on 2024-01-15)`,
           }],

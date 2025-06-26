@@ -229,7 +229,7 @@ export async function onboardSecureByDefaultProperty(
           content: [
             {
               type: 'text',
-              text: `❌ **Prerequisites Validation Failed**\n\n${validation.errors.map((e) => `- ${e}`).join('\n')}\n\n**Solution:** Fix the issues above and try again.`,
+              text: `[ERROR] **Prerequisites Validation Failed**\n\n${validation.errors.map((e) => `- ${e}`).join('\n')}\n\n**Solution:** Fix the issues above and try again.`,
             },
           ],
         };
@@ -260,7 +260,7 @@ export async function onboardSecureByDefaultProperty(
         if (bestProduct) {
           productId = bestProduct.productId;
           steps.push(
-            `🔍 Auto-selected product: ${bestProduct.friendlyName} (${bestProduct.productId})`,
+            `[SEARCH] Auto-selected product: ${bestProduct.friendlyName} (${bestProduct.productId})`,
           );
         }
       }
@@ -268,13 +268,13 @@ export async function onboardSecureByDefaultProperty(
       // Fallback to Ion if no product could be selected
       if (!productId) {
         productId = 'prd_fresca';
-        steps.push('🔍 Using default product: Ion (prd_fresca)');
+        steps.push('[SEARCH] Using default product: Ion (prd_fresca)');
       }
     }
 
     // Step 2: Create the property
     spinner?.start('Creating property...');
-    steps.push('📦 Creating property...');
+    steps.push('[PACKAGE] Creating property...');
     const createPropResult = await createProperty(client, {
       propertyName: args.propertyName,
       productId: productId,
@@ -288,7 +288,7 @@ export async function onboardSecureByDefaultProperty(
       propertyId = propMatch[1];
       state.propertyId = propertyId;
       spinner?.succeed(`Created property: ${propertyId}`);
-      steps.push(`✅ Created property: ${propertyId}`);
+      steps.push(`[DONE] Created property: ${propertyId}`);
       state.completed.push('Property created');
     } else {
       throw new Error('Failed to extract property ID from creation response');
@@ -305,12 +305,12 @@ export async function onboardSecureByDefaultProperty(
     });
     state.cpCodeId = cpCodeId;
     spinner?.succeed(`CP Code ready: ${cpCodeId}`);
-    steps.push(`✅ CP Code configured: ${cpCodeId}`);
+    steps.push(`[DONE] CP Code configured: ${cpCodeId}`);
     state.completed.push('CP Code configured');
 
     // Step 4: Create Secure by Default edge hostname with automatic DefaultDV certificate
     spinner?.start('Creating Secure by Default edge hostname...');
-    steps.push('🔐 Creating Secure by Default edge hostname with DefaultDV certificate...');
+    steps.push('[EMOJI] Creating Secure by Default edge hostname with DefaultDV certificate...');
 
     // Generate edge hostname prefix based on property name
     const edgeHostnamePrefix = args.propertyName.toLowerCase().replace(/[^a-z0-9-]/g, '-');
@@ -325,13 +325,13 @@ export async function onboardSecureByDefaultProperty(
     state.edgeHostnameId = edgeHostnameResult.edgeHostnameId;
     edgeHostnameDomain = edgeHostnameResult.edgeHostnameDomain;
     spinner?.succeed(`Created edge hostname: ${edgeHostnameDomain}`);
-    steps.push(`✅ Created Secure by Default edge hostname: ${edgeHostnameDomain}`);
-    steps.push('✅ DefaultDV certificate automatically provisioned for all hostnames');
+    steps.push(`[DONE] Created Secure by Default edge hostname: ${edgeHostnameDomain}`);
+    steps.push('[DONE] DefaultDV certificate automatically provisioned for all hostnames');
     state.completed.push('Edge hostname created');
 
     // Step 5: Configure property rules with secure settings
     spinner?.start('Configuring property rules...');
-    steps.push('⚙️ Configuring property with secure settings...');
+    steps.push('[SETTINGS] Configuring property with secure settings...');
 
     const secureRules = {
       name: 'default',
@@ -449,12 +449,12 @@ export async function onboardSecureByDefaultProperty(
       note: 'Configured Secure by Default settings',
     });
     spinner?.succeed('Property rules configured');
-    steps.push('✅ Configured property with secure settings');
+    steps.push('[DONE] Configured property with secure settings');
     state.completed.push('Property rules configured');
 
     // Step 6: Add hostnames to property
     spinner?.start('Adding hostnames to property...');
-    steps.push('🔗 Adding hostnames to property...');
+    steps.push('[EMOJI] Adding hostnames to property...');
 
     for (const hostname of args.hostnames) {
       await addPropertyHostname(client, {
@@ -462,16 +462,16 @@ export async function onboardSecureByDefaultProperty(
         hostname: hostname,
         edgeHostname: edgeHostnameDomain,
       });
-      steps.push(`✅ Added hostname: ${hostname}`);
+      steps.push(`[DONE] Added hostname: ${hostname}`);
     }
     spinner?.succeed('All hostnames added');
     state.completed.push('Hostnames configured');
 
     // Step 7: Ready for activation
-    steps.push('🚀 Ready for activation!');
+    steps.push('[DEPLOY] Ready for activation!');
 
     // Generate comprehensive response
-    let text = '# ✅ Secure by Default Property Onboarding Complete!\n\n';
+    let text = '# [DONE] Secure by Default Property Onboarding Complete!\n\n';
     text += '## Summary\n\n';
     text += `- **Property Name:** ${args.propertyName}\n`;
     text += `- **Property ID:** ${propertyId}\n`;
@@ -634,7 +634,7 @@ export async function checkSecureByDefaultStatus(
       hostnamesResponse.hostnames.items.forEach((hostname: any) => {
         text += `- **${hostname.cnameFrom}** → ${hostname.cnameTo}`;
         // DefaultDV certificates are always valid for all hostnames
-        text += ' ✅ (DefaultDV certificate active)\n';
+        text += ' [DONE] (DefaultDV certificate active)\n';
       });
     } else {
       text += 'No hostnames configured\n';
@@ -645,26 +645,26 @@ export async function checkSecureByDefaultStatus(
     text += '## Edge Hostname Status\n';
     const edgeHostname = hostnamesResponse.hostnames?.items?.[0]?.cnameTo;
     if (edgeHostname?.includes('.edgekey.net')) {
-      text += `✅ **Secure by Default Edge Hostname:** ${edgeHostname}\n`;
-      text += '✅ **DefaultDV Certificate:** Automatically provisioned and active\n';
-      text += '✅ **HTTPS Ready:** All hostnames can use HTTPS immediately\n';
+      text += `[DONE] **Secure by Default Edge Hostname:** ${edgeHostname}\n`;
+      text += '[DONE] **DefaultDV Certificate:** Automatically provisioned and active\n';
+      text += '[DONE] **HTTPS Ready:** All hostnames can use HTTPS immediately\n';
     } else {
-      text += '⚠️ **Warning:** Property may not be using Secure by Default edge hostname\n';
+      text += '[WARNING] **Warning:** Property may not be using Secure by Default edge hostname\n';
     }
     text += '\n';
 
     // Check activation status
     text += '## Activation Status\n';
     if (property.productionVersion) {
-      text += `✅ **Production:** Version ${property.productionVersion} is active\n`;
+      text += `[DONE] **Production:** Version ${property.productionVersion} is active\n`;
     } else {
-      text += '⏳ **Production:** Not yet activated\n';
+      text += '[EMOJI] **Production:** Not yet activated\n';
     }
 
     if (property.stagingVersion) {
-      text += `✅ **Staging:** Version ${property.stagingVersion} is active\n`;
+      text += `[DONE] **Staging:** Version ${property.stagingVersion} is active\n`;
     } else {
-      text += '⏳ **Staging:** Not yet activated\n';
+      text += '[EMOJI] **Staging:** Not yet activated\n';
     }
 
     text += '\n## Next Actions\n';
@@ -695,7 +695,7 @@ export async function checkSecureByDefaultStatus(
  * Generate failure report with recovery options
  */
 function generateFailureReport(state: OnboardingState, _error: any, args: any): string {
-  let text = '# ❌ Secure Property Onboarding Failed\n\n';
+  let text = '# [ERROR] Secure Property Onboarding Failed\n\n';
 
   text += '## Error Details\n';
   text += `- **Error:** ${_error instanceof Error ? _error.message : String(_error)}\n`;
@@ -704,7 +704,7 @@ function generateFailureReport(state: OnboardingState, _error: any, args: any): 
   text += '## Completed Steps\n';
   if (state.completed.length > 0) {
     state.completed.forEach((step, index) => {
-      text += `${index + 1}. ✅ ${step}\n`;
+      text += `${index + 1}. [DONE] ${step}\n`;
     });
   } else {
     text += 'No steps were completed successfully.\n';
@@ -714,7 +714,7 @@ function generateFailureReport(state: OnboardingState, _error: any, args: any): 
   if (state.propertyId) {
     text += '## Partial Resources Created\n';
     text += `- **Property ID:** ${state.propertyId}\n`;
-    text += '  ⚠️ This property was created but not fully configured.\n\n';
+    text += '  [WARNING] This property was created but not fully configured.\n\n';
 
     text += '## Recovery Options\n';
     text += '1. **Continue Setup Manually:**\n';
@@ -765,7 +765,7 @@ async function rollbackProperty(client: AkamaiClient, propertyId: string): Promi
  * Format error responses
  */
 function formatError(operation: string, _error: any): MCPToolResponse {
-  let errorMessage = `❌ Failed to ${operation}`;
+  let errorMessage = `[ERROR] Failed to ${operation}`;
 
   if (_error instanceof Error) {
     errorMessage += `: ${_error.message}`;

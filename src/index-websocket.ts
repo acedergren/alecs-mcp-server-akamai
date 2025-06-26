@@ -54,9 +54,9 @@ async function startWebSocketServer() {
     });
 
     // Display startup message
-    console.log('\n✅ ALECS WebSocket MCP Server is running');
-    console.log(`📡 Listening on ${process.env.ALECS_WS_HOST || '0.0.0.0'}:${process.env.ALECS_WS_PORT || '8082'}`);
-    console.log('\n💡 To see connection details and generate a token, run:');
+    console.log('\n[DONE] ALECS WebSocket MCP Server is running');
+    console.log(`[EMOJI] Listening on ${process.env.ALECS_WS_HOST || '0.0.0.0'}:${process.env.ALECS_WS_PORT || '8082'}`);
+    console.log('\n[INFO] To see connection details and generate a token, run:');
     console.log('   npm run start:websocket:summary\n');
 
     // Handle shutdown gracefully

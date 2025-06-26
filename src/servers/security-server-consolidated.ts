@@ -36,7 +36,7 @@ class ConsolidatedSecurityServer {
   private server: Server;
 
   constructor() {
-    logger.info('🛡️ ALECS Consolidated Security Server starting...');
+    logger.info('[SHIELD] ALECS Consolidated Security Server starting...');
 
     this.server = new Server(
       {
@@ -58,7 +58,7 @@ class ConsolidatedSecurityServer {
 
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      logger.info('📋 Consolidated security tools list requested');
+      logger.info('[EMOJI] Consolidated security tools list requested');
       
       return {
         tools: [
@@ -168,7 +168,7 @@ class ConsolidatedSecurityServer {
     // Handle tool execution
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
-      logger.info('🔧 Security tool execution requested', { name, args });
+      logger.info('[CONFIG] Security tool execution requested', { name, args });
 
       try {
         switch (name) {
@@ -527,12 +527,12 @@ class ConsolidatedSecurityServer {
    * Start the server
    */
   async run() {
-    logger.info('🚀 Starting consolidated security server...');
+    logger.info('[DEPLOY] Starting consolidated security server...');
     
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     
-    logger.info('✅ Consolidated Security Server ready and listening');
+    logger.info('[DONE] Consolidated Security Server ready and listening');
   }
 }
 
@@ -540,7 +540,7 @@ class ConsolidatedSecurityServer {
 if (require.main === module) {
   const server = new ConsolidatedSecurityServer();
   server.run().catch((error) => {
-    logger.error('❌ Security Server startup failed', { error });
+    logger.error('[ERROR] Security Server startup failed', { error });
     process.exit(1);
   });
 }

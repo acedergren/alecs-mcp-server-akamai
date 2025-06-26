@@ -379,7 +379,7 @@ export async function generateChangelog(
     if (includeBreaking) {
       const breakingChanges = changes.filter((c) => c.breaking);
       if (breakingChanges.length > 0) {
-        changelog += '### ⚠️ Breaking Changes\n\n';
+        changelog += '### [WARNING] Breaking Changes\n\n';
         for (const change of breakingChanges) {
           changelog += `- ${change.description}\n`;
         }
@@ -815,11 +815,11 @@ function groupChangesByCategory(changes: any[]): Record<string, any[]> {
 
 function formatCategory(_category: string): string {
   const categoryNames: Record<string, string> = {
-    featu_res: '✨ Features',
-    fixes: '🐛 Bug Fixes',
-    performance: '⚡ Performance',
-    documentation: '📚 Documentation',
-    other: '🔧 Other Changes',
+    featu_res: '[FEATURE] Features',
+    fixes: '[BUG] Bug Fixes',
+    performance: '[FAST] Performance',
+    documentation: '[DOCS] Documentation',
+    other: '[CONFIG] Other Changes',
   };
 
   return categoryNames[_category] || _category;

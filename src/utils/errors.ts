@@ -334,7 +334,7 @@ export function formatBulkOperationResults(results: any[]): string {
   if (successful.length > 0) {
     response += 'Successful:\n';
     successful.forEach((result) => {
-      response += `✓ ${result.resource || result.name}\n`;
+      response += `[EMOJI] ${result.resource || result.name}\n`;
     });
     response += '\n';
   }
@@ -342,7 +342,7 @@ export function formatBulkOperationResults(results: any[]): string {
   if (failed.length > 0) {
     response += 'Failed:\n';
     failed.forEach((result) => {
-      response += `✗ ${result.resource || result.name}: ${result.error}\n`;
+      response += `[EMOJI] ${result.resource || result.name}: ${result.error}\n`;
     });
     response += '\n';
 

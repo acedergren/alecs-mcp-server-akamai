@@ -77,7 +77,7 @@ export async function getSecurityPolicyIntegrationGuidance(
   const policyType = options.policyType || 'ACCESS_CONTROL';
   const listType = options.listType || 'IP';
 
-  let output = '🔐 **Security Policy Integration Guidance**\n\n';
+  let output = '[EMOJI] **Security Policy Integration Guidance**\n\n';
   output += `**Policy Type:** ${policyType.replace('_', ' ')}\n`;
   output += `**List Type:** ${listType}\n\n`;
 
@@ -200,63 +200,63 @@ export async function generateDeploymentChecklist(
   const targetNetwork = options.targetNetwork || 'STAGING';
   const securityLevel = options.securityLevel || 'MEDIUM';
 
-  let output = '📋 **Network List Deployment Checklist**\n\n';
+  let output = '[EMOJI] **Network List Deployment Checklist**\n\n';
   output += `**Target Network:** ${targetNetwork}\n`;
   output += `**Security Level:** ${securityLevel}\n`;
   output += `**Lists to Deploy:** ${listIds.length}\n\n`;
 
   output += '**Pre-Deployment Checklist:**\n';
-  output += '□ All network lists validated and tested\n';
-  output += '□ Business justification documented\n';
-  output += '□ Impact assessment completed\n';
-  output += '□ Stakeholder approval obtained\n';
-  output += '□ Monitoring and alerting configured\n';
-  output += '□ Support team notified\n';
+  output += '[EMOJI] All network lists validated and tested\n';
+  output += '[EMOJI] Business justification documented\n';
+  output += '[EMOJI] Impact assessment completed\n';
+  output += '[EMOJI] Stakeholder approval obtained\n';
+  output += '[EMOJI] Monitoring and alerting configured\n';
+  output += '[EMOJI] Support team notified\n';
 
   if (securityLevel === 'HIGH') {
-    output += '□ Security team approval obtained\n';
-    output += '□ Change management process followed\n';
-    output += '□ Compliance review completed\n';
+    output += '[EMOJI] Security team approval obtained\n';
+    output += '[EMOJI] Change management process followed\n';
+    output += '[EMOJI] Compliance review completed\n';
   }
 
   output += '\n**Deployment Steps:**\n';
-  output += '□ 1. Deploy to staging environment\n';
-  output += '□ 2. Validate staging configuration\n';
-  output += '□ 3. Run automated tests\n';
-  output += '□ 4. Perform manual verification\n';
-  output += '□ 5. Check monitoring dashboards\n';
+  output += '[EMOJI] 1. Deploy to staging environment\n';
+  output += '[EMOJI] 2. Validate staging configuration\n';
+  output += '[EMOJI] 3. Run automated tests\n';
+  output += '[EMOJI] 4. Perform manual verification\n';
+  output += '[EMOJI] 5. Check monitoring dashboards\n';
 
   if (targetNetwork === 'PRODUCTION') {
-    output += '□ 6. Schedule production deployment window\n';
-    output += '□ 7. Deploy to production\n';
-    output += '□ 8. Verify production activation\n';
-    output += '□ 9. Monitor for immediate issues\n';
-    output += '□ 10. Send deployment notification\n';
+    output += '[EMOJI] 6. Schedule production deployment window\n';
+    output += '[EMOJI] 7. Deploy to production\n';
+    output += '[EMOJI] 8. Verify production activation\n';
+    output += '[EMOJI] 9. Monitor for immediate issues\n';
+    output += '[EMOJI] 10. Send deployment notification\n';
   }
 
   output += '\n**Post-Deployment Verification:**\n';
-  output += '□ All lists show ACTIVE status\n';
-  output += '□ Policy enforcement working correctly\n';
-  output += '□ No unexpected blocking of legitimate traffic\n';
-  output += '□ Monitoring dashboards updated\n';
-  output += '□ Performance metrics within acceptable range\n';
-  output += '□ Documentation updated\n';
+  output += '[EMOJI] All lists show ACTIVE status\n';
+  output += '[EMOJI] Policy enforcement working correctly\n';
+  output += '[EMOJI] No unexpected blocking of legitimate traffic\n';
+  output += '[EMOJI] Monitoring dashboards updated\n';
+  output += '[EMOJI] Performance metrics within acceptable range\n';
+  output += '[EMOJI] Documentation updated\n';
 
   if (options.includeRollbackPlan) {
     output += '\n**Rollback Plan:**\n';
-    output += '□ Deactivation procedure documented\n';
-    output += '□ Rollback window defined\n';
-    output += '□ Emergency contacts identified\n';
-    output += '□ Escalation procedures defined\n';
-    output += '□ Communication plan prepared\n';
+    output += '[EMOJI] Deactivation procedure documented\n';
+    output += '[EMOJI] Rollback window defined\n';
+    output += '[EMOJI] Emergency contacts identified\n';
+    output += '[EMOJI] Escalation procedures defined\n';
+    output += '[EMOJI] Communication plan prepared\n';
   }
 
   output += '\n**Ongoing Maintenance:**\n';
-  output += '□ Regular review schedule established\n';
-  output += '□ Update procedures documented\n';
-  output += '□ Performance monitoring configured\n';
-  output += '□ Audit schedule defined\n';
-  output += '□ Training materials updated\n';
+  output += '[EMOJI] Regular review schedule established\n';
+  output += '[EMOJI] Update procedures documented\n';
+  output += '[EMOJI] Performance monitoring configured\n';
+  output += '[EMOJI] Audit schedule defined\n';
+  output += '[EMOJI] Training materials updated\n';
 
   return {
     content: [

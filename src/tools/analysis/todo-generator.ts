@@ -182,17 +182,17 @@ export class TodoGenerator {
   };
 
   private readonly taskTypes: Record<string, TaskType> = {
-    bug_fix: { category: 'Bug Fix', icon: '🐛' },
-    configuration: { category: 'Configuration', icon: '⚙️' },
-    infrastructure: { category: 'Infrastructure', icon: '🏗️' },
-    security: { category: 'Security', icon: '🔒' },
-    performance: { category: 'Performance', icon: '⚡' },
-    testing: { category: 'Testing', icon: '🧪' },
-    documentation: { category: 'Documentation', icon: '📚' },
-    monitoring: { category: 'Monitoring', icon: '📊' },
-    maintenance: { category: 'Maintenance', icon: '🔧' },
-    improvement: { category: 'Improvement', icon: '✨' },
-    enhancement: { category: 'Enhancement', icon: '🚀' },
+    bug_fix: { category: 'Bug Fix', icon: '[BUG]' },
+    configuration: { category: 'Configuration', icon: '[SETTINGS]' },
+    infrastructure: { category: 'Infrastructure', icon: '[BUILD]' },
+    security: { category: 'Security', icon: '[SECURE]' },
+    performance: { category: 'Performance', icon: '[FAST]' },
+    testing: { category: 'Testing', icon: '[TEST]' },
+    documentation: { category: 'Documentation', icon: '[DOCS]' },
+    monitoring: { category: 'Monitoring', icon: '[METRICS]' },
+    maintenance: { category: 'Maintenance', icon: '[CONFIG]' },
+    improvement: { category: 'Improvement', icon: '[FEATURE]' },
+    enhancement: { category: 'Enhancement', icon: '[DEPLOY]' },
   };
 
   /**
@@ -1036,7 +1036,7 @@ export class TodoGenerator {
 
     // Quick Wins
     if (todos.quickWins.length > 0) {
-      markdown += '## 🚀 Quick Wins\n\n';
+      markdown += '## [DEPLOY] Quick Wins\n\n';
       todos.quickWins.forEach((item) => {
         markdown += `- **${item.title}** (${item.effort_details?.hours}h) - ${item.description}\n`;
       });
@@ -1048,12 +1048,12 @@ export class TodoGenerator {
       if (items.length > 0) {
         const emoji =
           priority === 'CRITICAL'
-            ? '🚨'
+            ? '[EMOJI]'
             : priority === 'HIGH'
-              ? '⚠️'
+              ? '[WARNING]'
               : priority === 'MEDIUM'
-                ? '📋'
-                : '📝';
+                ? '[EMOJI]'
+                : '[DOCS]';
         markdown += `## ${emoji} ${priority} Priority\n\n`;
 
         items.forEach((item) => {

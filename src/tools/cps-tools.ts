@@ -178,7 +178,7 @@ export async function createDVEnrollment(
       content: [
         {
           type: 'text',
-          text: `✅ Created Default DV certificate enrollment!\n\n**Enrollment ID:** ${enrollmentId}\n**Common Name:** ${args.commonName}\n**SANs:** ${args.sans?.join(', ') || 'None'}\n**Network:** ${args.enhancedTLS !== false ? 'Enhanced TLS' : 'Standard TLS'}\n**QUIC:** ${args.quicEnabled ? 'Enabled' : 'Disabled'}\n\n## Next Steps\n\n1. **Complete DNS Validation:**\n   "Get DV validation challenges for enrollment ${enrollmentId}"\n\n2. **Check Validation Status:**\n   "Check DV enrollment status ${enrollmentId}"\n\n3. **Deploy Certificate:**\n   Once validated, the certificate will be automatically deployed.\n\n⏱️ **Timeline:**\n- DNS validation: 5-10 minutes after DNS records are created\n- Certificate issuance: 10-15 minutes after validation\n- Deployment: 30-60 minutes after issuance`,
+          text: `[DONE] Created Default DV certificate enrollment!\n\n**Enrollment ID:** ${enrollmentId}\n**Common Name:** ${args.commonName}\n**SANs:** ${args.sans?.join(', ') || 'None'}\n**Network:** ${args.enhancedTLS !== false ? 'Enhanced TLS' : 'Standard TLS'}\n**QUIC:** ${args.quicEnabled ? 'Enabled' : 'Disabled'}\n\n## Next Steps\n\n1. **Complete DNS Validation:**\n   "Get DV validation challenges for enrollment ${enrollmentId}"\n\n2. **Check Validation Status:**\n   "Check DV enrollment status ${enrollmentId}"\n\n3. **Deploy Certificate:**\n   Once validated, the certificate will be automatically deployed.\n\n[EMOJI]️ **Timeline:**\n- DNS validation: 5-10 minutes after DNS records are created\n- Certificate issuance: 10-15 minutes after validation\n- Deployment: 30-60 minutes after issuance`,
         },
       ],
     };
@@ -223,11 +223,11 @@ export async function getDVValidationChallenges(
     for (const domain of response.allowedDomains) {
       const statusEmoji =
         {
-          VALIDATED: '✅',
-          PENDING: '⏳',
-          IN_PROGRESS: '🔄',
-          ERROR: '❌',
-          EXPIRED: '⚠️',
+          VALIDATED: '[DONE]',
+          PENDING: '[EMOJI]',
+          IN_PROGRESS: '[EMOJI]',
+          ERROR: '[ERROR]',
+          EXPIRED: '[WARNING]',
         }[
           domain.validationStatus as keyof {
             VALIDATED: string;
@@ -236,7 +236,7 @@ export async function getDVValidationChallenges(
             ERROR: string;
             EXPIRED: string;
           }
-        ] || '❓';
+        ] || '[EMOJI]';
 
       text += `### ${statusEmoji} ${domain.name}\n`;
       text += `- **Status:** ${domain.status}\n`;
@@ -272,7 +272,7 @@ export async function getDVValidationChallenges(
           }
 
           if (challenge.error) {
-            text += `    - ⚠️ Error: ${challenge.error}\n`;
+            text += `    - [WARNING] Error: ${challenge.error}\n`;
           }
         }
       }
@@ -280,7 +280,7 @@ export async function getDVValidationChallenges(
     }
 
     if (dnsRecordsToCreate.length > 0) {
-      text += '## 🚨 Required DNS Records\n\n';
+      text += '## [EMOJI] Required DNS Records\n\n';
       text += 'Create the following TXT records to complete validation:\n\n';
 
       for (const record of dnsRecordsToCreate) {
@@ -304,7 +304,7 @@ export async function getDVValidationChallenges(
         '2. Check validation status: "Check DV enrollment status ' + args.enrollmentId + '"\n';
       text += '3. Certificate will be issued automatically once all domains are validated\n';
     } else if (response.status === 'VALIDATED' || !hasPendingValidations) {
-      text += '## ✅ All Domains Validated!\n\n';
+      text += '## [DONE] All Domains Validated!\n\n';
       text += 'The certificate has been issued or is being issued.\n';
       text +=
         'Check deployment status: "Get certificate deployment status ' + args.enrollmentId + '"';
@@ -343,14 +343,14 @@ export async function checkDVEnrollmentStatus(
 
     const statusEmoji =
       {
-        active: '✅',
-        new: '🆕',
-        modified: '📝',
-        'renewal-in-progress': '🔄',
-        'expiring-soon': '⚠️',
-        expired: '❌',
-        pending: '⏳',
-        cancelled: '🚫',
+        active: '[DONE]',
+        new: '[EMOJI]',
+        modified: '[DOCS]',
+        'renewal-in-progress': '[EMOJI]',
+        'expiring-soon': '[WARNING]',
+        expired: '[ERROR]',
+        pending: '[EMOJI]',
+        cancelled: '[EMOJI]',
       }[
         response.status.toLowerCase() as keyof {
           active: string;
@@ -362,7 +362,7 @@ export async function checkDVEnrollmentStatus(
           pending: string;
           cancelled: string;
         }
-      ] || '❓';
+      ] || '[EMOJI]';
 
     let text = '# Certificate Enrollment Status\n\n';
     text += `**Enrollment ID:** ${response.enrollmentId}\n`;
@@ -382,11 +382,11 @@ export async function checkDVEnrollmentStatus(
     for (const domain of response.allowedDomains) {
       const emoji =
         {
-          VALIDATED: '✅',
-          PENDING: '⏳',
-          IN_PROGRESS: '🔄',
-          ERROR: '❌',
-          EXPIRED: '⚠️',
+          VALIDATED: '[DONE]',
+          PENDING: '[EMOJI]',
+          IN_PROGRESS: '[EMOJI]',
+          ERROR: '[ERROR]',
+          EXPIRED: '[WARNING]',
         }[
           domain.validationStatus as keyof {
             VALIDATED: string;
@@ -395,7 +395,7 @@ export async function checkDVEnrollmentStatus(
             ERROR: string;
             EXPIRED: string;
           }
-        ] || '❓';
+        ] || '[EMOJI]';
 
       text += `- ${emoji} **${domain.name}**: ${domain.validationStatus}\n`;
 
@@ -408,7 +408,7 @@ export async function checkDVEnrollmentStatus(
     }
 
     if (response.pendingChanges && response.pendingChanges.length > 0) {
-      text += '\n## ⚠️ Pending Changes\n\n';
+      text += '\n## [WARNING] Pending Changes\n\n';
       response.pendingChanges.forEach((change: any) => {
         text += `- ${change}\n`;
       });
@@ -417,7 +417,7 @@ export async function checkDVEnrollmentStatus(
     text += '\n## Next Steps\n\n';
 
     if (hasErrors) {
-      text += '❌ **Validation Errors Detected**\n\n';
+      text += '[ERROR] **Validation Errors Detected**\n\n';
       text +=
         '1. Get validation details: "Get DV validation challenges for enrollment ' +
         args.enrollmentId +
@@ -425,7 +425,7 @@ export async function checkDVEnrollmentStatus(
       text += '2. Fix any DNS record issues\n';
       text += '3. Retry validation if needed\n';
     } else if (!allValidated) {
-      text += '⏳ **Validation In Progress**\n\n';
+      text += '[EMOJI] **Validation In Progress**\n\n';
       text +=
         '1. Check validation requirements: "Get DV validation challenges for enrollment ' +
         args.enrollmentId +
@@ -433,12 +433,12 @@ export async function checkDVEnrollmentStatus(
       text += '2. Ensure all DNS records are created\n';
       text += '3. Wait for validation to complete (usually 5-15 minutes)\n';
     } else if (response.status.toLowerCase() === 'active') {
-      text += '✅ **Certificate Active!**\n\n';
+      text += '[DONE] **Certificate Active!**\n\n';
       text += 'Your certificate is deployed and active.\n\n';
       text += 'To link to a property:\n';
       text += '"Link certificate ' + args.enrollmentId + ' to property [propertyId]"\n';
     } else if (allValidated) {
-      text += '🔄 **Certificate Deployment In Progress**\n\n';
+      text += '[EMOJI] **Certificate Deployment In Progress**\n\n';
       text += 'All domains are validated. Certificate deployment typically takes 30-60 minutes.\n';
       text += 'Check again later: "Check DV enrollment status ' + args.enrollmentId + '"';
     }
@@ -510,7 +510,7 @@ export async function listCertificateEnrollments(
 
     // Display active certificates first
     if (byStatus['active']) {
-      text += '## ✅ Active Certificates\n\n';
+      text += '## [DONE] Active Certificates\n\n';
       for (const enrollment of byStatus['active']) {
         text += formatEnrollmentSummary(enrollment);
       }
@@ -519,7 +519,7 @@ export async function listCertificateEnrollments(
     // Then pending/in-progress
     const inProgress = [...(byStatus['pending'] || []), ...(byStatus['renewal-in-progress'] || [])];
     if (inProgress.length > 0) {
-      text += '## ⏳ In Progress\n\n';
+      text += '## [EMOJI] In Progress\n\n';
       for (const enrollment of inProgress) {
         text += formatEnrollmentSummary(enrollment);
       }
@@ -527,7 +527,7 @@ export async function listCertificateEnrollments(
 
     // Then expiring soon
     if (byStatus['expiring-soon']) {
-      text += '## ⚠️ Expiring Soon\n\n';
+      text += '## [WARNING] Expiring Soon\n\n';
       for (const enrollment of byStatus['expiring-soon']) {
         text += formatEnrollmentSummary(enrollment);
       }
@@ -619,7 +619,7 @@ export async function linkCertificateToProperty(
       content: [
         {
           type: 'text',
-          text: `✅ Linked certificate enrollment ${args.enrollmentId} to property ${property.propertyName} (v${version})\n\n## Next Steps\n\n1. **Activate Property:**\n   "Activate property ${args.propertyId} to staging"\n\n2. **Verify HTTPS:**\n   Once activated, test HTTPS access to your domains\n\n3. **Monitor Certificate:**\n   "Check DV enrollment status ${args.enrollmentId}"\n\n⚠️ **Important:** The property must be activated for the certificate to take effect.`,
+          text: `[DONE] Linked certificate enrollment ${args.enrollmentId} to property ${property.propertyName} (v${version})\n\n## Next Steps\n\n1. **Activate Property:**\n   "Activate property ${args.propertyId} to staging"\n\n2. **Verify HTTPS:**\n   Once activated, test HTTPS access to your domains\n\n3. **Monitor Certificate:**\n   "Check DV enrollment status ${args.enrollmentId}"\n\n[WARNING] **Important:** The property must be activated for the certificate to take effect.`,
         },
       ],
     };
@@ -634,15 +634,15 @@ export async function linkCertificateToProperty(
 function formatEnrollmentSummary(enrollment: CPSEnrollmentStatus): string {
   const statusEmoji =
     {
-      active: '✅',
-      new: '🆕',
-      modified: '📝',
-      'renewal-in-progress': '🔄',
-      'expiring-soon': '⚠️',
-      expired: '❌',
-      pending: '⏳',
-      cancelled: '🚫',
-    }[enrollment.status.toLowerCase()] || '❓';
+      active: '[DONE]',
+      new: '[EMOJI]',
+      modified: '[DOCS]',
+      'renewal-in-progress': '[EMOJI]',
+      'expiring-soon': '[WARNING]',
+      expired: '[ERROR]',
+      pending: '[EMOJI]',
+      cancelled: '[EMOJI]',
+    }[enrollment.status.toLowerCase()] || '[EMOJI]';
 
   let text = `### ${statusEmoji} Enrollment ${enrollment.enrollmentId}\n`;
   text += `- **Type:** ${enrollment.certificateType} (${enrollment.validationType.toUpperCase()})\n`;
@@ -665,7 +665,7 @@ function formatEnrollmentSummary(enrollment: CPSEnrollmentStatus): string {
  * Format error responses with helpful guidance
  */
 function formatError(operation: string, _error: any): MCPToolResponse {
-  let errorMessage = `❌ Failed to ${operation}`;
+  let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 
   if (_error instanceof Error) {
