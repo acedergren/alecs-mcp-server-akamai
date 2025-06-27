@@ -15,9 +15,10 @@ This document outlines the comprehensive technical debt remediation plan for the
 
 ### Outstanding Technical Debt
 
-#### 1. TypeScript Type Safety Issues (High Priority)
-**Files with `as any` usage**: ~40 files
-**Estimated effort**: 40 developer-days
+#### 1. TypeScript Type Safety Issues (CRITICAL PRIORITY)
+**Files with `any` type usage**: 162 files
+**Files with unsafe type assertions**: 138 files
+**Estimated effort**: 120 developer-days
 
 ##### Specific Files Requiring Attention:
 ```
@@ -44,8 +45,9 @@ src/auth/oauth-middleware.ts
 ```
 
 ##### Action Items:
-- [ ] Create proper TypeScript interfaces for all tool parameters
-- [ ] Replace all `as any` type assertions with proper type guards
+- [ ] **CRITICAL**: Replace 162 files with `any` type usage with proper interfaces
+- [ ] **CRITICAL**: Fix 138 files with unsafe type assertions 
+- [ ] **CRITICAL**: Eliminate god classes (property-manager-tools.ts: 2,096 lines)
 - [ ] Implement strict null checks throughout the codebase
 - [ ] Add comprehensive JSDoc annotations following CODE_ANNOTATION_STANDARDS.md
 
@@ -94,22 +96,47 @@ src/auth/oauth-middleware.ts
 - [ ] Optimize TypeScript compilation time
 - [ ] Implement lazy loading for large modules
 
-#### 6. Security Hardening (High Priority)
-**Status**: Basic security implemented, needs hardening
-**Estimated effort**: 20 developer-days
+#### 6. Security Hardening (CRITICAL PRIORITY)
+**Status**: Critical security vulnerabilities identified
+**Estimated effort**: 35 developer-days
+
+##### Critical Security Issues:
+- **PII Exposure**: Search queries logged to console (universal-search-simplified.ts:55-56)
+- **Sensitive Data Logging**: Authorization decisions exposed (oauth-authorization.ts:246)
+- **Production Debug Code**: 24 files with console.log statements exposing data
 
 ##### Action Items:
+- [ ] **CRITICAL**: Remove all console.log statements from production code
+- [ ] **CRITICAL**: Implement secure logging with PII filtering
+- [ ] **CRITICAL**: Remove sensitive data from debug outputs
 - [ ] Implement comprehensive input validation
 - [ ] Add rate limiting per customer
 - [ ] Enhance credential encryption
 - [ ] Implement security headers
 - [ ] Add vulnerability scanning to CI/CD
 
-#### 7. Code Organization (Low Priority)
-**Status**: Some modules need restructuring
-**Estimated effort**: 10 developer-days
+#### 7. Memory Leaks and Performance (CRITICAL PRIORITY)
+**Status**: Critical memory leaks and performance issues identified
+**Estimated effort**: 25 developer-days
+
+##### Critical Issues:
+- **Memory Leak**: setInterval in middleware without cleanup (security.ts:85)
+- **Inefficient Async**: setTimeout polling instead of promises (property-manager-tools.ts:2081)
+- **26 Wildcard Imports**: Causing bundle bloat and performance degradation
 
 ##### Action Items:
+- [ ] **CRITICAL**: Fix memory leaks by implementing proper cleanup in middleware
+- [ ] **CRITICAL**: Replace setTimeout polling with proper async/await patterns
+- [ ] **CRITICAL**: Replace wildcard imports with specific imports
+- [ ] Implement proper promise-based polling mechanisms
+- [ ] Add memory monitoring and alerts
+
+#### 8. Code Organization (Medium Priority)
+**Status**: Some modules need restructuring
+**Estimated effort**: 15 developer-days
+
+##### Action Items:
+- [ ] Break down god classes into domain-specific modules
 - [ ] Implement domain-driven design structure
 - [ ] Consolidate duplicate functionality
 - [ ] Standardize naming conventions
@@ -118,29 +145,35 @@ src/auth/oauth-middleware.ts
 
 ## Implementation Roadmap
 
-### Phase 1: Critical Type Safety (Weeks 1-4)
-- Fix all `as any` usage
-- Implement proper type guards
-- Add null safety checks
-- Create comprehensive type definitions
+### Phase 1: CRITICAL Security & Memory Fixes (Weeks 1-2)
+- **CRITICAL**: Remove all console.log statements from production code
+- **CRITICAL**: Fix memory leaks in middleware (security.ts:85)
+- **CRITICAL**: Implement secure logging with PII filtering
+- **CRITICAL**: Remove sensitive data exposure
 
-### Phase 2: Documentation Excellence (Weeks 5-6)
+### Phase 2: CRITICAL Type Safety (Weeks 3-8)
+- Replace 162 files with `any` type usage
+- Fix 138 files with unsafe type assertions
+- Break down god classes (property-manager-tools.ts: 2,096 lines)
+- Implement proper type guards and interfaces
+
+### Phase 3: Performance & Architecture (Weeks 9-12)
+- Replace setTimeout polling with proper async/await patterns
+- Fix 26 wildcard imports causing bundle bloat
+- Implement domain-driven design structure
+- Standardize error handling patterns
+
+### Phase 4: Documentation & Testing (Weeks 13-16)
 - Implement new documentation architecture
-- Add code annotations per standards
-- Create visual diagrams
-- Write API examples
+- Fix MCP test compilation issues
+- Add comprehensive test coverage
+- Create visual architecture diagrams
 
-### Phase 3: Test Coverage (Weeks 7-8)
-- Fix MCP test compilation
-- Add missing integration tests
-- Implement E2E test suite
-- Add performance tests
-
-### Phase 4: Production Hardening (Weeks 9-10)
-- Standardize error handling
-- Implement security enhancements
-- Optimize performance
-- Clean up code organization
+### Phase 5: Production Hardening (Weeks 17-18)
+- Final security enhancements
+- Performance optimizations
+- Code quality improvements
+- Deployment readiness
 
 ## Success Metrics
 
@@ -178,6 +211,6 @@ src/auth/oauth-middleware.ts
 
 ## Conclusion
 
-This technical debt remediation plan represents approximately 145 developer-days of effort. By systematically addressing each area, we will transform the ALECS MCP Server into a production-ready, enterprise-grade solution that meets Akamai's high standards for quality, security, and maintainability.
+This technical debt remediation plan represents approximately **245 developer-days of effort** (significantly increased from the initial 145 days due to the discovery of critical issues). By systematically addressing each area, we will transform the ALECS MCP Server into a production-ready, enterprise-grade solution that meets Akamai's high standards for quality, security, and maintainability.
 
 The focus on "No shortcuts, hard work, perfect software, no bugs" as per the Snow Leopard philosophy will ensure that this codebase becomes a model for future MCP server implementations.
