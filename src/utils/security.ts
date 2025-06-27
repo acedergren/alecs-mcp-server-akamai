@@ -13,7 +13,7 @@ export class RateLimiter {
   private requests: Map<string, number[]> = new Map();
   private readonly windowMs: number;
   private readonly maxRequests: number;
-  private cleanupInterval?: NodeJS.Timeout;
+  private cleanupInterval: NodeJS.Timeout | undefined;
 
   constructor(windowMs = 60000, maxRequests = 100) {
     this.windowMs = windowMs;
@@ -282,8 +282,8 @@ export class GracefulShutdown {
 
 // Export singleton instances
 export const rateLimiter = new RateLimiter(
-  parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'),
-  parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100')
+  parseInt(process.env['RATE_LIMIT_WINDOW_MS'] || '60000'),
+  parseInt(process.env['RATE_LIMIT_MAX_REQUESTS'] || '100')
 );
 
 export const gracefulShutdown = new GracefulShutdown();

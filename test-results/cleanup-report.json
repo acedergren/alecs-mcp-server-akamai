@@ -1,0 +1,18 @@
+{
+  "testRun": "2025-06-27T19:48:33.951Z",
+  "customer": "default",
+  "propertiesCreated": [
+    {
+      "propertyId": "Property 1234695",
+      "propertyName": "alecs-crud-test-1751053616480",
+      "created": "2025-06-27T19:48:30.469Z"
+    }
+  ],
+  "cleanupInstructions": [
+    "1. Login to Akamai Control Center",
+    "2. Navigate to Property Manager",
+    "3. Search for properties with prefix: alecs-crud-test",
+    "4. Deactivate properties from all networks",
+    "5. Delete properties from the interface"
+  ]
+}

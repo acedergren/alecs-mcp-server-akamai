@@ -12,8 +12,7 @@ import { TransportConfig, getTransportFromEnv } from '../config/transport-config
 let express: any;
 let WebSocketServerTransport: any;
 let SSEServerTransport: any;
-let WebSocketServer: any;
-let createHttpServer: any;
+// WebSocketServer and createHttpServer are available but loaded dynamically
 
 async function loadOptionalDependencies() {
   try {

@@ -35,6 +35,10 @@ import {
   checkDVEnrollmentStatus,
   listCertificateEnrollments,
   linkCertificateToProperty,
+  downloadCSR,
+  uploadThirdPartyCertificate,
+  updateCertificateEnrollment,
+  deleteCertificateEnrollment,
 } from '../tools/cps-tools';
 
 // Edge Hostname Certificate Tools
@@ -225,6 +229,78 @@ class CertsALECSServer {
               propertyVersion: { type: 'number', description: 'Property version' },
             },
             required: ['enrollmentId', 'propertyId', 'propertyVersion'],
+          },
+        },
+        // A+ Features - Third-party certificates and lifecycle management
+        {
+          name: 'download-csr',
+          description: 'Download Certificate Signing Request (CSR) for third-party certificate enrollment',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: { type: 'string', description: 'Optional: Customer section name' },
+              enrollmentId: { type: 'number', description: 'Certificate enrollment ID' },
+            },
+            required: ['enrollmentId'],
+          },
+        },
+        {
+          name: 'upload-third-party-certificate',
+          description: 'Upload signed certificate from external Certificate Authority',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: { type: 'string', description: 'Optional: Customer section name' },
+              enrollmentId: { type: 'number', description: 'Certificate enrollment ID' },
+              certificate: { type: 'string', description: 'PEM-formatted certificate' },
+              trustChain: { type: 'string', description: 'Optional: PEM-formatted trust chain' },
+            },
+            required: ['enrollmentId', 'certificate'],
+          },
+        },
+        {
+          name: 'update-certificate-enrollment',
+          description: 'Update certificate enrollment configuration',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: { type: 'string', description: 'Optional: Customer section name' },
+              enrollmentId: { type: 'number', description: 'Certificate enrollment ID' },
+              commonName: { type: 'string', description: 'Updated common name' },
+              sans: { type: 'array', items: { type: 'string' }, description: 'Updated SANs' },
+              adminContact: { type: 'object', description: 'Updated admin contact' },
+              techContact: { type: 'object', description: 'Updated tech contact' },
+              networkConfiguration: { type: 'object', description: 'Updated network config' },
+              changeManagement: { type: 'boolean', description: 'Enable/disable auto-renewal' },
+            },
+            required: ['enrollmentId'],
+          },
+        },
+        {
+          name: 'delete-certificate-enrollment',
+          description: 'Delete certificate enrollment (with safety checks)',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: { type: 'string', description: 'Optional: Customer section name' },
+              enrollmentId: { type: 'number', description: 'Certificate enrollment ID' },
+              force: { type: 'boolean', description: 'Force deletion of active certificates' },
+            },
+            required: ['enrollmentId'],
+          },
+        },
+        {
+          name: 'monitor-certificate-deployment',
+          description: 'Monitor certificate deployment with real-time status and estimated completion times',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              customer: { type: 'string', description: 'Optional: Customer section name' },
+              enrollmentId: { type: 'number', description: 'Certificate enrollment ID' },
+              maxWaitMinutes: { type: 'number', description: 'Maximum wait time (default: 120)' },
+              pollIntervalSeconds: { type: 'number', description: 'Poll interval (default: 30)' },
+            },
+            required: ['enrollmentId'],
           },
         },
         // Advanced Certificate Enrollment
@@ -599,6 +675,23 @@ class CertsALECSServer {
             break;
           case 'link-certificate-to-property':
             result = await linkCertificateToProperty(client, args as any);
+            break;
+
+          // A+ Features - Third-party certificates and lifecycle management
+          case 'download-csr':
+            result = await downloadCSR(client, args as any);
+            break;
+          case 'upload-third-party-certificate':
+            result = await uploadThirdPartyCertificate(client, args as any);
+            break;
+          case 'update-certificate-enrollment':
+            result = await updateCertificateEnrollment(client, args as any);
+            break;
+          case 'delete-certificate-enrollment':
+            result = await deleteCertificateEnrollment(client, args as any);
+            break;
+          case 'monitor-certificate-deployment':
+            result = await monitorCertificateDeployment(client, args as any);
             break;
 
           // Advanced Certificate Enrollment

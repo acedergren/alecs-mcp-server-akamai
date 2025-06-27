@@ -5,6 +5,93 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2025-01-27
+
+### Removed - CODE KAI Quality Standards
+
+- **Observability/Diagnostics Stack**: Removed entire observability directory
+  - **Dead Code**: InstrumentedMCPServer was never integrated with actual MCP server
+  - **Stub Implementations**: Methods returned empty arrays or placeholder values
+  - **No Value**: Complex architecture with zero actual diagnostic capability
+  - **CODE KAI Principle**: Remove code that adds complexity without function
+
+### Changed - CODE KAI Microfixing
+
+- **AppSec Tools**: Enhanced with runtime validation and MCP-compliant responses
+  - Added Zod schemas for all API responses
+  - Implemented type guards for safe type assertions
+  - Enhanced error messages with actionable guidance
+  - Full MCP response format compliance
+
+- **FastPurge Tools**: Applied CODE KAI transformation
+  - Runtime validation with PurgeResponseSchema and PurgeStatusResponseSchema
+  - Custom FastPurgeValidationError for precise feedback
+  - Type guards: isPurgeResponse, isPurgeStatusResponse
+  - MCP-compliant response formatting
+
+### Fixed - TypeScript Compliance
+
+- **Snow Leopard Standard**: Removed @ts-nocheck from property-manager-tools.ts
+- **Strict Mode Fixes**: Resolved TypeScript errors in AppSec implementation
+
+## [1.6.0-rc1] - 2025-06-27
+
+### Removed - CODE KAI Emergency Cleanup
+
+- **🧹 Removed Fake Tools**: Emergency cleanup of sophisticated fakes
+  - **Consolidated Tools Directory**: Removed entire `src/tools/consolidated/` containing ~80 sophisticated fake tools that returned demo data instead of making real Akamai API calls
+  - **Workflow Assistants Directory**: Removed entire `src/tools/workflows/` containing workflow assistants with @ts-nocheck directives and template responses  
+  - **Fake Tool Registry**: Updated `all-tools-registry.ts` to remove imports of non-functional tools
+
+- **🎯 Snow Leopard Philosophy**: "Perfect Software, No Bugs"
+  - Only expose functionality that actually works with real Akamai APIs
+  - No demo responses, no sophisticated stubs, no fake tools
+  - Clear distinction between working tools and development stubs
+
+### Fixed - JSON-RPC Protocol Issues
+
+- **📡 Claude Desktop Compatibility**: Fixed JSON-RPC communication errors
+  - **Safe Console**: Created `src/utils/safe-console.ts` to redirect console.log to stderr
+  - **Clean stdout**: Prevents console output from corrupting JSON-RPC messages
+  - **Protocol Compliance**: Ensures proper MCP protocol communication with Claude Desktop
+
+### Changed - Tool Consolidation
+
+- **🔍 Search Tool Simplification**: Streamlined search functionality
+  - Renamed "akamai.search" to "search" for better user experience
+  - Removed duplicate search tools (`search-properties` removed in favor of unified search)
+  - Improved search tool discoverability
+
+### Security - Real API Integration Only
+
+- **✅ Working Tools Verified**: All remaining tools make actual Akamai API calls
+  - **Property Manager (PAPI)**: Full CRUD operations on CDN properties
+  - **Edge DNS**: Zone and record management with change-list workflow  
+  - **Certificate Provisioning (CPS)**: DV certificate enrollment and management
+  - **FastPurge**: Content invalidation and cache management
+  - **Network Lists**: IP/Geo blocking and security list management
+  - **Universal Search**: Find any Akamai resource across accounts
+
+### Developer Experience
+
+- **📋 CODE KAI Diet Plan**: Documented systematic deduplication strategy
+  - Path from 189 tools to 25-30 core working tools
+  - Identification of fake vs real tool implementations
+  - Emergency cleanup execution and documentation
+
+### Breaking Changes
+
+- **⚠️ Removed Workflow Assistants**: These were sophisticated fakes
+  - Infrastructure Workflow Assistant → Use individual property tools
+  - DNS Workflow Assistant → Use individual DNS tools  
+  - Security Workflow Assistant → Use individual security tools
+  - Performance Workflow Assistant → Use FastPurge and reporting tools
+
+- **⚠️ Removed Consolidated Tools**: These returned demo data
+  - Consolidated Property Tool → Use individual property-tools.ts functions
+  - Consolidated DNS Tool → Use individual dns-tools.ts functions
+  - Consolidated Certificate Tool → Use individual cps-tools.ts functions
+
 ## [1.5.0] - 2025-06-23
 
 ### Added - Complete CI/CD and Docker Multi-Variant Build System

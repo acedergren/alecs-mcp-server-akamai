@@ -243,7 +243,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
     return this.executeRequest({
       method: 'GET',
       path,
-      headers,
+      ...(headers && { headers }),
     });
   }
 
@@ -296,7 +296,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
     return this.executeRequest({
       method: 'DELETE',
       path,
-      headers,
+      ...(headers && { headers }),
     });
   }
 

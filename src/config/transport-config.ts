@@ -26,11 +26,11 @@ export function getTransportFromEnv(): TransportConfig {
       return {
         type: 'websocket',
         options: {
-          port: parseInt(process.env.WS_PORT || '8080'),
-          host: process.env.WS_HOST || '0.0.0.0',
-          path: process.env.WS_PATH || '/mcp',
-          auth: (process.env.AUTH_TYPE as any) || 'token',
-          ssl: process.env.SSL_ENABLED === 'true'
+          port: parseInt(process.env['WS_PORT'] || '8080'),
+          host: process.env['WS_HOST'] || '0.0.0.0',
+          path: process.env['WS_PATH'] || '/mcp',
+          auth: (process.env['AUTH_TYPE'] as any) || 'token',
+          ssl: process.env['SSL_ENABLED'] === 'true'
         }
       };
       
@@ -38,11 +38,11 @@ export function getTransportFromEnv(): TransportConfig {
       return {
         type: 'sse',
         options: {
-          port: parseInt(process.env.SSE_PORT || '3001'),
-          host: process.env.SSE_HOST || '0.0.0.0',
-          path: process.env.SSE_PATH || '/mcp/sse',
-          cors: process.env.CORS_ENABLED !== 'false',
-          auth: (process.env.AUTH_TYPE as any) || 'none'
+          port: parseInt(process.env['SSE_PORT'] || '3001'),
+          host: process.env['SSE_HOST'] || '0.0.0.0',
+          path: process.env['SSE_PATH'] || '/mcp/sse',
+          cors: process.env['CORS_ENABLED'] !== 'false',
+          auth: (process.env['AUTH_TYPE'] as any) || 'none'
         }
       };
       

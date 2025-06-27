@@ -44,6 +44,38 @@ import {
 
 import { logger } from '../utils/logger';
 
+// CODE KAI FIX: Placeholder tools for compilation - NON-FUNCTIONAL
+const certificateTool = {
+  name: 'certificate.manage',
+  description: 'NON-FUNCTIONAL: Certificate management placeholder',
+  inputSchema: { type: 'object', properties: {} }
+};
+
+const searchTool = {
+  name: 'certificate.search', 
+  description: 'NON-FUNCTIONAL: Certificate search placeholder',
+  inputSchema: { type: 'object', properties: {} }
+};
+
+const deployTool = {
+  name: 'certificate.deploy',
+  description: 'NON-FUNCTIONAL: Certificate deployment placeholder', 
+  inputSchema: { type: 'object', properties: {} }
+};
+
+// Placeholder handlers for compilation
+async function handleCertificateTool(args: any): Promise<any> {
+  throw new Error('NON-FUNCTIONAL: Certificate tools removed, use modular servers');
+}
+
+async function handleSearchTool(args: any): Promise<any> {
+  throw new Error('NON-FUNCTIONAL: Certificate tools removed, use modular servers');
+}
+
+async function handleDeployTool(args: any): Promise<any> {
+  throw new Error('NON-FUNCTIONAL: Certificate tools removed, use modular servers');
+}
+
 /**
  * Arguments for certificate tool operations
  * 

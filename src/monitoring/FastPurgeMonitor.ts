@@ -76,7 +76,7 @@ export class FastPurgeMonitor {
   private metrics: Map<string, FastPurgeMetrics[]> = new Map();
   private alertConditions: AlertCondition[] = [];
   private isCollecting = false;
-  private collectionInterval?: NodeJS.Timeout;
+  private collectionInterval: NodeJS.Timeout | undefined;
 
   private constructor() {
     this.fastPurgeService = FastPurgeService.getInstance();

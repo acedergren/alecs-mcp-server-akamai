@@ -27,7 +27,7 @@ import { logger } from './utils/logger';
 
 async function main(): Promise<void> {
   // Check if running a specific module via npm script
-  const scriptName = process.env.npm_lifecycle_event;
+  const scriptName = process.env['npm_lifecycle_event'];
   
   if (scriptName && scriptName.startsWith('start:') && scriptName !== 'start:stdio') {
     // Launch specific module server
@@ -41,7 +41,7 @@ async function main(): Promise<void> {
     };
     
     if (moduleMap[moduleName]) {
-      const module = await import(moduleMap[moduleName]);
+      await import(moduleMap[moduleName]);
       return;
     }
   }
@@ -89,9 +89,10 @@ async function main(): Promise<void> {
 `);
     }
     
-    // Import and start the full server
-    const { ALECSFullServer } = await import('./index-full');
-    const server = new ALECSFullServer({
+    // Start modular server based on transport configuration
+    const { createModularServer } = await import('./utils/modular-server-factory');
+    
+    const server = await createModularServer({
       name: `alecs-mcp-server-akamai`,
       version: '1.6.0',
     });

@@ -1,6 +1,42 @@
 /**
- * Customer Context Manager
- * Integrates OAuth authentication, credential management, and authorization
+ * ENTERPRISE MULTI-TENANT CUSTOMER CONTEXT MANAGER
+ * 
+ * HOSTED REMOTE MCP SERVER ARCHITECTURE:
+ * This is the cornerstone of enterprise-grade multi-tenant MCP hosting,
+ * providing OAuth-based authentication, session management, and customer
+ * context switching for hosted remote MCP server deployments.
+ * 
+ * REMOTE MCP HOSTING CAPABILITIES:
+ * 🔐 OAuth Integration: Token-based authentication for remote clients
+ * 🏢 Multi-Tenant Sessions: Users can access multiple customer accounts
+ * 🔄 Dynamic Context Switching: Seamless customer account switching
+ * 🛡️ Role-Based Authorization: Granular permissions per customer context
+ * 🔒 Secure Credential Storage: Encrypted Akamai credentials per customer
+ * 🔑 Credential Rotation: Automated credential lifecycle management
+ * 📊 Audit Logging: Complete audit trail for compliance and monitoring
+ * 🏛️ Customer Isolation: Configurable isolation policies per tenant
+ * 
+ * HOSTED DEPLOYMENT SCENARIOS:
+ * 1. **SaaS MCP Provider**: Multiple organizations using shared MCP infrastructure
+ * 2. **Enterprise MSP**: Service providers managing multiple client accounts
+ * 3. **Consulting Platform**: Consultants accessing multiple customer environments
+ * 4. **Development Cloud**: Teams managing staging/production across customers
+ * 
+ * AUTHENTICATION FLOW FOR REMOTE MCP:
+ * 1. Client authenticates via OAuth → receives session token
+ * 2. Session includes available customer contexts for that user
+ * 3. Client selects customer context for operations
+ * 4. All MCP tool calls include session + customer context
+ * 5. Authorization checked before accessing customer resources
+ * 
+ * CUSTOMER CREDENTIAL MANAGEMENT:
+ * - Remote storage of Akamai EdgeGrid credentials per customer
+ * - Encrypted credential storage with rotation scheduling
+ * - Admin-controlled credential access and management
+ * - Secure credential injection into EdgeGrid clients
+ * 
+ * SCALING ARCHITECTURE:
+ * Local .edgerc → OAuth sessions → Distributed credential service → Enterprise SaaS
  */
 
 import { AkamaiClient } from '../akamai-client';
@@ -187,15 +223,79 @@ export interface AuthorizationRequest {
 }
 
 /**
- * Customer _context manager service
+ * ENTERPRISE CUSTOMER CONTEXT MANAGER IMPLEMENTATION
+ * 
+ * REMOTE MCP SERVER ORCHESTRATION:
+ * This service orchestrates all multi-tenant operations for hosted MCP deployments,
+ * managing OAuth sessions, customer contexts, and secure credential access.
+ * 
+ * HOSTED MCP ARCHITECTURE COMPONENTS:
+ * 
+ * 1. **OAuth Manager**: 
+ *    - Handles OAuth token authentication from remote clients
+ *    - Manages session lifecycle and expiration
+ *    - Supports customer context switching within sessions
+ * 
+ * 2. **Credential Manager**:
+ *    - Securely stores encrypted Akamai credentials per customer
+ *    - Handles credential rotation and lifecycle management
+ *    - Provides just-in-time credential injection for API calls
+ * 
+ * 3. **Authorization Manager**:
+ *    - Enforces role-based access control per customer context
+ *    - Validates permissions before customer operations
+ *    - Supports custom roles and fine-grained permissions
+ * 
+ * CLIENT CONNECTION PATTERNS:
+ * - Claude Desktop connects via MCP protocol with session token
+ * - Web interfaces authenticate via OAuth flow
+ * - API clients use session-based authentication
+ * - All connections support customer context switching
+ * 
+ * SCALABILITY DESIGN:
+ * - Stateless design for horizontal scaling
+ * - Session data can be stored in Redis/database
+ * - Credential encryption supports HSM integration
+ * - Authorization decisions can be cached for performance
  */
 export class CustomerContextManager {
   private static instance: CustomerContextManager;
+  
+  /**
+   * OAuth Manager: Handles remote client authentication and session management
+   * 
+   * REMOTE MCP INTEGRATION:
+   * - Authenticates OAuth tokens from MCP clients
+   * - Maintains active sessions with customer context lists
+   * - Supports session refresh and renewal
+   * - Enables customer context switching without re-authentication
+   */
   private readonly oauthManager: OAuthManager;
+  
+  /**
+   * Secure Credential Manager: Manages encrypted Akamai credentials per customer
+   * 
+   * HOSTED DEPLOYMENT BENEFITS:
+   * - Customers don't need to share .edgerc files with hosting provider
+   * - Credentials encrypted at rest with customer-specific keys
+   * - Automatic credential rotation with zero downtime
+   * - Audit trail of all credential access and usage
+   */
   private readonly credentialManager: SecureCredentialManager;
+  
+  /**
+   * Authorization Manager: Enforces permissions and customer isolation
+   * 
+   * MULTI-TENANT SECURITY:
+   * - Role-based access control per customer context
+   * - Fine-grained permissions for Akamai operations
+   * - Customer isolation policies and boundaries
+   * - Administrative controls for hosting providers
+   */
   private readonly authorizationManager: AuthorizationManager;
-  // Note: We no longer cache AkamaiClient instances as they are lightweight
-  // private edgeGridClients: Map<string, AkamaiClient> = new Map();
+  
+  // Note: AkamaiClient instances are lightweight and created per-request
+  // This eliminates the need for client caching and improves security isolation
 
   private constructor() {
     this.oauthManager = OAuthManager.getInstance();
@@ -223,7 +323,22 @@ export class CustomerContextManager {
   }
 
   /**
-   * Switch customer context
+   * CUSTOMER CONTEXT SWITCHING FOR REMOTE MCP
+   * 
+   * HOSTED MCP USE CASE:
+   * Remote MCP clients (Claude Desktop, web apps) can dynamically switch
+   * between different customer accounts they have access to without 
+   * re-authentication, enabling seamless multi-customer operations.
+   * 
+   * SECURITY VALIDATION:
+   * 1. Validates active OAuth session
+   * 2. Checks authorization to switch to target customer
+   * 3. Verifies user has access to target customer context
+   * 4. Logs all context switches for audit compliance
+   * 
+   * REMOTE CLIENT FLOW:
+   * Client → switchCustomer(sessionId, targetCustomerId) → New context
+   * Subsequent MCP tool calls use new customer context automatically
    */
   async switchCustomer(_request: CustomerSwitchRequest): Promise<CustomerContext> {
     const { sessionId, targetCustomerId, reason } = _request;
@@ -271,7 +386,27 @@ export class CustomerContextManager {
   }
 
   /**
-   * Get EdgeGrid client for customer
+   * SECURE CUSTOMER CREDENTIAL ACCESS FOR REMOTE MCP
+   * 
+   * HOSTED DEPLOYMENT ARCHITECTURE:
+   * This is the secure bridge between remote MCP sessions and Akamai APIs.
+   * Instead of clients having direct access to .edgerc files, credentials
+   * are securely managed by the hosting provider and injected just-in-time.
+   * 
+   * CREDENTIAL SECURITY MODEL:
+   * 1. Validates OAuth session and customer access rights
+   * 2. Checks fine-grained authorization for credential access
+   * 3. Creates customer-specific AkamaiClient with encrypted credentials
+   * 4. Logs all credential access for compliance and auditing
+   * 
+   * HOSTED MCP BENEFITS:
+   * - Customers don't expose Akamai credentials to clients
+   * - Hosting provider can enforce security policies
+   * - Centralized credential rotation and management
+   * - Complete audit trail of API access per customer
+   * 
+   * INTEGRATION PATTERN:
+   * Remote MCP tool → getEdgeGridClient(sessionId, customerId) → Secure client
    */
   async getEdgeGridClient(_request: CustomerCredentialRequest): Promise<AkamaiClient> {
     const { sessionId, customerId, purpose } = _request;

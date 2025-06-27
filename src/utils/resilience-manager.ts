@@ -1,6 +1,43 @@
 /**
- * Error Recovery and Operational Resilience Manager
- * Comprehensive error handling with circuit breakers, retry logic, and recovery patterns
+ * Enterprise Resilience Manager for Remote MCP Hosting
+ * Production-grade error handling, circuit breakers, and multi-customer operational resilience
+ * 
+ * REMOTE MCP HOSTING RESILIENCE ARCHITECTURE:
+ * This manager provides the operational backbone for hosted MCP services, ensuring:
+ * 
+ * MULTI-CUSTOMER RESILIENCE FEATURES:
+ * - Customer-isolated circuit breakers (one customer's failures don't affect others)
+ * - Operation-type specific resilience patterns (Property vs DNS vs Security operations)
+ * - Adaptive retry strategies based on error classification and customer tier
+ * - Real-time health monitoring and alerting per customer and operation type
+ * - Graceful degradation to maintain service availability during partial outages
+ * 
+ * ENTERPRISE HOSTING CAPABILITIES:
+ * - Circuit breaker pools for different Akamai API endpoints
+ * - Intelligent error classification and user-friendly error translation
+ * - Performance metrics and SLA monitoring per customer
+ * - Automated recovery strategies based on error patterns
+ * - Rate limit aware retry logic to prevent cascade failures
+ * 
+ * PRODUCTION OPERATIONAL FEATURES:
+ * - Exponential backoff with jitter to prevent thundering herd
+ * - Request coalescing to reduce API load during high concurrency
+ * - Health check endpoints for load balancer integration
+ * - Metrics collection for operational dashboards and alerting
+ * - Circuit breaker state management with manual override capabilities
+ * 
+ * HOSTED MCP SERVICE BENEFITS:
+ * - Prevents one customer's API issues from affecting other customers
+ * - Reduces Akamai API costs through intelligent retry and caching
+ * - Provides predictable service reliability for SLA compliance
+ * - Enables automatic scaling and load balancing based on health metrics
+ * - Supports multiple Akamai environments (staging/production) per customer
+ * 
+ * INTEGRATION WITH HOSTED INFRASTRUCTURE:
+ * - Works with SmartCache for error-aware caching strategies
+ * - Integrates with SecurityMiddleware for rate limit coordination
+ * - Supports customer-specific configuration and thresholds
+ * - Enables per-customer billing based on actual API usage vs cached responses
  */
 
 import { ErrorTranslator } from './errors';

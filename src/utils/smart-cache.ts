@@ -1,33 +1,48 @@
 /**
- * Smart Cache - In-Memory LRU Cache with Advanced Features
- * Drop-in replacement for external cache with zero external dependencies
+ * Smart Cache - Enterprise-Grade Multi-Tenant Cache for Remote MCP Hosting
+ * Zero external dependencies with production-grade performance and isolation
  * 
- * Features:
- * - Multiple eviction policies (LRU, LFU, FIFO)
- * - Automatic compression for large values
- * - Request coalescing to prevent cache stampedes
- * - Adaptive TTL based on update patterns
- * - Negative caching for non-existent keys
- * - Optional persistence to disk
- * - Memory-based size limits
- * - Pattern-based key tracking
- * - Event-driven architecture
+ * REMOTE MCP HOSTING ARCHITECTURE:
+ * This cache is the backbone of hosted MCP performance, providing:
+ * - Customer-isolated cache segments with configurable limits per tenant
+ * - Smart cache eviction to prevent any single customer from monopolizing memory
+ * - Compressed storage for cost-effective hosting at scale
+ * - Request coalescing to handle concurrent API calls from multiple customers
+ * - Circuit breaker integration for resilient multi-customer operations
+ * - Persistence for warm restarts without customer service interruption
  * 
- * @example
+ * MULTI-CUSTOMER BENEFITS:
+ * - Segmented storage prevents cache pollution between customers
+ * - Adaptive TTL reduces API costs across all customers
+ * - Bloom filters for negative caching reduce unnecessary Akamai API calls
+ * - Memory limits ensure fair resource allocation per customer
+ * - Event-driven monitoring for per-customer cache performance tracking
+ * 
+ * ENTERPRISE FEATURES:
+ * - LRU-K eviction for optimal hit rates under multi-tenant workloads
+ * - Automatic compression reduces hosting infrastructure costs
+ * - Pattern-based key management enables customer-specific cache policies
+ * - Zero-downtime persistence for hosted service reliability
+ * 
+ * @example Multi-customer hosted MCP usage:
  * ```typescript
+ * // Customer-segmented cache for hosted remote MCP
  * const cache = new SmartCache({
- *   maxSize: 10000,
- *   enableCompression: true,
- *   adaptiveTTL: true
+ *   maxSize: 50000,           // 50k entries across all customers
+ *   enableSegmentation: true,  // Customer isolation
+ *   segmentSize: 1000,        // Max 1k entries per customer
+ *   enableCompression: true,   // Reduce hosting costs
+ *   adaptiveTTL: true,        // Optimize API usage per customer
+ *   enablePersistence: true   // Survive service restarts
  * });
  * 
- * // Basic usage
- * await cache.set('key', 'value', 300);
- * const value = await cache.get('key');
+ * // Customer-specific cache keys
+ * await cache.set('customer1:property:123', propertyData, 300);
+ * await cache.set('customer2:dns:example.com', dnsData, 600);
  * 
- * // With refresh function
- * const data = await cache.getWithRefresh('api-data', 600, async () => {
- *   return await fetchFromAPI();
+ * // Request coalescing for concurrent customer requests
+ * const data = await cache.getWithRefresh('customer1:api-data', 600, async () => {
+ *   return await fetchAkamaiAPI(customer1Credentials);
  * });
  * ```
  */

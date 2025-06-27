@@ -1,6 +1,36 @@
 /**
- * Security Middleware for ALECS Remote Access
- * Implements comprehensive security controls for MCP server
+ * Security Middleware for ALECS Remote MCP Hosting
+ * Enterprise-grade security controls for multi-customer hosted MCP server
+ * 
+ * REMOTE MCP HOSTING SECURITY ARCHITECTURE:
+ * This middleware provides the security foundation for hosting MCP servers that serve
+ * multiple customers simultaneously, implementing:
+ * 
+ * MULTI-TENANT SECURITY FEATURES:
+ * - Customer-isolated rate limiting (prevents one customer from affecting others)
+ * - Token-based rate limiting keys (fair usage per API key/customer)
+ * - Comprehensive security event logging for compliance and monitoring
+ * - CORS protection for browser-based MCP clients
+ * - CSP headers to prevent script injection attacks
+ * 
+ * ENTERPRISE HOSTING CAPABILITIES:
+ * - Configurable rate limits per customer tier (basic/premium/enterprise)
+ * - Real-time security monitoring and alerting
+ * - IP-based blocking for suspicious activity detection
+ * - Request fingerprinting for advanced threat detection
+ * - Audit trails for compliance (SOC2, PCI, etc.)
+ * 
+ * PRODUCTION-READY FEATURES:
+ * - Memory-efficient rate limiting with automatic cleanup
+ * - Security headers for production web hosting environments
+ * - Circuit breaker-compatible error handling
+ * - Event-driven architecture for real-time security dashboards
+ * 
+ * HOSTED MCP USE CASES:
+ * - SaaS platforms offering Akamai integration to their customers
+ * - Enterprise service providers managing multiple Akamai contracts
+ * - Cloud marketplaces offering Akamai-as-a-Service
+ * - Consulting firms providing managed Akamai services
  */
 
 import { IncomingMessage, ServerResponse } from 'http';
@@ -117,12 +147,13 @@ export class SecurityMiddleware {
       res.setHeader('Retry-After', Math.ceil((record.resetTime - now) / 1000).toString());
       
       // Log security event
+      const userAgent = req.headers['user-agent'];
       this.logSecurityEvent({
         type: SecurityEventType.RATE_LIMIT_EXCEEDED,
         timestamp: new Date(),
         ip: this.getClientIp(req),
-        userAgent: req.headers['user-agent'],
         details: { key, count: record.count },
+        ...(userAgent && { userAgent }),
       });
       
       res.writeHead(429, { 'Content-Type': 'application/json' });
@@ -232,13 +263,15 @@ export class SecurityMiddleware {
     // Check for forwarded IP (proxy/load balancer)
     const forwarded = req.headers['x-forwarded-for'];
     if (forwarded) {
-      return (typeof forwarded === 'string' ? forwarded : forwarded[0]).split(',')[0].trim();
+      const forwardedValue = typeof forwarded === 'string' ? forwarded : forwarded[0];
+      return forwardedValue?.split(',')[0]?.trim() || 'unknown';
     }
     
     // Check for real IP header
     const realIp = req.headers['x-real-ip'];
     if (realIp) {
-      return typeof realIp === 'string' ? realIp : realIp[0];
+      const realIpValue = typeof realIp === 'string' ? realIp : realIp[0];
+      return realIpValue || 'unknown';
     }
     
     // Fall back to socket address

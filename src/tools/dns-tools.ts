@@ -20,164 +20,21 @@ import { Spinner, format, icons } from '../utils/progress';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-
-/**
- * Official Akamai Edge DNS API v2 response type definitions
- * Based on Edge DNS API documentation
- */
-
-// Zone List Response
-interface EdgeDNSZonesResponse {
-  zones: EdgeDNSZone[];
-  metadata?: {
-    totalCount?: number;
-    page?: number;
-    pageSize?: number;
-  };
-}
-
-// Zone Detail Response  
-interface EdgeDNSZoneResponse {
-  zone: string;
-  type: 'PRIMARY' | 'SECONDARY' | 'ALIAS';
-  comment?: string;
-  signAndServe?: boolean;
-  signAndServeAlgorithm?: string;
-  contractId?: string;
-  activationState?: string;
-  lastModifiedBy?: string;
-  lastModifiedDate?: string;
-  versionId?: string;
-  groupId?: string;
-  endCustomerId?: string;
-  target?: string; // For alias zones
-  masters?: string[]; // For secondary zones
-  tsigKey?: {
-    name: string;
-    algorithm: string;
-    secret: string;
-  };
-}
-
-// Zone with additional metadata
-interface EdgeDNSZone extends EdgeDNSZoneResponse {
-  recordCount?: number;
-  nsRecords?: string[];
-  soaRecord?: {
-    primary: string;
-    admin: string;
-    serial: number;
-    refresh: number;
-    retry: number;
-    expire: number;
-    minimum: number;
-  };
-}
-
-// Record Set Response
-interface EdgeDNSRecordSetsResponse {
-  recordsets?: EdgeDNSRecordSet[];
-  metadata?: {
-    totalCount?: number;
-    page?: number;
-    pageSize?: number;
-  };
-}
-
-// Record Set
-interface EdgeDNSRecordSet {
-  name: string;
-  type: string;
-  ttl: number;
-  rdata: string[];
-  active?: boolean;
-}
-
-// Change List Response
-interface EdgeDNSChangeListResponse {
-  zone: string;
-  lastModifiedDate: string;
-  lastModifiedBy: string;
-  recordSets: EdgeDNSRecordSet[];
-  changeTag?: string;
-}
-
-// Zone Submit Response
-interface EdgeDNSZoneSubmitResponse {
-  requestId: string;
-  expiryDate: string;
-  changeTag?: string;
-  validationResult?: {
-    errors?: Array<{
-      field: string;
-      message: string;
-      code?: string;
-    }>;
-    warnings?: Array<{
-      field: string;
-      message: string;
-      code?: string;
-    }>;
-  };
-}
-
-// Zone Activation Status Response
-interface EdgeDNSZoneActivationStatusResponse {
-  zone: string;
-  activationState: 'PENDING' | 'ACTIVE' | 'FAILED' | 'NEW';
-  lastActivationTime?: string;
-  lastActivatedBy?: string;
-  propagationStatus?: {
-    percentage: number;
-    serversUpdated: number;
-    totalServers: number;
-  };
-  requestId?: string;
-  message?: string;
-}
-
-// Bulk Zone Create Response
-interface EdgeDNSBulkZoneCreateResponse {
-  requestId: string;
-  expiryDate: string;
-  zonesCreated?: number;
-  zonesSubmitted?: number;
-  failures?: Array<{
-    zone: string;
-    failureReason: string;
-  }>;
-}
-
-// DNSSEC Status Response
-interface EdgeDNSDnssecStatusResponse {
-  zones: Array<{
-    zone: string;
-    dnssecStatus: 'ENABLED' | 'DISABLED' | 'PENDING';
-    algorithm?: string;
-    keyType?: string;
-  }>;
-}
-
-// Version History Response
-interface EdgeDNSVersionHistoryResponse {
-  versions: Array<{
-    versionId: string;
-    activationDate: string;
-    activatedBy: string;
-    comment?: string;
-    zone: string;
-  }>;
-}
-
-// Zone Transfer Status Response
-interface EdgeDNSZoneTransferStatusResponse {
-  zone: string;
-  transferStatus: 'SUCCESS' | 'FAILED' | 'PENDING' | 'NO_TRANSFER';
-  lastTransferTime?: string;
-  lastTransferDuration?: number;
-  errorMessage?: string;
-  masters?: string[];
-}
+import {
+  isEdgeDNSZonesResponse,
+  isEdgeDNSZoneResponse,
+  isEdgeDNSRecordSetsResponse,
+  isEdgeDNSChangeListResponse,
+  isEdgeDNSZoneSubmitResponse,
+  isEdgeDNSZoneActivationStatusResponse,
+  EdgeDNSValidationError,
+  type EdgeDNSZonesResponse,
+  type EdgeDNSZoneResponse,
+  type EdgeDNSRecordSetsResponse,
+  type EdgeDNSChangeListResponse,
+  type EdgeDNSZoneSubmitResponse,
+  type EdgeDNSZoneActivationStatusResponse,
+} from '../types/api-responses/edge-dns-zones';
 
 // Operational logging utilities
 function generateRequestId(): string {
@@ -194,14 +51,6 @@ function logOperation(operation: string, details: Record<string, unknown>) {
     console.error(`[DNS-OPS] ${timestamp} [${requestId}] ${operation}:`, JSON.stringify(details));
   }
 }
-
-// Additional types for public exports and internal use
-export type DNSZone = EdgeDNSZone;
-export type DNSZoneList = EdgeDNSZonesResponse;
-export type DNSRecordSet = EdgeDNSRecordSet;
-export type ChangeList = EdgeDNSChangeListResponse;
-export type ZoneSubmitResponse = EdgeDNSZoneSubmitResponse;
-export type ZoneActivationStatus = EdgeDNSZoneActivationStatusResponse;
 
 export interface ZoneActivationOptions {
   validateOnly?: boolean;
@@ -259,7 +108,7 @@ export async function listZones(
       queryParams.offset = String(args.offset);
     }
 
-    const response = await client.request({
+    const rawResponse = await client.request({
       path: '/config-dns/v2/zones',
       method: 'GET',
       headers: {
@@ -267,7 +116,18 @@ export async function listZones(
         Accept: 'application/json',
       },
       queryParams,
-    }) as EdgeDNSZonesResponse;
+    });
+
+    // CODE KAI: Runtime validation
+    if (!isEdgeDNSZonesResponse(rawResponse)) {
+      throw new EdgeDNSValidationError(
+        'Invalid Edge DNS zones response structure',
+        rawResponse,
+        'EdgeDNSZonesResponse'
+      );
+    }
+
+    const response = rawResponse as EdgeDNSZonesResponse;
 
     spinner.stop();
 
@@ -312,14 +172,25 @@ export async function getZone(
   args: { zone: string },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client.request({
+    const rawResponse = await client.request({
       path: `/config-dns/v2/zones/${args.zone}`,
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
-    }) as EdgeDNSZoneResponse;
+    });
+
+    // CODE KAI: Runtime validation
+    if (!isEdgeDNSZoneResponse(rawResponse)) {
+      throw new EdgeDNSValidationError(
+        'Invalid Edge DNS zone response structure',
+        rawResponse,
+        'EdgeDNSZoneResponse'
+      );
+    }
+
+    const response = rawResponse as EdgeDNSZoneResponse;
 
     let details = `DNS Zone: ${response.zone}\n`;
     details += `Type: ${response.type}\n`;
@@ -436,7 +307,7 @@ export async function listRecords(
       queryParams.types = args.types.join(',');
     }
 
-    const response = await client.request({
+    const rawResponse = await client.request({
       path: `/config-dns/v2/zones/${args.zone}/recordsets`,
       method: 'GET',
       headers: {
@@ -444,7 +315,18 @@ export async function listRecords(
         Accept: 'application/json',
       },
       queryParams,
-    }) as EdgeDNSRecordSetsResponse;
+    });
+
+    // CODE KAI: Runtime validation
+    if (!isEdgeDNSRecordSetsResponse(rawResponse)) {
+      throw new EdgeDNSValidationError(
+        'Invalid Edge DNS record sets response structure',
+        rawResponse,
+        'EdgeDNSRecordSetsResponse'
+      );
+    }
+
+    const response = rawResponse as EdgeDNSRecordSetsResponse;
 
     if (!response.recordsets || response.recordsets.length === 0) {
       return {
@@ -486,14 +368,24 @@ export async function getChangeList(
   zone: string,
 ): Promise<ChangeList | null> {
   try {
-    const response = await client.request({
+    const rawResponse = await client.request({
       path: `/config-dns/v2/changelists/${zone}`,
       method: 'GET',
       headers: {
         Accept: 'application/json',
       },
-    }) as EdgeDNSChangeListResponse;
-    return response;
+    });
+
+    // CODE KAI: Runtime validation
+    if (!isEdgeDNSChangeListResponse(rawResponse)) {
+      throw new EdgeDNSValidationError(
+        'Invalid Edge DNS change list response structure',
+        rawResponse,
+        'EdgeDNSChangeListResponse'
+      );
+    }
+
+    return rawResponse as EdgeDNSChangeListResponse;
   } catch (_error) {
     if (_error instanceof Error && _error.message?.includes('404')) {
       return null;
@@ -549,7 +441,7 @@ export async function submitChangeList(
 
     for (let attempt = 0; attempt <= opts.retryConfig.maxRetries!; attempt++) {
       try {
-        response = await client.request({
+        const rawResponse = await client.request({
           path: `/config-dns/v2/changelists/${zone}/submit`,
           method: 'POST',
           headers: {
@@ -561,6 +453,17 @@ export async function submitChangeList(
             validateOnly: opts.validateOnly,
           },
         });
+
+        // CODE KAI: Runtime validation
+        if (!isEdgeDNSZoneSubmitResponse(rawResponse)) {
+          throw new EdgeDNSValidationError(
+            'Invalid Edge DNS zone submit response structure',
+            rawResponse,
+            'EdgeDNSZoneSubmitResponse'
+          );
+        }
+
+        response = rawResponse as ZoneSubmitResponse;
 
         break; // Success, exit retry loop
       } catch (_error) {
@@ -773,13 +676,24 @@ export async function waitForZoneActivation(
   while (Date.now() - startTime < opts.timeout) {
     try {
       // Get zone activation status
-      const status = await client.request({
+      const rawResponse = await client.request({
         path: `/config-dns/v2/zones/${zone}/status`,
         method: 'GET',
         headers: {
           Accept: 'application/json',
         },
-      }) as EdgeDNSZoneActivationStatusResponse;
+      });
+
+      // CODE KAI: Runtime validation
+      if (!isEdgeDNSZoneActivationStatusResponse(rawResponse)) {
+        throw new EdgeDNSValidationError(
+          'Invalid Edge DNS zone activation status response structure',
+          rawResponse,
+          'EdgeDNSZoneActivationStatusResponse'
+        );
+      }
+
+      const status = rawResponse as EdgeDNSZoneActivationStatusResponse;
 
       // Reset error counter on successful request
       consecutiveErrors = 0;
@@ -1086,7 +1000,7 @@ export async function deleteRecord(
 
     // Step 3: Submit the change list
     spinner.update('Submitting changes...');
-    const submitResponse = await client.request({
+    const rawSubmitResponse = await client.request({
       path: `/config-dns/v2/changelists/${args.zone}/submit`,
       method: 'POST',
       headers: {
@@ -1096,7 +1010,18 @@ export async function deleteRecord(
       body: {
         comment: args.comment || `Deleted ${args.type} record for ${args.name}`,
       },
-    }) as EdgeDNSZoneSubmitResponse;
+    });
+
+    // CODE KAI: Runtime validation
+    if (!isEdgeDNSZoneSubmitResponse(rawSubmitResponse)) {
+      throw new EdgeDNSValidationError(
+        'Invalid Edge DNS zone submit response structure',
+        rawSubmitResponse,
+        'EdgeDNSZoneSubmitResponse'
+      );
+    }
+
+    const submitResponse = rawSubmitResponse as EdgeDNSZoneSubmitResponse;
 
     spinner.succeed(`Record deleted: ${args.name} ${args.type}`);
 

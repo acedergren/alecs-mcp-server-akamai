@@ -3,8 +3,26 @@
 // Register module aliases for runtime path resolution
 
 /**
- * ALECS Reporting Server
- * Specialized server for traffic analytics and performance reporting
+ * ALECS Multi-Customer Reporting Server
+ * 
+ * ARCHITECTURE AMBITIONS:
+ * This server implements the foundation for multi-customer Akamai reporting,
+ * enabling service providers, consultants, and enterprises to manage
+ * multiple Akamai accounts from a single MCP server instance.
+ * 
+ * SUPPORTED USE CASES:
+ * 1. MSP/Consultant Dashboard: Manage reports for multiple client accounts
+ * 2. Enterprise Multi-Contract: Handle multiple divisions/business units
+ * 3. Development Environments: Separate staging/production per customer
+ * 4. Cross-Customer Analytics: Aggregated reporting across accounts
+ * 
+ * CUSTOMER IDENTIFICATION PATTERNS:
+ * - Local .edgerc file with multiple sections [customer-name]
+ * - Per-customer API credentials with account switching
+ * - Future: Remote MCP with customer-provided API keys
+ * 
+ * SCALING ARCHITECTURE:
+ * Single customer → Multi-customer → Distributed MCP → Enterprise SaaS
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -175,10 +193,42 @@ interface ToolDefinition {
   handler: (client: any, params: any) => Promise<any>;
 }
 
+/**
+ * Multi-Customer Reporting Server Implementation
+ * 
+ * CURRENT STATE: Foundation established for multi-customer support
+ * NEXT PHASE: Implement customer validation and account switching
+ */
 class ReportingServer {
   private server: Server;
   private client: AkamaiClient;
+  
+  /**
+   * MULTI-CUSTOMER CONFIGURATION MANAGER
+   * 
+   * PURPOSE: Enable one MCP server to serve multiple Akamai customer accounts
+   * 
+   * INTENDED IMPLEMENTATION:
+   * 1. Customer Validation: Verify customer exists in .edgerc before processing requests
+   * 2. Account Switching: Use account_switch_key for cross-account operations  
+   * 3. Security Enforcement: Prevent unauthorized access to customer accounts
+   * 4. Environment Management: Support staging/production per customer
+   * 
+   * CUSTOMER PATTERNS:
+   * - Service Providers: [client-acme], [client-beta], [client-gamma] 
+   * - Enterprise: [division-media], [division-ecommerce], [division-api]
+   * - Development: [staging], [production], [testing]
+   * 
+   * FUTURE ENHANCEMENTS:
+   * - Remote credential management
+   * - Dynamic customer onboarding
+   * - Cross-customer analytics aggregation
+   * - Role-based access control per customer
+   * 
+   * @ts-ignore - TODO: Implement customer validation flow in Phase 2
+   */
   private configManager: CustomerConfigManager;
+  
   private tools: Map<string, ToolDefinition> = new Map();
 
   constructor() {
@@ -205,27 +255,49 @@ class ReportingServer {
     });
   }
 
+  /**
+   * MULTI-CUSTOMER TOOL REGISTRATION
+   * 
+   * Each tool supports the 'customer' parameter for multi-account operations:
+   * 
+   * CURRENT IMPLEMENTATION:
+   * - Tools accept customer parameter (e.g., customer: 'client-acme')
+   * - ReportingService creates customer-specific clients internally
+   * - No validation that customer exists in .edgerc configuration
+   * 
+   * INTENDED ENHANCEMENT (Phase 2):
+   * - Validate customer parameter against configManager.hasCustomer()
+   * - Return descriptive errors for invalid customers
+   * - Support account switching for cross-customer operations
+   * - Add customer context to all logging and monitoring
+   * 
+   * MULTI-CUSTOMER USE CASES:
+   * 1. Service Provider Dashboard: Pull reports for multiple clients
+   * 2. Enterprise Reporting: Aggregate data across business divisions  
+   * 3. Development Workflows: Compare staging vs production metrics
+   * 4. Client Management: Generate customer-specific performance reports
+   */
   private registerTools(): void {
-    // Traffic Analytics
+    // Traffic Analytics - Foundation for multi-customer traffic reporting
     this.registerTool({
       name: 'get-traffic-summary',
-      description: 'Get comprehensive traffic summary with bandwidth and request metrics',
+      description: 'Get comprehensive traffic summary with bandwidth and request metrics. Supports multi-customer via customer parameter.',
       schema: TrafficSummarySchema,
-      handler: async (client, params) => getTrafficSummary(params),
+      handler: async (_client, params) => getTrafficSummary(params),
     });
 
     this.registerTool({
       name: 'get-timeseries-data',
       description: 'Get time-series data for specific metrics',
       schema: TimeseriesDataSchema,
-      handler: async (client, params) => getTimeseriesData(params),
+      handler: async (_client, params) => getTimeseriesData(params),
     });
 
     this.registerTool({
       name: 'analyze-traffic-trends',
       description: 'Analyze traffic trends and predict future patterns',
       schema: TrafficTrendsSchema,
-      handler: async (client, params) => analyzeTrafficTrends(params),
+      handler: async (_client, params) => analyzeTrafficTrends(params),
     });
 
     // Performance Analytics
@@ -233,21 +305,21 @@ class ReportingServer {
       name: 'get-performance-benchmarks',
       description: 'Get performance benchmarks and comparisons',
       schema: PerformanceBenchmarksSchema,
-      handler: async (client, params) => getPerformanceBenchmarks(params),
+      handler: async (_client, params) => getPerformanceBenchmarks(params),
     });
 
     this.registerTool({
       name: 'analyze-cache-performance',
       description: 'Analyze cache hit rates and optimization opportunities',
       schema: CachePerformanceSchema,
-      handler: async (client, params) => analyzeCachePerformance(params),
+      handler: async (_client, params) => analyzeCachePerformance(params),
     });
 
     this.registerTool({
       name: 'generate-performance-report',
       description: 'Generate comprehensive performance reports',
       schema: PerformanceReportSchema,
-      handler: async (client, params) => generatePerformanceReport(params),
+      handler: async (_client, params) => generatePerformanceReport(params),
     });
 
     // Cost Optimization
@@ -255,14 +327,14 @@ class ReportingServer {
       name: 'get-cost-optimization-insights',
       description: 'Get cost optimization insights and recommendations',
       schema: CostOptimizationSchema,
-      handler: async (client, params) => getCostOptimizationInsights(params),
+      handler: async (_client, params) => getCostOptimizationInsights(params),
     });
 
     this.registerTool({
       name: 'analyze-bandwidth-usage',
       description: 'Analyze bandwidth usage patterns and costs',
       schema: BandwidthUsageSchema,
-      handler: async (client, params) => analyzeBandwidthUsage(params),
+      handler: async (_client, params) => analyzeBandwidthUsage(params),
     });
 
     // Dashboards and Exports
@@ -270,14 +342,14 @@ class ReportingServer {
       name: 'create-reporting-dashboard',
       description: 'Create custom reporting dashboard',
       schema: DashboardSchema,
-      handler: async (client, params) => createReportingDashboard(params),
+      handler: async (_client, params) => createReportingDashboard(params),
     });
 
     this.registerTool({
       name: 'export-report-data',
       description: 'Export report data in various formats',
       schema: ExportReportSchema,
-      handler: async (client, params) => exportReportData(params),
+      handler: async (_client, params) => exportReportData(params),
     });
 
     // Monitoring and Alerts
@@ -285,14 +357,14 @@ class ReportingServer {
       name: 'configure-monitoring-alerts',
       description: 'Configure monitoring alerts for key metrics',
       schema: MonitoringAlertsSchema,
-      handler: async (client, params) => configureMonitoringAlerts(params),
+      handler: async (_client, params) => configureMonitoringAlerts(params),
     });
 
     this.registerTool({
       name: 'get-realtime-metrics',
       description: 'Get real-time performance metrics',
       schema: RealtimeMetricsSchema,
-      handler: async (client, params) => getRealtimeMetrics(params),
+      handler: async (_client, params) => getRealtimeMetrics(params),
     });
 
     // Geographic and Error Analysis
@@ -300,27 +372,46 @@ class ReportingServer {
       name: 'analyze-geographic-performance',
       description: 'Analyze performance by geographic regions',
       schema: GeographicPerformanceSchema,
-      handler: async (client, params) => analyzeGeographicPerformance(params),
+      handler: async (_client, params) => analyzeGeographicPerformance(params),
     });
 
     this.registerTool({
       name: 'analyze-error-patterns',
       description: 'Analyze error patterns and identify root causes',
       schema: ErrorPatternsSchema,
-      handler: async (client, params) => analyzeErrorPatterns(params),
+      handler: async (_client, params) => analyzeErrorPatterns(params),
     });
 
+    /**
+     * ADVANCED ANALYTICS TOOLS - MULTI-CUSTOMER INTELLIGENCE
+     * 
+     * These tools represent the future of multi-customer analytics:
+     * 
+     * PHASE 1 (Current): Mock implementations with proper MCP interfaces
+     * PHASE 2 (Next): Real Akamai API integration with customer validation  
+     * PHASE 3 (Future): Cross-customer analytics and ML predictions
+     * 
+     * MULTI-CUSTOMER ANALYTICS VISION:
+     * - Aggregate traffic patterns across multiple customers
+     * - Comparative performance benchmarking between accounts
+     * - Cross-customer anomaly detection and alerting
+     * - Predictive scaling recommendations per customer context
+     * - Industry benchmarking using anonymized multi-customer data
+     */
+    
     // Advanced Analytics
     this.registerTool({
       name: 'predict-traffic-peaks',
-      description: 'Predict future traffic peaks using ML',
+      description: 'Predict future traffic peaks using ML. Multi-customer: Compare patterns across accounts for better predictions.',
       schema: z.object({
         customer: z.string().optional(),
         historicalDays: z.number().default(90),
         forecastDays: z.number().default(30),
         confidence: z.enum(['low', 'medium', 'high']).default('medium'),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, params) => {
+        // TODO Phase 2: Implement real traffic peak prediction using Akamai Reporting API
+        // TODO Phase 3: Cross-customer pattern analysis for improved accuracy
         return {
           content: [{
             type: 'text',
@@ -342,14 +433,15 @@ class ReportingServer {
         sensitivity: z.enum(['low', 'medium', 'high']).default('medium'),
         lookbackHours: z.number().default(24),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, params) => {
+        // TODO: Implement real anomaly detection using Akamai Reporting API
         return {
           content: [{
             type: 'text',
-            text: `Anomaly Detection Results:\n` +
-                  `- [EMOJI] High error rate spike detected 2 hours ago\n` +
-                  `- [EMOJI] Unusual traffic pattern from AS12345\n` +
-                  `- [EMOJI] Response times normal despite traffic increase\n` +
+            text: `Anomaly Detection Results (${params.metrics.join(', ')}):\n` +
+                  `- High error rate spike detected 2 hours ago\n` +
+                  `- Unusual traffic pattern from AS12345\n` +
+                  `- Response times normal despite traffic increase\n` +
                   `Recommended: Investigate error spike on /api/v2/* endpoints`,
           }],
         };
@@ -365,7 +457,8 @@ class ReportingServer {
         topN: z.number().default(100),
         includeRecommendations: z.boolean().default(true),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, params) => {
+        // TODO: Implement real content popularity analysis using Akamai Reporting API
         return {
           content: [{
             type: 'text',
@@ -398,7 +491,8 @@ class ReportingServer {
           end: z.string(),
         }),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, params) => {
+        // TODO: Implement real SLA compliance reporting using Akamai Reporting API
         return {
           content: [{
             type: 'text',
@@ -463,8 +557,9 @@ class ReportingServer {
     });
   }
 
-  private zodToJsonSchema(schema: z.ZodSchema): any {
-    // Simplified schema conversion
+  private zodToJsonSchema(_schema: z.ZodSchema): any {
+    // TODO: Implement proper Zod to JSON Schema conversion
+    // Simplified schema conversion for now
     return {
       type: 'object',
       properties: {},

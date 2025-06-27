@@ -86,11 +86,41 @@ export interface DashboardWidget {
   position: { x: number; y: number; width: number; height: number };
 }
 
+/**
+ * MULTI-CUSTOMER REPORTING SERVICE
+ * 
+ * ARCHITECTURE ROLE:
+ * This service provides customer-specific Akamai API access for reporting operations.
+ * Each instance is bound to a specific customer's credentials from .edgerc configuration.
+ * 
+ * MULTI-CUSTOMER INSTANTIATION PATTERNS:
+ * - new ReportingService('client-acme') → Uses [client-acme] credentials
+ * - new ReportingService('division-media') → Uses [division-media] credentials
+ * - new ReportingService('staging') → Uses [staging] environment
+ * - new ReportingService() → Defaults to [default] section
+ * 
+ * CUSTOMER ISOLATION:
+ * Each service instance maintains complete customer isolation:
+ * - Separate EdgeGrid client with customer-specific credentials
+ * - Independent performance monitoring per customer
+ * - Customer-specific API rate limiting and error handling
+ * - Isolated caching and request optimization per account
+ * 
+ * SCALING ARCHITECTURE:
+ * Single customer service → Multi-customer factory → Distributed service mesh
+ */
 export class ReportingService {
   private client: EdgeGridClient;
   private performanceMonitor: PerformanceMonitor;
 
+  /**
+   * Create customer-specific reporting service instance
+   * 
+   * @param customer Customer identifier matching .edgerc section name
+   *                 Examples: 'client-acme', 'division-media', 'staging', 'default'
+   */
   constructor(customer = 'default') {
+    // Get customer-specific EdgeGrid client with appropriate credentials
     this.client = EdgeGridClient.getInstance(customer);
     this.performanceMonitor = new PerformanceMonitor();
   }
@@ -540,9 +570,9 @@ export class ReportingService {
     }
   }
 
-  // Private helper methods
-
-  private buildReportingParams(
+  // Public helper methods for reporting tools
+  
+  public buildReportingParams(
     period: ReportingPeriod,
     filter?: ReportingFilter,
   ): Record<string, any> {
@@ -576,7 +606,7 @@ export class ReportingService {
     return params;
   }
 
-  private async fetchMetric(
+  public async fetchMetric(
     metric: string,
     params: Record<string, any>,
   ): Promise<ReportingMetric[]> {
@@ -594,7 +624,7 @@ export class ReportingService {
     }));
   }
 
-  private aggregateMetric(data: ReportingMetric[], method: 'sum' | 'avg' | 'max' | 'min'): number {
+  public aggregateMetric(data: ReportingMetric[], method: 'sum' | 'avg' | 'max' | 'min'): number {
     if (!data || data.length === 0) {
       return 0;
     }

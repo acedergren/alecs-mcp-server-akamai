@@ -74,19 +74,17 @@ export class SafeConsole {
  */
 export function setupSafeConsole(): void {
   // Override console.log to redirect to stderr
-  const originalLog = console.log;
   console.log = (...args: any[]) => {
     console.error('[STDOUT-REDIRECT]', ...args);
   };
 
   // Override console.info to redirect to stderr
-  const originalInfo = console.info;
   console.info = (...args: any[]) => {
     console.error('[INFO-REDIRECT]', ...args);
   };
 
   // Add debug logging for development
-  if (process.env.DEBUG_CONSOLE_OVERRIDE === '1') {
+  if (process.env['DEBUG_CONSOLE_OVERRIDE'] === '1') {
     console.error('[SAFE-CONSOLE] Console overrides activated - all console.log/info redirected to stderr');
   }
 }
