@@ -271,7 +271,7 @@ describe.skip('Tool Schema Validation', () => {
         name: 'create_property',
         arguments: {
           propertyName: 123, // Should be string
-          contractId: 'ctr_123',
+          contractIds: ['ctr_123',
           groupId: 'grp_123',
           customer: 'default',
         },
@@ -314,7 +314,7 @@ describe.skip('Tool Schema Validation', () => {
             email: 'jane@example.com',
             phone: '+1-555-5678',
           },
-          contractId: 'ctr_123',
+          contractIds: ['ctr_123',
           customer: 'default',
         },
       })).rejects.toThrow('Field enhancedTLS must be a boolean');
@@ -361,7 +361,7 @@ describe.skip('Tool Schema Validation', () => {
       await expect(callToolHandler!({
         name: 'create_property',
         arguments: {
-          contractId: 'ctr_123',
+          contractIds: ['ctr_123',
           groupId: 'grp_123',
           customer: 'default',
           // Missing: propertyName
@@ -444,7 +444,7 @@ describe.skip('Tool Schema Validation', () => {
           arguments: {
             zone: 'example.com',
             type: 'INVALID_TYPE',
-            contractId: 'ctr_123',
+            contractIds: ['ctr_123',
             groupId: 'grp_123',
             customer: 'default',
           },
@@ -476,7 +476,7 @@ describe.skip('Tool Schema Validation', () => {
             email: 'jane@example.com',
             phone: '+1-555-5678',
           },
-          contractId: 'ctr_123',
+          contractIds: ['ctr_123',
           customer: 'default',
         },
       })).rejects.toThrow();
@@ -502,7 +502,7 @@ describe.skip('Tool Schema Validation', () => {
             email: 'jane@example.com',
             phone: '+1-555-5678',
           },
-          contractId: 'ctr_123',
+          contractIds: ['ctr_123',
           customer: 'default',
           // Optional: sans, enhancedTLS, quicEnabled
         },

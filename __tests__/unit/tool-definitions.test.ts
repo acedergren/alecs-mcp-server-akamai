@@ -33,14 +33,14 @@ describe('Tool Definitions', () => {
         });
 
         await propertyTools.listProperties(mockClient, { 
-          contractId: 'ctr_C-1234567' 
+          contractIds: ['ctr_C-1234567' 
         });
 
         expect(mockClient.request).toHaveBeenCalledWith(
           expect.objectContaining({
             path: '/papi/v1/properties',
             queryParams: expect.objectContaining({
-              contractId: 'ctr_C-1234567'
+              contractIds: ['ctr_C-1234567'
             })
           })
         );
@@ -78,7 +78,7 @@ describe('Tool Definitions', () => {
               items: [{
                 propertyId: 'prp_123',
                 propertyName: 'test.com',
-                contractId: 'ctr_C-123',
+                contractIds: ['ctr_C-123',
                 groupId: 'grp_123',
               }]
             }
@@ -202,7 +202,7 @@ describe('Tool Definitions', () => {
           email: 'jane@example.com',
           phone: '+1-555-5678',
         },
-        contractId: 'ctr_C-123456',
+        contractIds: ['ctr_C-123456',
         enhancedTLS: true,
         quicEnabled: false,
       };
@@ -249,7 +249,7 @@ describe('Tool Definitions', () => {
         });
 
         const result = await productTools.listProducts(mockClient, {
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
         });
 
         validateMCPResponse(result);
@@ -265,7 +265,7 @@ describe('Tool Definitions', () => {
         });
 
         const result = await productTools.listProducts(mockClient, {
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
         });
 
         validateMCPResponse(result);

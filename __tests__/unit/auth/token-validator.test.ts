@@ -12,7 +12,7 @@ import type {
   JWK,
   TokenValidatorConfig,
 } from '@/auth/token-validator';
-import type { CacheService } from '@/services/CacheService';
+import type { CacheService } from '../../../src/services/akamai-cache-service';
 import { logger } from '@/utils/logger';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';

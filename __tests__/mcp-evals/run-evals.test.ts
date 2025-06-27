@@ -234,7 +234,7 @@ function setupComprehensiveMocks(mockClient: jest.Mocked<AkamaiClient>) {
       return {
         contracts: {
           items: [{
-            contractId: 'ctr_1-ABC123',
+            contractIds: ['ctr_1-ABC123',
             contractTypeName: 'DIRECT_CUSTOMER'
           }]
         }
@@ -247,7 +247,7 @@ function setupComprehensiveMocks(mockClient: jest.Mocked<AkamaiClient>) {
         return {
           zone: 'eval-test.com',
           type: 'PRIMARY',
-          contractId: 'ctr_1-ABC123'
+          contractIds: ['ctr_1-ABC123'
         };
       }
       return {

@@ -5,7 +5,7 @@
 
 import {
   createMockAkamaiClient,
-  TestDataGenerators as TestData,
+  TestHelpers as TestData,
   createCorrelationId,
 } from '../../src/testing/test-utils';
 import * as propertyTools from '../../src/tools/property-tools';
@@ -63,7 +63,7 @@ describe('Conversational Workflows', () => {
           items: [{
             propertyId: 'prp_12345',
             propertyName: 'www.example.com',
-            contractId: 'ctr_C-123',
+            contractIds: ['ctr_C-123',
             groupId: 'grp_123',
             latestVersion: 6,
             productionVersion: 5,
@@ -201,7 +201,7 @@ describe('Conversational Workflows', () => {
       const propertyResult = await propertyTools.createProperty(mockClient, {
         propertyName: 'secure.example.com',
         productId: 'prd_Web_Accel',
-        contractId: 'ctr_C-123',
+        contractIds: ['ctr_C-123',
         groupId: 'grp_123',
       });
       context.recordOperation('createProperty',
@@ -218,7 +218,7 @@ describe('Conversational Workflows', () => {
       const certResult = await cpsTools.createDVEnrollment(mockClient, {
         commonName: 'secure.example.com',
         sans: ['www.secure.example.com'],
-        contractId: 'ctr_C-123',
+        contractIds: ['ctr_C-123',
         adminContact: {
           firstName: 'Admin',
           lastName: 'User',
@@ -429,7 +429,7 @@ describe('Conversational Workflows', () => {
             latestVersion: 1,
             productionVersion: 1,
             stagingVersion: 1,
-            contractId: 'ctr_C-123',
+            contractIds: ['ctr_C-123',
             groupId: 'grp_123',
             accountId: 'act_123'
           }]

@@ -136,7 +136,7 @@ describe('Workflow Orchestration E2E Tests', () => {
           intent: 'create property with basic setup',
           context: {
             propertyName: 'test-workflow-property',
-            contractId: 'ctr_test',
+            contractIds: ['ctr_test',
             groupId: 'grp_test',
             productId: 'prd_test'
           },

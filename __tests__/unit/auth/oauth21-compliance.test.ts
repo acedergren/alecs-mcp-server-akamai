@@ -16,7 +16,7 @@ import {
   CodeChallengeMethod,
   TokenBindingType,
 } from '@/auth/oauth21-compliance';
-import type { CacheService } from '@/services/CacheService';
+import type { CacheService } from '../../../src/services/akamai-cache-service';
 import { logger } from '@/utils/logger';
 import crypto from 'crypto';
 

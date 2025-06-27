@@ -20,7 +20,7 @@ const mockPropertyListResponse = {
     items: [
       {
         accountId: 'act_123',
-        contractId: 'ctr_C-123',
+        contractIds: ['ctr_C-123',
         groupId: 'grp_456',
         propertyId: 'prp_123',
         propertyName: 'example.com',
@@ -73,7 +73,7 @@ const mockDNSZoneResponse = {
       comment: 'Production DNS zone',
       signAndServe: true,
       signAndServeAlgorithm: 'RSA-SHA256',
-      contractId: 'ctr_C-123',
+      contractIds: ['ctr_C-123',
       activationState: 'ACTIVE',
       lastActivationDate: '2025-01-15T08:30:00Z',
       versionId: 'v456'
@@ -138,7 +138,7 @@ describe('Response Parser Tests', () => {
       expect(parsed.properties[0]).toMatchObject({
         propertyId: 'prp_123',
         propertyName: 'example.com',
-        contractId: 'ctr_C-123',
+        contractIds: ['ctr_C-123',
         groupId: 'grp_456',
         latestVersion: 3,
         stagingVersion: 2,
@@ -198,7 +198,7 @@ describe('Response Parser Tests', () => {
         zone: 'example.com',
         type: 'PRIMARY',
         signAndServe: true,
-        contractId: 'ctr_C-123',
+        contractIds: ['ctr_C-123',
         activationState: 'ACTIVE'
       });
     });

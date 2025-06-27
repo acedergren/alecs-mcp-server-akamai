@@ -7,7 +7,7 @@ import {
   createMockAkamaiClient,
   createTestServer,
   validateMCPResponse,
-  TestDataGenerators,
+  TestHelpers,
   ConversationalContextTracker,
   WorkflowSimulator,
   PerformanceTracker
@@ -79,7 +79,7 @@ describe('Conversational Workflows', () => {
       contextTracker.addUserMessage('Set up origin server for the property');
       mockClient.request
         .mockResolvedValueOnce({ // Get current rules
-          rules: TestDataGenerators.generatePropertyRules()
+          rules: TestHelpers.generatePropertyRules()
         })
         .mockResolvedValueOnce({}); // Update rules
 
@@ -236,7 +236,7 @@ describe('Conversational Workflows', () => {
       contextTracker.addAssistantResponse(createResult.content[0].text);
 
       // Step 3: Import records via AXFR
-      const mockRecords = TestDataGenerators.generateDNSRecords(42);
+      const mockRecords = TestHelpers.generateDNSRecords(42);
       
       mockClient.request
         .mockResolvedValueOnce({ // AXFR transfer
@@ -294,7 +294,7 @@ describe('Conversational Workflows', () => {
       contextTracker.addUserMessage('Add load balancing records to app.example.com');
 
       mockClient.request.mockResolvedValueOnce({
-        recordsets: TestDataGenerators.generateDNSRecords(10),
+        recordsets: TestHelpers.generateDNSRecords(10),
       });
 
       // First, check existing records
@@ -377,8 +377,8 @@ describe('Conversational Workflows', () => {
         commonName: workflow.domain,
         sans: workflow.san,
         contractId: 'C-123',
-        adminContact: TestDataGenerators.generateContact(),
-        techContact: TestDataGenerators.generateContact(),
+        adminContact: TestHelpers.generateContact(),
+        techContact: TestHelpers.generateContact(),
       });
 
       expect(enrollResult.content[0].text).toContain('12345');
@@ -633,7 +633,7 @@ describe('Conversational Workflows', () => {
 
       // Step 2: Get current configuration
       mockClient.request.mockResolvedValueOnce({
-        rules: TestDataGenerators.generatePropertyRules(),
+        rules: TestHelpers.generatePropertyRules(),
       });
 
       contextTracker.addUserMessage('What\'s the current origin configuration?');
@@ -705,7 +705,7 @@ describe('Conversational Workflows', () => {
         }),
         () => workflowSim.runTool('property.rules.update', {
           propertyId: 'prp_perf',
-          rules: TestDataGenerators.generatePropertyRules(),
+          rules: TestHelpers.generatePropertyRules(),
         }),
         () => workflowSim.runTool('property.hostname.add', {
           propertyId: 'prp_perf',
@@ -743,7 +743,7 @@ describe('Conversational Workflows', () => {
       
       mockClient.request.mockImplementation(() => 
         Promise.resolve({
-          properties: { items: [TestDataGenerators.generateProperties(1)[0]] },
+          properties: { items: [TestHelpers.generateProperties(1)[0]] },
         })
       );
 
@@ -786,7 +786,7 @@ describe('Conversational Workflows', () => {
       contextTracker.addUserMessage('Show me the current rules');
 
       mockClient.request.mockResolvedValueOnce({
-        rules: TestDataGenerators.generatePropertyRules(),
+        rules: TestHelpers.generatePropertyRules(),
       });
 
       // System should use context to know which property

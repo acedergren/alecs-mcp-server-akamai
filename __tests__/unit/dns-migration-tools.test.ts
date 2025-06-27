@@ -50,7 +50,7 @@ describe('DNS Migration Tools', () => {
       const result = await importZoneViaAXFR(mockClient, {
         zone: 'example.com',
         masterServer: '192.0.2.1',
-        contractId: 'ctr_C-123456',
+        contractIds: ['ctr_C-123456',
         groupId: 'grp_12345',
       });
 

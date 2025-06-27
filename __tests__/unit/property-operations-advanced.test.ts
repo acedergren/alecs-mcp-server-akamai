@@ -30,7 +30,7 @@ describe('Advanced Property Operations Tools', () => {
             {
               propertyId: 'prp_12345',
               propertyName: 'example-property',
-              contractId: 'ctr_12345',
+              contractIds: ['ctr_12345',
               groupId: 'grp_12345',
               productId: 'prd_Web_Accel',
               latestVersion: 2,
@@ -338,7 +338,7 @@ describe('Advanced Property Operations Tools', () => {
             propertyId: 'prp_12345',
             propertyName: 'property-1',
             latestVersion: 1,
-            contractId: 'ctr_12345',
+            contractIds: ['ctr_12345',
             groupId: 'grp_12345'
           }]
         }
@@ -350,7 +350,7 @@ describe('Advanced Property Operations Tools', () => {
             propertyId: 'prp_67890',
             propertyName: 'property-2',
             latestVersion: 1,
-            contractId: 'ctr_12345',
+            contractIds: ['ctr_12345',
             groupId: 'grp_12345'
           }]
         }
@@ -395,7 +395,7 @@ describe('Advanced Property Operations Tools', () => {
             propertyId: 'prp_12345',
             propertyName: 'property-1',
             latestVersion: 1,
-            contractId: 'ctr_12345',
+            contractIds: ['ctr_12345',
             groupId: 'grp_12345'
           }]
         }

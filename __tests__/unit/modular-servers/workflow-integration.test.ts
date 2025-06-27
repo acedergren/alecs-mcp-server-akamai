@@ -58,7 +58,7 @@ describe.skip('Cross-Module Workflows', () => {
         body: {
           propertyName: 'secure.example.com',
           productId: 'prd_SPM',
-          contractId: 'ctr_123',
+          contractIds: ['ctr_123',
           groupId: 'grp_456'
         }
       });
@@ -123,7 +123,7 @@ describe.skip('Cross-Module Workflows', () => {
       const enrollments = await client.request({
         path: '/cps/v2/enrollments',
         method: 'GET',
-        queryParams: { contractId: 'ctr_123' }
+        queryParams: { contractIds: ['ctr_123' }
       });
 
       const matchingEnrollment = enrollments.enrollments[0];
@@ -178,7 +178,7 @@ describe.skip('Cross-Module Workflows', () => {
         body: {
           propertyName: 'secure.example.com',
           productId: 'prd_SPM',
-          contractId: 'ctr_123',
+          contractIds: ['ctr_123',
           groupId: 'grp_456'
         }
       });

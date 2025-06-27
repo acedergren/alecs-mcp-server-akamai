@@ -110,7 +110,7 @@ describe('Security Server - Network Lists', () => {
         'testing',
         {
           description: 'Test geographic list',
-          contractId: 'ctr_123',
+          contractIds: ['ctr_123',
           groupId: 'grp_456'
         }
       );
@@ -123,7 +123,7 @@ describe('Security Server - Network Lists', () => {
           type: 'GEO',
           list: ['US', 'CA'],
           description: 'Test geographic list',
-          contractId: 'ctr_123',
+          contractIds: ['ctr_123',
           groupId: 'grp_456'
         }
       });

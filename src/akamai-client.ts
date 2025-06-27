@@ -183,7 +183,7 @@ export class AkamaiClient {
 
       // Make the request using EdgeGrid's send method
       return new Promise((resolve, reject) => {
-        this.edgeGrid.send((_error: unknown, response: EdgeGridResponse, body?: string) => {
+        this.edgeGrid.send((_error: any, response: any, body?: string) => {
           if (_error) {
             try {
               this.handleApiError(_error);

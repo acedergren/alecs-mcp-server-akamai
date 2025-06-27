@@ -56,13 +56,13 @@ describe.skip('DNS Server Module', () => {
             zone: 'example.com',
             type: 'PRIMARY',
             signAndServe: false,
-            contractId: 'ctr_123'
+            contractIds: ['ctr_123'
           },
           {
             zone: 'example.org',
             type: 'SECONDARY',
             masters: ['192.0.2.1'],
-            contractId: 'ctr_123'
+            contractIds: ['ctr_123'
           }
         ]
       });
@@ -82,7 +82,7 @@ describe.skip('DNS Server Module', () => {
       mockClient.request.mockResolvedValue({
         zone: 'newzone.com',
         type: 'PRIMARY',
-        contractId: 'ctr_123',
+        contractIds: ['ctr_123',
         versionId: '1',
         lastActivationDate: '2024-01-01T00:00:00Z'
       });
@@ -91,7 +91,7 @@ describe.skip('DNS Server Module', () => {
       const result = await client.request({
         path: '/config-dns/v2/zones',
         method: 'POST',
-        queryParams: { contractId: 'ctr_123' },
+        queryParams: { contractIds: ['ctr_123' },
         body: {
           zone: 'newzone.com',
           type: 'PRIMARY',
