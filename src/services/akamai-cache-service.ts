@@ -7,6 +7,17 @@ import { type AkamaiClient } from '../akamai-client';
 import { ICache } from '../types/cache-interface';
 import { getDefaultCache } from './cache-factory';
 import { CacheTTL } from './external-cache-service';
+import { 
+  PropertyListResponse, 
+  PropertyDetailResponse,
+  ContractListResponse,
+  GroupListResponse,
+  HostnameListResponse,
+  Property,
+  Hostname,
+  Contract,
+  Group
+} from '../types/api-responses';
 
 export interface PropertySearchResult {
   type:
@@ -15,8 +26,8 @@ export interface PropertySearchResult {
     | 'hostname_without_www'
     | 'property_name'
     | 'property_id';
-  property: any;
-  hostname?: any;
+  property: Property;
+  hostname?: Hostname;
   matchReason?: string;
 }
 
@@ -53,7 +64,7 @@ export class AkamaiCacheService {
   /**
    * Get all properties with caching
    */
-  async getProperties(client: AkamaiClient, customer = 'default'): Promise<any[]> {
+  async getProperties(client: AkamaiClient, customer = 'default'): Promise<Property[]> {
     await this.ensureInitialized();
     const cacheKey = `${customer}:properties:all`;
 
@@ -62,7 +73,7 @@ export class AkamaiCacheService {
       CacheTTL.PROPERTIES_LIST,
       async () => {
         console.error('[Cache] Fetching properties from API...');
-        const response = await client.request({
+        const response = await client.request<PropertyListResponse>({
           path: '/papi/v1/properties',
           method: 'GET',
         });
@@ -89,7 +100,7 @@ export class AkamaiCacheService {
     client: AkamaiClient,
     propertyId: string,
     customer = 'default',
-  ): Promise<any | null> {
+  ): Promise<Property | null> {
     await this.ensureInitialized();
     const cacheKey = `${customer}:property:${propertyId}`;
 
@@ -97,7 +108,7 @@ export class AkamaiCacheService {
       cacheKey,
       CacheTTL.PROPERTY_DETAILS,
       async () => {
-        const response = await client.request({
+        const response = await client.request<PropertyDetailResponse>({
           path: `/papi/v1/properties/${propertyId}`,
           method: 'GET',
         });
@@ -112,9 +123,9 @@ export class AkamaiCacheService {
    */
   async getPropertyHostnames(
     client: AkamaiClient,
-    property: any,
+    property: Property,
     customer = 'default',
-  ): Promise<any[]> {
+  ): Promise<Hostname[]> {
     await this.ensureInitialized();
     const cacheKey = `${customer}:property:${property.propertyId}:hostnames`;
 
@@ -122,7 +133,7 @@ export class AkamaiCacheService {
       cacheKey,
       CacheTTL.HOSTNAMES,
       async () => {
-        const response = await client.request({
+        const response = await client.request<HostnameListResponse>({
           path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames`,
           method: 'GET',
           queryParams: {
@@ -142,7 +153,7 @@ export class AkamaiCacheService {
   private async createHostnameMapping(
     client: AkamaiClient,
     customer: string,
-    properties: any[],
+    properties: Property[],
   ): Promise<void> {
     const startTime = Date.now();
     const hostnameMap: Record<string, any> = {};
@@ -276,12 +287,12 @@ export class AkamaiCacheService {
   /**
    * Get contracts with caching
    */
-  async getContracts(client: AkamaiClient, customer = 'default'): Promise<any[]> {
+  async getContracts(client: AkamaiClient, customer = 'default'): Promise<Contract[]> {
     await this.ensureInitialized();
     const cacheKey = `${customer}:contracts:all`;
 
     return this.cache.getWithRefresh(cacheKey, CacheTTL.CONTRACTS, async () => {
-      const response = await client.request({
+      const response = await client.request<ContractListResponse>({
         path: '/papi/v1/contracts',
         method: 'GET',
       });
@@ -292,12 +303,12 @@ export class AkamaiCacheService {
   /**
    * Get groups with caching
    */
-  async getGroups(client: AkamaiClient, customer = 'default'): Promise<any[]> {
+  async getGroups(client: AkamaiClient, customer = 'default'): Promise<Group[]> {
     await this.ensureInitialized();
     const cacheKey = `${customer}:groups:all`;
 
     return this.cache.getWithRefresh(cacheKey, CacheTTL.GROUPS, async () => {
-      const response = await client.request({
+      const response = await client.request<GroupListResponse>({
         path: '/papi/v1/groups',
         method: 'GET',
       });

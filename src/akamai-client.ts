@@ -221,8 +221,12 @@ export class AkamaiClient {
   /**
    * Parse Akamai error response
    */
-  private parseErrorResponse(body: string, statusCode: number): Error {
+  private parseErrorResponse(body: string | undefined, statusCode: number): Error {
     let errorData: AkamaiError;
+
+    if (!body) {
+      return new Error(`API Error (${statusCode}): No response body`);
+    }
 
     try {
       errorData = JSON.parse(body);

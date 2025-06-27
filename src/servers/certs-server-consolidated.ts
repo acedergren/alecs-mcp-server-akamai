@@ -1,9 +1,32 @@
 #!/usr/bin/env node
 
 /**
- * ALECS Certificate Server - Consolidated Architecture
- * Uses consolidated certificate tools instead of scattered individual tools
- * Automated SSL/TLS management with proactive monitoring and unified workflows
+ * @fileoverview ALECS Certificate Server - Consolidated Architecture
+ * @module CertificateServerConsolidated
+ * 
+ * @description
+ * Provides a unified MCP server for SSL/TLS certificate management on Akamai's platform.
+ * This consolidated server replaces 30+ individual certificate tools with intelligent,
+ * workflow-based tools that understand business context.
+ * 
+ * @example
+ * ```typescript
+ * // Start the server
+ * npm start:certs
+ * 
+ * // Or programmatically
+ * const server = new ConsolidatedCertificateServer();
+ * await server.start();
+ * ```
+ * 
+ * @akamai-api Certificate Provisioning System (CPS) v2
+ * @akamai-concepts Enrollments, Validations, Deployments, SNI
+ * @see https://techdocs.akamai.com/cps/reference
+ * 
+ * @dependencies
+ * - AkamaiClient: For API authentication
+ * - SmartCache: For response caching
+ * - Logger: For operational visibility
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -30,6 +53,124 @@ import {
 } from '../tools/consolidated/deploy-tool-simple';
 
 import { logger } from '../utils/logger';
+
+/**
+ * Arguments for certificate tool operations
+ * 
+ * @description
+ * Defines the structure for all certificate-related operations in the MCP server.
+ * These arguments map to Akamai's CPS API parameters with additional business logic.
+ * 
+ * @akamai-note
+ * In Akamai's API, this maps to various endpoints:
+ * - POST /cps/v2/enrollments (for 'secure' action)
+ * - GET /cps/v2/enrollments (for 'list' action)
+ * - POST /cps/v2/enrollments/{id}/deployments (for 'deploy' action)
+ */
+interface CertificateToolArgs {
+  /**
+   * The certificate operation to perform
+   * @example "list" - Show all certificates
+   * @example "secure" - Get SSL for domains
+   * @example "renew" - Renew expiring certificates
+   */
+  action?: string;
+  
+  /**
+   * Domain(s) to secure with SSL/TLS
+   * @example "example.com"
+   * @example ["www.example.com", "api.example.com"]
+   * @validation Must be valid FQDNs
+   */
+  domains?: string | string[];
+  
+  /**
+   * Advanced options for certificate operations
+   */
+  options?: {
+    /**
+     * Business purpose for the certificate
+     * @business-value Determines validation method and certificate type
+     */
+    purpose?: string;
+    
+    /**
+     * Automation settings for certificate lifecycle
+     * @business-value Reduces manual work by 95%
+     */
+    automation?: {
+      autoRenew?: boolean;
+      renewalDays?: number;
+      validationMethod?: string;
+      notifyBeforeExpiry?: number;
+    };
+    
+    /**
+     * Deployment configuration to Akamai edge
+     * @akamai-note Certificates must be deployed to edge servers to work
+     */
+    deployment?: {
+      propertyIds?: string[];
+      network?: string;
+      activateImmediately?: boolean;
+    };
+    
+    certificateType?: string;
+    provider?: string;
+    monitoring?: {
+      enableAlerts?: boolean;
+      alertChannels?: string[];
+      checkFrequency?: string;
+    };
+    validateFirst?: boolean;
+    testDeployment?: boolean;
+    rollbackOnError?: boolean;
+    includeExpiring?: boolean;
+    showRecommendations?: boolean;
+    detailed?: boolean;
+  };
+  
+  /**
+   * Customer identifier for multi-tenant support
+   * @format Maps to .edgerc section name
+   */
+  customer?: string;
+}
+
+// Type for search tool arguments
+interface SearchToolArgs {
+  query?: string;
+  options?: {
+    limit?: number;
+    sortBy?: string;
+    offset?: number;
+    format?: string;
+    searchMode?: string;
+    includeRelated?: boolean;
+    includeInactive?: boolean;
+    includeDeleted?: boolean;
+    autoCorrect?: boolean;
+    expandAcronyms?: boolean;
+    searchHistory?: boolean;
+    groupBy?: string;
+  };
+  customer?: string;
+}
+
+// Type for deploy tool arguments
+interface DeployToolArgs {
+  action?: string;
+  resources?: any;
+  options?: {
+    network?: string;
+    strategy?: string;
+    format?: string;
+    dryRun?: boolean;
+    verbose?: boolean;
+    coordination?: any;
+  };
+  customer?: string;
+}
 
 /**
  * Consolidated Certificate Server
@@ -140,41 +281,98 @@ class ConsolidatedCertificateServer {
       try {
         switch (name) {
           case 'certificate':
+            const certArgs = (args || {}) as CertificateToolArgs;
+            const certOptions = certArgs.options || {};
             return {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handleCertificateTool(args || { action: 'list' }), null, 2),
+                  text: JSON.stringify(await handleCertificateTool({
+                    action: certArgs.action || 'list',
+                    domains: certArgs.domains,
+                    options: {
+                      purpose: certOptions.purpose,
+                      automation: certOptions.automation ? {
+                        autoRenew: certOptions.automation.autoRenew !== false,
+                        renewalDays: certOptions.automation.renewalDays || 30,
+                        validationMethod: certOptions.automation.validationMethod || 'auto',
+                        notifyBeforeExpiry: certOptions.automation.notifyBeforeExpiry || 14,
+                      } : undefined,
+                      deployment: certOptions.deployment ? {
+                        propertyIds: certOptions.deployment.propertyIds,
+                        network: certOptions.deployment.network || 'both',
+                        activateImmediately: certOptions.deployment.activateImmediately !== false,
+                      } : undefined,
+                      certificateType: certOptions.certificateType,
+                      provider: certOptions.provider,
+                      monitoring: certOptions.monitoring ? {
+                        enableAlerts: certOptions.monitoring.enableAlerts !== false,
+                        alertChannels: certOptions.monitoring.alertChannels,
+                        checkFrequency: certOptions.monitoring.checkFrequency || 'daily',
+                      } : undefined,
+                      validateFirst: certOptions.validateFirst !== false,
+                      testDeployment: certOptions.testDeployment !== false,
+                      rollbackOnError: certOptions.rollbackOnError !== false,
+                      includeExpiring: certOptions.includeExpiring !== false,
+                      showRecommendations: certOptions.showRecommendations !== false,
+                      detailed: certOptions.detailed || false,
+                    },
+                    customer: certArgs.customer,
+                  }), null, 2),
                 },
               ],
             };
 
           case 'search':
             // Focus search on certificate resources
-            const certSearchArgs = {
-              action: 'find',
-              query: '',
-              ...args,
-              options: {
-                ...(args?.options || {}),
-                types: ['certificate', 'hostname', 'property'],
-              },
-            };
+            const searchArgs = (args || {}) as SearchToolArgs;
             return {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handleSearchTool(certSearchArgs), null, 2),
+                  text: JSON.stringify(await handleSearchTool({
+                    action: 'find',
+                    query: searchArgs.query || '',
+                    options: {
+                      limit: searchArgs.options?.limit || 50,
+                      sortBy: searchArgs.options?.sortBy || 'relevance',
+                      offset: searchArgs.options?.offset || 0,
+                      format: searchArgs.options?.format || 'simple',
+                      types: ['certificate', 'hostname', 'property'],
+                      searchMode: searchArgs.options?.searchMode || 'fuzzy',
+                      includeRelated: searchArgs.options?.includeRelated || false,
+                      includeInactive: searchArgs.options?.includeInactive || false,
+                      includeDeleted: searchArgs.options?.includeDeleted || false,
+                      autoCorrect: searchArgs.options?.autoCorrect ?? true,
+                      expandAcronyms: searchArgs.options?.expandAcronyms || false,
+                      searchHistory: searchArgs.options?.searchHistory || false,
+                      groupBy: searchArgs.options?.groupBy || 'none',
+                    },
+                    customer: searchArgs.customer,
+                  }), null, 2),
                 },
               ],
             };
 
           case 'deploy':
+            const deployArgs = (args || {}) as DeployToolArgs;
             return {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handleDeployTool(args || { action: 'status' }), null, 2),
+                  text: JSON.stringify(await handleDeployTool({
+                    action: deployArgs.action || 'status',
+                    resources: deployArgs.resources,
+                    options: {
+                      network: deployArgs.options?.network || 'staging',
+                      strategy: deployArgs.options?.strategy || 'immediate',
+                      format: deployArgs.options?.format || 'summary',
+                      dryRun: deployArgs.options?.dryRun || false,
+                      verbose: deployArgs.options?.verbose || false,
+                      coordination: deployArgs.options?.coordination,
+                    },
+                    customer: deployArgs.customer,
+                  }), null, 2),
                 },
               ],
             };
@@ -235,13 +433,18 @@ class ConsolidatedCertificateServer {
       action: 'secure',
       domains: includeSubdomains ? [domain, `*.${domain}`] : [domain],
       options: {
+        automation: autoRenew ? {
+          autoRenew: true,
+          renewalDays: 30,
+          validationMethod: 'auto',
+          notifyBeforeExpiry: 14,
+        } : undefined,
         validateFirst: true,
         testDeployment: false,
         rollbackOnError: true,
         includeExpiring: false,
         showRecommendations: true,
         detailed: false,
-        autoRenew,
       },
       customer,
     });
