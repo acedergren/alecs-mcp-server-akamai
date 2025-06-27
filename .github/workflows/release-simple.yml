@@ -79,6 +79,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ env.VERSION }}
+            ${{ contains(env.VERSION, 'rc') && format('ghcr.io/{0}:prerelease', github.repository) || '' }}
 
       - name: Build and push Full Docker image (180+ tools)
         uses: docker/build-push-action@v6
@@ -89,16 +90,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:full-latest
             ghcr.io/${{ github.repository }}:full-${{ env.VERSION }}
-
-      - name: Build and push Essential Docker image (15 tools)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./build/docker/Dockerfile.essential
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:essential-latest
-            ghcr.io/${{ github.repository }}:essential-${{ env.VERSION }}
+            ${{ contains(env.VERSION, 'rc') && format('ghcr.io/{0}:full-prerelease', github.repository) || '' }}
 
       - name: Build and push Modular Docker image (domain-specific servers)
         uses: docker/build-push-action@v6
@@ -109,16 +101,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:modular-latest
             ghcr.io/${{ github.repository }}:modular-${{ env.VERSION }}
-
-      - name: Build and push Minimal Docker image (3 tools)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./build/docker/Dockerfile.minimal
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:minimal-latest
-            ghcr.io/${{ github.repository }}:minimal-${{ env.VERSION }}
+            ${{ contains(env.VERSION, 'rc') && format('ghcr.io/{0}:modular-prerelease', github.repository) || '' }}
 
       - name: Build and push Remote Docker image (WebSocket + SSE)
         uses: docker/build-push-action@v6
@@ -129,3 +112,4 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:remote-latest
             ghcr.io/${{ github.repository }}:remote-${{ env.VERSION }}
+            ${{ contains(env.VERSION, 'rc') && format('ghcr.io/{0}:remote-prerelease', github.repository) || '' }}
