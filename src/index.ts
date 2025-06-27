@@ -16,6 +16,12 @@
  * Impact: Eliminates "Unexpected token" and JSON parsing errors in Claude Desktop
  */
 
+// CRITICAL: Must be first import to prevent stdout pollution
+import { setupSafeConsole } from './utils/safe-console';
+
+// Initialize safe console BEFORE any other imports that might use console.log
+setupSafeConsole();
+
 import { getTransportFromEnv } from './config/transport-config';
 import { logger } from './utils/logger';
 

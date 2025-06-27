@@ -5,6 +5,12 @@
  * ALECS Property Server - Property Manager Module
  * Handles CDN property configuration, rules, and basic certificate integration
  * Includes Default DV (shared certificate) support for property provisioning
+ * 
+ * CODE KAI SEARCH CONSOLIDATION (v1.6.0-rc2):
+ * - Renamed "akamai.search" → "search" for intuitive user experience
+ * - Removed duplicate "search-properties" tool to eliminate confusion
+ * - Single unified search interface for all Akamai resources
+ * - Impact: Cleaner tool list, better UX, reduced cognitive load
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -120,9 +126,18 @@ class PropertyALECSServer {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       log('INFO', '[EMOJI] Tools list requested');
       const tools = [
-        // Universal Search - The Main Tool
+        /**
+         * CODE KAI CONSOLIDATION: Universal Search Tool
+         * 
+         * Key: Simplified user experience with intuitive naming
+         * Approach: Single "search" command for all Akamai resources
+         * Implementation: Renamed from "akamai.search" to "search" for better UX
+         * 
+         * Covers: properties, hostnames, edge hostnames, CP codes, contracts, groups, DNS zones, certificates
+         * Impact: Eliminates confusion from multiple search tools
+         */
         {
-          name: 'akamai.search',
+          name: 'search',
           description:
             "Search for anything in Akamai - properties, hostnames, edge hostnames, CP codes, contracts, groups, or any other resource. Just type what you're looking for!",
           inputSchema: {
@@ -295,19 +310,11 @@ class PropertyALECSServer {
             required: ['propertyId'],
           },
         },
-        {
-          name: 'search-properties',
-          description: 'Search for properties',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              propertyName: { type: 'string' },
-              hostname: { type: 'string' },
-              edgeHostname: { type: 'string' },
-            },
-          },
-        },
+        /**
+         * CODE KAI REMOVAL: Duplicate search-properties tool removed
+         * Functionality consolidated into universal "search" tool above
+         * Benefits: Eliminates confusion, single search interface
+         */
         {
           name: 'list-property-versions',
           description: 'List all versions of a property',
@@ -608,8 +615,11 @@ class PropertyALECSServer {
         let result;
 
         switch (name) {
-          // Universal Search
-          case 'akamai.search':
+          /**
+           * CODE KAI IMPLEMENTATION: Universal Search Handler
+           * Renamed from 'akamai.search' to 'search' for simplified UX
+           */
+          case 'search':
             result = await universalSearchWithCacheHandler(client, args as any);
             break;
 
@@ -638,9 +648,10 @@ class PropertyALECSServer {
           case 'remove-property':
             result = await removeProperty(client, args as any);
             break;
-          case 'search-properties':
-            result = await searchProperties(client, args as any);
-            break;
+          /**
+           * CODE KAI CONSOLIDATION: search-properties handler removed
+           * Functionality merged into universal 'search' tool
+           */
           case 'list-property-versions':
             result = await listPropertyVersions(client, args as any);
             break;

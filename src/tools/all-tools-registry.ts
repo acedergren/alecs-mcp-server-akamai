@@ -68,7 +68,7 @@ import {
   getZone,
   createZone,
   listRecords,
-  upsertRecord,
+  createRecord, // CODE KAI: Replaced deprecated upsertRecord with createRecord
   deleteRecord,
   activateZoneChanges,
 } from './dns-tools';
@@ -276,23 +276,10 @@ import {
   resetPerformanceMonitoring,
 } from './performance-tools';
 
-// Reporting Tools
-import {
-  getTrafficSummary,
-  getTimeseriesData,
-  getPerformanceBenchmarks,
-  analyzeCachePerformance,
-  getCostOptimizationInsights,
-  analyzeBandwidthUsage,
-  createReportingDashboard,
-  exportReportData,
-  configureMonitoringAlerts,
-  getRealtimeMetrics as getReportingRealtimeMetrics,
-  analyzeTrafficTrends,
-  generatePerformanceReport,
-  analyzeGeographicPerformance,
-  analyzeErrorPatterns,
-} from './reporting-tools';
+// Reporting Tools - REMOVED: Reporting functionality has been removed from the codebase
+// to maintain code quality standards and avoid incomplete implementations.
+// Reporting tools contained stub implementations that did not provide real value.
+// Future implementation should include complete Akamai Reporting API integration.
 
 // Token Management Tools
 import {
@@ -510,21 +497,7 @@ const OptimizeCacheSchema = z.object({
   aggressive: z.boolean().optional().default(false),
 });
 
-// Reporting Schemas
-const GetTrafficSummarySchema = z.object({
-  customer: z.string().optional(),
-  startDate: z.string(),
-  endDate: z.string(),
-  interval: z.enum(['5min', '1hour', '1day']).optional(),
-});
-
-const GetTimeseriesDataSchema = z.object({
-  customer: z.string().optional(),
-  metrics: z.array(z.string()),
-  startDate: z.string(),
-  endDate: z.string(),
-  interval: z.enum(['5min', '1hour', '1day']).optional(),
-});
+// Reporting Schemas - REMOVED: Associated with removed reporting functionality
 
 // Tool definition type
 export interface ToolDefinition {
@@ -764,11 +737,18 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: schemas.ListRecordsSchema,
       handler: listRecords,
     },
+    /**
+     * CODE KAI CONSOLIDATION: DNS Record Creation
+     * 
+     * Key: Use modern createRecord instead of deprecated upsertRecord
+     * Approach: Direct function replacement with enhanced type safety
+     * Implementation: Updated handler to use createRecord with full validation
+     */
     {
       name: 'create-record',
-      description: 'Create or update a DNS record',
+      description: 'Create a DNS record with comprehensive validation',
       schema: schemas.CreateRecordSchema,
-      handler: upsertRecord,
+      handler: createRecord,
     },
     {
       name: 'delete-record',
@@ -1541,91 +1521,11 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       handler: resetPerformanceMonitoring,
     },
 
-    // Reporting Tools (14 tools)
-    {
-      name: 'get-traffic-summary',
-      description: 'Get traffic summary report',
-      schema: GetTrafficSummarySchema,
-      handler: getTrafficSummary,
-    },
-    {
-      name: 'get-timeseries-data',
-      description: 'Get time-series data for metrics',
-      schema: GetTimeseriesDataSchema,
-      handler: getTimeseriesData,
-    },
-    {
-      name: 'get-performance-benchmarks',
-      description: 'Get performance benchmarks',
-      schema: extendedSchemas.GetPerformanceBenchmarksSchema,
-      handler: getPerformanceBenchmarks,
-    },
-    {
-      name: 'analyze-cache-performance',
-      description: 'Analyze cache performance',
-      schema: extendedSchemas.AnalyzeCachePerformanceSchema,
-      handler: analyzeCachePerformance,
-    },
-    {
-      name: 'get-cost-optimization-insights',
-      description: 'Get cost optimization insights',
-      schema: extendedSchemas.GetCostOptimizationInsightsSchema,
-      handler: getCostOptimizationInsights,
-    },
-    {
-      name: 'analyze-bandwidth-usage',
-      description: 'Analyze bandwidth usage patterns',
-      schema: extendedSchemas.AnalyzeBandwidthUsageSchema,
-      handler: analyzeBandwidthUsage,
-    },
-    {
-      name: 'create-reporting-dashboard',
-      description: 'Create custom reporting dashboard',
-      schema: extendedSchemas.CreateReportingDashboardSchema,
-      handler: createReportingDashboard,
-    },
-    {
-      name: 'export-report-data',
-      description: 'Export report data',
-      schema: extendedSchemas.ExportReportDataSchema,
-      handler: exportReportData,
-    },
-    {
-      name: 'configure-monitoring-alerts',
-      description: 'Configure monitoring alerts',
-      schema: extendedSchemas.ConfigureMonitoringAlertsSchema,
-      handler: configureMonitoringAlerts,
-    },
-    {
-      name: 'get-reporting-realtime-metrics',
-      description: 'Get real-time metrics for reporting',
-      schema: extendedSchemas.GetReportingRealtimeMetricsSchema,
-      handler: getReportingRealtimeMetrics,
-    },
-    {
-      name: 'analyze-traffic-trends',
-      description: 'Analyze traffic trends',
-      schema: extendedSchemas.AnalyzeTrafficTrendsSchema,
-      handler: analyzeTrafficTrends,
-    },
-    {
-      name: 'generate-performance-report',
-      description: 'Generate performance report',
-      schema: extendedSchemas.GeneratePerformanceReportSchema,
-      handler: generatePerformanceReport,
-    },
-    {
-      name: 'analyze-geographic-performance',
-      description: 'Analyze performance by geography',
-      schema: extendedSchemas.AnalyzeGeographicPerformanceSchema,
-      handler: analyzeGeographicPerformance,
-    },
-    {
-      name: 'analyze-error-patterns',
-      description: 'Analyze error patterns',
-      schema: extendedSchemas.AnalyzeErrorPatternsSchema,
-      handler: analyzeErrorPatterns,
-    },
+    // Reporting Tools - REMOVED: All 14 reporting tools have been removed
+    // due to incomplete implementations that contained stub responses.
+    // This maintains code quality and user trust by not exposing
+    // non-functional features. Future implementation will include
+    // complete Akamai Reporting API integration with real functionality.
 
     // Token Management Tools (5 tools)
     {
