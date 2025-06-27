@@ -24,6 +24,7 @@ import { createCPCode } from '../cpcode-tools';
 import { updatePropertyRules, addPropertyHostname } from '../property-manager-tools';
 import { createZone, upsertRecord } from '../dns-tools';
 import { listCertificateEnrollments } from '../cps-tools';
+import { validateApiResponse } from '../../utils/api-response-validator';
 
 // Operation types for the workflow
 const OnboardingOperation = z.enum([
@@ -124,9 +125,10 @@ async function detectCertificateOptions(
       queryParams: { contractId },
     });
     
-    const hasIonOrSimilar = productsResponse.products?.items?.some((p: any) => 
+    const validatedProductsResponse = validateApiResponse<{ products?: { items?: any[] } }>(productsResponse);
+    const hasIonOrSimilar = validatedProductsResponse.products?.items?.some((p: any) => 
       ['prd_fresca', 'prd_SPM', 'prd_Dynamic_Site_Del'].includes(p.productId)
-    );
+    ) || false;
     
     let recommendation = '';
     if (hasIonOrSimilar && matchingCerts.length === 0) {
@@ -191,7 +193,8 @@ async function createSecurityConfiguration(
       },
     });
     
-    const securityConfigId = createResponse.configId;
+    const validatedCreateResponse = validateApiResponse<{ configId?: string }>(createResponse);
+    const securityConfigId = validatedCreateResponse.configId;
     
     // Create WAF policy in alert mode
     if (args.securityLevel !== 'basic') {
@@ -206,7 +209,8 @@ async function createSecurityConfiguration(
         },
       });
       
-      const wafPolicyId = policyResponse.policyId;
+      const validatedPolicyResponse = validateApiResponse<{ policyId?: string }>(policyResponse);
+      const wafPolicyId = validatedPolicyResponse.policyId;
       
       // Enable protections in alert mode
       await client.request({
@@ -410,7 +414,8 @@ async function handleStartOnboarding(
     queryParams: { contractId: params.contractId },
   });
   
-  const bestProduct = selectBestProduct(productsResponse.products?.items || []);
+  const validatedProductsResp = validateApiResponse<{ products?: { items?: any[] } }>(productsResponse);
+  const bestProduct = selectBestProduct(validatedProductsResp.products?.items || []);
   
   spinner.succeed('Requirements analyzed');
   
@@ -506,8 +511,9 @@ async function handleCheckRequirements(
       queryParams: { hostname: params.hostname },
     });
     
-    if (dns.answer?.length > 0) {
-      recommendations.push(`Current DNS points to: ${dns.answer[0].data}`);
+    const validatedDns = validateApiResponse<{ answer?: Array<{ data?: string }> }>(dns);
+    if (validatedDns.answer?.length && validatedDns.answer[0]?.data) {
+      recommendations.push(`Current DNS points to: ${validatedDns.answer[0].data}`);
     }
   } catch (error) {
     recommendations.push('Unable to check current DNS settings');
@@ -608,7 +614,8 @@ async function handleSetupProperty(
         queryParams: { contractId: params.contractId },
       });
       
-      const bestProduct = selectBestProduct(productsResponse.products?.items || []);
+      const validatedProdsResp = validateApiResponse<{ products?: { items?: any[] } }>(productsResponse);
+      const bestProduct = selectBestProduct(validatedProdsResp.products?.items || []);
       productId = bestProduct?.productId || 'prd_fresca';
     }
     
@@ -677,7 +684,10 @@ async function handleSetupProperty(
         },
       });
       
-      state.edgeHostnameId = edgeHostnameResponse.edgeHostnameLink?.split('/').pop()?.split('?')[0];
+      const validatedEdgeHostnameResponse = validateApiResponse<{ edgeHostnameLink?: string }>(edgeHostnameResponse);
+      if (validatedEdgeHostnameResponse.edgeHostnameLink) {
+        state.edgeHostnameId = validatedEdgeHostnameResponse.edgeHostnameLink.split('/').pop()?.split('?')[0];
+      }
       state.edgeHostnameDomain = edgeHostnameDomain;
       state.certificateType = 'DefaultDV';
       
@@ -1180,7 +1190,8 @@ async function handleCheckStatus(
       method: 'GET',
     });
     
-    const property = propertyResponse.properties?.items?.[0];
+    const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any } }>(propertyResponse);
+    const property = validatedPropertyResponse.properties?.items?.[0];
     if (!property) {
       throw new Error('Property not found');
     }
@@ -1201,8 +1212,9 @@ async function handleCheckStatus(
     });
     
     text += `## Configured Hostnames\n`;
-    if (hostnamesResponse.hostnames?.items?.length > 0) {
-      hostnamesResponse.hostnames.items.forEach((hostname: any) => {
+    const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: Array<{ cnameFrom?: string; cnameTo?: string }> } }>(hostnamesResponse);
+    if (validatedHostnamesResponse.hostnames?.items?.length) {
+      validatedHostnamesResponse.hostnames.items.forEach((hostname) => {
         text += `- ${hostname.cnameFrom} → ${hostname.cnameTo}\n`;
       });
     } else {

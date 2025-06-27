@@ -7,13 +7,7 @@ import { EdgeGridAuth } from '../auth/EdgeGridAuth';
 
 import { type DnsRecordsetsResponse, type CpsLocationResponse } from './types';
 
-const _resolveTxt = promisify(dns.resolveTxt);
 const resolveNs = promisify(dns.resolveNs);
-const _resolveCname = promisify(dns.resolveCname);
-const _resolveMx = promisify(dns.resolveMx);
-const _resolveSrv = promisify(dns.resolveSrv);
-const _resolve4 = promisify(dns.resolve4);
-const _resolve6 = promisify(dns.resolve6);
 
 interface DNSRecord {
   name: string;
@@ -336,6 +330,8 @@ export class DNSMigrationAgent {
       // Verify each expected record
       for (let i = 0; i < expectedRecords.length; i++) {
         const expected = expectedRecords[i];
+        if (!expected) continue;
+        
         const key = `${expected.name}:${expected.type}`;
         const actual = recordMap.get(key);
 
@@ -774,13 +770,16 @@ export class DNSMigrationAgent {
     const result = { success: 0, failed: 0, errors: [] as string[] };
 
     for (let i = 0; i < records.length; i++) {
+      const record = records[i];
+      if (!record) continue;
+      
       try {
-        await this.createRecord(zoneName, records[i]);
+        await this.createRecord(zoneName, record);
         result.success++;
       } catch (_error) {
         result.failed++;
         result.errors.push(
-          `${records[i].name} ${records[i].type}: ${_error instanceof Error ? _error.message : String(_error)}`,
+          `${record.name} ${record.type}: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
       }
       progressCallback(i + 1, records.length);
@@ -804,9 +803,9 @@ export class DNSMigrationAgent {
           const parts = line.split(/\s+/);
           if (parts.length >= 4) {
             records.push({
-              name: parts[0],
-              type: parts[2],
-              ttl: parseInt(parts[1]) || 300,
+              name: parts[0] || '',
+              type: parts[2] || '',
+              ttl: parseInt(parts[1] || '300') || 300,
               rdata: parts.slice(3),
             });
           }
@@ -981,7 +980,7 @@ export class DNSMigrationAgent {
         case 'file': {
           const records = await this.parseZoneFile(options.sourceConfig.content, targetZone);
           importResult = await this.bulkImportWithProgress(targetZone, records, {
-            validateFirst: options.validateFirst,
+            ...(options.validateFirst !== undefined && { validateFirst: options.validateFirst }),
           });
           break;
         }

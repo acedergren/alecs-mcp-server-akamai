@@ -314,7 +314,7 @@ export class SmartCache<T = any> extends EventEmitter {
         size: finalSize,
         compressed,
         updateCount,
-        lastUpdateInterval,
+        ...(lastUpdateInterval !== undefined && { lastUpdateInterval }),
       };
       
       if (this.options.enableSegmentation) {
@@ -466,7 +466,7 @@ export class SmartCache<T = any> extends EventEmitter {
           resolve(result);
         }
         
-        return result;
+        return result as V;
       } catch (error) {
         // Reject all waiting callbacks
         for (const { reject } of pendingRequest.callbacks) {
@@ -690,8 +690,8 @@ export class SmartCache<T = any> extends EventEmitter {
         }
       } else {
         // Use the Kth most recent access
-        const kthAccess = entry.accessHistory[0]; // Oldest in the K-sized window
-        if (kthAccess < oldestKthAccess) {
+        const kthAccess = entry.accessHistory?.[0]; // Oldest in the K-sized window
+        if (kthAccess !== undefined && kthAccess < oldestKthAccess) {
           oldestKthAccess = kthAccess;
           lruKKey = key;
         }
@@ -738,7 +738,6 @@ export class SmartCache<T = any> extends EventEmitter {
   }
 
   private shouldEvictForMemory(newSize: number): boolean {
-    const currentMemoryMB = this.metrics.memoryUsage / 1024 / 1024;
     const newMemoryMB = (this.metrics.memoryUsage + newSize) / 1024 / 1024;
     return newMemoryMB > this.options.maxMemoryMB;
   }
@@ -851,12 +850,12 @@ export class SmartCache<T = any> extends EventEmitter {
     
     // Add circuit breaker status if enabled
     if (this.options.enableCircuitBreaker) {
-      stats.circuitBreaker = this.circuitBreaker.getStatus();
+      (stats as any).circuitBreaker = this.circuitBreaker.getStatus();
     }
     
     // Add segmentation stats if enabled
     if (this.options.enableSegmentation) {
-      stats.segments = {
+      (stats as any).segments = {
         count: this.segments.size,
         details: Array.from(this.segments.entries()).map(([name, segment]) => ({
           name,
@@ -869,7 +868,7 @@ export class SmartCache<T = any> extends EventEmitter {
     
     // Add KeyStore stats if enabled
     if (this.options.enableKeyStore) {
-      stats.keyStore = this.keyStore.getStats();
+      (stats as any).keyStore = this.keyStore.getStats();
     }
     
     return stats;

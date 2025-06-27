@@ -119,7 +119,7 @@ export interface ActivationRequest {
 /**
  * Activation status
  */
-export interface ActivationStatus {
+export interface NetworkListActivationStatus {
   activationId: string;
   networkListId: string;
   network: 'STAGING' | 'PRODUCTION';
@@ -147,7 +147,7 @@ export interface ActivationResponse {
 /**
  * Response from GET /network-list/v2/network-lists/{networkListId}/environments/{environment}/status
  */
-export interface ActivationStatusResponse extends ActivationStatus {
+export interface ActivationStatusResponse extends NetworkListActivationStatus {
   activationComments?: string;
   activationDate?: string;
   estimatedActivationTime?: string;

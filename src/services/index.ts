@@ -1,5 +1,5 @@
 // Export all services
-export { AkamaiCacheService as CacheService } from './cache-service';
+// export { AkamaiCacheService as CacheService } from './cache-service'; // File doesn't exist
 export { AkamaiCacheService } from './akamai-cache-service';
 export * from './BaseAkamaiClient';
 export * from './certificate-deployment-coordinator';
@@ -16,4 +16,4 @@ export * from './PurgeStatusTracker';
 export * from './RealTimeMonitoringService';
 export * from './ReportingService';
 export * from './TrafficAnalyticsService';
-export * from './external-cache-service';
+// export * from './external-cache-service'; // File doesn't exist

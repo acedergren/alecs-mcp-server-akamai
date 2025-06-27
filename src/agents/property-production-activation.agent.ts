@@ -46,7 +46,7 @@ export class PropertyProductionActivationAgent {
       });
 
       // Extract property details from response
-      const responseText = propertyResult.content[0].text;
+      const responseText = propertyResult.content[0]?.text || '';
       if (!responseText.includes('Property Name:')) {
         result.errors!.push(`Property ${config.propertyId} not found`);
         return result;
@@ -64,7 +64,7 @@ export class PropertyProductionActivationAgent {
       });
 
       // Extract activation ID from response
-      const activationResponseText = activationResult.content[0].text;
+      const activationResponseText = activationResult.content[0]?.text || '';
       const activationIdMatch = activationResponseText.match(/Activation ID:\*\* (atv_\d+)/);
 
       if (!activationIdMatch) {
@@ -72,7 +72,9 @@ export class PropertyProductionActivationAgent {
         return result;
       }
 
-      result.activationId = activationIdMatch[1];
+      if (activationIdMatch[1]) {
+        result.activationId = activationIdMatch[1];
+      }
       result.success = true;
 
       // Step 3: Provide time estimates based on hostname status
@@ -97,12 +99,14 @@ export class PropertyProductionActivationAgent {
         console.error(
           `[ProductionActivation] Step 4: Waiting for activation (max ${maxWaitTime} minutes)...`,
         );
-        const finalStatus = await this.waitForActivation(
-          config.propertyId,
-          result.activationId,
-          maxWaitTime,
-        );
-        result.status = finalStatus;
+        if (result.activationId) {
+          const finalStatus = await this.waitForActivation(
+            config.propertyId,
+            result.activationId,
+            maxWaitTime,
+          );
+          result.status = finalStatus;
+        }
       } else {
         result.status = 'PENDING';
       }
@@ -139,7 +143,7 @@ export class PropertyProductionActivationAgent {
           activationId,
         });
 
-        const responseText = statusResult.content[0].text;
+        const responseText = statusResult.content[0]?.text || '';
         // Parse status from response
         if (responseText.includes('Status: ACTIVE')) {
           return 'ACTIVE';

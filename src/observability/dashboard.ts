@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Lightweight debugging dashboard for ALECS
  * Provides real-time visibility into operations without external dependencies

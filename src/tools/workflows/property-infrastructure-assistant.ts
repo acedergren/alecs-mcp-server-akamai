@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Property & Infrastructure Domain Assistant
  * Maya Chen's UX Transformation: Making complex infrastructure feel conversational

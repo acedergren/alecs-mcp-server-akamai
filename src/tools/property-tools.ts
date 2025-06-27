@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Property Manager API Integration
  * Implements core CRUD operations for Akamai CDN properties

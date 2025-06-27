@@ -6,18 +6,34 @@
 import { type AkamaiClient } from '../akamai-client';
 import { ICache } from '../types/cache-interface';
 import { getDefaultCache } from './cache-factory';
-import { CacheTTL } from './external-cache-service';
+// Cache TTL constants (moved from external-cache-service)
+export const CacheTTL = {
+  SHORT: 60,     // 1 minute
+  MEDIUM: 300,   // 5 minutes  
+  LONG: 1800,    // 30 minutes
+  EXTRA_LONG: 3600, // 1 hour
+  // Specific TTLs for different resources
+  PROPERTIES_LIST: 300,  // 5 minutes
+  PROPERTY_DETAILS: 300, // 5 minutes
+  HOSTNAMES: 300,        // 5 minutes
+  HOSTNAME_MAP: 300,     // 5 minutes
+  SEARCH_RESULTS: 60,    // 1 minute
+  CONTRACTS: 1800,       // 30 minutes
+  GROUPS: 1800          // 30 minutes
+} as const;
 import { 
-  PropertyListResponse, 
+  PropertiesResponse, 
   PropertyDetailResponse,
-  ContractListResponse,
-  GroupListResponse,
-  HostnameListResponse,
-  Property,
-  Hostname,
-  Contract,
-  Group
+  ContractsResponse,
+  GroupsResponse,
+  PropertyHostnamesResponse
 } from '../types/api-responses';
+
+// Define types from the response interfaces
+type Property = PropertiesResponse['properties']['items'][0];
+type Hostname = PropertyHostnamesResponse['hostnames']['items'][0];
+type Contract = ContractsResponse['contracts']['items'][0];
+type Group = GroupsResponse['groups']['items'][0];
 
 export interface PropertySearchResult {
   type:
@@ -73,7 +89,7 @@ export class AkamaiCacheService {
       CacheTTL.PROPERTIES_LIST,
       async () => {
         console.error('[Cache] Fetching properties from API...');
-        const response = await client.request<PropertyListResponse>({
+        const response = await client.request<PropertiesResponse>({
           path: '/papi/v1/properties',
           method: 'GET',
         });
@@ -133,7 +149,7 @@ export class AkamaiCacheService {
       cacheKey,
       CacheTTL.HOSTNAMES,
       async () => {
-        const response = await client.request<HostnameListResponse>({
+        const response = await client.request<PropertyHostnamesResponse>({
           path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames`,
           method: 'GET',
           queryParams: {
@@ -292,7 +308,7 @@ export class AkamaiCacheService {
     const cacheKey = `${customer}:contracts:all`;
 
     return this.cache.getWithRefresh(cacheKey, CacheTTL.CONTRACTS, async () => {
-      const response = await client.request<ContractListResponse>({
+      const response = await client.request<ContractsResponse>({
         path: '/papi/v1/contracts',
         method: 'GET',
       });
@@ -308,7 +324,7 @@ export class AkamaiCacheService {
     const cacheKey = `${customer}:groups:all`;
 
     return this.cache.getWithRefresh(cacheKey, CacheTTL.GROUPS, async () => {
-      const response = await client.request<GroupListResponse>({
+      const response = await client.request<GroupsResponse>({
         path: '/papi/v1/groups',
         method: 'GET',
       });

@@ -35,11 +35,6 @@ interface EdgeGridRequestOptions {
   qs?: Record<string, string>;
 }
 
-interface EdgeGridResponse {
-  statusCode: number;
-  headers: Record<string, string>;
-}
-
 export class AkamaiClient {
   private edgeGrid: EdgeGrid;  // EdgeGrid SDK instance for auth
   private accountSwitchKey?: string;  // Optional key for multi-customer support
@@ -54,7 +49,7 @@ export class AkamaiClient {
   constructor(section = 'default', accountSwitchKey?: string) {
     this.section = section;
     const edgercPath = this.getEdgeRcPath();
-    this.debug = process.env.DEBUG === '1' || process.env.DEBUG === 'true';
+    this.debug = process.env['DEBUG'] === '1' || process.env['DEBUG'] === 'true';
 
     try {
       // Initialize EdgeGrid client using the SDK with connection pooling
@@ -74,7 +69,9 @@ export class AkamaiClient {
       }
 
       // Store account switch key for API requests
-      this.accountSwitchKey = accountSwitchKey;
+      if (accountSwitchKey) {
+        this.accountSwitchKey = accountSwitchKey;
+      }
     } catch (_error) {
       if (_error instanceof Error && _error.message.includes('ENOENT')) {
         throw new Error(
@@ -99,7 +96,7 @@ export class AkamaiClient {
    */
   private getEdgeRcPath(): string {
     // Check environment variable first
-    const envPath = process.env.EDGERC_PATH;
+    const envPath = process.env['EDGERC_PATH'];
     if (envPath) {
       return path.resolve(envPath);
     }
@@ -137,7 +134,7 @@ export class AkamaiClient {
 
       // Add account switch key if available
       if (this.accountSwitchKey) {
-        queryParams.accountSwitchKey = this.accountSwitchKey;
+        queryParams['accountSwitchKey'] = this.accountSwitchKey;
       }
 
       // Add any additional query parameters
@@ -154,8 +151,11 @@ export class AkamaiClient {
           Accept: 'application/json',
           ..._options.headers,
         },
-        body: _options.body ? JSON.stringify(_options.body) : undefined,
       };
+      
+      if (_options.body) {
+        requestOptions.body = JSON.stringify(_options.body);
+      }
 
       // Add query parameters using qs property if any exist
       if (Object.keys(queryParams).length > 0) {
@@ -301,7 +301,7 @@ export class AkamaiClient {
   } {
     return {
       edgercPath: this.getEdgeRcPath(),
-      accountSwitchKey: this.accountSwitchKey,
+      ...(this.accountSwitchKey && { accountSwitchKey: this.accountSwitchKey }),
     };
   }
 

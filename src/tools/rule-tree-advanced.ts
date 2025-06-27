@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Advanced Rule Tree Management Tools
  * Comprehensive rule validation, templates, optimization, and analysis

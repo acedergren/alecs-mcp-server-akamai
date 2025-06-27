@@ -185,16 +185,26 @@ class ConsolidatedSecurityServer {
           case 'search':
             // Focus search on security resources
             const securitySearchArgs = {
-              action: 'find',
-              query: '',
-              ...args,
+              action: 'find' as const,
+              query: (args as any)?.query || '',
               options: {
+                limit: 50,
+                sortBy: 'relevance' as const,
+                offset: 0,
+                format: 'simple' as const,
+                types: ['property', 'certificate', 'activation'] as any,
+                searchMode: 'fuzzy' as const,
+                includeRelated: false,
+                includeInactive: false,
+                includeDeleted: false,
+                autoCorrect: true,
+                expandAcronyms: false,
+                searchHistory: false,
+                groupBy: 'none' as const,
                 ...(args?.options || {}),
-                types: ['property', 'certificate', 'activation'],
-                // Add security-specific filters
-                securityContext: true,
               },
-            };
+              customer: (args as any)?.customer,
+            } as any;
             return {
               content: [
                 {
@@ -209,7 +219,19 @@ class ConsolidatedSecurityServer {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handleDeployTool(args || { action: 'status' }), null, 2),
+                  text: JSON.stringify(await handleDeployTool({
+                    action: 'status' as const,
+                    resources: undefined,
+                    options: {
+                      network: 'staging' as const,
+                      strategy: 'immediate' as const,
+                      format: 'summary' as const,
+                      dryRun: false,
+                      verbose: false,
+                    },
+                    customer: (args as any)?.customer,
+                    ...(args || {}),
+                  } as any), null, 2),
                 },
               ],
             };

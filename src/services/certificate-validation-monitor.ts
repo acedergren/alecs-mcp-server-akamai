@@ -8,9 +8,10 @@ import { EventEmitter } from 'events';
 import { type AkamaiClient } from '../akamai-client';
 import { 
   DVValidationResponse,
-  DomainValidation,
+  DomainValidation as ApiDomainValidation,
   EnrollmentDetailResponse
 } from '../types/api-responses';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 // Validation States
 export enum ValidationStatus {
@@ -221,7 +222,8 @@ export class CertificateValidationMonitor extends EventEmitter {
       },
     });
 
-    return response.allowedDomains?.map((d: any) => d.name) || [];
+    const validatedResponse = validateApiResponse<{ allowedDomains?: Array<{ name: string }> }>(response);
+    return validatedResponse.allowedDomains?.map((d: any) => d.name) || [];
   }
 
   private async checkValidationStatus(enrollmentId: number): Promise<boolean> {
@@ -240,7 +242,22 @@ export class CertificateValidationMonitor extends EventEmitter {
 
     let allValidated = true;
 
-    for (const domain of response.allowedDomains || []) {
+    const validatedResponse = validateApiResponse<{ 
+      allowedDomains?: Array<{ 
+        name: string; 
+        status?: string;
+        validationStatus?: string;
+        validationDetails?: {
+          challenges?: Array<{
+            type: string;
+            token?: string;
+            responseBody?: string;
+          }>;
+          error?: string;
+        };
+      }> 
+    }>(response);
+    for (const domain of validatedResponse.allowedDomains || []) {
       const domainState = domainStates.get(domain.name);
       if (!domainState) {
         continue;
@@ -265,7 +282,7 @@ export class CertificateValidationMonitor extends EventEmitter {
               for (const challenge of domain.validationDetails.challenges) {
                 if (challenge.type === 'dns-01' && challenge.responseBody) {
                   domainState.challenge = {
-                    token: challenge.token,
+                    token: challenge.token || '',
                     recordName: `_acme-challenge.${domain.name}`,
                     recordValue: challenge.responseBody,
                   };
@@ -313,7 +330,7 @@ export class CertificateValidationMonitor extends EventEmitter {
       return;
     }
 
-    for (const [domain, state] of domainStates) {
+    for (const [domain, state] of Array.from(domainStates)) {
       if (state.status === ValidationStatus.FAILED || state.status === ValidationStatus.EXPIRED) {
         // Don't retry if max attempts reached
         if (state.attempts >= 3) {
@@ -358,7 +375,7 @@ export class CertificateValidationMonitor extends EventEmitter {
     // Domain Details
     report += '## Domain Status\n\n';
 
-    for (const [domain, state] of domainStates) {
+    for (const [domain, state] of Array.from(domainStates)) {
       const statusEmoji =
         {
           [ValidationStatus.VALIDATED]: '[DONE]',

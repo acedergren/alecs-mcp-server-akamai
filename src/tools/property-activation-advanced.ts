@@ -7,6 +7,7 @@ import { ErrorTranslator, ErrorRecovery } from '../utils/errors';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 // Enhanced activation types
 export interface ActivationProgress {
@@ -115,11 +116,12 @@ export async function validatePropertyActivation(
       method: 'GET',
     });
 
-    if (!propertyResponse.properties?.items?.[0]) {
+    const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+    if (!validatedPropertyResponse.properties?.items?.[0]) {
       throw new Error('Property not found');
     }
 
-    const property = propertyResponse.properties.items[0];
+    const property = validatedPropertyResponse.properties.items[0];
     const version = args.version || property.latestVersion || 1;
     const validation: ValidationResult = {
       valid: true,
@@ -135,9 +137,10 @@ export async function validatePropertyActivation(
       method: 'GET',
     });
 
-    if (rulesValidation.errors?.length > 0) {
+    const validatedRulesValidation = validateApiResponse<{ errors?: any[], warnings?: any[] }>(rulesValidation);
+    if (validatedRulesValidation.errors && validatedRulesValidation.errors.length > 0) {
       validation.valid = false;
-      rulesValidation.errors.forEach((_error: any) => {
+      validatedRulesValidation.errors.forEach((_error: any) => {
         validation.errors.push({
           severity: _error.type === 'error' ? 'CRITICAL' : 'ERROR',
           type: _error.type,
@@ -148,8 +151,8 @@ export async function validatePropertyActivation(
       });
     }
 
-    if (rulesValidation.warnings?.length > 0) {
-      rulesValidation.warnings.forEach((warning: any) => {
+    if (validatedRulesValidation.warnings && validatedRulesValidation.warnings.length > 0) {
+      validatedRulesValidation.warnings.forEach((warning: any) => {
         validation.warnings.push({
           severity: 'WARNING',
           type: warning.type,
@@ -165,7 +168,8 @@ export async function validatePropertyActivation(
       method: 'GET',
     });
 
-    const hostnames = hostnamesResponse.hostnames?.items || [];
+    const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: any } }>(hostnamesResponse);
+    const hostnames = validatedHostnamesResponse.hostnames?.items || [];
 
     validation.preflightChecks.push({
       name: 'Hostname Configuration',
@@ -193,7 +197,8 @@ export async function validatePropertyActivation(
       method: 'GET',
     });
 
-    const pendingActivations = (activationsResponse.activations?.items || []).filter(
+    const validatedActivationsResponse = validateApiResponse<{ activations?: { items?: any[] } }>(activationsResponse);
+    const pendingActivations = (validatedActivationsResponse.activations?.items || []).filter(
       (a: any) => a.status === 'PENDING' && a.network === args.network,
     );
 
@@ -349,7 +354,8 @@ export async function activatePropertyWithMonitoring(
       method: 'GET',
     });
 
-    const property = propertyResponse.properties.items[0];
+    const validatedPropertyResponse = validateApiResponse<{ properties: { items: any[] } }>(propertyResponse);
+    const property = validatedPropertyResponse.properties.items[0];
     const version = args.version || property.latestVersion || 1;
 
     // Create activation
@@ -375,7 +381,8 @@ export async function activatePropertyWithMonitoring(
       },
     );
 
-    const activationId = activationResponse.activationLink?.split('/').pop();
+    const validatedActivationResponse = validateApiResponse<{ activationLink?: { split?: any } }>(activationResponse);
+    const activationId = validatedActivationResponse.activationLink?.split('/').pop();
 
     // If not waiting for completion, return immediately
     if (!options.waitForCompletion) {
@@ -402,7 +409,8 @@ export async function activatePropertyWithMonitoring(
         method: 'GET',
       });
 
-      const activation = statusResponse.activations?.items?.[0];
+      const validatedStatusResponse = validateApiResponse<{ activations?: { items?: any } }>(statusResponse);
+    const activation = validatedStatusResponse.activations?.items?.[0];
       if (!activation) {
         throw new Error('Activation not found');
       }
@@ -497,7 +505,8 @@ export async function getActivationProgress(
       method: 'GET',
     });
 
-    const activation = response.activations?.items?.[0];
+    const validatedResponse = validateApiResponse<{ activations?: { items?: any } }>(response);
+    const activation = validatedResponse.activations?.items?.[0];
     if (!activation) {
       throw new Error('Activation not found');
     }
@@ -645,6 +654,7 @@ async function checkOriginConnectivity(
       method: 'GET',
     });
 
+    const validatedRulesResponse = validateApiResponse<{ rules: any }>(rulesResponse);
     // Find origin behavior
     const findOrigin = (rules: any): string | null => {
       if (rules.behaviors) {
@@ -665,7 +675,7 @@ async function checkOriginConnectivity(
       return null;
     };
 
-    const originHostname = findOrigin(rulesResponse.rules);
+    const originHostname = findOrigin(validatedRulesResponse.rules);
 
     if (!originHostname) {
       return {
@@ -869,7 +879,8 @@ async function rollbackActivation(
       method: 'GET',
     });
 
-    const previousActivation = activationsResponse.activations?.items
+    const validatedActivationsResponse = validateApiResponse<{ activations?: { items?: any } }>(activationsResponse);
+    const previousActivation = validatedActivationsResponse.activations?.items
       ?.filter((a: any) => a.network === network && a.status === 'ACTIVE')
       ?.sort(
         (a: any, b: any) => new Date(b.updateDate).getTime() - new Date(a.updateDate).getTime(),
@@ -913,7 +924,8 @@ export async function cancelPropertyActivation(
       method: 'GET',
     });
 
-    const activation = statusResponse.activations?.items?.[0];
+    const validatedStatusResponse = validateApiResponse<{ activations?: { items?: any } }>(statusResponse);
+    const activation = validatedStatusResponse.activations?.items?.[0];
     if (!activation) {
       throw new Error('Activation not found');
     }
@@ -986,13 +998,14 @@ export async function createActivationPlan(
           method: 'GET',
         });
 
-        if (!response.properties?.items?.[0]) {
+        const validatedResponse = validateApiResponse<{ properties?: { items?: any[] } }>(response);
+        if (!validatedResponse.properties?.items?.[0]) {
           throw new Error(`Property ${prop.propertyId} not found`);
         }
 
         return {
           ...prop,
-          details: response.properties.items[0],
+          details: validatedResponse.properties.items[0],
         };
       }),
     );

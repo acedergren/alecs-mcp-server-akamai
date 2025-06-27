@@ -11,6 +11,7 @@ import { z } from 'zod';
 
 import { AkamaiClient } from '../../akamai-client';
 import { type MCPToolResponse } from '../../types';
+import { validateApiResponse } from '../../utils/api-response-validator';
 
 // Initialize resilience manager
 const resilienceManager = ResilienceManager.getInstance();
@@ -73,7 +74,10 @@ export const listAppSecConfigurations = {
         method: 'GET',
       });
 
-      const configurations = response.configurations || [];
+      const validatedResponse = validateApiResponse<{ configurations: any }>(response);
+
+
+      const configurations = validatedResponse.configurations || [];
 
       return {
         content: [
@@ -140,11 +144,13 @@ export const getAppSecConfiguration = {
         method: 'GET',
       });
 
+      const validatedResponse = validateApiResponse<any>(response);
+
       return {
         content: [
           {
             type: 'text',
-            text: `Application Security Configuration Details:\n\n${formatJson(response)}`,
+            text: `Application Security Configuration Details:\n\n${formatJson(validatedResponse)}`,
           },
         ],
       };
@@ -217,11 +223,13 @@ export const createWAFPolicy = {
         body: policyData,
       });
 
+      const validatedData = validateApiResponse<{ policyId: string }>(data);
+
       return {
         content: [
           {
             type: 'text',
-            text: `WAF policy '${parsed.policyName}' created successfully\n\nPolicy ID: ${data.policyId}\n\n${formatJson(data)}`,
+            text: `WAF policy '${parsed.policyName}' created successfully\n\nPolicy ID: ${validatedData.policyId}\n\n${formatJson(validatedData)}`,
           },
         ],
       };
@@ -282,14 +290,14 @@ export const getSecurityEvents = {
         method: 'GET',
       });
 
-      const data = response;
+      const validatedData = validateApiResponse<{ securityEvents: any; totalEvents?: number }>(response);
 
       return {
         content: [
           {
             type: 'text',
-            text: `Security Events (${parsed.from} to ${parsed.to}):\nTotal Events: ${data.totalEvents || 0}\n\n${formatTable(
-              data.securityEvents?.map((event: any) => ({
+            text: `Security Events (${parsed.from} to ${parsed.to}):\nTotal Events: ${validatedData.totalEvents || 0}\n\n${formatTable(
+              validatedData.securityEvents?.map((event: any) => ({
                 'Event Time': new Date(
                   event.httpMessage?.start || event.timestamp,
                 ).toLocaleString(),
@@ -362,11 +370,13 @@ export const activateSecurityConfiguration = {
         body: activationData,
       });
 
+      const validatedData = validateApiResponse<{ activationId: string; status: string }>(data);
+
       return {
         content: [
           {
             type: 'text',
-            text: `Security configuration ${parsed.configId} v${parsed.version} activation initiated on ${parsed.network}\n\nActivation ID: ${data.activationId}\nStatus: ${data.status}\n\n${formatJson(data)}`,
+            text: `Security configuration ${parsed.configId} v${parsed.version} activation initiated on ${parsed.network}\n\nActivation ID: ${validatedData.activationId}\nStatus: ${validatedData.status}\n\n${formatJson(validatedData)}`,
           },
         ],
       };
@@ -411,11 +421,13 @@ export const getSecurityActivationStatus = {
         method: 'GET',
       });
 
+      const validatedData = validateApiResponse<{ status: string; network: string; progress?: number }>(data);
+
       return {
         content: [
           {
             type: 'text',
-            text: `Activation ${args.activationId} status: ${data.status}\nNetwork: ${data.network}\nProgress: ${data.progress || 0}%\n\n${formatJson(data)}`,
+            text: `Activation ${args.activationId} status: ${validatedData.status}\nNetwork: ${validatedData.network}\nProgress: ${validatedData.progress || 0}%\n\n${formatJson(validatedData)}`,
           },
         ],
       };

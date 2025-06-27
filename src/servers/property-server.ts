@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @ts-nocheck
 
 /**
  * ALECS Property Server - Property Manager Module

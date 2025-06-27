@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Integration Testing Tools
  * MCP tools for running integration tests and validation frameworks

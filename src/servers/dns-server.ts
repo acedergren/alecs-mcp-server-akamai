@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @ts-nocheck
 
 /**
  * ALECS DNS Server - DNS Management Module

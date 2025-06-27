@@ -13,13 +13,13 @@ export interface TransportConfig {
     host?: string;
     path?: string;
     cors?: boolean;
-    auth?: 'none' | 'oauth' | 'token';
+    auth?: 'none' | 'token';
     ssl?: boolean;
   };
 }
 
 export function getTransportFromEnv(): TransportConfig {
-  const transportType = (process.env.MCP_TRANSPORT || 'stdio') as TransportType;
+  const transportType = (process.env['MCP_TRANSPORT'] || 'stdio') as TransportType;
   
   switch (transportType) {
     case 'websocket':

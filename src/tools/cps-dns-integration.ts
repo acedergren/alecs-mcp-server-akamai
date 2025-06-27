@@ -4,6 +4,7 @@
  */
 
 import { ProgressBar, Spinner } from '../utils/progress';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -199,9 +200,9 @@ function parseACMERecords(content: string): ACMERecord[] {
 
   for (const line of lines) {
     // Detect domain sections
-    const domainMatch = line.match(/###\s+[[DONE][ERROR][EMOJI][EMOJI][EMOJI]]\s+(.+)/u);
-    if (domainMatch && domainMatch[1]) {
-      currentDomain = domainMatch[1];
+    const domainMatch = line.match(/###\s+\[(DONE|ERROR|EMOJI)\]\s+(.+)/u);
+    if (domainMatch && domainMatch[2]) {
+      currentDomain = domainMatch[2];
       continue;
     }
 
@@ -284,7 +285,8 @@ export async function monitorCertificateValidation(
         path: `/cps/v2/enrollments/${args.enrollmentId}`,
       });
 
-      const enrollment = response.data;
+      const validatedResponse = validateApiResponse<{ data: any }>(response);
+      const enrollment = validatedResponse.data;
       spinner.stop();
 
       // Check if all domains are validated

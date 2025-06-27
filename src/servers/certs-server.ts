@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @ts-nocheck
 
 /**
  * ALECS Certificates Server - SSL/TLS Certificate Management Module

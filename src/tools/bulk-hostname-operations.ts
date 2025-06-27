@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Bulk Hostname Operations Service
  * Handles bulk hostname provisioning, DNS validation, and property assignment

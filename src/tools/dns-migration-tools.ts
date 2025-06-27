@@ -5,6 +5,7 @@
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse, type DNSRecordSet } from '../types';
+import { validateApiResponse, safeAccess } from '../utils/api-response-validator';
 
 import { createZone, ensureCleanChangeList } from './dns-tools';
 
@@ -15,6 +16,51 @@ export interface ZoneFileRecord {
   class: string;
   type: string;
   rdata: string[];
+}
+
+// API Response Interfaces
+interface ZoneResponse {
+  zone: string;
+  type: string;
+  masters?: string[];
+  tsigKey?: {
+    name: string;
+    algorithm: string;
+    secret: string;
+  };
+}
+
+interface RecordsResponse {
+  recordsets: Array<{
+    name: string;
+    type: string;
+    ttl: number;
+    rdata: string[];
+  }>;
+}
+
+// Cloudflare API Response Interfaces
+interface CloudflareZonesResponse {
+  result: Array<{
+    id: string;
+    name: string;
+  }>;
+}
+
+interface CloudflareRecordsResponse {
+  result: Array<{
+    name: string;
+    type: string;
+    content: string;
+    ttl: number;
+    priority?: number;
+    proxied?: boolean;
+    data?: any;
+  }>;
+  result_info: {
+    page: number;
+    total_pages: number;
+  };
 }
 
 export interface MigrationPlan {
@@ -380,10 +426,12 @@ export async function convertZoneToPrimary(
 ): Promise<MCPToolResponse> {
   try {
     // Get current zone config
-    const currentZone = await client.request({
+    const currentZoneResponse = await client.request({
       path: `/config-dns/v2/zones/${args.zone}`,
       method: 'GET',
     });
+
+    const currentZone = validateApiResponse<ZoneResponse>(currentZoneResponse);
 
     if (currentZone.type !== 'SECONDARY') {
       return {
@@ -442,11 +490,12 @@ export async function generateMigrationInstructions(
     });
 
     // Get record count
-    const recordsResponse = await client.request({
+    const recordsApiResponse = await client.request({
       path: `/config-dns/v2/zones/${args.zone}/recordsets`,
       method: 'GET',
     });
-    const recordCount = recordsResponse.recordsets?.length || 0;
+    const recordsResponse = validateApiResponse<RecordsResponse>(recordsApiResponse);
+    const recordCount = safeAccess(recordsResponse, (r) => r.recordsets?.length, 0);
 
     let text = `# DNS Migration Instructions - ${args.zone}\n\n`;
     text += '## Pre-Migration Checklist\n\n';
@@ -589,7 +638,9 @@ export async function importFromCloudflare(
       throw new Error(`Cloudflare API error: ${cfZonesResponse.statusText}`);
     }
 
-    const zonesData = (await cfZonesResponse.json()) as any;
+    const zonesDataRaw = await cfZonesResponse.json();
+    const zonesData = validateApiResponse<CloudflareZonesResponse>(zonesDataRaw);
+    
     if (!zonesData.result || zonesData.result.length === 0) {
       throw new Error(`Zone ${args.zone} not found in Cloudflare account`);
     }
@@ -626,7 +677,8 @@ export async function importFromCloudflare(
         throw new Error(`Failed to fetch DNS records: ${cfRecordsResponse.statusText}`);
       }
 
-      const recordsData = (await cfRecordsResponse.json()) as any;
+      const recordsDataRaw = await cfRecordsResponse.json();
+      const recordsData = validateApiResponse<CloudflareRecordsResponse>(recordsDataRaw);
       allRecords = allRecords.concat(recordsData.result);
 
       if (recordsData.result_info.page >= recordsData.result_info.total_pages) {
@@ -881,7 +933,7 @@ function convertToAkamaiFormat(records: ZoneFileRecord[], _zone: string): DNSRec
   }
 
   // Convert grouped records
-  for (const [key, groupedRecords] of grouped) {
+  for (const [key, groupedRecords] of Array.from(grouped.entries())) {
     const [name, type] = key.split('|');
     const firstRecord = groupedRecords[0];
 

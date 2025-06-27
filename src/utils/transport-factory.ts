@@ -12,6 +12,8 @@ import { TransportConfig, getTransportFromEnv } from '../config/transport-config
 let express: any;
 let WebSocketServerTransport: any;
 let SSEServerTransport: any;
+let WebSocketServer: any;
+let createHttpServer: any;
 
 async function loadOptionalDependencies() {
   try {
@@ -24,9 +26,6 @@ async function loadOptionalDependencies() {
     // Load custom transports
     const sseModule = await import('../transport/sse-transport');
     SSEServerTransport = sseModule.SSEServerTransport;
-    
-    const wsModule = await import('../transport/websocket-transport');
-    WebSocketServerTransport = wsModule.WebSocketServerTransport;
     
     const wsModule = await import('../transport/websocket-transport');
     WebSocketServerTransport = wsModule.WebSocketServerTransport;
@@ -55,8 +54,8 @@ export async function createTransport(config: TransportConfig): Promise<any> {
         host: wsHost,
         path: wsPath,
         ssl: config.options.ssl ? {
-          cert: process.env.ALECS_SSL_CERT!,
-          key: process.env.ALECS_SSL_KEY!
+          cert: process.env['ALECS_SSL_CERT']!,
+          key: process.env['ALECS_SSL_KEY']!
         } : undefined,
         auth: {
           required: config.options.auth !== 'none',

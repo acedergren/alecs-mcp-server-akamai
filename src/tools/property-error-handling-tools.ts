@@ -4,6 +4,7 @@
  */
 
 import { handleApiError } from '../utils/error-handling';
+import { validateApiResponse, safeAccess } from '../utils/api-response-validator';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -70,7 +71,21 @@ export async function getValidationErrors(
       method: 'GET',
     });
 
-    const version = response.versions?.items?.[0];
+    const validatedResponse = validateApiResponse<{
+      versions?: {
+        items?: Array<{
+          ruleFormat?: string;
+          errors?: PropertyError[];
+          warnings?: PropertyWarning[];
+        }>;
+      };
+    }>(response);
+
+    const version = safeAccess(
+      validatedResponse,
+      (r) => r.versions?.items?.[0],
+      null as null
+    );
 
     if (!version) {
       return {
@@ -546,7 +561,22 @@ export async function validatePropertyConfiguration(
           method: 'GET',
         });
 
-        const hostnames = hostnameResponse.hostnames?.items || [];
+        const validatedHostnameResponse = validateApiResponse<{
+          hostnames?: {
+            items?: Array<{
+              certStatus?: {
+                production?: Array<{ status?: string }>;
+                staging?: Array<{ status?: string }>;
+              };
+            }>;
+          };
+        }>(hostnameResponse);
+
+        const hostnames = safeAccess(
+          validatedHostnameResponse,
+          (r) => r.hostnames?.items || [],
+          [] as any[]
+        );
         let certIssues = 0;
 
         hostnames.forEach((hostname: any) => {

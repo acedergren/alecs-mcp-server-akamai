@@ -8,6 +8,7 @@ import { handleApiError } from '../utils/error-handling';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 // Singleton cache service
 let cacheService: AkamaiCacheService | null = null;
@@ -102,7 +103,7 @@ export async function universalSearchWithCacheHandler(
         results.performance.cacheHit = true;
 
         for (const result of cacheResults) {
-          const property = result.property;
+          const property = result.property as any;
 
           // Get detailed info if requested
           if (detailed && !property.hostnames) {
@@ -128,7 +129,7 @@ export async function universalSearchWithCacheHandler(
 
           if (property) {
             if (detailed) {
-              property.hostnames = await cache.getPropertyHostnames(client, property, customer);
+              (property as any).hostnames = await cache.getPropertyHostnames(client, property, customer);
             }
 
             results.matches.push({
@@ -334,7 +335,8 @@ async function fetchPropertiesDirectly(client: AkamaiClient): Promise<any[]> {
     path: '/papi/v1/properties',
     method: 'GET',
   });
-  return response.properties?.items || [];
+  const validatedResponse = validateApiResponse<{ properties?: { items?: any } }>(response);
+  return validatedResponse.properties?.items || [];
 }
 
 async function fetchHostnamesDirectly(client: AkamaiClient, property: any): Promise<any[]> {
@@ -346,7 +348,8 @@ async function fetchHostnamesDirectly(client: AkamaiClient, property: any): Prom
       groupId: property.groupId,
     },
   });
-  return response.hostnames?.items || [];
+  const validatedResponse = validateApiResponse<{ hostnames?: { items?: any } }>(response);
+  return validatedResponse.hostnames?.items || [];
 }
 
 async function fetchContractsDirectly(client: AkamaiClient): Promise<any[]> {
@@ -354,7 +357,8 @@ async function fetchContractsDirectly(client: AkamaiClient): Promise<any[]> {
     path: '/papi/v1/contracts',
     method: 'GET',
   });
-  return response.contracts?.items || [];
+  const validatedResponse = validateApiResponse<{ contracts?: { items?: any } }>(response);
+  return validatedResponse.contracts?.items || [];
 }
 
 async function fetchGroupsDirectly(client: AkamaiClient): Promise<any[]> {
@@ -362,5 +366,6 @@ async function fetchGroupsDirectly(client: AkamaiClient): Promise<any[]> {
     path: '/papi/v1/groups',
     method: 'GET',
   });
-  return response.groups?.items || [];
+  const validatedResponse = validateApiResponse<{ groups?: { items?: any } }>(response);
+  return validatedResponse.groups?.items || [];
 }

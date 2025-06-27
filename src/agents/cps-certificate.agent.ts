@@ -554,7 +554,10 @@ export class CPSCertificateAgent {
     domains: string[],
     options: Partial<EnrollmentRequest>,
   ): EnrollmentRequest {
-    const cn = domains[0];
+    if (domains.length === 0) {
+      throw new Error('At least one domain must be provided for certificate enrollment');
+    }
+    const cn = domains[0]!;
     const sans = domains.slice(1);
 
     return {
@@ -562,12 +565,12 @@ export class CPSCertificateAgent {
       validationType: type === 'default-dv' ? 'dv' : options.validationType || 'ov',
       csr: {
         cn,
-        sans: sans.length > 0 ? sans : undefined,
+        ...(sans.length > 0 && { sans }),
         c: options.csr?.c || 'US',
         st: options.csr?.st || 'MA',
         l: options.csr?.l || 'Cambridge',
         o: options.csr?.o || 'Example Corp',
-        ou: options.csr?.ou,
+        ...(options.csr?.ou && { ou: options.csr.ou }),
       },
       networkConfiguration: {
         geography: options.networkConfiguration?.geography || 'core',
@@ -584,7 +587,7 @@ export class CPSCertificateAgent {
         email: 'tech@example.com',
         phone: '+1 555-1234',
       },
-      adminContact: options.adminContact,
+      ...(options.adminContact && { adminContact: options.adminContact }),
       organization: options.organization || {
         name: 'Example Corp',
         addressLineOne: '150 Broadway',

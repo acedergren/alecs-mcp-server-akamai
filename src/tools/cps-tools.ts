@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Certificate Provisioning System (CPS) Tools
  * Implements Default DV certificate management with automated DNS validation

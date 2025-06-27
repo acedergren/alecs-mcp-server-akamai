@@ -4,6 +4,7 @@
  */
 
 import { ErrorTranslator } from '../utils/errors';
+import { validateApiResponse, safeAccess } from '../utils/api-response-validator';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -103,7 +104,8 @@ export async function analyzeHostnameOwnership(
       },
     });
 
-    const existingHostnames = allHostnamesResponse.hostnames?.items || [];
+    const validatedResponse = validateApiResponse<{ hostnames?: { items?: any[] } }>(allHostnamesResponse);
+    const existingHostnames = safeAccess(validatedResponse, (r) => r.hostnames?.items, []);
     const analyses: HostnameAnalysis[] = [];
 
     // Analyze each requested hostname
@@ -124,17 +126,17 @@ export async function analyzeHostnameOwnership(
       }
 
       // Check for exact matches
-      const exactMatch = existingHostnames.find((h: any) => h.cnameFrom === hostname);
+      const exactMatch = existingHostnames.find((h: any) => safeAccess(h, (obj) => obj.cnameFrom, '') === hostname);
 
       if (exactMatch) {
         analysis.status = 'in-use';
         analysis.currentProperty = {
-          propertyId: exactMatch.propertyId,
-          propertyName: exactMatch.propertyName,
-          version: exactMatch.propertyVersion,
+          propertyId: safeAccess(exactMatch, (obj) => obj.propertyId, ''),
+          propertyName: safeAccess(exactMatch, (obj) => obj.propertyName, ''),
+          version: safeAccess(exactMatch, (obj) => obj.propertyVersion, 0),
           network: getNetworkStatus(exactMatch),
-          edgeHostname: exactMatch.cnameTo,
-          certificateStatus: exactMatch.certStatus,
+          edgeHostname: safeAccess(exactMatch, (obj) => obj.cnameTo, ''),
+          certificateStatus: safeAccess(exactMatch, (obj) => obj.certStatus, undefined),
         };
       }
 
@@ -460,7 +462,8 @@ export async function validateHostnamesBulk(
       path: '/papi/v1/hostnames',
       method: 'GET',
     });
-    const existingHostnames = allHostnamesResponse.hostnames?.items || [];
+    const validatedResponse = validateApiResponse<{ hostnames?: { items?: any[] } }>(allHostnamesResponse);
+    const existingHostnames = safeAccess(validatedResponse, (r) => r.hostnames?.items, []);
 
     // Validate each hostname
     for (const hostname of args.hostnames) {
@@ -658,7 +661,8 @@ export async function findOptimalPropertyAssignment(
       path: '/papi/v1/properties',
       method: 'GET',
     });
-    const existingProperties = propertiesResponse.properties?.items || [];
+    const validatedPropertiesResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertiesResponse);
+    const existingProperties = safeAccess(validatedPropertiesResponse, (r) => r.properties?.items, []);
 
     // Analyze hostnames for grouping
     const hostnameGroups = groupHostnamesByStrategy(args.hostnames, strategy);
@@ -946,8 +950,8 @@ function isValidHostname(hostname: string): boolean {
 }
 
 function getNetworkStatus(hostname: any): 'STAGING' | 'PRODUCTION' | 'BOTH' | 'NONE' {
-  const staging = hostname.stagingStatus === 'ACTIVE';
-  const production = hostname.productionStatus === 'ACTIVE';
+  const staging = safeAccess(hostname, (obj) => obj.stagingStatus === 'ACTIVE', false);
+  const production = safeAccess(hostname, (obj) => obj.productionStatus === 'ACTIVE', false);
 
   if (staging && production) {
     return 'BOTH';
@@ -965,13 +969,14 @@ function findWildcardCoverage(hostname: string, existingHostnames: any[]): Wildc
   const coverage: WildcardCoverage[] = [];
 
   existingHostnames.forEach((existing) => {
-    if (existing.cnameFrom.startsWith('*.')) {
-      const wildcardDomain = existing.cnameFrom.substring(2);
+    const cnameFrom = safeAccess(existing, (obj) => obj.cnameFrom, '');
+    if (cnameFrom.startsWith('*.')) {
+      const wildcardDomain = cnameFrom.substring(2);
       if (hostname.endsWith(wildcardDomain) && hostname !== wildcardDomain) {
         coverage.push({
-          wildcardHostname: existing.cnameFrom,
-          propertyId: existing.propertyId,
-          propertyName: existing.propertyName,
+          wildcardHostname: cnameFrom,
+          propertyId: safeAccess(existing, (obj) => obj.propertyId, ''),
+          propertyName: safeAccess(existing, (obj) => obj.propertyName, ''),
           coverageType: 'full',
           certificateType: 'wildcard',
         });
@@ -987,21 +992,24 @@ function findSubdomainConflicts(hostname: string, existingHostnames: any[]): Hos
 
   // Check if this hostname would conflict with existing subdomains
   existingHostnames.forEach((existing) => {
+    const existingCnameFrom = safeAccess(existing, (obj) => obj.cnameFrom, '');
+    const existingPropertyId = safeAccess(existing, (obj) => obj.propertyId, '');
+    
     // Check if one is a subdomain of the other
-    if (hostname.endsWith(existing.cnameFrom) && hostname !== existing.cnameFrom) {
+    if (hostname.endsWith(existingCnameFrom) && hostname !== existingCnameFrom) {
       conflicts.push({
         type: 'subdomain-hierarchy',
         severity: 'LOW',
-        conflictingProperty: existing.propertyId,
-        description: `${hostname} is a subdomain of existing ${existing.cnameFrom}`,
+        conflictingProperty: existingPropertyId,
+        description: `${hostname} is a subdomain of existing ${existingCnameFrom}`,
         resolution: 'Subdomains can coexist; ensure proper routing rules',
       });
-    } else if (existing.cnameFrom.endsWith(hostname) && hostname !== existing.cnameFrom) {
+    } else if (existingCnameFrom.endsWith(hostname) && hostname !== existingCnameFrom) {
       conflicts.push({
         type: 'subdomain-hierarchy',
         severity: 'MEDIUM',
-        conflictingProperty: existing.propertyId,
-        description: `${hostname} is a parent domain of existing ${existing.cnameFrom}`,
+        conflictingProperty: existingPropertyId,
+        description: `${hostname} is a parent domain of existing ${existingCnameFrom}`,
         resolution: 'Parent domain may affect subdomain routing; verify configuration',
       });
     }
@@ -1019,13 +1027,17 @@ function generateHostnameRecommendations(
   if (analysis.status === 'available') {
     // Check if it fits with existing property patterns
     const domain = analysis.hostname.split('.').slice(-2).join('.');
-    const relatedProperties = existingHostnames.filter((h) => h.cnameFrom.endsWith(domain));
+    const relatedProperties = existingHostnames.filter((h) => 
+      safeAccess(h, (obj) => obj.cnameFrom, '').endsWith(domain)
+    );
 
     if (relatedProperties.length > 0) {
+      const firstRelatedProperty = relatedProperties[0];
+      const propertyName = safeAccess(firstRelatedProperty, (obj) => obj.propertyName, 'unknown');
       recommendations.push({
         type: 'property-assignment',
         priority: 'HIGH',
-        recommendation: `Consider adding to property ${relatedProperties[0].propertyName}`,
+        recommendation: `Consider adding to property ${propertyName}`,
         rationale: 'Other hostnames from this domain are already in this property',
       });
     }
@@ -1081,12 +1093,13 @@ function detectHostnameConflicts(hostname: string, existingHostnames: any[]): Ho
   const conflicts: HostnameConflict[] = [];
 
   // Check exact match
-  const exactMatch = existingHostnames.find((h) => h.cnameFrom === hostname);
+  const exactMatch = existingHostnames.find((h) => safeAccess(h, (obj) => obj.cnameFrom, '') === hostname);
   if (exactMatch) {
+    const propertyId = safeAccess(exactMatch, (obj) => obj.propertyId, '');
     conflicts.push({
       type: 'exact-match',
       severity: 'HIGH',
-      conflictingProperty: exactMatch.propertyId,
+      conflictingProperty: propertyId,
       description: 'Hostname already exists',
       resolution: 'Use existing property or choose different hostname',
     });
@@ -1120,7 +1133,7 @@ function generateValidationRecommendations(
     !hostname.startsWith('cdn.')
   ) {
     const baseDomain = hostname.split('.').slice(1).join('.');
-    if (!existingHostnames.some((h) => h.cnameFrom === `www.${baseDomain}`)) {
+    if (!existingHostnames.some((h) => safeAccess(h, (obj) => obj.cnameFrom, '') === `www.${baseDomain}`)) {
       recommendations.push({
         type: 'naming',
         priority: 'LOW',
@@ -1234,8 +1247,9 @@ function findMatchingProperty(
   const domain = hostnames[0]?.split('.').slice(-2).join('.');
 
   return existingProperties.find((property) => {
+    const propertyName = safeAccess(property, (obj) => obj.propertyName, '');
     // Check if property name matches pattern
-    if (domain && property.propertyName.toLowerCase().includes(domain.split('.')[0])) {
+    if (domain && propertyName.toLowerCase().includes(domain.split('.')[0])) {
       return true;
     }
 
@@ -1287,18 +1301,18 @@ function findWildcardOpportunities(hostnames: string[]): Array<{ domain: string;
 }
 
 function extractValidHostnames(validationResult: MCPToolResponse): string[] {
-  const text = validationResult.content[0]?.text || '';
+  const text = safeAccess(validationResult, (result) => result.content[0]?.text, '');
   const validSection = text.split('## [DONE] Valid Hostnames')[1]?.split('##')[0] || '';
 
   return validSection
     .split('\n')
-    .filter((line) => line.startsWith('- '))
-    .map((line) => line.substring(2).trim())
-    .filter((h) => h.length > 0);
+    .filter((line: string) => line.startsWith('- '))
+    .map((line: string) => line.substring(2).trim())
+    .filter((h: string) => h.length > 0);
 }
 
 function extractSummaryFromResponse(response: MCPToolResponse): string {
-  const text = response.content[0]?.text || '';
+  const text = safeAccess(response, (resp) => resp.content[0]?.text, '');
   const lines = text.split('\n');
 
   // Extract first few summary lines

@@ -5,6 +5,7 @@
  */
 
 import { handleApiError } from '../utils/error-handling';
+import { validateApiResponse, isPropertyResponse, isHostnamesResponse } from '../utils/api-response-validator';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -348,7 +349,8 @@ async function getAllPropertiesWithHostnames(client: AkamaiClient, args: any): P
     method: 'GET',
   });
 
-  const properties = response.properties?.items || [];
+  const validatedResponse = validateApiResponse<{ properties?: { items?: any[] } }>(response);
+  const properties = validatedResponse.properties?.items || [];
 
   // Fetch hostnames for each property
   const propertiesWithHostnames = await Promise.all(
@@ -359,9 +361,11 @@ async function getAllPropertiesWithHostnames(client: AkamaiClient, args: any): P
           method: 'GET',
         });
 
+        const validatedHostnameResponse = validateApiResponse<{ hostnames?: { items?: any[] } }>(hostnameResponse);
+
         return {
           ...property,
-          hostnames: hostnameResponse.hostnames?.items || [],
+          hostnames: validatedHostnameResponse.hostnames?.items || [],
         };
       } catch (_error) {
         return {
