@@ -6,6 +6,8 @@ A comprehensive MCP (Model Context Protocol) server that enables AI assistants t
 complete edge platform through natural language. ALECS provides enterprise-grade tools for Akamai
 properties, DNS, certificates, security, and performance optimization.
 
+# This project is a unoffical community project and comes without any support or warranty and has no association with Akamai Technologies
+
 ## 🎯 What Can ALECS Do for You?
 
 ### 🌐 **Complete Akamai Property Management**
