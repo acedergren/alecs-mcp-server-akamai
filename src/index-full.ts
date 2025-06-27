@@ -17,6 +17,13 @@ import {
   ErrorCode,
   type ListToolsRequest,
   ListToolsRequestSchema,
+  type ListPromptsRequest,
+  ListPromptsRequestSchema,
+  type GetPromptRequest,
+  GetPromptRequestSchema,
+  type ListPromptsResult,
+  type GetPromptResult,
+  type Prompt,
   McpError,
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
@@ -84,6 +91,7 @@ export class ALECSFullServer {
       version: config?.version || '1.4.0',
       capabilities: {
         tools: {},
+        prompts: {},
         ...config?.capabilities,
       },
     };
@@ -91,7 +99,7 @@ export class ALECSFullServer {
     logger.info('Initializing ALECS Full MCP Server', serverConfig);
 
     this.server = new Server(serverConfig as any, {
-      capabilities: serverConfig.capabilities || { tools: {} },
+      capabilities: serverConfig.capabilities || { tools: {}, prompts: {} },
     });
 
     this.configManager = CustomerConfigManager.getInstance();
@@ -334,6 +342,83 @@ export class ALECSFullServer {
       logger.debug(`Returning ${tools.length} tools`);
 
       return { tools };
+    });
+
+    // Handle list prompts request
+    this.server.setRequestHandler(ListPromptsRequestSchema, async (_request: ListPromptsRequest): Promise<ListPromptsResult> => {
+      logger.debug('List prompts request received');
+
+      const prompts: Prompt[] = [
+        {
+          name: 'akamai-deployment-checklist',
+          description: 'Generate a comprehensive checklist for Akamai property deployment',
+          schema: {
+            type: 'object',
+            properties: {
+              propertyName: { type: 'string', description: 'Name of the property to deploy' },
+              environment: { type: 'string', enum: ['staging', 'production'], description: 'Target environment' },
+              customer: { type: 'string', description: 'Customer account identifier' }
+            },
+            required: ['propertyName', 'environment']
+          }
+        },
+        {
+          name: 'security-configuration-audit',
+          description: 'Generate security audit checklist for Akamai configurations',
+          schema: {
+            type: 'object',
+            properties: {
+              configType: { type: 'string', enum: ['property', 'security', 'dns'], description: 'Configuration type to audit' },
+              customer: { type: 'string', description: 'Customer account identifier' }
+            },
+            required: ['configType']
+          }
+        }
+      ];
+
+      logger.debug(`Returning ${prompts.length} prompts`);
+
+      return { prompts };
+    });
+
+    // Handle get prompt request
+    this.server.setRequestHandler(GetPromptRequestSchema, async (request: GetPromptRequest): Promise<GetPromptResult> => {
+      const { name, arguments: args } = request.params;
+      
+      logger.debug('Get prompt request received', { name, args });
+
+      switch (name) {
+        case 'akamai-deployment-checklist':
+          return {
+            description: 'Comprehensive checklist for Akamai property deployment',
+            messages: [
+              {
+                role: 'user',
+                content: {
+                  type: 'text',
+                  text: `Generate a deployment checklist for property "${args?.propertyName || '[Property Name]'}" targeting ${args?.environment || 'staging'} environment. Include pre-deployment validation, activation steps, and post-deployment verification.`
+                }
+              }
+            ]
+          };
+
+        case 'security-configuration-audit':
+          return {
+            description: 'Security audit checklist for Akamai configurations',
+            messages: [
+              {
+                role: 'user',
+                content: {
+                  type: 'text',
+                  text: `Perform a security audit for ${args?.configType || 'property'} configuration. Review security rules, access controls, certificate configurations, and compliance requirements.`
+                }
+              }
+            ]
+          };
+
+        default:
+          throw new McpError(ErrorCode.InvalidParams, `Unknown prompt: ${name}`);
+      }
     });
 
     // Handle call tool request
