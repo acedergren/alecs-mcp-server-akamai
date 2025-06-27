@@ -6,6 +6,11 @@
 import { EventEmitter } from 'events';
 
 import { type AkamaiClient } from '../akamai-client';
+import { 
+  DVValidationResponse,
+  DomainValidation,
+  EnrollmentDetailResponse
+} from '../types/api-responses';
 
 // Validation States
 export enum ValidationStatus {

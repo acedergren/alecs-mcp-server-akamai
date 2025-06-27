@@ -6,6 +6,15 @@
 import { EventEmitter } from 'events';
 
 import { type AkamaiClient } from '../akamai-client';
+import { 
+  DeploymentListResponse,
+  DeploymentDetailResponse,
+  Deployment,
+  DeploymentStatus as ApiDeploymentStatus,
+  EnrollmentDetailResponse,
+  PropertyDetailResponse,
+  HostnameListResponse
+} from '../types/api-responses';
 
 // Deployment Configuration
 export interface DeploymentConfig {
@@ -202,7 +211,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
     // Fetch from API
     try {
-      const response = await this.client.request({
+      const response = await this.client.request<DeploymentListResponse>({
         path: `/cps/v2/enrollments/${enrollmentId}/deployments`,
         method: 'GET',
         headers: {
@@ -260,7 +269,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
   // Private helper methods
 
   private async verifyCertificateReadiness(enrollmentId: number): Promise<void> {
-    const response = await this.client.request({
+    const response = await this.client.request<EnrollmentDetailResponse>({
       path: `/cps/v2/enrollments/${enrollmentId}`,
       method: 'GET',
       headers: {
@@ -286,7 +295,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
   }
 
   private async initiateDeployment(enrollmentId: number, network: string): Promise<number> {
-    const response = await this.client.request({
+    const response = await this.client.request<any>({
       method: 'POST',
       path: `/cps/v2/enrollments/${enrollmentId}/deployments`,
       headers: {
@@ -301,7 +310,8 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
       },
     });
 
-    const deploymentId = parseInt(response.headers?.location?.split('/').pop() || '0');
+    // Response for POST is in headers, not body
+    const deploymentId = parseInt((response as any).headers?.location?.split('/').pop() || '0');
     if (!deploymentId) {
       throw new Error('Failed to get deployment ID from response');
     }
@@ -355,7 +365,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
     deploymentId: number,
   ): Promise<{ status: DeploymentState['status']; progress: number }> {
     try {
-      const response = await this.client.request({
+      const response = await this.client.request<DeploymentDetailResponse>({
         method: 'GET',
         path: `/cps/v2/enrollments/${enrollmentId}/deployments/${deploymentId}`,
         headers: {
@@ -363,7 +373,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
         },
       });
 
-      const apiStatus = response.deploymentStatus || response.status;
+      const apiStatus = response.deploymentStatus || (response as any).status;
       const status = this.mapDeploymentStatus(apiStatus);
 
       // Estimate progress based on status
@@ -390,7 +400,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
     try {
       // Get property details
-      const propertyResponse = await this.client.request({
+      const propertyResponse = await this.client.request<PropertyDetailResponse>({
         path: `/papi/v1/properties/${propertyId}`,
         method: 'GET',
       });
@@ -404,7 +414,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
       const version = property.latestVersion || 1;
 
       // Get current hostnames
-      const hostnamesResponse = await this.client.request({
+      const hostnamesResponse = await this.client.request<HostnameListResponse>({
         path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames`,
         method: 'GET',
       });

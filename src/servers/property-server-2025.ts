@@ -28,7 +28,7 @@ import {
   createProperty,
   listGroups,
   listContracts,
-} from '../tools/property-tools-cached';
+} from '../tools/property-tools';
 import {
   PropertyManagerSchemas2025,
   PropertyManagerZodSchemas,

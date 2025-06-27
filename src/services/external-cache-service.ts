@@ -71,7 +71,7 @@ export const CacheTTL = {
  * @deprecated Use SmartCache instead. External cache support will be removed in v2.0.0.
  */
 export class ExternalCache implements ICache {
-  private client: Redis | Cluster;
+  private client: any; // Redis | Cluster
   private readonly prefix: string;
   private connected = false;
   private refreshingKeys = new Set<string>();

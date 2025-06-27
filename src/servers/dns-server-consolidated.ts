@@ -154,7 +154,21 @@ class ConsolidatedDNSServer {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handleDNSTool(args || { action: 'list-zones' }), null, 2),
+                  text: JSON.stringify(await handleDNSTool({
+                    action: args?.action || 'list-zones',
+                    zones: args?.zones,
+                    options: {
+                      businessAction: args?.options?.businessAction,
+                      emailProvider: args?.options?.emailProvider,
+                      source: args?.options?.source,
+                      validateOnly: args?.options?.validateOnly ?? true,
+                      testFirst: args?.options?.testFirst ?? true,
+                      records: args?.options?.records,
+                      backupFirst: args?.options?.backupFirst ?? true,
+                      rollbackOnError: args?.options?.rollbackOnError ?? true,
+                    },
+                    customer: args?.customer,
+                  }), null, 2),
                 },
               ],
             };
@@ -174,7 +188,26 @@ class ConsolidatedDNSServer {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handleSearchTool(dnsSearchArgs), null, 2),
+                  text: JSON.stringify(await handleSearchTool({
+                    action: dnsSearchArgs.action || 'find',
+                    query: dnsSearchArgs.query || '',
+                    options: {
+                      limit: dnsSearchArgs.options?.limit || 50,
+                      sortBy: dnsSearchArgs.options?.sortBy || 'relevance',
+                      offset: dnsSearchArgs.options?.offset || 0,
+                      format: dnsSearchArgs.options?.format || 'simple',
+                      types: dnsSearchArgs.options?.types || ['dns-zone', 'dns-record', 'hostname'],
+                      searchMode: dnsSearchArgs.options?.searchMode || 'fuzzy',
+                      includeRelated: dnsSearchArgs.options?.includeRelated || false,
+                      includeInactive: dnsSearchArgs.options?.includeInactive || false,
+                      includeDeleted: dnsSearchArgs.options?.includeDeleted || false,
+                      autoCorrect: dnsSearchArgs.options?.autoCorrect ?? true,
+                      expandAcronyms: dnsSearchArgs.options?.expandAcronyms || false,
+                      searchHistory: dnsSearchArgs.options?.searchHistory || false,
+                      groupBy: dnsSearchArgs.options?.groupBy || 'none',
+                    },
+                    customer: dnsSearchArgs.customer,
+                  }), null, 2),
                 },
               ],
             };
@@ -184,7 +217,19 @@ class ConsolidatedDNSServer {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handleDeployTool(args || { action: 'status' }), null, 2),
+                  text: JSON.stringify(await handleDeployTool({
+                    action: args?.action || 'status',
+                    resources: args?.resources,
+                    options: {
+                      network: args?.options?.network || 'staging',
+                      strategy: args?.options?.strategy || 'immediate',
+                      format: args?.options?.format || 'summary',
+                      dryRun: args?.options?.dryRun || false,
+                      verbose: args?.options?.verbose || false,
+                      coordination: args?.options?.coordination,
+                    },
+                    customer: args?.customer,
+                  }), null, 2),
                 },
               ],
             };
@@ -243,8 +288,13 @@ class ConsolidatedDNSServer {
     // Create zone first
     const zoneResult = await handleDNSTool({
       action: 'manage-zone',
-      zone: domain,
-      operation: 'create',
+      zones: domain,
+      options: {
+        rollbackOnError: true,
+        validateOnly: false,
+        testFirst: true,
+        backupFirst: true,
+      },
       customer,
     });
 
@@ -255,9 +305,19 @@ class ConsolidatedDNSServer {
     for (const record of records) {
       const recordResult = await handleDNSTool({
         action: 'manage-records',
-        zone: domain,
-        operation: 'create',
-        records: [record],
+        zones: domain,
+        options: {
+          records: [{
+            name: record.name,
+            type: record.type,
+            value: record.rdata.join(' '),
+            ttl: 300,
+          }],
+          rollbackOnError: true,
+          validateOnly: false,
+          testFirst: true,
+          backupFirst: true,
+        },
         customer,
       });
       recordResults.push(recordResult);
@@ -293,8 +353,13 @@ class ConsolidatedDNSServer {
     // First create the zone
     await handleDNSTool({
       action: 'manage-zone',
-      zone: domain,
-      operation: 'create',
+      zones: domain,
+      options: {
+        rollbackOnError: true,
+        validateOnly: false,
+        testFirst: true,
+        backupFirst: true,
+      },
       customer,
     });
 

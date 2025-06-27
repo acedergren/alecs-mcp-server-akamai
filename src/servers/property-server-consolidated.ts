@@ -127,31 +127,85 @@ class ConsolidatedPropertyServer {
       try {
         switch (name) {
           case 'property':
+            // Properly construct PropertyToolSchema parameters
+            const propertyParams = {
+              action: args?.action || 'list',
+              ids: args?.ids,
+              options: {
+                view: args?.options?.view || 'simple',
+                filter: args?.options?.filter,
+                name: args?.options?.name,
+                businessPurpose: args?.options?.businessPurpose,
+                hostnames: args?.options?.hostnames,
+                basedOn: args?.options?.basedOn,
+                goal: args?.options?.goal,
+                includeRules: args?.options?.includeRules || false,
+              },
+              customer: args?.customer,
+            };
             return {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handlePropertyTool(args || { action: 'list' }), null, 2),
+                  text: JSON.stringify(await handlePropertyTool(propertyParams), null, 2),
                 },
               ],
             };
 
           case 'search':
+            // Properly construct SearchToolSchema parameters
+            const searchParams = {
+              action: args?.action || 'find',
+              query: args?.query || '',
+              options: {
+                limit: args?.options?.limit || 50,
+                sortBy: args?.options?.sortBy || 'relevance',
+                offset: args?.options?.offset || 0,
+                format: args?.options?.format || 'simple',
+                types: args?.options?.types || ['all'],
+                searchMode: args?.options?.searchMode || 'fuzzy',
+                includeRelated: args?.options?.includeRelated || false,
+                includeInactive: args?.options?.includeInactive || false,
+                includeDeleted: args?.options?.includeDeleted || false,
+                autoCorrect: args?.options?.autoCorrect !== false,
+                expandAcronyms: args?.options?.expandAcronyms || false,
+                searchHistory: args?.options?.searchHistory || false,
+                groupBy: args?.options?.groupBy || 'none',
+              },
+              customer: args?.customer,
+            };
             return {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handleSearchTool(args || { action: 'find', query: '' }), null, 2),
+                  text: JSON.stringify(await handleSearchTool(searchParams), null, 2),
                 },
               ],
             };
 
           case 'deploy':
+            // Properly construct DeployToolSchema parameters
+            const deployParams = {
+              action: args?.action || 'status',
+              resources: args?.resources,
+              options: {
+                network: args?.options?.network || 'staging',
+                strategy: args?.options?.strategy || 'immediate',
+                format: args?.options?.format || 'summary',
+                dryRun: args?.options?.dryRun || false,
+                verbose: args?.options?.verbose || false,
+                coordination: args?.options?.coordination ? {
+                  parallel: args.options.coordination.parallel || false,
+                  staggerDelay: args.options.coordination.staggerDelay || 300,
+                } : undefined,
+              },
+              customer: args?.customer,
+            };
             return {
               content: [
                 {
                   type: 'text',
-                  text: JSON.stringify(await handleDeployTool(args || { action: 'status' }), null, 2),
+                  text: JSON.stringify(await handleDeployTool(deployParams), null, 2),
                 },
               ],
             };

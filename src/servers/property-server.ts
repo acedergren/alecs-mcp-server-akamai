@@ -61,7 +61,7 @@ import {
   createProperty,
   listGroups,
   listContracts,
-} from '../tools/property-tools-cached';
+} from '../tools/property-tools';
 import { validateRuleTree } from '../tools/rule-tree-advanced';
 
 // Universal Search Tool - now with caching!
