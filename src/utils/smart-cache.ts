@@ -39,6 +39,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { BloomFilter } from './bloom-filter';
 import { CircuitBreaker } from './circuit-breaker';
+import { KeyStore } from './key-store';
 
 const gzip = promisify(zlib.gzip);
 const gunzip = promisify(zlib.gunzip);
@@ -88,6 +89,7 @@ export interface SmartCacheOptions {
   enableCircuitBreaker?: boolean; // Use circuit breaker for fetch operations (default: true)
   enableSegmentation?: boolean;  // Enable cache segmentation (default: true)
   segmentSize?: number;          // Max entries per segment (default: 1000)
+  enableKeyStore?: boolean;      // Use memory-efficient key storage (default: true)
 }
 
 interface PendingRequest<T> {
@@ -121,6 +123,7 @@ export class SmartCache<T = any> extends EventEmitter {
   private negativeCache: Set<string> = new Set();                     // Track non-existent keys
   private negativeCacheBloom: BloomFilter;                            // Bloom filter for negative cache
   private circuitBreaker: CircuitBreaker;                             // Circuit breaker for fetch operations
+  private keyStore: KeyStore;                                         // Memory-efficient key storage
   private metrics: CacheMetrics = {
     hits: 0,
     misses: 0,
@@ -153,6 +156,7 @@ export class SmartCache<T = any> extends EventEmitter {
       enableCircuitBreaker: options.enableCircuitBreaker !== false,
       enableSegmentation: options.enableSegmentation !== false,
       segmentSize: options.segmentSize || 1000,
+      enableKeyStore: options.enableKeyStore !== false,
     };
     
     // Initialize bloom filter for negative cache
@@ -168,6 +172,9 @@ export class SmartCache<T = any> extends EventEmitter {
       windowSize: 60000,     // 1 minute window
       volumeThreshold: 10
     });
+    
+    // Initialize memory-efficient key storage
+    this.keyStore = new KeyStore();
     
     // Start cleanup interval
     this.cleanupInterval = setInterval(() => {
@@ -299,7 +306,14 @@ export class SmartCache<T = any> extends EventEmitter {
       } else {
         this.cache.set(key, entry as unknown as CacheEntry<T>);
       }
-      this.addToPatterns(key);
+      
+      // Track key in KeyStore if enabled
+      if (this.options.enableKeyStore) {
+        this.keyStore.add(key);
+      } else {
+        this.addToPatterns(key);
+      }
+      
       this.updateMetrics();
       
       // Remove from negative cache
@@ -338,7 +352,12 @@ export class SmartCache<T = any> extends EventEmitter {
       }
       
       if (wasDeleted) {
-        this.removeFromPatterns(key);
+        // Remove from KeyStore or patterns
+        if (this.options.enableKeyStore) {
+          this.keyStore.delete(key);
+        } else {
+          this.removeFromPatterns(key);
+        }
         deleted++;
         this.emit('delete', key);
       }
@@ -472,12 +491,29 @@ export class SmartCache<T = any> extends EventEmitter {
    * Scan and delete keys matching pattern
    */
   async scanAndDelete(pattern: string): Promise<number> {
-    const regex = this.patternToRegex(pattern);
-    const keysToDelete: string[] = [];
+    let keysToDelete: string[] = [];
     
-    for (const key of this.cache.keys()) {
-      if (regex.test(key)) {
-        keysToDelete.push(key);
+    if (this.options.enableKeyStore) {
+      // Use KeyStore's efficient pattern matching
+      keysToDelete = this.keyStore.getByPattern(pattern);
+    } else {
+      // Fallback to regex matching
+      const regex = this.patternToRegex(pattern);
+      
+      if (this.options.enableSegmentation) {
+        for (const segment of this.segments.values()) {
+          for (const key of segment.entries.keys()) {
+            if (regex.test(key)) {
+              keysToDelete.push(key);
+            }
+          }
+        }
+      } else {
+        for (const key of this.cache.keys()) {
+          if (regex.test(key)) {
+            keysToDelete.push(key);
+          }
+        }
       }
     }
     
@@ -766,6 +802,11 @@ export class SmartCache<T = any> extends EventEmitter {
           lastAccessed: segment.lastAccessed
         })).sort((a, b) => b.accessCount - a.accessCount).slice(0, 10) // Top 10 segments
       };
+    }
+    
+    // Add KeyStore stats if enabled
+    if (this.options.enableKeyStore) {
+      stats.keyStore = this.keyStore.getStats();
     }
     
     return stats;
