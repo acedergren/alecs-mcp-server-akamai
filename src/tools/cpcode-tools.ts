@@ -15,6 +15,7 @@ import {
   formatProductDisplay,
   selectBestProduct,
 } from '../utils/product-mapping';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -46,7 +47,8 @@ export async function listCPCodes(
       queryParams,
     });
 
-    if (!response.cpcodes?.items || response.cpcodes.items.length === 0) {
+    const validatedResponse = validateApiResponse<{ cpcodes?: { items?: any[] } }>(response);
+    if (!validatedResponse.cpcodes?.items || validatedResponse.cpcodes.items.length === 0) {
       return {
         content: [
           {
@@ -57,12 +59,12 @@ export async function listCPCodes(
       };
     }
 
-    let text = `# CP Codes (${response.cpcodes.items.length} found)\n\n`;
+    let text = `# CP Codes (${validatedResponse.cpcodes.items.length} found)\n\n`;
     text +=
       'CP Codes are used for traffic reporting, billing analysis, and content categorization.\n\n';
 
     // Group by contract for better organization
-    const byContract = response.cpcodes.items.reduce((acc: any, cpcode: any) => {
+    const byContract = validatedResponse.cpcodes.items.reduce((acc: any, cpcode: any) => {
       const contract = cpcode.contractIds?.[0] || 'Unknown';
       if (!acc[contract]) {
         acc[contract] = [];
@@ -143,12 +145,13 @@ export async function getCPCode(
       method: 'GET',
     });
 
-    if (!response.cpcodes?.items) {
+    const validatedResponse = validateApiResponse<{ cpcodes?: { items?: any[] } }>(response);
+    if (!validatedResponse.cpcodes?.items) {
       throw new Error('No CP Codes available');
     }
 
     // Find the specific CP Code
-    const targetCpcode = response.cpcodes.items.find(
+    const targetCpcode = validatedResponse.cpcodes.items.find(
       (cpcode: any) =>
         cpcode.cpcodeId === cpcodeId ||
         cpcode.cpcodeId === `cpc_${args.cpcodeId}` ||
@@ -301,8 +304,9 @@ export async function createCPCode(
           },
         });
 
-        if (productsResponse.products?.items?.length > 0) {
-          const bestProduct = selectBestProduct(productsResponse.products.items);
+        const validatedProductsResponse = validateApiResponse<{ products?: { items?: any[] } }>(productsResponse);
+        if (validatedProductsResponse.products?.items?.length && validatedProductsResponse.products.items.length > 0) {
+          const bestProduct = selectBestProduct(validatedProductsResponse.products.items);
           if (bestProduct) {
             productId = bestProduct.productId;
           }
@@ -336,12 +340,13 @@ export async function createCPCode(
       },
     });
 
-    if (!response.cpcodeLink) {
+    const validatedResponse = validateApiResponse<{ cpcodeLink?: string }>(response);
+    if (!validatedResponse.cpcodeLink) {
       throw new Error('CP Code creation failed - no CP Code link returned');
     }
 
     // Extract CP Code ID from the link
-    const cpcodeId = response.cpcodeLink.split('/').pop()?.split('?')[0];
+    const cpcodeId = validatedResponse.cpcodeLink.split('/').pop()?.split('?')[0];
     const numericId = cpcodeId?.replace('cpc_', '');
 
     // Format success response
@@ -432,7 +437,8 @@ export async function searchCPCodes(
       queryParams,
     });
 
-    if (!response.cpcodes?.items || response.cpcodes.items.length === 0) {
+    const validatedResponse = validateApiResponse<{ cpcodes?: { items?: any[] } }>(response);
+    if (!validatedResponse.cpcodes?.items || validatedResponse.cpcodes.items.length === 0) {
       return {
         content: [
           {
@@ -445,7 +451,7 @@ export async function searchCPCodes(
 
     // Search by name or ID
     const searchTerm = args.searchTerm.toLowerCase();
-    const matchingCpcodes = response.cpcodes.items.filter((cpcode: any) => {
+    const matchingCpcodes = validatedResponse.cpcodes.items.filter((cpcode: any) => {
       const name = (cpcode.cpcodeName || '').toLowerCase();
       const id = cpcode.cpcodeId.replace('cpc_', '');
       return name.includes(searchTerm) || id.includes(searchTerm);

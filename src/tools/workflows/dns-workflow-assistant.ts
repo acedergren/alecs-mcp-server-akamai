@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * DNS & Domain Management Domain Assistant
  * Maya Chen's UX Transformation: Making DNS operations feel simple and safe

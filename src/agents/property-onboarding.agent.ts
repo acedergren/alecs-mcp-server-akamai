@@ -163,7 +163,9 @@ export class PropertyOnboardingAgent {
         result.warnings!.push('Property created but edge hostname creation failed');
         return result;
       }
-      result.edgeHostname = edgeHostnameResult.edgeHostname;
+      if (edgeHostnameResult.edgeHostname) {
+        result.edgeHostname = edgeHostnameResult.edgeHostname;
+      }
 
       // Step 7: Add hostname to property
       console.log('[ 7: Adding hostname to property...');
@@ -200,7 +202,9 @@ export class PropertyOnboardingAgent {
         propertyResult.propertyId,
         validatedConfig,
       );
-      result.activationId = activationResult.activationId;
+      if (activationResult.activationId) {
+        result.activationId = activationResult.activationId;
+      }
 
       // Success!
       result.success = true;
@@ -270,11 +274,11 @@ export class PropertyOnboardingAgent {
       const searchResult = await searchProperties(this.client, {
         propertyName: config.hostname,
         hostname: config.hostname,
-        customer: config.customer,
+        ...(config.customer && { customer: config.customer }),
       });
 
       // Parse the response to check if property exists
-      const responseText = searchResult.content[0].text;
+      const responseText = searchResult.content[0]?.text || '';
       if (
         responseText.includes('Properties found') &&
         !responseText.includes('No properties found')
@@ -289,10 +293,10 @@ export class PropertyOnboardingAgent {
     // Check if hostname is already in use
     try {
       const edgeHostnamesResult = await listEdgeHostnames(this.client, {
-        customer: config.customer,
+        ...(config.customer && { customer: config.customer }),
       });
 
-      const responseText = edgeHostnamesResult.content[0].text;
+      const responseText = edgeHostnamesResult.content[0]?.text || '';
       if (responseText.includes(config.hostname)) {
         errors.push(`Hostname ${config.hostname} is already in use by another property`);
       }
@@ -326,14 +330,14 @@ export class PropertyOnboardingAgent {
     const contractId = config.contractId || 'ctr_1-5C13O2'; // Default contract
     const productsResult = await listProducts(this.client, {
       contractId: contractId,
-      customer: config.customer,
+      ...(config.customer && { customer: config.customer }),
     });
 
     // Select product based on use case
     let productId = config.productId;
     if (!productId) {
       // Check if Ion Standard (prd_Fresca) is available
-      const responseText = productsResult.content[0].text;
+      const responseText = productsResult.content[0]?.text || '';
       const hasIonStandard =
         responseText.includes('prd_Fresca') || responseText.includes('Ion Standard');
 
@@ -388,7 +392,7 @@ export class PropertyOnboardingAgent {
       });
 
       // Extract CP Code ID from response
-      const responseText = _result.content[0].text;
+      const responseText = _result.content[0]?.text || '';
       // Look for patterns like "CP Code ID: 1234567" or "CP Code: cpc_1234567"
       const cpCodeMatch = responseText.match(/(?:CP Code ID:|CP Code:)\s*(?:cpc_)?(\d+)/i);
 
@@ -396,7 +400,7 @@ export class PropertyOnboardingAgent {
         const cpCodeId = cpCodeMatch[1];
         return {
           success: true,
-          cpCodeId: cpCodeId, // Just the numeric part
+          ...(cpCodeId && { cpCodeId: cpCodeId }), // Just the numeric part
         };
       }
 
@@ -421,13 +425,13 @@ export class PropertyOnboardingAgent {
       });
 
       // Extract property ID from response
-      const responseText = result.content[0].text;
+      const responseText = result.content[0]?.text || '';
       const propertyIdMatch = responseText.match(/Property ID:\*\* (prp_\d+)/);
 
       if (propertyIdMatch) {
         return {
           success: true,
-          propertyId: propertyIdMatch[1],
+          ...(propertyIdMatch[1] && { propertyId: propertyIdMatch[1] }),
         };
       }
 
@@ -685,7 +689,7 @@ export class PropertyOnboardingAgent {
         search: domain,
       });
 
-      const responseText = zonesResult.content[0].text;
+      const responseText = zonesResult.content[0]?.text || '';
       const zoneExists = responseText.includes(domain) && !responseText.includes('No zones found');
 
       if (zoneExists) {
@@ -804,12 +808,12 @@ export class PropertyOnboardingAgent {
       });
 
       // Extract activation ID from response
-      const responseText = result.content[0].text;
+      const responseText = result.content[0]?.text || '';
       const activationIdMatch = responseText.match(/Activation ID:\*\* (atv_\d+)/);
 
       return {
         success: true,
-        activationId: activationIdMatch ? activationIdMatch[1] : undefined,
+        ...(activationIdMatch?.[1] && { activationId: activationIdMatch[1] }),
       };
     } catch (_error) {
       console.error('[Error]:', _error);

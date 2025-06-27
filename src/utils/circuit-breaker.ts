@@ -223,7 +223,7 @@ export class CircuitBreaker {
       failures,
       successes,
       totalRequests,
-      nextResetTime: this.state === CircuitState.OPEN ? this.nextResetTime : undefined
+      ...(this.state === CircuitState.OPEN && { nextResetTime: this.nextResetTime })
     };
   }
   

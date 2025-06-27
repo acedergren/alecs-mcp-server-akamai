@@ -109,8 +109,8 @@ export class TokenManager {
   
   private constructor() {
     // Initialize with master key from environment or generate one
-    this.masterKey = process.env.TOKEN_MASTER_KEY || this.generateMasterKey();
-    this.storageDir = process.env.TOKEN_STORAGE_DIR || join(process.cwd(), '.tokens');
+    this.masterKey = process.env['TOKEN_MASTER_KEY'] || this.generateMasterKey();
+    this.storageDir = process.env['TOKEN_STORAGE_DIR'] || join(process.cwd(), '.tokens');
     
     // Ensure storage directory exists
     this.ensureStorageDir();

@@ -4,6 +4,7 @@
  */
 
 import { AkamaiClient } from '../../akamai-client';
+import { validateApiResponse } from '../../utils/api-response-validator';
 import {
   type MCPToolResponse,
   type NetworkList,
@@ -88,7 +89,7 @@ export async function importNetworkListFromCSV(
       queryParams: { includeElements: 'true' },
     });
 
-    const currentList: NetworkList = listResponse;
+    const currentList = validateApiResponse<NetworkList>(listResponse);
 
     // Validate elements if requested
     let validElements = elements;
@@ -220,7 +221,7 @@ export async function importNetworkListFromCSV(
       body: requestBody,
     });
 
-    const updatedList: NetworkList = response;
+    const updatedList = validateApiResponse<NetworkList>(response);
 
     output += '\n[DONE] **Import Completed Successfully**\n';
     output += `**Operation:** ${options.operation || 'replace'}\n`;
@@ -281,7 +282,7 @@ export async function exportNetworkListToCSV(
       queryParams: { includeElements: 'true' },
     });
 
-    const list: NetworkList = response;
+    const list = validateApiResponse<NetworkList>(response);
 
     let csvContent = '';
 
@@ -381,7 +382,7 @@ export async function bulkUpdateNetworkLists(
           queryParams: { includeElements: 'true' },
         });
 
-        const currentList: NetworkList = listResponse;
+        const currentList = validateApiResponse<NetworkList>(listResponse);
 
         // Validate elements if requested
         let validAdd = update.add || [];
@@ -556,7 +557,7 @@ export async function mergeNetworkLists(
         method: 'GET',
         queryParams: { includeElements: 'true' },
       });
-      sourceLists.push(response);
+      sourceLists.push(validateApiResponse<NetworkList>(response));
     }
 
     // Get target list
@@ -565,7 +566,7 @@ export async function mergeNetworkLists(
       method: 'GET',
       queryParams: { includeElements: 'true' },
     });
-    const targetList: NetworkList = targetResponse;
+    const targetList = validateApiResponse<NetworkList>(targetResponse);
 
     // Verify all lists are the same type
     const listTypes = [targetList.type, ...sourceLists.map((l) => l.type)];
@@ -574,7 +575,7 @@ export async function mergeNetworkLists(
         content: [
           {
             type: 'text',
-            text: `[ERROR] Cannot merge lists of different types: ${[...new Set(listTypes)].join(', ')}`,
+            text: `[ERROR] Cannot merge lists of different types: ${Array.from(new Set(listTypes)).join(', ')}`,
           },
         ],
       };
@@ -613,7 +614,7 @@ export async function mergeNetworkLists(
     }
 
     if (options.removeDuplicates) {
-      mergedElements = [...new Set(mergedElements)];
+      mergedElements = Array.from(new Set(mergedElements));
     }
 
     // Update target list
@@ -623,7 +624,7 @@ export async function mergeNetworkLists(
       body: { list: mergedElements },
     });
 
-    const updatedList: NetworkList = updateResponse;
+    const updatedList = validateApiResponse<NetworkList>(updateResponse);
 
     let output = '[EMOJI] **Network List Merge Completed**\n\n';
     output += `**Operation:** ${options.operation || 'union'}\n`;

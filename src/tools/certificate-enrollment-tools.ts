@@ -4,6 +4,7 @@
  */
 
 import { createCertificateEnrollmentService } from '../services/certificate-enrollment-service';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -123,7 +124,8 @@ export async function getCertificateDeploymentStatus(
       },
     });
 
-    const deployments = response.results || [];
+    const validatedResponse = validateApiResponse<{ results?: any[] }>(response);
+    const deployments = validatedResponse.results || [];
 
     if (deployments.length === 0) {
       return {
@@ -337,7 +339,8 @@ export async function cleanupValidationRecords(
       },
     });
 
-    const enrollment = challengesResponse;
+    const validatedChallengesResponse = validateApiResponse<{ allowedDomains?: any[] }>(challengesResponse);
+    const enrollment = validatedChallengesResponse;
     const recordsToDelete: Array<{ zone: string; recordName: string }> = [];
 
     // Extract DNS records from validation details
@@ -438,7 +441,8 @@ export async function getCertificateValidationHistory(
       },
     });
 
-    const history = response.results || [];
+    const validatedResponse = validateApiResponse<{ results?: any[] }>(response);
+    const history = validatedResponse.results || [];
 
     if (history.length === 0) {
       return {

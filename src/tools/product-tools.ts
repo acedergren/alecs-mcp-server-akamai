@@ -12,6 +12,7 @@ import {
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 /**
  * List all products available under a contract
@@ -46,7 +47,8 @@ export async function listProducts(
       },
     });
 
-    if (!response.products?.items || response.products.items.length === 0) {
+    const validatedResponse = validateApiResponse<{ products?: { items?: Array<any> } }>(response);
+    if (!validatedResponse.products?.items || validatedResponse.products.items.length === 0) {
       return {
         content: [
           {
@@ -58,13 +60,13 @@ export async function listProducts(
     }
 
     let text = `# Products Available in ${formatContractDisplay(contractId)}\n\n`;
-    text += `Found ${response.products.items.length} products:\n\n`;
+    text += `Found ${validatedResponse.products.items.length} products:\n\n`;
 
     text += '| Product ID | Product Name | Category |\n';
     text += '|------------|--------------|----------|\n';
 
     // Sort products by name for easier reading
-    const sortedProducts = response.products.items.sort((a: any, b: any) =>
+    const sortedProducts = validatedResponse.products.items.sort((a, b) =>
       (a.productName || '').localeCompare(b.productName || ''),
     );
 
@@ -80,7 +82,7 @@ export async function listProducts(
 
     text += '\n';
     // Add best product recommendation
-    const bestProduct = selectBestProduct(response.products.items);
+    const bestProduct = selectBestProduct(validatedResponse.products.items);
     if (bestProduct) {
       text += '## [TARGET] Recommended Product\n\n';
       text += `**${formatProductDisplay(bestProduct.productId, bestProduct.productName)}**\n`;
@@ -166,7 +168,8 @@ export async function getProduct(
       },
     });
 
-    const product = response.products?.items?.find((p: any) => p.productId === args.productId);
+    const validatedResponse = validateApiResponse<{ products?: { items?: Array<any> } }>(response);
+    const product = validatedResponse.products?.items?.find((p) => p.productId === args.productId);
 
     if (!product) {
       return {
@@ -462,7 +465,8 @@ export async function listBillingProducts(
       },
     });
 
-    if (!response.billingProducts || response.billingProducts.length === 0) {
+    const validatedResponse = validateApiResponse<{ billingProducts?: Array<any> }>(response);
+    if (!validatedResponse.billingProducts || validatedResponse.billingProducts.length === 0) {
       return {
         content: [
           {
@@ -475,7 +479,7 @@ export async function listBillingProducts(
 
     let text = `# Billing Products for ${formatContractDisplay(contractId)}\n`;
     text += `**Period:** ${year}-${month}\n\n`;
-    text += `Found ${response.billingProducts.length} billing products:\n\n`;
+    text += `Found ${validatedResponse.billingProducts.length} billing products:\n\n`;
 
     // Categorize products
     const productMappings: Map<string, { id: string; name: string; category: string }> = new Map();
@@ -483,7 +487,7 @@ export async function listBillingProducts(
     text += '| Product ID | Billing Name | Current Mapping | Category |\n';
     text += '|------------|--------------|-----------------|----------|\n';
 
-    for (const product of response.billingProducts) {
+    for (const product of validatedResponse.billingProducts) {
       const productId = product.productId || 'Unknown';
       const billingName = product.productName || 'Unnamed';
       const currentMapping = getProductFriendlyName(productId);
@@ -533,10 +537,10 @@ export async function listBillingProducts(
     }
 
     // Show geographic breakdown if available
-    if (response.billingProducts.some((p: any) => p.regions && p.regions.length > 0)) {
+    if (validatedResponse.billingProducts.some((p) => p.regions && p.regions.length > 0)) {
       text += '\n## Geographic Usage\n\n';
 
-      for (const product of response.billingProducts) {
+      for (const product of validatedResponse.billingProducts) {
         if (product.regions && product.regions.length > 0) {
           const productName = getProductFriendlyName(product.productId) || product.productName;
           text += `### ${productName} (${product.productId})\n\n`;

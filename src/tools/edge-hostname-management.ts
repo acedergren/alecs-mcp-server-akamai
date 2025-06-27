@@ -4,6 +4,7 @@
  */
 
 import { ErrorTranslator } from '../utils/errors';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -112,7 +113,8 @@ export async function createEdgeHostnameEnhanced(
           method: 'GET',
         });
 
-        const property = propertyResponse.properties?.items?.[0];
+        const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+        const property = validatedPropertyResponse.properties?.items?.[0];
         if (!property) {
           throw new Error('Property not found');
         }
@@ -165,7 +167,8 @@ export async function createEdgeHostnameEnhanced(
       },
     });
 
-    const edgeHostnameId = response.edgeHostnameLink?.split('/').pop()?.split('?')[0];
+    const validatedResponse = validateApiResponse<{ edgeHostnameLink?: string; mapDetails?: any }>(response);
+    const edgeHostnameId = validatedResponse.edgeHostnameLink?.split('/').pop()?.split('?')[0];
     const edgeHostname = `${args.domainPrefix}.${domainSuffix.replace(/^\./, '')}`;
 
     // Format response
@@ -185,9 +188,9 @@ export async function createEdgeHostnameEnhanced(
     responseText += `- **Group:** ${groupId}\n`;
     responseText += `- **Product:** ${productId || 'prd_Ion'}\n`;
 
-    if (response.mapDetails) {
-      responseText += `- **Serial Number:** ${response.mapDetails.serialNumber}\n`;
-      responseText += `- **Slot Number:** ${response.mapDetails.slotNumber}\n`;
+    if (validatedResponse.mapDetails) {
+      responseText += `- **Serial Number:** ${validatedResponse.mapDetails.serialNumber}\n`;
+      responseText += `- **Slot Number:** ${validatedResponse.mapDetails.slotNumber}\n`;
     }
 
     responseText += '\n## DNS Configuration\n';
@@ -291,7 +294,8 @@ export async function createBulkEdgeHostnames(
           },
         });
 
-        const edgeHostnameId = response.edgeHostnameLink?.split('/').pop()?.split('?')[0];
+        const validatedBulkResponse = validateApiResponse<{ edgeHostnameLink?: string }>(response);
+        const edgeHostnameId = validatedBulkResponse.edgeHostnameLink?.split('/').pop()?.split('?')[0] || '';
         const edgeHostname = `${prefix}.${args.domainSuffix.replace(/^\./, '')}`;
 
         results.successful.push({
@@ -405,7 +409,8 @@ export async function getEdgeHostnameDetails(
         queryParams,
       });
 
-      const found = listResponse.edgeHostnames?.items?.find(
+      const validatedListResponse = validateApiResponse<{ edgeHostnames?: { items?: any[] } }>(listResponse);
+      const found = validatedListResponse.edgeHostnames?.items?.find(
         (eh: any) =>
           eh.edgeHostnameDomain === args.edgeHostnameDomain ||
           `${eh.domainPrefix}.${eh.domainSuffix}` === args.edgeHostnameDomain,
@@ -438,7 +443,8 @@ export async function getEdgeHostnameDetails(
       },
     });
 
-    const eh = response.edgeHostnames?.items?.[0];
+    const validatedResponse = validateApiResponse<{ edgeHostnames?: { items?: any[] } }>(response);
+    const eh = validatedResponse.edgeHostnames?.items?.[0];
     if (!eh) {
       throw new Error('Edge hostname details not found');
     }
@@ -487,15 +493,17 @@ export async function getEdgeHostnameDetails(
       },
     });
 
+    const validatedPropertiesResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertiesResponse);
     const usingProperties: string[] = [];
-    for (const prop of propertiesResponse.properties?.items || []) {
+    for (const prop of validatedPropertiesResponse.properties?.items || []) {
       try {
         const hostnamesResponse = await client.request({
           path: `/papi/v1/properties/${prop.propertyId}/versions/${prop.latestVersion}/hostnames`,
           method: 'GET',
         });
 
-        const usesThisEdgeHostname = hostnamesResponse.hostnames?.items?.some(
+        const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: any[] } }>(hostnamesResponse);
+        const usesThisEdgeHostname = validatedHostnamesResponse.hostnames?.items?.some(
           (h: any) =>
             h.cnameTo === eh.edgeHostnameDomain ||
             h.cnameTo === `${eh.domainPrefix}.${eh.domainSuffix}`,
@@ -741,7 +749,8 @@ export async function validateEdgeHostnameCertificate(
       method: 'GET',
     });
 
-    const eh = ehResponse.edgeHostnames?.items?.[0];
+    const validatedEhResponse = validateApiResponse<{ edgeHostnames?: { items?: any[] } }>(ehResponse);
+    const eh = validatedEhResponse.edgeHostnames?.items?.[0];
     if (!eh) {
       throw new Error('Edge hostname not found');
     }
@@ -783,12 +792,19 @@ export async function validateEdgeHostnameCertificate(
         });
 
         if (certResponse) {
+          const validatedCertResponse = validateApiResponse<{
+            cn?: string;
+            sans?: string[];
+            status?: string;
+            validFrom?: string;
+            validTo?: string;
+          }>(certResponse);
           responseText += '### Certificate Details\n';
-          responseText += `- **Common Name:** ${certResponse.cn || 'N/A'}\n`;
-          responseText += `- **SANs:** ${certResponse.sans?.join(', ') || 'None'}\n`;
-          responseText += `- **Status:** ${certResponse.status || 'Unknown'}\n`;
-          responseText += `- **Valid From:** ${certResponse.validFrom || 'N/A'}\n`;
-          responseText += `- **Valid To:** ${certResponse.validTo || 'N/A'}\n\n`;
+          responseText += `- **Common Name:** ${validatedCertResponse.cn || 'N/A'}\n`;
+          responseText += `- **SANs:** ${validatedCertResponse.sans?.join(', ') || 'None'}\n`;
+          responseText += `- **Status:** ${validatedCertResponse.status || 'Unknown'}\n`;
+          responseText += `- **Valid From:** ${validatedCertResponse.validFrom || 'N/A'}\n`;
+          responseText += `- **Valid To:** ${validatedCertResponse.validTo || 'N/A'}\n\n`;
         }
       } catch {
         // Certificate details not accessible
@@ -893,7 +909,8 @@ export async function associateCertificateWithEdgeHostname(
       method: 'GET',
     });
 
-    const eh = ehResponse.edgeHostnames?.items?.[0];
+    const validatedEhResponse = validateApiResponse<{ edgeHostnames?: { items?: any[] } }>(ehResponse);
+    const eh = validatedEhResponse.edgeHostnames?.items?.[0];
     const edgeHostnameDomain = eh?.edgeHostnameDomain || 'Unknown';
 
     let responseText = '# [DONE] Certificate Associated Successfully\n\n';

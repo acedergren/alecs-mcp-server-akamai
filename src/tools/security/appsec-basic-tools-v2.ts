@@ -5,6 +5,7 @@
  */
 
 import { AkamaiClient } from '../../akamai-client';
+import { validateApiResponse } from '../../utils/api-response-validator';
 
 // Tool response interface
 interface ToolResponse {
@@ -58,7 +59,10 @@ export const listAppSecConfigurations = {
         method: 'GET',
       });
 
-      const configurations = response.configurations || [];
+      const validatedResponse = validateApiResponse<{ configurations: any }>(response);
+
+
+      const configurations = validatedResponse.configurations || [];
 
       return {
         success: true,
@@ -120,11 +124,13 @@ export const getAppSecConfiguration = {
         method: 'GET',
       });
 
+      const validatedResponse = validateApiResponse<any>(response);
+
       return {
         success: true,
         data: {
-          configuration: response,
-          formatted: formatJson(response),
+          configuration: validatedResponse,
+          formatted: formatJson(validatedResponse),
         },
       };
     } catch (_error) {
@@ -187,13 +193,15 @@ export const createWAFPolicy = {
         body: policyData,
       });
 
+      const validatedResponse = validateApiResponse<{ policyId: string }>(response);
+
       return {
         success: true,
         data: {
-          policy: response,
-          policyId: response.policyId,
+          policy: validatedResponse,
+          policyId: validatedResponse.policyId,
           message: `WAF policy '${args.policyName}' created successfully`,
-          formatted: formatJson(response),
+          formatted: formatJson(validatedResponse),
         },
       };
     } catch (_error) {
@@ -257,13 +265,16 @@ export const getSecurityEvents = {
         queryParams,
       });
 
-      const events = response.securityEvents || [];
+      const validatedResponse = validateApiResponse<{ securityEvents: any; totalEvents?: number }>(response);
+
+
+      const events = validatedResponse.securityEvents || [];
 
       return {
         success: true,
         data: {
           events,
-          totalEvents: response.totalEvents || 0,
+          totalEvents: validatedResponse.totalEvents || 0,
           query: {
             from: args.from,
             to: args.to,
@@ -340,15 +351,17 @@ export const activateSecurityConfiguration = {
         body: activationData,
       });
 
+      const validatedResponse = validateApiResponse<{ activationId: number; status: string }>(response);
+
       return {
         success: true,
         data: {
-          activation: response,
-          activationId: response.activationId,
-          status: response.status,
+          activation: validatedResponse,
+          activationId: validatedResponse.activationId,
+          status: validatedResponse.status,
           network: args.network,
           message: `Security configuration ${args.configId} v${args.version} activation initiated on ${args.network}`,
-          formatted: formatJson(response),
+          formatted: formatJson(validatedResponse),
         },
       };
     } catch (_error) {
@@ -393,15 +406,17 @@ export const getSecurityActivationStatus = {
         method: 'GET',
       });
 
+      const validatedResponse = validateApiResponse<{ status: string; network: string; progress?: number }>(response);
+
       return {
         success: true,
         data: {
-          activation: response,
-          status: response.status,
-          network: response.network,
-          progress: response.progress || 0,
-          message: `Activation ${args.activationId} status: ${response.status}`,
-          formatted: formatJson(response),
+          activation: validatedResponse,
+          status: validatedResponse.status,
+          network: validatedResponse.network,
+          progress: validatedResponse.progress || 0,
+          message: `Activation ${args.activationId} status: ${validatedResponse.status}`,
+          formatted: formatJson(validatedResponse),
         },
       };
     } catch (_error) {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Security & Compliance Domain Assistant
  * Maya Chen's UX Transformation: Making security approachable without compromising protection

@@ -261,8 +261,8 @@ export interface CPSEnrollmentStatusResponse {
   ra: string;
   allowedDomains: Array<{
     name: string;
-    status: string;
-    validationStatus: string;
+    status?: string;
+    validationStatus?: string;
     validationDetails?: {
       challenges?: Array<{
         type: string;
@@ -273,6 +273,7 @@ export interface CPSEnrollmentStatusResponse {
         fullPath?: string;
         redirectFullPath?: string;
       }>;
+      error?: string;
     };
   }>;
 }
@@ -319,6 +320,90 @@ export interface CPSDeploymentStatusResponse {
     };
     multiStackedCertificates: Array<any>;
   };
+}
+
+// Additional CPS types for deployment coordinator
+export interface DeploymentListResponse {
+  deployments: Array<{
+    deploymentId: string;
+    enrollmentId: number;
+    network: string;
+    status: string;
+    createdDate: string;
+    modifiedDate: string;
+    targetEnvironment?: string;
+    primaryCertificate?: {
+      network?: string;
+    };
+    deploymentStatus?: string;
+    deploymentDate?: string;
+  }>;
+}
+
+export interface DeploymentDetailResponse {
+  deployment: {
+    deploymentId: string;
+    enrollmentId: number;
+    network: string;
+    status: string;
+    createdDate: string;
+    modifiedDate: string;
+    propertyIds?: string[];
+  };
+}
+
+export interface Deployment {
+  deploymentId: string;
+  enrollmentId: number;
+  network: string;
+  status: string;
+  createdDate: string;
+  modifiedDate: string;
+  targetEnvironment?: string;
+  primaryCertificate?: {
+    network?: string;
+  };
+  deploymentStatus?: string;
+  deploymentDate?: string;
+}
+
+export interface DeploymentStatus {
+  status: string;
+  message?: string;
+}
+
+export interface EnrollmentDetailResponse {
+  enrollment: {
+    id: number;
+    cn: string;
+    sans?: string[];
+    status: string;
+    certificateType: string;
+    validationType: string;
+    productId?: string;
+  };
+}
+
+// DV Validation types
+export interface DVValidationResponse {
+  validations: DomainValidation[];
+}
+
+export interface DomainValidation {
+  domain: string;
+  status: string;
+  challenges: Array<{
+    type: string;
+    token: string;
+    responseBody: string;
+    url?: string;
+    dnsRecord?: {
+      name: string;
+      type: string;
+      value: string;
+    };
+  }>;
+  error?: string;
 }
 
 // ==================

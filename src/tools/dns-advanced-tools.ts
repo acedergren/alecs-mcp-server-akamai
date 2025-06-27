@@ -4,6 +4,7 @@
  */
 
 import { Spinner, format, icons } from '../utils/progress';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -93,7 +94,8 @@ export async function getZonesDNSSECStatus(
           },
         });
 
-        results.push(response);
+        const validatedResponse = validateApiResponse<DNSSECStatus>(response);
+        results.push(validatedResponse);
       } catch (_error: any) {
         // If DNSSEC is not enabled, API returns 404
         if (_error.message?.includes('404')) {
@@ -166,7 +168,8 @@ export async function getSecondaryZoneTransferStatus(
         },
       });
 
-      results.push(response);
+      const validatedResponse = validateApiResponse<ZoneTransferStatus>(response);
+      results.push(validatedResponse);
     }
 
     spinner.stop();
@@ -227,17 +230,23 @@ export async function getZoneContract(
       },
     });
 
+    const validatedResponse = validateApiResponse<{ 
+      contractId?: string; 
+      contractTypeName?: string; 
+      features?: string[] 
+    }>(response);
+    
     let text = `${icons.contract} Zone Contract Information\n\n`;
     text += `Zone: ${format.cyan(args.zone)}\n`;
-    text += `Contract ID: ${format.yellow(response.contractId)}\n`;
+    text += `Contract ID: ${format.yellow(validatedResponse.contractId || 'Unknown')}\n`;
 
-    if (response.contractTypeName) {
-      text += `Contract Type: ${response.contractTypeName}\n`;
+    if (validatedResponse.contractTypeName) {
+      text += `Contract Type: ${validatedResponse.contractTypeName}\n`;
     }
 
-    if (response.features && response.features.length > 0) {
-      text += '\nEnabled Featu_res:\n';
-      response.features.forEach((feature: any) => {
+    if (validatedResponse.features && validatedResponse.features.length > 0) {
+      text += '\nEnabled Features:\n';
+      validatedResponse.features.forEach((feature) => {
         text += `  ${icons.check} ${feature}\n`;
       });
     }
@@ -272,14 +281,21 @@ export async function getRecordSet(
       },
     });
 
+    const validatedResponse = validateApiResponse<{
+      name: string;
+      type: string;
+      ttl: number;
+      rdata: string[];
+    }>(response);
+
     let text = `${icons.dns} Record Set Details\n\n`;
     text += `Zone: ${format.cyan(args.zone)}\n`;
-    text += `Name: ${format.yellow(response.name)}\n`;
-    text += `Type: ${format.green(response.type)}\n`;
-    text += `TTL: ${response.ttl} seconds\n`;
+    text += `Name: ${format.yellow(validatedResponse.name)}\n`;
+    text += `Type: ${format.green(validatedResponse.type)}\n`;
+    text += `TTL: ${validatedResponse.ttl} seconds\n`;
     text += '\nRecord Data:\n';
 
-    response.rdata.forEach((data: string) => {
+    validatedResponse.rdata.forEach((data: string) => {
       text += `  ${icons.dot} ${data}\n`;
     });
 
@@ -337,6 +353,8 @@ export async function updateTSIGKeyForZones(
           },
         });
 
+        const validatedZoneConfig = validateApiResponse<Record<string, any>>(zoneConfig);
+
         // Update with new TSIG key
         await client.request({
           path: `/config-dns/v2/zones/${zone}`,
@@ -345,7 +363,7 @@ export async function updateTSIGKeyForZones(
             'Content-Type': 'application/json',
           },
           body: {
-            ...zoneConfig,
+            ...validatedZoneConfig,
             tsigKey: args.tsigKey,
           },
         });
@@ -424,11 +442,13 @@ export async function submitBulkZoneCreateRequest(
       },
     });
 
+    const validatedResponse = validateApiResponse<BulkZoneCreateResponse>(response);
+
     spinner.stop();
 
     let text = `${icons.bulk} Bulk Zone Creation Request Submitted\n\n`;
-    text += `Request ID: ${format.yellow(response.requestId)}\n`;
-    text += `Status: ${format.cyan(response.status)}\n`;
+    text += `Request ID: ${format.yellow(validatedResponse.requestId)}\n`;
+    text += `Status: ${format.cyan(validatedResponse.status)}\n`;
     text += `Total Zones: ${args.zones.length}\n\n`;
 
     text += 'Zones to be created:\n';
@@ -436,7 +456,7 @@ export async function submitBulkZoneCreateRequest(
       text += `  ${icons.dns} ${zone.zone} (${zone.type})\n`;
     });
 
-    text += `\n${icons.info} Use "Get bulk creation status ${response.requestId}" to check progress`;
+    text += `\n${icons.info} Use "Get bulk creation status ${validatedResponse.requestId}" to check progress`;
 
     return {
       content: [
@@ -468,15 +488,17 @@ export async function getZoneVersion(
       },
     });
 
+    const validatedResponse = validateApiResponse<ZoneVersion>(response);
+
     let text = `${icons.version} Zone Version Details\n\n`;
     text += `Zone: ${format.cyan(args.zone)}\n`;
-    text += `Version ID: ${format.yellow(response.versionId)}\n`;
-    text += `Activation Date: ${response.activationDate}\n`;
-    text += `Author: ${response.author}\n`;
-    text += `Record Sets: ${response.recordSetCount}\n`;
+    text += `Version ID: ${format.yellow(validatedResponse.versionId)}\n`;
+    text += `Activation Date: ${validatedResponse.activationDate}\n`;
+    text += `Author: ${validatedResponse.author}\n`;
+    text += `Record Sets: ${validatedResponse.recordSetCount}\n`;
 
-    if (response.comment) {
-      text += `Comment: ${response.comment}\n`;
+    if (validatedResponse.comment) {
+      text += `Comment: ${validatedResponse.comment}\n`;
     }
 
     return {
@@ -518,11 +540,20 @@ export async function getVersionRecordSets(
       queryParams,
     });
 
+    const validatedResponse = validateApiResponse<{
+      recordsets: Array<{
+        name: string;
+        ttl: number;
+        type: string;
+        rdata: string[];
+      }>;
+    }>(response);
+
     let text = `${icons.list} Record Sets for Version ${args.versionId}\n\n`;
     text += `Zone: ${format.cyan(args.zone)}\n`;
-    text += `Total Records: ${response.recordsets.length}\n\n`;
+    text += `Total Records: ${validatedResponse.recordsets.length}\n\n`;
 
-    response.recordsets.forEach((record: any) => {
+    validatedResponse.recordsets.forEach((record) => {
       text += `${icons.dns} ${record.name} ${record.ttl} ${record.type} ${record.rdata.join(' ')}\n`;
     });
 
@@ -563,13 +594,15 @@ export async function reactivateZoneVersion(
       },
     });
 
+    const validatedResponse = validateApiResponse<{ versionId: string }>(response);
+
     spinner.succeed('Version reactivated successfully');
 
     return {
       content: [
         {
           type: 'text',
-          text: `${icons.success} Successfully reactivated zone version\n\nZone: ${format.cyan(args.zone)}\nVersion: ${format.yellow(args.versionId)}\nNew Version ID: ${format.green(response.versionId)}\n\n${icons.info} The zone has been updated with the record sets from the selected version.`,
+          text: `${icons.success} Successfully reactivated zone version\n\nZone: ${format.cyan(args.zone)}\nVersion: ${format.yellow(args.versionId)}\nNew Version ID: ${format.green(validatedResponse.versionId)}\n\n${icons.info} The zone has been updated with the record sets from the selected version.`,
         },
       ],
     };
@@ -681,11 +714,13 @@ export async function createMultipleRecordSets(
       },
     });
 
+    const validatedSubmitResponse = validateApiResponse<{ requestId: string }>(submitResponse);
+
     spinner.stop();
 
     let text = `${icons.success} Bulk Record Creation Complete\n\n`;
     text += `Zone: ${format.cyan(args.zone)}\n`;
-    text += `Request ID: ${format.yellow(submitResponse.requestId)}\n\n`;
+    text += `Request ID: ${format.yellow(validatedSubmitResponse.requestId)}\n\n`;
 
     const successful = results.filter((r) => r.success);
     const failed = results.filter((r) => !r.success);

@@ -182,7 +182,7 @@ export class KeyStore {
     // If no separator found, look for numeric boundaries
     if (bestSplit === midPoint) {
       for (let i = midPoint; i > 0; i--) {
-        if (key[i].match(/\d/) && !key[i-1].match(/\d/)) {
+        if (key[i]?.match(/\d/) && !key[i-1]?.match(/\d/)) {
           bestSplit = i;
           break;
         }

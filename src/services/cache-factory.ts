@@ -1,24 +1,18 @@
 /**
  * Cache Factory
- * Creates appropriate cache implementation based on configuration
+ * Creates SmartCache implementation (Valkey/Redis deprecated)
  */
 
 import { ICache } from '../types/cache-interface';
 import { SmartCache } from '../utils/smart-cache';
-import { createExternalCache, isExternalCacheAvailable } from './external-cache-loader';
 import { logger } from '../utils/logger';
 
 export interface CacheFactoryOptions {
-  type?: 'smart' | 'external' | 'auto';
+  type?: 'smart';
   smartCacheOptions?: {
     maxSize?: number;
     maxMemoryMB?: number;
     defaultTTL?: number;
-  };
-  externalCacheOptions?: {
-    host?: string;
-    port?: number;
-    password?: string;
   };
 }
 
@@ -27,44 +21,8 @@ export class CacheFactory {
    * Create cache instance based on configuration
    */
   static async create(options: CacheFactoryOptions = {}): Promise<ICache> {
-    const cacheType = options.type || process.env.CACHE_TYPE || 'auto';
-    
-    switch (cacheType) {
-      case 'smart':
-        return this.createSmartCache(options.smartCacheOptions);
-        
-      case 'external':
-        const external = await createExternalCache(options.externalCacheOptions || {});
-        if (!external) {
-          logger.warn('[Cache] External cache requested but not available, falling back to SmartCache');
-          return this.createSmartCache(options.smartCacheOptions);
-        }
-        return external;
-        
-      case 'auto':
-      default:
-        // Auto-detect: Always prefer SmartCache unless external is explicitly configured
-        if (process.env.CACHE_HOST) {
-          logger.info('[Cache] External cache configuration detected, checking availability...');
-          if (isExternalCacheAvailable()) {
-            const external = await createExternalCache(options.externalCacheOptions || {});
-            if (external) {
-              // Test connection
-              try {
-                await external.set('test:connection', true, 1);
-                await external.del('test:connection');
-                logger.info('[Cache] Using external cache (deprecated - consider migrating to SmartCache)');
-                return external;
-              } catch (error) {
-                logger.warn('[Cache] External cache connection failed, using SmartCache instead');
-              }
-            }
-          }
-        }
-        
-        logger.info('[Cache] Using SmartCache (recommended) - zero dependencies, excellent performance');
-        return this.createSmartCache(options.smartCacheOptions);
-    }
+    logger.info('[Cache] Using SmartCache - zero dependencies, excellent performance');
+    return this.createSmartCache(options.smartCacheOptions);
   }
 
   private static createSmartCache(options?: any): ICache {

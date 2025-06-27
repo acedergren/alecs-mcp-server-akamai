@@ -43,7 +43,9 @@ export class BloomFilter {
     for (const pos of positions) {
       const byteIndex = Math.floor(pos / 8);
       const bitIndex = pos % 8;
-      this.bitArray[byteIndex] |= (1 << bitIndex);
+      if (this.bitArray[byteIndex] !== undefined) {
+        this.bitArray[byteIndex] |= (1 << bitIndex);
+      }
     }
     
     this.numElements++;
@@ -60,7 +62,7 @@ export class BloomFilter {
       const byteIndex = Math.floor(pos / 8);
       const bitIndex = pos % 8;
       
-      if ((this.bitArray[byteIndex] & (1 << bitIndex)) === 0) {
+      if (this.bitArray[byteIndex] !== undefined && (this.bitArray[byteIndex] & (1 << bitIndex)) === 0) {
         return false; // Definitely not in set
       }
     }
@@ -164,7 +166,9 @@ export class BloomFilter {
     
     // OR the bit arrays together
     for (let i = 0; i < this.bitArray.length; i++) {
-      this.bitArray[i] |= other.bitArray[i];
+      if (this.bitArray[i] !== undefined && other.bitArray[i] !== undefined) {
+        this.bitArray[i] |= other.bitArray[i];
+      }
     }
     
     this.numElements += other.numElements;

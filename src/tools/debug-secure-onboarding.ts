@@ -7,6 +7,7 @@ import { selectBestProduct, formatProductDisplay } from '../utils/product-mappin
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 import { createProperty } from './property-tools';
 
@@ -80,11 +81,12 @@ export async function debugSecurePropertyOnboarding(
         method: 'GET',
       });
 
-      if (groupsResponse.groups?.items) {
-        text += `[DONE] **API connectivity working** (found ${groupsResponse.groups.items.length} groups)\n`;
+      const validatedGroupsResponse = validateApiResponse<{ groups?: { items?: any[] } }>(groupsResponse);
+      if (validatedGroupsResponse.groups?.items) {
+        text += `[DONE] **API connectivity working** (found ${validatedGroupsResponse.groups.items.length} groups)\n`;
 
         // Verify the specified group exists
-        const targetGroup = groupsResponse.groups.items.find(
+        const targetGroup = validatedGroupsResponse.groups.items.find(
           (g: any) => g.groupId === args.groupId,
         );
         if (targetGroup) {
@@ -92,7 +94,7 @@ export async function debugSecurePropertyOnboarding(
         } else {
           text += `[ERROR] **Target group ${args.groupId} not found**\n`;
           text += 'Available groups:\n';
-          groupsResponse.groups.items.slice(0, 5).forEach((g: any) => {
+          validatedGroupsResponse.groups.items.slice(0, 5).forEach((g: any) => {
             text += `- ${g.groupId}: ${g.groupName}\n`;
           });
           text += '\n';
@@ -129,8 +131,9 @@ export async function debugSecurePropertyOnboarding(
           },
         });
 
-        if (productsResponse.products?.items?.length > 0) {
-          const bestProduct = selectBestProduct(productsResponse.products.items);
+        const validatedProductsResponse = validateApiResponse<{ products?: { items?: any[] } }>(productsResponse);
+        if (validatedProductsResponse.products?.items?.length && validatedProductsResponse.products.items.length > 0) {
+          const bestProduct = selectBestProduct(validatedProductsResponse.products.items);
           if (bestProduct) {
             productId = bestProduct.productId;
             text += `[DONE] **Auto-selected product:** ${formatProductDisplay(bestProduct.productId, bestProduct.productName)}\n`;
@@ -211,10 +214,11 @@ export async function debugSecurePropertyOnboarding(
           method: 'GET',
         });
 
-        if (!propertyResponse.properties?.items?.[0]) {
+        const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+        if (!validatedPropertyResponse.properties?.items?.[0]) {
           text += `[ERROR] **Cannot retrieve property details for ${propertyId}**\n`;
         } else {
-          const property = propertyResponse.properties.items[0];
+          const property = validatedPropertyResponse.properties.items[0];
           text += '[DONE] **Property details retrieved**\n';
           text += `- Contract: ${property.contractId}\n`;
           text += `- Group: ${property.groupId}\n`;
@@ -241,8 +245,9 @@ export async function debugSecurePropertyOnboarding(
               },
             });
 
-            if (edgeResponse.edgeHostnameLink) {
-              const edgeHostnameId = edgeResponse.edgeHostnameLink.split('/').pop();
+            const validatedEdgeResponse = validateApiResponse<{ edgeHostnameLink?: string }>(edgeResponse);
+            if (validatedEdgeResponse.edgeHostnameLink) {
+              const edgeHostnameId = validatedEdgeResponse.edgeHostnameLink.split('/').pop();
               const edgeHostnameDomain = `${edgeHostnamePrefix}.edgekey.net`;
               text += `[DONE] **Edge hostname created:** ${edgeHostnameDomain}\n`;
               text += `- ID: ${edgeHostnameId}\n`;
@@ -325,7 +330,8 @@ export async function testBasicPropertyCreation(
         path: '/papi/v1/groups',
         method: 'GET',
       });
-      text += `[DONE] API accessible (found ${response.groups?.items?.length || 0} groups)\n\n`;
+      const validatedResponse = validateApiResponse<{ groups?: { items?: any[] } }>(response);
+      text += `[DONE] API accessible (found ${validatedResponse.groups?.items?.length || 0} groups)\n\n`;
     } catch (apiError: any) {
       text += `[ERROR] API not accessible: ${apiError.message}\n\n`;
       return {
@@ -350,8 +356,9 @@ export async function testBasicPropertyCreation(
         },
       });
 
-      if (productsResponse.products?.items?.length > 0) {
-        const bestProduct = selectBestProduct(productsResponse.products.items);
+      const validatedProductsResponse = validateApiResponse<{ products?: { items?: any[] } }>(productsResponse);
+      if (validatedProductsResponse.products?.items?.length && validatedProductsResponse.products.items.length > 0) {
+        const bestProduct = selectBestProduct(validatedProductsResponse.products.items);
         if (bestProduct) {
           productId = bestProduct.productId;
           text += `[DONE] Selected product: ${formatProductDisplay(bestProduct.productId, bestProduct.productName)}\n\n`;
@@ -373,7 +380,8 @@ export async function testBasicPropertyCreation(
     });
 
     text += '**Result:**\n';
-    text += result.content[0]?.text || 'No response';
+    const validatedResult = validateApiResponse<{ content: any }>(result);
+    text += validatedResult.content[0]?.text || 'No response';
 
     return {
       content: [

@@ -7,6 +7,7 @@
 import { formatContractDisplay, formatGroupDisplay, ensurePrefix } from '../../utils/formatting';
 
 import { AkamaiClient } from '../../akamai-client';
+import { validateApiResponse } from '../../utils/api-response-validator';
 import {
   type MCPToolResponse,
   type NetworkList,
@@ -113,7 +114,7 @@ export async function listNetworkLists(
       queryParams,
     });
 
-    const networkListsData: NetworkListResponse = response;
+    const networkListsData = validateApiResponse<NetworkListResponse>(response);
     const lists = networkListsData.networkLists || [];
 
     if (lists.length === 0) {
@@ -211,7 +212,7 @@ export async function getNetworkList(
       queryParams,
     });
 
-    const list: NetworkList = response;
+    const list = validateApiResponse<NetworkList>(response);
 
     let output = '[EMOJI] **Network List Details**\n\n';
     output += `**Name:** ${list.name}\n`;
@@ -348,7 +349,7 @@ export async function createNetworkList(
       body: requestBody,
     });
 
-    const newList: NetworkList = response;
+    const newList = validateApiResponse<NetworkList>(response);
 
     let output = '[DONE] **Network List Created Successfully**\n\n';
     output += `**Name:** ${newList.name}\n`;
@@ -413,7 +414,7 @@ export async function updateNetworkList(
       queryParams: { includeElements: 'true' },
     });
 
-    const currentList: NetworkList = currentResponse;
+    const currentList = validateApiResponse<NetworkList>(currentResponse);
 
     // Validate elements if provided
     if (options.addElements || options.replaceElements) {
@@ -491,7 +492,7 @@ export async function updateNetworkList(
       body: requestBody,
     });
 
-    const updatedList: NetworkList = response;
+    const updatedList = validateApiResponse<NetworkList>(response);
 
     let output = '[DONE] **Network List Updated Successfully**\n\n';
     output += `**Name:** ${updatedList.name}\n`;
@@ -553,7 +554,7 @@ export async function deleteNetworkList(
       method: 'GET',
     });
 
-    const list: NetworkList = listResponse;
+    const list = validateApiResponse<NetworkList>(listResponse);
 
     // Check if list is active on any network
     if (list.productionStatus === 'ACTIVE' || list.stagingStatus === 'ACTIVE') {

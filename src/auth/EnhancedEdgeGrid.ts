@@ -51,8 +51,8 @@ export class EnhancedEdgeGrid extends EventEmitter {
     super();
 
     this.config = {
-      edgercPath: config.edgercPath || process.env.EDGERC_PATH || '~/.edgerc',
-      section: config.section || process.env.EDGERC_SECTION || 'default',
+      edgercPath: config.edgercPath || process.env['EDGERC_PATH'] || '~/.edgerc',
+      section: config.section || process.env['EDGERC_SECTION'] || 'default',
       optimizedClient: config.optimizedClient || new OptimizedHTTPClient(),
       circuitBreaker:
         config.circuitBreaker ||
@@ -136,7 +136,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
         };
 
         // Add account switch key if available
-        const accountSwitchKey = process.env.AKAMAI_ACCOUNT_SWITCH_KEY;
+        const accountSwitchKey = process.env['AKAMAI_ACCOUNT_SWITCH_KEY'];
         if (accountSwitchKey) {
           authenticatedOptions.headers['account-switch-key'] = accountSwitchKey;
         }

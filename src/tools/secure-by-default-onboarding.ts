@@ -15,6 +15,7 @@ import { type MCPToolResponse } from '../types';
 import { createCPCode } from './cpcode-tools';
 import { updatePropertyRules, addPropertyHostname } from './property-manager-tools';
 import { createProperty } from './property-tools';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 interface OnboardingState {
   propertyId?: string;
@@ -55,7 +56,8 @@ async function validatePrerequisites(
       method: 'GET',
     });
 
-    const groupExists = groupsResponse.groups?.items?.some((g: any) => g.groupId === args.groupId);
+    const validatedGroupsResponse = validateApiResponse<{ groups?: { items?: any } }>(groupsResponse);
+    const groupExists = validatedGroupsResponse.groups?.items?.some((g: any) => g.groupId === args.groupId);
 
     if (!groupExists) {
       errors.push(`Group ${args.groupId} not found`);
@@ -142,11 +144,12 @@ async function createSecureByDefaultEdgeHostname(
     method: 'GET',
   });
 
-  if (!propertyResponse.properties?.items?.[0]) {
+  const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: Array<any> } }>(propertyResponse);
+  if (!validatedPropertyResponse.properties?.items?.[0]) {
     throw new Error('Property not found');
   }
 
-  const property = propertyResponse.properties.items[0];
+  const property = validatedPropertyResponse.properties.items[0];
   const productId = args.productId || property.productId;
 
   // Create Secure by Default edge hostname
@@ -184,7 +187,8 @@ async function createSecureByDefaultEdgeHostname(
     },
   });
 
-  const edgeHostnameId = response.edgeHostnameLink?.split('/').pop()?.split('?')[0];
+  const validatedResponse = validateApiResponse<{ edgeHostnameLink?: { split?: any } }>(response);
+    const edgeHostnameId = validatedResponse.edgeHostnameLink?.split('/').pop()?.split('?')[0];
   const edgeHostnameDomain = `${args.domainPrefix}.edgekey.net`;
 
   return { edgeHostnameId, edgeHostnameDomain };
@@ -255,8 +259,9 @@ export async function onboardSecureByDefaultProperty(
         },
       });
 
-      if (productsResponse.products?.items?.length > 0) {
-        const bestProduct = selectBestProduct(productsResponse.products.items);
+      const validatedProductsResponse = validateApiResponse<{ products?: { items?: Array<any> } }>(productsResponse);
+      if (validatedProductsResponse.products?.items?.length && validatedProductsResponse.products.items.length > 0) {
+        const bestProduct = selectBestProduct(validatedProductsResponse.products.items);
         if (bestProduct) {
           productId = bestProduct.productId;
           steps.push(
@@ -610,11 +615,12 @@ export async function checkSecureByDefaultStatus(
       method: 'GET',
     });
 
-    if (!propertyResponse.properties?.items?.[0]) {
+    const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: Array<any> } }>(propertyResponse);
+    if (!validatedPropertyResponse.properties?.items?.[0]) {
       throw new Error('Property not found');
     }
 
-    const property = propertyResponse.properties.items[0];
+    const property = validatedPropertyResponse.properties.items[0];
 
     text += '## Property Information\n';
     text += `- **Name:** ${property.propertyName}\n`;
@@ -630,8 +636,9 @@ export async function checkSecureByDefaultStatus(
     });
 
     text += '## Configured Hostnames\n';
-    if (hostnamesResponse.hostnames?.items?.length > 0) {
-      hostnamesResponse.hostnames.items.forEach((hostname: any) => {
+    const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: Array<any> } }>(hostnamesResponse);
+    if (validatedHostnamesResponse.hostnames?.items?.length && validatedHostnamesResponse.hostnames.items.length > 0) {
+      validatedHostnamesResponse.hostnames.items.forEach((hostname: any) => {
         text += `- **${hostname.cnameFrom}** → ${hostname.cnameTo}`;
         // DefaultDV certificates are always valid for all hostnames
         text += ' [DONE] (DefaultDV certificate active)\n';
@@ -643,7 +650,7 @@ export async function checkSecureByDefaultStatus(
 
     // Get edge hostnames for the property
     text += '## Edge Hostname Status\n';
-    const edgeHostname = hostnamesResponse.hostnames?.items?.[0]?.cnameTo;
+    const edgeHostname = validatedHostnamesResponse.hostnames?.items?.[0]?.cnameTo;
     if (edgeHostname?.includes('.edgekey.net')) {
       text += `[DONE] **Secure by Default Edge Hostname:** ${edgeHostname}\n`;
       text += '[DONE] **DefaultDV Certificate:** Automatically provisioned and active\n';
@@ -744,7 +751,8 @@ async function rollbackProperty(client: AkamaiClient, propertyId: string): Promi
       method: 'GET',
     });
 
-    const property = propertyResponse.properties?.items?.[0];
+    const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any } }>(propertyResponse);
+    const property = validatedPropertyResponse.properties?.items?.[0];
     if (!property?.productionVersion && !property?.stagingVersion) {
       // Safe to delete
       await client.request({

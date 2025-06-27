@@ -7,6 +7,7 @@ import { ErrorTranslator } from '../utils/errors';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 // Version comparison types
 export interface VersionDiff {
@@ -88,11 +89,15 @@ export async function comparePropertyVersions(
       method: 'GET',
     });
 
-    if (!propertyResponse.properties?.items?.[0]) {
+    const validatedResponse = validateApiResponse<{
+      properties?: { items?: any[] };
+    }>(propertyResponse);
+
+    if (!validatedResponse.properties?.items?.[0]) {
       throw new Error('Property not found');
     }
 
-    const property = propertyResponse.properties.items[0];
+    const property = validatedResponse.properties.items[0];
     const comparison: VersionComparison = {
       version1: args.version1,
       version2: args.version2,
@@ -120,7 +125,10 @@ export async function comparePropertyVersions(
         }),
       ]);
 
-      comparison.differences.rules = compareRuleTrees(rules1.rules, rules2.rules, includeDetails);
+      const validatedRules1 = validateApiResponse<{ rules?: any }>(rules1);
+      const validatedRules2 = validateApiResponse<{ rules?: any }>(rules2);
+      
+      comparison.differences.rules = compareRuleTrees(validatedRules1.rules, validatedRules2.rules, includeDetails);
 
       // Count specific changes
       comparison.differences.rules.forEach((diff) => {
@@ -146,9 +154,16 @@ export async function comparePropertyVersions(
         }),
       ]);
 
+      const validatedHostnames1 = validateApiResponse<{
+        hostnames?: { items?: any[] };
+      }>(hostnames1);
+      const validatedHostnames2 = validateApiResponse<{
+        hostnames?: { items?: any[] };
+      }>(hostnames2);
+
       comparison.differences.hostnames = compareHostnames(
-        hostnames1.hostnames?.items || [],
-        hostnames2.hostnames?.items || [],
+        validatedHostnames1.hostnames?.items || [],
+        validatedHostnames2.hostnames?.items || [],
       );
 
       comparison.differences.summary.hostnameChanges = comparison.differences.hostnames.length;
@@ -247,7 +262,11 @@ export async function batchCreateVersions(
           method: 'GET',
         });
 
-        const property = propertyResponse.properties?.items?.[0];
+        const validatedPropResponse = validateApiResponse<{
+          properties?: { items?: any[] };
+        }>(propertyResponse);
+        
+        const property = validatedPropResponse.properties?.items?.[0];
         if (!property) {
           results.push({
             propertyId: prop.propertyId,
@@ -269,7 +288,10 @@ export async function batchCreateVersions(
           },
         });
 
-        const newVersion = versionResponse.versionLink?.split('/versions/')[1];
+        const validatedVersionResp = validateApiResponse<{
+          versionLink?: string;
+        }>(versionResponse);
+        const newVersion = validatedVersionResp.versionLink?.split('/versions/')[1] || '0';
 
         results.push({
           propertyId: prop.propertyId,
@@ -374,7 +396,11 @@ export async function getVersionTimeline(
       method: 'GET',
     });
 
-    const property = propertyResponse.properties?.items?.[0];
+    const validatedPropResponse = validateApiResponse<{
+      properties?: { items?: any[] };
+    }>(propertyResponse);
+    
+    const property = validatedPropResponse.properties?.items?.[0];
     if (!property) {
       throw new Error('Property not found');
     }
@@ -399,7 +425,10 @@ export async function getVersionTimeline(
     };
 
     // Build timeline from versions
-    const versions = versionsResponse.versions?.items || [];
+    const validatedVersionsResp = validateApiResponse<{
+      versions?: { items?: any[] };
+    }>(versionsResponse);
+    const versions = validatedVersionsResp.versions?.items || [];
     for (const version of versions) {
       const versionDate = new Date(version.updatedDate);
 
@@ -420,8 +449,11 @@ export async function getVersionTimeline(
       });
 
       // Add activation events
+      const validatedActivationsResp = validateApiResponse<{
+        activations?: { items?: any[] };
+      }>(activationsResponse);
       const activations =
-        activationsResponse.activations?.items?.filter(
+        validatedActivationsResp.activations?.items?.filter(
           (a: any) => a.propertyVersion === version.propertyVersion,
         ) || [];
 
@@ -529,7 +561,11 @@ export async function rollbackPropertyVersion(
       method: 'GET',
     });
 
-    const property = propertyResponse.properties?.items?.[0];
+    const validatedPropResponse = validateApiResponse<{
+      properties?: { items?: any[] };
+    }>(propertyResponse);
+    
+    const property = validatedPropResponse.properties?.items?.[0];
     if (!property) {
       throw new Error('Property not found');
     }
@@ -542,7 +578,10 @@ export async function rollbackPropertyVersion(
       method: 'GET',
     });
 
-    if (!targetVersionResponse.versions?.items?.[0]) {
+    const validatedTargetVersionResp = validateApiResponse<{
+      versions?: { items?: any[] };
+    }>(targetVersionResponse);
+    if (!validatedTargetVersionResp.versions?.items?.[0]) {
       throw new Error(`Version ${args.targetVersion} not found`);
     }
 
@@ -558,7 +597,10 @@ export async function rollbackPropertyVersion(
         },
       });
 
-      backupVersion = parseInt(backupResponse.versionLink?.split('/versions/')[1]);
+      const validatedBackupResp = validateApiResponse<{
+        versionLink?: string;
+      }>(backupResponse);
+      backupVersion = parseInt(validatedBackupResp.versionLink?.split('/versions/')[1] || '0');
 
       // Add backup note
       if (backupVersion) {
@@ -578,7 +620,10 @@ export async function rollbackPropertyVersion(
         path: `/papi/v1/properties/${args.propertyId}/versions/${currentVersion}/hostnames`,
         method: 'GET',
       });
-      currentHostnames = hostnamesResponse.hostnames?.items || [];
+      const validatedHostnamesResp = validateApiResponse<{
+        hostnames?: { items?: any[] };
+      }>(hostnamesResponse);
+      currentHostnames = validatedHostnamesResp.hostnames?.items || [];
     }
 
     // Create new version from target
@@ -590,7 +635,10 @@ export async function rollbackPropertyVersion(
       },
     });
 
-    const newVersion = parseInt(rollbackResponse.versionLink?.split('/versions/')[1]);
+    const validatedRollbackResp = validateApiResponse<{
+      versionLink?: string;
+    }>(rollbackResponse);
+    const newVersion = parseInt(validatedRollbackResp.versionLink?.split('/versions/')[1] || '0');
 
     // Update version note
     const note = args.note || `Rollback from v${currentVersion} to v${args.targetVersion}`;
@@ -693,8 +741,12 @@ export async function updateVersionMetadata(
       }),
     ]);
 
-    const property = propertyResponse.properties?.items?.[0];
-    const version = versionResponse.versions?.items?.[0];
+    const validatedPropResponse = validateApiResponse<{
+      properties?: { items?: any[] };
+    }>(propertyResponse);
+    
+    const property = validatedPropResponse.properties?.items?.[0];
+    const version = validateApiResponse<{ versions?: { items?: any[] } }>(versionResponse).versions?.items?.[0];
 
     if (!property || !version) {
       throw new Error('Property or version not found');
@@ -712,7 +764,10 @@ export async function updateVersionMetadata(
         method: 'GET',
       });
 
-      const rules = rulesResponse.rules;
+      const validatedRulesResp = validateApiResponse<{
+        rules?: any;
+      }>(rulesResponse);
+      const rules = validatedRulesResp.rules;
 
       // Add metadata as comments in rule tree
       if (!rules.comments) {
@@ -813,7 +868,11 @@ export async function mergePropertyVersions(
       method: 'GET',
     });
 
-    const property = propertyResponse.properties?.items?.[0];
+    const validatedPropResponse = validateApiResponse<{
+      properties?: { items?: any[] };
+    }>(propertyResponse);
+    
+    const property = validatedPropResponse.properties?.items?.[0];
     if (!property) {
       throw new Error('Property not found');
     }
@@ -830,20 +889,24 @@ export async function mergePropertyVersions(
       }),
     ]);
 
+    // Validate rules responses
+    const validatedSourceRules = validateApiResponse<{ rules?: any }>(sourceRules);
+    const validatedTargetRules = validateApiResponse<{ rules?: any }>(targetRules);
+
     // Perform merge based on strategy
     let mergedRules: any;
     let mergeDescription: string;
 
     if (args.mergeStrategy === 'cherry-pick' && args.includePaths) {
       mergedRules = cherryPickChanges(
-        sourceRules.rules,
-        targetRules.rules,
+        validatedSourceRules.rules,
+        validatedTargetRules.rules,
         args.includePaths,
         args.excludePaths,
       );
       mergeDescription = `Cherry-picked ${args.includePaths.length} path(s) from v${args.sourceVersion}`;
     } else {
-      mergedRules = mergeRuleTrees(sourceRules.rules, targetRules.rules, args.excludePaths);
+      mergedRules = mergeRuleTrees(validatedSourceRules.rules, validatedTargetRules.rules, args.excludePaths);
       mergeDescription = `Merged changes from v${args.sourceVersion} into v${args.targetVersion}`;
     }
 
@@ -859,7 +922,10 @@ export async function mergePropertyVersions(
         },
       });
 
-      finalVersion = parseInt(versionResponse.versionLink?.split('/versions/')[1]);
+      const validatedVersionResp = validateApiResponse<{
+        versionLink?: string;
+      }>(versionResponse);
+      finalVersion = parseInt(validatedVersionResp.versionLink?.split('/versions/')[1] || '0');
 
       // Add merge note
       await updateVersionNote(client, args.propertyId, finalVersion, mergeDescription);

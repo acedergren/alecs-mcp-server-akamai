@@ -13,13 +13,14 @@ export class RateLimiter {
   private requests: Map<string, number[]> = new Map();
   private readonly windowMs: number;
   private readonly maxRequests: number;
+  private cleanupInterval?: NodeJS.Timeout;
 
   constructor(windowMs = 60000, maxRequests = 100) {
     this.windowMs = windowMs;
     this.maxRequests = maxRequests;
     
-    // Clean up old entries every minute
-    setInterval(() => this.cleanup(), 60000);
+    // Clean up old entries every minute with proper cleanup
+    this.cleanupInterval = setInterval(() => this.cleanup(), 60000);
   }
 
   /**
@@ -69,6 +70,17 @@ export class RateLimiter {
   reset(identifier: string): void {
     this.requests.delete(identifier);
   }
+
+  /**
+   * Destroy rate limiter and clean up resources
+   */
+  destroy(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = undefined;
+    }
+    this.requests.clear();
+  }
 }
 
 /**
@@ -106,22 +118,22 @@ export class MessageValidator {
     }
 
     // Validate jsonrpc version
-    if (msg.jsonrpc !== '2.0') {
+    if (msg['jsonrpc'] !== '2.0') {
       return { valid: false, error: 'Invalid jsonrpc version, must be "2.0"' };
     }
 
     // Validate method is a string
-    if (typeof msg.method !== 'string' || msg.method.length === 0) {
+    if (typeof msg['method'] !== 'string' || msg['method'].length === 0) {
       return { valid: false, error: 'Method must be a non-empty string' };
     }
 
     // Validate ID if present
-    if ('id' in msg && typeof msg.id !== 'string' && typeof msg.id !== 'number' && msg.id !== null) {
+    if ('id' in msg && typeof msg['id'] !== 'string' && typeof msg['id'] !== 'number' && msg['id'] !== null) {
       return { valid: false, error: 'ID must be string, number, or null' };
     }
 
     // Validate params if present
-    if ('params' in msg && msg.params !== null && typeof msg.params !== 'object') {
+    if ('params' in msg && msg['params'] !== null && typeof msg['params'] !== 'object') {
       return { valid: false, error: 'Params must be an object or null' };
     }
 
@@ -173,7 +185,7 @@ export interface CorsConfig {
 }
 
 export const defaultCorsConfig: CorsConfig = {
-  origin: process.env.CORS_ORIGIN || 'http://localhost:*',
+  origin: process.env['CORS_ORIGIN'] || 'http://localhost:*',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining'],

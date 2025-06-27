@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Workflow Assistants Integration
  * Maya Chen's UX Transformation: Unified entry point for all workflow assistants

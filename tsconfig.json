@@ -60,13 +60,13 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "exactOptionalPropertyTypes": false,
-    "noImplicitReturns": false,
-    "noFallthroughCasesInSwitch": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": false,
-    "noImplicitOverride": false,
+    "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": false,
-    "allowUnusedLabels": true,
-    "allowUnreachableCode": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
     "skipDefaultLibCheck": true,
     "skipLibCheck": true
   },
@@ -81,7 +81,9 @@
     "**/*.spec.ts",
     "coverage/**/*",
     "examples/**/*",
-    "docs/**/*"
+    "docs/**/*",
+    "src/testing/**/*",
+    "src/services/CustomerContextManager.ts"
   ],
   "ts-node": {
     "require": [

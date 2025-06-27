@@ -4,6 +4,7 @@
  */
 
 import { AkamaiClient } from '../../akamai-client';
+import { validateApiResponse } from '../../utils/api-response-validator';
 import {
   type MCPToolResponse,
   type NetworkList,
@@ -51,7 +52,7 @@ export async function activateNetworkList(
       method: 'GET',
     });
 
-    const list: NetworkList = listResponse;
+    const list = validateApiResponse<NetworkList>(listResponse);
 
     // Check if already active on target network
     const currentStatus = network === 'PRODUCTION' ? list.productionStatus : list.stagingStatus;
@@ -91,7 +92,7 @@ export async function activateNetworkList(
       body: requestBody,
     });
 
-    const activation: NetworkListActivation = response;
+    const activation = validateApiResponse<NetworkListActivation>(response);
 
     let output = '[DEPLOY] **Network List Activation Initiated**\n\n';
     output += `**List:** ${list.name} (${list.uniqueId})\n`;
@@ -145,7 +146,7 @@ export async function getNetworkListActivationStatus(
       method: 'GET',
     });
 
-    const activation: NetworkListActivation = response;
+    const activation = validateApiResponse<NetworkListActivation>(response);
 
     let output = '[METRICS] **Network List Activation Status**\n\n';
     output += `**Activation ID:** ${activation.activationId}\n`;
@@ -221,7 +222,10 @@ export async function listNetworkListActivations(
       queryParams,
     });
 
-    const activations = response.activations || [];
+    const validatedResponse = validateApiResponse<{ activations: any }>(response);
+
+
+    const activations = validatedResponse.activations || [];
 
     if (activations.length === 0) {
       return {
@@ -297,7 +301,7 @@ export async function deactivateNetworkList(
       method: 'GET',
     });
 
-    const list: NetworkList = listResponse;
+    const list = validateApiResponse<NetworkList>(listResponse);
 
     // Check if currently active on target network
     const currentStatus = network === 'PRODUCTION' ? list.productionStatus : list.stagingStatus;
@@ -330,7 +334,7 @@ export async function deactivateNetworkList(
       body: requestBody,
     });
 
-    const activation: NetworkListActivation = response;
+    const activation = validateApiResponse<NetworkListActivation>(response);
 
     let output = '[EMOJI] **Network List Deactivation Initiated**\n\n';
     output += `**List:** ${list.name} (${list.uniqueId})\n`;
@@ -415,7 +419,7 @@ export async function bulkActivateNetworkLists(
           body: requestBody,
         });
 
-        const activationResult: NetworkListActivation = response;
+        const activationResult = validateApiResponse<NetworkListActivation>(response);
         results.push({
           uniqueId: activation.uniqueId,
           activationId: activationResult.activationId,

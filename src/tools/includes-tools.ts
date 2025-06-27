@@ -7,6 +7,7 @@ import { handleApiError } from '../utils/error-handling';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 /**
  * List available includes
@@ -35,7 +36,8 @@ export async function listIncludes(
       method: 'GET',
     });
 
-    const includes = response.includes?.items || [];
+    const validatedResponse = validateApiResponse<{ includes?: { items?: any } }>(response);
+    const includes = validatedResponse.includes?.items || [];
 
     let responseText = '# Includes List\n\n';
     responseText += `**Contract:** ${args.contractId}\n`;
@@ -124,7 +126,8 @@ export async function getInclude(
       method: 'GET',
     });
 
-    const include = response.includes?.items?.[0] || response.include;
+    const validatedResponse = validateApiResponse<{ includes?: { items?: any }, include?: any }>(response);
+    const include = validatedResponse.includes?.items?.[0] || validatedResponse.include;
 
     if (!include) {
       return {
@@ -237,7 +240,8 @@ export async function createInclude(
       body: requestBody,
     });
 
-    const includeLink = response.includeLink;
+    const validatedResponse = validateApiResponse<{ includeLink?: string }>(response);
+    const includeLink = validatedResponse.includeLink;
     const includeId = includeLink?.split('/').pop()?.split('?')[0];
 
     let responseText = '# Include Created Successfully\n\n';
@@ -382,7 +386,8 @@ export async function createIncludeVersion(
       body: requestBody,
     });
 
-    const versionLink = response.versionLink;
+    const validatedResponse = validateApiResponse<{ versionLink?: string }>(response);
+    const versionLink = validatedResponse.versionLink;
     const newVersion = versionLink?.split('/').pop()?.split('?')[0];
 
     let responseText = '# Include Version Created\n\n';
@@ -456,7 +461,8 @@ export async function activateInclude(
       body: requestBody,
     });
 
-    const activationLink = response.activationLink;
+    const validatedResponse = validateApiResponse<{ activationLink?: string }>(response);
+    const activationLink = validatedResponse.activationLink;
     const activationId = activationLink?.split('/').pop()?.split('?')[0];
 
     let responseText = '# Include Activation Initiated\n\n';
@@ -527,7 +533,8 @@ export async function getIncludeActivationStatus(
       method: 'GET',
     });
 
-    const activation = response.activations?.items?.[0];
+    const validatedResponse = validateApiResponse<{ activations?: { items?: any } }>(response);
+    const activation = validatedResponse.activations?.items?.[0];
 
     if (!activation) {
       return {
@@ -632,7 +639,8 @@ export async function listIncludeActivations(
       method: 'GET',
     });
 
-    const activations = response.activations?.items || [];
+    const validatedResponse = validateApiResponse<{ activations?: { items?: any } }>(response);
+    const activations = validatedResponse.activations?.items || [];
 
     let responseText = '# Include Activations\n\n';
     responseText += `**Include ID:** ${args.includeId}\n`;

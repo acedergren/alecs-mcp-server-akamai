@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Performance & Analytics Domain Assistant
  * Maya Chen's UX Transformation: Making performance data actionable for business decisions

@@ -4,9 +4,11 @@
  */
 
 import { handleApiError } from '../utils/error-handling';
+import { logger } from '../utils/logger';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 // Pattern matchers to identify query types
 const patterns = {
@@ -52,8 +54,11 @@ export async function universalSearchHandler(
     const queryTypes = detectQueryType(args.query);
     const detailed = args.detailed !== false;
 
-    console.error(`[SEARCH] Universal search for: "${args.query}"`);
-    console.error(`Detected query types: ${queryTypes.join(', ')}`);
+    // PII-safe logging: Never log user query content
+    logger.debug('[SEARCH] Universal search initiated', { 
+      queryTypesDetected: queryTypes.length,
+      queryType: queryTypes[0] || 'unknown'
+    });
 
     const results: any = {
       query: args.query,
@@ -70,8 +75,9 @@ export async function universalSearchHandler(
           method: 'GET',
         });
 
-        if (response.properties?.items?.[0]) {
-          const property = response.properties.items[0];
+        const validatedResponse = validateApiResponse<{ properties?: { items?: any[] } }>(response);
+        if (validatedResponse.properties?.items?.[0]) {
+          const property = validatedResponse.properties.items[0];
 
           if (detailed) {
             // Get hostnames
@@ -84,9 +90,9 @@ export async function universalSearchHandler(
                   groupId: property.groupId,
                 },
               });
-              property.hostnames = hostnamesResp.hostnames?.items || [];
+              property.hostnames = validateApiResponse<{ hostnames?: { items?: any[] } }>(hostnamesResp).hostnames?.items || [];
             } catch (_e) {
-              console.error('Failed to get hostnames:', _e);
+              logger.debug('Failed to get hostnames', { propertyId: property.propertyId });
             }
           }
 
@@ -97,7 +103,7 @@ export async function universalSearchHandler(
           });
         }
       } catch (_err) {
-        console.error('Property ID search failed:', _err);
+        logger.error('Property ID search failed', { error: _err instanceof Error ? _err.message : String(_err) });
       }
     }
 
@@ -113,7 +119,8 @@ export async function universalSearchHandler(
           method: 'GET',
         });
 
-        const properties = propertiesResponse.properties?.items || [];
+        const validatedPropertiesResponse = validateApiResponse<{ properties?: { items?: any } }>(propertiesResponse);
+        const properties = validatedPropertiesResponse.properties?.items || [];
 
         for (const property of properties) {
           let isMatch = false;
@@ -137,7 +144,7 @@ export async function universalSearchHandler(
                 },
               });
 
-              const hostnames = hostnamesResp.hostnames?.items || [];
+              const hostnames = validateApiResponse<{ hostnames?: { items?: any[] } }>(hostnamesResp).hostnames?.items || [];
               const queryLower = args.query.toLowerCase();
 
               for (const hostname of hostnames) {
@@ -161,7 +168,7 @@ export async function universalSearchHandler(
                 property.hostnames = hostnames;
               }
             } catch (_err) {
-              console.error(`Error checking hostnames for ${property.propertyId}:`, _err);
+              logger.debug('Error checking hostnames', { propertyId: property.propertyId });
             }
           }
 
@@ -174,7 +181,7 @@ export async function universalSearchHandler(
           }
         }
       } catch (_err) {
-        console.error('Property search failed:', _err);
+        logger.error('Property search failed', { error: _err instanceof Error ? _err.message : String(_err) });
       }
     }
 
@@ -186,7 +193,7 @@ export async function universalSearchHandler(
           method: 'GET',
         });
 
-        const contract = contractsResp.contracts?.items?.find(
+        const contract = validateApiResponse<{ contracts?: { items?: any[] } }>(contractsResp).contracts?.items?.find(
           (c: any) => c.contractId === args.query,
         );
 
@@ -198,7 +205,7 @@ export async function universalSearchHandler(
           });
         }
       } catch (_err) {
-        console.error('Contract search failed:', _err);
+        logger.error('Contract search failed', { error: _err instanceof Error ? _err.message : String(_err) });
       }
     }
 
@@ -210,7 +217,7 @@ export async function universalSearchHandler(
           method: 'GET',
         });
 
-        const group = groupsResp.groups?.items?.find((g: any) => g.groupId === args.query);
+        const group = validateApiResponse<{ groups?: { items?: any[] } }>(groupsResp).groups?.items?.find((g: any) => g.groupId === args.query);
 
         if (group) {
           results.matches.push({

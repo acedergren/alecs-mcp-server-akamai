@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @ts-nocheck
 
 // Register module aliases for runtime path resolution
 

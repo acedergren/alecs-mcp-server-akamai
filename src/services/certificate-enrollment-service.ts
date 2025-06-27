@@ -13,7 +13,7 @@ import {
 import { checkDVEnrollmentStatus, getDVValidationChallenges } from '../tools/cps-tools';
 import { activateZoneChanges } from '../tools/dns-tools';
 import { type MCPToolResponse } from '../types';
-import { EnrollmentCreateResponse } from '../types/api-responses';
+import { CPSEnrollmentCreateResponse } from '../types/api-responses';
 
 // Service Configuration
 interface CertificateEnrollmentConfig {
@@ -401,7 +401,7 @@ export class CertificateEnrollmentService {
   // Private helper methods
 
   private async createEnrollment(args: any): Promise<{ enrollmentId: number }> {
-    const response = await this.client.request<EnrollmentCreateResponse>({
+    const response = await this.client.request<CPSEnrollmentCreateResponse>({
       path: `/cps/v2/enrollments?contractId=${args.contractId}`,
       method: 'POST',
       headers: {

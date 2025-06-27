@@ -4,6 +4,7 @@
  */
 
 import { ErrorTranslator } from '../utils/errors';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -189,7 +190,8 @@ export async function bulkCloneProperties(
       method: 'GET',
     });
 
-    const sourceProperty = sourceResponse.properties?.items?.[0];
+    const validatedResponse = validateApiResponse<{ properties?: { items?: any[] } }>(sourceResponse);
+    const sourceProperty = validatedResponse.properties?.items?.[0];
     if (!sourceProperty) {
       throw new Error('Source property not found');
     }
@@ -202,6 +204,7 @@ export async function bulkCloneProperties(
         Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
       },
     });
+    const validatedRulesResponse = validateApiResponse<{ rules: any }>(rulesResponse);
 
     // Get source property hostnames if needed
     let sourceHostnames = [];
@@ -210,7 +213,8 @@ export async function bulkCloneProperties(
         path: `/papi/v1/properties/${args.sourcePropertyId}/versions/${sourceProperty.latestVersion}/hostnames`,
         method: 'GET',
       });
-      sourceHostnames = hostnamesResponse.hostnames?.items || [];
+      const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: any[] } }>(hostnamesResponse);
+      sourceHostnames = validatedHostnamesResponse.hostnames?.items || [];
     }
 
     // Clone to each target
@@ -243,7 +247,8 @@ export async function bulkCloneProperties(
           },
         });
 
-        const newPropertyId = createResponse.propertyLink.split('/').pop();
+        const validatedCreateResponse = validateApiResponse<{ propertyLink: string }>(createResponse);
+        const newPropertyId = validatedCreateResponse.propertyLink.split('/').pop() || '';
         propertyOp.propertyId = newPropertyId;
 
         // Update rules
@@ -257,7 +262,7 @@ export async function bulkCloneProperties(
             contractId: args.contractId,
             groupId: args.groupId,
           },
-          body: rulesResponse,
+          body: validatedRulesResponse,
         });
 
         // Clone hostnames if requested
@@ -282,9 +287,10 @@ export async function bulkCloneProperties(
             },
           });
 
+          const validatedActivationResponse = validateApiResponse<{ activationLink?: string }>(activationResponse);
           propertyOp.result = {
             propertyId: newPropertyId,
-            activationId: activationResponse.activationLink?.split('/').pop(),
+            activationId: validatedActivationResponse.activationLink?.split('/').pop(),
           };
         } else {
           propertyOp.result = { propertyId: newPropertyId };
@@ -433,7 +439,8 @@ export async function bulkActivateProperties(
           method: 'GET',
         });
 
-        const property = propertyResponse.properties?.items?.[0];
+        const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+        const property = validatedPropertyResponse.properties?.items?.[0];
         if (!property) {
           throw new Error('Property not found');
         }
@@ -473,7 +480,8 @@ export async function bulkActivateProperties(
           },
         });
 
-        const activationId = activationResponse.activationLink?.split('/').pop();
+        const validatedActivationResponse = validateApiResponse<{ activationLink?: string }>(activationResponse);
+        const activationId = validatedActivationResponse.activationLink?.split('/').pop();
 
         // Wait for completion if requested
         if (args.waitForCompletion) {
@@ -489,7 +497,8 @@ export async function bulkActivateProperties(
               method: 'GET',
             });
 
-            status = statusResponse.activations?.items?.[0]?.status;
+            const validatedStatusResponse = validateApiResponse<{ activations?: { items?: Array<{ status?: string }> } }>(statusResponse);
+            status = validatedStatusResponse.activations?.items?.[0]?.status || 'unknown';
           }
 
           propertyOp.result = {
@@ -668,7 +677,8 @@ export async function bulkUpdatePropertyRules(
           method: 'GET',
         });
 
-        const property = propertyResponse.properties?.items?.[0];
+        const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+        const property = validatedPropertyResponse.properties?.items?.[0];
         if (!property) {
           throw new Error('Property not found');
         }
@@ -695,7 +705,8 @@ export async function bulkUpdatePropertyRules(
             },
           });
 
-          version = parseInt(versionResponse.versionLink.split('/').pop());
+          const validatedVersionResponse = validateApiResponse<{ versionLink: string }>(versionResponse);
+          version = parseInt(validatedVersionResponse.versionLink.split('/').pop() || '0');
         }
 
         // Get current rules
@@ -707,14 +718,16 @@ export async function bulkUpdatePropertyRules(
           },
         });
 
+        const validatedRulesResponse = validateApiResponse<{ rules: any }>(rulesResponse);
+
         // Store original rules for rollback
         propertyOp.rollbackData = {
-          originalRules: JSON.parse(JSON.stringify(rulesResponse.rules)),
+          originalRules: JSON.parse(JSON.stringify(validatedRulesResponse.rules)),
           version,
         };
 
         // Apply patches
-        let rules = rulesResponse.rules;
+        let rules = validatedRulesResponse.rules;
         for (const patch of args.rulePatches) {
           rules = applyJsonPatch(rules, patch);
         }
@@ -909,7 +922,8 @@ export async function bulkManageHostnames(
           method: 'GET',
         });
 
-        const property = propertyResponse.properties?.items?.[0];
+        const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+        const property = validatedPropertyResponse.properties?.items?.[0];
         if (!property) {
           operation.hostnames.forEach((h: any) => {
             results.push({
@@ -944,7 +958,8 @@ export async function bulkManageHostnames(
             },
           });
 
-          version = parseInt(versionResponse.versionLink.split('/').pop());
+          const validatedVersionResponse = validateApiResponse<{ versionLink: string }>(versionResponse);
+          version = parseInt(validatedVersionResponse.versionLink.split('/').pop() || '0');
         }
 
         // Get current hostnames
@@ -953,7 +968,8 @@ export async function bulkManageHostnames(
           method: 'GET',
         });
 
-        let hostnames = hostnamesResponse.hostnames?.items || [];
+        const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: any[] } }>(hostnamesResponse);
+        let hostnames = validatedHostnamesResponse.hostnames?.items || [];
 
         // Process each hostname operation
         for (const hostnameOp of operation.hostnames) {

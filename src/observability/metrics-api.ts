@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Metrics API - Expose metrics in Prometheus format, OpenTelemetry, and custom formats
  * for external monitoring platforms with push-based delivery

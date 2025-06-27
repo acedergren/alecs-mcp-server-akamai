@@ -7,6 +7,7 @@ import { logger } from '../utils/logger';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 // Rule tree specific types
 export interface RuleValidationResult {
@@ -1279,19 +1280,24 @@ function performRuleMerge(source: any, target: any, _options: RuleMergeOptions):
   };
 
   // Deep clone target as base
-  result.mergedRules = JSON.parse(JSON.stringify(target));
+  const validatedResult = validateApiResponse<{ mergedRules: any }>(result);
+
+  validatedResult.mergedRules = JSON.parse(JSON.stringify(target));
 
   // Merge based on strategy
   switch (_options.strategy) {
     case 'merge':
-      mergeRuleNodes(source, result.mergedRules, '/', result, _options);
+      const validatedMergeResult = validateApiResponse<{ mergedRules: any }>(result);
+      mergeRuleNodes(source, validatedMergeResult.mergedRules, '/', result, _options);
       break;
     case 'override':
-      result.mergedRules = JSON.parse(JSON.stringify(source));
-      result.rulesFromSource = countRules(source);
+      const validatedOverrideResult = validateApiResponse<{ mergedRules: any, rulesFromSource: any }>(result);
+      validatedOverrideResult.mergedRules = JSON.parse(JSON.stringify(source));
+      validatedOverrideResult.rulesFromSource = countRules(source);
       break;
     case 'append':
-      appendRules(source, result.mergedRules, result);
+      const validatedAppendResult = validateApiResponse<{ mergedRules: any }>(result);
+      appendRules(source, validatedAppendResult.mergedRules, result);
       break;
   }
 
@@ -1310,7 +1316,9 @@ function mergeRuleNodes(
     mergeBehaviors(source.behaviors, target.behaviors, `${path}/behaviors`, result, options);
   } else if (source.behaviors) {
     target.behaviors = JSON.parse(JSON.stringify(source.behaviors));
-    result.rulesFromSource += source.behaviors.length;
+    const validatedResult = validateApiResponse<{ rulesFromSource: any }>(result);
+
+    validatedResult.rulesFromSource += source.behaviors.length;
   }
 
   // Merge children
@@ -1318,7 +1326,9 @@ function mergeRuleNodes(
     mergeChildren(source.children, target.children, `${path}/children`, result, options);
   } else if (source.children) {
     target.children = JSON.parse(JSON.stringify(source.children));
-    result.rulesFromSource += countRules(source);
+    const validatedResult = validateApiResponse<{ rulesFromSource: any }>(result);
+
+    validatedResult.rulesFromSource += countRules(source);
   }
 }
 
@@ -1338,7 +1348,9 @@ function mergeBehaviors(
 
     if (existing) {
       // Conflict detected
-      result.conflicts.push({
+      const validatedResult = validateApiResponse<{ conflicts: any }>(result);
+
+      validatedResult.conflicts.push({
         path: `${path}[${existing.index}]`,
         type: 'behavior',
         sourceValue: sourceBehavior,
@@ -1348,13 +1360,17 @@ function mergeBehaviors(
 
       if (options.conflictResolution === 'source') {
         targetBehaviors[existing.index] = JSON.parse(JSON.stringify(sourceBehavior));
-        result.conflictsResolved++;
+        const validatedResult = validateApiResponse<{ conflictsResolved: any }>(result);
+
+        validatedResult.conflictsResolved++;
       }
       // 'target' means keep existing, 'manual' means skip
     } else {
       // Add new behavior
       targetBehaviors.push(JSON.parse(JSON.stringify(sourceBehavior)));
-      result.rulesAdded++;
+      const validatedResult = validateApiResponse<{ rulesAdded: any }>(result);
+
+      validatedResult.rulesAdded++;
     }
   });
 }
@@ -1377,7 +1393,9 @@ function mergeChildren(
     } else {
       // Add new child
       targetChildren.push(JSON.parse(JSON.stringify(sourceChild)));
-      result.rulesAdded += countRules(sourceChild);
+      const validatedResult = validateApiResponse<{ rulesAdded: any }>(result);
+
+      validatedResult.rulesAdded += countRules(sourceChild);
     }
   });
 }
@@ -1390,7 +1408,9 @@ function appendRules(source: any, target: any, result: any): void {
   if (source.children) {
     source.children.forEach((child: any) => {
       target.children.push(JSON.parse(JSON.stringify(child)));
-      result.rulesAdded += countRules(child);
+      const validatedResult = validateApiResponse<{ rulesAdded: any }>(result);
+
+      validatedResult.rulesAdded += countRules(child);
     });
   }
 
@@ -1400,7 +1420,9 @@ function appendRules(source: any, target: any, result: any): void {
     }
     source.behaviors.forEach((behavior: any) => {
       target.behaviors.push(JSON.parse(JSON.stringify(behavior)));
-      result.rulesAdded++;
+      const validatedResult = validateApiResponse<{ rulesAdded: any }>(result);
+
+      validatedResult.rulesAdded++;
     });
   }
 }

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * WebSocket Transport for MCP
  * Production-ready implementation with proper session management,

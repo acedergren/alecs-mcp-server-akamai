@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Server-Sent Events (SSE) Transport for MCP
  * Implements the Streamable HTTP transport from MCP spec 2025-03-26

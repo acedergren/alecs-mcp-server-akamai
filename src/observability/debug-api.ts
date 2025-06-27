@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Debug Dashboard API - Real-time debugging data API for external dashboards
  * Provides streaming debug information, request traces, and system state

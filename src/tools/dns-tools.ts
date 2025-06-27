@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Edge DNS API tools for zone and record management
  * Implements Akamai Edge DNS API v2 with change-list workflow

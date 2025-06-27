@@ -5,6 +5,7 @@
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 /**
  * List available behaviors for a property
@@ -30,7 +31,8 @@ export async function listAvailableBehaviors(
         method: 'GET',
       });
 
-      const property = propertyResponse.properties?.items?.[0];
+      const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+      const property = validatedPropertyResponse.properties?.items?.[0];
       if (!property) {
         return {
           content: [
@@ -51,7 +53,8 @@ export async function listAvailableBehaviors(
         method: 'GET',
       });
 
-      ruleFormat = ruleFormat || rulesResponse.ruleFormat;
+      const validatedRulesResponse = validateApiResponse<{ ruleFormat?: string }>(rulesResponse);
+      ruleFormat = ruleFormat || validatedRulesResponse.ruleFormat;
     }
 
     // Get available behaviors
@@ -64,7 +67,8 @@ export async function listAvailableBehaviors(
       },
     });
 
-    if (!response.behaviors?.items || response.behaviors.items.length === 0) {
+    const validatedBehaviorsResponse = validateApiResponse<{ behaviors?: { items?: any[] } }>(response);
+    if (!validatedBehaviorsResponse.behaviors?.items || validatedBehaviorsResponse.behaviors.items.length === 0) {
       return {
         content: [
           {
@@ -78,10 +82,10 @@ export async function listAvailableBehaviors(
     let text = `# Available Behaviors for Property ${args.propertyId}\n\n`;
     text += `**Product:** ${productId}\n`;
     text += `**Rule Format:** ${ruleFormat}\n`;
-    text += `**Total Behaviors:** ${response.behaviors.items.length}\n\n`;
+    text += `**Total Behaviors:** ${validatedBehaviorsResponse.behaviors.items.length}\n\n`;
 
     // Group behaviors by category
-    const behaviorsByCategory = response.behaviors.items.reduce((acc: any, behavior: any) => {
+    const behaviorsByCategory = validatedBehaviorsResponse.behaviors.items.reduce((acc: any, behavior: any) => {
       const category = behavior.category || 'Other';
       if (!acc[category]) {
         acc[category] = [];
@@ -168,7 +172,8 @@ export async function listAvailableCriteria(
         method: 'GET',
       });
 
-      const property = propertyResponse.properties?.items?.[0];
+      const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+      const property = validatedPropertyResponse.properties?.items?.[0];
       if (!property) {
         return {
           content: [
@@ -189,7 +194,8 @@ export async function listAvailableCriteria(
         method: 'GET',
       });
 
-      ruleFormat = ruleFormat || rulesResponse.ruleFormat;
+      const validatedRulesResponse = validateApiResponse<{ ruleFormat?: string }>(rulesResponse);
+      ruleFormat = ruleFormat || validatedRulesResponse.ruleFormat;
     }
 
     // Get available criteria
@@ -202,7 +208,8 @@ export async function listAvailableCriteria(
       },
     });
 
-    if (!response.criteria?.items || response.criteria.items.length === 0) {
+    const validatedCriteriaResponse = validateApiResponse<{ criteria?: { items?: any[] } }>(response);
+    if (!validatedCriteriaResponse.criteria?.items || validatedCriteriaResponse.criteria.items.length === 0) {
       return {
         content: [
           {
@@ -216,10 +223,10 @@ export async function listAvailableCriteria(
     let text = `# Available Criteria for Property ${args.propertyId}\n\n`;
     text += `**Product:** ${productId}\n`;
     text += `**Rule Format:** ${ruleFormat}\n`;
-    text += `**Total Criteria:** ${response.criteria.items.length}\n\n`;
+    text += `**Total Criteria:** ${validatedCriteriaResponse.criteria.items.length}\n\n`;
 
     // Group criteria by category
-    const criteriaByCategory = response.criteria.items.reduce((acc: any, criterion: any) => {
+    const criteriaByCategory = validatedCriteriaResponse.criteria.items.reduce((acc: any, criterion: any) => {
       const category = criterion.category || 'Other';
       if (!acc[category]) {
         acc[category] = [];
@@ -306,7 +313,8 @@ export async function patchPropertyRules(
       method: 'GET',
     });
 
-    const property = propertyResponse.properties?.items?.[0];
+    const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+    const property = validatedPropertyResponse.properties?.items?.[0];
     if (!property) {
       return {
         content: [
@@ -331,22 +339,23 @@ export async function patchPropertyRules(
       body: args.patches,
     });
 
+    const validatedPatchResponse = validateApiResponse<{ errors?: any[], warnings?: any[] }>(response);
     let text = '[DONE] **Rule Tree Patched Successfully**\n\n';
     text += `**Property:** ${property.propertyName} (${args.propertyId})\n`;
     text += `**Version:** ${version}\n`;
     text += `**Patches Applied:** ${args.patches.length}\n\n`;
 
-    if (response.errors?.length > 0) {
+    if (validatedPatchResponse.errors && validatedPatchResponse.errors.length > 0) {
       text += '## [WARNING] Validation Errors\n';
-      for (const _error of response.errors) {
+      for (const _error of validatedPatchResponse.errors) {
         text += `- ${_error.detail}\n`;
       }
       text += '\n';
     }
 
-    if (response.warnings?.length > 0) {
+    if (validatedPatchResponse.warnings && validatedPatchResponse.warnings.length > 0) {
       text += '## [WARNING] Warnings\n';
-      for (const warning of response.warnings) {
+      for (const warning of validatedPatchResponse.warnings) {
         text += `- ${warning.detail}\n`;
       }
       text += '\n';
@@ -422,7 +431,8 @@ export async function bulkSearchProperties(
       body: searchBody,
     });
 
-    const bulkSearchId = searchResponse.bulkSearchLink?.split('/').pop();
+    const validatedSearchResponse = validateApiResponse<{ bulkSearchLink?: string }>(searchResponse);
+    const bulkSearchId = validatedSearchResponse.bulkSearchLink?.split('/').pop();
     if (!bulkSearchId) {
       throw new Error('Failed to initiate bulk search');
     }
@@ -482,7 +492,13 @@ export async function getBulkSearchResults(
       method: 'GET',
     });
 
-    if (!response.results) {
+    const validatedSearchResponse = validateApiResponse<{ 
+      results?: any, 
+      searchStatus?: string, 
+      searchProgress?: number,
+      searchError?: string 
+    }>(response);
+    if (!validatedSearchResponse.results) {
       return {
         content: [
           {
@@ -494,10 +510,10 @@ export async function getBulkSearchResults(
     }
 
     let text = `# Bulk Search Results: ${args.bulkSearchId}\n\n`;
-    text += `**Status:** ${response.searchStatus || 'Unknown'}\n`;
-    text += `**Progress:** ${response.searchProgress || 0}%\n`;
+    text += `**Status:** ${validatedSearchResponse.searchStatus || 'Unknown'}\n`;
+    text += `**Progress:** ${validatedSearchResponse.searchProgress || 0}%\n`;
 
-    if (response.searchStatus === 'IN_PROGRESS') {
+    if (validatedSearchResponse.searchStatus === 'IN_PROGRESS') {
       text += '\n[EMOJI] **Search still in progress...**\n';
       text += 'Check again in a few moments:\n';
       text += `\`"Get bulk search results ${args.bulkSearchId}"\`\n`;
@@ -511,8 +527,8 @@ export async function getBulkSearchResults(
       };
     }
 
-    if (response.searchStatus === 'COMPLETE' && response.results?.items) {
-      const results = response.results.items;
+    if (validatedSearchResponse.searchStatus === 'COMPLETE' && validatedSearchResponse.results?.items) {
+      const results = validatedSearchResponse.results.items;
       text += `**Matches Found:** ${results.length}\n\n`;
 
       if (results.length === 0) {
@@ -543,9 +559,9 @@ export async function getBulkSearchResults(
           text += '\n';
         }
       }
-    } else if (response.searchStatus === 'FAILED') {
+    } else if (validatedSearchResponse.searchStatus === 'FAILED') {
       text += '\n[ERROR] **Search Failed**\n';
-      text += `Error: ${response.searchError || 'Unknown error'}\n`;
+      text += `Error: ${validatedSearchResponse.searchError || 'Unknown error'}\n`;
     }
 
     text += '\n## Next Steps\n';
@@ -718,6 +734,7 @@ export async function getPropertyAuditHistory(
       method: 'GET',
     });
 
+    const validatedActivationsResponse = validateApiResponse<{ activations?: { items?: any[] } }>(response);
     let text = `# Property Audit History: ${args.propertyId}\n\n`;
 
     if (args.startDate) {
@@ -729,14 +746,14 @@ export async function getPropertyAuditHistory(
 
     text += '\n## Recent Activations\n\n';
 
-    if (!response.activations?.items || response.activations.items.length === 0) {
+    if (!validatedActivationsResponse.activations?.items || validatedActivationsResponse.activations.items.length === 0) {
       text += 'No activation history found.\n';
     } else {
       text += '| Date | Version | Network | Status | User | Note |\n';
       text += '|------|---------|---------|--------|------|------|\n';
 
       const limit = args.limit || 20;
-      const activations = response.activations.items.slice(0, limit);
+      const activations = validatedActivationsResponse.activations.items.slice(0, limit);
 
       for (const activation of activations) {
         const date = new Date(activation.updateDate).toLocaleDateString();

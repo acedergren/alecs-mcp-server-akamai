@@ -872,7 +872,7 @@ export class CDNProvisioningAgent {
 
     try {
       // Step 1: Create property
-      progress.update({ current: 1, message: steps[0] });
+      progress.update({ current: 1, message: steps[0] || 'Create property' });
       const createResponse = await this.auth._request<PapiPropertyResponse>({
         method: 'POST',
         path: `/papi/v1/properties?contractId=${this.contractId}&groupId=${this.groupId}`,
@@ -886,7 +886,7 @@ export class CDNProvisioningAgent {
       propertyId = createResponse.propertyLink.split('/').pop() || '';
 
       // Step 2: Create edge hostname
-      progress.update({ current: 2, message: steps[1] });
+      progress.update({ current: 2, message: steps[1] || 'Create edge hostname' });
       const edgeHostnameResult = await this.createEdgeHostname(
         options.productId || 'prd_Web_Accel',
         propertyName.toLowerCase().replace(/[^a-z0-9-]/g, '-'),
@@ -894,42 +894,42 @@ export class CDNProvisioningAgent {
       edgeHostname = `${edgeHostnameResult.domainPrefix}.${edgeHostnameResult.domainSuffix}`;
 
       // Step 3: Configure origin
-      progress.update({ current: 3, message: steps[2] });
+      progress.update({ current: 3, message: steps[2] || 'Configure origin' });
       await this.applyRuleTemplate(propertyId, version, 'origin', { originHostname });
 
       // Step 4: Apply performance template
-      progress.update({ current: 4, message: steps[3] });
+      progress.update({ current: 4, message: steps[3] || 'Apply performance template' });
       await this.applyRuleTemplate(propertyId, version, 'performance', {});
 
       // Step 5: Apply security template
-      progress.update({ current: 5, message: steps[4] });
+      progress.update({ current: 5, message: steps[4] || 'Apply security template' });
       await this.applyRuleTemplate(propertyId, version, 'security', {});
 
       // Step 6: Add hostnames
-      progress.update({ current: 6, message: steps[5] });
+      progress.update({ current: 6, message: steps[5] || 'Add hostnames' });
       for (const hostname of hostnames) {
         await this.addHostname(propertyId, version, hostname, edgeHostname);
       }
 
       // Step 7: Provision certificates
-      progress.update({ current: 7, message: steps[6] });
+      progress.update({ current: 7, message: steps[6] || 'Provision certificates' });
       await this.provisionDefaultDVCertificate(propertyId, version, hostnames);
 
       let currentStep = 7;
 
       // Step 8: Activate to staging
       if (options.activateStaging) {
-        progress.update({ current: ++currentStep, message: steps[currentStep - 1] });
+        progress.update({ current: ++currentStep, message: steps[currentStep - 1] || 'Activate to staging' });
         await this.activateProperty(propertyId, version, 'STAGING', {
-          notifyEmails: options.notifyEmails,
+          ...(options.notifyEmails && { notifyEmails: options.notifyEmails }),
         });
       }
 
       // Step 9: Activate to production
       if (options.activateProduction) {
-        progress.update({ current: ++currentStep, message: steps[currentStep - 1] });
+        progress.update({ current: ++currentStep, message: steps[currentStep - 1] || 'Activate to production' });
         await this.activateProperty(propertyId, version, 'PRODUCTION', {
-          notifyEmails: options.notifyEmails,
+          ...(options.notifyEmails && { notifyEmails: options.notifyEmails }),
         });
       }
 
