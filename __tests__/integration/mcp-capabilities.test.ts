@@ -107,7 +107,7 @@ describe('ALECS Full MCP Server Capabilities', () => {
 
     test('should list properties with filters', async () => {
       const result = await client.callTool('list-properties', {
-        contractId: 'ctr_1-5C13O2',
+        contractIds: ['ctr_1-5C13O2',
       });
       
       expect(result).toBeDefined();
@@ -143,7 +143,7 @@ describe('ALECS Full MCP Server Capabilities', () => {
         await client.callTool('create-zone', {
           zone: 'example.com',
           type: 'invalid-type', // Invalid type
-          contractId: 'ctr_1-5C13O2',
+          contractIds: ['ctr_1-5C13O2',
         });
       } catch (error: any) {
         expect(error.message).toContain('Invalid parameters');

@@ -33,7 +33,7 @@ describe('DNS Tools', () => {
           type: 'primary',
           comment: 'Primary zone for example.com',
           signAndServe: false,
-          contractId: 'ctr_1-3CV382',
+          contractIds: ['ctr_1-3CV382',
           activationState: 'ACTIVE',
           lastActivationDate: '2024-01-15T10:00:00Z',
           lastModifiedDate: '2024-01-15T10:00:00Z',
@@ -45,7 +45,7 @@ describe('DNS Tools', () => {
           type: 'secondary',
           comment: 'Secondary zone for test.com',
           signAndServe: false,
-          contractId: 'ctr_1-3CV382',
+          contractIds: ['ctr_1-3CV382',
           activationState: 'PENDING',
           lastActivationDate: '2024-01-14T10:00:00Z',
           lastModifiedDate: '2024-01-14T10:00:00Z',
@@ -126,7 +126,7 @@ describe('DNS Tools', () => {
       lastModifiedDate: '2024-01-15T10:00:00Z',
       lastModifiedBy: 'user@example.com',
       versionId: '12345',
-      contractId: 'ctr_1-3CV382',
+      contractIds: ['ctr_1-3CV382',
       aliases: []
     };
 
@@ -164,7 +164,7 @@ describe('DNS Tools', () => {
       mockClient.request.mockResolvedValue({
         zone: 'newzone.com',
         type: 'primary',
-        contractId: 'ctr_1-3CV382',
+        contractIds: ['ctr_1-3CV382',
         activationState: 'NEW'
       });
 
@@ -172,7 +172,7 @@ describe('DNS Tools', () => {
         zone: 'newzone.com',
         type: 'PRIMARY',
         comment: 'New zone for testing',
-        contractId: 'ctr_1-3CV382',
+        contractIds: ['ctr_1-3CV382',
         groupId: 'grp_12345'
       });
 
@@ -189,7 +189,7 @@ describe('DNS Tools', () => {
           comment: 'New zone for testing'
         },
         queryParams: {
-          contractId: 'ctr_1-3CV382',
+          contractIds: ['ctr_1-3CV382',
           gid: 'grp_12345'
         }
       });

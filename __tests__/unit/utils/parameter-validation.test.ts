@@ -93,7 +93,7 @@ describe('Parameter Validation Tests', () => {
       it('should validate valid parameters', () => {
         const valid = {
           customer: 'acme-corp',
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           groupId: 'grp_456',
           limit: 50
         };
@@ -180,7 +180,7 @@ describe('Parameter Validation Tests', () => {
     describe('createProperty', () => {
       it('should validate property name constraints', () => {
         const validName = {
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           groupId: 'grp_456',
           propertyName: 'valid-property_name.com',
           productId: 'prd_fresca'
@@ -189,7 +189,7 @@ describe('Parameter Validation Tests', () => {
 
         // Test max length (85 chars)
         const longName = {
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           groupId: 'grp_456',
           propertyName: 'a'.repeat(86),
           productId: 'prd_fresca'
@@ -198,7 +198,7 @@ describe('Parameter Validation Tests', () => {
 
         // Test invalid characters
         const invalidChars = {
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           groupId: 'grp_456',
           propertyName: 'property name with spaces',
           productId: 'prd_fresca'
@@ -208,7 +208,7 @@ describe('Parameter Validation Tests', () => {
 
       it('should validate and default rule format', () => {
         const withRuleFormat = {
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           groupId: 'grp_456',
           propertyName: 'test-property',
           productId: 'prd_fresca',
@@ -219,7 +219,7 @@ describe('Parameter Validation Tests', () => {
 
         // Test default
         const withoutRuleFormat = {
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           groupId: 'grp_456',
           propertyName: 'test-property',
           productId: 'prd_fresca'
@@ -229,7 +229,7 @@ describe('Parameter Validation Tests', () => {
 
         // Test invalid format
         const invalidFormat = {
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           groupId: 'grp_456',
           propertyName: 'test-property',
           productId: 'prd_fresca',
@@ -282,7 +282,7 @@ describe('Parameter Validation Tests', () => {
         const validPrimary = {
           zone: 'example.com',
           type: 'PRIMARY',
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           comment: 'Test zone'
         };
         expect(() => validateParameters(DNSSchemas.createZone, validPrimary)).not.toThrow();
@@ -292,14 +292,14 @@ describe('Parameter Validation Tests', () => {
         const secondaryWithoutMasters = {
           zone: 'example.com',
           type: 'SECONDARY',
-          contractId: 'ctr_C-123'
+          contractIds: ['ctr_C-123'
         };
         expect(() => validateParameters(DNSSchemas.createZone, secondaryWithoutMasters)).toThrow();
 
         const secondaryWithMasters = {
           zone: 'example.com',
           type: 'SECONDARY',
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           masters: ['192.168.1.1', '10.0.0.1']
         };
         expect(() => validateParameters(DNSSchemas.createZone, secondaryWithMasters)).not.toThrow();
@@ -309,14 +309,14 @@ describe('Parameter Validation Tests', () => {
         const aliasWithoutTarget = {
           zone: 'example.com',
           type: 'ALIAS',
-          contractId: 'ctr_C-123'
+          contractIds: ['ctr_C-123'
         };
         expect(() => validateParameters(DNSSchemas.createZone, aliasWithoutTarget)).toThrow();
 
         const aliasWithTarget = {
           zone: 'example.com',
           type: 'ALIAS',
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           target: 'target.example.com'
         };
         expect(() => validateParameters(DNSSchemas.createZone, aliasWithTarget)).not.toThrow();
@@ -326,7 +326,7 @@ describe('Parameter Validation Tests', () => {
         const invalidIPs = {
           zone: 'example.com',
           type: 'SECONDARY',
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           masters: ['not-an-ip', '192.168.1.1']
         };
         expect(() => validateParameters(DNSSchemas.createZone, invalidIPs)).toThrow();
@@ -336,7 +336,7 @@ describe('Parameter Validation Tests', () => {
         const longComment = {
           zone: 'example.com',
           type: 'PRIMARY',
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           comment: 'a'.repeat(2049) // Over 2048 limit
         };
         expect(() => validateParameters(DNSSchemas.createZone, longComment)).toThrow();
@@ -437,7 +437,7 @@ describe('Parameter Validation Tests', () => {
 
       it('should validate complete DV enrollment', () => {
         const valid = {
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           cn: 'www.example.com',
           sans: ['api.example.com', 'app.example.com'],
           adminContact: validContact,
@@ -464,7 +464,7 @@ describe('Parameter Validation Tests', () => {
 
       it('should validate hostname formats', () => {
         const invalidCN = {
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           cn: 'not a valid hostname!',
           adminContact: validContact,
           techContact: validContact,
@@ -488,7 +488,7 @@ describe('Parameter Validation Tests', () => {
         };
         
         const enrollment = {
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           cn: 'www.example.com',
           adminContact: invalidEmail,
           techContact: validContact,
@@ -512,7 +512,7 @@ describe('Parameter Validation Tests', () => {
         };
         
         const enrollment = {
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           cn: 'www.example.com',
           adminContact: invalidCountry,
           techContact: validContact,
@@ -531,7 +531,7 @@ describe('Parameter Validation Tests', () => {
 
       it('should apply defaults for optional parameters', () => {
         const minimal = {
-          contractId: 'ctr_C-123',
+          contractIds: ['ctr_C-123',
           cn: 'www.example.com',
           adminContact: validContact,
           techContact: validContact,
@@ -558,7 +558,7 @@ describe('Parameter Validation Tests', () => {
       it('should validate URL list constraints', () => {
         const validUrls = {
           urls: ['https://example.com/path1', 'https://example.com/path2'],
-          network: 'staging',
+          network: 'STAGING',
           priority: 'high',
           description: 'Emergency purge',
           notifyEmails: ['ops@example.com'],
@@ -618,7 +618,7 @@ describe('Parameter Validation Tests', () => {
       it('should validate CP code constraints', () => {
         const validCodes = {
           cpcodes: [12345, 67890],
-          network: 'production',
+          network: 'PRODUCTION',
           priority: 'normal',
           confirmed: true
         };
@@ -699,7 +699,7 @@ describe('Parameter Validation Tests', () => {
   describe('formatQueryParameters', () => {
     it('should format query parameters correctly', () => {
       const params = {
-        contractId: 'ctr_C-123',
+        contractIds: ['ctr_C-123',
         groupId: 'grp_456',
         limit: 50,
         includeRules: true,
@@ -708,7 +708,7 @@ describe('Parameter Validation Tests', () => {
       
       const formatted = formatQueryParameters(params);
       expect(formatted).toEqual({
-        contractId: 'ctr_C-123',
+        contractIds: ['ctr_C-123',
         groupId: 'grp_456',
         limit: 50,
         includeRules: true,
@@ -718,7 +718,7 @@ describe('Parameter Validation Tests', () => {
 
     it('should filter out undefined values', () => {
       const params = {
-        contractId: 'ctr_C-123',
+        contractIds: ['ctr_C-123',
         groupId: undefined,
         limit: null,
         search: ''
@@ -726,7 +726,7 @@ describe('Parameter Validation Tests', () => {
       
       const formatted = formatQueryParameters(params);
       expect(formatted).toEqual({
-        contractId: 'ctr_C-123'
+        contractIds: ['ctr_C-123'
       });
       expect(formatted.groupId).toBeUndefined();
       expect(formatted.limit).toBeUndefined();
@@ -783,7 +783,7 @@ describe('Parameter Validation Tests', () => {
     it('should handle special characters in strings', () => {
       // Test property names with allowed special characters
       const specialChars = {
-        contractId: 'ctr_C-123',
+        contractIds: ['ctr_C-123',
         groupId: 'grp_456',
         propertyName: 'test-property_v2.0',
         productId: 'prd_fresca'
@@ -804,7 +804,7 @@ describe('Parameter Validation Tests', () => {
     it('should handle empty arrays appropriately', () => {
       // Some arrays can be empty (optional)
       const emptyOptionalArray = {
-        contractId: 'ctr_C-123',
+        contractIds: ['ctr_C-123',
         cn: 'www.example.com',
         sans: [], // Empty SANs array should be valid
         adminContact: {

@@ -111,7 +111,7 @@ describe('Property Manager Extended Tools', () => {
           properties: {
             items: [{
               propertyId: 'prp_12345',
-              contractId: 'ctr_C-123456',
+              contractIds: ['ctr_C-123456',
               groupId: 'grp_12345',
               productId: 'prd_Web_Accel',
             }],

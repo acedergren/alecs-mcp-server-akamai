@@ -52,7 +52,7 @@ describe('Property Error Handling Tools', () => {
       const result = await getValidationErrors(mockClient, {
         propertyId: 'prp_12345',
         version: 1,
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345',
         validateRules: true,
         validateHostnames: true
@@ -83,7 +83,7 @@ describe('Property Error Handling Tools', () => {
       const result = await getValidationErrors(mockClient, {
         propertyId: 'prp_12345',
         version: 1,
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345'
       });
 
@@ -103,7 +103,7 @@ describe('Property Error Handling Tools', () => {
       const result = await getValidationErrors(mockClient, {
         propertyId: 'prp_12345',
         version: 999,
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345'
       });
 
@@ -120,7 +120,7 @@ describe('Property Error Handling Tools', () => {
         version: 1,
         warnings: ['WARN_001', 'WARN_002'],
         justification: 'Performance warnings acknowledged for testing',
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345'
       });
 
@@ -150,7 +150,7 @@ describe('Property Error Handling Tools', () => {
         propertyId: 'prp_12345',
         version: 1,
         warnings: ['WARN_001'],
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345'
       });
 
@@ -176,7 +176,7 @@ describe('Property Error Handling Tools', () => {
         version: 1,
         errors: ['ERROR_001'],
         justification: 'Critical production fix - risk accepted',
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345',
         approvedBy: 'admin@example.com'
       });
@@ -232,7 +232,7 @@ describe('Property Error Handling Tools', () => {
       const result = await validatePropertyConfiguration(mockClient, {
         propertyId: 'prp_12345',
         version: 1,
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345',
         includeHostnameValidation: true,
         includeRuleValidation: true,
@@ -269,7 +269,7 @@ describe('Property Error Handling Tools', () => {
       const result = await validatePropertyConfiguration(mockClient, {
         propertyId: 'prp_12345',
         version: 1,
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345',
         includeHostnameValidation: true,
         includeRuleValidation: true,
@@ -309,7 +309,7 @@ describe('Property Error Handling Tools', () => {
       const result = await getErrorRecoveryHelp(mockClient, {
         propertyId: 'prp_12345',
         version: 1,
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345'
       });
 
@@ -332,7 +332,7 @@ describe('Property Error Handling Tools', () => {
       const result = await getValidationErrors(mockClient, {
         propertyId: 'prp_12345',
         version: 1,
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345'
       });
 
@@ -346,7 +346,7 @@ describe('Property Error Handling Tools', () => {
         propertyId: 'prp_12345',
         version: 1,
         warnings: ['WARN_001'],
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345'
       });
 
@@ -366,7 +366,7 @@ describe('Property Error Handling Tools', () => {
       const result = await validatePropertyConfiguration(mockClient, {
         propertyId: 'prp_12345',
         version: 1,
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345',
         includeHostnameValidation: true,
         includeRuleValidation: true,
@@ -403,7 +403,7 @@ describe('Property Error Handling Tools', () => {
       const validationResult = await getValidationErrors(mockClient, {
         propertyId: 'prp_12345',
         version: 1,
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345'
       });
 
@@ -414,7 +414,7 @@ describe('Property Error Handling Tools', () => {
         propertyId: 'prp_12345',
         version: 1,
         warnings: ['WARN_001'],
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345'
       });
 
@@ -426,7 +426,7 @@ describe('Property Error Handling Tools', () => {
       const recoveryResult = await getErrorRecoveryHelp(mockClient, {
         propertyId: 'prp_12345',
         version: 1,
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345'
       });
 
@@ -453,7 +453,7 @@ describe('Property Error Handling Tools', () => {
       const result = await getValidationErrors(mockClient, {
         propertyId: 'prp_12345',
         version: 1,
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345'
       });
 

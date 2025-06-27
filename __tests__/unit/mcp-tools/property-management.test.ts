@@ -38,7 +38,7 @@ describe('Property Management MCP Tools', () => {
       const mockProperties = [
         {
           accountId: 'act_1-234',
-          contractId: 'ctr_1-5C13O2',
+          contractIds: ['ctr_1-5C13O2',
           groupId: 'grp_12345',
           propertyId: 'prp_123456',
           propertyName: 'example.com',
@@ -64,13 +64,13 @@ describe('Property Management MCP Tools', () => {
     });
 
     test('should handle contractId filter', async () => {
-      await listProperties(mockClient, { contractId: 'ctr_1-5C13O2' });
+      await listProperties(mockClient, { contractIds: ['ctr_1-5C13O2' });
 
       expect(mockClient.request).toHaveBeenCalledWith(
         expect.objectContaining({
           path: '/papi/v1/properties',
           params: expect.objectContaining({
-            contractId: 'ctr_1-5C13O2',
+            contractIds: ['ctr_1-5C13O2',
           }),
         })
       );
@@ -104,7 +104,7 @@ describe('Property Management MCP Tools', () => {
       const mockProperty = {
         propertyId: 'prp_123456',
         propertyName: 'example.com',
-        contractId: 'ctr_1-5C13O2',
+        contractIds: ['ctr_1-5C13O2',
         groupId: 'grp_12345',
         latestVersion: 5,
         note: 'Production property',
@@ -146,7 +146,7 @@ describe('Property Management MCP Tools', () => {
       const result = await createProperty(mockClient, {
         propertyName: 'new-example.com',
         productId: 'prd_Web_Accel',
-        contractId: 'ctr_1-5C13O2',
+        contractIds: ['ctr_1-5C13O2',
         groupId: 'grp_12345',
       });
 
@@ -155,7 +155,7 @@ describe('Property Management MCP Tools', () => {
           method: 'POST',
           path: '/papi/v1/properties',
           params: expect.objectContaining({
-            contractId: 'ctr_1-5C13O2',
+            contractIds: ['ctr_1-5C13O2',
             groupId: 'grp_12345',
           }),
           body: expect.objectContaining({
@@ -178,7 +178,7 @@ describe('Property Management MCP Tools', () => {
       await createProperty(mockClient, {
         propertyName: 'new-example.com',
         productId: 'prd_Web_Accel',
-        contractId: 'ctr_1-5C13O2',
+        contractIds: ['ctr_1-5C13O2',
         groupId: 'grp_12345',
         ruleFormat: 'v2024-01-09',
       });
@@ -197,12 +197,12 @@ describe('Property Management MCP Tools', () => {
     test('should return formatted contract list', async () => {
       const mockContracts = [
         {
-          contractId: 'ctr_1-5C13O2',
+          contractIds: ['ctr_1-5C13O2',
           contractTypeName: 'AKAMAI_INTERNAL',
           status: 'Active',
         },
         {
-          contractId: 'ctr_V-44KRACO',
+          contractIds: ['ctr_V-44KRACO',
           contractTypeName: 'AKAMAI_INTERNAL',
           status: 'Active',
         },
@@ -245,7 +245,7 @@ describe('Property Management MCP Tools', () => {
       const result = await activateProperty(mockClient, {
         propertyId: 'prp_123456',
         version: 5,
-        network: 'staging',
+        network: 'STAGING',
       });
 
       expect(mockClient.request).toHaveBeenCalledWith(
@@ -273,7 +273,7 @@ describe('Property Management MCP Tools', () => {
       await activateProperty(mockClient, {
         propertyId: 'prp_123456',
         version: 5,
-        network: 'production',
+        network: 'PRODUCTION',
         emails: ['admin@example.com'],
         note: 'Production release v1.2.3',
       });
@@ -327,14 +327,14 @@ describe('Property Management MCP Tools', () => {
       await getPropertyRules(mockClient, {
         propertyId: 'prp_123456',
         version: 5,
-        contractId: 'ctr_1-5C13O2',
+        contractIds: ['ctr_1-5C13O2',
         groupId: 'grp_12345',
       });
 
       expect(mockClient.request).toHaveBeenCalledWith(
         expect.objectContaining({
           params: expect.objectContaining({
-            contractId: 'ctr_1-5C13O2',
+            contractIds: ['ctr_1-5C13O2',
             groupId: 'grp_12345',
           }),
         })
@@ -351,7 +351,7 @@ describe('Property Management MCP Tools', () => {
       });
 
       expect(() => schema.parse({})).not.toThrow();
-      expect(() => schema.parse({ contractId: 'ctr_123' })).not.toThrow();
+      expect(() => schema.parse({ contractIds: ['ctr_123' })).not.toThrow();
       expect(() => schema.parse({ invalidParam: 'test' })).toThrow();
     });
 
@@ -368,7 +368,7 @@ describe('Property Management MCP Tools', () => {
       expect(() => schema.parse({
         propertyName: 'test.com',
         productId: 'prd_123',
-        contractId: 'ctr_123',
+        contractIds: ['ctr_123',
         groupId: 'grp_123',
       })).not.toThrow();
 
@@ -391,7 +391,7 @@ describe('Property Management MCP Tools', () => {
       expect(() => schema.parse({
         propertyId: 'prp_123',
         version: 5,
-        network: 'staging',
+        network: 'STAGING',
       })).not.toThrow();
 
       expect(() => schema.parse({

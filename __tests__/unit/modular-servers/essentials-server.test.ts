@@ -104,7 +104,7 @@ describe('Essentials Server', () => {
         body: {
           propertyName: 'essential.example.com',
           productId: 'prd_SPM',
-          contractId: 'ctr_123',
+          contractIds: ['ctr_123',
           groupId: 'grp_456'
         }
       });

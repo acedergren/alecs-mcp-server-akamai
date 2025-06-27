@@ -32,7 +32,7 @@ describe('Bulk Operations Manager', () => {
               propertyId: 'prp_source',
               propertyName: 'source-property',
               latestVersion: 1,
-              contractId: 'ctr_12345',
+              contractIds: ['ctr_12345',
               groupId: 'grp_12345',
               productId: 'prd_Web_Accel',
               ruleFormat: 'v2024-02-12'
@@ -60,7 +60,7 @@ describe('Bulk Operations Manager', () => {
       const result = await bulkCloneProperties(mockClient, {
         sourcePropertyId: 'prp_source',
         targetNames: ['clone-property-1', 'clone-property-2'],
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345'
       });
 
@@ -89,7 +89,7 @@ describe('Bulk Operations Manager', () => {
       const result = await bulkCloneProperties(mockClient, {
         sourcePropertyId: 'prp_source',
         targetNames: ['clone-property-1'],
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345'
       });
 
@@ -188,7 +188,7 @@ describe('Bulk Operations Manager', () => {
               propertyId: 'prp_12345',
               propertyName: 'property-1',
               latestVersion: 1,
-              contractId: 'ctr_12345',
+              contractIds: ['ctr_12345',
               groupId: 'grp_12345'
             }]
           }
@@ -209,7 +209,7 @@ describe('Bulk Operations Manager', () => {
               propertyId: 'prp_67890',
               propertyName: 'property-2',
               latestVersion: 1,
-              contractId: 'ctr_12345',
+              contractIds: ['ctr_12345',
               groupId: 'grp_12345'
             }]
           }
@@ -247,7 +247,7 @@ describe('Bulk Operations Manager', () => {
               propertyId: 'prp_12345',
               propertyName: 'property-1',
               latestVersion: 1,
-              contractId: 'ctr_12345',
+              contractIds: ['ctr_12345',
               groupId: 'grp_12345',
               etag: 'abc123'
             }]
@@ -297,7 +297,7 @@ describe('Bulk Operations Manager', () => {
               propertyId: 'prp_12345',
               propertyName: 'property-1',
               latestVersion: 1,
-              contractId: 'ctr_12345',
+              contractIds: ['ctr_12345',
               groupId: 'grp_12345'
             }]
           }
@@ -334,7 +334,7 @@ describe('Bulk Operations Manager', () => {
               propertyId: 'prp_12345',
               propertyName: 'property-1',
               latestVersion: 1,
-              contractId: 'ctr_12345',
+              contractIds: ['ctr_12345',
               groupId: 'grp_12345'
             }]
           }

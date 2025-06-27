@@ -52,7 +52,7 @@ describe('Certificate Provisioning System (CPS) Tools', () => {
           email: 'jane@example.com',
           phone: '+1234567891',
         },
-        contractId: 'ctr_C-123456',
+        contractIds: ['ctr_C-123456',
         enhancedTLS: true,
       });
 
@@ -63,7 +63,7 @@ describe('Certificate Provisioning System (CPS) Tools', () => {
         path: '/cps/v2/enrollments',
         method: 'POST',
         queryParams: {
-          contractId: 'ctr_C-123456'
+          contractIds: ['ctr_C-123456'
         },
         body: expect.objectContaining({
           validationType: 'dv',
@@ -90,7 +90,7 @@ describe('Certificate Provisioning System (CPS) Tools', () => {
           email: 'jane@example.com',
           phone: '+1234567891',
         },
-        contractId: 'ctr_C-123456',
+        contractIds: ['ctr_C-123456',
       });
 
       const text = getTextContent(result);

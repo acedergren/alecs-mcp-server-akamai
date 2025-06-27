@@ -34,14 +34,14 @@ describe('DNS Management MCP Tools', () => {
           type: 'primary',
           comment: 'Production zone',
           activationState: 'active',
-          contractId: 'ctr_1-5C13O2',
+          contractIds: ['ctr_1-5C13O2',
         },
         {
           zone: 'example.org',
           type: 'secondary',
           comment: 'Secondary zone',
           activationState: 'active',
-          contractId: 'ctr_1-5C13O2',
+          contractIds: ['ctr_1-5C13O2',
         },
       ];
 
@@ -60,7 +60,7 @@ describe('DNS Management MCP Tools', () => {
     test('should handle contractId filter', async () => {
       mockClient.request.mockResolvedValue({ zones: [] });
 
-      await listZones(mockClient, { contractId: 'ctr_1-5C13O2' });
+      await listZones(mockClient, { contractIds: ['ctr_1-5C13O2' });
 
       expect(mockClient.request).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -88,7 +88,7 @@ describe('DNS Management MCP Tools', () => {
         type: 'primary',
         comment: 'Production zone',
         activationState: 'active',
-        contractId: 'ctr_1-5C13O2',
+        contractIds: ['ctr_1-5C13O2',
         tsigKey: {
           name: 'example.com.akamai.com',
           algorithm: 'hmac-sha256',
@@ -119,7 +119,7 @@ describe('DNS Management MCP Tools', () => {
       const mockResponse = {
         zone: 'newzone.com',
         type: 'primary',
-        contractId: 'ctr_1-5C13O2',
+        contractIds: ['ctr_1-5C13O2',
       };
 
       mockClient.request.mockResolvedValue(mockResponse);
@@ -127,7 +127,7 @@ describe('DNS Management MCP Tools', () => {
       const result = await createZone(mockClient, {
         zone: 'newzone.com',
         type: 'primary',
-        contractId: 'ctr_1-5C13O2',
+        contractIds: ['ctr_1-5C13O2',
       });
 
       expect(mockClient.request).toHaveBeenCalledWith(
@@ -135,7 +135,7 @@ describe('DNS Management MCP Tools', () => {
           method: 'POST',
           path: '/config-dns/v2/zones',
           params: expect.objectContaining({
-            contractId: 'ctr_1-5C13O2',
+            contractIds: ['ctr_1-5C13O2',
           }),
           body: expect.objectContaining({
             zone: 'newzone.com',
@@ -157,7 +157,7 @@ describe('DNS Management MCP Tools', () => {
       await createZone(mockClient, {
         zone: 'secondary.com',
         type: 'secondary',
-        contractId: 'ctr_1-5C13O2',
+        contractIds: ['ctr_1-5C13O2',
         masters: ['1.2.3.4', '5.6.7.8'],
       });
 
@@ -181,7 +181,7 @@ describe('DNS Management MCP Tools', () => {
       await createZone(mockClient, {
         zone: 'secure.com',
         type: 'primary',
-        contractId: 'ctr_1-5C13O2',
+        contractIds: ['ctr_1-5C13O2',
         signAndServe: true,
       });
 
@@ -414,13 +414,13 @@ describe('DNS Management MCP Tools', () => {
       expect(() => schema.parse({
         zone: 'example.com',
         type: 'primary',
-        contractId: 'ctr_123',
+        contractIds: ['ctr_123',
       })).not.toThrow();
 
       expect(() => schema.parse({
         zone: 'example.com',
         type: 'invalid', // Invalid type
-        contractId: 'ctr_123',
+        contractIds: ['ctr_123',
       })).toThrow();
     });
 

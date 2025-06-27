@@ -32,14 +32,14 @@ describe('Hostname Discovery Engine', () => {
               {
                 propertyId: 'prp_123',
                 propertyName: 'example-property',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 1
               },
               {
                 propertyId: 'prp_456',
                 propertyName: 'api-property',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 2
               }
@@ -92,7 +92,7 @@ describe('Hostname Discovery Engine', () => {
 
       const result = await discoverHostnamesIntelligent(mockClient, {
         analysisScope: 'contract',
-        contractId: 'ctr_123',
+        contractIds: ['ctr_123',
         groupId: 'grp_123'
       });
 
@@ -124,7 +124,7 @@ describe('Hostname Discovery Engine', () => {
               {
                 propertyId: 'prp_123',
                 propertyName: 'existing-property',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 1
               }
@@ -159,7 +159,7 @@ describe('Hostname Discovery Engine', () => {
               {
                 propertyId: 'prp_123',
                 propertyName: 'existing-property',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 1
               }
@@ -190,7 +190,7 @@ describe('Hostname Discovery Engine', () => {
               {
                 propertyId: 'prp_123',
                 propertyName: 'wildcard-property',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 1
               }
@@ -223,14 +223,14 @@ describe('Hostname Discovery Engine', () => {
               {
                 propertyId: 'prp_123',
                 propertyName: 'wildcard-property',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 1
               },
               {
                 propertyId: 'prp_456',
                 propertyName: 'specific-property',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 1
               }
@@ -270,7 +270,7 @@ describe('Hostname Discovery Engine', () => {
               {
                 propertyId: 'prp_123',
                 propertyName: 'specific-property',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 1
               }
@@ -301,7 +301,7 @@ describe('Hostname Discovery Engine', () => {
         });
 
       await analyzeWildcardCoverage(mockClient, {
-        contractId: 'ctr_123',
+        contractIds: ['ctr_123',
         groupId: 'grp_123'
       });
 
@@ -321,21 +321,21 @@ describe('Hostname Discovery Engine', () => {
               {
                 propertyId: 'prp_123',
                 propertyName: 'example-www',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 1
               },
               {
                 propertyId: 'prp_456',
                 propertyName: 'example-api',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 1
               },
               {
                 propertyId: 'prp_789',
                 propertyName: 'example-app',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 1
               }
@@ -381,7 +381,7 @@ describe('Hostname Discovery Engine', () => {
               {
                 propertyId: 'prp_123',
                 propertyName: 'diverse-property-1',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 1
               }
@@ -412,7 +412,7 @@ describe('Hostname Discovery Engine', () => {
             items: Array.from({ length: 4 }, (_, i) => ({
               propertyId: `prp_${i + 1}`,
               propertyName: `example-service-${i + 1}`,
-              contractId: 'ctr_123',
+              contractIds: ['ctr_123',
               groupId: 'grp_123',
               latestVersion: 1
             }))
@@ -446,14 +446,14 @@ describe('Hostname Discovery Engine', () => {
               {
                 propertyId: 'prp_123',
                 propertyName: 'small-property-1',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 1
               },
               {
                 propertyId: 'prp_456',
                 propertyName: 'small-property-2',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 1
               }
@@ -523,7 +523,7 @@ describe('Hostname Discovery Engine', () => {
               {
                 propertyId: 'prp_123',
                 propertyName: 'empty-property',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 1
               }
@@ -547,7 +547,7 @@ describe('Hostname Discovery Engine', () => {
               {
                 propertyId: 'prp_123',
                 propertyName: 'no-hostnames-property',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 1
               }
@@ -569,7 +569,7 @@ describe('Hostname Discovery Engine', () => {
               {
                 propertyId: 'prp_123',
                 propertyName: 'invalid-wildcard',
-                contractId: 'ctr_123',
+                contractIds: ['ctr_123',
                 groupId: 'grp_123',
                 latestVersion: 1
               }

@@ -213,7 +213,7 @@ describe('Advanced Hostname Management Tools', () => {
 
       const result = await createHostnameProvisioningPlan(mockClient, {
         hostnames: ['www.example.com', 'api.example.com'],
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345',
         securityLevel: 'enhanced'
       });
@@ -239,7 +239,7 @@ describe('Advanced Hostname Management Tools', () => {
 
       const result = await createHostnameProvisioningPlan(mockClient, {
         hostnames: ['invalid_hostname'],
-        contractId: 'ctr_12345',
+        contractIds: ['ctr_12345',
         groupId: 'grp_12345'
       });
 

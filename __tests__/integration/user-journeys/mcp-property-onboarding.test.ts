@@ -40,7 +40,7 @@ describe('MCP User Journey: Property Onboarding', () => {
     hostname: 'test.example.com',
     origin: 'origin.example.com',
     propertyId: 'prp_12345',
-    contractId: 'ctr_1-ABC123',
+    contractIds: ['ctr_1-ABC123',
     groupId: 'grp_12345',
     productId: 'prd_Fresca',
     edgeHostname: 'test.example.com.edgesuite.net',

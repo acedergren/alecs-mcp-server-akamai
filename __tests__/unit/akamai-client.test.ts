@@ -78,7 +78,7 @@ account-switch-key = OLD-FORMAT-KEY
       await client.request({
         path: '/papi/v1/properties',
         queryParams: {
-          contractId: 'ctr_1-3CV382',
+          contractIds: ['ctr_1-3CV382',
           groupId: 'grp_18385'
         }
       });
@@ -94,7 +94,7 @@ account-switch-key = OLD-FORMAT-KEY
           }),
           qs: expect.objectContaining({
             accountSwitchKey: '1-5BYUG1:1-8BYUX',
-            contractId: 'ctr_1-3CV382',
+            contractIds: ['ctr_1-3CV382',
             groupId: 'grp_18385'
           })
         })

@@ -89,7 +89,7 @@ describe.skip('Modular Architecture', () => {
           .mockResolvedValueOnce({ // Get property
             propertyId: 'prp_123',
             propertyName: 'test.example.com',
-            contractId: 'ctr_123',
+            contractIds: ['ctr_123',
             groupId: 'grp_456'
           })
           .mockResolvedValueOnce({ // Update property

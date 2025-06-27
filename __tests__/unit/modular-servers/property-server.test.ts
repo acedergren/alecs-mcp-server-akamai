@@ -60,7 +60,7 @@ describe.skip('Property Server Module', () => {
             {
               propertyId: 'prp_123',
               propertyName: 'test.example.com',
-              contractId: 'ctr_456',
+              contractIds: ['ctr_456',
               groupId: 'grp_789'
             }
           ]
@@ -71,7 +71,7 @@ describe.skip('Property Server Module', () => {
       const result = await client.request({
         path: '/papi/v1/properties',
         method: 'GET',
-        queryParams: { contractId: 'ctr_456' }
+        queryParams: { contractIds: ['ctr_456' }
       });
 
       expect(result.properties.items).toHaveLength(1);
@@ -90,7 +90,7 @@ describe.skip('Property Server Module', () => {
         body: {
           propertyName: 'new.example.com',
           productId: 'prd_SPM',
-          contractId: 'ctr_456',
+          contractIds: ['ctr_456',
           groupId: 'grp_789'
         }
       });
@@ -255,7 +255,7 @@ describe.skip('Property Server Module', () => {
         client.request({
           path: '/papi/v1/properties',
           method: 'GET',
-          queryParams: { contractId: 'ctr_invalid' }
+          queryParams: { contractIds: ['ctr_invalid' }
         })
       ).rejects.toMatchObject({
         status: 404,

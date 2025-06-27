@@ -558,7 +558,7 @@ describe('Workflow Orchestration E2E Tests', () => {
           intent: 'create new property for customer acme-corp',
           context: {
             customer: 'acme-corp',
-            contractId: 'ctr_test123',
+            contractIds: ['ctr_test123',
             groupId: 'grp_test456'
           },
           autoExecute: false // Don't actually create in test
