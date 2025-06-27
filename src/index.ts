@@ -8,6 +8,12 @@
  * - WebSocket (bidirectional): MCP_TRANSPORT=websocket npm start
  * - SSE (Streamable HTTP): MCP_TRANSPORT=sse npm start
  * - Specific module: npm start:property
+ * 
+ * CRITICAL FIX APPLIED (v1.6.0-rc2):
+ * Fixed JSON-RPC protocol corruption in Claude Desktop integration.
+ * Issue: console.log statements to stdout interfered with JSON-RPC communication
+ * Solution: Conditional logging based on transport type (stdio uses stderr via logger)
+ * Impact: Eliminates "Unexpected token" and JSON parsing errors in Claude Desktop
  */
 
 import { getTransportFromEnv } from './config/transport-config';
@@ -38,11 +44,32 @@ async function main(): Promise<void> {
   try {
     const transportConfig = getTransportFromEnv();
     
-    console.log(`[INFO] Starting ALECS MCP Server`);
-    console.log(`[INFO] Transport: ${transportConfig.type}`);
+    /**
+     * CRITICAL: JSON-RPC Protocol Compliance Fix
+     * 
+     * Problem: Claude Desktop communicates via JSON-RPC over stdio (stdin/stdout)
+     * Any non-JSON output to stdout corrupts the protocol and causes parsing errors
+     * 
+     * Solution: Conditionally output based on transport type
+     * - stdio: Use logger (stderr) to avoid corrupting stdout JSON-RPC stream
+     * - websocket/sse: Safe to use console.log as they don't use stdout
+     * 
+     * Impact: Fixes "Unexpected token" and "not valid JSON" errors in Claude Desktop
+     */
+    if (transportConfig.type !== 'stdio') {
+      // Safe to use console.log for non-stdio transports
+      console.log(`[INFO] Starting ALECS MCP Server`);
+      console.log(`[INFO] Transport: ${transportConfig.type}`);
+    } else {
+      // stdio transport: Use logger to output to stderr, preserving stdout for JSON-RPC
+      logger.info('Starting ALECS MCP Server for Claude Desktop');
+    }
     
     if (transportConfig.type === 'stdio') {
-      console.log(`[INFO] Running in Claude Desktop mode`);
+      // stdio mode: All logs must go to stderr via logger to avoid JSON-RPC corruption
+      logger.info('Running in Claude Desktop mode - stdio transport active');
+    } else {
+      // Non-stdio modes: Console output is safe and provides user configuration guidance
       console.log(`[INFO] Add to claude_desktop_config.json:`);
       console.log(`
 {
