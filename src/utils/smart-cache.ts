@@ -57,6 +57,7 @@ export interface CacheEntry<T> {
   compressed?: boolean;        // Whether data is compressed
   updateCount?: number;        // Number of updates (for adaptive TTL)
   lastUpdateInterval?: number; // Time between last two updates
+  accessHistory?: number[];    // Access history for LRU-K (K most recent accesses)
 }
 
 export interface CacheMetrics {
@@ -78,7 +79,7 @@ export interface SmartCacheOptions {
   maxMemoryMB?: number;          // Maximum memory usage in MB (default: 100)
   defaultTTL?: number;           // Default TTL in seconds (default: 300)
   enableCompression?: boolean;   // Enable compression for large values (default: false)
-  evictionPolicy?: 'LRU' | 'LFU' | 'FIFO'; // Eviction strategy (default: 'LRU')
+  evictionPolicy?: 'LRU' | 'LFU' | 'FIFO' | 'LRU-K'; // Eviction strategy (default: 'LRU')
   refreshThreshold?: number;     // Refresh when TTL < this percentage (default: 0.2)
   enableMetrics?: boolean;       // Track cache performance metrics (default: true)
   compressionThreshold?: number; // Compress values larger than this (default: 10KB)
@@ -90,6 +91,7 @@ export interface SmartCacheOptions {
   enableSegmentation?: boolean;  // Enable cache segmentation (default: true)
   segmentSize?: number;          // Max entries per segment (default: 1000)
   enableKeyStore?: boolean;      // Use memory-efficient key storage (default: true)
+  lruKValue?: number;            // K value for LRU-K algorithm (default: 2)
 }
 
 interface PendingRequest<T> {
@@ -157,6 +159,7 @@ export class SmartCache<T = any> extends EventEmitter {
       enableSegmentation: options.enableSegmentation !== false,
       segmentSize: options.segmentSize || 1000,
       enableKeyStore: options.enableKeyStore !== false,
+      lruKValue: options.lruKValue || 2,
     };
     
     // Initialize bloom filter for negative cache
@@ -238,6 +241,19 @@ export class SmartCache<T = any> extends EventEmitter {
     // Update access info
     entry.hitCount++;
     entry.lastAccessed = now;
+    
+    // Update access history for LRU-K
+    if (this.options.evictionPolicy === 'LRU-K') {
+      if (!entry.accessHistory) {
+        entry.accessHistory = [];
+      }
+      entry.accessHistory.push(now);
+      // Keep only K most recent accesses
+      if (entry.accessHistory.length > this.options.lruKValue) {
+        entry.accessHistory.shift();
+      }
+    }
+    
     this.metrics.hits++;
     this.metrics.apiCallsSaved++;
     this.updateHitRate();
@@ -604,11 +620,18 @@ export class SmartCache<T = any> extends EventEmitter {
       case 'FIFO':
         keyToEvict = this.findFIFOKey();
         break;
+      case 'LRU-K':
+        keyToEvict = this.findLRUKKey();
+        break;
     }
     
     if (keyToEvict) {
       this.cache.delete(keyToEvict);
-      this.removeFromPatterns(keyToEvict);
+      if (this.options.enableKeyStore) {
+        this.keyStore.delete(keyToEvict);
+      } else {
+        this.removeFromPatterns(keyToEvict);
+      }
       this.metrics.evictions++;
       this.emit('evict', keyToEvict);
     }
@@ -646,6 +669,46 @@ export class SmartCache<T = any> extends EventEmitter {
     // Map maintains insertion order
     const firstKey = Array.from(this.cache.keys())[0];
     return firstKey || null;
+  }
+
+  private findLRUKKey(): string | null {
+    let lruKKey: string | null = null;
+    let oldestKthAccess = Date.now();
+    
+    // Get entries from appropriate source
+    const entries = this.options.enableSegmentation 
+      ? this.getAllSegmentEntries()
+      : Array.from(this.cache.entries());
+    
+    for (const [key, entry] of entries) {
+      // For entries with less than K accesses, use creation time
+      if (!entry.accessHistory || entry.accessHistory.length < this.options.lruKValue) {
+        const compareTime = entry.timestamp;
+        if (compareTime < oldestKthAccess) {
+          oldestKthAccess = compareTime;
+          lruKKey = key;
+        }
+      } else {
+        // Use the Kth most recent access
+        const kthAccess = entry.accessHistory[0]; // Oldest in the K-sized window
+        if (kthAccess < oldestKthAccess) {
+          oldestKthAccess = kthAccess;
+          lruKKey = key;
+        }
+      }
+    }
+    
+    return lruKKey;
+  }
+  
+  private getAllSegmentEntries(): Array<[string, CacheEntry<T>]> {
+    const allEntries: Array<[string, CacheEntry<T>]> = [];
+    for (const segment of this.segments.values()) {
+      for (const [key, entry] of segment.entries) {
+        allEntries.push([key, entry]);
+      }
+    }
+    return allEntries;
   }
 
   private cleanup(): number {
