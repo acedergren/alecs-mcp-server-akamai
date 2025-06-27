@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 /**
- * @fileoverview ALECS Certificate Server - Consolidated Architecture
+ * @fileoverview ALECS Certificate Server - Consolidated Architecture [NON-FUNCTIONAL]
  * @module CertificateServerConsolidated
  * 
  * @description
- * Provides a unified MCP server for SSL/TLS certificate management on Akamai's platform.
- * This consolidated server replaces 30+ individual certificate tools with intelligent,
- * workflow-based tools that understand business context.
+ * CODE KAI EMERGENCY CLEANUP: This server was using fake consolidated tools
+ * that returned demo data instead of making real Akamai API calls.
+ * Server marked as non-functional until real implementation.
  * 
  * @example
  * ```typescript
@@ -38,19 +38,9 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 
-// Import consolidated tools
-import { 
-  certificateTool, 
-  handleCertificateTool 
-} from '../tools/consolidated/certificate-tool';
-import { 
-  searchTool, 
-  handleSearchTool 
-} from '../tools/consolidated/search-tool';
-import { 
-  deployTool, 
-  handleDeployTool 
-} from '../tools/consolidated/deploy-tool-simple';
+// CODE KAI EMERGENCY CLEANUP: Consolidated tools removed
+// These were sophisticated fakes that returned demo data
+// Fallback to individual working tools for real functionality
 
 import { logger } from '../utils/logger';
 

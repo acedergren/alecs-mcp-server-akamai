@@ -7,17 +7,9 @@
 
 import { z, type ZodSchema } from 'zod';
 
-// Import Workflow Assistants (Maya Chen's UX Transformation)
-import {
-  getWorkflowAssistantTools,
-  handleWorkflowAssistantRequest,
-} from './workflows';
-
-// Import Consolidated Tools (Maya's Tool Consolidation)
-import {
-  getConsolidatedTools,
-  handleConsolidatedToolRequest,
-} from './consolidated';
+// CODE KAI EMERGENCY CLEANUP: Removed fake workflow assistants and consolidated tools
+// These tools were sophisticated fakes that returned demo data instead of making
+// real Akamai API calls, violating CLAUDE.md "perfect software, no bugs" principle
 
 // Property Management Tools
 import {
@@ -68,7 +60,7 @@ import {
   getZone,
   createZone,
   listRecords,
-  createRecord, // CODE KAI: Replaced deprecated upsertRecord with createRecord
+  upsertRecord,
   deleteRecord,
   activateZoneChanges,
 } from './dns-tools';
@@ -509,38 +501,11 @@ export interface ToolDefinition {
 
 // Register all tools with their schemas
 export function getAllToolDefinitions(): ToolDefinition[] {
-  // Get workflow assistant tools (Maya's UX transformation)
-  const workflowAssistants = getWorkflowAssistantTools().map(tool => ({
-    name: tool.name,
-    description: tool.description || 'Workflow assistant tool',
-    schema: z.object({
-      intent: z.string(),
-      context: z.any().optional(),
-      domain: z.string().optional(),
-      urgency: z.string().optional(),
-      timeframe: z.string().optional(),
-      compare_to: z.string().optional(),
-      safety_mode: z.boolean().optional(),
-      auto_apply: z.boolean().optional(),
-      auto_execute: z.boolean().optional(),
-    }),
-    handler: (client: any, params: any) => handleWorkflowAssistantRequest(tool.name, params),
-  }));
-
-  // Get consolidated tools (Maya's tool consolidation)
-  const consolidatedTools = getConsolidatedTools().map(tool => ({
-    name: tool.name,
-    description: tool.description || 'Consolidated tool',
-    schema: z.any(), // Consolidated tools define their own schemas
-    handler: (client: any, params: any) => handleConsolidatedToolRequest(tool.name, params),
-  }));
-
+  // CODE KAI EMERGENCY CLEANUP: Removed fake tool generators
+  // Previous workflow assistants and consolidated tools were sophisticated
+  // stubs that violated the "perfect software, no bugs" principle
+  
   return [
-    // Workflow Assistants (4 business-focused tools that replace 180+ technical tools)
-    ...workflowAssistants,
-
-    // Consolidated Tools (5 powerful tools that replace scattered functionality)
-    ...consolidatedTools,
 
     // Property Management (30+ tools)
     {
@@ -737,18 +702,11 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: schemas.ListRecordsSchema,
       handler: listRecords,
     },
-    /**
-     * CODE KAI CONSOLIDATION: DNS Record Creation
-     * 
-     * Key: Use modern createRecord instead of deprecated upsertRecord
-     * Approach: Direct function replacement with enhanced type safety
-     * Implementation: Updated handler to use createRecord with full validation
-     */
     {
       name: 'create-record',
-      description: 'Create a DNS record with comprehensive validation',
+      description: 'Create or update a DNS record',
       schema: schemas.CreateRecordSchema,
-      handler: createRecord,
+      handler: upsertRecord,
     },
     {
       name: 'delete-record',

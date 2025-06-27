@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * ALECS Security Server - Consolidated Architecture
- * Uses intelligent workflow assistants and consolidated security tools
- * Business-focused security management without operational complexity
+ * ALECS Security Server - Consolidated Architecture [NON-FUNCTIONAL]
+ * CODE KAI EMERGENCY CLEANUP: This server was using fake consolidated tools
+ * that returned demo data instead of making real Akamai API calls.
+ * Server marked as non-functional until real implementation.
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -15,15 +16,9 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 
-// Import consolidated tools and workflow assistant
-import { 
-  searchTool, 
-  handleSearchTool 
-} from '../tools/consolidated/search-tool';
-import { 
-  deployTool, 
-  handleDeployTool 
-} from '../tools/consolidated/deploy-tool-simple';
+// CODE KAI EMERGENCY CLEANUP: Consolidated tools removed
+// These were sophisticated fakes that returned demo data
+// Fallback to individual working tools for real functionality
 import { handleSecurityWorkflowAssistantRequest } from './workflow-assistant-stubs';
 
 import { logger } from '../utils/logger';
