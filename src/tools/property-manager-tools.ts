@@ -82,11 +82,14 @@ export async function createPropertyVersion(
     propertyId: string;
     baseVersion?: number;
     note?: string;
+    etag?: string;
+    customer?: string;
   },
 ): Promise<MCPToolResponse> {
   try {
     // Get current version if not specified
     let baseVersion = args.baseVersion;
+    let propertyName = '';
     if (!baseVersion) {
       const propertyResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}`,
@@ -97,7 +100,9 @@ export async function createPropertyVersion(
         throw new Error('Property not found');
       }
 
-      baseVersion = propertyResponse.properties.items[0].latestVersion || 1;
+      const property = propertyResponse.properties.items[0];
+      baseVersion = property.latestVersion || 1;
+      propertyName = property.propertyName || '';
     }
 
     // Create new version
@@ -109,7 +114,7 @@ export async function createPropertyVersion(
       },
       body: {
         createFromVersion: baseVersion,
-        createFromVersionEtag: '', // Will be handled by API
+        createFromVersionEtag: args.etag || '', // Will be handled by API
       },
     });
 
@@ -133,11 +138,40 @@ export async function createPropertyVersion(
       });
     }
 
+    const structuredResponse = {
+      version: {
+        propertyId: args.propertyId,
+        propertyName: propertyName,
+        version: parseInt(newVersion),
+        baseVersion: baseVersion,
+        note: args.note || null,
+        createdDate: new Date().toISOString(),
+        status: 'INACTIVE'
+      },
+      links: {
+        property: `/papi/v1/properties/${args.propertyId}`,
+        version: `/papi/v1/properties/${args.propertyId}/versions/${newVersion}`,
+        rules: `/papi/v1/properties/${args.propertyId}/versions/${newVersion}/rules`
+      },
+      nextSteps: [
+        {
+          action: 'update_rules',
+          description: 'Update the property rules configuration',
+          example: `Update rules for property ${args.propertyId} version ${newVersion}`
+        },
+        {
+          action: 'activate',
+          description: 'Activate the new version to staging or production',
+          example: `Activate property ${args.propertyId} version ${newVersion} to staging`
+        }
+      ]
+    };
+
     return {
       content: [
         {
           type: 'text',
-          text: `[DONE] Created new property version ${newVersion} based on version ${baseVersion}${args.note ? `\nNote: ${args.note}` : ''}\n\nNext steps:\n- Update rules: "Update rules for property ${args.propertyId} version ${newVersion}"\n- Activate: "Activate property ${args.propertyId} version ${newVersion} to staging"`,
+          text: JSON.stringify(structuredResponse, null, 2),
         },
       ],
     };
@@ -679,11 +713,49 @@ export async function activateProperty(
     // Start monitoring activation status in background
     monitorActivation(client, args.propertyId, activationId || '', progressToken);
 
+    const structuredResponse = {
+      activation: {
+        activationId: activationId,
+        propertyId: args.propertyId,
+        propertyName: property.propertyName,
+        version: version,
+        network: args.network,
+        status: 'PENDING',
+        submitDate: new Date().toISOString(),
+        note: activationBody.note,
+        notifyEmails: activationBody.notifyEmails,
+        fastPush: activationBody.fastPush,
+        progressToken: progressToken.token
+      },
+      timing: {
+        estimatedMinutes: args.network === 'STAGING' ? 10 : 30,
+        typical: {
+          staging: '5-10 minutes',
+          production: '20-30 minutes'
+        }
+      },
+      monitoring: {
+        checkStatus: {
+          tool: 'get_activation_status',
+          params: {
+            propertyId: args.propertyId,
+            activationId: activationId
+          }
+        },
+        listActivations: {
+          tool: 'list_property_activations',
+          params: {
+            propertyId: args.propertyId
+          }
+        }
+      }
+    };
+
     return {
       content: [
         {
           type: 'text',
-          text: `[SUCCESS] Started activation of property ${property.propertyName} (v${version}) to ${args.network}\n\n**Activation ID:** ${activationId}\n**Progress Token:** ${progressToken.token}\n**Status:** In Progress\n\n## Monitoring\n- Check status: "Get activation status ${activationId} for property ${args.propertyId}"\n- Check progress: "Get progress ${progressToken.token}"\n- View all activations: "List activations for property ${args.propertyId}"\n\n[TIME] Typical activation times:\n- Staging: 5-10 minutes\n- Production: 20-30 minutes\n\n[INFO] Progress updates will be available via the progress token.`,
+          text: JSON.stringify(structuredResponse, null, 2),
         },
       ],
     };
@@ -830,78 +902,102 @@ export async function listPropertyActivations(
         content: [
           {
             type: 'text',
-            text: `No activations found for property ${args.propertyId}${args.network ? ` on ${args.network}` : ''}`,
+            text: JSON.stringify({
+              activations: [],
+              metadata: {
+                propertyId: args.propertyId,
+                network: args.network || 'ALL',
+                total: 0
+              }
+            }, null, 2),
           },
         ],
       };
     }
 
-    let text = `# Property Activations (${response.activations.items.length} found)\n\n`;
+    // Process activations into structured format
+    const activations = response.activations.items.map((act: ActivationStatus) => ({
+      activationId: act.activationId,
+      propertyName: act.propertyName,
+      propertyId: act.propertyId,
+      propertyVersion: act.propertyVersion,
+      network: act.network,
+      activationType: act.activationType,
+      status: act.status,
+      submitDate: act.submitDate,
+      updateDate: act.updateDate,
+      note: act.note || null,
+      notifyEmails: act.notifyEmails || [],
+      fatalError: act.fatalError || null,
+      errors: act.errors || [],
+      warnings: act.warnings || []
+    }));
 
-    // Group by network
-    const byNetwork = response.activations.items.reduce(
+    // Group by network for summary
+    const byNetwork = activations.reduce(
       (acc: any, act: any) => {
         if (!acc[act.network]) {
-          acc[act.network] = [];
+          acc[act.network] = {
+            total: 0,
+            active: 0,
+            pending: 0,
+            failed: 0,
+            latestVersion: null,
+            latestActivation: null
+          };
         }
-        acc[act.network].push(act);
+        acc[act.network].total++;
+        
+        if (act.status === 'ACTIVE') {
+          acc[act.network].active++;
+          // Track the latest active version
+          if (!acc[act.network].latestVersion || act.propertyVersion > acc[act.network].latestVersion) {
+            acc[act.network].latestVersion = act.propertyVersion;
+          }
+        } else if (['PENDING', 'ZONE_1', 'ZONE_2', 'ZONE_3', 'NEW'].includes(act.status)) {
+          acc[act.network].pending++;
+        } else if (['FAILED', 'ABORTED'].includes(act.status)) {
+          acc[act.network].failed++;
+        }
+        
+        // Track the most recent activation
+        if (!acc[act.network].latestActivation || 
+            new Date(act.updateDate) > new Date(acc[act.network].latestActivation.updateDate)) {
+          acc[act.network].latestActivation = {
+            activationId: act.activationId,
+            version: act.propertyVersion,
+            status: act.status,
+            updateDate: act.updateDate
+          };
+        }
+        
         return acc;
       },
-      {} as Record<string, ActivationStatus[]>,
+      {} as Record<string, any>,
     );
 
-    for (const [network, activations] of Object.entries(byNetwork)) {
-      text += `## ${network}\n\n`;
-
-      // Sort by date, most recent first
-      const sortedActivations = [...(activations as ActivationStatus[])].sort(
-        (a, b) => new Date(b.updateDate).getTime() - new Date(a.updateDate).getTime(),
-      );
-
-      for (const act of sortedActivations) {
-        const statusEmoji =
-          {
-            ACTIVE: '[DONE]',
-            PENDING: '[EMOJI]',
-            ZONE_1: '[EMOJI]',
-            ZONE_2: '[EMOJI]',
-            ZONE_3: '[EMOJI]',
-            ABORTED: '[ERROR]',
-            FAILED: '[ERROR]',
-            DEACTIVATED: '[EMOJI]',
-            PENDING_DEACTIVATION: '[EMOJI]',
-            NEW: '[EMOJI]',
-          }[
-            act.status as keyof {
-              ACTIVE: string;
-              PENDING: string;
-              ZONE_1: string;
-              ZONE_2: string;
-              ZONE_3: string;
-              ABORTED: string;
-              FAILED: string;
-              DEACTIVATED: string;
-              PENDING_DEACTIVATION: string;
-              NEW: string;
-            }
-          ] || '[EMOJI]';
-
-        text += `### ${statusEmoji} v${act.propertyVersion} - ${act.status}\n`;
-        text += `- **ID:** ${act.activationId}\n`;
-        text += `- **Date:** ${new Date(act.updateDate).toLocaleString()}\n`;
-        text += `- **Type:** ${act.activationType}\n`;
-        if (act.note) {
-          text += `- **Note:** ${act.note}\n`;
+    const structuredResponse = {
+      activations: activations,
+      summary: {
+        byNetwork: byNetwork,
+        total: activations.length,
+        currentStatus: {
+          production: byNetwork.PRODUCTION?.latestVersion || null,
+          staging: byNetwork.STAGING?.latestVersion || null
         }
-        text += '\n';
+      },
+      metadata: {
+        propertyId: args.propertyId,
+        network: args.network || 'ALL',
+        total: activations.length
       }
-    }
+    };
 
     return {
       content: [
         {
           type: 'text',
-          text,
+          text: JSON.stringify(structuredResponse, null, 2),
         },
       ],
     };
