@@ -51,6 +51,9 @@ import {
   getPropertyRulesWithETag,
   updatePropertyRulesWithETag,
 } from '../utils/etag-handler';
+import type {
+  PropertyListResponse,
+} from '../types/api-responses/property-manager';
 
 // =============================================================================
 // TYPE DEFINITIONS
@@ -135,7 +138,7 @@ export async function listProperties(
       path: '/papi/v1/properties',
       method: 'GET',
       ...(Object.keys(queryParams).length > 0 && { queryParams }),
-    });
+    }) as PropertyListResponse;
 
     if (!response.properties?.items || response.properties.items.length === 0) {
       return {
