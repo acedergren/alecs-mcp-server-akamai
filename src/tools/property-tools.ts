@@ -7,11 +7,11 @@
  * properties through a shared remote MCP server infrastructure.
  * 
  * HOSTED MCP CAPABILITIES:
- * 🏢 Multi-Customer Property Management: Isolated property operations per customer
- * 🔐 Customer Context Validation: Secure access to customer-specific properties
- * 📊 Cross-Customer Analytics: Portfolio-wide property monitoring for MSPs
- * 🛡️ Property Ownership Validation: Prevents cross-customer property access
- * 🔄 Dynamic Customer Switching: Seamless property management across accounts
+ * [ENTERPRISE] Multi-Customer Property Management: Isolated property operations per customer
+ * [AUTH] Customer Context Validation: Secure access to customer-specific properties
+ * [REPORT] Cross-Customer Analytics: Portfolio-wide property monitoring for MSPs
+ * [SECURE] Property Ownership Validation: Prevents cross-customer property access
+ * [SYNC] Dynamic Customer Switching: Seamless property management across accounts
  * 
  * REMOTE MCP HOSTING SCENARIOS:
  * 1. **MSP Property Management**: Service providers managing multiple client CDNs
