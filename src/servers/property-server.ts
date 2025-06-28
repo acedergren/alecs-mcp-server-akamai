@@ -694,9 +694,11 @@ class PropertyALECSServer2025 {
 
           case 'list_groups': {
             // CODE KAI: Type-safe parameter handling for listGroups
+            // Lists all contract groups available to the authenticated user
+            const safeArgs = args && typeof args === 'object' ? args : {};
             const groupArgs: Parameters<typeof listGroups>[1] = {
-              ...(args.customer && { customer: args.customer as string }),
-              ...(args.searchTerm && { searchTerm: args.searchTerm as string })
+              ...('customer' in safeArgs && { customer: safeArgs['customer'] as string }),
+              ...('searchTerm' in safeArgs && { searchTerm: safeArgs['searchTerm'] as string })
             };
             const response = await listGroups(this.client, groupArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -709,9 +711,11 @@ class PropertyALECSServer2025 {
 
           case 'list_contracts': {
             // CODE KAI: Type-safe parameter handling for listContracts
+            // Lists all contracts with access permissions for the authenticated user
+            const safeArgs = args && typeof args === 'object' ? args : {};
             const contractArgs: Parameters<typeof listContracts>[1] = {
-              ...(args.customer && { customer: args.customer as string }),
-              ...(args.searchTerm && { searchTerm: args.searchTerm as string })
+              ...('customer' in safeArgs && { customer: safeArgs['customer'] as string }),
+              ...('searchTerm' in safeArgs && { searchTerm: safeArgs['searchTerm'] as string })
             };
             const response = await listContracts(this.client, contractArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -724,12 +728,16 @@ class PropertyALECSServer2025 {
 
           case 'create_property_version': {
             // CODE KAI: Type-safe parameter handling for createPropertyVersion
+            // Creates a new editable version from an existing property version
+            if (!args || typeof args !== 'object' || !('propertyId' in args)) {
+              throw new McpError(ErrorCode.InvalidParams, 'propertyId parameter is required');
+            }
             const versionArgs: Parameters<typeof createPropertyVersion>[1] = {
-              propertyId: args.propertyId as string,
-              ...(args.customer && { customer: args.customer as string }),
-              ...(args.createFromVersion && { baseVersion: args.createFromVersion as number }),
-              ...(args.createFromVersionEtag && { etag: args.createFromVersionEtag as string }),
-              ...(args.note && { note: args.note as string })
+              propertyId: args['propertyId'] as string,
+              ...('customer' in args && { customer: args['customer'] as string }),
+              ...('createFromVersion' in args && { baseVersion: args['createFromVersion'] as number }),
+              ...('createFromVersionEtag' in args && { etag: args['createFromVersionEtag'] as string }),
+              ...('note' in args && { note: args['note'] as string })
             };
             const response = await createPropertyVersion(this.client, versionArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -742,11 +750,15 @@ class PropertyALECSServer2025 {
 
           case 'get_property_rules': {
             // CODE KAI: Type-safe parameter handling for getPropertyRules
+            // Retrieves the rule tree JSON configuration for a property version
+            if (!args || typeof args !== 'object' || !('propertyId' in args) || !('version' in args)) {
+              throw new McpError(ErrorCode.InvalidParams, 'propertyId and version parameters are required');
+            }
             const rulesArgs: Parameters<typeof getPropertyRules>[1] = {
-              propertyId: args.propertyId as string,
-              version: args.version as number,
-              ...(args.customer && { customer: args.customer as string }),
-              ...(args.validateRules !== undefined && { validateRules: args.validateRules as boolean })
+              propertyId: args['propertyId'] as string,
+              version: args['version'] as number,
+              ...('customer' in args && { customer: args['customer'] as string }),
+              ...('validateRules' in args && typeof args['validateRules'] === 'boolean' && { validateRules: args['validateRules'] })
             };
             const response = await getPropertyRules(this.client, rulesArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -759,12 +771,16 @@ class PropertyALECSServer2025 {
 
           case 'update_property_rules': {
             // CODE KAI: Type-safe parameter handling for updatePropertyRules
+            // Updates the rule tree JSON configuration for a property version
+            if (!args || typeof args !== 'object' || !('propertyId' in args) || !('version' in args) || !('rules' in args)) {
+              throw new McpError(ErrorCode.InvalidParams, 'propertyId, version, and rules parameters are required');
+            }
             const updateRulesArgs: Parameters<typeof updatePropertyRules>[1] = {
-              propertyId: args.propertyId as string,
-              version: args.version as number,
-              rules: args.rules as PropertyRules,
-              ...(args.customer && { customer: args.customer as string }),
-              ...(args.validateRules !== undefined && { validateRules: args.validateRules as boolean })
+              propertyId: args['propertyId'] as string,
+              version: args['version'] as number,
+              rules: args['rules'] as PropertyRules,
+              ...('customer' in args && { customer: args['customer'] as string }),
+              ...('validateRules' in args && typeof args['validateRules'] === 'boolean' && { validateRules: args['validateRules'] })
             };
             const response = await updatePropertyRules(this.client, updateRulesArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -777,10 +793,14 @@ class PropertyALECSServer2025 {
 
           case 'get_activation_status': {
             // CODE KAI: Type-safe parameter handling for getActivationStatus
+            // Retrieves the current status of a property activation
+            if (!args || typeof args !== 'object' || !('propertyId' in args) || !('activationId' in args)) {
+              throw new McpError(ErrorCode.InvalidParams, 'propertyId and activationId parameters are required');
+            }
             const statusArgs: Parameters<typeof getActivationStatus>[1] = {
-              propertyId: args.propertyId as string,
-              activationId: args.activationId as string,
-              ...(args.customer && { customer: args.customer as string })
+              propertyId: args['propertyId'] as string,
+              activationId: args['activationId'] as string,
+              ...('customer' in args && { customer: args['customer'] as string })
             };
             const response = await getActivationStatus(this.client, statusArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -930,9 +950,13 @@ class PropertyALECSServer2025 {
 
           case 'delete_property': {
             // CODE KAI: Type-safe parameter handling for removeProperty
+            // Permanently deletes a property (must have no active versions)
+            if (!args || typeof args !== 'object' || !('propertyId' in args)) {
+              throw new McpError(ErrorCode.InvalidParams, 'propertyId parameter is required');
+            }
             const deleteArgs: Parameters<typeof removeProperty>[1] = {
-              propertyId: args.propertyId as string,
-              ...(args.customer && { customer: args.customer as string })
+              propertyId: args['propertyId'] as string,
+              ...('customer' in args && { customer: args['customer'] as string })
             };
             const response = await removeProperty(this.client, deleteArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -945,13 +969,17 @@ class PropertyALECSServer2025 {
 
           case 'clone_property': {
             // CODE KAI: Type-safe parameter handling for cloneProperty
+            // Creates a new property by copying configuration from an existing property
+            if (!args || typeof args !== 'object' || !('sourcePropertyId' in args) || !('propertyName' in args)) {
+              throw new McpError(ErrorCode.InvalidParams, 'sourcePropertyId and propertyName parameters are required');
+            }
             const cloneArgs: Parameters<typeof cloneProperty>[1] = {
-              propertyId: args.sourcePropertyId as string,
-              newPropertyName: args.propertyName as string,
-              ...(args.customer && { customer: args.customer as string }),
-              ...(args.contractId && { contractId: args.contractId as string }),
-              ...(args.groupId && { groupId: args.groupId as string }),
-              ...(args.cloneHostnames !== undefined && { includeHostnames: args.cloneHostnames as boolean })
+              sourcePropertyId: args['sourcePropertyId'] as string,
+              newPropertyName: args['propertyName'] as string,
+              ...('customer' in args && { customer: args['customer'] as string }),
+              ...('contractId' in args && { contractId: args['contractId'] as string }),
+              ...('groupId' in args && { groupId: args['groupId'] as string }),
+              ...('cloneHostnames' in args && typeof args['cloneHostnames'] === 'boolean' && { includeHostnames: args['cloneHostnames'] })
             };
             const response = await cloneProperty(this.client, cloneArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -964,10 +992,14 @@ class PropertyALECSServer2025 {
 
           case 'cancel_property_activation': {
             // CODE KAI: Type-safe parameter handling for cancelPropertyActivation
+            // Cancels a pending property activation before it completes
+            if (!args || typeof args !== 'object' || !('propertyId' in args) || !('activationId' in args)) {
+              throw new McpError(ErrorCode.InvalidParams, 'propertyId and activationId parameters are required');
+            }
             const cancelArgs: Parameters<typeof cancelPropertyActivation>[1] = {
-              propertyId: args.propertyId as string,
-              activationId: args.activationId as string,
-              ...(args.customer && { customer: args.customer as string })
+              propertyId: args['propertyId'] as string,
+              activationId: args['activationId'] as string,
+              ...('customer' in args && { customer: args['customer'] as string })
             };
             const response = await cancelPropertyActivation(this.client, cancelArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -980,15 +1012,17 @@ class PropertyALECSServer2025 {
 
           case 'search_properties': {
             // CODE KAI: Type-safe parameter handling for searchPropertiesOptimized
+            // Searches for properties using PAPI search endpoint with multiple criteria
+            const safeArgs = args && typeof args === 'object' ? args : {};
             const searchArgs: Parameters<typeof searchPropertiesOptimized>[1] = {
-              ...(args.customer && { customer: args.customer as string }),
-              ...(args.propertyName && { propertyName: args.propertyName as string }),
-              ...(args.hostname && { hostname: args.hostname as string }),
-              ...(args.edgeHostname && { edgeHostname: args.edgeHostname as string }),
-              ...(args.contractId && { contractId: args.contractId as string }),
-              ...(args.groupId && { groupId: args.groupId as string }),
-              ...(args.productId && { productId: args.productId as string }),
-              ...(args.activationStatus && { activationStatus: args.activationStatus as 'production' | 'staging' | 'any' | 'none' })
+              ...('customer' in safeArgs && { customer: safeArgs['customer'] as string }),
+              ...('propertyName' in safeArgs && { propertyName: safeArgs['propertyName'] as string }),
+              ...('hostname' in safeArgs && { hostname: safeArgs['hostname'] as string }),
+              ...('edgeHostname' in safeArgs && { edgeHostname: safeArgs['edgeHostname'] as string }),
+              ...('contractId' in safeArgs && { contractId: safeArgs['contractId'] as string }),
+              ...('groupId' in safeArgs && { groupId: safeArgs['groupId'] as string }),
+              ...('productId' in safeArgs && { productId: safeArgs['productId'] as string }),
+              ...('activationStatus' in safeArgs && { activationStatus: safeArgs['activationStatus'] as 'production' | 'staging' | 'any' | 'none' })
             };
             const response = await coalesceRequest(
               'search_properties',
@@ -1006,10 +1040,14 @@ class PropertyALECSServer2025 {
 
           case 'get_latest_property_version': {
             // CODE KAI: Type-safe parameter handling for getLatestPropertyVersion
+            // Gets the latest version of a property by network or overall
+            if (!args || typeof args !== 'object' || !('propertyId' in args)) {
+              throw new McpError(ErrorCode.InvalidParams, 'propertyId parameter is required');
+            }
             const latestArgs: Parameters<typeof getLatestPropertyVersion>[1] = {
-              propertyId: args.propertyId as string,
-              ...(args.customer && { customer: args.customer as string }),
-              ...(args.activatedOn && { activatedOn: args.activatedOn as 'PRODUCTION' | 'STAGING' | 'LATEST' })
+              propertyId: args['propertyId'] as string,
+              ...('customer' in args && { customer: args['customer'] as string }),
+              ...('activatedOn' in args && { activatedOn: args['activatedOn'] as 'PRODUCTION' | 'STAGING' | 'LATEST' })
             };
             const response = await getLatestPropertyVersion(this.client, latestArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -1051,13 +1089,17 @@ class PropertyALECSServer2025 {
 
           case 'update_property_with_default_dv': {
             // CODE KAI: Update property for HTTPS with Default DV certificate
+            // Enables HTTPS delivery by configuring Default Domain Validation certificate
+            if (!args || typeof args !== 'object' || !('propertyId' in args) || !('hostname' in args)) {
+              throw new McpError(ErrorCode.InvalidParams, 'propertyId and hostname parameters are required');
+            }
             const dvArgs: Parameters<typeof updatePropertyWithDefaultDV>[1] = {
-              propertyId: args.propertyId as string,
-              hostname: args.hostname as string,
-              ...(args.customer && { customer: args.customer as string }),
-              ...(args.network && { network: args.network as 'STAGING' | 'PRODUCTION' }),
-              ...(args.activateChanges !== undefined && { activateChanges: args.activateChanges as boolean }),
-              ...(args.notificationEmails && { notificationEmails: args.notificationEmails as string[] })
+              propertyId: args['propertyId'] as string,
+              hostname: args['hostname'] as string,
+              ...('customer' in args && { customer: args['customer'] as string }),
+              ...('network' in args && { network: args['network'] as 'STAGING' | 'PRODUCTION' }),
+              ...('activateChanges' in args && typeof args['activateChanges'] === 'boolean' && { activateChanges: args['activateChanges'] }),
+              ...('notificationEmails' in args && Array.isArray(args['notificationEmails']) && { notificationEmails: args['notificationEmails'] as string[] })
             };
             const response = await updatePropertyWithDefaultDV(this.client, dvArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -1070,13 +1112,17 @@ class PropertyALECSServer2025 {
 
           case 'rollback_property_version': {
             // CODE KAI: Emergency rollback to previous property version
+            // Creates new version from historical version for quick recovery
+            if (!args || typeof args !== 'object' || !('propertyId' in args) || !('targetVersion' in args)) {
+              throw new McpError(ErrorCode.InvalidParams, 'propertyId and targetVersion parameters are required');
+            }
             const rollbackArgs: Parameters<typeof rollbackPropertyVersion>[1] = {
-              propertyId: args.propertyId as string,
-              targetVersion: args.targetVersion as number,
-              ...(args.customer && { customer: args.customer as string }),
-              ...(args.activateNetwork && { activateNetwork: args.activateNetwork as 'STAGING' | 'PRODUCTION' | 'BOTH' }),
-              ...(args.reason && { reason: args.reason as string }),
-              ...(args.notificationEmails && { notificationEmails: args.notificationEmails as string[] })
+              propertyId: args['propertyId'] as string,
+              targetVersion: args['targetVersion'] as number,
+              ...('customer' in args && { customer: args['customer'] as string }),
+              ...('activateNetwork' in args && { activateNetwork: args['activateNetwork'] as 'STAGING' | 'PRODUCTION' | 'BOTH' }),
+              ...('reason' in args && { reason: args['reason'] as string }),
+              ...('notificationEmails' in args && Array.isArray(args['notificationEmails']) && { notificationEmails: args['notificationEmails'] as string[] })
             };
             const response = await rollbackPropertyVersion(this.client, rollbackArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -1089,14 +1135,18 @@ class PropertyALECSServer2025 {
 
           case 'validate_property_activation': {
             // CODE KAI: Pre-activation validation to ensure smooth deployment
+            // Performs comprehensive checks on rules, origins, certificates, and DNS
+            if (!args || typeof args !== 'object' || !('propertyId' in args) || !('version' in args) || !('network' in args)) {
+              throw new McpError(ErrorCode.InvalidParams, 'propertyId, version, and network parameters are required');
+            }
             const validateArgs: Parameters<typeof validatePropertyActivation>[1] = {
-              propertyId: args.propertyId as string,
-              version: args.version as number,
-              network: args.network as 'STAGING' | 'PRODUCTION',
-              ...(args.customer && { customer: args.customer as string }),
-              ...(args.checkOrigins !== undefined && { checkOrigins: args.checkOrigins as boolean }),
-              ...(args.checkCertificates !== undefined && { checkCertificates: args.checkCertificates as boolean }),
-              ...(args.checkDns !== undefined && { checkDns: args.checkDns as boolean })
+              propertyId: args['propertyId'] as string,
+              version: args['version'] as number,
+              network: args['network'] as 'STAGING' | 'PRODUCTION',
+              ...('customer' in args && { customer: args['customer'] as string }),
+              ...('checkOrigins' in args && typeof args['checkOrigins'] === 'boolean' && { checkOrigins: args['checkOrigins'] }),
+              ...('checkCertificates' in args && typeof args['checkCertificates'] === 'boolean' && { checkCertificates: args['checkCertificates'] }),
+              ...('checkDns' in args && typeof args['checkDns'] === 'boolean' && { checkDns: args['checkDns'] })
             };
             const response = await validatePropertyActivation(this.client, validateArgs);
             result = createMcp2025Response(true, response, undefined, {
