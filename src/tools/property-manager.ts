@@ -34,7 +34,7 @@ import {
   formatContractDisplay,
   formatGroupDisplay,
   formatPropertyDisplay,
-} from '../utils/display-formatters';
+} from '../utils/formatting';
 import { handleApiError } from '../utils/error-handling';
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

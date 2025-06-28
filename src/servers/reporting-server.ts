@@ -62,6 +62,13 @@ interface ApiResponse<T = any> {
   [key: string]: any;
 }
 
+interface CacheReportItem {
+  cacheableResponses?: number;
+  uncacheableResponses?: number;
+  startTime: string;
+  [key: string]: any;
+}
+
 // =============================================================================
 // SCHEMA DEFINITIONS FOR REPORTING
 // =============================================================================
@@ -255,8 +262,8 @@ const getCachePerformance = {
     };
     
     if (validated.cp_codes && validated.cp_codes.length > 0) {
-      params.objectIds = validated.cp_codes.join(',');
-      params.objectType = 'cpcode';
+      params['objectIds'] = validated.cp_codes.join(',');
+      params['objectType'] = 'cpcode';
     }
 
     // Use correct endpoint for cache performance
@@ -264,7 +271,7 @@ const getCachePerformance = {
       path: '/reporting-api/v1/reports/caching/cacheable-responses',
       method: 'GET',
       queryParams: params,
-    });
+    }) as ApiResponse<CacheReportItem>;
 
     let text = `# Cache Performance Report\n\n`;
     text += `**Period:** ${validated.start_date} to ${validated.end_date}\n`;
@@ -273,9 +280,9 @@ const getCachePerformance = {
 
     if (response.data && response.data.length > 0) {
       // Calculate overall metrics
-      const totalCacheable = response.data.reduce((sum: number, item: any) => 
+      const totalCacheable = response.data.reduce((sum: number, item: CacheReportItem) => 
         sum + (item.cacheableResponses || 0), 0);
-      const totalUncacheable = response.data.reduce((sum: number, item: any) => 
+      const totalUncacheable = response.data.reduce((sum: number, item: CacheReportItem) => 
         sum + (item.uncacheableResponses || 0), 0);
       const totalResponses = totalCacheable + totalUncacheable;
       const cacheableRatio = totalResponses > 0 ? (totalCacheable / totalResponses) * 100 : 0;
@@ -290,7 +297,7 @@ const getCachePerformance = {
           path: '/reporting-api/v1/reports/caching/offload-by-time',
           method: 'GET',
           queryParams: params,
-        });
+        }) as ApiResponse;
         
         if (offloadResponse.data && offloadResponse.data.length > 0) {
           const avgOffload = offloadResponse.data.reduce((sum: number, item: any) => 
@@ -371,7 +378,7 @@ const getGeographicDistribution = {
       path: '/reporting-api/v1/reports/geography/traffic-by-geography',
       method: 'GET',
       queryParams: params,
-    });
+    }) as ApiResponse;
 
     let text = `# Geographic Distribution Report\n\n`;
     text += `**Period:** ${validated.start_date} to ${validated.end_date}\n`;
@@ -459,14 +466,14 @@ const getErrorAnalysis = {
     };
 
     if (validated.error_codes && validated.error_codes.length > 0) {
-      params.httpStatusCodes = validated.error_codes.join(',');
+      params['httpStatusCodes'] = validated.error_codes.join(',');
     }
 
     const response = await client.request({
       path: '/reporting-api/v1/reports/performance/http-status-codes-by-time',
       method: 'GET',
       queryParams: params,
-    });
+    }) as ApiResponse;
 
     let text = `# Error Analysis Report\n\n`;
     text += `**Period:** ${validated.start_date} to ${validated.end_date}\n`;
@@ -542,7 +549,7 @@ const getErrorAnalysis = {
       // Recommendations
       text += `\n## 🔍 Error Analysis & Recommendations\n\n`;
       
-      const has404s = errorCounts['404'] > 0;
+      const has404s = (errorCounts['404'] || 0) > 0;
       const has5xxs = Object.keys(errorCounts).some(code => parseInt(code) >= 500);
       
       if (has404s) {
@@ -646,7 +653,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   try {
-    return await tool.handler(args);
+    return await tool.handler(args as any || {});
   } catch (error) {
     if (error instanceof z.ZodError) {
       const errorMessage = `Invalid arguments: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`;

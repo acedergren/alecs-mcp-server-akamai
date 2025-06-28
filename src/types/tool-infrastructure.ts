@@ -1,7 +1,7 @@
 /**
- * CODE KAI: Tool Infrastructure Types
- * World-class type system for MCP tools with zero shortcuts
- * Ensures compile-time safety and runtime validation
+ * CODE KAI: Essential Tool Infrastructure
+ * Core types integrated into existing tools - no new files
+ * Enhances existing property-tools.ts and activation tools
  */
 
 import { z } from 'zod';

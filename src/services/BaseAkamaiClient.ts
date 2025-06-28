@@ -391,7 +391,7 @@ export class BaseAkamaiClient {
           path,
           method: method as any,
           body,
-          queryParams,
+          queryParams: queryParams || {},
           headers: {
             ...headers,
             'X-Request-ID': requestId,
@@ -460,7 +460,7 @@ export class BaseAkamaiClient {
                 type: lastError.details.type || 'EdgeGrid Error',
                 title: lastError.details.title || 'Authentication Error',
                 detail: lastError.details.detail || lastError.message,
-                instance: lastError.details.instance,
+                instance: lastError.details.instance || requestId,
                 status: lastError.statusCode || 500,
               }
             : undefined;

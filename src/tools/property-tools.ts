@@ -59,6 +59,7 @@ import {
 import { formatProductDisplay } from '../utils/product-mapping';
 import { parseAkamaiResponse } from '../utils/response-parsing';
 import { withToolErrorHandling, type ErrorContext } from '../utils/tool-error-handling';
+import { BaseToolArgs } from '../types/tool-infrastructure';
 import { type TreeNode, renderTree, generateTreeSummary, formatGroupNode } from '../utils/tree-view';
 import { logger } from '../utils/logger';
 
