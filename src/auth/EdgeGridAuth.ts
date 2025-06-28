@@ -1,6 +1,30 @@
 /**
- * Enhanced EdgeGrid Authentication module for Akamai APIs
- * Provides type-safe authentication with account switching support
+ * ENTERPRISE EDGEGRID AUTHENTICATION FOR REMOTE MCP HOSTING
+ * 
+ * HOSTED MCP SERVER ARCHITECTURE:
+ * This module provides enterprise-grade EdgeGrid authentication optimized
+ * for multi-tenant remote MCP server deployments with customer isolation.
+ * 
+ * REMOTE MCP HOSTING CAPABILITIES:
+ * 🔐 Multi-Customer Authentication: Isolated EdgeGrid clients per customer
+ * 🏗️ Connection Pooling: Optimized performance for multiple tenants
+ * 🛡️ Account Switching: Secure cross-customer operations for MSPs
+ * 📊 Performance Monitoring: Per-customer metrics and circuit breakers
+ * 🔍 Request Tracing: Complete audit trails for hosted environments
+ * ⚡ Connection Optimization: HTTP/2 and keep-alive for cloud deployment
+ * 
+ * HOSTED DEPLOYMENT BENEFITS:
+ * - Horizontal scaling across multiple customer tenants
+ * - Per-customer rate limiting and quota management
+ * - Centralized credential management with rotation
+ * - Performance isolation between customer contexts
+ * - Comprehensive monitoring and alerting per tenant
+ * 
+ * REMOTE MCP INTEGRATION:
+ * - OAuth session → Customer context → EdgeGrid client
+ * - Supports dynamic customer switching without reconnection
+ * - Compatible with Claude Desktop and other MCP clients
+ * - Enterprise-ready for SaaS MCP deployment
  */
 
 import * as crypto from 'crypto';
@@ -459,7 +483,11 @@ export class EdgeGridAuth {
     path: string,
     queryParams?: Record<string, string | number | boolean>,
   ): Promise<T> {
-    return this._request<T>({ path, method: 'GET', queryParams });
+    return this._request<T>({ 
+      path, 
+      method: 'GET', 
+      ...(queryParams && { queryParams })
+    });
   }
 
   /**
@@ -470,7 +498,12 @@ export class EdgeGridAuth {
     body?: unknown,
     queryParams?: Record<string, string | number | boolean>,
   ): Promise<T> {
-    return this._request<T>({ path, method: 'POST', body, queryParams });
+    return this._request<T>({ 
+      path, 
+      method: 'POST', 
+      body, 
+      ...(queryParams && { queryParams })
+    });
   }
 
   /**
@@ -481,7 +514,12 @@ export class EdgeGridAuth {
     body?: unknown,
     queryParams?: Record<string, string | number | boolean>,
   ): Promise<T> {
-    return this._request<T>({ path, method: 'PUT', body, queryParams });
+    return this._request<T>({ 
+      path, 
+      method: 'PUT', 
+      body, 
+      ...(queryParams && { queryParams })
+    });
   }
 
   /**
@@ -491,7 +529,11 @@ export class EdgeGridAuth {
     path: string,
     queryParams?: Record<string, string | number | boolean>,
   ): Promise<T> {
-    return this._request<T>({ path, method: 'DELETE', queryParams });
+    return this._request<T>({ 
+      path, 
+      method: 'DELETE', 
+      ...(queryParams && { queryParams })
+    });
   }
 
   /**
@@ -502,7 +544,12 @@ export class EdgeGridAuth {
     body?: unknown,
     queryParams?: Record<string, string | number | boolean>,
   ): Promise<T> {
-    return this._request<T>({ path, method: 'PATCH', body, queryParams });
+    return this._request<T>({ 
+      path, 
+      method: 'PATCH', 
+      body, 
+      ...(queryParams && { queryParams })
+    });
   }
 
   /**

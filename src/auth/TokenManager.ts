@@ -104,7 +104,6 @@ export class TokenManager {
   private readonly algorithm = 'aes-256-gcm';
   private readonly saltLength = 32;
   private readonly ivLength = 16;
-  private readonly tagLength = 16;
   private readonly keyLength = 32;
   
   private constructor() {
@@ -159,10 +158,10 @@ export class TokenManager {
       const metadata: TokenMetadata = {
         tokenId,
         tokenHash,
-        description: params.description,
         createdAt: new Date(),
-        expiresAt,
         isActive: true,
+        ...(params.description && { description: params.description }),
+        ...(expiresAt && { expiresAt }),
       };
       
       // Store encrypted token metadata
@@ -180,7 +179,7 @@ export class TokenManager {
       return {
         token: tokenValue,
         tokenId,
-        expiresAt,
+        ...(expiresAt && { expiresAt }),
       };
     } catch (error) {
       logger.error('Failed to generate token', { error });
@@ -277,11 +276,13 @@ export class TokenManager {
       }
       
       // Generate new token with same metadata
+      const remainingDays = oldMetadata.expiresAt 
+        ? Math.ceil((oldMetadata.expiresAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
+        : undefined;
+      
       const newToken = await this.generateToken({
         description: `Rotated from ${oldTokenId}: ${oldMetadata.description || 'No description'}`,
-        expiresInDays: oldMetadata.expiresAt 
-          ? Math.ceil((oldMetadata.expiresAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
-          : undefined,
+        ...(remainingDays && { expiresInDays: remainingDays }),
       });
       
       // Revoke old token

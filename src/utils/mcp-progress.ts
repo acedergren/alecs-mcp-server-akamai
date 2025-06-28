@@ -34,7 +34,7 @@ export class ProgressToken {
   private startTime: number;
   private currentProgress: number = 0;
   private status: ProgressUpdate['status'] = 'pending';
-  private intervalId?: NodeJS.Timeout;
+  private intervalId: NodeJS.Timeout | undefined;
 
   constructor(
     private readonly operation: string,
@@ -230,9 +230,9 @@ export class ProgressManager {
  * Helper function for property activation progress
  */
 export function createActivationProgress(
-  propertyId: string,
+  _propertyId: string,
   network: 'STAGING' | 'PRODUCTION',
-  activationId?: string
+  _activationId?: string
 ): ProgressToken {
   const estimatedDuration = network === 'PRODUCTION' ? 1800 : 600; // 30 min : 10 min
   

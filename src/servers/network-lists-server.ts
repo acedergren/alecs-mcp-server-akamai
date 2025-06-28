@@ -119,7 +119,7 @@ interface ToolDefinition {
 class NetworkListsServer {
   private server: Server;
   private client: AkamaiClient;
-  private configManager: CustomerConfigManager;
+  private configManager: CustomerConfigManager; // TODO: Implement usage
   private tools: Map<string, ToolDefinition> = new Map();
 
   constructor() {
@@ -166,7 +166,7 @@ class NetworkListsServer {
       name: 'create-network-list',
       description: 'Create a new network list',
       schema: CreateNetworkListSchema,
-      handler: async (client, params) => createNetworkList(
+      handler: async (_client, params) => createNetworkList(
         params.name,
         params.type,
         params.elements,

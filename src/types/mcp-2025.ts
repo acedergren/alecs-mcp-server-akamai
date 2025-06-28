@@ -123,6 +123,188 @@ export const PropertyManagerSchemas2025 = {
     required: ['propertyId', 'version', 'network'],
     additionalProperties: false,
   },
+  
+  list_property_versions: {
+    type: 'object' as const,
+    properties: {
+      customer: { type: 'string', description: 'Optional: Customer section name' },
+      propertyId: { type: 'string', description: 'Property ID to list versions for' },
+      limit: { type: 'number', description: 'Maximum number of versions to return', default: 50 },
+    },
+    required: ['propertyId'],
+    additionalProperties: false,
+  },
+  
+  get_property_version: {
+    type: 'object' as const,
+    properties: {
+      customer: { type: 'string', description: 'Optional: Customer section name' },
+      propertyId: { type: 'string', description: 'Property ID to get version for' },
+      version: { type: 'number', description: 'Version number to retrieve' },
+    },
+    required: ['propertyId', 'version'],
+    additionalProperties: false,
+  },
+  
+  list_property_activations: {
+    type: 'object' as const,
+    properties: {
+      customer: { type: 'string', description: 'Optional: Customer section name' },
+      propertyId: { type: 'string', description: 'Property ID to list activations for' },
+      network: { 
+        type: 'string',
+        enum: ['STAGING', 'PRODUCTION'],
+        description: 'Filter by network environment'
+      },
+    },
+    required: ['propertyId'],
+    additionalProperties: false,
+  },
+  
+  validate_rule_tree: {
+    type: 'object' as const,
+    properties: {
+      customer: { type: 'string', description: 'Optional: Customer section name' },
+      propertyId: { type: 'string', description: 'Property ID to validate rules for' },
+      version: { type: 'number', description: 'Property version (optional, uses latest if not specified)' },
+      rules: { type: 'object', description: 'Custom rule tree to validate (optional, uses property rules if not specified)' },
+      includeOptimizations: { type: 'boolean', description: 'Include optimization suggestions', default: false },
+      includeStatistics: { type: 'boolean', description: 'Include validation statistics', default: false },
+    },
+    required: ['propertyId'],
+    additionalProperties: false,
+  },
+  
+  list_products: {
+    type: 'object' as const,
+    properties: {
+      customer: { type: 'string', description: 'Optional: Customer section name' },
+      contractId: { type: 'string', description: 'Contract ID to list products for' },
+    },
+    required: ['contractId'],
+    additionalProperties: false,
+  },
+  
+  search: {
+    type: 'object' as const,
+    properties: {
+      customer: { type: 'string', description: 'Optional: Customer section name' },
+      query: { type: 'string', description: 'Search query for properties, hostnames, or other resources' },
+      detailed: { type: 'boolean', description: 'Return detailed results', default: true },
+      useCache: { type: 'boolean', description: 'Use cached results for performance', default: true },
+      warmCache: { type: 'boolean', description: 'Pre-warm cache with related resources', default: false },
+    },
+    required: ['query'],
+    additionalProperties: false,
+  },
+  
+  remove_property_hostname: {
+    type: 'object' as const,
+    properties: {
+      customer: { type: 'string', description: 'Optional: Customer section name' },
+      propertyId: { type: 'string', description: 'Property ID to remove hostname from' },
+      version: { type: 'number', description: 'Property version to modify' },
+      hostnames: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Hostnames to remove from property'
+      },
+      contractId: { type: 'string', description: 'Contract ID (optional)' },
+      groupId: { type: 'string', description: 'Group ID (optional)' },
+    },
+    required: ['propertyId', 'version', 'hostnames'],
+    additionalProperties: false,
+  },
+  
+  list_property_hostnames: {
+    type: 'object' as const,
+    properties: {
+      customer: { type: 'string', description: 'Optional: Customer section name' },
+      propertyId: { type: 'string', description: 'Property ID to list hostnames for' },
+      version: { type: 'number', description: 'Property version (optional, uses latest if not specified)' },
+      validateCnames: { type: 'boolean', description: 'Validate CNAME records (optional)' },
+    },
+    required: ['propertyId'],
+    additionalProperties: false,
+  },
+  
+  add_property_hostname: {
+    type: 'object' as const,
+    properties: {
+      customer: { type: 'string', description: 'Optional: Customer section name' },
+      propertyId: { type: 'string', description: 'Property ID to add hostname to' },
+      hostname: { type: 'string', description: 'Hostname to add to property' },
+      edgeHostname: { type: 'string', description: 'Edge hostname (CNAME target)' },
+      version: { type: 'number', description: 'Property version (optional, uses latest if not specified)' },
+    },
+    required: ['propertyId', 'hostname', 'edgeHostname'],
+    additionalProperties: false,
+  },
+  
+  list_edge_hostnames: {
+    type: 'object' as const,
+    properties: {
+      customer: { type: 'string', description: 'Optional: Customer section name' },
+      contractId: { type: 'string', description: 'Filter by contract ID (optional)' },
+      groupId: { type: 'string', description: 'Filter by group ID (optional)' },
+    },
+    additionalProperties: false,
+  },
+  
+  create_edge_hostname: {
+    type: 'object' as const,
+    properties: {
+      customer: { type: 'string', description: 'Optional: Customer section name' },
+      propertyId: { type: 'string', description: 'Property ID to create edge hostname for' },
+      domainPrefix: { type: 'string', description: 'Domain prefix (e.g., "www-example-com")' },
+      domainSuffix: { type: 'string', description: 'Domain suffix (e.g., "edgekey.net", "edgesuite.net")' },
+      productId: { type: 'string', description: 'Product ID (optional, uses property product)' },
+      secure: { type: 'boolean', description: 'Enable secure delivery (HTTPS)' },
+      ipVersion: {
+        type: 'string',
+        enum: ['IPV4', 'IPV6', 'IPV4_IPV6'],
+        description: 'IP version behavior'
+      },
+      certificateEnrollmentId: { type: 'number', description: 'Certificate enrollment ID for secure delivery' },
+    },
+    required: ['propertyId', 'domainPrefix'],
+    additionalProperties: false,
+  },
+  
+  list_cpcodes: {
+    type: 'object' as const,
+    properties: {
+      customer: { type: 'string', description: 'Optional: Customer section name' },
+      contractId: { type: 'string', description: 'Filter by contract ID (optional)' },
+      groupId: { type: 'string', description: 'Filter by group ID (optional)' },
+    },
+    additionalProperties: false,
+  },
+  
+  create_cpcode: {
+    type: 'object' as const,
+    properties: {
+      customer: { type: 'string', description: 'Optional: Customer section name' },
+      cpcodeName: { type: 'string', description: 'CP Code name' },
+      contractId: { type: 'string', description: 'Contract ID' },
+      groupId: { type: 'string', description: 'Group ID' },
+      productId: { type: 'string', description: 'Product ID' },
+    },
+    required: ['cpcodeName', 'contractId', 'groupId', 'productId'],
+    additionalProperties: false,
+  },
+  
+  get_cpcode: {
+    type: 'object' as const,
+    properties: {
+      customer: { type: 'string', description: 'Optional: Customer section name' },
+      cpcodeId: { type: 'string', description: 'CP Code ID' },
+      contractId: { type: 'string', description: 'Contract ID (optional)' },
+      groupId: { type: 'string', description: 'Group ID (optional)' },
+    },
+    required: ['cpcodeId'],
+    additionalProperties: false,
+  },
 };
 
 /**
@@ -337,6 +519,108 @@ export const PropertyManagerZodSchemas = {
     network: z.enum(['STAGING', 'PRODUCTION']),
     emails: z.array(z.string()).optional(),
     note: z.string().optional(),
+  }),
+  
+  list_property_versions: z.object({
+    customer: z.string().optional(),
+    propertyId: z.string(),
+    limit: z.number().optional().default(50),
+  }),
+  
+  get_property_version: z.object({
+    customer: z.string().optional(),
+    propertyId: z.string(),
+    version: z.number(),
+  }),
+  
+  list_property_activations: z.object({
+    customer: z.string().optional(),
+    propertyId: z.string(),
+    network: z.enum(['STAGING', 'PRODUCTION']).optional(),
+  }),
+  
+  validate_rule_tree: z.object({
+    customer: z.string().optional(),
+    propertyId: z.string(),
+    version: z.number().optional(),
+    rules: z.object({}).passthrough().optional(),
+    includeOptimizations: z.boolean().optional().default(false),
+    includeStatistics: z.boolean().optional().default(false),
+  }),
+  
+  list_products: z.object({
+    customer: z.string().optional(),
+    contractId: z.string(),
+  }),
+  
+  search: z.object({
+    customer: z.string().optional(),
+    query: z.string(),
+    detailed: z.boolean().optional().default(true),
+    useCache: z.boolean().optional().default(true),
+    warmCache: z.boolean().optional().default(false),
+  }),
+  
+  remove_property_hostname: z.object({
+    customer: z.string().optional(),
+    propertyId: z.string(),
+    version: z.number(),
+    hostnames: z.array(z.string()),
+    contractId: z.string().optional(),
+    groupId: z.string().optional(),
+  }),
+  
+  list_property_hostnames: z.object({
+    customer: z.string().optional(),
+    propertyId: z.string(),
+    version: z.number().optional(),
+    validateCnames: z.boolean().optional(),
+  }),
+  
+  add_property_hostname: z.object({
+    customer: z.string().optional(),
+    propertyId: z.string(),
+    hostname: z.string(),
+    edgeHostname: z.string(),
+    version: z.number().optional(),
+  }),
+  
+  list_edge_hostnames: z.object({
+    customer: z.string().optional(),
+    contractId: z.string().optional(),
+    groupId: z.string().optional(),
+  }),
+  
+  create_edge_hostname: z.object({
+    customer: z.string().optional(),
+    propertyId: z.string(),
+    domainPrefix: z.string(),
+    domainSuffix: z.string().optional(),
+    productId: z.string().optional(),
+    secure: z.boolean().optional(),
+    ipVersion: z.enum(['IPV4', 'IPV6', 'IPV4_IPV6']).optional(),
+    certificateEnrollmentId: z.number().optional(),
+  }),
+  
+  list_cpcodes: z.object({
+    customer: z.string().optional(),
+    contractId: z.string().optional(),
+    groupId: z.string().optional(),
+  }),
+  
+  create_cpcode: z.object({
+    customer: z.string().optional(),
+    cpcodeName: z.string(),
+    contractId: z.string(),
+    groupId: z.string(),
+    productId: z.string(),
+  }),
+  
+  get_cpcode: z.object({
+    customer: z.string().optional(),
+    cpcodeId: z.string(),
+    contractId: z.string().optional(),
+    groupId: z.string().optional(),
   }),
 };
 

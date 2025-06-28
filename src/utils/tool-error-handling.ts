@@ -68,7 +68,7 @@ export async function withToolErrorHandling<T extends MCPToolResponse>(
   try {
     // In test mode, disable retries to prevent timeouts
     const config =
-      process.env.NODE_ENV === 'test' ? { maxAttempts: 1, ...retryConfig } : retryConfig;
+      process.env['NODE_ENV'] === 'test' ? { maxAttempts: 1, ...retryConfig } : retryConfig;
 
     return await baseWithEnhancedErrorHandling(operation, _context, config);
   } catch (_error) {

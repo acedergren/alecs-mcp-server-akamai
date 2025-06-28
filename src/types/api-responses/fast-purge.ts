@@ -1,7 +1,15 @@
 /**
  * Fast Purge API Response Types  
  * @see https://techdocs.akamai.com/purge/reference/api
+ * 
+ * CODE KAI IMPLEMENTATION:
+ * - Runtime validation with Zod schemas
+ * - Type guards for safe type assertions
+ * - Custom error classes for actionable feedback
+ * - Production-grade validation patterns
  */
+
+import { z } from 'zod';
 
 /**
  * Purge action types
@@ -136,4 +144,81 @@ export interface PurgeHistoryResponse {
     pageSize?: number;
     totalCount?: number;
   };
+}
+
+// CODE KAI Validation Schemas and Type Guards
+
+/**
+ * Zod schema for PurgeResponse validation
+ */
+export const PurgeResponseSchema = z.object({
+  httpStatus: z.number().int().min(200).max(599),
+  detail: z.string().min(1),
+  estimatedSeconds: z.number().int().min(0),
+  purgeId: z.string().min(1),
+  supportId: z.string().min(1),
+  title: z.string().optional(),
+  describedBy: z.string().optional(),
+});
+
+/**
+ * Zod schema for PurgeStatusResponse validation
+ */
+export const PurgeStatusResponseSchema = z.object({
+  httpStatus: z.number().int().min(200).max(599),
+  completionTime: z.string().optional(),
+  submissionTime: z.string().min(1),
+  originalEstimatedSeconds: z.number().int().min(0),
+  progressUri: z.string().min(1),
+  purgeId: z.string().min(1),
+  supportId: z.string().min(1),
+  status: z.enum(['Done', 'In-Progress', 'Unknown']),
+  submittedBy: z.string().min(1),
+  originalQueueLength: z.number().int().min(0),
+  title: z.string().optional(),
+  describedBy: z.string().optional(),
+});
+
+/**
+ * Custom error class for FastPurge validation failures
+ */
+export class FastPurgeValidationError extends Error {
+  public override readonly name = 'FastPurgeValidationError';
+  public readonly received: unknown;
+  public readonly expected: string;
+
+  constructor(message: string, received: unknown, expected: string) {
+    super(message);
+    this.received = received;
+    this.expected = expected;
+    
+    // Maintain proper stack trace for debugging
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, FastPurgeValidationError);
+    }
+  }
+}
+
+/**
+ * Type guard for PurgeResponse
+ */
+export function isPurgeResponse(data: unknown): data is PurgeResponse {
+  try {
+    PurgeResponseSchema.parse(data);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Type guard for PurgeStatusResponse
+ */
+export function isPurgeStatusResponse(data: unknown): data is PurgeStatusResponse {
+  try {
+    PurgeStatusResponseSchema.parse(data);
+    return true;
+  } catch {
+    return false;
+  }
 }

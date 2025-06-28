@@ -7,17 +7,9 @@
 
 import { z, type ZodSchema } from 'zod';
 
-// Import Workflow Assistants (Maya Chen's UX Transformation)
-import {
-  getWorkflowAssistantTools,
-  handleWorkflowAssistantRequest,
-} from './workflows';
-
-// Import Consolidated Tools (Maya's Tool Consolidation)
-import {
-  getConsolidatedTools,
-  handleConsolidatedToolRequest,
-} from './consolidated';
+// CODE KAI EMERGENCY CLEANUP: Removed fake workflow assistants and consolidated tools
+// These tools were sophisticated fakes that returned demo data instead of making
+// real Akamai API calls, violating CLAUDE.md "perfect software, no bugs" principle
 
 // Property Management Tools
 import {
@@ -95,6 +87,28 @@ import {
   convertZoneToPrimary,
   generateMigrationInstructions,
 } from './dns-migration-tools';
+
+import {
+  listChangelists,
+  searchChangelists,
+  getChangelistDiff,
+  getAuthoritativeNameservers,
+  listContracts,
+  getSupportedRecordTypes,
+  deleteZone,
+  getZoneStatus,
+  listTSIGKeys,
+  createTSIGKey,
+} from './dns-operations-priority';
+
+import {
+  enableDNSSEC,
+  disableDNSSEC,
+  getDNSSECKeys,
+  getDNSSECDSRecords,
+  checkDNSSECValidation,
+  rotateDNSSECKeys,
+} from './dns-dnssec-operations';
 
 // DNS Elicitation Tools
 import {
@@ -276,23 +290,10 @@ import {
   resetPerformanceMonitoring,
 } from './performance-tools';
 
-// Reporting Tools
-import {
-  getTrafficSummary,
-  getTimeseriesData,
-  getPerformanceBenchmarks,
-  analyzeCachePerformance,
-  getCostOptimizationInsights,
-  analyzeBandwidthUsage,
-  createReportingDashboard,
-  exportReportData,
-  configureMonitoringAlerts,
-  getRealtimeMetrics as getReportingRealtimeMetrics,
-  analyzeTrafficTrends,
-  generatePerformanceReport,
-  analyzeGeographicPerformance,
-  analyzeErrorPatterns,
-} from './reporting-tools';
+// Reporting Tools - REMOVED: Reporting functionality has been removed from the codebase
+// to maintain code quality standards and avoid incomplete implementations.
+// Reporting tools contained stub implementations that did not provide real value.
+// Future implementation should include complete Akamai Reporting API integration.
 
 // Token Management Tools
 import {
@@ -510,21 +511,7 @@ const OptimizeCacheSchema = z.object({
   aggressive: z.boolean().optional().default(false),
 });
 
-// Reporting Schemas
-const GetTrafficSummarySchema = z.object({
-  customer: z.string().optional(),
-  startDate: z.string(),
-  endDate: z.string(),
-  interval: z.enum(['5min', '1hour', '1day']).optional(),
-});
-
-const GetTimeseriesDataSchema = z.object({
-  customer: z.string().optional(),
-  metrics: z.array(z.string()),
-  startDate: z.string(),
-  endDate: z.string(),
-  interval: z.enum(['5min', '1hour', '1day']).optional(),
-});
+// Reporting Schemas - REMOVED: Associated with removed reporting functionality
 
 // Tool definition type
 export interface ToolDefinition {
@@ -536,38 +523,11 @@ export interface ToolDefinition {
 
 // Register all tools with their schemas
 export function getAllToolDefinitions(): ToolDefinition[] {
-  // Get workflow assistant tools (Maya's UX transformation)
-  const workflowAssistants = getWorkflowAssistantTools().map(tool => ({
-    name: tool.name,
-    description: tool.description || 'Workflow assistant tool',
-    schema: z.object({
-      intent: z.string(),
-      context: z.any().optional(),
-      domain: z.string().optional(),
-      urgency: z.string().optional(),
-      timeframe: z.string().optional(),
-      compare_to: z.string().optional(),
-      safety_mode: z.boolean().optional(),
-      auto_apply: z.boolean().optional(),
-      auto_execute: z.boolean().optional(),
-    }),
-    handler: (client: any, params: any) => handleWorkflowAssistantRequest(tool.name, params),
-  }));
-
-  // Get consolidated tools (Maya's tool consolidation)
-  const consolidatedTools = getConsolidatedTools().map(tool => ({
-    name: tool.name,
-    description: tool.description || 'Consolidated tool',
-    schema: z.any(), // Consolidated tools define their own schemas
-    handler: (client: any, params: any) => handleConsolidatedToolRequest(tool.name, params),
-  }));
-
+  // CODE KAI EMERGENCY CLEANUP: Removed fake tool generators
+  // Previous workflow assistants and consolidated tools were sophisticated
+  // stubs that violated the "perfect software, no bugs" principle
+  
   return [
-    // Workflow Assistants (4 business-focused tools that replace 180+ technical tools)
-    ...workflowAssistants,
-
-    // Consolidated Tools (5 powerful tools that replace scattered functionality)
-    ...consolidatedTools,
 
     // Property Management (30+ tools)
     {
@@ -847,6 +807,142 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       description: 'Get contract information for a zone',
       schema: extendedSchemas.GetZoneContractSchema,
       handler: getZoneContract,
+    },
+
+    // Priority DNS Operations
+    {
+      name: 'list-changelists',
+      description: 'List all changelists',
+      schema: z.object({
+        page: z.number().int().positive().optional(),
+        pageSize: z.number().int().positive().max(100).optional(),
+        showAll: z.boolean().optional(),
+      }),
+      handler: listChangelists,
+    },
+    {
+      name: 'search-changelists',
+      description: 'Search changelists by zone names',
+      schema: z.object({
+        zones: z.array(z.string()).min(1),
+      }),
+      handler: searchChangelists,
+    },
+    {
+      name: 'get-changelist-diff',
+      description: 'Get differences between changelist and current zone',
+      schema: z.object({
+        zone: z.string().min(1),
+      }),
+      handler: getChangelistDiff,
+    },
+    {
+      name: 'get-authoritative-nameservers',
+      description: 'Get Akamai authoritative nameservers',
+      schema: z.object({}),
+      handler: getAuthoritativeNameservers,
+    },
+    {
+      name: 'list-contracts',
+      description: 'List available contracts',
+      schema: z.object({}),
+      handler: listContracts,
+    },
+    {
+      name: 'get-supported-record-types',
+      description: 'Get supported DNS record types',
+      schema: z.object({}),
+      handler: getSupportedRecordTypes,
+    },
+    {
+      name: 'delete-zone',
+      description: 'Delete a DNS zone',
+      schema: z.object({
+        zone: z.string().min(1),
+        force: z.boolean().optional(),
+      }),
+      handler: deleteZone,
+    },
+    {
+      name: 'get-zone-status',
+      description: 'Get zone activation status',
+      schema: z.object({
+        zone: z.string().min(1),
+      }),
+      handler: getZoneStatus,
+    },
+    {
+      name: 'list-tsig-keys',
+      description: 'List all TSIG keys',
+      schema: z.object({}),
+      handler: listTSIGKeys,
+    },
+    {
+      name: 'create-tsig-key',
+      description: 'Create a new TSIG key',
+      schema: z.object({
+        keyName: z.string().min(1),
+        algorithm: z.string().min(1),
+        secret: z.string().optional(),
+      }),
+      handler: createTSIGKey,
+    },
+
+    // DNSSEC Operations
+    {
+      name: 'enable-dnssec',
+      description: 'Enable DNSSEC for a zone',
+      schema: z.object({
+        zone: z.string().min(1),
+        algorithm: z.string().optional(),
+        nsec3: z.boolean().optional(),
+        salt: z.string().optional(),
+        iterations: z.number().optional(),
+      }),
+      handler: enableDNSSEC,
+    },
+    {
+      name: 'disable-dnssec',
+      description: 'Disable DNSSEC for a zone',
+      schema: z.object({
+        zone: z.string().min(1),
+        force: z.boolean().optional(),
+      }),
+      handler: disableDNSSEC,
+    },
+    {
+      name: 'get-dnssec-keys',
+      description: 'Get DNSSEC keys for a zone',
+      schema: z.object({
+        zone: z.string().min(1),
+      }),
+      handler: getDNSSECKeys,
+    },
+    {
+      name: 'get-dnssec-ds-records',
+      description: 'Get DS records for parent zone delegation',
+      schema: z.object({
+        zone: z.string().min(1),
+      }),
+      handler: getDNSSECDSRecords,
+    },
+    {
+      name: 'check-dnssec-validation',
+      description: 'Check DNSSEC validation status',
+      schema: z.object({
+        zone: z.string().min(1),
+      }),
+      handler: checkDNSSECValidation,
+    },
+    {
+      name: 'rotate-dnssec-keys',
+      description: 'Initiate DNSSEC key rotation',
+      schema: z.object({
+        zone: z.string().min(1),
+        keyType: z.enum(['KSK', 'ZSK', 'BOTH']),
+        algorithm: z.string().optional(),
+      }),
+      handler: rotateDNSSECKeys,
     },
 
     // DNS Migration Tools
@@ -1541,91 +1637,11 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       handler: resetPerformanceMonitoring,
     },
 
-    // Reporting Tools (14 tools)
-    {
-      name: 'get-traffic-summary',
-      description: 'Get traffic summary report',
-      schema: GetTrafficSummarySchema,
-      handler: getTrafficSummary,
-    },
-    {
-      name: 'get-timeseries-data',
-      description: 'Get time-series data for metrics',
-      schema: GetTimeseriesDataSchema,
-      handler: getTimeseriesData,
-    },
-    {
-      name: 'get-performance-benchmarks',
-      description: 'Get performance benchmarks',
-      schema: extendedSchemas.GetPerformanceBenchmarksSchema,
-      handler: getPerformanceBenchmarks,
-    },
-    {
-      name: 'analyze-cache-performance',
-      description: 'Analyze cache performance',
-      schema: extendedSchemas.AnalyzeCachePerformanceSchema,
-      handler: analyzeCachePerformance,
-    },
-    {
-      name: 'get-cost-optimization-insights',
-      description: 'Get cost optimization insights',
-      schema: extendedSchemas.GetCostOptimizationInsightsSchema,
-      handler: getCostOptimizationInsights,
-    },
-    {
-      name: 'analyze-bandwidth-usage',
-      description: 'Analyze bandwidth usage patterns',
-      schema: extendedSchemas.AnalyzeBandwidthUsageSchema,
-      handler: analyzeBandwidthUsage,
-    },
-    {
-      name: 'create-reporting-dashboard',
-      description: 'Create custom reporting dashboard',
-      schema: extendedSchemas.CreateReportingDashboardSchema,
-      handler: createReportingDashboard,
-    },
-    {
-      name: 'export-report-data',
-      description: 'Export report data',
-      schema: extendedSchemas.ExportReportDataSchema,
-      handler: exportReportData,
-    },
-    {
-      name: 'configure-monitoring-alerts',
-      description: 'Configure monitoring alerts',
-      schema: extendedSchemas.ConfigureMonitoringAlertsSchema,
-      handler: configureMonitoringAlerts,
-    },
-    {
-      name: 'get-reporting-realtime-metrics',
-      description: 'Get real-time metrics for reporting',
-      schema: extendedSchemas.GetReportingRealtimeMetricsSchema,
-      handler: getReportingRealtimeMetrics,
-    },
-    {
-      name: 'analyze-traffic-trends',
-      description: 'Analyze traffic trends',
-      schema: extendedSchemas.AnalyzeTrafficTrendsSchema,
-      handler: analyzeTrafficTrends,
-    },
-    {
-      name: 'generate-performance-report',
-      description: 'Generate performance report',
-      schema: extendedSchemas.GeneratePerformanceReportSchema,
-      handler: generatePerformanceReport,
-    },
-    {
-      name: 'analyze-geographic-performance',
-      description: 'Analyze performance by geography',
-      schema: extendedSchemas.AnalyzeGeographicPerformanceSchema,
-      handler: analyzeGeographicPerformance,
-    },
-    {
-      name: 'analyze-error-patterns',
-      description: 'Analyze error patterns',
-      schema: extendedSchemas.AnalyzeErrorPatternsSchema,
-      handler: analyzeErrorPatterns,
-    },
+    // Reporting Tools - REMOVED: All 14 reporting tools have been removed
+    // due to incomplete implementations that contained stub responses.
+    // This maintains code quality and user trust by not exposing
+    // non-functional features. Future implementation will include
+    // complete Akamai Reporting API integration with real functionality.
 
     // Token Management Tools (5 tools)
     {

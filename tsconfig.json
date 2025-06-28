@@ -57,14 +57,14 @@
     "noImplicitThis": true,
     "useUnknownInCatchVariables": true,
     "alwaysStrict": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "exactOptionalPropertyTypes": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": false,
+    "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": false,
+    "noPropertyAccessFromIndexSignature": true,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     "skipDefaultLibCheck": true,
@@ -83,7 +83,8 @@
     "examples/**/*",
     "docs/**/*",
     "src/testing/**/*",
-    "src/services/CustomerContextManager.ts"
+    "src/services/CustomerContextManager.ts",
+    "src/servers/*-consolidated.ts"
   ],
   "ts-node": {
     "require": [

@@ -8,7 +8,7 @@ import {
 } from '../agents/cdn-provisioning.agent';
 import { type CPSCertificateAgent, createCPSCertificateAgent } from '../agents/cps-certificate.agent';
 import { type DNSMigrationAgent, createDNSMigrationAgent } from '../agents/dns-migration.agent';
-import { format, icons, ProgressBar, MultiProgress } from '../utils/progress';
+import { format, icons, ProgressBar } from '../utils/progress';
 
 export interface OrchestrationOptions {
   customer?: string;
@@ -20,10 +20,8 @@ export class AkamaiOrchestrator {
   private cdnAgent?: CDNProvisioningAgent;
   private cpsAgent?: CPSCertificateAgent;
   private dnsAgent?: DNSMigrationAgent;
-  private multiProgress: MultiProgress;
-
   constructor(private options: OrchestrationOptions = {}) {
-    this.multiProgress = new MultiProgress();
+    // Initialize orchestrator with provided options
   }
 
   async initialize(): Promise<void> {
@@ -102,7 +100,10 @@ export class AkamaiOrchestrator {
 
     try {
       // Step 1: Migrate DNS zone
-      progress.update({ current: 1, message: steps[0] });
+      progress.update({ 
+        current: 1, 
+        ...(steps[0] && { message: steps[0] })
+      });
       await this.dnsAgent!.migrateZoneComplete(_options.domain, _options.domain, {
         source: _options.sourceProvider === 'cloudflare' ? 'cloudflare' : 'axfr',
         sourceConfig: _options.sourceConfig,
@@ -110,7 +111,10 @@ export class AkamaiOrchestrator {
       });
 
       // Step 2: Create CDN property
-      progress.update({ current: 2, message: steps[1] });
+      progress.update({ 
+        current: 2, 
+        ...(steps[1] && { message: steps[1] })
+      });
       const propertyName = _options.domain.replace(/\./g, '-');
 
       // Use CDN agent's complete provisioning
@@ -119,10 +123,10 @@ export class AkamaiOrchestrator {
         [_options.domain, `www.${_options.domain}`],
         _options.originHostname,
         {
-          productId: _options.productId,
-          activateStaging: _options.activateStaging,
+          ..._options.productId && { productId: _options.productId },
+          ..._options.activateStaging !== undefined && { activateStaging: _options.activateStaging },
           activateProduction: false, // We'll do this after validation
-          notifyEmails: _options.notifyEmails,
+          ..._options.notifyEmails && { notifyEmails: _options.notifyEmails },
         },
       );
 
@@ -130,20 +134,29 @@ export class AkamaiOrchestrator {
       progress.update({ current: 6, message: 'CDN property provisioned' });
 
       // Step 7: Run validation tests
-      progress.update({ current: 7, message: steps[6] });
+      progress.update({ 
+        current: 7, 
+        ...(steps[6] && { message: steps[6] })
+      });
       await this.runValidationTests(_options.domain);
 
       let currentStep = 7;
 
       // Step 8: Activate to production if requested
       if (_options.activateProduction) {
-        progress.update({ current: ++currentStep, message: steps[currentStep - 1] });
+        progress.update({ 
+          current: ++currentStep, 
+          ...(steps[currentStep - 1] && { message: steps[currentStep - 1] })
+        });
         // This would call the CDN agent's activation method
-        console.log(`\n${icons.rocket} Activating to production...`);
+        console.log(`\nActivating to production...`);
       }
 
       // Step 9: Generate migration report
-      progress.update({ current: steps.length, message: steps[steps.length - 1] });
+      progress.update({ 
+        current: steps.length, 
+        ...(steps[steps.length - 1] && { message: steps[steps.length - 1] })
+      });
       await this.generateMigrationReport(_options);
 
       progress.finish('Migration complete!');
@@ -206,8 +219,11 @@ export class AkamaiOrchestrator {
     try {
       // Step 1: Create DNS zones for all domains
       progress.update({ current: 1, message: 'Creating DNS zones' });
+      if (!this.dnsAgent) {
+        throw new Error('DNS agent not initialized');
+      }
       for (const domain of _options.domains) {
-        await this.dnsAgent!.createRecord(domain, {
+        await this.dnsAgent.createRecord(domain, {
           name: '@',
           type: 'A',
           ttl: 300,
@@ -225,6 +241,9 @@ export class AkamaiOrchestrator {
 
       // Step 3-7: Create and configure CDN property
       progress.update({ current: 3, message: 'Creating CDN property' });
+      if (!_options.domains?.[0]) {
+        throw new Error('No domains provided for property creation');
+      }
       const propertyName = _options.domains[0].replace(/\./g, '-');
 
       await this.cdnAgent!.provisionCompleteProperty(
@@ -233,7 +252,7 @@ export class AkamaiOrchestrator {
         _options.originHostname,
         {
           activateStaging: true,
-          notifyEmails: _options.notifyEmails,
+          ..._options.notifyEmails && { notifyEmails: _options.notifyEmails },
         },
       );
 

@@ -256,7 +256,7 @@ export const getSecurityEvents = {
       };
 
       if (args.limit) {
-        queryParams.limit = args.limit.toString();
+        queryParams['limit'] = args.limit.toString();
       }
 
       const response = await client.request({

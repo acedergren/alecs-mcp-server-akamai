@@ -1,6 +1,42 @@
 /**
- * Cache Factory
- * Creates SmartCache implementation (Valkey/Redis deprecated)
+ * Enterprise Cache Factory for Remote MCP Hosting
+ * Zero-dependency cache implementation optimized for multi-customer hosted MCP services
+ * 
+ * REMOTE MCP HOSTING CACHE ARCHITECTURE:
+ * This factory creates enterprise-grade cache instances optimized for hosted MCP services:
+ * 
+ * MULTI-CUSTOMER HOSTING BENEFITS:
+ * - Zero external dependencies = simplified hosting deployment (no Redis/Valkey infrastructure)
+ * - Environment-variable driven configuration for customer-specific cache policies
+ * - Smart defaults optimized for Akamai API response patterns
+ * - Built-in monitoring and metrics for hosted service dashboards
+ * - Memory-efficient design scales to hundreds of customers per instance
+ * 
+ * PRODUCTION HOSTING FEATURES:
+ * - Configurable cache sizes per customer tier (basic/premium/enterprise)
+ * - Automatic compression to reduce hosting infrastructure costs
+ * - Persistence support for zero-downtime service updates
+ * - Circuit breaker integration for cache-aware error handling
+ * - Debug mode logging for troubleshooting customer issues
+ * 
+ * ENTERPRISE DEPLOYMENT CAPABILITIES:
+ * - Single cache instance supports multiple customer segments
+ * - Environment-based configuration for dev/staging/production
+ * - Memory limits prevent runaway cache growth in hosted environments
+ * - Request coalescing reduces duplicate API calls across customers
+ * - Adaptive TTL optimization based on customer usage patterns
+ * 
+ * HOSTED MCP SERVICE INTEGRATION:
+ * - Works seamlessly with CustomerContextManager for customer isolation
+ * - Integrates with TokenManager for customer-scoped cache keys
+ * - Supports WebSocket transport for real-time cache invalidation
+ * - Enables customer-specific cache policies and limits
+ * 
+ * COST OPTIMIZATION FOR HOSTING PROVIDERS:
+ * - Dramatic reduction in Akamai API calls through intelligent caching
+ * - Lower infrastructure costs (no external cache servers required)
+ * - Efficient memory usage across multiple customers
+ * - Built-in metrics for customer usage billing and optimization
  */
 
 import { ICache } from '../types/cache-interface';

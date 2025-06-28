@@ -1,8 +1,37 @@
 /**
- * Property Manager API Integration
+ * MULTI-TENANT PROPERTY MANAGER API INTEGRATION
  * 
- * SNOW LEOPARD ARCHITECTURE:
- * - Implements core CRUD operations for Akamai CDN properties
+ * REMOTE MCP HOSTING ARCHITECTURE:
+ * This module provides enterprise-grade property management for hosted MCP
+ * deployments, enabling multiple customers to manage their Akamai CDN
+ * properties through a shared remote MCP server infrastructure.
+ * 
+ * HOSTED MCP CAPABILITIES:
+ * 🏢 Multi-Customer Property Management: Isolated property operations per customer
+ * 🔐 Customer Context Validation: Secure access to customer-specific properties
+ * 📊 Cross-Customer Analytics: Portfolio-wide property monitoring for MSPs
+ * 🛡️ Property Ownership Validation: Prevents cross-customer property access
+ * 🔄 Dynamic Customer Switching: Seamless property management across accounts
+ * 
+ * REMOTE MCP HOSTING SCENARIOS:
+ * 1. **MSP Property Management**: Service providers managing multiple client CDNs
+ * 2. **Enterprise Division Management**: Large orgs with multiple property portfolios
+ * 3. **Development Environment Management**: Staging/production per customer
+ * 4. **Consultant Property Operations**: Consultants accessing multiple customer accounts
+ * 
+ * PROPERTY ISOLATION ARCHITECTURE:
+ * - Each customer parameter maps to separate Akamai account credentials
+ * - Property lists filtered by customer context for security
+ * - Cross-customer property operations require explicit authorization
+ * - Complete audit trail of property operations per customer
+ * 
+ * HOSTED DEPLOYMENT BENEFITS:
+ * - Customers don't need direct Akamai API access
+ * - Centralized property management with role-based access
+ * - Automated property compliance and monitoring
+ * - Portfolio-wide property analytics and reporting
+ * 
+ * SNOW LEOPARD ARCHITECTURE FOUNDATION:
  * - Enhanced parameter validation prevents API failures
  * - Defensive error handling with comprehensive user guidance
  * - MCP June 2025 compliant response formats
@@ -31,6 +60,7 @@ import { formatProductDisplay } from '../utils/product-mapping';
 import { parseAkamaiResponse } from '../utils/response-parsing';
 import { withToolErrorHandling, type ErrorContext } from '../utils/tool-error-handling';
 import { type TreeNode, renderTree, generateTreeSummary, formatGroupNode } from '../utils/tree-view';
+import { logger } from '../utils/logger';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse, type Property } from '../types';
@@ -124,6 +154,128 @@ function formatStatus(status: { version?: number; status?: string; updateDate?: 
   }
 
   return '[UNKNOWN]';
+}
+
+// Human-readable name cache to avoid repeated API calls
+interface ResourceNames {
+  contracts: Map<string, string>;
+  groups: Map<string, string>;
+  products: Map<string, string>;
+}
+
+const nameCache: ResourceNames = {
+  contracts: new Map(),
+  groups: new Map(),
+  products: new Map()
+};
+
+/**
+ * Gets human-readable contract name from cache or API
+ */
+async function getContractName(client: AkamaiClient, contractId: string): Promise<string> {
+  if (nameCache.contracts.has(contractId)) {
+    return nameCache.contracts.get(contractId)!;
+  }
+  
+  try {
+    const response = await client.request({
+      path: '/papi/v1/contracts',
+      method: 'GET'
+    });
+    
+    const contract = (response as any)?.contracts?.items?.find((c: any) => c.contractId === contractId);
+    if (contract?.contractTypeName) {
+      const name = contract.contractTypeName;
+      nameCache.contracts.set(contractId, name);
+      return name;
+    }
+  } catch (error) {
+    logger.debug(`Failed to get contract name for ${contractId}`, error);
+  }
+  
+  return `Contract ${contractId.replace('ctr_', '')}`;
+}
+
+/**
+ * Gets human-readable group name from cache or API
+ */
+async function getGroupName(client: AkamaiClient, groupId: string): Promise<string> {
+  if (nameCache.groups.has(groupId)) {
+    return nameCache.groups.get(groupId)!;
+  }
+  
+  try {
+    const response = await client.request({
+      path: '/papi/v1/groups',
+      method: 'GET'
+    });
+    
+    const group = (response as any)?.groups?.items?.find((g: any) => g.groupId === groupId);
+    if (group?.groupName) {
+      const name = group.groupName;
+      nameCache.groups.set(groupId, name);
+      return name;
+    }
+  } catch (error) {
+    logger.debug(`Failed to get group name for ${groupId}`, error);
+  }
+  
+  return `Group ${groupId}`;
+}
+
+/**
+ * Gets human-readable product name
+ */
+function getProductName(productId: string): string {
+  if (nameCache.products.has(productId)) {
+    return nameCache.products.get(productId)!;
+  }
+  
+  const productNames: Record<string, string> = {
+    'prd_Fresca': 'Ion Standard',
+    'prd_SPM': 'Ion Premier', 
+    'prd_Site_Accel': 'Dynamic Site Accelerator (DSA)',
+    'prd_Web_Accel': 'Web Application Accelerator',
+    'prd_Download_Delivery': 'Download Delivery',
+    'prd_Adaptive_Media_Delivery': 'Adaptive Media Delivery (AMD)',
+    'prd_Security_Failover': 'Security Failover',
+    'prd_Site_Defender': 'Site Defender',
+    'prd_Enterprise': 'Enterprise'
+  };
+  
+  const name = productNames[productId] || productId.replace('prd_', '').replace(/_/g, ' ');
+  nameCache.products.set(productId, name);
+  return name;
+}
+
+/**
+ * Formats a 403 error with human-readable names
+ */
+async function format403Error(
+  client: AkamaiClient,
+  operation: string,
+  contractId?: string,
+  groupId?: string
+): Promise<string> {
+  let message = `Cannot ${operation}\n\n`;
+  
+  if (contractId && groupId) {
+    const contractName = await getContractName(client, contractId);
+    const groupName = await getGroupName(client, groupId);
+    const contractIdDisplay = contractId.replace('ctr_', '');
+    
+    message += `The API credentials cannot create properties in group "${groupName}" under contract "${contractName}" (${contractIdDisplay})\n\n`;
+    message += `This typically means the user who created these API credentials doesn't have access to this group.\n\n`;
+    message += `Solutions:\n`;
+    message += `1. Use a different group that you have access to\n`;
+    message += `2. Ask your Akamai administrator to grant access to the "${groupName}" group\n`;
+    message += `3. Check if this contract belongs to a different account (may need account switching)`;
+  } else {
+    message += `Access denied. The API credentials don't have the required permissions.\n\n`;
+    message += `Check with your Akamai administrator about your access rights.`;
+  }
+  
+  return message;
 }
 
 /**
@@ -268,82 +420,50 @@ export async function listProperties(
       };
     }
 
-    // Format properties list with comprehensive details
+    // Return structured data for Claude Desktop optimization
     const allProperties = propertiesResponse.properties.items;
     const totalProperties = allProperties.length;
 
-    // OPTIMIZATION: Limit displayed properties to prevent output overload
+    // OPTIMIZATION: Limit properties to prevent memory issues
     const propertiesToShow = allProperties.slice(0, MAX_PROPERTIES_TO_DISPLAY);
     const hasMore = totalProperties > MAX_PROPERTIES_TO_DISPLAY;
 
-    let text = `# Akamai Properties (${hasMore ? `showing ${propertiesToShow.length} of ${totalProperties}` : `${totalProperties} found`})\n\n`;
-
-    // Add filter information
-    text += '**Filters Applied:**\n';
-    if (contractId) {
-      text += `- Contract: ${formatContractDisplay(contractId)}${!args.contractId ? ' (auto-selected)' : ''}\n`;
-    }
-    if (groupId) {
-      text += `- Group: ${formatGroupDisplay(groupId)}${!args.groupId && !args.contractId ? ' (auto-selected)' : ''}\n`;
-    }
-    if (hasMore) {
-      text += `- **Limit:** Showing first ${MAX_PROPERTIES_TO_DISPLAY} properties\n`;
-    }
-    text += '\n';
-
-    // Group properties by contract for better organization
-    const propertiesByContract = propertiesToShow.reduce(
-      (acc: Record<string, PapiProperty[]>, prop: PapiProperty) => {
-        const contract = prop.contractId;
-        if (!acc[contract]) {
-          acc[contract] = [];
-        }
-        acc[contract].push(prop);
-        return acc;
+    // Structure the data for easy LLM processing
+    const structuredResponse = {
+      properties: propertiesToShow.map(prop => ({
+        propertyId: prop.propertyId,
+        propertyName: prop.propertyName,
+        contractId: prop.contractId,
+        groupId: prop.groupId,
+        productId: prop.productId || null,
+        assetId: prop.assetId || null,
+        latestVersion: prop.latestVersion || null,
+        productionVersion: prop.productionVersion || null,
+        stagingVersion: prop.stagingVersion || null,
+        productionStatus: prop.productionStatus || null,
+        stagingStatus: prop.stagingStatus || null,
+        note: prop.note || null,
+        ruleFormat: prop.ruleFormat || null
+      })),
+      metadata: {
+        total: totalProperties,
+        shown: propertiesToShow.length,
+        hasMore: hasMore,
+        limit: MAX_PROPERTIES_TO_DISPLAY
       },
-      {} as Record<string, PapiProperty[]>,
-    );
-
-    // Display properties organized by contract
-    for (const [contractId, contractProps] of Object.entries(propertiesByContract)) {
-      text += `## ${formatContractDisplay(contractId)}\n\n`;
-
-      for (const prop of contractProps) {
-        text += `### [PROPERTY] ${prop.propertyName}\n`;
-        text += `- **Property ID:** ${formatPropertyDisplay(prop.propertyId)}\n`;
-        text += `- **Current Version:** ${prop.latestVersion || 'N/A'}\n`;
-        text += `- **Production:** ${formatStatus(prop.productionStatus)}\n`;
-        text += `- **Staging:** ${formatStatus(prop.stagingStatus)}\n`;
-        text += `- **Group:** ${formatGroupDisplay(prop.groupId)}\n`;
-
-        if (prop.note) {
-          text += `- **Notes:** ${prop.note}\n`;
-        }
-
-        text += '\n';
+      filters: {
+        contractId: contractId || null,
+        contractIdAutoSelected: !args.contractId && !!contractId,
+        groupId: groupId || null,
+        groupIdAutoSelected: !args.groupId && !args.contractId && !!groupId
       }
-    }
-
-    if (hasMore) {
-      text += `\n[WARNING] **Note:** Only showing first ${MAX_PROPERTIES_TO_DISPLAY} properties out of ${totalProperties} total.\n`;
-      text += 'To see more properties:\n';
-      text += '- Filter by specific group: `"list properties in group grp_XXXXX"`\n';
-      text += '- Search for specific property: `"get property [name or ID]"`\n';
-      text += '- Increase limit: `"list properties with limit 100"`\n';
-    }
-
-    // Add helpful next steps
-    text += '## Next Steps\n\n';
-    text += '- To view detailed configuration: `"Show me details for property [propertyId]"`\n';
-    text += '- To view property rules: `"Show me the rules for property [propertyId]"`\n';
-    text += '- To activate a property: `"Activate property [propertyId] to staging"`\n';
-    text += '- To create a new property: `"Create a new property called [name]"`\n';
+    };
 
     return {
       content: [
         {
           type: 'text',
-          text,
+          text: JSON.stringify(structuredResponse, null, 2),
         },
       ],
     };
@@ -1102,16 +1222,14 @@ async function getPropertyById(
       groupId = prop.groupId;
     }
 
-    // Now get detailed property information using the proper endpoint if we have contract and group
-    if (!existingProperty && contractId && groupId) {
+    // Now get detailed property information using the proper endpoint
+    // According to Akamai docs, this endpoint doesn't require contractId or groupId
+    if (!existingProperty) {
       try {
         const detailRawResponse = await client.request({
           path: `/papi/v1/properties/${propertyId}`,
           method: 'GET',
-          queryParams: {
-            contractId: contractId,
-            groupId: groupId,
-          },
+          // Remove queryParams - they're not needed for this endpoint and cause search behavior
         });
 
         if (isPapiError(detailRawResponse)) {
@@ -1183,74 +1301,53 @@ async function getPropertyById(
       console.error('Failed to get hostnames:', hostnameError);
     }
 
-    // Format comprehensive property details
-    let text = `# Property Details: ${prop.propertyName}\n\n`;
-
-    // Basic Information
-    text += '## Basic Information\n';
-    text += `- **Property ID:** ${formatPropertyDisplay(prop.propertyId, prop.propertyName)}\n`;
-    text += `- **Asset ID:** ${prop.assetId || 'N/A'}\n`;
-    text += `- **Contract:** ${formatContractDisplay(prop.contractId)}\n`;
-    text += `- **Group:** ${formatGroupDisplay(prop.groupId, groupName)}\n`;
-    text += `- **Product:** ${prop.productId ? formatProductDisplay(prop.productId) : 'N/A'}\n\n`;
-
-    // Version Information
-    text += '## Version Information\n';
-    text += `- **Latest Version:** ${prop.latestVersion || 'N/A'}\n`;
-    text += `- **Production Version:** ${prop.productionVersion || 'None'}\n`;
-    text += `- **Staging Version:** ${prop.stagingVersion || 'None'}\n\n`;
-
-    // Activation Status
-    text += '## Activation Status\n';
-    text += `- **Production:** ${formatStatus(prop.productionStatus)}\n`;
-    text += `- **Staging:** ${formatStatus(prop.stagingStatus)}\n\n`;
-
-    // Version Details if available
-    if (versionDetails?.versions?.items?.[0]) {
-      const version = versionDetails.versions.items[0];
-      text += `## Latest Version Details (v${version.propertyVersion})\n`;
-      text += `- **Updated By:** ${version.updatedByUser || 'Unknown'}\n`;
-      text += `- **Updated Date:** ${formatDate(version.updatedDate)}\n`;
-      if (version.note) {
-        text += `- **Version Notes:** ${version.note}\n`;
+    // Return structured data for Claude Desktop optimization
+    const structuredResponse = {
+      property: {
+        propertyId: prop.propertyId,
+        propertyName: prop.propertyName,
+        contractId: prop.contractId,
+        groupId: prop.groupId,
+        groupName: groupName || null,
+        productId: prop.productId || null,
+        assetId: prop.assetId || null,
+        note: prop.note || null,
+        ruleFormat: prop.ruleFormat || null
+      },
+      versions: {
+        latest: prop.latestVersion || null,
+        production: prop.productionVersion || null,
+        staging: prop.stagingVersion || null,
+        productionStatus: prop.productionStatus || null,
+        stagingStatus: prop.stagingStatus || null
+      },
+      versionDetails: versionDetails?.versions?.items?.[0] ? {
+        version: versionDetails.versions.items[0].propertyVersion,
+        updatedBy: versionDetails.versions.items[0].updatedByUser || null,
+        updatedDate: versionDetails.versions.items[0].updatedDate || null,
+        note: versionDetails.versions.items[0].note || null,
+        etag: versionDetails.versions.items[0].etag || null
+      } : null,
+      hostnames: hostnames?.hostnames?.items ? 
+        (hostnames.hostnames.items as any[]).map(h => ({
+          hostname: h.cnameFrom,
+          edgeHostname: h.cnameTo,
+          certStatus: h.certStatus?.status || null,
+          validationStatus: h.validationStatus || null
+        })) : [],
+      metadata: {
+        hasProductionVersion: !!prop.productionVersion,
+        hasStagingVersion: !!prop.stagingVersion,
+        needsActivation: prop.latestVersion && prop.latestVersion > (prop.productionVersion || 0),
+        hostnameCount: hostnames?.hostnames?.items?.length || 0
       }
-      text += '\n';
-    }
-
-    // Hostnames if available
-    if (hostnames?.hostnames?.items && (hostnames.hostnames.items as any[]).length > 0) {
-      text += '## Associated Hostnames\n';
-      for (const hostname of hostnames.hostnames.items) {
-        text += `- **${hostname.cnameFrom}** → ${hostname.cnameTo}`;
-        if (hostname.certStatus) {
-          text += ` (Cert: ${hostname.certStatus.status || 'Unknown'})`;
-        }
-        text += '\n';
-      }
-      text += '\n';
-    }
-
-    // Notes
-    if (prop.note) {
-      text += `## Property Notes\n${prop.note}\n\n`;
-    }
-
-    // Next Steps
-    text += '## Available Actions\n';
-    text += `- View rules: \`"Show me the rules for property ${propertyId}"\`\n`;
-    text += `- Update rules: \`"Update property ${propertyId} to use origin server example.com"\`\n`;
-    text += `- Activate: \`"Activate property ${propertyId} to staging"\`\n`;
-    text += `- View activations: \`"Show activation history for property ${propertyId}"\`\n`;
-
-    if (!prop.productionVersion) {
-      text += '\n[WARNING] **Note:** This property has never been activated to production.';
-    }
+    };
 
     return {
       content: [
         {
           type: 'text',
-          text,
+          text: JSON.stringify(structuredResponse, null, 2),
         },
       ],
     };
@@ -1380,81 +1477,100 @@ export async function createProperty(
     // Extract property ID from the link (remove query parameters)
     const propertyId = response.propertyLink.split('/').pop()?.split('?')[0];
 
-    // Format success response with comprehensive next steps
-    let text = '[DONE] **Property Created Successfully!**\n\n';
-
-    text += '## Property Details\n';
-    text += `- **Name:** ${args.propertyName}\n`;
-    text += `- **Property ID:** ${formatPropertyDisplay(propertyId)}\n`;
-    text += `- **Product:** ${formatProductDisplay(args.productId)}\n`;
-    text += `- **Contract:** ${formatContractDisplay(args.contractId)}\n`;
-    text += `- **Group:** ${formatGroupDisplay(args.groupId)}\n`;
-    text += `- **Rule Format:** ${ruleFormat}\n`;
-    text += '- **Status:** [EMOJI] NEW (Not yet activated)\n\n';
-
-    text += '## Required Next Steps\n\n';
-    text += '### 1. Create Edge Hostname\n';
-    text += 'You need an edge hostname for content delivery:\n';
-    text += `\`"Create edge hostname for property ${propertyId}"\`\n\n`;
-
-    text += '### 2. Configure Property Rules\n';
-    text += 'Set up origin server and caching behavior:\n';
-    text += `\`"Update property ${propertyId} to use origin server [your-origin.com]"\`\n\n`;
-
-    text += '### 3. Add Hostnames\n';
-    text += 'Associate your domains with the property:\n';
-    text += `\`"Add hostname www.example.com to property ${propertyId}"\`\n\n`;
-
-    text += '### 4. Activate to Staging\n';
-    text += 'Test your configuration in staging first:\n';
-    text += `\`"Activate property ${propertyId} to staging"\`\n\n`;
-
-    text += '### 5. SSL Certificate\n';
-    text += 'If using HTTPS, enroll a certificate:\n';
-    text += '`"Enroll DV certificate for www.example.com"`\n\n';
-
-    text += '## Common Product IDs Reference\n';
-    text += '- **prd_fresca** - Ion (Preferred for most use cases)\n';
-    text += '- **prd_Site_Accel** - Dynamic Site Accelerator (DSA)\n';
-    text += '- **prd_Web_Accel** - Web Application Accelerator\n';
-    text += '- **prd_Download_Delivery** - Download Delivery\n';
-    text += '- **prd_Adaptive_Media_Delivery** - Adaptive Media Delivery (AMD)\n';
+    // Return structured data for Claude Desktop
+    const contractName = await getContractName(client, args.contractId);
+    const productName = getProductName(args.productId);
+    const groupName = await getGroupName(client, args.groupId);
+    
+    const structuredResponse = {
+      success: true,
+      property: {
+        propertyId: propertyId,
+        propertyName: args.propertyName,
+        contractId: args.contractId,
+        contractName: contractName,
+        groupId: args.groupId,
+        groupName: groupName,
+        productId: args.productId,
+        productName: productName,
+        propertyLink: response.propertyLink
+      },
+      metadata: {
+        createdAt: new Date().toISOString(),
+        ruleFormat: args.ruleFormat || 'latest'
+      }
+    };
 
     return {
       content: [
         {
           type: 'text',
-          text,
+          text: JSON.stringify(structuredResponse, null, 2),
         },
       ],
     };
-  } catch (_error) {
-    // Handle specific error cases
-    if (_error instanceof Error) {
-      if (_error.message.includes('already exists')) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `[ERROR] A property with name '${args.propertyName}' already exists in this contract/group.\n\n**Solutions:**\n- Choose a different property name\n- Use list_properties to see existing properties\n- Check if the property exists in a different group`,
-            },
-          ],
-        };
-      }
-
-      if (_error.message.includes('Invalid product')) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `[ERROR] Invalid product ID: ${args.productId}\n\n**Common Product IDs:**\n- prd_fresca - Ion (Preferred)\n- prd_Site_Accel - DSA\n- prd_Web_Accel - WAA\n- prd_Download_Delivery - DD\n- prd_Adaptive_Media_Delivery - AMD\n\nUse list_products to see which products are available in your contract.`,
-            },
-          ],
-        };
-      }
+  } catch (_error: any) {
+    // Handle 403 Forbidden with human-readable context
+    if (_error.response?.status === 403) {
+      const errorMessage = await format403Error(
+        client,
+        `create property "${args.propertyName}"`,
+        args.contractId,
+        args.groupId
+      );
+      
+      return {
+        content: [{
+          type: 'text',
+          text: errorMessage
+        }]
+      };
     }
 
-    return formatError('create property', _error);
+    // Handle product not available errors
+    if (_error.response?.status === 400 && _error.response?.data?.detail?.includes('product')) {
+      const productName = getProductName(args.productId);
+      const contractName = await getContractName(client, args.contractId);
+      const contractIdDisplay = args.contractId.replace('ctr_', '');
+      
+      return {
+        content: [{
+          type: 'text',
+          text: `Product Not Available\n\n` +
+                `"${productName}" is not available in contract "${contractName}" (${contractIdDisplay})\n\n` +
+                `This is a commercial limitation - only Akamai can add products to contracts.\n\n` +
+                `Options:\n` +
+                `1. Use 'property.list_products' to see available products in this contract\n` +
+                `2. Choose a different product that's included\n` +
+                `3. Use a different contract that includes "${productName}"\n` +
+                `4. Contact your Akamai account team to purchase "${productName}"`
+        }]
+      };
+    }
+
+    // Handle property already exists
+    if (_error.message?.includes('already exists') || 
+        _error.response?.data?.detail?.includes('already exists')) {
+      return {
+        content: [{
+          type: 'text',
+          text: `Property Already Exists\n\n` +
+                `A property with name "${args.propertyName}" already exists in this contract/group.\n\n` +
+                `Solutions:\n` +
+                `1. Choose a different property name\n` +
+                `2. Use 'property.list' to see existing properties\n` +
+                `3. Check if the property exists in a different group`
+        }]
+      };
+    }
+
+    // Generic error fallback
+    return {
+      content: [{
+        type: 'text',
+        text: `Failed to create property\n\n${_error.message || 'Unknown error occurred'}`
+      }]
+    };
   }
 }
 

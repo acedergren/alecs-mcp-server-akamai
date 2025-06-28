@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Extended Property Manager Tools
  * Implements advanced property management features including versions, rules, edge hostnames, and activations

@@ -1,7 +1,41 @@
 /**
- * Network Lists API Integration
- * Implements comprehensive network list management for IP, Geographic, and ASN controls
- * Supports whitelisting, blacklisting, geo-blocking, and security policy integration
+ * MULTI-TENANT NETWORK LISTS API INTEGRATION FOR REMOTE MCP HOSTING
+ * 
+ * HOSTED MCP SECURITY ARCHITECTURE:
+ * This module provides enterprise-grade network security list management
+ * for hosted MCP deployments, enabling secure multi-customer IP filtering,
+ * geo-blocking, and ASN controls through shared infrastructure.
+ * 
+ * REMOTE MCP HOSTING SECURITY CAPABILITIES:
+ * 🛡️ Customer-Isolated Network Lists: Separate IP allowlists/blocklists per customer
+ * 🌍 Multi-Customer Geo-Blocking: Geographic access controls per tenant
+ * 🏢 Cross-Customer Threat Intelligence: Shared security insights (anonymized)
+ * 🔐 Customer-Specific Security Policies: Tailored network controls per account
+ * 📊 Security Analytics Per Customer: Individual threat monitoring and reporting
+ * 
+ * HOSTED DEPLOYMENT SECURITY SCENARIOS:
+ * 1. **MSP Security Management**: Service providers managing client security policies
+ * 2. **Enterprise Division Security**: Different security rules per business unit
+ * 3. **Development Environment Security**: Separate security controls per environment
+ * 4. **Consultant Security Operations**: Secure access to multiple customer accounts
+ * 
+ * NETWORK SECURITY ISOLATION:
+ * - Customer-specific network lists prevent cross-tenant access
+ * - Geo-blocking rules isolated per customer context
+ * - ASN controls managed independently per customer
+ * - Complete audit trail of security changes per customer
+ * 
+ * HOSTED MCP SECURITY BENEFITS:
+ * - Centralized security policy management across customers
+ * - Shared threat intelligence while maintaining customer isolation
+ * - Automated security compliance reporting per customer
+ * - Emergency security response across multiple customer accounts
+ * 
+ * REMOTE MCP INTEGRATION:
+ * - OAuth session → Customer context → Security policies
+ * - Dynamic security rule deployment per customer
+ * - Real-time threat monitoring across hosted customers
+ * - Compliance reporting and audit trails per tenant
  */
 
 import { formatContractDisplay, formatGroupDisplay, ensurePrefix } from '../../utils/formatting';

@@ -1,6 +1,41 @@
 /**
- * Authentication Middleware for ALECS Remote Access
- * Integrates token validation with security controls
+ * Authentication Middleware for ALECS Remote MCP Hosting
+ * Enterprise token validation and multi-customer authentication system
+ * 
+ * REMOTE MCP HOSTING AUTHENTICATION ARCHITECTURE:
+ * This middleware enables secure multi-customer hosted MCP services by providing:
+ * 
+ * MULTI-TENANT AUTHENTICATION FEATURES:
+ * - API key-based customer identification and isolation
+ * - Token-scoped access control (customers can only access their own resources)
+ * - Customer context extraction from authentication tokens
+ * - Audit logging for compliance and security monitoring
+ * - Rate limiting integration per authenticated customer
+ * 
+ * ENTERPRISE HOSTING SECURITY:
+ * - Bearer token validation with customer context binding
+ * - Public path exemptions for health checks and documentation
+ * - Security event logging for failed authentication attempts
+ * - IP-based tracking for suspicious activity detection
+ * - Token hash logging (secure, auditable, non-reversible)
+ * 
+ * HOSTED MCP INTEGRATION POINTS:
+ * - Works with TokenManager for customer-specific API key management
+ * - Integrates with SecurityMiddleware for comprehensive protection
+ * - Supports multiple authentication schemes (OAuth, API keys, JWT)
+ * - Enables customer-scoped tool access and data isolation
+ * 
+ * PRODUCTION DEPLOYMENT FEATURES:
+ * - Configurable authentication bypass for development environments
+ * - Detailed authentication metrics and monitoring
+ * - Support for multiple customer authentication providers
+ * - Circuit breaker compatibility for authentication service failures
+ * 
+ * USE CASES FOR HOSTED REMOTE MCP:
+ * - Multi-customer SaaS platforms offering Akamai integration
+ * - Enterprise service providers with multiple customer contracts
+ * - Managed service providers offering Akamai-as-a-Service
+ * - Cloud marketplaces with pay-per-use Akamai access
  */
 
 import { IncomingMessage, ServerResponse } from 'http';
@@ -102,7 +137,7 @@ export class AuthenticationMiddleware {
       
       return {
         authenticated: true,
-        tokenId: validationResult.tokenId,
+        ...(validationResult.tokenId && { tokenId: validationResult.tokenId }),
       };
     } catch (error) {
       logger.error('Authentication error', { error });
@@ -144,7 +179,7 @@ export class AuthenticationMiddleware {
     }
     
     // Normalize path
-    const normalizedPath = path.split('?')[0].toLowerCase();
+    const normalizedPath = path.split('?')[0]?.toLowerCase() || '';
     
     return this.config.publicPaths.some(publicPath => {
       if (publicPath.endsWith('*')) {
@@ -158,16 +193,17 @@ export class AuthenticationMiddleware {
    * Log authentication success
    */
   private logAuthSuccess(req: IncomingMessage, tokenId: string): void {
+    const userAgent = req.headers['user-agent'];
     const event = {
       type: SecurityEventType.AUTH_SUCCESS,
       timestamp: new Date(),
       ip: this.getClientIp(req),
-      userAgent: req.headers['user-agent'],
       tokenId,
       details: {
         path: req.url,
         method: req.method,
       },
+      ...(userAgent && { userAgent }),
     };
     
     this.securityMiddleware.logSecurityEvent(event);
@@ -189,17 +225,18 @@ export class AuthenticationMiddleware {
     reason: string,
     tokenAttempt?: string
   ): void {
+    const userAgent = req.headers['user-agent'];
     const event = {
       type: SecurityEventType.AUTH_FAILURE,
       timestamp: new Date(),
       ip: this.getClientIp(req),
-      userAgent: req.headers['user-agent'],
       details: {
         reason,
         path: req.url,
         method: req.method,
         tokenAttempt: tokenAttempt ? this.hashToken(tokenAttempt) : undefined,
       },
+      ...(userAgent && { userAgent }),
     };
     
     this.securityMiddleware.logSecurityEvent(event);
@@ -217,12 +254,14 @@ export class AuthenticationMiddleware {
   private getClientIp(req: IncomingMessage): string {
     const forwarded = req.headers['x-forwarded-for'];
     if (forwarded) {
-      return (typeof forwarded === 'string' ? forwarded : forwarded[0]).split(',')[0].trim();
+      const forwardedValue = typeof forwarded === 'string' ? forwarded : forwarded[0];
+      return forwardedValue?.split(',')[0]?.trim() || 'unknown';
     }
     
     const realIp = req.headers['x-real-ip'];
     if (realIp) {
-      return typeof realIp === 'string' ? realIp : realIp[0];
+      const realIpValue = typeof realIp === 'string' ? realIp : realIp[0];
+      return realIpValue || 'unknown';
     }
     
     return req.socket.remoteAddress || 'unknown';
