@@ -1,0 +1,4762 @@
+{
+  "timestamp": "2025-06-28T22:38:34.394Z",
+  "summary": {
+    "totalErrors": 466,
+    "totalFiles": 60,
+    "errorsByCategory": {
+      "CRITICAL": 10,
+      "HIGH": 367,
+      "MEDIUM": 1,
+      "LOW": 88
+    },
+    "errorsByPattern": {
+      "Type assignment error": 8,
+      "Other": 173,
+      "Unused variable": 87,
+      "Index signature access": 78,
+      "exactOptionalPropertyTypes argument": 53,
+      "Argument type mismatch": 15,
+      "exactOptionalPropertyTypes": 17,
+      "exactOptionalPropertyTypes assignment": 15,
+      "Cannot find name suggestion": 3,
+      "Parameter implicitly any": 4,
+      "Property does not exist": 7,
+      "Cannot find name": 5,
+      "Property declared but not read": 1
+    },
+    "topRiskFiles": [
+      {
+        "file": "src/tools/property-manager.ts",
+        "riskScore": 4240,
+        "category": "CRITICAL",
+        "errorCount": 90,
+        "dependencyCount": 0
+      },
+      {
+        "file": "src/tools/property-manager-tools.ts",
+        "riskScore": 3335,
+        "category": "CRITICAL",
+        "errorCount": 35,
+        "dependencyCount": 9
+      },
+      {
+        "file": "src/tools/dns-tools.ts",
+        "riskScore": 2830,
+        "category": "CRITICAL",
+        "errorCount": 29,
+        "dependencyCount": 10
+      },
+      {
+        "file": "src/tools/rule-tree-management.ts",
+        "riskScore": 1762,
+        "category": "HIGH",
+        "errorCount": 28,
+        "dependencyCount": 3
+      },
+      {
+        "file": "src/tools/cps-tools.ts",
+        "riskScore": 1020,
+        "category": "HIGH",
+        "errorCount": 12,
+        "dependencyCount": 7
+      },
+      {
+        "file": "src/tools/property-tools.ts",
+        "riskScore": 912,
+        "category": "HIGH",
+        "errorCount": 15,
+        "dependencyCount": 9
+      },
+      {
+        "file": "src/tools/property-error-handling-tools.ts",
+        "riskScore": 810,
+        "category": "HIGH",
+        "errorCount": 18,
+        "dependencyCount": 0
+      },
+      {
+        "file": "src/tools/dns-dnssec-operations.ts",
+        "riskScore": 721,
+        "category": "CRITICAL",
+        "errorCount": 9,
+        "dependencyCount": 1
+      },
+      {
+        "file": "src/utils/edgegrid-client.ts",
+        "riskScore": 700,
+        "category": "HIGH",
+        "errorCount": 5,
+        "dependencyCount": 4
+      },
+      {
+        "file": "src/tools/dns-operations-priority.ts",
+        "riskScore": 699,
+        "category": "HIGH",
+        "errorCount": 19,
+        "dependencyCount": 1
+      }
+    ],
+    "leafFiles": 18,
+    "rootFiles": 2
+  },
+  "files": [
+    {
+      "file": "src/tools/property-manager.ts",
+      "riskScore": 4240,
+      "category": "CRITICAL",
+      "errorCount": 90,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 41,
+          "column": 58,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'ProgressToken' is declared but its value is never read."
+        },
+        {
+          "line": 45,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'validateGroupId' is declared but its value is never read."
+        },
+        {
+          "line": 54,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'createETagAwareClient' is declared but its value is never read."
+        },
+        {
+          "line": 133,
+          "column": 38,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'contractId' comes from an index signature, so it must be accessed with ['contractId']."
+        },
+        {
+          "line": 134,
+          "column": 35,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'groupId' comes from an index signature, so it must be accessed with ['groupId']."
+        },
+        {
+          "line": 142,
+          "column": 10,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 142,
+          "column": 40,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 153,
+          "column": 33,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 164,
+          "column": 5,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 227,
+          "column": 10,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 238,
+          "column": 22,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 309,
+          "column": 38,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'contractId' comes from an index signature, so it must be accessed with ['contractId']."
+        },
+        {
+          "line": 310,
+          "column": 35,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'groupId' comes from an index signature, so it must be accessed with ['groupId']."
+        },
+        {
+          "line": 319,
+          "column": 26,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 418,
+          "column": 25,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 469,
+          "column": 10,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 469,
+          "column": 38,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 481,
+          "column": 36,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 484,
+          "column": 5,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 521,
+          "column": 10,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 532,
+          "column": 21,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 666,
+          "column": 7,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ validateRules: boolean | undefined; etag: string | undefined; useStoredETag: boolean; }' is not assignable to parameter of type '{ validateRules?: boolean; etag?: string; useStoredETag?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 712,
+          "column": 9,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'error' is of type 'unknown'."
+        },
+        {
+          "line": 712,
+          "column": 33,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'error' is of type 'unknown'."
+        },
+        {
+          "line": 832,
+          "column": 30,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 927,
+          "column": 38,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'contractId' comes from an index signature, so it must be accessed with ['contractId']."
+        },
+        {
+          "line": 928,
+          "column": 35,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'groupId' comes from an index signature, so it must be accessed with ['groupId']."
+        },
+        {
+          "line": 937,
+          "column": 10,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 937,
+          "column": 43,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 948,
+          "column": 50,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 958,
+          "column": 29,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 959,
+          "column": 32,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1168,
+          "column": 27,
+          "code": "TS2554",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Expected 2-3 arguments, but got 0."
+        },
+        {
+          "line": 1169,
+          "column": 35,
+          "code": "TS2339",
+          "pattern": "Property does not exist",
+          "category": "CRITICAL",
+          "message": "Property 'updateProgress' does not exist on type 'ProgressManager'."
+        },
+        {
+          "line": 1182,
+          "column": 28,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1185,
+          "column": 35,
+          "code": "TS2339",
+          "pattern": "Property does not exist",
+          "category": "CRITICAL",
+          "message": "Property 'updateProgress' does not exist on type 'ProgressManager'."
+        },
+        {
+          "line": 1317,
+          "column": 10,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1328,
+          "column": 24,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1331,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'isComplete' is declared but its value is never read."
+        },
+        {
+          "line": 1486,
+          "column": 10,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1486,
+          "column": 41,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1499,
+          "column": 39,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1503,
+          "column": 32,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1504,
+          "column": 35,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1574,
+          "column": 25,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1575,
+          "column": 27,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1575,
+          "column": 78,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1743,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'response' is declared but its value is never read."
+        },
+        {
+          "line": 1836,
+          "column": 30,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'currentResponse' is of type 'unknown'."
+        },
+        {
+          "line": 1844,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'response' is declared but its value is never read."
+        },
+        {
+          "line": 1914,
+          "column": 10,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1914,
+          "column": 39,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1928,
+          "column": 37,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1933,
+          "column": 5,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1996,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'args' is declared but its value is never read."
+        },
+        {
+          "line": 2007,
+          "column": 10,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2007,
+          "column": 39,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2018,
+          "column": 42,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2021,
+          "column": 5,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2030,
+          "column": 45,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2057,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'args' is declared but its value is never read."
+        },
+        {
+          "line": 2071,
+          "column": 10,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2071,
+          "column": 36,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2082,
+          "column": 40,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2087,
+          "column": 5,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2092,
+          "column": 5,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2099,
+          "column": 26,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2113,
+          "column": 42,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2168,
+          "column": 10,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2168,
+          "column": 38,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2179,
+          "column": 44,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2184,
+          "column": 25,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2190,
+          "column": 30,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2196,
+          "column": 27,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2229,
+          "column": 44,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2302,
+          "column": 30,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'sourceResponse' is of type 'unknown'."
+        },
+        {
+          "line": 2333,
+          "column": 26,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2431,
+          "column": 22,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'propertyResponse' is of type 'unknown'."
+        },
+        {
+          "line": 2444,
+          "column": 21,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'versionResponse' is of type 'unknown'."
+        },
+        {
+          "line": 2526,
+          "column": 38,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'contractId' comes from an index signature, so it must be accessed with ['contractId']."
+        },
+        {
+          "line": 2527,
+          "column": 35,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'groupId' comes from an index signature, so it must be accessed with ['groupId']."
+        },
+        {
+          "line": 2535,
+          "column": 10,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2535,
+          "column": 37,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2546,
+          "column": 34,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2551,
+          "column": 5,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2627,
+          "column": 38,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'contractId' comes from an index signature, so it must be accessed with ['contractId']."
+        },
+        {
+          "line": 2628,
+          "column": 35,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'groupId' comes from an index signature, so it must be accessed with ['groupId']."
+        },
+        {
+          "line": 2637,
+          "column": 24,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2713,
+          "column": 10,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2724,
+          "column": 20,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/property-manager-tools.ts",
+      "riskScore": 3335,
+      "category": "CRITICAL",
+      "errorCount": 35,
+      "dependencyCount": 9,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/tool-registry.ts",
+        "src/tools/secure-by-default-onboarding.ts",
+        "src/tools/property-onboarding-tools.ts",
+        "src/tools/all-tools-registry.ts",
+        "src/servers/property-server.ts",
+        "src/servers/certs-server.ts",
+        "src/agents/property-production-activation.agent.ts",
+        "src/agents/property-onboarding.agent.ts",
+        "src/tools/elicitation/secure-hostname-onboarding.ts"
+      ],
+      "errors": [
+        {
+          "line": 37,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'NetworkType' is declared but its value is never read."
+        },
+        {
+          "line": 38,
+          "column": 3,
+          "code": "TS2440",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Import declaration conflicts with local declaration of 'ActivationStatus'."
+        },
+        {
+          "line": 411,
+          "column": 63,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'hostname' comes from an index signature, so it must be accessed with ['hostname']."
+        },
+        {
+          "line": 414,
+          "column": 58,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'behavior' comes from an index signature, so it must be accessed with ['behavior']."
+        },
+        {
+          "line": 417,
+          "column": 57,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'value' comes from an index signature, so it must be accessed with ['value']."
+        },
+        {
+          "line": 534,
+          "column": 9,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'rulesUpdateResponse.errors.length' is possibly 'undefined'."
+        },
+        {
+          "line": 536,
+          "column": 7,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'rulesUpdateResponse.errors' is possibly 'undefined'."
+        },
+        {
+          "line": 542,
+          "column": 9,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'rulesUpdateResponse.warnings.length' is possibly 'undefined'."
+        },
+        {
+          "line": 544,
+          "column": 7,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'rulesUpdateResponse.warnings' is possibly 'undefined'."
+        },
+        {
+          "line": 980,
+          "column": 10,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'propertyResponse' is of type 'unknown'."
+        },
+        {
+          "line": 984,
+          "column": 22,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'propertyResponse' is of type 'unknown'."
+        },
+        {
+          "line": 1256,
+          "column": 40,
+          "code": "TS2769",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "No overload matches this call."
+        },
+        {
+          "line": 1257,
+          "column": 38,
+          "code": "TS2769",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "No overload matches this call."
+        },
+        {
+          "line": 1286,
+          "column": 67,
+          "code": "TS2345",
+          "pattern": "Argument type mismatch",
+          "category": "CRITICAL",
+          "message": "Argument of type 'import(\"/Users/acedergr/Projects/alecs-mcp-server-akamai/src/types/api-responses/papi-official\").ActivationStatus | undefined' is not assignable to parameter of type 'string'."
+        },
+        {
+          "line": 1569,
+          "column": 24,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'versionsResponse' is of type 'unknown'."
+        },
+        {
+          "line": 1592,
+          "column": 24,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1610,
+          "column": 20,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'tags' comes from an index signature, so it must be accessed with ['tags']."
+        },
+        {
+          "line": 1612,
+          "column": 18,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'createdBy' comes from an index signature, so it must be accessed with ['createdBy']."
+        },
+        {
+          "line": 1613,
+          "column": 18,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'created' comes from an index signature, so it must be accessed with ['created']."
+        },
+        {
+          "line": 1690,
+          "column": 9,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'rules1Response' is of type 'unknown'."
+        },
+        {
+          "line": 1691,
+          "column": 9,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'rules2Response' is of type 'unknown'."
+        },
+        {
+          "line": 1718,
+          "column": 9,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'hostnames1Response' is of type 'unknown'."
+        },
+        {
+          "line": 1719,
+          "column": 9,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'hostnames2Response' is of type 'unknown'."
+        },
+        {
+          "line": 1793,
+          "column": 20,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 1907,
+          "column": 24,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'currentVersionResponse' is of type 'unknown'."
+        },
+        {
+          "line": 1916,
+          "column": 25,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'backupResponse' is of type 'unknown'."
+        },
+        {
+          "line": 1941,
+          "column": 26,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'rollbackResponse' is of type 'unknown'."
+        },
+        {
+          "line": 2043,
+          "column": 46,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'targetVersion' comes from an index signature, so it must be accessed with ['targetVersion']."
+        },
+        {
+          "line": 2050,
+          "column": 41,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'version1' comes from an index signature, so it must be accessed with ['version1']."
+        },
+        {
+          "line": 2051,
+          "column": 41,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'version2' comes from an index signature, so it must be accessed with ['version2']."
+        },
+        {
+          "line": 2110,
+          "column": 46,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'targetVersion' comes from an index signature, so it must be accessed with ['targetVersion']."
+        },
+        {
+          "line": 2117,
+          "column": 41,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'version1' comes from an index signature, so it must be accessed with ['version1']."
+        },
+        {
+          "line": 2118,
+          "column": 41,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'version2' comes from an index signature, so it must be accessed with ['version2']."
+        },
+        {
+          "line": 2304,
+          "column": 12,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 2309,
+          "column": 26,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/dns-tools.ts",
+      "riskScore": 2830,
+      "category": "CRITICAL",
+      "errorCount": 29,
+      "dependencyCount": 10,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/tool-registry.ts",
+        "src/tools/property-onboarding-tools.ts",
+        "src/tools/dns-migration-tools.ts",
+        "src/tools/cps-dns-integration.ts",
+        "src/tools/all-tools-registry.ts",
+        "src/services/certificate-enrollment-service.ts",
+        "src/servers/dns-server.ts",
+        "src/agents/property-onboarding.agent.ts",
+        "src/tools/elicitation/secure-hostname-onboarding.ts",
+        "src/tools/elicitation/dns-elicitation-tool.ts"
+      ],
+      "errors": [
+        {
+          "line": 27,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'isEdgeDNSChangeListResponse' is declared but its value is never read."
+        },
+        {
+          "line": 36,
+          "column": 8,
+          "code": "TS2724",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'\"../types/api-responses/edge-dns-zones\"' has no exported member named 'EdgeDNSChangeListMetadata'. Did you mean 'EdgeDNSChangeListMetadataSchema'?"
+        },
+        {
+          "line": 50,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'DNS_OPERATION_LOG' comes from an index signature, so it must be accessed with ['DNS_OPERATION_LOG']."
+        },
+        {
+          "line": 52,
+          "column": 32,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'requestId' comes from an index signature, so it must be accessed with ['requestId']."
+        },
+        {
+          "line": 90,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'contractIds' comes from an index signature, so it must be accessed with ['contractIds']."
+        },
+        {
+          "line": 93,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'includeAliases' comes from an index signature, so it must be accessed with ['includeAliases']."
+        },
+        {
+          "line": 96,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'search' comes from an index signature, so it must be accessed with ['search']."
+        },
+        {
+          "line": 101,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'sortBy' comes from an index signature, so it must be accessed with ['sortBy']."
+        },
+        {
+          "line": 104,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'order' comes from an index signature, so it must be accessed with ['order']."
+        },
+        {
+          "line": 107,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'limit' comes from an index signature, so it must be accessed with ['limit']."
+        },
+        {
+          "line": 110,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'offset' comes from an index signature, so it must be accessed with ['offset']."
+        },
+        {
+          "line": 262,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'contractId' comes from an index signature, so it must be accessed with ['contractId']."
+        },
+        {
+          "line": 265,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'gid' comes from an index signature, so it must be accessed with ['gid']."
+        },
+        {
+          "line": 306,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'search' comes from an index signature, so it must be accessed with ['search']."
+        },
+        {
+          "line": 309,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'types' comes from an index signature, so it must be accessed with ['types']."
+        },
+        {
+          "line": 429,
+          "column": 19,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'rawResponse' is of type 'unknown'."
+        },
+        {
+          "line": 447,
+          "column": 12,
+          "code": "TS2304",
+          "pattern": "Cannot find name",
+          "category": "HIGH",
+          "message": "Cannot find name 'ZoneSubmitResponse'."
+        },
+        {
+          "line": 481,
+          "column": 19,
+          "code": "TS2304",
+          "pattern": "Cannot find name",
+          "category": "HIGH",
+          "message": "Cannot find name 'ZoneSubmitResponse'."
+        },
+        {
+          "line": 515,
+          "column": 37,
+          "code": "TS2304",
+          "pattern": "Cannot find name",
+          "category": "HIGH",
+          "message": "Cannot find name 'ZoneSubmitResponse'."
+        },
+        {
+          "line": 570,
+          "column": 17,
+          "code": "TS7006",
+          "pattern": "Parameter implicitly any",
+          "category": "HIGH",
+          "message": "Parameter 'e' implicitly has an 'any' type."
+        },
+        {
+          "line": 577,
+          "column": 53,
+          "code": "TS7006",
+          "pattern": "Parameter implicitly any",
+          "category": "HIGH",
+          "message": "Parameter 'w' implicitly has an 'any' type."
+        },
+        {
+          "line": 714,
+          "column": 12,
+          "code": "TS2304",
+          "pattern": "Cannot find name",
+          "category": "HIGH",
+          "message": "Cannot find name 'ZoneActivationStatus'."
+        },
+        {
+          "line": 909,
+          "column": 55,
+          "code": "TS2345",
+          "pattern": "Argument type mismatch",
+          "category": "CRITICAL",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'."
+        },
+        {
+          "line": 979,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'changelistResponse' is declared but its value is never read."
+        },
+        {
+          "line": 1055,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'changelistResponse' is declared but its value is never read."
+        },
+        {
+          "line": 1171,
+          "column": 63,
+          "code": "TS2345",
+          "pattern": "Argument type mismatch",
+          "category": "CRITICAL",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'."
+        },
+        {
+          "line": 1176,
+          "column": 7,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'changelist.recordSets' is possibly 'undefined'."
+        },
+        {
+          "line": 1181,
+          "column": 7,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'changelist.recordSets' is possibly 'undefined'."
+        },
+        {
+          "line": 1189,
+          "column": 84,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ validateOnly: boolean | undefined; waitForActivation: boolean | undefined; timeout: number | undefined; }' is not assignable to parameter of type 'ZoneActivationOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/rule-tree-management.ts",
+      "riskScore": 1762,
+      "category": "HIGH",
+      "errorCount": 28,
+      "dependencyCount": 3,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/tool-registry.ts",
+        "src/tools/all-tools-registry.ts",
+        "src/servers/property-server.ts"
+      ],
+      "errors": [
+        {
+          "line": 94,
+          "column": 7,
+          "code": "TS7022",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'RuleTreeRuleSchema' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer."
+        },
+        {
+          "line": 94,
+          "column": 35,
+          "code": "TS7024",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Function implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions."
+        },
+        {
+          "line": 105,
+          "column": 7,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'PropertyRulesSchema' is declared but its value is never read."
+        },
+        {
+          "line": 419,
+          "column": 7,
+          "code": "TS2739",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Type 'RuleTreeRule' is missing the following properties from type 'PropertyRules': rules, ruleFormat"
+        },
+        {
+          "line": 419,
+          "column": 43,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type 'PropertyRules' is not assignable to parameter of type 'RuleTreeRule' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 560,
+          "column": 47,
+          "code": "TS2345",
+          "pattern": "Argument type mismatch",
+          "category": "HIGH",
+          "message": "Argument of type 'RuleTreeRule' is not assignable to parameter of type 'RuleTemplate'."
+        },
+        {
+          "line": 563,
+          "column": 57,
+          "code": "TS2345",
+          "pattern": "Argument type mismatch",
+          "category": "HIGH",
+          "message": "Argument of type 'RuleTemplate' is not assignable to parameter of type 'PropertyRules'."
+        },
+        {
+          "line": 740,
+          "column": 42,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type 'PropertyRules' is not assignable to parameter of type 'RuleTreeRule' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 743,
+          "column": 57,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type 'RuleTreeRule' is not assignable to parameter of type 'PropertyRules' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 844,
+          "column": 45,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type 'PropertyRules' is not assignable to parameter of type 'RuleTreeRule' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 847,
+          "column": 49,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type 'PropertyRules' is not assignable to parameter of type 'RuleTreeRule' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 854,
+          "column": 47,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type 'PropertyRules' is not assignable to parameter of type 'RuleTreeRule' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 1022,
+          "column": 14,
+          "code": "TS2339",
+          "pattern": "Property does not exist",
+          "category": "HIGH",
+          "message": "Property 'name' does not exist on type 'PropertyRules'."
+        },
+        {
+          "line": 1033,
+          "column": 20,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type 'PropertyRules' is not assignable to parameter of type 'RuleTreeRule' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 1036,
+          "column": 54,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type 'PropertyRules' is not assignable to parameter of type 'RuleTreeRule' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 1037,
+          "column": 52,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type 'PropertyRules' is not assignable to parameter of type 'RuleTreeRule' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 1157,
+          "column": 15,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'behavior' comes from an index signature, so it must be accessed with ['behavior']."
+        },
+        {
+          "line": 1167,
+          "column": 15,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'behavior' comes from an index signature, so it must be accessed with ['behavior']."
+        },
+        {
+          "line": 1167,
+          "column": 49,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'ttl' comes from an index signature, so it must be accessed with ['ttl']."
+        },
+        {
+          "line": 1168,
+          "column": 33,
+          "code": "TS2345",
+          "pattern": "Argument type mismatch",
+          "category": "HIGH",
+          "message": "Argument of type '{}' is not assignable to parameter of type 'string'."
+        },
+        {
+          "line": 1168,
+          "column": 41,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'ttl' comes from an index signature, so it must be accessed with ['ttl']."
+        },
+        {
+          "line": 1191,
+          "column": 15,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'behavior' comes from an index signature, so it must be accessed with ['behavior']."
+        },
+        {
+          "line": 1211,
+          "column": 16,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'enabled' comes from an index signature, so it must be accessed with ['enabled']."
+        },
+        {
+          "line": 1581,
+          "column": 9,
+          "code": "TS2322",
+          "pattern": "Type assignment error",
+          "category": "HIGH",
+          "message": "Type '\"security\" | \"performance\" | \"compliance\" | \"optimization\"' is not assignable to type '\"security\" | \"performance\" | \"caching\" | \"consolidation\" | \"reordering\" | \"compression\"'."
+        },
+        {
+          "line": 1829,
+          "column": 5,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'rules.behaviors' is possibly 'undefined'."
+        },
+        {
+          "line": 1843,
+          "column": 5,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'rules.behaviors' is possibly 'undefined'."
+        },
+        {
+          "line": 1858,
+          "column": 5,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'rules.behaviors' is possibly 'undefined'."
+        },
+        {
+          "line": 1870,
+          "column": 5,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'rules.behaviors' is possibly 'undefined'."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/cps-tools.ts",
+      "riskScore": 1020,
+      "category": "HIGH",
+      "errorCount": 12,
+      "dependencyCount": 7,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/tool-registry.ts",
+        "src/tools/cps-dns-integration.ts",
+        "src/tools/certificate-enrollment-tools.ts",
+        "src/tools/all-tools-registry.ts",
+        "src/services/certificate-enrollment-service.ts",
+        "src/servers/certs-server.ts",
+        "src/tools/elicitation/secure-hostname-onboarding.ts"
+      ],
+      "errors": [
+        {
+          "line": 568,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'contractId' comes from an index signature, so it must be accessed with ['contractId']."
+        },
+        {
+          "line": 609,
+          "column": 28,
+          "code": "TS2552",
+          "pattern": "Cannot find name suggestion",
+          "category": "HIGH",
+          "message": "Cannot find name 'CPSEnrollmentMetadata'. Did you mean 'CPSEnrollmentStatus'?"
+        },
+        {
+          "line": 609,
+          "column": 66,
+          "code": "TS2552",
+          "pattern": "Cannot find name suggestion",
+          "category": "HIGH",
+          "message": "Cannot find name 'CPSEnrollmentMetadata'. Did you mean 'CPSEnrollmentStatus'?"
+        },
+        {
+          "line": 754,
+          "column": 46,
+          "code": "TS2552",
+          "pattern": "Cannot find name suggestion",
+          "category": "HIGH",
+          "message": "Cannot find name 'CPSEnrollmentMetadata'. Did you mean 'CPSEnrollmentStatus'?"
+        },
+        {
+          "line": 779,
+          "column": 62,
+          "code": "TS7006",
+          "pattern": "Parameter implicitly any",
+          "category": "HIGH",
+          "message": "Parameter 'd' implicitly has an 'any' type."
+        },
+        {
+          "line": 922,
+          "column": 7,
+          "code": "TS2353",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object literal may only specify known properties, and 'certificate' does not exist in type 'CSRRequest'."
+        },
+        {
+          "line": 930,
+          "column": 19,
+          "code": "TS2339",
+          "pattern": "Property does not exist",
+          "category": "HIGH",
+          "message": "Property 'trustChain' does not exist on type 'CSRRequest'."
+        },
+        {
+          "line": 1026,
+          "column": 18,
+          "code": "TS2304",
+          "pattern": "Cannot find name",
+          "category": "HIGH",
+          "message": "Cannot find name 'PropertyHostname'."
+        },
+        {
+          "line": 1029,
+          "column": 11,
+          "code": "TS2739",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Type '{ changeManagement?: boolean; networkConfiguration?: any; techContact?: Contact; adminContact?: Contact; csr?: any; }' is missing the following properties from type 'PropertyUpdatePayload': propertyVersion, hostnames"
+        },
+        {
+          "line": 1034,
+          "column": 29,
+          "code": "TS2339",
+          "pattern": "Property does not exist",
+          "category": "HIGH",
+          "message": "Property 'csr' does not exist on type '{ status: string; validationType: string; certificateType: string; enrollment: string; ra: string; pendingChanges: string[]; enrollmentId: number; allowedDomains: { status: string; name: string; validationStatus: string; validationDetails?: { ...; } | undefined; }[]; autoRenewalStartTime?: string | undefined; }'."
+        },
+        {
+          "line": 1040,
+          "column": 29,
+          "code": "TS2339",
+          "pattern": "Property does not exist",
+          "category": "HIGH",
+          "message": "Property 'csr' does not exist on type '{ status: string; validationType: string; certificateType: string; enrollment: string; ra: string; pendingChanges: string[]; enrollmentId: number; allowedDomains: { status: string; name: string; validationStatus: string; validationDetails?: { ...; } | undefined; }[]; autoRenewalStartTime?: string | undefined; }'."
+        },
+        {
+          "line": 1048,
+          "column": 29,
+          "code": "TS2339",
+          "pattern": "Property does not exist",
+          "category": "HIGH",
+          "message": "Property 'networkConfiguration' does not exist on type '{ status: string; validationType: string; certificateType: string; enrollment: string; ra: string; pendingChanges: string[]; enrollmentId: number; allowedDomains: { status: string; name: string; validationStatus: string; validationDetails?: { ...; } | undefined; }[]; autoRenewalStartTime?: string | undefined; }'."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/property-tools.ts",
+      "riskScore": 912,
+      "category": "HIGH",
+      "errorCount": 15,
+      "dependencyCount": 9,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/tool-registry.ts",
+        "src/tools/secure-by-default-onboarding.ts",
+        "src/tools/property-onboarding-tools.ts",
+        "src/tools/debug-secure-onboarding.ts",
+        "src/tools/all-tools-registry.ts",
+        "src/servers/property-server.ts",
+        "src/agents/property-production-activation.agent.ts",
+        "src/agents/property-onboarding.agent.ts",
+        "src/tools/elicitation/secure-hostname-onboarding.ts"
+      ],
+      "errors": [
+        {
+          "line": 49,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'formatGroupDisplay' is declared but its value is never read."
+        },
+        {
+          "line": 50,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'formatPropertyDisplay' is declared but its value is never read."
+        },
+        {
+          "line": 60,
+          "column": 1,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'parseAkamaiResponse' is declared but its value is never read."
+        },
+        {
+          "line": 62,
+          "column": 1,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'BaseToolArgs' is declared but its value is never read."
+        },
+        {
+          "line": 67,
+          "column": 37,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'Property' is declared but its value is never read."
+        },
+        {
+          "line": 100,
+          "column": 10,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'formatDate' is declared but its value is never read."
+        },
+        {
+          "line": 296,
+          "column": 9,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ operation: string; endpoint: string; apiType: \"papi\"; customer: string | undefined; }' is not assignable to type 'ErrorContext' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 305,
+          "column": 43,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ groupId: string; includeSubgroups: true; customer: string | undefined; }' is not assignable to parameter of type '{ groupId: string; includeSubgroups?: boolean; customer?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 504,
+          "column": 9,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ operation: string; endpoint: string; apiType: \"papi\"; customer: string | undefined; }' is not assignable to type 'ErrorContext' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 1052,
+          "column": 52,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'match' is possibly 'undefined'."
+        },
+        {
+          "line": 1052,
+          "column": 85,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'match' is possibly 'undefined'."
+        },
+        {
+          "line": 1053,
+          "column": 56,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'match' is possibly 'undefined'."
+        },
+        {
+          "line": 1053,
+          "column": 83,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'match' is possibly 'undefined'."
+        },
+        {
+          "line": 1178,
+          "column": 15,
+          "code": "TS2322",
+          "pattern": "Type assignment error",
+          "category": "HIGH",
+          "message": "Type 'string | undefined' is not assignable to type 'string'."
+        },
+        {
+          "line": 1873,
+          "column": 9,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ operation: string; endpoint: string; apiType: \"papi\"; customer: string | undefined; }' is not assignable to type 'ErrorContext' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/property-error-handling-tools.ts",
+      "riskScore": 810,
+      "category": "HIGH",
+      "errorCount": 18,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 116,
+          "column": 4,
+          "code": "TS1360",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Type 'ZodObject<{ type: ZodString; messageId: ZodString; title: ZodString; detail: ZodString; errorLocation: ZodOptional<ZodString>; behaviorName: ZodOptional<...>; instanceName: ZodOptional<...>; }, \"strip\", ZodTypeAny, { ...; }, { ...; }>' does not satisfy the expected type 'ZodType<PropertyError, ZodTypeDef, PropertyError>'."
+        },
+        {
+          "line": 126,
+          "column": 4,
+          "code": "TS1360",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Type 'ZodObject<{ type: ZodString; messageId: ZodString; title: ZodString; detail: ZodString; errorLocation: ZodOptional<ZodString>; behaviorName: ZodOptional<...>; instanceName: ZodOptional<...>; }, \"strip\", ZodTypeAny, { ...; }, { ...; }>' does not satisfy the expected type 'ZodType<PropertyWarning, ZodTypeDef, PropertyWarning>'."
+        },
+        {
+          "line": 132,
+          "column": 4,
+          "code": "TS1360",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Type 'ZodObject<{ ruleFormat: ZodOptional<ZodString>; errors: ZodOptional<ZodArray<ZodObject<{ type: ZodString; messageId: ZodString; title: ZodString; detail: ZodString; errorLocation: ZodOptional<...>; behaviorName: ZodOptional<...>; instanceName: ZodOptional<...>; }, \"strip\", ZodTypeAny, { ...; }, { ...; }>, \"many\">>; ...' does not satisfy the expected type 'ZodType<PropertyVersionItem, ZodTypeDef, PropertyVersionItem>'."
+        },
+        {
+          "line": 138,
+          "column": 17,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'versions' comes from an index signature, so it must be accessed with ['versions']."
+        },
+        {
+          "line": 138,
+          "column": 45,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'versions' comes from an index signature, so it must be accessed with ['versions']."
+        },
+        {
+          "line": 139,
+          "column": 29,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'versions' comes from an index signature, so it must be accessed with ['versions']."
+        },
+        {
+          "line": 140,
+          "column": 31,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'items' comes from an index signature, so it must be accessed with ['items']."
+        },
+        {
+          "line": 141,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'items' comes from an index signature, so it must be accessed with ['items']."
+        },
+        {
+          "line": 149,
+          "column": 17,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'hostnames' comes from an index signature, so it must be accessed with ['hostnames']."
+        },
+        {
+          "line": 150,
+          "column": 23,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'hostnames' comes from an index signature, so it must be accessed with ['hostnames']."
+        },
+        {
+          "line": 151,
+          "column": 30,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'hostnames' comes from an index signature, so it must be accessed with ['hostnames']."
+        },
+        {
+          "line": 152,
+          "column": 34,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'items' comes from an index signature, so it must be accessed with ['items']."
+        },
+        {
+          "line": 152,
+          "column": 54,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'items' comes from an index signature, so it must be accessed with ['items']."
+        },
+        {
+          "line": 319,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'validationResponse' is declared but its value is never read."
+        },
+        {
+          "line": 319,
+          "column": 66,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ propertyId: string; version: number; contractId: string; groupId: string; validateRules: true; validateHostnames: true; customer: string | undefined; }' is not assignable to parameter of type '{ propertyId: string; version: number; contractId: string; groupId: string; validateRules?: boolean; validateHostnames?: boolean; customer?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 405,
+          "column": 17,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'errorType' is declared but its value is never read."
+        },
+        {
+          "line": 468,
+          "column": 41,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ propertyId: string; version: number; contractId: string; groupId: string; validateRules: boolean; validateHostnames: boolean; customer: string | undefined; }' is not assignable to parameter of type '{ propertyId: string; version: number; contractId: string; groupId: string; validateRules?: boolean; validateHostnames?: boolean; customer?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 554,
+          "column": 28,
+          "code": "TS7006",
+          "pattern": "Parameter implicitly any",
+          "category": "HIGH",
+          "message": "Parameter 'hostname' implicitly has an 'any' type."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/dns-dnssec-operations.ts",
+      "riskScore": 721,
+      "category": "CRITICAL",
+      "errorCount": 9,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/all-tools-registry.ts"
+      ],
+      "errors": [
+        {
+          "line": 66,
+          "column": 4,
+          "code": "TS1360",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Type 'ZodObject<{ signAndServe: ZodBoolean; signAndServeAlgorithm: ZodOptional<ZodEnum<[\"RSA_SHA1\", \"RSA_SHA256\", \"RSA_SHA512\", \"ECDSA_P256_SHA256\", \"ECDSA_P384_SHA384\", \"ED25519\", \"ED448\"]>>; nsec3: ZodOptional<...>; }, \"strip\", ZodTypeAny, { ...; }, { ...; }>' does not satisfy the expected type 'ZodType<DNSSECConfig, ZodTypeDef, DNSSECConfig>'."
+        },
+        {
+          "line": 89,
+          "column": 4,
+          "code": "TS1360",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Type 'ZodObject<{ keyId: ZodNumber; keyType: ZodEnum<[\"KSK\", \"ZSK\"]>; algorithm: ZodString; keyTag: ZodNumber; publicKey: ZodString; createdDate: ZodString; expiryDate: ZodOptional<...>; status: ZodEnum<...>; }, \"strip\", ZodTypeAny, { ...; }, { ...; }>' does not satisfy the expected type 'ZodType<DNSSECKey, ZodTypeDef, DNSSECKey>'."
+        },
+        {
+          "line": 119,
+          "column": 7,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'DNSSECValidationSchema' is declared but its value is never read."
+        },
+        {
+          "line": 190,
+          "column": 7,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ enabled: true; salt: string | undefined; iterations: number; }' is not assignable to type '{ enabled: boolean; salt?: string; iterations?: number; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 338,
+          "column": 47,
+          "code": "TS2345",
+          "pattern": "Argument type mismatch",
+          "category": "CRITICAL",
+          "message": "Argument of type 'number' is not assignable to parameter of type 'string'."
+        },
+        {
+          "line": 352,
+          "column": 47,
+          "code": "TS2345",
+          "pattern": "Argument type mismatch",
+          "category": "CRITICAL",
+          "message": "Argument of type 'number' is not assignable to parameter of type 'string'."
+        },
+        {
+          "line": 417,
+          "column": 45,
+          "code": "TS2345",
+          "pattern": "Argument type mismatch",
+          "category": "CRITICAL",
+          "message": "Argument of type 'number' is not assignable to parameter of type 'string'."
+        },
+        {
+          "line": 418,
+          "column": 47,
+          "code": "TS2345",
+          "pattern": "Argument type mismatch",
+          "category": "CRITICAL",
+          "message": "Argument of type 'number' is not assignable to parameter of type 'string'."
+        },
+        {
+          "line": 419,
+          "column": 49,
+          "code": "TS2345",
+          "pattern": "Argument type mismatch",
+          "category": "CRITICAL",
+          "message": "Argument of type 'number' is not assignable to parameter of type 'string'."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/edgegrid-client.ts",
+      "riskScore": 700,
+      "category": "HIGH",
+      "errorCount": 5,
+      "dependencyCount": 4,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/services/TrafficAnalyticsService.ts",
+        "src/services/ReportingService.ts",
+        "src/services/RealTimeMonitoringService.ts",
+        "src/services/FastPurgeService.ts"
+      ],
+      "errors": [
+        {
+          "line": 186,
+          "column": 28,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ path: string; method: string; queryParams: Record<string, string> | undefined; }' is not assignable to parameter of type 'EdgeGridRequestOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 190,
+          "column": 28,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ path: string; method: string; body: any; queryParams: Record<string, string> | undefined; }' is not assignable to parameter of type 'EdgeGridRequestOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 194,
+          "column": 28,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ path: string; method: string; body: any; queryParams: Record<string, string> | undefined; }' is not assignable to parameter of type 'EdgeGridRequestOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 198,
+          "column": 28,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ path: string; method: string; queryParams: Record<string, string> | undefined; }' is not assignable to parameter of type 'EdgeGridRequestOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 202,
+          "column": 28,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ path: string; method: string; body: any; queryParams: Record<string, string> | undefined; }' is not assignable to parameter of type 'EdgeGridRequestOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/dns-operations-priority.ts",
+      "riskScore": 699,
+      "category": "HIGH",
+      "errorCount": 19,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/all-tools-registry.ts"
+      ],
+      "errors": [
+        {
+          "line": 22,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'EdgeDNSValidationError' is declared but its value is never read."
+        },
+        {
+          "line": 23,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'EdgeDNSChangeListMetadataSchema' is declared but its value is never read."
+        },
+        {
+          "line": 24,
+          "column": 8,
+          "code": "TS2724",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'\"../types/api-responses/edge-dns-zones\"' has no exported member named 'EdgeDNSChangeListMetadata'. Did you mean 'EdgeDNSChangeListMetadataSchema'?"
+        },
+        {
+          "line": 52,
+          "column": 4,
+          "code": "TS1360",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Type 'ZodObject<{ contracts: ZodArray<ZodObject<{ contractId: ZodString; authorities: ZodArray<ZodString, \"many\">; modernAuthorities: ZodOptional<ZodArray<ZodString, \"many\">>; }, \"strip\", ZodTypeAny, { ...; }, { ...; }>, \"many\">; }, \"strip\", ZodTypeAny, { ...; }, { ...; }>' does not satisfy the expected type 'ZodType<AuthoritiesResponse, ZodTypeDef, AuthoritiesResponse>'."
+        },
+        {
+          "line": 81,
+          "column": 4,
+          "code": "TS1360",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Type 'ZodObject<{ contracts: ZodArray<ZodObject<{ contractId: ZodString; contractName: ZodOptional<ZodString>; contractTypeName: ZodOptional<ZodString>; features: ZodOptional<...>; permissions: ZodOptional<...>; zoneCount: ZodOptional<...>; maximumZones: ZodOptional<...>; }, \"strip\", ZodTypeAny, { ...; }, { ...; }>, \"many...' does not satisfy the expected type 'ZodType<ContractsResponse, ZodTypeDef, ContractsResponse>'."
+        },
+        {
+          "line": 104,
+          "column": 4,
+          "code": "TS1360",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Type 'ZodObject<{ recordTypes: ZodOptional<ZodArray<ZodObject<{ type: ZodString; description: ZodString; allowedInApex: ZodBoolean; }, \"strip\", ZodTypeAny, { type: string; description: string; allowedInApex: boolean; }, { ...; }>, \"many\">>; types: ZodOptional<...>; }, \"strip\", ZodTypeAny, { ...; }, { ...; }>' does not satisfy the expected type 'ZodType<RecordTypesResponse, ZodTypeDef, RecordTypesResponse>'."
+        },
+        {
+          "line": 168,
+          "column": 4,
+          "code": "TS1360",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Type 'ZodObject<{ zone: ZodString; additions: ZodOptional<ZodArray<ZodObject<{ name: ZodString; type: ZodString; ttl: ZodNumber; rdata: ZodArray<ZodString, \"many\">; }, \"strip\", ZodTypeAny, { ...; }, { ...; }>, \"many\">>; modifications: ZodOptional<...>; deletions: ZodOptional<...>; }, \"strip\", ZodTypeAny, { ...; }, { ...; }>' does not satisfy the expected type 'ZodType<ChangeListDiff, ZodTypeDef, ChangeListDiff>'."
+        },
+        {
+          "line": 181,
+          "column": 7,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'TSIGKeySchema' is declared but its value is never read."
+        },
+        {
+          "line": 187,
+          "column": 4,
+          "code": "TS1360",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Type 'ZodObject<{ keyId: ZodString; keyName: ZodString; algorithm: ZodString; secret: ZodOptional<ZodString>; zones: ZodOptional<ZodArray<ZodString, \"many\">>; }, \"strip\", ZodTypeAny, { ...; }, { ...; }>' does not satisfy the expected type 'ZodType<TSIGKey, ZodTypeDef, TSIGKey>'."
+        },
+        {
+          "line": 245,
+          "column": 32,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'page' comes from an index signature, so it must be accessed with ['page']."
+        },
+        {
+          "line": 246,
+          "column": 36,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'pageSize' comes from an index signature, so it must be accessed with ['pageSize']."
+        },
+        {
+          "line": 247,
+          "column": 35,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'showAll' comes from an index signature, so it must be accessed with ['showAll']."
+        },
+        {
+          "line": 259,
+          "column": 26,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 324,
+          "column": 22,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 441,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'args' is declared but its value is never read."
+        },
+        {
+          "line": 501,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'args' is declared but its value is never read."
+        },
+        {
+          "line": 567,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'args' is declared but its value is never read."
+        },
+        {
+          "line": 783,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'args' is declared but its value is never read."
+        },
+        {
+          "line": 798,
+          "column": 19,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/analysis/todo-generator.ts",
+      "riskScore": 660,
+      "category": "HIGH",
+      "errorCount": 12,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/analysis/index.ts"
+      ],
+      "errors": [
+        {
+          "line": 649,
+          "column": 9,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ impactLevel: \"MEDIUM\" | \"HIGH\" | \"CRITICAL\"; affectedFeatures: string[]; failureRate: number | undefined; suggestedActions: string[]; }' is not assignable to type 'TodoDetails' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 796,
+          "column": 9,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 796,
+          "column": 50,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 801,
+          "column": 14,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 801,
+          "column": 53,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 807,
+          "column": 28,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 820,
+          "column": 7,
+          "code": "TS2412",
+          "pattern": "exactOptionalPropertyTypes assignment",
+          "category": "HIGH",
+          "message": "Type 'EffortEstimate | undefined' is not assignable to type 'EffortEstimate' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+        },
+        {
+          "line": 821,
+          "column": 7,
+          "code": "TS2412",
+          "pattern": "exactOptionalPropertyTypes assignment",
+          "category": "HIGH",
+          "message": "Type 'PriorityConfig | undefined' is not assignable to type 'PriorityConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+        },
+        {
+          "line": 822,
+          "column": 7,
+          "code": "TS2412",
+          "pattern": "exactOptionalPropertyTypes assignment",
+          "category": "HIGH",
+          "message": "Type 'TaskType | undefined' is not assignable to type 'TaskType' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+        },
+        {
+          "line": 855,
+          "column": 9,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 931,
+          "column": 16,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'effort' is possibly 'undefined'."
+        },
+        {
+          "line": 931,
+          "column": 37,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'priority' is possibly 'undefined'."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/property-onboarding-tools.ts",
+      "riskScore": 650,
+      "category": "HIGH",
+      "errorCount": 10,
+      "dependencyCount": 3,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/tool-registry.ts",
+        "src/tools/all-tools-registry.ts",
+        "src/servers/property-server.ts"
+      ],
+      "errors": [
+        {
+          "line": 43,
+          "column": 9,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ operation: string; endpoint: string; apiType: \"papi\"; customer: string | undefined; }' is not assignable to type 'ErrorContext' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 57,
+          "column": 11,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ hostname: string; originHostname: string | undefined; contractId: string | undefined; groupId: string | undefined; productId: string | undefined; network: \"STANDARD_TLS\" | \"ENHANCED_TLS\" | \"SHARED_CERT\" | undefined; ... 5 more ...; useCase: \"download\" | ... 3 more ... | \"basic-web\"; }' is not assignable to type 'OnboardingConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 88,
+          "column": 9,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ operation: string; endpoint: string; apiType: \"papi\"; customer: string | undefined; }' is not assignable to type 'ErrorContext' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 101,
+          "column": 11,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ hostname: string; customer: string | undefined; useCase: \"web-app\"; }' is not assignable to type 'OnboardingConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 124,
+          "column": 9,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ operation: string; endpoint: string; apiType: \"papi\"; customer: string | undefined; }' is not assignable to type 'ErrorContext' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 150,
+          "column": 61,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ customer: string | undefined; }' is not assignable to parameter of type '{ contractId?: string; groupId?: string; limit?: number; customer?: string; includeSubgroups?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 154,
+          "column": 28,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 166,
+          "column": 67,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ customer: string | undefined; }' is not assignable to parameter of type '{ contractId?: string; groupId?: string; customer?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 169,
+          "column": 28,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 187,
+          "column": 28,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/property-search-optimized.ts",
+      "riskScore": 605,
+      "category": "HIGH",
+      "errorCount": 11,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/servers/property-server.ts"
+      ],
+      "errors": [
+        {
+          "line": 108,
+          "column": 45,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ propertyName?: string; hostname?: string; contractId?: string; groupId?: string; customer?: string; }' is not assignable to parameter of type '{ hostname: string; contractId?: string; groupId?: string; customer?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 169,
+          "column": 28,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 177,
+          "column": 22,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'groupsResponse' is of type 'unknown'."
+        },
+        {
+          "line": 192,
+          "column": 41,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 208,
+          "column": 27,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'hostnamesResponse' is of type 'unknown'."
+        },
+        {
+          "line": 288,
+          "column": 20,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'groupsResponse' is of type 'unknown'."
+        },
+        {
+          "line": 306,
+          "column": 30,
+          "code": "TS18046",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'response' is of type 'unknown'."
+        },
+        {
+          "line": 383,
+          "column": 63,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'prop' is possibly 'undefined'."
+        },
+        {
+          "line": 384,
+          "column": 67,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'prop' is possibly 'undefined'."
+        },
+        {
+          "line": 384,
+          "column": 95,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'prop' is possibly 'undefined'."
+        },
+        {
+          "line": 385,
+          "column": 76,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'prop' is possibly 'undefined'."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/property-activation-advanced.ts",
+      "riskScore": 446,
+      "category": "HIGH",
+      "errorCount": 9,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/servers/property-server.ts"
+      ],
+      "errors": [
+        {
+          "line": 11,
+          "column": 24,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'ToolError' is declared but its value is never read."
+        },
+        {
+          "line": 116,
+          "column": 3,
+          "code": "TS2322",
+          "pattern": "Type assignment error",
+          "category": "HIGH",
+          "message": "Type '{ content: { type: string; text: string; }[]; } | { content: { type: \"text\"; text: string; }[]; }' is not assignable to type 'MCPToolResponse'."
+        },
+        {
+          "line": 126,
+          "column": 13,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type 'AxiosRequestConfig<any>' is not assignable to parameter of type '{ path: string; method?: string; body?: unknown; headers?: Record<string, string>; queryParams?: Record<string, string>; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 127,
+          "column": 15,
+          "code": "TS2353",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object literal may only specify known properties, and 'path' does not exist in type 'AxiosRequestConfig<any>'."
+        },
+        {
+          "line": 152,
+          "column": 7,
+          "code": "TS2353",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object literal may only specify known properties, and 'customer' does not exist in type '{ path: string; method?: string; body?: unknown; headers?: Record<string, string>; queryParams?: Record<string, string>; }'."
+        },
+        {
+          "line": 184,
+          "column": 7,
+          "code": "TS2353",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object literal may only specify known properties, and 'customer' does not exist in type '{ path: string; method?: string; body?: unknown; headers?: Record<string, string>; queryParams?: Record<string, string>; }'."
+        },
+        {
+          "line": 190,
+          "column": 37,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ name: string; status: \"FAILED\" | \"PASSED\"; message: string; details: string | undefined; }' is not assignable to parameter of type 'PreflightCheck' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 313,
+          "column": 9,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ operationType: OperationType.PROPERTY_VALIDATION; toolName: string; operationName: string; timeout: number | undefined; context: BaseToolArgs & { propertyId: string; version?: number; network: \"STAGING\" | \"PRODUCTION\"; }; }' is not assignable to parameter of type '{ operationType: OperationType; toolName: string; operationName: string; timeout?: number; context?: BaseToolArgs & Record<string, any>; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 357,
+          "column": 73,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ propertyId: string; version: number | undefined; network: \"STAGING\" | \"PRODUCTION\"; }' is not assignable to parameter of type 'BaseToolArgs & { propertyId: string; version?: number; network: \"STAGING\" | \"PRODUCTION\"; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/errors.ts",
+      "riskScore": 440,
+      "category": "HIGH",
+      "errorCount": 4,
+      "dependencyCount": 12,
+      "isLeaf": false,
+      "isRoot": true,
+      "importedBy": [
+        "src/utils/resilience-manager.ts",
+        "src/utils/index.ts",
+        "src/utils/error-handling.ts",
+        "src/tools/rule-tree-advanced.ts",
+        "src/tools/property-version-management.ts",
+        "src/tools/property-operations-advanced.ts",
+        "src/tools/property-activation-advanced.ts",
+        "src/tools/hostname-management-advanced.ts",
+        "src/tools/fastpurge-tools.ts",
+        "src/tools/edge-hostname-management.ts",
+        "src/tools/bulk-operations-manager.ts",
+        "src/services/FastPurgeService.ts"
+      ],
+      "errors": [
+        {
+          "line": 133,
+          "column": 30,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'propertyId' comes from an index signature, so it must be accessed with ['propertyId']."
+        },
+        {
+          "line": 397,
+          "column": 5,
+          "code": "TS2412",
+          "pattern": "exactOptionalPropertyTypes assignment",
+          "category": "HIGH",
+          "message": "Type 'number | undefined' is not assignable to type 'number' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+        },
+        {
+          "line": 398,
+          "column": 5,
+          "code": "TS2412",
+          "pattern": "exactOptionalPropertyTypes assignment",
+          "category": "HIGH",
+          "message": "Type 'string | undefined' is not assignable to type 'string' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+        },
+        {
+          "line": 399,
+          "column": 5,
+          "code": "TS2412",
+          "pattern": "exactOptionalPropertyTypes assignment",
+          "category": "HIGH",
+          "message": "Type 'string | undefined' is not assignable to type 'string' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/analysis/output-analyzer.ts",
+      "riskScore": 415,
+      "category": "HIGH",
+      "errorCount": 11,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 9,
+          "column": 11,
+          "code": "TS6196",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'_ErrorPattern' is declared but never used."
+        },
+        {
+          "line": 228,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'severityWeights' is declared but its value is never read."
+        },
+        {
+          "line": 229,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'testCategories' is declared but its value is never read."
+        },
+        {
+          "line": 324,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'_results' is declared but its value is never read."
+        },
+        {
+          "line": 390,
+          "column": 37,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ suite: string; test: string | undefined; message: string; location: string | null; }' is not assignable to parameter of type 'TestFailure' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 439,
+          "column": 33,
+          "code": "TS2345",
+          "pattern": "Argument type mismatch",
+          "category": "HIGH",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'."
+        },
+        {
+          "line": 440,
+          "column": 33,
+          "code": "TS2345",
+          "pattern": "Argument type mismatch",
+          "category": "HIGH",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'."
+        },
+        {
+          "line": 441,
+          "column": 32,
+          "code": "TS2345",
+          "pattern": "Argument type mismatch",
+          "category": "HIGH",
+          "message": "Argument of type 'string | undefined' is not assignable to parameter of type 'string'."
+        },
+        {
+          "line": 454,
+          "column": 11,
+          "code": "TS2322",
+          "pattern": "Type assignment error",
+          "category": "HIGH",
+          "message": "Type 'string | undefined' is not assignable to type 'string'."
+        },
+        {
+          "line": 455,
+          "column": 19,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 467,
+          "column": 11,
+          "code": "TS2322",
+          "pattern": "Type assignment error",
+          "category": "HIGH",
+          "message": "Type 'string | undefined' is not assignable to type 'string'."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/modular-server-factory.ts",
+      "riskScore": 405,
+      "category": "HIGH",
+      "errorCount": 9,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 54,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'config' is declared but its value is never read."
+        },
+        {
+          "line": 94,
+          "column": 58,
+          "code": "TS2345",
+          "pattern": "Argument type mismatch",
+          "category": "HIGH",
+          "message": "Argument of type '(request: { params: { name: string; _meta?: objectOutputType<{ progressToken: ZodOptional<ZodUnion<[ZodString, ZodNumber]>>; }, ZodTypeAny, \"passthrough\"> | undefined; arguments?: Record<...> | undefined; } & { ...; }; method: \"tools/call\"; }) => Promise<...>' is not assignable to parameter of type '(request: { params: { name: string; _meta?: objectOutputType<{ progressToken: ZodOptional<ZodUnion<[ZodString, ZodNumber]>>; }, ZodTypeAny, \"passthrough\"> | undefined; arguments?: Record<...> | undefined; } & { ...; }; method: \"tools/call\"; }, extra: RequestHandlerExtra<...>) => { ...; } | ... 1 more ... | Promise<....'."
+        },
+        {
+          "line": 102,
+          "column": 41,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'args' is possibly 'undefined'."
+        },
+        {
+          "line": 102,
+          "column": 46,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'customer' comes from an index signature, so it must be accessed with ['customer']."
+        },
+        {
+          "line": 102,
+          "column": 56,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'args' is possibly 'undefined'."
+        },
+        {
+          "line": 102,
+          "column": 61,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'contractId' comes from an index signature, so it must be accessed with ['contractId']."
+        },
+        {
+          "line": 102,
+          "column": 73,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'args' is possibly 'undefined'."
+        },
+        {
+          "line": 102,
+          "column": 73,
+          "code": "TS2554",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Expected 2 arguments, but got 3."
+        },
+        {
+          "line": 102,
+          "column": 78,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'groupId' comes from an index signature, so it must be accessed with ['groupId']."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/certificate-enrollment-tools.ts",
+      "riskScore": 390,
+      "category": "HIGH",
+      "errorCount": 6,
+      "dependencyCount": 3,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/tool-registry.ts",
+        "src/tools/all-tools-registry.ts",
+        "src/servers/certs-server.ts"
+      ],
+      "errors": [
+        {
+          "line": 42,
+          "column": 62,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ customer: string | undefined; autoCreateDNSRecords: true; autoActivateDNS: true; enableNotifications: true; }' is not assignable to parameter of type 'CertificateEnrollmentConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 65,
+          "column": 62,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ customer: string | undefined; }' is not assignable to parameter of type 'CertificateEnrollmentConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 83,
+          "column": 62,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ customer: string | undefined; }' is not assignable to parameter of type 'CertificateEnrollmentConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 100,
+          "column": 62,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ customer: string | undefined; }' is not assignable to parameter of type 'CertificateEnrollmentConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 274,
+          "column": 66,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ customer: string | undefined; }' is not assignable to parameter of type 'CertificateEnrollmentConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 288,
+          "column": 66,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ customer: string | undefined; }' is not assignable to parameter of type 'CertificateEnrollmentConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/security/network-lists-tools.ts",
+      "riskScore": 390,
+      "category": "HIGH",
+      "errorCount": 6,
+      "dependencyCount": 3,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/all-tools-registry.ts",
+        "src/servers/network-lists-server.ts",
+        "src/tools/security/network-lists-integration.ts"
+      ],
+      "errors": [
+        {
+          "line": 133,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'listType' comes from an index signature, so it must be accessed with ['listType']."
+        },
+        {
+          "line": 136,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'search' comes from an index signature, so it must be accessed with ['search']."
+        },
+        {
+          "line": 139,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'includeElements' comes from an index signature, so it must be accessed with ['includeElements']."
+        },
+        {
+          "line": 142,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'extended' comes from an index signature, so it must be accessed with ['extended']."
+        },
+        {
+          "line": 237,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'includeElements' comes from an index signature, so it must be accessed with ['includeElements']."
+        },
+        {
+          "line": 240,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'extended' comes from an index signature, so it must be accessed with ['extended']."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/performance-monitor.ts",
+      "riskScore": 375,
+      "category": "HIGH",
+      "errorCount": 5,
+      "dependencyCount": 5,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/performance-tools.ts",
+        "src/services/certificate-enrollment-service.ts",
+        "src/services/TrafficAnalyticsService.ts",
+        "src/services/ReportingService.ts",
+        "src/services/RealTimeMonitoringService.ts"
+      ],
+      "errors": [
+        {
+          "line": 63,
+          "column": 11,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ operationType: string; startTime: number; metadata: Record<string, any> | undefined; }' is not assignable to type 'PerformanceMetrics' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 89,
+          "column": 5,
+          "code": "TS2412",
+          "pattern": "exactOptionalPropertyTypes assignment",
+          "category": "HIGH",
+          "message": "Type 'number | undefined' is not assignable to type 'number' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+        },
+        {
+          "line": 90,
+          "column": 5,
+          "code": "TS2412",
+          "pattern": "exactOptionalPropertyTypes assignment",
+          "category": "HIGH",
+          "message": "Type 'boolean | undefined' is not assignable to type 'boolean' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+        },
+        {
+          "line": 91,
+          "column": 5,
+          "code": "TS2412",
+          "pattern": "exactOptionalPropertyTypes assignment",
+          "category": "HIGH",
+          "message": "Type 'boolean | undefined' is not assignable to type 'boolean' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+        },
+        {
+          "line": 279,
+          "column": 5,
+          "code": "TS2412",
+          "pattern": "exactOptionalPropertyTypes assignment",
+          "category": "HIGH",
+          "message": "Type 'PerformanceMonitor | undefined' is not assignable to type 'PerformanceMonitor' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/etag-handler.ts",
+      "riskScore": 330,
+      "category": "HIGH",
+      "errorCount": 6,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/property-manager.ts"
+      ],
+      "errors": [
+        {
+          "line": 116,
+          "column": 43,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ path: string; method: string; body: any; queryParams: Record<string, string> | undefined; headers: Record<string, string> | undefined; }' is not assignable to parameter of type '{ path: string; method?: string; body?: unknown; headers?: Record<string, string>; queryParams?: Record<string, string>; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 155,
+          "column": 34,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'validateRules' comes from an index signature, so it must be accessed with ['validateRules']."
+        },
+        {
+          "line": 157,
+          "column": 50,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ path: string; method: string; queryParams: Record<string, string> | undefined; }' is not assignable to parameter of type '{ path: string; method: string; body?: any; queryParams?: Record<string, string>; useStoredETag?: boolean; etag?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 185,
+          "column": 43,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'validateRules' comes from an index signature, so it must be accessed with ['validateRules']."
+        },
+        {
+          "line": 187,
+          "column": 34,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ path: string; method: string; body: any; queryParams: Record<string, string> | undefined; etag: string | undefined; useStoredETag: boolean; }' is not assignable to parameter of type '{ path: string; method: string; body?: any; queryParams?: Record<string, string>; useStoredETag?: boolean; etag?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 275,
+          "column": 68,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ validateRules: boolean | undefined; }' is not assignable to parameter of type '{ validateRules?: boolean; etag?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/elicitation/secure-hostname-onboarding.ts",
+      "riskScore": 319,
+      "category": "HIGH",
+      "errorCount": 13,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/elicitation/index.ts"
+      ],
+      "errors": [
+        {
+          "line": 227,
+          "column": 7,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ securityConfigId: string | undefined; wafPolicyId: string | undefined; status: string; }' is not assignable to type '{ securityConfigId?: string; wafPolicyId?: string; status: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 234,
+          "column": 5,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ securityConfigId: string | undefined; status: string; }' is not assignable to type '{ securityConfigId?: string; wafPolicyId?: string; status: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 303,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'explanation' is declared but its value is never read."
+        },
+        {
+          "line": 358,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'state' is declared but its value is never read."
+        },
+        {
+          "line": 471,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'state' is declared but its value is never read."
+        },
+        {
+          "line": 689,
+          "column": 9,
+          "code": "TS2412",
+          "pattern": "exactOptionalPropertyTypes assignment",
+          "category": "HIGH",
+          "message": "Type 'string | undefined' is not assignable to type 'string' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+        },
+        {
+          "line": 793,
+          "column": 72,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ propertyName: string; hostnames: string[]; securityLevel: \"custom\" | \"standard\" | \"enhanced\"; notificationEmails: string[] | undefined; }' is not assignable to parameter of type '{ propertyName: string; hostnames: string[]; securityLevel: string; notificationEmails?: string[]; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 802,
+          "column": 9,
+          "code": "TS2412",
+          "pattern": "exactOptionalPropertyTypes assignment",
+          "category": "HIGH",
+          "message": "Type 'string | undefined' is not assignable to type 'string' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+        },
+        {
+          "line": 964,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'zoneResult' is declared but its value is never read."
+        },
+        {
+          "line": 1025,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        },
+        {
+          "line": 1027,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'state' is declared but its value is never read."
+        },
+        {
+          "line": 1118,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        },
+        {
+          "line": 1120,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'state' is declared but its value is never read."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/analysis/fix-strategy.ts",
+      "riskScore": 315,
+      "category": "HIGH",
+      "errorCount": 9,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 124,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'strategyTypes' is declared but its value is never read."
+        },
+        {
+          "line": 127,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'dependencyTypes' is declared but its value is never read."
+        },
+        {
+          "line": 302,
+          "column": 9,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 305,
+          "column": 9,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 308,
+          "column": 9,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 411,
+          "column": 9,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'groups.other' is possibly 'undefined'."
+        },
+        {
+          "line": 411,
+          "column": 16,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'other' comes from an index signature, so it must be accessed with ['other']."
+        },
+        {
+          "line": 417,
+          "column": 7,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 817,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'_description' is declared but its value is never read."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/elicitation/dns-elicitation-tool.ts",
+      "riskScore": 292,
+      "category": "HIGH",
+      "errorCount": 8,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/elicitation/index.ts"
+      ],
+      "errors": [
+        {
+          "line": 20,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'ensureCleanChangeList' is declared but its value is never read."
+        },
+        {
+          "line": 21,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'submitChangeList' is declared but its value is never read."
+        },
+        {
+          "line": 22,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'waitForZoneActivation' is declared but its value is never read."
+        },
+        {
+          "line": 26,
+          "column": 8,
+          "code": "TS2305",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Module '\"../dns-tools\"' has no exported member 'DNSRecordSet'."
+        },
+        {
+          "line": 27,
+          "column": 8,
+          "code": "TS2305",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Module '\"../dns-tools\"' has no exported member 'ZoneActivationStatus'."
+        },
+        {
+          "line": 304,
+          "column": 13,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 561,
+          "column": 17,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 641,
+          "column": 17,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/secure-by-default-onboarding.ts",
+      "riskScore": 260,
+      "category": "HIGH",
+      "errorCount": 4,
+      "dependencyCount": 3,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/tool-registry.ts",
+        "src/tools/all-tools-registry.ts",
+        "src/servers/certs-server.ts"
+      ],
+      "errors": [
+        {
+          "line": 216,
+          "column": 31,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'MCP_ENVIRONMENT' comes from an index signature, so it must be accessed with ['MCP_ENVIRONMENT']."
+        },
+        {
+          "line": 223,
+          "column": 62,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ originHostname: string; contractId: string; groupId: string; productId: string | undefined; }' is not assignable to parameter of type '{ originHostname: string; contractId: string; groupId: string; productId?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 304,
+          "column": 49,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ propertyName: string; contractId: string; groupId: string; productId: string; cpCode: number | undefined; }' is not assignable to parameter of type '{ propertyName: string; contractId: string; groupId: string; productId: string; cpCode?: number; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 585,
+          "column": 57,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ propertyName: string; hostnames: string[]; originHostname: string; contractId: string; groupId: string; productId: string; customer: string | undefined; }' is not assignable to parameter of type '{ propertyName: string; hostnames: string[]; originHostname: string; contractId: string; groupId: string; productId?: string; cpCode?: number; notificationEmails?: string[]; validatePrerequisites?: boolean; customer?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/logger.ts",
+      "riskScore": 245,
+      "category": "HIGH",
+      "errorCount": 1,
+      "dependencyCount": 39,
+      "isLeaf": false,
+      "isRoot": true,
+      "importedBy": [
+        "src/index.ts",
+        "src/transport/websocket-transport.ts",
+        "src/transport/sse-transport.ts",
+        "src/utils/security.ts",
+        "src/utils/safe-console.ts",
+        "src/utils/modular-server-factory.ts",
+        "src/utils/error-diagnostics.ts",
+        "src/utils/edgegrid-client.ts",
+        "src/utils/apply-security.ts",
+        "src/tools/token-tools.ts",
+        "src/tools/rule-tree-management.ts",
+        "src/tools/reporting-tools.ts",
+        "src/tools/property-tools.ts",
+        "src/tools/fastpurge-tools.ts",
+        "src/services/cache-factory.ts",
+        "src/services/TrafficAnalyticsService.ts",
+        "src/services/ReportingService.ts",
+        "src/services/RealTimeMonitoringService.ts",
+        "src/services/PurgeStatusTracker.ts",
+        "src/services/PurgeQueueManager.ts",
+        "src/services/FastPurgeService.ts",
+        "src/services/CustomerContextManager.ts",
+        "src/services/BaseAkamaiClient.ts",
+        "src/servers/workflow-assistant-stubs.ts",
+        "src/servers/security-server-consolidated.ts",
+        "src/servers/property-server-consolidated.ts",
+        "src/servers/performance-server.ts",
+        "src/servers/network-lists-server.ts",
+        "src/servers/fastpurge-server.ts",
+        "src/servers/dns-server-consolidated.ts",
+        "src/servers/certs-server-consolidated.ts",
+        "src/servers/appsec-server.ts",
+        "src/middleware/security.ts",
+        "src/middleware/authentication.ts",
+        "src/monitoring/FastPurgeMonitor.ts",
+        "src/auth/TokenManager.ts",
+        "src/auth/EdgeGridAuth.ts",
+        "src/tools/elicitation/secure-hostname-onboarding.ts",
+        "src/tools/elicitation/dns-elicitation-tool.ts"
+      ],
+      "errors": [
+        {
+          "line": 13,
+          "column": 34,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'DEBUG' comes from an index signature, so it must be accessed with ['DEBUG']."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/all-tools-registry.ts",
+      "riskScore": 235,
+      "category": "HIGH",
+      "errorCount": 20,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 19,
+          "column": 3,
+          "code": "TS2300",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Duplicate identifier 'listContracts'."
+        },
+        {
+          "line": 92,
+          "column": 3,
+          "code": "TS2300",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Duplicate identifier 'listContracts'."
+        },
+        {
+          "line": 111,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'dnsElicitationTool' is declared but its value is never read."
+        },
+        {
+          "line": 113,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'secureHostnameOnboardingTool' is declared but its value is never read."
+        },
+        {
+          "line": 260,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'generateASNSecurityRecommendations' is declared but its value is never read."
+        },
+        {
+          "line": 261,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'listCommonGeographicCodes' is declared but its value is never read."
+        },
+        {
+          "line": 264,
+          "column": 1,
+          "code": "TS6192",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "All imports in import declaration are unused."
+        },
+        {
+          "line": 1392,
+          "column": 17,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        },
+        {
+          "line": 1398,
+          "column": 17,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        },
+        {
+          "line": 1404,
+          "column": 17,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        },
+        {
+          "line": 1410,
+          "column": 17,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        },
+        {
+          "line": 1416,
+          "column": 17,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        },
+        {
+          "line": 1422,
+          "column": 17,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        },
+        {
+          "line": 1442,
+          "column": 17,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        },
+        {
+          "line": 1540,
+          "column": 17,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        },
+        {
+          "line": 1546,
+          "column": 17,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        },
+        {
+          "line": 1552,
+          "column": 17,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        },
+        {
+          "line": 1558,
+          "column": 17,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        },
+        {
+          "line": 1564,
+          "column": 17,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        },
+        {
+          "line": 1570,
+          "column": 17,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/property-validation.ts",
+      "riskScore": 220,
+      "category": "HIGH",
+      "errorCount": 4,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/property-activation-advanced.ts"
+      ],
+      "errors": [
+        {
+          "line": 46,
+          "column": 7,
+          "code": "TS2353",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object literal may only specify known properties, and 'customer' does not exist in type '{ path: string; method?: string; body?: unknown; headers?: Record<string, string>; queryParams?: Record<string, string>; }'."
+        },
+        {
+          "line": 156,
+          "column": 25,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ operation: string; toolName: string; args: BaseToolArgs & { propertyId: string; }; propertyId: string; customer: string | undefined; suggestion: string; }' is not assignable to parameter of type '{ operation: string; toolName: string; args: Record<string, any>; customer?: string; propertyId?: string; originalError?: Error; suggestion?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 167,
+          "column": 25,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ operation: string; toolName: string; args: BaseToolArgs & { propertyId: string; }; propertyId: string; customer: string | undefined; suggestion: string; }' is not assignable to parameter of type '{ operation: string; toolName: string; args: Record<string, any>; customer?: string; propertyId?: string; originalError?: Error; suggestion?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 182,
+          "column": 25,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ operation: string; toolName: string; args: BaseToolArgs & { propertyId: string; }; propertyId: string; customer: string | undefined; originalError: any; suggestion: string; }' is not assignable to parameter of type '{ operation: string; toolName: string; args: Record<string, any>; customer?: string; propertyId?: string; originalError?: Error; suggestion?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/dns-migration-tools.ts",
+      "riskScore": 195,
+      "category": "HIGH",
+      "errorCount": 3,
+      "dependencyCount": 3,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/tool-registry.ts",
+        "src/tools/all-tools-registry.ts",
+        "src/servers/dns-server.ts"
+      ],
+      "errors": [
+        {
+          "line": 109,
+          "column": 30,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ zone: string; type: \"SECONDARY\"; masters: string[]; comment: string; contractId: string | undefined; groupId: string | undefined; }' is not assignable to parameter of type '{ zone: string; type: \"PRIMARY\" | \"SECONDARY\" | \"ALIAS\"; comment?: string; contractId?: string; groupId?: string; masters?: string[]; target?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 649,
+          "column": 20,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'cfZone' is possibly 'undefined'."
+        },
+        {
+          "line": 652,
+          "column": 30,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ zone: string; type: \"PRIMARY\"; comment: string; contractId: string | undefined; groupId: string | undefined; }' is not assignable to parameter of type '{ zone: string; type: \"PRIMARY\" | \"SECONDARY\" | \"ALIAS\"; comment?: string; contractId?: string; groupId?: string; masters?: string[]; target?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/security/network-lists-activation.ts",
+      "riskScore": 195,
+      "category": "HIGH",
+      "errorCount": 3,
+      "dependencyCount": 3,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/all-tools-registry.ts",
+        "src/servers/network-lists-server.ts",
+        "src/tools/security/network-lists-integration.ts"
+      ],
+      "errors": [
+        {
+          "line": 210,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'listType' comes from an index signature, so it must be accessed with ['listType']."
+        },
+        {
+          "line": 213,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'network' comes from an index signature, so it must be accessed with ['network']."
+        },
+        {
+          "line": 216,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'status' comes from an index signature, so it must be accessed with ['status']."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/reporting-tools.ts",
+      "riskScore": 165,
+      "category": "HIGH",
+      "errorCount": 3,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/servers/performance-server.ts"
+      ],
+      "errors": [
+        {
+          "line": 926,
+          "column": 62,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ name: string; description: string | undefined; widgets: any[]; filters: ReportingFilter | undefined; refreshInterval: number | undefined; shared: boolean; }' is not assignable to parameter of type 'Omit<ReportingDashboard, \"id\">' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 1265,
+          "column": 53,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 1268,
+          "column": 46,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/resilience-manager.ts",
+      "riskScore": 140,
+      "category": "HIGH",
+      "errorCount": 2,
+      "dependencyCount": 4,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/utils/index.ts",
+        "src/tools/resilience-tools.ts",
+        "src/services/FastPurgeService.ts",
+        "src/tools/security/appsec-basic-tools.ts"
+      ],
+      "errors": [
+        {
+          "line": 207,
+          "column": 5,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ operationType: OperationType; totalCalls: number; successfulCalls: number; failedCalls: number; averageResponseTime: number; lastFailureTime: Date | undefined; consecutiveFailures: number; errorRate: number; p95ResponseTime: number; }' is not assignable to type 'OperationMetrics' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 453,
+          "column": 5,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ type: \"UNKNOWN\"; code: string | undefined; retryable: false; severity: ErrorSeverity.MEDIUM; recovery: { type: \"ALERT\"; config: { message: string; }; }[]; }' is not assignable to type 'ErrorCategory' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/security/network-lists-geo-asn.ts",
+      "riskScore": 130,
+      "category": "HIGH",
+      "errorCount": 2,
+      "dependencyCount": 3,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/all-tools-registry.ts",
+        "src/servers/network-lists-server.ts",
+        "src/tools/security/network-lists-integration.ts"
+      ],
+      "errors": [
+        {
+          "line": 114,
+          "column": 25,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ countryCode: string; countryName: string; subdivisionCode: string | undefined; subdivisionName: string | undefined; }' is not assignable to parameter of type 'GeographicLocation' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 127,
+          "column": 25,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ countryCode: string; countryName: string; subdivisionCode: string | undefined; subdivisionName: string | undefined; }' is not assignable to parameter of type 'GeographicLocation' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/timeout-handler.ts",
+      "riskScore": 121,
+      "category": "HIGH",
+      "errorCount": 4,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/property-activation-advanced.ts"
+      ],
+      "errors": [
+        {
+          "line": 82,
+          "column": 14,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'headers' is declared but its value is never read."
+        },
+        {
+          "line": 167,
+          "column": 27,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ operation: string; toolName: string; args: BaseToolArgs & Record<string, any>; customer: string | undefined; propertyId: any; originalError: any; suggestion: string; }' is not assignable to parameter of type '{ operation: string; toolName: string; args: Record<string, any>; customer?: string; propertyId?: string; originalError?: Error; suggestion?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 172,
+          "column": 38,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'propertyId' comes from an index signature, so it must be accessed with ['propertyId']."
+        },
+        {
+          "line": 263,
+          "column": 13,
+          "code": "TS6138",
+          "pattern": "Property declared but not read",
+          "category": "LOW",
+          "message": "Property 'operation' is declared but its value is never read."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/hostname-management-advanced.ts",
+      "riskScore": 120,
+      "category": "HIGH",
+      "errorCount": 2,
+      "dependencyCount": 2,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/tool-registry.ts",
+        "src/tools/all-tools-registry.ts"
+      ],
+      "errors": [
+        {
+          "line": 1183,
+          "column": 9,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 1202,
+          "column": 9,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/rfc7807-errors.ts",
+      "riskScore": 120,
+      "category": "HIGH",
+      "errorCount": 2,
+      "dependencyCount": 2,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/utils/etag-handler.ts",
+        "src/tools/property-manager.ts"
+      ],
+      "errors": [
+        {
+          "line": 77,
+          "column": 5,
+          "code": "TS2412",
+          "pattern": "exactOptionalPropertyTypes assignment",
+          "category": "HIGH",
+          "message": "Type 'string | undefined' is not assignable to type 'string' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+        },
+        {
+          "line": 78,
+          "column": 5,
+          "code": "TS2412",
+          "pattern": "exactOptionalPropertyTypes assignment",
+          "category": "HIGH",
+          "message": "Type '{ type: string; title: string; detail: string; messageId?: string; }[] | undefined' is not assignable to type '{ type: string; title: string; detail: string; messageId?: string; }[]' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/akamai-id-validator.ts",
+      "riskScore": 110,
+      "category": "HIGH",
+      "errorCount": 2,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/property-manager.ts"
+      ],
+      "errors": [
+        {
+          "line": 240,
+          "column": 5,
+          "code": "TS2322",
+          "pattern": "Type assignment error",
+          "category": "HIGH",
+          "message": "Type 'string | undefined' is not assignable to type 'string | null'."
+        },
+        {
+          "line": 251,
+          "column": 5,
+          "code": "TS2322",
+          "pattern": "Type assignment error",
+          "category": "HIGH",
+          "message": "Type 'string | undefined' is not assignable to type 'string | null'."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/bloom-filter.ts",
+      "riskScore": 110,
+      "category": "HIGH",
+      "errorCount": 2,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/utils/smart-cache.ts"
+      ],
+      "errors": [
+        {
+          "line": 170,
+          "column": 9,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        },
+        {
+          "line": 170,
+          "column": 29,
+          "code": "TS2532",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "Object is possibly 'undefined'."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/documentation-tools.ts",
+      "riskScore": 100,
+      "category": "HIGH",
+      "errorCount": 2,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 807,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'other' comes from an index signature, so it must be accessed with ['other']."
+        },
+        {
+          "line": 808,
+          "column": 17,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'other' comes from an index signature, so it must be accessed with ['other']."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/customer-config.ts",
+      "riskScore": 100,
+      "category": "HIGH",
+      "errorCount": 1,
+      "dependencyCount": 10,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/utils/edgegrid-client.ts",
+        "src/tools/fastpurge-tools.ts",
+        "src/servers/reporting-server.ts",
+        "src/servers/performance-server.ts",
+        "src/servers/network-lists-server.ts",
+        "src/servers/fastpurge-server.ts",
+        "src/servers/appsec-server.ts",
+        "src/monitoring/FastPurgeMonitor.ts",
+        "src/auth/EdgeGridAuth.ts",
+        "src/tools/security/appsec-basic-tools.ts"
+      ],
+      "errors": [
+        {
+          "line": 93,
+          "column": 19,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "HIGH",
+          "message": "Property 'EDGERC_PATH' comes from an index signature, so it must be accessed with ['EDGERC_PATH']."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/json-response-builder.ts",
+      "riskScore": 77,
+      "category": "HIGH",
+      "errorCount": 5,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/property-manager-tools.ts"
+      ],
+      "errors": [
+        {
+          "line": 55,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'maxSize' is declared but its value is never read."
+        },
+        {
+          "line": 128,
+          "column": 7,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ page: number; perPage: number; nextCursor: string | undefined; prevCursor: string | undefined; }' is not assignable to type '{ nextCursor?: string; prevCursor?: string; page?: number; perPage?: number; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        },
+        {
+          "line": 140,
+          "column": 10,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'T' is declared but its value is never read."
+        },
+        {
+          "line": 246,
+          "column": 5,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'metadata' is declared but its value is never read."
+        },
+        {
+          "line": 257,
+          "column": 5,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'operation' is declared but its value is never read."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/mcp-progress.ts",
+      "riskScore": 70,
+      "category": "HIGH",
+      "errorCount": 1,
+      "dependencyCount": 4,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/property-manager.ts",
+        "src/tools/property-manager-tools.ts",
+        "src/tools/progress-tools.ts",
+        "src/testing/comprehensive-test.ts"
+      ],
+      "errors": [
+        {
+          "line": 76,
+          "column": 15,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ progress: number; message: string; status: \"pending\" | \"completed\" | \"failed\" | \"in_progress\"; metadata: { activationId?: string; propertyId?: string; network?: string; startTime?: number; estimatedTimeRemaining?: number; } | undefined; }' is not assignable to parameter of type 'Omit<ProgressUpdate, \"token\">' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/request-coalescer.ts",
+      "riskScore": 66,
+      "category": "HIGH",
+      "errorCount": 3,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/servers/property-server.ts"
+      ],
+      "errors": [
+        {
+          "line": 15,
+          "column": 1,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'z' is declared but its value is never read."
+        },
+        {
+          "line": 213,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'now' is declared but its value is never read."
+        },
+        {
+          "line": 307,
+          "column": 7,
+          "code": "TS2412",
+          "pattern": "exactOptionalPropertyTypes assignment",
+          "category": "HIGH",
+          "message": "Type 'undefined' is not assignable to type 'RequestCoalescer' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/enhanced-error-handling.ts",
+      "riskScore": 65,
+      "category": "HIGH",
+      "errorCount": 1,
+      "dependencyCount": 3,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/utils/tool-error-handling.ts",
+        "src/utils/mcp-error-mapping.ts",
+        "src/utils/index.ts"
+      ],
+      "errors": [
+        {
+          "line": 77,
+          "column": 5,
+          "code": "TS2375",
+          "pattern": "exactOptionalPropertyTypes",
+          "category": "HIGH",
+          "message": "Type '{ success: false; error: string; userMessage: string; shouldRetry: boolean; retryAfter: number | undefined; requestId: string | undefined; errorCode: string | undefined; errorType: ErrorType; suggestions: string[]; _context: ErrorContext; }' is not assignable to type 'EnhancedErrorResult' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/property-manager-rules-tools.ts",
+      "riskScore": 55,
+      "category": "HIGH",
+      "errorCount": 1,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/servers/certs-server.ts"
+      ],
+      "errors": [
+        {
+          "line": 332,
+          "column": 43,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ path: string; method: string; headers: { 'Content-Type': string; }; queryParams: { validateRules: string; } | undefined; body: { op: \"add\" | \"remove\" | \"replace\" | \"move\" | \"copy\" | \"test\"; path: string; value?: any; from?: string; }[]; }' is not assignable to parameter of type '{ path: string; method?: string; body?: unknown; headers?: Record<string, string>; queryParams?: Record<string, string>; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/mcp-2025-migration.ts",
+      "riskScore": 55,
+      "category": "HIGH",
+      "errorCount": 1,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/servers/property-server.ts"
+      ],
+      "errors": [
+        {
+          "line": 207,
+          "column": 19,
+          "code": "TS2379",
+          "pattern": "exactOptionalPropertyTypes argument",
+          "category": "HIGH",
+          "message": "Argument of type '{ type: \"naming\"; tool: string; issue: string; suggestion: string | undefined; }' is not assignable to parameter of type 'MigrationIssue' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties."
+        }
+      ]
+    },
+    {
+      "file": "src/templates/template-engine.ts",
+      "riskScore": 50,
+      "category": "HIGH",
+      "errorCount": 1,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 231,
+          "column": 5,
+          "code": "TS2322",
+          "pattern": "Type assignment error",
+          "category": "HIGH",
+          "message": "Type '{ hostname: string; domainPrefix: string | undefined; domainSuffix: string; ipVersionBehavior: string; certificateType: string; }' is not assignable to type '{ hostname: string; domainPrefix: string; domainSuffix: string; ipVersionBehavior: string; certificateType: string; }'."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/mcp-streaming.ts",
+      "riskScore": 50,
+      "category": "HIGH",
+      "errorCount": 1,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 221,
+          "column": 7,
+          "code": "TS18048",
+          "pattern": "Other",
+          "category": "HIGH",
+          "message": "'lastChunk' is possibly 'undefined'."
+        }
+      ]
+    },
+    {
+      "file": "src/types/middleware.ts",
+      "riskScore": 20,
+      "category": "MEDIUM",
+      "errorCount": 1,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 226,
+          "column": 17,
+          "code": "TS4111",
+          "pattern": "Index signature access",
+          "category": "MEDIUM",
+          "message": "Property 'params' comes from an index signature, so it must be accessed with ['params']."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/transport-factory.ts",
+      "riskScore": 17,
+      "category": "LOW",
+      "errorCount": 2,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 15,
+          "column": 5,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'WebSocketServer' is declared but its value is never read."
+        },
+        {
+          "line": 16,
+          "column": 5,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'createHttpServer' is declared but its value is never read."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/progress-tools.ts",
+      "riskScore": 15,
+      "category": "LOW",
+      "errorCount": 3,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 15,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        },
+        {
+          "line": 97,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'client' is declared but its value is never read."
+        },
+        {
+          "line": 98,
+          "column": 3,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'args' is declared but its value is never read."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/hostname-discovery-engine.ts",
+      "riskScore": 12,
+      "category": "LOW",
+      "errorCount": 2,
+      "dependencyCount": 2,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/tools/tool-registry.ts",
+        "src/tools/all-tools-registry.ts"
+      ],
+      "errors": [
+        {
+          "line": 8,
+          "column": 31,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'isPropertyResponse' is declared but its value is never read."
+        },
+        {
+          "line": 8,
+          "column": 51,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'isHostnamesResponse' is declared but its value is never read."
+        }
+      ]
+    },
+    {
+      "file": "src/types/tool-infrastructure.ts",
+      "riskScore": 7,
+      "category": "LOW",
+      "errorCount": 1,
+      "dependencyCount": 4,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/utils/timeout-handler.ts",
+        "src/utils/property-validation.ts",
+        "src/tools/property-tools.ts",
+        "src/tools/property-activation-advanced.ts"
+      ],
+      "errors": [
+        {
+          "line": 187,
+          "column": 15,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'TArgs' is declared but its value is never read."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/circuit-breaker.ts",
+      "riskScore": 6,
+      "category": "LOW",
+      "errorCount": 1,
+      "dependencyCount": 1,
+      "isLeaf": false,
+      "isRoot": false,
+      "importedBy": [
+        "src/utils/smart-cache.ts"
+      ],
+      "errors": [
+        {
+          "line": 34,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'lastFailureTime' is declared but its value is never read."
+        }
+      ]
+    },
+    {
+      "file": "src/tools/analysis/cx-impact-analyzer.ts",
+      "riskScore": 5,
+      "category": "LOW",
+      "errorCount": 1,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 125,
+          "column": 11,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'impactMultipliers' is declared but its value is never read."
+        }
+      ]
+    },
+    {
+      "file": "src/types/api-responses/certificate.ts",
+      "riskScore": 5,
+      "category": "LOW",
+      "errorCount": 1,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 6,
+          "column": 1,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'ListResponse' is declared but its value is never read."
+        }
+      ]
+    },
+    {
+      "file": "src/types/api-responses/edge-dns.ts",
+      "riskScore": 5,
+      "category": "LOW",
+      "errorCount": 1,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 6,
+          "column": 1,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'ListResponse' is declared but its value is never read."
+        }
+      ]
+    },
+    {
+      "file": "src/types/api-responses/property-manager.ts",
+      "riskScore": 5,
+      "category": "LOW",
+      "errorCount": 1,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 6,
+          "column": 71,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'ResponseMetadata' is declared but its value is never read."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/apply-security.ts",
+      "riskScore": 5,
+      "category": "LOW",
+      "errorCount": 1,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 13,
+          "column": 39,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'server' is declared but its value is never read."
+        }
+      ]
+    },
+    {
+      "file": "src/utils/error-diagnostics.ts",
+      "riskScore": 5,
+      "category": "LOW",
+      "errorCount": 1,
+      "dependencyCount": 0,
+      "isLeaf": true,
+      "isRoot": false,
+      "importedBy": [],
+      "errors": [
+        {
+          "line": 163,
+          "column": 39,
+          "code": "TS6133",
+          "pattern": "Unused variable",
+          "category": "LOW",
+          "message": "'context' is declared but its value is never read."
+        }
+      ]
+    }
+  ]
+}
