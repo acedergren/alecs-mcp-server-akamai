@@ -1,16 +1,8 @@
 #!/usr/bin/env node
-// @ts-nocheck
 
 /**
- * ALECS Property Server - Property Manager Module
- * Handles CDN property configuration, rules, and basic certificate integration
- * Includes Default DV (shared certificate) support for property provisioning
- * 
- * CODE KAI SEARCH CONSOLIDATION (v1.6.0-rc2):
- * - Renamed "akamai.search" → "search" for intuitive user experience
- * - Removed duplicate "search-properties" tool to eliminate confusion
- * - Single unified search interface for all Akamai resources
- * - Impact: Cleaner tool list, better UX, reduced cognitive load
+ * ALECS Property Server - MCP 2025-06-18 Compliant Version
+ * Demonstrates proper tool naming, JSON Schema parameters, and response format
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -21,62 +13,66 @@ import {
   ListToolsRequestSchema,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
-import { z } from 'zod';
 
 import { AkamaiClient } from '../akamai-client';
-
-// Property Management Tools - with caching support
-
-// CP Code Tools
-import { listCPCodes, createCPCode } from '../tools/cpcode-tools';
-
-// Includes Tools
-import { listIncludes, createInclude } from '../tools/includes-tools';
-import { listProducts } from '../tools/product-tools';
-import {
-  listEdgeHostnames,
-  cloneProperty,
-  removeProperty,
-  listPropertyVersions,
-  getPropertyVersion,
-  searchProperties,
-} from '../tools/property-manager-advanced-tools';
 import {
   createPropertyVersion,
   getPropertyRules,
   updatePropertyRules,
-  createEdgeHostname,
-  addPropertyHostname,
   activateProperty,
   getActivationStatus,
   listPropertyActivations,
-  updatePropertyWithDefaultDV,
-  updatePropertyWithCPSCertificate,
+  removePropertyHostname,
+  addPropertyHostname,
+  createEdgeHostname,
 } from '../tools/property-manager-tools';
-
-// Rule Tree Tools
-
-// Property Onboarding Tools
-import {
-  onboardPropertyTool,
-  onboardPropertyWizard,
-  checkOnboardingStatus,
-} from '../tools/property-onboarding-tools';
 import {
   listProperties,
   getProperty,
   createProperty,
   listGroups,
   listContracts,
+  listProducts,
 } from '../tools/property-tools';
-import { validateRuleTree } from '../tools/rule-tree-advanced';
+import {
+  listPropertyVersions,
+  getPropertyVersion,
+  listPropertyVersionHostnames,
+  listEdgeHostnames,
+  removeProperty,
+  cloneProperty,
+  cancelPropertyActivation,
+  getLatestPropertyVersion,
+} from '../tools/property-manager-advanced-tools';
+import {
+  searchPropertiesOptimized,
+} from '../tools/property-search-optimized';
+import {
+  validateRuleTree,
+} from '../tools/rule-tree-advanced';
+import {
+  universalSearchWithCacheHandler,
+} from '../tools/universal-search-with-cache';
+import {
+  listCPCodes,
+  createCPCode,
+  getCPCode,
+} from '../tools/cpcode-tools';
+import {
+  PropertyManagerSchemas2025,
+  PropertyManagerZodSchemas,
+  createMcp2025Response,
+  type Mcp2025ToolDefinition,
+  type Mcp2025ToolResponse,
+} from '../types/mcp-2025';
+import { wrapToolHandler as _wrapToolHandler } from '../utils/mcp-2025-migration';
+import { coalesceRequest, KeyNormalizers } from '../utils/request-coalescer';
 
-// Universal Search Tool - now with caching!
-import { universalSearchWithCacheHandler } from '../tools/universal-search-with-cache';
+// Import existing tool implementations
 
 const log = (level: string, message: string, data?: any) => {
   const timestamp = new Date().toISOString();
-  const logMessage = `[${timestamp}] [PROPERTY] [${level}] ${message}`;
+  const logMessage = `[${timestamp}] [PROPERTY-2025] [${level}] ${message}`;
   if (data) {
     console.error(logMessage, JSON.stringify(data, null, 2));
   } else {
@@ -84,19 +80,18 @@ const log = (level: string, message: string, data?: any) => {
   }
 };
 
-class PropertyALECSServer {
+class PropertyALECSServer2025 {
   private server: Server;
   private client: AkamaiClient;
+  private tools: Map<string, Mcp2025ToolDefinition> = new Map();
 
   constructor() {
-    log('INFO', '[EMOJI] ALECS Property Server starting...');
-    log('INFO', 'Node version:', { version: process.version });
-    log('INFO', 'Working directory:', { cwd: process.cwd() });
+    log('INFO', 'ALECS Property Server 2025 starting...');
 
     this.server = new Server(
       {
-        name: 'alecs-property',
-        version: '1.0.0',
+        name: 'alecs-property-server-2025',
+        version: '2.0.0',
       },
       {
         capabilities: {
@@ -105,773 +100,780 @@ class PropertyALECSServer {
       },
     );
 
-    try {
-      log('INFO', 'Initializing Akamai client...');
-      this.client = new AkamaiClient();
-      log('INFO', '[DONE] Akamai client initialized successfully');
-    } catch (_error) {
-      log('ERROR', '[ERROR] Failed to initialize Akamai client', {
-        error: _error instanceof Error ? _error.message : String(_error),
-      });
-      throw _error;
-    }
-
+    this.client = new AkamaiClient();
+    this.registerTools();
     this.setupHandlers();
+
+    log('INFO', `[DONE] Server initialized with ${this.tools.size} tools`);
+  }
+
+  private registerTools() {
+    // Register tools with MCP 2025 compliant names and schemas
+    const toolDefinitions: Mcp2025ToolDefinition[] = [
+      {
+        name: 'list_properties',
+        description: 'List all Akamai CDN properties in your account',
+        inputSchema: PropertyManagerSchemas2025.list_properties,
+      },
+      {
+        name: 'get_property',
+        description: 'Get details of a specific property',
+        inputSchema: PropertyManagerSchemas2025.get_property,
+      },
+      {
+        name: 'create_property',
+        description: 'Create a new property',
+        inputSchema: PropertyManagerSchemas2025.create_property,
+      },
+      {
+        name: 'activate_property',
+        description: 'Activate a property version to staging or production',
+        inputSchema: PropertyManagerSchemas2025.activate_property,
+      },
+      {
+        name: 'list_groups',
+        description: 'List all groups in the account',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+          },
+          additionalProperties: false,
+        },
+      },
+      {
+        name: 'list_contracts',
+        description: 'List all contracts in the account',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+          },
+          additionalProperties: false,
+        },
+      },
+      {
+        name: 'list_property_versions',
+        description: 'List all versions of a specific property',
+        inputSchema: PropertyManagerSchemas2025.list_property_versions,
+      },
+      {
+        name: 'get_property_version',
+        description: 'Get details of a specific property version',
+        inputSchema: PropertyManagerSchemas2025.get_property_version,
+      },
+      {
+        name: 'list_property_activations',
+        description: 'List activation history for a property',
+        inputSchema: PropertyManagerSchemas2025.list_property_activations,
+      },
+      {
+        name: 'validate_rule_tree',
+        description: 'Validate property rule tree configuration',
+        inputSchema: PropertyManagerSchemas2025.validate_rule_tree,
+      },
+      {
+        name: 'list_products',
+        description: 'List available products for a contract',
+        inputSchema: PropertyManagerSchemas2025.list_products,
+      },
+      {
+        name: 'search',
+        description: 'Universal search across Akamai resources with intelligent caching',
+        inputSchema: PropertyManagerSchemas2025.search,
+      },
+      {
+        name: 'create_property_version',
+        description: 'Create a new version of a property',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+            propertyId: { type: 'string', description: 'Property ID' },
+            createFromVersion: { type: 'number', description: 'Version to create from' },
+            createFromVersionEtag: { type: 'string', description: 'Version etag' },
+          },
+          required: ['propertyId'],
+          additionalProperties: false,
+        },
+      },
+      {
+        name: 'get_property_rules',
+        description: 'Get the rule tree for a property version',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+            propertyId: { type: 'string', description: 'Property ID' },
+            version: { type: 'number', description: 'Property version' },
+            validateRules: { type: 'boolean', description: 'Validate rules' },
+          },
+          required: ['propertyId', 'version'],
+          additionalProperties: false,
+        },
+      },
+      {
+        name: 'update_property_rules',
+        description: 'Update the rule tree for a property version',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+            propertyId: { type: 'string', description: 'Property ID' },
+            version: { type: 'number', description: 'Property version' },
+            rules: { type: 'object', description: 'Rule tree object' },
+            validateRules: { type: 'boolean', description: 'Validate rules before saving' },
+          },
+          required: ['propertyId', 'version', 'rules'],
+          additionalProperties: false,
+        },
+      },
+      {
+        name: 'get_activation_status',
+        description: 'Get the activation status for a property',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+            propertyId: { type: 'string', description: 'Property ID' },
+            activationId: { type: 'string', description: 'Activation ID' },
+          },
+          required: ['propertyId', 'activationId'],
+          additionalProperties: false,
+        },
+      },
+      {
+        name: 'remove_property_hostname',
+        description: 'Remove hostnames from a property version',
+        inputSchema: PropertyManagerSchemas2025.remove_property_hostname,
+      },
+      {
+        name: 'list_property_hostnames',
+        description: 'List hostnames configured for a property version',
+        inputSchema: PropertyManagerSchemas2025.list_property_hostnames,
+      },
+      {
+        name: 'add_property_hostname',
+        description: 'Add a hostname to a property version',
+        inputSchema: PropertyManagerSchemas2025.add_property_hostname,
+      },
+      {
+        name: 'list_edge_hostnames',
+        description: 'List available edge hostnames for a contract',
+        inputSchema: PropertyManagerSchemas2025.list_edge_hostnames,
+      },
+      {
+        name: 'create_edge_hostname',
+        description: 'Create a new edge hostname for a property',
+        inputSchema: PropertyManagerSchemas2025.create_edge_hostname,
+      },
+      {
+        name: 'list_cpcodes',
+        description: 'List CP codes in the account',
+        inputSchema: PropertyManagerSchemas2025.list_cpcodes,
+      },
+      {
+        name: 'create_cpcode',
+        description: 'Create a new CP code',
+        inputSchema: PropertyManagerSchemas2025.create_cpcode,
+      },
+      {
+        name: 'get_cpcode',
+        description: 'Get details of a specific CP code',
+        inputSchema: PropertyManagerSchemas2025.get_cpcode,
+      },
+      {
+        name: 'delete_property',
+        description: 'Delete a property (must not have active versions)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+            propertyId: { type: 'string', description: 'Property ID to delete' },
+          },
+          required: ['propertyId'],
+          additionalProperties: false,
+        },
+      },
+      {
+        name: 'clone_property',
+        description: 'Clone an existing property with configuration',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+            sourcePropertyId: { type: 'string', description: 'Source property ID to clone from' },
+            propertyName: { type: 'string', description: 'New property name' },
+            contractId: { type: 'string', description: 'Target contract ID (optional)' },
+            groupId: { type: 'string', description: 'Target group ID (optional)' },
+            cloneHostnames: { type: 'boolean', description: 'Clone hostnames with property' },
+          },
+          required: ['sourcePropertyId', 'propertyName'],
+          additionalProperties: false,
+        },
+      },
+      {
+        name: 'cancel_property_activation',
+        description: 'Cancel a pending property activation',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+            propertyId: { type: 'string', description: 'Property ID' },
+            activationId: { type: 'string', description: 'Activation ID to cancel' },
+          },
+          required: ['propertyId', 'activationId'],
+          additionalProperties: false,
+        },
+      },
+      {
+        name: 'search_properties',
+        description: 'Search properties by name, hostname, or other criteria',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+            propertyName: { type: 'string', description: 'Search by property name' },
+            hostname: { type: 'string', description: 'Search by hostname' },
+            edgeHostname: { type: 'string', description: 'Search by edge hostname' },
+            contractId: { type: 'string', description: 'Filter by contract ID' },
+            groupId: { type: 'string', description: 'Filter by group ID' },
+            productId: { type: 'string', description: 'Filter by product ID' },
+            activationStatus: {
+              type: 'string',
+              enum: ['production', 'staging', 'any', 'none'],
+              description: 'Filter by activation status'
+            },
+          },
+          additionalProperties: false,
+        },
+      },
+      {
+        name: 'get_latest_property_version',
+        description: 'Get the latest version of a property (overall or by network)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+            propertyId: { type: 'string', description: 'Property ID' },
+            activatedOn: {
+              type: 'string',
+              enum: ['PRODUCTION', 'STAGING', 'LATEST'],
+              description: 'Get version by activation status'
+            },
+          },
+          required: ['propertyId'],
+          additionalProperties: false,
+        },
+      },
+    ];
+
+    // Register all tools
+    for (const tool of toolDefinitions) {
+      this.tools.set(tool.name, tool);
+      log('DEBUG', `Registered tool: ${tool.name}`);
+    }
   }
 
   private setupHandlers() {
-    log('INFO', 'Setting up request handlers...');
-
-    // List all property and certificate tools
+    // Handle list_tools request
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      log('INFO', '[EMOJI] Tools list requested');
-      const tools = [
-        /**
-         * CODE KAI CONSOLIDATION: Universal Search Tool
-         * 
-         * Key: Simplified user experience with intuitive naming
-         * Approach: Single "search" command for all Akamai resources
-         * Implementation: Renamed from "akamai.search" to "search" for better UX
-         * 
-         * Covers: properties, hostnames, edge hostnames, CP codes, contracts, groups, DNS zones, certificates
-         * Impact: Eliminates confusion from multiple search tools
-         */
-        {
-          name: 'search',
-          description:
-            "Search for anything in Akamai - properties, hostnames, edge hostnames, CP codes, contracts, groups, or any other resource. Just type what you're looking for!",
-          inputSchema: {
-            type: 'object',
-            properties: {
-              query: {
-                type: 'string',
-                description:
-                  'Search for anything: hostname, property name, edge hostname, CP code, contract ID, group ID, or any Akamai resource',
-              },
-              customer: { type: 'string', description: 'Optional: Customer section name' },
-              detailed: {
-                type: 'boolean',
-                description: 'Include detailed information in results (default: true)',
-              },
-              useCache: {
-                type: 'boolean',
-                description: 'Use cache for faster results (default: true)',
-              },
-              warmCache: {
-                type: 'boolean',
-                description: 'Pre-warm cache before search (default: false)',
-              },
-            },
-            required: ['query'],
-          },
-        },
-        // Property Management Tools
-        {
-          name: 'list-properties',
-          description: 'List all Akamai CDN properties in your account',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string', description: 'Optional: Customer section name' },
-              contractId: { type: 'string', description: 'Optional: Filter by contract ID' },
-              groupId: { type: 'string', description: 'Optional: Filter by group ID' },
-              useCache: {
-                type: 'boolean',
-                description: 'Use cache for faster results (default: true)',
-              },
-              warmCache: {
-                type: 'boolean',
-                description: 'Pre-warm cache before fetching (default: false)',
-              },
-            },
-          },
-        },
-        {
-          name: 'get-property',
-          description: 'Get details of a specific property',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string', description: 'Optional: Customer section name' },
-              propertyId: { type: 'string', description: 'Property ID (e.g., prp_12345)' },
-            },
-            required: ['propertyId'],
-          },
-        },
-        {
-          name: 'onboard-property',
-          description: 'Complete property onboarding workflow (HTTPS-only with Enhanced TLS)',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string', description: 'Optional: Customer section name' },
-              hostname: {
-                type: 'string',
-                description: 'Hostname to onboard (e.g., code.example.com)',
-              },
-              originHostname: { type: 'string', description: 'Origin server hostname' },
-              groupId: {
-                type: 'string',
-                description: 'Optional: Group ID (defaults to first available)',
-              },
-              productId: {
-                type: 'string',
-                description: 'Optional: Product ID (defaults to Ion Standard)',
-              },
-              network: {
-                type: 'string',
-                enum: ['STANDARD_TLS', 'ENHANCED_TLS', 'SHARED_CERT'],
-                description: 'Optional: Network type (defaults to ENHANCED_TLS)',
-              },
-              certificateType: {
-                type: 'string',
-                enum: ['DEFAULT', 'CPS_MANAGED'],
-                description: 'Optional: Certificate type (defaults to DEFAULT)',
-              },
-              notificationEmails: {
-                type: 'array',
-                items: { type: 'string' },
-                description: 'Optional: Notification email addresses',
-              },
-              skipDnsSetup: { type: 'boolean', description: 'Optional: Skip DNS setup' },
-              dnsProvider: {
-                type: 'string',
-                description: 'Optional: Current DNS provider (aws, cloudflare, azure, other)',
-              },
-            },
-            required: ['hostname'],
-          },
-        },
-        {
-          name: 'onboard-property-wizard',
-          description: 'Interactive property onboarding wizard',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string', description: 'Optional: Customer section name' },
-              hostname: { type: 'string', description: 'Hostname to onboard' },
-            },
-            required: ['hostname'],
-          },
-        },
-        {
-          name: 'check-onboarding-status',
-          description: 'Check the status of property onboarding',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string', description: 'Optional: Customer section name' },
-              hostname: { type: 'string', description: 'Hostname being onboarded' },
-              propertyId: { type: 'string', description: 'Optional: Property ID to check' },
-            },
-            required: ['hostname'],
-          },
-        },
-        {
-          name: 'create-property',
-          description: 'Create a new property',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string', description: 'Optional: Customer section name' },
-              propertyName: { type: 'string', description: 'Name for the new property' },
-              productId: { type: 'string', description: 'Product ID' },
-              contractId: { type: 'string', description: 'Contract ID' },
-              groupId: { type: 'string', description: 'Group ID' },
-              ruleFormat: { type: 'string', description: 'Optional: Rule format version' },
-            },
-            required: ['propertyName', 'productId', 'contractId', 'groupId'],
-          },
-        },
-        {
-          name: 'clone-property',
-          description: 'Clone an existing property',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              propertyId: { type: 'string' },
-              newPropertyName: { type: 'string' },
-              groupId: { type: 'string' },
-              contractId: { type: 'string' },
-            },
-            required: ['propertyId', 'newPropertyName'],
-          },
-        },
-        {
-          name: 'remove-property',
-          description: 'Remove a property',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              propertyId: { type: 'string' },
-            },
-            required: ['propertyId'],
-          },
-        },
-        /**
-         * CODE KAI REMOVAL: Duplicate search-properties tool removed
-         * Functionality consolidated into universal "search" tool above
-         * Benefits: Eliminates confusion, single search interface
-         */
-        {
-          name: 'list-property-versions',
-          description: 'List all versions of a property',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              propertyId: { type: 'string' },
-            },
-            required: ['propertyId'],
-          },
-        },
-        {
-          name: 'get-property-version',
-          description: 'Get a specific property version',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              propertyId: { type: 'string' },
-              version: { type: 'number' },
-            },
-            required: ['propertyId', 'version'],
-          },
-        },
-        {
-          name: 'create-property-version',
-          description: 'Create a new property version',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              propertyId: { type: 'string' },
-              createFromVersion: { type: 'number' },
-              createFromVersionEtag: { type: 'string' },
-            },
-            required: ['propertyId'],
-          },
-        },
-        {
-          name: 'get-property-rules',
-          description: 'Get property rules',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              propertyId: { type: 'string' },
-              version: { type: 'number' },
-            },
-            required: ['propertyId', 'version'],
-          },
-        },
-        {
-          name: 'update-property-rules',
-          description: 'Update property rules',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              propertyId: { type: 'string' },
-              version: { type: 'number' },
-              rules: { type: 'object' },
-            },
-            required: ['propertyId', 'version', 'rules'],
-          },
-        },
-        {
-          name: 'validate-rule-tree',
-          description: 'Validate a rule tree',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              rules: { type: 'object' },
-              ruleFormat: { type: 'string' },
-            },
-            required: ['rules'],
-          },
-        },
-        {
-          name: 'activate-property',
-          description: 'Activate a property version',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              propertyId: { type: 'string' },
-              version: { type: 'number' },
-              network: { type: 'string', enum: ['STAGING', 'PRODUCTION'] },
-              note: { type: 'string' },
-              emails: { type: 'array', items: { type: 'string' } },
-            },
-            required: ['propertyId', 'version', 'network'],
-          },
-        },
-        {
-          name: 'get-activation-status',
-          description: 'Get property activation status',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              propertyId: { type: 'string' },
-              activationId: { type: 'string' },
-            },
-            required: ['propertyId', 'activationId'],
-          },
-        },
-        {
-          name: 'list-property-activations',
-          description: 'List property activations',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              propertyId: { type: 'string' },
-            },
-            required: ['propertyId'],
-          },
-        },
-        {
-          name: 'add-property-hostname',
-          description: 'Add hostname to property',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              propertyId: { type: 'string' },
-              version: { type: 'number' },
-              hostnames: { type: 'array', items: { type: 'object' } },
-            },
-            required: ['propertyId', 'version', 'hostnames'],
-          },
-        },
-        {
-          name: 'list-groups',
-          description: 'List all groups in your account',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              searchTerm: { type: 'string' },
-            },
-          },
-        },
-        {
-          name: 'list-contracts',
-          description: 'List all contracts',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-            },
-          },
-        },
-        {
-          name: 'list-products',
-          description: 'List available products',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              contractId: { type: 'string' },
-            },
-            required: ['contractId'],
-          },
-        },
-        // Default Certificate Integration (for property provisioning)
-        {
-          name: 'update-property-with-default-dv',
-          description: 'Update property with Default DV certificate (shared certificate)',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string', description: 'Optional: Customer section name' },
-              propertyId: { type: 'string', description: 'Property ID' },
-              propertyVersion: { type: 'number', description: 'Property version' },
-              hostname: { type: 'string', description: 'Hostname to secure with Default DV' },
-            },
-            required: ['propertyId', 'propertyVersion', 'hostname'],
-          },
-        },
-        {
-          name: 'update-property-with-cps-certificate',
-          description: 'Update property with CPS certificate',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string', description: 'Optional: Customer section name' },
-              propertyId: { type: 'string', description: 'Property ID' },
-              propertyVersion: { type: 'number', description: 'Property version' },
-              enrollmentId: { type: 'number', description: 'Certificate enrollment ID' },
-            },
-            required: ['propertyId', 'propertyVersion', 'enrollmentId'],
-          },
-        },
-        // Edge Hostname Tools
-        {
-          name: 'list-edge-hostnames',
-          description: 'List edge hostnames',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              contractId: { type: 'string' },
-              groupId: { type: 'string' },
-            },
-          },
-        },
-        {
-          name: 'create-edge-hostname',
-          description: 'Create edge hostname',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              domainPrefix: { type: 'string' },
-              domainSuffix: { type: 'string' },
-              productId: { type: 'string' },
-              ipVersionBehavior: { type: 'string' },
-              secure: { type: 'boolean' },
-            },
-            required: ['domainPrefix', 'domainSuffix', 'productId'],
-          },
-        },
-        // CP Code Tools
-        {
-          name: 'list-cpcodes',
-          description: 'List CP codes',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              contractId: { type: 'string' },
-              groupId: { type: 'string' },
-            },
-          },
-        },
-        {
-          name: 'create-cpcode',
-          description: 'Create CP code',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              cpcodeName: { type: 'string' },
-              contractId: { type: 'string' },
-              groupId: { type: 'string' },
-              productId: { type: 'string' },
-            },
-            required: ['cpcodeName', 'contractId', 'groupId', 'productId'],
-          },
-        },
-        // Includes Tools
-        {
-          name: 'list-includes',
-          description: 'List includes',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              contractId: { type: 'string' },
-              groupId: { type: 'string' },
-            },
-          },
-        },
-        {
-          name: 'create-include',
-          description: 'Create include',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              customer: { type: 'string' },
-              includeName: { type: 'string' },
-              includeType: { type: 'string' },
-              contractId: { type: 'string' },
-              groupId: { type: 'string' },
-            },
-            required: ['includeName', 'includeType', 'contractId', 'groupId'],
-          },
-        },
-      ];
-
-      log('INFO', `[DONE] Returning ${tools.length} tools`);
+      log('INFO', 'Handling list_tools request');
+      const tools = Array.from(this.tools.values());
       return { tools };
     });
 
-    // Handle tool calls
-    this.server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> => {
+    // Handle call_tool request
+    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
-
-      log('INFO', `[CONFIG] Tool called: ${name}`, { args });
+      log('INFO', `Handling call_tool _request: ${name}`, { args });
 
       const startTime = Date.now();
-      const client = this.client;
 
       try {
-        let result;
+        // Validate tool exists
+        if (!this.tools.has(name)) {
+          throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
+        }
+
+        // Handle each tool with MCP 2025 compliant responses
+        let result: Mcp2025ToolResponse;
 
         switch (name) {
-          /**
-           * CODE KAI IMPLEMENTATION: Universal Search Handler
-           * Renamed from 'akamai.search' to 'search' for simplified UX
-           */
-          case 'search':
-            result = await universalSearchWithCacheHandler(client, args as any);
+          case 'list_properties': {
+            const validated = PropertyManagerZodSchemas.list_properties.parse(args);
+            const response = await coalesceRequest(
+              'list_properties',
+              validated,
+              () => listProperties(this.client, {
+                ...(validated.customer && { customer: validated.customer }),
+                ...(validated.contractId && { contractId: validated.contractId }),
+                ...(validated.groupId && { groupId: validated.groupId }),
+                ...(validated.limit && { limit: validated.limit }),
+                ...(validated.includeSubgroups !== undefined && { includeSubgroups: validated.includeSubgroups })
+              }),
+              KeyNormalizers.list
+            );
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
+          }
 
-          // Property Management Tools
-          case 'list-properties':
-            result = await listProperties(client, args as any);
+          case 'get_property': {
+            const validated = PropertyManagerZodSchemas.get_property.parse(args);
+            const response = await coalesceRequest(
+              'get_property',
+              validated,
+              () => getProperty(this.client, { propertyId: validated.propertyId }),
+              KeyNormalizers.property
+            );
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
-          case 'get-property':
-            result = await getProperty(client, args as any);
-            break;
-          case 'onboard-property':
-            result = await onboardPropertyTool(client, args as any);
-            break;
-          case 'onboard-property-wizard':
-            result = await onboardPropertyWizard(client, args as any);
-            break;
-          case 'check-onboarding-status':
-            result = await checkOnboardingStatus(client, args as any);
-            break;
-          case 'create-property':
-            result = await createProperty(client, args as any);
-            break;
-          case 'clone-property':
-            result = await cloneProperty(client, args as any);
-            break;
-          case 'remove-property':
-            result = await removeProperty(client, args as any);
-            break;
-          /**
-           * CODE KAI CONSOLIDATION: search-properties handler removed
-           * Functionality merged into universal 'search' tool
-           */
-          case 'list-property-versions':
-            result = await listPropertyVersions(client, args as any);
-            break;
-          case 'get-property-version':
-            result = await getPropertyVersion(client, args as any);
-            break;
-          case 'create-property-version':
-            result = await createPropertyVersion(client, args as any);
-            break;
-          case 'get-property-rules':
-            result = await getPropertyRules(client, args as any);
-            break;
-          case 'update-property-rules':
-            result = await updatePropertyRules(client, args as any);
-            break;
-          case 'validate-rule-tree':
-            result = await validateRuleTree(client, args as any);
-            break;
-          case 'activate-property':
-            result = await activateProperty(client, args as any);
-            break;
-          case 'get-activation-status':
-            result = await getActivationStatus(client, args as any);
-            break;
-          case 'list-property-activations':
-            result = await listPropertyActivations(client, args as any);
-            break;
-          case 'add-property-hostname':
-            result = await addPropertyHostname(client, args as any);
-            break;
-          case 'list-groups':
-            result = await listGroups(client, args as any);
-            break;
-          case 'list-contracts':
-            result = await listContracts(client, args as any);
-            break;
-          case 'list-products':
-            result = await listProducts(client, args as any);
-            break;
+          }
 
-          // Default Certificate Integration
-          case 'update-property-with-default-dv':
-            result = await updatePropertyWithDefaultDV(client, args as any);
+          case 'create_property': {
+            const validated = PropertyManagerZodSchemas.create_property.parse(args);
+            const response = await createProperty(this.client, {
+              propertyName: validated.propertyName,
+              productId: validated.productId,
+              contractId: validated.contractId,
+              groupId: validated.groupId,
+              ...(validated.customer && { customer: validated.customer }),
+              ...(validated.ruleFormat && { ruleFormat: validated.ruleFormat })
+            });
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
-          case 'update-property-with-cps-certificate':
-            result = await updatePropertyWithCPSCertificate(client, args as any);
-            break;
+          }
 
-          // Edge Hostname Tools
-          case 'list-edge-hostnames':
-            result = await listEdgeHostnames(client, args as any);
+          case 'activate_property': {
+            const validated = PropertyManagerZodSchemas.activate_property.parse(args);
+            const response = await activateProperty(this.client, {
+              propertyId: validated.propertyId,
+              version: validated.version,
+              network: validated.network,
+              ...(validated.customer && { customer: validated.customer }),
+              ...(validated.note && { note: validated.note }),
+              ...(validated.emails && { notifyEmails: validated.emails })
+            });
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
-          case 'create-edge-hostname':
-            result = await createEdgeHostname(client, args as any);
-            break;
+          }
 
-          // CP Code Tools
-          case 'list-cpcodes':
-            result = await listCPCodes(client, args as any);
+          case 'list_property_versions': {
+            const validated = PropertyManagerZodSchemas.list_property_versions.parse(args);
+            const response = await listPropertyVersions(this.client, {
+              propertyId: validated.propertyId,
+              ...(validated.customer && { customer: validated.customer }),
+              ...(validated.limit && { limit: validated.limit })
+            });
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
-          case 'create-cpcode':
-            result = await createCPCode(client, args as any);
-            break;
+          }
 
-          // Includes Tools
-          case 'list-includes':
-            result = await listIncludes(client, args as any);
+          case 'get_property_version': {
+            const validated = PropertyManagerZodSchemas.get_property_version.parse(args);
+            const response = await getPropertyVersion(this.client, {
+              propertyId: validated.propertyId,
+              version: validated.version,
+              ...(validated.customer && { customer: validated.customer })
+            });
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
-          case 'create-include':
-            result = await createInclude(client, args as any);
+          }
+
+          case 'list_property_activations': {
+            const validated = PropertyManagerZodSchemas.list_property_activations.parse(args);
+            const response = await listPropertyActivations(this.client, {
+              propertyId: validated.propertyId,
+              ...(validated.network && { network: validated.network })
+            });
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
             break;
+          }
+
+          case 'validate_rule_tree': {
+            const validated = PropertyManagerZodSchemas.validate_rule_tree.parse(args);
+            const response = await validateRuleTree(this.client, {
+              propertyId: validated.propertyId,
+              ...(validated.version && { version: validated.version }),
+              ...(validated.rules && { rules: validated.rules }),
+              ...(validated.includeOptimizations !== undefined && { includeOptimizations: validated.includeOptimizations }),
+              ...(validated.includeStatistics !== undefined && { includeStatistics: validated.includeStatistics })
+            });
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'list_products': {
+            const validated = PropertyManagerZodSchemas.list_products.parse(args);
+            const response = await listProducts(this.client, {
+              contractId: validated.contractId,
+              ...(validated.customer && { customer: validated.customer })
+            });
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'search': {
+            const validated = PropertyManagerZodSchemas.search.parse(args);
+            const response = await universalSearchWithCacheHandler(this.client, {
+              query: validated.query,
+              ...(validated.customer && { customer: validated.customer }),
+              ...(validated.detailed !== undefined && { detailed: validated.detailed }),
+              ...(validated.useCache !== undefined && { useCache: validated.useCache }),
+              ...(validated.warmCache !== undefined && { warmCache: validated.warmCache })
+            });
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'list_groups': {
+            const response = await listGroups(this.client, args as any);
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'list_contracts': {
+            const response = await listContracts(this.client, args as any);
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'create_property_version': {
+            const response = await createPropertyVersion(this.client, args as any);
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'get_property_rules': {
+            const response = await getPropertyRules(this.client, args as any);
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'update_property_rules': {
+            const response = await updatePropertyRules(this.client, args as any);
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'get_activation_status': {
+            const response = await getActivationStatus(this.client, args as any);
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'remove_property_hostname': {
+            const validated = PropertyManagerZodSchemas.remove_property_hostname.parse(args);
+            // TODO: Handle batch removal - for now just remove first hostname
+            const hostname = validated.hostnames?.[0];
+            if (!hostname) {
+              throw new McpError(ErrorCode.InvalidParams, 'At least one hostname must be provided');
+            }
+            const response = await removePropertyHostname(this.client, {
+              propertyId: validated.propertyId,
+              version: validated.version,
+              hostname: hostname,
+              ...(validated.customer && { customer: validated.customer })
+            });
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'list_property_hostnames': {
+            const validated = PropertyManagerZodSchemas.list_property_hostnames.parse(args);
+            const response = await listPropertyVersionHostnames(this.client, {
+              propertyId: validated.propertyId,
+              ...(validated.version !== undefined && { version: validated.version }),
+              ...(validated.validateCnames !== undefined && { validateCnames: validated.validateCnames }),
+              ...(validated.customer && { customer: validated.customer })
+            });
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'add_property_hostname': {
+            const validated = PropertyManagerZodSchemas.add_property_hostname.parse(args);
+            const response = await addPropertyHostname(this.client, {
+              propertyId: validated.propertyId,
+              hostname: validated.hostname,
+              edgeHostname: validated.edgeHostname,
+              ...(validated.version !== undefined && { version: validated.version }),
+              ...(validated.customer && { customer: validated.customer })
+            });
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'list_edge_hostnames': {
+            const validated = PropertyManagerZodSchemas.list_edge_hostnames.parse(args);
+            const response = await listEdgeHostnames(this.client, {
+              ...(validated.contractId && { contractId: validated.contractId }),
+              ...(validated.groupId && { groupId: validated.groupId }),
+              ...(validated.customer && { customer: validated.customer })
+            });
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'create_edge_hostname': {
+            const validated = PropertyManagerZodSchemas.create_edge_hostname.parse(args);
+            const response = await createEdgeHostname(this.client, {
+              propertyId: validated.propertyId,
+              domainPrefix: validated.domainPrefix,
+              ...(validated.domainSuffix && { domainSuffix: validated.domainSuffix }),
+              ...(validated.productId && { productId: validated.productId }),
+              ...(validated.secure !== undefined && { secure: validated.secure }),
+              ...(validated.ipVersion && { ipVersion: validated.ipVersion }),
+              ...(validated.certificateEnrollmentId !== undefined && { certificateEnrollmentId: validated.certificateEnrollmentId }),
+              ...(validated.customer && { customer: validated.customer })
+            });
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'list_cpcodes': {
+            const validated = PropertyManagerZodSchemas.list_cpcodes.parse(args);
+            const response = await listCPCodes(this.client, {
+              ...(validated.contractId && { contractId: validated.contractId }),
+              ...(validated.groupId && { groupId: validated.groupId }),
+              ...(validated.customer && { customer: validated.customer })
+            });
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'create_cpcode': {
+            const validated = PropertyManagerZodSchemas.create_cpcode.parse(args);
+            const response = await createCPCode(this.client, {
+              cpcodeName: validated.cpcodeName,
+              contractId: validated.contractId,
+              groupId: validated.groupId,
+              productId: validated.productId,
+              ...(validated.customer && { customer: validated.customer })
+            });
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'get_cpcode': {
+            const validated = PropertyManagerZodSchemas.get_cpcode.parse(args);
+            const response = await getCPCode(this.client, {
+              cpcodeId: validated.cpcodeId,
+              ...(validated.contractId && { contractId: validated.contractId }),
+              ...(validated.groupId && { groupId: validated.groupId }),
+              ...(validated.customer && { customer: validated.customer })
+            });
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'delete_property': {
+            const response = await removeProperty(this.client, args as any);
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'clone_property': {
+            const response = await cloneProperty(this.client, args as any);
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'cancel_property_activation': {
+            const response = await cancelPropertyActivation(this.client, args as any);
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'search_properties': {
+            const response = await coalesceRequest(
+              'search_properties',
+              args,
+              () => searchPropertiesOptimized(this.client, args as any),
+              KeyNormalizers.search
+            );
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'get_latest_property_version': {
+            const response = await getLatestPropertyVersion(this.client, args as any);
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
 
           default:
-            throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
+            throw new McpError(ErrorCode.MethodNotFound, `Tool not implemented: ${name}`);
         }
 
-        const duration = Date.now() - startTime;
-        log('INFO', `[DONE] Tool ${name} completed in ${duration}ms`);
-
-        return result;
-      } catch (_error) {
-        const duration = Date.now() - startTime;
-        log('ERROR', `[ERROR] Tool ${name} failed after ${duration}ms`, {
-          error:
-            _error instanceof Error
-              ? {
-                  message: _error.message,
-                  stack: _error.stack,
-                }
-              : String(_error),
+        log('INFO', `Tool ${name} completed successfully`, {
+          duration: result._meta?.duration,
         });
 
-        if (_error instanceof z.ZodError) {
-          throw new McpError(
-            ErrorCode.InvalidParams,
-            `Invalid parameters: ${_error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`,
-          );
-        }
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      } catch (_error) {
+        log('ERROR', `Tool ${name} failed`, { error: _error });
 
-        if (_error instanceof McpError) {
-          throw _error;
-        }
-
-        throw new McpError(
-          ErrorCode.InternalError,
-          `Tool execution failed: ${_error instanceof Error ? _error.message : String(_error)}`,
+        const errorResult = createMcp2025Response(
+          false,
+          undefined,
+          _error instanceof Error ? _error.message : 'Unknown _error',
+          {
+            duration: Date.now() - startTime,
+            tool: name,
+            version: '2.0.0',
+            errorType: _error?.constructor?.name,
+          },
         );
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(errorResult, null, 2),
+            },
+          ],
+        };
       }
     });
-
-    log('INFO', '[DONE] Request handlers set up successfully');
   }
 
-  async start() {
-    log('INFO', '[EMOJI] Starting server connection...');
-
+  async run() {
+    log('INFO', 'Starting server transport...');
     const transport = new StdioServerTransport();
-
-    // Add error handling for transport
-    transport.onerror = (_error: Error) => {
-      log('ERROR', '[ERROR] Transport error', {
-        message: _error.message,
-        stack: _error.stack,
-      });
-    };
-
-    transport.onclose = () => {
-      log('INFO', '[EMOJI] Transport closed, shutting down...');
-      process.exit(0);
-    };
-
-    try {
-      await this.server.connect(transport);
-      log('INFO', '[DONE] Server connected and ready for MCP connections');
-      log('INFO', '[METRICS] Server stats', {
-        toolCount: 32,
-        memoryUsage: process.memoryUsage(),
-        uptime: process.uptime(),
-      });
-    } catch (_error) {
-      log('ERROR', '[ERROR] Failed to connect server', {
-        error:
-          _error instanceof Error
-            ? {
-                message: _error.message,
-                stack: _error.stack,
-              }
-            : String(_error),
-      });
-      throw _error;
-    }
+    await this.server.connect(transport);
+    log('INFO', '[DEPLOY] Property Server 2025 is running');
   }
 }
 
-// Main entry point
-async function main() {
-  log('INFO', '[TARGET] ALECS Property Server main() started');
-
-  try {
-    const server = new PropertyALECSServer();
-    await server.start();
-
-    // Set up periodic status logging
-    setInterval(() => {
-      log('DEBUG', '[EMOJI] Server heartbeat', {
-        uptime: process.uptime(),
-        memory: process.memoryUsage(),
-        pid: process.pid,
-      });
-    }, 30000); // Every 30 seconds
-  } catch (_error) {
-    log('ERROR', '[ERROR] Failed to start server', {
-      error:
-        _error instanceof Error
-          ? {
-              message: _error.message,
-              stack: _error.stack,
-            }
-          : String(_error),
-    });
+// Run the server
+if (require.main === module) {
+  const server = new PropertyALECSServer2025();
+  server.run().catch((_error) => {
+    log('FATAL', 'Failed to start server', { error: _error });
     process.exit(1);
-  }
+  });
 }
-
-// Handle uncaught errors
-process.on('uncaughtException', (_error) => {
-  log('ERROR', '[ERROR] Uncaught exception', {
-    error: {
-      message: _error.message,
-      stack: _error.stack,
-    },
-  });
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  log('ERROR', '[ERROR] Unhandled rejection', {
-    reason:
-      reason instanceof Error
-        ? {
-            message: reason.message,
-            stack: reason.stack,
-          }
-        : String(reason),
-    promise: String(promise),
-  });
-  process.exit(1);
-});
-
-// Handle signals
-process.on('SIGTERM', () => {
-  log('INFO', '[EMOJI] SIGTERM received, shutting down gracefully...');
-  process.exit(0);
-});
-
-process.on('SIGINT', () => {
-  log('INFO', '[EMOJI] SIGINT received, shutting down gracefully...');
-  process.exit(0);
-});
-
-// Start the server
-log('INFO', '[DEPLOY] Initiating ALECS Property Server...');
-main();

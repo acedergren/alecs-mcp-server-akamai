@@ -8,6 +8,111 @@ import { logger } from '../utils/logger';
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
 import { validateApiResponse } from '../utils/api-response-validator';
+import { z } from 'zod';
+
+// CODE KAI: Type-safe Rule Tree interfaces
+// Key: Complete type safety for Akamai Property Manager Rule Trees
+// Approach: Comprehensive interfaces matching official API specifications  
+// Implementation: Zod schemas with runtime validation
+
+/**
+ * Core Rule Tree structure matching Akamai Property Manager API
+ */
+export interface RuleTreeRule {
+  name: string;
+  criteria?: RuleCriterion[];
+  behaviors?: RuleBehavior[];
+  children?: RuleTreeRule[];
+  comments?: string;
+  uuid?: string;
+  templateUuid?: string;
+  criteriaMustSatisfy?: 'all' | 'any';
+}
+
+/**
+ * Rule Tree behavior configuration
+ */
+export interface RuleBehavior {
+  name: string;
+  options?: Record<string, unknown>;
+  uuid?: string;
+  templateUuid?: string;
+}
+
+/**
+ * Rule Tree criterion for matching conditions
+ */
+export interface RuleCriterion {
+  name: string;
+  options?: Record<string, unknown>;
+  uuid?: string;
+  templateUuid?: string;
+}
+
+/**
+ * Complete Rule Tree response from API
+ */
+export interface PropertyRules {
+  rules: RuleTreeRule;
+  ruleFormat: string;
+  etag?: string;
+  comments?: string;
+  accountId?: string;
+  contractId?: string;
+  groupId?: string;
+  propertyId?: string;
+  propertyVersion?: number;
+}
+
+/**
+ * Rule Tree variables for dynamic configuration
+ */
+export interface RuleTreeVariable {
+  name: string;
+  value: string | number | boolean;
+  description?: string;
+  hidden?: boolean;
+  sensitive?: boolean;
+}
+
+// CODE KAI: Zod schemas for runtime validation
+// Based on official Akamai Property Manager API v1 specifications
+const RuleBehaviorSchema = z.object({
+  name: z.string(),
+  options: z.record(z.unknown()).optional(),
+  uuid: z.string().optional(),
+  templateUuid: z.string().optional(),
+});
+
+const RuleCriterionSchema = z.object({
+  name: z.string(),
+  options: z.record(z.unknown()).optional(),
+  uuid: z.string().optional(),
+  templateUuid: z.string().optional(),
+});
+
+const RuleTreeRuleSchema = z.lazy(() => z.object({
+  name: z.string(),
+  criteria: z.array(RuleCriterionSchema).optional(),
+  behaviors: z.array(RuleBehaviorSchema).optional(),
+  children: z.array(RuleTreeRuleSchema).optional(),
+  comments: z.string().optional(),
+  uuid: z.string().optional(),
+  templateUuid: z.string().optional(),
+  criteriaMustSatisfy: z.enum(['all', 'any']).optional(),
+}));
+
+const PropertyRulesSchema = z.object({
+  rules: RuleTreeRuleSchema,
+  ruleFormat: z.string(),
+  etag: z.string().optional(),
+  comments: z.string().optional(),
+  accountId: z.string().optional(),
+  contractId: z.string().optional(),
+  groupId: z.string().optional(),
+  propertyId: z.string().optional(),
+  propertyVersion: z.number().optional(),
+});
 
 // Rule tree specific types
 export interface RuleValidationResult {
@@ -51,7 +156,7 @@ export interface RuleTemplate {
   category: string;
   tags: string[];
   variables: Record<string, RuleTemplateVariable>;
-  ruleTree: any;
+  ruleTree: RuleTreeRule;
   examples: RuleTemplateExample[];
   compatibility: {
     products: string[];
@@ -63,7 +168,7 @@ export interface RuleTemplateVariable {
   name: string;
   type: 'string' | 'number' | 'boolean' | 'array' | 'object';
   description: string;
-  default?: any;
+  default?: string | number | boolean | any[] | Record<string, unknown>;
   required: boolean;
   validation?: string;
 }
@@ -71,7 +176,7 @@ export interface RuleTemplateVariable {
 export interface RuleTemplateExample {
   name: string;
   description: string;
-  variables: Record<string, any>;
+  variables: Record<string, string | number | boolean | any[] | Record<string, unknown>>;
 }
 
 export interface RuleMergeOptions {
@@ -79,6 +184,14 @@ export interface RuleMergeOptions {
   conflictResolution: 'source' | 'target' | 'manual';
   preserveOrder: boolean;
   validateResult: boolean;
+}
+
+export interface RuleMergeConflict {
+  path: string;
+  type: 'behavior' | 'rule' | 'value';
+  resolution: string;
+  source?: unknown;
+  target?: unknown;
 }
 
 export interface RulePerformanceAnalysis {
@@ -256,7 +369,7 @@ export async function updatePropertyRulesEnhanced(
     version: number;
     contractId: string;
     groupId: string;
-    rules: any;
+    rules: PropertyRules;
     validateOnly?: boolean;
     autoOptimize?: boolean;
     dryRun?: boolean;
@@ -509,7 +622,7 @@ export async function validateRuleTree(
     customer?: string;
     propertyId?: string;
     version?: number;
-    rules: any;
+    rules: PropertyRules;
     includeOptimizations?: boolean;
     includePerformance?: boolean;
   },
@@ -606,8 +719,8 @@ export async function mergeRuleTrees(
   _client: AkamaiClient,
   args: {
     customer?: string;
-    sourceRules: any;
-    targetRules: any;
+    sourceRules: PropertyRules;
+    targetRules: PropertyRules;
     options?: RuleMergeOptions;
     propertyContext?: {
       propertyId: string;
@@ -673,7 +786,7 @@ export async function mergeRuleTrees(
 
     if (mergeResult.conflicts.length > 0) {
       text += '**Conflict Details:**\n';
-      mergeResult.conflicts.slice(0, 5).forEach((conflict: any, index: number) => {
+      mergeResult.conflicts.slice(0, 5).forEach((conflict: RuleMergeConflict, index: number) => {
         text += `${index + 1}. ${conflict.path}\n`;
         text += `   Type: ${conflict.type}\n`;
         text += `   Resolution: ${conflict.resolution}\n\n`;
@@ -717,7 +830,7 @@ export async function optimizeRuleTree(
   _client: AkamaiClient,
   args: {
     customer?: string;
-    rules: any;
+    rules: PropertyRules;
     optimizationLevel?: 'basic' | 'standard' | 'aggressive';
     preserveCustomizations?: boolean;
     targetMetrics?: Array<'speed' | 'bandwidth' | 'availability'>;
@@ -890,7 +1003,7 @@ export async function listRuleTemplates(
 
 // Helper functions
 
-async function validateRuleTreeInternal(rules: any, __context: any): Promise<RuleValidationResult> {
+async function validateRuleTreeInternal(rules: PropertyRules, __context: Record<string, unknown>): Promise<RuleValidationResult> {
   const errors: RuleValidationError[] = [];
   const warnings: RuleValidationWarning[] = [];
   const suggestions: RuleOptimizationSuggestion[] = [];
@@ -934,7 +1047,7 @@ async function validateRuleTreeInternal(rules: any, __context: any): Promise<Rul
 }
 
 function validateRuleNode(
-  node: any,
+  node: RuleTreeRule,
   path: string,
   errors: RuleValidationError[],
   warnings: RuleValidationWarning[],
@@ -951,7 +1064,7 @@ function validateRuleNode(
         fix: 'Convert behaviors to an array format',
       });
     } else {
-      node.behaviors.forEach((behavior: any, index: number) => {
+      node.behaviors.forEach((behavior: RuleBehavior, index: number) => {
         validateBehavior(behavior, `${path}/behaviors[${index}]`, errors, warnings, suggestions);
       });
     }
@@ -973,7 +1086,7 @@ function validateRuleNode(
         fix: 'Convert children to an array format',
       });
     } else {
-      node.children.forEach((child: any, index: number) => {
+      node.children.forEach((child: RuleTreeRule, index: number) => {
         if (!child.name) {
           errors.push({
             type: 'syntax',
@@ -990,7 +1103,7 @@ function validateRuleNode(
 }
 
 function validateBehavior(
-  behavior: any,
+  behavior: RuleBehavior,
   path: string,
   errors: RuleValidationError[],
   warnings: RuleValidationWarning[],
@@ -1034,7 +1147,7 @@ function validateBehavior(
 }
 
 function validateCachingBehavior(
-  behavior: any,
+  behavior: RuleBehavior,
   path: string,
   warnings: RuleValidationWarning[],
   suggestions: RuleOptimizationSuggestion[],
@@ -1068,7 +1181,7 @@ function validateCachingBehavior(
 }
 
 function validateCompressionBehavior(
-  behavior: any,
+  behavior: RuleBehavior,
   path: string,
   _warnings: RuleValidationWarning[],
   suggestions: RuleOptimizationSuggestion[],
@@ -1088,7 +1201,7 @@ function validateCompressionBehavior(
 }
 
 function validateHttp2Behavior(
-  behavior: any,
+  behavior: RuleBehavior,
   path: string,
   _warnings: RuleValidationWarning[],
   suggestions: RuleOptimizationSuggestion[],
@@ -1108,12 +1221,12 @@ function validateHttp2Behavior(
 }
 
 function checkOptimizationOpportunities(
-  node: any,
+  node: RuleTreeRule,
   path: string,
   suggestions: RuleOptimizationSuggestion[],
 ): void {
   const behaviors = node.behaviors || [];
-  const behaviorNames = behaviors.map((b: any) => b.name);
+  const behaviorNames = behaviors.map((b: RuleBehavior) => b.name);
 
   // Check for missing caching behavior
   if (!behaviorNames.includes('caching')) {
@@ -1200,21 +1313,21 @@ function calculateComplianceScore(
   return Math.max(0, Math.min(100, score));
 }
 
-function hasSpecificBehavior(node: any, behaviorName: string): boolean {
+function hasSpecificBehavior(node: RuleTreeRule, behaviorName: string): boolean {
   if (node.behaviors) {
-    if (node.behaviors.some((b: any) => b.name === behaviorName)) {
+    if (node.behaviors.some((b: RuleBehavior) => b.name === behaviorName)) {
       return true;
     }
   }
 
   if (node.children) {
-    return node.children.some((child: any) => hasSpecificBehavior(child, behaviorName));
+    return node.children.some((child: RuleTreeRule) => hasSpecificBehavior(child, behaviorName));
   }
 
   return false;
 }
 
-function processTemplate(template: any, variables: Record<string, any>): any {
+function processTemplate(template: RuleTemplate, variables: Record<string, string | number | boolean | any[] | Record<string, unknown>>): RuleTemplate {
   const templateStr = JSON.stringify(template);
 
   // Replace variable placeholders

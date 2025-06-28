@@ -420,82 +420,50 @@ export async function listProperties(
       };
     }
 
-    // Format properties list with comprehensive details
+    // Return structured data for Claude Desktop optimization
     const allProperties = propertiesResponse.properties.items;
     const totalProperties = allProperties.length;
 
-    // OPTIMIZATION: Limit displayed properties to prevent output overload
+    // OPTIMIZATION: Limit properties to prevent memory issues
     const propertiesToShow = allProperties.slice(0, MAX_PROPERTIES_TO_DISPLAY);
     const hasMore = totalProperties > MAX_PROPERTIES_TO_DISPLAY;
 
-    let text = `# Akamai Properties (${hasMore ? `showing ${propertiesToShow.length} of ${totalProperties}` : `${totalProperties} found`})\n\n`;
-
-    // Add filter information
-    text += '**Filters Applied:**\n';
-    if (contractId) {
-      text += `- Contract: ${formatContractDisplay(contractId)}${!args.contractId ? ' (auto-selected)' : ''}\n`;
-    }
-    if (groupId) {
-      text += `- Group: ${formatGroupDisplay(groupId)}${!args.groupId && !args.contractId ? ' (auto-selected)' : ''}\n`;
-    }
-    if (hasMore) {
-      text += `- **Limit:** Showing first ${MAX_PROPERTIES_TO_DISPLAY} properties\n`;
-    }
-    text += '\n';
-
-    // Group properties by contract for better organization
-    const propertiesByContract = propertiesToShow.reduce(
-      (acc: Record<string, PapiProperty[]>, prop: PapiProperty) => {
-        const contract = prop.contractId;
-        if (!acc[contract]) {
-          acc[contract] = [];
-        }
-        acc[contract].push(prop);
-        return acc;
+    // Structure the data for easy LLM processing
+    const structuredResponse = {
+      properties: propertiesToShow.map(prop => ({
+        propertyId: prop.propertyId,
+        propertyName: prop.propertyName,
+        contractId: prop.contractId,
+        groupId: prop.groupId,
+        productId: prop.productId || null,
+        assetId: prop.assetId || null,
+        latestVersion: prop.latestVersion || null,
+        productionVersion: prop.productionVersion || null,
+        stagingVersion: prop.stagingVersion || null,
+        productionStatus: prop.productionStatus || null,
+        stagingStatus: prop.stagingStatus || null,
+        note: prop.note || null,
+        ruleFormat: prop.ruleFormat || null
+      })),
+      metadata: {
+        total: totalProperties,
+        shown: propertiesToShow.length,
+        hasMore: hasMore,
+        limit: MAX_PROPERTIES_TO_DISPLAY
       },
-      {} as Record<string, PapiProperty[]>,
-    );
-
-    // Display properties organized by contract
-    for (const [contractId, contractProps] of Object.entries(propertiesByContract)) {
-      text += `## ${formatContractDisplay(contractId)}\n\n`;
-
-      for (const prop of contractProps) {
-        text += `### [PROPERTY] ${prop.propertyName}\n`;
-        text += `- **Property ID:** ${formatPropertyDisplay(prop.propertyId)}\n`;
-        text += `- **Current Version:** ${prop.latestVersion || 'N/A'}\n`;
-        text += `- **Production:** ${formatStatus(prop.productionStatus)}\n`;
-        text += `- **Staging:** ${formatStatus(prop.stagingStatus)}\n`;
-        text += `- **Group:** ${formatGroupDisplay(prop.groupId)}\n`;
-
-        if (prop.note) {
-          text += `- **Notes:** ${prop.note}\n`;
-        }
-
-        text += '\n';
+      filters: {
+        contractId: contractId || null,
+        contractIdAutoSelected: !args.contractId && !!contractId,
+        groupId: groupId || null,
+        groupIdAutoSelected: !args.groupId && !args.contractId && !!groupId
       }
-    }
-
-    if (hasMore) {
-      text += `\n[WARNING] **Note:** Only showing first ${MAX_PROPERTIES_TO_DISPLAY} properties out of ${totalProperties} total.\n`;
-      text += 'To see more properties:\n';
-      text += '- Filter by specific group: `"list properties in group grp_XXXXX"`\n';
-      text += '- Search for specific property: `"get property [name or ID]"`\n';
-      text += '- Increase limit: `"list properties with limit 100"`\n';
-    }
-
-    // Add helpful next steps
-    text += '## Next Steps\n\n';
-    text += '- To view detailed configuration: `"Show me details for property [propertyId]"`\n';
-    text += '- To view property rules: `"Show me the rules for property [propertyId]"`\n';
-    text += '- To activate a property: `"Activate property [propertyId] to staging"`\n';
-    text += '- To create a new property: `"Create a new property called [name]"`\n';
+    };
 
     return {
       content: [
         {
           type: 'text',
-          text,
+          text: JSON.stringify(structuredResponse, null, 2),
         },
       ],
     };
@@ -1333,74 +1301,53 @@ async function getPropertyById(
       console.error('Failed to get hostnames:', hostnameError);
     }
 
-    // Format comprehensive property details
-    let text = `# Property Details: ${prop.propertyName}\n\n`;
-
-    // Basic Information
-    text += '## Basic Information\n';
-    text += `- **Property ID:** ${formatPropertyDisplay(prop.propertyId, prop.propertyName)}\n`;
-    text += `- **Asset ID:** ${prop.assetId || 'N/A'}\n`;
-    text += `- **Contract:** ${formatContractDisplay(prop.contractId)}\n`;
-    text += `- **Group:** ${formatGroupDisplay(prop.groupId, groupName)}\n`;
-    text += `- **Product:** ${prop.productId ? formatProductDisplay(prop.productId) : 'N/A'}\n\n`;
-
-    // Version Information
-    text += '## Version Information\n';
-    text += `- **Latest Version:** ${prop.latestVersion || 'N/A'}\n`;
-    text += `- **Production Version:** ${prop.productionVersion || 'None'}\n`;
-    text += `- **Staging Version:** ${prop.stagingVersion || 'None'}\n\n`;
-
-    // Activation Status
-    text += '## Activation Status\n';
-    text += `- **Production:** ${formatStatus(prop.productionStatus)}\n`;
-    text += `- **Staging:** ${formatStatus(prop.stagingStatus)}\n\n`;
-
-    // Version Details if available
-    if (versionDetails?.versions?.items?.[0]) {
-      const version = versionDetails.versions.items[0];
-      text += `## Latest Version Details (v${version.propertyVersion})\n`;
-      text += `- **Updated By:** ${version.updatedByUser || 'Unknown'}\n`;
-      text += `- **Updated Date:** ${formatDate(version.updatedDate)}\n`;
-      if (version.note) {
-        text += `- **Version Notes:** ${version.note}\n`;
+    // Return structured data for Claude Desktop optimization
+    const structuredResponse = {
+      property: {
+        propertyId: prop.propertyId,
+        propertyName: prop.propertyName,
+        contractId: prop.contractId,
+        groupId: prop.groupId,
+        groupName: groupName || null,
+        productId: prop.productId || null,
+        assetId: prop.assetId || null,
+        note: prop.note || null,
+        ruleFormat: prop.ruleFormat || null
+      },
+      versions: {
+        latest: prop.latestVersion || null,
+        production: prop.productionVersion || null,
+        staging: prop.stagingVersion || null,
+        productionStatus: prop.productionStatus || null,
+        stagingStatus: prop.stagingStatus || null
+      },
+      versionDetails: versionDetails?.versions?.items?.[0] ? {
+        version: versionDetails.versions.items[0].propertyVersion,
+        updatedBy: versionDetails.versions.items[0].updatedByUser || null,
+        updatedDate: versionDetails.versions.items[0].updatedDate || null,
+        note: versionDetails.versions.items[0].note || null,
+        etag: versionDetails.versions.items[0].etag || null
+      } : null,
+      hostnames: hostnames?.hostnames?.items ? 
+        (hostnames.hostnames.items as any[]).map(h => ({
+          hostname: h.cnameFrom,
+          edgeHostname: h.cnameTo,
+          certStatus: h.certStatus?.status || null,
+          validationStatus: h.validationStatus || null
+        })) : [],
+      metadata: {
+        hasProductionVersion: !!prop.productionVersion,
+        hasStagingVersion: !!prop.stagingVersion,
+        needsActivation: prop.latestVersion && prop.latestVersion > (prop.productionVersion || 0),
+        hostnameCount: hostnames?.hostnames?.items?.length || 0
       }
-      text += '\n';
-    }
-
-    // Hostnames if available
-    if (hostnames?.hostnames?.items && (hostnames.hostnames.items as any[]).length > 0) {
-      text += '## Associated Hostnames\n';
-      for (const hostname of hostnames.hostnames.items) {
-        text += `- **${hostname.cnameFrom}** → ${hostname.cnameTo}`;
-        if (hostname.certStatus) {
-          text += ` (Cert: ${hostname.certStatus.status || 'Unknown'})`;
-        }
-        text += '\n';
-      }
-      text += '\n';
-    }
-
-    // Notes
-    if (prop.note) {
-      text += `## Property Notes\n${prop.note}\n\n`;
-    }
-
-    // Next Steps
-    text += '## Available Actions\n';
-    text += `- View rules: \`"Show me the rules for property ${propertyId}"\`\n`;
-    text += `- Update rules: \`"Update property ${propertyId} to use origin server example.com"\`\n`;
-    text += `- Activate: \`"Activate property ${propertyId} to staging"\`\n`;
-    text += `- View activations: \`"Show activation history for property ${propertyId}"\`\n`;
-
-    if (!prop.productionVersion) {
-      text += '\n[WARNING] **Note:** This property has never been activated to production.';
-    }
+    };
 
     return {
       content: [
         {
           type: 'text',
-          text,
+          text: JSON.stringify(structuredResponse, null, 2),
         },
       ],
     };
@@ -1530,30 +1477,35 @@ export async function createProperty(
     // Extract property ID from the link (remove query parameters)
     const propertyId = response.propertyLink.split('/').pop()?.split('?')[0];
 
-    // Format success response with human-readable names
+    // Return structured data for Claude Desktop
     const contractName = await getContractName(client, args.contractId);
     const productName = getProductName(args.productId);
     const groupName = await getGroupName(client, args.groupId);
     
-    let text = 'Property Created Successfully!\n\n';
-    text += `${args.propertyName}\n`;
-    text += `- ID: ${propertyId} (save this for API commands)\n`;
-    text += `- Contract: ${contractName}\n`;
-    text += `- Product: ${productName}\n`;
-    text += `- Group: ${groupName}\n\n`;
-
-    text += 'Next Steps:\n';
-    text += `1. Configure rules: property.update_rules ${propertyId}\n`;
-    text += `2. Add hostnames: property.add_hostname ${propertyId} www.example.com\n`;
-    text += `3. Activate to staging: property.activate ${propertyId} staging\n\n`;
-
-    text += 'The property is now ready for configuration. Use the property ID in all future commands.';
+    const structuredResponse = {
+      success: true,
+      property: {
+        propertyId: propertyId,
+        propertyName: args.propertyName,
+        contractId: args.contractId,
+        contractName: contractName,
+        groupId: args.groupId,
+        groupName: groupName,
+        productId: args.productId,
+        productName: productName,
+        propertyLink: response.propertyLink
+      },
+      metadata: {
+        createdAt: new Date().toISOString(),
+        ruleFormat: args.ruleFormat || 'latest'
+      }
+    };
 
     return {
       content: [
         {
           type: 'text',
-          text,
+          text: JSON.stringify(structuredResponse, null, 2),
         },
       ],
     };

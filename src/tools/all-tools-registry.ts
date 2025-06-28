@@ -88,6 +88,28 @@ import {
   generateMigrationInstructions,
 } from './dns-migration-tools';
 
+import {
+  listChangelists,
+  searchChangelists,
+  getChangelistDiff,
+  getAuthoritativeNameservers,
+  listContracts,
+  getSupportedRecordTypes,
+  deleteZone,
+  getZoneStatus,
+  listTSIGKeys,
+  createTSIGKey,
+} from './dns-operations-priority';
+
+import {
+  enableDNSSEC,
+  disableDNSSEC,
+  getDNSSECKeys,
+  getDNSSECDSRecords,
+  checkDNSSECValidation,
+  rotateDNSSECKeys,
+} from './dns-dnssec-operations';
+
 // DNS Elicitation Tools
 import {
   dnsElicitationTool,
@@ -785,6 +807,142 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       description: 'Get contract information for a zone',
       schema: extendedSchemas.GetZoneContractSchema,
       handler: getZoneContract,
+    },
+
+    // Priority DNS Operations
+    {
+      name: 'list-changelists',
+      description: 'List all changelists',
+      schema: z.object({
+        page: z.number().int().positive().optional(),
+        pageSize: z.number().int().positive().max(100).optional(),
+        showAll: z.boolean().optional(),
+      }),
+      handler: listChangelists,
+    },
+    {
+      name: 'search-changelists',
+      description: 'Search changelists by zone names',
+      schema: z.object({
+        zones: z.array(z.string()).min(1),
+      }),
+      handler: searchChangelists,
+    },
+    {
+      name: 'get-changelist-diff',
+      description: 'Get differences between changelist and current zone',
+      schema: z.object({
+        zone: z.string().min(1),
+      }),
+      handler: getChangelistDiff,
+    },
+    {
+      name: 'get-authoritative-nameservers',
+      description: 'Get Akamai authoritative nameservers',
+      schema: z.object({}),
+      handler: getAuthoritativeNameservers,
+    },
+    {
+      name: 'list-contracts',
+      description: 'List available contracts',
+      schema: z.object({}),
+      handler: listContracts,
+    },
+    {
+      name: 'get-supported-record-types',
+      description: 'Get supported DNS record types',
+      schema: z.object({}),
+      handler: getSupportedRecordTypes,
+    },
+    {
+      name: 'delete-zone',
+      description: 'Delete a DNS zone',
+      schema: z.object({
+        zone: z.string().min(1),
+        force: z.boolean().optional(),
+      }),
+      handler: deleteZone,
+    },
+    {
+      name: 'get-zone-status',
+      description: 'Get zone activation status',
+      schema: z.object({
+        zone: z.string().min(1),
+      }),
+      handler: getZoneStatus,
+    },
+    {
+      name: 'list-tsig-keys',
+      description: 'List all TSIG keys',
+      schema: z.object({}),
+      handler: listTSIGKeys,
+    },
+    {
+      name: 'create-tsig-key',
+      description: 'Create a new TSIG key',
+      schema: z.object({
+        keyName: z.string().min(1),
+        algorithm: z.string().min(1),
+        secret: z.string().optional(),
+      }),
+      handler: createTSIGKey,
+    },
+
+    // DNSSEC Operations
+    {
+      name: 'enable-dnssec',
+      description: 'Enable DNSSEC for a zone',
+      schema: z.object({
+        zone: z.string().min(1),
+        algorithm: z.string().optional(),
+        nsec3: z.boolean().optional(),
+        salt: z.string().optional(),
+        iterations: z.number().optional(),
+      }),
+      handler: enableDNSSEC,
+    },
+    {
+      name: 'disable-dnssec',
+      description: 'Disable DNSSEC for a zone',
+      schema: z.object({
+        zone: z.string().min(1),
+        force: z.boolean().optional(),
+      }),
+      handler: disableDNSSEC,
+    },
+    {
+      name: 'get-dnssec-keys',
+      description: 'Get DNSSEC keys for a zone',
+      schema: z.object({
+        zone: z.string().min(1),
+      }),
+      handler: getDNSSECKeys,
+    },
+    {
+      name: 'get-dnssec-ds-records',
+      description: 'Get DS records for parent zone delegation',
+      schema: z.object({
+        zone: z.string().min(1),
+      }),
+      handler: getDNSSECDSRecords,
+    },
+    {
+      name: 'check-dnssec-validation',
+      description: 'Check DNSSEC validation status',
+      schema: z.object({
+        zone: z.string().min(1),
+      }),
+      handler: checkDNSSECValidation,
+    },
+    {
+      name: 'rotate-dnssec-keys',
+      description: 'Initiate DNSSEC key rotation',
+      schema: z.object({
+        zone: z.string().min(1),
+        keyType: z.enum(['KSK', 'ZSK', 'BOTH']),
+        algorithm: z.string().optional(),
+      }),
+      handler: rotateDNSSECKeys,
     },
 
     // DNS Migration Tools

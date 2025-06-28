@@ -1,13 +1,18 @@
 /**
  * Certificate Provisioning System (CPS) Tools
- * Implements Default DV certificate management with automated DNS validation
  * 
- * CODE KAI IMPLEMENTATION:
- * - Runtime validation with Zod schemas for all API responses
- * - Type guards for safe type assertions
- * - Custom error classes for actionable feedback
- * - MCP-compliant response formatting
- * - Production-grade error handling with user guidance
+ * CODE KAI Transformation:
+ * - Type Safety: All 'any' types replaced with strict interfaces
+ * - API Compliance: Aligned with official Akamai CPS API specifications
+ * - Error Handling: Categorized HTTP errors with actionable guidance
+ * - User Experience: Clear error messages with resolution steps
+ * - Maintainability: Runtime validation with Zod schemas
+ * 
+ * Implements Default DV certificate management with automated DNS validation:
+ * - Create and manage DV certificate enrollments
+ * - Monitor validation status and domain challenges
+ * - Link certificates to Property Manager properties
+ * - Generate CSRs and manage certificate lifecycle
  */
 
 import { type AkamaiClient } from '../akamai-client';
@@ -23,6 +28,46 @@ import {
   type CPSEnrollmentsListResponse,
   type CPSCSRResponse,
 } from '../types/api-responses/cps-certificates';
+
+// CODE KAI: Property Manager API response types for type-safe integration
+// Based on official Akamai Property Manager API v1 specifications
+
+export interface PropertyManagerPropertyResponse {
+  properties: {
+    items: Array<{
+      propertyId: string;
+      propertyName: string;
+      accountId: string;
+      contractId: string;
+      groupId: string;
+      assetId: string;
+      latestVersion: number;
+      stagingVersion?: number;
+      productionVersion?: number;
+      note?: string;
+    }>;
+  };
+}
+
+export interface PropertyManagerHostnameItem {
+  cnameFrom: string;
+  cnameTo?: string;
+  cnameType?: 'EDGE_HOSTNAME';
+  certProvisioningType: 'DEFAULT' | 'CPS_MANAGED';
+  certStatus?: {
+    hostname: string;
+    target: string;
+    status: string;
+    statusUpdateDate?: string;
+  };
+  edgeHostnameId?: string;
+}
+
+export interface PropertyManagerHostnamesResponse {
+  hostnames: {
+    items: PropertyManagerHostnameItem[];
+  };
+}
 
 // CPS API Types
 export interface CPSEnrollment {
@@ -459,7 +504,8 @@ export async function checkDVEnrollmentStatus(
 
     if (validatedResponse.pendingChanges && validatedResponse.pendingChanges.length > 0) {
       text += '\n## [WARNING] Pending Changes\n\n';
-      validatedResponse.pendingChanges.forEach((change: any) => {
+      // CODE KAI: Type-safe pending changes handling
+      validatedResponse.pendingChanges.forEach((change: string) => {
         text += `- ${change}\n`;
       });
     }
@@ -516,7 +562,8 @@ export async function listCertificateEnrollments(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const queryParams: any = {};
+    // CODE KAI: Type-safe query parameters
+    const queryParams: Record<string, string> = {};
     if (args.contractId) {
       queryParams.contractId = args.contractId;
     }
@@ -558,7 +605,8 @@ export async function listCertificateEnrollments(
 
     // Group by status
     const byStatus = validatedResponse.enrollments.reduce(
-      (acc: any, enrollment: any) => {
+      // CODE KAI: Type-safe enrollment grouping
+      (acc: Record<string, CPSEnrollmentMetadata[]>, enrollment: CPSEnrollmentMetadata) => {
         const status = enrollment.status.toLowerCase();
         if (!acc[status]) {
           acc[status] = [];
@@ -644,7 +692,7 @@ export async function linkCertificateToProperty(
       method: 'GET',
     });
 
-    const propertyData = propertyResponse as any;
+    const propertyData = propertyResponse as PropertyManagerPropertyResponse;
     if (!propertyData.properties?.items?.[0]) {
       throw new Error('Property not found');
     }
@@ -659,9 +707,17 @@ export async function linkCertificateToProperty(
     });
 
     // Update hostnames with certificate enrollment ID
-    const hostnamesData = hostnamesResponse as any;
+    const hostnamesData = hostnamesResponse as PropertyManagerHostnamesResponse;
     const hostnames = hostnamesData.hostnames?.items || [];
-    const updatedHostnames = hostnames.map((h: any) => ({
+    // CODE KAI: Type-safe hostname mapping
+    interface PropertyHostname {
+      cnameFrom: string;
+      cnameTo?: string;
+      cnameType?: string;
+      certProvisioningType: string;
+    }
+    
+    const updatedHostnames = hostnames.map((h: PropertyHostname) => ({
       ...h,
       certEnrollmentId: args.enrollmentId,
     }));
@@ -694,7 +750,8 @@ export async function linkCertificateToProperty(
 /**
  * Helper function to format enrollment summary
  */
-function formatEnrollmentSummary(enrollment: any): string {
+// CODE KAI: Type-safe enrollment summary formatting
+function formatEnrollmentSummary(enrollment: CPSEnrollmentMetadata): string {
   const statusMap: Record<string, string> = {
     active: '[DONE]',
     new: '[EMOJI]',
@@ -718,7 +775,8 @@ function formatEnrollmentSummary(enrollment: any): string {
     }
     text += `- **Domains:** ${domains.join(', ')}\n`;
   } else if (enrollment.allowedDomains) {
-    text += `- **Domains:** ${enrollment.allowedDomains.map((d: any) => d.name).join(', ')}\n`;
+    // CODE KAI: Type-safe domain name extraction
+    text += `- **Domains:** ${enrollment.allowedDomains.map((d) => d.name).join(', ')}\n`;
   }
 
   if (enrollment.autoRenewalStartTime) {
@@ -826,7 +884,41 @@ export async function uploadThirdPartyCertificate(
       throw new Error('Invalid certificate format. Certificate must be in PEM format.');
     }
 
-    const requestBody: any = {
+    // CODE KAI: Type-safe CSR request body
+    interface CSRRequest {
+      csr: {
+        cn: string;
+        sans?: string[];
+        c?: string;
+        st?: string;
+        l?: string;
+        o?: string;
+        ou?: string;
+      };
+      ra: 'lets-encrypt' | 'third-party' | 'symantec';
+      validationType: 'dv' | 'ov' | 'ev';
+      certificateType: 'san' | 'single' | 'wildcard';
+      networkConfiguration: {
+        geography: 'core' | 'china' | 'russia';
+        secureNetwork: string;
+        sniOnly: boolean;
+        quicEnabled?: boolean;
+      };
+      changeManagement: boolean;
+      adminContact: Contact;
+      techContact: Contact;
+      org?: {
+        name: string;
+        addressLineOne: string;
+        city: string;
+        region: string;
+        postalCode: string;
+        country: string;
+        phone: string;
+      };
+    }
+    
+    const requestBody: CSRRequest = {
       certificate: args.certificate.trim(),
     };
 
@@ -924,19 +1016,28 @@ export async function updateCertificateEnrollment(
       throw new Error('Unable to retrieve current enrollment configuration');
     }
 
+    // CODE KAI: Type-safe CPS enrollment response
+    const enrollmentData = currentResponse as CPSEnrollmentStatusResponse;
+
     // Build update payload by merging current config with updates
-    const updatePayload: any = {
+    // CODE KAI: Type-safe property update payload
+    interface PropertyUpdatePayload {
+      propertyVersion: number;
+      hostnames: PropertyHostname[];
+    }
+    
+    const updatePayload: PropertyUpdatePayload = {
       ...currentResponse,
       // Update fields that were provided
       ...(args.commonName && { 
         csr: { 
-          ...(currentResponse as any).csr, 
+          ...enrollmentData.csr, 
           cn: args.commonName 
         }
       }),
       ...(args.sans && { 
         csr: { 
-          ...(currentResponse as any).csr, 
+          ...enrollmentData.csr, 
           sans: args.sans 
         }
       }),
@@ -944,7 +1045,7 @@ export async function updateCertificateEnrollment(
       ...(args.techContact && { techContact: args.techContact }),
       ...(args.networkConfiguration && { 
         networkConfiguration: {
-          ...(currentResponse as any).networkConfiguration,
+          ...enrollmentData.networkConfiguration,
           ...args.networkConfiguration
         }
       }),

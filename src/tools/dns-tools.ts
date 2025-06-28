@@ -28,10 +28,12 @@ import {
   isEdgeDNSZoneSubmitResponse,
   isEdgeDNSZoneActivationStatusResponse,
   EdgeDNSValidationError,
+  EdgeDNSChangeListMetadataSchema,
   type EdgeDNSZonesResponse,
   type EdgeDNSZoneResponse,
   type EdgeDNSRecordSetsResponse,
   type EdgeDNSChangeListResponse,
+  type EdgeDNSChangeListMetadata,
   type EdgeDNSZoneSubmitResponse,
   type EdgeDNSZoneActivationStatusResponse,
 } from '../types/api-responses/edge-dns-zones';
@@ -361,12 +363,12 @@ export async function listRecords(
 }
 
 /**
- * Get existing changelist for a zone
+ * Get existing changelist metadata for a zone
  */
-export async function getChangeList(
+export async function getChangeListMetadata(
   client: AkamaiClient,
   zone: string,
-): Promise<ChangeList | null> {
+): Promise<EdgeDNSChangeListMetadata | null> {
   try {
     const rawResponse = await client.request({
       path: `/config-dns/v2/changelists/${zone}`,
@@ -376,16 +378,56 @@ export async function getChangeList(
       },
     });
 
-    // CODE KAI: Runtime validation
-    if (!isEdgeDNSChangeListResponse(rawResponse)) {
+    // CODE KAI: Runtime validation for metadata response
+    try {
+      return EdgeDNSChangeListMetadataSchema.parse(rawResponse);
+    } catch {
       throw new EdgeDNSValidationError(
-        'Invalid Edge DNS change list response structure',
+        'Invalid Edge DNS change list metadata response structure',
         rawResponse,
-        'EdgeDNSChangeListResponse'
+        'EdgeDNSChangeListMetadata'
       );
     }
+  } catch (_error) {
+    if (_error instanceof Error && _error.message?.includes('404')) {
+      return null;
+    }
+    throw _error;
+  }
+}
 
-    return rawResponse as EdgeDNSChangeListResponse;
+/**
+ * Get existing changelist with records for a zone
+ */
+export async function getChangeList(
+  client: AkamaiClient,
+  zone: string,
+): Promise<EdgeDNSChangeListResponse | null> {
+  try {
+    // First check if changelist exists
+    const metadata = await getChangeListMetadata(client, zone);
+    if (!metadata) {
+      return null;
+    }
+
+    // Get changelist with records
+    const rawResponse = await client.request({
+      path: `/config-dns/v2/changelists/${zone}/recordsets`,
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    // Construct full changelist response
+    return {
+      zone: metadata.zone,
+      lastModifiedDate: metadata.lastModifiedDate,
+      changeTag: metadata.changeTag,
+      zoneVersionId: metadata.zoneVersionId,
+      stale: metadata.stale,
+      recordSets: rawResponse.recordsets || [],
+    };
   } catch (_error) {
     if (_error instanceof Error && _error.message?.includes('404')) {
       return null;
@@ -454,16 +496,24 @@ export async function submitChangeList(
           },
         });
 
-        // CODE KAI: Runtime validation
-        if (!isEdgeDNSZoneSubmitResponse(rawResponse)) {
-          throw new EdgeDNSValidationError(
-            'Invalid Edge DNS zone submit response structure',
-            rawResponse,
-            'EdgeDNSZoneSubmitResponse'
-          );
+        // CODE KAI: Handle 204 No Content response
+        if (!rawResponse || Object.keys(rawResponse).length === 0) {
+          // 204 No Content - submission successful
+          response = {
+            requestId: generateRequestId(),
+            expiryDate: new Date(Date.now() + 86400000).toISOString(), // +24h
+          } as EdgeDNSZoneSubmitResponse;
+        } else {
+          // Validate full response
+          if (!isEdgeDNSZoneSubmitResponse(rawResponse)) {
+            throw new EdgeDNSValidationError(
+              'Invalid Edge DNS zone submit response structure',
+              rawResponse,
+              'EdgeDNSZoneSubmitResponse'
+            );
+          }
+          response = rawResponse as ZoneSubmitResponse;
         }
-
-        response = rawResponse as ZoneSubmitResponse;
 
         break; // Success, exit retry loop
       } catch (_error) {
@@ -924,27 +974,43 @@ export async function upsertRecord(
   const spinner = new Spinner();
 
   try {
-    // Step 1: Ensure we have a clean change list
-    spinner.start('Preparing DNS changes...');
-    await ensureCleanChangeList(client, args.zone, spinner, args.force);
+    // Step 1: Create a new changelist
+    spinner.start('Creating changelist...');
+    const changelistResponse = await client.request({
+      path: '/config-dns/v2/changelists',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      },
+      queryParams: {
+        zone: args.zone
+      }
+    });
+    
+    spinner.update(`Changelist created for zone ${args.zone}`);
 
-    // Step 2: Add/update the record in the change list
+    // Step 2: Add/update the record using add-change endpoint
     spinner.update(`Adding ${args.type} record for ${args.name}...`);
-    const recordData = {
+    
+    // Determine operation type (ADD or EDIT)
+    // For upsert, we'll use ADD which will update if exists
+    const changeOperation = {
       name: args.name,
       type: args.type,
+      op: 'ADD' as const,
       ttl: args.ttl,
       rdata: args.rdata,
     };
 
     await client.request({
-      path: `/config-dns/v2/zones/${args.zone}/recordsets`,
+      path: `/config-dns/v2/changelists/${args.zone}/recordsets/add-change`,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
-      body: recordData,
+      body: changeOperation,
     });
 
     // Step 3: Submit the change list
@@ -984,18 +1050,39 @@ export async function deleteRecord(
   const spinner = new Spinner();
 
   try {
-    // Step 1: Ensure we have a clean change list
-    spinner.start('Preparing DNS changes...');
-    await ensureCleanChangeList(client, args.zone, spinner, args.force);
-
-    // Step 2: Delete the record from the change list
-    spinner.update(`Deleting ${args.type} record for ${args.name}...`);
-    await client.request({
-      path: `/config-dns/v2/changelists/${args.zone}/recordsets/${args.name}/${args.type}`,
-      method: 'DELETE',
+    // Step 1: Create a new changelist
+    spinner.start('Creating changelist...');
+    const changelistResponse = await client.request({
+      path: '/config-dns/v2/changelists',
+      method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      },
+      queryParams: {
+        zone: args.zone
+      }
+    });
+    
+    spinner.update(`Changelist created for zone ${args.zone}`);
+
+    // Step 2: Add delete operation to the changelist
+    spinner.update(`Deleting ${args.type} record for ${args.name}...`);
+    
+    const deleteOperation = {
+      name: args.name,
+      type: args.type,
+      op: 'DELETE' as const
+    };
+    
+    await client.request({
+      path: `/config-dns/v2/changelists/${args.zone}/recordsets/add-change`,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
         Accept: 'application/json',
       },
+      body: deleteOperation,
     });
 
     // Step 3: Submit the change list

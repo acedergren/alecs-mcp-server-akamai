@@ -61,3 +61,13 @@
 - Enable reporting tools to dynamically select and validate customer contexts
 - Support both individual and aggregated multi-customer reporting patterns
 - Prepare for scalable architecture that can grow from single-customer to enterprise multi-tenant deployments
+
+## Claude Desktop Interaction Principles
+
+### What Works Best for Claude Desktop:
+
+- Raw Data + Structure > Pre-formatted Summaries
+- Claude excels at processing structured data - It can analyze complete JSON responses and extract exactly what's relevant to the user's specific question
+- Context flexibility - If a user asks "list my properties" vs "show me everything about property X", Claude can present the same data differently based on intent
+- No information loss - Claude can spot patterns, make comparisons, and provide insights that pre-written summaries might miss
+- Dynamic presentation - Claude can reformat data tables, highlight different aspects, or focus on specific fields based on the user's needs

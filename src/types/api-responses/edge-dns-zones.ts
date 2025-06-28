@@ -99,14 +99,27 @@ export const EdgeDNSRecordSetsResponseSchema = z.object({
 });
 
 /**
- * Change list response schema
+ * Change list metadata response schema (GET /changelists/{zone})
+ */
+export const EdgeDNSChangeListMetadataSchema = z.object({
+  zone: z.string().min(1),
+  changeTag: z.string(),
+  zoneVersionId: z.string(),
+  stale: z.boolean(),
+  lastModifiedDate: z.string(),
+});
+
+/**
+ * Change list response schema (with records)
  */
 export const EdgeDNSChangeListResponseSchema = z.object({
   zone: z.string().min(1),
   lastModifiedDate: z.string(),
-  lastModifiedBy: z.string(),
-  recordSets: z.array(EdgeDNSRecordSetSchema),
+  lastModifiedBy: z.string().optional(),
+  recordSets: z.array(EdgeDNSRecordSetSchema).optional(),
   changeTag: z.string().optional(),
+  zoneVersionId: z.string().optional(),
+  stale: z.boolean().optional(),
 });
 
 /**
