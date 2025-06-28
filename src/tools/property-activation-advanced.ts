@@ -105,6 +105,7 @@ export async function validatePropertyActivation(
     propertyId: string;
     version?: number;
     network: 'STAGING' | 'PRODUCTION';
+    customer?: string; // CODE KAI: Support multi-customer architecture
   },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
@@ -114,6 +115,7 @@ export async function validatePropertyActivation(
     const propertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
+      customer: args.customer, // CODE KAI: Pass customer for account switching
     });
 
     const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
@@ -135,6 +137,7 @@ export async function validatePropertyActivation(
     const rulesValidation = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules/errors`,
       method: 'GET',
+      customer: args.customer, // CODE KAI: Pass customer for account switching
     });
 
     const validatedRulesValidation = validateApiResponse<{ errors?: any[], warnings?: any[] }>(rulesValidation);
@@ -166,6 +169,7 @@ export async function validatePropertyActivation(
     const hostnamesResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'GET',
+      customer: args.customer, // CODE KAI: Pass customer for account switching
     });
 
     const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: any } }>(hostnamesResponse);

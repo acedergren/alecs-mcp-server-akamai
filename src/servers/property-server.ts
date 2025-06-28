@@ -478,17 +478,14 @@ class PropertyALECSServer2025 {
           properties: {
             customer: { type: 'string', description: 'Optional: Customer section name' },
             propertyId: { type: 'string', description: 'Property ID' },
-            version: { type: 'number', description: 'Version to validate' },
+            version: { type: 'number', description: 'Version to validate (uses latest if not specified)' },
             network: {
               type: 'string',
               enum: ['STAGING', 'PRODUCTION'],
               description: 'Target network for validation'
             },
-            checkOrigins: { type: 'boolean', description: 'Validate origin connectivity' },
-            checkCertificates: { type: 'boolean', description: 'Validate SSL certificates' },
-            checkDns: { type: 'boolean', description: 'Validate DNS configuration' },
           },
-          required: ['propertyId', 'version', 'network'],
+          required: ['propertyId', 'network'],
           additionalProperties: false,
         },
       },
@@ -975,11 +972,11 @@ class PropertyALECSServer2025 {
             }
             const cloneArgs: Parameters<typeof cloneProperty>[1] = {
               sourcePropertyId: args['sourcePropertyId'] as string,
-              newPropertyName: args['propertyName'] as string,
+              propertyName: args['propertyName'] as string,
               ...('customer' in args && { customer: args['customer'] as string }),
               ...('contractId' in args && { contractId: args['contractId'] as string }),
               ...('groupId' in args && { groupId: args['groupId'] as string }),
-              ...('cloneHostnames' in args && typeof args['cloneHostnames'] === 'boolean' && { includeHostnames: args['cloneHostnames'] })
+              ...('cloneHostnames' in args && typeof args['cloneHostnames'] === 'boolean' && { cloneHostnames: args['cloneHostnames'] })
             };
             const response = await cloneProperty(this.client, cloneArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -1135,18 +1132,15 @@ class PropertyALECSServer2025 {
 
           case 'validate_property_activation': {
             // CODE KAI: Pre-activation validation to ensure smooth deployment
-            // Performs comprehensive checks on rules, origins, certificates, and DNS
-            if (!args || typeof args !== 'object' || !('propertyId' in args) || !('version' in args) || !('network' in args)) {
-              throw new McpError(ErrorCode.InvalidParams, 'propertyId, version, and network parameters are required');
+            // Performs comprehensive checks on rules, hostnames, and configuration
+            if (!args || typeof args !== 'object' || !('propertyId' in args) || !('network' in args)) {
+              throw new McpError(ErrorCode.InvalidParams, 'propertyId and network parameters are required');
             }
             const validateArgs: Parameters<typeof validatePropertyActivation>[1] = {
               propertyId: args['propertyId'] as string,
-              version: args['version'] as number,
               network: args['network'] as 'STAGING' | 'PRODUCTION',
-              ...('customer' in args && { customer: args['customer'] as string }),
-              ...('checkOrigins' in args && typeof args['checkOrigins'] === 'boolean' && { checkOrigins: args['checkOrigins'] }),
-              ...('checkCertificates' in args && typeof args['checkCertificates'] === 'boolean' && { checkCertificates: args['checkCertificates'] }),
-              ...('checkDns' in args && typeof args['checkDns'] === 'boolean' && { checkDns: args['checkDns'] })
+              ...('version' in args && typeof args['version'] === 'number' && { version: args['version'] }),
+              ...('customer' in args && { customer: args['customer'] as string })
             };
             const response = await validatePropertyActivation(this.client, validateArgs);
             result = createMcp2025Response(true, response, undefined, {
