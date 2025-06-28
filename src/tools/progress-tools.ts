@@ -12,7 +12,7 @@ import { ProgressManager } from '../utils/mcp-progress';
  * Get progress status for a progress token
  */
 export async function getProgress(
-  client: AkamaiClient,
+  _client: AkamaiClient,
   args: {
     token: string;
   }
@@ -94,8 +94,8 @@ export async function getProgress(
  * List all active progress tokens
  */
 export async function listActiveProgress(
-  client: AkamaiClient,
-  args: {}
+  _client: AkamaiClient,
+  _args: {}
 ): Promise<MCPToolResponse> {
   const progressManager = ProgressManager.getInstance();
   const activeTokens = progressManager.getActiveTokens();
