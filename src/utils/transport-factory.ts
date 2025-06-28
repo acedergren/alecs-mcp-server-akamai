@@ -12,15 +12,10 @@ import { TransportConfig, getTransportFromEnv } from '../config/transport-config
 let express: any;
 let WebSocketServerTransport: any;
 let SSEServerTransport: any;
-// WebSocketServer and createHttpServer are available but loaded dynamically
 
 async function loadOptionalDependencies() {
   try {
     express = (await import('express')).default;
-    const ws = await import('ws');
-    WebSocketServer = ws.WebSocketServer;
-    const http = await import('http');
-    createHttpServer = http.createServer;
     
     // Load custom transports
     const sseModule = await import('../transport/sse-transport');
