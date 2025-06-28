@@ -38,11 +38,10 @@ import {
 import { handleApiError } from '../utils/error-handling';
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { createActivationProgress, ProgressManager, type ProgressToken } from '../utils/mcp-progress';
+import { createActivationProgress, ProgressManager } from '../utils/mcp-progress';
 import {
   validatePropertyId,
   validateContractId,
-  validateGroupId,
   validateCPCodeId,
   getIdValidationError,
   fixAkamaiId,
@@ -51,7 +50,6 @@ import { handleApiErrorRFC7807 } from '../utils/rfc7807-errors';
 import {
   getPropertyRulesWithETag,
   updatePropertyRulesWithETag,
-  createETagAwareClient,
 } from '../utils/etag-handler';
 
 // =============================================================================
