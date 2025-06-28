@@ -1,0 +1,35 @@
+{
+  "endpoint": "cps.certificates",
+  "success": true,
+  "responseTime": 1,
+  "statusCode": 200,
+  "responseSize": 225,
+  "sampleData": {
+    "enrollments": [
+      {
+        "id": 12345,
+        "status": "complete",
+        "certificateType": "san",
+        "validationType": "dv",
+        "commonName": "example.com",
+        "sans": [
+          "www.example.com"
+        ],
+        "networkConfiguration": {
+          "geography": "core",
+          "secureNetwork": "enhanced-tls"
+        }
+      }
+    ]
+  },
+  "validationResults": {
+    "schemaCompliant": true,
+    "typesSafe": true,
+    "issues": []
+  },
+  "metadata": {
+    "timestamp": "2025-06-28T22:29:52.931Z",
+    "customer": "testing",
+    "apiVersion": "v1"
+  }
+}

@@ -50,6 +50,12 @@
     "eval:property": "jest __tests__/mcp-evals/run-evals.test.ts -t 'Property Management'",
     "eval:dns": "jest __tests__/mcp-evals/run-evals.test.ts -t 'DNS Management'",
     "eval:report": "node scripts/generate-eval-report.js",
+    "api:discover": "node scripts/api-discover-pure.js discover",
+    "api:validate": "node scripts/api-discover-pure.js validate",
+    "api:discover:all": "bash scripts/api-discover.sh all",
+    "api:discover:akamai": "bash scripts/api-discover.sh akamai",
+    "api:discover:mcp": "bash scripts/api-discover.sh mcp",
+    "api:discover:bash": "bash scripts/api-discover.sh",
     "lint": "eslint 'src/**/*.ts' --fix",
     "format": "prettier --write 'src/**/*.{ts,json,md}'",
     "typecheck": "tsc --noEmit",
@@ -64,8 +70,7 @@
     "commander": "^14.0.0",
     "express": "^4.21.2",
     "lru-cache": "^11.1.0",
-    "ws": "^8.18.2",
-    "zod": "^3.22.0"
+    "ws": "^8.18.2"
   },
   "devDependencies": {
     "@jest/globals": "^30.0.2",
@@ -79,6 +84,7 @@
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^8.34.1",
+    "ajv": "^8.17.1",
     "eslint": "^9.29.0",
     "eslint-plugin-import": "^2.28.0",
     "eslint-plugin-jest": "^29.0.1",
@@ -86,6 +92,7 @@
     "jest": "^30.0.2",
     "jest-junit": "^16.0.0",
     "jsonwebtoken": "^9.0.2",
+    "openapi-typescript": "^7.8.0",
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
@@ -93,7 +100,8 @@
     "tsx": "^4.20.3",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.34.1",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "zod": "^3.25.67"
   },
   "files": [
     "dist/",

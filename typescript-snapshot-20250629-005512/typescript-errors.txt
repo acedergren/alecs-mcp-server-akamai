@@ -1,0 +1,739 @@
+
+> alecs-mcp-server-akamai@1.6.2 typecheck
+> tsc --noEmit
+
+src/templates/template-engine.ts(231,5): error TS2322: Type '{ hostname: string; domainPrefix: string | undefined; domainSuffix: string; ipVersionBehavior: string; certificateType: string; }' is not assignable to type '{ hostname: string; domainPrefix: string; domainSuffix: string; ipVersionBehavior: string; certificateType: string; }'.
+  Types of property 'domainPrefix' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/all-tools-registry.ts(19,3): error TS2300: Duplicate identifier 'listContracts'.
+src/tools/all-tools-registry.ts(92,3): error TS2300: Duplicate identifier 'listContracts'.
+src/tools/all-tools-registry.ts(111,3): error TS6133: 'dnsElicitationTool' is declared but its value is never read.
+src/tools/all-tools-registry.ts(113,3): error TS6133: 'secureHostnameOnboardingTool' is declared but its value is never read.
+src/tools/all-tools-registry.ts(260,3): error TS6133: 'generateASNSecurityRecommendations' is declared but its value is never read.
+src/tools/all-tools-registry.ts(261,3): error TS6133: 'listCommonGeographicCodes' is declared but its value is never read.
+src/tools/all-tools-registry.ts(264,1): error TS6192: All imports in import declaration are unused.
+src/tools/all-tools-registry.ts(1392,17): error TS6133: 'client' is declared but its value is never read.
+src/tools/all-tools-registry.ts(1398,17): error TS6133: 'client' is declared but its value is never read.
+src/tools/all-tools-registry.ts(1404,17): error TS6133: 'client' is declared but its value is never read.
+src/tools/all-tools-registry.ts(1410,17): error TS6133: 'client' is declared but its value is never read.
+src/tools/all-tools-registry.ts(1416,17): error TS6133: 'client' is declared but its value is never read.
+src/tools/all-tools-registry.ts(1422,17): error TS6133: 'client' is declared but its value is never read.
+src/tools/all-tools-registry.ts(1442,17): error TS6133: 'client' is declared but its value is never read.
+src/tools/all-tools-registry.ts(1540,17): error TS6133: 'client' is declared but its value is never read.
+src/tools/all-tools-registry.ts(1546,17): error TS6133: 'client' is declared but its value is never read.
+src/tools/all-tools-registry.ts(1552,17): error TS6133: 'client' is declared but its value is never read.
+src/tools/all-tools-registry.ts(1558,17): error TS6133: 'client' is declared but its value is never read.
+src/tools/all-tools-registry.ts(1564,17): error TS6133: 'client' is declared but its value is never read.
+src/tools/all-tools-registry.ts(1570,17): error TS6133: 'client' is declared but its value is never read.
+src/tools/analysis/cx-impact-analyzer.ts(125,11): error TS6133: 'impactMultipliers' is declared but its value is never read.
+src/tools/analysis/fix-strategy.ts(124,11): error TS6133: 'strategyTypes' is declared but its value is never read.
+src/tools/analysis/fix-strategy.ts(127,11): error TS6133: 'dependencyTypes' is declared but its value is never read.
+src/tools/analysis/fix-strategy.ts(302,9): error TS2532: Object is possibly 'undefined'.
+src/tools/analysis/fix-strategy.ts(305,9): error TS2532: Object is possibly 'undefined'.
+src/tools/analysis/fix-strategy.ts(308,9): error TS2532: Object is possibly 'undefined'.
+src/tools/analysis/fix-strategy.ts(411,9): error TS18048: 'groups.other' is possibly 'undefined'.
+src/tools/analysis/fix-strategy.ts(411,16): error TS4111: Property 'other' comes from an index signature, so it must be accessed with ['other'].
+src/tools/analysis/fix-strategy.ts(417,7): error TS2532: Object is possibly 'undefined'.
+src/tools/analysis/fix-strategy.ts(817,11): error TS6133: '_description' is declared but its value is never read.
+src/tools/analysis/output-analyzer.ts(9,11): error TS6196: '_ErrorPattern' is declared but never used.
+src/tools/analysis/output-analyzer.ts(228,11): error TS6133: 'severityWeights' is declared but its value is never read.
+src/tools/analysis/output-analyzer.ts(229,11): error TS6133: 'testCategories' is declared but its value is never read.
+src/tools/analysis/output-analyzer.ts(324,11): error TS6133: '_results' is declared but its value is never read.
+src/tools/analysis/output-analyzer.ts(390,37): error TS2379: Argument of type '{ suite: string; test: string | undefined; message: string; location: string | null; }' is not assignable to parameter of type 'TestFailure' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'test' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/analysis/output-analyzer.ts(439,33): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tools/analysis/output-analyzer.ts(440,33): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tools/analysis/output-analyzer.ts(441,32): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tools/analysis/output-analyzer.ts(454,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tools/analysis/output-analyzer.ts(455,19): error TS2532: Object is possibly 'undefined'.
+src/tools/analysis/output-analyzer.ts(467,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tools/analysis/todo-generator.ts(649,9): error TS2375: Type '{ impactLevel: "MEDIUM" | "HIGH" | "CRITICAL"; affectedFeatures: string[]; failureRate: number | undefined; suggestedActions: string[]; }' is not assignable to type 'TodoDetails' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'failureRate' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/tools/analysis/todo-generator.ts(796,9): error TS2532: Object is possibly 'undefined'.
+src/tools/analysis/todo-generator.ts(796,50): error TS2532: Object is possibly 'undefined'.
+src/tools/analysis/todo-generator.ts(801,14): error TS2532: Object is possibly 'undefined'.
+src/tools/analysis/todo-generator.ts(801,53): error TS2532: Object is possibly 'undefined'.
+src/tools/analysis/todo-generator.ts(807,28): error TS2532: Object is possibly 'undefined'.
+src/tools/analysis/todo-generator.ts(820,7): error TS2412: Type 'EffortEstimate | undefined' is not assignable to type 'EffortEstimate' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.
+  Type 'undefined' is not assignable to type 'EffortEstimate'.
+src/tools/analysis/todo-generator.ts(821,7): error TS2412: Type 'PriorityConfig | undefined' is not assignable to type 'PriorityConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.
+  Type 'undefined' is not assignable to type 'PriorityConfig'.
+src/tools/analysis/todo-generator.ts(822,7): error TS2412: Type 'TaskType | undefined' is not assignable to type 'TaskType' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.
+  Type 'undefined' is not assignable to type 'TaskType'.
+src/tools/analysis/todo-generator.ts(855,9): error TS2532: Object is possibly 'undefined'.
+src/tools/analysis/todo-generator.ts(931,16): error TS18048: 'effort' is possibly 'undefined'.
+src/tools/analysis/todo-generator.ts(931,37): error TS18048: 'priority' is possibly 'undefined'.
+src/tools/certificate-enrollment-tools.ts(42,62): error TS2379: Argument of type '{ customer: string | undefined; autoCreateDNSRecords: true; autoActivateDNS: true; enableNotifications: true; }' is not assignable to parameter of type 'CertificateEnrollmentConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/certificate-enrollment-tools.ts(65,62): error TS2379: Argument of type '{ customer: string | undefined; }' is not assignable to parameter of type 'CertificateEnrollmentConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/certificate-enrollment-tools.ts(83,62): error TS2379: Argument of type '{ customer: string | undefined; }' is not assignable to parameter of type 'CertificateEnrollmentConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/certificate-enrollment-tools.ts(100,62): error TS2379: Argument of type '{ customer: string | undefined; }' is not assignable to parameter of type 'CertificateEnrollmentConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/certificate-enrollment-tools.ts(274,66): error TS2379: Argument of type '{ customer: string | undefined; }' is not assignable to parameter of type 'CertificateEnrollmentConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/certificate-enrollment-tools.ts(288,66): error TS2379: Argument of type '{ customer: string | undefined; }' is not assignable to parameter of type 'CertificateEnrollmentConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/cps-tools.ts(568,19): error TS4111: Property 'contractId' comes from an index signature, so it must be accessed with ['contractId'].
+src/tools/cps-tools.ts(609,28): error TS2552: Cannot find name 'CPSEnrollmentMetadata'. Did you mean 'CPSEnrollmentStatus'?
+src/tools/cps-tools.ts(609,66): error TS2552: Cannot find name 'CPSEnrollmentMetadata'. Did you mean 'CPSEnrollmentStatus'?
+src/tools/cps-tools.ts(754,46): error TS2552: Cannot find name 'CPSEnrollmentMetadata'. Did you mean 'CPSEnrollmentStatus'?
+src/tools/cps-tools.ts(779,62): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/tools/cps-tools.ts(922,7): error TS2353: Object literal may only specify known properties, and 'certificate' does not exist in type 'CSRRequest'.
+src/tools/cps-tools.ts(930,19): error TS2339: Property 'trustChain' does not exist on type 'CSRRequest'.
+src/tools/cps-tools.ts(1026,18): error TS2304: Cannot find name 'PropertyHostname'.
+src/tools/cps-tools.ts(1029,11): error TS2739: Type '{ changeManagement?: boolean; networkConfiguration?: any; techContact?: Contact; adminContact?: Contact; csr?: any; }' is missing the following properties from type 'PropertyUpdatePayload': propertyVersion, hostnames
+src/tools/cps-tools.ts(1034,29): error TS2339: Property 'csr' does not exist on type '{ status: string; validationType: string; certificateType: string; enrollment: string; ra: string; pendingChanges: string[]; enrollmentId: number; allowedDomains: { status: string; name: string; validationStatus: string; validationDetails?: { ...; } | undefined; }[]; autoRenewalStartTime?: string | undefined; }'.
+src/tools/cps-tools.ts(1040,29): error TS2339: Property 'csr' does not exist on type '{ status: string; validationType: string; certificateType: string; enrollment: string; ra: string; pendingChanges: string[]; enrollmentId: number; allowedDomains: { status: string; name: string; validationStatus: string; validationDetails?: { ...; } | undefined; }[]; autoRenewalStartTime?: string | undefined; }'.
+src/tools/cps-tools.ts(1048,29): error TS2339: Property 'networkConfiguration' does not exist on type '{ status: string; validationType: string; certificateType: string; enrollment: string; ra: string; pendingChanges: string[]; enrollmentId: number; allowedDomains: { status: string; name: string; validationStatus: string; validationDetails?: { ...; } | undefined; }[]; autoRenewalStartTime?: string | undefined; }'.
+src/tools/dns-dnssec-operations.ts(66,4): error TS1360: Type 'ZodObject<{ signAndServe: ZodBoolean; signAndServeAlgorithm: ZodOptional<ZodEnum<["RSA_SHA1", "RSA_SHA256", "RSA_SHA512", "ECDSA_P256_SHA256", "ECDSA_P384_SHA384", "ED25519", "ED448"]>>; nsec3: ZodOptional<...>; }, "strip", ZodTypeAny, { ...; }, { ...; }>' does not satisfy the expected type 'ZodType<DNSSECConfig, ZodTypeDef, DNSSECConfig>'.
+  The types of '_type.signAndServeAlgorithm' are incompatible between these types.
+    Type '"RSA_SHA1" | "RSA_SHA256" | "RSA_SHA512" | "ECDSA_P256_SHA256" | "ECDSA_P384_SHA384" | "ED25519" | "ED448" | undefined' is not assignable to type 'DNSSECAlgorithm'.
+      Type 'undefined' is not assignable to type 'DNSSECAlgorithm'.
+src/tools/dns-dnssec-operations.ts(89,4): error TS1360: Type 'ZodObject<{ keyId: ZodNumber; keyType: ZodEnum<["KSK", "ZSK"]>; algorithm: ZodString; keyTag: ZodNumber; publicKey: ZodString; createdDate: ZodString; expiryDate: ZodOptional<...>; status: ZodEnum<...>; }, "strip", ZodTypeAny, { ...; }, { ...; }>' does not satisfy the expected type 'ZodType<DNSSECKey, ZodTypeDef, DNSSECKey>'.
+  The types of '_type.expiryDate' are incompatible between these types.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/dns-dnssec-operations.ts(119,7): error TS6133: 'DNSSECValidationSchema' is declared but its value is never read.
+src/tools/dns-dnssec-operations.ts(190,7): error TS2375: Type '{ enabled: true; salt: string | undefined; iterations: number; }' is not assignable to type '{ enabled: boolean; salt?: string; iterations?: number; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'salt' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/dns-dnssec-operations.ts(338,47): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/tools/dns-dnssec-operations.ts(352,47): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/tools/dns-dnssec-operations.ts(417,45): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/tools/dns-dnssec-operations.ts(418,47): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/tools/dns-dnssec-operations.ts(419,49): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/tools/dns-migration-tools.ts(109,30): error TS2379: Argument of type '{ zone: string; type: "SECONDARY"; masters: string[]; comment: string; contractId: string | undefined; groupId: string | undefined; }' is not assignable to parameter of type '{ zone: string; type: "PRIMARY" | "SECONDARY" | "ALIAS"; comment?: string; contractId?: string; groupId?: string; masters?: string[]; target?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'contractId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/dns-migration-tools.ts(649,20): error TS18048: 'cfZone' is possibly 'undefined'.
+src/tools/dns-migration-tools.ts(652,30): error TS2379: Argument of type '{ zone: string; type: "PRIMARY"; comment: string; contractId: string | undefined; groupId: string | undefined; }' is not assignable to parameter of type '{ zone: string; type: "PRIMARY" | "SECONDARY" | "ALIAS"; comment?: string; contractId?: string; groupId?: string; masters?: string[]; target?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'contractId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/dns-operations-priority.ts(22,3): error TS6133: 'EdgeDNSValidationError' is declared but its value is never read.
+src/tools/dns-operations-priority.ts(23,3): error TS6133: 'EdgeDNSChangeListMetadataSchema' is declared but its value is never read.
+src/tools/dns-operations-priority.ts(24,8): error TS2724: '"../types/api-responses/edge-dns-zones"' has no exported member named 'EdgeDNSChangeListMetadata'. Did you mean 'EdgeDNSChangeListMetadataSchema'?
+src/tools/dns-operations-priority.ts(52,4): error TS1360: Type 'ZodObject<{ contracts: ZodArray<ZodObject<{ contractId: ZodString; authorities: ZodArray<ZodString, "many">; modernAuthorities: ZodOptional<ZodArray<ZodString, "many">>; }, "strip", ZodTypeAny, { ...; }, { ...; }>, "many">; }, "strip", ZodTypeAny, { ...; }, { ...; }>' does not satisfy the expected type 'ZodType<AuthoritiesResponse, ZodTypeDef, AuthoritiesResponse>'.
+  The types of '_type.contracts' are incompatible between these types.
+    Type '{ contractId: string; authorities: string[]; modernAuthorities?: string[] | undefined; }[]' is not assignable to type 'AuthorityContract[]'.
+      Type '{ contractId: string; authorities: string[]; modernAuthorities?: string[] | undefined; }' is not assignable to type 'AuthorityContract' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Types of property 'modernAuthorities' are incompatible.
+          Type 'string[] | undefined' is not assignable to type 'string[]'.
+            Type 'undefined' is not assignable to type 'string[]'.
+src/tools/dns-operations-priority.ts(81,4): error TS1360: Type 'ZodObject<{ contracts: ZodArray<ZodObject<{ contractId: ZodString; contractName: ZodOptional<ZodString>; contractTypeName: ZodOptional<ZodString>; features: ZodOptional<...>; permissions: ZodOptional<...>; zoneCount: ZodOptional<...>; maximumZones: ZodOptional<...>; }, "strip", ZodTypeAny, { ...; }, { ...; }>, "many...' does not satisfy the expected type 'ZodType<ContractsResponse, ZodTypeDef, ContractsResponse>'.
+  The types of '_type.contracts' are incompatible between these types.
+    Type '{ contractId: string; contractName?: string | undefined; contractTypeName?: string | undefined; features?: string[] | undefined; permissions?: string[] | undefined; zoneCount?: number | undefined; maximumZones?: number | undefined; }[]' is not assignable to type 'Contract[]'.
+      Type '{ contractId: string; contractName?: string | undefined; contractTypeName?: string | undefined; features?: string[] | undefined; permissions?: string[] | undefined; zoneCount?: number | undefined; maximumZones?: number | undefined; }' is not assignable to type 'Contract' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Types of property 'contractName' are incompatible.
+          Type 'string | undefined' is not assignable to type 'string'.
+            Type 'undefined' is not assignable to type 'string'.
+src/tools/dns-operations-priority.ts(104,4): error TS1360: Type 'ZodObject<{ recordTypes: ZodOptional<ZodArray<ZodObject<{ type: ZodString; description: ZodString; allowedInApex: ZodBoolean; }, "strip", ZodTypeAny, { type: string; description: string; allowedInApex: boolean; }, { ...; }>, "many">>; types: ZodOptional<...>; }, "strip", ZodTypeAny, { ...; }, { ...; }>' does not satisfy the expected type 'ZodType<RecordTypesResponse, ZodTypeDef, RecordTypesResponse>'.
+  The types of '_type.recordTypes' are incompatible between these types.
+    Type '{ type: string; description: string; allowedInApex: boolean; }[] | undefined' is not assignable to type 'RecordType[]'.
+      Type 'undefined' is not assignable to type 'RecordType[]'.
+src/tools/dns-operations-priority.ts(168,4): error TS1360: Type 'ZodObject<{ zone: ZodString; additions: ZodOptional<ZodArray<ZodObject<{ name: ZodString; type: ZodString; ttl: ZodNumber; rdata: ZodArray<ZodString, "many">; }, "strip", ZodTypeAny, { ...; }, { ...; }>, "many">>; modifications: ZodOptional<...>; deletions: ZodOptional<...>; }, "strip", ZodTypeAny, { ...; }, { ...; }>' does not satisfy the expected type 'ZodType<ChangeListDiff, ZodTypeDef, ChangeListDiff>'.
+  The types of '_type.additions' are incompatible between these types.
+    Type '{ name: string; type: string; ttl: number; rdata: string[]; }[] | undefined' is not assignable to type 'DiffRecord[]'.
+      Type 'undefined' is not assignable to type 'DiffRecord[]'.
+src/tools/dns-operations-priority.ts(181,7): error TS6133: 'TSIGKeySchema' is declared but its value is never read.
+src/tools/dns-operations-priority.ts(187,4): error TS1360: Type 'ZodObject<{ keyId: ZodString; keyName: ZodString; algorithm: ZodString; secret: ZodOptional<ZodString>; zones: ZodOptional<ZodArray<ZodString, "many">>; }, "strip", ZodTypeAny, { ...; }, { ...; }>' does not satisfy the expected type 'ZodType<TSIGKey, ZodTypeDef, TSIGKey>'.
+  The types of '_type.secret' are incompatible between these types.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/dns-operations-priority.ts(245,32): error TS4111: Property 'page' comes from an index signature, so it must be accessed with ['page'].
+src/tools/dns-operations-priority.ts(246,36): error TS4111: Property 'pageSize' comes from an index signature, so it must be accessed with ['pageSize'].
+src/tools/dns-operations-priority.ts(247,35): error TS4111: Property 'showAll' comes from an index signature, so it must be accessed with ['showAll'].
+src/tools/dns-operations-priority.ts(259,26): error TS18046: 'response' is of type 'unknown'.
+src/tools/dns-operations-priority.ts(324,22): error TS18046: 'response' is of type 'unknown'.
+src/tools/dns-operations-priority.ts(441,3): error TS6133: 'args' is declared but its value is never read.
+src/tools/dns-operations-priority.ts(501,3): error TS6133: 'args' is declared but its value is never read.
+src/tools/dns-operations-priority.ts(567,3): error TS6133: 'args' is declared but its value is never read.
+src/tools/dns-operations-priority.ts(783,3): error TS6133: 'args' is declared but its value is never read.
+src/tools/dns-operations-priority.ts(798,19): error TS18046: 'response' is of type 'unknown'.
+src/tools/dns-tools.ts(27,3): error TS6133: 'isEdgeDNSChangeListResponse' is declared but its value is never read.
+src/tools/dns-tools.ts(36,8): error TS2724: '"../types/api-responses/edge-dns-zones"' has no exported member named 'EdgeDNSChangeListMetadata'. Did you mean 'EdgeDNSChangeListMetadataSchema'?
+src/tools/dns-tools.ts(50,19): error TS4111: Property 'DNS_OPERATION_LOG' comes from an index signature, so it must be accessed with ['DNS_OPERATION_LOG'].
+src/tools/dns-tools.ts(52,32): error TS4111: Property 'requestId' comes from an index signature, so it must be accessed with ['requestId'].
+src/tools/dns-tools.ts(90,19): error TS4111: Property 'contractIds' comes from an index signature, so it must be accessed with ['contractIds'].
+src/tools/dns-tools.ts(93,19): error TS4111: Property 'includeAliases' comes from an index signature, so it must be accessed with ['includeAliases'].
+src/tools/dns-tools.ts(96,19): error TS4111: Property 'search' comes from an index signature, so it must be accessed with ['search'].
+src/tools/dns-tools.ts(101,19): error TS4111: Property 'sortBy' comes from an index signature, so it must be accessed with ['sortBy'].
+src/tools/dns-tools.ts(104,19): error TS4111: Property 'order' comes from an index signature, so it must be accessed with ['order'].
+src/tools/dns-tools.ts(107,19): error TS4111: Property 'limit' comes from an index signature, so it must be accessed with ['limit'].
+src/tools/dns-tools.ts(110,19): error TS4111: Property 'offset' comes from an index signature, so it must be accessed with ['offset'].
+src/tools/dns-tools.ts(262,19): error TS4111: Property 'contractId' comes from an index signature, so it must be accessed with ['contractId'].
+src/tools/dns-tools.ts(265,19): error TS4111: Property 'gid' comes from an index signature, so it must be accessed with ['gid'].
+src/tools/dns-tools.ts(306,19): error TS4111: Property 'search' comes from an index signature, so it must be accessed with ['search'].
+src/tools/dns-tools.ts(309,19): error TS4111: Property 'types' comes from an index signature, so it must be accessed with ['types'].
+src/tools/dns-tools.ts(429,19): error TS18046: 'rawResponse' is of type 'unknown'.
+src/tools/dns-tools.ts(447,12): error TS2304: Cannot find name 'ZoneSubmitResponse'.
+src/tools/dns-tools.ts(481,19): error TS2304: Cannot find name 'ZoneSubmitResponse'.
+src/tools/dns-tools.ts(515,37): error TS2304: Cannot find name 'ZoneSubmitResponse'.
+src/tools/dns-tools.ts(570,17): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/tools/dns-tools.ts(577,53): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/tools/dns-tools.ts(714,12): error TS2304: Cannot find name 'ZoneActivationStatus'.
+src/tools/dns-tools.ts(909,55): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tools/dns-tools.ts(979,11): error TS6133: 'changelistResponse' is declared but its value is never read.
+src/tools/dns-tools.ts(1055,11): error TS6133: 'changelistResponse' is declared but its value is never read.
+src/tools/dns-tools.ts(1171,63): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tools/dns-tools.ts(1176,7): error TS18048: 'changelist.recordSets' is possibly 'undefined'.
+src/tools/dns-tools.ts(1181,7): error TS18048: 'changelist.recordSets' is possibly 'undefined'.
+src/tools/dns-tools.ts(1189,84): error TS2379: Argument of type '{ validateOnly: boolean | undefined; waitForActivation: boolean | undefined; timeout: number | undefined; }' is not assignable to parameter of type 'ZoneActivationOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'validateOnly' are incompatible.
+    Type 'boolean | undefined' is not assignable to type 'boolean'.
+      Type 'undefined' is not assignable to type 'boolean'.
+src/tools/documentation-tools.ts(807,19): error TS4111: Property 'other' comes from an index signature, so it must be accessed with ['other'].
+src/tools/documentation-tools.ts(808,17): error TS4111: Property 'other' comes from an index signature, so it must be accessed with ['other'].
+src/tools/elicitation/dns-elicitation-tool.ts(20,3): error TS6133: 'ensureCleanChangeList' is declared but its value is never read.
+src/tools/elicitation/dns-elicitation-tool.ts(21,3): error TS6133: 'submitChangeList' is declared but its value is never read.
+src/tools/elicitation/dns-elicitation-tool.ts(22,3): error TS6133: 'waitForZoneActivation' is declared but its value is never read.
+src/tools/elicitation/dns-elicitation-tool.ts(26,8): error TS2305: Module '"../dns-tools"' has no exported member 'DNSRecordSet'.
+src/tools/elicitation/dns-elicitation-tool.ts(27,8): error TS2305: Module '"../dns-tools"' has no exported member 'ZoneActivationStatus'.
+src/tools/elicitation/dns-elicitation-tool.ts(304,13): error TS2532: Object is possibly 'undefined'.
+src/tools/elicitation/dns-elicitation-tool.ts(561,17): error TS2532: Object is possibly 'undefined'.
+src/tools/elicitation/dns-elicitation-tool.ts(641,17): error TS2532: Object is possibly 'undefined'.
+src/tools/elicitation/secure-hostname-onboarding.ts(227,7): error TS2375: Type '{ securityConfigId: string | undefined; wafPolicyId: string | undefined; status: string; }' is not assignable to type '{ securityConfigId?: string; wafPolicyId?: string; status: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'securityConfigId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/elicitation/secure-hostname-onboarding.ts(234,5): error TS2375: Type '{ securityConfigId: string | undefined; status: string; }' is not assignable to type '{ securityConfigId?: string; wafPolicyId?: string; status: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'securityConfigId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/elicitation/secure-hostname-onboarding.ts(303,11): error TS6133: 'explanation' is declared but its value is never read.
+src/tools/elicitation/secure-hostname-onboarding.ts(358,3): error TS6133: 'state' is declared but its value is never read.
+src/tools/elicitation/secure-hostname-onboarding.ts(471,3): error TS6133: 'state' is declared but its value is never read.
+src/tools/elicitation/secure-hostname-onboarding.ts(689,9): error TS2412: Type 'string | undefined' is not assignable to type 'string' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.
+  Type 'undefined' is not assignable to type 'string'.
+src/tools/elicitation/secure-hostname-onboarding.ts(793,72): error TS2379: Argument of type '{ propertyName: string; hostnames: string[]; securityLevel: "custom" | "standard" | "enhanced"; notificationEmails: string[] | undefined; }' is not assignable to parameter of type '{ propertyName: string; hostnames: string[]; securityLevel: string; notificationEmails?: string[]; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'notificationEmails' are incompatible.
+    Type 'string[] | undefined' is not assignable to type 'string[]'.
+      Type 'undefined' is not assignable to type 'string[]'.
+src/tools/elicitation/secure-hostname-onboarding.ts(802,9): error TS2412: Type 'string | undefined' is not assignable to type 'string' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.
+  Type 'undefined' is not assignable to type 'string'.
+src/tools/elicitation/secure-hostname-onboarding.ts(964,11): error TS6133: 'zoneResult' is declared but its value is never read.
+src/tools/elicitation/secure-hostname-onboarding.ts(1025,3): error TS6133: 'client' is declared but its value is never read.
+src/tools/elicitation/secure-hostname-onboarding.ts(1027,3): error TS6133: 'state' is declared but its value is never read.
+src/tools/elicitation/secure-hostname-onboarding.ts(1118,3): error TS6133: 'client' is declared but its value is never read.
+src/tools/elicitation/secure-hostname-onboarding.ts(1120,3): error TS6133: 'state' is declared but its value is never read.
+src/tools/hostname-discovery-engine.ts(8,31): error TS6133: 'isPropertyResponse' is declared but its value is never read.
+src/tools/hostname-discovery-engine.ts(8,51): error TS6133: 'isHostnamesResponse' is declared but its value is never read.
+src/tools/hostname-management-advanced.ts(1183,9): error TS2532: Object is possibly 'undefined'.
+src/tools/hostname-management-advanced.ts(1202,9): error TS2532: Object is possibly 'undefined'.
+src/tools/property-activation-advanced.ts(11,24): error TS6133: 'ToolError' is declared but its value is never read.
+src/tools/property-activation-advanced.ts(116,3): error TS2322: Type '{ content: { type: string; text: string; }[]; } | { content: { type: "text"; text: string; }[]; }' is not assignable to type 'MCPToolResponse'.
+  Type '{ content: { type: string; text: string; }[]; }' is not assignable to type 'MCPToolResponse'.
+    Types of property 'content' are incompatible.
+      Type '{ type: string; text: string; }[]' is not assignable to type '{ type: "text"; text: string; }[]'.
+        Type '{ type: string; text: string; }' is not assignable to type '{ type: "text"; text: string; }'.
+          Types of property 'type' are incompatible.
+            Type 'string' is not assignable to type '"text"'.
+src/tools/property-activation-advanced.ts(126,13): error TS2379: Argument of type 'AxiosRequestConfig<any>' is not assignable to parameter of type '{ path: string; method?: string; body?: unknown; headers?: Record<string, string>; queryParams?: Record<string, string>; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'path' is missing in type 'AxiosRequestConfig<any>' but required in type '{ path: string; method?: string; body?: unknown; headers?: Record<string, string>; queryParams?: Record<string, string>; }'.
+src/tools/property-activation-advanced.ts(127,15): error TS2353: Object literal may only specify known properties, and 'path' does not exist in type 'AxiosRequestConfig<any>'.
+src/tools/property-activation-advanced.ts(152,7): error TS2353: Object literal may only specify known properties, and 'customer' does not exist in type '{ path: string; method?: string; body?: unknown; headers?: Record<string, string>; queryParams?: Record<string, string>; }'.
+src/tools/property-activation-advanced.ts(184,7): error TS2353: Object literal may only specify known properties, and 'customer' does not exist in type '{ path: string; method?: string; body?: unknown; headers?: Record<string, string>; queryParams?: Record<string, string>; }'.
+src/tools/property-activation-advanced.ts(190,37): error TS2379: Argument of type '{ name: string; status: "FAILED" | "PASSED"; message: string; details: string | undefined; }' is not assignable to parameter of type 'PreflightCheck' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'details' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/property-activation-advanced.ts(313,9): error TS2379: Argument of type '{ operationType: OperationType.PROPERTY_VALIDATION; toolName: string; operationName: string; timeout: number | undefined; context: BaseToolArgs & { propertyId: string; version?: number; network: "STAGING" | "PRODUCTION"; }; }' is not assignable to parameter of type '{ operationType: OperationType; toolName: string; operationName: string; timeout?: number; context?: BaseToolArgs & Record<string, any>; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'timeout' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/tools/property-activation-advanced.ts(357,73): error TS2379: Argument of type '{ propertyId: string; version: number | undefined; network: "STAGING" | "PRODUCTION"; }' is not assignable to parameter of type 'BaseToolArgs & { propertyId: string; version?: number; network: "STAGING" | "PRODUCTION"; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ propertyId: string; version: number | undefined; network: "STAGING" | "PRODUCTION"; }' is not assignable to type '{ propertyId: string; version?: number; network: "STAGING" | "PRODUCTION"; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Types of property 'version' are incompatible.
+      Type 'number | undefined' is not assignable to type 'number'.
+        Type 'undefined' is not assignable to type 'number'.
+src/tools/property-error-handling-tools.ts(116,4): error TS1360: Type 'ZodObject<{ type: ZodString; messageId: ZodString; title: ZodString; detail: ZodString; errorLocation: ZodOptional<ZodString>; behaviorName: ZodOptional<...>; instanceName: ZodOptional<...>; }, "strip", ZodTypeAny, { ...; }, { ...; }>' does not satisfy the expected type 'ZodType<PropertyError, ZodTypeDef, PropertyError>'.
+  The types of '_type.errorLocation' are incompatible between these types.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/property-error-handling-tools.ts(126,4): error TS1360: Type 'ZodObject<{ type: ZodString; messageId: ZodString; title: ZodString; detail: ZodString; errorLocation: ZodOptional<ZodString>; behaviorName: ZodOptional<...>; instanceName: ZodOptional<...>; }, "strip", ZodTypeAny, { ...; }, { ...; }>' does not satisfy the expected type 'ZodType<PropertyWarning, ZodTypeDef, PropertyWarning>'.
+  The types of '_type.errorLocation' are incompatible between these types.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/property-error-handling-tools.ts(132,4): error TS1360: Type 'ZodObject<{ ruleFormat: ZodOptional<ZodString>; errors: ZodOptional<ZodArray<ZodObject<{ type: ZodString; messageId: ZodString; title: ZodString; detail: ZodString; errorLocation: ZodOptional<...>; behaviorName: ZodOptional<...>; instanceName: ZodOptional<...>; }, "strip", ZodTypeAny, { ...; }, { ...; }>, "many">>; ...' does not satisfy the expected type 'ZodType<PropertyVersionItem, ZodTypeDef, PropertyVersionItem>'.
+  The types of '_type.ruleFormat' are incompatible between these types.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/property-error-handling-tools.ts(138,17): error TS4111: Property 'versions' comes from an index signature, so it must be accessed with ['versions'].
+src/tools/property-error-handling-tools.ts(138,45): error TS4111: Property 'versions' comes from an index signature, so it must be accessed with ['versions'].
+src/tools/property-error-handling-tools.ts(139,29): error TS4111: Property 'versions' comes from an index signature, so it must be accessed with ['versions'].
+src/tools/property-error-handling-tools.ts(140,31): error TS4111: Property 'items' comes from an index signature, so it must be accessed with ['items'].
+src/tools/property-error-handling-tools.ts(141,19): error TS4111: Property 'items' comes from an index signature, so it must be accessed with ['items'].
+src/tools/property-error-handling-tools.ts(149,17): error TS4111: Property 'hostnames' comes from an index signature, so it must be accessed with ['hostnames'].
+src/tools/property-error-handling-tools.ts(150,23): error TS4111: Property 'hostnames' comes from an index signature, so it must be accessed with ['hostnames'].
+src/tools/property-error-handling-tools.ts(151,30): error TS4111: Property 'hostnames' comes from an index signature, so it must be accessed with ['hostnames'].
+src/tools/property-error-handling-tools.ts(152,34): error TS4111: Property 'items' comes from an index signature, so it must be accessed with ['items'].
+src/tools/property-error-handling-tools.ts(152,54): error TS4111: Property 'items' comes from an index signature, so it must be accessed with ['items'].
+src/tools/property-error-handling-tools.ts(319,11): error TS6133: 'validationResponse' is declared but its value is never read.
+src/tools/property-error-handling-tools.ts(319,66): error TS2379: Argument of type '{ propertyId: string; version: number; contractId: string; groupId: string; validateRules: true; validateHostnames: true; customer: string | undefined; }' is not assignable to parameter of type '{ propertyId: string; version: number; contractId: string; groupId: string; validateRules?: boolean; validateHostnames?: boolean; customer?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/property-error-handling-tools.ts(405,17): error TS6133: 'errorType' is declared but its value is never read.
+src/tools/property-error-handling-tools.ts(468,41): error TS2379: Argument of type '{ propertyId: string; version: number; contractId: string; groupId: string; validateRules: boolean; validateHostnames: boolean; customer: string | undefined; }' is not assignable to parameter of type '{ propertyId: string; version: number; contractId: string; groupId: string; validateRules?: boolean; validateHostnames?: boolean; customer?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/property-error-handling-tools.ts(554,28): error TS7006: Parameter 'hostname' implicitly has an 'any' type.
+src/tools/property-manager-rules-tools.ts(332,43): error TS2379: Argument of type '{ path: string; method: string; headers: { 'Content-Type': string; }; queryParams: { validateRules: string; } | undefined; body: { op: "add" | "remove" | "replace" | "move" | "copy" | "test"; path: string; value?: any; from?: string; }[]; }' is not assignable to parameter of type '{ path: string; method?: string; body?: unknown; headers?: Record<string, string>; queryParams?: Record<string, string>; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'queryParams' are incompatible.
+    Type '{ validateRules: string; } | undefined' is not assignable to type 'Record<string, string>'.
+      Type 'undefined' is not assignable to type 'Record<string, string>'.
+src/tools/property-manager-tools.ts(37,3): error TS6133: 'NetworkType' is declared but its value is never read.
+src/tools/property-manager-tools.ts(38,3): error TS2440: Import declaration conflicts with local declaration of 'ActivationStatus'.
+src/tools/property-manager-tools.ts(411,63): error TS4111: Property 'hostname' comes from an index signature, so it must be accessed with ['hostname'].
+src/tools/property-manager-tools.ts(414,58): error TS4111: Property 'behavior' comes from an index signature, so it must be accessed with ['behavior'].
+src/tools/property-manager-tools.ts(417,57): error TS4111: Property 'value' comes from an index signature, so it must be accessed with ['value'].
+src/tools/property-manager-tools.ts(534,9): error TS18048: 'rulesUpdateResponse.errors.length' is possibly 'undefined'.
+src/tools/property-manager-tools.ts(536,7): error TS18048: 'rulesUpdateResponse.errors' is possibly 'undefined'.
+src/tools/property-manager-tools.ts(542,9): error TS18048: 'rulesUpdateResponse.warnings.length' is possibly 'undefined'.
+src/tools/property-manager-tools.ts(544,7): error TS18048: 'rulesUpdateResponse.warnings' is possibly 'undefined'.
+src/tools/property-manager-tools.ts(980,10): error TS18046: 'propertyResponse' is of type 'unknown'.
+src/tools/property-manager-tools.ts(984,22): error TS18046: 'propertyResponse' is of type 'unknown'.
+src/tools/property-manager-tools.ts(1256,40): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'string | number | Date'.
+      Type 'undefined' is not assignable to type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'string | number'.
+      Type 'undefined' is not assignable to type 'string | number'.
+src/tools/property-manager-tools.ts(1257,38): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'string | number | Date'.
+      Type 'undefined' is not assignable to type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'string | number'.
+      Type 'undefined' is not assignable to type 'string | number'.
+src/tools/property-manager-tools.ts(1286,67): error TS2345: Argument of type 'import("/Users/acedergr/Projects/alecs-mcp-server-akamai/src/types/api-responses/papi-official").ActivationStatus | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tools/property-manager-tools.ts(1569,24): error TS18046: 'versionsResponse' is of type 'unknown'.
+src/tools/property-manager-tools.ts(1592,24): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager-tools.ts(1610,20): error TS4111: Property 'tags' comes from an index signature, so it must be accessed with ['tags'].
+src/tools/property-manager-tools.ts(1612,18): error TS4111: Property 'createdBy' comes from an index signature, so it must be accessed with ['createdBy'].
+src/tools/property-manager-tools.ts(1613,18): error TS4111: Property 'created' comes from an index signature, so it must be accessed with ['created'].
+src/tools/property-manager-tools.ts(1690,9): error TS18046: 'rules1Response' is of type 'unknown'.
+src/tools/property-manager-tools.ts(1691,9): error TS18046: 'rules2Response' is of type 'unknown'.
+src/tools/property-manager-tools.ts(1718,9): error TS18046: 'hostnames1Response' is of type 'unknown'.
+src/tools/property-manager-tools.ts(1719,9): error TS18046: 'hostnames2Response' is of type 'unknown'.
+src/tools/property-manager-tools.ts(1793,20): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager-tools.ts(1907,24): error TS18046: 'currentVersionResponse' is of type 'unknown'.
+src/tools/property-manager-tools.ts(1916,25): error TS18046: 'backupResponse' is of type 'unknown'.
+src/tools/property-manager-tools.ts(1941,26): error TS18046: 'rollbackResponse' is of type 'unknown'.
+src/tools/property-manager-tools.ts(2043,46): error TS4111: Property 'targetVersion' comes from an index signature, so it must be accessed with ['targetVersion'].
+src/tools/property-manager-tools.ts(2050,41): error TS4111: Property 'version1' comes from an index signature, so it must be accessed with ['version1'].
+src/tools/property-manager-tools.ts(2051,41): error TS4111: Property 'version2' comes from an index signature, so it must be accessed with ['version2'].
+src/tools/property-manager-tools.ts(2110,46): error TS4111: Property 'targetVersion' comes from an index signature, so it must be accessed with ['targetVersion'].
+src/tools/property-manager-tools.ts(2117,41): error TS4111: Property 'version1' comes from an index signature, so it must be accessed with ['version1'].
+src/tools/property-manager-tools.ts(2118,41): error TS4111: Property 'version2' comes from an index signature, so it must be accessed with ['version2'].
+src/tools/property-manager-tools.ts(2304,12): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager-tools.ts(2309,26): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(41,58): error TS6133: 'ProgressToken' is declared but its value is never read.
+src/tools/property-manager.ts(45,3): error TS6133: 'validateGroupId' is declared but its value is never read.
+src/tools/property-manager.ts(54,3): error TS6133: 'createETagAwareClient' is declared but its value is never read.
+src/tools/property-manager.ts(133,38): error TS4111: Property 'contractId' comes from an index signature, so it must be accessed with ['contractId'].
+src/tools/property-manager.ts(134,35): error TS4111: Property 'groupId' comes from an index signature, so it must be accessed with ['groupId'].
+src/tools/property-manager.ts(142,10): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(142,40): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(153,33): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(164,5): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(227,10): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(238,22): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(309,38): error TS4111: Property 'contractId' comes from an index signature, so it must be accessed with ['contractId'].
+src/tools/property-manager.ts(310,35): error TS4111: Property 'groupId' comes from an index signature, so it must be accessed with ['groupId'].
+src/tools/property-manager.ts(319,26): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(418,25): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(469,10): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(469,38): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(481,36): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(484,5): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(521,10): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(532,21): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(666,7): error TS2379: Argument of type '{ validateRules: boolean | undefined; etag: string | undefined; useStoredETag: boolean; }' is not assignable to parameter of type '{ validateRules?: boolean; etag?: string; useStoredETag?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'validateRules' are incompatible.
+    Type 'boolean | undefined' is not assignable to type 'boolean'.
+      Type 'undefined' is not assignable to type 'boolean'.
+src/tools/property-manager.ts(712,9): error TS18046: 'error' is of type 'unknown'.
+src/tools/property-manager.ts(712,33): error TS18046: 'error' is of type 'unknown'.
+src/tools/property-manager.ts(832,30): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(927,38): error TS4111: Property 'contractId' comes from an index signature, so it must be accessed with ['contractId'].
+src/tools/property-manager.ts(928,35): error TS4111: Property 'groupId' comes from an index signature, so it must be accessed with ['groupId'].
+src/tools/property-manager.ts(937,10): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(937,43): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(948,50): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(958,29): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(959,32): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(1168,27): error TS2554: Expected 2-3 arguments, but got 0.
+src/tools/property-manager.ts(1169,35): error TS2339: Property 'updateProgress' does not exist on type 'ProgressManager'.
+src/tools/property-manager.ts(1182,28): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(1185,35): error TS2339: Property 'updateProgress' does not exist on type 'ProgressManager'.
+src/tools/property-manager.ts(1317,10): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(1328,24): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(1331,11): error TS6133: 'isComplete' is declared but its value is never read.
+src/tools/property-manager.ts(1486,10): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(1486,41): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(1499,39): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(1503,32): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(1504,35): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(1574,25): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(1575,27): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(1575,78): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(1743,11): error TS6133: 'response' is declared but its value is never read.
+src/tools/property-manager.ts(1836,30): error TS18046: 'currentResponse' is of type 'unknown'.
+src/tools/property-manager.ts(1844,11): error TS6133: 'response' is declared but its value is never read.
+src/tools/property-manager.ts(1914,10): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(1914,39): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(1928,37): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(1933,5): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(1996,3): error TS6133: 'args' is declared but its value is never read.
+src/tools/property-manager.ts(2007,10): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2007,39): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2018,42): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2021,5): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2030,45): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2057,3): error TS6133: 'args' is declared but its value is never read.
+src/tools/property-manager.ts(2071,10): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2071,36): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2082,40): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2087,5): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2092,5): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2099,26): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2113,42): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2168,10): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2168,38): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2179,44): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2184,25): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2190,30): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2196,27): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2229,44): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2302,30): error TS18046: 'sourceResponse' is of type 'unknown'.
+src/tools/property-manager.ts(2333,26): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2431,22): error TS18046: 'propertyResponse' is of type 'unknown'.
+src/tools/property-manager.ts(2444,21): error TS18046: 'versionResponse' is of type 'unknown'.
+src/tools/property-manager.ts(2526,38): error TS4111: Property 'contractId' comes from an index signature, so it must be accessed with ['contractId'].
+src/tools/property-manager.ts(2527,35): error TS4111: Property 'groupId' comes from an index signature, so it must be accessed with ['groupId'].
+src/tools/property-manager.ts(2535,10): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2535,37): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2546,34): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2551,5): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2627,38): error TS4111: Property 'contractId' comes from an index signature, so it must be accessed with ['contractId'].
+src/tools/property-manager.ts(2628,35): error TS4111: Property 'groupId' comes from an index signature, so it must be accessed with ['groupId'].
+src/tools/property-manager.ts(2637,24): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2713,10): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-manager.ts(2724,20): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-onboarding-tools.ts(43,9): error TS2375: Type '{ operation: string; endpoint: string; apiType: "papi"; customer: string | undefined; }' is not assignable to type 'ErrorContext' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/property-onboarding-tools.ts(57,11): error TS2375: Type '{ hostname: string; originHostname: string | undefined; contractId: string | undefined; groupId: string | undefined; productId: string | undefined; network: "STANDARD_TLS" | "ENHANCED_TLS" | "SHARED_CERT" | undefined; ... 5 more ...; useCase: "download" | ... 3 more ... | "basic-web"; }' is not assignable to type 'OnboardingConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'originHostname' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/property-onboarding-tools.ts(88,9): error TS2375: Type '{ operation: string; endpoint: string; apiType: "papi"; customer: string | undefined; }' is not assignable to type 'ErrorContext' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/property-onboarding-tools.ts(101,11): error TS2375: Type '{ hostname: string; customer: string | undefined; useCase: "web-app"; }' is not assignable to type 'OnboardingConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/property-onboarding-tools.ts(124,9): error TS2375: Type '{ operation: string; endpoint: string; apiType: "papi"; customer: string | undefined; }' is not assignable to type 'ErrorContext' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/property-onboarding-tools.ts(150,61): error TS2379: Argument of type '{ customer: string | undefined; }' is not assignable to parameter of type '{ contractId?: string; groupId?: string; limit?: number; customer?: string; includeSubgroups?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/property-onboarding-tools.ts(154,28): error TS2532: Object is possibly 'undefined'.
+src/tools/property-onboarding-tools.ts(166,67): error TS2379: Argument of type '{ customer: string | undefined; }' is not assignable to parameter of type '{ contractId?: string; groupId?: string; customer?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/property-onboarding-tools.ts(169,28): error TS2532: Object is possibly 'undefined'.
+src/tools/property-onboarding-tools.ts(187,28): error TS2532: Object is possibly 'undefined'.
+src/tools/property-search-optimized.ts(108,45): error TS2379: Argument of type '{ propertyName?: string; hostname?: string; contractId?: string; groupId?: string; customer?: string; }' is not assignable to parameter of type '{ hostname: string; contractId?: string; groupId?: string; customer?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'hostname' is optional in type '{ propertyName?: string; hostname?: string; contractId?: string; groupId?: string; customer?: string; }' but required in type '{ hostname: string; contractId?: string; groupId?: string; customer?: string; }'.
+src/tools/property-search-optimized.ts(169,28): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-search-optimized.ts(177,22): error TS18046: 'groupsResponse' is of type 'unknown'.
+src/tools/property-search-optimized.ts(192,41): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-search-optimized.ts(208,27): error TS18046: 'hostnamesResponse' is of type 'unknown'.
+src/tools/property-search-optimized.ts(288,20): error TS18046: 'groupsResponse' is of type 'unknown'.
+src/tools/property-search-optimized.ts(306,30): error TS18046: 'response' is of type 'unknown'.
+src/tools/property-search-optimized.ts(383,63): error TS18048: 'prop' is possibly 'undefined'.
+src/tools/property-search-optimized.ts(384,67): error TS18048: 'prop' is possibly 'undefined'.
+src/tools/property-search-optimized.ts(384,95): error TS18048: 'prop' is possibly 'undefined'.
+src/tools/property-search-optimized.ts(385,76): error TS18048: 'prop' is possibly 'undefined'.
+src/tools/property-tools.ts(49,3): error TS6133: 'formatGroupDisplay' is declared but its value is never read.
+src/tools/property-tools.ts(50,3): error TS6133: 'formatPropertyDisplay' is declared but its value is never read.
+src/tools/property-tools.ts(60,1): error TS6133: 'parseAkamaiResponse' is declared but its value is never read.
+src/tools/property-tools.ts(62,1): error TS6133: 'BaseToolArgs' is declared but its value is never read.
+src/tools/property-tools.ts(67,37): error TS6133: 'Property' is declared but its value is never read.
+src/tools/property-tools.ts(100,10): error TS6133: 'formatDate' is declared but its value is never read.
+src/tools/property-tools.ts(296,9): error TS2375: Type '{ operation: string; endpoint: string; apiType: "papi"; customer: string | undefined; }' is not assignable to type 'ErrorContext' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/property-tools.ts(305,43): error TS2379: Argument of type '{ groupId: string; includeSubgroups: true; customer: string | undefined; }' is not assignable to parameter of type '{ groupId: string; includeSubgroups?: boolean; customer?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/property-tools.ts(504,9): error TS2375: Type '{ operation: string; endpoint: string; apiType: "papi"; customer: string | undefined; }' is not assignable to type 'ErrorContext' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/property-tools.ts(1052,52): error TS18048: 'match' is possibly 'undefined'.
+src/tools/property-tools.ts(1052,85): error TS18048: 'match' is possibly 'undefined'.
+src/tools/property-tools.ts(1053,56): error TS18048: 'match' is possibly 'undefined'.
+src/tools/property-tools.ts(1053,83): error TS18048: 'match' is possibly 'undefined'.
+src/tools/property-tools.ts(1178,15): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tools/property-tools.ts(1873,9): error TS2375: Type '{ operation: string; endpoint: string; apiType: "papi"; customer: string | undefined; }' is not assignable to type 'ErrorContext' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/reporting-tools.ts(926,62): error TS2379: Argument of type '{ name: string; description: string | undefined; widgets: any[]; filters: ReportingFilter | undefined; refreshInterval: number | undefined; shared: boolean; }' is not assignable to parameter of type 'Omit<ReportingDashboard, "id">' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'description' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/reporting-tools.ts(1265,53): error TS2532: Object is possibly 'undefined'.
+src/tools/reporting-tools.ts(1268,46): error TS2532: Object is possibly 'undefined'.
+src/tools/rule-tree-management.ts(94,7): error TS7022: 'RuleTreeRuleSchema' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+src/tools/rule-tree-management.ts(94,35): error TS7024: Function implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+src/tools/rule-tree-management.ts(105,7): error TS6133: 'PropertyRulesSchema' is declared but its value is never read.
+src/tools/rule-tree-management.ts(419,7): error TS2739: Type 'RuleTreeRule' is missing the following properties from type 'PropertyRules': rules, ruleFormat
+src/tools/rule-tree-management.ts(419,43): error TS2379: Argument of type 'PropertyRules' is not assignable to parameter of type 'RuleTreeRule' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'name' is missing in type 'PropertyRules' but required in type 'RuleTreeRule'.
+src/tools/rule-tree-management.ts(560,47): error TS2345: Argument of type 'RuleTreeRule' is not assignable to parameter of type 'RuleTemplate'.
+  Type 'RuleTreeRule' is missing the following properties from type 'RuleTemplate': id, description, category, tags, and 4 more.
+src/tools/rule-tree-management.ts(563,57): error TS2345: Argument of type 'RuleTemplate' is not assignable to parameter of type 'PropertyRules'.
+  Type 'RuleTemplate' is missing the following properties from type 'PropertyRules': rules, ruleFormat
+src/tools/rule-tree-management.ts(740,42): error TS2379: Argument of type 'PropertyRules' is not assignable to parameter of type 'RuleTreeRule' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'name' is missing in type 'PropertyRules' but required in type 'RuleTreeRule'.
+src/tools/rule-tree-management.ts(743,57): error TS2379: Argument of type 'RuleTreeRule' is not assignable to parameter of type 'PropertyRules' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type 'RuleTreeRule' is missing the following properties from type 'PropertyRules': rules, ruleFormat
+src/tools/rule-tree-management.ts(844,45): error TS2379: Argument of type 'PropertyRules' is not assignable to parameter of type 'RuleTreeRule' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'name' is missing in type 'PropertyRules' but required in type 'RuleTreeRule'.
+src/tools/rule-tree-management.ts(847,49): error TS2379: Argument of type 'PropertyRules' is not assignable to parameter of type 'RuleTreeRule' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'name' is missing in type 'PropertyRules' but required in type 'RuleTreeRule'.
+src/tools/rule-tree-management.ts(854,47): error TS2379: Argument of type 'PropertyRules' is not assignable to parameter of type 'RuleTreeRule' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'name' is missing in type 'PropertyRules' but required in type 'RuleTreeRule'.
+src/tools/rule-tree-management.ts(1022,14): error TS2339: Property 'name' does not exist on type 'PropertyRules'.
+src/tools/rule-tree-management.ts(1033,20): error TS2379: Argument of type 'PropertyRules' is not assignable to parameter of type 'RuleTreeRule' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'name' is missing in type 'PropertyRules' but required in type 'RuleTreeRule'.
+src/tools/rule-tree-management.ts(1036,54): error TS2379: Argument of type 'PropertyRules' is not assignable to parameter of type 'RuleTreeRule' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'name' is missing in type 'PropertyRules' but required in type 'RuleTreeRule'.
+src/tools/rule-tree-management.ts(1037,52): error TS2379: Argument of type 'PropertyRules' is not assignable to parameter of type 'RuleTreeRule' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'name' is missing in type 'PropertyRules' but required in type 'RuleTreeRule'.
+src/tools/rule-tree-management.ts(1157,15): error TS4111: Property 'behavior' comes from an index signature, so it must be accessed with ['behavior'].
+src/tools/rule-tree-management.ts(1167,15): error TS4111: Property 'behavior' comes from an index signature, so it must be accessed with ['behavior'].
+src/tools/rule-tree-management.ts(1167,49): error TS4111: Property 'ttl' comes from an index signature, so it must be accessed with ['ttl'].
+src/tools/rule-tree-management.ts(1168,33): error TS2345: Argument of type '{}' is not assignable to parameter of type 'string'.
+src/tools/rule-tree-management.ts(1168,41): error TS4111: Property 'ttl' comes from an index signature, so it must be accessed with ['ttl'].
+src/tools/rule-tree-management.ts(1191,15): error TS4111: Property 'behavior' comes from an index signature, so it must be accessed with ['behavior'].
+src/tools/rule-tree-management.ts(1211,16): error TS4111: Property 'enabled' comes from an index signature, so it must be accessed with ['enabled'].
+src/tools/rule-tree-management.ts(1581,9): error TS2322: Type '"security" | "performance" | "compliance" | "optimization"' is not assignable to type '"security" | "performance" | "caching" | "consolidation" | "reordering" | "compression"'.
+  Type '"compliance"' is not assignable to type '"security" | "performance" | "caching" | "consolidation" | "reordering" | "compression"'.
+src/tools/rule-tree-management.ts(1829,5): error TS18048: 'rules.behaviors' is possibly 'undefined'.
+src/tools/rule-tree-management.ts(1843,5): error TS18048: 'rules.behaviors' is possibly 'undefined'.
+src/tools/rule-tree-management.ts(1858,5): error TS18048: 'rules.behaviors' is possibly 'undefined'.
+src/tools/rule-tree-management.ts(1870,5): error TS18048: 'rules.behaviors' is possibly 'undefined'.
+src/tools/secure-by-default-onboarding.ts(216,31): error TS4111: Property 'MCP_ENVIRONMENT' comes from an index signature, so it must be accessed with ['MCP_ENVIRONMENT'].
+src/tools/secure-by-default-onboarding.ts(223,62): error TS2379: Argument of type '{ originHostname: string; contractId: string; groupId: string; productId: string | undefined; }' is not assignable to parameter of type '{ originHostname: string; contractId: string; groupId: string; productId?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'productId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/secure-by-default-onboarding.ts(304,49): error TS2379: Argument of type '{ propertyName: string; contractId: string; groupId: string; productId: string; cpCode: number | undefined; }' is not assignable to parameter of type '{ propertyName: string; contractId: string; groupId: string; productId: string; cpCode?: number; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'cpCode' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/tools/secure-by-default-onboarding.ts(585,57): error TS2379: Argument of type '{ propertyName: string; hostnames: string[]; originHostname: string; contractId: string; groupId: string; productId: string; customer: string | undefined; }' is not assignable to parameter of type '{ propertyName: string; hostnames: string[]; originHostname: string; contractId: string; groupId: string; productId?: string; cpCode?: number; notificationEmails?: string[]; validatePrerequisites?: boolean; customer?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/security/network-lists-activation.ts(210,19): error TS4111: Property 'listType' comes from an index signature, so it must be accessed with ['listType'].
+src/tools/security/network-lists-activation.ts(213,19): error TS4111: Property 'network' comes from an index signature, so it must be accessed with ['network'].
+src/tools/security/network-lists-activation.ts(216,19): error TS4111: Property 'status' comes from an index signature, so it must be accessed with ['status'].
+src/tools/security/network-lists-geo-asn.ts(114,25): error TS2379: Argument of type '{ countryCode: string; countryName: string; subdivisionCode: string | undefined; subdivisionName: string | undefined; }' is not assignable to parameter of type 'GeographicLocation' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'subdivisionCode' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/security/network-lists-geo-asn.ts(127,25): error TS2379: Argument of type '{ countryCode: string; countryName: string; subdivisionCode: string | undefined; subdivisionName: string | undefined; }' is not assignable to parameter of type 'GeographicLocation' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'subdivisionCode' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/tools/security/network-lists-tools.ts(133,19): error TS4111: Property 'listType' comes from an index signature, so it must be accessed with ['listType'].
+src/tools/security/network-lists-tools.ts(136,19): error TS4111: Property 'search' comes from an index signature, so it must be accessed with ['search'].
+src/tools/security/network-lists-tools.ts(139,19): error TS4111: Property 'includeElements' comes from an index signature, so it must be accessed with ['includeElements'].
+src/tools/security/network-lists-tools.ts(142,19): error TS4111: Property 'extended' comes from an index signature, so it must be accessed with ['extended'].
+src/tools/security/network-lists-tools.ts(237,19): error TS4111: Property 'includeElements' comes from an index signature, so it must be accessed with ['includeElements'].
+src/tools/security/network-lists-tools.ts(240,19): error TS4111: Property 'extended' comes from an index signature, so it must be accessed with ['extended'].
+src/types/middleware.ts(226,17): error TS4111: Property 'params' comes from an index signature, so it must be accessed with ['params'].
+src/types/tool-infrastructure.ts(187,15): error TS6133: 'TArgs' is declared but its value is never read.
+src/utils/akamai-id-validator.ts(240,5): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+src/utils/akamai-id-validator.ts(251,5): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+src/utils/bloom-filter.ts(170,9): error TS2532: Object is possibly 'undefined'.
+src/utils/bloom-filter.ts(170,29): error TS2532: Object is possibly 'undefined'.
+src/utils/circuit-breaker.ts(34,11): error TS6133: 'lastFailureTime' is declared but its value is never read.
+src/utils/customer-config.ts(93,19): error TS4111: Property 'EDGERC_PATH' comes from an index signature, so it must be accessed with ['EDGERC_PATH'].
+src/utils/edgegrid-client.ts(186,28): error TS2379: Argument of type '{ path: string; method: string; queryParams: Record<string, string> | undefined; }' is not assignable to parameter of type 'EdgeGridRequestOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'queryParams' are incompatible.
+    Type 'Record<string, string> | undefined' is not assignable to type 'Record<string, string>'.
+      Type 'undefined' is not assignable to type 'Record<string, string>'.
+src/utils/edgegrid-client.ts(190,28): error TS2379: Argument of type '{ path: string; method: string; body: any; queryParams: Record<string, string> | undefined; }' is not assignable to parameter of type 'EdgeGridRequestOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'queryParams' are incompatible.
+    Type 'Record<string, string> | undefined' is not assignable to type 'Record<string, string>'.
+      Type 'undefined' is not assignable to type 'Record<string, string>'.
+src/utils/edgegrid-client.ts(194,28): error TS2379: Argument of type '{ path: string; method: string; body: any; queryParams: Record<string, string> | undefined; }' is not assignable to parameter of type 'EdgeGridRequestOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'queryParams' are incompatible.
+    Type 'Record<string, string> | undefined' is not assignable to type 'Record<string, string>'.
+      Type 'undefined' is not assignable to type 'Record<string, string>'.
+src/utils/edgegrid-client.ts(198,28): error TS2379: Argument of type '{ path: string; method: string; queryParams: Record<string, string> | undefined; }' is not assignable to parameter of type 'EdgeGridRequestOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'queryParams' are incompatible.
+    Type 'Record<string, string> | undefined' is not assignable to type 'Record<string, string>'.
+      Type 'undefined' is not assignable to type 'Record<string, string>'.
+src/utils/edgegrid-client.ts(202,28): error TS2379: Argument of type '{ path: string; method: string; body: any; queryParams: Record<string, string> | undefined; }' is not assignable to parameter of type 'EdgeGridRequestOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'queryParams' are incompatible.
+    Type 'Record<string, string> | undefined' is not assignable to type 'Record<string, string>'.
+      Type 'undefined' is not assignable to type 'Record<string, string>'.
+src/utils/enhanced-error-handling.ts(77,5): error TS2375: Type '{ success: false; error: string; userMessage: string; shouldRetry: boolean; retryAfter: number | undefined; requestId: string | undefined; errorCode: string | undefined; errorType: ErrorType; suggestions: string[]; _context: ErrorContext; }' is not assignable to type 'EnhancedErrorResult' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'retryAfter' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/utils/error-diagnostics.ts(163,39): error TS6133: 'context' is declared but its value is never read.
+src/utils/errors.ts(133,30): error TS4111: Property 'propertyId' comes from an index signature, so it must be accessed with ['propertyId'].
+src/utils/errors.ts(397,5): error TS2412: Type 'number | undefined' is not assignable to type 'number' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.
+  Type 'undefined' is not assignable to type 'number'.
+src/utils/errors.ts(398,5): error TS2412: Type 'string | undefined' is not assignable to type 'string' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.
+  Type 'undefined' is not assignable to type 'string'.
+src/utils/errors.ts(399,5): error TS2412: Type 'string | undefined' is not assignable to type 'string' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.
+  Type 'undefined' is not assignable to type 'string'.
+src/utils/etag-handler.ts(116,43): error TS2379: Argument of type '{ path: string; method: string; body: any; queryParams: Record<string, string> | undefined; headers: Record<string, string> | undefined; }' is not assignable to parameter of type '{ path: string; method?: string; body?: unknown; headers?: Record<string, string>; queryParams?: Record<string, string>; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'headers' are incompatible.
+    Type 'Record<string, string> | undefined' is not assignable to type 'Record<string, string>'.
+      Type 'undefined' is not assignable to type 'Record<string, string>'.
+src/utils/etag-handler.ts(155,34): error TS4111: Property 'validateRules' comes from an index signature, so it must be accessed with ['validateRules'].
+src/utils/etag-handler.ts(157,50): error TS2379: Argument of type '{ path: string; method: string; queryParams: Record<string, string> | undefined; }' is not assignable to parameter of type '{ path: string; method: string; body?: any; queryParams?: Record<string, string>; useStoredETag?: boolean; etag?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'queryParams' are incompatible.
+    Type 'Record<string, string> | undefined' is not assignable to type 'Record<string, string>'.
+      Type 'undefined' is not assignable to type 'Record<string, string>'.
+src/utils/etag-handler.ts(185,43): error TS4111: Property 'validateRules' comes from an index signature, so it must be accessed with ['validateRules'].
+src/utils/etag-handler.ts(187,34): error TS2379: Argument of type '{ path: string; method: string; body: any; queryParams: Record<string, string> | undefined; etag: string | undefined; useStoredETag: boolean; }' is not assignable to parameter of type '{ path: string; method: string; body?: any; queryParams?: Record<string, string>; useStoredETag?: boolean; etag?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'queryParams' are incompatible.
+    Type 'Record<string, string> | undefined' is not assignable to type 'Record<string, string>'.
+      Type 'undefined' is not assignable to type 'Record<string, string>'.
+src/utils/etag-handler.ts(275,68): error TS2379: Argument of type '{ validateRules: boolean | undefined; }' is not assignable to parameter of type '{ validateRules?: boolean; etag?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'validateRules' are incompatible.
+    Type 'boolean | undefined' is not assignable to type 'boolean'.
+      Type 'undefined' is not assignable to type 'boolean'.
+src/utils/json-response-builder.ts(55,11): error TS6133: 'maxSize' is declared but its value is never read.
+src/utils/json-response-builder.ts(128,7): error TS2375: Type '{ page: number; perPage: number; nextCursor: string | undefined; prevCursor: string | undefined; }' is not assignable to type '{ nextCursor?: string; prevCursor?: string; page?: number; perPage?: number; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'nextCursor' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/utils/json-response-builder.ts(140,10): error TS6133: 'T' is declared but its value is never read.
+src/utils/json-response-builder.ts(246,5): error TS6133: 'metadata' is declared but its value is never read.
+src/utils/json-response-builder.ts(257,5): error TS6133: 'operation' is declared but its value is never read.
+src/utils/logger.ts(13,34): error TS4111: Property 'DEBUG' comes from an index signature, so it must be accessed with ['DEBUG'].
+src/utils/mcp-2025-migration.ts(207,19): error TS2379: Argument of type '{ type: "naming"; tool: string; issue: string; suggestion: string | undefined; }' is not assignable to parameter of type 'MigrationIssue' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'suggestion' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/utils/mcp-progress.ts(76,15): error TS2379: Argument of type '{ progress: number; message: string; status: "pending" | "completed" | "failed" | "in_progress"; metadata: { activationId?: string; propertyId?: string; network?: string; startTime?: number; estimatedTimeRemaining?: number; } | undefined; }' is not assignable to parameter of type 'Omit<ProgressUpdate, "token">' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'metadata' are incompatible.
+    Type '{ activationId?: string; propertyId?: string; network?: string; startTime?: number; estimatedTimeRemaining?: number; } | undefined' is not assignable to type '{ activationId?: string; propertyId?: string; network?: string; startTime?: number; estimatedTimeRemaining?: number; }'.
+      Type 'undefined' is not assignable to type '{ activationId?: string; propertyId?: string; network?: string; startTime?: number; estimatedTimeRemaining?: number; }'.
+src/utils/mcp-streaming.ts(221,7): error TS18048: 'lastChunk' is possibly 'undefined'.
+src/utils/modular-server-factory.ts(54,11): error TS6133: 'config' is declared but its value is never read.
+src/utils/modular-server-factory.ts(94,58): error TS2345: Argument of type '(request: { params: { name: string; _meta?: objectOutputType<{ progressToken: ZodOptional<ZodUnion<[ZodString, ZodNumber]>>; }, ZodTypeAny, "passthrough"> | undefined; arguments?: Record<...> | undefined; } & { ...; }; method: "tools/call"; }) => Promise<...>' is not assignable to parameter of type '(request: { params: { name: string; _meta?: objectOutputType<{ progressToken: ZodOptional<ZodUnion<[ZodString, ZodNumber]>>; }, ZodTypeAny, "passthrough"> | undefined; arguments?: Record<...> | undefined; } & { ...; }; method: "tools/call"; }, extra: RequestHandlerExtra<...>) => { ...; } | ... 1 more ... | Promise<....'.
+  Type 'Promise<MCPToolResponse>' is not assignable to type '{ [x: string]: unknown; _meta?: { [x: string]: unknown; } | undefined; } | ServerResult | Promise<{ [x: string]: unknown; _meta?: { [x: string]: unknown; } | undefined; } | ServerResult>'.
+    Type 'Promise<MCPToolResponse>' is not assignable to type 'Promise<{ [x: string]: unknown; _meta?: { [x: string]: unknown; } | undefined; } | ServerResult>'.
+      Type 'MCPToolResponse' is not assignable to type '{ [x: string]: unknown; _meta?: { [x: string]: unknown; } | undefined; } | ServerResult'.
+        Property 'tools' is missing in type 'MCPToolResponse' but required in type '{ [x: string]: unknown; tools: { [x: string]: unknown; name: string; inputSchema: { [x: string]: unknown; type: "object"; properties?: { [x: string]: unknown; } | undefined; required?: string[] | undefined; }; title?: string | undefined; description?: string | undefined; _meta?: { ...; } | undefined; outputSchema?: ...'.
+src/utils/modular-server-factory.ts(102,41): error TS18048: 'args' is possibly 'undefined'.
+src/utils/modular-server-factory.ts(102,46): error TS4111: Property 'customer' comes from an index signature, so it must be accessed with ['customer'].
+src/utils/modular-server-factory.ts(102,56): error TS18048: 'args' is possibly 'undefined'.
+src/utils/modular-server-factory.ts(102,61): error TS4111: Property 'contractId' comes from an index signature, so it must be accessed with ['contractId'].
+src/utils/modular-server-factory.ts(102,73): error TS18048: 'args' is possibly 'undefined'.
+src/utils/modular-server-factory.ts(102,73): error TS2554: Expected 2 arguments, but got 3.
+src/utils/modular-server-factory.ts(102,78): error TS4111: Property 'groupId' comes from an index signature, so it must be accessed with ['groupId'].
+src/utils/performance-monitor.ts(63,11): error TS2375: Type '{ operationType: string; startTime: number; metadata: Record<string, any> | undefined; }' is not assignable to type 'PerformanceMetrics' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'metadata' are incompatible.
+    Type 'Record<string, any> | undefined' is not assignable to type 'Record<string, any>'.
+      Type 'undefined' is not assignable to type 'Record<string, any>'.
+src/utils/performance-monitor.ts(89,5): error TS2412: Type 'number | undefined' is not assignable to type 'number' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.
+  Type 'undefined' is not assignable to type 'number'.
+src/utils/performance-monitor.ts(90,5): error TS2412: Type 'boolean | undefined' is not assignable to type 'boolean' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.
+  Type 'undefined' is not assignable to type 'boolean'.
+src/utils/performance-monitor.ts(91,5): error TS2412: Type 'boolean | undefined' is not assignable to type 'boolean' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.
+  Type 'undefined' is not assignable to type 'boolean'.
+src/utils/performance-monitor.ts(279,5): error TS2412: Type 'PerformanceMonitor | undefined' is not assignable to type 'PerformanceMonitor' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.
+  Type 'undefined' is not assignable to type 'PerformanceMonitor'.
+src/utils/property-validation.ts(46,7): error TS2353: Object literal may only specify known properties, and 'customer' does not exist in type '{ path: string; method?: string; body?: unknown; headers?: Record<string, string>; queryParams?: Record<string, string>; }'.
+src/utils/property-validation.ts(156,25): error TS2379: Argument of type '{ operation: string; toolName: string; args: BaseToolArgs & { propertyId: string; }; propertyId: string; customer: string | undefined; suggestion: string; }' is not assignable to parameter of type '{ operation: string; toolName: string; args: Record<string, any>; customer?: string; propertyId?: string; originalError?: Error; suggestion?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/utils/property-validation.ts(167,25): error TS2379: Argument of type '{ operation: string; toolName: string; args: BaseToolArgs & { propertyId: string; }; propertyId: string; customer: string | undefined; suggestion: string; }' is not assignable to parameter of type '{ operation: string; toolName: string; args: Record<string, any>; customer?: string; propertyId?: string; originalError?: Error; suggestion?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/utils/property-validation.ts(182,25): error TS2379: Argument of type '{ operation: string; toolName: string; args: BaseToolArgs & { propertyId: string; }; propertyId: string; customer: string | undefined; originalError: any; suggestion: string; }' is not assignable to parameter of type '{ operation: string; toolName: string; args: Record<string, any>; customer?: string; propertyId?: string; originalError?: Error; suggestion?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/utils/request-coalescer.ts(15,1): error TS6133: 'z' is declared but its value is never read.
+src/utils/request-coalescer.ts(213,11): error TS6133: 'now' is declared but its value is never read.
+src/utils/request-coalescer.ts(307,7): error TS2412: Type 'undefined' is not assignable to type 'RequestCoalescer' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.
+src/utils/resilience-manager.ts(207,5): error TS2375: Type '{ operationType: OperationType; totalCalls: number; successfulCalls: number; failedCalls: number; averageResponseTime: number; lastFailureTime: Date | undefined; consecutiveFailures: number; errorRate: number; p95ResponseTime: number; }' is not assignable to type 'OperationMetrics' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'lastFailureTime' are incompatible.
+    Type 'Date | undefined' is not assignable to type 'Date'.
+      Type 'undefined' is not assignable to type 'Date'.
+src/utils/resilience-manager.ts(453,5): error TS2375: Type '{ type: "UNKNOWN"; code: string | undefined; retryable: false; severity: ErrorSeverity.MEDIUM; recovery: { type: "ALERT"; config: { message: string; }; }[]; }' is not assignable to type 'ErrorCategory' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'code' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/utils/rfc7807-errors.ts(77,5): error TS2412: Type 'string | undefined' is not assignable to type 'string' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.
+  Type 'undefined' is not assignable to type 'string'.
+src/utils/rfc7807-errors.ts(78,5): error TS2412: Type '{ type: string; title: string; detail: string; messageId?: string; }[] | undefined' is not assignable to type '{ type: string; title: string; detail: string; messageId?: string; }[]' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.
+  Type 'undefined' is not assignable to type '{ type: string; title: string; detail: string; messageId?: string; }[]'.
+src/utils/timeout-handler.ts(82,14): error TS6133: 'headers' is declared but its value is never read.
+src/utils/timeout-handler.ts(167,27): error TS2379: Argument of type '{ operation: string; toolName: string; args: BaseToolArgs & Record<string, any>; customer: string | undefined; propertyId: any; originalError: any; suggestion: string; }' is not assignable to parameter of type '{ operation: string; toolName: string; args: Record<string, any>; customer?: string; propertyId?: string; originalError?: Error; suggestion?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'customer' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/utils/timeout-handler.ts(172,38): error TS4111: Property 'propertyId' comes from an index signature, so it must be accessed with ['propertyId'].
+src/utils/timeout-handler.ts(263,13): error TS6138: Property 'operation' is declared but its value is never read.

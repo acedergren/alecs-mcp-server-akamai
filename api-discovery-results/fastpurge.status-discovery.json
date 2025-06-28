@@ -1,0 +1,41 @@
+{
+  "endpoint": "/ccu/v3/invalidate/url",
+  "documentation": {
+    "openApiExists": true,
+    "fieldsDocumented": [
+      "httpStatus",
+      "detail",
+      "purgeId",
+      "estimatedSeconds",
+      "progressUri"
+    ],
+    "fieldsUndocumented": []
+  },
+  "reality": {
+    "statusCode": 201,
+    "fieldsFound": [
+      "httpStatus",
+      "detail",
+      "purgeId",
+      "estimatedSeconds",
+      "progressUri"
+    ],
+    "responseStructure": {
+      "httpStatus": "number",
+      "detail": "string",
+      "purgeId": "string",
+      "estimatedSeconds": "number",
+      "progressUri": "string"
+    },
+    "extraFields": []
+  },
+  "validation": {
+    "passed": true,
+    "errors": [],
+    "suggestions": []
+  },
+  "typeScript": {
+    "compilationErrors": [],
+    "typeSafety": "strict"
+  }
+}

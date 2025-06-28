@@ -299,13 +299,13 @@ export class FixStrategyOptimizer {
    * Get balance recommendation
    */
   getBalanceRecommendation(percentages: Record<string, number>): string {
-    if (percentages.quick_fixes < 20) {
+    if (percentages['quick_fixes'] < 20) {
       return 'Consider identifying more quick wins for immediate impact';
     }
-    if (percentages.architectural_changes > 30) {
+    if (percentages['architectural_changes'] > 30) {
       return 'High architectural complexity may delay delivery - consider phased approach';
     }
-    if (percentages.strategic_fixes > 50) {
+    if (percentages['strategic_fixes'] > 50) {
       return 'Heavy focus on strategic fixes - ensure adequate resources and timeline';
     }
     return 'Good balance of immediate and long-term fixes';

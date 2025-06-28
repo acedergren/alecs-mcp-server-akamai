@@ -1,0 +1,29 @@
+{
+  "endpoint": "dns.zone.list",
+  "success": true,
+  "responseTime": 1,
+  "statusCode": 200,
+  "responseSize": 141,
+  "sampleData": {
+    "zones": [
+      {
+        "zone": "example.com",
+        "type": "PRIMARY",
+        "masters": [],
+        "comment": "Primary zone for example.com",
+        "signAndServe": false,
+        "tsigKey": null
+      }
+    ]
+  },
+  "validationResults": {
+    "schemaCompliant": true,
+    "typesSafe": true,
+    "issues": []
+  },
+  "metadata": {
+    "timestamp": "2025-06-28T22:29:51.850Z",
+    "customer": "testing",
+    "apiVersion": "v1"
+  }
+}

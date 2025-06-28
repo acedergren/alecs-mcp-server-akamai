@@ -390,14 +390,22 @@ export class TestScenarioBuilder {
       throw new Error('Test scenario must have name and category');
     }
 
-    return {
+    const result: TestScenario = {
       name: this.scenario.name,
       description: this.scenario.description || '',
       category: this.scenario.category,
       priority: this.scenario.priority || 'medium',
-      prerequisites: this.scenario.prerequisites,
-      tags: this.scenario.tags,
     };
+    
+    // Only add optional properties if they have values
+    if (this.scenario.prerequisites && this.scenario.prerequisites.length > 0) {
+      result.prerequisites = this.scenario.prerequisites;
+    }
+    if (this.scenario.tags && this.scenario.tags.length > 0) {
+      result.tags = this.scenario.tags;
+    }
+    
+    return result;
   }
 }
 

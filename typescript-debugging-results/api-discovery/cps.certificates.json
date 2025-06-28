@@ -1,0 +1,8 @@
+
+> alecs-mcp-server-akamai@1.6.2 api:discover
+> node scripts/api-discover-pure.js discover cps.certificates testing
+
+🔍 Discovering cps.certificates (akamai) for customer: testing
+✅ Discovery completed for cps.certificates (1ms)
+
+🎉 Discovery completed successfully!

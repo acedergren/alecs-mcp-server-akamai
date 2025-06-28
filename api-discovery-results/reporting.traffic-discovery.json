@@ -1,0 +1,39 @@
+{
+  "endpoint": "/reporting-api/v1/reports/traffic/data",
+  "documentation": {
+    "openApiExists": false,
+    "fieldsDocumented": [
+      "data[].datetime",
+      "data[].bandwidth",
+      "metadata.name"
+    ],
+    "fieldsUndocumented": []
+  },
+  "reality": {
+    "statusCode": 200,
+    "fieldsFound": [
+      "data",
+      "metadata"
+    ],
+    "responseStructure": {
+      "data": [],
+      "metadata": {}
+    },
+    "extraFields": []
+  },
+  "validation": {
+    "passed": true,
+    "errors": [],
+    "suggestions": [
+      "Consider using dynamic property access for reporting data fields",
+      "Implement proper error handling for optional reporting fields"
+    ]
+  },
+  "typeScript": {
+    "compilationErrors": [
+      "TS4111: Property 'cpCodes' comes from an index signature",
+      "TS4111: Property 'bandwidth' comes from an index signature"
+    ],
+    "typeSafety": "any"
+  }
+}

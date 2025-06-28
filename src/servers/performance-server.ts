@@ -326,6 +326,18 @@ class PerformanceServer {
 
       try {
         const validatedArgs = tool.schema.parse(args);
+        
+        // CODE KAI: Validate customer configuration if provided
+        if (validatedArgs.customer) {
+          const isValid = this._configManager.hasSection(validatedArgs.customer);
+          if (!isValid) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              `Invalid customer configuration: ${validatedArgs.customer}`
+            );
+          }
+        }
+        
         const result = await tool.handler(this.client, validatedArgs);
         
         return {

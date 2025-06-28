@@ -35,18 +35,14 @@ import {
   getVersionDiff,
   batchVersionOperations,
   createPropertyVersionEnhanced,
-  updatePropertyWithDefaultDV,
-  updatePropertyWithCPSCertificate,
   listPropertyVersionsEnhanced,
 } from './property-manager-tools';
 
 import {
-  searchProperties,
   listPropertyVersions,
   getPropertyVersion,
   getLatestPropertyVersion,
   listPropertyVersionHostnames,
-  listAllHostnames,
   listEdgeHostnames,
   getEdgeHostname,
   cloneProperty,
@@ -211,7 +207,6 @@ import {
 // Advanced Property Operations
 import {
   bulkUpdateProperties,
-  searchPropertiesAdvanced,
   compareProperties,
   detectConfigurationDrift,
   checkPropertyHealth,
@@ -651,18 +646,6 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       handler: batchVersionOperations,
     },
     {
-      name: 'search-properties',
-      description: 'Search properties by various criteria',
-      schema: schemas.SearchPropertiesSchema,
-      handler: searchProperties,
-    },
-    {
-      name: 'search-properties-advanced',
-      description: 'Advanced property search with filters',
-      schema: extendedSchemas.SearchPropertiesAdvancedSchema,
-      handler: searchPropertiesAdvanced,
-    },
-    {
       name: 'clone-property',
       description: 'Clone an existing property',
       schema: schemas.ClonePropertySchema,
@@ -1076,18 +1059,6 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: extendedSchemas.CleanupValidationRecordsSchema,
       handler: cleanupValidationRecords,
     },
-    {
-      name: 'update-property-with-default-dv',
-      description: 'Update property with default DV certificate',
-      schema: extendedSchemas.UpdatePropertyWithDefaultDVSchema,
-      handler: updatePropertyWithDefaultDV,
-    },
-    {
-      name: 'update-property-with-cps-certificate',
-      description: 'Update property with CPS certificate',
-      schema: extendedSchemas.UpdatePropertyWithCPSCertificateSchema,
-      handler: updatePropertyWithCPSCertificate,
-    },
 
     // Edge Hostname Management (10+ tools)
     {
@@ -1163,12 +1134,6 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       description: 'List hostnames for a property version',
       schema: schemas.ListPropertyHostnamesSchema,
       handler: listPropertyVersionHostnames,
-    },
-    {
-      name: 'list-all-hostnames',
-      description: 'List all hostnames across properties',
-      schema: extendedSchemas.ListAllHostnamesSchema,
-      handler: listAllHostnames,
     },
     {
       name: 'discover-hostnames-intelligent',

@@ -1,0 +1,33 @@
+{
+  "endpoint": "reporting.traffic",
+  "success": true,
+  "responseTime": 1,
+  "statusCode": 200,
+  "responseSize": 192,
+  "sampleData": {
+    "data": [
+      {
+        "datetime": "2024-01-01T00:00:00Z",
+        "bandwidth": 123456789,
+        "requests": 1000000,
+        "hits": 850000,
+        "misses": 150000
+      }
+    ],
+    "metadata": {
+      "name": "traffic-by-time",
+      "version": "1.0",
+      "granularity": "HOUR"
+    }
+  },
+  "validationResults": {
+    "schemaCompliant": true,
+    "typesSafe": true,
+    "issues": []
+  },
+  "metadata": {
+    "timestamp": "2025-06-28T22:29:52.659Z",
+    "customer": "testing",
+    "apiVersion": "v1"
+  }
+}

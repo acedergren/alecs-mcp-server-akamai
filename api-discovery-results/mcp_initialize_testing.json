@@ -1,0 +1,41 @@
+{
+  "endpoint": "mcp.initialize",
+  "success": true,
+  "responseTime": 1,
+  "statusCode": 200,
+  "responseSize": 285,
+  "sampleData": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+      "protocolVersion": "2024-11-05",
+      "capabilities": {
+        "tools": {
+          "listChanged": true
+        },
+        "resources": {
+          "subscribe": true,
+          "listChanged": true
+        },
+        "logging": {},
+        "experimental": {
+          "progressReporting": true
+        }
+      },
+      "serverInfo": {
+        "name": "ALECS MCP Server - Akamai",
+        "version": "1.6.2"
+      }
+    }
+  },
+  "validationResults": {
+    "schemaCompliant": true,
+    "typesSafe": true,
+    "issues": []
+  },
+  "metadata": {
+    "timestamp": "2025-06-28T22:29:55.067Z",
+    "customer": "testing",
+    "apiVersion": "2025-06-18"
+  }
+}

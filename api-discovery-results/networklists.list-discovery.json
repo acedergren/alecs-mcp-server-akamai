@@ -1,0 +1,48 @@
+{
+  "endpoint": "/network-list/v2/network-lists",
+  "documentation": {
+    "openApiExists": true,
+    "fieldsDocumented": [
+      "networkLists[].uniqueId",
+      "networkLists[].name",
+      "networkLists[].type",
+      "networkLists[].elementCount"
+    ],
+    "fieldsUndocumented": []
+  },
+  "reality": {
+    "statusCode": 200,
+    "fieldsFound": [
+      "networkLists",
+      "networkLists[].uniqueId",
+      "networkLists[].name",
+      "networkLists[].type",
+      "networkLists[].elementCount",
+      "networkLists[].readOnly",
+      "networkLists[].shared"
+    ],
+    "responseStructure": {
+      "networkLists": [
+        "Array(1)",
+        {
+          "uniqueId": "string",
+          "name": "string",
+          "type": "string",
+          "elementCount": "number",
+          "readOnly": "boolean",
+          "shared": "boolean"
+        }
+      ]
+    },
+    "extraFields": []
+  },
+  "validation": {
+    "passed": true,
+    "errors": [],
+    "suggestions": []
+  },
+  "typeScript": {
+    "compilationErrors": [],
+    "typeSafety": "strict"
+  }
+}

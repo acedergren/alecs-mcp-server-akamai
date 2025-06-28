@@ -1,0 +1,47 @@
+{
+  "endpoint": "/cprg/v1/cpcodes",
+  "documentation": {
+    "openApiExists": true,
+    "fieldsDocumented": [
+      "cpcodes[].cpcodeId",
+      "cpcodes[].cpcodeName",
+      "cpcodes[].contractId",
+      "cpcodes[].groupId",
+      "cpcodes[].productId"
+    ],
+    "fieldsUndocumented": []
+  },
+  "reality": {
+    "statusCode": 200,
+    "fieldsFound": [
+      "cpcodes",
+      "cpcodes[].cpcodeId",
+      "cpcodes[].cpcodeName",
+      "cpcodes[].contractId",
+      "cpcodes[].groupId",
+      "cpcodes[].productId"
+    ],
+    "responseStructure": {
+      "cpcodes": [
+        "Array(1)",
+        {
+          "cpcodeId": "number",
+          "cpcodeName": "string",
+          "contractId": "string",
+          "groupId": "string",
+          "productId": "string"
+        }
+      ]
+    },
+    "extraFields": []
+  },
+  "validation": {
+    "passed": true,
+    "errors": [],
+    "suggestions": []
+  },
+  "typeScript": {
+    "compilationErrors": [],
+    "typeSafety": "strict"
+  }
+}

@@ -107,7 +107,7 @@ export class PurgeQueueManager {
 
   private constructor() {
     this.fastPurgeService = FastPurgeService.getInstance();
-    this.queueDir = process.env.QUEUE_PERSISTENCE_DIR || '/tmp/alecs-mcp-akamai/purge-queues';
+    this.queueDir = process.env['QUEUE_PERSISTENCE_DIR'] || '/tmp/alecs-mcp-akamai/purge-queues';
     this.initializePersistence();
   }
 

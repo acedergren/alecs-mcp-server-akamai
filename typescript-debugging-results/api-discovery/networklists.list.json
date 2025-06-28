@@ -1,0 +1,8 @@
+
+> alecs-mcp-server-akamai@1.6.2 api:discover
+> node scripts/api-discover-pure.js discover networklists.list testing
+
+🔍 Discovering networklists.list (akamai) for customer: testing
+✅ Discovery completed for networklists.list (2ms)
+
+🎉 Discovery completed successfully!

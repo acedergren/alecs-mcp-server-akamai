@@ -1,0 +1,48 @@
+{
+  "endpoint": "/cps/v2/enrollments",
+  "documentation": {
+    "openApiExists": true,
+    "fieldsDocumented": [
+      "enrollments[].id",
+      "enrollments[].status",
+      "enrollments[].certificateType",
+      "enrollments[].validationType"
+    ],
+    "fieldsUndocumented": []
+  },
+  "reality": {
+    "statusCode": 200,
+    "fieldsFound": [
+      "enrollments",
+      "enrollments[].id",
+      "enrollments[].status",
+      "enrollments[].certificateType",
+      "enrollments[].validationType"
+    ],
+    "responseStructure": {
+      "enrollments": [
+        "Array(1)",
+        {
+          "id": "number",
+          "status": "string",
+          "certificateType": "string",
+          "validationType": "string"
+        }
+      ]
+    },
+    "extraFields": []
+  },
+  "validation": {
+    "passed": false,
+    "errors": [
+      "certificates: Required"
+    ],
+    "suggestions": [
+      "Update TypeScript interfaces to match real API responses"
+    ]
+  },
+  "typeScript": {
+    "compilationErrors": [],
+    "typeSafety": "loose"
+  }
+}

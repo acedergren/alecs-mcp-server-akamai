@@ -1,0 +1,46 @@
+{
+  "endpoint": "/appsec/v1/configs/12345/versions/7/security-policies",
+  "documentation": {
+    "openApiExists": true,
+    "fieldsDocumented": [
+      "policies[].policyId",
+      "policies[].policyName",
+      "policies[].mode",
+      "policies[].createDate"
+    ],
+    "fieldsUndocumented": []
+  },
+  "reality": {
+    "statusCode": 200,
+    "fieldsFound": [
+      "policies",
+      "policies[].policyId",
+      "policies[].policyName",
+      "policies[].mode",
+      "policies[].createDate",
+      "policies[].createdBy"
+    ],
+    "responseStructure": {
+      "policies": [
+        "Array(1)",
+        {
+          "policyId": "string",
+          "policyName": "string",
+          "mode": "string",
+          "createDate": "string",
+          "createdBy": "string"
+        }
+      ]
+    },
+    "extraFields": []
+  },
+  "validation": {
+    "passed": true,
+    "errors": [],
+    "suggestions": []
+  },
+  "typeScript": {
+    "compilationErrors": [],
+    "typeSafety": "strict"
+  }
+}

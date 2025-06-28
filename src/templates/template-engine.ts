@@ -15,9 +15,18 @@ import {
   propertyTemplates,
 } from './property-templates';
 
+// Strongly typed template inputs instead of Record<string, any>
+export interface TemplateInputs {
+  hostname: string;
+  additionalHostnames?: string[];
+  notificationEmail?: string;
+  // Allow additional properties for extensibility but with proper typing
+  [key: string]: string | string[] | undefined;
+}
+
 export interface TemplateContext {
   template: PropertyTemplate;
-  inputs: Record<string, any>;
+  inputs: TemplateInputs;
   customer?: string;
   contractId: string;
   groupId: string;
@@ -93,8 +102,8 @@ export async function selectTemplate(): Promise<PropertyTemplate> {
  */
 export async function collectTemplateInputs(
   template: PropertyTemplate,
-  providedInputs?: Record<string, any>,
-): Promise<Record<string, any>> {
+  providedInputs?: Partial<TemplateInputs>,
+): Promise<TemplateInputs> {
   const inputs: Record<string, any> = { ...providedInputs };
 
   // Process required inputs
@@ -124,7 +133,7 @@ export async function collectTemplateInputs(
     throw new Error(`Invalid inputs:\n${validation.errors.join('\n')}`);
   }
 
-  return inputs;
+  return inputs as TemplateInputs;
 }
 
 /**
@@ -138,12 +147,13 @@ export function generateProvisioningPlan(_context: TemplateContext): Provisionin
 
   // Generate edge hostname
   const edgeHostnamePrefix = inputs.hostname.split('.')[0];
+  const domainPrefix = template.edgeHostnameConfig.domainPrefix || edgeHostnamePrefix;
   const edgeHostname = {
-    hostname: `${edgeHostnamePrefix}${template.edgeHostnameConfig.domainPrefix || ''}${template.edgeHostnameConfig.domainSuffix}`,
-    domainPrefix: edgeHostnamePrefix,
+    hostname: `${domainPrefix}${template.edgeHostnameConfig.domainSuffix}`,
+    domainPrefix: domainPrefix,
     domainSuffix: template.edgeHostnameConfig.domainSuffix,
-    ipVersionBehavior: template.edgeHostnameConfig.ipVersionBehavior,
-    certificateType: template.edgeHostnameConfig.certificateType,
+    ipVersionBehavior: template.edgeHostnameConfig.ipVersionBehavior as string,
+    certificateType: template.edgeHostnameConfig.certificateType as string,
   };
 
   // Collect all hostnames
@@ -171,16 +181,27 @@ export function generateProvisioningPlan(_context: TemplateContext): Provisionin
   // Prepare certificate enrollment if HTTPS is required
   let certificateEnrollment;
   if (template.certificateRequirements) {
+    const networkConfig: {
+      geography: 'CORE' | 'CHINA' | 'RUSSIA';
+      secureNetwork: 'ENHANCED_TLS' | 'STANDARD_TLS';
+      sniOnly: boolean;
+      quicEnabled?: boolean;
+    } = {
+      geography: 'CORE' as const,
+      secureNetwork: template.certificateRequirements.networkDeployment,
+      sniOnly: template.certificateRequirements.sniOnly,
+    };
+    
+    // Only add quicEnabled if it has a value
+    if (template.certificateRequirements.quicEnabled !== undefined) {
+      networkConfig.quicEnabled = template.certificateRequirements.quicEnabled;
+    }
+    
     certificateEnrollment = {
       commonName: inputs.hostname,
       sans: hostnames.filter((h) => h !== inputs.hostname),
       validationType: template.certificateRequirements.type as 'DV' | 'OV' | 'EV',
-      networkConfiguration: {
-        geography: 'CORE' as const,
-        secureNetwork: template.certificateRequirements.networkDeployment,
-        sniOnly: template.certificateRequirements.sniOnly,
-        quicEnabled: template.certificateRequirements.quicEnabled,
-      },
+      networkConfiguration: networkConfig,
     };
   }
 
@@ -312,7 +333,7 @@ ${plan.activationSteps.map((step, i) => `${i + 1}. Deploy to **${step.network}**
  */
 export async function provisionPropertyFromTemplate(
   templateId: string,
-  inputs: Record<string, any>,
+  inputs: TemplateInputs,
   _context: Partial<TemplateContext>,
 ): Promise<ProvisioningPlan> {
   // Get template
@@ -328,12 +349,20 @@ export async function provisionPropertyFromTemplate(
   const fullContext: TemplateContext = {
     template,
     inputs: validatedInputs,
-    customer: _context.customer || 'default',
     contractId: _context.contractId || 'ctr_C-1234567',
     groupId: _context.groupId || 'grp_12345',
-    productId: _context.productId,
-    cpCode: _context.cpCode,
   };
+  
+  // Only add optional properties if they have values
+  if (_context.customer) {
+    fullContext.customer = _context.customer;
+  }
+  if (_context.productId) {
+    fullContext.productId = _context.productId;
+  }
+  if (_context.cpCode) {
+    fullContext.cpCode = _context.cpCode;
+  }
 
   const plan = generateProvisioningPlan(fullContext);
 

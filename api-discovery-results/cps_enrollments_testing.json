@@ -1,0 +1,35 @@
+{
+  "endpoint": "cps.enrollments",
+  "success": true,
+  "responseTime": 1,
+  "statusCode": 200,
+  "responseSize": 222,
+  "sampleData": {
+    "enrollment": {
+      "id": 12345,
+      "status": "complete",
+      "certificateType": "san",
+      "validationType": "dv",
+      "csr": {
+        "cn": "example.com",
+        "sans": [
+          "www.example.com"
+        ]
+      },
+      "networkConfiguration": {
+        "geography": "core",
+        "secureNetwork": "enhanced-tls"
+      }
+    }
+  },
+  "validationResults": {
+    "schemaCompliant": true,
+    "typesSafe": true,
+    "issues": []
+  },
+  "metadata": {
+    "timestamp": "2025-06-28T22:29:53.183Z",
+    "customer": "testing",
+    "apiVersion": "v1"
+  }
+}

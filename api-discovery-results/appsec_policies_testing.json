@@ -1,0 +1,28 @@
+{
+  "endpoint": "appsec.policies",
+  "success": true,
+  "responseTime": 1,
+  "statusCode": 200,
+  "responseSize": 159,
+  "sampleData": {
+    "policies": [
+      {
+        "policyId": "AAAA_81230",
+        "policyName": "Default Policy",
+        "mode": "ASE_AUTO",
+        "createDate": "2020-01-01T00:00:00.000Z",
+        "createdBy": "user@example.com"
+      }
+    ]
+  },
+  "validationResults": {
+    "schemaCompliant": true,
+    "typesSafe": true,
+    "issues": []
+  },
+  "metadata": {
+    "timestamp": "2025-06-28T22:29:54.329Z",
+    "customer": "testing",
+    "apiVersion": "v1"
+  }
+}

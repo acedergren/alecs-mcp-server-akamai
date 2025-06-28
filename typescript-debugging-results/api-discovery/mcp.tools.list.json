@@ -1,0 +1,8 @@
+
+> alecs-mcp-server-akamai@1.6.2 api:discover
+> node scripts/api-discover-pure.js discover mcp.tools.list testing
+
+🔍 Discovering mcp.tools.list (mcp) for customer: testing
+✅ Discovery completed for mcp.tools.list (1ms)
+
+🎉 Discovery completed successfully!

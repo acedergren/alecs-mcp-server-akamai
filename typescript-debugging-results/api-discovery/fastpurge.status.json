@@ -1,0 +1,8 @@
+
+> alecs-mcp-server-akamai@1.6.2 api:discover
+> node scripts/api-discover-pure.js discover fastpurge.status testing
+
+🔍 Discovering fastpurge.status (akamai) for customer: testing
+✅ Discovery completed for fastpurge.status (1ms)
+
+🎉 Discovery completed successfully!

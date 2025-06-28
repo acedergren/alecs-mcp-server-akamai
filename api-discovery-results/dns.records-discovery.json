@@ -1,0 +1,47 @@
+{
+  "endpoint": "/config-dns/v2/zones/example.com/recordsets",
+  "documentation": {
+    "openApiExists": true,
+    "fieldsDocumented": [
+      "recordsets[].name",
+      "recordsets[].type",
+      "recordsets[].ttl",
+      "recordsets[].rdata"
+    ],
+    "fieldsUndocumented": []
+  },
+  "reality": {
+    "statusCode": 200,
+    "fieldsFound": [
+      "recordsets",
+      "recordsets[].name",
+      "recordsets[].type",
+      "recordsets[].ttl",
+      "recordsets[].rdata"
+    ],
+    "responseStructure": {
+      "recordsets": [
+        "Array(1)",
+        {
+          "name": "string",
+          "type": "string",
+          "ttl": "number",
+          "rdata": [
+            "Array(1)",
+            "string"
+          ]
+        }
+      ]
+    },
+    "extraFields": []
+  },
+  "validation": {
+    "passed": true,
+    "errors": [],
+    "suggestions": []
+  },
+  "typeScript": {
+    "compilationErrors": [],
+    "typeSafety": "strict"
+  }
+}

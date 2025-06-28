@@ -1,0 +1,62 @@
+ M package-lock.json
+ M package.json
+ M src/agents/property-onboarding.agent.ts
+ M src/servers/network-lists-server.ts
+ M src/servers/performance-server.ts
+ M src/servers/property-server.ts
+ M src/servers/reporting-server.ts
+ M src/services/FastPurgeService.ts
+ M src/services/PurgeQueueManager.ts
+ M src/services/PurgeStatusTracker.ts
+ M src/services/RealTimeMonitoringService.ts
+ M src/services/ReportingService.ts
+ M src/services/TrafficAnalyticsService.ts
+ M src/services/certificate-deployment-coordinator.ts
+ M src/services/certificate-enrollment-service.ts
+ M src/services/certificate-validation-monitor.ts
+ M src/templates/template-engine.ts
+ M src/testing/integration-test-framework.ts
+ M src/tools/agent-tools.ts
+ M src/tools/all-tools-registry.ts
+ M src/tools/analysis/fix-strategy.ts
+ M src/tools/property-manager-advanced-tools.ts
+ M src/tools/property-manager-tools.ts
+ M src/tools/property-manager.ts
+ M src/tools/property-operations-advanced.ts
+ M src/tools/tool-registry.ts
+ M src/utils/apply-security.ts
+?? CLEANUP_SUMMARY.md
+?? DELETION_PLAN.md
+?? MCP_DEPENDENCY_OPTIMIZATION_CLAUDE_DESKTOP.md
+?? MCP_DEPENDENCY_OPTIMIZATION_REPORT.md
+?? PROPERTY_API_INTERFACES.md
+?? PROPERTY_TOOLS_CLAUDE_OPTIMIZATION_PLAN.md
+?? TEST_COVERAGE_BASELINE.md
+?? TYPESCRIPT_DEBUGGING_REPORT.md
+?? V1.6.2_PHASE_1_AUDIT_COMPLETE.md
+?? V1.6.2_PROPERTY_SERVER_OPTIMIZATION_PHASES.md
+?? __tests__/unit/json-format-compatibility.test.ts
+?? api-discovery-report.md
+?? api-discovery-results/
+?? scripts/api-discover.sh
+?? scripts/complete-typescript-debugging.sh
+?? scripts/create-typescript-snapshot.sh
+?? scripts/fix-typescript-errors.sh
+?? src/scripts/
+?? src/tools/property-manager-advanced-tools.ts.backup-before-cleanup
+?? src/types/api-responses/appsec-openapi.ts
+?? src/types/api-responses/cpcodes-openapi.ts
+?? src/types/api-responses/cps-openapi.ts
+?? src/types/api-responses/edge-dns-openapi.ts
+?? src/types/api-responses/fastpurge-openapi.ts
+?? src/types/api-responses/network-lists-openapi.ts
+?? src/types/api-responses/papi-official.ts
+?? src/types/api-responses/papi-openapi.ts
+?? src/types/api-responses/reporting-openapi.ts
+?? src/types/mcp-protocol.ts
+?? src/utils/json-response-builder.ts
+?? src/validation/api-validator.ts
+?? type-definitions-baseline.txt
+?? typescript-debugging-results/
+?? typescript-error-categorization.json
+?? typescript-snapshot-20250629-005512/

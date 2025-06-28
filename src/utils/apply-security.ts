@@ -10,7 +10,7 @@ import { logger } from './logger';
 /**
  * Apply security features to an MCP server instance
  */
-export function applySecurityFeatures(server: Server): void {
+export function applySecurityFeatures(_server: Server): void {
   // Initialize graceful shutdown
   gracefulShutdown.initialize();
   

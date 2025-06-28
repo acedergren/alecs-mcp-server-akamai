@@ -1,0 +1,24 @@
+{
+  "endpoint": "fastpurge.status",
+  "success": true,
+  "responseTime": 1,
+  "statusCode": 200,
+  "responseSize": 198,
+  "sampleData": {
+    "httpStatus": 200,
+    "detail": "Request accepted.",
+    "purgeId": "e535071c-26b2-11e7-94ef-3a90b1b14220",
+    "estimatedSeconds": 420,
+    "progressUri": "/ccu/v3/delete/url/status/e535071c-26b2-11e7-94ef-3a90b1b14220"
+  },
+  "validationResults": {
+    "schemaCompliant": true,
+    "typesSafe": true,
+    "issues": []
+  },
+  "metadata": {
+    "timestamp": "2025-06-28T22:29:53.419Z",
+    "customer": "testing",
+    "apiVersion": "v1"
+  }
+}

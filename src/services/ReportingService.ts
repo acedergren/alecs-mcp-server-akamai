@@ -352,7 +352,8 @@ export class ReportingService {
       };
 
       // Calculate percentiles (simplified - would use actual percentile data)
-      benchmarks.push({
+      // CODE KAI: Handle optional recommendation for exact type compliance
+      const cacheHitBenchmark: PerformanceBenchmark = {
         metric: 'Cache Hit Ratio',
         current: summary.cacheHitRatio,
         benchmark: industryBenchmarks.cacheHitRatio,
@@ -361,13 +362,16 @@ export class ReportingService {
           industryBenchmarks.cacheHitRatio,
         ),
         trend: await this.calculateTrend('cache-ratio', period),
-        recommendation:
-          summary.cacheHitRatio < industryBenchmarks.cacheHitRatio
-            ? 'Optimize cache configuration to improve hit ratio'
-            : undefined,
-      });
+      };
+      
+      if (summary.cacheHitRatio < industryBenchmarks.cacheHitRatio) {
+        cacheHitBenchmark.recommendation = 'Optimize cache configuration to improve hit ratio';
+      }
+      
+      benchmarks.push(cacheHitBenchmark);
 
-      benchmarks.push({
+      // CODE KAI: Handle optional recommendation for exact type compliance
+      const responseTimeBenchmark: PerformanceBenchmark = {
         metric: 'Response Time',
         current: summary.responseTime,
         benchmark: industryBenchmarks.responseTime,
@@ -377,36 +381,45 @@ export class ReportingService {
           true,
         ),
         trend: await this.calculateTrend('response-time', period),
-        recommendation:
-          summary.responseTime > industryBenchmarks.responseTime
-            ? 'Review edge configurations and optimize content delivery'
-            : undefined,
-      });
+      };
+      
+      if (summary.responseTime > industryBenchmarks.responseTime) {
+        responseTimeBenchmark.recommendation = 'Review edge configurations and optimize content delivery';
+      }
+      
+      benchmarks.push(responseTimeBenchmark);
 
-      benchmarks.push({
+      // CODE KAI: Handle optional recommendation for exact type compliance
+      const errorRateBenchmark: PerformanceBenchmark = {
         metric: 'Error Rate',
         current: summary.errorRate,
         benchmark: industryBenchmarks.errorRate,
         percentile: this.calculatePercentile(summary.errorRate, industryBenchmarks.errorRate, true),
         trend: await this.calculateTrend('error-rate', period),
-        recommendation:
-          summary.errorRate > industryBenchmarks.errorRate
-            ? 'Investigate error sources and implement error handling improvements'
-            : undefined,
-      });
+      };
+      
+      if (summary.errorRate > industryBenchmarks.errorRate) {
+        errorRateBenchmark.recommendation = 'Investigate error sources and implement error handling improvements';
+      }
+      
+      benchmarks.push(errorRateBenchmark);
 
       const originOffload = ((summary.requests - summary.origin.requests) / summary.requests) * 100;
-      benchmarks.push({
+      
+      // CODE KAI: Handle optional recommendation for exact type compliance
+      const originOffloadBenchmark: PerformanceBenchmark = {
         metric: 'Origin Offload',
         current: originOffload,
         benchmark: industryBenchmarks.originOffload,
         percentile: this.calculatePercentile(originOffload, industryBenchmarks.originOffload),
         trend: await this.calculateTrend('origin-offload', period),
-        recommendation:
-          originOffload < industryBenchmarks.originOffload
-            ? 'Improve caching strategies to reduce origin load'
-            : undefined,
-      });
+      };
+      
+      if (originOffload < industryBenchmarks.originOffload) {
+        originOffloadBenchmark.recommendation = 'Improve caching strategies to reduce origin load';
+      }
+      
+      benchmarks.push(originOffloadBenchmark);
 
       logger.info('Performance benchmarks calculated', {
         benchmarkCount: benchmarks.length,
@@ -583,23 +596,23 @@ export class ReportingService {
     };
 
     if (filter) {
-      if (filter.cpCodes?.length) {
-        params.cpCodes = filter.cpCodes.join(',');
+      if (filter['cpCodes']?.length) {
+        params['cpCodes'] = filter['cpCodes'].join(',');
       }
-      if (filter.hostnames?.length) {
-        params.hostnames = filter.hostnames.join(',');
+      if (filter['hostnames']?.length) {
+        params['hostnames'] = filter['hostnames'].join(',');
       }
-      if (filter.countries?.length) {
-        params.countries = filter.countries.join(',');
+      if (filter['countries']?.length) {
+        params['countries'] = filter['countries'].join(',');
       }
-      if (filter.regions?.length) {
-        params.regions = filter.regions.join(',');
+      if (filter['regions']?.length) {
+        params['regions'] = filter['regions'].join(',');
       }
-      if (filter.httpStatus?.length) {
-        params.httpStatus = filter.httpStatus.join(',');
+      if (filter['httpStatus']?.length) {
+        params['httpStatus'] = filter['httpStatus'].join(',');
       }
-      if (filter.cacheStatus?.length) {
-        params.cacheStatus = filter.cacheStatus.join(',');
+      if (filter['cacheStatus']?.length) {
+        params['cacheStatus'] = filter['cacheStatus'].join(',');
       }
     }
 
@@ -670,7 +683,7 @@ export class ReportingService {
   private analyzePeakTraffic(timeSeriesData: Record<string, ReportingMetric[]>): {
     peakVariance: number;
   } {
-    const bandwidthData = timeSeriesData.bandwidth || [];
+    const bandwidthData = timeSeriesData['bandwidth'] || [];
     if (bandwidthData.length === 0) {
       return { peakVariance: 0 };
     }
