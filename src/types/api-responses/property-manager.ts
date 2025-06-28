@@ -3,7 +3,7 @@
  * @see https://techdocs.akamai.com/property-mgr/reference/api
  */
 
-import { ActivationStatus, NetworkType, ActivationType, ListResponse, ResponseMetadata } from './common';
+import { ActivationStatus, NetworkType, ActivationType, ListResponse } from './common';
 
 /**
  * Property object as returned by the API
