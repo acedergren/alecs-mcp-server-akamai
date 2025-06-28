@@ -128,8 +128,8 @@ export async function listProperties(
 ): Promise<MCPToolResponse> {
   try {
     const queryParams: Record<string, string> = {};
-    if (args.contractId) queryParams.contractId = args.contractId;
-    if (args.groupId) queryParams.groupId = args.groupId;
+    if (args.contractId) queryParams['contractId'] = args.contractId;
+    if (args.groupId) queryParams['groupId'] = args.groupId;
 
     const response = await client.request({
       path: '/papi/v1/properties',
@@ -304,8 +304,8 @@ export async function createProperty(
     }
 
     const queryParams: Record<string, string> = {};
-    if (args.contractId) queryParams.contractId = args.contractId;
-    if (args.groupId) queryParams.groupId = args.groupId;
+    if (args.contractId) queryParams['contractId'] = args.contractId;
+    if (args.groupId) queryParams['groupId'] = args.groupId;
 
     const response = await client.request({
       path: '/papi/v1/properties',
@@ -922,8 +922,8 @@ export async function listEdgeHostnames(
   try {
     // BUILD QUERY PARAMETERS: Only include filters that are specified
     const queryParams: Record<string, string> = {};
-    if (args.contractId) queryParams.contractId = args.contractId;
-    if (args.groupId) queryParams.groupId = args.groupId;
+    if (args.contractId) queryParams['contractId'] = args.contractId;
+    if (args.groupId) queryParams['groupId'] = args.groupId;
 
     const response = await client.request({
       path: '/papi/v1/edgehostnames',
@@ -2521,8 +2521,8 @@ export async function listCPCodes(
 ): Promise<MCPToolResponse> {
   try {
     const queryParams: Record<string, string> = {};
-    if (args.contractId) queryParams.contractId = args.contractId;
-    if (args.groupId) queryParams.groupId = args.groupId;
+    if (args.contractId) queryParams['contractId'] = args.contractId;
+    if (args.groupId) queryParams['groupId'] = args.groupId;
 
     const response = await client.request({
       path: '/papi/v1/cpcodes',
@@ -2622,8 +2622,8 @@ export async function createCPCode(
     };
 
     const queryParams: Record<string, string> = {};
-    if (args.contractId) queryParams.contractId = args.contractId;
-    if (args.groupId) queryParams.groupId = args.groupId;
+    if (args.contractId) queryParams['contractId'] = args.contractId;
+    if (args.groupId) queryParams['groupId'] = args.groupId;
 
     const response = await client.request({
       path: '/papi/v1/cpcodes',
