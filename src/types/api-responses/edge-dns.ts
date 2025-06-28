@@ -3,7 +3,7 @@
  * @see https://techdocs.akamai.com/edge-dns/reference/edge-dns-api
  */
 
-import { ListResponse } from './common';
+// import { ListResponse } from './common'; // Currently unused
 
 /**
  * DNS Zone types
