@@ -35,6 +35,18 @@ import {
   listProducts,
 } from '../tools/property-tools';
 import {
+  onboardPropertyTool,
+} from '../tools/property-onboarding-tools';
+import {
+  updatePropertyWithDefaultDV,
+} from '../tools/property-manager-tools';
+import {
+  rollbackPropertyVersion,
+} from '../tools/property-version-management';
+import {
+  validatePropertyActivation,
+} from '../tools/property-activation-advanced';
+import {
   listPropertyVersions,
   getPropertyVersion,
   listPropertyVersionHostnames,
@@ -50,6 +62,9 @@ import {
 import {
   validateRuleTree,
 } from '../tools/rule-tree-advanced';
+import {
+  type PropertyRules,
+} from '../tools/rule-tree-management';
 import {
   universalSearchWithCacheHandler,
 } from '../tools/universal-search-with-cache';
@@ -70,7 +85,7 @@ import { coalesceRequest, KeyNormalizers } from '../utils/request-coalescer';
 
 // Import existing tool implementations
 
-const log = (level: string, message: string, data?: any) => {
+const log = (level: string, message: string, data?: unknown) => {
   const timestamp = new Date().toISOString();
   const logMessage = `[${timestamp}] [PROPERTY-2025] [${level}] ${message}`;
   if (data) {
@@ -366,6 +381,117 @@ class PropertyALECSServer2025 {
           additionalProperties: false,
         },
       },
+      {
+        name: 'onboard_property',
+        description: 'Complete property onboarding workflow - creates property, edge hostname, DNS, and activates to staging',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+            hostname: { type: 'string', description: 'Primary hostname for the property' },
+            originHostname: { type: 'string', description: 'Origin server hostname' },
+            contractId: { type: 'string', description: 'Contract ID (auto-detected if not provided)' },
+            groupId: { type: 'string', description: 'Group ID (auto-detected if not provided)' },
+            productId: { type: 'string', description: 'Product ID (auto-detected if not provided)' },
+            network: {
+              type: 'string',
+              enum: ['STANDARD_TLS', 'ENHANCED_TLS', 'SHARED_CERT'],
+              description: 'Edge hostname network type'
+            },
+            certificateType: {
+              type: 'string',
+              enum: ['DEFAULT', 'CPS_MANAGED'],
+              description: 'Certificate type'
+            },
+            notificationEmails: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Email addresses for activation notifications'
+            },
+            skipDnsSetup: { type: 'boolean', description: 'Skip DNS setup steps' },
+            dnsProvider: { type: 'string', description: 'DNS provider (aws, cloudflare, azure, other)' },
+            useCase: {
+              type: 'string',
+              enum: ['web-app', 'api', 'download', 'streaming', 'basic-web'],
+              description: 'Use case for optimized configuration'
+            },
+          },
+          required: ['hostname'],
+          additionalProperties: false,
+        },
+      },
+      {
+        name: 'update_property_with_default_dv',
+        description: 'Update property to use Default DV SSL certificate for HTTPS delivery',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+            propertyId: { type: 'string', description: 'Property ID to update' },
+            hostname: { type: 'string', description: 'Hostname for the certificate' },
+            network: {
+              type: 'string',
+              enum: ['STAGING', 'PRODUCTION'],
+              description: 'Network to update (default: both)'
+            },
+            activateChanges: { type: 'boolean', description: 'Automatically activate changes' },
+            notificationEmails: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Email addresses for notifications'
+            },
+          },
+          required: ['propertyId', 'hostname'],
+          additionalProperties: false,
+        },
+      },
+      {
+        name: 'rollback_property_version',
+        description: 'Rollback to a previous property version by creating new version from it',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+            propertyId: { type: 'string', description: 'Property ID' },
+            targetVersion: { type: 'number', description: 'Version to rollback to' },
+            activateNetwork: {
+              type: 'string',
+              enum: ['STAGING', 'PRODUCTION', 'BOTH'],
+              description: 'Network to activate on'
+            },
+            reason: { type: 'string', description: 'Reason for rollback' },
+            notificationEmails: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Email addresses for notifications'
+            },
+          },
+          required: ['propertyId', 'targetVersion'],
+          additionalProperties: false,
+        },
+      },
+      {
+        name: 'validate_property_activation',
+        description: 'Validate property before activation - checks rules, hostnames, origins',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+            propertyId: { type: 'string', description: 'Property ID' },
+            version: { type: 'number', description: 'Version to validate' },
+            network: {
+              type: 'string',
+              enum: ['STAGING', 'PRODUCTION'],
+              description: 'Target network for validation'
+            },
+            checkOrigins: { type: 'boolean', description: 'Validate origin connectivity' },
+            checkCertificates: { type: 'boolean', description: 'Validate SSL certificates' },
+            checkDns: { type: 'boolean', description: 'Validate DNS configuration' },
+          },
+          required: ['propertyId', 'version', 'network'],
+          additionalProperties: false,
+        },
+      },
     ];
 
     // Register all tools
@@ -567,7 +693,12 @@ class PropertyALECSServer2025 {
           }
 
           case 'list_groups': {
-            const response = await listGroups(this.client, args as any);
+            // CODE KAI: Type-safe parameter handling for listGroups
+            const groupArgs: Parameters<typeof listGroups>[1] = {
+              ...(args.customer && { customer: args.customer as string }),
+              ...(args.searchTerm && { searchTerm: args.searchTerm as string })
+            };
+            const response = await listGroups(this.client, groupArgs);
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
               tool: name,
@@ -577,7 +708,12 @@ class PropertyALECSServer2025 {
           }
 
           case 'list_contracts': {
-            const response = await listContracts(this.client, args as any);
+            // CODE KAI: Type-safe parameter handling for listContracts
+            const contractArgs: Parameters<typeof listContracts>[1] = {
+              ...(args.customer && { customer: args.customer as string }),
+              ...(args.searchTerm && { searchTerm: args.searchTerm as string })
+            };
+            const response = await listContracts(this.client, contractArgs);
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
               tool: name,
@@ -587,7 +723,15 @@ class PropertyALECSServer2025 {
           }
 
           case 'create_property_version': {
-            const response = await createPropertyVersion(this.client, args as any);
+            // CODE KAI: Type-safe parameter handling for createPropertyVersion
+            const versionArgs: Parameters<typeof createPropertyVersion>[1] = {
+              propertyId: args.propertyId as string,
+              ...(args.customer && { customer: args.customer as string }),
+              ...(args.createFromVersion && { baseVersion: args.createFromVersion as number }),
+              ...(args.createFromVersionEtag && { etag: args.createFromVersionEtag as string }),
+              ...(args.note && { note: args.note as string })
+            };
+            const response = await createPropertyVersion(this.client, versionArgs);
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
               tool: name,
@@ -597,7 +741,14 @@ class PropertyALECSServer2025 {
           }
 
           case 'get_property_rules': {
-            const response = await getPropertyRules(this.client, args as any);
+            // CODE KAI: Type-safe parameter handling for getPropertyRules
+            const rulesArgs: Parameters<typeof getPropertyRules>[1] = {
+              propertyId: args.propertyId as string,
+              version: args.version as number,
+              ...(args.customer && { customer: args.customer as string }),
+              ...(args.validateRules !== undefined && { validateRules: args.validateRules as boolean })
+            };
+            const response = await getPropertyRules(this.client, rulesArgs);
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
               tool: name,
@@ -607,7 +758,15 @@ class PropertyALECSServer2025 {
           }
 
           case 'update_property_rules': {
-            const response = await updatePropertyRules(this.client, args as any);
+            // CODE KAI: Type-safe parameter handling for updatePropertyRules
+            const updateRulesArgs: Parameters<typeof updatePropertyRules>[1] = {
+              propertyId: args.propertyId as string,
+              version: args.version as number,
+              rules: args.rules as PropertyRules,
+              ...(args.customer && { customer: args.customer as string }),
+              ...(args.validateRules !== undefined && { validateRules: args.validateRules as boolean })
+            };
+            const response = await updatePropertyRules(this.client, updateRulesArgs);
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
               tool: name,
@@ -617,7 +776,13 @@ class PropertyALECSServer2025 {
           }
 
           case 'get_activation_status': {
-            const response = await getActivationStatus(this.client, args as any);
+            // CODE KAI: Type-safe parameter handling for getActivationStatus
+            const statusArgs: Parameters<typeof getActivationStatus>[1] = {
+              propertyId: args.propertyId as string,
+              activationId: args.activationId as string,
+              ...(args.customer && { customer: args.customer as string })
+            };
+            const response = await getActivationStatus(this.client, statusArgs);
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
               tool: name,
@@ -764,7 +929,12 @@ class PropertyALECSServer2025 {
           }
 
           case 'delete_property': {
-            const response = await removeProperty(this.client, args as any);
+            // CODE KAI: Type-safe parameter handling for removeProperty
+            const deleteArgs: Parameters<typeof removeProperty>[1] = {
+              propertyId: args.propertyId as string,
+              ...(args.customer && { customer: args.customer as string })
+            };
+            const response = await removeProperty(this.client, deleteArgs);
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
               tool: name,
@@ -774,7 +944,16 @@ class PropertyALECSServer2025 {
           }
 
           case 'clone_property': {
-            const response = await cloneProperty(this.client, args as any);
+            // CODE KAI: Type-safe parameter handling for cloneProperty
+            const cloneArgs: Parameters<typeof cloneProperty>[1] = {
+              propertyId: args.sourcePropertyId as string,
+              newPropertyName: args.propertyName as string,
+              ...(args.customer && { customer: args.customer as string }),
+              ...(args.contractId && { contractId: args.contractId as string }),
+              ...(args.groupId && { groupId: args.groupId as string }),
+              ...(args.cloneHostnames !== undefined && { includeHostnames: args.cloneHostnames as boolean })
+            };
+            const response = await cloneProperty(this.client, cloneArgs);
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
               tool: name,
@@ -784,7 +963,13 @@ class PropertyALECSServer2025 {
           }
 
           case 'cancel_property_activation': {
-            const response = await cancelPropertyActivation(this.client, args as any);
+            // CODE KAI: Type-safe parameter handling for cancelPropertyActivation
+            const cancelArgs: Parameters<typeof cancelPropertyActivation>[1] = {
+              propertyId: args.propertyId as string,
+              activationId: args.activationId as string,
+              ...(args.customer && { customer: args.customer as string })
+            };
+            const response = await cancelPropertyActivation(this.client, cancelArgs);
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
               tool: name,
@@ -794,10 +979,21 @@ class PropertyALECSServer2025 {
           }
 
           case 'search_properties': {
+            // CODE KAI: Type-safe parameter handling for searchPropertiesOptimized
+            const searchArgs: Parameters<typeof searchPropertiesOptimized>[1] = {
+              ...(args.customer && { customer: args.customer as string }),
+              ...(args.propertyName && { propertyName: args.propertyName as string }),
+              ...(args.hostname && { hostname: args.hostname as string }),
+              ...(args.edgeHostname && { edgeHostname: args.edgeHostname as string }),
+              ...(args.contractId && { contractId: args.contractId as string }),
+              ...(args.groupId && { groupId: args.groupId as string }),
+              ...(args.productId && { productId: args.productId as string }),
+              ...(args.activationStatus && { activationStatus: args.activationStatus as 'production' | 'staging' | 'any' | 'none' })
+            };
             const response = await coalesceRequest(
               'search_properties',
-              args,
-              () => searchPropertiesOptimized(this.client, args as any),
+              searchArgs,
+              () => searchPropertiesOptimized(this.client, searchArgs),
               KeyNormalizers.search
             );
             result = createMcp2025Response(true, response, undefined, {
@@ -809,7 +1005,100 @@ class PropertyALECSServer2025 {
           }
 
           case 'get_latest_property_version': {
-            const response = await getLatestPropertyVersion(this.client, args as any);
+            // CODE KAI: Type-safe parameter handling for getLatestPropertyVersion
+            const latestArgs: Parameters<typeof getLatestPropertyVersion>[1] = {
+              propertyId: args.propertyId as string,
+              ...(args.customer && { customer: args.customer as string }),
+              ...(args.activatedOn && { activatedOn: args.activatedOn as 'PRODUCTION' | 'STAGING' | 'LATEST' })
+            };
+            const response = await getLatestPropertyVersion(this.client, latestArgs);
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'onboard_property': {
+            // CODE KAI: Complete property onboarding workflow with intelligent defaults
+            // This tool automates the entire CDN property setup process
+            if (!args || typeof args !== 'object' || !('hostname' in args)) {
+              throw new McpError(ErrorCode.InvalidParams, 'hostname parameter is required');
+            }
+            const onboardArgs: Parameters<typeof onboardPropertyTool>[1] = {
+              hostname: args['hostname'] as string,
+              ...('customer' in args && { customer: args['customer'] as string }),
+              ...('originHostname' in args && { originHostname: args['originHostname'] as string }),
+              ...('contractId' in args && { contractId: args['contractId'] as string }),
+              ...('groupId' in args && { groupId: args['groupId'] as string }),
+              ...('productId' in args && { productId: args['productId'] as string }),
+              ...('network' in args && { network: args['network'] as 'STANDARD_TLS' | 'ENHANCED_TLS' | 'SHARED_CERT' }),
+              ...('certificateType' in args && { certificateType: args['certificateType'] as 'DEFAULT' | 'CPS_MANAGED' }),
+              ...('notificationEmails' in args && { notificationEmails: args['notificationEmails'] as string[] }),
+              ...('skipDnsSetup' in args && typeof args['skipDnsSetup'] === 'boolean' && { skipDnsSetup: args['skipDnsSetup'] }),
+              ...('dnsProvider' in args && { dnsProvider: args['dnsProvider'] as string }),
+              ...('useCase' in args && { useCase: args['useCase'] as 'web-app' | 'api' | 'download' | 'streaming' | 'basic-web' })
+            };
+            const response = await onboardPropertyTool(this.client, onboardArgs);
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'update_property_with_default_dv': {
+            // CODE KAI: Update property for HTTPS with Default DV certificate
+            const dvArgs: Parameters<typeof updatePropertyWithDefaultDV>[1] = {
+              propertyId: args.propertyId as string,
+              hostname: args.hostname as string,
+              ...(args.customer && { customer: args.customer as string }),
+              ...(args.network && { network: args.network as 'STAGING' | 'PRODUCTION' }),
+              ...(args.activateChanges !== undefined && { activateChanges: args.activateChanges as boolean }),
+              ...(args.notificationEmails && { notificationEmails: args.notificationEmails as string[] })
+            };
+            const response = await updatePropertyWithDefaultDV(this.client, dvArgs);
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'rollback_property_version': {
+            // CODE KAI: Emergency rollback to previous property version
+            const rollbackArgs: Parameters<typeof rollbackPropertyVersion>[1] = {
+              propertyId: args.propertyId as string,
+              targetVersion: args.targetVersion as number,
+              ...(args.customer && { customer: args.customer as string }),
+              ...(args.activateNetwork && { activateNetwork: args.activateNetwork as 'STAGING' | 'PRODUCTION' | 'BOTH' }),
+              ...(args.reason && { reason: args.reason as string }),
+              ...(args.notificationEmails && { notificationEmails: args.notificationEmails as string[] })
+            };
+            const response = await rollbackPropertyVersion(this.client, rollbackArgs);
+            result = createMcp2025Response(true, response, undefined, {
+              duration: Date.now() - startTime,
+              tool: name,
+              version: '2.0.0',
+            });
+            break;
+          }
+
+          case 'validate_property_activation': {
+            // CODE KAI: Pre-activation validation to ensure smooth deployment
+            const validateArgs: Parameters<typeof validatePropertyActivation>[1] = {
+              propertyId: args.propertyId as string,
+              version: args.version as number,
+              network: args.network as 'STAGING' | 'PRODUCTION',
+              ...(args.customer && { customer: args.customer as string }),
+              ...(args.checkOrigins !== undefined && { checkOrigins: args.checkOrigins as boolean }),
+              ...(args.checkCertificates !== undefined && { checkCertificates: args.checkCertificates as boolean }),
+              ...(args.checkDns !== undefined && { checkDns: args.checkDns as boolean })
+            };
+            const response = await validatePropertyActivation(this.client, validateArgs);
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
               tool: name,

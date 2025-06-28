@@ -134,16 +134,22 @@ const PropertyVersionItemSchema = z.object({
 // CODE KAI: Type guard functions for runtime validation
 export function isPropertyVersionResponse(obj: unknown): obj is PropertyVersionResponse {
   if (!obj || typeof obj !== 'object') return false;
-  const response = obj as any;
-  return response.versions?.items?.every((item: unknown) => 
+  const response = obj as Record<string, unknown>;
+  if (!response.versions || typeof response.versions !== 'object') return false;
+  const versions = response.versions as Record<string, unknown>;
+  if (!Array.isArray(versions.items)) return false;
+  return versions.items.every((item: unknown) => 
     PropertyVersionItemSchema.safeParse(item).success
-  ) ?? false;
+  );
 }
 
 export function isHostnamesResponse(obj: unknown): obj is HostnamesResponse {
   if (!obj || typeof obj !== 'object') return false;
-  const response = obj as any;
-  return Array.isArray(response.hostnames?.items) || response.hostnames?.items === undefined;
+  const response = obj as Record<string, unknown>;
+  if (!response.hostnames) return true; // hostnames is optional
+  if (typeof response.hostnames !== 'object') return false;
+  const hostnames = response.hostnames as Record<string, unknown>;
+  return Array.isArray(hostnames.items) || hostnames.items === undefined;
 }
 
 /**
@@ -621,7 +627,15 @@ function getErrorSpecificGuidance(error: PropertyError): string {
 /**
  * Generate comprehensive resolution guidance
  */
-function generateResolutionGuidance(errors: PropertyError[], warnings: PropertyWarning[], args: any): string {
+// CODE KAI: Type-safe resolution guidance generation
+interface ResolutionGuidanceArgs {
+  propertyId: string;
+  version: number;
+  contractId?: string;
+  groupId?: string;
+}
+
+function generateResolutionGuidance(errors: PropertyError[], warnings: PropertyWarning[], args: ResolutionGuidanceArgs): string {
   let responseText = '## Resolution Guidance\n\n';
 
   if (errors.length > 0) {
@@ -660,7 +674,13 @@ function generateResolutionGuidance(errors: PropertyError[], warnings: PropertyW
 /**
  * Generate diagnostic workflow steps
  */
-function generateDiagnosticWorkflow(args: any): string {
+// CODE KAI: Type-safe diagnostic workflow generation
+interface DiagnosticWorkflowArgs {
+  propertyId: string;
+  version: number;
+}
+
+function generateDiagnosticWorkflow(args: DiagnosticWorkflowArgs): string {
   let responseText = '## Diagnostic Workflow\n\n';
   responseText += '### 1. Rule Tree Analysis\n';
   responseText += '```bash\n';
@@ -717,7 +737,13 @@ function generateEmergencyProcedures(): string {
 /**
  * Generate validation summary with recommendations
  */
-function generateValidationSummary(totalErrors: number, totalWarnings: number, validationResults: string[], args: any): string {
+// CODE KAI: Type-safe validation summary generation
+interface ValidationSummaryArgs {
+  propertyId: string;
+  version: number;
+}
+
+function generateValidationSummary(totalErrors: number, totalWarnings: number, validationResults: string[], args: ValidationSummaryArgs): string {
   let responseText = '## Validation Summary\n\n';
   responseText += `- **Total Errors:** ${totalErrors}\n`;
   responseText += `- **Total Warnings:** ${totalWarnings}\n`;

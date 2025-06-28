@@ -1603,13 +1603,26 @@ export async function listContracts(
         content: [
           {
             type: 'text',
-            text: 'No contracts found in your account.\n\n[WARNING] This might indicate a permissions issue with your API credentials.',
+            text: JSON.stringify({
+              contracts: [],
+              metadata: {
+                total: 0,
+                filtered: 0,
+                searchTerm: args.searchTerm || null
+              },
+              error: {
+                type: 'NO_CONTRACTS_FOUND',
+                message: 'No contracts found in your account',
+                suggestion: 'This might indicate a permissions issue with your API credentials'
+              }
+            }, null, 2),
           },
         ],
       };
     }
 
     let contracts = response.contracts.items;
+    const totalContracts = contracts.length;
 
     // Filter contracts by search term if provided
     if (args.searchTerm) {
@@ -1625,41 +1638,60 @@ export async function listContracts(
           content: [
             {
               type: 'text',
-              text: `No contracts found matching "${args.searchTerm}".\n\n[INFO] **Tip:** Try a partial contract ID or type name.`,
+              text: JSON.stringify({
+                contracts: [],
+                metadata: {
+                  total: totalContracts,
+                  filtered: 0,
+                  searchTerm: args.searchTerm
+                },
+                error: {
+                  type: 'NO_MATCHES',
+                  message: `No contracts found matching "${args.searchTerm}"`,
+                  suggestion: 'Try a partial contract ID or type name'
+                }
+              }, null, 2),
             },
           ],
         };
       }
     }
 
-    let text = `# Akamai Contracts ${args.searchTerm ? `(${contracts.length} matching "${args.searchTerm}")` : `(${contracts.length} found)`}\n\n`;
+    // Build structured response
+    const structuredContracts = contracts.map((contract: any) => ({
+      contractId: contract.contractId || null,
+      contractTypeName: contract.contractTypeName || 'Standard',
+      status: contract.status || 'Active',
+      edgeHostnames: contract.edgeHostnames || null,
+      products: contract.products || null
+    }));
 
-    text += '| Contract | Type | Status | Raw ID |\n';
-    text += '|----------|------|--------|--------|\n';
+    // Analyze contract types
+    const contractTypes = new Map<string, number>();
+    contracts.forEach((c: any) => {
+      const type = c.contractTypeName || 'Standard';
+      contractTypes.set(type, (contractTypes.get(type) || 0) + 1);
+    });
 
-    for (const contract of contracts) {
-      const contractId = contract.contractId || 'Unknown';
-      const contractType = contract.contractTypeName || 'Standard';
-      const status = contract.status || 'Active';
-      const displayName = formatContractDisplay(contractId, contractType);
-      text += `| ${displayName} | ${contractType} | ${status} | ${contractId} |\n`;
-    }
-
-    text += '\n';
-    text += '## How to Use Contracts\n\n';
-    text += 'Contracts are required when:\n';
-    text += '- Creating new properties\n';
-    text += '- Creating CP codes\n';
-    text += '- Enrolling certificates\n\n';
-    text += 'Example usage:\n';
-    text += '`"Create property in contract C-1234567"` (you can omit the ctr_ prefix)\n\n';
-    text += '[INFO] **Tip:** Use `list_groups` to see which groups have access to each contract.';
+    const structuredResponse = {
+      contracts: structuredContracts,
+      summary: {
+        byType: Object.fromEntries(contractTypes),
+        activeCount: contracts.filter((c: any) => c.status === 'Active' || !c.status).length,
+        inactiveCount: contracts.filter((c: any) => c.status && c.status !== 'Active').length
+      },
+      metadata: {
+        total: totalContracts,
+        filtered: contracts.length,
+        searchTerm: args.searchTerm || null
+      }
+    };
 
     return {
       content: [
         {
           type: 'text',
-          text,
+          text: JSON.stringify(structuredResponse, null, 2),
         },
       ],
     };
@@ -1697,7 +1729,19 @@ export async function listGroups(
         content: [
           {
             type: 'text',
-            text: 'No groups found in your account.\n\n[WARNING] This might indicate a permissions issue with your API credentials.',
+            text: JSON.stringify({
+              groups: [],
+              metadata: {
+                total: 0,
+                filtered: 0,
+                searchTerm: args.searchTerm || null
+              },
+              error: {
+                type: 'NO_GROUPS_FOUND',
+                message: 'No groups found in your account',
+                suggestion: 'This might indicate a permissions issue with your API credentials'
+              }
+            }, null, 2),
           },
         ],
       };
@@ -1707,6 +1751,7 @@ export async function listGroups(
     let groups = response.groups.items;
 
     // Filter groups by search term if provided
+    const totalGroups = groups.length;
     if (args.searchTerm) {
       const searchLower = args.searchTerm.toLowerCase();
       groups = groups.filter(
@@ -1720,13 +1765,26 @@ export async function listGroups(
           content: [
             {
               type: 'text',
-              text: `No groups found matching "${args.searchTerm}".\n\n[INFO] **Tip:** Try a partial name or group ID.`,
+              text: JSON.stringify({
+                groups: [],
+                metadata: {
+                  total: totalGroups,
+                  filtered: 0,
+                  searchTerm: args.searchTerm
+                },
+                error: {
+                  type: 'NO_MATCHES',
+                  message: `No groups found matching "${args.searchTerm}"`,
+                  suggestion: 'Try a partial name or group ID'
+                }
+              }, null, 2),
             },
           ],
         };
       }
     }
 
+    // Build hierarchy
     const topLevelGroups = groups.filter((g: any) => !g.parentGroupId);
     const groupsByParent = groups.reduce(
       (acc: any, group: any) => {
@@ -1741,92 +1799,60 @@ export async function listGroups(
       {} as Record<string, typeof groups>,
     );
 
-    let text = `# Akamai Groups & Contracts ${args.searchTerm ? `(${groups.length} groups matching "${args.searchTerm}")` : `(${groups.length} groups found)`}\n\n`;
-
-    // Function to recursively display groups
-    const displayGroup = (group: (typeof groups)[0], indent = ''): string => {
-      let output = `${indent}[EMOJI] **${group.groupName}**\n`;
-      output += `${indent}   Group ID: ${formatGroupDisplay(group.groupId, undefined, true)}\n`;
-
-      if (group.contractIds && group.contractIds.length > 0) {
-        const contractDisplays = group.contractIds.map((cid) => formatContractDisplay(cid));
-        output += `${indent}   Contracts: ${contractDisplays.join(', ')}\n`;
-      } else {
-        output += `${indent}   Contracts: None\n`;
-      }
-
-      // Display child groups
+    // Function to build hierarchical structure
+    const buildHierarchy = (group: PapiGroup): any => {
       const children = groupsByParent[group.groupId] || [];
-      if (children.length > 0) {
-        output += `${indent}   Child Groups:\n`;
-        for (const child of children) {
-          output += displayGroup(child, indent + '      ');
-        }
-      }
-
-      output += '\n';
-      return output;
+      return {
+        groupId: group.groupId,
+        groupName: group.groupName,
+        contractIds: group.contractIds || [],
+        parentGroupId: group.parentGroupId || null,
+        children: children.map((child: PapiGroup) => buildHierarchy(child))
+      };
     };
 
-    // Display top-level groups and their hierarchies
-    text += '## Group Hierarchy\n\n';
-    for (const group of topLevelGroups) {
-      text += displayGroup(group);
-    }
+    // Build structured response
+    const hierarchy = topLevelGroups.map((group: PapiGroup) => buildHierarchy(group));
 
-    // List all contracts for easy reference
+    // Extract all unique contracts
     const allContracts = new Set<string>();
-    groups.forEach((g) => {
+    groups.forEach((g: PapiGroup) => {
       if (g.contractIds) {
-        g.contractIds.forEach((c) => allContracts.add(c));
+        g.contractIds.forEach((c: string) => allContracts.add(c));
       }
     });
 
-    if (allContracts.size > 0) {
-      text += '## All Available Contracts\n\n';
-      Array.from(allContracts)
-        .sort()
-        .forEach((contract) => {
-          text += `- ${formatContractDisplay(contract)} (${contract})\n`;
-        });
-      text += '\n';
-    }
+    // Build flat list with parent references
+    const flatList = groups.map((group: PapiGroup) => ({
+      groupId: group.groupId,
+      groupName: group.groupName,
+      contractIds: group.contractIds || [],
+      parentGroupId: group.parentGroupId || null
+    }));
 
-    // Add group name to ID lookup table
-    text += '## Group Name to ID Lookup\n\n';
-    text += '| Group Name | Group ID | Contracts |\n';
-    text += '|------------|----------|----------|\n';
-
-    // Sort groups by name for easy lookup
-    const sortedGroups = [...groups].sort((a, b) =>
-      a.groupName.toLowerCase().localeCompare(b.groupName.toLowerCase()),
-    );
-
-    for (const group of sortedGroups) {
-      const contracts = group.contractIds
-        ? group.contractIds.map((cid: any) => formatContractDisplay(cid)).join(', ')
-        : 'None';
-      text += `| ${group.groupName} | ${formatGroupDisplay(group.groupId)} | ${contracts} |\n`;
-    }
-    text += '\n';
-
-    // Add usage instructions
-    text += '## How to Use This Information\n\n';
-    text += "When creating a new property, you'll need:\n";
-    text += '1. **Group ID** - Choose based on your organization structure\n';
-    text += '2. **Contract ID** - Choose based on your billing arrangement\n\n';
-    text += 'Example:\n';
-    text += '`"Create a new property called my-site in group 12345 with contract C-1234567"`\n\n';
-    text += '[INFO] **Tips:**\n';
-    text += '- You can omit the prefixes (ctr_, grp_) when referencing IDs\n';
-    text +=
-      '- Properties inherit permissions from their group, so choose the appropriate group for access control';
+    const structuredResponse = {
+      groups: {
+        hierarchy: hierarchy,
+        flat: flatList
+      },
+      contracts: {
+        unique: Array.from(allContracts).sort(),
+        total: allContracts.size
+      },
+      metadata: {
+        total: totalGroups,
+        filtered: groups.length,
+        searchTerm: args.searchTerm || null,
+        topLevelGroups: topLevelGroups.length,
+        hasHierarchy: topLevelGroups.length < groups.length
+      }
+    };
 
     return {
       content: [
         {
           type: 'text',
-          text,
+          text: JSON.stringify(structuredResponse, null, 2),
         },
       ],
     };

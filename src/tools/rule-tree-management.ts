@@ -168,7 +168,7 @@ export interface RuleTemplateVariable {
   name: string;
   type: 'string' | 'number' | 'boolean' | 'array' | 'object';
   description: string;
-  default?: string | number | boolean | any[] | Record<string, unknown>;
+  default?: string | number | boolean | unknown[] | Record<string, unknown>;
   required: boolean;
   validation?: string;
 }
@@ -176,7 +176,7 @@ export interface RuleTemplateVariable {
 export interface RuleTemplateExample {
   name: string;
   description: string;
-  variables: Record<string, string | number | boolean | any[] | Record<string, unknown>>;
+  variables: Record<string, string | number | boolean | unknown[] | Record<string, unknown>>;
 }
 
 export interface RuleMergeOptions {
@@ -513,7 +513,7 @@ export async function createRuleFromTemplate(
   args: {
     customer?: string;
     templateId: string;
-    variables?: Record<string, any>;
+    variables?: Record<string, string | number | boolean | unknown[] | Record<string, unknown>>;
     validate?: boolean;
   },
 ): Promise<MCPToolResponse> {
@@ -1254,7 +1254,7 @@ function checkOptimizationOpportunities(
 
   // Check for security headers
   const securityHeaders = ['modifyOutgoingResponseHeader', 'modifyOutgoingRequestHeader'];
-  if (!behaviors.some((b: any) => securityHeaders.includes(b.name))) {
+  if (!behaviors.some((b: RuleBehavior) => securityHeaders.includes(b.name))) {
     suggestions.push({
       type: 'security',
       impact: 'medium',
@@ -1266,7 +1266,7 @@ function checkOptimizationOpportunities(
   }
 }
 
-function calculatePerformanceScore(rules: any, warnings: RuleValidationWarning[]): number {
+function calculatePerformanceScore(rules: RuleTreeRule, warnings: RuleValidationWarning[]): number {
   let score = 100;
 
   // Deduct points for performance warnings
@@ -1292,7 +1292,7 @@ function calculatePerformanceScore(rules: any, warnings: RuleValidationWarning[]
 }
 
 function calculateComplianceScore(
-  _rules: any,
+  _rules: RuleTreeRule,
   errors: RuleValidationError[],
   warnings: RuleValidationWarning[],
 ): number {
@@ -1327,7 +1327,7 @@ function hasSpecificBehavior(node: RuleTreeRule, behaviorName: string): boolean 
   return false;
 }
 
-function processTemplate(template: RuleTemplate, variables: Record<string, string | number | boolean | any[] | Record<string, unknown>>): RuleTemplate {
+function processTemplate(template: RuleTemplate, variables: Record<string, string | number | boolean | unknown[] | Record<string, unknown>>): RuleTemplate {
   const templateStr = JSON.stringify(template);
 
   // Replace variable placeholders
@@ -1357,7 +1357,7 @@ function processTemplate(template: RuleTemplate, variables: Record<string, strin
   return JSON.parse(processed);
 }
 
-function evaluateCondition(condition: string, variables: Record<string, any>): boolean {
+function evaluateCondition(condition: string, variables: Record<string, string | number | boolean | unknown[] | Record<string, unknown>>): boolean {
   // Simple condition evaluation
   if (condition in variables) {
     return !!variables[condition];
@@ -1365,7 +1365,7 @@ function evaluateCondition(condition: string, variables: Record<string, any>): b
   return false;
 }
 
-function evaluateExpression(expression: string, variables: Record<string, any>): string {
+function evaluateExpression(expression: string, variables: Record<string, string | number | boolean | unknown[] | Record<string, unknown>>): string {
   // Remove quotes if present
   if (
     (expression.startsWith('"') && expression.endsWith('"')) ||
@@ -1382,10 +1382,20 @@ function evaluateExpression(expression: string, variables: Record<string, any>):
   return expression;
 }
 
-function performRuleMerge(source: any, target: any, _options: RuleMergeOptions): any {
-  const result = {
-    mergedRules: {},
-    conflicts: [] as any[],
+// CODE KAI: Type-safe rule merge result interface
+interface RuleMergeResult {
+  mergedRules: RuleTreeRule;
+  conflicts: RuleMergeConflict[];
+  rulesFromSource: number;
+  rulesFromTarget: number;
+  rulesAdded: number;
+  conflictsResolved: number;
+}
+
+function performRuleMerge(source: RuleTreeRule, target: RuleTreeRule, _options: RuleMergeOptions): RuleMergeResult {
+  const result: RuleMergeResult = {
+    mergedRules: {} as RuleTreeRule,
+    conflicts: [],
     rulesFromSource: 0,
     rulesFromTarget: 0,
     rulesAdded: 0,
@@ -1393,24 +1403,19 @@ function performRuleMerge(source: any, target: any, _options: RuleMergeOptions):
   };
 
   // Deep clone target as base
-  const validatedResult = validateApiResponse<{ mergedRules: any }>(result);
-
-  validatedResult.mergedRules = JSON.parse(JSON.stringify(target));
+  result.mergedRules = JSON.parse(JSON.stringify(target)) as RuleTreeRule;
 
   // Merge based on strategy
   switch (_options.strategy) {
     case 'merge':
-      const validatedMergeResult = validateApiResponse<{ mergedRules: any }>(result);
-      mergeRuleNodes(source, validatedMergeResult.mergedRules, '/', result, _options);
+      mergeRuleNodes(source, result.mergedRules, '/', result, _options);
       break;
     case 'override':
-      const validatedOverrideResult = validateApiResponse<{ mergedRules: any, rulesFromSource: any }>(result);
-      validatedOverrideResult.mergedRules = JSON.parse(JSON.stringify(source));
-      validatedOverrideResult.rulesFromSource = countRules(source);
+      result.mergedRules = JSON.parse(JSON.stringify(source)) as RuleTreeRule;
+      result.rulesFromSource = countRules(source);
       break;
     case 'append':
-      const validatedAppendResult = validateApiResponse<{ mergedRules: any }>(result);
-      appendRules(source, validatedAppendResult.mergedRules, result);
+      appendRules(source, result.mergedRules, result);
       break;
   }
 
@@ -1418,10 +1423,10 @@ function performRuleMerge(source: any, target: any, _options: RuleMergeOptions):
 }
 
 function mergeRuleNodes(
-  source: any,
-  target: any,
+  source: RuleTreeRule,
+  target: RuleTreeRule,
   path: string,
-  result: any,
+  result: RuleMergeResult,
   options: RuleMergeOptions,
 ): void {
   // Merge behaviors
@@ -1429,9 +1434,7 @@ function mergeRuleNodes(
     mergeBehaviors(source.behaviors, target.behaviors, `${path}/behaviors`, result, options);
   } else if (source.behaviors) {
     target.behaviors = JSON.parse(JSON.stringify(source.behaviors));
-    const validatedResult = validateApiResponse<{ rulesFromSource: any }>(result);
-
-    validatedResult.rulesFromSource += source.behaviors.length;
+    result.rulesFromSource += source.behaviors.length;
   }
 
   // Merge children
@@ -1540,7 +1543,7 @@ function appendRules(source: any, target: any, result: any): void {
   }
 }
 
-function countRules(node: any): number {
+function countRules(node: RuleTreeRule | Partial<RuleTreeRule>): number {
   let count = 1;
 
   if (node.behaviors) {
@@ -1548,7 +1551,7 @@ function countRules(node: any): number {
   }
 
   if (node.children) {
-    node.children.forEach((child: any) => {
+    node.children.forEach((child: RuleTreeRule) => {
       count += countRules(child);
     });
   }
@@ -1556,7 +1559,7 @@ function countRules(node: any): number {
   return count;
 }
 
-function analyzeRulePerformance(rules: any): RulePerformanceAnalysis {
+function analyzeRulePerformance(rules: RuleTreeRule): RulePerformanceAnalysis {
   const categories = {
     caching: analyzeCaching(rules),
     compression: analyzeCompression(rules),
@@ -1575,7 +1578,7 @@ function analyzeRulePerformance(rules: any): RulePerformanceAnalysis {
     }
     category.improvements.forEach((imp) => {
       recommendations.push({
-        type: name as any,
+        type: name as 'security' | 'performance' | 'optimization' | 'compliance',
         impact: category.status === 'poor' ? 'high' : 'medium',
         path: '/',
         description: imp,
@@ -1596,7 +1599,7 @@ function analyzeRulePerformance(rules: any): RulePerformanceAnalysis {
   };
 }
 
-function analyzeCaching(rules: any): PerformanceCategory {
+function analyzeCaching(rules: RuleTreeRule): PerformanceCategory {
   const findings: string[] = [];
   const improvements: string[] = [];
   let score = 100;
@@ -1625,7 +1628,7 @@ function analyzeCaching(rules: any): PerformanceCategory {
   };
 }
 
-function analyzeCompression(rules: any): PerformanceCategory {
+function analyzeCompression(rules: RuleTreeRule): PerformanceCategory {
   const findings: string[] = [];
   const improvements: string[] = [];
   let score = 100;
@@ -1652,7 +1655,7 @@ function analyzeCompression(rules: any): PerformanceCategory {
   };
 }
 
-function analyzeHttp2(rules: any): PerformanceCategory {
+function analyzeHttp2(rules: RuleTreeRule): PerformanceCategory {
   const findings: string[] = [];
   const improvements: string[] = [];
   let score = 100;
@@ -1681,7 +1684,7 @@ function analyzeHttp2(rules: any): PerformanceCategory {
   };
 }
 
-function analyzeImageOptimization(rules: any): PerformanceCategory {
+function analyzeImageOptimization(rules: RuleTreeRule): PerformanceCategory {
   const findings: string[] = [];
   const improvements: string[] = [];
   let score = 100;
@@ -1704,7 +1707,7 @@ function analyzeImageOptimization(rules: any): PerformanceCategory {
   };
 }
 
-function analyzeMobileOptimization(rules: any): PerformanceCategory {
+function analyzeMobileOptimization(rules: RuleTreeRule): PerformanceCategory {
   const findings: string[] = [];
   const improvements: string[] = [];
   let score = 100;
@@ -1734,7 +1737,7 @@ function analyzeMobileOptimization(rules: any): PerformanceCategory {
 }
 
 function generateOptimizations(
-  rules: any,
+  rules: RuleTreeRule,
   options: {
     level: string;
     targetMetrics: string[];
@@ -1789,7 +1792,7 @@ function generateOptimizations(
   return optimizations;
 }
 
-function applyOptimizations(rules: any, optimizations: RuleOptimizationSuggestion[]): any {
+function applyOptimizations(rules: RuleTreeRule, optimizations: RuleOptimizationSuggestion[]): RuleTreeRule {
   const optimizedRules = JSON.parse(JSON.stringify(rules));
 
   // Ensure behaviors array exists
@@ -1818,9 +1821,9 @@ function applyOptimizations(rules: any, optimizations: RuleOptimizationSuggestio
   return optimizedRules;
 }
 
-function applyCachingOptimization(rules: any, _optimization: RuleOptimizationSuggestion): void {
+function applyCachingOptimization(rules: RuleTreeRule, _optimization: RuleOptimizationSuggestion): void {
   // Add or update caching behavior
-  const existingCaching = rules.behaviors.find((b: any) => b.name === 'caching');
+  const existingCaching = rules.behaviors?.find((b: RuleBehavior) => b.name === 'caching');
 
   if (!existingCaching) {
     rules.behaviors.push({
@@ -1834,9 +1837,9 @@ function applyCachingOptimization(rules: any, _optimization: RuleOptimizationSug
   }
 }
 
-function applyCompressionOptimization(rules: any, _optimization: RuleOptimizationSuggestion): void {
+function applyCompressionOptimization(rules: RuleTreeRule, _optimization: RuleOptimizationSuggestion): void {
   // Add compression behaviors
-  if (!rules.behaviors.find((b: any) => b.name === 'gzipResponse')) {
+  if (!rules.behaviors?.find((b: RuleBehavior) => b.name === 'gzipResponse')) {
     rules.behaviors.push({
       name: 'gzipResponse',
       options: {
@@ -1846,11 +1849,11 @@ function applyCompressionOptimization(rules: any, _optimization: RuleOptimizatio
   }
 }
 
-function applyPerformanceOptimization(rules: any, optimization: RuleOptimizationSuggestion): void {
+function applyPerformanceOptimization(rules: RuleTreeRule, optimization: RuleOptimizationSuggestion): void {
   // Add performance behaviors
   if (
     optimization.description.includes('HTTP/2') &&
-    !rules.behaviors.find((b: any) => b.name === 'http2')
+    !rules.behaviors?.find((b: RuleBehavior) => b.name === 'http2')
   ) {
     rules.behaviors.push({
       name: 'http2',
@@ -1861,9 +1864,9 @@ function applyPerformanceOptimization(rules: any, optimization: RuleOptimization
   }
 }
 
-function applySecurityOptimization(rules: any, _optimization: RuleOptimizationSuggestion): void {
+function applySecurityOptimization(rules: RuleTreeRule, _optimization: RuleOptimizationSuggestion): void {
   // Add security headers
-  if (!rules.behaviors.find((b: any) => b.name === 'modifyOutgoingResponseHeader')) {
+  if (!rules.behaviors?.find((b: RuleBehavior) => b.name === 'modifyOutgoingResponseHeader')) {
     rules.behaviors.push({
       name: 'modifyOutgoingResponseHeader',
       options: {
@@ -1878,7 +1881,7 @@ function applySecurityOptimization(rules: any, _optimization: RuleOptimizationSu
 /**
  * Format error responses
  */
-function formatError(operation: string, _error: any): MCPToolResponse {
+function formatError(operation: string, _error: unknown): MCPToolResponse {
   let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 
