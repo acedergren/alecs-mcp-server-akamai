@@ -1,18 +1,18 @@
 {
-  "timestamp": "2025-06-28T22:38:34.394Z",
+  "timestamp": "2025-06-28T22:49:24.379Z",
   "summary": {
-    "totalErrors": 466,
-    "totalFiles": 60,
+    "totalErrors": 457,
+    "totalFiles": 54,
     "errorsByCategory": {
       "CRITICAL": 10,
       "HIGH": 367,
       "MEDIUM": 1,
-      "LOW": 88
+      "LOW": 79
     },
     "errorsByPattern": {
       "Type assignment error": 8,
       "Other": 173,
-      "Unused variable": 87,
+      "Unused variable": 78,
       "Index signature access": 78,
       "exactOptionalPropertyTypes argument": 53,
       "Argument type mismatch": 15,
@@ -96,7 +96,7 @@
         "dependencyCount": 1
       }
     ],
-    "leafFiles": 18,
+    "leafFiles": 12,
     "rootFiles": 2
   },
   "files": [
@@ -3573,14 +3573,14 @@
       "isRoot": true,
       "importedBy": [
         "src/index.ts",
-        "src/transport/websocket-transport.ts",
-        "src/transport/sse-transport.ts",
         "src/utils/security.ts",
         "src/utils/safe-console.ts",
         "src/utils/modular-server-factory.ts",
         "src/utils/error-diagnostics.ts",
         "src/utils/edgegrid-client.ts",
         "src/utils/apply-security.ts",
+        "src/transport/websocket-transport.ts",
+        "src/transport/sse-transport.ts",
         "src/tools/token-tools.ts",
         "src/tools/rule-tree-management.ts",
         "src/tools/reporting-tools.ts",
@@ -3604,9 +3604,9 @@
         "src/servers/dns-server-consolidated.ts",
         "src/servers/certs-server-consolidated.ts",
         "src/servers/appsec-server.ts",
+        "src/monitoring/FastPurgeMonitor.ts",
         "src/middleware/security.ts",
         "src/middleware/authentication.ts",
-        "src/monitoring/FastPurgeMonitor.ts",
         "src/auth/TokenManager.ts",
         "src/auth/EdgeGridAuth.ts",
         "src/tools/elicitation/secure-hostname-onboarding.ts",
@@ -4497,70 +4497,6 @@
       ]
     },
     {
-      "file": "src/utils/transport-factory.ts",
-      "riskScore": 17,
-      "category": "LOW",
-      "errorCount": 2,
-      "dependencyCount": 0,
-      "isLeaf": true,
-      "isRoot": false,
-      "importedBy": [],
-      "errors": [
-        {
-          "line": 15,
-          "column": 5,
-          "code": "TS6133",
-          "pattern": "Unused variable",
-          "category": "LOW",
-          "message": "'WebSocketServer' is declared but its value is never read."
-        },
-        {
-          "line": 16,
-          "column": 5,
-          "code": "TS6133",
-          "pattern": "Unused variable",
-          "category": "LOW",
-          "message": "'createHttpServer' is declared but its value is never read."
-        }
-      ]
-    },
-    {
-      "file": "src/tools/progress-tools.ts",
-      "riskScore": 15,
-      "category": "LOW",
-      "errorCount": 3,
-      "dependencyCount": 0,
-      "isLeaf": true,
-      "isRoot": false,
-      "importedBy": [],
-      "errors": [
-        {
-          "line": 15,
-          "column": 3,
-          "code": "TS6133",
-          "pattern": "Unused variable",
-          "category": "LOW",
-          "message": "'client' is declared but its value is never read."
-        },
-        {
-          "line": 97,
-          "column": 3,
-          "code": "TS6133",
-          "pattern": "Unused variable",
-          "category": "LOW",
-          "message": "'client' is declared but its value is never read."
-        },
-        {
-          "line": 98,
-          "column": 3,
-          "code": "TS6133",
-          "pattern": "Unused variable",
-          "category": "LOW",
-          "message": "'args' is declared but its value is never read."
-        }
-      ]
-    },
-    {
       "file": "src/tools/hostname-discovery-engine.ts",
       "riskScore": 12,
       "category": "LOW",
@@ -4655,86 +4591,6 @@
           "pattern": "Unused variable",
           "category": "LOW",
           "message": "'impactMultipliers' is declared but its value is never read."
-        }
-      ]
-    },
-    {
-      "file": "src/types/api-responses/certificate.ts",
-      "riskScore": 5,
-      "category": "LOW",
-      "errorCount": 1,
-      "dependencyCount": 0,
-      "isLeaf": true,
-      "isRoot": false,
-      "importedBy": [],
-      "errors": [
-        {
-          "line": 6,
-          "column": 1,
-          "code": "TS6133",
-          "pattern": "Unused variable",
-          "category": "LOW",
-          "message": "'ListResponse' is declared but its value is never read."
-        }
-      ]
-    },
-    {
-      "file": "src/types/api-responses/edge-dns.ts",
-      "riskScore": 5,
-      "category": "LOW",
-      "errorCount": 1,
-      "dependencyCount": 0,
-      "isLeaf": true,
-      "isRoot": false,
-      "importedBy": [],
-      "errors": [
-        {
-          "line": 6,
-          "column": 1,
-          "code": "TS6133",
-          "pattern": "Unused variable",
-          "category": "LOW",
-          "message": "'ListResponse' is declared but its value is never read."
-        }
-      ]
-    },
-    {
-      "file": "src/types/api-responses/property-manager.ts",
-      "riskScore": 5,
-      "category": "LOW",
-      "errorCount": 1,
-      "dependencyCount": 0,
-      "isLeaf": true,
-      "isRoot": false,
-      "importedBy": [],
-      "errors": [
-        {
-          "line": 6,
-          "column": 71,
-          "code": "TS6133",
-          "pattern": "Unused variable",
-          "category": "LOW",
-          "message": "'ResponseMetadata' is declared but its value is never read."
-        }
-      ]
-    },
-    {
-      "file": "src/utils/apply-security.ts",
-      "riskScore": 5,
-      "category": "LOW",
-      "errorCount": 1,
-      "dependencyCount": 0,
-      "isLeaf": true,
-      "isRoot": false,
-      "importedBy": [],
-      "errors": [
-        {
-          "line": 13,
-          "column": 39,
-          "code": "TS6133",
-          "pattern": "Unused variable",
-          "category": "LOW",
-          "message": "'server' is declared but its value is never read."
         }
       ]
     },
