@@ -3,7 +3,7 @@
  * @see https://techdocs.akamai.com/cps/reference/api
  */
 
-import { ListResponse } from './common';
+// import { ListResponse } from './common'; // Currently unused
 
 /**
  * Certificate validation types
