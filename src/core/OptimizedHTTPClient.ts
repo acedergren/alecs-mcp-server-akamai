@@ -1,6 +1,6 @@
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
-import LRUCache = require('lru-cache');
+import { LRUCache } from 'lru-cache';
 import { performance } from 'perf_hooks';
 import { EventEmitter } from 'events';
 
