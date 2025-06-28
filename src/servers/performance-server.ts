@@ -102,7 +102,7 @@ interface ToolDefinition {
 class PerformanceServer {
   private server: Server;
   private client: AkamaiClient;
-  private configManager: CustomerConfigManager;
+  private _configManager: CustomerConfigManager; // CODE KAI: Reserved for customer context validation
   private tools: Map<string, ToolDefinition> = new Map();
 
   constructor() {
@@ -119,7 +119,7 @@ class PerformanceServer {
     );
 
     this.client = new AkamaiClient();
-    this.configManager = CustomerConfigManager.getInstance();
+    this._configManager = CustomerConfigManager.getInstance();
     
     this.registerTools();
     this.setupHandlers();
@@ -267,7 +267,7 @@ class PerformanceServer {
           value: z.any(),
         })),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, _params) => { // CODE KAI: Prefixed unused parameters
         // This would simulate the impact of changes
         return {
           content: [{
@@ -348,7 +348,7 @@ class PerformanceServer {
     });
   }
 
-  private zodToJsonSchema(schema: z.ZodSchema): any {
+  private zodToJsonSchema(_schema: z.ZodSchema): any { // CODE KAI: Prefixed unused parameter
     // Simplified schema conversion
     return {
       type: 'object',

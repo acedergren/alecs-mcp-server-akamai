@@ -42,7 +42,25 @@ import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
 // Initialize services
-const configManager = CustomerConfigManager.getInstance();
+// CODE KAI: configManager available for future customer context validation
+const _configManager = CustomerConfigManager.getInstance();
+
+// =============================================================================
+// TYPE DEFINITIONS FOR REPORTING API
+// =============================================================================
+
+interface TrafficReportItem {
+  edgeHits?: number;
+  edgeBandwidth?: number;
+  startTime: string;
+  cacheHitRatio?: number;
+  [key: string]: any;
+}
+
+interface ApiResponse<T = any> {
+  data?: T[];
+  [key: string]: any;
+}
 
 // =============================================================================
 // SCHEMA DEFINITIONS FOR REPORTING
@@ -65,7 +83,8 @@ const trafficReportSchema = dateRangeSchema.extend({
     .describe('Traffic metrics to include'),
 });
 
-const performanceReportSchema = dateRangeSchema.extend({
+// CODE KAI: performanceReportSchema reserved for future performance reporting features
+const _performanceReportSchema = dateRangeSchema.extend({
   metrics: z.array(z.enum(['response_time', 'error_rate', 'availability', 'throughput']))
     .optional()
     .default(['response_time', 'error_rate'])
@@ -128,15 +147,15 @@ const getTrafficReport = {
     };
 
     if (validated.group_by) {
-      params.groupBy = validated.group_by;
+      params['groupBy'] = validated.group_by;
     }
     if (validated.cp_codes && validated.cp_codes.length > 0) {
-      params.objectIds = validated.cp_codes.join(',');
-      params.objectType = 'cpcode';
+      params['objectIds'] = validated.cp_codes.join(',');
+      params['objectType'] = 'cpcode';
     }
     if (validated.hostnames && validated.hostnames.length > 0) {
-      params.objectIds = validated.hostnames.join(',');
-      params.objectType = 'hostname';
+      params['objectIds'] = validated.hostnames.join(',');
+      params['objectType'] = 'hostname';
     }
 
     // Use correct Akamai Reporting API endpoint
@@ -144,7 +163,7 @@ const getTrafficReport = {
       path: '/reporting-api/v1/reports/traffic/edge-hits-by-time',
       method: 'GET',
       queryParams: params,
-    });
+    }) as ApiResponse<TrafficReportItem>;
 
     // Format response for human readability
     let text = `# Traffic Report\n\n`;
@@ -157,9 +176,9 @@ const getTrafficReport = {
       text += `## Traffic Summary\n\n`;
       
       // Calculate totals
-      const totalHits = response.data.reduce((sum: number, item: any) => 
+      const totalHits = response.data.reduce((sum: number, item: TrafficReportItem) => 
         sum + (item.edgeHits || 0), 0);
-      const totalBandwidth = response.data.reduce((sum: number, item: any) => 
+      const totalBandwidth = response.data.reduce((sum: number, item: TrafficReportItem) => 
         sum + (item.edgeBandwidth || 0), 0);
       
       text += `- **Total Edge Hits:** ${formatNumber(totalHits)}\n`;
@@ -168,13 +187,13 @@ const getTrafficReport = {
       text += `\n`;
 
       // Show top entries if grouped
-      if (validated.group_by && response.data[0][validated.group_by]) {
+      if (validated.group_by && response.data[0] && response.data[0][validated.group_by]) {
         text += `## Top ${validated.group_by} by Traffic\n\n`;
-        const sorted = [...response.data].sort((a, b) => b.edgeHits - a.edgeHits).slice(0, 10);
+        const sorted = [...response.data].sort((a, b) => (b.edgeHits || 0) - (a.edgeHits || 0)).slice(0, 10);
         sorted.forEach((item, index) => {
           text += `${index + 1}. **${item[validated.group_by!]}**\n`;
-          text += `   - Edge Hits: ${formatNumber(item.edgeHits)}\n`;
-          text += `   - Edge Bandwidth: ${formatBytes(item.edgeBandwidth)}\n`;
+          text += `   - Edge Hits: ${formatNumber(item.edgeHits || 0)}\n`;
+          text += `   - Edge Bandwidth: ${formatBytes(item.edgeBandwidth || 0)}\n`;
           if (item.cacheHitRatio !== undefined) {
             text += `   - Cache Hit Ratio: ${(item.cacheHitRatio * 100).toFixed(2)}%\n`;
           }
