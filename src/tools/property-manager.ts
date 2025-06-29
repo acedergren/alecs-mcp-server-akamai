@@ -54,6 +54,7 @@ import {
 import type {
   PropertyListResponse,
   PropertyDetailResponse,
+  PropertyVersionListResponse,
 } from '../types/api-responses/property-manager';
 
 // =============================================================================
@@ -466,7 +467,7 @@ export async function listPropertyVersions(
     const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions`,
       method: 'GET',
-    });
+    }) as PropertyVersionListResponse;
 
     if (!response.versions?.items || response.versions.items.length === 0) {
       return {
@@ -518,7 +519,7 @@ export async function getPropertyVersion(
     const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}`,
       method: 'GET',
-    });
+    }) as PropertyVersionListResponse;
 
     if (!response.versions?.items?.[0]) {
       return {
@@ -660,16 +661,18 @@ export async function updatePropertyRules(
     }
     
     // UPDATE RULES WITH ETAG SUPPORT
+    const options: { validateRules?: boolean; etag?: string; useStoredETag?: boolean } = {
+      useStoredETag: !args.etag, // Use stored ETag if not provided
+    };
+    if (args.validateRules !== undefined) options.validateRules = args.validateRules;
+    if (args.etag !== undefined) options.etag = args.etag;
+    
     const response = await updatePropertyRulesWithETag(
       client,
       args.propertyId,
       args.version,
       args.rules,
-      {
-        validateRules: args.validateRules,
-        etag: args.etag,
-        useStoredETag: !args.etag, // Use stored ETag if not provided
-      }
+      options
     );
 
     let text = `# Property Rules Updated\n\n`;
