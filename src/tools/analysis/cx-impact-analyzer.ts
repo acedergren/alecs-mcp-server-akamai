@@ -122,7 +122,7 @@ export class CustomerExperienceImpactAnalyzer {
   private customerPersonas: Record<string, CustomerPersona>;
   private customerJourneys: Record<string, CustomerJourney>;
   private businessMetrics: Record<string, BusinessMetric>;
-  private impactMultipliers: Record<string, number>;
+  // private _impactMultipliers: Record<string, number>;
 
   constructor() {
     this.customerPersonas = {
@@ -261,14 +261,15 @@ export class CustomerExperienceImpactAnalyzer {
       api_success_rate: { weight: 0.05, baseline: 0.95, target: 0.99 },
     };
 
-    this.impactMultipliers = {
-      onboarding: 2.5, // Onboarding issues have high impact
-      critical_path: 2.0, // Critical path issues
-      security: 1.8, // Security issues
-      performance: 1.5, // Performance issues
-      usability: 1.3, // Usability issues
-      documentation: 1.2, // Documentation issues
-    };
+    // TODO: Implement impact multipliers for customer experience scoring
+    // this._impactMultipliers = {
+    //   onboarding: 2.5, // Onboarding issues have high impact
+    //   critical_path: 2.0, // Critical path issues
+    //   security: 1.8, // Security issues
+    //   performance: 1.5, // Performance issues
+    //   usability: 1.3, // Usability issues
+    //   documentation: 1.2, // Documentation issues
+    // };
   }
 
   /**
