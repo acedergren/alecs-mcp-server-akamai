@@ -53,6 +53,7 @@ import {
 } from '../utils/etag-handler';
 import type {
   PropertyListResponse,
+  PropertyDetailResponse,
 } from '../types/api-responses/property-manager';
 
 // =============================================================================
@@ -223,7 +224,7 @@ export async function getProperty(
     const response = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
-    });
+    }) as PropertyDetailResponse;
 
     if (!response.properties?.items?.[0]) {
       return {
@@ -315,7 +316,7 @@ export async function createProperty(
       method: 'POST',
       body: requestBody,
       ...(Object.keys(queryParams).length > 0 && { queryParams }),
-    });
+    }) as { propertyLink: string };
 
     const propertyLink = response.propertyLink;
     const propertyId = propertyLink?.split('/').pop()?.split('?')[0];
@@ -414,7 +415,7 @@ export async function createPropertyVersion(
       path: `/papi/v1/properties/${args.propertyId}/versions`,
       method: 'POST',
       body: requestBody,
-    });
+    }) as { versionLink: string };
 
     const versionLink = response.versionLink;
     const newVersion = versionLink?.split('/').pop()?.split('?')[0];
