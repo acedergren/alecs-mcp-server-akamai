@@ -147,7 +147,7 @@ export function generateProvisioningPlan(_context: TemplateContext): Provisionin
 
   // Generate edge hostname
   const edgeHostnamePrefix = inputs.hostname.split('.')[0];
-  const domainPrefix = template.edgeHostnameConfig.domainPrefix || edgeHostnamePrefix;
+  const domainPrefix = template.edgeHostnameConfig.domainPrefix || edgeHostnamePrefix || 'www';
   const edgeHostname = {
     hostname: `${domainPrefix}${template.edgeHostnameConfig.domainSuffix}`,
     domainPrefix: domainPrefix,
@@ -219,7 +219,7 @@ export function generateProvisioningPlan(_context: TemplateContext): Provisionin
     },
   ];
 
-  return {
+  const result: ProvisioningPlan = {
     propertyName,
     propertyConfig: {
       contractId,
@@ -230,10 +230,15 @@ export function generateProvisioningPlan(_context: TemplateContext): Provisionin
     hostnames,
     edgeHostname,
     ruleTree: ruleTreeWithInputs,
-    certificateEnrollment,
     dnsRecords,
     activationSteps,
   };
+
+  if (certificateEnrollment) {
+    result.certificateEnrollment = certificateEnrollment;
+  }
+
+  return result;
 }
 
 /**
