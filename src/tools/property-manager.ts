@@ -55,6 +55,7 @@ import type {
   PropertyListResponse,
   PropertyDetailResponse,
   PropertyVersionListResponse,
+  EdgeHostnameListResponse,
 } from '../types/api-responses/property-manager';
 
 // =============================================================================
@@ -714,7 +715,7 @@ export async function updatePropertyRules(
     };
   } catch (error) {
     // Special handling for concurrent modification errors
-    if (error.status === 409 || error.status === 412) {
+    if ((error as any).status === 409 || (error as any).status === 412) {
       let text = `# ⚠️ Concurrent Modification Detected\n\n`;
       text += `Someone else has modified this property version since you last retrieved it.\n\n`;
       text += `**What happened:**\n`;
@@ -831,7 +832,7 @@ export async function createEdgeHostname(
       path: '/papi/v1/edgehostnames',
       method: 'POST',
       body: requestBody,
-    });
+    }) as { edgeHostnameLink: string };
 
     // EXTRACT KEY INFORMATION from the response
     const edgeHostnameLink = response.edgeHostnameLink;
@@ -936,7 +937,7 @@ export async function listEdgeHostnames(
       path: '/papi/v1/edgehostnames',
       method: 'GET',
       ...(Object.keys(queryParams).length > 0 && { queryParams }),
-    });
+    }) as EdgeHostnameListResponse;
 
     // HANDLE EMPTY RESULTS: Provide helpful guidance when no hostnames exist
     if (!response.edgeHostnames?.items || response.edgeHostnames.items.length === 0) {
