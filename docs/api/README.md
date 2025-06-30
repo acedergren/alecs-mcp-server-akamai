@@ -1,6 +1,6 @@
 # ALECS API Reference
 
-**Version:** 1.7.1  
+**Version:** 1.7.2  
 **Last Updated:** 2025-06-30  
 **Total APIs:** 113+ tools
 

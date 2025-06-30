@@ -635,7 +635,7 @@ export async function translateAkamaiResponse<T extends Record<string, any>>(
         .filter(Boolean);
       
       const translations = await translator.translateProperties(
-        [...new Set(propertyIds)], // Remove duplicates
+        Array.from(new Set(propertyIds)), // Remove duplicates
         client
       );
       

@@ -11,6 +11,9 @@ import { z, type ZodSchema } from 'zod';
 import type { AkamaiClient } from '../akamai-client';
 import type { MCPToolResponse } from '../types/mcp-protocol';
 
+// UNIVERSAL TRANSLATION MIDDLEWARE: Import translation system
+import { createTranslationMiddleware } from '../middleware/translation-middleware';
+
 // CODE KAI: Define flexible parameter type for tool handlers
 // This allows typed parameters while maintaining compatibility with MCP SDK
 type ToolParameters = Record<string, unknown>;
@@ -658,11 +661,28 @@ function createToolHandler(
         };
       });
       
-      return {
+      // UNIVERSAL TRANSLATION: Apply ID-to-name translation to all responses
+      const baseResponse = {
         ...result,
         content: validatedContent,
         isError: result.isError || false
       };
+      
+      // Apply translation middleware to convert Akamai IDs to human-readable names
+      try {
+        const translationMiddleware = createTranslationMiddleware({
+          enabled: true,
+          preserveOriginalIds: true,
+          translateInText: true,
+          maxTranslationsPerResponse: 50,
+        });
+        
+        return await translationMiddleware.translateResponse(baseResponse, client);
+      } catch (translationError) {
+        // DEFENSIVE: Return original response if translation fails
+        console.warn('Translation middleware failed:', translationError);
+        return baseResponse;
+      }
       
     } catch (error) {
       // DEFENSIVE: Comprehensive error handling with context
