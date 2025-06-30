@@ -73,7 +73,7 @@ jobs:
         if [ "${{ github.event_name }}" == "release" ]; then
           VERSION="${{ github.event.release.tag_name }}"
         else
-          VERSION="v${{ github.event.inputs.version }}"
+          VERSION="${{ github.event.inputs.version }}"
         fi
         VERSION="${VERSION#v}"
         CURRENT_VERSION=$(node -p "require('./package.json').version")
@@ -135,7 +135,7 @@ jobs:
         if [ "${{ github.event_name }}" == "release" ]; then
           VERSION="${{ github.event.release.tag_name }}"
         else
-          VERSION="v${{ github.event.inputs.version }}"
+          VERSION="${{ github.event.inputs.version }}"
         fi
         VERSION="${VERSION#v}"
         echo "VERSION=$VERSION" >> $GITHUB_ENV
