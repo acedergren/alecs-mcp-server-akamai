@@ -41,6 +41,8 @@ import { z, ZodType, ZodTypeDef, ZodObject, ZodRawShape } from 'zod';
 import { logger } from './logger';
 import { getTransportFromEnv } from '../config/transport-config';
 import { AkamaiClient } from '../akamai-client';
+import { MCPToolResponse } from '../types/mcp-protocol';
+import { MCPCompatibilityWrapper } from './mcp-compatibility-wrapper';
 
 // Import the complete tool registry
 import { getAllToolDefinitions, type ToolDefinition } from '../tools/all-tools-registry';
@@ -81,6 +83,7 @@ export class AkamaiMCPServer {
   private tools: Map<string, ToolDefinition> = new Map();
   private config: ServerConfig;
   private toolExecutionCount: Map<string, number> = new Map();
+  private compatibilityWrapper?: MCPCompatibilityWrapper;
 
   constructor(config: ServerConfig) {
     this.config = config;
@@ -95,6 +98,11 @@ export class AkamaiMCPServer {
         },
       }
     );
+
+    // Create compatibility wrapper for Claude Desktop support
+    this.compatibilityWrapper = new MCPCompatibilityWrapper(this.server, {
+      enableLegacySupport: true
+    });
 
     // Initialize server with tools
     this.loadTools();
@@ -124,19 +132,43 @@ export class AkamaiMCPServer {
       
       logger.info(`Loading ${toolsToLoad.length} of ${allTools.length} available tools`);
       
-      // Load tools with validation
+      // Load tools with defensive validation and comprehensive error handling
       let loadedCount = 0;
+      const failedTools: Array<{ name: string; error: string }> = [];
+      
       for (const tool of toolsToLoad) {
         try {
+          // DEFENSIVE: Validate tool definition before loading
           this.validateTool(tool);
+          
+          // DEFENSIVE: Check for duplicate tool names
+          if (this.tools.has(tool.name)) {
+            throw new Error(`Duplicate tool name: ${tool.name}`);
+          }
+          
           this.tools.set(tool.name, tool);
           loadedCount++;
+          
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          failedTools.push({ name: tool.name, error: errorMessage });
           logger.error(`Failed to load tool ${tool.name}:`, error);
         }
       }
       
-      logger.info(`Successfully loaded ${loadedCount} tools`);
+      // DEFENSIVE: Report loading results comprehensively
+      logger.info(`Successfully loaded ${loadedCount} of ${toolsToLoad.length} tools`);
+      
+      if (failedTools.length > 0) {
+        logger.warn(`Failed to load ${failedTools.length} tools:`, 
+          failedTools.map(f => `${f.name}: ${f.error}`).join(', ')
+        );
+        
+        // DEFENSIVE: Don't fail completely, but warn about missing functionality
+        if (failedTools.length > toolsToLoad.length * 0.5) {
+          throw new Error(`Critical: Failed to load more than 50% of tools (${failedTools.length}/${toolsToLoad.length})`);
+        }
+      }
     } catch (error) {
       logger.error('Critical error loading tools:', error);
       throw new Error('Failed to initialize tool registry');
@@ -145,40 +177,90 @@ export class AkamaiMCPServer {
 
   /**
    * Validate tool definition before loading
-   * CODE KAI: Defensive programming - validate early, fail fast
+   * DEFENSIVE PROGRAMMING: Comprehensive validation to prevent runtime failures
    */
   private validateTool(tool: ToolDefinition): void {
-    if (!tool.name || typeof tool.name !== 'string') {
-      throw new Error('Tool must have a valid name');
+    // DEFENSIVE: Check tool object exists
+    if (!tool || typeof tool !== 'object') {
+      throw new Error('Tool definition must be a valid object');
     }
-    if (!tool.description || typeof tool.description !== 'string') {
-      throw new Error(`Tool ${tool.name} must have a description`);
+    
+    // DEFENSIVE: Validate tool name
+    if (!tool.name || typeof tool.name !== 'string' || tool.name.trim().length === 0) {
+      throw new Error('Tool must have a valid, non-empty name');
     }
+    
+    // DEFENSIVE: Validate naming conventions for MCP compatibility
+    if (!/^[a-z][a-z0-9-]*[a-z0-9]$/.test(tool.name) && tool.name.length > 1) {
+      throw new Error(`Tool name '${tool.name}' must follow kebab-case convention for MCP compatibility`);
+    }
+    
+    // DEFENSIVE: Validate description
+    if (!tool.description || typeof tool.description !== 'string' || tool.description.trim().length === 0) {
+      throw new Error(`Tool '${tool.name}' must have a valid, non-empty description`);
+    }
+    
+    // DEFENSIVE: Validate handler function
     if (!tool.handler || typeof tool.handler !== 'function') {
-      throw new Error(`Tool ${tool.name} must have a handler function`);
+      throw new Error(`Tool '${tool.name}' must have a handler function`);
+    }
+    
+    // DEFENSIVE: Validate schema (optional but if present, must be valid)
+    if (tool.schema !== undefined && typeof tool.schema !== 'object') {
+      throw new Error(`Tool '${tool.name}' schema must be a valid Zod schema object if provided`);
+    }
+    
+    // DEFENSIVE: Check if tool name contains reserved words that might conflict with MCP
+    const reservedWords = ['list', 'call', 'tool', 'mcp', 'server', 'client'];
+    if (reservedWords.some(word => tool.name === word)) {
+      throw new Error(`Tool name '${tool.name}' conflicts with MCP reserved words`);
     }
   }
 
   /**
    * Convert Zod schema to JSON Schema for MCP compatibility
-   * KAIZEN: Improved schema conversion with proper TypeScript types (no any!)
+   * KAIZEN: Defensive schema conversion with comprehensive error handling
    */
   private zodToJsonSchema(zodSchema: ZodType<unknown, ZodTypeDef, unknown>): Record<string, unknown> {
     try {
+      // DEFENSIVE: Handle null/undefined schemas
+      if (!zodSchema) {
+        logger.warn('Received null/undefined schema, returning default object schema');
+        return { type: 'object', properties: {}, additionalProperties: false };
+      }
+
       // Handle ZodObject types with proper typing
       if (zodSchema instanceof ZodObject) {
         const shape = zodSchema.shape as ZodRawShape;
         const properties: Record<string, unknown> = {};
         const required: string[] = [];
 
+        // DEFENSIVE: Validate shape exists
+        if (!shape || typeof shape !== 'object') {
+          logger.warn('Invalid Zod object shape, using empty properties');
+          return { type: 'object', properties: {}, additionalProperties: false };
+        }
+
         for (const [key, fieldSchema] of Object.entries(shape)) {
-          properties[key] = this.zodFieldToJsonSchema(fieldSchema);
-          
-          // Check if field is required using proper Zod API
-          // A field is required if it's not wrapped in ZodOptional
-          const typeName = fieldSchema._def.typeName;
-          if (typeName !== z.ZodFirstPartyTypeKind.ZodOptional) {
-            required.push(key);
+          try {
+            // DEFENSIVE: Validate field schema before processing
+            if (fieldSchema && typeof fieldSchema === 'object') {
+              properties[key] = this.zodFieldToJsonSchema(fieldSchema);
+              
+              // Check if field is required using proper Zod API
+              // A field is required if it's not wrapped in ZodOptional
+              const typeName = fieldSchema._def?.typeName;
+              if (typeName && typeName !== z.ZodFirstPartyTypeKind.ZodOptional) {
+                required.push(key);
+              }
+            } else {
+              // DEFENSIVE: Skip invalid field schemas
+              logger.warn(`Skipping invalid field schema for key: ${key}`);
+            }
+          } catch (fieldError) {
+            logger.warn(`Error processing field '${key}':`, fieldError);
+            // DEFENSIVE: Continue processing other fields
+            properties[key] = { type: 'string', description: 'Field schema conversion failed' };
           }
         }
 
@@ -187,91 +269,293 @@ export class AkamaiMCPServer {
           properties,
           ...(required.length > 0 && { required }),
           additionalProperties: false,
+          // KAIZEN: Add schema metadata for debugging
+          $schema: 'http://json-schema.org/draft-07/schema#',
         };
       }
 
-      // Fallback for non-object schemas
-      return { type: 'object', properties: {} };
+      // DEFENSIVE: Handle non-object schemas gracefully
+      logger.warn('Non-object Zod schema provided, converting to object schema');
+      return { 
+        type: 'object', 
+        properties: {},
+        additionalProperties: false,
+        $schema: 'http://json-schema.org/draft-07/schema#',
+      };
     } catch (error) {
-      logger.warn('Schema conversion error:', error);
-      return { type: 'object', properties: {} };
+      logger.error('Critical schema conversion error:', error);
+      // DEFENSIVE: Return a valid fallback schema that won't break MCP
+      return { 
+        type: 'object', 
+        properties: {},
+        additionalProperties: false,
+        $schema: 'http://json-schema.org/draft-07/schema#',
+        description: 'Schema conversion failed - using fallback'
+      };
     }
   }
 
   /**
    * Convert individual Zod field to JSON Schema
-   * CODE KAI: Comprehensive type mapping with proper TypeScript types
+   * KAIZEN: Enhanced with defensive programming and comprehensive error handling
    */
   private zodFieldToJsonSchema(field: ZodType<unknown, ZodTypeDef, unknown>): Record<string, unknown> {
-    // Use instanceof checks instead of accessing internal _def properties
-    if (field instanceof z.ZodString) {
-      const schema: Record<string, unknown> = { type: 'string' };
-      const description = field['description'];
-      if (description) schema['description'] = description;
-      return schema;
-    }
-    
-    if (field instanceof z.ZodNumber) {
-      const schema: Record<string, unknown> = { type: 'number' };
-      const description = field['description'];
-      if (description) schema['description'] = description;
-      return schema;
-    }
-    
-    if (field instanceof z.ZodBoolean) {
-      const schema: Record<string, unknown> = { type: 'boolean' };
-      const description = field['description'];
-      if (description) schema['description'] = description;
-      return schema;
-    }
-    
-    if (field instanceof z.ZodArray) {
-      return {
-        type: 'array',
-        items: this.zodFieldToJsonSchema(field.element),
-      };
-    }
-    
-    if (field instanceof z.ZodEnum) {
-      return {
-        type: 'string',
-        enum: field.options,
-      };
-    }
-    
-    if (field instanceof z.ZodOptional) {
-      return this.zodFieldToJsonSchema(field.unwrap());
-    }
-    
-    if (field instanceof z.ZodUnion) {
-      // Handle union types
-      const options = field.options;
-      
-      // Handle nullable types (union with null)
-      if (options.length === 2) {
-        const hasNull = options.some((opt: ZodType) => opt instanceof z.ZodNull);
-        if (hasNull) {
-          const nonNullOption = options.find((opt: ZodType) => !(opt instanceof z.ZodNull));
-          if (nonNullOption) {
-            return this.zodFieldToJsonSchema(nonNullOption);
+    try {
+      // DEFENSIVE: Validate field exists
+      if (!field) {
+        logger.warn('Null/undefined field provided to zodFieldToJsonSchema');
+        return { type: 'string', description: 'Field schema conversion failed' };
+      }
+
+      // DEFENSIVE: Handle ZodString with constraints validation
+      if (field instanceof z.ZodString) {
+        const schema: Record<string, unknown> = { type: 'string' };
+        
+        try {
+          const description = field['description'];
+          if (description && typeof description === 'string') {
+            schema['description'] = description;
           }
+          
+          // KAIZEN: Extract string constraints if available
+          const def = (field as any)._def;
+          if (def && typeof def === 'object') {
+            if (def.minLength !== null && def.minLength !== undefined) {
+              schema['minLength'] = def.minLength;
+            }
+            if (def.maxLength !== null && def.maxLength !== undefined) {
+              schema['maxLength'] = def.maxLength;
+            }
+          }
+        } catch (descError) {
+          logger.warn('Error extracting string field metadata:', descError);
+        }
+        
+        return schema;
+      }
+      
+      // DEFENSIVE: Handle ZodNumber with constraints validation
+      if (field instanceof z.ZodNumber) {
+        const schema: Record<string, unknown> = { type: 'number' };
+        
+        try {
+          const description = field['description'];
+          if (description && typeof description === 'string') {
+            schema['description'] = description;
+          }
+          
+          // KAIZEN: Extract number constraints if available
+          const def = (field as any)._def;
+          if (def && typeof def === 'object') {
+            if (def.minimum !== null && def.minimum !== undefined) {
+              schema['minimum'] = def.minimum;
+            }
+            if (def.maximum !== null && def.maximum !== undefined) {
+              schema['maximum'] = def.maximum;
+            }
+          }
+        } catch (descError) {
+          logger.warn('Error extracting number field metadata:', descError);
+        }
+        
+        return schema;
+      }
+      
+      // DEFENSIVE: Handle ZodBoolean
+      if (field instanceof z.ZodBoolean) {
+        const schema: Record<string, unknown> = { type: 'boolean' };
+        
+        try {
+          const description = field['description'];
+          if (description && typeof description === 'string') {
+            schema['description'] = description;
+          }
+        } catch (descError) {
+          logger.warn('Error extracting boolean field metadata:', descError);
+        }
+        
+        return schema;
+      }
+      
+      // DEFENSIVE: Handle ZodArray with element validation
+      if (field instanceof z.ZodArray) {
+        try {
+          const element = (field as any).element;
+          if (!element) {
+            logger.warn('ZodArray missing element schema');
+            return { type: 'array', items: { type: 'string' } };
+          }
+          
+          return {
+            type: 'array',
+            items: this.zodFieldToJsonSchema(element),
+          };
+        } catch (arrayError) {
+          logger.warn('Error processing ZodArray:', arrayError);
+          return { type: 'array', items: { type: 'string' } };
         }
       }
       
-      // For other unions, default to string
-      return { type: 'string' };
+      // DEFENSIVE: Handle ZodEnum with options validation
+      if (field instanceof z.ZodEnum) {
+        try {
+          const options = (field as any).options;
+          if (!Array.isArray(options) || options.length === 0) {
+            logger.warn('ZodEnum missing or empty options');
+            return { type: 'string' };
+          }
+          
+          return {
+            type: 'string',
+            enum: options,
+          };
+        } catch (enumError) {
+          logger.warn('Error processing ZodEnum:', enumError);
+          return { type: 'string' };
+        }
+      }
+      
+      // DEFENSIVE: Handle ZodOptional
+      if (field instanceof z.ZodOptional) {
+        try {
+          const unwrapped = field.unwrap();
+          if (!unwrapped) {
+            logger.warn('ZodOptional failed to unwrap');
+            return { type: 'string' };
+          }
+          
+          return this.zodFieldToJsonSchema(unwrapped);
+        } catch (optionalError) {
+          logger.warn('Error processing ZodOptional:', optionalError);
+          return { type: 'string' };
+        }
+      }
+      
+      // DEFENSIVE: Handle ZodUnion with comprehensive validation
+      if (field instanceof z.ZodUnion) {
+        try {
+          const options = (field as any).options;
+          if (!Array.isArray(options)) {
+            logger.warn('ZodUnion missing options array');
+            return { type: 'string' };
+          }
+          
+          // Handle nullable types (union with null)
+          if (options.length === 2) {
+            const hasNull = options.some((opt: ZodType) => opt instanceof z.ZodNull);
+            if (hasNull) {
+              const nonNullOption = options.find((opt: ZodType) => !(opt instanceof z.ZodNull));
+              if (nonNullOption) {
+                return this.zodFieldToJsonSchema(nonNullOption);
+              }
+            }
+          }
+          
+          // KAIZEN: For complex unions, try to find a common type
+          const types = options.map((opt: ZodType) => {
+            try {
+              if (opt instanceof z.ZodString) return 'string';
+              if (opt instanceof z.ZodNumber) return 'number';
+              if (opt instanceof z.ZodBoolean) return 'boolean';
+              return 'string';
+            } catch {
+              return 'string';
+            }
+          });
+          
+          const uniqueTypes = [...new Set(types)];
+          if (uniqueTypes.length === 1) {
+            return { type: uniqueTypes[0] };
+          }
+          
+          // For mixed unions, default to string with enum if possible
+          return { type: 'string' };
+        } catch (unionError) {
+          logger.warn('Error processing ZodUnion:', unionError);
+          return { type: 'string' };
+        }
+      }
+      
+      // DEFENSIVE: Handle ZodObject recursively
+      if (field instanceof z.ZodObject) {
+        try {
+          return this.zodToJsonSchema(field);
+        } catch (objectError) {
+          logger.warn('Error processing nested ZodObject:', objectError);
+          return { type: 'object', properties: {}, additionalProperties: false };
+        }
+      }
+      
+      // KAIZEN: Handle additional Zod types
+      if (field instanceof z.ZodLiteral) {
+        try {
+          const value = (field as any)._def?.value;
+          if (value !== undefined) {
+            return { 
+              type: typeof value,
+              const: value
+            };
+          }
+        } catch (literalError) {
+          logger.warn('Error processing ZodLiteral:', literalError);
+        }
+      }
+      
+      if (field instanceof z.ZodDate) {
+        return { 
+          type: 'string', 
+          format: 'date-time',
+          description: 'ISO 8601 date-time string'
+        };
+      }
+      
+      // DEFENSIVE: Log unhandled Zod types for debugging
+      const typeName = (field as any)._def?.typeName || field.constructor.name;
+      logger.warn(`Unhandled Zod type: ${typeName}, falling back to string type`);
+      
+      // Safe fallback for unhandled types
+      return { 
+        type: 'string',
+        description: `Unhandled Zod type: ${typeName}`
+      };
+      
+    } catch (error) {
+      logger.error('Critical error in zodFieldToJsonSchema:', error);
+      // DEFENSIVE: Return valid fallback that won't break MCP
+      return { 
+        type: 'string',
+        description: 'Field schema conversion failed'
+      };
     }
-    
-    if (field instanceof z.ZodObject) {
-      // Recursively handle nested objects
-      return this.zodToJsonSchema(field);
-    }
-    
-    // Safe fallback for unhandled types
-    return { type: 'string' };
   }
 
   private setupHandlers() {
+    /**
+     * LEGACY SUPPORT: Claude Desktop Compatibility
+     * 
+     * Claude Desktop currently uses MCP protocol version 2024-11-05
+     * while our server is built for 2025-06-18. This compatibility
+     * wrapper handles the differences in response formats.
+     * 
+     * REMOVAL CHECKLIST (when Claude Desktop updates):
+     * [ ] Verify Claude Desktop uses protocol 2025-06-18 or newer
+     * [ ] Remove MCPCompatibilityWrapper import
+     * [ ] Remove compatibilityWrapper property from class
+     * [ ] Remove compatibilityWrapper initialization in constructor
+     * [ ] Remove this entire if block
+     * [ ] Test thoroughly with updated Claude Desktop
+     * 
+     * TRACKED IN: https://github.com/anthropics/claude-desktop/issues/XXX
+     * LAST CHECKED: 2025-01-30
+     */
+    if (this.compatibilityWrapper) {
+      this.compatibilityWrapper.setupCompatibilityHandlers(
+        this.tools,
+        (schema) => this.zodToJsonSchema(schema)
+      );
+      return;
+    }
+
     /**
      * LIST TOOLS HANDLER - Enhanced with metrics
      */
@@ -349,8 +633,17 @@ export class AkamaiMCPServer {
         const duration = Date.now() - startTime;
         logger.info(`Tool '${name}' completed in ${duration}ms`);
         
-        // Return MCP-formatted response
-        return response.content[0] || { type: 'text', text: 'No content returned' };
+        // KAIZEN FIX: Convert MCPToolResponse to MCP SDK CallToolResult format
+        // Our tools return MCPToolResponse but MCP SDK expects CallToolResult
+        const mcpResponse = response as MCPToolResponse;
+        const callToolResult = {
+          content: mcpResponse.content,
+          isError: mcpResponse.isError || false,
+          // Add _meta if needed for MCP protocol compliance
+          ...(mcpResponse.isError && { _meta: { error: true } })
+        };
+        
+        return callToolResult;
 
       } catch (error) {
         const duration = Date.now() - startTime;

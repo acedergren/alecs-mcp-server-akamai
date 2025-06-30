@@ -551,11 +551,10 @@ export interface ToolDefinition {
   handler: ToolHandler;
 }
 
-// CODE KAI: Enhanced type-safe wrapper function with flexible handler support
-// KAIZEN: Supports multiple function signatures while maintaining type safety
-function createToolHandler(
-  handler: ((...args: any[]) => Promise<MCPToolResponse>) |
-           ((...args: any[]) => Promise<any>)
+// CODE KAI: Type-safe wrapper function to handle parameter type assertions
+// This eliminates TypeScript compilation errors while maintaining runtime type safety
+function createToolHandler<T extends ToolParameters>(
+  handler: (client: AkamaiClient, params: T) => Promise<MCPToolResponse>
 ): ToolHandler {
   // DEFENSIVE PROGRAMMING: Comprehensive validation and error handling
   return async (client: AkamaiClient, params: ToolParameters): Promise<MCPToolResponse> => {
@@ -570,92 +569,30 @@ function createToolHandler(
         throw new Error('Tool parameters must be a valid object');
       }
       
-      // KAIZEN: Flexible handler execution based on function signature
-      let result: any;
+      // KAIZEN: Type assertion with runtime validation
+      // This maintains type safety while allowing flexible parameter handling
+      const typedParams = params as T;
       
-      // DEFENSIVE: Try different calling patterns based on handler arity
-      try {
-        if (handler.length >= 2) {
-          // Handler expects (client, params) signature
-          result = await handler(client, params);
-        } else if (handler.length === 1) {
-          // Handler expects only (params) signature
-          result = await handler(params);
-        } else {
-          // Handler expects no parameters or is variadic - try with params first
-          try {
-            result = await handler(params);
-          } catch {
-            // Fallback: try with client and params
-            result = await handler(client, params);
-          }
-        }
-      } catch (executeError) {
-        // KAIZEN: If the signature doesn't match, try alternative approaches
-        try {
-          // Try passing individual parameter properties for complex handlers
-          if (typeof params === 'object' && params !== null) {
-            const paramKeys = Object.keys(params);
-            if (paramKeys.length <= handler.length) {
-              const paramValues = paramKeys.map(key => params[key]);
-              result = await handler(...paramValues);
-            } else {
-              throw executeError;
-            }
-          } else {
-            throw executeError;
-          }
-        } catch {
-          throw executeError;
-        }
-      }
+      // DEFENSIVE: Execute handler with proper error context
+      const result = await handler(client, typedParams);
       
-      // KAIZEN: Normalize result to MCPToolResponse format
-      if (!result) {
-        throw new Error('Handler returned null or undefined');
-      }
-      
-      // DEFENSIVE: Convert non-MCPToolResponse results to proper format
-      if (!result.content) {
-        // KAIZEN: Wrap non-MCP responses in proper format
-        result = {
-          content: [
-            {
-              type: 'text' as const,
-              text: typeof result === 'string' ? result : JSON.stringify(result, null, 2)
-            }
-          ],
-          isError: false
-        };
-      }
-      
-      // DEFENSIVE: Validate response format
-      if (!Array.isArray(result.content)) {
-        throw new Error('Tool handler must return MCPToolResponse with content array');
+      // DEFENSIVE: Validate response format before returning
+      if (!result || !result.content || !Array.isArray(result.content)) {
+        throw new Error('Tool handler must return valid MCPToolResponse with content array');
       }
       
       // KAIZEN: Ensure all content items have valid type literals
-      const validatedContent = result.content.map((item: any) => {
+      const validatedContent = result.content.map(item => {
         if (!item || typeof item !== 'object') {
           throw new Error('Content item must be a valid object');
         }
         
-        // DEFENSIVE: Normalize content type to valid literal
-        let contentType = item.type;
-        if (typeof contentType === 'string' && !['text', 'image', 'resource'].includes(contentType)) {
-          // KAIZEN: Convert generic 'string' type to 'text' for compatibility
-          contentType = 'text';
-        }
-        
         // DEFENSIVE: Ensure type is valid literal
-        if (!['text', 'image', 'resource'].includes(contentType)) {
-          contentType = 'text'; // Safe fallback
+        if (!['text', 'image', 'resource'].includes(item.type)) {
+          throw new Error(`Invalid content type: ${item.type}. Must be 'text', 'image', or 'resource'`);
         }
         
-        return {
-          ...item,
-          type: contentType as 'text' | 'image' | 'resource'
-        };
+        return item;
       });
       
       return {
@@ -906,55 +843,55 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'submit-bulk-zone-create-request',
       description: 'Submit bulk zone creation request',
       schema: extendedSchemas.SubmitBulkZoneCreateRequestSchema,
-      handler: createToolHandler(submitBulkZoneCreateRequest),
+      handler: submitBulkZoneCreateRequest,
     },
     {
       name: 'get-zones-dnssec-status',
       description: 'Get DNSSEC status for zones',
       schema: extendedSchemas.GetZonesDNSSECStatusSchema,
-      handler: createToolHandler(getZonesDNSSECStatus),
+      handler: getZonesDNSSECStatus,
     },
     {
       name: 'update-tsig-key-for-zones',
       description: 'Update TSIG key for zones',
       schema: extendedSchemas.UpdateTSIGKeyForZonesSchema,
-      handler: createToolHandler(updateTSIGKeyForZones),
+      handler: updateTSIGKeyForZones,
     },
     {
       name: 'get-zone-version',
       description: 'Get specific zone version',
       schema: extendedSchemas.GetZoneVersionSchema,
-      handler: createToolHandler(getZoneVersion),
+      handler: getZoneVersion,
     },
     {
       name: 'get-version-record-sets',
       description: 'Get record sets for a zone version',
       schema: extendedSchemas.GetVersionRecordSetsSchema,
-      handler: createToolHandler(getVersionRecordSets),
+      handler: getVersionRecordSets,
     },
     {
       name: 'get-version-master-zone-file',
       description: 'Get master zone file for a version',
       schema: extendedSchemas.GetVersionMasterZoneFileSchema,
-      handler: createToolHandler(getVersionMasterZoneFile),
+      handler: getVersionMasterZoneFile,
     },
     {
       name: 'reactivate-zone-version',
       description: 'Reactivate a previous zone version',
       schema: extendedSchemas.ReactivateZoneVersionSchema,
-      handler: createToolHandler(reactivateZoneVersion),
+      handler: reactivateZoneVersion,
     },
     {
       name: 'get-secondary-zone-transfer-status',
       description: 'Get secondary zone transfer status',
       schema: extendedSchemas.GetSecondaryZoneTransferStatusSchema,
-      handler: createToolHandler(getSecondaryZoneTransferStatus),
+      handler: getSecondaryZoneTransferStatus,
     },
     {
       name: 'get-zone-contract',
       description: 'Get contract information for a zone',
       schema: extendedSchemas.GetZoneContractSchema,
-      handler: createToolHandler(getZoneContract),
+      handler: getZoneContract,
     },
 
     // Priority DNS Operations
@@ -966,7 +903,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
         pageSize: z.number().int().positive().max(100).optional(),
         showAll: z.boolean().optional(),
       }),
-      handler: createToolHandler(listChangelists),
+      handler: listChangelists,
     },
     {
       name: 'search-changelists',
@@ -974,7 +911,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: z.object({
         zones: z.array(z.string()).min(1),
       }),
-      handler: createToolHandler(searchChangelists),
+      handler: searchChangelists,
     },
     {
       name: 'get-changelist-diff',
@@ -982,25 +919,25 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: z.object({
         zone: z.string().min(1),
       }),
-      handler: createToolHandler(getChangelistDiff),
+      handler: getChangelistDiff,
     },
     {
       name: 'get-authoritative-nameservers',
       description: 'Get Akamai authoritative nameservers',
       schema: z.object({}),
-      handler: createToolHandler(getAuthoritativeNameservers),
+      handler: getAuthoritativeNameservers,
     },
     {
-      name: 'list-dns-contracts',
-      description: 'List available contracts for DNS',
+      name: 'list-contracts',
+      description: 'List available contracts',
       schema: z.object({}),
-      handler: createToolHandler(listContracts),
+      handler: listContracts,
     },
     {
       name: 'get-supported-record-types',
       description: 'Get supported DNS record types',
       schema: z.object({}),
-      handler: createToolHandler(getSupportedRecordTypes),
+      handler: getSupportedRecordTypes,
     },
     {
       name: 'delete-zone',
@@ -1009,7 +946,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
         zone: z.string().min(1),
         force: z.boolean().optional(),
       }),
-      handler: createToolHandler(deleteZone),
+      handler: deleteZone,
     },
     {
       name: 'get-zone-status',
@@ -1017,13 +954,13 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: z.object({
         zone: z.string().min(1),
       }),
-      handler: createToolHandler(getZoneStatus),
+      handler: getZoneStatus,
     },
     {
       name: 'list-tsig-keys',
       description: 'List all TSIG keys',
       schema: z.object({}),
-      handler: createToolHandler(listTSIGKeys),
+      handler: listTSIGKeys,
     },
     {
       name: 'create-tsig-key',
@@ -1033,7 +970,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
         algorithm: z.string().min(1),
         secret: z.string().optional(),
       }),
-      handler: createToolHandler(createTSIGKey),
+      handler: createTSIGKey,
     },
 
     // DNSSEC Operations
@@ -1047,7 +984,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
         salt: z.string().optional(),
         iterations: z.number().optional(),
       }),
-      handler: createToolHandler(enableDNSSEC),
+      handler: enableDNSSEC,
     },
     {
       name: 'disable-dnssec',
@@ -1056,7 +993,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
         zone: z.string().min(1),
         force: z.boolean().optional(),
       }),
-      handler: createToolHandler(disableDNSSEC),
+      handler: disableDNSSEC,
     },
     {
       name: 'get-dnssec-keys',
@@ -1064,7 +1001,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: z.object({
         zone: z.string().min(1),
       }),
-      handler: createToolHandler(getDNSSECKeys),
+      handler: getDNSSECKeys,
     },
     {
       name: 'get-dnssec-ds-records',
@@ -1072,7 +1009,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: z.object({
         zone: z.string().min(1),
       }),
-      handler: createToolHandler(getDNSSECDSRecords),
+      handler: getDNSSECDSRecords,
     },
     {
       name: 'check-dnssec-validation',
@@ -1080,7 +1017,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       schema: z.object({
         zone: z.string().min(1),
       }),
-      handler: createToolHandler(checkDNSSECValidation),
+      handler: checkDNSSECValidation,
     },
     {
       name: 'rotate-dnssec-keys',
@@ -1090,7 +1027,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
         keyType: z.enum(['KSK', 'ZSK', 'BOTH']),
         algorithm: z.string().optional(),
       }),
-      handler: createToolHandler(rotateDNSSECKeys),
+      handler: rotateDNSSECKeys,
     },
 
     // DNS Migration Tools
@@ -1098,37 +1035,37 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'import-from-cloudflare',
       description: 'Import DNS zone from Cloudflare',
       schema: schemas.ImportFromCloudflareSchema,
-      handler: createToolHandler(importFromCloudflare),
+      handler: importFromCloudflare,
     },
     {
       name: 'import-zone-via-axfr',
       description: 'Import zone via AXFR transfer',
       schema: extendedSchemas.ImportZoneViaAXFRSchema,
-      handler: createToolHandler(importZoneViaAXFR),
+      handler: importZoneViaAXFR,
     },
     {
       name: 'parse-zone-file',
       description: 'Parse and import zone file',
       schema: schemas.ParseZoneFileSchema,
-      handler: createToolHandler(parseZoneFile),
+      handler: parseZoneFile,
     },
     {
       name: 'bulk-import-records',
       description: 'Bulk import DNS records',
       schema: schemas.BulkImportRecordsSchema,
-      handler: createToolHandler(bulkImportRecords),
+      handler: bulkImportRecords,
     },
     {
       name: 'convert-zone-to-primary',
       description: 'Convert secondary zone to primary',
       schema: extendedSchemas.ConvertZoneToPrimarySchema,
-      handler: createToolHandler(convertZoneToPrimary),
+      handler: convertZoneToPrimary,
     },
     {
       name: 'generate-migration-instructions',
       description: 'Generate DNS migration instructions',
       schema: extendedSchemas.GenerateMigrationInstructionsSchema,
-      handler: createToolHandler(generateMigrationInstructions),
+      handler: generateMigrationInstructions,
     },
 
     // DNS Elicitation Tools
@@ -1136,13 +1073,13 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'dns-elicitation',
       description: 'Interactive DNS record management with guided questions and clear feedback',
       schema: DNSElicitationSchema,
-      handler: createToolHandler(handleDNSElicitationTool),
+      handler: handleDNSElicitationTool,
     },
     {
       name: 'secure-hostname-onboarding',
       description: 'Comprehensive elicitation workflow for secure hostname onboarding with intelligent defaults',
       schema: SecureHostnameOnboardingSchema,
-      handler: createToolHandler(handleSecureHostnameOnboardingTool),
+      handler: handleSecureHostnameOnboardingTool,
     },
 
     // Certificate Management (15+ tools)
@@ -1150,79 +1087,79 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'list-certificate-enrollments',
       description: 'List certificate enrollments',
       schema: schemas.ListCertificateEnrollmentsSchema,
-      handler: createToolHandler(listCertificateEnrollments),
+      handler: listCertificateEnrollments,
     },
     {
       name: 'create-dv-enrollment',
       description: 'Create domain validated certificate enrollment',
       schema: schemas.CreateDVEnrollmentSchema,
-      handler: createToolHandler(createDVEnrollment),
+      handler: createDVEnrollment,
     },
     {
       name: 'check-dv-enrollment-status',
       description: 'Check DV certificate enrollment status',
       schema: schemas.CheckDVEnrollmentStatusSchema,
-      handler: createToolHandler(checkDVEnrollmentStatus),
+      handler: checkDVEnrollmentStatus,
     },
     {
       name: 'get-dv-validation-challenges',
       description: 'Get DV certificate validation challenges',
       schema: schemas.GetDVValidationChallengesSchema,
-      handler: createToolHandler(getDVValidationChallenges),
+      handler: getDVValidationChallenges,
     },
     {
       name: 'link-certificate-to-property',
       description: 'Link certificate to property',
       schema: extendedSchemas.LinkCertificateToPropertySchema,
-      handler: createToolHandler(linkCertificateToProperty),
+      handler: linkCertificateToProperty,
     },
     {
       name: 'enroll-certificate-with-validation',
       description: 'Enroll certificate with auto-validation',
       schema: extendedSchemas.EnrollCertificateWithValidationSchema,
-      handler: createToolHandler(enrollCertificateWithValidation),
+      handler: enrollCertificateWithValidation,
     },
     {
       name: 'monitor-certificate-enrollment',
       description: 'Monitor certificate enrollment progress',
       schema: extendedSchemas.MonitorCertificateEnrollmentSchema,
-      handler: createToolHandler(monitorCertificateEnrollment),
+      handler: monitorCertificateEnrollment,
     },
     {
       name: 'get-certificate-deployment-status',
       description: 'Get certificate deployment status',
       schema: extendedSchemas.GetCertificateDeploymentStatusSchema,
-      handler: createToolHandler(getCertificateDeploymentStatus),
+      handler: getCertificateDeploymentStatus,
     },
     {
       name: 'get-certificate-validation-history',
       description: 'Get certificate validation history',
       schema: extendedSchemas.GetCertificateValidationHistorySchema,
-      handler: createToolHandler(getCertificateValidationHistory),
+      handler: getCertificateValidationHistory,
     },
     {
       name: 'validate-certificate-enrollment',
       description: 'Validate certificate enrollment',
       schema: extendedSchemas.ValidateCertificateEnrollmentSchema,
-      handler: createToolHandler(validateCertificateEnrollment),
+      handler: validateCertificateEnrollment,
     },
     {
       name: 'deploy-certificate-to-network',
       description: 'Deploy certificate to network',
       schema: extendedSchemas.DeployCertificateToNetworkSchema,
-      handler: createToolHandler(deployCertificateToNetwork),
+      handler: deployCertificateToNetwork,
     },
     {
       name: 'renew-certificate',
       description: 'Renew expiring certificate',
       schema: extendedSchemas.RenewCertificateSchema,
-      handler: createToolHandler(renewCertificate),
+      handler: renewCertificate,
     },
     {
       name: 'cleanup-validation-records',
       description: 'Clean up DNS validation records',
       schema: extendedSchemas.CleanupValidationRecordsSchema,
-      handler: createToolHandler(cleanupValidationRecords),
+      handler: cleanupValidationRecords,
     },
 
     // Edge Hostname Management (10+ tools)
@@ -1230,55 +1167,55 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'create-edge-hostname',
       description: 'Create an edge hostname',
       schema: schemas.CreateEdgeHostnameSchema,
-      handler: createToolHandler(createEdgeHostname),
+      handler: createEdgeHostname,
     },
     {
       name: 'create-edge-hostname-enhanced',
       description: 'Create edge hostname with advanced options',
       schema: extendedSchemas.CreateEdgeHostnameEnhancedSchema,
-      handler: createToolHandler(createEdgeHostnameEnhanced),
+      handler: createEdgeHostnameEnhanced,
     },
     {
       name: 'create-bulk-edge-hostnames',
       description: 'Create multiple edge hostnames',
       schema: extendedSchemas.CreateBulkEdgeHostnamesSchema,
-      handler: createToolHandler(createBulkEdgeHostnames),
+      handler: createBulkEdgeHostnames,
     },
     {
       name: 'list-edge-hostnames',
       description: 'List edge hostnames',
       schema: schemas.ListEdgeHostnamesSchema,
-      handler: createToolHandler(listEdgeHostnames),
+      handler: listEdgeHostnames,
     },
     {
       name: 'get-edge-hostname',
       description: 'Get edge hostname details',
       schema: schemas.GetEdgeHostnameSchema,
-      handler: createToolHandler(getEdgeHostname),
+      handler: getEdgeHostname,
     },
     {
       name: 'get-edge-hostname-details',
       description: 'Get detailed edge hostname information',
       schema: extendedSchemas.GetEdgeHostnameDetailsSchema,
-      handler: createToolHandler(getEdgeHostnameDetails),
+      handler: getEdgeHostnameDetails,
     },
     {
       name: 'associate-certificate-with-edge-hostname',
       description: 'Associate certificate with edge hostname',
       schema: extendedSchemas.AssociateCertificateWithEdgeHostnameSchema,
-      handler: createToolHandler(associateCertificateWithEdgeHostname),
+      handler: associateCertificateWithEdgeHostname,
     },
     {
       name: 'validate-edge-hostname-certificate',
       description: 'Validate edge hostname certificate',
       schema: extendedSchemas.ValidateEdgeHostnameCertificateSchema,
-      handler: createToolHandler(validateEdgeHostnameCertificate),
+      handler: validateEdgeHostnameCertificate,
     },
     {
       name: 'generate-edge-hostname-recommendations',
       description: 'Generate edge hostname recommendations',
       schema: extendedSchemas.GenerateEdgeHostnameRecommendationsSchema,
-      handler: createToolHandler(generateEdgeHostnameRecommendations),
+      handler: generateEdgeHostnameRecommendations,
     },
 
     // Hostname Management (15+ tools)
@@ -1286,73 +1223,73 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'add-property-hostname',
       description: 'Add hostname to property',
       schema: schemas.AddPropertyHostnameSchema,
-      handler: createToolHandler(addPropertyHostname),
+      handler: addPropertyHostname,
     },
     {
       name: 'remove-property-hostname',
       description: 'Remove hostname from property',
       schema: schemas.RemovePropertyHostnameSchema,
-      handler: createToolHandler(removePropertyHostname),
+      handler: removePropertyHostname,
     },
     {
       name: 'list-property-hostnames',
       description: 'List hostnames for a property version',
       schema: schemas.ListPropertyHostnamesSchema,
-      handler: createToolHandler(listPropertyVersionHostnames),
+      handler: listPropertyVersionHostnames,
     },
     {
       name: 'discover-hostnames-intelligent',
       description: 'Intelligent hostname discovery',
       schema: extendedSchemas.DiscoverHostnamesIntelligentSchema,
-      handler: createToolHandler(discoverHostnamesIntelligent),
+      handler: discoverHostnamesIntelligent,
     },
     {
       name: 'analyze-hostname-conflicts',
       description: 'Analyze hostname conflicts',
       schema: extendedSchemas.AnalyzeHostnameConflictsSchema,
-      handler: createToolHandler(analyzeHostnameConflicts),
+      handler: analyzeHostnameConflicts,
     },
     {
       name: 'analyze-wildcard-coverage',
       description: 'Analyze wildcard hostname coverage',
       schema: extendedSchemas.AnalyzeWildcardCoverageSchema,
-      handler: createToolHandler(analyzeWildcardCoverage),
+      handler: analyzeWildcardCoverage,
     },
     {
       name: 'identify-ownership-patterns',
       description: 'Identify hostname ownership patterns',
       schema: extendedSchemas.IdentifyOwnershipPatternsSchema,
-      handler: createToolHandler(identifyOwnershipPatterns),
+      handler: identifyOwnershipPatterns,
     },
     {
       name: 'create-hostname-provisioning-plan',
       description: 'Create hostname provisioning plan',
       schema: extendedSchemas.CreateHostnameProvisioningPlanSchema,
-      handler: createToolHandler(createHostnameProvisioningPlan),
+      handler: createHostnameProvisioningPlan,
     },
     {
       name: 'find-optimal-property-assignment',
       description: 'Find optimal property for hostname',
       schema: extendedSchemas.FindOptimalPropertyAssignmentSchema,
-      handler: createToolHandler(findOptimalPropertyAssignment),
+      handler: findOptimalPropertyAssignment,
     },
     {
       name: 'analyze-hostname-ownership',
       description: 'Analyze hostname ownership',
       schema: extendedSchemas.AnalyzeHostnameOwnershipSchema,
-      handler: createToolHandler(analyzeHostnameOwnership),
+      handler: analyzeHostnameOwnership,
     },
     {
       name: 'validate-hostnames-bulk',
       description: 'Validate multiple hostnames',
       schema: extendedSchemas.ValidateHostnamesBulkSchema,
-      handler: createToolHandler(validateHostnamesBulk),
+      handler: validateHostnamesBulk,
     },
     {
       name: 'bulk-manage-hostnames',
       description: 'Bulk hostname management operations',
       schema: extendedSchemas.BulkManageHostnamesSchema,
-      handler: createToolHandler(bulkManageHostnames),
+      handler: bulkManageHostnames,
     },
 
     // Rule Tree Management (10+ tools)
@@ -1360,31 +1297,31 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'create-rule-from-template',
       description: 'Create rule from template',
       schema: extendedSchemas.CreateRuleFromTemplateSchema,
-      handler: createToolHandler(createRuleFromTemplate),
+      handler: createRuleFromTemplate,
     },
     {
       name: 'update-property-rules-enhanced',
       description: 'Update property rules with validation',
       schema: extendedSchemas.UpdatePropertyRulesEnhancedSchema,
-      handler: createToolHandler(updatePropertyRulesEnhanced),
+      handler: updatePropertyRulesEnhanced,
     },
     {
       name: 'merge-rule-trees',
       description: 'Merge multiple rule trees',
       schema: extendedSchemas.MergeRuleTreesSchema,
-      handler: createToolHandler(mergeRuleTrees),
+      handler: mergeRuleTrees,
     },
     {
       name: 'optimize-rule-tree',
       description: 'Optimize rule tree performance',
       schema: extendedSchemas.OptimizeRuleTreeSchema,
-      handler: createToolHandler(optimizeRuleTree),
+      handler: optimizeRuleTree,
     },
     {
       name: 'validate-rule-tree',
       description: 'Validate rule tree configuration',
       schema: extendedSchemas.ValidateRuleTreeSchema,
-      handler: createToolHandler(validateRuleTree),
+      handler: validateRuleTree,
     },
 
     // CP Code Management
@@ -1392,25 +1329,25 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'list-cpcodes',
       description: 'List CP codes',
       schema: schemas.ListCPCodesSchema,
-      handler: createToolHandler(listCPCodes),
+      handler: listCPCodes,
     },
     {
       name: 'create-cpcode',
       description: 'Create a new CP code',
       schema: schemas.CreateCPCodeSchema,
-      handler: createToolHandler(createCPCode),
+      handler: createCPCode,
     },
     {
       name: 'get-cpcode',
       description: 'Get CP code details',
       schema: schemas.GetCPCodeSchema,
-      handler: createToolHandler(getCPCode),
+      handler: getCPCode,
     },
     {
       name: 'search-cpcodes',
       description: 'Search CP codes',
       schema: extendedSchemas.SearchCPCodesSchema,
-      handler: createToolHandler(searchCPCodes),
+      handler: searchCPCodes,
     },
 
     // Include Management
@@ -1418,49 +1355,49 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'list-includes',
       description: 'List property includes',
       schema: schemas.ListIncludesSchema,
-      handler: createToolHandler(listIncludes),
+      handler: listIncludes,
     },
     {
       name: 'create-include',
       description: 'Create a new include',
       schema: schemas.CreateIncludeSchema,
-      handler: createToolHandler(createInclude),
+      handler: createInclude,
     },
     {
       name: 'get-include',
       description: 'Get include details',
       schema: schemas.GetIncludeSchema,
-      handler: createToolHandler(getInclude),
+      handler: getInclude,
     },
     {
       name: 'update-include',
       description: 'Update include configuration',
       schema: extendedSchemas.UpdateIncludeSchema,
-      handler: createToolHandler(updateInclude),
+      handler: updateInclude,
     },
     {
       name: 'create-include-version',
       description: 'Create new include version',
       schema: extendedSchemas.CreateIncludeVersionSchema,
-      handler: createToolHandler(createIncludeVersion),
+      handler: createIncludeVersion,
     },
     {
       name: 'activate-include',
       description: 'Activate include version',
       schema: extendedSchemas.ActivateIncludeSchema,
-      handler: createToolHandler(activateInclude),
+      handler: activateInclude,
     },
     {
       name: 'list-include-activations',
       description: 'List include activation history',
       schema: extendedSchemas.ListIncludeActivationsSchema,
-      handler: createToolHandler(listIncludeActivations),
+      handler: listIncludeActivations,
     },
     {
       name: 'get-include-activation-status',
       description: 'Get include activation status',
       schema: extendedSchemas.GetIncludeActivationStatusSchema,
-      handler: createToolHandler(getIncludeActivationStatus),
+      handler: getIncludeActivationStatus,
     },
 
     // Bulk Operations
@@ -1468,31 +1405,31 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'bulk-activate-properties',
       description: 'Activate multiple properties',
       schema: schemas.BulkActivatePropertiesSchema,
-      handler: createToolHandler(bulkActivateProperties),
+      handler: bulkActivateProperties,
     },
     {
       name: 'bulk-clone-properties',
       description: 'Clone multiple properties',
       schema: schemas.BulkClonePropertiesSchema,
-      handler: createToolHandler(bulkCloneProperties),
+      handler: bulkCloneProperties,
     },
     {
       name: 'bulk-update-property-rules',
       description: 'Update rules for multiple properties',
       schema: schemas.BulkUpdatePropertyRulesSchema,
-      handler: createToolHandler(bulkUpdatePropertyRules),
+      handler: bulkUpdatePropertyRules,
     },
     {
       name: 'bulk-update-properties',
       description: 'Update multiple properties',
       schema: extendedSchemas.BulkUpdatePropertiesSchema,
-      handler: createToolHandler(bulkUpdateProperties),
+      handler: bulkUpdateProperties,
     },
     {
       name: 'get-bulk-operation-status',
       description: 'Get bulk operation status',
       schema: extendedSchemas.GetBulkOperationStatusSchema,
-      handler: createToolHandler(getBulkOperationStatus),
+      handler: getBulkOperationStatus,
     },
 
     // Search and Discovery
@@ -1500,7 +1437,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'universal-search',
       description: 'Search across all Akamai resources',
       schema: schemas.UniversalSearchSchema,
-      handler: createToolHandler(universalSearchWithCacheHandler),
+      handler: universalSearchWithCacheHandler,
     },
 
     // Property Onboarding
@@ -1508,37 +1445,37 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'onboard-property',
       description: 'Onboard a new property with wizard',
       schema: schemas.OnboardPropertySchema,
-      handler: createToolHandler(onboardPropertyTool),
+      handler: onboardPropertyTool,
     },
     {
       name: 'onboard-property-wizard',
       description: 'Interactive property onboarding wizard',
       schema: extendedSchemas.OnboardPropertyWizardSchema,
-      handler: createToolHandler(onboardPropertyWizard),
+      handler: onboardPropertyWizard,
     },
     {
       name: 'check-onboarding-status',
       description: 'Check property onboarding status',
       schema: schemas.CheckOnboardingStatusSchema,
-      handler: createToolHandler(checkOnboardingStatus),
+      handler: checkOnboardingStatus,
     },
     {
       name: 'onboard-secure-by-default-property',
       description: 'Onboard property with secure defaults',
       schema: extendedSchemas.OnboardSecureByDefaultPropertySchema,
-      handler: createToolHandler(onboardSecureByDefaultProperty),
+      handler: onboardSecureByDefaultProperty,
     },
     {
       name: 'check-secure-by-default-status',
       description: 'Check secure by default status',
       schema: extendedSchemas.CheckSecureByDefaultStatusSchema,
-      handler: createToolHandler(checkSecureByDefaultStatus),
+      handler: checkSecureByDefaultStatus,
     },
     {
       name: 'quick-secure-by-default-setup',
       description: 'Quick secure by default setup',
       schema: extendedSchemas.QuickSecureByDefaultSetupSchema,
-      handler: createToolHandler(quickSecureByDefaultSetup),
+      handler: quickSecureByDefaultSetup,
     },
 
     // Product Management
@@ -1546,7 +1483,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'get-product',
       description: 'Get product details',
       schema: schemas.ListProductsSchema,
-      handler: createToolHandler(getProduct),
+      handler: getProduct,
     },
 
     // FastPurge Tools (6 tools)
@@ -1554,37 +1491,37 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'fastpurge-url-invalidate',
       description: 'Invalidate content by URL',
       schema: FastpurgeUrlInvalidateSchema,
-      handler: createToolHandler(fastpurgeUrlInvalidate.handler),
+      handler: (_client, params) => fastpurgeUrlInvalidate.handler(params),
     },
     {
       name: 'fastpurge-cpcode-invalidate',
       description: 'Invalidate content by CP code',
       schema: FastpurgeCpcodeInvalidateSchema,
-      handler: createToolHandler(fastpurgeCpcodeInvalidate.handler),
+      handler: (_client, params) => fastpurgeCpcodeInvalidate.handler(params),
     },
     {
       name: 'fastpurge-tag-invalidate',
       description: 'Invalidate content by cache tag',
       schema: FastpurgeTagInvalidateSchema,
-      handler: createToolHandler(fastpurgeTagInvalidate.handler),
+      handler: (_client, params) => fastpurgeTagInvalidate.handler(params),
     },
     {
       name: 'fastpurge-status-check',
       description: 'Check FastPurge operation status',
       schema: FastpurgeStatusCheckSchema,
-      handler: createToolHandler(fastpurgeStatusCheck.handler),
+      handler: (_client, params) => fastpurgeStatusCheck.handler(params),
     },
     {
       name: 'fastpurge-queue-status',
       description: 'Check FastPurge queue status',
       schema: FastpurgeQueueStatusSchema,
-      handler: createToolHandler(fastpurgeQueueStatus.handler),
+      handler: (_client, params) => fastpurgeQueueStatus.handler(params),
     },
     {
       name: 'fastpurge-estimate',
       description: 'Estimate FastPurge impact',
       schema: FastpurgeEstimateSchema,
-      handler: createToolHandler(fastpurgeEstimate.handler),
+      handler: (_client, params) => fastpurgeEstimate.handler(params),
     },
 
     // Network Lists Tools (17 tools)
@@ -1592,109 +1529,109 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'list-network-lists',
       description: 'List all network lists',
       schema: ListNetworkListsSchema,
-      handler: createToolHandler(listNetworkLists),
+      handler: listNetworkLists,
     },
     {
       name: 'get-network-list',
       description: 'Get network list details',
       schema: GetNetworkListSchema,
-      handler: createToolHandler(getNetworkList),
+      handler: getNetworkList,
     },
     {
       name: 'create-network-list',
       description: 'Create a new network list',
       schema: CreateNetworkListSchema,
-      handler: createToolHandler(async (_client, params) => createNetworkList(
+      handler: (_client, params) => createNetworkList(
         params.name,
         params.type,
         params.elements,
         params.customer,
         params.options
-      )),
+      ),
     },
     {
       name: 'update-network-list',
       description: 'Update network list elements',
       schema: UpdateNetworkListSchema,
-      handler: createToolHandler(updateNetworkList),
+      handler: updateNetworkList,
     },
     {
       name: 'delete-network-list',
       description: 'Delete a network list',
       schema: DeleteNetworkListSchema,
-      handler: createToolHandler(deleteNetworkList),
+      handler: deleteNetworkList,
     },
     {
       name: 'activate-network-list',
       description: 'Activate network list',
       schema: extendedSchemas.ActivateNetworkListSchema,
-      handler: createToolHandler(activateNetworkList),
+      handler: activateNetworkList,
     },
     {
       name: 'get-network-list-activation-status',
       description: 'Get network list activation status',
       schema: extendedSchemas.GetNetworkListActivationStatusSchema,
-      handler: createToolHandler(getNetworkListActivationStatus),
+      handler: getNetworkListActivationStatus,
     },
     {
       name: 'list-network-list-activations',
       description: 'List network list activation history',
       schema: extendedSchemas.ListNetworkListActivationsSchema,
-      handler: createToolHandler(listNetworkListActivations),
+      handler: listNetworkListActivations,
     },
     {
       name: 'deactivate-network-list',
       description: 'Deactivate network list',
       schema: extendedSchemas.DeactivateNetworkListSchema,
-      handler: createToolHandler(deactivateNetworkList),
+      handler: deactivateNetworkList,
     },
     {
       name: 'bulk-activate-network-lists',
       description: 'Activate multiple network lists',
       schema: extendedSchemas.BulkActivateNetworkListsSchema,
-      handler: createToolHandler(bulkActivateNetworkLists),
+      handler: bulkActivateNetworkLists,
     },
     {
       name: 'import-network-list-from-csv',
       description: 'Import network list from CSV',
       schema: extendedSchemas.ImportNetworkListFromCSVSchema,
-      handler: createToolHandler(importNetworkListFromCSV),
+      handler: importNetworkListFromCSV,
     },
     {
       name: 'export-network-list-to-csv',
       description: 'Export network list to CSV',
       schema: extendedSchemas.ExportNetworkListToCSVSchema,
-      handler: createToolHandler(exportNetworkListToCSV),
+      handler: exportNetworkListToCSV,
     },
     {
       name: 'bulk-update-network-lists',
       description: 'Update multiple network lists',
       schema: extendedSchemas.BulkUpdateNetworkListsSchema,
-      handler: createToolHandler(bulkUpdateNetworkLists),
+      handler: bulkUpdateNetworkLists,
     },
     {
       name: 'merge-network-lists',
       description: 'Merge multiple network lists',
       schema: extendedSchemas.MergeNetworkListsSchema,
-      handler: createToolHandler(mergeNetworkLists),
+      handler: mergeNetworkLists,
     },
     {
       name: 'validate-geographic-codes',
       description: 'Validate geographic codes',
       schema: extendedSchemas.ValidateGeographicCodesSchema,
-      handler: createToolHandler(validateGeographicCodes),
+      handler: validateGeographicCodes,
     },
     {
       name: 'get-asn-information',
       description: 'Get ASN information',
       schema: extendedSchemas.GetASNInformationSchema,
-      handler: createToolHandler(getASNInformation),
+      handler: getASNInformation,
     },
     {
       name: 'generate-geographic-blocking-recommendations',
       description: 'Generate geo-blocking recommendations',
       schema: extendedSchemas.GenerateGeographicBlockingRecommendationsSchema,
-      handler: createToolHandler(generateGeographicBlockingRecommendations),
+      handler: generateGeographicBlockingRecommendations,
     },
 
     // AppSec Tools (6 tools)
@@ -1702,37 +1639,37 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'list-appsec-configurations',
       description: 'List all AppSec configurations',
       schema: ListAppSecConfigurationsSchema,
-      handler: createToolHandler(listAppSecConfigurations.handler),
+      handler: (_client, params) => listAppSecConfigurations.handler(params),
     },
     {
       name: 'get-appsec-configuration',
       description: 'Get AppSec configuration details',
       schema: GetAppSecConfigurationSchema,
-      handler: createToolHandler(getAppSecConfiguration.handler),
+      handler: (_client, params) => getAppSecConfiguration.handler(params),
     },
     {
       name: 'create-waf-policy',
       description: 'Create a new WAF policy',
       schema: CreateWAFPolicySchema,
-      handler: createToolHandler(createWAFPolicy.handler),
+      handler: (_client, params) => createWAFPolicy.handler(params),
     },
     {
       name: 'get-security-events',
       description: 'Get security events and attack data',
       schema: GetSecurityEventsSchema,
-      handler: createToolHandler(getSecurityEvents.handler),
+      handler: (_client, params) => getSecurityEvents.handler(params),
     },
     {
       name: 'activate-security-configuration',
       description: 'Activate security configuration',
       schema: extendedSchemas.ActivateSecurityConfigurationSchema,
-      handler: createToolHandler(activateSecurityConfiguration.handler),
+      handler: (_client, params) => activateSecurityConfiguration.handler(params),
     },
     {
       name: 'get-security-activation-status',
       description: 'Get security activation status',
       schema: extendedSchemas.GetSecurityActivationStatusSchema,
-      handler: createToolHandler(getSecurityActivationStatus.handler),
+      handler: (_client, params) => getSecurityActivationStatus.handler(params),
     },
 
     // Performance Tools (5 tools)
@@ -1740,31 +1677,31 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'get-performance-analysis',
       description: 'Get comprehensive performance analysis',
       schema: GetPerformanceAnalysisSchema,
-      handler: createToolHandler(getPerformanceAnalysis),
+      handler: getPerformanceAnalysis,
     },
     {
       name: 'optimize-cache',
       description: 'Optimize cache settings',
       schema: OptimizeCacheSchema,
-      handler: createToolHandler(optimizeCache),
+      handler: optimizeCache,
     },
     {
       name: 'profile-performance',
       description: 'Profile system performance',
       schema: extendedSchemas.ProfilePerformanceSchema,
-      handler: createToolHandler(profilePerformance),
+      handler: profilePerformance,
     },
     {
       name: 'get-realtime-metrics',
       description: 'Get real-time performance metrics',
       schema: extendedSchemas.GetRealtimeMetricsSchema,
-      handler: createToolHandler(getRealtimeMetrics),
+      handler: getRealtimeMetrics,
     },
     {
       name: 'reset-performance-monitoring',
       description: 'Reset performance monitoring',
       schema: extendedSchemas.ResetPerformanceMonitoringSchema,
-      handler: createToolHandler(resetPerformanceMonitoring),
+      handler: resetPerformanceMonitoring,
     },
 
     // Reporting Tools - REMOVED: All 14 reporting tools have been removed
@@ -1778,31 +1715,31 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'generate-api-token',
       description: 'Generate a new API token for remote MCP access',
       schema: GenerateApiTokenSchema,
-      handler: createToolHandler(handleGenerateApiToken),
+      handler: handleGenerateApiToken,
     },
     {
       name: 'list-api-tokens',
       description: 'List all API tokens',
       schema: ListApiTokensSchema,
-      handler: createToolHandler(handleListApiTokens),
+      handler: handleListApiTokens,
     },
     {
       name: 'revoke-api-token',
       description: 'Revoke an API token to prevent further use',
       schema: RevokeApiTokenSchema,
-      handler: createToolHandler(handleRevokeApiToken),
+      handler: handleRevokeApiToken,
     },
     {
       name: 'validate-api-token',
       description: 'Validate an API token and show its details',
       schema: ValidateApiTokenSchema,
-      handler: createToolHandler(handleValidateApiToken),
+      handler: handleValidateApiToken,
     },
     {
       name: 'rotate-api-token',
       description: 'Rotate an API token (generate new, revoke old)',
       schema: RotateApiTokenSchema,
-      handler: createToolHandler(handleRotateApiToken),
+      handler: handleRotateApiToken,
     },
   ];
 }
