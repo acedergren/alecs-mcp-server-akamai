@@ -54,14 +54,19 @@ npm start
 ### Method 3: Docker
 
 ```bash
-# Pull image
-docker pull ghcr.io/acedergren/alecs:latest
+# Pull image (main MCP server)
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:latest
+
+# Or choose a specific variant:
+# docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:full-latest      # All 180+ tools
+# docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:modular-latest   # Domain-specific servers
+# docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:remote-latest    # WebSocket + SSE support
 
 # Run container
 docker run -it \
   -v ~/.edgerc:/root/.edgerc:ro \
   -p 3000:3000 \
-  ghcr.io/acedergren/alecs:latest
+  ghcr.io/acedergren/alecs-mcp-server-akamai:latest
 ```
 
 ### Method 4: Docker Compose
@@ -71,7 +76,7 @@ docker run -it \
 version: '3.8'
 services:
   alecs:
-    image: ghcr.io/acedergren/alecs:latest
+    image: ghcr.io/acedergren/alecs-mcp-server-akamai:latest
     volumes:
       - ~/.edgerc:/root/.edgerc:ro
     ports:

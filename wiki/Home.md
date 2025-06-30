@@ -16,7 +16,7 @@ cp .edgerc.example ~/.edgerc
 alecs
 
 # Or run with Docker
-docker run -v ~/.edgerc:/root/.edgerc:ro ghcr.io/acedergren/alecs:latest
+docker run -v ~/.edgerc:/root/.edgerc:ro ghcr.io/acedergren/alecs-mcp-server-akamai:latest
 ```
 
 ## 🎯 Why ALECS?

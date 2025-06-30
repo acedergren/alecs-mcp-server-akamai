@@ -10,8 +10,31 @@ MCP (Model Context Protocol) server that enables AI assistants to manage Akamai'
 
 The plan is to slowy bring things back as we go and can make them stable, focusing on new worklows made possible with Elicitation in the new MCP spec from June 18, 2025.
 
-## Quick Start
+## Installation
 
+### Option 1: NPM (Recommended)
+```bash
+# Install globally
+npm install -g alecs-mcp-server-akamai
+
+# Configure credentials
+cp .edgerc.example ~/.edgerc
+# Edit ~/.edgerc with your Akamai credentials
+
+# Run
+alecs
+```
+
+### Option 2: Docker
+```bash
+# Pull and run
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:latest
+docker run -v ~/.edgerc:/root/.edgerc:ro \
+  -p 3000:3000 \
+  ghcr.io/acedergren/alecs-mcp-server-akamai:latest
+```
+
+### Option 3: From Source
 ```bash
 # Clone and install
 git clone https://github.com/acedergren/alecs-mcp-server-akamai.git
