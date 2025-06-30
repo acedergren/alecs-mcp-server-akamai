@@ -719,7 +719,7 @@ function generateRecoveryWorkflow(): string {
  */
 function generateEmergencyProcedures(): string {
   let responseText = '## Emergency Procedures\n\n';
-  responseText += '### 🚨 Immediate Rollback\n';
+  responseText += '### [ALERT] Immediate Rollback\n';
   responseText += 'If issues occur after activation:\n';
   responseText += '1. **Activate previous working version immediately**\n';
   responseText += '2. **Document the incident and impact**\n';

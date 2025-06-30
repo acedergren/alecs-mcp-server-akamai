@@ -3,7 +3,7 @@
  * What customers actually do: list and create properties
  */
 
-import { propertyTools } from '../../src/tools/property-manager';
+import { getAllToolDefinitions } from '../../src/tools/all-tools-registry';
 
 // Mock the Akamai client
 jest.mock('../../src/akamai-client', () => ({
@@ -25,20 +25,24 @@ jest.mock('../../src/akamai-client', () => ({
 }));
 
 describe('Critical: Property Operations', () => {
-  const listProperties = propertyTools.find(t => t.name === 'list_properties')?.handler;
+  const allTools = getAllToolDefinitions();
+  const listProperties = allTools.find((t: any) => t.name === 'list-properties')?.handler;
   
   it('should list properties without crashing', async () => {
     if (!listProperties) {
-      throw new Error('list_properties tool not found');
+      throw new Error('list-properties tool not found');
     }
     
-    const result = await listProperties({});
+    const { AkamaiClient } = require('../../src/akamai-client');
+    const mockClient = new AkamaiClient();
+    
+    const result = await listProperties(mockClient, {});
     
     // Just verify it returns something sensible
     expect(result).toBeDefined();
     expect(result.content).toBeDefined();
     expect(result.content.length).toBeGreaterThan(0);
-    expect(result.content[0].type).toBe('text');
+    expect(result.content[0]?.type).toBe('text');
   });
 
   it('should handle errors gracefully', async () => {
@@ -49,13 +53,14 @@ describe('Critical: Property Operations', () => {
     }));
     
     if (!listProperties) {
-      throw new Error('list_properties tool not found');
+      throw new Error('list-properties tool not found');
     }
     
-    const result = await listProperties({});
+    const mockClient = new AkamaiClient();
+    const result = await listProperties(mockClient, {});
     
     // Should return error message, not crash
     expect(result).toBeDefined();
-    expect(result.content[0].text).toContain('Error');
+    expect(result.content[0]?.text).toContain('Error');
   });
 });

@@ -441,7 +441,7 @@ class StandaloneApiDiscovery {
     const startTime = Date.now();
 
     try {
-      console.log(`🔍 Discovering ${endpointKey} (${config.category}) for customer: ${customer}`);
+      console.log(`[SEARCH] Discovering ${endpointKey} (${config.category}) for customer: ${customer}`);
 
       // Simulate API call
       const responseData = await config.simulation();
@@ -468,7 +468,7 @@ class StandaloneApiDiscovery {
       // Save result to file
       await this.saveDiscoveryResult(endpointKey, result, customer);
 
-      console.log(`✅ Discovery completed for ${endpointKey} (${responseTime}ms)`);
+      console.log(`[SUCCESS] Discovery completed for ${endpointKey} (${responseTime}ms)`);
       return result;
 
     } catch (error) {
@@ -485,7 +485,7 @@ class StandaloneApiDiscovery {
       };
 
       await this.saveDiscoveryResult(endpointKey, result, customer);
-      console.log(`❌ Discovery failed for ${endpointKey} (${responseTime}ms): ${result.errorDetails}`);
+      console.log(`[ERROR] Discovery failed for ${endpointKey} (${responseTime}ms): ${result.errorDetails}`);
       return result;
     }
   }
@@ -657,7 +657,7 @@ class StandaloneApiDiscovery {
     const endpointKeys = Object.keys(configs);
     const results: Record<string, DiscoveryResult> = {};
 
-    console.log(`🚀 Starting discovery for ${endpointKeys.length} endpoints (customer: ${customer})`);
+    console.log(`[LAUNCH] Starting discovery for ${endpointKeys.length} endpoints (customer: ${customer})`);
 
     for (const endpointKey of endpointKeys) {
       try {
@@ -713,14 +713,14 @@ class StandaloneApiDiscovery {
     const summaryPath = join(this.outputDir, `discovery_summary_${customer}.json`);
     writeFileSync(summaryPath, JSON.stringify(summary, null, 2));
 
-    console.log(`\n📊 Discovery Summary:`);
+    console.log(`\n[ANALYTICS] Discovery Summary:`);
     console.log(`   Total endpoints: ${summary.totalEndpoints}`);
     console.log(`   Successful: ${summary.successfulEndpoints}`);
     console.log(`   Failed: ${summary.failedEndpoints}`);
     console.log(`   Success rate: ${Math.round((summary.successfulEndpoints / summary.totalEndpoints) * 100)}%`);
     console.log(`   Average response time: ${Math.round(summary.averageResponseTime)}ms`);
-    console.log(`   Akamai API compliance: ${summary.complianceStatus.akamaiApiCompliance ? '✅' : '❌'}`);
-    console.log(`   MCP protocol compliance: ${summary.complianceStatus.mcpProtocolCompliance ? '✅' : '❌'}`);
+    console.log(`   Akamai API compliance: ${summary.complianceStatus.akamaiApiCompliance ? '[SUCCESS]' : '[ERROR]'}`);
+    console.log(`   MCP protocol compliance: ${summary.complianceStatus.mcpProtocolCompliance ? '[SUCCESS]' : '[ERROR]'}`);
     console.log(`   Summary saved to: ${summaryPath}`);
   }
 }
@@ -762,13 +762,13 @@ async function main() {
         break;
 
       case 'validate':
-        console.log('🔍 Running comprehensive API validation...');
+        console.log('[SEARCH] Running comprehensive API validation...');
         const results = await discovery.discoverAll(customer);
         
-        console.log('\n📋 Validation Results:');
+        console.log('\n[LIST] Validation Results:');
         Object.entries(results).forEach(([key, result]) => {
-          const status = result.success ? '✅' : '❌';
-          const compliance = result.validationResults?.schemaCompliant ? '✅' : '❌';
+          const status = result.success ? '[SUCCESS]' : '[ERROR]';
+          const compliance = result.validationResults?.schemaCompliant ? '[SUCCESS]' : '[ERROR]';
           console.log(`  ${status} ${key} (${result.responseTime}ms) - Compliance: ${compliance}`);
         });
         break;
@@ -778,10 +778,10 @@ async function main() {
         process.exit(1);
     }
 
-    console.log('\n🎉 Discovery completed successfully!');
+    console.log('\n[CELEBRATE] Discovery completed successfully!');
 
   } catch (error) {
-    console.error('❌ Discovery failed:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('[ERROR] Discovery failed:', error instanceof Error ? error.message : 'Unknown error');
     process.exit(1);
   }
 }

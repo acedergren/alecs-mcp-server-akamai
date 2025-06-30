@@ -1478,9 +1478,9 @@ export async function listPropertyActivations(
         
         text += '## Recent Activations\n\n';
         activations.slice(0, 5).forEach((act: any) => {
-          const statusIcon = act.status === 'ACTIVE' ? '✅' : 
-                           act.status === 'FAILED' ? '❌' : 
-                           ['PENDING', 'ZONE_1', 'ZONE_2', 'ZONE_3'].includes(act.status) ? '⏳' : '⚫';
+          const statusIcon = act.status === 'ACTIVE' ? '[SUCCESS]' : 
+                           act.status === 'FAILED' ? '[ERROR]' : 
+                           ['PENDING', 'ZONE_1', 'ZONE_2', 'ZONE_3'].includes(act.status) ? '[TIME]' : '[INFO]';
           
           text += `### ${statusIcon} v${act.propertyVersion} → ${act.network}\n`;
           text += `- **ID:** ${act.activationId}\n`;

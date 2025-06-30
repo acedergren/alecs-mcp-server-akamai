@@ -19,6 +19,8 @@ import { CPSEnrollmentMetadata } from '../utils/api-response-validator';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+import { createErrorHandler } from '../utils/error-handler';
+import { createLogger } from '../utils/pino-logger';
 import {
   isCPSEnrollmentCreateResponse,
   isCPSEnrollmentStatusResponse,
@@ -30,6 +32,10 @@ import {
   type CPSEnrollmentsListResponse,
   type CPSCSRResponse,
 } from '../types/api-responses/cps-certificates';
+
+// Initialize logger and error handler for CPS operations
+const pinoLogger = createLogger('cps-tools');
+const errorHandler = createErrorHandler('cps');
 
 // CODE KAI: Property Manager API response types for type-safe integration
 // Based on official Akamai Property Manager API v1 specifications
@@ -192,6 +198,14 @@ export async function createDVEnrollment(
   },
 ): Promise<MCPToolResponse> {
   try {
+    pinoLogger.info({
+      operation: 'createDVEnrollment',
+      commonName: args.commonName,
+      sansCount: args.sans?.length || 0,
+      contractId: args.contractId,
+      enhancedTLS: args.enhancedTLS
+    }, 'Creating DV certificate enrollment');
+
     // Validate inputs
     if (!args.commonName?.includes('.')) {
       throw new Error('Common name must be a valid domain (e.g., www.example.com)');
@@ -253,12 +267,17 @@ export async function createDVEnrollment(
       content: [
         {
           type: 'text',
-          text: `[DONE] Created Default DV certificate enrollment!\n\n**Enrollment ID:** ${enrollmentId}\n**Common Name:** ${args.commonName}\n**SANs:** ${args.sans?.join(', ') || 'None'}\n**Network:** ${args.enhancedTLS !== false ? 'Enhanced TLS' : 'Standard TLS'}\n**QUIC:** ${args.quicEnabled ? 'Enabled' : 'Disabled'}\n\n## Next Steps\n\n1. **Complete DNS Validation:**\n   "Get DV validation challenges for enrollment ${enrollmentId}"\n\n2. **Check Validation Status:**\n   "Check DV enrollment status ${enrollmentId}"\n\n3. **Deploy Certificate:**\n   Once validated, the certificate will be automatically deployed.\n\n[EMOJI]️ **Timeline:**\n- DNS validation: 5-10 minutes after DNS records are created\n- Certificate issuance: 10-15 minutes after validation\n- Deployment: 30-60 minutes after issuance`,
+          text: `[DONE] Created Default DV certificate enrollment!\n\n**Enrollment ID:** ${enrollmentId}\n**Common Name:** ${args.commonName}\n**SANs:** ${args.sans?.join(', ') || 'None'}\n**Network:** ${args.enhancedTLS !== false ? 'Enhanced TLS' : 'Standard TLS'}\n**QUIC:** ${args.quicEnabled ? 'Enabled' : 'Disabled'}\n\n## Next Steps\n\n1. **Complete DNS Validation:**\n   "Get DV validation challenges for enrollment ${enrollmentId}"\n\n2. **Check Validation Status:**\n   "Check DV enrollment status ${enrollmentId}"\n\n3. **Deploy Certificate:**\n   Once validated, the certificate will be automatically deployed.\n\n[TIME] **Timeline:**\n- DNS validation: 5-10 minutes after DNS records are created\n- Certificate issuance: 10-15 minutes after validation\n- Deployment: 30-60 minutes after issuance`,
         },
       ],
     };
   } catch (_error) {
-    return formatError('create DV enrollment', _error);
+    return errorHandler.handle('createDVEnrollment', _error, undefined, {
+      commonName: args.commonName,
+      sans: args.sans,
+      contractId: args.contractId,
+      enhancedTLS: args.enhancedTLS
+    });
   }
 }
 
@@ -405,7 +424,9 @@ export async function getDVValidationChallenges(
       ],
     };
   } catch (_error) {
-    return formatError('get DV validation challenges', _error);
+    return errorHandler.handle('getDVValidationChallenges', _error, undefined, {
+      enrollmentId: args.enrollmentId
+    });
   }
 }
 
@@ -419,6 +440,11 @@ export async function checkDVEnrollmentStatus(
   },
 ): Promise<MCPToolResponse> {
   try {
+    pinoLogger.info({
+      operation: 'checkDVEnrollmentStatus',
+      enrollmentId: args.enrollmentId
+    }, 'Checking DV enrollment status');
+
     const response = await client.request({
       path: `/cps/v2/enrollments/${args.enrollmentId}`,
       method: 'GET',
@@ -550,7 +576,9 @@ export async function checkDVEnrollmentStatus(
       ],
     };
   } catch (_error) {
-    return formatError('check DV enrollment status', _error);
+    return errorHandler.handle('checkDVEnrollmentStatus', _error, undefined, {
+      enrollmentId: args.enrollmentId
+    });
   }
 }
 
@@ -672,7 +700,9 @@ export async function listCertificateEnrollments(
       ],
     };
   } catch (_error) {
-    return formatError('list certificate enrollments', _error);
+    return errorHandler.handle('listCertificateEnrollments', _error, undefined, {
+      contractId: args.contractId
+    });
   }
 }
 
@@ -745,7 +775,11 @@ export async function linkCertificateToProperty(
       ],
     };
   } catch (_error) {
-    return formatError('link certificate to property', _error);
+    return errorHandler.handle('linkCertificateToProperty', _error, undefined, {
+      enrollmentId: args.enrollmentId,
+      propertyId: args.propertyId,
+      propertyVersion: args.propertyVersion
+    });
   }
 }
 
@@ -863,7 +897,9 @@ export async function downloadCSR(
       ],
     };
   } catch (_error) {
-    return formatError('download CSR', _error);
+    return errorHandler.handle('downloadCSR', _error, undefined, {
+      enrollmentId: args.enrollmentId
+    });
   }
 }
 
@@ -946,7 +982,10 @@ export async function uploadThirdPartyCertificate(
       ],
     };
   } catch (_error) {
-    return formatError('upload third-party certificate', _error);
+    return errorHandler.handle('uploadThirdPartyCertificate', _error, undefined, {
+      enrollmentId: args.enrollmentId,
+      hasTrustChain: !!args.trustChain
+    });
   }
 }
 
@@ -1083,7 +1122,12 @@ export async function updateCertificateEnrollment(
       ],
     };
   } catch (_error) {
-    return formatError('update certificate enrollment', _error);
+    return errorHandler.handle('updateCertificateEnrollment', _error, undefined, {
+      enrollmentId: args.enrollmentId,
+      commonName: args.commonName,
+      sans: args.sans,
+      networkConfiguration: args.networkConfiguration
+    });
   }
 }
 
@@ -1187,7 +1231,10 @@ export async function deleteCertificateEnrollment(
       ],
     };
   } catch (_error) {
-    return formatError('delete certificate enrollment', _error);
+    return errorHandler.handle('deleteCertificateEnrollment', _error, undefined, {
+      enrollmentId: args.enrollmentId,
+      force: args.force
+    });
   }
 }
 
@@ -1306,7 +1353,11 @@ export async function monitorCertificateDeployment(
       ],
     };
   } catch (_error) {
-    return formatError('monitor certificate deployment', _error);
+    return errorHandler.handle('monitorCertificateDeployment', _error, undefined, {
+      enrollmentId: args.enrollmentId,
+      maxWaitMinutes: args.maxWaitMinutes,
+      pollIntervalSeconds: args.pollIntervalSeconds
+    });
   }
 }
 
@@ -1350,101 +1401,3 @@ function calculateEstimatedTimes(status: string, pendingDomains: number) {
   };
 }
 
-/**
- * Format error responses with helpful guidance
- */
-function formatError(operation: string, _error: any): MCPToolResponse {
-  let errorMessage = `Failed to ${operation}`;
-  let errorContext = '';
-  let solution = '';
-  let nextSteps: string[] = [];
-
-  // CODE KAI: Enhanced error handling with type narrowing
-  if (_error instanceof CPSValidationError) {
-    errorMessage = 'API Response Validation Failed';
-    errorContext = `Expected: ${_error.expected}\nReceived: ${JSON.stringify(_error.received, null, 2)}`;
-    solution = 'The Akamai CPS API returned an unexpected response structure.';
-    nextSteps = [
-      'Check if the enrollment ID is valid',
-      'Verify your API credentials have CPS access',
-      'Try listing all enrollments to verify connectivity',
-    ];
-  } else if (_error instanceof Error) {
-    errorMessage += `: ${_error.message}`;
-
-    // Provide specific solutions based on error type
-    if (_error.message.includes('401') || _error.message.includes('credentials')) {
-      solution = 'Authentication failed. Your API credentials are invalid or expired.';
-      nextSteps = [
-        'Verify your ~/.edgerc file has valid credentials',
-        'Check that the credentials have CPS API permissions',
-        'Generate new API credentials in Akamai Control Center',
-      ];
-    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
-      solution = 'Access denied. Your API credentials lack the necessary permissions.';
-      nextSteps = [
-        'Contact your Akamai account team to enable CPS API access',
-        'Verify the contract ID has CPS entitlements',
-        'Check if your credentials are for the correct account',
-      ];
-    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
-      solution = 'Resource not found. The requested enrollment does not exist.';
-      nextSteps = [
-        'Use "List certificate enrollments" to see available certificates',
-        'Verify the enrollment ID is correct',
-        'Check if the enrollment was deleted',
-      ];
-    } else if (_error.message.includes('400') || _error.message.includes('Bad Request')) {
-      solution = 'Invalid request. The API rejected your parameters.';
-      nextSteps = [
-        'Verify domain names are valid (e.g., www.example.com)',
-        'Check that contact information is complete',
-        'Ensure all required fields are provided',
-      ];
-    } else if (_error.message.includes('contract')) {
-      solution = 'Contract validation failed.';
-      nextSteps = [
-        'Use "List groups" to find valid contract IDs',
-        'Verify the contract has CPS product enabled',
-        'Check contract format (e.g., ctr_C-1234567)',
-      ];
-    }
-  } else {
-    errorMessage += `: ${String(_error)}`;
-    solution = 'An unexpected error occurred.';
-    nextSteps = ['Check your network connection', 'Verify the Akamai API is accessible'];
-  }
-
-  // CODE KAI: Build comprehensive error response
-  let text = `CPS Operation Failed\n\n`;
-  text += `**Error:** ${errorMessage}\n`;
-  
-  if (errorContext) {
-    text += `\n**Details:**\n${errorContext}\n`;
-  }
-  
-  if (solution) {
-    text += `\n**Issue:** ${solution}\n`;
-  }
-  
-  if (nextSteps.length > 0) {
-    text += `\n**Next Steps:**\n`;
-    nextSteps.forEach((step, index) => {
-      text += `${index + 1}. ${step}\n`;
-    });
-  }
-
-  text += '\n**Need Help?**\n';
-  text += '- API Documentation: https://techdocs.akamai.com/cps/reference/api\n';
-  text += '- Check credentials: `cat ~/.edgerc`\n';
-  text += '- List enrollments: `"List certificate enrollments"`';
-
-  return {
-    content: [
-      {
-        type: 'text',
-        text,
-      },
-    ],
-  };
-}

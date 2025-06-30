@@ -763,7 +763,7 @@ export async function validateEdgeHostnameCertificate(
     responseText += `**Secure:** ${eh.secure ? 'Yes' : 'No'}\n\n`;
 
     if (!eh.secure) {
-      responseText += '## ℹ️ Non-Secure Edge Hostname\n';
+      responseText += '## [INFO] Non-Secure Edge Hostname\n';
       responseText +=
         'This edge hostname is configured for HTTP-only traffic and does not require a certificate.\n';
 

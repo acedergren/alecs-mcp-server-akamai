@@ -93,7 +93,7 @@ export async function runIntegrationTestSuite(
     responseText += `- **Total Tests:** ${summary.total}\n`;
     responseText += `- **Passed:** ${summary.passed} [DONE]\n`;
     responseText += `- **Failed:** ${summary.failed} [ERROR]\n`;
-    responseText += `- **Skipped:** ${summary.skipped} [EMOJI]️\n`;
+    responseText += `- **Skipped:** ${summary.skipped} [INFO]\n`;
     responseText += `- **Error:** ${summary.error} [EMOJI]\n`;
     responseText += `- **Success Rate:** ${summary.successRate.toFixed(1)}%\n`;
     responseText += `- **Average Duration:** ${summary.averageDuration.toFixed(0)}ms\n\n`;
@@ -116,7 +116,7 @@ export async function runIntegrationTestSuite(
       responseText += '[WARNING] **Average test duration over 5s** - Consider performance optimization\n';
     }
     if (summary.total === 0) {
-      responseText += 'ℹ️ **No tests executed** - Check test suite selection criteria\n';
+      responseText += '[INFO] **No tests executed** - Check test suite selection criteria\n';
     }
     if (summary.passed === summary.total && summary.total > 0) {
       responseText += '[DONE] **All tests passed!** - System is functioning correctly\n';
@@ -188,7 +188,7 @@ export async function checkAPIHealth(
     responseText += '## Health Summary\n\n';
     responseText += `- **Healthy:** ${healthy}/${endpoints.length} [DONE]\n`;
     responseText += `- **Unhealthy:** ${unhealthy}/${endpoints.length} [ERROR]\n`;
-    responseText += `- **Timeout:** ${timeout}/${endpoints.length} [EMOJI]️\n`;
+    responseText += `- **Timeout:** ${timeout}/${endpoints.length} [TIME]\n`;
     responseText += `- **Overall Status:** ${healthy === endpoints.length ? 'HEALTHY' : 'DEGRADED'}\n`;
     responseText += `- **Average Response Time:** ${averageResponseTime.toFixed(0)}ms\n\n`;
 
@@ -196,7 +196,7 @@ export async function checkAPIHealth(
     responseText += '## Endpoint Details\n\n';
     for (const result of healthResults) {
       const statusIcon =
-        result.status === 'healthy' ? '[DONE]' : result.status === 'timeout' ? '[EMOJI]️' : '[ERROR]';
+        result.status === 'healthy' ? '[DONE]' : result.status === 'timeout' ? '[TIME]' : '[ERROR]';
 
       responseText += `### ${result.endpoint}\n`;
       responseText += `- **Status:** ${statusIcon} ${result.status.toUpperCase()}\n`;

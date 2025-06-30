@@ -7,11 +7,11 @@
  * different tool sets and configurations.
  * 
  * REMOTE MCP HOSTING CAPABILITIES:
- * 🏗️ Dynamic Tool Loading: Load customer-specific tool sets on demand
- * 🔐 Customer-Specific Configurations: Isolated server configs per tenant
- * 📊 Per-Customer Monitoring: Separate metrics and logging per customer instance
- * 🚀 Horizontal Scaling: Create multiple server instances for load distribution
- * 🛡️ Security Isolation: Separate server contexts prevent cross-tenant leaks
+ * [TOOL] Dynamic Tool Loading: Load customer-specific tool sets on demand
+ * [SECURE] Customer-Specific Configurations: Isolated server configs per tenant
+ * [ANALYTICS] Per-Customer Monitoring: Separate metrics and logging per customer instance
+ * [LAUNCH] Horizontal Scaling: Create multiple server instances for load distribution
+ * [SHIELD] Security Isolation: Separate server contexts prevent cross-tenant leaks
  * 
  * HOSTED DEPLOYMENT PATTERNS:
  * 1. **Customer-Specific Servers**: Dedicated server instance per major customer

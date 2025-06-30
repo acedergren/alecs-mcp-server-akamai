@@ -20,8 +20,8 @@ describe('Import Smoke Test', () => {
     const toolModules = [
       '../../src/tools/property-manager',
       '../../src/tools/dns-tools',
-      '../../src/tools/fast-purge',
-      '../../src/tools/certificate-tools',
+      '../../src/tools/fastpurge-tools',
+      '../../src/tools/cps-tools',
     ];
     
     toolModules.forEach(module => {

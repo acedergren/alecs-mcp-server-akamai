@@ -1,9 +1,9 @@
 // Types for DNS operations
 type EdgeDNSChangeListMetadata = {
   zone: string;
-  changeTag: string;
-  zoneVersionId: string;
-  stale: boolean;
+  changeTag?: string;
+  zoneVersionId?: string;
+  stale?: boolean;
   lastModifiedDate: string;
   lastModifiedBy?: string;
 };
@@ -46,6 +46,7 @@ import { createLogger } from '../utils/pino-logger';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+import { AkamaiErrorResponse } from '../types/api-responses/common';
 import {
   isEdgeDNSZonesResponse,
   isEdgeDNSZoneResponse,
@@ -60,6 +61,7 @@ import {
   type EdgeDNSChangeListResponse,
   type EdgeDNSZoneSubmitResponse,
   type EdgeDNSZoneActivationStatusResponse,
+  type EdgeDNSRecordSet,
 } from '../types/api-responses/edge-dns-zones';
 
 // Initialize logger and error handler
@@ -303,9 +305,10 @@ export async function createZone(
           },
         ],
       };
-    } catch (checkError: any) {
+    } catch (checkError: unknown) {
+      const error = checkError as AkamaiErrorResponse & { statusCode?: number; response?: { status?: number } };
       // 404 is expected - zone doesn't exist, we can proceed
-      if (checkError?.statusCode !== 404 && checkError?.response?.status !== 404) {
+      if (error?.statusCode !== 404 && error?.response?.status !== 404 && error?.status !== 404) {
         throw checkError; // Unexpected error during zone check
       }
     }
@@ -335,7 +338,7 @@ export async function createZone(
             });
             
             if (contractResponse && typeof contractResponse === 'object' && 'contractId' in contractResponse) {
-              validatedContractId = (contractResponse as any).contractId;
+              validatedContractId = (contractResponse as { contractId: string }).contractId;
               logger.info({ 
                 subZone: args.zone, 
                 parentZone,
@@ -346,8 +349,9 @@ export async function createZone(
             logger.warn({ parentZone, error: contractError }, 'Could not retrieve parent zone contract');
           }
         }
-      } catch (parentError: any) {
-        if (parentError?.statusCode === 404 || parentError?.response?.status === 404) {
+      } catch (parentError: unknown) {
+        const error = parentError as AkamaiErrorResponse & { statusCode?: number; response?: { status?: number } };
+        if (error?.statusCode === 404 || error?.response?.status === 404 || error?.status === 404) {
           spinner.fail('Parent zone not found');
           return {
             content: [
@@ -377,8 +381,9 @@ export async function createZone(
           headers: { Accept: 'application/json' },
           queryParams: { contractId: validatedContractId, limit: '1' },
         });
-      } catch (contractError: any) {
-        if (contractError?.statusCode === 403 || contractError?.response?.status === 403) {
+      } catch (contractError: unknown) {
+        const error = contractError as AkamaiErrorResponse & { statusCode?: number; response?: { status?: number } };
+        if (error?.statusCode === 403 || error?.response?.status === 403 || error?.status === 403) {
           spinner.fail('Contract access denied');
           return {
             content: [
@@ -491,7 +496,8 @@ export async function createZone(
         break; // Success, exit retry loop
       } catch (retryError) {
         // Only retry on transient errors (500, 503)
-        const statusCode = (retryError as any)?.statusCode || (retryError as any)?.response?.status;
+        const error = retryError as AkamaiErrorResponse & { statusCode?: number; response?: { status?: number } };
+        const statusCode = error?.statusCode || error?.response?.status || error?.status;
         if ((statusCode === 500 || statusCode === 503) && attempt < 2) {
           const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
           spinner.update(`Retrying in ${delay}ms... (attempt ${attempt + 2}/3)`);
@@ -502,36 +508,82 @@ export async function createZone(
       }
     }
 
-    spinner.succeed(`Zone created: ${args.zone}`);
+    // KAIZEN: Auto-activate the zone by submitting changelist
+    spinner.update('Activating zone...');
+    
+    try {
+      // Wait a moment for the zone creation to fully register
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const activationResult = await submitChangeList(
+        client, 
+        args.zone, 
+        `Zone creation activation for ${args.zone}`,
+        { validateOnly: false, waitForActivation: true, timeout: 30000 }
+      );
 
-    // Enhanced success message with next steps
-    let responseText = `${icons.success} Successfully created DNS zone: ${format.cyan(args.zone)} (Type: ${format.green(args.type)})`;
-    
-    if (validatedContractId && validatedContractId !== args.contractId) {
-      responseText += `\n${icons.info} Used contract: ${format.dim(validatedContractId)} (inherited from parent)`;
-    }
-    
-    responseText += `\n\n${icons.info} Next steps:`;
-    
-    if (args.type === 'PRIMARY') {
-      responseText += `\n  • Add DNS records: "Create record in ${args.zone}"`;
-      responseText += `\n  • Activate changes: "Activate zone changes for ${args.zone}"`;
-      if (zoneParts.length > 2) {
-        responseText += `\n  • Add delegation in parent zone: "Create NS record in ${zoneParts.slice(1).join('.')}"`;
+      spinner.succeed(`Zone created and activated: ${args.zone}`);
+
+      // Enhanced success message with automatic activation
+      let responseText = `${icons.success} Successfully created and activated DNS zone: ${format.cyan(args.zone)} (Type: ${format.green(args.type)})`;
+      
+      if (validatedContractId && validatedContractId !== args.contractId) {
+        responseText += `\n${icons.info} Used contract: ${format.dim(validatedContractId)} (inherited from parent)`;
       }
-    } else if (args.type === 'SECONDARY') {
-      responseText += `\n  • Verify master servers are configured`;
-      responseText += `\n  • Activate zone: "Activate zone changes for ${args.zone}"`;
-    }
+      
+      if (activationResult?.requestId) {
+        responseText += `\n${icons.info} Activation ID: ${format.dim(activationResult.requestId)}`;
+      }
+      
+      responseText += `\n\n${icons.info} Zone is now live! Next steps:`;
+      
+      if (args.type === 'PRIMARY') {
+        responseText += `\n  • Add DNS records: "Create record in ${args.zone}"`;
+        if (zoneParts.length > 2) {
+          responseText += `\n  • Add delegation in parent zone: "Create NS record in ${zoneParts.slice(1).join('.')}"`;
+        }
+      } else if (args.type === 'SECONDARY') {
+        responseText += `\n  • Verify zone transfer from masters`;
+        responseText += `\n  • Check record synchronization`;
+      }
 
-    return {
-      content: [
-        {
-          type: 'text',
-          text: responseText,
-        },
-      ],
-    };
+      return {
+        content: [
+          {
+            type: 'text',
+            text: responseText,
+          },
+        ],
+      };
+
+    } catch (activationError) {
+      // Zone was created but activation failed - provide helpful guidance
+      spinner.warn(`Zone created but activation failed: ${args.zone}`);
+      
+      logger.warn({ 
+        zone: args.zone, 
+        activationError,
+        operation: 'createZone_autoActivation'
+      }, 'Zone created successfully but auto-activation failed');
+
+      let responseText = `${icons.warning} Zone created successfully but activation failed: ${format.cyan(args.zone)}`;
+      responseText += `\n\n${icons.info} Manual activation required:`;
+      responseText += `\n  • Use "Activate zone changes for ${args.zone}" to complete the process`;
+      responseText += `\n  • Check changelist status if activation continues to fail`;
+      
+      if (activationError instanceof Error) {
+        responseText += `\n\n${icons.error} Activation error: ${activationError.message}`;
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: responseText,
+          },
+        ],
+      };
+    }
   } catch (_error) {
     // Enhanced error context for subzones
     const zoneParts = args.zone.split('.');
@@ -691,7 +743,7 @@ export async function getChangeList(
       changeTag: metadata.changeTag,
       zoneVersionId: metadata.zoneVersionId,
       stale: metadata.stale,
-      recordSets: (rawResponse as any)?.recordsets || [],
+      recordSets: (rawResponse as { recordsets?: EdgeDNSRecordSet[] })?.recordsets || [],
     };
   } catch (_error) {
     if (_error instanceof Error && _error.message?.includes('404')) {
@@ -744,7 +796,7 @@ export async function submitChangeList(
     spinner.update(opts.validateOnly ? 'Validating changes...' : 'Submitting changelist...');
 
     let response: EdgeDNSZoneSubmitResponse | null = null;
-    let lastError: any = null;
+    let lastError: unknown = null;
 
     for (let attempt = 0; attempt <= opts.retryConfig.maxRetries!; attempt++) {
       try {
@@ -785,11 +837,16 @@ export async function submitChangeList(
         lastError = _error;
 
         // Check if it's a rate limit error
+        const error = _error as AkamaiErrorResponse & { 
+          statusCode?: number; 
+          response?: { status?: number }; 
+          headers?: Record<string, string> 
+        };
+        
         if ((_error instanceof Error && _error.message?.includes('429')) || 
-            (_error && typeof _error === 'object' && 'statusCode' in _error && (_error as {statusCode: number}).statusCode === 429)) {
-          const errorWithHeaders = _error as {headers?: Record<string, string>};
+            error?.statusCode === 429 || error?.response?.status === 429 || error?.status === 429) {
           const retryAfter =
-            errorWithHeaders.headers?.['retry-after'] ||
+            error.headers?.['retry-after'] ||
             Math.min(
               opts.retryConfig.initialDelay! * Math.pow(2, attempt),
               opts.retryConfig.maxDelay!,
@@ -894,7 +951,7 @@ export async function submitChangeList(
 /**
  * Helper to determine if an error is transient and should be retried
  */
-function isTransientError(_error: any): boolean {
+function isTransientError(_error: unknown): boolean {
   // Network errors
   if (
     _error && typeof _error === 'object' && 'code' in _error &&
@@ -930,7 +987,7 @@ export async function discardChangeList(
     ...retryConfig,
   };
 
-  let lastError: any = null;
+  let lastError: unknown = null;
 
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
     try {
@@ -946,8 +1003,9 @@ export async function discardChangeList(
       lastError = _error;
 
       // Don't retry on 404 - changelist doesn't exist
+      const error = _error as AkamaiErrorResponse & { statusCode?: number; response?: { status?: number } };
       if ((_error instanceof Error && _error.message?.includes('404')) || 
-          (_error && typeof _error === 'object' && 'statusCode' in _error && (_error as {statusCode: number}).statusCode === 404)) {
+          error?.statusCode === 404 || error?.response?.status === 404 || error?.status === 404) {
         return; // Consider success - changelist is gone
       }
 
@@ -963,6 +1021,108 @@ export async function discardChangeList(
   }
 
   throw lastError || new Error('Failed to discard changelist after retries');
+}
+
+/**
+ * Check for stale changelist and handle appropriately
+ * CODE KAI: Enhanced changelist state management
+ */
+export async function validateChangelistState(
+  client: AkamaiClient,
+  zone: string,
+  options?: {
+    autoResolveStale?: boolean;
+    maxStaleAgeMinutes?: number;
+  }
+): Promise<{
+  isValid: boolean;
+  changelist?: EdgeDNSChangeListMetadata;
+  action?: 'SUBMIT' | 'DISCARD' | 'CONTINUE';
+  message?: string;
+}> {
+  const opts = {
+    autoResolveStale: true,
+    maxStaleAgeMinutes: 30,
+    ...options,
+  };
+
+  try {
+    const changelist = await getChangeList(client, zone);
+
+    if (!changelist) {
+      return { isValid: true, action: 'CONTINUE' };
+    }
+
+    // Check if changelist is stale
+    const lastModified = new Date(changelist.lastModifiedDate);
+    const ageMinutes = (Date.now() - lastModified.getTime()) / (1000 * 60);
+    
+    if (changelist.stale || ageMinutes > opts.maxStaleAgeMinutes) {
+      logger.warn({
+        zone,
+        ageMinutes,
+        stale: changelist.stale,
+        lastModifiedBy: changelist.lastModifiedBy,
+        changeTag: changelist.changeTag,
+      }, 'Detected stale changelist');
+
+      if (opts.autoResolveStale) {
+        // Auto-discard stale changelist
+        await discardChangeList(client, zone);
+        return {
+          isValid: true,
+          action: 'CONTINUE',
+          message: `Discarded stale changelist (${ageMinutes.toFixed(1)} minutes old)`,
+        };
+      } else {
+        return {
+          isValid: false,
+          changelist,
+          action: 'DISCARD',
+          message: `Stale changelist detected (${ageMinutes.toFixed(1)} minutes old)`,
+        };
+      }
+    }
+
+    // Changelist exists and is not stale
+    const recordCount = changelist.recordSets?.length || 0;
+    if (recordCount === 0) {
+      // Empty changelist - can be discarded
+      if (opts.autoResolveStale) {
+        await discardChangeList(client, zone);
+        return {
+          isValid: true,
+          action: 'CONTINUE',
+          message: 'Discarded empty changelist',
+        };
+      } else {
+        return {
+          isValid: false,
+          changelist,
+          action: 'DISCARD',
+          message: 'Empty changelist exists',
+        };
+      }
+    }
+
+    // Valid changelist with pending changes
+    return {
+      isValid: false,
+      changelist,
+      action: 'SUBMIT',
+      message: `Active changelist with ${recordCount} pending change${recordCount === 1 ? '' : 's'}`,
+    };
+
+  } catch (_error) {
+    // Assume no changelist if 404 or other error
+    const error = _error as AkamaiErrorResponse & { statusCode?: number; response?: { status?: number } };
+    if (error?.statusCode === 404 || error?.response?.status === 404 || error?.status === 404) {
+      return { isValid: true, action: 'CONTINUE' };
+    }
+    
+    logger.warn({ zone, error: _error }, 'Failed to validate changelist state');
+    return { isValid: true, action: 'CONTINUE', message: 'Unable to check changelist state' };
+  }
 }
 
 /**
@@ -1239,8 +1399,36 @@ export async function upsertRecord(
   const spinner = new Spinner();
 
   try {
-    // Step 1: Create a new changelist
-    spinner.start('Creating changelist...');
+    // KAIZEN: Step 1: Validate changelist state before proceeding
+    spinner.start('Validating changelist state...');
+    const validation = await validateChangelistState(client, args.zone, {
+      autoResolveStale: true,
+      maxStaleAgeMinutes: 30,
+    });
+
+    if (!validation.isValid && validation.action === 'SUBMIT') {
+      // There's an active changelist with pending changes
+      spinner.fail('Active changelist exists');
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `${icons.warning} ${validation.message}\n\n` +
+                  `${icons.info} Options:\n` +
+                  `  • Submit pending changes: "Activate zone changes for ${args.zone}"\n` +
+                  `  • Use force option to discard existing changes\n` +
+                  `  • Wait for current operation to complete`,
+          },
+        ],
+      };
+    }
+
+    if (validation.message) {
+      spinner.update(validation.message);
+    }
+
+    // Step 2: Create a new changelist
+    spinner.update('Creating changelist...');
     await client.request({
       path: '/config-dns/v2/changelists',
       method: 'POST',
@@ -1319,8 +1507,36 @@ export async function deleteRecord(
   const spinner = new Spinner();
 
   try {
-    // Step 1: Create a new changelist
-    spinner.start('Creating changelist...');
+    // KAIZEN: Step 1: Validate changelist state before proceeding
+    spinner.start('Validating changelist state...');
+    const validation = await validateChangelistState(client, args.zone, {
+      autoResolveStale: true,
+      maxStaleAgeMinutes: 30,
+    });
+
+    if (!validation.isValid && validation.action === 'SUBMIT') {
+      // There's an active changelist with pending changes
+      spinner.fail('Active changelist exists');
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `${icons.warning} ${validation.message}\n\n` +
+                  `${icons.info} Options:\n` +
+                  `  • Submit pending changes: "Activate zone changes for ${args.zone}"\n` +
+                  `  • Use force option to discard existing changes\n` +
+                  `  • Wait for current operation to complete`,
+          },
+        ],
+      };
+    }
+
+    if (validation.message) {
+      spinner.update(validation.message);
+    }
+
+    // Step 2: Create a new changelist
+    spinner.update('Creating changelist...');
     await client.request({
       path: '/config-dns/v2/changelists',
       method: 'POST',

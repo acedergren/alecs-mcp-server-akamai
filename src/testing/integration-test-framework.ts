@@ -223,7 +223,7 @@ export class IntegrationTestFramework {
     report += `- **Total Tests:** ${summary.total}\n`;
     report += `- **Passed:** ${summary.passed} [DONE]\n`;
     report += `- **Failed:** ${summary.failed} [ERROR]\n`;
-    report += `- **Skipped:** ${summary.skipped} [EMOJI]️\n`;
+    report += `- **Skipped:** ${summary.skipped} [INFO]\n`;
     report += `- **Error:** ${summary.error} [EMOJI]\n`;
     report += `- **Success Rate:** ${summary.successRate.toFixed(1)}%\n`;
     report += `- **Average Duration:** ${summary.averageDuration.toFixed(0)}ms\n\n`;
@@ -294,7 +294,7 @@ export class IntegrationTestFramework {
       case 'failed':
         return '[ERROR]';
       case 'skipped':
-        return '[EMOJI]️';
+        return '[TIME]';
       case 'error':
         return '[EMOJI]';
       default:

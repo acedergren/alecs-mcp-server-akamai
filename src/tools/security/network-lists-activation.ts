@@ -61,7 +61,7 @@ export async function activateNetworkList(
         content: [
           {
             type: 'text',
-            text: `ℹ️ Network list "${list.name}" is already active on ${network}`,
+            text: `[INFO] Network list "${list.name}" is already active on ${network}`,
           },
         ],
       };
@@ -310,7 +310,7 @@ export async function deactivateNetworkList(
         content: [
           {
             type: 'text',
-            text: `ℹ️ Network list "${list.name}" is not currently active on ${network}`,
+            text: `[INFO] Network list "${list.name}" is not currently active on ${network}`,
           },
         ],
       };

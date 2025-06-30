@@ -6,12 +6,12 @@
  * for multi-tenant remote MCP server deployments with customer isolation.
  * 
  * REMOTE MCP HOSTING CAPABILITIES:
- * 🔐 Multi-Customer Authentication: Isolated EdgeGrid clients per customer
- * 🏗️ Connection Pooling: Optimized performance for multiple tenants
- * 🛡️ Account Switching: Secure cross-customer operations for MSPs
- * 📊 Performance Monitoring: Per-customer metrics and circuit breakers
- * 🔍 Request Tracing: Complete audit trails for hosted environments
- * ⚡ Connection Optimization: HTTP/2 and keep-alive for cloud deployment
+ * [SECURE] Multi-Customer Authentication: Isolated EdgeGrid clients per customer
+ * [TOOL] Connection Pooling: Optimized performance for multiple tenants
+ * [SHIELD] Account Switching: Secure cross-customer operations for MSPs
+ * [ANALYTICS] Performance Monitoring: Per-customer metrics and circuit breakers
+ * [SEARCH] Request Tracing: Complete audit trails for hosted environments
+ * [POWER] Connection Optimization: HTTP/2 and keep-alive for cloud deployment
  * 
  * HOSTED DEPLOYMENT BENEFITS:
  * - Horizontal scaling across multiple customer tenants

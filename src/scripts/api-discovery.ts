@@ -68,7 +68,7 @@ class ApiDiscovery {
    * Discover API endpoint structure by making live calls
    */
   async discoverEndpoint(endpointType: string, customer: string = 'testing'): Promise<DiscoveryResult> {
-    console.log(`🔍 Discovering ${endpointType} for customer: ${customer}`);
+    console.log(`[SEARCH] Discovering ${endpointType} for customer: ${customer}`);
     
     try {
       let result: DiscoveryResult;
@@ -132,7 +132,7 @@ class ApiDiscovery {
       return result;
 
     } catch (error) {
-      console.error(`❌ Discovery failed for ${endpointType}:`, error);
+      console.error(`[ERROR] Discovery failed for ${endpointType}:`, error);
       throw error;
     }
   }
@@ -1421,12 +1421,12 @@ async function main() {
         }
         
         const result = await discovery.discoverEndpoint(endpointType, customer);
-        console.log('✅ Discovery completed');
-        console.log('📊 Results:', JSON.stringify(result, null, 2));
+        console.log('[SUCCESS] Discovery completed');
+        console.log('[ANALYTICS] Results:', JSON.stringify(result, null, 2));
         break;
 
       case 'validate':
-        console.log('🔍 Running comprehensive API validation...');
+        console.log('[SEARCH] Running comprehensive API validation...');
         
         // Test all known endpoints
         const endpoints = [
@@ -1442,16 +1442,16 @@ async function main() {
         for (const endpoint of endpoints) {
           try {
             await discovery.discoverEndpoint(endpoint, customer);
-            console.log(`✅ ${endpoint} validated`);
+            console.log(`[SUCCESS] ${endpoint} validated`);
           } catch (error) {
-            console.log(`❌ ${endpoint} failed:`, error);
+            console.log(`[ERROR] ${endpoint} failed:`, error);
           }
         }
 
         // Generate report
         const report = discovery.generateReport();
         writeFileSync(join(process.cwd(), 'api-discovery-report.md'), report);
-        console.log('📋 Report generated: api-discovery-report.md');
+        console.log('[LIST] Report generated: api-discovery-report.md');
         break;
 
       default:
@@ -1459,7 +1459,7 @@ async function main() {
         process.exit(1);
     }
   } catch (error) {
-    console.error('❌ Command failed:', error);
+    console.error('[ERROR] Command failed:', error);
     process.exit(1);
   }
 }

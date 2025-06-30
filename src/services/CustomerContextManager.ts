@@ -6,12 +6,12 @@
  * providing secure customer context switching using standard .edgerc configuration.
  * 
  * CUSTOMER MANAGEMENT CAPABILITIES:
- * 🔐 EdgeGrid Authentication: Standard Akamai EdgeGrid authentication
- * 🏢 Multi-Customer Support: Access multiple customer accounts via .edgerc sections
- * 🔄 Context Switching: Switch between customer accounts within sessions
- * 🛡️ Token-Based Authorization: Session-based access control
- * 🔒 Secure Credential Access: Safe EdgeGrid credential management
- * 📊 Audit Logging: Complete audit trail for compliance and monitoring
+ * [SECURE] EdgeGrid Authentication: Standard Akamai EdgeGrid authentication
+ * [ENTERPRISE] Multi-Customer Support: Access multiple customer accounts via .edgerc sections
+ * [SYNC] Context Switching: Switch between customer accounts within sessions
+ * [SHIELD] Token-Based Authorization: Session-based access control
+ * [LOCKED] Secure Credential Access: Safe EdgeGrid credential management
+ * [ANALYTICS] Audit Logging: Complete audit trail for compliance and monitoring
  * 
  * DEPLOYMENT SCENARIOS:
  * 1. **Local Development**: Direct .edgerc file access

@@ -7,12 +7,12 @@
  * Uses Akamai's Reporting API v1 for comprehensive CDN analytics.
  * 
  * REPORTING CAPABILITIES:
- * 📊 Traffic Analytics - Bandwidth, requests, hit rates
- * 📈 Performance Metrics - Response times, error rates
+ * [ANALYTICS] Traffic Analytics - Bandwidth, requests, hit rates
+ * [UP] Performance Metrics - Response times, error rates
  * 🌍 Geographic Distribution - Traffic by region/country
  * 💾 Cache Performance - Hit/miss ratios, offload rates
- * 🔍 Origin Analytics - Origin performance and health
- * 📋 Custom Reports - Flexible report generation
+ * [SEARCH] Origin Analytics - Origin performance and health
+ * [LIST] Custom Reports - Flexible report generation
  * 
  * WHY SEPARATE FROM PROPERTY MANAGER:
  * - Different API endpoint (/reporting-api/v1 vs /papi/v1)
@@ -321,7 +321,7 @@ const getCachePerformance = {
       text += `\`\`\`\n`;
 
       // Optimization recommendations
-      text += `\n## 💡 Optimization Recommendations\n\n`;
+      text += `\n## [IDEA] Optimization Recommendations\n\n`;
       if (cacheableRatio < 80) {
         text += `- **Low Cacheable Ratio Alert:** Only ${cacheableRatio.toFixed(1)}% of responses are cacheable.\n`;
         text += `  - Review cache headers (Cache-Control, Expires)\n`;
@@ -547,7 +547,7 @@ const getErrorAnalysis = {
       text += `\`\`\`\n`;
 
       // Recommendations
-      text += `\n## 🔍 Error Analysis & Recommendations\n\n`;
+      text += `\n## [SEARCH] Error Analysis & Recommendations\n\n`;
       
       const has404s = (errorCounts['404'] || 0) > 0;
       const has5xxs = Object.keys(errorCounts).some(code => parseInt(code) >= 500);

@@ -7,11 +7,11 @@
  * management toolkit following Snow Leopard design principles.
  * 
  * CONSOLIDATED CAPABILITIES:
- * 🏢 Complete Property Lifecycle Management
- * 🔐 Multi-Customer Account Support with secure isolation
- * 📊 Advanced Property Operations and Analytics
- * 🛡️ Enhanced Error Handling and Validation
- * 🔄 Comprehensive Version and Activation Management
+ * [ENTERPRISE] Complete Property Lifecycle Management
+ * [SECURE] Multi-Customer Account Support with secure isolation
+ * [ANALYTICS] Advanced Property Operations and Analytics
+ * [SHIELD] Enhanced Error Handling and Validation
+ * [SYNC] Comprehensive Version and Activation Management
  * 
  * CODE KAI PRINCIPLES APPLIED:
  * - Zero-tolerance for errors through comprehensive validation
@@ -895,7 +895,7 @@ export async function updatePropertyRules(
     // Special handling for concurrent modification errors
     const errorStatus = error && typeof error === 'object' && 'status' in error ? (error as {status: number}).status : 0;
     if (errorStatus === 409 || errorStatus === 412) {
-      let text = `# ⚠️ Concurrent Modification Detected\n\n`;
+      let text = `# [WARNING] Concurrent Modification Detected\n\n`;
       text += `Someone else has modified this property version since you last retrieved it.\n\n`;
       text += `**What happened:**\n`;
       text += `- You retrieved the property rules earlier\n`;
@@ -922,7 +922,7 @@ export async function updatePropertyRules(
 // =============================================================================
 
 /**
- * 🌐 CREATE EDGE HOSTNAME
+ * [GLOBAL] CREATE EDGE HOSTNAME
  * 
  * HUMAN-READABLE EXPLANATION:
  * Edge hostnames are Akamai's delivery addresses for your content. Think of them as
@@ -1025,16 +1025,16 @@ export async function createEdgeHostname(
     const edgeHostnameId = edgeHostnameLink?.split('/').pop()?.split('?')[0];
     const fullEdgeHostname = `${args.domainPrefix}${args.domainSuffix || '.edgekey.net'}`;
 
-    let text = `# 🌐 Edge Hostname Created Successfully\n\n`;
+    let text = `# [GLOBAL] Edge Hostname Created Successfully\n\n`;
     text += `**Edge Hostname:** ${fullEdgeHostname}\n`;
     text += `**Edge Hostname ID:** ${edgeHostnameId}\n`;
     text += `**Domain Prefix:** ${args.domainPrefix}\n`;
     text += `**Domain Suffix:** ${args.domainSuffix || '.edgekey.net'}\n`;
-    text += `**Security:** ${args.secure !== false ? 'HTTPS Enabled ✅' : 'HTTP Only ⚠️'}\n`;
+    text += `**Security:** ${args.secure !== false ? 'HTTPS Enabled [SUCCESS]' : 'HTTP Only [WARNING]'}\n`;
     text += `**IP Support:** ${args.ipVersion || 'IPv4 + IPv6 (Dual Stack)'}\n`;
     text += `**Created:** ${new Date().toISOString()}\n\n`;
 
-    text += `## 🚀 Next Steps - Complete Your Setup\n\n`;
+    text += `## [LAUNCH] Next Steps - Complete Your Setup\n\n`;
     text += `### 1. Add Edge Hostname to Property\n`;
     text += `Use this edge hostname in your property configuration:\n`;
     text += `\`\`\`\n`;
@@ -1053,7 +1053,7 @@ export async function createEdgeHostname(
       text += `- Default DV certificates: Automatically provisioned by Akamai\n`;
       text += `- Custom certificates: Upload via Certificate Provisioning System (CPS)\n\n`;
     } else {
-      text += `⚠️ **Security Warning:** HTTPS is disabled. Consider enabling for:\n`;
+      text += `[WARNING] **Security Warning:** HTTPS is disabled. Consider enabling for:\n`;
       text += `- User data protection\n`;
       text += `- SEO benefits (Google ranking)\n`;
       text += `- Browser security warnings prevention\n\n`;
@@ -1081,7 +1081,7 @@ export async function createEdgeHostname(
 }
 
 /**
- * 📋 LIST EDGE HOSTNAMES
+ * [LIST] LIST EDGE HOSTNAMES
  * 
  * HUMAN-READABLE EXPLANATION:
  * Shows all the edge hostnames (delivery addresses) available in your account.
@@ -1144,27 +1144,27 @@ export async function listEdgeHostnames(
       };
     }
 
-    let text = `# 🌐 Edge Hostnames Inventory (${response.edgeHostnames.items.length} found)\n\n`;
+    let text = `# [GLOBAL] Edge Hostnames Inventory (${response.edgeHostnames.items.length} found)\n\n`;
 
     // ADD FILTER CONTEXT: Show what filters are applied
     if (args.contractId) text += `**Filtered by Contract:** ${args.contractId}\n`;
     if (args.groupId) text += `**Filtered by Group:** ${args.groupId}\n`;
     text += `**Last Updated:** ${new Date().toISOString()}\n\n`;
 
-    text += `## 📊 Edge Hostname Details\n\n`;
+    text += `## [ANALYTICS] Edge Hostname Details\n\n`;
 
     // ORGANIZE BY TYPE: Group similar hostnames together
     const secureHostnames = response.edgeHostnames.items.filter((eh: any) => eh.secure);
     const nonSecureHostnames = response.edgeHostnames.items.filter((eh: any) => !eh.secure);
 
     if (secureHostnames.length > 0) {
-      text += `### 🔒 HTTPS Edge Hostnames (${secureHostnames.length})\n\n`;
+      text += `### [LOCKED] HTTPS Edge Hostnames (${secureHostnames.length})\n\n`;
       secureHostnames.forEach((hostname: any, index: number) => {
         text += `#### ${index + 1}. ${hostname.edgeHostnameDomain}\n`;
         text += `- **Edge Hostname:** ${formatEdgeHostnameDisplay(hostname.edgeHostnameId, hostname.edgeHostnameDomain)}\n`;
         text += `- **Domain Prefix:** ${hostname.domainPrefix}\n`;
         text += `- **Domain Suffix:** ${hostname.domainSuffix}\n`;
-        text += `- **Security:** HTTPS Enabled ✅\n`;
+        text += `- **Security:** HTTPS Enabled [SUCCESS]\n`;
         text += `- **IP Version:** ${hostname.ipVersionBehavior}\n`;
         text += `- **Product:** ${formatProductDisplay(hostname.productId)}\n`;
         
@@ -1178,19 +1178,19 @@ export async function listEdgeHostnames(
     }
 
     if (nonSecureHostnames.length > 0) {
-      text += `### 🌐 HTTP Edge Hostnames (${nonSecureHostnames.length})\n\n`;
+      text += `### [GLOBAL] HTTP Edge Hostnames (${nonSecureHostnames.length})\n\n`;
       nonSecureHostnames.forEach((hostname: any, index: number) => {
         text += `#### ${index + 1}. ${hostname.edgeHostnameDomain}\n`;
         text += `- **Edge Hostname:** ${formatEdgeHostnameDisplay(hostname.edgeHostnameId, hostname.edgeHostnameDomain)}\n`;
         text += `- **Domain Prefix:** ${hostname.domainPrefix}\n`;
         text += `- **Domain Suffix:** ${hostname.domainSuffix}\n`;
-        text += `- **Security:** HTTP Only ⚠️\n`;
+        text += `- **Security:** HTTP Only [WARNING]\n`;
         text += `- **IP Version:** ${hostname.ipVersionBehavior}\n`;
         text += `- **Product:** ${hostname.productId}\n\n`;
       });
     }
 
-    text += `## 🎯 Usage Recommendations\n\n`;
+    text += `## [TARGET] Usage Recommendations\n\n`;
     
     if (secureHostnames.length > 0) {
       text += `**For new properties, consider using:**\n`;
@@ -1200,13 +1200,13 @@ export async function listEdgeHostnames(
     }
 
     if (nonSecureHostnames.length > 0) {
-      text += `**⚠️ HTTP-only hostnames detected:**\n`;
+      text += `**[WARNING] HTTP-only hostnames detected:**\n`;
       text += `- Consider upgrading to HTTPS for better security\n`;
       text += `- Modern browsers show warnings for HTTP sites\n`;
       text += `- HTTPS improves SEO rankings and user trust\n\n`;
     }
 
-    text += `## 🚀 Quick Actions\n\n`;
+    text += `## [LAUNCH] Quick Actions\n\n`;
     text += `**Create new edge hostname:**\n`;
     text += `\`\`\`\n`;
     text += `create_edge_hostname --domainPrefix "mysite-com" --secure true\n`;
@@ -1229,7 +1229,7 @@ export async function listEdgeHostnames(
 // =============================================================================
 
 /**
- * 🚀 ACTIVATE PROPERTY
+ * [LAUNCH] ACTIVATE PROPERTY
  * 
  * HUMAN-READABLE EXPLANATION:
  * Property activation is like "publishing" your website configuration to the world.
@@ -1337,7 +1337,7 @@ export async function activateProperty(
       }
       
       if (warnings.length > 0) {
-        let text = `⚠️ **PRODUCTION DEPLOYMENT CHECKLIST**\n\n`;
+        let text = `[WARNING] **PRODUCTION DEPLOYMENT CHECKLIST**\n\n`;
         text += `You're about to deploy to PRODUCTION which affects real users.\n\n`;
         text += `**Recommendations:**\n`;
         warnings.forEach(warning => {
@@ -1391,8 +1391,8 @@ export async function activateProperty(
       network: args.network
     });
 
-    let text = `# 🚀 Property Activation ${args.network === 'PRODUCTION' ? '🔴 LIVE' : '🟡 STAGING'}\n\n`;
-    text += `**Status:** Activation Initiated Successfully ✅\n`;
+    let text = `# [LAUNCH] Property Activation ${args.network === 'PRODUCTION' ? '[ERROR] LIVE' : '[WARNING] STAGING'}\n\n`;
+    text += `**Status:** Activation Initiated Successfully [SUCCESS]\n`;
     text += `**Property ID:** ${args.propertyId}\n`;
     text += `**Version:** ${args.version}\n`;
     text += `**Network:** ${args.network}\n`;
@@ -1406,7 +1406,7 @@ export async function activateProperty(
     text += `\n`;
 
     // TIMING EXPECTATIONS: Help users understand what to expect
-    text += `## ⏱️ Activation Timeline\n\n`;
+    text += `## [TIME] Activation Timeline\n\n`;
     if (args.network === 'STAGING') {
       text += `**Staging Network:** Usually completes in 2-5 minutes\n`;
       text += `- Fast deployment for testing\n`;
@@ -1419,7 +1419,7 @@ export async function activateProperty(
       text += `- Full production readiness checks\n\n`;
     }
 
-    text += `## 📊 Monitoring Your Activation\n\n`;
+    text += `## [ANALYTICS] Monitoring Your Activation\n\n`;
     text += `**Check activation status:**\n`;
     text += `\`\`\`\n`;
     text += `get_activation_status --propertyId ${args.propertyId} --activationId ${activationId}\n`;
@@ -1430,14 +1430,14 @@ export async function activateProperty(
     text += `list_property_activations --propertyId ${args.propertyId}\n`;
     text += `\`\`\`\n\n`;
 
-    text += `## 🎯 What Happens Next\n\n`;
+    text += `## [TARGET] What Happens Next\n\n`;
     text += `1. **Validation Phase** (1-2 min): Akamai validates your configuration\n`;
     text += `2. **Propagation Phase** (3-10 min): Changes spread to edge servers globally\n`;
     text += `3. **Completion**: All edge servers have your new configuration\n`;
     text += `4. **Verification**: Test your website/API to confirm changes\n\n`;
 
     if (args.network === 'PRODUCTION') {
-      text += `## 🚨 Production Deployment Checklist\n\n`;
+      text += `## [ALERT] Production Deployment Checklist\n\n`;
       text += `**Immediately after activation:**\n`;
       text += `- [ ] Test critical user journeys on your website\n`;
       text += `- [ ] Monitor error rates and performance metrics\n`;
@@ -1473,7 +1473,7 @@ export async function activateProperty(
 }
 
 /**
- * 📊 GET ACTIVATION STATUS
+ * [ANALYTICS] GET ACTIVATION STATUS
  * 
  * HUMAN-READABLE EXPLANATION:
  * Checks the progress of a property activation - like tracking a package delivery.
@@ -1541,17 +1541,17 @@ export async function getActivationStatus(
     const isSuccessful = activation.status === 'ACTIVE';
     const isFailed = activation.status === 'FAILED';
     
-    let text = `# 📊 Activation Status Report\n\n`;
+    let text = `# [ANALYTICS] Activation Status Report\n\n`;
     
     // STATUS HEADER with visual indicators
     if (activation.status === 'PENDING') {
       text += `## ⏳ Status: IN PROGRESS\n\n`;
     } else if (isSuccessful) {
-      text += `## ✅ Status: DEPLOYMENT SUCCESSFUL\n\n`;
+      text += `## [SUCCESS] Status: DEPLOYMENT SUCCESSFUL\n\n`;
     } else if (isFailed) {
-      text += `## ❌ Status: DEPLOYMENT FAILED\n\n`;
+      text += `## [ERROR] Status: DEPLOYMENT FAILED\n\n`;
     } else {
-      text += `## ⚠️ Status: ${activation.status}\n\n`;
+      text += `## [WARNING] Status: ${activation.status}\n\n`;
     }
     
     text += `**Activation ID:** ${activation.activationId}\n`;
@@ -1579,12 +1579,12 @@ export async function getActivationStatus(
       const currentTime = new Date().getTime();
       const elapsedMinutes = Math.round((currentTime - startTime) / 60000);
       
-      text += `## ⏱️ Deployment Progress\n\n`;
+      text += `## [TIME] Deployment Progress\n\n`;
       text += `**Time Elapsed:** ${elapsedMinutes} minutes\n`;
       text += `**Expected Duration:** ${activation.network === 'STAGING' ? '2-5' : '5-15'} minutes\n\n`;
       
       if (elapsedMinutes > (activation.network === 'STAGING' ? 10 : 20)) {
-        text += `⚠️ **Note:** This activation is taking longer than usual.\n`;
+        text += `[WARNING] **Note:** This activation is taking longer than usual.\n`;
         text += `Consider contacting Akamai support if it doesn't complete soon.\n\n`;
       }
       
@@ -1596,7 +1596,7 @@ export async function getActivationStatus(
     
     // ERROR DETAILS for failed activations
     if (isFailed && activation['fatalError']) {
-      text += `## 🚨 Failure Details\n\n`;
+      text += `## [ALERT] Failure Details\n\n`;
       text += `**Fatal Error:** ${activation['fatalError']}\n\n`;
       
       text += `**Troubleshooting Steps:**\n`;
@@ -1608,7 +1608,7 @@ export async function getActivationStatus(
     
     // VALIDATION ERRORS if present
     if (activation.errors && activation.errors.length > 0) {
-      text += `## ❌ Validation Errors\n\n`;
+      text += `## [ERROR] Validation Errors\n\n`;
       activation.errors.forEach((error: any, index: number) => {
         text += `${index + 1}. **${error.type}**\n`;
         text += `   - Message ID: ${error.messageId}\n`;
@@ -1618,7 +1618,7 @@ export async function getActivationStatus(
     
     // WARNINGS if present
     if (activation.warnings && activation.warnings.length > 0) {
-      text += `## ⚠️ Warnings\n\n`;
+      text += `## [WARNING] Warnings\n\n`;
       activation.warnings.forEach((warning: any, index: number) => {
         text += `${index + 1}. **${warning.type}**\n`;
         text += `   - Message ID: ${warning.messageId}\n`;
@@ -1628,7 +1628,7 @@ export async function getActivationStatus(
     
     // SUCCESS ACTIONS
     if (isSuccessful) {
-      text += `## 🎯 Deployment Complete - Next Actions\n\n`;
+      text += `## [TARGET] Deployment Complete - Next Actions\n\n`;
       
       if (activation.network === 'STAGING') {
         text += `**Your staging deployment is live!**\n\n`;
@@ -1662,7 +1662,7 @@ export async function getActivationStatus(
 }
 
 /**
- * 📋 LIST PROPERTY ACTIVATIONS
+ * [LIST] LIST PROPERTY ACTIVATIONS
  * 
  * HUMAN-READABLE EXPLANATION:
  * Shows the deployment history for a property - like viewing your Git commit history
@@ -1709,7 +1709,7 @@ export async function listPropertyActivations(
       };
     }
 
-    let text = `# 📋 Property Activation History\n\n`;
+    let text = `# [LIST] Property Activation History\n\n`;
     text += `**Property ID:** ${args.propertyId}\n`;
     text += `**Total Activations:** ${response.activations.items.length}\n`;
     text += `**Retrieved:** ${new Date().toISOString()}\n\n`;
@@ -1720,12 +1720,12 @@ export async function listPropertyActivations(
 
     // PRODUCTION HISTORY (most important)
     if (productionActivations.length > 0) {
-      text += `## 🔴 Production Deployments (${productionActivations.length})\n\n`;
+      text += `## [ERROR] Production Deployments (${productionActivations.length})\n\n`;
       
       productionActivations.slice(0, 5).forEach((activation: any, index: number) => {
-        const statusIcon = activation.status === 'ACTIVE' ? '✅' :
-                          activation.status === 'FAILED' ? '❌' :
-                          activation.status === 'PENDING' ? '⏳' : '⚠️';
+        const statusIcon = activation.status === 'ACTIVE' ? '[SUCCESS]' :
+                          activation.status === 'FAILED' ? '[ERROR]' :
+                          activation.status === 'PENDING' ? '[TIME]' : '[WARNING]';
         
         text += `### ${statusIcon} ${index + 1}. Version ${activation.propertyVersion}\n`;
         text += `- **Status:** ${activation.status}\n`;
@@ -1744,12 +1744,12 @@ export async function listPropertyActivations(
 
     // STAGING HISTORY
     if (stagingActivations.length > 0) {
-      text += `## 🟡 Staging Deployments (${stagingActivations.length})\n\n`;
+      text += `## [WARNING] Staging Deployments (${stagingActivations.length})\n\n`;
       
       stagingActivations.slice(0, 3).forEach((activation: any, index: number) => {
-        const statusIcon = activation.status === 'ACTIVE' ? '✅' :
-                          activation.status === 'FAILED' ? '❌' :
-                          activation.status === 'PENDING' ? '⏳' : '⚠️';
+        const statusIcon = activation.status === 'ACTIVE' ? '[SUCCESS]' :
+                          activation.status === 'FAILED' ? '[ERROR]' :
+                          activation.status === 'PENDING' ? '[TIME]' : '[WARNING]';
         
         text += `### ${statusIcon} ${index + 1}. Version ${activation.propertyVersion}\n`;
         text += `- **Status:** ${activation.status}\n`;
@@ -1765,7 +1765,7 @@ export async function listPropertyActivations(
     }
 
     // DEPLOYMENT INSIGHTS
-    text += `## 📊 Deployment Insights\n\n`;
+    text += `## [ANALYTICS] Deployment Insights\n\n`;
     
     // Find currently active versions
     const activeProduction = productionActivations.find((a: any) => a.status === 'ACTIVE');
@@ -1795,7 +1795,7 @@ export async function listPropertyActivations(
     }
 
     // QUICK ACTIONS
-    text += `\n## 🚀 Quick Actions\n\n`;
+    text += `\n## [LAUNCH] Quick Actions\n\n`;
     
     if (activeProduction && activeStaging && activeProduction.propertyVersion !== activeStaging.propertyVersion) {
       text += `**Promote staging to production:**\n`;
@@ -1818,7 +1818,7 @@ export async function listPropertyActivations(
 }
 
 /**
- * ❌ CANCEL PROPERTY ACTIVATION
+ * [ERROR] CANCEL PROPERTY ACTIVATION
  * 
  * HUMAN-READABLE EXPLANATION:
  * Stops an in-progress deployment before it completes - like hitting the emergency
@@ -1851,7 +1851,7 @@ export async function cancelPropertyActivation(
       method: 'DELETE',
     });
 
-    let text = `# ❌ Activation Cancelled\n\n`;
+    let text = `# [ERROR] Activation Cancelled\n\n`;
     text += `**Property ID:** ${args.propertyId}\n`;
     text += `**Activation ID:** ${args.activationId}\n`;
     text += `**Cancelled:** ${new Date().toISOString()}\n\n`;
@@ -1884,7 +1884,7 @@ export async function cancelPropertyActivation(
 // =============================================================================
 
 /**
- * 🔗 ADD PROPERTY HOSTNAME
+ * [LINK] ADD PROPERTY HOSTNAME
  * 
  * HUMAN-READABLE EXPLANATION:
  * Connects your actual website domains (like www.example.com) to your Akamai
@@ -1961,7 +1961,7 @@ export async function addPropertyHostname(
       body: hostnamesList,
     });
 
-    let text = `# 🔗 Hostnames Added Successfully\n\n`;
+    let text = `# [LINK] Hostnames Added Successfully\n\n`;
     text += `**Property ID:** ${args.propertyId}\n`;
     text += `**Version:** ${args.version}\n`;
     text += `**Hostnames Added:** ${args.hostnames.length}\n`;
@@ -1976,7 +1976,7 @@ export async function addPropertyHostname(
     });
     text += `\n`;
     
-    text += `## 🚨 Critical Next Steps\n\n`;
+    text += `## [ALERT] Critical Next Steps\n\n`;
     text += `### 1. Configure DNS (Required)\n`;
     text += `For each hostname, create a CNAME record pointing to its edge hostname:\n\n`;
     
@@ -1998,7 +1998,7 @@ export async function addPropertyHostname(
     text += `- Check SSL certificate coverage\n`;
     text += `- Test website functionality\n\n`;
     
-    text += `## ⚠️ Important Notes\n\n`;
+    text += `## [WARNING] Important Notes\n\n`;
     text += `- **DNS Propagation:** Changes can take 5-30 minutes globally\n`;
     text += `- **SSL Certificates:** Ensure certificates cover all hostnames\n`;
     text += `- **Testing:** Always test in staging before production\n`;
@@ -2012,7 +2012,7 @@ export async function addPropertyHostname(
 }
 
 /**
- * 🗑️ REMOVE PROPERTY HOSTNAME
+ * [ERROR] REMOVE PROPERTY HOSTNAME
  * 
  * HUMAN-READABLE EXPLANATION:
  * Disconnects a website domain from your Akamai property. Use with caution as
@@ -2063,7 +2063,7 @@ export async function removePropertyHostname(
       body: remainingHostnames,
     });
 
-    let text = `# 🗑️ Hostnames Removed\n\n`;
+    let text = `# [ERROR] Hostnames Removed\n\n`;
     text += `**Property ID:** ${args.propertyId}\n`;
     text += `**Version:** ${args.version}\n`;
     text += `**Hostnames Removed:** ${args.hostnames.length}\n`;
@@ -2076,7 +2076,7 @@ export async function removePropertyHostname(
     });
     text += `\n`;
     
-    text += `## ⚠️ CRITICAL: Update DNS Immediately\n\n`;
+    text += `## [WARNING] CRITICAL: Update DNS Immediately\n\n`;
     text += `**These hostnames are no longer served by Akamai!**\n\n`;
     text += `For each removed hostname, you must:\n`;
     text += `1. Update DNS to point elsewhere\n`;
@@ -2097,7 +2097,7 @@ export async function removePropertyHostname(
 }
 
 /**
- * 📋 LIST PROPERTY HOSTNAMES
+ * [LIST] LIST PROPERTY HOSTNAMES
  * 
  * HUMAN-READABLE EXPLANATION:
  * Shows all website domains currently configured in a property version.
@@ -2139,7 +2139,7 @@ export async function listPropertyHostnames(
       };
     }
 
-    let text = `# 📋 Property Hostnames (Version ${args.version})\n\n`;
+    let text = `# [LIST] Property Hostnames (Version ${args.version})\n\n`;
     text += `**Property ID:** ${args.propertyId}\n`;
     text += `**Version:** ${args.version}\n`;
     text += `**Total Hostnames:** ${response_typed.hostnames.items.length}\n`;
@@ -2417,7 +2417,7 @@ export async function listProducts(
     );
 
     if (webProducts.length > 0) {
-      text += `## 🌐 Web Performance Products\n\n`;
+      text += `## [GLOBAL] Web Performance Products\n\n`;
       webProducts.forEach((product: any) => {
         text += `### ${product.productName}\n`;
         text += `- **Product:** ${formatProductDisplay(product.productId, product.productName)}\n`;
@@ -2426,7 +2426,7 @@ export async function listProducts(
     }
 
     if (securityProducts.length > 0) {
-      text += `## 🛡️ Security Products\n\n`;
+      text += `## [SHIELD] Security Products\n\n`;
       securityProducts.forEach((product: any) => {
         text += `### ${product.productName}\n`;
         text += `- **Product:** ${formatProductDisplay(product.productId, product.productName)}\n`;
@@ -2467,7 +2467,7 @@ export async function listProducts(
 // =============================================================================
 
 /**
- * 🔄 CLONE PROPERTY
+ * [SYNC] CLONE PROPERTY
  * 
  * HUMAN-READABLE EXPLANATION:
  * Creates a copy of an existing property with all its configurations.
@@ -2552,7 +2552,7 @@ export async function cloneProperty(
     const propertyLink = (response as any).propertyLink;
     const newPropertyId = propertyLink?.split('/').pop()?.split('?')[0];
 
-    let text = `# 🔄 Property Cloned Successfully\n\n`;
+    let text = `# [SYNC] Property Cloned Successfully\n\n`;
     text += `**New Property Name:** ${args.newPropertyName}\n`;
     text += `**New Property ID:** ${newPropertyId}\n`;
     text += `**Cloned From:** ${args.sourcePropertyId}\n`;
@@ -2561,7 +2561,7 @@ export async function cloneProperty(
     text += `**Created:** ${new Date().toISOString()}\n\n`;
     
     text += `## What Was Cloned\n\n`;
-    text += `✅ **Included in Clone:**\n`;
+    text += `[SUCCESS] **Included in Clone:**\n`;
     text += `- All property rules and behaviors\n`;
     text += `- Origin server configuration\n`;
     text += `- Caching settings\n`;
@@ -2572,7 +2572,7 @@ export async function cloneProperty(
     }
     text += `\n`;
     
-    text += `❌ **NOT Included:**\n`;
+    text += `[ERROR] **NOT Included:**\n`;
     text += `- Activation history\n`;
     text += `- Active deployment status\n`;
     if (!args.copyHostnames) {
@@ -2609,7 +2609,7 @@ export async function cloneProperty(
 }
 
 /**
- * 🔍 SEARCH PROPERTIES
+ * [SEARCH] SEARCH PROPERTIES
  * 
  * HUMAN-READABLE EXPLANATION:
  * Searches for properties by name or hostname across your account.
@@ -2622,7 +2622,7 @@ export async function cloneProperty(
  */
 
 /**
- * 📊 GET LATEST PROPERTY VERSION
+ * [ANALYTICS] GET LATEST PROPERTY VERSION
  * 
  * HUMAN-READABLE EXPLANATION:
  * Quick way to get information about the most recent version of a property.
@@ -2665,7 +2665,7 @@ export async function getLatestPropertyVersion(
       throw new Error('Version details not found');
     }
 
-    let text = `# 📊 Latest Property Version\n\n`;
+    let text = `# [ANALYTICS] Latest Property Version\n\n`;
     text += `**Property:** ${property.propertyName} (${args.propertyId})\n`;
     text += `**Latest Version:** ${latestVersion}\n`;
     text += `**Last Modified:** ${version.updatedDate}\n`;
@@ -2712,7 +2712,7 @@ export async function getLatestPropertyVersion(
 // =============================================================================
 
 /**
- * 📊 LIST CP CODES
+ * [ANALYTICS] LIST CP CODES
  * 
  * HUMAN-READABLE EXPLANATION:
  * CP Codes (Content Provider Codes) are tracking identifiers that help you
@@ -2762,7 +2762,7 @@ export async function listCPCodes(
       };
     }
 
-    let text = `# 📊 CP Codes (${(response as any).cpcodes.items.length} found)\n\n`;
+    let text = `# [ANALYTICS] CP Codes (${(response as any).cpcodes.items.length} found)\n\n`;
     text += `CP codes track and report on your CDN usage.\n\n`;
 
     // Group by product for better organization
@@ -2890,7 +2890,7 @@ export async function createCPCode(
 }
 
 /**
- * 🔍 GET CP CODE DETAILS
+ * [SEARCH] GET CP CODE DETAILS
  * 
  * HUMAN-READABLE EXPLANATION:
  * Shows detailed information about a specific CP code, including its
@@ -2942,7 +2942,7 @@ export async function getCPCode(
 
     const cpcode = (response as any).cpcodes.items[0];
 
-    let text = `# 🔍 CP Code Details\n\n`;
+    let text = `# [SEARCH] CP Code Details\n\n`;
     text += `**CP Code ID:** ${cpcode.cpcodeId}\n`;
     text += `**Name:** ${cpcode.cpcodeName}\n`;
     text += `**Contract:** ${cpcode.contractId}\n`;

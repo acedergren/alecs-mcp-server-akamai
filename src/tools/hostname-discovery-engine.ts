@@ -211,7 +211,7 @@ export async function analyzeHostnameConflicts(
       }
 
       if (infoConflicts.length > 0) {
-        responseText += `### ℹ️ Informational Conflicts (${infoConflicts.length})\n\n`;
+        responseText += `### [INFO] Informational Conflicts (${infoConflicts.length})\n\n`;
         infoConflicts.forEach((conflict, index) => {
           responseText += buildConflictReport(conflict, index + 1);
         });

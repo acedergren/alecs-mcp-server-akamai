@@ -168,7 +168,7 @@ export class Spinner {
 
   info(message?: string): void {
     this.stop();
-    this.stream.write(`\rℹ️  ${message || this.lastMessage}\n`);
+    this.stream.write(`\r[INFO] ${message || this.lastMessage}\n`);
   }
 
   stop(): void {

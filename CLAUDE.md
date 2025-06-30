@@ -11,6 +11,8 @@
 - Contents of a contract and the existence of a contract is solely managed by Akamai
 - No Emojis in error messages!
 - .archive is the default folder for archiving things that is not needed anymore and should not be pushed to git
+- No emoji in code
+- Always use the correct response types! Sloppy code breaks apps! We have the correct types in the openapi spec in docs/api
 
 ## Akamai API Access and Permissions
 

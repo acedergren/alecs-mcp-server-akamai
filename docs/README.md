@@ -1,57 +1,78 @@
 # ALECS MCP Server Documentation
 
-Welcome to the ALECS MCP Server documentation. This guide will help you get started with the Akamai MCP integration.
+Welcome to the ALECS MCP Server documentation. This guide provides comprehensive information for integrating with Akamai's CDN platform through the Model Context Protocol.
+
+**Version:** 1.6.2  
+**Last Updated:** 2025-06-30  
+**Total Tools:** 113+ across 5 service modules
 
 ## 📚 Documentation Structure
 
 ### 🚀 [Getting Started](./getting-started/)
-- [Installation Guide](./getting-started/installation.md) - Set up your environment
-- [Quick Start](./getting-started/quick-start.md) - 5-minute tutorial
-- [Configuration](./getting-started/configuration.md) - Configuration options
-- [Docker Setup](./getting-started/docker.md) - Container deployment
-
-### 🔧 [API Reference](./api/)
-- [Complete API Reference](./api/reference.md) - All available APIs
-- [Property Manager APIs](./api/property-manager.md) - CDN property management
-- [Edge DNS APIs](./api/edge-dns.md) - DNS zone management
-- [FastPurge APIs](./api/fast-purge.md) - Content purging
-- [Certificates APIs](./api/certificates.md) - SSL/TLS certificates
-- [Reporting APIs](./api/reporting.md) - Analytics and reporting
+- **Quick Start** - Get up and running in 5 minutes
+- **Installation** - Detailed setup instructions
+- **Configuration** - Configure for your Akamai account
+- **First Steps** - Your first API calls
 
 ### 🏗️ [Architecture](./architecture/)
-- [System Design](./architecture/system-design.md) - Overall architecture
-- [Multi-Customer Support](./architecture/multi-customer.md) - Customer isolation
-- [Modular Servers](./architecture/modular-servers.md) - Server components
-- [Observability](./architecture/observability.md) - Monitoring and logging
+- **System Design** - Overall architecture and design principles
+- **Component Details** - Deep dive into each component
+- **Data Flow** - How data moves through the system
+- **Security Model** - Authentication and authorization
 
-### 🔌 [Integrations](./integrations/)
-- [Claude/LLM Integration](./integrations/claude.md) - AI assistant setup
-- [CI/CD Integration](./integrations/ci-cd.md) - Automation pipelines
-- [LLM Compatibility](./integrations/llm-compatibility.md) - Other AI models
+### 🔧 [API Reference](./api/)
+- **Complete API Reference** - All 113+ available tools
+- **Property Manager APIs** - CDN configuration management
+- **Edge DNS APIs** - DNS zone and record management
+- **Certificate APIs** - SSL/TLS certificate lifecycle
+- **Security APIs** - Network lists and WAF policies
+- **Reporting APIs** - Analytics and performance metrics
 
-### 🛠️ [Operations](./operations/)
-- [CDN Provisioning](./operations/cdn-provisioning.md) - Property workflows
-- [Property Onboarding](./operations/property-onboarding.md) - Onboarding guide
-- [DNS Migration](./operations/dns-migration.md) - Migration procedures
-- [Troubleshooting](./operations/troubleshooting.md) - Common issues
+### 📖 [User Guides](./user-guides/)
+- **Common Workflows** - Step-by-step tutorials
+- **Best Practices** - Recommended patterns
+- **Troubleshooting** - Common issues and solutions
+- **Examples** - Real-world use cases
 
-### 💻 [Development](./development/)
-- [Development Setup](./development/setup.md) - Local environment
-- [Contributing](./development/contributing.md) - Contribution guide
-- [Adding Tools](./development/adding-tools.md) - Extend functionality
-- [Testing](./development/testing.md) - Test guidelines
-- [Workflows](./development/workflows.md) - Development processes
+### 🚀 [Deployment](./deployment/)
+- **Claude Desktop Setup** - Recommended for development
+- **Docker Deployment** - Container-based deployment
+- **Production Guide** - Best practices for production
+- **Monitoring** - Health checks and metrics
 
-## 🔍 Quick Links
+## 🔑 Key Features
 
-- **First Time?** Start with the [Installation Guide](./getting-started/installation.md)
-- **Need API docs?** Check the [API Reference](./api/reference.md)
-- **Having issues?** See [Troubleshooting](./operations/troubleshooting.md)
-- **Want to contribute?** Read the [Contributing Guide](./development/contributing.md)
+- **Multi-Customer Support** - Manage multiple Akamai accounts
+- **Type Safety** - Full TypeScript with runtime validation
+- **Smart Caching** - Intelligent response caching
+- **Error Recovery** - Circuit breakers and retry logic
+- **Comprehensive Coverage** - All major Akamai APIs
 
-## 📖 Additional Resources
+## 🛠️ Service Modules
 
-- [Project Wiki](./wiki/) - Detailed technical documentation
-- [Archive](./archive/) - Historical documents for reference
-- [GitHub Repository](https://github.com/your-org/alecs-mcp-server) - Source code
-- [Akamai Developer Docs](https://techdocs.akamai.com) - Official Akamai documentation
+- **alecs-property** - CDN property configuration and management
+- **alecs-dns** - DNS zones, records, and DNSSEC management
+- **alecs-security** - Network lists, WAF, and security policies
+- **alecs-certs** - SSL/TLS certificate lifecycle management
+- **alecs-reporting** - Traffic analytics and performance metrics
+
+## 📊 System Requirements
+
+- Node.js 18+ (20.x recommended)
+- TypeScript 5.0+
+- Valid Akamai API credentials
+- Claude Desktop or compatible MCP client
+
+## 🔐 Security
+
+ALECS follows Akamai's security best practices:
+- EdgeGrid authentication only
+- Credentials stored in `.edgerc` file
+- No secrets in code or logs
+- Secure multi-tenant isolation
+
+## 📞 Support
+
+- [GitHub Issues](https://github.com/your-org/alecs-mcp-server-akamai/issues)
+- [API Documentation](https://techdocs.akamai.com)
+- [MCP Protocol Spec](https://modelcontextprotocol.io)

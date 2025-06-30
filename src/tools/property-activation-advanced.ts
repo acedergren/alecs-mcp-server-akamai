@@ -488,7 +488,7 @@ export async function activatePropertyWithMonitoring(
       content: [
         {
           type: 'text',
-          text: `[EMOJI]️ Activation timeout reached\n\n**Property:** ${property.propertyName}\n**Version:** ${version}\n**Network:** ${args.network}\n**Activation ID:** ${activationId}\n\nThe activation is still in progress. Continue monitoring with:\n\`\`\`\nGet activation progress ${activationId} for property ${args.propertyId}\n\`\`\``,
+          text: `[TIME] Activation timeout reached\n\n**Property:** ${property.propertyName}\n**Version:** ${version}\n**Network:** ${args.network}\n**Activation ID:** ${activationId}\n\nThe activation is still in progress. Continue monitoring with:\n\`\`\`\nGet activation progress ${activationId} for property ${args.propertyId}\n\`\`\``,
         },
       ],
     };

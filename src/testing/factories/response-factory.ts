@@ -47,7 +47,7 @@ export class AkamaiResponseFactory {
     return {
       content: [{
         type: 'text',
-        text: `# 🚀 Property Created Successfully
+        text: `# [LAUNCH] Property Created Successfully
 
 **Property Name:** ${propertyName}
 **Property ID:** prp_789012
@@ -258,7 +258,7 @@ Your property is ready for configuration!`,
     return {
       content: [{
         type: 'text' as const,
-        text: `❌ Error: ${error}`,
+        text: `[ERROR] Error: ${error}`,
       }],
     };
   }

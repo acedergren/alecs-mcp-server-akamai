@@ -61,7 +61,7 @@ export async function searchPropertiesOptimized(
         content: [
           {
             type: 'text',
-            text: `❌ **Search Error**: At least one search criterion required.
+            text: `[ERROR] **Search Error**: At least one search criterion required.
 
 **Available criteria:**
 - \`propertyName\`: Search by property name (partial matches)
@@ -240,7 +240,7 @@ async function searchByHostname(
         content: [
           {
             type: 'text',
-            text: `🔍 **No hostname matches found**
+            text: `[SEARCH] **No hostname matches found**
 
 **Searched for:** ${args.hostname}
 **Search time:** ${searchTime}s
@@ -353,7 +353,7 @@ function formatOptimizedSearchResults(
   criteria: any,
   searchTime: string,
 ): string {
-  let text = `# 🔍 Property Search Results\n\n`;
+  let text = `# [SEARCH] Property Search Results\n\n`;
   text += `**Found:** ${results.length} properties (${searchTime}s)\n\n`;
 
   // Search criteria
@@ -382,7 +382,7 @@ function formatOptimizedSearchResults(
     text += `| ${result.propertyName} | ${result.propertyId} | ${result.productId || 'Unknown'} | ${status} | v${result.latestVersion || 'N/A'} |\n`;
   }
 
-  text += '\n## 🎯 Next Actions\n';
+  text += '\n## [TARGET] Next Actions\n';
   if (results.length === 1) {
     const prop = results[0];
     if (prop) {
@@ -406,7 +406,7 @@ function formatHostnameSearchResults(
   criteria: any,
   searchTime: string,
 ): string {
-  let text = `# 🌐 Hostname Search Results\n\n`;
+  let text = `# [GLOBAL] Hostname Search Results\n\n`;
   text += `**Found:** ${results.length} properties with hostname "${criteria.hostname}" (${searchTime}s)\n\n`;
 
   for (const result of results) {
@@ -428,7 +428,7 @@ function formatHostnameSearchResults(
     text += '\n';
   }
 
-  text += '## 🎯 Next Actions\n';
+  text += '## [TARGET] Next Actions\n';
   text += '- **View hostname details:** `list_property_hostnames propertyId="[PROPERTY_ID]"`\n';
   text += '- **View property rules:** `get_property_rules propertyId="[PROPERTY_ID]"`\n';
 
@@ -439,7 +439,7 @@ function formatHostnameSearchResults(
  * Format no results message
  */
 function formatNoSearchResults(criteria: any, searchTime: string): string {
-  let text = `# 🔍 No Properties Found\n\n`;
+  let text = `# [SEARCH] No Properties Found\n\n`;
   text += `**Search completed in:** ${searchTime}s\n\n`;
 
   text += '**Search criteria:**\n';
@@ -456,7 +456,7 @@ function formatNoSearchResults(criteria: any, searchTime: string): string {
     text += `- Group: ${criteria.groupId}\n`;
   }
 
-  text += '\n**💡 Suggestions:**\n';
+  text += '\n**[IDEA] Suggestions:**\n';
   text += '- Try shorter/partial search terms\n';
   text += '- Remove contract/group filters to broaden search\n';
   text += '- Check spelling and try different variations\n';

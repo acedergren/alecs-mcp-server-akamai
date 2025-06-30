@@ -270,7 +270,7 @@ export async function monitorCertificateValidation(
 
   console.log(`\n[SEARCH] Monitoring certificate validation for enrollment ${args.enrollmentId}`);
   console.log(
-    `[EMOJI]️  Will check every ${args.checkIntervalSeconds || 30} seconds for up to ${args.maxWaitMinutes || 30} minutes\n`,
+    `[TIME] Will check every ${args.checkIntervalSeconds || 30} seconds for up to ${args.maxWaitMinutes || 30} minutes\n`,
   );
 
   const spinner = new Spinner();
@@ -366,7 +366,7 @@ export async function monitorCertificateValidation(
     content: [
       {
         type: 'text',
-        text: `[EMOJI]️ Validation monitoring timed out after ${args.maxWaitMinutes || 30} minutes. Please check the status manually: "Check DV enrollment status ${args.enrollmentId}"`,
+        text: `[TIME] Validation monitoring timed out after ${args.maxWaitMinutes || 30} minutes. Please check the status manually: "Check DV enrollment status ${args.enrollmentId}"`,
       },
     ],
   };

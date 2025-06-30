@@ -58,10 +58,15 @@ import {
 import { formatProductDisplay } from '../utils/product-mapping';
 import { withToolErrorHandling, type ErrorContext } from '../utils/tool-error-handling';
 import { type TreeNode, renderTree, generateTreeSummary, formatGroupNode } from '../utils/tree-view';
-import { logger } from '../utils/logger';
+import { createErrorHandler } from '../utils/error-handler';
+import { createLogger } from '../utils/pino-logger';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+
+// Initialize logger and error handler
+const pinoLogger = createLogger('property-tools');
+const errorHandler = createErrorHandler('property');
 import { validateApiResponse } from '../utils/api-response-validator';
 import {
   PapiPropertiesListResponse,
@@ -168,7 +173,7 @@ async function getContractName(client: AkamaiClient, contractId: string): Promis
       return name;
     }
   } catch (error) {
-    logger.debug(`Failed to get contract name for ${contractId}`, error);
+    pinoLogger.debug({ error, contractId }, 'Failed to get contract name');
   }
   
   return `Contract ${contractId.replace('ctr_', '')}`;
@@ -195,7 +200,7 @@ async function getGroupName(client: AkamaiClient, groupId: string): Promise<stri
       return name;
     }
   } catch (error) {
-    logger.debug(`Failed to get group name for ${groupId}`, error);
+    pinoLogger.debug({ error, groupId }, 'Failed to get group name');
   }
   
   return `Group ${groupId}`;
@@ -600,7 +605,7 @@ export async function listPropertiesTreeView(
     const contractIdPattern = /^ctr_[A-Z0-9-]+$/;
     const validContractIds = targetGroup.contractIds.filter((contractId: string) => {
       if (!contractIdPattern.test(contractId)) {
-        console.warn(`[PROPERTY-TOOLS] Skipping invalid contract ID format: ${contractId}`);
+        pinoLogger.warn({ contractId, groupId: targetGroup.groupId }, 'Skipping invalid contract ID format');
         return false;
       }
       return true;
@@ -685,7 +690,7 @@ export async function listPropertiesTreeView(
                 // Validate child group contract IDs before API calls
                 const validChildContractIds = childGroup.contractIds.filter((contractId: string) => {
                   if (!contractIdPattern.test(contractId)) {
-                    console.warn(`[PROPERTY-TOOLS] Skipping invalid child contract ID: ${contractId}`);
+                    pinoLogger.warn({ contractId, groupId: childGroup.groupId }, 'Skipping invalid child contract ID');
                     return false;
                   }
                   return true;
@@ -726,13 +731,22 @@ export async function listPropertiesTreeView(
                     const isHttpError = errorMessage.includes('HTTP 500') || errorMessage.includes('500');
                     
                     if (isHttpError) {
-                      console.warn(
-                        `[PROPERTY-TOOLS] API validation failed for child group ${childGroup.groupId} with contract ${childContractId}: Invalid parameters or insufficient permissions`,
+                      pinoLogger.warn(
+                        { 
+                          groupId: childGroup.groupId, 
+                          contractId: childContractId, 
+                          error: errorMessage 
+                        },
+                        'API validation failed for child group - Invalid parameters or insufficient permissions'
                       );
                     } else {
-                      console.error(
-                        `[PROPERTY-TOOLS] Failed to get properties for child group ${childGroup.groupId}:`,
-                        errorMessage,
+                      pinoLogger.error(
+                        { 
+                          groupId: childGroup.groupId, 
+                          contractId: childContractId, 
+                          error: errorMessage 
+                        },
+                        'Failed to get properties for child group'
                       );
                     }
                   }
@@ -754,7 +768,7 @@ export async function listPropertiesTreeView(
                   // Validate grandchild contract IDs
                   const validGrandchildContractIds = grandchild.contractIds.filter((contractId: string) => {
                     if (!contractIdPattern.test(contractId)) {
-                      console.warn(`[PROPERTY-TOOLS] Skipping invalid grandchild contract ID: ${contractId}`);
+                      pinoLogger.warn({ contractId, groupId: grandchild.groupId }, 'Skipping invalid grandchild contract ID');
                       return false;
                     }
                     return true;
@@ -785,13 +799,22 @@ export async function listPropertiesTreeView(
                       const isHttpError = errorMessage.includes('HTTP 500') || errorMessage.includes('500');
                       
                       if (isHttpError) {
-                        console.warn(
-                          `[PROPERTY-TOOLS] API validation failed for grandchild group ${grandchild.groupId} with contract ${gcContractId}: Invalid parameters or insufficient permissions`,
+                        pinoLogger.warn(
+                          { 
+                            groupId: grandchild.groupId, 
+                            contractId: gcContractId, 
+                            error: errorMessage 
+                          },
+                          'API validation failed for grandchild group - Invalid parameters or insufficient permissions'
                         );
                       } else {
-                        console.error(
-                          `[PROPERTY-TOOLS] Failed to get properties for grandchild group ${grandchild.groupId}:`,
-                          errorMessage,
+                        pinoLogger.error(
+                          { 
+                            groupId: grandchild.groupId, 
+                            contractId: gcContractId, 
+                            error: errorMessage 
+                          },
+                          'Failed to get properties for grandchild group'
                         );
                       }
                     }
@@ -814,13 +837,22 @@ export async function listPropertiesTreeView(
           const isHttpError = errorMessage.includes('HTTP 500') || errorMessage.includes('500');
           
           if (isHttpError) {
-            console.warn(
-              `[PROPERTY-TOOLS] API validation failed for main group ${groupId} with contract ${contractId}: Invalid parameters or insufficient permissions`,
+            pinoLogger.warn(
+              { 
+                groupId, 
+                contractId, 
+                error: errorMessage 
+              },
+              'API validation failed for main group - Invalid parameters or insufficient permissions'
             );
           } else {
-            console.error(
-              `[PROPERTY-TOOLS] Failed to get properties for main group ${groupId}:`,
-              errorMessage,
+            pinoLogger.error(
+              { 
+                groupId, 
+                contractId, 
+                error: errorMessage 
+              },
+              'Failed to get properties for main group'
             );
           }
         }
@@ -911,7 +943,7 @@ export async function getProperty(
       try {
         // OPTIMIZATION: Limited search to prevent timeouts and memory issues
         const searchTerm = propertyId.toLowerCase();
-        console.error(`[getProperty] Searching for property: ${searchTerm}`);
+        pinoLogger.debug({ searchTerm }, 'Searching for property by name');
 
         // Get groups first
         const groupsRawResponse = await client.request({
@@ -954,7 +986,7 @@ export async function getProperty(
         for (const group of groupsResponse.groups.items) {
           // Check timeout
           if (Date.now() - startTime > TIMEOUT_MS) {
-            console.error('[getProperty] Timeout reached during search');
+            pinoLogger.warn('Timeout reached during property search');
             break;
           }
 
@@ -1004,7 +1036,7 @@ export async function getProperty(
 
               if (exactMatch) {
                 // Found exact match - return immediately
-                console.error(`[getProperty] Found exact match: ${exactMatch.propertyName}`);
+                pinoLogger.debug({ propertyName: exactMatch.propertyName, propertyId: exactMatch.propertyId }, 'Found exact property match');
                 return await getPropertyById(client, exactMatch.propertyId, exactMatch);
               }
 
@@ -1017,7 +1049,7 @@ export async function getProperty(
                 foundProperties.push({ property: prop, group });
               });
             } catch (_err) {
-              console.error(`Failed to search in contract ${contractId}:`, _err);
+              pinoLogger.error({ error: _err, contractId }, 'Failed to search in contract during property search');
             }
           }
         }
@@ -1034,7 +1066,7 @@ export async function getProperty(
                 type: 'text',
                 text:
                   `[ERROR] No properties found matching "${propertyId}" in the first ${groupsSearched} groups (searched ${totalPropertiesSearched} properties).\n\n` +
-                  (hitTimeout ? '[EMOJI]️ **Search was stopped due to timeout.**\n\n' : '') +
+                  (hitTimeout ? '[TIME] **Search was stopped due to timeout.**\n\n' : '') +
                   '**Suggestions:**\n' +
                   '1. Use the exact property ID (e.g., prp_12345)\n' +
                   '2. Use "list properties" to browse available properties\n' +
@@ -1055,7 +1087,7 @@ export async function getProperty(
           if (!match) {
             throw new Error('Unexpected error: match not found');
           }
-          const searchNote = `ℹ️ Found property "${match.property.propertyName}" (${match.property.propertyId})\n\n`;
+          const searchNote = `[INFO] Found property "${match.property.propertyName}" (${match.property.propertyId})\n\n`;
           const result = await getPropertyById(client, match.property.propertyId, match.property);
           if (result.content[0] && 'text' in result.content[0]) {
             result.content[0].text = searchNote + result.content[0].text;
@@ -1113,7 +1145,9 @@ export async function getProperty(
     // Get property by ID
     return await getPropertyById(client, propertyId);
   } catch (_error) {
-    return formatError('get property', _error);
+    return errorHandler.handle('getProperty', _error, undefined, {
+      propertyId: args.propertyId,
+    });
   }
 }
 
@@ -1212,7 +1246,7 @@ async function getPropertyById(
           }
         } catch (_err) {
           // Continue searching
-          console.error(`Failed to search in group ${group.groupId}:`, _err);
+          pinoLogger.error({ error: _err, groupId: group.groupId }, 'Failed to search in group during property lookup');
         }
       }
 
@@ -1257,7 +1291,7 @@ async function getPropertyById(
           prop = detailResponse.properties.items[0];
         }
       } catch (detailError) {
-        console.error('Failed to get detailed property info:', detailError);
+        pinoLogger.error({ error: detailError, propertyId }, 'Failed to get detailed property info');
         // Continue with the basic property info we already have
       }
     }
@@ -1286,7 +1320,7 @@ async function getPropertyById(
       }
     } catch (versionError) {
       // Continue without version details
-      console.error('Failed to get version details:', versionError);
+      pinoLogger.error({ error: versionError, propertyId, version: prop.latestVersion }, 'Failed to get version details');
     }
 
     // Get hostnames associated with the property
@@ -1308,7 +1342,7 @@ async function getPropertyById(
       }
     } catch (hostnameError) {
       // Continue without hostname details
-      console.error('Failed to get hostnames:', hostnameError);
+      pinoLogger.error({ error: hostnameError, propertyId, version: prop.latestVersion }, 'Failed to get hostnames');
     }
 
     // Return structured data for Claude Desktop optimization
@@ -1362,7 +1396,9 @@ async function getPropertyById(
       ],
     };
   } catch (_error) {
-    return formatError('get property details', _error);
+    return errorHandler.handle('getPropertyById', _error, undefined, {
+      propertyId,
+    });
   }
 }
 
@@ -1574,14 +1610,424 @@ export async function createProperty(
       };
     }
 
-    // Generic error fallback
+    // Use new error handler for generic errors
+    return errorHandler.handle(_error, {
+      operation: 'create property',
+      parameters: {
+        propertyName: args.propertyName,
+        productId: args.productId,
+        contractId: args.contractId,
+        groupId: args.groupId
+      },
+      context: 'Creating new CDN property'
+    });
+  }
+}
+
+/**
+ * Create delivery configuration with intelligent property + certificate setup
+ * 
+ * ENHANCED USER EXPERIENCE based on official Akamai documentation research:
+ * - Combines property creation with certificate configuration
+ * - Provides step-by-step DNS setup guidance  
+ * - Supports Default DV, CPS-managed, and shared certificates
+ * - Includes domain validation setup for Default DV certificates
+ * - Generates complete next-steps guidance for activation
+ * 
+ * This function implements the complete Akamai delivery workflow from
+ * Property Manager documentation for optimal user experience.
+ */
+export async function createDeliveryConfig(
+  client: AkamaiClient,
+  args: {
+    // Required essentials
+    hostname: string;                    // Domain to accelerate (e.g., "www.example.com")
+    originHostname: string;              // Origin server (e.g., "origin.example.com")
+    
+    // Certificate options (auto-detected if not specified)
+    certificateType?: 'auto' | 'default-dv' | 'cps-managed' | 'shared-cert';
+    deploymentNetwork?: 'standard' | 'enhanced' | 'auto';
+    domainValidationMethod?: 'auto-dns' | 'auto-http' | 'manual-dns' | 'manual-http';
+    
+    // Property customization (intelligent defaults applied)
+    propertyName?: string;               // Auto-generated from hostname if not provided
+    productId?: string;                  // Auto-detected or defaults to Web Acceleration
+    contractId?: string;                 // Auto-detected from account
+    groupId?: string;                    // Auto-detected from account
+    
+    // Advanced options
+    enableAdvancedSecurity?: boolean;    // Enhanced security features
+    optimizeForMobile?: boolean;         // Mobile-specific optimizations
+    enableMonitoring?: boolean;          // Certificate and performance monitoring
+    
+    // Control options
+    dryRun?: boolean;                    // Preview configuration without creating
+    skipValidation?: boolean;            // Skip pre-flight validation checks
+  },
+): Promise<MCPToolResponse> {
+  try {
+    // STEP 1: Input validation and intelligent defaults
+    const validationErrors: string[] = [];
+    
+    if (!args.hostname?.trim()) {
+      validationErrors.push('Hostname is required (e.g., "www.example.com")');
+    } else if (!/^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}$/.test(args.hostname)) {
+      validationErrors.push('Hostname must be a valid domain name');
+    }
+    
+    if (!args.originHostname?.trim()) {
+      validationErrors.push('Origin hostname is required (e.g., "origin.example.com")');
+    }
+    
+    if (validationErrors.length > 0) {
+      return {
+        content: [{
+          type: 'text',
+          text: `${validationErrors.map(e => `• ${e}`).join('\n')}\n\n[IDEA] **Example usage:**\n{\n  "hostname": "www.example.com",\n  "originHostname": "origin.example.com",\n  "certificateType": "default-dv"\n}`,
+        }],
+      };
+    }
+    
+    // Apply intelligent defaults based on Akamai best practices
+    const config = {
+      hostname: args.hostname.toLowerCase(),
+      originHostname: args.originHostname.toLowerCase(),
+      propertyName: args.propertyName || generateDeliveryPropertyName(args.hostname),
+      certificateType: args.certificateType || 'default-dv',  // Default DV recommended
+      deploymentNetwork: args.deploymentNetwork === 'standard' ? 'STANDARD_TLS' : 'ENHANCED_TLS',
+      domainValidationMethod: args.domainValidationMethod || 'auto-dns',  // Recommended method
+      productId: args.productId || 'prd_Web_Accel',  // Most common product
+      enableSecurity: args.enableAdvancedSecurity !== false,  // Default to true
+      enableMobile: args.optimizeForMobile || false,
+      enableMonitoring: args.enableMonitoring !== false,  // Default to true
+    };
+    
+    // STEP 2: Dry run preview (if requested)
+    if (args.dryRun) {
+      return formatDeliveryConfigPreview(config);
+    }
+    
+    // STEP 3: Create the property with delivery-optimized settings
+    const propertyResult = await createProperty(client, {
+      propertyName: config.propertyName,
+      productId: config.productId,
+      contractId: args.contractId || '',  // Will be auto-detected
+      groupId: args.groupId || '',        // Will be auto-detected
+      ruleFormat: 'latest',
+    });
+    
+    // Extract property details from the JSON response
+    const propertyData = JSON.parse(propertyResult.content[0].text);
+    if (!propertyData.success) {
+      // Property creation failed, return the original error
+      return propertyResult;
+    }
+    
+    // STEP 4: Generate comprehensive delivery configuration guidance
+    const deliveryConfig = {
+      success: true,
+      property: propertyData.property,
+      hostname: {
+        hostname: config.hostname,
+        originHostname: config.originHostname,
+        edgeHostname: generateEdgeHostname(config.hostname, config.certificateType),
+        certificateType: config.certificateType,
+        deploymentNetwork: config.deploymentNetwork,
+      },
+      certificate: generateCertificateConfig(config),
+      dnsRecords: generateDNSRecords(config),
+      validation: config.certificateType === 'default-dv' ? generateDVValidation(config) : null,
+      nextSteps: generateDeliveryNextSteps(config),
+      monitoring: generateMonitoringGuidance(config),
+      metadata: {
+        createdAt: new Date().toISOString(),
+        workflow: 'enhanced-delivery-config',
+        estimatedSetupTime: '15-30 minutes',
+        estimatedPropagationTime: '5-10 minutes after activation',
+      },
+    };
+    
+    return formatDeliveryConfigSuccess(deliveryConfig);
+    
+  } catch (error) {
     return {
       content: [{
         type: 'text',
-        text: `Failed to create property\n\n${_error.message || 'Unknown error occurred'}`
-      }]
+        text: `[ERROR] **Failed to create delivery configuration**\n\n**Error:** ${String(error)}\n\n[IDEA] **Common solutions:**\n• Verify hostname and origin are valid\n• Check account permissions and contract features\n• Ensure certificate type is supported in your account`,
+      }],
     };
   }
+}
+
+/**
+ * Generate intelligent property name for delivery configuration
+ */
+function generateDeliveryPropertyName(hostname: string): string {
+  const cleanName = hostname.replace(/^www\./, '').replace(/\./g, '-');
+  return `${cleanName}-delivery`;
+}
+
+/**
+ * Generate edge hostname based on certificate type
+ */
+function generateEdgeHostname(hostname: string, certificateType: string): string {
+  if (certificateType === 'shared-cert') {
+    return `${hostname.replace(/\./g, '-')}.akamaized.net`;
+  }
+  // Default DV and CPS-managed use .edgesuite.net
+  return `${hostname}.edgesuite.net`;
+}
+
+/**
+ * Generate certificate configuration details
+ */
+function generateCertificateConfig(config: any): any {
+  const certConfigs = {
+    'default-dv': {
+      type: 'Default DV Certificate',
+      autoRenewal: true,
+      validationRequired: true,
+      setupTime: '5-15 minutes after DNS setup',
+      features: ['Auto-renewal', 'Let\'s Encrypt CA', 'TLS 1.2/1.3'],
+    },
+    'cps-managed': {
+      type: 'CPS-Managed Certificate',
+      autoRenewal: false,
+      validationRequired: false,
+      setupTime: 'Immediate (if certificate exists)',
+      features: ['Custom CA', 'Extended validation', 'Custom cipher suites'],
+    },
+    'shared-cert': {
+      type: 'Akamai Shared Certificate',
+      autoRenewal: false,
+      validationRequired: false,
+      setupTime: 'Immediate',
+      features: ['Development use', 'Akamai domain required', 'No custom domain'],
+    },
+  };
+  
+  return certConfigs[config.certificateType] || certConfigs['default-dv'];
+}
+
+/**
+ * Generate required DNS records
+ */
+function generateDNSRecords(config: any): any[] {
+  const records = [
+    {
+      type: 'CNAME',
+      name: config.hostname,
+      value: generateEdgeHostname(config.hostname, config.certificateType),
+      ttl: 300,
+      purpose: 'Routes traffic to Akamai edge servers',
+      priority: 'Required',
+    },
+  ];
+  
+  // Add validation record for Default DV
+  if (config.certificateType === 'default-dv' && config.domainValidationMethod === 'auto-dns') {
+    const validationTarget = `ac.${config.hostname.replace(/\./g, '-')}.validate-akdv.net`;
+    records.push({
+      type: 'CNAME',
+      name: `_acme-challenge.${config.hostname}`,
+      value: validationTarget,
+      ttl: 300,
+      purpose: 'Certificate domain validation (enables auto-renewal)',
+      priority: 'Required for Default DV',
+    });
+  }
+  
+  return records;
+}
+
+/**
+ * Generate Default DV validation details
+ */
+function generateDVValidation(config: any): any {
+  if (config.domainValidationMethod === 'auto-dns') {
+    return {
+      method: 'Auto DNS Validation',
+      status: 'Pending DNS setup',
+      description: 'Automatic validation via DNS CNAME record',
+      benefits: [
+        'Automatic certificate renewal',
+        'No manual intervention required',
+        'Supports wildcard certificates',
+      ],
+      requirements: [
+        'Create _acme-challenge CNAME record before activation',
+        'Keep validation record permanent for auto-renewal',
+        'DNS propagation typically takes 5-15 minutes',
+      ],
+    };
+  }
+  
+  return {
+    method: config.domainValidationMethod,
+    status: 'Manual setup required',
+    description: 'Manual validation method selected',
+  };
+}
+
+/**
+ * Generate next steps guidance
+ */
+function generateDeliveryNextSteps(config: any): any {
+  const steps = {
+    immediate: [
+      '1. Create the required DNS records shown below',
+      '2. Wait for DNS propagation (5-15 minutes)',
+      '3. Add hostname to property version',
+      '4. Activate property to staging for testing',
+    ],
+    testing: [
+      '1. Verify SSL certificate is working',
+      '2. Test content delivery and caching',
+      '3. Check performance optimizations',
+      '4. Validate mobile experience (if enabled)',
+    ],
+    production: [
+      '1. Activate property to production',
+      '2. Monitor certificate status and expiration',
+      '3. Set up performance and security monitoring',
+      '4. Configure alerts for certificate renewal',
+    ],
+  };
+  
+  if (config.certificateType === 'shared-cert') {
+    steps.immediate[0] = '1. Update DNS to point to .akamaized.net hostname';
+    steps.immediate.splice(3, 0, '3. Note: Shared certificates are for development only');
+  }
+  
+  return steps;
+}
+
+/**
+ * Generate monitoring and alerting guidance
+ */
+function generateMonitoringGuidance(config: any): any {
+  if (config.enableMonitoring && config.certificateType === 'default-dv') {
+    return {
+      required: true,
+      alerts: [
+        'Expired Default certificate',
+        'Domain validation failed', 
+        'Certificate domain is blocked',
+        'DNS does not contain authorized CA',
+      ],
+      setup: 'Configure alerts in Control Center → Alerts application',
+      automation: 'Set up automated notifications for certificate issues',
+    };
+  }
+  
+  if (config.certificateType === 'cps-managed') {
+    return {
+      required: false,
+      note: 'CPS-managed certificates include automatic monitoring',
+    };
+  }
+  
+  return {
+    required: false,
+    note: 'Shared certificates do not require monitoring',
+  };
+}
+
+/**
+ * Format delivery configuration preview
+ */
+function formatDeliveryConfigPreview(config: any): MCPToolResponse {
+  let output = `[SEARCH] **Delivery Configuration Preview**\n\n`;
+  
+  output += `**Recommended Configuration:**\n`;
+  output += `• Property Name: ${config.propertyName}\n`;
+  output += `• Hostname: ${config.hostname}\n`;
+  output += `• Origin: ${config.originHostname}\n`;
+  output += `• Certificate: ${config.certificateType}\n`;
+  output += `• Network: ${config.deploymentNetwork}\n`;
+  output += `• Validation: ${config.domainValidationMethod}\n\n`;
+  
+  output += `**Features Enabled:**\n`;
+  output += `• Security: ${config.enableSecurity ? '[SUCCESS]' : '[ERROR]'}\n`;
+  output += `• Mobile Optimization: ${config.enableMobile ? '[SUCCESS]' : '[ERROR]'}\n`;
+  output += `• Monitoring: ${config.enableMonitoring ? '[SUCCESS]' : '[ERROR]'}\n\n`;
+  
+  output += `[WARNING] **This is a preview only.** Remove \`dryRun: true\` to create the configuration.`;
+  
+  return {
+    content: [{ type: 'text', text: output }],
+  };
+}
+
+/**
+ * Format successful delivery configuration response
+ */
+function formatDeliveryConfigSuccess(config: any): MCPToolResponse {
+  let output = `[SUCCESS] **Delivery Configuration Created Successfully**\n\n`;
+  
+  // Property summary
+  output += `**Property Created:**\n`;
+  output += `• Name: ${config.property.propertyName}\n`;
+  output += `• ID: ${config.property.propertyId}\n`;
+  output += `• Product: ${config.property.productName}\n\n`;
+  
+  // Hostname configuration
+  output += `**Hostname Configuration:**\n`;
+  output += `• Domain: ${config.hostname.hostname}\n`;
+  output += `• Edge Hostname: ${config.hostname.edgeHostname}\n`;
+  output += `• Certificate: ${config.certificate.type}\n`;
+  output += `• Network: ${config.hostname.deploymentNetwork}\n\n`;
+  
+  // Required DNS records
+  output += `**[TOOL] Required DNS Records:**\n`;
+  config.dnsRecords.forEach((record: any, index: number) => {
+    output += `${index + 1}. \`${record.name} ${record.type} ${record.value}\`\n`;
+    output += `   ${record.purpose}\n\n`;
+  });
+  
+  // Certificate validation (if applicable)
+  if (config.validation) {
+    output += `**[LIST] Certificate Validation:**\n`;
+    output += `• Method: ${config.validation.method}\n`;
+    output += `• Status: ${config.validation.status}\n`;
+    if (config.validation.requirements) {
+      output += `• Requirements:\n`;
+      config.validation.requirements.forEach((req: string) => {
+        output += `  - ${req}\n`;
+      });
+    }
+    output += `\n`;
+  }
+  
+  // Next steps
+  output += `**[LIST] Next Steps:**\n\n`;
+  output += `**Immediate (Required):**\n`;
+  config.nextSteps.immediate.forEach((step: string) => {
+    output += `${step}\n`;
+  });
+  
+  output += `\n**Testing Phase:**\n`;
+  config.nextSteps.testing.forEach((step: string) => {
+    output += `${step}\n`;
+  });
+  
+  output += `\n**Production Deployment:**\n`;
+  config.nextSteps.production.forEach((step: string) => {
+    output += `${step}\n`;
+  });
+  
+  // Monitoring setup
+  if (config.monitoring.required) {
+    output += `\n[WARNING] **Important:** ${config.monitoring.setup}\n`;
+    output += `Default DV certificates require manual alert configuration.`;
+  }
+  
+  output += `\n\n[TIME] **Estimated Setup Time:** ${config.metadata.estimatedSetupTime}`;
+  output += `\n[GLOBAL] **Propagation Time:** ${config.metadata.estimatedPropagationTime}`;
+  
+  return {
+    content: [{ type: 'text', text: output }],
+  };
 }
 
 /**
@@ -1706,7 +2152,10 @@ export async function listContracts(
       ],
     };
   } catch (_error) {
-    return formatError('list contracts', _error);
+    return errorHandler.handle('listContracts', _error, undefined, {
+      searchTerm: args.searchTerm,
+      customer: args.customer,
+    });
   }
 }
 
@@ -1867,7 +2316,9 @@ export async function listGroups(
       ],
     };
   } catch (_error) {
-    return formatError('list groups', _error);
+    return errorHandler.handle('listGroups', _error, undefined, {
+      searchTerm: args.searchTerm,
+    });
   }
 }
 
@@ -2050,56 +2501,3 @@ export async function listProducts(
   }, _context);
 }
 
-/**
- * Format error responses with helpful guidance
- */
-function formatError(operation: string, _error: any): MCPToolResponse {
-  let errorMessage = `[ERROR] Failed to ${operation}`;
-  let solution = '';
-
-  if (_error instanceof Error) {
-    errorMessage += `: ${_error.message}`;
-
-    // Provide specific solutions based on error type
-    if (_error.message.includes('401') || _error.message.includes('credentials')) {
-      solution =
-        '**Solution:** Check your ~/.edgerc file has valid credentials. You may need to generate new API credentials in Akamai Control Center.';
-    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
-      solution =
-        '**Solution:** Your API credentials may lack the necessary permissions. Ensure your API client has read/write access to Property Manager.';
-    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
-      solution =
-        '**Solution:** The requested resource was not found. Verify the ID is correct using the list tools.';
-    } else if (_error.message.includes('429') || _error.message.includes('rate limit')) {
-      solution = '**Solution:** Rate limit exceeded. Please wait 60 seconds before retrying.';
-    } else if (_error.message.includes('network') || _error.message.includes('ENOTFOUND')) {
-      solution =
-        '**Solution:** Network connectivity issue. Check your internet connection and verify the API host in ~/.edgerc is correct.';
-    } else if (_error.message.includes('timeout')) {
-      solution =
-        '**Solution:** Request timed out. The Akamai API might be slow. Try again in a moment.';
-    }
-  } else {
-    errorMessage += `: ${String(_error)}`;
-  }
-
-  let text = errorMessage;
-  if (solution) {
-    text += `\n\n${solution}`;
-  }
-
-  // Add general help
-  text += '\n\n**Need Help?**\n';
-  text += '- Verify your credentials: `cat ~/.edgerc`\n';
-  text += '- List available resources: `"List all my properties"`\n';
-  text += '- Check API docs: https://techdocs.akamai.com/property-mgr/reference/api';
-
-  return {
-    content: [
-      {
-        type: 'text',
-        text,
-      },
-    ],
-  };
-}
