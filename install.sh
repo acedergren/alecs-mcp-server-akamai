@@ -147,11 +147,12 @@ EOF
 build_project() {
     print_info "Building TypeScript project..."
     
-    # Use development build to bypass type errors for now
-    if npm run build:dev 2>/dev/null; then
+    if npm run build; then
         print_success "Project built successfully"
     else
-        print_warning "Build completed with warnings - this is expected for now"
+        print_warning "Build failed - checking for common issues..."
+        print_info "Attempting to build with --noEmit for type checking only..."
+        npm run typecheck || true
     fi
 }
 
@@ -198,22 +199,22 @@ setup_nodejs() {
 echo "Starting ALECS MCP Server..."
 echo ""
 echo "Available modes:"
-echo "1) Interactive launcher"
-echo "2) Full server (all tools)"
-echo "3) WebSocket server"
+echo "1) Standard MCP server (stdio)"
+echo "2) WebSocket server"
+echo "3) SSE server"
 echo ""
 read -p "Choose mode (1-3): " -n 1 -r
 echo ""
 
 case $REPLY in
     1)
-        node dist/interactive-launcher.js
+        MCP_TRANSPORT=stdio node dist/index.js
         ;;
     2)
-        node dist/index-full.js
+        MCP_TRANSPORT=websocket node dist/index.js
         ;;
     3)
-        node dist/index-websocket.js
+        MCP_TRANSPORT=sse node dist/index.js
         ;;
     *)
         echo "Invalid option"

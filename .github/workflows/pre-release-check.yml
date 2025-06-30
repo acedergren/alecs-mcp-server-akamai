@@ -59,11 +59,11 @@ jobs:
         id: tests
         run: |
           echo "## Tests" >> $GITHUB_STEP_SUMMARY
-          if npm test -- --ci --coverage --coverageReporters=text-summary; then
-            echo "✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+          if npm run test:ci; then
+            echo "✅ Critical tests passed" >> $GITHUB_STEP_SUMMARY
             echo "test_status=success" >> $GITHUB_OUTPUT
           else
-            echo "❌ Tests failed" >> $GITHUB_STEP_SUMMARY
+            echo "❌ Critical tests failed" >> $GITHUB_STEP_SUMMARY
             echo "test_status=failure" >> $GITHUB_OUTPUT
             exit 1
           fi

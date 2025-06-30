@@ -1,58 +1,46 @@
 /**
- * ENTERPRISE MULTI-TENANT CUSTOMER CONTEXT MANAGER
+ * MULTI-TENANT CUSTOMER CONTEXT MANAGER
  * 
- * HOSTED REMOTE MCP SERVER ARCHITECTURE:
- * This is the cornerstone of enterprise-grade multi-tenant MCP hosting,
- * providing OAuth-based authentication, session management, and customer
- * context switching for hosted remote MCP server deployments.
+ * EDGEGRID-BASED AUTHENTICATION ARCHITECTURE:
+ * This service manages multi-customer EdgeGrid authentication for MCP deployments,
+ * providing secure customer context switching using standard .edgerc configuration.
  * 
- * REMOTE MCP HOSTING CAPABILITIES:
- * 🔐 OAuth Integration: Token-based authentication for remote clients
- * 🏢 Multi-Tenant Sessions: Users can access multiple customer accounts
- * 🔄 Dynamic Context Switching: Seamless customer account switching
- * 🛡️ Role-Based Authorization: Granular permissions per customer context
- * 🔒 Secure Credential Storage: Encrypted Akamai credentials per customer
- * 🔑 Credential Rotation: Automated credential lifecycle management
+ * CUSTOMER MANAGEMENT CAPABILITIES:
+ * 🔐 EdgeGrid Authentication: Standard Akamai EdgeGrid authentication
+ * 🏢 Multi-Customer Support: Access multiple customer accounts via .edgerc sections
+ * 🔄 Context Switching: Switch between customer accounts within sessions
+ * 🛡️ Token-Based Authorization: Session-based access control
+ * 🔒 Secure Credential Access: Safe EdgeGrid credential management
  * 📊 Audit Logging: Complete audit trail for compliance and monitoring
- * 🏛️ Customer Isolation: Configurable isolation policies per tenant
  * 
- * HOSTED DEPLOYMENT SCENARIOS:
- * 1. **SaaS MCP Provider**: Multiple organizations using shared MCP infrastructure
- * 2. **Enterprise MSP**: Service providers managing multiple client accounts
- * 3. **Consulting Platform**: Consultants accessing multiple customer environments
- * 4. **Development Cloud**: Teams managing staging/production across customers
+ * DEPLOYMENT SCENARIOS:
+ * 1. **Local Development**: Direct .edgerc file access
+ * 2. **Team Deployment**: Shared .edgerc with multiple customer sections
+ * 3. **Enterprise Deployment**: Centralized customer context management
  * 
- * AUTHENTICATION FLOW FOR REMOTE MCP:
- * 1. Client authenticates via OAuth → receives session token
- * 2. Session includes available customer contexts for that user
+ * AUTHENTICATION FLOW:
+ * 1. Client provides session token for authentication
+ * 2. Session includes available customer contexts from .edgerc
  * 3. Client selects customer context for operations
  * 4. All MCP tool calls include session + customer context
  * 5. Authorization checked before accessing customer resources
  * 
  * CUSTOMER CREDENTIAL MANAGEMENT:
- * - Remote storage of Akamai EdgeGrid credentials per customer
- * - Encrypted credential storage with rotation scheduling
- * - Admin-controlled credential access and management
- * - Secure credential injection into EdgeGrid clients
+ * - Uses standard .edgerc file with multiple customer sections
+ * - EdgeGrid authentication per customer context
+ * - Secure credential access with session validation
  * 
- * SCALING ARCHITECTURE:
- * Local .edgerc → OAuth sessions → Distributed credential service → Enterprise SaaS
+ * ARCHITECTURE:
+ * Local .edgerc → Token sessions → Customer context → EdgeGrid clients
  */
 
 import { AkamaiClient } from '../akamai-client';
 import { logger } from '../utils/logger';
 
-// Temporarily define types that would come from auth modules
-interface OAuthToken {
-  access_token: string;
-  token_type: string;
-  expires_in: number;
-  refresh_token?: string;
-}
-
-interface OAuthProvider {
-  id: string;
-  name: string;
+// Session token for authentication
+interface SessionToken {
+  token: string;
+  expires_at: Date;
 }
 
 interface CustomerContext {
@@ -66,6 +54,7 @@ interface AuthSession {
   customerId: string;
   userId?: string;
   expiresAt: Date;
+  availableContexts: CustomerContext[];
 }
 
 interface AuthorizationContext {
@@ -104,92 +93,61 @@ interface EdgeGridCredentials {
   host: string;
 }
 
-// Stub implementations for missing auth modules
-class AuthorizationManager {
-  private static instance: AuthorizationManager;
+// Simple session management for token-based authentication
+class SessionManager {
+  private static instance: SessionManager;
+  private sessions = new Map<string, AuthSession>();
   
   static getInstance() {
     if (!this.instance) {
-      this.instance = new AuthorizationManager();
+      this.instance = new SessionManager();
     }
     return this.instance;
   }
   
-  async initialize() {}
-  async checkAuthorization(ctx: AuthorizationContext): Promise<AuthorizationDecision> {
-    return { allowed: true };
-  }
-  async authorize(ctx: AuthorizationContext): Promise<AuthorizationDecision> {
-    return { allowed: true };
-  }
-  async getRoles(userId: string): Promise<Role[]> {
-    return [];
-  }
-}
-
-class OAuthManager {
-  private static instance: OAuthManager;
-  
-  static getInstance() {
-    if (!this.instance) {
-      this.instance = new OAuthManager();
-    }
-    return this.instance;
-  }
-  
-  async initialize() {}
-  async getToken(providerId: string): Promise<OAuthToken | null> {
-    return null;
-  }
-  async refreshToken(token: OAuthToken): Promise<OAuthToken> {
-    return token;
-  }
-  async authenticateWithToken(token: string): Promise<AuthSession> {
-    return {
-      sessionId: 'mock-session',
-      customerId: 'default',
-      userId: 'mock-user',
-      expiresAt: new Date(Date.now() + 3600000)
+  async createSession(sessionId: string, customerId: string, userId?: string): Promise<AuthSession> {
+    const session: AuthSession = {
+      sessionId,
+      customerId,
+      userId,
+      expiresAt: new Date(Date.now() + 3600000), // 1 hour
+      availableContexts: [{ customerId, name: customerId }]
     };
+    this.sessions.set(sessionId, session);
+    return session;
   }
+  
   async getSession(sessionId: string): Promise<AuthSession | null> {
-    return {
-      sessionId,
-      customerId: 'default',
-      userId: 'mock-user',
-      expiresAt: new Date(Date.now() + 3600000)
-    };
-  }
-  async switchCustomerContext(sessionId: string, targetCustomerId: string): Promise<AuthSession> {
-    return {
-      sessionId,
-      customerId: targetCustomerId,
-      userId: 'mock-user',
-      expiresAt: new Date(Date.now() + 3600000)
-    };
-  }
-}
-
-class SecureCredentialManager {
-  private static instance: SecureCredentialManager;
-  
-  static getInstance() {
-    if (!this.instance) {
-      this.instance = new SecureCredentialManager();
+    const session = this.sessions.get(sessionId);
+    if (!session || session.expiresAt < new Date()) {
+      this.sessions.delete(sessionId);
+      return null;
     }
-    return this.instance;
+    return session;
   }
   
-  async initialize() {}
-  async getCredentials(customerId: string): Promise<EdgeGridCredentials | null> {
-    return null;
+  async switchCustomerContext(sessionId: string, targetCustomerId: string): Promise<AuthSession> {
+    const session = await this.getSession(sessionId);
+    if (!session) {
+      throw new Error('Invalid session');
+    }
+    
+    session.customerId = targetCustomerId;
+    this.sessions.set(sessionId, session);
+    return session;
   }
-  async rotateCredentials(customerId: string): Promise<void> {}
-  async getRotationSchedule(customerId: string): Promise<CredentialRotationSchedule | null> {
-    return null;
+  
+  async revokeSession(sessionId: string): Promise<void> {
+    this.sessions.delete(sessionId);
   }
-  async encryptCredentials(credentials: EdgeGridCredentials): Promise<string> {
-    return JSON.stringify(credentials);
+  
+  cleanupExpiredSessions(): void {
+    const now = new Date();
+    for (const [sessionId, session] of this.sessions.entries()) {
+      if (session.expiresAt < now) {
+        this.sessions.delete(sessionId);
+      }
+    }
   }
 }
 
@@ -223,86 +181,53 @@ export interface AuthorizationRequest {
 }
 
 /**
- * ENTERPRISE CUSTOMER CONTEXT MANAGER IMPLEMENTATION
+ * CUSTOMER CONTEXT MANAGER IMPLEMENTATION
  * 
- * REMOTE MCP SERVER ORCHESTRATION:
- * This service orchestrates all multi-tenant operations for hosted MCP deployments,
- * managing OAuth sessions, customer contexts, and secure credential access.
+ * TOKEN-BASED SESSION ORCHESTRATION:
+ * This service orchestrates multi-customer operations using token-based authentication
+ * and EdgeGrid credentials from .edgerc configuration.
  * 
- * HOSTED MCP ARCHITECTURE COMPONENTS:
+ * ARCHITECTURE COMPONENTS:
  * 
- * 1. **OAuth Manager**: 
- *    - Handles OAuth token authentication from remote clients
+ * 1. **Session Manager**: 
+ *    - Handles token-based authentication from clients
  *    - Manages session lifecycle and expiration
  *    - Supports customer context switching within sessions
  * 
- * 2. **Credential Manager**:
- *    - Securely stores encrypted Akamai credentials per customer
- *    - Handles credential rotation and lifecycle management
- *    - Provides just-in-time credential injection for API calls
- * 
- * 3. **Authorization Manager**:
- *    - Enforces role-based access control per customer context
- *    - Validates permissions before customer operations
- *    - Supports custom roles and fine-grained permissions
+ * 2. **EdgeGrid Integration**:
+ *    - Uses standard .edgerc file with multiple customer sections
+ *    - Creates AkamaiClient instances per customer context
+ *    - Provides secure credential access via EdgeGrid authentication
  * 
  * CLIENT CONNECTION PATTERNS:
  * - Claude Desktop connects via MCP protocol with session token
- * - Web interfaces authenticate via OAuth flow
- * - API clients use session-based authentication
  * - All connections support customer context switching
+ * - Sessions tied to available .edgerc customer sections
  * 
  * SCALABILITY DESIGN:
- * - Stateless design for horizontal scaling
- * - Session data can be stored in Redis/database
- * - Credential encryption supports HSM integration
- * - Authorization decisions can be cached for performance
+ * - Lightweight session management in memory
+ * - AkamaiClient instances created per-request for isolation
+ * - Standard EdgeGrid authentication per customer
  */
 export class CustomerContextManager {
   private static instance: CustomerContextManager;
   
   /**
-   * OAuth Manager: Handles remote client authentication and session management
+   * Session Manager: Handles token-based authentication and session management
    * 
-   * REMOTE MCP INTEGRATION:
-   * - Authenticates OAuth tokens from MCP clients
+   * SESSION INTEGRATION:
+   * - Authenticates session tokens from MCP clients
    * - Maintains active sessions with customer context lists
-   * - Supports session refresh and renewal
-   * - Enables customer context switching without re-authentication
+   * - Supports session refresh and customer switching
+   * - Maps sessions to available .edgerc customer sections
    */
-  private readonly oauthManager: OAuthManager;
-  
-  /**
-   * Secure Credential Manager: Manages encrypted Akamai credentials per customer
-   * 
-   * HOSTED DEPLOYMENT BENEFITS:
-   * - Customers don't need to share .edgerc files with hosting provider
-   * - Credentials encrypted at rest with customer-specific keys
-   * - Automatic credential rotation with zero downtime
-   * - Audit trail of all credential access and usage
-   */
-  private readonly credentialManager: SecureCredentialManager;
-  
-  /**
-   * Authorization Manager: Enforces permissions and customer isolation
-   * 
-   * MULTI-TENANT SECURITY:
-   * - Role-based access control per customer context
-   * - Fine-grained permissions for Akamai operations
-   * - Customer isolation policies and boundaries
-   * - Administrative controls for hosting providers
-   */
-  private readonly authorizationManager: AuthorizationManager;
+  private readonly sessionManager: SessionManager;
   
   // Note: AkamaiClient instances are lightweight and created per-request
   // This eliminates the need for client caching and improves security isolation
 
   private constructor() {
-    this.oauthManager = OAuthManager.getInstance();
-    this.credentialManager = SecureCredentialManager.getInstance(
-      process.env.CREDENTIAL_MASTER_KEY || 'default-insecure-key',
-    );
-    this.authorizationManager = AuthorizationManager.getInstance();
+    this.sessionManager = SessionManager.getInstance();
   }
 
   /**
@@ -316,137 +241,97 @@ export class CustomerContextManager {
   }
 
   /**
-   * Authenticate with OAuth token
+   * Create authenticated session with token
    */
-  async authenticateOAuth(token: OAuthToken, provider: OAuthProvider): Promise<AuthSession> {
-    return this.oauthManager.authenticateWithToken(token, provider);
+  async createSession(sessionId: string, customerId: string, userId?: string): Promise<AuthSession> {
+    return this.sessionManager.createSession(sessionId, customerId, userId);
   }
 
   /**
-   * CUSTOMER CONTEXT SWITCHING FOR REMOTE MCP
+   * CUSTOMER CONTEXT SWITCHING
    * 
-   * HOSTED MCP USE CASE:
-   * Remote MCP clients (Claude Desktop, web apps) can dynamically switch
-   * between different customer accounts they have access to without 
-   * re-authentication, enabling seamless multi-customer operations.
+   * Allows clients to switch between different customer accounts within
+   * their active session, enabling seamless multi-customer operations.
    * 
-   * SECURITY VALIDATION:
-   * 1. Validates active OAuth session
-   * 2. Checks authorization to switch to target customer
-   * 3. Verifies user has access to target customer context
-   * 4. Logs all context switches for audit compliance
+   * VALIDATION:
+   * 1. Validates active session
+   * 2. Verifies target customer access
+   * 3. Updates session context
+   * 4. Logs context switches for audit compliance
    * 
-   * REMOTE CLIENT FLOW:
+   * CLIENT FLOW:
    * Client → switchCustomer(sessionId, targetCustomerId) → New context
    * Subsequent MCP tool calls use new customer context automatically
    */
-  async switchCustomer(_request: CustomerSwitchRequest): Promise<CustomerContext> {
-    const { sessionId, targetCustomerId, reason } = _request;
+  async switchCustomer(request: CustomerSwitchRequest): Promise<CustomerContext> {
+    const { sessionId, targetCustomerId, reason } = request;
 
-    // Get session
-    const session = this.oauthManager.getSession(sessionId);
+    // Get and validate session
+    const session = await this.sessionManager.getSession(sessionId);
     if (!session) {
       throw new Error('Invalid or expired session');
     }
 
-    // Check authorization to switch
-    const authContext: AuthorizationContext = {
-      user: session.profile,
-      customerContext: session.currentContext!,
-      permissions: session.currentContext?.permissions || [],
-    };
-
-    const decision = await this.authorizationManager.authorize(authContext, {
-      resource: 'customer_context',
-      action: 'switch',
-      resourceId: targetCustomerId,
-      metadata: { reason },
-    });
-
-    if (!decision.allowed) {
-      throw new Error(
-        `Not authorized to switch to customer ${targetCustomerId}: ${decision.reason}`,
-      );
+    // Verify access to target customer
+    const hasAccess = session.availableContexts.some(ctx => ctx.customerId === targetCustomerId);
+    if (!hasAccess) {
+      throw new Error(`No access to customer ${targetCustomerId}`);
     }
 
-    // Perform switch
-    const newContext = await this.oauthManager.switchCustomerContext(sessionId, targetCustomerId);
+    // Perform context switch
+    const updatedSession = await this.sessionManager.switchCustomerContext(sessionId, targetCustomerId);
 
-    // No cache to clear anymore
-
-    logger.info('Customer _context switched', {
+    logger.info('Customer context switched', {
       sessionId,
-      fromCustomer: session.currentContext?.customerId,
+      fromCustomer: session.customerId,
       toCustomer: targetCustomerId,
-      userId: session.profile.sub,
+      userId: session.userId,
       reason,
     });
 
-    return newContext;
+    return {
+      customerId: targetCustomerId,
+      name: targetCustomerId,
+      edgeGridSection: targetCustomerId
+    };
   }
 
   /**
-   * SECURE CUSTOMER CREDENTIAL ACCESS FOR REMOTE MCP
+   * SECURE CUSTOMER CREDENTIAL ACCESS
    * 
-   * HOSTED DEPLOYMENT ARCHITECTURE:
-   * This is the secure bridge between remote MCP sessions and Akamai APIs.
-   * Instead of clients having direct access to .edgerc files, credentials
-   * are securely managed by the hosting provider and injected just-in-time.
+   * EDGEGRID AUTHENTICATION:
+   * Creates AkamaiClient instances using EdgeGrid authentication from .edgerc
+   * configuration, with session validation for secure multi-customer access.
    * 
    * CREDENTIAL SECURITY MODEL:
-   * 1. Validates OAuth session and customer access rights
-   * 2. Checks fine-grained authorization for credential access
-   * 3. Creates customer-specific AkamaiClient with encrypted credentials
-   * 4. Logs all credential access for compliance and auditing
+   * 1. Validates session and customer access rights
+   * 2. Creates customer-specific AkamaiClient with EdgeGrid credentials
+   * 3. Logs all credential access for compliance and auditing
    * 
-   * HOSTED MCP BENEFITS:
-   * - Customers don't expose Akamai credentials to clients
-   * - Hosting provider can enforce security policies
-   * - Centralized credential rotation and management
+   * BENEFITS:
+   * - Standard .edgerc credential management
+   * - Session-based access control
    * - Complete audit trail of API access per customer
    * 
    * INTEGRATION PATTERN:
-   * Remote MCP tool → getEdgeGridClient(sessionId, customerId) → Secure client
+   * MCP tool → getEdgeGridClient(sessionId, customerId) → AkamaiClient
    */
-  async getEdgeGridClient(_request: CustomerCredentialRequest): Promise<AkamaiClient> {
-    const { sessionId, customerId, purpose } = _request;
+  async getEdgeGridClient(request: CustomerCredentialRequest): Promise<AkamaiClient> {
+    const { sessionId, customerId, purpose } = request;
 
-    // Get session
-    const session = this.oauthManager.getSession(sessionId);
+    // Get and validate session
+    const session = await this.sessionManager.getSession(sessionId);
     if (!session) {
       throw new Error('Invalid or expired session');
     }
 
     // Check if user has access to this customer
     const hasAccess = session.availableContexts.some((ctx) => ctx.customerId === customerId);
-
     if (!hasAccess) {
       throw new Error(`No access to customer ${customerId}`);
     }
 
-    // Check authorization
-    const authContext: AuthorizationContext = {
-      user: session.profile,
-      customerContext: session.currentContext!,
-      permissions: session.currentContext?.permissions || [],
-    };
-
-    const decision = await this.authorizationManager.authorize(authContext, {
-      resource: 'credentials',
-      action: 'read',
-      resourceId: customerId,
-      metadata: { purpose },
-    });
-
-    if (!decision.allowed) {
-      throw new Error(`Not authorized to access credentials: ${decision.reason}`);
-    }
-
-    // For OAuth-based access, we still use the standard .edgerc file
-    // The OAuth layer only controls WHO can access WHICH customer section
-    // It does NOT replace EdgeRC authentication
-
-    // Create standard AkamaiClient with the customer section from .edgerc
+    // Create AkamaiClient with the customer section from .edgerc
     const client = new AkamaiClient(customerId);
 
     // Note: We don't cache AkamaiClient instances as they are lightweight
@@ -454,7 +339,7 @@ export class CustomerContextManager {
 
     logger.info('EdgeGrid client created for customer', {
       customerId,
-      userId: session.profile.sub,
+      userId: session.userId,
       purpose,
     });
 
@@ -462,111 +347,13 @@ export class CustomerContextManager {
   }
 
   /**
-   * Store customer credentials securely
+   * Basic authorization check for session-based access
    */
-  async storeCustomerCredentials(
-    sessionId: string,
-    customerId: string,
-    credentials: EdgeGridCredentials,
-    rotationSchedule?: CredentialRotationSchedule,
-  ): Promise<string> {
-    // Get session
-    const session = this.oauthManager.getSession(sessionId);
-    if (!session) {
-      throw new Error('Invalid or expired session');
-    }
+  async authorize(request: AuthorizationRequest): Promise<AuthorizationDecision> {
+    const { sessionId, resource, action, resourceId, metadata } = request;
 
-    // Check authorization
-    const authContext: AuthorizationContext = {
-      user: session.profile,
-      customerContext: session.currentContext!,
-      permissions: session.currentContext?.permissions || [],
-    };
-
-    const decision = await this.authorizationManager.authorize(authContext, {
-      resource: 'credentials',
-      action: 'create',
-      resourceId: customerId,
-    });
-
-    if (!decision.allowed) {
-      throw new Error(`Not authorized to store credentials: ${decision.reason}`);
-    }
-
-    // Encrypt and store credentials
-    const credentialId = await this.credentialManager.encryptCredentials(
-      credentials,
-      customerId,
-      rotationSchedule,
-    );
-
-    logger.info('Customer credentials stored', {
-      customerId,
-      credentialId,
-      userId: session.profile.sub,
-      hasRotationSchedule: !!rotationSchedule,
-    });
-
-    return credentialId;
-  }
-
-  /**
-   * Rotate customer credentials
-   */
-  async rotateCustomerCredentials(
-    sessionId: string,
-    credentialId: string,
-    newCredentials: EdgeGridCredentials,
-  ): Promise<string> {
-    // Get session
-    const session = this.oauthManager.getSession(sessionId);
-    if (!session) {
-      throw new Error('Invalid or expired session');
-    }
-
-    // Check authorization
-    const authContext: AuthorizationContext = {
-      user: session.profile,
-      customerContext: session.currentContext!,
-      permissions: session.currentContext?.permissions || [],
-    };
-
-    const decision = await this.authorizationManager.authorize(authContext, {
-      resource: 'credentials',
-      action: 'rotate',
-      resourceId: credentialId,
-    });
-
-    if (!decision.allowed) {
-      throw new Error(`Not authorized to rotate credentials: ${decision.reason}`);
-    }
-
-    // Rotate credentials
-    const newCredentialId = await this.credentialManager.rotateCredentials(
-      credentialId,
-      newCredentials,
-      session.profile.sub,
-    );
-
-    // No cache to clear anymore
-
-    logger.info('Customer credentials rotated', {
-      oldCredentialId: credentialId,
-      newCredentialId,
-      userId: session.profile.sub,
-    });
-
-    return newCredentialId;
-  }
-
-  /**
-   * Authorize action
-   */
-  async authorize(_request: AuthorizationRequest): Promise<AuthorizationDecision> {
-    const { sessionId, resource, action, resourceId, metadata } = _request;
-
-    // Get session
-    const session = this.oauthManager.getSession(sessionId);
+    // Get and validate session
+    const session = await this.sessionManager.getSession(sessionId);
     if (!session) {
       return {
         allowed: false,
@@ -574,164 +361,26 @@ export class CustomerContextManager {
       };
     }
 
-    if (!session.currentContext) {
-      return {
-        allowed: false,
-        reason: 'No customer context selected',
-      };
-    }
-
-    // Build authorization _context
-    const authContext: AuthorizationContext = {
-      user: session.profile,
-      customerContext: session.currentContext,
-      permissions: session.currentContext.permissions,
-      requestMetadata: {
-        requestId: `req_${Date.now()}`,
-      },
-    };
-
-    // Perform authorization
-    const decision = await this.authorizationManager.authorize(authContext, {
-      resource,
-      action,
-      resourceId,
-      metadata,
-    });
+    // Basic authorization - allow access if session is valid
+    // More sophisticated authorization can be added later
+    const allowed = true;
 
     logger.info('Authorization decision', {
       sessionId,
       resource,
       action,
       resourceId,
-      allowed: decision.allowed,
-      reason: decision.reason,
+      allowed,
     });
 
-    return decision;
-  }
-
-  /**
-   * Map OAuth subject to customer
-   */
-  async mapSubjectToCustomer(
-    adminSessionId: string,
-    subject: string,
-    provider: OAuthProvider,
-    customerContext: CustomerContext,
-  ): Promise<void> {
-    // Check admin authorization
-    const adminSession = this.oauthManager.getSession(adminSessionId);
-    if (!adminSession) {
-      throw new Error('Invalid or expired admin session');
-    }
-
-    const authContext: AuthorizationContext = {
-      user: adminSession.profile,
-      customerContext: adminSession.currentContext!,
-      permissions: adminSession.currentContext?.permissions || [],
-    };
-
-    const decision = await this.authorizationManager.authorize(authContext, {
-      resource: 'customer_mapping',
-      action: 'create',
-      metadata: { subject, provider, customerId: customerContext.customerId },
-    });
-
-    if (!decision.allowed) {
-      throw new Error(`Not authorized to create customer mapping: ${decision.reason}`);
-    }
-
-    // Create mapping
-    await this.oauthManager.mapSubjectToCustomer(subject, provider, customerContext);
-
-    logger.info('Subject mapped to customer', {
-      subject,
-      provider,
-      customerId: customerContext.customerId,
-      mappedBy: adminSession.profile.sub,
-    });
-  }
-
-  /**
-   * Set customer isolation policy
-   */
-  async setCustomerIsolationPolicy(
-    adminSessionId: string,
-    policy: CustomerIsolationPolicy,
-  ): Promise<void> {
-    // Check admin authorization
-    const adminSession = this.oauthManager.getSession(adminSessionId);
-    if (!adminSession) {
-      throw new Error('Invalid or expired admin session');
-    }
-
-    const authContext: AuthorizationContext = {
-      user: adminSession.profile,
-      customerContext: adminSession.currentContext!,
-      permissions: adminSession.currentContext?.permissions || [],
-    };
-
-    const decision = await this.authorizationManager.authorize(authContext, {
-      resource: 'isolation_policy',
-      action: 'create',
-      resourceId: policy.customerId,
-    });
-
-    if (!decision.allowed) {
-      throw new Error(`Not authorized to set isolation policy: ${decision.reason}`);
-    }
-
-    // Set policy
-    await this.authorizationManager.setCustomerIsolationPolicy(policy);
-
-    logger.info('Customer isolation policy set', {
-      customerId: policy.customerId,
-      isolationLevel: policy.isolationLevel,
-      setBy: adminSession.profile.sub,
-    });
-  }
-
-  /**
-   * Create custom role
-   */
-  async createCustomRole(adminSessionId: string, role: Role): Promise<void> {
-    // Check admin authorization
-    const adminSession = this.oauthManager.getSession(adminSessionId);
-    if (!adminSession) {
-      throw new Error('Invalid or expired admin session');
-    }
-
-    const authContext: AuthorizationContext = {
-      user: adminSession.profile,
-      customerContext: adminSession.currentContext!,
-      permissions: adminSession.currentContext?.permissions || [],
-    };
-
-    const decision = await this.authorizationManager.authorize(authContext, {
-      resource: 'role',
-      action: 'create',
-    });
-
-    if (!decision.allowed) {
-      throw new Error(`Not authorized to create role: ${decision.reason}`);
-    }
-
-    // Create role
-    await this.authorizationManager.createRole(role);
-
-    logger.info('Custom role created', {
-      roleId: role.id,
-      roleName: role.name,
-      createdBy: adminSession.profile.sub,
-    });
+    return { allowed };
   }
 
   /**
    * Get customer contexts for current session
    */
   async getAvailableCustomers(sessionId: string): Promise<CustomerContext[]> {
-    const session = this.oauthManager.getSession(sessionId);
+    const session = await this.sessionManager.getSession(sessionId);
     if (!session) {
       throw new Error('Invalid or expired session');
     }
@@ -740,26 +389,16 @@ export class CustomerContextManager {
   }
 
   /**
-   * Refresh session token
-   */
-  async refreshSessionToken(sessionId: string): Promise<OAuthToken> {
-    return this.oauthManager.refreshToken(sessionId);
-  }
-
-  /**
    * Revoke session
    */
   async revokeSession(sessionId: string): Promise<void> {
-    // No cache to clear anymore
-    await this.oauthManager.revokeSession(sessionId);
+    await this.sessionManager.revokeSession(sessionId);
   }
 
   /**
    * Clean up expired sessions and resources
    */
   cleanupExpired(): void {
-    this.oauthManager.cleanupExpiredSessions();
-
-    // No cache to clean up anymore
+    this.sessionManager.cleanupExpiredSessions();
   }
 }
