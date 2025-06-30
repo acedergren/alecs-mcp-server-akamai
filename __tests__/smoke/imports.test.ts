@@ -10,9 +10,9 @@ describe('Import Smoke Test', () => {
     }).not.toThrow();
   });
 
-  it('should import MCP server without errors', () => {
+  it('should import core modules without errors', () => {
     expect(() => {
-      require('../../src/mcp-server');
+      require('../../src/index');
     }).not.toThrow();
   });
 

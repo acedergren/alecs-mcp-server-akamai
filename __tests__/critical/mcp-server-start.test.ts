@@ -36,12 +36,12 @@ describe('Critical: MCP Server Startup', () => {
     }, 1000);
   });
 
-  it('should export MCP server handlers', () => {
+  it('should have modular server factory', () => {
     // Just verify the module structure is correct
-    const mcpServer = require('../../src/mcp-server');
+    const factory = require('../../src/utils/modular-server-factory');
     
-    expect(mcpServer).toBeDefined();
-    expect(mcpServer.createMCPServer).toBeDefined();
-    expect(typeof mcpServer.createMCPServer).toBe('function');
+    expect(factory).toBeDefined();
+    expect(factory.createModularServer).toBeDefined();
+    expect(typeof factory.createModularServer).toBe('function');
   });
 });
