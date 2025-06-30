@@ -1036,7 +1036,7 @@ export async function validateChangelistState(
   }
 ): Promise<{
   isValid: boolean;
-  changelist?: EdgeDNSChangeListMetadata;
+  changelist?: EdgeDNSChangeListResponse;
   action?: 'SUBMIT' | 'DISCARD' | 'CONTINUE';
   message?: string;
 }> {
@@ -1383,6 +1383,11 @@ export async function ensureCleanChangeList(
 
 /**
  * Create or update a DNS record using change list workflow
+ * 
+ * ENHANCED with intelligent operation detection:
+ * - Automatically determines ADD vs EDIT based on existing records
+ * - Handles changelist conflicts gracefully
+ * - Provides clear guidance for users
  */
 export async function upsertRecord(
   client: AkamaiClient,
@@ -1394,6 +1399,7 @@ export async function upsertRecord(
     rdata: string[];
     comment?: string;
     force?: boolean;
+    autoSubmit?: boolean; // Auto-submit changes after creation
   },
 ): Promise<MCPToolResponse> {
   const spinner = new Spinner();
@@ -1406,7 +1412,7 @@ export async function upsertRecord(
       maxStaleAgeMinutes: 30,
     });
 
-    if (!validation.isValid && validation.action === 'SUBMIT') {
+    if (!validation.isValid && validation.action === 'SUBMIT' && !args.force) {
       // There's an active changelist with pending changes
       spinner.fail('Active changelist exists');
       return {
@@ -1416,18 +1422,52 @@ export async function upsertRecord(
             text: `${icons.warning} ${validation.message}\n\n` +
                   `${icons.info} Options:\n` +
                   `  • Submit pending changes: "Activate zone changes for ${args.zone}"\n` +
-                  `  • Use force option to discard existing changes\n` +
+                  `  • Use force=true to discard existing changes\n` +
                   `  • Wait for current operation to complete`,
           },
         ],
       };
     }
 
+    if (args.force && validation.changelist) {
+      spinner.update('Force mode: Discarding existing changelist...');
+      await discardChangeList(client, args.zone);
+    }
+
     if (validation.message) {
       spinner.update(validation.message);
     }
 
-    // Step 2: Create a new changelist
+    // Step 2: Determine if record exists (for ADD vs EDIT decision)
+    spinner.update('Checking if record exists...');
+    let operation: 'ADD' | 'EDIT' = 'ADD';
+    
+    try {
+      const existingRecords = await client.request({
+        path: `/config-dns/v2/zones/${args.zone}/recordsets`,
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        queryParams: {
+          types: args.type,
+          search: args.name
+        },
+      });
+      
+      const records = (existingRecords as EdgeDNSRecordSetsResponse).recordsets || [];
+      const exactMatch = records.find(r => r.name === args.name && r.type === args.type);
+      
+      if (exactMatch) {
+        operation = 'EDIT';
+        spinner.update(`Existing ${args.type} record found, will update...`);
+      } else {
+        spinner.update(`No existing ${args.type} record found, will create...`);
+      }
+    } catch (checkError) {
+      // If we can't check, assume ADD
+      logger.debug({ error: checkError }, 'Could not check existing records, assuming ADD');
+    }
+
+    // Step 3: Create a new changelist
     spinner.update('Creating changelist...');
     await client.request({
       path: '/config-dns/v2/changelists',
@@ -1443,15 +1483,13 @@ export async function upsertRecord(
     
     spinner.update(`Changelist created for zone ${args.zone}`);
 
-    // Step 2: Add/update the record using add-change endpoint
-    spinner.update(`Adding ${args.type} record for ${args.name}...`);
+    // Step 4: Add/update the record using add-change endpoint
+    spinner.update(`${operation === 'ADD' ? 'Adding' : 'Updating'} ${args.type} record for ${args.name}...`);
     
-    // Determine operation type (ADD or EDIT)
-    // For upsert, we'll use ADD which will update if exists
     const changeOperation = {
       name: args.name,
       type: args.type,
-      op: 'ADD' as const,
+      op: operation,
       ttl: args.ttl,
       rdata: args.rdata,
     };
@@ -1466,21 +1504,94 @@ export async function upsertRecord(
       body: changeOperation,
     });
 
-    // Step 3: Submit the change list
-    spinner.update('Submitting changes...');
-    const submitResponse = await submitChangeList(client, args.zone, args.comment || `Updated ${args.type} record for ${args.name}`);
+    // Step 5: Submit the change list if autoSubmit is true
+    if (args.autoSubmit !== false) {
+      spinner.update('Submitting changes...');
+      const submitResponse = await submitChangeList(
+        client, 
+        args.zone, 
+        args.comment || `${operation === 'ADD' ? 'Created' : 'Updated'} ${args.type} record for ${args.name}`
+      );
 
-    spinner.succeed(`Record updated: ${args.name} ${args.type}`);
+      spinner.succeed(`Record ${operation === 'ADD' ? 'created' : 'updated'}: ${args.name} ${args.type}`);
 
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `${icons.success} Successfully updated DNS record:\n${icons.dns} ${format.cyan(args.name)} ${format.dim(args.ttl.toString())} ${format.green(args.type)} ${format.yellow(args.rdata.join(' '))}\n\n${icons.info} Request ID: ${format.dim(submitResponse.requestId)}`,
-        },
-      ],
-    };
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `${icons.success} Successfully ${operation === 'ADD' ? 'created' : 'updated'} DNS record:\n${icons.dns} ${format.cyan(args.name)} ${format.dim(args.ttl.toString())} ${format.green(args.type)} ${format.yellow(args.rdata.join(' '))}\n\n${icons.info} Changes activated (Request ID: ${format.dim(submitResponse.requestId)})`,
+          },
+        ],
+      };
+    } else {
+      spinner.succeed(`Record ${operation === 'ADD' ? 'created' : 'updated'} in changelist: ${args.name} ${args.type}`);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `${icons.success} Successfully ${operation === 'ADD' ? 'created' : 'updated'} DNS record in changelist:\n${icons.dns} ${format.cyan(args.name)} ${format.dim(args.ttl.toString())} ${format.green(args.type)} ${format.yellow(args.rdata.join(' '))}\n\n${icons.info} Changes pending - activate with "Activate zone changes for ${args.zone}"`,
+          },
+        ],
+      };
+    }
   } catch (_error) {
+    // Enhanced error handling for common issues
+    if (_error instanceof Error) {
+      if (_error.message.includes('422') && _error.message.includes('already exists')) {
+        // Record exists but we tried ADD - retry with EDIT
+        spinner.update('Record exists, retrying with EDIT operation...');
+        try {
+          const changeOperation = {
+            name: args.name,
+            type: args.type,
+            op: 'EDIT' as const,
+            ttl: args.ttl,
+            rdata: args.rdata,
+          };
+
+          await client.request({
+            path: `/config-dns/v2/changelists/${args.zone}/recordsets/add-change`,
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+            body: changeOperation,
+          });
+
+          if (args.autoSubmit !== false) {
+            spinner.update('Submitting changes...');
+            const submitResponse = await submitChangeList(
+              client, 
+              args.zone, 
+              args.comment || `Updated ${args.type} record for ${args.name}`
+            );
+
+            spinner.succeed(`Record updated: ${args.name} ${args.type}`);
+
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: `${icons.success} Successfully updated DNS record:\n${icons.dns} ${format.cyan(args.name)} ${format.dim(args.ttl.toString())} ${format.green(args.type)} ${format.yellow(args.rdata.join(' '))}\n\n${icons.info} Changes activated (Request ID: ${format.dim(submitResponse.requestId)})`,
+                },
+              ],
+            };
+          }
+        } catch (retryError) {
+          // If retry fails, fall through to regular error handling
+          return errorHandler.handle('upsertRecord', retryError, spinner, {
+            zone: args.zone,
+            name: args.name,
+            type: args.type,
+            ttl: args.ttl,
+            rdata: args.rdata
+          });
+        }
+      }
+    }
+    
     return errorHandler.handle('upsertRecord', _error, spinner, {
       zone: args.zone,
       name: args.name,
@@ -1735,6 +1846,203 @@ export async function activateZoneChanges(
       zone: args.zone,
       validateOnly: args.validateOnly,
       waitForCompletion: args.waitForCompletion
+    });
+  }
+}
+
+/**
+ * User-friendly DNS delegation setup for subzones
+ * 
+ * This function handles the complete workflow for delegating a subzone to external nameservers.
+ * It automatically handles common issues like phantom changelists and NS record updates.
+ * 
+ * @example
+ * // Delegate oci.example.com to Oracle Cloud nameservers
+ * delegateSubzone(client, {
+ *   zone: 'oci.example.com',
+ *   nameservers: [
+ *     'ns1.p201.dns.oraclecloud.net.',
+ *     'ns2.p201.dns.oraclecloud.net.',
+ *     'ns3.p201.dns.oraclecloud.net.',
+ *     'ns4.p201.dns.oraclecloud.net.'
+ *   ],
+ *   provider: 'Oracle Cloud'
+ * })
+ */
+export async function delegateSubzone(
+  client: AkamaiClient,
+  args: {
+    zone: string;
+    nameservers: string[];
+    provider?: string;  // Optional provider name for better messages
+    ttl?: number;       // TTL for NS records (default: 300)
+    createIfMissing?: boolean; // Create zone if it doesn't exist
+  },
+): Promise<MCPToolResponse> {
+  const spinner = new Spinner();
+  const providerName = args.provider || 'external provider';
+  const ttl = args.ttl || 300;
+
+  try {
+    spinner.start(`Setting up ${args.zone} delegation to ${providerName}...`);
+    
+    // Step 1: Check if zone exists
+    let zoneExists = false;
+    try {
+      await getZone(client, { zone: args.zone });
+      zoneExists = true;
+      spinner.update(`Zone ${args.zone} exists, proceeding with delegation...`);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('404')) {
+        if (args.createIfMissing) {
+          spinner.update(`Zone ${args.zone} not found, creating it...`);
+          await createZone(client, {
+            zone: args.zone,
+            type: 'PRIMARY',
+            comment: `Created for ${providerName} delegation`
+          });
+          zoneExists = true;
+        } else {
+          spinner.fail(`Zone ${args.zone} not found`);
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `${icons.error} Zone ${format.cyan(args.zone)} does not exist\n\n` +
+                      `${icons.info} To create it and set up delegation:\n` +
+                      `  • Use createIfMissing: true option\n` +
+                      `  • Or create the zone first: "Create zone ${args.zone}"`,
+              },
+            ],
+          };
+        }
+      } else {
+        throw error;
+      }
+    }
+    
+    // Step 2: Clean up any phantom changelists
+    spinner.update('Checking for existing changelists...');
+    try {
+      const changelist = await getChangeList(client, args.zone);
+      if (changelist) {
+        // Check if it's a phantom changelist
+        if (!changelist.recordSets || changelist.recordSets.length === 0) {
+          spinner.update('Discarding empty changelist...');
+          await discardChangeList(client, args.zone);
+        } else {
+          // Real changelist with changes
+          spinner.fail('Active changelist with pending changes');
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `${icons.warning} Active changelist exists with ${changelist.recordSets.length} pending changes\n\n` +
+                      `${icons.info} Options:\n` +
+                      `  • Activate pending changes first\n` +
+                      `  • Use force option to discard changes\n` +
+                      `  • Review changes with "List changelist for ${args.zone}"`,
+              },
+            ],
+          };
+        }
+      }
+    } catch (error) {
+      // No changelist exists, which is fine
+      logger.debug({ zone: args.zone }, 'No existing changelist');
+    }
+    
+    // Step 3: Get current NS records
+    spinner.update('Checking current nameservers...');
+    const records = await client.request({
+      path: `/config-dns/v2/zones/${args.zone}/recordsets`,
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      queryParams: { types: 'NS' }
+    });
+    
+    const recordsData = records as EdgeDNSRecordSetsResponse;
+    const nsRecord = recordsData.recordsets?.find(r => r.name === args.zone && r.type === 'NS');
+    
+    if (nsRecord) {
+      // Compare nameservers
+      const currentNS = nsRecord.rdata.sort();
+      const newNS = args.nameservers.sort();
+      
+      if (JSON.stringify(currentNS) === JSON.stringify(newNS)) {
+        spinner.succeed('Nameservers already configured correctly');
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `${icons.success} Zone ${format.cyan(args.zone)} is already delegated to ${providerName}\n\n` +
+                    `${icons.info} Current nameservers:\n` +
+                    args.nameservers.map((ns, i) => `  ${i + 1}. ${format.green(ns)}`).join('\n'),
+            },
+          ],
+        };
+      }
+      
+      spinner.update(`Updating nameservers from Akamai to ${providerName}...`);
+    } else {
+      spinner.update(`Adding ${providerName} nameservers...`);
+    }
+    
+    // Step 4: Create changelist and update NS records
+    spinner.update('Creating changelist...');
+    await client.request({
+      path: '/config-dns/v2/changelists',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      queryParams: { zone: args.zone }
+    });
+    
+    // Use EDIT if NS record exists, ADD if it doesn't
+    const operation = nsRecord ? 'EDIT' : 'ADD';
+    
+    spinner.update(`${operation === 'EDIT' ? 'Updating' : 'Adding'} nameserver records...`);
+    await client.request({
+      path: `/config-dns/v2/changelists/${args.zone}/recordsets/add-change`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: {
+        name: args.zone,
+        type: 'NS',
+        op: operation,
+        ttl: ttl,
+        rdata: args.nameservers
+      }
+    });
+    
+    // Step 5: Submit changelist
+    spinner.update('Activating delegation changes...');
+    const submitResponse = await submitChangeList(
+      client,
+      args.zone,
+      `Delegate ${args.zone} to ${providerName} nameservers`
+    );
+    
+    spinner.succeed(`Successfully delegated ${args.zone} to ${providerName}`);
+    
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `${icons.success} Successfully delegated ${format.cyan(args.zone)} to ${providerName}!\n\n` +
+                `${icons.dns} Nameservers configured:\n` +
+                args.nameservers.map((ns, i) => `  ${i + 1}. ${format.green(ns)}`).join('\n') +
+                `\n\n${icons.info} TTL: ${ttl} seconds\n` +
+                `${icons.info} Request ID: ${format.dim(submitResponse.requestId)}\n\n` +
+                `${icons.sparkle} The delegation is now active. ${providerName} can now manage DNS for ${args.zone}`,
+        },
+      ],
+    };
+    
+  } catch (_error) {
+    return errorHandler.handle('delegateSubzone', _error, spinner, {
+      zone: args.zone,
+      nameservers: args.nameservers,
+      provider: args.provider
     });
   }
 }
