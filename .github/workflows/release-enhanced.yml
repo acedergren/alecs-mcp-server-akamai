@@ -108,8 +108,6 @@ jobs:
         dockerfile: 
           - path: build/docker/Dockerfile
             tag: latest
-          - path: build/docker/Dockerfile.minimal
-            tag: minimal
           - path: build/docker/Dockerfile.modular
             tag: modular
           - path: build/docker/Dockerfile.websocket
@@ -173,7 +171,7 @@ jobs:
         echo "- **Registry**: ghcr.io" >> $GITHUB_STEP_SUMMARY
         echo "- **Repository**: ${{ env.IMAGE_NAME }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Version**: ${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Tags**: latest, minimal, modular, websocket, sse" >> $GITHUB_STEP_SUMMARY
+        echo "- **Tags**: latest, modular, websocket, sse" >> $GITHUB_STEP_SUMMARY
 
   create-release-artifacts:
     name: Create Release Artifacts

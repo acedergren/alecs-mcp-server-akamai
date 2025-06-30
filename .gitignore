@@ -25,6 +25,10 @@ build/**/*.d.ts
 !jest.setup.js
 !eslint.config.js
 !tests/**/*.js
+!ecosystem.config.js
+!ecosystem.modular.config.js
+!start-websocket-server.js
+!start-sse-server.js
 *.js.map
 *.d.ts
 !src/**/*.d.ts

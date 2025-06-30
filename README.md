@@ -4,7 +4,7 @@
 
 [![npm version](https://img.shields.io/npm/v/alecs-mcp-server-akamai.svg?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/alecs-mcp-server-akamai)
 [![npm downloads](https://img.shields.io/npm/dm/alecs-mcp-server-akamai.svg?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/alecs-mcp-server-akamai)
-[![Docker Pulls](https://img.shields.io/docker/pulls/yourdockerhubusername/alecs-mcp-server-akamai?style=for-the-badge&logo=docker)](https://hub.docker.com/r/yourdockerhubusername/alecs-mcp-server-akamai)
+[![Docker Pulls](https://img.shields.io/docker/pulls/acedergr/alecs-mcp-server-akamai?style=for-the-badge&logo=docker)](https://hub.docker.com/r/acedergr/alecs-mcp-server-akamai)
 [![GitHub release](https://img.shields.io/github/v/release/acedergren/alecs-mcp-server-akamai?style=for-the-badge&logo=github)](https://github.com/acedergren/alecs-mcp-server-akamai/releases)
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/acedergren/alecs-mcp-server-akamai/ci-cd.yml?branch=main&style=for-the-badge&logo=github-actions&label=Build)](https://github.com/acedergren/alecs-mcp-server-akamai/actions)
@@ -89,13 +89,13 @@ cp .edgerc.example ~/.edgerc
 
 ```bash
 # Pull from Docker Hub (recommended)
-docker pull yourdockerhubusername/alecs-mcp-server-akamai:latest
+docker pull acedergr/alecs-mcp-server-akamai:latest
 
 # Or pull from GitHub Container Registry
 docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:latest
 
 # Run with environment variables
-docker run -it --env-file .env yourdockerhubusername/alecs-mcp-server-akamai:latest
+docker run -it --env-file .env acedergr/alecs-mcp-server-akamai:latest
 ```
 
 #### Available Docker Tags
@@ -103,7 +103,6 @@ docker run -it --env-file .env yourdockerhubusername/alecs-mcp-server-akamai:lat
 | Tag | Description | Size |
 |-----|-------------|------|
 | `latest` | Main server with PM2 management | ~200MB |
-| `minimal` | Minimal server (3 core tools) | ~150MB |
 | `modular` | Microservices architecture | ~180MB |
 | `websocket` | WebSocket transport | ~170MB |
 | `sse` | Server-Sent Events transport | ~170MB |
