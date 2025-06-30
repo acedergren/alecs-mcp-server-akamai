@@ -147,65 +147,18 @@ docker run -it --env-file .env alecs/alecs-mcp-server-akamai:latest
 </table>
 </div>
 
-### 🎆 Agentic Akamai Development
+### 🎆 Natural Language, Real Actions
 
-Transform your Akamai workflow from manual API calls to conversational automation:
-
-<table>
-<tr>
-<td width="50%">
-
-#### Example: Claude Code CLI
 ```bash
-$ claude-code
-> Set up CDN for shop.example.com with 
-  security and performance optimization
+# Ask: "List my Akamai properties"
+# Get: Complete list with versions, hostnames, and activation status
 
-[Claude Code executes]:
-✓ Created property "shop.example.com"
-✓ Applied Ion product configuration
-✓ Configured WAF protection rules
-✓ Set up Image Manager policies
-✓ Added caching behaviors
-✓ Activated to staging network
-→ Ready for testing at:
-  shop.example.com.edgesuite-staging.net
+# Ask: "Show DNS records for example.com"
+# Get: All A, CNAME, MX records with TTLs
+
+# Ask: "Purge cache for /images/*"
+# Get: Fast purge executed, confirmation in seconds
 ```
-
-</td>
-<td width="50%">
-
-#### Example: Cursor/Windsurf IDE
-```typescript
-// Just describe what you need in comments:
-// TODO: Migrate DNS zone from Route53 to Akamai
-// with all A, CNAME, and MX records intact
-
-// AI Agent generates and executes:
-await dns.zone.create({ 
-  zone: "example.com",
-  copyFrom: "route53"
-});
-await dns.records.import({
-  source: awsRecords,
-  validateMX: true
-});
-// ... complete migration code
-```
-
-</td>
-</tr>
-</table>
-
-### 💼 Real-World Agentic Workflows
-
-| Workflow | Natural Language Request | What ALECS Does |
-|----------|-------------------------|------------------|
-| **🌐 Multi-Region Setup** | "Deploy my app globally with EU compliance" | Creates properties, configures geo-routing, sets GDPR headers |
-| **🔐 Zero-Trust Security** | "Implement zero-trust access for /admin" | Sets up client certificates, mTLS, IP allowlists |
-| **🚀 Performance Tuning** | "Optimize for Core Web Vitals" | Configures caching, compression, HTTP/2 push, prefetch |
-| **🔄 Blue-Green Deploy** | "Set up blue-green deployment" | Creates staging/prod configs, manages switchover |
-| **🔥 Incident Response** | "Block traffic from suspicious IPs" | Updates network lists, applies rate limiting, purges cache |
 
 ## 🏆 Stats & Features
 
@@ -242,46 +195,6 @@ await dns.records.import({
 
 ALECS bridges AI assistants (like Claude) with Akamai's powerful CDN platform through the Model Context Protocol. It provides a type-safe, production-ready interface for managing properties, DNS zones, certificates, and more.
 
-### ✨ Why ALECS?
-
-<table>
-<tr>
-<td width="50%">
-
-#### Without ALECS ❌
-
-```bash
-# Complex API calls
-curl -X POST \
-  --url https://akab-xxx.luna.akamaiapis.net/papi/v1/properties \
-  --header 'Authorization: EG1-HMAC-SHA256 ...' \
-  --data '{"productId":"prd_xxx","propertyName":"example.com"}'
-  
-# Manual changelist management
-# Complex rule tree updates
-# No context awareness
-```
-
-</td>
-<td width="50%">
-
-#### With ALECS ✅
-
-```typescript
-// Natural language with AI
-"Create a new property for example.com"
-
-// Automatic:
-// ✓ Authentication
-// ✓ Contract selection
-// ✓ Product selection
-// ✓ Error handling
-// ✓ Progress updates
-```
-
-</td>
-</tr>
-</table>
 
 ### 🚀 Key Features
 
