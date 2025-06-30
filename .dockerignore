@@ -1,4 +1,10 @@
-# Node modules
+# Git
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# Dependencies (will be installed fresh in Docker)
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -7,9 +13,6 @@ yarn-error.log*
 # Build outputs (we'll build in Docker)
 dist/
 *.tsbuildinfo
-
-# Don't ignore build directory - contains Dockerfiles
-!build/
 
 # IDE files
 .vscode/
@@ -22,45 +25,36 @@ dist/
 .DS_Store
 Thumbs.db
 
-# Git
-.git/
-.gitignore
-.gitattributes
-
-# Documentation
-*.md
+# Documentation (not needed for runtime)
 docs/
+*.md
 LICENSE
+CHANGELOG.md
+README.md
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
 
 # Tests
-tests/
+__tests__/
 coverage/
 .nyc_output/
+jest.config.*
+jest.setup.*
 *.test.ts
 *.spec.ts
-__tests__/
-
-# CI/CD
-.github/
-.circleci/
-.travis.yml
-.gitlab-ci.yml
 
 # Development files
-.env*
-!.env.example
+.env
+.env.*
 .edgerc
+.edgerc.*
 .eslintrc*
 .prettierrc*
 .npmignore
+eslint.config.js
 
-# Keep ecosystem configs for Docker
-!ecosystem*.config.js
-
-# Scripts and examples
+# Scripts (except the ones we need)
 scripts/
-examples/
-*.log
 
 # Archives and backups
 *.zip
@@ -75,11 +69,26 @@ temp/
 *.tmp
 *.temp
 .cache/
+*.log
 
-# Large analysis outputs
-PERFORMANCE_AUDIT_REPORT.md
-CACHE_OPPORTUNITY_ANALYSIS.md
-VALKEY_OPTIMIZATION_PLAN.md
-ISSUE_RESOLUTION_PLAN.md
-SECURITY_SERVER_TEST_REPORT.md
-PARAMETER_ANALYSIS_REPORT.md
+# CI/CD
+.circleci/
+.travis.yml
+.gitlab-ci.yml
+
+# Local configs
+.mcp.json.local
+claude_desktop_config*.json
+mcp-test-config.json
+
+# Don't ignore build directory structure
+!build/
+
+# Explicitly include files we need for Docker
+!package.json
+!package-lock.json
+!tsconfig.json
+!ecosystem.config.js
+!ecosystem.modular.config.js
+!start-websocket-server.js
+!start-sse-server.js
