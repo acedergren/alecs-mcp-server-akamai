@@ -1887,10 +1887,8 @@ export async function delegateSubzone(
     spinner.start(`Setting up ${args.zone} delegation to ${providerName}...`);
     
     // Step 1: Check if zone exists
-    let zoneExists = false;
     try {
       await getZone(client, { zone: args.zone });
-      zoneExists = true;
       spinner.update(`Zone ${args.zone} exists, proceeding with delegation...`);
     } catch (error) {
       if (error instanceof Error && error.message.includes('404')) {
@@ -1901,7 +1899,6 @@ export async function delegateSubzone(
             type: 'PRIMARY',
             comment: `Created for ${providerName} delegation`
           });
-          zoneExists = true;
         } else {
           spinner.fail(`Zone ${args.zone} not found`);
           return {

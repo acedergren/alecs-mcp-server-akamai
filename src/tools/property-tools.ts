@@ -1717,7 +1717,11 @@ export async function createDeliveryConfig(
     });
     
     // Extract property details from the JSON response
-    const propertyData = JSON.parse(propertyResult.content[0].text);
+    const firstContent = propertyResult.content?.[0];
+    if (!firstContent || firstContent.type !== 'text') {
+      return propertyResult;
+    }
+    const propertyData = JSON.parse(firstContent.text);
     if (!propertyData.success) {
       // Property creation failed, return the original error
       return propertyResult;
@@ -1781,7 +1785,7 @@ function generateEdgeHostname(hostname: string, certificateType: string): string
 /**
  * Generate certificate configuration details
  */
-function generateCertificateConfig(config: any): any {
+function generateCertificateConfig(config: { certificateType: string }): Record<string, any> {
   const certConfigs = {
     'default-dv': {
       type: 'Default DV Certificate',
@@ -1806,7 +1810,8 @@ function generateCertificateConfig(config: any): any {
     },
   };
   
-  return certConfigs[config.certificateType] || certConfigs['default-dv'];
+  const certType = config.certificateType as keyof typeof certConfigs;
+  return certConfigs[certType] || certConfigs['default-dv'];
 }
 
 /**
