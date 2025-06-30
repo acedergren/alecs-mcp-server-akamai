@@ -34,7 +34,9 @@ import {
   formatContractDisplay,
   formatGroupDisplay,
   formatPropertyDisplay,
+  formatEdgeHostnameDisplay,
 } from '../utils/formatting';
+import { formatProductDisplay } from '../utils/product-mapping';
 import { handleApiError } from '../utils/error-handling';
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -1159,12 +1161,12 @@ export async function listEdgeHostnames(
       text += `### 🔒 HTTPS Edge Hostnames (${secureHostnames.length})\n\n`;
       secureHostnames.forEach((hostname: any, index: number) => {
         text += `#### ${index + 1}. ${hostname.edgeHostnameDomain}\n`;
-        text += `- **Edge Hostname ID:** ${hostname.edgeHostnameId}\n`;
+        text += `- **Edge Hostname:** ${formatEdgeHostnameDisplay(hostname.edgeHostnameId, hostname.edgeHostnameDomain)}\n`;
         text += `- **Domain Prefix:** ${hostname.domainPrefix}\n`;
         text += `- **Domain Suffix:** ${hostname.domainSuffix}\n`;
         text += `- **Security:** HTTPS Enabled ✅\n`;
         text += `- **IP Version:** ${hostname.ipVersionBehavior}\n`;
-        text += `- **Product:** ${hostname.productId}\n`;
+        text += `- **Product:** ${formatProductDisplay(hostname.productId)}\n`;
         
         // CERTIFICATE STATUS: Show if certificate info is available
         if (hostname.serialNumber) {
@@ -1179,7 +1181,7 @@ export async function listEdgeHostnames(
       text += `### 🌐 HTTP Edge Hostnames (${nonSecureHostnames.length})\n\n`;
       nonSecureHostnames.forEach((hostname: any, index: number) => {
         text += `#### ${index + 1}. ${hostname.edgeHostnameDomain}\n`;
-        text += `- **Edge Hostname ID:** ${hostname.edgeHostnameId}\n`;
+        text += `- **Edge Hostname:** ${formatEdgeHostnameDisplay(hostname.edgeHostnameId, hostname.edgeHostnameDomain)}\n`;
         text += `- **Domain Prefix:** ${hostname.domainPrefix}\n`;
         text += `- **Domain Suffix:** ${hostname.domainSuffix}\n`;
         text += `- **Security:** HTTP Only ⚠️\n`;
@@ -2418,7 +2420,7 @@ export async function listProducts(
       text += `## 🌐 Web Performance Products\n\n`;
       webProducts.forEach((product: any) => {
         text += `### ${product.productName}\n`;
-        text += `- **Product ID:** ${product.productId}\n`;
+        text += `- **Product:** ${formatProductDisplay(product.productId, product.productName)}\n`;
         text += `- **Description:** Optimized for web content delivery\n\n`;
       });
     }
@@ -2427,7 +2429,7 @@ export async function listProducts(
       text += `## 🛡️ Security Products\n\n`;
       securityProducts.forEach((product: any) => {
         text += `### ${product.productName}\n`;
-        text += `- **Product ID:** ${product.productId}\n`;
+        text += `- **Product:** ${formatProductDisplay(product.productId, product.productName)}\n`;
         text += `- **Description:** Enhanced security features\n\n`;
       });
     }
@@ -2436,7 +2438,7 @@ export async function listProducts(
       text += `## 📦 Other Products\n\n`;
       otherProducts.forEach((product: any) => {
         text += `### ${product.productName}\n`;
-        text += `- **Product ID:** ${product.productId}\n\n`;
+        text += `- **Product:** ${formatProductDisplay(product.productId, product.productName)}\n\n`;
       });
     }
 
