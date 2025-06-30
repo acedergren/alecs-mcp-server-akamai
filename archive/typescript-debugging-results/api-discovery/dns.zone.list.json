@@ -1,8 +1,0 @@
-
-> alecs-mcp-server-akamai@1.6.2 api:discover
-> node scripts/api-discover-pure.js discover dns.zone.list testing
-
-🔍 Discovering dns.zone.list (akamai) for customer: testing
-✅ Discovery completed for dns.zone.list (1ms)
-
-🎉 Discovery completed successfully!

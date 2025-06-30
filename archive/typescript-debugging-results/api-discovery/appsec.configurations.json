@@ -1,8 +1,0 @@
-
-> alecs-mcp-server-akamai@1.6.2 api:discover
-> node scripts/api-discover-pure.js discover appsec.configurations testing
-
-🔍 Discovering appsec.configurations (akamai) for customer: testing
-✅ Discovery completed for appsec.configurations (1ms)
-
-🎉 Discovery completed successfully!

@@ -1,8 +1,0 @@
-
-> alecs-mcp-server-akamai@1.6.2 api:discover
-> node scripts/api-discover-pure.js discover mcp.initialize testing
-
-🔍 Discovering mcp.initialize (mcp) for customer: testing
-✅ Discovery completed for mcp.initialize (1ms)
-
-🎉 Discovery completed successfully!

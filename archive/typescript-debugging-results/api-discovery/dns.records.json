@@ -1,8 +1,0 @@
-
-> alecs-mcp-server-akamai@1.6.2 api:discover
-> node scripts/api-discover-pure.js discover dns.records testing
-
-🔍 Discovering dns.records (akamai) for customer: testing
-✅ Discovery completed for dns.records (1ms)
-
-🎉 Discovery completed successfully!

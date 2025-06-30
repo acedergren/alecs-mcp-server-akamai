@@ -1,8 +1,0 @@
-
-> alecs-mcp-server-akamai@1.6.2 api:discover
-> node scripts/api-discover-pure.js discover property.details testing
-
-🔍 Discovering property.details (akamai) for customer: testing
-✅ Discovery completed for property.details (1ms)
-
-🎉 Discovery completed successfully!

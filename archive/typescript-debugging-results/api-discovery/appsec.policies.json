@@ -1,8 +1,0 @@
-
-> alecs-mcp-server-akamai@1.6.2 api:discover
-> node scripts/api-discover-pure.js discover appsec.policies testing
-
-🔍 Discovering appsec.policies (akamai) for customer: testing
-✅ Discovery completed for appsec.policies (1ms)
-
-🎉 Discovery completed successfully!

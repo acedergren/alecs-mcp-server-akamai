@@ -10,6 +10,7 @@
 - Available contracts and products will always be read-only for users
 - Contents of a contract and the existence of a contract is solely managed by Akamai
 - No Emojis in error messages!
+- .archive is the default folder for archiving things that is not needed anymore and should not be pushed to git
 
 ## Akamai API Access and Permissions
 

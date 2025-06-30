@@ -1,8 +1,0 @@
-
-> alecs-mcp-server-akamai@1.6.2 api:discover
-> node scripts/api-discover-pure.js discover cpcodes.list testing
-
-🔍 Discovering cpcodes.list (akamai) for customer: testing
-✅ Discovery completed for cpcodes.list (1ms)
-
-🎉 Discovery completed successfully!
