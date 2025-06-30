@@ -67,14 +67,33 @@ docker-run-minimal: ## Run Minimal Docker container (3 tools)
 docker-run-remote: ## Run unified remote access container (WebSocket + SSE)
 	docker-compose -f build/docker/docker-compose.remote.yml up -d
 
-release-patch: ## Release patch version
+## Release commands
+release-check: ## Check if ready for release
+	@echo "🔍 Checking release readiness..."
+	@npm run typecheck && echo "✅ TypeScript check passed" || (echo "❌ TypeScript check failed" && exit 1)
+	@npm run lint && echo "✅ Lint check passed" || (echo "❌ Lint check failed" && exit 1)
+	@npm test && echo "✅ Tests passed" || (echo "❌ Tests failed" && exit 1)
+	@npm run build && echo "✅ Build succeeded" || (echo "❌ Build failed" && exit 1)
+	@echo "✅ All checks passed! Ready for release."
+
+release-patch: release-check ## Release patch version
 	npm version patch -m "chore: release %s"
 	git push && git push --tags
 
-release-minor: ## Release minor version
+release-minor: release-check ## Release minor version
 	npm version minor -m "chore: release %s"
 	git push && git push --tags
 
-release-major: ## Release major version
+release-major: release-check ## Release major version
 	npm version major -m "chore: release %s"
 	git push && git push --tags
+
+release-prerelease: release-check ## Release prerelease version
+	npm version prerelease --preid=rc -m "chore: release %s"
+	git push && git push --tags
+
+release-dry-run: ## Show what would be published to npm
+	npm pack --dry-run
+
+setup-npm: ## Setup npm authentication token
+	@./scripts/setup-npm-token.sh

@@ -1,0 +1,173 @@
+name: Pre-Release Checklist
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+
+jobs:
+  check-release-readiness:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check TypeScript compilation
+        id: typescript
+        run: |
+          echo "## TypeScript Compilation" >> $GITHUB_STEP_SUMMARY
+          if npm run typecheck; then
+            echo "✅ TypeScript compilation successful" >> $GITHUB_STEP_SUMMARY
+            echo "typescript_status=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ TypeScript compilation failed" >> $GITHUB_STEP_SUMMARY
+            echo "typescript_status=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Run linting
+        id: lint
+        run: |
+          echo "## Linting" >> $GITHUB_STEP_SUMMARY
+          if npm run lint; then
+            echo "✅ Linting passed" >> $GITHUB_STEP_SUMMARY
+            echo "lint_status=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Linting failed" >> $GITHUB_STEP_SUMMARY
+            echo "lint_status=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Run tests
+        id: tests
+        run: |
+          echo "## Tests" >> $GITHUB_STEP_SUMMARY
+          if npm test -- --ci --coverage --coverageReporters=text-summary; then
+            echo "✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+            echo "test_status=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Tests failed" >> $GITHUB_STEP_SUMMARY
+            echo "test_status=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Build project
+        id: build
+        run: |
+          echo "## Build" >> $GITHUB_STEP_SUMMARY
+          if npm run build; then
+            echo "✅ Build successful" >> $GITHUB_STEP_SUMMARY
+            echo "build_status=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Build failed" >> $GITHUB_STEP_SUMMARY
+            echo "build_status=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Check package files
+        id: package
+        run: |
+          echo "## Package Files" >> $GITHUB_STEP_SUMMARY
+          echo "### Files that will be published:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          npm pack --dry-run --json | jq -r '.[0].files[].path' | sort >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          
+          # Check if dist directory is included
+          if npm pack --dry-run --json | jq -r '.[0].files[].path' | grep -q "^dist/"; then
+            echo "✅ Dist directory included in package" >> $GITHUB_STEP_SUMMARY
+            echo "package_status=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Dist directory missing from package" >> $GITHUB_STEP_SUMMARY
+            echo "package_status=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Check npm credentials
+        id: npm_check
+        run: |
+          echo "## NPM Publishing Check" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "✅ NPM_TOKEN secret is configured" >> $GITHUB_STEP_SUMMARY
+            echo "npm_status=success" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ NPM_TOKEN secret is not configured" >> $GITHUB_STEP_SUMMARY
+            echo "npm_status=warning" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Docker build test
+        id: docker
+        run: |
+          echo "## Docker Build Test" >> $GITHUB_STEP_SUMMARY
+          
+          # Test main Dockerfile
+          if docker build -f build/docker/Dockerfile -t test-main .; then
+            echo "✅ Main Dockerfile builds successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Main Dockerfile build failed" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          
+          # Test modular Dockerfile
+          if docker build -f build/docker/Dockerfile.modular -t test-modular .; then
+            echo "✅ Modular Dockerfile builds successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Modular Dockerfile build failed" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          
+          echo "docker_status=success" >> $GITHUB_OUTPUT
+
+      - name: Version check
+        run: |
+          echo "## Version Information" >> $GITHUB_STEP_SUMMARY
+          echo "Current version: $(node -p "require('./package.json').version")" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Show recent tags
+          echo "### Recent releases:" >> $GITHUB_STEP_SUMMARY
+          git tag -l "v*" | sort -V | tail -5 >> $GITHUB_STEP_SUMMARY
+
+      - name: Release readiness summary
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📋 Release Readiness Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.typescript.outputs.typescript_status }}" = "success" ] && \
+             [ "${{ steps.lint.outputs.lint_status }}" = "success" ] && \
+             [ "${{ steps.tests.outputs.test_status }}" = "success" ] && \
+             [ "${{ steps.build.outputs.build_status }}" = "success" ] && \
+             [ "${{ steps.package.outputs.package_status }}" = "success" ] && \
+             [ "${{ steps.docker.outputs.docker_status }}" = "success" ]; then
+            echo "### ✅ Ready for release!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "All checks passed. You can proceed with the release workflow." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Not ready for release" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please fix the issues above before releasing." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ steps.npm_check.outputs.npm_status }}" = "warning" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **Note**: NPM_TOKEN is not configured. Add it to repository secrets for npm publishing." >> $GITHUB_STEP_SUMMARY
+          fi

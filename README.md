@@ -368,6 +368,34 @@ All tools support the `customer` parameter for multi-account operations:
 
 The architecture supports everything from basic multi-customer setups to **full enterprise SaaS deployment** with OAuth authentication, role-based access control, and complete customer isolation.
 
+## Releasing
+
+ALECS uses automated workflows for releases:
+
+### Quick Release
+```bash
+# Check release readiness
+make release-check
+
+# Release new versions
+make release-patch    # 1.6.2 → 1.6.3
+make release-minor    # 1.6.2 → 1.7.0
+make release-major    # 1.6.2 → 2.0.0
+```
+
+### GitHub Actions Release
+1. Go to [Actions → Release & Publish](https://github.com/acedergren/alecs-mcp-server-akamai/actions)
+2. Click "Run workflow"
+3. Select version type
+4. Workflow automatically:
+   - Runs tests
+   - Bumps version
+   - Publishes to npm
+   - Builds & pushes Docker images
+   - Creates GitHub release
+
+See [Release Guide](docs/RELEASE-GUIDE.md) for detailed instructions.
+
 ## Contributing
 
 1. Fork the repository

@@ -1,0 +1,302 @@
+name: Release & Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - prerelease
+      prerelease_tag:
+        description: 'Prerelease tag (e.g., rc, beta, alpha)'
+        required: false
+        default: 'rc'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write  # Required for npm provenance
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build project
+        run: npm run build
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Get previous version
+        run: |
+          echo "PREVIOUS_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+
+      - name: Bump version
+        run: |
+          if [ "${{ github.event.inputs.version }}" = "prerelease" ]; then
+            npm version prerelease --preid=${{ github.event.inputs.prerelease_tag }} -m "chore: release %s"
+          else
+            npm version ${{ github.event.inputs.version }} -m "chore: release %s"
+          fi
+          echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+
+      - name: Push changes
+        run: |
+          git push origin HEAD:main
+          git push --tags
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "## What's Changed" > changelog.md
+          echo "" >> changelog.md
+          git log --pretty=format:"* %s (%h)" v${{ env.PREVIOUS_VERSION }}..v${{ env.VERSION }} >> changelog.md
+          echo "" >> changelog.md
+          echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ env.PREVIOUS_VERSION }}...v${{ env.VERSION }}" >> changelog.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: v${{ env.VERSION }}
+          body_path: changelog.md
+          draft: false
+          prerelease: ${{ contains(env.VERSION, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Docker builds
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker meta for main image
+        id: meta-main
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ env.VERSION }}
+            type=raw,value=prerelease,enable=${{ contains(env.VERSION, '-') }}
+
+      - name: Build and push Main Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/docker/Dockerfile
+          push: true
+          tags: ${{ steps.meta-main.outputs.tags }}
+          labels: ${{ steps.meta-main.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Docker meta for modular image
+        id: meta-modular
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          flavor: |
+            prefix=modular-,onlatest=true
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ env.VERSION }}
+            type=raw,value=prerelease,enable=${{ contains(env.VERSION, '-') }}
+
+      - name: Build and push Modular Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/docker/Dockerfile.modular
+          push: true
+          tags: ${{ steps.meta-modular.outputs.tags }}
+          labels: ${{ steps.meta-modular.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Docker meta for full image
+        id: meta-full
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          flavor: |
+            prefix=full-,onlatest=true
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ env.VERSION }}
+            type=raw,value=prerelease,enable=${{ contains(env.VERSION, '-') }}
+
+      - name: Build and push Full Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/docker/Dockerfile.full
+          push: true
+          tags: ${{ steps.meta-full.outputs.tags }}
+          labels: ${{ steps.meta-full.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Docker meta for essential image
+        id: meta-essential
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          flavor: |
+            prefix=essential-,onlatest=true
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ env.VERSION }}
+            type=raw,value=prerelease,enable=${{ contains(env.VERSION, '-') }}
+
+      - name: Build and push Essential Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/docker/Dockerfile.essential
+          push: true
+          tags: ${{ steps.meta-essential.outputs.tags }}
+          labels: ${{ steps.meta-essential.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Docker meta for minimal image
+        id: meta-minimal
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          flavor: |
+            prefix=minimal-,onlatest=true
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ env.VERSION }}
+            type=raw,value=prerelease,enable=${{ contains(env.VERSION, '-') }}
+
+      - name: Build and push Minimal Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/docker/Dockerfile.minimal
+          push: true
+          tags: ${{ steps.meta-minimal.outputs.tags }}
+          labels: ${{ steps.meta-minimal.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Docker meta for websocket image
+        id: meta-websocket
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          flavor: |
+            prefix=websocket-,onlatest=true
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ env.VERSION }}
+            type=raw,value=prerelease,enable=${{ contains(env.VERSION, '-') }}
+
+      - name: Build and push WebSocket Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/docker/Dockerfile.websocket
+          push: true
+          tags: ${{ steps.meta-websocket.outputs.tags }}
+          labels: ${{ steps.meta-websocket.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Docker meta for SSE image
+        id: meta-sse
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          flavor: |
+            prefix=sse-,onlatest=true
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ env.VERSION }}
+            type=raw,value=prerelease,enable=${{ contains(env.VERSION, '-') }}
+
+      - name: Build and push SSE Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/docker/Dockerfile.sse
+          push: true
+          tags: ${{ steps.meta-sse.outputs.tags }}
+          labels: ${{ steps.meta-sse.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # NPM Publishing
+      - name: Check npm publication readiness
+        run: |
+          npm pack --dry-run
+          echo "Package contents:"
+          npm pack --dry-run --json | jq -r '.[0].files[].path' | sort
+
+      - name: Publish to npm
+        run: |
+          if [[ "${{ env.VERSION }}" == *"-"* ]]; then
+            npm publish --tag next --provenance --access public
+          else
+            npm publish --provenance --access public
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create release summary
+        run: |
+          echo "## 🎉 Release v${{ env.VERSION }} Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Published Packages:" >> $GITHUB_STEP_SUMMARY
+          echo "- **npm**: [alecs-mcp-server-akamai@${{ env.VERSION }}](https://www.npmjs.com/package/alecs-mcp-server-akamai/v/${{ env.VERSION }})" >> $GITHUB_STEP_SUMMARY
+          echo "- **GitHub Release**: [v${{ env.VERSION }}](https://github.com/${{ github.repository }}/releases/tag/v${{ env.VERSION }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🐳 Docker Images Published:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/${{ github.repository }}:${{ env.VERSION }}\` (Main)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/${{ github.repository }}:modular-${{ env.VERSION }}\` (Modular)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/${{ github.repository }}:full-${{ env.VERSION }}\` (Full)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/${{ github.repository }}:essential-${{ env.VERSION }}\` (Essential)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/${{ github.repository }}:minimal-${{ env.VERSION }}\` (Minimal)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/${{ github.repository }}:websocket-${{ env.VERSION }}\` (WebSocket)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/${{ github.repository }}:sse-${{ env.VERSION }}\` (SSE)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "## ❌ Release Failed!" >> $GITHUB_STEP_SUMMARY
+          echo "Please check the workflow logs for details." >> $GITHUB_STEP_SUMMARY
