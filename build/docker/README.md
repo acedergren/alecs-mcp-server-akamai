@@ -1,7 +1,16 @@
 # Docker Build Guide
 
-This directory contains Docker configurations for different deployment scenarios of the Alecs MCP
-Server.
+This directory contains Docker configurations for different deployment scenarios of the ALECS MCP Server.
+
+## 🎯 Recommended Image
+
+**Use the standard `latest` image for optimal AI assistant performance:**
+
+```bash
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:latest
+```
+
+This image contains ~25 core tools that are thoroughly tested and won't overwhelm AI clients like Claude or Cursor.
 
 ## Available Images
 
@@ -13,13 +22,14 @@ Server.
 - **Size**: ~300MB
 - **Ports**: 3000-3013, 8082
 
-### 2. Full Image (180+ Tools)
+### 2. Full Image (180+ Tools) ⚠️ Advanced Users Only
 
 - **Dockerfile**: `Dockerfile.full`
 - **Description**: Complete single-process server with all 180+ tools
-- **Use Case**: Maximum functionality in a single process
+- **Use Case**: Only when you need specific tools not in the standard build
 - **Size**: ~250MB
 - **Port**: 3000
+- **Warning**: May cause performance issues with AI assistants due to tool overload
 
 ### 3. Essential Image (15 Tools)
 

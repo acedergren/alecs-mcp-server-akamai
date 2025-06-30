@@ -54,13 +54,8 @@ npm start
 ### Method 3: Docker
 
 ```bash
-# Pull image (main MCP server)
+# Pull image (recommended - optimized ~25 core tools)
 docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:latest
-
-# Or choose a specific variant:
-# docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:full-latest      # All 180+ tools
-# docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:modular-latest   # Domain-specific servers
-# docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:remote-latest    # WebSocket + SSE support
 
 # Run container
 docker run -it \
@@ -68,6 +63,27 @@ docker run -it \
   -p 3000:3000 \
   ghcr.io/acedergren/alecs-mcp-server-akamai:latest
 ```
+
+**Note**: The standard image includes ~25 well-tested core tools optimized for AI clients. This prevents overwhelming Claude, Cursor, and other AI assistants with too many options.
+
+<details>
+<summary>Advanced: Other Docker variants (click to expand)</summary>
+
+For advanced users who need specific functionality:
+
+```bash
+# Full server with 180+ tools (may cause performance issues)
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:full-latest
+
+# Domain-specific modular servers
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:modular-latest
+
+# Remote access support (WebSocket + SSE)
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:remote-latest
+```
+
+⚠️ **Warning**: The full server variant includes 180+ tools which can overwhelm AI clients, cause slower responses, and make tool selection difficult. Only use if you specifically need tools not in the standard build.
+</details>
 
 ### Method 4: Docker Compose
 

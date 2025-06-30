@@ -4,11 +4,16 @@ MCP (Model Context Protocol) server that enables AI assistants to manage Akamai'
 
 > **Note**: This is an unofficial community project and comes without any support or warranty from Akamai Technologies.
 
-## Update regading ALECS
+## Philosophy: Quality Over Quantity
 
-**Stability over sprawl**. I have made the hard decision to remove alot of tools for now. ALECS 1.6 now focuses on ~25 core tools that actually work and is well tested with Akamai APIs. 
+**ALECS 1.6+ focuses on ~25 core tools** that are thoroughly tested and optimized for AI assistant performance. This deliberate choice:
 
-The plan is to slowy bring things back as we go and can make them stable, focusing on new worklows made possible with Elicitation in the new MCP spec from June 18, 2025.
+- ✅ **Prevents AI client overload** - Too many tools slow down Claude, Cursor, and other assistants
+- ✅ **Improves tool selection accuracy** - AI makes better choices with focused options
+- ✅ **Ensures reliability** - Every tool is battle-tested with real Akamai APIs
+- ✅ **Faster responses** - Reduced tool parsing overhead
+
+The full 180+ tool version is available for advanced users, but the standard build is recommended for optimal AI assistant performance.
 
 ## Installation
 
@@ -27,7 +32,7 @@ alecs
 
 ### Option 2: Docker
 ```bash
-# Pull and run
+# Pull and run (recommended - optimized for AI clients)
 docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:latest
 docker run -v ~/.edgerc:/root/.edgerc:ro \
   -p 3000:3000 \

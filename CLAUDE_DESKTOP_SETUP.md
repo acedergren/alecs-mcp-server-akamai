@@ -2,6 +2,8 @@
 
 This guide will help you set up the ALECS MCP Server with Claude Desktop.
 
+> **Recommended**: Use the standard server configuration (~25 tools) for optimal Claude Desktop performance. The full server (180+ tools) can overwhelm Claude and cause degraded performance.
+
 ## Prerequisites
 
 1. **Claude Desktop** installed on your system
@@ -71,7 +73,16 @@ Add the following to your Claude Desktop configuration file:
 }
 ```
 
-For the full version with all tools:
+<details>
+<summary>⚠️ Advanced: Full version with 180+ tools (not recommended)</summary>
+
+**WARNING**: The full server includes 180+ tools which can:
+- Overwhelm Claude with too many options
+- Cause slower response times
+- Make tool selection less accurate
+- Result in degraded user experience
+
+Only use if you specifically need tools not in the standard ~25 tool build:
 
 ```json
 {
@@ -87,6 +98,8 @@ For the full version with all tools:
     }
   }
 }
+```
+</details>
 ```
 
 ### 4. Restart Claude Desktop
