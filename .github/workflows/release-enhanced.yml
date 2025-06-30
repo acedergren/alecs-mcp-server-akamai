@@ -106,13 +106,13 @@ jobs:
     strategy:
       matrix:
         dockerfile: 
-          - path: build/docker/Dockerfile
+          - path: Dockerfile
             tag: latest
-          - path: build/docker/Dockerfile.modular
+          - path: Dockerfile.modular
             tag: modular
-          - path: build/docker/Dockerfile.websocket
+          - path: Dockerfile.websocket
             tag: websocket
-          - path: build/docker/Dockerfile.sse
+          - path: Dockerfile.sse
             tag: sse
     
     steps:
