@@ -4,7 +4,6 @@
 
 [![npm version](https://img.shields.io/npm/v/alecs-mcp-server-akamai.svg?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/alecs-mcp-server-akamai)
 [![npm downloads](https://img.shields.io/npm/dm/alecs-mcp-server-akamai.svg?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/alecs-mcp-server-akamai)
-[![Docker Pulls](https://img.shields.io/docker/pulls/alecs/alecs-mcp-server-akamai?style=for-the-badge&logo=docker)](https://hub.docker.com/r/alecs/alecs-mcp-server-akamai)
 [![GitHub release](https://img.shields.io/github/v/release/acedergren/alecs-mcp-server-akamai?style=for-the-badge&logo=github)](https://github.com/acedergren/alecs-mcp-server-akamai/releases)
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/acedergren/alecs-mcp-server-akamai/ci-cd.yml?branch=main&style=for-the-badge&logo=github-actions&label=Build)](https://github.com/acedergren/alecs-mcp-server-akamai/actions)
@@ -88,14 +87,11 @@ cp .edgerc.example ~/.edgerc
 ### Docker
 
 ```bash
-# Pull from Docker Hub (recommended)
-docker pull alecs/alecs-mcp-server-akamai:latest
-
-# Or pull from GitHub Container Registry
+# Pull from GitHub Container Registry
 docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:latest
 
 # Run with environment variables
-docker run -it --env-file .env alecs/alecs-mcp-server-akamai:latest
+docker run -it --env-file .env ghcr.io/acedergren/alecs-mcp-server-akamai:latest
 ```
 
 #### Available Docker Tags

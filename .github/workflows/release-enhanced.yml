@@ -128,6 +128,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Log in to Docker Hub
+      if: ${{ secrets.DOCKER_USERNAME != '' }}
       uses: docker/login-action@v3
       with:
         registry: ${{ env.DOCKER_REGISTRY }}
@@ -163,8 +164,6 @@ jobs:
         tags: |
           ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ matrix.dockerfile.tag }}
           ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.dockerfile.tag }}
-          ${{ env.DOCKER_REGISTRY }}/alecs/alecs-mcp-server-akamai:${{ env.VERSION }}-${{ matrix.dockerfile.tag }}
-          ${{ env.DOCKER_REGISTRY }}/alecs/alecs-mcp-server-akamai:${{ matrix.dockerfile.tag }}
         labels: ${{ steps.meta.outputs.labels }}
     
     - name: Create container summary
