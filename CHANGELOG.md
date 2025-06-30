@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2025-01-30
+
+### Added
+- New `delegateSubzone()` function for complete DNS delegation workflow
+- Intelligent ADD vs EDIT detection in `upsertRecord()`
+- Automatic phantom/empty changelist cleanup
+- Force mode option for DNS operations to handle blocking changelists
+- Auto-submit option for immediate DNS change activation
+- Provider-aware messaging in DNS delegation
+
+### Changed
+- Enhanced `upsertRecord()` with automatic retry logic
+- Improved error messages with actionable guidance
+- DNS operations now handle Edge DNS complexity internally
+- Complete removal of emojis from codebase (replaced with text indicators)
+
+### Fixed
+- DNS NS record updates now use EDIT operation when records exist
+- Proper handling of "zone must have at least 1 NS record" constraint
+- Resolution of phantom changelist blocking issues
+
+### Developer Experience
+- DNS operations no longer require Akamai API expertise
+- One-call solutions for complex workflows
+- Clear progress indicators throughout operations
+
 ## [1.6.0-rc3] - 2025-01-28
 
 ### Added - Snow Leopard Quality Achievement
