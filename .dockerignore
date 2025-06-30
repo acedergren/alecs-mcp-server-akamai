@@ -1,0 +1,85 @@
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs (we'll build in Docker)
+dist/
+*.tsbuildinfo
+
+# Don't ignore build directory - contains Dockerfiles
+!build/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+LICENSE
+
+# Tests
+tests/
+coverage/
+.nyc_output/
+*.test.ts
+*.spec.ts
+__tests__/
+
+# CI/CD
+.github/
+.circleci/
+.travis.yml
+.gitlab-ci.yml
+
+# Development files
+.env*
+!.env.example
+.edgerc
+.eslintrc*
+.prettierrc*
+.npmignore
+
+# Keep ecosystem configs for Docker
+!ecosystem*.config.js
+
+# Scripts and examples
+scripts/
+examples/
+*.log
+
+# Archives and backups
+*.zip
+*.tar.gz
+*.rar
+.archive/
+backup/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+.cache/
+
+# Large analysis outputs
+PERFORMANCE_AUDIT_REPORT.md
+CACHE_OPPORTUNITY_ANALYSIS.md
+VALKEY_OPTIMIZATION_PLAN.md
+ISSUE_RESOLUTION_PLAN.md
+SECURITY_SERVER_TEST_REPORT.md
+PARAMETER_ANALYSIS_REPORT.md
