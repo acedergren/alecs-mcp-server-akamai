@@ -3,14 +3,14 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files  
 COPY package*.json ./
+
+# Copy source code and configs first
+COPY . .
 
 # Install all dependencies
 RUN npm ci
-
-# Copy source code
-COPY . .
 
 # Build the application
 RUN npm run build
@@ -26,7 +26,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install production dependencies only
+# Install production dependencies only (skip prepare script)
+ENV NPM_CONFIG_IGNORE_SCRIPTS=true
 RUN npm ci --omit=dev && npm cache clean --force
 
 # Copy built application from builder
