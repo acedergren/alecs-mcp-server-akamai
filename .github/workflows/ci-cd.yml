@@ -23,6 +23,15 @@ jobs:
     - name: Install dependencies
       run: npm ci
     
+    - name: Create test .edgerc
+      run: |
+        echo '[testing]' > ~/.edgerc
+        echo 'client_secret = test-secret' >> ~/.edgerc
+        echo 'host = test.purge.akamaiapis.net' >> ~/.edgerc
+        echo 'access_token = test-token' >> ~/.edgerc
+        echo 'client_token = test-client-token' >> ~/.edgerc
+        chmod 600 ~/.edgerc
+    
     - name: Run tests
       run: npm test
     
