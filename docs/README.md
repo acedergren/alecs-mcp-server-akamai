@@ -2,7 +2,7 @@
 
 Welcome to the ALECS MCP Server documentation. This guide provides comprehensive information for integrating with Akamai's CDN platform through the Model Context Protocol.
 
-**Version:** 1.7.0  
+**Version:** 1.7.1  
 **Last Updated:** 2025-06-30  
 **Total Tools:** 113+ across 5 service modules
 
