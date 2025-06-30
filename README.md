@@ -23,7 +23,7 @@
 
 <div align="center">
   <p align="center">
-    <strong>A</strong>kamai <strong>L</strong>ocal <strong>E</strong>dge <strong>C</strong>onfiguration <strong>S</strong>erver
+    <strong>A</strong> <strong>L</strong>aunchgrid for <strong>E</strong>dge & <strong>C</strong>loud <strong>S</strong>ervices
   </p>
   <p align="center">
     <i>A Model Context Protocol (MCP) server that brings AI-powered automation to Akamai CDN management</i>
