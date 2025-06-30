@@ -151,19 +151,61 @@ docker run -it --env-file .env alecs/alecs-mcp-server-akamai:latest
 
 Transform your Akamai workflow from manual API calls to conversational automation:
 
-```typescript
-// 👨‍💻 Human: "Set up a new CDN property for my e-commerce site with
-//            WAF protection and image optimization"
+<table>
+<tr>
+<td width="50%">
 
-// 🤖 AI Agent: "I'll help you set up a complete CDN configuration. Let me:
-//   1. Create the property with Ion product (includes Image Manager)
-//   2. Configure security rules with WAF
-//   3. Set up caching behaviors for static assets
-//   4. Add image optimization policies
-//   5. Deploy to staging for testing"
+#### Example: Claude Code CLI
+```bash
+$ claude-code
+> Set up CDN for shop.example.com with 
+  security and performance optimization
 
-// [Agent proceeds to execute all steps with progress updates]
+[Claude Code executes]:
+✓ Created property "shop.example.com"
+✓ Applied Ion product configuration
+✓ Configured WAF protection rules
+✓ Set up Image Manager policies
+✓ Added caching behaviors
+✓ Activated to staging network
+→ Ready for testing at:
+  shop.example.com.edgesuite-staging.net
 ```
+
+</td>
+<td width="50%">
+
+#### Example: Cursor/Windsurf IDE
+```typescript
+// Just describe what you need in comments:
+// TODO: Migrate DNS zone from Route53 to Akamai
+// with all A, CNAME, and MX records intact
+
+// AI Agent generates and executes:
+await dns.zone.create({ 
+  zone: "example.com",
+  copyFrom: "route53"
+});
+await dns.records.import({
+  source: awsRecords,
+  validateMX: true
+});
+// ... complete migration code
+```
+
+</td>
+</tr>
+</table>
+
+### 💼 Real-World Agentic Workflows
+
+| Workflow | Natural Language Request | What ALECS Does |
+|----------|-------------------------|------------------|
+| **🌐 Multi-Region Setup** | "Deploy my app globally with EU compliance" | Creates properties, configures geo-routing, sets GDPR headers |
+| **🔐 Zero-Trust Security** | "Implement zero-trust access for /admin" | Sets up client certificates, mTLS, IP allowlists |
+| **🚀 Performance Tuning** | "Optimize for Core Web Vitals" | Configures caching, compression, HTTP/2 push, prefetch |
+| **🔄 Blue-Green Deploy** | "Set up blue-green deployment" | Creates staging/prod configs, manages switchover |
+| **🔥 Incident Response** | "Block traffic from suspicious IPs" | Updates network lists, applies rate limiting, purges cache |
 
 ## 🏆 Stats & Features
 
