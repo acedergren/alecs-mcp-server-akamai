@@ -13,6 +13,7 @@ yarn-error.log*
 # Build outputs (we'll build in Docker)
 dist/
 *.tsbuildinfo
+build/
 
 # IDE files
 .vscode/
@@ -33,6 +34,10 @@ CHANGELOG.md
 README.md
 CONTRIBUTING.md
 CODE_OF_CONDUCT.md
+
+# Dockerfiles (we don't need them inside the container)
+Dockerfile*
+.dockerignore
 
 # Tests
 __tests__/
@@ -80,9 +85,6 @@ temp/
 .mcp.json.local
 claude_desktop_config*.json
 mcp-test-config.json
-
-# Don't ignore build directory structure
-!build/
 
 # Explicitly include files we need for Docker
 !package.json
