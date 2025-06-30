@@ -12,8 +12,8 @@ COPY . .
 # Install all dependencies (skip prepare script)
 RUN npm ci --ignore-scripts
 
-# Build the application (skip docs for Docker)
-RUN npm run clean && npm run build:ts
+# Build TypeScript only (no docs needed)
+RUN npm run build:ts
 
 # Production stage
 FROM node:20-alpine
