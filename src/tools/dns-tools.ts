@@ -41,6 +41,8 @@ type ZoneActivationStatus = {
 import { createHash } from 'crypto';
 
 import { Spinner, format, icons } from '../utils/progress';
+import { createErrorHandler } from '../utils/error-handler';
+import { createLogger } from '../utils/pino-logger';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -60,6 +62,10 @@ import {
   type EdgeDNSZoneActivationStatusResponse,
 } from '../types/api-responses/edge-dns-zones';
 
+// Initialize logger and error handler
+const logger = createLogger('dns-tools');
+const errorHandler = createErrorHandler('dns');
+
 // Operational logging utilities
 function generateRequestId(): string {
   return createHash('md5')
@@ -69,11 +75,7 @@ function generateRequestId(): string {
 }
 
 function logOperation(operation: string, details: Record<string, unknown>) {
-  if (process.env['DNS_OPERATION_LOG'] === 'true') {
-    const timestamp = new Date().toISOString();
-    const requestId = (details['requestId'] as string) || generateRequestId();
-    console.error(`[DNS-OPS] ${timestamp} [${requestId}] ${operation}:`, JSON.stringify(details));
-  }
+  logger.info({ operation, ...details }, `DNS operation: ${operation}`);
 }
 
 export interface ZoneActivationOptions {
@@ -182,9 +184,11 @@ export async function listZones(
       ],
     };
   } catch (_error) {
-    spinner.fail('Failed to fetch DNS zones');
-    console.error('[Error]:', _error);
-    throw _error;
+    return errorHandler.handle('listZones', _error, spinner, {
+      contractIds: args.contractIds,
+      search: args.search,
+      includeAliases: args.includeAliases
+    });
   }
 }
 
@@ -238,16 +242,25 @@ export async function getZone(
       ],
     };
   } catch (_error) {
-    // Only log unexpected errors, not 404s which are expected in some scenarios
-    if (!(_error instanceof Error && _error.message.includes('404:'))) {
-      console.error('[Error]:', _error);
+    // 404s are expected in some scenarios (e.g., checking if zone exists)
+    if (_error instanceof Error && _error.message.includes('404:')) {
+      throw _error; // Let caller handle 404s
     }
-    throw _error;
+    return errorHandler.handle('getZone', _error, undefined, {
+      zone: args.zone
+    });
   }
 }
 
 /**
- * Create a DNS zone
+ * Create a DNS zone with enhanced validation and error handling
+ * 
+ * CODE KAI IMPROVEMENTS:
+ * - Contract validation before zone creation
+ * - Parent zone verification for subzones
+ * - Changelist conflict detection and resolution
+ * - Enhanced error messages with specific guidance
+ * - Retry logic for transient failures
  */
 export async function createZone(
   client: AkamaiClient,
@@ -262,56 +275,283 @@ export async function createZone(
   },
 ): Promise<MCPToolResponse> {
   const spinner = new Spinner();
-  spinner.start(`Creating ${args.type} zone: ${args.zone}`);
+  const errorHandler = createErrorHandler('dns');
 
   try {
+    // Pre-validation checks
+    spinner.start('Validating zone creation requirements...');
+    
+    // 1. Check if zone already exists
+    try {
+      await client.request({
+        path: `/config-dns/v2/zones/${args.zone}`,
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+      });
+      
+      // If we get here, zone already exists
+      spinner.fail('Zone already exists');
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `${icons.error} Zone ${format.cyan(args.zone)} already exists\n\n` +
+                  `${icons.info} To modify the existing zone:\n` +
+                  `  • Use updateZone to modify configuration\n` +
+                  `  • Use deleteZone to remove and recreate\n` +
+                  `  • Use listZones to see all zones`,
+          },
+        ],
+      };
+    } catch (checkError: any) {
+      // 404 is expected - zone doesn't exist, we can proceed
+      if (checkError?.statusCode !== 404 && checkError?.response?.status !== 404) {
+        throw checkError; // Unexpected error during zone check
+      }
+    }
+
+    // 2. For subzones, verify parent zone exists and get its contract
+    const zoneParts = args.zone.split('.');
+    let validatedContractId = args.contractId;
+    
+    if (zoneParts.length > 2) {
+      const parentZone = zoneParts.slice(1).join('.');
+      spinner.update(`Verifying parent zone: ${parentZone}...`);
+      
+      try {
+        await client.request({
+          path: `/config-dns/v2/zones/${parentZone}`,
+          method: 'GET',
+          headers: { Accept: 'application/json' },
+        });
+        
+        // Get parent zone's contract if not provided
+        if (!validatedContractId) {
+          try {
+            const contractResponse = await client.request({
+              path: `/config-dns/v2/zones/${parentZone}/contract`,
+              method: 'GET',
+              headers: { Accept: 'application/json' },
+            });
+            
+            if (contractResponse && typeof contractResponse === 'object' && 'contractId' in contractResponse) {
+              validatedContractId = (contractResponse as any).contractId;
+              logger.info({ 
+                subZone: args.zone, 
+                parentZone,
+                inheritedContract: validatedContractId 
+              }, 'Using parent zone contract for subzone');
+            }
+          } catch (contractError) {
+            logger.warn({ parentZone, error: contractError }, 'Could not retrieve parent zone contract');
+          }
+        }
+      } catch (parentError: any) {
+        if (parentError?.statusCode === 404 || parentError?.response?.status === 404) {
+          spinner.fail('Parent zone not found');
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `${icons.error} Parent zone ${format.cyan(parentZone)} does not exist\n\n` +
+                      `${icons.info} To create subzone ${format.cyan(args.zone)}:\n` +
+                      `  1. First create parent zone: "Create zone ${parentZone}"\n` +
+                      `  2. Then create subzone: "Create zone ${args.zone}"\n\n` +
+                      `${icons.info} Alternatively, create the full zone hierarchy`,
+              },
+            ],
+          };
+        }
+        throw parentError; // Unexpected error during parent check
+      }
+    }
+
+    // 3. Validate contract ID if provided
+    if (validatedContractId) {
+      spinner.update('Validating contract access...');
+      try {
+        // Test contract access by listing zones for this contract
+        await client.request({
+          path: '/config-dns/v2/zones',
+          method: 'GET',
+          headers: { Accept: 'application/json' },
+          queryParams: { contractId: validatedContractId, limit: '1' },
+        });
+      } catch (contractError: any) {
+        if (contractError?.statusCode === 403 || contractError?.response?.status === 403) {
+          spinner.fail('Contract access denied');
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `${icons.error} No access to contract ${format.cyan(validatedContractId)}\n\n` +
+                      `${icons.info} Possible issues:\n` +
+                      `  • Contract ID is incorrect\n` +
+                      `  • API credentials don't have access to this contract\n` +
+                      `  • Account switching required\n\n` +
+                      `${icons.info} Use listContracts to see available contracts`,
+              },
+            ],
+          };
+        }
+        // Other errors will be handled by main error handler
+      }
+    }
+
+    // 4. Check for existing changelist conflicts
+    try {
+      const changelist = await getChangeList(client, args.zone);
+      if (changelist) {
+        spinner.fail('Changelist conflict');
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `${icons.error} Active changelist exists for zone ${format.cyan(args.zone)}\n\n` +
+                    `${icons.info} Options:\n` +
+                    `  • Submit pending changes: "Activate zone changes for ${args.zone}"\n` +
+                    `  • Discard changes: "Discard changelist for ${args.zone}"\n` +
+                    `  • Wait for current operation to complete`,
+            },
+          ],
+        };
+      }
+    } catch (changelistError) {
+      // 404 is expected for new zones - no changelist exists
+      if (changelistError && typeof changelistError === 'object' && 'statusCode' in changelistError && changelistError.statusCode !== 404) {
+        logger.warn({ zone: args.zone, error: changelistError }, 'Could not check changelist status');
+      }
+    }
+
+    // All validations passed, proceed with zone creation
+    spinner.update(`Creating ${args.type} zone: ${args.zone}...`);
+
     const body: Partial<EdgeDNSZoneResponse> = {
       zone: args.zone,
       type: args.type,
-      comment: args.comment,
+      comment: args.comment || `Created via ALECS MCP server`,
     };
 
-    // Add type-specific fields
-    if (args.type === 'SECONDARY' && args.masters) {
+    // Add type-specific fields with validation
+    if (args.type === 'SECONDARY') {
+      if (!args.masters || args.masters.length === 0) {
+        spinner.fail('Masters required for SECONDARY zone');
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `${icons.error} SECONDARY zones require master nameservers\n\n` +
+                    `${icons.info} Example:\n` +
+                    `  masters: ["ns1.example.com", "ns2.example.com"]`,
+            },
+          ],
+        };
+      }
       body.masters = args.masters;
     }
-    if (args.type === 'ALIAS' && args.target) {
+    
+    if (args.type === 'ALIAS') {
+      if (!args.target) {
+        spinner.fail('Target required for ALIAS zone');
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `${icons.error} ALIAS zones require a target zone\n\n` +
+                    `${icons.info} Example:\n` +
+                    `  target: "primary-zone.example.com"`,
+            },
+          ],
+        };
+      }
       body.target = args.target;
     }
 
     const queryParams: Record<string, string> = {};
-    if (args.contractId) {
-      queryParams['contractId'] = args.contractId;
+    if (validatedContractId) {
+      queryParams['contractId'] = validatedContractId;
     }
     if (args.groupId) {
       queryParams['gid'] = args.groupId;
     }
 
-    await client.request({
-      path: '/config-dns/v2/zones',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body,
-      queryParams,
-    });
+    // Execute zone creation with retry logic
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        await client.request({
+          path: '/config-dns/v2/zones',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body,
+          queryParams,
+        });
+        break; // Success, exit retry loop
+      } catch (retryError) {
+        // Only retry on transient errors (500, 503)
+        const statusCode = (retryError as any)?.statusCode || (retryError as any)?.response?.status;
+        if ((statusCode === 500 || statusCode === 503) && attempt < 2) {
+          const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
+          spinner.update(`Retrying in ${delay}ms... (attempt ${attempt + 2}/3)`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+        throw retryError; // Non-retryable error or max retries reached
+      }
+    }
 
     spinner.succeed(`Zone created: ${args.zone}`);
+
+    // Enhanced success message with next steps
+    let responseText = `${icons.success} Successfully created DNS zone: ${format.cyan(args.zone)} (Type: ${format.green(args.type)})`;
+    
+    if (validatedContractId && validatedContractId !== args.contractId) {
+      responseText += `\n${icons.info} Used contract: ${format.dim(validatedContractId)} (inherited from parent)`;
+    }
+    
+    responseText += `\n\n${icons.info} Next steps:`;
+    
+    if (args.type === 'PRIMARY') {
+      responseText += `\n  • Add DNS records: "Create record in ${args.zone}"`;
+      responseText += `\n  • Activate changes: "Activate zone changes for ${args.zone}"`;
+      if (zoneParts.length > 2) {
+        responseText += `\n  • Add delegation in parent zone: "Create NS record in ${zoneParts.slice(1).join('.')}"`;
+      }
+    } else if (args.type === 'SECONDARY') {
+      responseText += `\n  • Verify master servers are configured`;
+      responseText += `\n  • Activate zone: "Activate zone changes for ${args.zone}"`;
+    }
 
     return {
       content: [
         {
           type: 'text',
-          text: `${icons.success} Successfully created DNS zone: ${format.cyan(args.zone)} (Type: ${format.green(args.type)})`,
+          text: responseText,
         },
       ],
     };
   } catch (_error) {
-    spinner.fail(`Failed to create zone: ${args.zone}`);
-    console.error('[Error]:', _error);
-    throw _error;
+    // Enhanced error context for subzones
+    const zoneParts = args.zone.split('.');
+    if (zoneParts.length > 2) {
+      const parentZone = zoneParts.slice(1).join('.');
+      logger.error({ 
+        subZone: args.zone, 
+        parentZone,
+        operation: 'createZone',
+        contractId: args.contractId,
+        error: _error
+      }, 'Sub-zone creation failed');
+    }
+    
+    return errorHandler.handle('createZone', _error, spinner, {
+      zone: args.zone,
+      type: args.type,
+      contractId: args.contractId,
+      groupId: args.groupId,
+    });
   }
 }
 
@@ -379,8 +619,11 @@ export async function listRecords(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', _error);
-    throw _error;
+    return errorHandler.handle('listRecords', _error, undefined, {
+      zone: args.zone,
+      search: args.search,
+      types: args.types
+    });
   }
 }
 
@@ -634,7 +877,7 @@ export async function submitChangeList(
         }
       } catch (_error) {
         spinner.fail('Failed to monitor activation status');
-        console.error('[Error]:', _error);
+        logger.error({ error: _error, zone }, 'Failed to monitor activation status');
         // Don't throw - submission was successful even if monitoring failed
       }
     }
@@ -1050,9 +1293,13 @@ export async function upsertRecord(
       ],
     };
   } catch (_error) {
-    spinner.fail('Failed to update DNS record');
-    console.error('[Error]:', _error);
-    throw _error;
+    return errorHandler.handle('upsertRecord', _error, spinner, {
+      zone: args.zone,
+      name: args.name,
+      type: args.type,
+      ttl: args.ttl,
+      rdata: args.rdata
+    });
   }
 }
 
@@ -1143,12 +1390,16 @@ export async function deleteRecord(
       ],
     };
   } catch (_error) {
-    spinner.fail('Failed to delete DNS record');
-    // Only log unexpected errors, not 404s which are expected in some scenarios
-    if (!(_error instanceof Error && _error.message.includes('404:'))) {
-      console.error('[Error]:', _error);
+    // 404s might indicate record doesn't exist, which could be expected
+    if (_error instanceof Error && _error.message.includes('404:')) {
+      spinner.fail(`Record not found: ${args.name} ${args.type}`);
+      throw _error;
     }
-    throw _error;
+    return errorHandler.handle('deleteRecord', _error, spinner, {
+      zone: args.zone,
+      name: args.name,
+      type: args.type
+    });
   }
 }
 
@@ -1246,10 +1497,9 @@ export async function activateZoneChanges(
       };
     }
   } catch (_error) {
-    spinner.fail('Failed to activate zone changes');
-
-    // Provide helpful error messages
+    // Provide helpful error messages for specific errors
     if (_error instanceof Error && _error.message?.includes('No pending changelist')) {
+      spinner.fail('No pending changes to activate');
       return {
         content: [
           {
@@ -1265,6 +1515,10 @@ export async function activateZoneChanges(
       };
     }
 
-    throw _error;
+    return errorHandler.handle('activateZoneChanges', _error, spinner, {
+      zone: args.zone,
+      validateOnly: args.validateOnly,
+      waitForCompletion: args.waitForCompletion
+    });
   }
 }
