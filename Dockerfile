@@ -10,8 +10,7 @@ COPY package*.json ./
 COPY . .
 
 # Install all dependencies (skip prepare script)
-ENV NPM_CONFIG_IGNORE_SCRIPTS=true
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 # Build the application
 RUN npm run build
