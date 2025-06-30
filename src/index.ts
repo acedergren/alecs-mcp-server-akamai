@@ -24,20 +24,27 @@ setupSafeConsole();
 
 import { getTransportFromEnv } from './config/transport-config';
 
+import { bangLogger, createLogger } from './utils/pino-logger';
+
+const mainLogger = createLogger('main');
+
 async function main(): Promise<void> {
-  console.error('[BANG] MAIN() STARTED!');
-  console.error('[BANG] Process argv:', process.argv);
-  console.error('[BANG] Current directory:', process.cwd());
-  console.error('[BANG] Node version:', process.version);
+  bangLogger.info('MAIN() STARTED!');
+  bangLogger.info({ 
+    argv: process.argv,
+    cwd: process.cwd(),
+    nodeVersion: process.version,
+    pid: process.pid
+  }, 'Process info');
   
   // Check if running a specific module via npm script
   const scriptName = process.env['npm_lifecycle_event'];
-  console.error('[BANG] npm_lifecycle_event:', scriptName);
+  mainLogger.debug({ scriptName }, 'npm_lifecycle_event');
   
   if (scriptName && scriptName.startsWith('start:') && scriptName !== 'start:stdio') {
     // Launch specific module server
     const moduleName = scriptName.replace('start:', '');
-    console.error('[BANG] Launching specific module:', moduleName);
+    mainLogger.info({ moduleName }, 'Launching specific module');
     
     const moduleMap: Record<string, string> = {
       property: './servers/property-server',
@@ -48,72 +55,73 @@ async function main(): Promise<void> {
     };
     
     if (moduleMap[moduleName]) {
-      console.error('[BANG] Importing module:', moduleMap[moduleName]);
+      mainLogger.info({ module: moduleMap[moduleName] }, 'Importing module');
       await import(moduleMap[moduleName]);
       return;
     } else {
-      const error = new Error(`[BANG] UNKNOWN MODULE: ${moduleName}`);
-      console.error(error.message);
+      const error = new Error(`UNKNOWN MODULE: ${moduleName}`);
+      bangLogger.fatal({ moduleName }, error.message);
       throw error;
     }
   }
   
   // Otherwise use unified transport approach
-  console.error('[BANG] Using unified transport approach...');
+  mainLogger.info('Using unified transport approach');
   
   try {
-    console.error('[BANG] Getting transport config...');
+    mainLogger.debug('Getting transport config...');
     const transportConfig = getTransportFromEnv();
-    console.error('[BANG] Transport config received:', transportConfig);
+    mainLogger.info({ transportConfig }, 'Transport config received');
     
     // Always use stderr for all output
-    console.error(`[BANG] Starting ALECS MCP Server with transport: ${transportConfig.type}`);
+    bangLogger.info({ transport: transportConfig.type }, 'Starting ALECS MCP Server');
     
     if (transportConfig.type === 'stdio') {
-      console.error('[BANG] Running in Claude Desktop mode - stdio transport active');
-      console.error('[BANG] ALL output going to stderr to prevent JSON-RPC corruption');
+      mainLogger.info('Running in Claude Desktop mode - stdio transport active');
+      mainLogger.info('ALL output going to stderr to prevent JSON-RPC corruption');
     }
     
     // Start Akamai MCP server with full tool registry
-    console.error('[BANG] Importing akamai-server-factory...');
+    mainLogger.debug('Importing akamai-server-factory...');
     const { createAkamaiServer } = await import('./utils/akamai-server-factory');
-    console.error('[BANG] akamai-server-factory imported successfully');
+    mainLogger.debug('akamai-server-factory imported successfully');
     
-    console.error('[BANG] Creating Akamai server...');
+    mainLogger.info('Creating Akamai server...');
     const server = await createAkamaiServer({
       name: `alecs-mcp-server-akamai`,
       version: '1.6.2',
       // Load all 171 tools by default
       // Can be customized with toolFilter for specific deployments
     });
-    console.error('[BANG] Akamai server created successfully');
+    mainLogger.info('Akamai server created successfully');
     
-    console.error('[BANG] Starting server...');
+    mainLogger.info('Starting server...');
     await server.start();
-    console.error('[BANG] SERVER IS RUNNING AND READY FOR CONNECTIONS!');
+    bangLogger.info('SERVER IS RUNNING AND READY FOR CONNECTIONS!');
     
   } catch (_error) {
-    console.error('[BANG] FATAL ERROR IN MAIN()!', _error);
-    console.error('[BANG] Error details:', {
+    bangLogger.fatal({ error: _error }, 'FATAL ERROR IN MAIN()!');
+    mainLogger.error({
       message: _error instanceof Error ? _error.message : String(_error),
       stack: _error instanceof Error ? _error.stack : undefined,
       type: _error?.constructor?.name || typeof _error
-    });
+    }, 'Error details');
     process.exit(1);
   }
 }
 
 // Start the server
 if (require.main === module) {
-  console.error('[BANG] Script is main module, starting server...');
+  mainLogger.info('Script is main module, starting server...');
   main().catch((error) => {
-    console.error('[BANG] UNHANDLED ERROR IN MAIN()!');
-    console.error('[BANG] Fatal error:', error);
-    console.error('[BANG] Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+    bangLogger.fatal({ error }, 'UNHANDLED ERROR IN MAIN()!');
+    bangLogger.fatal({ 
+      stack: error instanceof Error ? error.stack : 'No stack trace' 
+    }, 'Stack trace');
     process.exit(1);
   });
 } else {
-  console.error('[BANG] Script imported as module, not starting server');
+  mainLogger.info('Script imported as module, not starting server');
 }
 
 export { main };
