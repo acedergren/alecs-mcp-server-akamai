@@ -23,15 +23,22 @@ import { setupSafeConsole } from './utils/safe-console';
 setupSafeConsole();
 
 import { getTransportFromEnv } from './config/transport-config';
-import { logger } from './utils/logger';
 
 async function main(): Promise<void> {
+  console.error('[BANG] MAIN() STARTED!');
+  console.error('[BANG] Process argv:', process.argv);
+  console.error('[BANG] Current directory:', process.cwd());
+  console.error('[BANG] Node version:', process.version);
+  
   // Check if running a specific module via npm script
   const scriptName = process.env['npm_lifecycle_event'];
+  console.error('[BANG] npm_lifecycle_event:', scriptName);
   
   if (scriptName && scriptName.startsWith('start:') && scriptName !== 'start:stdio') {
     // Launch specific module server
     const moduleName = scriptName.replace('start:', '');
+    console.error('[BANG] Launching specific module:', moduleName);
+    
     const moduleMap: Record<string, string> = {
       property: './servers/property-server',
       dns: './servers/dns-server',
@@ -41,70 +48,56 @@ async function main(): Promise<void> {
     };
     
     if (moduleMap[moduleName]) {
+      console.error('[BANG] Importing module:', moduleMap[moduleName]);
       await import(moduleMap[moduleName]);
       return;
+    } else {
+      const error = new Error(`[BANG] UNKNOWN MODULE: ${moduleName}`);
+      console.error(error.message);
+      throw error;
     }
   }
   
   // Otherwise use unified transport approach
+  console.error('[BANG] Using unified transport approach...');
+  
   try {
+    console.error('[BANG] Getting transport config...');
     const transportConfig = getTransportFromEnv();
+    console.error('[BANG] Transport config received:', transportConfig);
     
-    /**
-     * CRITICAL: JSON-RPC Protocol Compliance Fix
-     * 
-     * Problem: Claude Desktop communicates via JSON-RPC over stdio (stdin/stdout)
-     * Any non-JSON output to stdout corrupts the protocol and causes parsing errors
-     * 
-     * Solution: Conditionally output based on transport type
-     * - stdio: Use logger (stderr) to avoid corrupting stdout JSON-RPC stream
-     * - websocket/sse: Safe to use console.log as they don't use stdout
-     * 
-     * Impact: Fixes "Unexpected token" and "not valid JSON" errors in Claude Desktop
-     */
-    if (transportConfig.type !== 'stdio') {
-      // Safe to use console.log for non-stdio transports
-      console.log(`[INFO] Starting ALECS MCP Server`);
-      console.log(`[INFO] Transport: ${transportConfig.type}`);
-    } else {
-      // stdio transport: Use logger to output to stderr, preserving stdout for JSON-RPC
-      logger.info('Starting ALECS MCP Server for Claude Desktop');
-    }
+    // Always use stderr for all output
+    console.error(`[BANG] Starting ALECS MCP Server with transport: ${transportConfig.type}`);
     
     if (transportConfig.type === 'stdio') {
-      // stdio mode: All logs must go to stderr via logger to avoid JSON-RPC corruption
-      logger.info('Running in Claude Desktop mode - stdio transport active');
-    } else {
-      // Non-stdio modes: Console output is safe and provides user configuration guidance
-      console.log(`[INFO] Add to claude_desktop_config.json:`);
-      console.log(`
-{
-  "mcpServers": {
-    "alecs": {
-      "command": "node",
-      "args": ["${process.argv[1]}"]
-    }
-  }
-}
-`);
+      console.error('[BANG] Running in Claude Desktop mode - stdio transport active');
+      console.error('[BANG] ALL output going to stderr to prevent JSON-RPC corruption');
     }
     
     // Start Akamai MCP server with full tool registry
-    // CODE KAI: Using the improved factory with clear naming
+    console.error('[BANG] Importing akamai-server-factory...');
     const { createAkamaiServer } = await import('./utils/akamai-server-factory');
+    console.error('[BANG] akamai-server-factory imported successfully');
     
+    console.error('[BANG] Creating Akamai server...');
     const server = await createAkamaiServer({
       name: `alecs-mcp-server-akamai`,
       version: '1.6.2',
       // Load all 171 tools by default
       // Can be customized with toolFilter for specific deployments
     });
+    console.error('[BANG] Akamai server created successfully');
     
+    console.error('[BANG] Starting server...');
     await server.start();
+    console.error('[BANG] SERVER IS RUNNING AND READY FOR CONNECTIONS!');
+    
   } catch (_error) {
-    logger.error('Server initialization failed', {
-      error: _error instanceof Error ? _error.message : String(_error),
+    console.error('[BANG] FATAL ERROR IN MAIN()!', _error);
+    console.error('[BANG] Error details:', {
+      message: _error instanceof Error ? _error.message : String(_error),
       stack: _error instanceof Error ? _error.stack : undefined,
+      type: _error?.constructor?.name || typeof _error
     });
     process.exit(1);
   }
@@ -112,7 +105,15 @@ async function main(): Promise<void> {
 
 // Start the server
 if (require.main === module) {
-  main();
+  console.error('[BANG] Script is main module, starting server...');
+  main().catch((error) => {
+    console.error('[BANG] UNHANDLED ERROR IN MAIN()!');
+    console.error('[BANG] Fatal error:', error);
+    console.error('[BANG] Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+    process.exit(1);
+  });
+} else {
+  console.error('[BANG] Script imported as module, not starting server');
 }
 
 export { main };

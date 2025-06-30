@@ -86,7 +86,13 @@ export class AkamaiMCPServer {
   private compatibilityWrapper?: MCPCompatibilityWrapper;
 
   constructor(config: ServerConfig) {
+    console.error('[BANG] AkamaiMCPServer constructor starting...');
+    console.error('[BANG] Config:', JSON.stringify(config, null, 2));
+    
     this.config = config;
+    
+    // Create server - FAIL if this throws
+    console.error('[BANG] Creating MCP Server instance...');
     this.server = new Server(
       {
         name: config.name,
@@ -98,122 +104,133 @@ export class AkamaiMCPServer {
         },
       }
     );
+    console.error('[BANG] MCP Server instance created successfully');
 
     // Create compatibility wrapper for Claude Desktop support
-    this.compatibilityWrapper = new MCPCompatibilityWrapper(this.server, {
-      enableLegacySupport: true
-    });
+    const disableWrapper = process.env['DISABLE_COMPATIBILITY_WRAPPER'];
+    console.error(`[BANG] Compatibility wrapper disabled: ${disableWrapper || 'false'}`);
+    
+    if (!disableWrapper) {
+      console.error('[BANG] Creating MCPCompatibilityWrapper...');
+      this.compatibilityWrapper = new MCPCompatibilityWrapper(this.server, {
+        enableLegacySupport: true
+      });
+      console.error('[BANG] MCPCompatibilityWrapper created successfully');
+    }
 
-    // Initialize server with tools
+    // Initialize server with tools - These will throw on error
+    console.error('[BANG] Loading tools...');
     this.loadTools();
+    
+    console.error('[BANG] Setting up handlers...');
     this.setupHandlers();
+    
+    console.error('[BANG] AkamaiMCPServer constructor completed successfully');
   }
 
   /**
-   * Load tools from the central registry with enhanced error handling
+   * Load tools from the central registry - FAIL FAST on any error
    * 
-   * KAIZEN: Added detailed logging and error recovery
+   * REFACTORED: Remove graceful degradation - fail immediately on any issue
    */
   private loadTools(): void {
-    try {
-      const allTools = getAllToolDefinitions();
-      
-      // Apply optional filter with error handling
-      const toolsToLoad = this.config.toolFilter 
-        ? allTools.filter((tool) => {
-            try {
-              return this.config.toolFilter!(tool);
-            } catch (error) {
-              logger.error(`Tool filter error for ${tool.name}:`, error);
-              return false; // Skip tools that cause filter errors
-            }
-          })
-        : allTools;
-      
-      logger.info(`Loading ${toolsToLoad.length} of ${allTools.length} available tools`);
-      
-      // Load tools with defensive validation and comprehensive error handling
-      let loadedCount = 0;
-      const failedTools: Array<{ name: string; error: string }> = [];
-      
-      for (const tool of toolsToLoad) {
-        try {
-          // DEFENSIVE: Validate tool definition before loading
-          this.validateTool(tool);
-          
-          // DEFENSIVE: Check for duplicate tool names
-          if (this.tools.has(tool.name)) {
-            throw new Error(`Duplicate tool name: ${tool.name}`);
+    console.error('[BANG] Starting tool loading...');
+    
+    const allTools = getAllToolDefinitions();
+    console.error(`[BANG] Found ${allTools.length} tools in registry`);
+    
+    // Apply filter - FAIL if filter throws
+    const toolsToLoad = this.config.toolFilter 
+      ? allTools.filter((tool) => {
+          const result = this.config.toolFilter!(tool);
+          if (!result) {
+            console.error(`[BANG] Tool ${tool.name} filtered out`);
           }
-          
-          this.tools.set(tool.name, tool);
-          loadedCount++;
-          
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          failedTools.push({ name: tool.name, error: errorMessage });
-          logger.error(`Failed to load tool ${tool.name}:`, error);
-        }
+          return result;
+        })
+      : allTools;
+    
+    console.error(`[BANG] Will load ${toolsToLoad.length} tools after filtering`);
+    
+    // Load tools - FAIL on first error
+    for (const tool of toolsToLoad) {
+      console.error(`[BANG] Loading tool: ${tool.name}`);
+      
+      // Validate tool - throws on error
+      this.validateTool(tool);
+      
+      // Check for duplicates - throws on error
+      if (this.tools.has(tool.name)) {
+        const error = new Error(`[BANG] DUPLICATE TOOL NAME: ${tool.name} already exists!`);
+        console.error(error.message);
+        throw error;
       }
       
-      // DEFENSIVE: Report loading results comprehensively
-      logger.info(`Successfully loaded ${loadedCount} of ${toolsToLoad.length} tools`);
-      
-      if (failedTools.length > 0) {
-        logger.warn(`Failed to load ${failedTools.length} tools:`, 
-          failedTools.map(f => `${f.name}: ${f.error}`).join(', ')
-        );
-        
-        // DEFENSIVE: Don't fail completely, but warn about missing functionality
-        if (failedTools.length > toolsToLoad.length * 0.5) {
-          throw new Error(`Critical: Failed to load more than 50% of tools (${failedTools.length}/${toolsToLoad.length})`);
-        }
-      }
-    } catch (error) {
-      logger.error('Critical error loading tools:', error);
-      throw new Error('Failed to initialize tool registry');
+      this.tools.set(tool.name, tool);
+    }
+    
+    console.error(`[BANG] SUCCESSFULLY LOADED ${this.tools.size} TOOLS`);
+    
+    // FAIL if no tools loaded
+    if (this.tools.size === 0) {
+      const error = new Error('[BANG] CRITICAL: NO TOOLS LOADED! Server cannot function without tools.');
+      console.error(error.message);
+      throw error;
     }
   }
 
   /**
-   * Validate tool definition before loading
-   * DEFENSIVE PROGRAMMING: Comprehensive validation to prevent runtime failures
+   * Validate tool definition - FAIL LOUDLY with specific errors
    */
   private validateTool(tool: ToolDefinition): void {
-    // DEFENSIVE: Check tool object exists
+    // Check tool object exists
     if (!tool || typeof tool !== 'object') {
-      throw new Error('Tool definition must be a valid object');
+      const error = new Error('[BANG] INVALID TOOL: Tool definition is not an object!');
+      console.error(error.message, { received: tool, type: typeof tool });
+      throw error;
     }
     
-    // DEFENSIVE: Validate tool name
+    // Validate tool name
     if (!tool.name || typeof tool.name !== 'string' || tool.name.trim().length === 0) {
-      throw new Error('Tool must have a valid, non-empty name');
+      const error = new Error(`[BANG] INVALID TOOL NAME: Got ${typeof tool.name} "${tool.name}" - must be non-empty string!`);
+      console.error(error.message);
+      throw error;
     }
     
-    // DEFENSIVE: Validate naming conventions for MCP compatibility
+    // Validate naming conventions for MCP compatibility
     if (!/^[a-z][a-z0-9-]*[a-z0-9]$/.test(tool.name) && tool.name.length > 1) {
-      throw new Error(`Tool name '${tool.name}' must follow kebab-case convention for MCP compatibility`);
+      const error = new Error(`[BANG] INVALID TOOL NAME FORMAT: "${tool.name}" - must be kebab-case (lowercase, hyphens only)!`);
+      console.error(error.message);
+      throw error;
     }
     
-    // DEFENSIVE: Validate description
+    // Validate description
     if (!tool.description || typeof tool.description !== 'string' || tool.description.trim().length === 0) {
-      throw new Error(`Tool '${tool.name}' must have a valid, non-empty description`);
+      const error = new Error(`[BANG] MISSING DESCRIPTION: Tool "${tool.name}" has no description!`);
+      console.error(error.message);
+      throw error;
     }
     
-    // DEFENSIVE: Validate handler function
+    // Validate handler function
     if (!tool.handler || typeof tool.handler !== 'function') {
-      throw new Error(`Tool '${tool.name}' must have a handler function`);
+      const error = new Error(`[BANG] MISSING HANDLER: Tool "${tool.name}" has no handler function! Got ${typeof tool.handler}`);
+      console.error(error.message);
+      throw error;
     }
     
-    // DEFENSIVE: Validate schema (optional but if present, must be valid)
+    // Validate schema (optional but if present, must be valid)
     if (tool.schema !== undefined && typeof tool.schema !== 'object') {
-      throw new Error(`Tool '${tool.name}' schema must be a valid Zod schema object if provided`);
+      const error = new Error(`[BANG] INVALID SCHEMA: Tool "${tool.name}" schema is not an object! Got ${typeof tool.schema}`);
+      console.error(error.message);
+      throw error;
     }
     
-    // DEFENSIVE: Check if tool name contains reserved words that might conflict with MCP
+    // Check if tool name contains reserved words
     const reservedWords = ['list', 'call', 'tool', 'mcp', 'server', 'client'];
     if (reservedWords.some(word => tool.name === word)) {
-      throw new Error(`Tool name '${tool.name}' conflicts with MCP reserved words`);
+      const error = new Error(`[BANG] RESERVED WORD: Tool name "${tool.name}" is a reserved MCP word!`);
+      console.error(error.message);
+      throw error;
     }
   }
 
@@ -664,14 +681,28 @@ export class AkamaiMCPServer {
   }
 
   async start(): Promise<void> {
+    console.error('[BANG] Server start() called...');
+    
     const transportConfig = getTransportFromEnv();
+    console.error('[BANG] Transport config:', JSON.stringify(transportConfig));
     
     if (transportConfig.type === 'stdio') {
+      console.error('[BANG] Creating StdioServerTransport...');
       const transport = new StdioServerTransport();
-      await this.server.connect(transport);
-      logger.info(`Akamai MCP Server started with ${this.tools.size} tools`);
+      
+      console.error('[BANG] Connecting server to transport...');
+      try {
+        await this.server.connect(transport);
+        console.error(`[BANG] SERVER STARTED SUCCESSFULLY WITH ${this.tools.size} TOOLS!`);
+        console.error('[BANG] Server is now waiting for JSON-RPC messages on stdio...');
+      } catch (error) {
+        console.error('[BANG] FAILED TO CONNECT TO TRANSPORT!', error);
+        throw new Error(`[BANG] Transport connection failed: ${error instanceof Error ? error.message : String(error)}`);
+      }
     } else {
-      throw new Error(`Transport type ${transportConfig.type} not supported yet`);
+      const error = new Error(`[BANG] UNSUPPORTED TRANSPORT TYPE: ${transportConfig.type} - only 'stdio' is supported!`);
+      console.error(error.message);
+      throw error;
     }
   }
 
@@ -725,7 +756,16 @@ export class AkamaiMCPServer {
  * });
  */
 export async function createAkamaiServer(config: ServerConfig): Promise<AkamaiMCPServer> {
-  return new AkamaiMCPServer(config);
+  console.error('[BANG] createAkamaiServer called with config:', JSON.stringify(config, null, 2));
+  
+  try {
+    const server = new AkamaiMCPServer(config);
+    console.error('[BANG] AkamaiMCPServer instance created successfully');
+    return server;
+  } catch (error) {
+    console.error('[BANG] FAILED TO CREATE AKAMAI SERVER!', error);
+    throw new Error(`[BANG] Server creation failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
 // Maintain backward compatibility
