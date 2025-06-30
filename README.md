@@ -26,7 +26,17 @@
     <strong>A</strong>kamai <strong>L</strong>ocal <strong>E</strong>dge <strong>C</strong>onfiguration <strong>S</strong>erver
   </p>
   <p align="center">
-    <i>A Model Context Protocol (MCP) server that enables AI assistants to manage Akamai CDN configurations</i>
+    <i>A Model Context Protocol (MCP) server that brings AI-powered automation to Akamai CDN management</i>
+  </p>
+  
+  <p align="center">
+    <strong>Compatible with:</strong>
+    <a href="https://claude.ai">Claude Desktop</a> •
+    <a href="https://claude.ai/code">Claude Code</a> •
+    <a href="https://cursor.com">Cursor</a> •
+    <a href="https://www.windsurf.ai">Windsurf</a> •
+    <a href="https://code.visualstudio.com">VS Code</a> •
+    <a href="https://github.com/modelcontextprotocol/servers">Any MCP Client</a>
   </p>
   
   <p align="center">
@@ -97,6 +107,63 @@ docker run -it --env-file .env alecs/alecs-mcp-server-akamai:latest
 | `modular` | Microservices architecture | ~180MB |
 | `websocket` | WebSocket transport | ~170MB |
 | `sse` | Server-Sent Events transport | ~170MB |
+
+## 🤝 Works With Your Favorite AI Tools
+
+<div align="center">
+<table>
+<tr>
+<td align="center" width="16%">
+<img src="https://www.anthropic.com/favicon.ico" width="48" height="48"/>
+<br><strong>Claude Desktop</strong>
+<br>Native MCP support
+</td>
+<td align="center" width="16%">
+<img src="https://www.anthropic.com/favicon.ico" width="48" height="48"/>
+<br><strong>Claude Code</strong>
+<br>CLI with MCP
+</td>
+<td align="center" width="16%">
+<img src="https://cursor.sh/favicon.ico" width="48" height="48"/>
+<br><strong>Cursor IDE</strong>
+<br>AI-first editor
+</td>
+<td align="center" width="16%">
+<img src="https://www.windsurf.ai/favicon.ico" width="48" height="48"/>
+<br><strong>Windsurf</strong>
+<br>Agentic IDE
+</td>
+<td align="center" width="16%">
+<img src="https://code.visualstudio.com/favicon.ico" width="48" height="48"/>
+<br><strong>VS Code</strong>
+<br>MCP extensions
+</td>
+<td align="center" width="20%">
+<img src="https://img.icons8.com/color/48/000000/api.png" width="48" height="48"/>
+<br><strong>Any MCP Client</strong>
+<br>Open protocol
+</td>
+</tr>
+</table>
+</div>
+
+### 🎆 Agentic Akamai Development
+
+Transform your Akamai workflow from manual API calls to conversational automation:
+
+```typescript
+// 👨‍💻 Human: "Set up a new CDN property for my e-commerce site with
+//            WAF protection and image optimization"
+
+// 🤖 AI Agent: "I'll help you set up a complete CDN configuration. Let me:
+//   1. Create the property with Ion product (includes Image Manager)
+//   2. Configure security rules with WAF
+//   3. Set up caching behaviors for static assets
+//   4. Add image optimization policies
+//   5. Deploy to staging for testing"
+
+// [Agent proceeds to execute all steps with progress updates]
+```
 
 ## 🏆 Stats & Features
 
@@ -196,8 +263,8 @@ curl -X POST \
 </td>
 <td align="center" width="25%">
 <img src="https://img.icons8.com/color/96/000000/artificial-intelligence.png" width="60"/>
-<br><strong>AI-Optimized</strong>
-<br>Built for Claude &<br>AI assistants
+<br><strong>AI-Native</strong>
+<br>Works with all<br>MCP-compatible tools
 </td>
 </tr>
 </table>
