@@ -12,11 +12,14 @@ npm install -g alecs-mcp-server-akamai
 cp .edgerc.example ~/.edgerc
 # Edit ~/.edgerc with your credentials
 
-# Run ALECS
-alecs
+# Run modular servers
+alecs property    # Property tools only
+alecs dns         # DNS tools only
 
-# Or run with Docker
-docker run -v ~/.edgerc:/root/.edgerc:ro ghcr.io/acedergren/alecs-mcp-server-akamai:latest
+# Or run with Docker (modular)
+docker run -v ~/.edgerc:/root/.edgerc:ro \
+  -p 3010:3010 -p 3011:3011 -p 3012:3012 \
+  ghcr.io/acedergren/alecs-mcp-server-akamai:modular-latest
 ```
 
 ## 🎯 Why ALECS?

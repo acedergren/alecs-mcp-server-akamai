@@ -2,15 +2,19 @@
 
 This directory contains Docker configurations for different deployment scenarios of the ALECS MCP Server.
 
-## 🎯 Recommended Image
+## 🎯 Recommended: Modular Images
 
-**Use the standard `latest` image for optimal AI assistant performance:**
+**Use modular images to load only the tools you need:**
 
 ```bash
-docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:latest
+# For domain-specific servers (Property, DNS, Security)
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:modular-latest
+
+# For minimal Property-only operations  
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:essential-latest
 ```
 
-This image contains ~25 core tools that are thoroughly tested and won't overwhelm AI clients like Claude or Cursor.
+Modular deployment prevents tool overload and gives you precise control over which Akamai services to expose.
 
 ## Available Images
 
@@ -22,14 +26,14 @@ This image contains ~25 core tools that are thoroughly tested and won't overwhel
 - **Size**: ~300MB
 - **Ports**: 3000-3013, 8082
 
-### 2. Full Image (180+ Tools) ⚠️ Advanced Users Only
+### 2. Full Image (180+ Tools) - Advanced Use Cases
 
 - **Dockerfile**: `Dockerfile.full`
 - **Description**: Complete single-process server with all 180+ tools
-- **Use Case**: Only when you need specific tools not in the standard build
+- **Use Case**: Advanced scenarios, works well with Claude Code but may overwhelm Claude Desktop
 - **Size**: ~250MB
 - **Port**: 3000
-- **Warning**: May cause performance issues with AI assistants due to tool overload
+- **Note**: Best for Claude Code with its higher context limits, comprehensive API exploration
 
 ### 3. Essential Image (15 Tools)
 

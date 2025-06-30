@@ -2,7 +2,7 @@
 
 This guide will help you set up the ALECS MCP Server with Claude Desktop.
 
-> **Recommended**: Use the standard server configuration (~25 tools) for optimal Claude Desktop performance. The full server (180+ tools) can overwhelm Claude and cause degraded performance.
+> **Recommended**: Use modular servers (Property, DNS, Certs) for optimal Claude Desktop performance. Load only the tools you need for your current task.
 
 ## Prerequisites
 
@@ -55,15 +55,33 @@ Add the following to your Claude Desktop configuration file:
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
 
-**Configuration:**
+**Modular Configuration (Recommended):**
 
 ```json
 {
   "mcpServers": {
-    "alecs-akamai": {
+    "alecs-property": {
       "command": "node",
       "args": [
-        "/Users/acedergr/Projects/alecs-mcp-server-akamai/alecs-mcp-server-akamai/dist/index.js"
+        "/Users/acedergr/Projects/alecs-mcp-server-akamai/alecs-mcp-server-akamai/dist/index-property.js"
+      ],
+      "env": {
+        "DEBUG": "0"
+      }
+    },
+    "alecs-dns": {
+      "command": "node",
+      "args": [
+        "/Users/acedergr/Projects/alecs-mcp-server-akamai/alecs-mcp-server-akamai/dist/index-dns.js"
+      ],
+      "env": {
+        "DEBUG": "0"
+      }
+    },
+    "alecs-certs": {
+      "command": "node",
+      "args": [
+        "/Users/acedergr/Projects/alecs-mcp-server-akamai/alecs-mcp-server-akamai/dist/index-certs.js"
       ],
       "env": {
         "DEBUG": "0"
@@ -73,16 +91,12 @@ Add the following to your Claude Desktop configuration file:
 }
 ```
 
+Choose which modules to include based on your needs!
+
 <details>
-<summary>⚠️ Advanced: Full version with 180+ tools (not recommended)</summary>
+<summary>Advanced: Full version with 180+ tools (better for Claude Code)</summary>
 
-**WARNING**: The full server includes 180+ tools which can:
-- Overwhelm Claude with too many options
-- Cause slower response times
-- Make tool selection less accurate
-- Result in degraded user experience
-
-Only use if you specifically need tools not in the standard ~25 tool build:
+**Note**: The full server with 180+ tools works better with Claude Code due to its higher context limits. For Claude Desktop, the modular approach is recommended.
 
 ```json
 {

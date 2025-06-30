@@ -51,38 +51,39 @@ npm run build
 npm start
 ```
 
-### Method 3: Docker
+### Method 3: Docker - Modular Approach (Recommended)
 
 ```bash
-# Pull image (recommended - optimized ~25 core tools)
-docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:latest
+# Pull modular image - run only what you need
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:modular-latest
 
-# Run container
+# Run with specific modules
 docker run -it \
   -v ~/.edgerc:/root/.edgerc:ro \
-  -p 3000:3000 \
-  ghcr.io/acedergren/alecs-mcp-server-akamai:latest
+  -p 3010:3010 -p 3011:3011 -p 3012:3012 \
+  ghcr.io/acedergren/alecs-mcp-server-akamai:modular-latest
 ```
 
-**Note**: The standard image includes ~25 well-tested core tools optimized for AI clients. This prevents overwhelming Claude, Cursor, and other AI assistants with too many options.
+This runs three focused servers:
+- **Property Server** (port 3010) - CDN configuration
+- **DNS Server** (port 3011) - DNS management  
+- **Security Server** (port 3012) - WAF and security
 
 <details>
-<summary>Advanced: Other Docker variants (click to expand)</summary>
-
-For advanced users who need specific functionality:
+<summary>Other Docker variants (click to expand)</summary>
 
 ```bash
-# Full server with 180+ tools (may cause performance issues)
-docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:full-latest
+# Essential - Property tools only (15 tools)
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:essential-latest
 
-# Domain-specific modular servers
-docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:modular-latest
+# Full server with 180+ tools (best for Claude Code)
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:full-latest
 
 # Remote access support (WebSocket + SSE)
 docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:remote-latest
 ```
 
-⚠️ **Warning**: The full server variant includes 180+ tools which can overwhelm AI clients, cause slower responses, and make tool selection difficult. Only use if you specifically need tools not in the standard build.
+**Note**: The full server works well with Claude Code's higher context limits but may overwhelm Claude Desktop. Start with modular servers and expand as needed.
 </details>
 
 ### Method 4: Docker Compose

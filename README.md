@@ -4,20 +4,21 @@ MCP (Model Context Protocol) server that enables AI assistants to manage Akamai'
 
 > **Note**: This is an unofficial community project and comes without any support or warranty from Akamai Technologies.
 
-## Philosophy: Quality Over Quantity
+## Philosophy: Modular by Design
 
-**ALECS 1.6+ focuses on ~25 core tools** that are thoroughly tested and optimized for AI assistant performance. This deliberate choice:
+**ALECS uses a modular architecture** so you can load only the tools you need. This approach:
 
-- ✅ **Prevents AI client overload** - Too many tools slow down Claude, Cursor, and other assistants
-- ✅ **Improves tool selection accuracy** - AI makes better choices with focused options
-- ✅ **Ensures reliability** - Every tool is battle-tested with real Akamai APIs
-- ✅ **Faster responses** - Reduced tool parsing overhead
+- ✅ **Choose your tools** - Load only Property, DNS, Certificates, or any combination
+- ✅ **Optimal performance** - Fewer tools means faster AI responses
+- ✅ **Domain expertise** - Each module focuses on specific Akamai services
+- ✅ **No tool overload** - AI assistants work best with focused tool sets
+- ✅ **Mix and match** - Combine modules based on your workflow
 
-The full 180+ tool version is available for advanced users, but the standard build is recommended for optimal AI assistant performance.
+Start with individual modules (Property, DNS, etc.) and expand as needed. The full 180+ tool version is available for advanced use cases (works well with Claude Code's higher context, but can overwhelm Claude Desktop).
 
 ## Installation
 
-### Option 1: NPM (Recommended)
+### Option 1: NPM with Modular Servers (Recommended)
 ```bash
 # Install globally
 npm install -g alecs-mcp-server-akamai
@@ -26,17 +27,29 @@ npm install -g alecs-mcp-server-akamai
 cp .edgerc.example ~/.edgerc
 # Edit ~/.edgerc with your Akamai credentials
 
-# Run
-alecs
+# Run specific modules:
+alecs property    # Property management tools only
+alecs dns         # DNS tools only
+alecs certs       # Certificate tools only
+alecs security    # Security tools only
+alecs reporting   # Reporting tools only
+
+# Or run multiple modules:
+alecs property dns  # Property + DNS tools
 ```
 
-### Option 2: Docker
+### Option 2: Docker with Modular Images
 ```bash
-# Pull and run (recommended - optimized for AI clients)
-docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:latest
+# Pull and run modular servers (recommended)
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:modular-latest
 docker run -v ~/.edgerc:/root/.edgerc:ro \
-  -p 3000:3000 \
-  ghcr.io/acedergren/alecs-mcp-server-akamai:latest
+  -p 3010:3010 -p 3011:3011 -p 3012:3012 \
+  ghcr.io/acedergren/alecs-mcp-server-akamai:modular-latest
+
+# This runs:
+# - Property Server on port 3010
+# - DNS Server on port 3011  
+# - Security Server on port 3012
 ```
 
 ### Option 3: From Source
@@ -86,14 +99,21 @@ account_key = 1-ABCDEF
 
 ### Claude Desktop Integration
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+Configure modular servers in `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
-    "alecs": {
+    "alecs-property": {
       "command": "node",
-      "args": ["/path/to/alecs-mcp-server-akamai/dist/index.js"],
+      "args": ["/path/to/alecs-mcp-server-akamai/dist/index-property.js"],
+      "env": {
+        "AKAMAI_EDGERC_PATH": "~/.edgerc"
+      }
+    },
+    "alecs-dns": {
+      "command": "node", 
+      "args": ["/path/to/alecs-mcp-server-akamai/dist/index-dns.js"],
       "env": {
         "AKAMAI_EDGERC_PATH": "~/.edgerc"
       }
@@ -101,6 +121,8 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
   }
 }
 ```
+
+Load only the modules you need for your current task!
 
 ## Usage Examples
 
@@ -141,22 +163,25 @@ npm run lint        # Lint code
 npm run typecheck   # Type checking
 ```
 
-### Available Servers
+### Available Modular Servers
+
+Run only what you need:
 
 - `npm run start:property` - Property management (31 tools)
 - `npm run start:dns` - DNS management (24 tools)
 - `npm run start:certs` - Certificate management (22 tools)
 - `npm run start:security` - Security configuration (95 tools)
 - `npm run start:reporting` - Analytics & metrics (19 tools)
+- `npm run start:full` - All tools (180+, best for Claude Code)
 
 ## Docker
 
 ```bash
-# Build
-docker build -t alecs-mcp-server .
+# Build modular servers
+make docker-build-modular
 
-# Run
-docker run -v ~/.edgerc:/home/node/.edgerc alecs-mcp-server
+# Run modular servers (Property, DNS, Security)
+docker-compose -f build/docker/docker-compose.modular.yml up
 ```
 
 ## Well-Tested Features
