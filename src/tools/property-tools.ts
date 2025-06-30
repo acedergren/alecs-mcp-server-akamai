@@ -48,6 +48,7 @@ import {
   formatContractDisplay,
   ensurePrefix,
 } from '../utils/formatting';
+import { getAkamaiIdTranslator } from '../utils/property-translator';
 import {
   validateParameters,
   PropertyManagerSchemas,
@@ -405,22 +406,48 @@ export async function listProperties(
     const propertiesToShow = allProperties.slice(0, MAX_PROPERTIES_TO_DISPLAY);
     const hasMore = totalProperties > MAX_PROPERTIES_TO_DISPLAY;
 
-    // Structure the data for easy LLM processing
+    // Pre-populate the translator caches with all data
+    const translator = getAkamaiIdTranslator();
+    
+    // Cache properties
+    translator.populatePropertyCache(propertiesToShow.map(prop => ({
+      propertyId: prop.propertyId,
+      propertyName: prop.propertyName,
+      contractId: prop.contractId,
+      groupId: prop.groupId,
+      assetId: prop.assetId,
+    })));
+    
+    // Note: Group and contract caches will be populated on-demand during translation
+    // This avoids additional API calls and maintains performance
+    
+    // Structure the data for easy LLM processing with enhanced translations
     const structuredResponse = {
-      properties: propertiesToShow.map(prop => ({
-        propertyId: prop.propertyId,
-        propertyName: prop.propertyName,
-        contractId: prop.contractId,
-        groupId: prop.groupId,
-        productId: prop.productId || null,
-        assetId: prop.assetId || null,
-        latestVersion: prop.latestVersion || null,
-        productionVersion: prop.productionVersion || null,
-        stagingVersion: prop.stagingVersion || null,
-        productionStatus: prop.productionStatus || null,
-        stagingStatus: prop.stagingStatus || null,
-        note: prop.note || null,
-        ruleFormat: prop.ruleFormat || null
+      properties: await Promise.all(propertiesToShow.map(async (prop) => {
+        // Get group and contract names for human-friendly display
+        const groupTranslation = prop.groupId ? await translator.translateGroup(prop.groupId, client) : null;
+        const contractTranslation = prop.contractId ? await translator.translateContract(prop.contractId, client) : null;
+        
+        return {
+          propertyId: prop.propertyId,
+          propertyName: prop.propertyName,
+          propertyDisplay: `${prop.propertyName} (${prop.propertyId})`, // Human-friendly display
+          contractId: prop.contractId,
+          contractName: contractTranslation?.name || null,
+          contractDisplay: contractTranslation?.displayName || prop.contractId,
+          groupId: prop.groupId,
+          groupName: groupTranslation?.name || null,
+          groupDisplay: groupTranslation?.displayName || prop.groupId,
+          productId: prop.productId || null,
+          assetId: prop.assetId || null,
+          latestVersion: prop.latestVersion || null,
+          productionVersion: prop.productionVersion || null,
+          stagingVersion: prop.stagingVersion || null,
+          productionStatus: prop.productionStatus || null,
+          stagingStatus: prop.stagingStatus || null,
+          note: prop.note || null,
+          ruleFormat: prop.ruleFormat || null
+        };
       })),
       metadata: {
         total: totalProperties,
