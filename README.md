@@ -1,409 +1,170 @@
-# ALECS - MCP Server for Akamai
+# ALECS MCP Server for Akamai
 
-MCP (Model Context Protocol) server that enables AI assistants to manage Akamai's edge platform through natural language.
+> **A**kamai **L**ocal **E**dge **C**onfiguration **S**erver - A Model Context Protocol (MCP) server that enables AI assistants to manage Akamai CDN configurations.
 
-> **Note**: This is an unofficial community project and comes without any support or warranty from Akamai Technologies.
+## 🚀 Quick Start
 
-## Philosophy: Modular by Design
-
-**ALECS uses a modular architecture** so you can load only the tools you need. This approach:
-
-- ✅ **Choose your tools** - Load only Property, DNS, Certificates, or any combination
-- ✅ **Optimal performance** - Fewer tools means faster AI responses
-- ✅ **Domain expertise** - Each module focuses on specific Akamai services
-- ✅ **No tool overload** - AI assistants work best with focused tool sets
-- ✅ **Mix and match** - Combine modules based on your workflow
-
-Start with individual modules (Property, DNS, etc.) and expand as needed. The full 180+ tool version is available for advanced use cases (works well with Claude Code's higher context, but can overwhelm Claude Desktop).
-
-## Installation
-
-### Option 1: NPM with Modular Servers (Recommended)
-```bash
-# Install globally
-npm install -g alecs-mcp-server-akamai
-
-# Configure credentials
-cp .edgerc.example ~/.edgerc
-# Edit ~/.edgerc with your Akamai credentials
-
-# Run specific modules:
-alecs property    # Property management tools only
-alecs dns         # DNS tools only
-alecs certs       # Certificate tools only
-alecs security    # Security tools only
-alecs reporting   # Reporting tools only
-
-# Or run multiple modules:
-alecs property dns  # Property + DNS tools
-```
-
-### Option 2: Docker with Modular Images
-```bash
-# Pull and run modular servers (recommended)
-docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:modular-latest
-docker run -v ~/.edgerc:/root/.edgerc:ro \
-  -p 3010:3010 -p 3011:3011 -p 3012:3012 \
-  ghcr.io/acedergren/alecs-mcp-server-akamai:modular-latest
-
-# This runs:
-# - Property Server on port 3010
-# - DNS Server on port 3011  
-# - Security Server on port 3012
-```
-
-### Option 3: From Source
 ```bash
 # Clone and install
-git clone https://github.com/acedergren/alecs-mcp-server-akamai.git
+git clone https://github.com/your-org/alecs-mcp-server-akamai.git
 cd alecs-mcp-server-akamai
-npm install
+./install.sh
 
-# Configure credentials
+# Configure Akamai credentials
 cp .edgerc.example ~/.edgerc
-# Edit ~/.edgerc with your Akamai credentials
-
-# Run
-npm start
+# Edit ~/.edgerc with your Akamai API credentials
 ```
 
-## Core Features
+## 📋 Overview
 
-- **Property Management** - Full CRUD operations on CDN properties
-- **DNS** - Zone and record management with change-list workflow
-- **Certificates** - DV certificate enrollment and management
-- **FastPurge** - Content invalidation and cache management
-- **Network Lists** - IP/Geo blocking and security lists
-- **Account switching** - Account switching for with switch-key for those who need it ;)
+ALECS bridges AI assistants (like Claude) with Akamai's powerful CDN platform through the Model Context Protocol. It provides a type-safe, production-ready interface for managing properties, DNS zones, certificates, and more.
 
-## Configuration
+### Key Features
 
-### Akamai Credentials (.edgerc)
+- **🏢 Multi-Customer Support** - Manage multiple Akamai accounts via `.edgerc` sections
+- **🔐 Secure Authentication** - EdgeGrid authentication with account switching
+- **📦 Comprehensive Coverage** - Property Manager, Edge DNS, CPS, Network Lists, Fast Purge
+- **🤖 AI-Optimized** - Designed for conversational interactions with helpful error messages
+- **📊 Production Ready** - Type-safe, well-tested, with structured logging
 
-Create `~/.edgerc` with your Akamai API credentials:
+## 🏗️ Architecture
 
-```ini
-[default]
-client_secret = your_client_secret
-host = your_host.luna.akamaiapis.net
-access_token = your_access_token
-client_token = your_client_token
-
-[production]
-client_secret = prod_client_secret
-host = prod_host.luna.akamaiapis.net
-access_token = prod_access_token
-client_token = prod_client_token
-account_key = 1-ABCDEF
+```mermaid
+graph TB
+    subgraph "AI Assistant"
+        Claude[Claude Desktop/API]
+    end
+    
+    subgraph "ALECS MCP Server"
+        MCP[MCP Protocol Handler]
+        Auth[EdgeGrid Auth]
+        Tools[Tool Registry]
+        
+        subgraph "Service Modules"
+            PM[Property Manager]
+            DNS[Edge DNS]
+            CPS[CPS/Certificates]
+            NL[Network Lists]
+            FP[Fast Purge]
+            AS[App Security]
+        end
+    end
+    
+    subgraph "Akamai Platform"
+        API[Akamai APIs]
+        Edge[Edge Network]
+    end
+    
+    Claude -->|MCP Protocol| MCP
+    MCP --> Tools
+    Tools --> PM & DNS & CPS & NL & FP & AS
+    PM & DNS & CPS & NL & FP & AS --> Auth
+    Auth -->|EdgeGrid| API
+    API --> Edge
 ```
 
-### Claude Desktop Integration
-
-Configure modular servers in `~/Library/Application Support/Claude/claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "alecs-property": {
-      "command": "node",
-      "args": ["/path/to/alecs-mcp-server-akamai/dist/index-property.js"],
-      "env": {
-        "AKAMAI_EDGERC_PATH": "~/.edgerc"
-      }
-    },
-    "alecs-dns": {
-      "command": "node", 
-      "args": ["/path/to/alecs-mcp-server-akamai/dist/index-dns.js"],
-      "env": {
-        "AKAMAI_EDGERC_PATH": "~/.edgerc"
-      }
-    }
-  }
-}
-```
-
-Load only the modules you need for your current task!
-
-## Usage Examples
+## 🛠️ Available Tools
 
 ### Property Management
-```
-"List all my Akamai properties"
-"Create property example.com using Ion Standard"
-"Activate property to staging"
+- `property.list` - List CDN properties
+- `property.create` - Create new property
+- `property.activate` - Deploy to staging/production
+- `property.rules.get` - Get configuration rules
+- `property.rules.update` - Modify behaviors
+
+### DNS Management  
+- `dns.zone.list` - List DNS zones
+- `dns.zone.create` - Create zones
+- `dns.record.create` - Add DNS records
+- `dns.record.update` - Modify records
+- `dns.zone.activate` - Activate changes
+
+### Certificate Management
+- `certs.dv.create` - Create DV certificates
+- `certs.enrollment.status` - Check validation
+- `certs.challenges.get` - Get validation records
+
+### Content Control
+- `fastpurge.url` - Purge by URL
+- `fastpurge.cpcode` - Purge by CP code
+- `network-lists.create` - Create IP/geo lists
+- `network-lists.update` - Modify access lists
+
+## 🔧 Installation
+
+### For Claude Desktop
+
+1. Install ALECS:
+```bash
+./install.sh
+# Choose option 4 for Claude Desktop
 ```
 
-### DNS Management
-```
-"List DNS zones"
-"Add A record for www.example.com pointing to 192.0.2.1"
-"Migrate DNS from Cloudflare"
+2. The installer creates a config file. Copy it to Claude:
+```bash
+cp claude_desktop_config.json ~/Library/Application\ Support/Claude/
 ```
 
-### FastPurge
-```
-"Purge https://example.com/images/*"
-"Invalidate cache tag product-123"
-```
+3. Restart Claude Desktop
 
-### Reporting
-```
-"Get performance metrics for my properties"
-"Show traffic analysis for last 24 hours"
-"Generate usage report by CP code"
-```
-
-## Development
+### For Development
 
 ```bash
-npm run build        # Build TypeScript
-npm test            # Run tests
-npm run dev         # Development mode
-npm run lint        # Lint code
-npm run typecheck   # Type checking
-```
+# Install dependencies
+npm install
 
-### Available Modular Servers
-
-Run only what you need:
-
-- `npm run start:property` - Property management (31 tools)
-- `npm run start:dns` - DNS management (24 tools)
-- `npm run start:certs` - Certificate management (22 tools)
-- `npm run start:security` - Security configuration (95 tools)
-- `npm run start:reporting` - Analytics & metrics (19 tools)
-- `npm run start:full` - All tools (180+, best for Claude Code)
-
-## Docker
-
-```bash
-# Build modular servers
-make docker-build-modular
-
-# Run modular servers (Property, DNS, Security)
-docker-compose -f build/docker/docker-compose.modular.yml up
-```
-
-## Well-Tested Features
-
-ALECS includes comprehensive test coverage for core functionality:
-
-### Test Coverage Matrix
-
-| Feature | Unit Tests | Integration | Live API | CRUD | Type Safety | Status |
-|---------|------------|-------------|----------|------|-------------|---------|
-| **Property Management** | ✅ | ✅ | ✅ | ✅ | ✅ 68% | Production Ready |
-| **DNS Operations** | ✅ | ✅ | ✅ | ✅ | ✅ 100% | Production Ready |
-| **Certificate Management** | ✅ | ✅ | ✅ | ✅ | ✅ 100% | Production Ready |
-| **FastPurge** | ✅ | ✅ | ✅ | ✅ | ✅ 100% | Production Ready |
-| **Reporting** | ✅ | ⚠️ | ⚠️ | N/A | 🔄 | Beta |
-| **Security Tools** | ✅ | ⚠️ | ❌ | ❌ | 🔄 | Alpha |
-
-### Comprehensive CRUD Test Coverage (v1.6.0-rc3)
-
-#### DNS Operations - Full CRUD Validation
-- **Zone Management**: Create, Read, Update, Delete with TSIG auth
-- **Record Types**: A, AAAA, CNAME, TXT, MX - all CRUD operations
-- **Advanced Features**: Bulk operations, Changelist workflow, SOA updates
-- **DNSSEC**: Key management, signing operations, validation
-
-#### Certificate Operations - Lifecycle Testing
-- **Enrollment**: Create DV certificates with SAN support
-- **Validation**: DNS challenge retrieval and monitoring
-- **Updates**: Contact info, network config, settings
-- **Integration**: Property Manager linkage, deployment status
-
-### Live API Test Suites
-
-```bash
-# Run comprehensive CRUD tests
+# Build TypeScript
 npm run build
-npx tsx test-all-crud-live.ts     # All operations with detailed reporting
-npx tsx test-dns-crud-live.ts      # DNS-specific CRUD tests
-npx tsx test-certificate-crud-live.ts # Certificate lifecycle tests
 
-# Test results show:
-# ✅ DNS: 100% CRUD coverage - all operations verified
-# ✅ Certificates: Full lifecycle tested - enrollment to deployment
-# ✅ Type Safety: Zero 'any' assertions in CPS tools
-# ✅ API Compliance: Validated against official Akamai specs
+# Run in stdio mode (for testing)
+npm run dev
 ```
 
-### Current Test Results
+## 📚 Documentation
 
-- **346+ unit tests** with 99%+ pass rate
-- **Comprehensive live API tests** for DNS and Certificate CRUD
-- **Snow Leopard quality** - CODE KAI type safety transformation
-- **MCP protocol compliance** with validated response formats
-- **Multi-customer isolation** verification
-- **Zero `any` type assertions** in certificate tools
-- **32% reduction** in unsafe types for rule tree management
+- [Architecture Overview](./docs/architecture/README.md) - System design and components
+- [Getting Started Guide](./docs/getting-started/README.md) - Quick tutorials
+- [API Reference](./docs/api/README.md) - Detailed tool documentation
+- [User Guides](./docs/user-guides/README.md) - How-to guides and examples
 
-### Type Safety Achievements (CODE KAI)
-
-| Module | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Rule Tree Management | 69 `any` | 47 `any` | 32% safer |
-| CPS Tools | 5 `any` | 0 `any` | 100% safe |
-| DNS Operations | N/A | Full types | 100% safe |
-| Property Manager | Partial | Enhanced | Validated |
-
-### Run Tests
+## 🧪 Testing
 
 ```bash
-npm test              # Run all unit tests
-npm test:coverage     # Generate coverage report
-npm test:watch        # Watch mode for development
+# Run all tests
+npm test
 
-# Live API testing (requires .edgerc configuration)
-npx tsx test-all-crud-live.ts     # Comprehensive CRUD validation
+# Run specific test suite
+npm test -- property-tools
+
+# Type checking
+npm run typecheck
 ```
 
-## Architecture
+## 🔒 Security
 
-ALECS uses a modular architecture with focused servers:
+- Credentials stored in `~/.edgerc` (never in code)
+- EdgeGrid authentication for all API calls
+- Account switching via secure headers
+- No OAuth required - simplified security model
 
-- **Property Server** - CDN property management (31 tools)
-- **DNS Server** - DNS operations (24 tools)
-- **Certificate Server** - SSL/TLS management (22 tools)
-- **Security Server** - WAF, DDoS, Bot management (95 tools)
-- **Reporting Server** - Analytics & metrics (19 tools)
-
-## Remote MCP Hosting & Multi-Customer Architecture
-
-ALECS is architected for **enterprise-grade hosted remote MCP server deployment**, supporting multiple customers through a single server instance with complete tenant isolation.
-
-### 🏗️ **Multi-Customer Deployment Scenarios**
-
-| Scenario | Description | Use Case |
-|----------|-------------|----------|
-| **🏢 SaaS MCP Provider** | Multiple organizations using shared MCP infrastructure | Cloud-hosted MCP service for multiple companies |
-| **🔧 Enterprise MSP** | Service providers managing multiple client accounts | MSPs managing Akamai for multiple customers |
-| **👨‍💼 Consulting Platform** | Consultants accessing multiple customer environments | Consultants with access to multiple client accounts |
-| **☁️ Development Cloud** | Teams managing staging/production across customers | Dev teams with multi-environment access |
-
-### 🎯 **Remote MCP Hosting Readiness Assessment**
-
-| Component | Readiness Level | Hosted MCP Capability |
-|-----------|----------------|----------------------|
-| **🔐 Authentication & Sessions** | 🟢 **Production Ready** | OAuth + customer context switching |
-| **🛡️ Customer Isolation** | 🟢 **Production Ready** | Complete tenant separation |
-| **🏢 Property Management** | 🟢 **Production Ready** | Multi-customer property operations |
-| **🔒 Security Management** | 🟢 **Production Ready** | Customer-isolated security policies |
-| **📊 Reporting & Analytics** | 🟢 **Production Ready** | Cross-customer insights for MSPs |
-| **🚀 Dynamic Deployment** | 🟡 **Enhancement Ready** | Configurable tool loading |
-| **🌐 Transport Protocols** | 🟡 **Enhancement Ready** | HTTP/WebSocket for remote hosting |
-
-### 🔐 **Enterprise Multi-Tenant Features**
-
-#### **Customer Context Management**
-- **OAuth-Based Authentication**: Token authentication for remote MCP clients
-- **Session Management**: Multi-customer context switching without re-authentication
-- **Role-Based Authorization**: Granular permissions per customer context
-- **Secure Credential Storage**: Encrypted Akamai credentials with rotation
-- **Complete Audit Trails**: Compliance-ready logging per customer
-
-#### **Security Isolation**
-- **Customer-Isolated Network Lists**: Separate IP controls per tenant
-- **Multi-Customer Geo-Blocking**: Geographic controls per customer
-- **Property Ownership Validation**: Prevents cross-customer access
-- **Cross-Customer Threat Intelligence**: Shared insights (anonymized)
-
-#### **Performance & Scaling**
-- **Connection Pooling**: Optimized performance for multiple tenants
-- **Per-Customer Monitoring**: Individual metrics and circuit breakers
-- **Horizontal Scaling**: Multiple server instances for load distribution
-- **Dynamic Tool Loading**: Customer-specific tool sets on demand
-
-### 🔄 **Multi-Customer Configuration**
-
-#### **.edgerc Multi-Customer Structure**
-```ini
-[default]                    # Default/primary customer
-client_secret = default_secret
-host = default.luna.akamaiapis.net
-access_token = default_token
-client_token = default_client
-
-[client-acme]               # Service provider client 1
-client_secret = acme_secret
-host = acme.luna.akamaiapis.net
-access_token = acme_token
-client_token = acme_client
-account_switch_key = B-M-ACME123
-
-[client-beta]               # Service provider client 2
-client_secret = beta_secret
-host = beta.luna.akamaiapis.net
-access_token = beta_token
-client_token = beta_client
-
-[division-media]            # Enterprise division 1
-client_secret = media_secret
-host = media.luna.akamaiapis.net
-access_token = media_token
-client_token = media_client
-
-[testing]                   # Test environment (dedicated section)
-client_secret = test_secret
-host = test.luna.akamaiapis.net
-access_token = test_token
-client_token = test_client
-```
-
-#### **Customer Parameter Usage**
-All tools support the `customer` parameter for multi-account operations:
-
-```bash
-# Examples with different customers
-"List properties for customer client-acme"
-"Get traffic summary for customer division-media" 
-"Create property for customer client-beta"
-"Switch to customer testing environment"
-```
-
-### 🚀 **Deployment Architecture Progression**
-
-**Phase 1**: Local .edgerc multi-customer → **Phase 2**: OAuth sessions → **Phase 3**: Distributed credential service → **Phase 4**: Enterprise SaaS
-
-The architecture supports everything from basic multi-customer setups to **full enterprise SaaS deployment** with OAuth authentication, role-based access control, and complete customer isolation.
-
-## Releasing
-
-ALECS uses automated workflows for releases:
-
-### Quick Release
-```bash
-# Check release readiness
-make release-check
-
-# Release new versions
-make release-patch    # 1.6.2 → 1.6.3
-make release-minor    # 1.6.2 → 1.7.0
-make release-major    # 1.6.2 → 2.0.0
-```
-
-### GitHub Actions Release
-1. Go to [Actions → Release & Publish](https://github.com/acedergren/alecs-mcp-server-akamai/actions)
-2. Click "Run workflow"
-3. Select version type
-4. Workflow automatically:
-   - Runs tests
-   - Bumps version
-   - Publishes to npm
-   - Builds & pushes Docker images
-   - Creates GitHub release
-
-See [Release Guide](docs/RELEASE-GUIDE.md) for detailed instructions.
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes with tests
+4. Run `npm test` and `npm run typecheck`
+5. Submit a pull request
 
-## License
+## 📄 License
 
-MIT
+MIT License - see [LICENSE](./LICENSE) file
+
+## 🆘 Support
+
+- [GitHub Issues](https://github.com/your-org/alecs-mcp-server-akamai/issues)
+- [Akamai Developer Docs](https://techdocs.akamai.com)
+- [MCP Specification](https://modelcontextprotocol.io)
+
+---
+
+Built with ❤️ for the Akamai and AI communities

@@ -19,53 +19,24 @@ lint: ## Run linter (non-blocking)
 clean: ## Clean build artifacts
 	rm -rf dist .tsbuildinfo node_modules
 
-dev: ## Start development servers
-	npm run start:websocket:summary
+dev: ## Start development server
+	npm run dev
 
 ## Docker commands
-docker-build: ## Build all Docker images
-	docker build -t alecs-mcp-server:latest -f build/docker/Dockerfile .
-	docker build -t alecs-mcp-server:full -f build/docker/Dockerfile.full .
-	docker build -t alecs-mcp-server:essential -f build/docker/Dockerfile.essential .
-	docker build -t alecs-mcp-server:modular -f build/docker/Dockerfile.modular .
-	docker build -t alecs-mcp-server:minimal -f build/docker/Dockerfile.minimal .
-	docker build -t alecs-mcp-server:remote -f build/docker/Dockerfile.remote .
+docker-build: ## Build Docker image
+	docker build -t alecs-mcp-server:latest .
 
-docker-build-main: ## Build main Docker image (PM2 all-in-one)
-	docker build -t alecs-mcp-server:latest -f build/docker/Dockerfile .
+docker-build-dev: ## Build Docker image for development
+	docker build -t alecs-mcp-server:dev -f Dockerfile.dev .
 
-docker-build-full: ## Build Full Docker image (180+ tools)
-	docker build -t alecs-mcp-server:full -f build/docker/Dockerfile.full .
-
-docker-build-essential: ## Build Essential Docker image (15 tools)
-	docker build -t alecs-mcp-server:essential -f build/docker/Dockerfile.essential .
-
-docker-build-modular: ## Build Modular Docker image (domain-specific servers)
-	docker build -t alecs-mcp-server:modular -f build/docker/Dockerfile.modular .
-
-docker-build-minimal: ## Build Minimal Docker image (3 tools)
-	docker build -t alecs-mcp-server:minimal -f build/docker/Dockerfile.minimal .
-
-docker-build-remote: ## Build Remote Docker image (WebSocket + SSE)
-	docker build -t alecs-mcp-server:remote -f build/docker/Dockerfile.remote .
-
-docker-run: ## Run main Docker container (PM2 all-in-one)
+docker-run: ## Run Docker container
 	docker-compose up -d
 
-docker-run-full: ## Run Full Docker container (180+ tools)
-	docker-compose -f build/docker/docker-compose.full.yml up -d
+docker-stop: ## Stop Docker container
+	docker-compose down
 
-docker-run-essential: ## Run Essential Docker container (15 tools)
-	docker-compose -f build/docker/docker-compose.essential.yml up -d
-
-docker-run-modular: ## Run Modular Docker container (domain-specific servers)
-	docker-compose -f build/docker/docker-compose.modular.yml up -d
-
-docker-run-minimal: ## Run Minimal Docker container (3 tools)
-	docker-compose -f build/docker/docker-compose.minimal.yml up -d
-
-docker-run-remote: ## Run unified remote access container (WebSocket + SSE)
-	docker-compose -f build/docker/docker-compose.remote.yml up -d
+docker-logs: ## Show Docker logs
+	docker-compose logs -f
 
 ## Release commands
 release-check: ## Check if ready for release
