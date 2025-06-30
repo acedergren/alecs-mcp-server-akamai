@@ -92,3 +92,4 @@ mcp-test-config.json
 !ecosystem.modular.config.js
 !start-websocket-server.js
 !start-sse-server.js
+!src/
