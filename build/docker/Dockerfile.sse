@@ -26,20 +26,8 @@ COPY package*.json ./
 # Install production dependencies only
 RUN npm ci --production && npm cache clean --force
 
-# Copy only SSE server files from builder
-COPY --from=builder /app/dist/index-sse.js ./dist/
-COPY --from=builder /app/dist/transport ./dist/transport
-COPY --from=builder /app/dist/servers ./dist/servers
-COPY --from=builder /app/dist/tools ./dist/tools
-COPY --from=builder /app/dist/utils ./dist/utils
-COPY --from=builder /app/dist/types ./dist/types
-COPY --from=builder /app/dist/auth ./dist/auth
-COPY --from=builder /app/dist/middleware ./dist/middleware
-COPY --from=builder /app/dist/core ./dist/core
-COPY --from=builder /app/dist/services ./dist/services
-
-# Copy SSE startup script
-COPY start-sse-server.js ./
+# Copy built application from builder
+COPY --from=builder /app/dist ./dist
 
 # Create directories
 RUN mkdir -p data logs
@@ -54,4 +42,8 @@ EXPOSE 3013
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s \
   CMD node -e "require('http').get('http://localhost:3013/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
 
-CMD ["node", "start-sse-server.js"]
+# Set SSE transport environment variable
+ENV MCP_TRANSPORT=sse
+ENV PORT=3013
+
+CMD ["node", "dist/index.js"]
