@@ -1,3 +1,27 @@
+// Types for DNS operations
+type EdgeDNSChangeListMetadata = {
+  zone: string;
+  changeTag: string;
+  zoneVersionId: string;
+  stale: boolean;
+  lastModifiedDate: string;
+  lastModifiedBy?: string;
+};
+
+type ZoneActivationStatus = {
+  zone: string;
+  activationState: 'PENDING' | 'ACTIVE' | 'FAILED' | 'NEW';
+  lastActivationTime?: string;
+  lastActivatedBy?: string;
+  propagationStatus?: {
+    percentage: number;
+    serversUpdated: number;
+    totalServers: number;
+  };
+  requestId?: string;
+  message?: string;
+};
+
 /**
  * Edge DNS API tools for zone and record management
  * 
@@ -24,7 +48,6 @@ import {
   isEdgeDNSZonesResponse,
   isEdgeDNSZoneResponse,
   isEdgeDNSRecordSetsResponse,
-  isEdgeDNSChangeListResponse,
   isEdgeDNSZoneSubmitResponse,
   isEdgeDNSZoneActivationStatusResponse,
   EdgeDNSValidationError,
@@ -33,7 +56,6 @@ import {
   type EdgeDNSZoneResponse,
   type EdgeDNSRecordSetsResponse,
   type EdgeDNSChangeListResponse,
-  type EdgeDNSChangeListMetadata,
   type EdgeDNSZoneSubmitResponse,
   type EdgeDNSZoneActivationStatusResponse,
 } from '../types/api-responses/edge-dns-zones';
@@ -47,9 +69,9 @@ function generateRequestId(): string {
 }
 
 function logOperation(operation: string, details: Record<string, unknown>) {
-  if (process.env.DNS_OPERATION_LOG === 'true') {
+  if (process.env['DNS_OPERATION_LOG'] === 'true') {
     const timestamp = new Date().toISOString();
-    const requestId = (details.requestId as string) || generateRequestId();
+    const requestId = (details['requestId'] as string) || generateRequestId();
     console.error(`[DNS-OPS] ${timestamp} [${requestId}] ${operation}:`, JSON.stringify(details));
   }
 }
@@ -87,27 +109,27 @@ export async function listZones(
     const queryParams: Record<string, string> = {};
 
     if (args.contractIds?.length) {
-      queryParams.contractIds = args.contractIds.join(',');
+      queryParams['contractIds'] = args.contractIds.join(',');
     }
     if (args.includeAliases !== undefined) {
-      queryParams.includeAliases = String(args.includeAliases);
+      queryParams['includeAliases'] = String(args.includeAliases);
     }
     if (args.search) {
-      queryParams.search = args.search;
+      queryParams['search'] = args.search;
     }
 
     // Enhanced pagination and sorting parameters
     if (args.sortBy) {
-      queryParams.sortBy = args.sortBy;
+      queryParams['sortBy'] = args.sortBy;
     }
     if (args.order) {
-      queryParams.order = args.order;
+      queryParams['order'] = args.order;
     }
     if (args.limit !== undefined) {
-      queryParams.limit = String(Math.min(args.limit, 1000)); // API limit of 1000
+      queryParams['limit'] = String(Math.min(args.limit, 1000)); // API limit of 1000
     }
     if (args.offset !== undefined) {
-      queryParams.offset = String(args.offset);
+      queryParams['offset'] = String(args.offset);
     }
 
     const rawResponse = await client.request({
@@ -259,10 +281,10 @@ export async function createZone(
 
     const queryParams: Record<string, string> = {};
     if (args.contractId) {
-      queryParams.contractId = args.contractId;
+      queryParams['contractId'] = args.contractId;
     }
     if (args.groupId) {
-      queryParams.gid = args.groupId;
+      queryParams['gid'] = args.groupId;
     }
 
     await client.request({
@@ -303,10 +325,10 @@ export async function listRecords(
   try {
     const queryParams: Record<string, string> = {};
     if (args.search) {
-      queryParams.search = args.search;
+      queryParams['search'] = args.search;
     }
     if (args.types?.length) {
-      queryParams.types = args.types.join(',');
+      queryParams['types'] = args.types.join(',');
     }
 
     const rawResponse = await client.request({
@@ -379,15 +401,15 @@ export async function getChangeListMetadata(
     });
 
     // CODE KAI: Runtime validation for metadata response
-    try {
-      return EdgeDNSChangeListMetadataSchema.parse(rawResponse);
-    } catch {
+    const parsed = EdgeDNSChangeListMetadataSchema.safeParse(rawResponse);
+    if (!parsed.success) {
       throw new EdgeDNSValidationError(
         'Invalid Edge DNS change list metadata response structure',
         rawResponse,
         'EdgeDNSChangeListMetadata'
       );
     }
+    return parsed.data as EdgeDNSChangeListMetadata;
   } catch (_error) {
     if (_error instanceof Error && _error.message?.includes('404')) {
       return null;
@@ -426,7 +448,7 @@ export async function getChangeList(
       changeTag: metadata.changeTag,
       zoneVersionId: metadata.zoneVersionId,
       stale: metadata.stale,
-      recordSets: rawResponse.recordsets || [],
+      recordSets: (rawResponse as any)?.recordsets || [],
     };
   } catch (_error) {
     if (_error instanceof Error && _error.message?.includes('404')) {
@@ -444,7 +466,7 @@ export async function submitChangeList(
   zone: string,
   comment?: string,
   options?: ZoneActivationOptions,
-): Promise<ZoneSubmitResponse> {
+): Promise<EdgeDNSZoneSubmitResponse> {
   const spinner = new Spinner();
   const opts = {
     validateOnly: false,
@@ -478,8 +500,8 @@ export async function submitChangeList(
     // Submit with retry logic
     spinner.update(opts.validateOnly ? 'Validating changes...' : 'Submitting changelist...');
 
-    let response: ZoneSubmitResponse | null = null;
-    let lastError: unknown = null;
+    let response: EdgeDNSZoneSubmitResponse | null = null;
+    let lastError: any = null;
 
     for (let attempt = 0; attempt <= opts.retryConfig.maxRetries!; attempt++) {
       try {
@@ -512,7 +534,7 @@ export async function submitChangeList(
               'EdgeDNSZoneSubmitResponse'
             );
           }
-          response = rawResponse as ZoneSubmitResponse;
+          response = rawResponse as EdgeDNSZoneSubmitResponse;
         }
 
         break; // Success, exit retry loop
@@ -629,7 +651,7 @@ export async function submitChangeList(
 /**
  * Helper to determine if an error is transient and should be retried
  */
-function isTransientError(_error: unknown): boolean {
+function isTransientError(_error: any): boolean {
   // Network errors
   if (
     _error && typeof _error === 'object' && 'code' in _error &&
@@ -665,7 +687,7 @@ export async function discardChangeList(
     ...retryConfig,
   };
 
-  let lastError: unknown = null;
+  let lastError: any = null;
 
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
     try {
@@ -751,7 +773,7 @@ export async function waitForZoneActivation(
 
       // Check if activation is complete
       if (status.activationState === 'ACTIVE') {
-        return status;
+        return status as ZoneActivationStatus;
       }
 
       // Check if activation failed
@@ -906,8 +928,8 @@ export async function ensureCleanChangeList(
       const errorMessage = [
         `${icons.warning} A changelist already exists for zone ${format.cyan(zone)}`,
         '',
-        `${icons.info} Last modified by: ${format.dim(existingChangeList.lastModifiedBy)}`,
-        `${icons.info} Last modified: ${format.dim(existingChangeList.lastModifiedDate)}`,
+        `${icons.info} Last modified by: ${format.dim(existingChangeList.lastModifiedBy || 'Unknown')}`,
+        `${icons.info} Last modified: ${format.dim(existingChangeList.lastModifiedDate || 'Unknown')}`,
         '',
         pendingChanges.length > 0
           ? `${icons.list} Pending changes:`
@@ -976,7 +998,7 @@ export async function upsertRecord(
   try {
     // Step 1: Create a new changelist
     spinner.start('Creating changelist...');
-    const changelistResponse = await client.request({
+    await client.request({
       path: '/config-dns/v2/changelists',
       method: 'POST',
       headers: {
@@ -1052,7 +1074,7 @@ export async function deleteRecord(
   try {
     // Step 1: Create a new changelist
     spinner.start('Creating changelist...');
-    const changelistResponse = await client.request({
+    await client.request({
       path: '/config-dns/v2/changelists',
       method: 'POST',
       headers: {
@@ -1168,17 +1190,17 @@ export async function activateZoneChanges(
     console.log(
       `${icons.info} Found ${format.bold(changeCount.toString())} pending changes for zone ${format.cyan(args.zone)}`,
     );
-    console.log(`${icons.info} Last modified by: ${format.dim(changelist.lastModifiedBy)}`);
-    console.log(`${icons.info} Last modified: ${format.dim(changelist.lastModifiedDate)}`);
+    console.log(`${icons.info} Last modified by: ${format.dim(changelist.lastModifiedBy || 'Unknown')}`);
+    console.log(`${icons.info} Last modified: ${format.dim(changelist.lastModifiedDate || 'Unknown')}`);
 
     if (changeCount > 0 && changeCount <= 10) {
       console.log(`\n${icons.list} Pending changes:`);
-      changelist.recordSets.forEach((record) => {
+      changelist.recordSets?.forEach((record) => {
         console.log(`  • ${record.name} ${record.ttl} ${record.type} ${record.rdata.join(' ')}`);
       });
     } else if (changeCount > 10) {
       console.log(`\n${icons.list} Showing first 10 pending changes:`);
-      changelist.recordSets.slice(0, 10).forEach((record) => {
+      changelist.recordSets?.slice(0, 10).forEach((record) => {
         console.log(`  • ${record.name} ${record.ttl} ${record.type} ${record.rdata.join(' ')}`);
       });
       console.log(`  ... and ${changeCount - 10} more changes`);

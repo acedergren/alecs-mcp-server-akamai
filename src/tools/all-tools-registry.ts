@@ -89,7 +89,7 @@ import {
   searchChangelists,
   getChangelistDiff,
   getAuthoritativeNameservers,
-  listContracts,
+  // listContracts, // Already imported from property-tools
   getSupportedRecordTypes,
   deleteZone,
   getZoneStatus,
@@ -106,13 +106,14 @@ import {
   rotateDNSSECKeys,
 } from './dns-dnssec-operations';
 
-// DNS Elicitation Tools
-import {
-  dnsElicitationTool,
-  handleDNSElicitationTool,
-  secureHostnameOnboardingTool,
-  handleSecureHostnameOnboardingTool,
-} from './elicitation';
+// DNS Elicitation Tools - REMOVED
+// These tools were removed due to critical LLM incompatibility issues:
+// - Stateful multi-step workflows incompatible with LLM clients
+// - Interactive prompting patterns that don't work with Claude Desktop
+// - Incomplete implementations (stub security config)
+// - 8 instances of 'any' types compromising type safety
+// - No integration with centralized error handling
+// See ELICITATION-TOOLS-AUDIT.md for details
 
 // Certificate Management Tools
 import {
@@ -257,14 +258,14 @@ import {
   validateGeographicCodes,
   getASNInformation,
   generateGeographicBlockingRecommendations,
-  generateASNSecurityRecommendations,
-  listCommonGeographicCodes,
+  // generateASNSecurityRecommendations, // Unused - commented out
+  // listCommonGeographicCodes, // Unused - commented out
 } from './security/network-lists-geo-asn';
 
-import {
-  getSecurityPolicyIntegrationGuidance,
-  generateDeploymentChecklist,
-} from './security/network-lists-integration';
+// import {
+//   getSecurityPolicyIntegrationGuidance,
+//   generateDeploymentChecklist,
+// } from './security/network-lists-integration'; // Unused - commented out
 
 // AppSec Tools
 import {
@@ -298,6 +299,29 @@ import {
   handleValidateApiToken,
   handleRotateApiToken,
 } from './token-tools';
+
+// Define stub handlers for elicitation tools
+const handleDNSElicitationTool = async (_args: any) => {
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: 'DNS Elicitation tool is not yet implemented. Please use the standard DNS tools instead.'
+      }
+    ]
+  };
+};
+
+const handleSecureHostnameOnboardingTool = async (_args: any) => {
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: 'Secure Hostname Onboarding tool is not yet implemented. Please use the standard property and hostname tools instead.'
+      }
+    ]
+  };
+};
 
 // Import all schemas
 import * as schemas from './tool-schemas';
@@ -1389,37 +1413,37 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'fastpurge-url-invalidate',
       description: 'Invalidate content by URL',
       schema: FastpurgeUrlInvalidateSchema,
-      handler: (client, params) => fastpurgeUrlInvalidate.handler(params),
+      handler: (_client, params) => fastpurgeUrlInvalidate.handler(params),
     },
     {
       name: 'fastpurge-cpcode-invalidate',
       description: 'Invalidate content by CP code',
       schema: FastpurgeCpcodeInvalidateSchema,
-      handler: (client, params) => fastpurgeCpcodeInvalidate.handler(params),
+      handler: (_client, params) => fastpurgeCpcodeInvalidate.handler(params),
     },
     {
       name: 'fastpurge-tag-invalidate',
       description: 'Invalidate content by cache tag',
       schema: FastpurgeTagInvalidateSchema,
-      handler: (client, params) => fastpurgeTagInvalidate.handler(params),
+      handler: (_client, params) => fastpurgeTagInvalidate.handler(params),
     },
     {
       name: 'fastpurge-status-check',
       description: 'Check FastPurge operation status',
       schema: FastpurgeStatusCheckSchema,
-      handler: (client, params) => fastpurgeStatusCheck.handler(params),
+      handler: (_client, params) => fastpurgeStatusCheck.handler(params),
     },
     {
       name: 'fastpurge-queue-status',
       description: 'Check FastPurge queue status',
       schema: FastpurgeQueueStatusSchema,
-      handler: (client, params) => fastpurgeQueueStatus.handler(params),
+      handler: (_client, params) => fastpurgeQueueStatus.handler(params),
     },
     {
       name: 'fastpurge-estimate',
       description: 'Estimate FastPurge impact',
       schema: FastpurgeEstimateSchema,
-      handler: (client, params) => fastpurgeEstimate.handler(params),
+      handler: (_client, params) => fastpurgeEstimate.handler(params),
     },
 
     // Network Lists Tools (17 tools)
@@ -1439,7 +1463,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'create-network-list',
       description: 'Create a new network list',
       schema: CreateNetworkListSchema,
-      handler: (client, params) => createNetworkList(
+      handler: (_client, params) => createNetworkList(
         params.name,
         params.type,
         params.elements,
@@ -1537,37 +1561,37 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       name: 'list-appsec-configurations',
       description: 'List all AppSec configurations',
       schema: ListAppSecConfigurationsSchema,
-      handler: (client, params) => listAppSecConfigurations.handler(params),
+      handler: (_client, params) => listAppSecConfigurations.handler(params),
     },
     {
       name: 'get-appsec-configuration',
       description: 'Get AppSec configuration details',
       schema: GetAppSecConfigurationSchema,
-      handler: (client, params) => getAppSecConfiguration.handler(params),
+      handler: (_client, params) => getAppSecConfiguration.handler(params),
     },
     {
       name: 'create-waf-policy',
       description: 'Create a new WAF policy',
       schema: CreateWAFPolicySchema,
-      handler: (client, params) => createWAFPolicy.handler(params),
+      handler: (_client, params) => createWAFPolicy.handler(params),
     },
     {
       name: 'get-security-events',
       description: 'Get security events and attack data',
       schema: GetSecurityEventsSchema,
-      handler: (client, params) => getSecurityEvents.handler(params),
+      handler: (_client, params) => getSecurityEvents.handler(params),
     },
     {
       name: 'activate-security-configuration',
       description: 'Activate security configuration',
       schema: extendedSchemas.ActivateSecurityConfigurationSchema,
-      handler: (client, params) => activateSecurityConfiguration.handler(params),
+      handler: (_client, params) => activateSecurityConfiguration.handler(params),
     },
     {
       name: 'get-security-activation-status',
       description: 'Get security activation status',
       schema: extendedSchemas.GetSecurityActivationStatusSchema,
-      handler: (client, params) => getSecurityActivationStatus.handler(params),
+      handler: (_client, params) => getSecurityActivationStatus.handler(params),
     },
 
     // Performance Tools (5 tools)

@@ -91,7 +91,7 @@ const RuleCriterionSchema = z.object({
   templateUuid: z.string().optional(),
 });
 
-const RuleTreeRuleSchema = z.lazy(() => z.object({
+const RuleTreeRuleSchema: z.ZodType<any> = z.lazy(() => z.object({
   name: z.string(),
   criteria: z.array(RuleCriterionSchema).optional(),
   behaviors: z.array(RuleBehaviorSchema).optional(),
@@ -102,17 +102,18 @@ const RuleTreeRuleSchema = z.lazy(() => z.object({
   criteriaMustSatisfy: z.enum(['all', 'any']).optional(),
 }));
 
-const PropertyRulesSchema = z.object({
-  rules: RuleTreeRuleSchema,
-  ruleFormat: z.string(),
-  etag: z.string().optional(),
-  comments: z.string().optional(),
-  accountId: z.string().optional(),
-  contractId: z.string().optional(),
-  groupId: z.string().optional(),
-  propertyId: z.string().optional(),
-  propertyVersion: z.number().optional(),
-});
+// Removed unused schema
+// const PropertyRulesSchema = z.object({
+//   rules: RuleTreeRuleSchema,
+//   ruleFormat: z.string(),
+//   etag: z.string().optional(),
+//   comments: z.string().optional(),
+//   accountId: z.string().optional(),
+//   contractId: z.string().optional(),
+//   groupId: z.string().optional(),
+//   propertyId: z.string().optional(),
+//   propertyVersion: z.number().optional(),
+// });
 
 // Rule tree specific types
 export interface RuleValidationResult {
@@ -190,8 +191,8 @@ export interface RuleMergeConflict {
   path: string;
   type: 'behavior' | 'rule' | 'value';
   resolution: string;
-  source?: unknown;
-  target?: unknown;
+  source?: any;
+  target?: any;
 }
 
 export interface RulePerformanceAnalysis {
@@ -377,7 +378,7 @@ export async function updatePropertyRulesEnhanced(
 ): Promise<MCPToolResponse> {
   try {
     // Pre-validation
-    const validation = await validateRuleTreeInternal(args.rules, {
+    const validation = await validateRuleTreeInternal(args.rules as any, {
       propertyId: args.propertyId,
       version: args.version,
       includeOptimizations: args.autoOptimize || false,
@@ -416,7 +417,7 @@ export async function updatePropertyRulesEnhanced(
     // Apply auto-optimization if requested
     let optimizedRules = args.rules;
     if (args.autoOptimize && validation.suggestions.length > 0) {
-      optimizedRules = applyOptimizations(args.rules, validation.suggestions);
+      optimizedRules = applyOptimizations(args.rules as any, validation.suggestions) as any;
     }
 
     if (args.validateOnly || args.dryRun) {
@@ -557,10 +558,10 @@ export async function createRuleFromTemplate(
     }
 
     // Process template with variables
-    const processedRuleTree = processTemplate(template.ruleTree, variables);
+    const processedRuleTree = processTemplate(template.ruleTree as any, variables);
 
     if (args.validate) {
-      const validation = await validateRuleTreeInternal(processedRuleTree, {
+      const validation = await validateRuleTreeInternal(processedRuleTree as any, {
         includeOptimizations: true,
       });
 
@@ -737,10 +738,10 @@ export async function mergeRuleTrees(
       ...args.options,
     };
 
-    const mergeResult = performRuleMerge(args.sourceRules, args.targetRules, options);
+    const mergeResult = performRuleMerge(args.sourceRules as any, args.targetRules as any, options);
 
     if (options.validateResult) {
-      const validation = await validateRuleTreeInternal(mergeResult.mergedRules, {
+      const validation = await validateRuleTreeInternal(mergeResult.mergedRules as any, {
         propertyId: args.propertyContext?.propertyId,
         version: args.propertyContext?.version,
         includeOptimizations: false,
@@ -841,17 +842,17 @@ export async function optimizeRuleTree(
     const metrics = args.targetMetrics || ['speed', 'bandwidth'];
 
     // Analyze current performance
-    const analysis = analyzeRulePerformance(args.rules);
+    const analysis = analyzeRulePerformance(args.rules as any);
 
     // Generate optimizations
-    const optimizations = generateOptimizations(args.rules, {
+    const optimizations = generateOptimizations(args.rules as any, {
       level,
       targetMetrics: metrics,
       preserveCustomizations: args.preserveCustomizations ?? true,
     });
 
     // Apply optimizations
-    const optimizedRules = applyOptimizations(args.rules, optimizations);
+    const optimizedRules = applyOptimizations(args.rules as any, optimizations);
 
     // Re-analyze for comparison
     const newAnalysis = analyzeRulePerformance(optimizedRules);
@@ -1019,7 +1020,7 @@ async function validateRuleTreeInternal(rules: PropertyRules, __context: Record<
     });
   }
 
-  if (!rules.name) {
+  if (!(rules as any).name) {
     errors.push({
       type: 'syntax',
       severity: 'error',
@@ -1030,11 +1031,11 @@ async function validateRuleTreeInternal(rules: PropertyRules, __context: Record<
   }
 
   // Validate behaviors and children recursively
-  validateRuleNode(rules, '/', errors, warnings, suggestions);
+  validateRuleNode(rules as any, '/', errors, warnings, suggestions);
 
   // Calculate scores
-  const performanceScore = calculatePerformanceScore(rules, warnings);
-  const complianceScore = calculateComplianceScore(rules, errors, warnings);
+  const performanceScore = calculatePerformanceScore(rules as any, warnings);
+  const complianceScore = calculateComplianceScore(rules as any, errors, warnings);
 
   return {
     isValid: errors.length === 0,
@@ -1154,7 +1155,7 @@ function validateCachingBehavior(
 ): void {
   const options = behavior.options || {};
 
-  if (options.behavior === 'NO_STORE') {
+  if (options['behavior'] === 'NO_STORE') {
     warnings.push({
       type: 'performance',
       severity: 'warning',
@@ -1164,8 +1165,8 @@ function validateCachingBehavior(
     });
   }
 
-  if (options.behavior === 'MAX_AGE' && options.ttl) {
-    const ttlSeconds = parseInt(options.ttl);
+  if (options['behavior'] === 'MAX_AGE' && options['ttl']) {
+    const ttlSeconds = parseInt(String(options['ttl'] || '0'));
     if (ttlSeconds < 300) {
       suggestions.push({
         type: 'caching',
@@ -1188,7 +1189,7 @@ function validateCompressionBehavior(
 ): void {
   const options = behavior.options || {};
 
-  if (options.behavior === 'NEVER') {
+  if (options['behavior'] === 'NEVER') {
     suggestions.push({
       type: 'compression',
       impact: 'high',
@@ -1208,7 +1209,7 @@ function validateHttp2Behavior(
 ): void {
   const options = behavior.options || {};
 
-  if (!options.enabled) {
+  if (!options['enabled']) {
     suggestions.push({
       type: 'performance',
       impact: 'high',
@@ -1578,7 +1579,7 @@ function analyzeRulePerformance(rules: RuleTreeRule): RulePerformanceAnalysis {
     }
     category.improvements.forEach((imp) => {
       recommendations.push({
-        type: name as 'security' | 'performance' | 'optimization' | 'compliance',
+        type: (name === 'optimization' ? 'caching' : name) as 'security' | 'performance' | 'consolidation' | 'reordering' | 'caching' | 'compression',
         impact: category.status === 'poor' ? 'high' : 'medium',
         path: '/',
         description: imp,
@@ -1825,8 +1826,8 @@ function applyCachingOptimization(rules: RuleTreeRule, _optimization: RuleOptimi
   // Add or update caching behavior
   const existingCaching = rules.behaviors?.find((b: RuleBehavior) => b.name === 'caching');
 
-  if (!existingCaching) {
-    rules.behaviors.push({
+  if (!existingCaching && rules.behaviors) {
+    rules.behaviors?.push({
       name: 'caching',
       options: {
         behavior: 'MAX_AGE',
@@ -1840,7 +1841,7 @@ function applyCachingOptimization(rules: RuleTreeRule, _optimization: RuleOptimi
 function applyCompressionOptimization(rules: RuleTreeRule, _optimization: RuleOptimizationSuggestion): void {
   // Add compression behaviors
   if (!rules.behaviors?.find((b: RuleBehavior) => b.name === 'gzipResponse')) {
-    rules.behaviors.push({
+    rules.behaviors?.push({
       name: 'gzipResponse',
       options: {
         behavior: 'ALWAYS',
@@ -1855,7 +1856,7 @@ function applyPerformanceOptimization(rules: RuleTreeRule, optimization: RuleOpt
     optimization.description.includes('HTTP/2') &&
     !rules.behaviors?.find((b: RuleBehavior) => b.name === 'http2')
   ) {
-    rules.behaviors.push({
+    rules.behaviors?.push({
       name: 'http2',
       options: {
         enabled: true,
@@ -1867,7 +1868,7 @@ function applyPerformanceOptimization(rules: RuleTreeRule, optimization: RuleOpt
 function applySecurityOptimization(rules: RuleTreeRule, _optimization: RuleOptimizationSuggestion): void {
   // Add security headers
   if (!rules.behaviors?.find((b: RuleBehavior) => b.name === 'modifyOutgoingResponseHeader')) {
-    rules.behaviors.push({
+    rules.behaviors?.push({
       name: 'modifyOutgoingResponseHeader',
       options: {
         action: 'ADD',
@@ -1881,7 +1882,7 @@ function applySecurityOptimization(rules: RuleTreeRule, _optimization: RuleOptim
 /**
  * Format error responses
  */
-function formatError(operation: string, _error: unknown): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 

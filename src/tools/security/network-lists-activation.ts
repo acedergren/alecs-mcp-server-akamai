@@ -207,13 +207,13 @@ export async function listNetworkListActivations(
 
     const queryParams: Record<string, string> = {};
     if (options.listType) {
-      queryParams.listType = options.listType;
+      queryParams['listType'] = options.listType;
     }
     if (options.network) {
-      queryParams.network = options.network;
+      queryParams['network'] = options.network;
     }
     if (options.status) {
-      queryParams.status = options.status;
+      queryParams['status'] = options.status;
     }
 
     const response = await client.request({

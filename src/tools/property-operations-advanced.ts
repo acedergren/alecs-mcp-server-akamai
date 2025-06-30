@@ -265,7 +265,7 @@ export async function compareProperties(
       const hostSetB = new Set(hostnamesB.hostnames?.items?.map((h: any) => h.cnameFrom) || []);
 
       // Find differences
-      hostSetA.forEach((hostname: unknown) => {
+      hostSetA.forEach((hostname: any) => {
         if (!hostSetB.has(hostname)) {
           comparison.differences.hostnames.push({
             type: 'removed',
@@ -275,7 +275,7 @@ export async function compareProperties(
         }
       });
 
-      hostSetB.forEach((hostname: unknown) => {
+      hostSetB.forEach((hostname: any) => {
         if (!hostSetA.has(hostname)) {
           comparison.differences.hostnames.push({
             type: 'added',

@@ -1180,7 +1180,7 @@ function groupHostnamesByStrategy(
         if (!groups[category]) {
           groups[category] = [];
         }
-        groups[category].push(hostname);
+        groups[category]!.push(hostname);
       });
       break;
 
@@ -1199,7 +1199,7 @@ function groupHostnamesByStrategy(
         if (!groups[env]) {
           groups[env] = [];
         }
-        groups[env].push(hostname);
+        groups[env]!.push(hostname);
       });
       break;
 

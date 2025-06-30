@@ -89,12 +89,15 @@ async function main(): Promise<void> {
 `);
     }
     
-    // Start modular server based on transport configuration
-    const { createModularServer } = await import('./utils/modular-server-factory');
+    // Start Akamai MCP server with full tool registry
+    // CODE KAI: Using the improved factory with clear naming
+    const { createAkamaiServer } = await import('./utils/akamai-server-factory');
     
-    const server = await createModularServer({
+    const server = await createAkamaiServer({
       name: `alecs-mcp-server-akamai`,
-      version: '1.6.0',
+      version: '1.6.2',
+      // Load all 171 tools by default
+      // Can be customized with toolFilter for specific deployments
     });
     
     await server.start();

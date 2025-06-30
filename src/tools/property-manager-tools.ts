@@ -34,8 +34,6 @@ import {
   PropertyActivateResponse,
   PropertyActivationsGetResponse,
   Activation,
-  NetworkType,
-  ActivationStatus,
   isPropertyVersionCreateResponse,
   isPropertyVersionRulesGetResponse,
   isEdgeHostnameCreateResponse,
@@ -85,7 +83,7 @@ export interface PropertyHostname {
   };
 }
 
-export interface ActivationStatus {
+export interface LocalActivationStatus {
   activationId: string;
   propertyName: string;
   propertyId: string;
@@ -353,7 +351,7 @@ export async function getPropertyRules(
     text += `**Rule Format:** ${rulesResponse.ruleFormat || 'latest'}\n\n`;
 
     // Function to format rules recursively
-    function formatRule(rule: any, indent = ''): string {
+    const formatRule = (rule: any, indent = ''): string => {
       let output = `${indent}[EMOJI] **${rule.name}**\n`;
 
       if (rule.criteria?.length > 0) {
@@ -408,13 +406,13 @@ export async function getPropertyRules(
     const cpCodeBehavior = defaultRule.behaviors?.find((b: any) => b.name === 'cpCode');
 
     if (originBehavior) {
-      text += `- **Origin Server:** ${originBehavior.options?.hostname || 'Not configured'}\n`;
+      text += `- **Origin Server:** ${originBehavior.options?.['hostname'] || 'Not configured'}\n`;
     }
     if (cachingBehavior) {
-      text += `- **Caching:** ${cachingBehavior.options?.behavior || 'Default'}\n`;
+      text += `- **Caching:** ${cachingBehavior.options?.['behavior'] || 'Default'}\n`;
     }
     if (cpCodeBehavior) {
-      text += `- **CP Code:** ${cpCodeBehavior.options?.value?.name || 'Not set'}\n`;
+      text += `- **CP Code:** ${cpCodeBehavior.options?.['value']?.['name'] || 'Not set'}\n`;
     }
 
     text += '\n## Next Steps\n';
@@ -531,7 +529,7 @@ export async function updatePropertyRules(
     
     let text = `[DONE] Successfully updated property rules for ${args.propertyId} (v${version})\n\n`;
 
-    if (rulesUpdateResponse.errors?.length > 0) {
+    if (rulesUpdateResponse.errors?.length && rulesUpdateResponse.errors.length > 0) {
       text += '[WARNING] **Validation Errors:**\n';
       rulesUpdateResponse.errors.forEach((_error: any) => {
         text += `- ${_error.detail}\n`;
@@ -539,7 +537,7 @@ export async function updatePropertyRules(
       text += '\n';
     }
 
-    if (rulesUpdateResponse.warnings?.length > 0) {
+    if (rulesUpdateResponse.warnings?.length && rulesUpdateResponse.warnings.length > 0) {
       text += '[WARNING] **Warnings:**\n';
       rulesUpdateResponse.warnings.forEach((warning: any) => {
         text += `- ${warning.detail}\n`;
@@ -977,11 +975,13 @@ export async function activateProperty(
       method: 'GET',
     });
 
-    if (!propertyResponse.properties?.items?.[0]) {
+    // Validate API response
+    const typedPropertyResponse = propertyResponse as any;
+    if (!typedPropertyResponse.properties?.items?.[0]) {
       throw new Error('Property not found');
     }
 
-    const property = propertyResponse.properties.items[0];
+    const property = typedPropertyResponse.properties.items[0];
     const version = args.version || property.latestVersion || 1;
 
     // Check if already active
@@ -1253,8 +1253,8 @@ export async function getActivationStatus(
     text += `**Network:** ${activation.network}\n`;
     text += `**Status:** ${statusIndicator} ${activation.status}\n`;
     text += `**Type:** ${activation.activationType}\n`;
-    text += `**Submitted:** ${new Date(activation.submitDate).toLocaleString()}\n`;
-    text += `**Updated:** ${new Date(activation.updateDate).toLocaleString()}\n`;
+    text += `**Submitted:** ${activation.submitDate ? new Date(activation.submitDate).toLocaleString() : 'Unknown'}\n`;
+    text += `**Updated:** ${activation.updateDate ? new Date(activation.updateDate).toLocaleString() : 'Unknown'}\n`;
 
     if (activation.note) {
       text += `**Note:** ${activation.note}\n`;
@@ -1283,7 +1283,7 @@ export async function getActivationStatus(
       if (activation.network === 'STAGING') {
         text += `\n\nNext step: Test thoroughly, then activate to production:\n"Activate property ${args.propertyId} to production"`;
       }
-    } else if (['PENDING', 'ZONE_1', 'ZONE_2', 'ZONE_3'].includes(activation.status)) {
+    } else if (activation.status && ['PENDING', 'ZONE_1', 'ZONE_2', 'ZONE_3'].includes(activation.status as string)) {
       text += '\n\n[PENDING] **Activation in Progress**\n\nCheck again in a few minutes.';
     }
 
@@ -1566,7 +1566,8 @@ export async function createPropertyVersionEnhanced(
         path: `/papi/v1/properties/${args.propertyId}/versions`,
       });
 
-      const versions = versionsResponse.data.versions?.items || [];
+      const typedVersionsResponse = versionsResponse as any;
+      const versions = typedVersionsResponse.data?.versions?.items || [];
       if (versions.length > 0) {
         // Select latest staging version, or latest production if no staging
         const stagingVersions = versions.filter((v: any) => v.stagingStatus === 'ACTIVE');
@@ -1589,7 +1590,8 @@ export async function createPropertyVersionEnhanced(
       body: baseVersion ? { createFromVersion: baseVersion } : {},
     });
 
-    const newVersion = response.versionLink?.split('/').pop() || 'unknown';
+    const typedResponse = response as any;
+    const newVersion = typedResponse.versionLink?.split('/').pop() || 'unknown';
 
     // Add note and metadata if provided
     if (args.note || args.tags || args.metadata) {
@@ -1607,10 +1609,10 @@ export async function createPropertyVersionEnhanced(
       if (args.tags || args.metadata) {
         const metadata = { ...args.metadata };
         if (args.tags) {
-          metadata.tags = args.tags.join(',');
+          metadata['tags'] = args.tags.join(',');
         }
-        metadata.createdBy = 'alecs-mcp-akamai';
-        metadata.created = new Date().toISOString();
+        metadata['createdBy'] = 'alecs-mcp-akamai';
+        metadata['created'] = new Date().toISOString();
 
         patches.push({
           op: 'add',
@@ -1686,9 +1688,11 @@ export async function getVersionDiff(
         }),
       ]);
 
+      const typedRules1Response = rules1Response as any;
+      const typedRules2Response = rules2Response as any;
       const rulesDiff = compareRuleTrees(
-        rules1Response.data.rules,
-        rules2Response.data.rules,
+        typedRules1Response.data.rules,
+        typedRules2Response.data.rules,
         args.includeDetails || false,
       );
 
@@ -1714,9 +1718,11 @@ export async function getVersionDiff(
         }),
       ]);
 
+      const typedHostnames1Response = hostnames1Response as any;
+      const typedHostnames2Response = hostnames2Response as any;
       const hostnamesDiff = compareHostnames(
-        hostnames1Response.data.hostnames?.items || [],
-        hostnames2Response.data.hostnames?.items || [],
+        typedHostnames1Response.data.hostnames?.items || [],
+        typedHostnames2Response.data.hostnames?.items || [],
       );
 
       if (hostnamesDiff.length > 0) {
@@ -1790,7 +1796,8 @@ export async function listPropertyVersionsEnhanced(
       path: `/papi/v1/properties/${args.propertyId}/versions`,
     });
 
-    let versions = response.data.versions?.items || [];
+    const typedResponse = response as any;
+    let versions = typedResponse.data?.versions?.items || [];
     const limit = args.limit || 20;
     const offset = args.offset || 0;
 
@@ -1904,7 +1911,8 @@ export async function rollbackPropertyVersion(
         path: `/papi/v1/properties/${args.propertyId}/versions`,
       });
 
-      const versions = currentVersionResponse.data.versions?.items || [];
+      const typedCurrentVersionResponse = currentVersionResponse as any;
+      const versions = typedCurrentVersionResponse.data?.versions?.items || [];
       const latestVersion = Math.max(...versions.map((v: any) => v.propertyVersion));
 
       const backupResponse = await client.request({
@@ -1913,7 +1921,8 @@ export async function rollbackPropertyVersion(
         body: { createFromVersion: latestVersion },
       });
 
-      backupVersionId = backupResponse.versionLink?.split('/').pop();
+      const typedBackupResponse = backupResponse as any;
+      backupVersionId = typedBackupResponse.versionLink?.split('/').pop();
 
       // Add backup note
       if (backupVersionId) {
@@ -1938,7 +1947,8 @@ export async function rollbackPropertyVersion(
       body: { createFromVersion: args.targetVersion },
     });
 
-    const newVersionId = rollbackResponse.versionLink?.split('/').pop();
+    const typedRollbackResponse = rollbackResponse as any;
+    const newVersionId = typedRollbackResponse.versionLink?.split('/').pop();
 
     // Add rollback note
     if (newVersionId && args.note) {
@@ -2040,15 +2050,15 @@ export async function batchVersionOperations(
             case 'rollback':
               result = await rollbackPropertyVersion(client, {
                 propertyId: op.propertyId,
-                targetVersion: op.parameters.targetVersion || 1,
+                targetVersion: op.parameters['targetVersion'] || 1,
                 ...op.parameters,
               });
               break;
             case 'compare':
               result = await getVersionDiff(client, {
                 propertyId: op.propertyId,
-                version1: op.parameters.version1 || 1,
-                version2: op.parameters.version2 || 2,
+                version1: op.parameters['version1'] || 1,
+                version2: op.parameters['version2'] || 2,
                 ...op.parameters,
               });
               break;
@@ -2094,7 +2104,9 @@ export async function batchVersionOperations(
       });
     } else {
       // Execute operations sequentially
-      for (const [_index, op] of args.operations.entries()) {
+      for (let i = 0; i < args.operations.length; i++) {
+        const op = args.operations[i];
+        if (!op) continue;
         try {
           let result;
           switch (op.operation) {
@@ -2107,15 +2119,15 @@ export async function batchVersionOperations(
             case 'rollback':
               result = await rollbackPropertyVersion(client, {
                 propertyId: op.propertyId,
-                targetVersion: op.parameters.targetVersion || 1,
+                targetVersion: op.parameters['targetVersion'] || 1,
                 ...op.parameters,
               });
               break;
             case 'compare':
               result = await getVersionDiff(client, {
                 propertyId: op.propertyId,
-                version1: op.parameters.version1 || 1,
-                version2: op.parameters.version2 || 2,
+                version1: op.parameters['version1'] || 1,
+                version2: op.parameters['version2'] || 2,
                 ...op.parameters,
               });
               break;
@@ -2203,13 +2215,13 @@ function compareRuleTrees(rules1: any, rules2: any, _includeDetails: boolean): a
  * Helper function to compare hostnames
  */
 function compareHostnames(hostnames1: any[], hostnames2: any[]): any[] {
-  const differences = [];
+  const differences: any[] = [];
 
   const h1Map = new Map(hostnames1.map((h) => [h.cnameFrom, h]));
   const h2Map = new Map(hostnames2.map((h) => [h.cnameFrom, h]));
 
   // Check for added hostnames
-  for (const [hostname, _config] of h2Map) {
+  Array.from(h2Map.keys()).forEach((hostname) => {
     if (!h1Map.has(hostname)) {
       differences.push({
         type: 'hostname_added',
@@ -2217,10 +2229,10 @@ function compareHostnames(hostnames1: any[], hostnames2: any[]): any[] {
         hostname,
       });
     }
-  }
+  });
 
   // Check for removed hostnames
-  for (const [hostname, _config] of h1Map) {
+  Array.from(h1Map.keys()).forEach((hostname) => {
     if (!h2Map.has(hostname)) {
       differences.push({
         type: 'hostname_removed',
@@ -2228,7 +2240,7 @@ function compareHostnames(hostnames1: any[], hostnames2: any[]): any[] {
         hostname,
       });
     }
-  }
+  });
 
   return differences;
 }
@@ -2301,12 +2313,13 @@ async function monitorActivation(
         method: 'GET',
       });
 
-      if (!response.activations?.items?.[0]) {
+      const typedResponse = response as any;
+      if (!typedResponse.activations?.items?.[0]) {
         progressToken.fail('Activation not found');
         return;
       }
 
-      const activation = response.activations.items[0];
+      const activation = typedResponse.activations.items[0];
       const elapsed = Date.now() - startTime;
 
       // Map activation status to progress

@@ -1,0 +1,452 @@
+[
+  {
+    "timestamp": "2025-06-29T07:54:52.064Z",
+    "totalErrors": 400,
+    "errorsByFile": [
+      {
+        "file": "src/tools/property-manager-tools.ts",
+        "count": 35
+      },
+      {
+        "file": "src/tools/property-manager.ts",
+        "count": 35
+      },
+      {
+        "file": "src/tools/dns-tools.ts",
+        "count": 29
+      },
+      {
+        "file": "src/tools/rule-tree-management.ts",
+        "count": 28
+      },
+      {
+        "file": "src/tools/all-tools-registry.ts",
+        "count": 20
+      },
+      {
+        "file": "src/tools/dns-operations-priority.ts",
+        "count": 19
+      },
+      {
+        "file": "src/tools/property-error-handling-tools.ts",
+        "count": 18
+      },
+      {
+        "file": "src/tools/property-tools.ts",
+        "count": 15
+      },
+      {
+        "file": "src/tools/elicitation/secure-hostname-onboarding.ts",
+        "count": 13
+      },
+      {
+        "file": "src/tools/analysis/todo-generator.ts",
+        "count": 12
+      }
+    ],
+    "typeCoverage": 95.55,
+    "baselineErrors": 400,
+    "errorReduction": 0,
+    "riskScore": 813
+  },
+  {
+    "timestamp": "2025-06-29T09:53:07.794Z",
+    "totalErrors": 346,
+    "errorsByFile": [
+      {
+        "file": "src/tools/property-manager.ts",
+        "count": 35
+      },
+      {
+        "file": "src/tools/property-manager-tools.ts",
+        "count": 23
+      },
+      {
+        "file": "src/tools/rule-tree-management.ts",
+        "count": 22
+      },
+      {
+        "file": "src/tools/all-tools-registry.ts",
+        "count": 20
+      },
+      {
+        "file": "src/tools/dns-operations-priority.ts",
+        "count": 19
+      },
+      {
+        "file": "src/tools/dns-tools.ts",
+        "count": 16
+      },
+      {
+        "file": "src/tools/property-tools.ts",
+        "count": 15
+      },
+      {
+        "file": "src/tools/elicitation/secure-hostname-onboarding.ts",
+        "count": 13
+      },
+      {
+        "file": "src/tools/analysis/todo-generator.ts",
+        "count": 12
+      },
+      {
+        "file": "src/tools/analysis/output-analyzer.ts",
+        "count": 11
+      }
+    ],
+    "typeCoverage": 95.84,
+    "baselineErrors": 400,
+    "errorReduction": 13.5,
+    "riskScore": 704
+  },
+  {
+    "timestamp": "2025-06-29T09:56:28.358Z",
+    "totalErrors": 330,
+    "errorsByFile": [
+      {
+        "file": "src/tools/property-manager.ts",
+        "count": 35
+      },
+      {
+        "file": "src/tools/property-manager-tools.ts",
+        "count": 23
+      },
+      {
+        "file": "src/tools/rule-tree-management.ts",
+        "count": 22
+      },
+      {
+        "file": "src/tools/dns-operations-priority.ts",
+        "count": 19
+      },
+      {
+        "file": "src/tools/dns-tools.ts",
+        "count": 16
+      },
+      {
+        "file": "src/tools/property-tools.ts",
+        "count": 15
+      },
+      {
+        "file": "src/tools/elicitation/secure-hostname-onboarding.ts",
+        "count": 13
+      },
+      {
+        "file": "src/tools/analysis/todo-generator.ts",
+        "count": 12
+      },
+      {
+        "file": "src/tools/analysis/output-analyzer.ts",
+        "count": 11
+      },
+      {
+        "file": "src/tools/cps-tools.ts",
+        "count": 11
+      }
+    ],
+    "typeCoverage": 95.84,
+    "baselineErrors": 400,
+    "errorReduction": 17.5,
+    "riskScore": 672
+  },
+  {
+    "timestamp": "2025-06-29T10:02:32.955Z",
+    "totalErrors": 360,
+    "errorsByFile": [
+      {
+        "file": "src/tools/property-manager.ts",
+        "count": 54
+      },
+      {
+        "file": "src/tools/dns-tools.ts",
+        "count": 29
+      },
+      {
+        "file": "src/tools/rule-tree-management.ts",
+        "count": 22
+      },
+      {
+        "file": "src/tools/property-manager-tools.ts",
+        "count": 21
+      },
+      {
+        "file": "src/tools/dns-operations-priority.ts",
+        "count": 19
+      },
+      {
+        "file": "src/tools/property-tools.ts",
+        "count": 15
+      },
+      {
+        "file": "src/tools/elicitation/secure-hostname-onboarding.ts",
+        "count": 13
+      },
+      {
+        "file": "src/tools/analysis/todo-generator.ts",
+        "count": 12
+      },
+      {
+        "file": "src/tools/analysis/output-analyzer.ts",
+        "count": 11
+      },
+      {
+        "file": "src/tools/cps-tools.ts",
+        "count": 11
+      }
+    ],
+    "typeCoverage": 95.82,
+    "baselineErrors": 400,
+    "errorReduction": 10,
+    "riskScore": 733
+  },
+  {
+    "timestamp": "2025-06-29T10:22:53.034Z",
+    "totalErrors": 298,
+    "errorsByFile": [
+      {
+        "file": "src/tools/dns-tools.ts",
+        "count": 29
+      },
+      {
+        "file": "src/tools/rule-tree-management.ts",
+        "count": 22
+      },
+      {
+        "file": "src/tools/dns-operations-priority.ts",
+        "count": 17
+      },
+      {
+        "file": "src/tools/property-tools.ts",
+        "count": 15
+      },
+      {
+        "file": "src/tools/elicitation/secure-hostname-onboarding.ts",
+        "count": 13
+      },
+      {
+        "file": "src/tools/property-manager-tools.ts",
+        "count": 13
+      },
+      {
+        "file": "src/tools/analysis/todo-generator.ts",
+        "count": 12
+      },
+      {
+        "file": "src/tools/analysis/output-analyzer.ts",
+        "count": 11
+      },
+      {
+        "file": "src/tools/cps-tools.ts",
+        "count": 11
+      },
+      {
+        "file": "src/tools/property-onboarding-tools.ts",
+        "count": 10
+      }
+    ],
+    "typeCoverage": 95.5,
+    "baselineErrors": 400,
+    "errorReduction": 25.5,
+    "riskScore": 610
+  },
+  {
+    "timestamp": "2025-06-29T10:48:59.228Z",
+    "totalErrors": 294,
+    "errorsByFile": [
+      {
+        "file": "src/tools/dns-tools.ts",
+        "count": 29
+      },
+      {
+        "file": "src/tools/rule-tree-management.ts",
+        "count": 22
+      },
+      {
+        "file": "src/tools/dns-operations-priority.ts",
+        "count": 17
+      },
+      {
+        "file": "src/tools/property-tools.ts",
+        "count": 15
+      },
+      {
+        "file": "src/tools/elicitation/secure-hostname-onboarding.ts",
+        "count": 13
+      },
+      {
+        "file": "src/tools/property-manager-tools.ts",
+        "count": 13
+      },
+      {
+        "file": "src/tools/analysis/todo-generator.ts",
+        "count": 12
+      },
+      {
+        "file": "src/tools/analysis/output-analyzer.ts",
+        "count": 11
+      },
+      {
+        "file": "src/tools/cps-tools.ts",
+        "count": 11
+      },
+      {
+        "file": "src/tools/property-onboarding-tools.ts",
+        "count": 10
+      }
+    ],
+    "typeCoverage": 95.5,
+    "baselineErrors": 400,
+    "errorReduction": 26.5,
+    "riskScore": 602
+  },
+  {
+    "timestamp": "2025-06-29T10:53:23.210Z",
+    "totalErrors": 294,
+    "errorsByFile": [
+      {
+        "file": "src/tools/dns-tools.ts",
+        "count": 29
+      },
+      {
+        "file": "src/tools/rule-tree-management.ts",
+        "count": 22
+      },
+      {
+        "file": "src/tools/dns-operations-priority.ts",
+        "count": 17
+      },
+      {
+        "file": "src/tools/property-tools.ts",
+        "count": 15
+      },
+      {
+        "file": "src/tools/elicitation/secure-hostname-onboarding.ts",
+        "count": 13
+      },
+      {
+        "file": "src/tools/property-manager-tools.ts",
+        "count": 13
+      },
+      {
+        "file": "src/tools/analysis/todo-generator.ts",
+        "count": 12
+      },
+      {
+        "file": "src/tools/analysis/output-analyzer.ts",
+        "count": 11
+      },
+      {
+        "file": "src/tools/cps-tools.ts",
+        "count": 11
+      },
+      {
+        "file": "src/tools/property-onboarding-tools.ts",
+        "count": 10
+      }
+    ],
+    "typeCoverage": 95.5,
+    "baselineErrors": 400,
+    "errorReduction": 26.5,
+    "riskScore": 602
+  },
+  {
+    "timestamp": "2025-06-29T11:23:27.745Z",
+    "totalErrors": 262,
+    "errorsByFile": [
+      {
+        "file": "src/tools/rule-tree-management.ts",
+        "count": 22
+      },
+      {
+        "file": "src/tools/analysis/output-analyzer.ts",
+        "count": 15
+      },
+      {
+        "file": "src/tools/property-tools.ts",
+        "count": 15
+      },
+      {
+        "file": "src/tools/dns-operations-priority.ts",
+        "count": 13
+      },
+      {
+        "file": "src/tools/dns-tools.ts",
+        "count": 13
+      },
+      {
+        "file": "src/tools/analysis/todo-generator.ts",
+        "count": 12
+      },
+      {
+        "file": "src/tools/cps-tools.ts",
+        "count": 11
+      },
+      {
+        "file": "src/tools/analysis/fix-strategy.ts",
+        "count": 10
+      },
+      {
+        "file": "src/tools/property-onboarding-tools.ts",
+        "count": 10
+      },
+      {
+        "file": "src/tools/dns-dnssec-operations.ts",
+        "count": 9
+      }
+    ],
+    "typeCoverage": 95.5,
+    "baselineErrors": 400,
+    "errorReduction": 34.5,
+    "riskScore": 538
+  },
+  {
+    "timestamp": "2025-06-29T11:46:57.318Z",
+    "totalErrors": 243,
+    "errorsByFile": [
+      {
+        "file": "src/tools/rule-tree-management.ts",
+        "count": 17
+      },
+      {
+        "file": "src/tools/analysis/output-analyzer.ts",
+        "count": 15
+      },
+      {
+        "file": "src/tools/dns-tools.ts",
+        "count": 13
+      },
+      {
+        "file": "src/tools/analysis/todo-generator.ts",
+        "count": 12
+      },
+      {
+        "file": "src/tools/dns-operations-priority.ts",
+        "count": 12
+      },
+      {
+        "file": "src/tools/property-tools.ts",
+        "count": 12
+      },
+      {
+        "file": "src/tools/cps-tools.ts",
+        "count": 11
+      },
+      {
+        "file": "src/tools/analysis/fix-strategy.ts",
+        "count": 10
+      },
+      {
+        "file": "src/tools/property-onboarding-tools.ts",
+        "count": 10
+      },
+      {
+        "file": "src/tools/dns-dnssec-operations.ts",
+        "count": 9
+      }
+    ],
+    "typeCoverage": 95.5,
+    "baselineErrors": 400,
+    "errorReduction": 39.25,
+    "riskScore": 500
+  }
+]

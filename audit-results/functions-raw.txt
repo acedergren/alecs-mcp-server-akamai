@@ -1,0 +1,10 @@
+src/tools/dns-operations-priority.ts:230:listChangelists
+src/tools/dns-operations-priority.ts:298:searchChangelists
+src/tools/dns-operations-priority.ts:359:getChangelistDiff
+src/tools/dns-operations-priority.ts:438:getAuthoritativeNameservers
+src/tools/dns-operations-priority.ts:498:listContracts
+src/tools/dns-operations-priority.ts:564:getSupportedRecordTypes
+src/tools/dns-operations-priority.ts:642:deleteZone
+src/tools/dns-operations-priority.ts:700:getZoneStatus
+src/tools/dns-operations-priority.ts:780:listTSIGKeys
+src/tools/dns-operations-priority.ts:843:createTSIGKey

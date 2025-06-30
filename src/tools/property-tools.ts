@@ -46,8 +46,6 @@
 
 import {
   formatContractDisplay,
-  formatGroupDisplay,
-  formatPropertyDisplay,
   ensurePrefix,
 } from '../utils/formatting';
 import {
@@ -57,14 +55,12 @@ import {
   ensureAkamaiIdFormat,
 } from '../utils/parameter-validation';
 import { formatProductDisplay } from '../utils/product-mapping';
-import { parseAkamaiResponse } from '../utils/response-parsing';
 import { withToolErrorHandling, type ErrorContext } from '../utils/tool-error-handling';
-import { BaseToolArgs } from '../types/tool-infrastructure';
 import { type TreeNode, renderTree, generateTreeSummary, formatGroupNode } from '../utils/tree-view';
 import { logger } from '../utils/logger';
 
 import { type AkamaiClient } from '../akamai-client';
-import { type MCPToolResponse, type Property } from '../types';
+import { type MCPToolResponse } from '../types';
 import { validateApiResponse } from '../utils/api-response-validator';
 import {
   PapiPropertiesListResponse,
@@ -94,26 +90,6 @@ import {
 
 // Removed duplicate interfaces - now using precise PAPI types from imports
 
-/**
- * Format a date string to a more readable format
- */
-function formatDate(dateString: string | undefined): string {
-  if (!dateString) {
-    return 'N/A';
-  }
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return dateString;
-  }
-}
 
 /**
  * Format activation status with appropriate indicator
@@ -1049,6 +1025,9 @@ export async function getProperty(
         if (foundProperties.length === 1) {
           // Single match found
           const match = foundProperties[0];
+          if (!match) {
+            throw new Error('Unexpected error: match not found');
+          }
           const searchNote = `ℹ️ Found property "${match.property.propertyName}" (${match.property.propertyId})\n\n`;
           const result = await getPropertyById(client, match.property.propertyId, match.property);
           if (result.content[0] && 'text' in result.content[0]) {
@@ -1170,6 +1149,9 @@ async function getPropertyById(
 
         // Only check first contract per group for speed
         const cId = group.contractIds[0];
+        if (!cId) {
+          continue;
+        }
         try {
           const propertiesRawResponse = await client.request({
             path: '/papi/v1/properties',

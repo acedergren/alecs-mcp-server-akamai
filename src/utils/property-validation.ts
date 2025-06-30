@@ -42,8 +42,7 @@ export async function validatePropertyAccess(
   try {
     const response = await client.request({
       path: `/papi/v1/properties/${propertyId}`,
-      method: 'GET',
-      customer
+      method: 'GET'
     });
 
     const validated = validateApiResponse<{

@@ -53,3 +53,25 @@ export function safeAccess<T>(obj: unknown, accessor: (obj: any) => T, defaultVa
     return defaultValue;
   }
 }
+
+/**
+ * Quick type definitions for missing types
+ */
+export interface ZoneSubmitResponse {
+  submissionId: string;
+  changeId?: string;
+  status?: string;
+}
+
+export interface PropertyHostname {
+  hostname: string;
+  cnameFrom?: string;
+  cnameTo?: string;
+}
+
+export type CPSEnrollmentMetadata = {
+  enrollmentId: number;
+  status: string;
+  certificateType: string;
+  [key: string]: any;
+}

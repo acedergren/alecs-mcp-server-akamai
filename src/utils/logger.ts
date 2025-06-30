@@ -10,7 +10,7 @@ export class Logger {
   private debugMode: boolean;
 
   private constructor() {
-    this.debugMode = process.env.DEBUG === 'true';
+    this.debugMode = process.env['DEBUG'] === 'true';
   }
 
   static getInstance(): Logger {

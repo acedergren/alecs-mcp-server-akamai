@@ -90,7 +90,7 @@ export class CustomerConfigManager {
   private constructor() {
     // Try common locations for .edgerc
     const locations = [
-      process.env.EDGERC_PATH,
+      process.env['EDGERC_PATH'],
       path.join(process.cwd(), '.edgerc'),
       path.join(os.homedir(), '.edgerc'),
     ];

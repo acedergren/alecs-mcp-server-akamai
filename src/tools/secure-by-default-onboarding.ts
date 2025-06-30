@@ -213,7 +213,7 @@ export async function onboardSecureByDefaultProperty(
     customer?: string;
   },
 ): Promise<MCPToolResponse> {
-  const spinner = process.env.MCP_ENVIRONMENT === 'production' ? null : new Spinner();
+  const spinner = process.env['MCP_ENVIRONMENT'] === 'production' ? null : new Spinner();
   const state: OnboardingState = { completed: [] };
 
   try {

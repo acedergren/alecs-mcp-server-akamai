@@ -1262,10 +1262,11 @@ export async function getRealtimeMetrics(args: GetRealtimeMetricsArgs): Promise<
     const realtimeData: Record<string, any> = {};
     metrics.forEach((metric: string, index: number) => {
       const data = results[index];
-      const latestValue = data && data.length > 0 ? data[data.length - 1].value : 0;
+      const lastItem = data && data.length > 0 ? data[data.length - 1] : null;
+      const latestValue = lastItem?.value ?? 0;
       realtimeData[metric] = {
         current: latestValue,
-        timestamp: data && data.length > 0 ? data[data.length - 1].timestamp : now.toISOString(),
+        timestamp: lastItem?.timestamp ?? now.toISOString(),
         trend: 'stable', // Would calculate from historical data
       };
     });

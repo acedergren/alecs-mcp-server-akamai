@@ -1,0 +1,444 @@
+src/tools/agent-tools.ts:122:export async function clonePropertyVersion(
+src/tools/agent-tools.ts:155:export async function applyPropertyTemplate(
+src/tools/agent-tools.ts:190:export async function provisionAndDeployCertificate(
+src/tools/agent-tools.ts:239:export async function automatedDNSValidation(
+src/tools/agent-tools.ts:265:export async function processCertificateRenewal(
+src/tools/agent-tools.ts:292:export async function importZoneFromCloudflare(
+src/tools/agent-tools.ts:323:export async function bulkDNSMigration(
+src/tools/agent-tools.ts:368:export async function migrateWebsite(
+src/tools/agent-tools.ts:400:export async function provisionSecureWebsite(
+src/tools/agent-tools.ts:71:export async function provisionCompleteProperty(
+src/tools/all-tools-registry.ts:1646:export const TOTAL_TOOLS_COUNT = getAllToolDefinitions().length;
+src/tools/all-tools-registry.ts:520:export function getAllToolDefinitions(): ToolDefinition[] {
+src/tools/bulk-operations-manager.ts:1159:export async function getBulkOperationStatus(
+src/tools/bulk-operations-manager.ts:171:export async function bulkCloneProperties(
+src/tools/bulk-operations-manager.ts:406:export async function bulkActivateProperties(
+src/tools/bulk-operations-manager.ts:644:export async function bulkUpdatePropertyRules(
+src/tools/bulk-operations-manager.ts:888:export async function bulkManageHostnames(
+src/tools/certificate-enrollment-tools.ts:110:export async function getCertificateDeploymentStatus(
+src/tools/certificate-enrollment-tools.ts:17:export async function enrollCertificateWithValidation(
+src/tools/certificate-enrollment-tools.ts:221:export async function renewCertificate(
+src/tools/certificate-enrollment-tools.ts:325:export async function cleanupValidationRecords(
+src/tools/certificate-enrollment-tools.ts:428:export async function getCertificateValidationHistory(
+src/tools/certificate-enrollment-tools.ts:58:export async function validateCertificateEnrollment(
+src/tools/certificate-enrollment-tools.ts:75:export async function deployCertificateToNetwork(
+src/tools/certificate-enrollment-tools.ts:93:export async function monitorCertificateEnrollment(
+src/tools/cpcode-tools.ts:131:export async function getCPCode(
+src/tools/cpcode-tools.ts:247:export async function createCPCode(
+src/tools/cpcode-tools.ts:26:export async function listCPCodes(
+src/tools/cpcode-tools.ts:413:export async function searchCPCodes(
+src/tools/cps-dns-integration.ts:25:export async function createACMEValidationRecords(
+src/tools/cps-dns-integration.ts:258:export async function monitorCertificateValidation(
+src/tools/cps-tools.ts:1128:export async function deleteCertificateEnrollment(
+src/tools/cps-tools.ts:1232:export async function monitorCertificateDeployment(
+src/tools/cps-tools.ts:176:export async function createDVEnrollment(
+src/tools/cps-tools.ts:265:export async function getDVValidationChallenges(
+src/tools/cps-tools.ts:412:export async function checkDVEnrollmentStatus(
+src/tools/cps-tools.ts:557:export async function listCertificateEnrollments(
+src/tools/cps-tools.ts:679:export async function linkCertificateToProperty(
+src/tools/cps-tools.ts:797:export async function downloadCSR(
+src/tools/cps-tools.ts:871:export async function uploadThirdPartyCertificate(
+src/tools/cps-tools.ts:987:export async function updateCertificateEnrollment(
+src/tools/debug-secure-onboarding.ts:17:export async function debugSecurePropertyOnboarding(
+src/tools/debug-secure-onboarding.ts:312:export async function testBasicPropertyCreation(
+src/tools/dns-advanced-tools.ts:152:export async function getSecondaryZoneTransferStatus(
+src/tools/dns-advanced-tools.ts:220:export async function getZoneContract(
+src/tools/dns-advanced-tools.ts:271:export async function getRecordSet(
+src/tools/dns-advanced-tools.ts:328:export async function updateTSIGKeyForZones(
+src/tools/dns-advanced-tools.ts:421:export async function submitBulkZoneCreateRequest(
+src/tools/dns-advanced-tools.ts:478:export async function getZoneVersion(
+src/tools/dns-advanced-tools.ts:521:export async function getVersionRecordSets(
+src/tools/dns-advanced-tools.ts:577:export async function reactivateZoneVersion(
+src/tools/dns-advanced-tools.ts:618:export async function getVersionMasterZoneFile(
+src/tools/dns-advanced-tools.ts:648:export async function createMultipleRecordSets(
+src/tools/dns-advanced-tools.ts:77:export async function getZonesDNSSECStatus(
+src/tools/dns-dnssec-operations.ts:152:export function isDNSSECKeysResponse(obj: unknown): obj is DNSSECKeysResponse {
+src/tools/dns-dnssec-operations.ts:159:export function isDNSSECDSRecordsResponse(obj: unknown): obj is DNSSECDSRecordsResponse {
+src/tools/dns-dnssec-operations.ts:169:export async function enableDNSSEC(
+src/tools/dns-dnssec-operations.ts:242:export async function disableDNSSEC(
+src/tools/dns-dnssec-operations.ts:302:export async function getDNSSECKeys(
+src/tools/dns-dnssec-operations.ts:383:export async function getDNSSECDSRecords(
+src/tools/dns-dnssec-operations.ts:451:export async function checkDNSSECValidation(
+src/tools/dns-dnssec-operations.ts:538:export async function rotateDNSSECKeys(
+src/tools/dns-migration-tools.ts:160:export async function parseZoneFile(
+src/tools/dns-migration-tools.ts:281:export async function bulkImportRecords(
+src/tools/dns-migration-tools.ts:420:export async function convertZoneToPrimary(
+src/tools/dns-migration-tools.ts:477:export async function generateMigrationInstructions(
+src/tools/dns-migration-tools.ts:615:export async function importFromCloudflare(
+src/tools/dns-migration-tools.ts:92:export async function importZoneViaAXFR(
+src/tools/dns-operations-priority.ts:212:export function isAuthoritiesResponse(obj: unknown): obj is AuthoritiesResponse {
+src/tools/dns-operations-priority.ts:216:export function isContractsResponse(obj: unknown): obj is ContractsResponse {
+src/tools/dns-operations-priority.ts:220:export function isChangeListDiff(obj: unknown): obj is ChangeListDiff {
+src/tools/dns-operations-priority.ts:230:export async function listChangelists(
+src/tools/dns-operations-priority.ts:298:export async function searchChangelists(
+src/tools/dns-operations-priority.ts:359:export async function getChangelistDiff(
+src/tools/dns-operations-priority.ts:438:export async function getAuthoritativeNameservers(
+src/tools/dns-operations-priority.ts:498:export async function listContracts(
+src/tools/dns-operations-priority.ts:564:export async function getSupportedRecordTypes(
+src/tools/dns-operations-priority.ts:642:export async function deleteZone(
+src/tools/dns-operations-priority.ts:700:export async function getZoneStatus(
+src/tools/dns-operations-priority.ts:780:export async function listTSIGKeys(
+src/tools/dns-operations-priority.ts:843:export async function createTSIGKey(
+src/tools/dns-tools.ts:1040:export async function deleteRecord(
+src/tools/dns-tools.ts:1136:export async function activateZoneChanges(
+src/tools/dns-tools.ts:172:export async function getZone(
+src/tools/dns-tools.ts:230:export async function createZone(
+src/tools/dns-tools.ts:299:export async function listRecords(
+src/tools/dns-tools.ts:368:export async function getChangeListMetadata(
+src/tools/dns-tools.ts:402:export async function getChangeList(
+src/tools/dns-tools.ts:442:export async function submitChangeList(
+src/tools/dns-tools.ts:654:export async function discardChangeList(
+src/tools/dns-tools.ts:706:export async function waitForZoneActivation(
+src/tools/dns-tools.ts:71:export async function listZones(
+src/tools/dns-tools.ts:809:export async function processMultipleZones(
+src/tools/dns-tools.ts:866:export async function ensureCleanChangeList(
+src/tools/dns-tools.ts:962:export async function upsertRecord(
+src/tools/documentation-tools.ts:107:export async function generateAPIReference(
+src/tools/documentation-tools.ts:172:export async function generateFeatureDocumentation(
+src/tools/documentation-tools.ts:275:export async function updateDocumentation(
+src/tools/documentation-tools.ts:31:export async function generateDocumentationIndex(
+src/tools/documentation-tools.ts:347:export async function generateChangelog(
+src/tools/documentation-tools.ts:449:export async function createKnowledgeArticle(
+src/tools/edge-hostname-management.ts:1089:export const edgeHostnameTools = {
+src/tools/edge-hostname-management.ts:248:export async function createBulkEdgeHostnames(
+src/tools/edge-hostname-management.ts:382:export async function getEdgeHostnameDetails(
+src/tools/edge-hostname-management.ts:568:export async function generateEdgeHostnameRecommendations(
+src/tools/edge-hostname-management.ts:736:export async function validateEdgeHostnameCertificate(
+src/tools/edge-hostname-management.ts:85:export async function createEdgeHostnameEnhanced(
+src/tools/edge-hostname-management.ts:884:export async function associateCertificateWithEdgeHostname(
+src/tools/fastpurge-tools.ts:219:export const fastpurgeCpcodeInvalidate = {
+src/tools/fastpurge-tools.ts:327:export const fastpurgeTagInvalidate = {
+src/tools/fastpurge-tools.ts:411:export const fastpurgeStatusCheck = {
+src/tools/fastpurge-tools.ts:504:export const fastpurgeQueueStatus = {
+src/tools/fastpurge-tools.ts:604:export const fastpurgeEstimate = {
+src/tools/fastpurge-tools.ts:728:export const fastPurgeTools = [
+src/tools/fastpurge-tools.ts:78:export const fastpurgeUrlInvalidate = {
+src/tools/hostname-discovery-engine.ts:156:export async function analyzeHostnameConflicts(
+src/tools/hostname-discovery-engine.ts:235:export async function analyzeWildcardCoverage(
+src/tools/hostname-discovery-engine.ts:285:export async function identifyOwnershipPatterns(
+src/tools/hostname-discovery-engine.ts:83:export async function discoverHostnamesIntelligent(
+src/tools/hostname-management-advanced.ts:304:export async function generateEdgeHostnameRecommendations(
+src/tools/hostname-management-advanced.ts:441:export async function validateHostnamesBulk(
+src/tools/hostname-management-advanced.ts:645:export async function findOptimalPropertyAssignment(
+src/tools/hostname-management-advanced.ts:795:export async function createHostnameProvisioningPlan(
+src/tools/hostname-management-advanced.ts:86:export async function analyzeHostnameOwnership(
+src/tools/includes-tools.ts:106:export async function getInclude(
+src/tools/includes-tools.ts:15:export async function listIncludes(
+src/tools/includes-tools.ts:204:export async function createInclude(
+src/tools/includes-tools.ts:281:export async function updateInclude(
+src/tools/includes-tools.ts:352:export async function createIncludeVersion(
+src/tools/includes-tools.ts:423:export async function activateInclude(
+src/tools/includes-tools.ts:509:export async function getIncludeActivationStatus(
+src/tools/includes-tools.ts:615:export async function listIncludeActivations(
+src/tools/integration-testing-tools.ts:148:export async function checkAPIHealth(
+src/tools/integration-testing-tools.ts:19:export async function runIntegrationTestSuite(
+src/tools/integration-testing-tools.ts:290:export async function generateTestData(
+src/tools/integration-testing-tools.ts:433:export async function validateToolResponses(
+src/tools/integration-testing-tools.ts:550:export async function runLoadTest(
+src/tools/performance-tools.ts:114:export async function optimizeCache(
+src/tools/performance-tools.ts:14:export async function getPerformanceAnalysis(
+src/tools/performance-tools.ts:234:export async function profilePerformance(
+src/tools/performance-tools.ts:445:export async function getRealtimeMetrics(
+src/tools/performance-tools.ts:558:export async function resetPerformanceMonitoring(
+src/tools/product-tools.ts:130:export async function getProduct(
+src/tools/product-tools.ts:20:export async function listProducts(
+src/tools/product-tools.ts:240:export async function listUseCases(
+src/tools/product-tools.ts:435:export async function listBillingProducts(
+src/tools/progress-tools.ts:14:export async function getProgress(
+src/tools/progress-tools.ts:96:export async function listActiveProgress(
+src/tools/property-activation-advanced.ts:1003:export async function createActivationPlan(
+src/tools/property-activation-advanced.ts:105:export async function validatePropertyActivation(
+src/tools/property-activation-advanced.ts:341:export async function activatePropertyWithMonitoring(
+src/tools/property-activation-advanced.ts:519:export async function getActivationProgress(
+src/tools/property-activation-advanced.ts:937:export async function cancelPropertyActivation(
+src/tools/property-error-handling-tools.ts:135:export function isPropertyVersionResponse(obj: unknown): obj is PropertyVersionResponse {
+src/tools/property-error-handling-tools.ts:146:export function isHostnamesResponse(obj: unknown): obj is HostnamesResponse {
+src/tools/property-error-handling-tools.ts:161:export async function getValidationErrors(
+src/tools/property-error-handling-tools.ts:305:export async function getErrorRecoveryHelp(
+src/tools/property-error-handling-tools.ts:440:export async function validatePropertyConfiguration(
+src/tools/property-manager-advanced-tools.ts:14:export async function listEdgeHostnames(
+src/tools/property-manager-advanced-tools.ts:196:export async function cloneProperty(
+src/tools/property-manager-advanced-tools.ts:303:export async function removeProperty(
+src/tools/property-manager-advanced-tools.ts:367:export async function listPropertyVersions(
+src/tools/property-manager-advanced-tools.ts:458:export async function getPropertyVersion(
+src/tools/property-manager-advanced-tools.ts:548:export async function getLatestPropertyVersion(
+src/tools/property-manager-advanced-tools.ts:658:export async function cancelPropertyActivation(
+src/tools/property-manager-advanced-tools.ts:721:export async function listPropertyVersionHostnames(
+src/tools/property-manager-advanced-tools.ts:98:export async function getEdgeHostname(
+src/tools/property-manager-rules-tools.ts:13:export async function listAvailableBehaviors(
+src/tools/property-manager-rules-tools.ts:154:export async function listAvailableCriteria(
+src/tools/property-manager-rules-tools.ts:294:export async function patchPropertyRules(
+src/tools/property-manager-rules-tools.ts:397:export async function bulkSearchProperties(
+src/tools/property-manager-rules-tools.ts:482:export async function getBulkSearchResults(
+src/tools/property-manager-rules-tools.ts:588:export async function generateDomainValidationChallenges(
+src/tools/property-manager-rules-tools.ts:664:export async function resumeDomainValidation(
+src/tools/property-manager-rules-tools.ts:718:export async function getPropertyAuditHistory(
+src/tools/property-manager-tools.ts:1195:export async function getActivationStatus(
+src/tools/property-manager-tools.ts:1330:export async function listPropertyActivations(
+src/tools/property-manager-tools.ts:137:export async function createPropertyVersion(
+src/tools/property-manager-tools.ts:1547:export async function createPropertyVersionEnhanced(
+src/tools/property-manager-tools.ts:1661:export async function getVersionDiff(
+src/tools/property-manager-tools.ts:1775:export async function listPropertyVersionsEnhanced(
+src/tools/property-manager-tools.ts:1885:export async function rollbackPropertyVersion(
+src/tools/property-manager-tools.ts:2011:export async function batchVersionOperations(
+src/tools/property-manager-tools.ts:299:export async function getPropertyRules(
+src/tools/property-manager-tools.ts:441:export async function updatePropertyRules(
+src/tools/property-manager-tools.ts:596:export async function createEdgeHostname(
+src/tools/property-manager-tools.ts:723:export async function addPropertyHostname(
+src/tools/property-manager-tools.ts:830:export async function removePropertyHostname(
+src/tools/property-manager-tools.ts:955:export async function activateProperty(
+src/tools/property-manager.ts:1067:export async function activateProperty(
+src/tools/property-manager.ts:127:export async function listProperties(
+src/tools/property-manager.ts:1301:export async function getActivationStatus(
+src/tools/property-manager.ts:1476:export async function listPropertyActivations(
+src/tools/property-manager.ts:1626:export async function cancelPropertyActivation(
+src/tools/property-manager.ts:1697:export async function addPropertyHostname(
+src/tools/property-manager.ts:1819:export async function removePropertyHostname(
+src/tools/property-manager.ts:1898:export async function listPropertyHostnames(
+src/tools/property-manager.ts:2000:export async function listContracts(
+src/tools/property-manager.ts:203:export async function getProperty(
+src/tools/property-manager.ts:2061:export async function listGroups(
+src/tools/property-manager.ts:2144:export async function listProducts(
+src/tools/property-manager.ts:2272:export async function cloneProperty(
+src/tools/property-manager.ts:2420:export async function getLatestPropertyVersion(
+src/tools/property-manager.ts:2517:export async function listCPCodes(
+src/tools/property-manager.ts:2607:export async function createCPCode(
+src/tools/property-manager.ts:2688:export async function getCPCode(
+src/tools/property-manager.ts:286:export async function createProperty(
+src/tools/property-manager.ts:368:export async function removeProperty(
+src/tools/property-manager.ts:402:export async function createPropertyVersion(
+src/tools/property-manager.ts:460:export async function listPropertyVersions(
+src/tools/property-manager.ts:511:export async function getPropertyVersion(
+src/tools/property-manager.ts:565:export async function getPropertyRules(
+src/tools/property-manager.ts:639:export async function updatePropertyRules(
+src/tools/property-manager.ts:771:export async function createEdgeHostname(
+src/tools/property-manager.ts:919:export async function listEdgeHostnames(
+src/tools/property-onboarding-tools.ts:116:export async function checkOnboardingStatus(
+src/tools/property-onboarding-tools.ts:26:export async function onboardPropertyTool(
+src/tools/property-onboarding-tools.ts:81:export async function onboardPropertyWizard(
+src/tools/property-operations-advanced.ts:167:export async function compareProperties(
+src/tools/property-operations-advanced.ts:473:export async function checkPropertyHealth(
+src/tools/property-operations-advanced.ts:750:export async function detectConfigurationDrift(
+src/tools/property-operations-advanced.ts:936:export async function bulkUpdateProperties(
+src/tools/property-search-optimized.ts:47:export async function searchPropertiesOptimized(
+src/tools/property-tools.ts:1364:export async function createProperty(
+src/tools/property-tools.ts:1581:export async function listContracts(
+src/tools/property-tools.ts:1707:export async function listGroups(
+src/tools/property-tools.ts:1868:export async function listProducts(
+src/tools/property-tools.ts:286:export async function listProperties(
+src/tools/property-tools.ts:500:export async function listPropertiesTreeView(
+src/tools/property-tools.ts:896:export async function getProperty(
+src/tools/property-version-management.ts:235:export async function batchCreateVersions(
+src/tools/property-version-management.ts:379:export async function getVersionTimeline(
+src/tools/property-version-management.ts:543:export async function rollbackPropertyVersion(
+src/tools/property-version-management.ts:71:export async function comparePropertyVersions(
+src/tools/property-version-management.ts:717:export async function updateVersionMetadata(
+src/tools/property-version-management.ts:849:export async function mergePropertyVersions(
+src/tools/reporting-tools.ts:1089:export const reportingToolHandlers = {
+src/tools/reporting-tools.ts:1101:export const reportingTools = reportingToolsWithHandlers;
+src/tools/reporting-tools.ts:1104:export const getTrafficSummary = handleGetTrafficSummary;
+src/tools/reporting-tools.ts:1105:export const getTimeseriesData = handleGetTimeseriesData;
+src/tools/reporting-tools.ts:1106:export const getPerformanceBenchmarks = handleGetPerformanceBenchmarks;
+src/tools/reporting-tools.ts:1107:export async function analyzeCachePerformance(args: AnalyzeCachePerformanceArgs): Promise<{ success: boolean; data?: CachePerformanceAnalysis; error?: string; details?: string; message?: string }> {
+src/tools/reporting-tools.ts:1171:export const getCostOptimizationInsights = handleGetCostOptimizationInsights;
+src/tools/reporting-tools.ts:1172:export async function analyzeBandwidthUsage(args: AnalyzeBandwidthUsageArgs): Promise<{ success: boolean; data?: BandwidthAnalysis; error?: string; details?: string; message?: string }> {
+src/tools/reporting-tools.ts:1231:export const createReportingDashboard = handleCreateReportingDashboard;
+src/tools/reporting-tools.ts:1232:export const exportReportData = handleExportReportData;
+src/tools/reporting-tools.ts:1233:export const configureMonitoringAlerts = handleConfigureMonitoringAlerts;
+src/tools/reporting-tools.ts:1234:export async function getRealtimeMetrics(args: GetRealtimeMetricsArgs): Promise<{ success: boolean; data?: RealtimeMetrics; error?: string; details?: string; message?: string }> {
+src/tools/reporting-tools.ts:1291:export async function analyzeTrafficTrends(args: AnalyzeTrafficTrendsArgs): Promise<{ success: boolean; data?: any; error?: string; details?: string; message?: string }> {
+src/tools/reporting-tools.ts:1374:export async function generatePerformanceReport(args: GeneratePerformanceReportArgs): Promise<{ success: boolean; data?: PerformanceReport; error?: string; details?: string; message?: string }> {
+src/tools/reporting-tools.ts:1469:export async function analyzeGeographicPerformance(args: AnalyzeGeographicPerformanceArgs): Promise<{ success: boolean; data?: any; error?: string; details?: string; message?: string }> {
+src/tools/reporting-tools.ts:1572:export async function analyzeErrorPatterns(args: AnalyzeErrorPatternsArgs): Promise<{ success: boolean; data?: ErrorPattern; error?: string; details?: string; message?: string }> {
+src/tools/reporting-tools.ts:764:export async function handleGetTrafficSummary(args: GetTrafficSummaryArgs) {
+src/tools/reporting-tools.ts:802:export async function handleGetTimeseriesData(args: GetTimeseriesDataArgs) {
+src/tools/reporting-tools.ts:832:export async function handleGetPerformanceBenchmarks(args: { customer?: string; period: ReportingPeriod; filter?: ReportingFilterInput }) {
+src/tools/reporting-tools.ts:862:export async function handleGetCostOptimizationInsights(args: { customer?: string; period: ReportingPeriod; filter?: ReportingFilterInput; analysisType?: string }) {
+src/tools/reporting-tools.ts:910:export async function handleCreateReportingDashboard(args: { customer?: string; name: string; widgets: any[]; description?: string; filters?: any; refreshInterval?: number; shared?: boolean }) {
+src/tools/reporting-tools.ts:950:export async function handleExportReportData(args: { customer?: string; reportType: string; period: ReportingPeriod; filter?: ReportingFilterInput; format?: string; includeRawData?: boolean; metrics?: string[] }) {
+src/tools/reporting-tools.ts:987:export async function handleConfigureMonitoringAlerts(args: { customer?: string; alerts: any[] }) {
+src/tools/resilience-tools.ts:145:export async function resetCircuitBreaker(
+src/tools/resilience-tools.ts:20:export async function getSystemHealth(
+src/tools/resilience-tools.ts:220:export async function getOperationMetrics(
+src/tools/resilience-tools.ts:299:export async function testOperationResilience(
+src/tools/resilience-tools.ts:433:export async function getErrorRecoverySuggestions(
+src/tools/rule-tree-advanced.ts:105:export async function validateRuleTree(
+src/tools/rule-tree-advanced.ts:301:export async function createRuleTreeFromTemplate(
+src/tools/rule-tree-advanced.ts:441:export async function analyzeRuleTreePerformance(
+src/tools/rule-tree-advanced.ts:591:export async function detectRuleConflicts(
+src/tools/rule-tree-advanced.ts:717:export async function listRuleTemplates(
+src/tools/rule-tree-management.ts:1922:export const ruleTreeManagementTools = [
+src/tools/rule-tree-management.ts:364:export async function updatePropertyRulesEnhanced(
+src/tools/rule-tree-management.ts:511:export async function createRuleFromTemplate(
+src/tools/rule-tree-management.ts:619:export async function validateRuleTree(
+src/tools/rule-tree-management.ts:718:export async function mergeRuleTrees(
+src/tools/rule-tree-management.ts:829:export async function optimizeRuleTree(
+src/tools/rule-tree-management.ts:929:export async function listRuleTemplates(
+src/tools/secure-by-default-onboarding.ts:200:export async function onboardSecureByDefaultProperty(
+src/tools/secure-by-default-onboarding.ts:561:export async function quickSecureByDefaultSetup(
+src/tools/secure-by-default-onboarding.ts:599:export async function checkSecureByDefaultStatus(
+src/tools/token-tools.ts:103:export async function handleListApiTokens(_args: any) {
+src/tools/token-tools.ts:13:export const generateApiToken: Tool = {
+src/tools/token-tools.ts:164:export const revokeApiToken: Tool = {
+src/tools/token-tools.ts:179:export async function handleRevokeApiToken(args: any) {
+src/tools/token-tools.ts:221:export const validateApiToken: Tool = {
+src/tools/token-tools.ts:236:export async function handleValidateApiToken(args: any) {
+src/tools/token-tools.ts:284:export const rotateApiToken: Tool = {
+src/tools/token-tools.ts:299:export async function handleRotateApiToken(args: any) {
+src/tools/token-tools.ts:31:export async function handleGenerateApiToken(args: any) {
+src/tools/token-tools.ts:355:export const tokenTools = [
+src/tools/token-tools.ts:94:export const listApiTokens: Tool = {
+src/tools/tool-registry.ts:188:export const ALL_TOOL_DEFINITIONS: Record<string, { handler: any; description: string }> = {
+src/tools/tool-schemas-extended.ts:101:export const SubmitBulkZoneCreateRequestSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:109:export const GetZonesDNSSECStatusSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:113:export const UpdateTSIGKeyForZonesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:122:export const GetZoneVersionSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:127:export const GetVersionRecordSetsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:132:export const GetVersionMasterZoneFileSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:137:export const ReactivateZoneVersionSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:14:export const CreatePropertyVersionEnhancedSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:142:export const GetSecondaryZoneTransferStatusSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:146:export const GetZoneContractSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:151:export const ImportZoneViaAXFRSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:161:export const ConvertZoneToPrimarySchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:165:export const GenerateMigrationInstructionsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:171:export const EnrollCertificateWithValidationSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:177:export const MonitorCertificateEnrollmentSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:182:export const GetCertificateDeploymentStatusSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:186:export const GetCertificateValidationHistorySchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:190:export const ValidateCertificateEnrollmentSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:194:export const DeployCertificateToNetworkSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:199:export const RenewCertificateSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:204:export const CleanupValidationRecordsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:209:export const UpdatePropertyWithDefaultDVSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:21:export const ListPropertyVersionsEnhancedSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:214:export const UpdatePropertyWithCPSCertificateSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:219:export const LinkCertificateToPropertySchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:225:export const CreateEdgeHostnameEnhancedSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:233:export const CreateBulkEdgeHostnamesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:241:export const GetEdgeHostnameDetailsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:245:export const AssociateCertificateWithEdgeHostnameSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:250:export const ValidateEdgeHostnameCertificateSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:254:export const GenerateEdgeHostnameRecommendationsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:260:export const ListAllHostnamesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:265:export const DiscoverHostnamesIntelligentSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:270:export const AnalyzeHostnameConflictsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:274:export const AnalyzeWildcardCoverageSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:278:export const IdentifyOwnershipPatternsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:28:export const GetLatestPropertyVersionSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:282:export const CreateHostnameProvisioningPlanSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:287:export const FindOptimalPropertyAssignmentSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:291:export const AnalyzeHostnameOwnershipSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:295:export const ValidateHostnamesBulkSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:299:export const BulkManageHostnamesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:308:export const CreateRuleFromTemplateSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:313:export const UpdatePropertyRulesEnhancedSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:320:export const MergeRuleTreesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:326:export const OptimizeRuleTreeSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:331:export const ValidateRuleTreeSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:337:export const SearchCPCodesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:34:export const RollbackPropertyVersionSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:343:export const UpdateIncludeSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:349:export const CreateIncludeVersionSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:354:export const ActivateIncludeSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:360:export const ListIncludeActivationsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:364:export const GetIncludeActivationStatusSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:370:export const BulkUpdatePropertiesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:378:export const GetBulkOperationStatusSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:383:export const OnboardPropertyWizardSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:388:export const OnboardSecureByDefaultPropertySchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:39:export const GetVersionDiffSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:396:export const CheckSecureByDefaultStatusSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:400:export const QuickSecureByDefaultSetupSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:406:export const ActivateNetworkListSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:413:export const GetNetworkListActivationStatusSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:417:export const ListNetworkListActivationsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:421:export const DeactivateNetworkListSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:426:export const BulkActivateNetworkListsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:432:export const ImportNetworkListFromCSVSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:438:export const ExportNetworkListToCSVSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:442:export const BulkUpdateNetworkListsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:45:export const BatchVersionOperationsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:450:export const MergeNetworkListsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:456:export const ValidateGeographicCodesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:460:export const GetASNInformationSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:464:export const GenerateGeographicBlockingRecommendationsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:469:export const GenerateASNSecurityRecommendationsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:473:export const ListCommonGeographicCodesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:477:export const GetSecurityPolicyIntegrationGuidanceSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:481:export const GenerateDeploymentChecklistSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:487:export const ActivateSecurityConfigurationSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:495:export const GetSecurityActivationStatusSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:500:export const ProfilePerformanceSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:506:export const GetRealtimeMetricsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:520:export const ResetPerformanceMonitoringSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:526:export const GetPerformanceBenchmarksSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:53:export const SearchPropertiesAdvancedSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:532:export const AnalyzeCachePerformanceSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:539:export const GetCostOptimizationInsightsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:544:export const AnalyzeBandwidthUsageSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:551:export const CreateReportingDashboardSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:559:export const ExportReportDataSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:566:export const ConfigureMonitoringAlertsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:575:export const GetReportingRealtimeMetricsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:580:export const AnalyzeTrafficTrendsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:587:export const GeneratePerformanceReportSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:593:export const AnalyzeGeographicPerformanceSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:601:export const AnalyzeErrorPatternsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:63:export const CancelPropertyActivationSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:68:export const ComparePropertiesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:74:export const DetectConfigurationDriftSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:79:export const CheckPropertyHealthSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:85:export const CreateMultipleRecordSetsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas-extended.ts:95:export const GetRecordSetSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:101:export const SearchPropertiesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:107:export const ClonePropertySchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:115:export const RemovePropertySchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:122:export const ListZonesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:130:export const GetZoneSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:134:export const CreateZoneSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:14:export const ListPropertiesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:142:export const ListRecordsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:147:export const CreateRecordSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:155:export const DeleteRecordSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:161:export const ActivateZoneChangesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:167:export const ImportFromCloudflareSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:173:export const ParseZoneFileSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:179:export const BulkImportRecordsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:194:export const ListCertificateEnrollmentsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:198:export const CreateDVEnrollmentSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:21:export const GetPropertySchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:214:export const CheckDVEnrollmentStatusSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:218:export const GetDVValidationChallengesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:223:export const CreateEdgeHostnameSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:231:export const ListEdgeHostnamesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:236:export const GetEdgeHostnameSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:243:export const AddPropertyHostnameSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:25:export const CreatePropertySchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:251:export const RemovePropertyHostnameSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:259:export const ListPropertyHostnamesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:267:export const ListCPCodesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:272:export const CreateCPCodeSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:279:export const GetCPCodeSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:286:export const ListIncludesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:291:export const CreateIncludeSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:299:export const GetIncludeSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:306:export const BulkActivatePropertiesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:319:export const BulkClonePropertiesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:33:export const ListContractsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:333:export const BulkUpdatePropertyRulesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:340:export const UniversalSearchSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:347:export const OnboardPropertySchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:358:export const CheckOnboardingStatusSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:364:export const TOOL_SCHEMAS = {
+src/tools/tool-schemas.ts:37:export const ListGroupsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:41:export const ListProductsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:46:export const CreatePropertyVersionSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:52:export const GetPropertyRulesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:59:export const UpdatePropertyRulesSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:67:export const ActivatePropertySchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:76:export const GetActivationStatusSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:81:export const ListPropertyActivationsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:87:export const ListPropertyVersionsSchema = BaseToolSchema.extend({
+src/tools/tool-schemas.ts:93:export const GetPropertyVersionSchema = BaseToolSchema.extend({
+src/tools/universal-search-with-cache.ts:63:export async function universalSearchWithCacheHandler(

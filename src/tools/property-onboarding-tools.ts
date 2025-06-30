@@ -151,7 +151,7 @@ export async function checkOnboardingStatus(
         customer: args.customer,
       });
       // Parse property list to find matching hostname
-      const responseText = propertiesResult.content[0].text;
+      const responseText = propertiesResult.content[0]?.text || '';
       if (responseText.includes(args.hostname)) {
         status.property = { found: true, hostname: args.hostname };
       } else {
@@ -166,7 +166,7 @@ export async function checkOnboardingStatus(
       const edgeHostnamesResult = await listEdgeHostnames(client, {
         customer: args.customer,
       });
-      const responseText = edgeHostnamesResult.content[0].text;
+      const responseText = edgeHostnamesResult.content[0]?.text || '';
       if (responseText.includes(args.hostname)) {
         status.edgeHostname = { found: true };
       } else {
@@ -184,7 +184,7 @@ export async function checkOnboardingStatus(
         zone: domain,
         search: recordName,
       });
-      const responseText = dnsResult.content[0].text;
+      const responseText = dnsResult.content[0]?.text || '';
       if (responseText.includes(recordName)) {
         status.dnsRecord = { found: true };
       } else {

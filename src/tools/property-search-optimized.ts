@@ -105,7 +105,12 @@ export async function searchPropertiesOptimized(
     // For hostname searches, we need to use a different approach
     // The PAPI search doesn't directly support hostname search
     if (args.hostname && !args.propertyName) {
-      return await searchByHostname(client, args);
+      return await searchByHostname(client, {
+        hostname: args.hostname,
+        contractId: args.contractId,
+        groupId: args.groupId,
+        customer: args.customer,
+      });
     }
 
     const searchTime = ((Date.now() - searchStartTime) / 1000).toFixed(2);
@@ -166,7 +171,7 @@ async function searchByHostname(
         method: 'GET',
         queryParams,
       });
-      propertiesToSearch = response.properties?.items || [];
+      propertiesToSearch = (response as any).properties?.items || [];
     } else {
       // Search across all accessible groups, but efficiently
       const groupsResponse = await client.request({
@@ -174,7 +179,7 @@ async function searchByHostname(
         method: 'GET',
       });
 
-      const groups = groupsResponse.groups?.items || [];
+      const groups = (groupsResponse as any).groups?.items || [];
       const targetGroups = args.groupId 
         ? groups.filter((g: any) => g.groupId === args.groupId)
         : groups.slice(0, 10); // Limit to first 10 groups for performance
@@ -189,7 +194,7 @@ async function searchByHostname(
               method: 'GET',
               queryParams: { contractId, groupId: group.groupId },
             });
-            propertiesToSearch.push(...(response.properties?.items || []));
+            propertiesToSearch.push(...((response as any).properties?.items || []));
           } catch {
             // Continue with next contract
           }
@@ -205,7 +210,7 @@ async function searchByHostname(
           method: 'GET',
         });
 
-        const hostnames = hostnamesResponse.hostnames?.items || [];
+        const hostnames = (hostnamesResponse as any).hostnames?.items || [];
         const matchedHostnames: string[] = [];
 
         for (const hn of hostnames) {
@@ -285,7 +290,7 @@ async function fallbackPropertySearch(
       method: 'GET',
     });
 
-    const groups = groupsResponse.groups?.items || [];
+    const groups = (groupsResponse as any).groups?.items || [];
     const targetGroups = args.groupId 
       ? groups.filter((g: any) => g.groupId === args.groupId)
       : groups.slice(0, 5); // CODE KAI: Limit fallback scope
@@ -303,7 +308,7 @@ async function fallbackPropertySearch(
             queryParams: { contractId, groupId: group.groupId },
           });
 
-          const properties = response.properties?.items || [];
+          const properties = (response as any).properties?.items || [];
           
           for (const property of properties) {
             if (!args.propertyName || 
@@ -380,9 +385,11 @@ function formatOptimizedSearchResults(
   text += '\n## 🎯 Next Actions\n';
   if (results.length === 1) {
     const prop = results[0];
-    text += `- **View details:** \`get_property propertyId="${prop.propertyId}"\`\n`;
-    text += `- **View rules:** \`get_property_rules propertyId="${prop.propertyId}" version=${prop.latestVersion}\`\n`;
-    text += `- **View hostnames:** \`list_property_hostnames propertyId="${prop.propertyId}"\`\n`;
+    if (prop) {
+      text += `- **View details:** \`get_property propertyId="${prop.propertyId}"\`\n`;
+      text += `- **View rules:** \`get_property_rules propertyId="${prop.propertyId}" version=${prop.latestVersion}\`\n`;
+      text += `- **View hostnames:** \`list_property_hostnames propertyId="${prop.propertyId}"\`\n`;
+    }
   } else {
     text += '- **View details:** `get_property propertyId="[PROPERTY_ID]"`\n';
     text += '- **Refine search:** Add contractId or groupId filters\n';

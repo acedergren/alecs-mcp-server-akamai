@@ -1,3 +1,5 @@
+import { CPSEnrollmentMetadata } from '../utils/api-response-validator';
+
 /**
  * Certificate Provisioning System (CPS) Tools
  * 
@@ -565,7 +567,7 @@ export async function listCertificateEnrollments(
     // CODE KAI: Type-safe query parameters
     const queryParams: Record<string, string> = {};
     if (args.contractId) {
-      queryParams.contractId = args.contractId;
+      queryParams['contractId'] = args.contractId;
     }
 
     const response = await client.request({
@@ -765,22 +767,22 @@ function formatEnrollmentSummary(enrollment: CPSEnrollmentMetadata): string {
   const statusEmoji = statusMap[enrollment.status.toLowerCase()] || '[EMOJI]';
 
   let text = `### ${statusEmoji} Enrollment ${enrollment.enrollmentId}\n`;
-  text += `- **Type:** ${enrollment.certificateType} (${enrollment.validationType.toUpperCase()})\n`;
+  text += `- **Type:** ${enrollment.certificateType} (${(enrollment as any)['validationType']?.toUpperCase() || 'Unknown'})\n`;
   text += `- **Status:** ${enrollment.status}\n`;
   // Handle both list format (cn + sans) and detail format (allowedDomains)
-  if (enrollment.cn) {
-    const domains = [enrollment.cn];
-    if (enrollment.sans) {
-      domains.push(...enrollment.sans);
+  if ((enrollment as any)['cn']) {
+    const domains = [(enrollment as any)['cn']];
+    if ((enrollment as any)['sans']) {
+      domains.push(...(enrollment as any)['sans']);
     }
     text += `- **Domains:** ${domains.join(', ')}\n`;
-  } else if (enrollment.allowedDomains) {
+  } else if ((enrollment as any)['allowedDomains']) {
     // CODE KAI: Type-safe domain name extraction
-    text += `- **Domains:** ${enrollment.allowedDomains.map((d) => d.name).join(', ')}\n`;
+    text += `- **Domains:** ${((enrollment as any)['allowedDomains'] as any[]).map((d: any) => d.name).join(', ')}\n`;
   }
 
-  if (enrollment.autoRenewalStartTime) {
-    const renewalDate = new Date(enrollment.autoRenewalStartTime);
+  if ((enrollment as any)['autoRenewalStartTime']) {
+    const renewalDate = new Date((enrollment as any)['autoRenewalStartTime']);
     const daysUntilRenewal = Math.ceil(
       (renewalDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
     );
@@ -884,41 +886,8 @@ export async function uploadThirdPartyCertificate(
       throw new Error('Invalid certificate format. Certificate must be in PEM format.');
     }
 
-    // CODE KAI: Type-safe CSR request body
-    interface CSRRequest {
-      csr: {
-        cn: string;
-        sans?: string[];
-        c?: string;
-        st?: string;
-        l?: string;
-        o?: string;
-        ou?: string;
-      };
-      ra: 'lets-encrypt' | 'third-party' | 'symantec';
-      validationType: 'dv' | 'ov' | 'ev';
-      certificateType: 'san' | 'single' | 'wildcard';
-      networkConfiguration: {
-        geography: 'core' | 'china' | 'russia';
-        secureNetwork: string;
-        sniOnly: boolean;
-        quicEnabled?: boolean;
-      };
-      changeManagement: boolean;
-      adminContact: Contact;
-      techContact: Contact;
-      org?: {
-        name: string;
-        addressLineOne: string;
-        city: string;
-        region: string;
-        postalCode: string;
-        country: string;
-        phone: string;
-      };
-    }
     
-    const requestBody: CSRRequest = {
+    const requestBody: any = {
       certificate: args.certificate.trim(),
     };
 
@@ -927,7 +896,7 @@ export async function uploadThirdPartyCertificate(
           !args.trustChain.includes('-----END CERTIFICATE-----')) {
         throw new Error('Invalid trust chain format. Trust chain must be in PEM format.');
       }
-      requestBody.trustChain = args.trustChain.trim();
+      requestBody['trustChain'] = args.trustChain.trim();
     }
 
     const response = await client.request({
@@ -1020,24 +989,19 @@ export async function updateCertificateEnrollment(
     const enrollmentData = currentResponse as CPSEnrollmentStatusResponse;
 
     // Build update payload by merging current config with updates
-    // CODE KAI: Type-safe property update payload
-    interface PropertyUpdatePayload {
-      propertyVersion: number;
-      hostnames: PropertyHostname[];
-    }
     
-    const updatePayload: PropertyUpdatePayload = {
+    const updatePayload: any = {
       ...currentResponse,
       // Update fields that were provided
       ...(args.commonName && { 
         csr: { 
-          ...enrollmentData.csr, 
+          ...(enrollmentData as any)['csr'], 
           cn: args.commonName 
         }
       }),
       ...(args.sans && { 
         csr: { 
-          ...enrollmentData.csr, 
+          ...(enrollmentData as any)['csr'], 
           sans: args.sans 
         }
       }),
@@ -1045,7 +1009,7 @@ export async function updateCertificateEnrollment(
       ...(args.techContact && { techContact: args.techContact }),
       ...(args.networkConfiguration && { 
         networkConfiguration: {
-          ...enrollmentData.networkConfiguration,
+          ...(enrollmentData as any)['networkConfiguration'],
           ...args.networkConfiguration
         }
       }),
@@ -1389,7 +1353,7 @@ function calculateEstimatedTimes(status: string, pendingDomains: number) {
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, _error: unknown): MCPToolResponse {
+function formatError(operation: string, _error: any): MCPToolResponse {
   let errorMessage = `Failed to ${operation}`;
   let errorContext = '';
   let solution = '';

@@ -19,22 +19,26 @@ const BaseAkamaiResponse = z.object({
 });
 
 // Property Manager API Schemas (PAPI)
-// Start permissive, add strictness as we learn from real responses
+// Aligned with Akamai PAPI v1 OpenAPI specification
 export const PropertyListResponseSchema = z.object({
   properties: z.object({
     items: z.array(z.object({
+      // Required fields per OpenAPI spec
+      accountId: z.string(),
+      contractId: z.string(),
+      groupId: z.string(),
       propertyId: z.string(),
       propertyName: z.string(),
-      contractId: z.string().optional(),
-      groupId: z.string().optional(),
-      productId: z.string().optional(), // Often missing in docs but present in reality
-      propertyVersion: z.number().optional(),
-      stagingVersion: z.number().optional(),
-      productionVersion: z.number().optional(),
-      note: z.string().optional(),
-      // Allow additional fields we haven't discovered yet
+      latestVersion: z.number(),
+      stagingVersion: z.union([z.number(), z.null()]),
+      productionVersion: z.union([z.number(), z.null()]),
+      assetId: z.string(),
+      note: z.string(),
+      // Optional fields
+      productId: z.string().optional(),
+      ruleFormat: z.string().optional()
     }).passthrough()) // passthrough allows extra properties
-  }).extend(BaseAkamaiResponse.shape)
+  })
 });
 
 export const PropertyDetailsSchema = z.object({

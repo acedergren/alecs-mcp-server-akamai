@@ -1,0 +1,267 @@
+function_name,endpoint,method,status
+export async function provisionCompleteProperty(,NONE,NONE,ORPHANED
+export async function clonePropertyVersion(,NONE,NONE,ORPHANED
+export async function applyPropertyTemplate(,NONE,NONE,ORPHANED
+export async function provisionAndDeployCertificate(,NONE,NONE,ORPHANED
+export async function automatedDNSValidation(,NONE,NONE,ORPHANED
+export async function processCertificateRenewal(,NONE,NONE,ORPHANED
+export async function importZoneFromCloudflare(,NONE,NONE,ORPHANED
+export async function bulkDNSMigration(,NONE,NONE,ORPHANED
+export async function migrateWebsite(,NONE,NONE,ORPHANED
+export async function provisionSecureWebsite(,NONE,NONE,ORPHANED
+export function getAllToolDefinitions(): ToolDefinition[] {,NONE,NONE,ORPHANED
+export async function bulkCloneProperties(,,method:'GET',,FOUND
+export async function bulkActivateProperties(,,method:'GET',,FOUND
+export async function bulkUpdatePropertyRules(,,method:'GET',,FOUND
+export async function bulkManageHostnames(,,method:'GET',,FOUND
+export async function getBulkOperationStatus(,NONE,NONE,ORPHANED
+export async function enrollCertificateWithValidation(,,method:'GET',,FOUND
+export async function validateCertificateEnrollment(,,method:'GET',,FOUND
+export async function deployCertificateToNetwork(,,method:'GET',,FOUND
+export async function monitorCertificateEnrollment(,,method:'GET',,FOUND
+export async function getCertificateDeploymentStatus(,,method:'GET',,FOUND
+export async function renewCertificate(,,method:'POST',,FOUND
+export async function cleanupValidationRecords(,,method:'GET',,FOUND
+export async function getCertificateValidationHistory(,,method:'GET',,FOUND
+export async function listCPCodes(,,method:'GET',,FOUND
+export async function getCPCode(,,method:'GET',,FOUND
+export async function createCPCode(,,method:'GET',,FOUND
+export async function searchCPCodes(,,method:'GET',,FOUND
+export async function createACMEValidationRecords(,NONE,NONE,ORPHANED
+export async function monitorCertificateValidation(,,method:'GET',,FOUND
+export async function createDVEnrollment(,,method:'POST',,FOUND
+export async function getDVValidationChallenges(,,method:'GET',,FOUND
+export async function checkDVEnrollmentStatus(,,method:'GET',,FOUND
+export async function listCertificateEnrollments(,,method:'GET',,FOUND
+export async function linkCertificateToProperty(,,method:'GET',,FOUND
+export async function downloadCSR(,,method:'GET',,FOUND
+export async function uploadThirdPartyCertificate(,,method:'PUT',,FOUND
+export async function updateCertificateEnrollment(,,method:'GET',,FOUND
+export async function deleteCertificateEnrollment(,,method:'GET',,FOUND
+export async function monitorCertificateDeployment(,,method:'GET',,FOUND
+export async function debugSecurePropertyOnboarding(,,method:'GET',,FOUND
+export async function testBasicPropertyCreation(,,method:'GET',,FOUND
+export async function getZonesDNSSECStatus(,,method:'GET',,FOUND
+export async function getSecondaryZoneTransferStatus(,,method:'GET',,FOUND
+export async function getZoneContract(,,method:'GET',,FOUND
+export async function getRecordSet(,,method:'GET',,FOUND
+export async function updateTSIGKeyForZones(,,method:'GET',,FOUND
+export async function submitBulkZoneCreateRequest(,,method:'POST',,FOUND
+export async function getZoneVersion(,,method:'GET',,FOUND
+export async function getVersionRecordSets(,,method:'GET',,FOUND
+export async function reactivateZoneVersion(,,method:'POST',,FOUND
+export async function getVersionMasterZoneFile(,,method:'GET',,FOUND
+export async function createMultipleRecordSets(,,method:'POST',,FOUND
+export function isDNSSECKeysResponse(obj: unknown): obj is DNSSECKeysResponse {,,method:'PUT',,FOUND
+export function isDNSSECDSRecordsResponse(obj: unknown): obj is DNSSECDSRecordsResponse {,,method:'PUT',,FOUND
+export async function enableDNSSEC(,,method:'PUT',,FOUND
+export async function disableDNSSEC(,,method:'PUT',,FOUND
+export async function getDNSSECKeys(,,method:'GET',,FOUND
+export async function getDNSSECDSRecords(,,method:'GET',,FOUND
+export async function checkDNSSECValidation(,,method:'GET',,FOUND
+export async function rotateDNSSECKeys(,,method:'POST',,FOUND
+export async function importZoneViaAXFR(,,method:'PUT',,FOUND
+export async function parseZoneFile(,,method:'PUT',,FOUND
+export async function bulkImportRecords(,,method:'PUT',,FOUND
+export async function convertZoneToPrimary(,,method:'GET',,FOUND
+export async function generateMigrationInstructions(,,method:'GET',,FOUND
+export async function importFromCloudflare(,NONE,NONE,ORPHANED
+export function isAuthoritiesResponse(obj: unknown): obj is AuthoritiesResponse {,,method:'GET',,FOUND
+export function isContractsResponse(obj: unknown): obj is ContractsResponse {,,method:'GET',,FOUND
+export function isChangeListDiff(obj: unknown): obj is ChangeListDiff {,,method:'GET',,FOUND
+export async function listChangelists(,,method:'GET',,FOUND
+export async function searchChangelists(,,method:'POST',,FOUND
+export async function getChangelistDiff(,,method:'GET',,FOUND
+export async function getAuthoritativeNameservers(,,method:'GET',,FOUND
+export async function listContracts(,,method:'GET',,FOUND
+export async function getSupportedRecordTypes(,,method:'GET',,FOUND
+export async function deleteZone(,,method:'DELETE',,FOUND
+export async function getZoneStatus(,,method:'GET',,FOUND
+export async function listTSIGKeys(,,method:'GET',,FOUND
+export async function createTSIGKey(,,method:'POST',,FOUND
+export async function listZones(,,method:'GET',,FOUND
+export async function getZone(,,method:'GET',,FOUND
+export async function createZone(,,method:'POST',,FOUND
+export async function listRecords(,,method:'GET',,FOUND
+export async function getChangeListMetadata(,,method:'GET',,FOUND
+export async function getChangeList(,,method:'GET',,FOUND
+export async function submitChangeList(,,method:'POST',,FOUND
+export async function discardChangeList(,,method:'DELETE',,FOUND
+export async function waitForZoneActivation(,,method:'GET',,FOUND
+export async function processMultipleZones(,,method:'POST',,FOUND
+export async function ensureCleanChangeList(,,method:'POST',,FOUND
+export async function upsertRecord(,,method:'POST',,FOUND
+export async function deleteRecord(,,method:'POST',,FOUND
+export async function activateZoneChanges(,NONE,NONE,ORPHANED
+export async function generateDocumentationIndex(,NONE,NONE,ORPHANED
+export async function generateAPIReference(,NONE,NONE,ORPHANED
+export async function generateFeatureDocumentation(,NONE,NONE,ORPHANED
+export async function updateDocumentation(,NONE,NONE,ORPHANED
+export async function generateChangelog(,NONE,NONE,ORPHANED
+export async function createKnowledgeArticle(,NONE,NONE,ORPHANED
+export async function createEdgeHostnameEnhanced(,,method:'GET',,FOUND
+export async function createBulkEdgeHostnames(,,method:'POST',,FOUND
+export async function getEdgeHostnameDetails(,,method:'GET',,FOUND
+export async function generateEdgeHostnameRecommendations(,,method:'GET',,FOUND
+export async function validateEdgeHostnameCertificate(,,method:'GET',,FOUND
+export async function associateCertificateWithEdgeHostname(,,method:'PUT',,FOUND
+export async function discoverHostnamesIntelligent(,NONE,NONE,ORPHANED
+export async function analyzeHostnameConflicts(,,method:'GET',,FOUND
+export async function analyzeWildcardCoverage(,,method:'GET',,FOUND
+export async function identifyOwnershipPatterns(,,method:'GET',,FOUND
+export async function analyzeHostnameOwnership(,,method:'GET',,FOUND
+export async function generateEdgeHostnameRecommendations(,,method:'GET',,FOUND
+export async function validateHostnamesBulk(,,method:'GET',,FOUND
+export async function findOptimalPropertyAssignment(,,method:'GET',,FOUND
+export async function createHostnameProvisioningPlan(,NONE,NONE,ORPHANED
+export async function listIncludes(,,method:'GET',,FOUND
+export async function getInclude(,,method:'GET',,FOUND
+export async function createInclude(,,method:'POST',,FOUND
+export async function updateInclude(,,method:'PUT',,FOUND
+export async function createIncludeVersion(,,method:'POST',,FOUND
+export async function activateInclude(,,method:'POST',,FOUND
+export async function getIncludeActivationStatus(,,method:'GET',,FOUND
+export async function listIncludeActivations(,,method:'GET',,FOUND
+export async function runIntegrationTestSuite(,NONE,NONE,ORPHANED
+export async function checkAPIHealth(,NONE,NONE,ORPHANED
+export async function generateTestData(,NONE,NONE,ORPHANED
+export async function validateToolResponses(,NONE,NONE,ORPHANED
+export async function runLoadTest(,NONE,NONE,ORPHANED
+export async function getPerformanceAnalysis(,NONE,NONE,ORPHANED
+export async function optimizeCache(,NONE,NONE,ORPHANED
+export async function profilePerformance(,NONE,NONE,ORPHANED
+export async function getRealtimeMetrics(,,awaitclient.request({path:'/papi/v1/properties',method:'GET'});,FOUND
+export async function resetPerformanceMonitoring(,,awaitclient.request({path:'/papi/v1/properties',method:'GET'});,FOUND
+export async function listProducts(,,method:'GET',,FOUND
+export async function getProduct(,,method:'GET',,FOUND
+export async function listUseCases(,NONE,NONE,ORPHANED
+export async function listBillingProducts(,,method:'GET',,FOUND
+export async function getProgress(,NONE,NONE,ORPHANED
+export async function listActiveProgress(,NONE,NONE,ORPHANED
+export async function validatePropertyActivation(,,method:'GET',,FOUND
+export async function activatePropertyWithMonitoring(,,method:'GET',,FOUND
+export async function getActivationProgress(,,method:'GET',,FOUND
+export async function cancelPropertyActivation(,,method:'GET',,FOUND
+export async function createActivationPlan(,,method:'GET',,FOUND
+export function isPropertyVersionResponse(obj: unknown): obj is PropertyVersionResponse {,,method:'GET',,FOUND
+export function isHostnamesResponse(obj: unknown): obj is HostnamesResponse {,,method:'GET',,FOUND
+export async function getValidationErrors(,,method:'GET',,FOUND
+export async function getErrorRecoveryHelp(,,method:'GET',,FOUND
+export async function validatePropertyConfiguration(,,method:'GET',,FOUND
+export async function listEdgeHostnames(,,method:'GET',,FOUND
+export async function getEdgeHostname(,,method:'GET',,FOUND
+export async function cloneProperty(,,method:'GET',,FOUND
+export async function removeProperty(,,method:'GET',,FOUND
+export async function listPropertyVersions(,,method:'GET',,FOUND
+export async function getPropertyVersion(,,method:'GET',,FOUND
+export async function getLatestPropertyVersion(,,method:'GET',,FOUND
+export async function cancelPropertyActivation(,,method:'GET',,FOUND
+export async function listPropertyVersionHostnames(,,method:'GET',,FOUND
+export async function listAvailableBehaviors(,,method:'GET',,FOUND
+export async function listAvailableCriteria(,,method:'GET',,FOUND
+export async function patchPropertyRules(,,method:'GET',,FOUND
+export async function bulkSearchProperties(,,method:'POST',,FOUND
+export async function getBulkSearchResults(,,method:'GET',,FOUND
+export async function generateDomainValidationChallenges(,,method:'GET',,FOUND
+export async function resumeDomainValidation(,,method:'GET',,FOUND
+export async function getPropertyAuditHistory(,,method:'GET',,FOUND
+export async function createPropertyVersion(,,method:'GET',,FOUND
+export async function getPropertyRules(,,method:'GET',,FOUND
+export async function updatePropertyRules(,,method:'GET',,FOUND
+export async function createEdgeHostname(,,method:'GET',,FOUND
+export async function addPropertyHostname(,,method:'GET',,FOUND
+export async function removePropertyHostname(,,method:'GET',,FOUND
+export async function activateProperty(,,method:'GET',,FOUND
+export async function getActivationStatus(,,method:'GET',,FOUND
+export async function listPropertyActivations(,,method:'GET',,FOUND
+export async function createPropertyVersionEnhanced(,,method:'GET',,FOUND
+export async function getVersionDiff(,,method:'GET',,FOUND
+export async function listPropertyVersionsEnhanced(,,method:'GET',,FOUND
+export async function rollbackPropertyVersion(,,method:'GET',,FOUND
+export async function batchVersionOperations(,,,FOUND
+export async function listProperties(,,method:'GET',,FOUND
+export async function getProperty(,,method:'GET',,FOUND
+export async function createProperty(,,method:'POST',,FOUND
+export async function removeProperty(,,method:'DELETE',,FOUND
+export async function createPropertyVersion(,,method:'POST',,FOUND
+export async function listPropertyVersions(,,method:'GET',,FOUND
+export async function getPropertyVersion(,,method:'GET',,FOUND
+export async function getPropertyRules(,NONE,NONE,ORPHANED
+export async function updatePropertyRules(,,method:'POST',,FOUND
+export async function createEdgeHostname(,,method:'POST',,FOUND
+export async function listEdgeHostnames(,,method:'GET',,FOUND
+export async function activateProperty(,,method:'POST',,FOUND
+export async function getActivationStatus(,,method:'GET',,FOUND
+export async function listPropertyActivations(,,method:'GET',,FOUND
+export async function cancelPropertyActivation(,,method:'DELETE',,FOUND
+export async function addPropertyHostname(,,method:'PATCH',,FOUND
+export async function removePropertyHostname(,,method:'GET',,FOUND
+export async function listPropertyHostnames(,,method:'GET',,FOUND
+export async function listContracts(,,method:'GET',,FOUND
+export async function listGroups(,,method:'GET',,FOUND
+export async function listProducts(,,method:'GET',,FOUND
+export async function cloneProperty(,,method:'GET',,FOUND
+export async function getLatestPropertyVersion(,,method:'GET',,FOUND
+export async function listCPCodes(,,method:'GET',,FOUND
+export async function createCPCode(,,method:'POST',,FOUND
+export async function getCPCode(,,method:'GET',,FOUND
+export async function onboardPropertyTool(,NONE,NONE,ORPHANED
+export async function onboardPropertyWizard(,NONE,NONE,ORPHANED
+export async function checkOnboardingStatus(,NONE,NONE,ORPHANED
+export async function compareProperties(,,method:'GET',,FOUND
+export async function checkPropertyHealth(,,method:'GET',,FOUND
+export async function detectConfigurationDrift(,,method:'GET',,FOUND
+export async function bulkUpdateProperties(,,method:'GET',,FOUND
+export async function searchPropertiesOptimized(,,method:'GET',,FOUND
+export async function listProperties(,,method:'GET',,FOUND
+export async function listPropertiesTreeView(,,method:'GET',,FOUND
+export async function getProperty(,,method:'GET',,FOUND
+export async function createProperty(,,method:'GET',,FOUND
+export async function listContracts(,,method:'GET',,FOUND
+export async function listGroups(,,method:'GET',,FOUND
+export async function listProducts(,,method:'GET',,FOUND
+export async function comparePropertyVersions(,,method:'GET',,FOUND
+export async function batchCreateVersions(,,method:'GET',,FOUND
+export async function getVersionTimeline(,,method:'GET',,FOUND
+export async function rollbackPropertyVersion(,,method:'GET',,FOUND
+export async function updateVersionMetadata(,,method:'GET',,FOUND
+export async function mergePropertyVersions(,,method:'GET',,FOUND
+export async function handleGetTrafficSummary(args: GetTrafficSummaryArgs) {,NONE,NONE,ORPHANED
+export async function handleGetTimeseriesData(args: GetTimeseriesDataArgs) {,NONE,NONE,ORPHANED
+export async function handleGetPerformanceBenchmarks(args: { customer?: string; period: ReportingPeriod; filter?: ReportingFilterInput }) {,NONE,NONE,ORPHANED
+export async function handleGetCostOptimizationInsights(args: { customer?: string; period: ReportingPeriod; filter?: ReportingFilterInput; analysisType?: string }) {,NONE,NONE,ORPHANED
+export async function handleCreateReportingDashboard(args: { customer?: string; name: string; widgets: any[]; description?: string; filters?: any; refreshInterval?: number; shared?: boolean }) {,NONE,NONE,ORPHANED
+export async function handleExportReportData(args: { customer?: string; reportType: string; period: ReportingPeriod; filter?: ReportingFilterInput; format?: string; includeRawData?: boolean; metrics?: string[] }) {,NONE,NONE,ORPHANED
+export async function handleConfigureMonitoringAlerts(args: { customer?: string; alerts: any[] }) {,NONE,NONE,ORPHANED
+export async function analyzeCachePerformance(args: AnalyzeCachePerformanceArgs): Promise<{ success: boolean; data?: CachePerformanceAnalysis; error?: string; details?: string; message?: string }> {,NONE,NONE,ORPHANED
+export async function analyzeBandwidthUsage(args: AnalyzeBandwidthUsageArgs): Promise<{ success: boolean; data?: BandwidthAnalysis; error?: string; details?: string; message?: string }> {,NONE,NONE,ORPHANED
+export async function getRealtimeMetrics(args: GetRealtimeMetricsArgs): Promise<{ success: boolean; data?: RealtimeMetrics; error?: string; details?: string; message?: string }> {,NONE,NONE,ORPHANED
+export async function analyzeTrafficTrends(args: AnalyzeTrafficTrendsArgs): Promise<{ success: boolean; data?: any; error?: string; details?: string; message?: string }> {,NONE,NONE,ORPHANED
+export async function generatePerformanceReport(args: GeneratePerformanceReportArgs): Promise<{ success: boolean; data?: PerformanceReport; error?: string; details?: string; message?: string }> {,NONE,NONE,ORPHANED
+export async function analyzeGeographicPerformance(args: AnalyzeGeographicPerformanceArgs): Promise<{ success: boolean; data?: any; error?: string; details?: string; message?: string }> {,NONE,NONE,ORPHANED
+export async function analyzeErrorPatterns(args: AnalyzeErrorPatternsArgs): Promise<{ success: boolean; data?: ErrorPattern; error?: string; details?: string; message?: string }> {,NONE,NONE,ORPHANED
+export async function getSystemHealth(,NONE,NONE,ORPHANED
+export async function resetCircuitBreaker(,NONE,NONE,ORPHANED
+export async function getOperationMetrics(,NONE,NONE,ORPHANED
+export async function testOperationResilience(,NONE,NONE,ORPHANED
+export async function getErrorRecoverySuggestions(,,client.request({path:'/papi/v1/properties',method:'GET'}),,FOUND
+export async function validateRuleTree(,,method:'GET',,FOUND
+export async function createRuleTreeFromTemplate(,,method:'PUT',,FOUND
+export async function analyzeRuleTreePerformance(,,method:'GET',,FOUND
+export async function detectRuleConflicts(,,method:'GET',,FOUND
+export async function listRuleTemplates(,NONE,NONE,ORPHANED
+export async function updatePropertyRulesEnhanced(,,method:'PUT',,FOUND
+export async function createRuleFromTemplate(,NONE,NONE,ORPHANED
+export async function validateRuleTree(,NONE,NONE,ORPHANED
+export async function mergeRuleTrees(,NONE,NONE,ORPHANED
+export async function optimizeRuleTree(,,,FOUND
+export async function listRuleTemplates(,,,FOUND
+export async function onboardSecureByDefaultProperty(,,method:'GET',,FOUND
+export async function quickSecureByDefaultSetup(,,method:'GET',,FOUND
+export async function checkSecureByDefaultStatus(,,method:'GET',,FOUND
+export async function handleGenerateApiToken(args: any) {,NONE,NONE,ORPHANED
+export async function handleListApiTokens(_args: any) {,NONE,NONE,ORPHANED
+export async function handleRevokeApiToken(args: any) {,NONE,NONE,ORPHANED
+export async function handleValidateApiToken(args: any) {,NONE,NONE,ORPHANED
+export async function handleRotateApiToken(args: any) {,NONE,NONE,ORPHANED
+export async function universalSearchWithCacheHandler(,NONE,NONE,ORPHANED

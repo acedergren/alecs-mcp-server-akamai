@@ -130,16 +130,16 @@ export async function listNetworkLists(
     // Build query parameters
     const queryParams: Record<string, string> = {};
     if (options.type) {
-      queryParams.listType = options.type;
+      queryParams['listType'] = options.type;
     }
     if (options.search) {
-      queryParams.search = options.search;
+      queryParams['search'] = options.search;
     }
     if (options.includeElements) {
-      queryParams.includeElements = 'true';
+      queryParams['includeElements'] = 'true';
     }
     if (options.extended) {
-      queryParams.extended = 'true';
+      queryParams['extended'] = 'true';
     }
 
     const response = await client.request({
@@ -234,10 +234,10 @@ export async function getNetworkList(
 
     const queryParams: Record<string, string> = {};
     if (options.includeElements) {
-      queryParams.includeElements = 'true';
+      queryParams['includeElements'] = 'true';
     }
     if (options.extended) {
-      queryParams.extended = 'true';
+      queryParams['extended'] = 'true';
     }
 
     const response = await client.request({

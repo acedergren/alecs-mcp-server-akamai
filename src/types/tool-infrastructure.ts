@@ -184,7 +184,7 @@ export class ToolRegistry {
   /**
    * Validate tool arguments
    */
-  validateArgs<TArgs extends BaseToolArgs>(
+  validateArgs<_TArgs extends BaseToolArgs>(
     toolName: string,
     args: unknown
   ): ToolValidationResult {

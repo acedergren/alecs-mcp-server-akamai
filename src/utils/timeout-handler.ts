@@ -79,7 +79,7 @@ export function withTimeout(
       ...(Array.isArray(config.transformResponse) 
         ? config.transformResponse 
         : config.transformResponse ? [config.transformResponse] : []),
-      (data, headers) => {
+      (data) => {
         // Pass through data
         return data;
       }
@@ -169,7 +169,7 @@ export async function executeWithTimeout<T>(
         toolName: options.toolName,
         args: options.context || {},
         customer: options.context?.customer,
-        propertyId: options.context?.propertyId,
+        propertyId: options.context?.['propertyId'],
         originalError: error,
         suggestion: `Operation exceeded ${timeout / 1000}s timeout. ${getTimeoutSuggestion(options.operationType)}`
       });
@@ -260,7 +260,7 @@ export class ProgressReporter {
   private timeout: number;
   
   constructor(
-    private operation: string,
+    _operation: string,
     timeout: number,
     private onProgress?: (message: string) => void
   ) {

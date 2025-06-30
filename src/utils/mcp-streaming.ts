@@ -213,12 +213,14 @@ export class MCPStreamBuilder {
     // Add timestamp footer to last chunk
     if (sortedChunks.length > 0) {
       const lastChunk = sortedChunks[sortedChunks.length - 1];
-      let footer = `\n---\n*${this.metadata.operation} completed`;
-      if (this.metadata.duration) {
-        footer += ` in ${this.metadata.duration}ms`;
+      if (lastChunk) {
+        let footer = `\n---\n*${this.metadata.operation} completed`;
+        if (this.metadata.duration) {
+          footer += ` in ${this.metadata.duration}ms`;
+        }
+        footer += ` at ${new Date(this.metadata.timestamp).toLocaleString()}*`;
+        lastChunk.content += footer;
       }
-      footer += ` at ${new Date(this.metadata.timestamp).toLocaleString()}*`;
-      lastChunk.content += footer;
     }
 
     // Convert chunks to MCP content blocks

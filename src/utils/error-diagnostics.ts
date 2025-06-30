@@ -160,7 +160,7 @@ function diagnose404Error(error: any, context: ErrorContext): DiagnosticResult {
   };
 }
 
-function diagnose400Error(error: any, context: ErrorContext): DiagnosticResult {
+function diagnose400Error(error: any, _context: ErrorContext): DiagnosticResult {
   const detail = error.response?.data?.detail || '';
   const errors = error.response?.data?.errors || [];
   

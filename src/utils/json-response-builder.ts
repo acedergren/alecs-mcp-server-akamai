@@ -52,12 +52,12 @@ export interface ResponseBuilderOptions {
 export class JsonResponseBuilder {
   private startTime: number;
   private requestId: string;
-  private maxSize: number;
+  // private _maxSize: number; // Not used currently
 
   constructor(options: ResponseBuilderOptions = {}) {
     this.startTime = options.executionStartTime || Date.now();
     this.requestId = options.requestId || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    this.maxSize = options.maxResponseSize || 1024 * 1024; // 1MB default
+    // this._maxSize = options.maxResponseSize || 1024 * 1024; // 1MB default - Not used currently
   }
 
   /**
@@ -137,7 +137,7 @@ export class JsonResponseBuilder {
   /**
    * Create a summary response for oversized data
    */
-  summary<T>(
+  summary<_T>(
     summary: any,
     totalCount: number,
     parameters: Record<string, any> = {},
@@ -243,7 +243,7 @@ export const ResponsePatterns = {
   entity<T>(
     entity: T,
     parameters: Record<string, any>,
-    metadata: { entityType: string } = { entityType: 'item' }
+    _metadata: { entityType: string } = { entityType: 'item' }
   ): StandardJsonResponse<T> {
     const builder = new JsonResponseBuilder();
     return builder.success(entity, parameters);
@@ -254,7 +254,7 @@ export const ResponsePatterns = {
    */
   operation(
     result: any,
-    operation: string,
+    _operation: string,
     parameters: Record<string, any>,
     nextSteps: Array<{ action: string; description: string; command?: string }> = []
   ): StandardJsonResponse<any> {

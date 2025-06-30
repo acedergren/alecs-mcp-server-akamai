@@ -12,7 +12,7 @@
  * - Saves bandwidth and server resources
  */
 
-import { z } from 'zod';
+// Removed unused import: z from 'zod'
 
 /**
  * Request cache entry with metadata
@@ -210,7 +210,6 @@ export class RequestCoalescer {
    * CODE KAI: Memory management to prevent memory leaks
    */
   private cleanup(): void {
-    const now = Date.now();
     const beforeSize = this.cache.size;
     
     for (const [key, entry] of this.cache.entries()) {

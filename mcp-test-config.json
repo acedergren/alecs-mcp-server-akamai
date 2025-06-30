@@ -1,0 +1,8 @@
+{
+  "command": "node",
+  "args": ["dist/index.js"],
+  "env": {
+    "MCP_TRANSPORT": "stdio"
+  }
+}
+EOF < /dev/null

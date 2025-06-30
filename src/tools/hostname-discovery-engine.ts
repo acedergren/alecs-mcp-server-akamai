@@ -5,7 +5,7 @@
  */
 
 import { handleApiError } from '../utils/error-handling';
-import { validateApiResponse, isPropertyResponse, isHostnamesResponse } from '../utils/api-response-validator';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';

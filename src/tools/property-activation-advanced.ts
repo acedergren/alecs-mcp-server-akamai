@@ -8,9 +8,9 @@ import { ErrorTranslator, ErrorRecovery } from '../utils/errors';
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
 import { validateApiResponse } from '../utils/api-response-validator';
-import { BaseToolArgs, ToolError } from '../types/tool-infrastructure';
+import { BaseToolArgs } from '../types/tool-infrastructure';
 import { withPropertyValidation } from '../utils/property-validation';
-import { executeWithTimeout, OperationType, withTimeout } from '../utils/timeout-handler';
+import { executeWithTimeout, OperationType } from '../utils/timeout-handler';
 
 // Enhanced activation types
 export interface ActivationProgress {
@@ -122,13 +122,10 @@ export async function validatePropertyActivation(
       return executeWithTimeout(
         async () => {
           // Get property details with validated access
-          const propertyResponse = await client.request(
-            withTimeout({
+          const propertyResponse = await client.request({
               path: `/papi/v1/properties/${args.propertyId}`,
               method: 'GET',
-              customer: args.customer,
-            }, OperationType.PROPERTY_VALIDATION, args.timeout)
-          );
+          });
 
     const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
     if (!validatedPropertyResponse.properties?.items?.[0]) {
@@ -149,7 +146,6 @@ export async function validatePropertyActivation(
     const rulesValidation = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/rules/errors`,
       method: 'GET',
-      customer: args.customer, // CODE KAI: Pass customer for account switching
     });
 
     const validatedRulesValidation = validateApiResponse<{ errors?: any[], warnings?: any[] }>(rulesValidation);
@@ -181,7 +177,6 @@ export async function validatePropertyActivation(
     const hostnamesResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${version}/hostnames`,
       method: 'GET',
-      customer: args.customer, // CODE KAI: Pass customer for account switching
     });
 
     const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: any } }>(hostnamesResponse);
@@ -304,7 +299,7 @@ export async function validatePropertyActivation(
           return {
             content: [
               {
-                type: 'text',
+                type: 'text' as const,
                 text: responseText,
               },
             ],
