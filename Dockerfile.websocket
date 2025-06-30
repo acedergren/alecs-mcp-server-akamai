@@ -9,7 +9,8 @@ COPY package*.json ./
 # Copy source code and configs first
 COPY . .
 
-# Install all dependencies
+# Install all dependencies (skip prepare script)
+ENV NPM_CONFIG_IGNORE_SCRIPTS=true
 RUN npm ci
 
 # Build the application
