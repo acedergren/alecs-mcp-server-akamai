@@ -190,7 +190,7 @@ export const loggerCompat: LoggerCompat = {
   }
 };
 
-// Export a BANG logger for our loud error messages
+// Export a BANG logger for loud error messages
 export const bangLogger = logger.child({ 
   context: 'BANG',
   levelLabel: 'BANG' 

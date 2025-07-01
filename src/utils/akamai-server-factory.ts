@@ -38,8 +38,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { z, ZodType, ZodTypeDef, ZodObject, ZodRawShape } from 'zod';
 
-import { logger, createLogger, createRequestLogger } from './logger';
-import { bangLogger } from './pino-logger';
+import { createLogger, createRequestLogger } from './pino-logger';
 import { v4 as uuidv4 } from 'uuid';
 import { getTransportFromEnv } from '../config/transport-config';
 import { AkamaiClient } from '../akamai-client';
@@ -48,6 +47,9 @@ import { MCPCompatibilityWrapper } from './mcp-compatibility-wrapper';
 
 // Import the complete tool registry
 import { getAllToolDefinitions, type ToolDefinition } from '../tools/all-tools-registry';
+
+// Create logger for this module
+const logger = createLogger('akamai-server-factory');
 
 /**
  * Server configuration with enhanced type safety
@@ -88,13 +90,13 @@ export class AkamaiMCPServer {
   private compatibilityWrapper?: MCPCompatibilityWrapper;
 
   constructor(config: ServerConfig) {
-    bangLogger.info('AkamaiMCPServer constructor starting...');
-    bangLogger.info({ config }, 'Config');
+    logger.debug('AkamaiMCPServer constructor starting...');
+    logger.debug({ config }, 'Config');
     
     this.config = config;
     
     // Create server - FAIL if this throws
-    bangLogger.info('Creating MCP Server instance...');
+    logger.debug('Creating MCP Server instance...');
     this.server = new Server(
       {
         name: config.name,
@@ -106,28 +108,28 @@ export class AkamaiMCPServer {
         },
       }
     );
-    bangLogger.info('MCP Server instance created successfully');
+    logger.debug('MCP Server instance created successfully');
 
     // Create compatibility wrapper for Claude Desktop support
     const disableWrapper = process.env['DISABLE_COMPATIBILITY_WRAPPER'];
-    bangLogger.info({ disableWrapper: disableWrapper || false }, 'Compatibility wrapper disabled');
+    logger.debug({ disableWrapper: disableWrapper || false }, 'Compatibility wrapper disabled');
     
     if (!disableWrapper) {
-      bangLogger.info('Creating MCPCompatibilityWrapper...');
+      logger.debug('Creating MCPCompatibilityWrapper...');
       this.compatibilityWrapper = new MCPCompatibilityWrapper(this.server, {
         enableLegacySupport: true
       });
-      bangLogger.info('MCPCompatibilityWrapper created successfully');
+      logger.debug('MCPCompatibilityWrapper created successfully');
     }
 
     // Initialize server with tools - These will throw on error
-    bangLogger.info('Loading tools...');
+    logger.debug('Loading tools...');
     this.loadTools();
     
-    bangLogger.info('Setting up handlers...');
+    logger.debug('Setting up handlers...');
     this.setupHandlers();
     
-    bangLogger.info('AkamaiMCPServer constructor completed successfully');
+    logger.debug('AkamaiMCPServer constructor completed successfully');
   }
 
   /**
@@ -136,27 +138,27 @@ export class AkamaiMCPServer {
    * REFACTORED: Remove graceful degradation - fail immediately on any issue
    */
   private loadTools(): void {
-    bangLogger.info('Starting tool loading...');
+    logger.debug('Starting tool loading...');
     
     const allTools = getAllToolDefinitions();
-    bangLogger.info({ toolCount: allTools.length }, 'Found tools in registry');
+    logger.debug({ toolCount: allTools.length }, 'Found tools in registry');
     
     // Apply filter - FAIL if filter throws
     const toolsToLoad = this.config.toolFilter 
       ? allTools.filter((tool) => {
           const result = this.config.toolFilter!(tool);
           if (!result) {
-            bangLogger.debug({ tool: tool.name }, 'Tool filtered out');
+            logger.debug({ tool: tool.name }, 'Tool filtered out');
           }
           return result;
         })
       : allTools;
     
-    bangLogger.info({ toolCount: toolsToLoad.length }, 'Will load tools after filtering');
+    logger.debug({ toolCount: toolsToLoad.length }, 'Will load tools after filtering');
     
     // Load tools - FAIL on first error
     for (const tool of toolsToLoad) {
-      bangLogger.debug({ tool: tool.name }, 'Loading tool');
+      logger.debug({ tool: tool.name }, 'Loading tool');
       
       // Validate tool - throws on error
       this.validateTool(tool);
@@ -164,19 +166,19 @@ export class AkamaiMCPServer {
       // Check for duplicates - throws on error
       if (this.tools.has(tool.name)) {
         const error = new Error(`DUPLICATE TOOL NAME: ${tool.name} already exists!`);
-        bangLogger.fatal({ tool: tool.name }, error.message);
+        logger.fatal({ tool: tool.name }, error.message);
         throw error;
       }
       
       this.tools.set(tool.name, tool);
     }
     
-    bangLogger.info({ loadedTools: this.tools.size }, 'SUCCESSFULLY LOADED TOOLS');
+    logger.debug({ loadedTools: this.tools.size }, 'SUCCESSFULLY LOADED TOOLS');
     
     // FAIL if no tools loaded
     if (this.tools.size === 0) {
       const error = new Error('CRITICAL: NO TOOLS LOADED! Server cannot function without tools.');
-      bangLogger.fatal(error.message);
+      logger.fatal(error.message);
       throw error;
     }
   }
@@ -188,42 +190,42 @@ export class AkamaiMCPServer {
     // Check tool object exists
     if (!tool || typeof tool !== 'object') {
       const error = new Error('INVALID TOOL: Tool definition is not an object!');
-      bangLogger.fatal({ received: tool, type: typeof tool }, error.message);
+      logger.fatal({ received: tool, type: typeof tool }, error.message);
       throw error;
     }
     
     // Validate tool name
     if (!tool.name || typeof tool.name !== 'string' || tool.name.trim().length === 0) {
       const error = new Error(`INVALID TOOL NAME: Got ${typeof tool.name} "${tool.name}" - must be non-empty string!`);
-      bangLogger.fatal({ toolName: tool.name, type: typeof tool.name }, error.message);
+      logger.fatal({ toolName: tool.name, type: typeof tool.name }, error.message);
       throw error;
     }
     
     // Validate naming conventions for MCP compatibility
     if (!/^[a-z][a-z0-9-]*[a-z0-9]$/.test(tool.name) && tool.name.length > 1) {
       const error = new Error(`INVALID TOOL NAME FORMAT: "${tool.name}" - must be kebab-case (lowercase, hyphens only)!`);
-      bangLogger.fatal({ toolName: tool.name }, error.message);
+      logger.fatal({ toolName: tool.name }, error.message);
       throw error;
     }
     
     // Validate description
     if (!tool.description || typeof tool.description !== 'string' || tool.description.trim().length === 0) {
       const error = new Error(`MISSING DESCRIPTION: Tool "${tool.name}" has no description!`);
-      bangLogger.fatal({ toolName: tool.name }, error.message);
+      logger.fatal({ toolName: tool.name }, error.message);
       throw error;
     }
     
     // Validate handler function
     if (!tool.handler || typeof tool.handler !== 'function') {
       const error = new Error(`MISSING HANDLER: Tool "${tool.name}" has no handler function! Got ${typeof tool.handler}`);
-      bangLogger.fatal({ toolName: tool.name, handlerType: typeof tool.handler }, error.message);
+      logger.fatal({ toolName: tool.name, handlerType: typeof tool.handler }, error.message);
       throw error;
     }
     
     // Validate schema (optional but if present, must be valid)
     if (tool.schema !== undefined && typeof tool.schema !== 'object') {
       const error = new Error(`INVALID SCHEMA: Tool "${tool.name}" schema is not an object! Got ${typeof tool.schema}`);
-      bangLogger.fatal({ toolName: tool.name, schemaType: typeof tool.schema }, error.message);
+      logger.fatal({ toolName: tool.name, schemaType: typeof tool.schema }, error.message);
       throw error;
     }
     
@@ -231,7 +233,7 @@ export class AkamaiMCPServer {
     const reservedWords = ['list', 'call', 'tool', 'mcp', 'server', 'client'];
     if (reservedWords.some(word => tool.name === word)) {
       const error = new Error(`RESERVED WORD: Tool name "${tool.name}" is a reserved MCP word!`);
-      bangLogger.fatal({ toolName: tool.name, reservedWords }, error.message);
+      logger.fatal({ toolName: tool.name, reservedWords }, error.message);
       throw error;
     }
   }
@@ -715,27 +717,27 @@ export class AkamaiMCPServer {
   }
 
   async start(): Promise<void> {
-    bangLogger.info('Server start() called...');
+    logger.debug('Server start() called...');
     
     const transportConfig = getTransportFromEnv();
-    bangLogger.info({ transportConfig }, 'Transport config');
+    logger.debug({ transportConfig }, 'Transport config');
     
     if (transportConfig.type === 'stdio') {
-      bangLogger.info('Creating StdioServerTransport...');
+      logger.debug('Creating StdioServerTransport...');
       const transport = new StdioServerTransport();
       
-      bangLogger.info('Connecting server to transport...');
+      logger.debug('Connecting server to transport...');
       try {
         await this.server.connect(transport);
-        bangLogger.info({ toolCount: this.tools.size }, 'SERVER STARTED SUCCESSFULLY!');
-        bangLogger.info('Server is now waiting for JSON-RPC messages on stdio...');
+        logger.debug({ toolCount: this.tools.size }, 'SERVER STARTED SUCCESSFULLY!');
+        logger.debug('Server is now waiting for JSON-RPC messages on stdio...');
       } catch (error) {
-        bangLogger.fatal({ error }, 'FAILED TO CONNECT TO TRANSPORT!');
+        logger.fatal({ error }, 'FAILED TO CONNECT TO TRANSPORT!');
         throw new Error(`Transport connection failed: ${error instanceof Error ? error.message : String(error)}`);
       }
     } else {
       const error = new Error(`UNSUPPORTED TRANSPORT TYPE: ${transportConfig.type} - only 'stdio' is supported!`);
-      bangLogger.fatal({ transportType: transportConfig.type }, error.message);
+      logger.fatal({ transportType: transportConfig.type }, error.message);
       throw error;
     }
   }
@@ -790,14 +792,14 @@ export class AkamaiMCPServer {
  * });
  */
 export async function createAkamaiServer(config: ServerConfig): Promise<AkamaiMCPServer> {
-  bangLogger.info({ config }, 'createAkamaiServer called with config');
+  logger.debug({ config }, 'createAkamaiServer called with config');
   
   try {
     const server = new AkamaiMCPServer(config);
-    bangLogger.info('AkamaiMCPServer instance created successfully');
+    logger.debug('AkamaiMCPServer instance created successfully');
     return server;
   } catch (error) {
-    bangLogger.fatal({ error }, 'FAILED TO CREATE AKAMAI SERVER!');
+    logger.fatal({ error }, 'FAILED TO CREATE AKAMAI SERVER!');
     throw new Error(`Server creation failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }

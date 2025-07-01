@@ -24,13 +24,43 @@ setupSafeConsole();
 
 import { getTransportFromEnv } from './config/transport-config';
 
-import { bangLogger, createLogger } from './utils/pino-logger';
+import { createLogger } from './utils/pino-logger';
 
 const mainLogger = createLogger('main');
+let server: any = null;
+
+// Graceful shutdown handler
+function setupGracefulShutdown() {
+  const shutdown = async (signal: string) => {
+    mainLogger.info(`Received ${signal}, shutting down gracefully...`);
+    
+    if (server && typeof server.stop === 'function') {
+      try {
+        await server.stop();
+        mainLogger.info('Server stopped successfully');
+      } catch (error) {
+        mainLogger.error({ error }, 'Error during server shutdown');
+      }
+    }
+    
+    process.exit(0);
+  };
+
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('uncaughtException', (error) => {
+    mainLogger.fatal({ error }, 'Uncaught exception');
+    process.exit(1);
+  });
+  process.on('unhandledRejection', (reason, promise) => {
+    mainLogger.fatal({ reason, promise }, 'Unhandled rejection');
+    process.exit(1);
+  });
+}
 
 async function main(): Promise<void> {
-  bangLogger.info('MAIN() STARTED!');
-  bangLogger.info({ 
+  mainLogger.info('ALECS MCP Server starting...');
+  mainLogger.debug({ 
     argv: process.argv,
     cwd: process.cwd(),
     nodeVersion: process.version,
@@ -59,8 +89,8 @@ async function main(): Promise<void> {
       await import(moduleMap[moduleName]);
       return;
     } else {
-      const error = new Error(`UNKNOWN MODULE: ${moduleName}`);
-      bangLogger.fatal({ moduleName }, error.message);
+      const error = new Error(`Unknown module: ${moduleName}`);
+      mainLogger.error({ moduleName }, error.message);
       throw error;
     }
   }
@@ -73,12 +103,12 @@ async function main(): Promise<void> {
     const transportConfig = getTransportFromEnv();
     mainLogger.info({ transportConfig }, 'Transport config received');
     
-    // Always use stderr for all output
-    bangLogger.info({ transport: transportConfig.type }, 'Starting ALECS MCP Server');
+    // Log transport type at debug level
+    mainLogger.debug({ transport: transportConfig.type }, 'Transport configuration');
     
     if (transportConfig.type === 'stdio') {
-      mainLogger.info('Running in Claude Desktop mode - stdio transport active');
-      mainLogger.info('ALL output going to stderr to prevent JSON-RPC corruption');
+      mainLogger.debug('Running in Claude Desktop mode - stdio transport active');
+      mainLogger.debug('All output going to stderr to prevent JSON-RPC corruption');
     }
     
     // Start Akamai MCP server with full tool registry
@@ -86,21 +116,25 @@ async function main(): Promise<void> {
     const { createAkamaiServer } = await import('./utils/akamai-server-factory');
     mainLogger.debug('akamai-server-factory imported successfully');
     
-    mainLogger.info('Creating Akamai server...');
-    const server = await createAkamaiServer({
+    mainLogger.debug('Creating Akamai server...');
+    server = await createAkamaiServer({
       name: `alecs-mcp-server-akamai`,
-      version: '1.6.2',
+      version: '1.7.4',
       // Load all 171 tools by default
       // Can be customized with toolFilter for specific deployments
     });
-    mainLogger.info('Akamai server created successfully');
+    mainLogger.debug('Akamai server created successfully');
     
-    mainLogger.info('Starting server...');
+    mainLogger.debug('Starting server...');
     await server.start();
-    bangLogger.info('SERVER IS RUNNING AND READY FOR CONNECTIONS!');
+    
+    // Only show minimal output after startup unless DEBUG is set
+    if (process.env['DEBUG'] || process.env['LOG_LEVEL'] === 'debug') {
+      mainLogger.info('ALECS MCP Server is running and ready for connections');
+    }
     
   } catch (_error) {
-    bangLogger.fatal({ error: _error }, 'FATAL ERROR IN MAIN()!');
+    mainLogger.fatal({ error: _error }, 'Failed to start server');
     mainLogger.error({
       message: _error instanceof Error ? _error.message : String(_error),
       stack: _error instanceof Error ? _error.stack : undefined,
@@ -112,16 +146,17 @@ async function main(): Promise<void> {
 
 // Start the server
 if (require.main === module) {
-  mainLogger.info('Script is main module, starting server...');
+  setupGracefulShutdown();
+  mainLogger.debug('Starting ALECS MCP Server...');
   main().catch((error) => {
-    bangLogger.fatal({ error }, 'UNHANDLED ERROR IN MAIN()!');
-    bangLogger.fatal({ 
+    mainLogger.fatal({ error }, 'Unhandled error during startup');
+    mainLogger.fatal({ 
       stack: error instanceof Error ? error.stack : 'No stack trace' 
     }, 'Stack trace');
     process.exit(1);
   });
 } else {
-  mainLogger.info('Script imported as module, not starting server');
+  mainLogger.debug('Script imported as module, not starting server');
 }
 
 export { main };

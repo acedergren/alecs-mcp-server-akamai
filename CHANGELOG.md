@@ -17,6 +17,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 - Pino transport configuration updated to use file descriptor 2 (stderr)
 - Safe console implementation ensures no stdout pollution
+- Normalized logging output - removed BANG logger for cleaner stderr
+- Reduced startup verbosity - minimal output unless DEBUG is enabled
+- Added graceful shutdown handlers for SIGINT/SIGTERM signals
 
 ### Developer Notes
 - MCP servers must never write to stdout (reserved for JSON-RPC protocol)
