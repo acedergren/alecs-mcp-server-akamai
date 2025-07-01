@@ -17,7 +17,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](http://makeapullrequest.com)
-[![Akamai Partner](https://img.shields.io/badge/Akamai-Partner-FF6900?style=for-the-badge&logo=akamai)](https://www.akamai.com/)
+[![Akamai Compatible](https://img.shields.io/badge/Akamai-Partner-FF6900?style=for-the-badge&logo=akamai)](https://www.akamai.com/)
 
 </div>
 
@@ -54,7 +54,6 @@
 ![Version](https://img.shields.io/badge/Version-1.7.0-blue?style=for-the-badge)
 ![Response Time](https://img.shields.io/badge/Response_Time-<100ms-success?style=for-the-badge)
 ![Memory](https://img.shields.io/badge/Memory-<256MB-success?style=for-the-badge)
-![Uptime](https://img.shields.io/badge/Uptime-99.9%25-brightgreen?style=for-the-badge)
 
 </div>
 
