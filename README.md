@@ -17,7 +17,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](http://makeapullrequest.com)
-[![Akamai Compatible](https://img.shields.io/badge/Akamai-Partner-FF6900?style=for-the-badge&logo=akamai)](https://www.akamai.com/)
 
 </div>
 
