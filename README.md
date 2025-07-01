@@ -48,11 +48,10 @@
 
 <div align="center">
   
-### 📊 Latest Release Performance
+### 📊 Latest Release Docs
 
 ![Version](https://img.shields.io/badge/Version-1.7.0-blue?style=for-the-badge)
-![Response Time](https://img.shields.io/badge/Response_Time-<100ms-success?style=for-the-badge)
-![Memory](https://img.shields.io/badge/Memory-<256MB-success?style=for-the-badge)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/acedergren/alecs-mcp-server-akamai)
 
 </div>
 
