@@ -48,7 +48,7 @@ import {
   formatContractDisplay,
   ensurePrefix,
 } from '../utils/formatting';
-import { getAkamaiIdTranslator } from '../utils/property-translator';
+import { AkamaiIdTranslator } from '../utils/id-translator';
 import {
   validateParameters,
   PropertyManagerSchemas,
@@ -411,20 +411,8 @@ export async function listProperties(
     const propertiesToShow = allProperties.slice(0, MAX_PROPERTIES_TO_DISPLAY);
     const hasMore = totalProperties > MAX_PROPERTIES_TO_DISPLAY;
 
-    // Pre-populate the translator caches with all data
-    const translator = getAkamaiIdTranslator();
-    
-    // Cache properties
-    translator.populatePropertyCache(propertiesToShow.map(prop => ({
-      propertyId: prop.propertyId,
-      propertyName: prop.propertyName,
-      contractId: prop.contractId,
-      groupId: prop.groupId,
-      assetId: prop.assetId,
-    })));
-    
-    // Note: Group and contract caches will be populated on-demand during translation
-    // This avoids additional API calls and maintains performance
+    // Get translator for ID-to-name translations
+    const translator = AkamaiIdTranslator.getInstance();
     
     // Structure the data for easy LLM processing with enhanced translations
     const structuredResponse = {

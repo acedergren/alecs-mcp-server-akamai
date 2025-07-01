@@ -16,7 +16,8 @@
  */
 
 import { AkamaiClient } from '../akamai-client';
-import { AkamaiIdTranslator } from '../utils/property-translator';
+import { AkamaiIdTranslator } from '../utils/id-translator';
+import { AkamaiHostnameRouter } from '../utils/hostname-router';
 import { createLogger } from '../utils/logger';
 import { MCPToolResponse } from '../types';
 
@@ -40,12 +41,14 @@ const DEFAULT_CONFIG: TranslationConfig = {
 
 export class TranslationMiddleware {
   private translator: AkamaiIdTranslator;
+  private hostnameRouter: AkamaiHostnameRouter;
   private config: TranslationConfig;
 
   constructor(config: Partial<TranslationConfig> = {}) {
     this.translator = AkamaiIdTranslator.getInstance();
+    this.hostnameRouter = AkamaiHostnameRouter.getInstance();
     this.config = { ...DEFAULT_CONFIG, ...config };
-    logger.info('TranslationMiddleware initialized', this.config);
+    logger.info('TranslationMiddleware initialized with hostname routing', this.config);
   }
 
   /**
@@ -121,15 +124,17 @@ export class TranslationMiddleware {
   }
 
   /**
-   * Extract all Akamai IDs from text using regex patterns
+   * Extract all Akamai IDs and hostnames from text using regex patterns
    */
   private extractAkamaiIds(text: string): string[] {
     const patterns = [
+      /\b[a-zA-Z0-9-]+\.[a-zA-Z]{2,}\b/g,  // Hostnames: www.example.com, api.site.org
       /\bprp_\d+\b/g,           // Property IDs: prp_123456
       /\bgrp_\d+\b/g,          // Group IDs: grp_123456
       /\bctr_[A-Z0-9-]+\b/g,   // Contract IDs: ctr_1-5C13O2
       /\bprd_[A-Z_]+\b/g,      // Product IDs: prd_Download_Delivery
       /\bcpc_\d+\b/g,          // CP Code IDs: cpc_123456
+      /\b\d{6,}\b/g,           // Numeric CP Codes: 123456 (6+ digits)
       /\baid_\d+\b/g,          // Asset IDs: aid_123456
       /\behn_\d+\b/g,          // Edge Hostname IDs: ehn_123456
     ];
@@ -147,7 +152,7 @@ export class TranslationMiddleware {
   }
 
   /**
-   * Batch translate multiple IDs for efficiency
+   * Batch translate multiple IDs for efficiency - Now supports hostnames and cpcodes!
    */
   private async batchTranslate(
     ids: string[],
@@ -156,12 +161,16 @@ export class TranslationMiddleware {
     const translations = new Map<string, string>();
     
     // Group IDs by type for efficient batch processing
+    const hostnames = ids.filter(id => id.includes('.') && !id.includes('_'));
+    const cpcodes = ids.filter(id => id.startsWith('cpc_') || /^\d{6,}$/.test(id));
     const propertyIds = ids.filter(id => id.startsWith('prp_'));
     const groupIds = ids.filter(id => id.startsWith('grp_'));
     const contractIds = ids.filter(id => id.startsWith('ctr_'));
     
-    // Translate each type in batches
+    // Translate each type in batches using the universal translator
     await Promise.all([
+      this.translateHostnameBatch(hostnames, client, translations),
+      this.translateCPCodeBatch(cpcodes, client, translations),
       this.translatePropertyBatch(propertyIds, client, translations),
       this.translateGroupBatch(groupIds, client, translations),
       this.translateContractBatch(contractIds, client, translations),
@@ -171,7 +180,63 @@ export class TranslationMiddleware {
   }
 
   /**
-   * Translate property IDs in batch
+   * Translate hostnames in batch using hostname router
+   */
+  private async translateHostnameBatch(
+    hostnames: string[],
+    client: AkamaiClient,
+    translations: Map<string, string>
+  ): Promise<void> {
+    for (const hostname of hostnames) {
+      try {
+        const route = await this.hostnameRouter.getHostnameRoute(hostname, client);
+        if (route) {
+          const displayName = `${hostname} (${route.propertyContext.propertyName})`;
+          translations.set(hostname, displayName);
+        } else {
+          translations.set(hostname, hostname);
+        }
+      } catch (error) {
+        logger.debug(`Failed to translate hostname ${hostname}:`, error);
+        translations.set(hostname, hostname);
+      }
+    }
+  }
+
+  /**
+   * Translate CP Codes in batch using both translator and hostname router
+   */
+  private async translateCPCodeBatch(
+    cpcodes: string[],
+    client: AkamaiClient,
+    translations: Map<string, string>
+  ): Promise<void> {
+    for (const cpcode of cpcodes) {
+      try {
+        // Ensure cpcode format
+        const formattedCPCode = cpcode.startsWith('cpc_') ? cpcode : `cpc_${cpcode}`;
+        
+        // Get basic translation
+        const translation = await this.translator.translateCPCode(formattedCPCode, client);
+        
+        // Get hostname context for richer display
+        const hostnames = await this.hostnameRouter.getHostnamesForCPCode(formattedCPCode, client);
+        
+        if (hostnames.length > 0) {
+          const displayName = `${translation.name} (${hostnames[0]})`;
+          translations.set(cpcode, displayName);
+        } else {
+          translations.set(cpcode, translation.displayName);
+        }
+      } catch (error) {
+        logger.debug(`Failed to translate CP Code ${cpcode}:`, error);
+        translations.set(cpcode, cpcode);
+      }
+    }
+  }
+
+  /**
+   * Translate property IDs in batch using both translator and hostname router
    */
   private async translatePropertyBatch(
     propertyIds: string[],
@@ -180,11 +245,20 @@ export class TranslationMiddleware {
   ): Promise<void> {
     for (const propertyId of propertyIds) {
       try {
+        // Get basic translation
         const translation = await this.translator.translateProperty(propertyId, client);
-        translations.set(propertyId, translation.displayName);
+        
+        // Get hostname context for richer display
+        const hostnames = await this.hostnameRouter.getHostnamesForProperty(propertyId, client);
+        
+        if (hostnames.length > 0) {
+          const displayName = `${translation.name} (${hostnames[0]})`;
+          translations.set(propertyId, displayName);
+        } else {
+          translations.set(propertyId, translation.displayName);
+        }
       } catch (error) {
         logger.debug(`Failed to translate property ${propertyId}:`, error);
-        // Keep original ID as fallback
         translations.set(propertyId, propertyId);
       }
     }
