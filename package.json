@@ -85,7 +85,7 @@
     "@modelcontextprotocol/sdk": "^1.13.0",
     "akamai-edgegrid": "^3.4.0",
     "commander": "^14.0.0",
-    "express": "^4.21.2",
+    "express": "^5.1.0",
     "lru-cache": "^11.1.0",
     "pino": "^9.7.0",
     "pino-pretty": "^13.0.0",
