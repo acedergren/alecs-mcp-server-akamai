@@ -25,6 +25,10 @@ import EdgeGrid = require('akamai-edgegrid');
 
 import { type AkamaiError } from './types';
 import { defaultPool } from './utils/connection-pool';
+import { withTimeout, getTimeoutForOperation } from './utils/request-timeout-handler';
+import { createLogger } from './utils/pino-logger';
+
+const logger = createLogger('akamai-client');
 
 // EdgeGrid type definitions
 interface EdgeGridRequestOptions {
@@ -181,38 +185,61 @@ export class AkamaiClient {
       // Use EdgeGrid's auth method to sign the request
       this.edgeGrid.auth(requestOptions);
 
-      // Make the request using EdgeGrid's send method
-      return new Promise((resolve, reject) => {
-        this.edgeGrid.send((_error: any, response: any, body?: string) => {
-          if (_error) {
-            try {
-              this.handleApiError(_error);
-            } catch (handledError) {
-              reject(handledError);
-            }
+      // Determine appropriate timeout based on operation
+      const operationType = `${_options.method || 'GET'} ${requestPath}`;
+      const timeoutType = getTimeoutForOperation(operationType);
+      
+      // Make the request using EdgeGrid's send method with timeout
+      return withTimeout(
+        (signal) => new Promise<T>((resolve, reject) => {
+          // Check if already aborted
+          if (signal.aborted) {
+            reject(new Error('Request aborted'));
             return;
           }
-
-          // Check for HTTP errors
-          if (response && response.statusCode >= 400) {
-            const akamaiError = this.parseErrorResponse(body, response.statusCode);
-            reject(akamaiError);
-            return;
-          }
-
-          // Parse JSON response
-          if (body) {
-            try {
-              resolve(JSON.parse(body) as T);
-            } catch {
-              // Return raw body if not JSON
-              resolve(body as T);
+          
+          // Set up abort listener
+          const abortHandler = () => {
+            reject(new Error('Request aborted by timeout'));
+          };
+          signal.addEventListener('abort', abortHandler);
+          
+          this.edgeGrid.send((_error: any, response: any, body?: string) => {
+            // Clean up abort listener
+            signal.removeEventListener('abort', abortHandler);
+            
+            if (_error) {
+              try {
+                this.handleApiError(_error);
+              } catch (handledError) {
+                reject(handledError);
+              }
+              return;
             }
-          } else {
-            resolve(null as T);
-          }
-        });
-      });
+
+            // Check for HTTP errors
+            if (response && response.statusCode >= 400) {
+              const akamaiError = this.parseErrorResponse(body, response.statusCode);
+              reject(akamaiError);
+              return;
+            }
+
+            // Parse JSON response
+            if (body) {
+              try {
+                resolve(JSON.parse(body) as T);
+              } catch {
+                // Return raw body if not JSON
+                resolve(body as T);
+              }
+            } else {
+              resolve(null as T);
+            }
+          });
+        }),
+        timeoutType,
+        operationType
+      );
     } catch (_error) {
       this.handleApiError(_error);
     }

@@ -33,6 +33,13 @@ import {
 } from './property-tools';
 
 import {
+  search,
+  searchProperties,
+  searchHostnames,
+  searchOrigins,
+} from './search-tool';
+
+import {
   activateProperty,
   addPropertyHostname,
   removePropertyHostname,
@@ -865,6 +872,48 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       description: 'Check property health and identify issues',
       schema: extendedSchemas.CheckPropertyHealthSchema,
       handler: createToolHandler(checkPropertyHealth),
+    },
+
+    // Unified Search Tools
+    {
+      name: 'search',
+      description: 'Universal search across all Akamai resources - automatically detects what you\'re looking for',
+      schema: z.object({
+        query: z.string().describe('Search query - can be property name, hostname, ID, origin, etc.'),
+        includeDetails: z.boolean().optional().describe('Include detailed match information'),
+        useCache: z.boolean().optional().describe('Use cached results for faster response'),
+        searchDepth: z.enum(['shallow', 'deep']).optional().describe('Shallow for quick search, deep to search inside configurations'),
+        maxResults: z.number().optional().describe('Maximum number of results to return'),
+        customer: z.string().optional(),
+      }),
+      handler: createToolHandler(search),
+    },
+    {
+      name: 'search-properties',
+      description: 'Search for properties by name or ID',
+      schema: z.object({
+        query: z.string().describe('Property name or ID to search for'),
+        customer: z.string().optional(),
+      }),
+      handler: createToolHandler(searchProperties),
+    },
+    {
+      name: 'search-hostnames',
+      description: 'Search for hostnames within property configurations',
+      schema: z.object({
+        hostname: z.string().describe('Hostname to search for (e.g., www.example.com)'),
+        customer: z.string().optional(),
+      }),
+      handler: createToolHandler(searchHostnames),
+    },
+    {
+      name: 'search-origins',
+      description: 'Search for origin servers within property configurations',
+      schema: z.object({
+        origin: z.string().describe('Origin hostname to search for'),
+        customer: z.string().optional(),
+      }),
+      handler: createToolHandler(searchOrigins),
     },
 
     // DNS Management (20+ tools)

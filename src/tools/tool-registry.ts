@@ -14,6 +14,14 @@ export {
   listProducts,
 } from './property-tools';
 
+// Unified Search
+export {
+  search,
+  searchProperties,
+  searchHostnames,
+  searchOrigins,
+} from './search-tool';
+
 export {
   activateProperty,
   addPropertyHostname,

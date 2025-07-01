@@ -16,8 +16,9 @@
  */
 
 import { AkamaiClient } from '../akamai-client';
-import { AkamaiIdTranslator } from '../utils/property-translator';
-import { createLogger } from '../utils/logger';
+import { getAkamaiIdTranslator } from '../utils/property-translator';
+import { getHostnameRouter } from '../utils/hostname-router';
+import { createLogger } from '../utils/pino-logger';
 import { MCPToolResponse } from '../types';
 
 const logger = createLogger('translation-middleware');
@@ -39,13 +40,15 @@ const DEFAULT_CONFIG: TranslationConfig = {
 };
 
 export class TranslationMiddleware {
-  private translator: AkamaiIdTranslator;
+  private translator: ReturnType<typeof getAkamaiIdTranslator>;
+  private hostnameRouter: ReturnType<typeof getHostnameRouter>;
   private config: TranslationConfig;
 
   constructor(config: Partial<TranslationConfig> = {}) {
-    this.translator = AkamaiIdTranslator.getInstance();
+    this.translator = getAkamaiIdTranslator();
+    this.hostnameRouter = getHostnameRouter();
     this.config = { ...DEFAULT_CONFIG, ...config };
-    logger.info('TranslationMiddleware initialized', this.config);
+    logger.info('TranslationMiddleware initialized with hostname routing', this.config);
   }
 
   /**

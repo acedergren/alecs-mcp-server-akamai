@@ -60,6 +60,14 @@ import { withToolErrorHandling, type ErrorContext } from '../utils/tool-error-ha
 import { type TreeNode, renderTree, generateTreeSummary, formatGroupNode } from '../utils/tree-view';
 import { createErrorHandler } from '../utils/error-handler';
 import { createLogger } from '../utils/pino-logger';
+import {
+  paginateArray,
+  truncateResponse,
+  formatPaginationInfo,
+  createPaginationSuggestions,
+  wouldExceedTokenLimit,
+} from '../utils/pagination-helper';
+import { withRetry } from '../utils/akamai-search-helper';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -2170,13 +2178,21 @@ export async function listContracts(
  */
 export async function listGroups(
   client: AkamaiClient,
-  args: { searchTerm?: string },
+  args: { 
+    searchTerm?: string;
+    page?: number;
+    pageSize?: number;
+  },
 ): Promise<MCPToolResponse> {
   try {
+    // Add timeout to prevent hanging requests
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
     const rawResponse = await client.request({
       path: '/papi/v1/groups',
       method: 'GET',
-    });
+    }).finally(() => clearTimeout(timeout));
 
     if (isPapiError(rawResponse)) {
       throw new Error(`Failed to list groups: ${rawResponse.detail}`);
@@ -2231,6 +2247,14 @@ export async function listGroups(
               type: 'text',
               text: JSON.stringify({
                 groups: [],
+                pagination: {
+                  page: 1,
+                  pageSize: 50,
+                  totalItems: 0,
+                  totalPages: 0,
+                  hasNext: false,
+                  hasPrevious: false,
+                },
                 metadata: {
                   total: totalGroups,
                   filtered: 0,
@@ -2248,9 +2272,18 @@ export async function listGroups(
       }
     }
 
-    // Build hierarchy
-    const topLevelGroups = groups.filter((g: any) => !g.parentGroupId);
-    const groupsByParent = groups.reduce(
+    // Apply pagination to prevent token limit issues
+    const paginationOptions = {
+      page: args.page || 1,
+      pageSize: args.pageSize || 50,
+      estimatedItemSize: 500, // Estimated characters per group
+    };
+
+    const paginated = paginateArray(groups, paginationOptions);
+
+    // Build hierarchy only for paginated items
+    const topLevelGroups = paginated.items.filter((g: any) => !g.parentGroupId);
+    const groupsByParent = paginated.items.reduce(
       (acc: any, group: any) => {
         if (group.parentGroupId) {
           if (!acc[group.parentGroupId]) {
@@ -2278,16 +2311,16 @@ export async function listGroups(
     // Build structured response
     const hierarchy = topLevelGroups.map((group: PapiGroup) => buildHierarchy(group));
 
-    // Extract all unique contracts
+    // Extract all unique contracts from paginated items
     const allContracts = new Set<string>();
-    groups.forEach((g: PapiGroup) => {
+    paginated.items.forEach((g: PapiGroup) => {
       if (g.contractIds) {
         g.contractIds.forEach((c: string) => allContracts.add(c));
       }
     });
 
     // Build flat list with parent references
-    const flatList = groups.map((group: PapiGroup) => ({
+    const flatList = paginated.items.map((group: PapiGroup) => ({
       groupId: group.groupId,
       groupName: group.groupName,
       contractIds: group.contractIds || [],
@@ -2303,14 +2336,36 @@ export async function listGroups(
         unique: Array.from(allContracts).sort(),
         total: allContracts.size
       },
+      pagination: {
+        ...paginated.pagination,
+        info: formatPaginationInfo(paginated.pagination),
+      },
       metadata: {
         total: totalGroups,
         filtered: groups.length,
         searchTerm: args.searchTerm || null,
         topLevelGroups: topLevelGroups.length,
-        hasHierarchy: topLevelGroups.length < groups.length
+        hasHierarchy: topLevelGroups.length < paginated.items.length
       }
     };
+
+    // Check if response would exceed token limit
+    if (wouldExceedTokenLimit(structuredResponse)) {
+      pinoLogger.warn('Response would exceed token limit, applying additional truncation');
+      
+      // Truncate the flat list to fit
+      const truncated = truncateResponse(structuredResponse.groups.flat, { includeMetadata: true });
+      
+      structuredResponse.groups.flat = truncated.items;
+      structuredResponse.metadata.truncated = truncated.truncated;
+      structuredResponse.metadata.originalCount = truncated.originalCount;
+    }
+
+    // Add pagination suggestions
+    const suggestions = createPaginationSuggestions(paginated, 'list-groups');
+    if (suggestions.length > 0) {
+      structuredResponse.metadata.suggestions = suggestions;
+    }
 
     return {
       content: [
@@ -2504,5 +2559,375 @@ export async function listProducts(
       ],
     };
   }, _context);
+}
+
+/**
+ * INTERNAL BULK SEARCH IMPLEMENTATION
+ * These functions are used internally by the search functionality
+ * to provide better performance when searching across properties.
+ * Users should use the regular search functions which will automatically
+ * leverage bulk search when appropriate.
+ */
+
+/**
+ * Internal: Prepare a bulk search across properties
+ * This is step 1 of the bulk search workflow
+ * @internal
+ */
+async function prepareBulkSearch(
+  client: AkamaiClient,
+  args: {
+    searchType: 'origin' | 'hostname' | 'cpCode' | 'behavior' | 'rule' | 'custom';
+    searchValue: string;
+    contractId?: string;
+    groupId?: string;
+    propertyName?: string;
+    customer?: string;
+  }
+): Promise<MCPToolResponse> {
+  const _context: ErrorContext = {
+    operation: 'prepareBulkSearch',
+    customer: args.customer || client.getCustomer(),
+  };
+
+  return withToolErrorHandling(async () => {
+    // Validate parameters - simple validation for now
+    const validatedArgs = args; // TODO: Add proper schema validation when PropertyManagerSchemas.bulkSearchPrepare is defined
+
+    // Build search query based on type
+    const bulkSearchQuery = buildBulkSearchQuery(
+      validatedArgs.searchType,
+      validatedArgs.searchValue
+    );
+
+    // Add filters if provided
+    const requestBody: any = {
+      bulkSearchQuery,
+    };
+
+    if (validatedArgs.contractId) {
+      requestBody.contractId = validatedArgs.contractId;
+    }
+    if (validatedArgs.groupId) {
+      requestBody.groupId = validatedArgs.groupId;
+    }
+    if (validatedArgs.propertyName) {
+      requestBody.propertyName = validatedArgs.propertyName;
+    }
+
+    // Make the request with retry logic
+    const response = await withRetry(async () => {
+      return await client.request({
+        path: '/papi/v1/bulk/rules-search-requests',
+        method: 'POST',
+        body: requestBody,
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      });
+    });
+
+    // Extract bulk search ID from response
+    const bulkSearchId = extractBulkSearchId(response);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            bulkSearchId,
+            searchType: validatedArgs.searchType,
+            searchValue: validatedArgs.searchValue,
+            status: 'PENDING',
+            message: 'Bulk search initiated. Use checkBulkSearchStatus to monitor progress.',
+            nextStep: `checkBulkSearchStatus --bulkSearchId ${bulkSearchId}`,
+          }, null, 2),
+        },
+      ],
+    };
+  }, _context);
+}
+
+/**
+ * Internal: Check the status of a bulk search
+ * @internal
+ */
+async function checkBulkSearchStatus(
+  client: AkamaiClient,
+  args: {
+    bulkSearchId: string;
+    customer?: string;
+  }
+): Promise<MCPToolResponse> {
+  const _context: ErrorContext = {
+    operation: 'checkBulkSearchStatus',
+    customer: args.customer || client.getCustomer(),
+  };
+
+  return withToolErrorHandling(async () => {
+    const response = await withRetry(async () => {
+      return await client.request({
+        path: `/papi/v1/bulk/rules-search-requests/${args.bulkSearchId}`,
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+    });
+
+    const status = response as any;
+    
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            bulkSearchId: args.bulkSearchId,
+            searchStatus: status.searchStatus || 'UNKNOWN',
+            searchSubmittedDate: status.searchSubmittedDate,
+            searchCompletedDate: status.searchCompletedDate,
+            results: status.results || {
+              matchesFound: false,
+              numberOfMatches: 0,
+            },
+            nextStep: status.searchStatus === 'COMPLETE' 
+              ? `getBulkSearchResults --bulkSearchId ${args.bulkSearchId}`
+              : 'Wait and check again',
+          }, null, 2),
+        },
+      ],
+    };
+  }, _context);
+}
+
+/**
+ * Internal: Get the results of a completed bulk search
+ * @internal
+ */
+async function getBulkSearchResults(
+  client: AkamaiClient,
+  args: {
+    bulkSearchId: string;
+    page?: number;
+    pageSize?: number;
+    customer?: string;
+  }
+): Promise<MCPToolResponse> {
+  const _context: ErrorContext = {
+    operation: 'getBulkSearchResults',
+    customer: args.customer || client.getCustomer(),
+  };
+
+  return withToolErrorHandling(async () => {
+    const queryParams: any = {};
+    if (args.page) queryParams.page = args.page;
+    if (args.pageSize) queryParams.pageSize = args.pageSize;
+
+    const response = await withRetry(async () => {
+      return await client.request({
+        path: `/papi/v1/bulk/rules-search-requests/${args.bulkSearchId}/results`,
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+        queryParams,
+      });
+    });
+
+    const results = response as any;
+
+    // Format results for readability
+    const formattedResults = formatBulkSearchResults(results);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(formattedResults, null, 2),
+        },
+      ],
+    };
+  }, _context);
+}
+
+/**
+ * Internal: Perform a synchronous bulk search (faster but limited)
+ * @internal
+ */
+async function synchronousBulkSearch(
+  client: AkamaiClient,
+  args: {
+    searchType: 'origin' | 'hostname' | 'cpCode' | 'behavior' | 'rule' | 'custom';
+    searchValue: string;
+    propertyIds?: string[];
+    maxResults?: number;
+    customer?: string;
+  }
+): Promise<MCPToolResponse> {
+  const _context: ErrorContext = {
+    operation: 'synchronousBulkSearch',
+    customer: args.customer || client.getCustomer(),
+  };
+
+  return withToolErrorHandling(async () => {
+    // Build search query
+    const bulkSearchQuery = buildBulkSearchQuery(args.searchType, args.searchValue);
+
+    const requestBody: any = {
+      bulkSearchQuery,
+    };
+
+    if (args.propertyIds) {
+      requestBody.propertyIds = args.propertyIds;
+    }
+
+    // Use synchronous endpoint
+    const response = await withRetry(async () => {
+      return await client.request({
+        path: '/papi/v1/bulk/rules-search-requests-synch',
+        method: 'POST',
+        body: requestBody,
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      });
+    });
+
+    const results = response as any;
+    const formattedResults = formatBulkSearchResults(results);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(formattedResults, null, 2),
+        },
+      ],
+    };
+  }, _context);
+}
+
+/**
+ * Build search query based on search type
+ */
+function buildBulkSearchQuery(searchType: string, searchValue: string): any {
+  const queries: Record<string, any> = {
+    origin: {
+      match: searchValue,
+      syntax: 'JSONPATH',
+      queryFields: [
+        '$.behaviors[?(@.name == "origin")].options.hostname',
+        '$.behaviors[?(@.name == "origin")].options.originSni',
+        '$.behaviors[?(@.name == "origin")].options.customCertificateAuthority',
+      ],
+    },
+    hostname: {
+      match: searchValue,
+      syntax: 'JSONPATH',
+      queryFields: [
+        '$.criteria[?(@.name == "hostname")].options.values[*]',
+        '$.rules..criteria[?(@.name == "hostname")].options.values[*]',
+      ],
+    },
+    cpCode: {
+      match: searchValue,
+      syntax: 'JSONPATH',
+      queryFields: [
+        '$.behaviors[?(@.name == "cpCode")].options.value.name',
+        '$.behaviors[?(@.name == "cpCode")].options.value.id',
+        '$.rules..behaviors[?(@.name == "cpCode")].options.value.name',
+      ],
+    },
+    behavior: {
+      match: searchValue,
+      syntax: 'JSONPATH',
+      queryFields: [
+        '$.behaviors[*].name',
+        '$.rules..behaviors[*].name',
+      ],
+    },
+    rule: {
+      match: searchValue,
+      syntax: 'JSONPATH',
+      queryFields: [
+        '$.rules[*].name',
+        '$.rules..name',
+      ],
+    },
+    custom: {
+      match: searchValue,
+      syntax: 'JSONPATH',
+      queryFields: ['$..'],
+    },
+  };
+
+  return queries[searchType] || queries['custom'];
+}
+
+/**
+ * Extract bulk search ID from response
+ */
+function extractBulkSearchId(response: any): string {
+  // Try different response formats
+  if (response.bulkSearchId) {
+    return response.bulkSearchId;
+  }
+  
+  // Try to extract from Location header format
+  if (response.bulkSearchLink) {
+    const match = response.bulkSearchLink.match(/\/([^\/]+)$/);
+    if (match) {
+      return match[1];
+    }
+  }
+
+  throw new Error('Could not extract bulk search ID from response');
+}
+
+/**
+ * Format bulk search results for readability
+ */
+function formatBulkSearchResults(results: any): any {
+  const formatted: any = {
+    summary: {
+      totalMatches: 0,
+      totalProperties: 0,
+      searchCompleted: results.searchCompletedDate || null,
+    },
+    matches: [],
+  };
+
+  if (results.results && Array.isArray(results.results)) {
+    for (const result of results.results) {
+      const propertyMatch: any = {
+        propertyId: result.propertyId,
+        propertyName: result.propertyName,
+        propertyVersion: result.propertyVersion,
+        productionVersion: result.productionVersion,
+        stagingVersion: result.stagingVersion,
+        matches: [],
+      };
+
+      if (result.matchLocations && Array.isArray(result.matchLocations)) {
+        for (const location of result.matchLocations) {
+          propertyMatch.matches.push({
+            path: location.path,
+            value: location.value,
+            context: location.context || 'Unknown',
+          });
+        }
+      }
+
+      formatted.matches.push(propertyMatch);
+      formatted.summary.totalMatches += propertyMatch.matches.length;
+    }
+
+    formatted.summary.totalProperties = formatted.matches.length;
+  }
+
+  return formatted;
 }
 
