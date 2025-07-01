@@ -1,6 +1,6 @@
 # ALECS Architecture Overview
 
-**Version:** 1.7.3  
+**Version:** 1.7.4  
 **Last Updated:** 2025-07-01
 
 ## System Design
