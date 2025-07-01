@@ -1,6 +1,6 @@
 {
   "name": "alecs-mcp-server-akamai",
-  "version": "1.7.3",
+  "version": "1.7.4",
   "description": "ALECS - A Launchgrid for Edge & Cloud Services - MCP server for Akamai with agentic AI workflows",
   "keywords": [
     "mcp",
@@ -25,6 +25,7 @@
   },
   "main": "dist/index.js",
   "bin": {
+    "alecs-akamai": "dist/alecs-cli-wrapper.js",
     "alecs": "dist/alecs-cli-wrapper.js"
   },
   "publishConfig": {

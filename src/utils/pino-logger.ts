@@ -24,18 +24,19 @@ import type { Logger as PinoLogger } from 'pino';
 /**
  * MCP-safe transport configuration
  * Forces ALL output to stderr to prevent JSON-RPC corruption
+ * FIXED: Use direct stderr stream instead of destination: 2
  */
 const transport = pino.transport({
   target: 'pino-pretty',
   options: {
-    destination: 2, // 2 = stderr, CRITICAL for MCP
+    destination: 2, // 2 is the file descriptor for stderr
     colorize: true,
     translateTime: 'HH:MM:ss.l',
     ignore: 'pid,hostname', // Reduce noise
     messageFormat: '{levelLabel} [{context}] {msg}',
     errorLikeObjectKeys: ['err', 'error'],
     errorProps: 'message,stack,type,code',
-    // Remove customPrettifiers as they can't be serialized to worker threads
+    sync: false, // Allow async for better performance
   }
 });
 

@@ -36,7 +36,7 @@ export class ProgressBar extends EventEmitter {
     this.barCompleteChar = _options.barCompleteChar || '█';
     this.barIncompleteChar = _options.barIncompleteChar || '░';
     this.barWidth = _options.barWidth || 40;
-    this.stream = _options.stream || process.stdout;
+    this.stream = _options.stream || process.stderr;
     this.clear = _options.clear !== false;
     this.startTime = Date.now();
   }

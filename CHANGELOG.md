@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.4] - 2025-07-01
+
+### Fixed
+- Critical stdout corruption bug in Claude Desktop integration
+  - Pino logger was writing to stdout, breaking JSON-RPC communication
+  - All logging now correctly directed to stderr
+  - Resolves "server not connecting" issues in Claude Desktop
+  - Fixes JSON parsing errors and unexpected token errors
+
+### Changed
+- Pino transport configuration updated to use file descriptor 2 (stderr)
+- Safe console implementation ensures no stdout pollution
+
+### Developer Notes
+- MCP servers must never write to stdout (reserved for JSON-RPC protocol)
+- All debug output, logs, and errors must go to stderr
+- This fix ensures compatibility with Claude Desktop, Cursor, and other MCP clients
+
 ## [1.7.0] - 2025-01-30
 
 ### Added
