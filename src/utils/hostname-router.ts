@@ -134,7 +134,14 @@ export class AkamaiHostnameRouter {
     // Process in batches for efficiency
     const results = await this.batchGetRoutes(hostnames, client);
 
-    return returnArray ? results : (results[0] || { hostname: hostnames[0], error: 'Not found' });
+    if (returnArray) {
+      return results;
+    } else {
+      return results[0] || { 
+        hostname: hostnames[0] || '', 
+        error: 'Not found' 
+      };
+    }
   }
 
   /**
@@ -421,7 +428,7 @@ export class AkamaiHostnameRouter {
   ): Promise<string[]> {
     try {
       // Search for CP code usage
-      const searchResult = await unifiedSearch.search(client, {
+      await unifiedSearch.search(client, {
         query: cpCodeId,
         searchDepth: 'deep',
         includeDetails: true,

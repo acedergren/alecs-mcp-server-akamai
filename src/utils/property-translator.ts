@@ -219,9 +219,9 @@ export class AkamaiIdTranslator {
    * Detect the type of Akamai ID
    */
   private detectIdType(id: string): AkamaiIdType {
-    if (id.startsWith('prp_')) return 'property';
-    if (id.startsWith('grp_')) return 'group';
-    if (id.startsWith('ctr_')) return 'contract';
+    if (id.startsWith('prp_')) {return 'property';}
+    if (id.startsWith('grp_')) {return 'group';}
+    if (id.startsWith('ctr_')) {return 'contract';}
     return 'property'; // Default fallback
   }
   

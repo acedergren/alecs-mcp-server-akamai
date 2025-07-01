@@ -151,14 +151,14 @@ export interface KeyRotationRequest {
 
 // CODE KAI: Type guard functions for runtime validation
 export function isDNSSECKeysResponse(obj: any): obj is DNSSECKeysResponse {
-  if (!obj || typeof obj !== 'object') return false;
+  if (!obj || typeof obj !== 'object') {return false;}
   const response = obj as any;
   return Array.isArray(response.keys) && 
     response.keys.every((key: any) => DNSSECKeySchema.safeParse(key).success);
 }
 
 export function isDNSSECDSRecordsResponse(obj: any): obj is DNSSECDSRecordsResponse {
-  if (!obj || typeof obj !== 'object') return false;
+  if (!obj || typeof obj !== 'object') {return false;}
   const response = obj as any;
   return Array.isArray(response.dsRecords) && 
     response.dsRecords.every((ds: any) => DSRecordSchema.safeParse(ds).success);

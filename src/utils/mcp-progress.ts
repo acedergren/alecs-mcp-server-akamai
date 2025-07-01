@@ -136,7 +136,7 @@ export class ProgressToken {
   }
 
   private autoUpdate(): void {
-    if (this.status !== 'in_progress') return;
+    if (this.status !== 'in_progress') {return;}
 
     const elapsed = (Date.now() - this.startTime) / 1000;
     const estimatedTotal = this.options.estimatedDuration || 300; // 5 min default
@@ -154,10 +154,10 @@ export class ProgressToken {
   }
 
   private getProgressMessage(progress: number): string {
-    if (progress < 25) return `${this.operation} initializing...`;
-    if (progress < 50) return `${this.operation} in progress...`;
-    if (progress < 75) return `${this.operation} processing...`;
-    if (progress < 95) return `${this.operation} finalizing...`;
+    if (progress < 25) {return `${this.operation} initializing...`;}
+    if (progress < 50) {return `${this.operation} in progress...`;}
+    if (progress < 75) {return `${this.operation} processing...`;}
+    if (progress < 95) {return `${this.operation} finalizing...`;}
     return `${this.operation} almost complete...`;
   }
 

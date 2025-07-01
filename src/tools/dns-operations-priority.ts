@@ -248,9 +248,9 @@ export async function listChangelists(
   try {
     // CODE KAI: Build query parameters with proper typing
     const queryParams: Record<string, string> = {};
-    if (args.page) queryParams['page'] = String(args.page);
-    if (args.pageSize) queryParams['pageSize'] = String(args.pageSize);
-    if (args.showAll) queryParams['showAll'] = String(args.showAll);
+    if (args.page) {queryParams['page'] = String(args.page);}
+    if (args.pageSize) {queryParams['pageSize'] = String(args.pageSize);}
+    if (args.showAll) {queryParams['showAll'] = String(args.showAll);}
 
     const response = await client.request({
       path: '/config-dns/v2/changelists',

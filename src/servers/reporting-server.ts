@@ -176,7 +176,7 @@ const getTrafficReport = {
     let text = `# Traffic Report\n\n`;
     text += `**Period:** ${validated.start_date} to ${validated.end_date}\n`;
     text += `**Granularity:** ${validated.granularity}\n`;
-    if (validated.group_by) text += `**Grouped By:** ${validated.group_by}\n`;
+    if (validated.group_by) {text += `**Grouped By:** ${validated.group_by}\n`;}
     text += `\n`;
 
     if (response.data && response.data.length > 0) {
@@ -275,7 +275,7 @@ const getCachePerformance = {
 
     let text = `# Cache Performance Report\n\n`;
     text += `**Period:** ${validated.start_date} to ${validated.end_date}\n`;
-    if (validated.cp_codes) text += `**CP Codes:** ${validated.cp_codes.join(', ')}\n`;
+    if (validated.cp_codes) {text += `**CP Codes:** ${validated.cp_codes.join(', ')}\n`;}
     text += `\n`;
 
     if (response.data && response.data.length > 0) {
@@ -477,7 +477,7 @@ const getErrorAnalysis = {
 
     let text = `# Error Analysis Report\n\n`;
     text += `**Period:** ${validated.start_date} to ${validated.end_date}\n`;
-    if (validated.error_codes) text += `**Filtered Codes:** ${validated.error_codes.join(', ')}\n`;
+    if (validated.error_codes) {text += `**Filtered Codes:** ${validated.error_codes.join(', ')}\n`;}
     text += `\n`;
 
     if (response.data && response.data.length > 0) {
@@ -536,8 +536,8 @@ const getErrorAnalysis = {
           if (key.startsWith('http_') && typeof value === 'number') {
             const code = parseInt(key.replace('http_', ''));
             requests += value;
-            if (code >= 400 && code < 500) errors4xx += value;
-            if (code >= 500) errors5xx += value;
+            if (code >= 400 && code < 500) {errors4xx += value;}
+            if (code >= 500) {errors5xx += value;}
           }
         });
         
@@ -580,7 +580,7 @@ const getErrorAnalysis = {
 
 // Helper functions
 function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B';
+  if (bytes === 0) {return '0 B';}
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));

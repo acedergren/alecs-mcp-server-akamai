@@ -159,8 +159,8 @@ async function searchByHostname(
   try {
     // Get targeted property list (not all properties)
     const queryParams: any = {};
-    if (args.contractId) queryParams.contractId = args.contractId;
-    if (args.groupId) queryParams.groupId = args.groupId;
+    if (args.contractId) {queryParams.contractId = args.contractId;}
+    if (args.groupId) {queryParams.groupId = args.groupId;}
 
     let propertiesToSearch: any[] = [];
 
@@ -186,7 +186,7 @@ async function searchByHostname(
 
       for (const group of targetGroups) {
         for (const contractId of group.contractIds || []) {
-          if (args.contractId && contractId !== args.contractId) continue;
+          if (args.contractId && contractId !== args.contractId) {continue;}
 
           try {
             const response = await client.request({
@@ -230,7 +230,7 @@ async function searchByHostname(
       }
 
       // Limit search for performance (CODE KAI: bounded operation)
-      if (results.length >= 50) break;
+      if (results.length >= 50) {break;}
     }
 
     const searchTime = ((Date.now() - searchStartTime) / 1000).toFixed(2);

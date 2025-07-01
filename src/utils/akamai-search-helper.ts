@@ -227,7 +227,7 @@ export class SearchIndex {
     const searchWords = term.toLowerCase().split(/\s+/);
     const resultSets = searchWords.map(word => this.index.get(word) || new Set());
     
-    if (resultSets.length === 0) return [];
+    if (resultSets.length === 0) {return [];}
     
     // Find intersection of all result sets
     const intersection = resultSets.reduce((acc, set) => {

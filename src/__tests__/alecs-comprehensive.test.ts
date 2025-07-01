@@ -196,7 +196,7 @@ describe('ALECS MCP Server Tests', () => {
     }
   ];
 
-  let testResults: AlecsTestResult[] = [];
+  const testResults: AlecsTestResult[] = [];
 
   describe('ALECS Property Server', () => {
     const server = alecsServers.find(s => s.name === 'alecs-property')!;

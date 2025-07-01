@@ -455,8 +455,8 @@ export function captureApiResponse(
     validated
   };
   
-  if (errors.length > 0) capture.errors = errors;
-  if (extraFields.length > 0) capture.extraFields = extraFields;
+  if (errors.length > 0) {capture.errors = errors;}
+  if (extraFields.length > 0) {capture.extraFields = extraFields;}
   
   return capture;
 }

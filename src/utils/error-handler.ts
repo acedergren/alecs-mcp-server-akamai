@@ -127,7 +127,7 @@ export class ToolErrorHandler {
    * Log status code specific help
    */
   private logStatusCodeHelp(statusCode: number | undefined, akamaiError: AkamaiErrorDetails | undefined): void {
-    if (!statusCode) return;
+    if (!statusCode) {return;}
 
     console.error(`\n[${statusCode} Error - Possible Causes]:`);
 
@@ -196,7 +196,7 @@ export class ToolErrorHandler {
    * Log validation errors from Akamai response
    */
   private logValidationErrors(akamaiError: AkamaiErrorDetails | undefined): void {
-    if (!akamaiError?.errors || akamaiError.errors.length === 0) return;
+    if (!akamaiError?.errors || akamaiError.errors.length === 0) {return;}
 
     console.error('\n[Validation Errors]:');
     akamaiError.errors.forEach((err, index) => {

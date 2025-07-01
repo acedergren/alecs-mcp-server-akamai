@@ -125,6 +125,7 @@ purge-cache/
 # MCP specific
 mcp-state/
 .mcp-cache/
+/tmp/sonarqube-mcp/
 
 # Documentation build
 docs/_build/

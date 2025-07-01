@@ -208,8 +208,8 @@ export class UnifiedSearchService {
         options.customer || 'default'
       );
 
-      if (cacheResults.matches && cacheResults.matches.length > 0) {
-        return cacheResults.matches.map((match: any) => ({
+      if (Array.isArray(cacheResults) && cacheResults.length > 0) {
+        return cacheResults.map((match: any) => ({
           type: match.resourceType || 'property',
           id: match.resourceId || match.propertyId,
           name: match.resourceName || match.propertyName,
@@ -393,7 +393,7 @@ export class UnifiedSearchService {
       },
     };
 
-    return queries[searchType] || queries.custom;
+    return queries[searchType] || queries['custom'];
   }
 
   /**
@@ -491,8 +491,8 @@ export class UnifiedSearchService {
 
     // Group results by type
     const resultsByType = results.reduce((acc, result) => {
-      if (!acc[result.type]) acc[result.type] = [];
-      acc[result.type].push(result);
+      if (!acc[result.type]) {acc[result.type] = [];}
+      acc[result.type]!.push(result);
       return acc;
     }, {} as Record<string, SearchResult[]>);
 
@@ -503,19 +503,19 @@ export class UnifiedSearchService {
       for (const result of typeResults.slice(0, 10)) {
         // Use translator to get human-readable names
         const translatedName = type === 'property' 
-          ? await translator.translateProperty(client, result.id)
-          : result.name;
+          ? await translator.translateProperty(result.id, client)
+          : { displayName: result.name };
 
         text += `### ${translatedName.displayName || result.name}\n`;
         text += `- ID: \`${result.id}\`\n`;
         
         // Include contract and group info if available
         if (result.details?.contractId) {
-          const contractName = await translator.translateContract(client, result.details.contractId);
+          const contractName = await translator.translateContract(result.details.contractId, client);
           text += `- Contract: ${contractName.displayName}\n`;
         }
         if (result.details?.groupId) {
-          const groupName = await translator.translateGroup(client, result.details.groupId);
+          const groupName = await translator.translateGroup(result.details.groupId, client);
           text += `- Group: ${groupName.displayName}\n`;
         }
         

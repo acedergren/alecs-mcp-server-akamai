@@ -259,7 +259,7 @@ export async function validateMultipleProperties(
 export function getPropertyContext(
   property: PropertyValidationResult['property']
 ): string {
-  if (!property) return '';
+  if (!property) {return '';}
   
   const parts = [
     `Property: ${property.propertyName} (${property.propertyId})`,

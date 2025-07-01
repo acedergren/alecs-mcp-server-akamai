@@ -220,11 +220,11 @@ export class EnhancedEdgeGridMock {
   private findMatchingResponse(path: string, method: string): MockEndpointConfig {
     // Try exact match first
     const exactMatch = this.responses.get(`${method} ${path}`);
-    if (exactMatch) return exactMatch;
+    if (exactMatch) {return exactMatch;}
 
     // Try path-only match
     const pathMatch = this.responses.get(path);
-    if (pathMatch) return pathMatch;
+    if (pathMatch) {return pathMatch;}
 
     // Try pattern matching
     for (const [pattern, config] of this.responses.entries()) {
@@ -252,9 +252,9 @@ export class EnhancedEdgeGridMock {
   }
 
   private extractOperationType(path: string): string {
-    if (path.includes('/ccu/')) return 'BULK_OPERATION';
-    if (path.includes('/papi/')) return 'PROPERTY_MANAGEMENT';
-    if (path.includes('/config-dns/')) return 'DNS_MANAGEMENT';
+    if (path.includes('/ccu/')) {return 'BULK_OPERATION';}
+    if (path.includes('/papi/')) {return 'PROPERTY_MANAGEMENT';}
+    if (path.includes('/config-dns/')) {return 'DNS_MANAGEMENT';}
     return 'GENERAL';
   }
 

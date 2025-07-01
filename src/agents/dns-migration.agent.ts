@@ -330,7 +330,7 @@ export class DNSMigrationAgent {
       // Verify each expected record
       for (let i = 0; i < expectedRecords.length; i++) {
         const expected = expectedRecords[i];
-        if (!expected) continue;
+        if (!expected) {continue;}
         
         const key = `${expected.name}:${expected.type}`;
         const actual = recordMap.get(key);
@@ -771,7 +771,7 @@ export class DNSMigrationAgent {
 
     for (let i = 0; i < records.length; i++) {
       const record = records[i];
-      if (!record) continue;
+      if (!record) {continue;}
       
       try {
         await this.createRecord(zoneName, record);

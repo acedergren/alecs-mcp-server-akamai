@@ -372,8 +372,8 @@ export const FormatUtils = {
    * Format duration for human readability
    */
   formatDuration(ms: number): string {
-    if (ms < 1000) return `${ms}ms`;
-    if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+    if (ms < 1000) {return `${ms}ms`;}
+    if (ms < 60000) {return `${(ms / 1000).toFixed(1)}s`;}
     return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`;
   },
 
@@ -386,9 +386,9 @@ export const FormatUtils = {
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays === 0) {return 'Today';}
+    if (diffDays === 1) {return 'Yesterday';}
+    if (diffDays < 7) {return `${diffDays} days ago`;}
     return date.toLocaleDateString();
   },
 

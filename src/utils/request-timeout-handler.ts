@@ -185,7 +185,7 @@ export class BatchTimeoutHandler {
    * Clear all timeouts
    */
   clearAll(): void {
-    for (const [operationId, controller] of this.controllers) {
+    for (const [, controller] of this.controllers) {
       const timeoutId = (controller as any).timeoutId;
       if (timeoutId) {
         clearTimeout(timeoutId);

@@ -58,13 +58,13 @@ describe('Baseline Runtime Behavior', () => {
   });
 
   describe('MCP Tool Interface Behavior', () => {
-    it('should handle unused client parameters in tool functions', () => {
+    it('should handle unused client parameters in tool functions', async () => {
       // Simulating current MCP tool pattern
       const mockTool = async (_client: any, args: { value: string }) => {
         return { result: args.value };
       };
 
-      expect(mockTool(null, { value: 'test' })).resolves.toEqual({ result: 'test' });
+      await expect(mockTool(null, { value: 'test' })).resolves.toEqual({ result: 'test' });
     });
   });
 

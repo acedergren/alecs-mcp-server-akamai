@@ -26,9 +26,6 @@ import EdgeGrid = require('akamai-edgegrid');
 import { type AkamaiError } from './types';
 import { defaultPool } from './utils/connection-pool';
 import { withTimeout, getTimeoutForOperation } from './utils/request-timeout-handler';
-import { createLogger } from './utils/pino-logger';
-
-const logger = createLogger('akamai-client');
 
 // EdgeGrid type definitions
 interface EdgeGridRequestOptions {

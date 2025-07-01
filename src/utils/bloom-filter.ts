@@ -82,7 +82,7 @@ export class BloomFilter {
    * Get current false positive probability based on actual usage
    */
   getCurrentFalsePositiveRate(): number {
-    if (this.numElements === 0) return 0;
+    if (this.numElements === 0) {return 0;}
     
     // Formula: (1 - e^(-k*n/m))^k
     const ratio = -this.hashFunctions * this.numElements / this.size;

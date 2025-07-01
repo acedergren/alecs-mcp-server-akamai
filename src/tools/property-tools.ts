@@ -2345,7 +2345,10 @@ export async function listGroups(
         filtered: groups.length,
         searchTerm: args.searchTerm || null,
         topLevelGroups: topLevelGroups.length,
-        hasHierarchy: topLevelGroups.length < paginated.items.length
+        hasHierarchy: topLevelGroups.length < paginated.items.length,
+        truncated: false,
+        originalCount: 0,
+        suggestions: [] as string[]
       }
     };
 
@@ -2574,6 +2577,7 @@ export async function listProducts(
  * This is step 1 of the bulk search workflow
  * @internal
  */
+// @ts-ignore - Unused function preserved for future use
 async function prepareBulkSearch(
   client: AkamaiClient,
   args: {
@@ -2654,6 +2658,7 @@ async function prepareBulkSearch(
  * Internal: Check the status of a bulk search
  * @internal
  */
+// @ts-ignore - Unused function preserved for future use
 async function checkBulkSearchStatus(
   client: AkamaiClient,
   args: {
@@ -2706,6 +2711,7 @@ async function checkBulkSearchStatus(
  * Internal: Get the results of a completed bulk search
  * @internal
  */
+// @ts-ignore - Unused function preserved for future use
 async function getBulkSearchResults(
   client: AkamaiClient,
   args: {
@@ -2722,8 +2728,8 @@ async function getBulkSearchResults(
 
   return withToolErrorHandling(async () => {
     const queryParams: any = {};
-    if (args.page) queryParams.page = args.page;
-    if (args.pageSize) queryParams.pageSize = args.pageSize;
+    if (args.page) {queryParams.page = args.page;}
+    if (args.pageSize) {queryParams.pageSize = args.pageSize;}
 
     const response = await withRetry(async () => {
       return await client.request({
@@ -2756,6 +2762,7 @@ async function getBulkSearchResults(
  * Internal: Perform a synchronous bulk search (faster but limited)
  * @internal
  */
+// @ts-ignore - Unused function preserved for future use
 async function synchronousBulkSearch(
   client: AkamaiClient,
   args: {

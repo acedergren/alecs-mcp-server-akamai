@@ -223,7 +223,7 @@ export function validateAkamaiId(id: string): {
  * @example fixAkamaiId("Property 123456", "property") // "prp_123456"
  */
 export function fixAkamaiId(id: string, expectedType: string): string | null {
-  if (!id || !expectedType) return null;
+  if (!id || !expectedType) {return null;}
   
   // If already valid, return as-is
   const validation = validateAkamaiId(id);

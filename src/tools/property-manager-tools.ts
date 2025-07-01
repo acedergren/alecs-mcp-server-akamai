@@ -1487,8 +1487,8 @@ export async function listPropertyActivations(
           text += `- **Status:** ${act.status}\n`;
           text += `- **Submitted:** ${new Date(act.submitDate).toLocaleString()}\n`;
           text += `- **Updated:** ${new Date(act.updateDate).toLocaleString()}\n`;
-          if (act.note) text += `- **Note:** ${act.note}\n`;
-          if (act.fatalError) text += `- **Error:** ${act.fatalError}\n`;
+          if (act.note) {text += `- **Note:** ${act.note}\n`;}
+          if (act.fatalError) {text += `- **Error:** ${act.fatalError}\n`;}
           text += '\n';
         });
         
@@ -2106,7 +2106,7 @@ export async function batchVersionOperations(
       // Execute operations sequentially
       for (let i = 0; i < args.operations.length; i++) {
         const op = args.operations[i];
-        if (!op) continue;
+        if (!op) {continue;}
         try {
           let result;
           switch (op.operation) {

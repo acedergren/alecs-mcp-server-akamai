@@ -133,21 +133,21 @@ const PropertyVersionItemSchema = z.object({
 
 // CODE KAI: Type guard functions for runtime validation
 export function isPropertyVersionResponse(obj: any): obj is PropertyVersionResponse {
-  if (!obj || typeof obj !== 'object') return false;
+  if (!obj || typeof obj !== 'object') {return false;}
   const response = obj as Record<string, unknown>;
-  if (!response['versions'] || typeof response['versions'] !== 'object') return false;
+  if (!response['versions'] || typeof response['versions'] !== 'object') {return false;}
   const versions = response['versions'] as Record<string, unknown>;
-  if (!Array.isArray(versions['items'])) return false;
+  if (!Array.isArray(versions['items'])) {return false;}
   return (versions['items'] as any[]).every((item: any) => 
     PropertyVersionItemSchema.safeParse(item).success
   );
 }
 
 export function isHostnamesResponse(obj: any): obj is HostnamesResponse {
-  if (!obj || typeof obj !== 'object') return false;
+  if (!obj || typeof obj !== 'object') {return false;}
   const response = obj as Record<string, unknown>;
-  if (!response['hostnames']) return true; // hostnames is optional
-  if (typeof response['hostnames'] !== 'object') return false;
+  if (!response['hostnames']) {return true;} // hostnames is optional
+  if (typeof response['hostnames'] !== 'object') {return false;}
   const hostnames = response['hostnames'] as Record<string, unknown>;
   return Array.isArray(hostnames['items']) || hostnames['items'] === undefined;
 }

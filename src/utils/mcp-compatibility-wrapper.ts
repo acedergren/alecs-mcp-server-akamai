@@ -142,7 +142,7 @@ export class MCPCompatibilityWrapper {
    * Converts tool input schema for protocol compatibility
    */
   convertToolSchema(schema: any): any {
-    if (!schema) return undefined;
+    if (!schema) {return undefined;}
     
     // Legacy protocol expects simpler schema format
     if (this.protocolVersion === '2024-11-05') {

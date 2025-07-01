@@ -185,6 +185,9 @@ export async function listGroupsPaginated(
         searchTerm: args.searchTerm || null,
         topLevelGroups: topLevelGroups.length,
         hasHierarchy: topLevelGroups.length < paginated.items.length,
+        truncated: false,
+        originalCount: 0,
+        suggestions: [] as string[],
       },
     };
 
@@ -238,8 +241,8 @@ export async function listPropertiesPaginated(
 ): Promise<MCPToolResponse> {
   try {
     const queryParams: Record<string, string> = {};
-    if (args.contractId) queryParams.contractId = args.contractId;
-    if (args.groupId) queryParams.groupId = args.groupId;
+    if (args.contractId) {queryParams['contractId'] = args.contractId;}
+    if (args.groupId) {queryParams['groupId'] = args.groupId;}
 
     const rawResponse = await client.request({
       path: '/papi/v1/properties',
@@ -316,6 +319,7 @@ export async function listPropertiesPaginated(
         contractId: args.contractId,
         groupId: args.groupId,
         totalProperties: response.properties.items.length,
+        suggestions: [] as string[],
       },
     };
 
@@ -450,6 +454,7 @@ export async function listPropertyVersionsPaginated(
         contractId: response.contractId,
         groupId: response.groupId,
         totalVersions: response.versions.items.length,
+        suggestions: [] as string[],
       },
     };
 

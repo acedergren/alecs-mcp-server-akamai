@@ -272,8 +272,8 @@ export async function listProperties(
 ): Promise<MCPToolResponse> {
   try {
     const queryParams: Record<string, string> = {};
-    if (args.contractId) queryParams['contractId'] = args.contractId;
-    if (args.groupId) queryParams['groupId'] = args.groupId;
+    if (args.contractId) {queryParams['contractId'] = args.contractId;}
+    if (args.groupId) {queryParams['groupId'] = args.groupId;}
 
     const rawResponse = await client.request({
       path: '/papi/v1/properties',
@@ -459,8 +459,8 @@ export async function createProperty(
     };
 
     const queryParams: Record<string, string> = {};
-    if (args.contractId) queryParams['contractId'] = args.contractId;
-    if (args.groupId) queryParams['groupId'] = args.groupId;
+    if (args.contractId) {queryParams['contractId'] = args.contractId;}
+    if (args.groupId) {queryParams['groupId'] = args.groupId;}
 
     const rawResponse = await client.request({
       path: '/papi/v1/properties',
@@ -483,8 +483,8 @@ export async function createProperty(
     text += `**Property Name:** ${args.propertyName}\n`;
     text += `**Property ID:** ${propertyId}\n`;
     text += `**Product:** ${args.productId}\n`;
-    if (args.contractId) text += `**Contract:** ${formatContractDisplay(args.contractId)}\n`;
-    if (args.groupId) text += `**Group:** ${formatGroupDisplay(args.groupId)}\n`;
+    if (args.contractId) {text += `**Contract:** ${formatContractDisplay(args.contractId)}\n`;}
+    if (args.groupId) {text += `**Group:** ${formatGroupDisplay(args.groupId)}\n`;}
     text += `**Created:** ${new Date().toISOString()}\n\n`;
 
     if (args.cloneFrom) {
@@ -663,7 +663,7 @@ export async function listPropertyVersions(
       text += `- **Production Status:** ${version.productionStatus}\n`;
       text += `- **Staging Status:** ${version.stagingStatus}\n`;
       text += `- **Rule Format:** ${version.ruleFormat}\n`;
-      if (version.note) text += `- **Note:** ${version.note}\n`;
+      if (version.note) {text += `- **Note:** ${version.note}\n`;}
       text += '\n';
     });
 
@@ -722,7 +722,7 @@ export async function getPropertyVersion(
     text += `**ETag:** ${version.etag}\n`;
     text += `**Product ID:** ${version.productId}\n`;
     text += `**Rule Format:** ${version.ruleFormat}\n`;
-    if (version.note) text += `**Note:** ${version.note}\n`;
+    if (version.note) {text += `**Note:** ${version.note}\n`;}
 
     return {
       content: [{ type: 'text', text }],
@@ -775,8 +775,8 @@ export async function getPropertyRules(
     text += `**Property ID:** ${args.propertyId}\n`;
     text += `**Version:** ${args.version}\n`;
     text += `**Rule Format:** ${response.ruleFormat}\n`;
-    if (args.validateRules) text += `**Validation:** Enabled\n`;
-    if (etag) text += `**ETag:** ${etag} (for concurrent modification protection)\n`;
+    if (args.validateRules) {text += `**Validation:** Enabled\n`;}
+    if (etag) {text += `**ETag:** ${etag} (for concurrent modification protection)\n`;}
     text += `**Retrieved:** ${new Date().toISOString()}\n\n`;
 
     if (response.errors && response.errors.length > 0) {
@@ -843,8 +843,8 @@ export async function updatePropertyRules(
     const options: { validateRules?: boolean; etag?: string; useStoredETag?: boolean } = {
       useStoredETag: !args.etag, // Use stored ETag if not provided
     };
-    if (args.validateRules !== undefined) options.validateRules = args.validateRules;
-    if (args.etag !== undefined) options.etag = args.etag;
+    if (args.validateRules !== undefined) {options.validateRules = args.validateRules;}
+    if (args.etag !== undefined) {options.etag = args.etag;}
     
     const response = await updatePropertyRulesWithETag(
       client,
@@ -1116,8 +1116,8 @@ export async function listEdgeHostnames(
   try {
     // BUILD QUERY PARAMETERS: Only include filters that are specified
     const queryParams: Record<string, string> = {};
-    if (args.contractId) queryParams['contractId'] = args.contractId;
-    if (args.groupId) queryParams['groupId'] = args.groupId;
+    if (args.contractId) {queryParams['contractId'] = args.contractId;}
+    if (args.groupId) {queryParams['groupId'] = args.groupId;}
 
     const rawResponse = await client.request({
       path: '/papi/v1/edgehostnames',
@@ -1147,8 +1147,8 @@ export async function listEdgeHostnames(
     let text = `# [GLOBAL] Edge Hostnames Inventory (${response.edgeHostnames.items.length} found)\n\n`;
 
     // ADD FILTER CONTEXT: Show what filters are applied
-    if (args.contractId) text += `**Filtered by Contract:** ${args.contractId}\n`;
-    if (args.groupId) text += `**Filtered by Group:** ${args.groupId}\n`;
+    if (args.contractId) {text += `**Filtered by Contract:** ${args.contractId}\n`;}
+    if (args.groupId) {text += `**Filtered by Group:** ${args.groupId}\n`;}
     text += `**Last Updated:** ${new Date().toISOString()}\n\n`;
 
     text += `## [ANALYTICS] Edge Hostname Details\n\n`;
@@ -1328,7 +1328,7 @@ export async function activateProperty(
 
     // PRODUCTION SAFETY CHECK: Extra validation for production deployments
     if (args.network === 'PRODUCTION') {
-      let warnings = [];
+      const warnings = [];
       if (!args.note || args.note.length < 10) {
         warnings.push('No deployment notes provided (recommended for production)');
       }
@@ -1399,7 +1399,7 @@ export async function activateProperty(
     text += `**Activation ID:** ${activationId}\n`;
     text += `**Submitted:** ${new Date().toISOString()}\n`;
     
-    if (args.note) text += `**Deployment Notes:** ${args.note}\n`;
+    if (args.note) {text += `**Deployment Notes:** ${args.note}\n`;}
     if (args.notifyEmails && args.notifyEmails.length > 0) {
       text += `**Notifications:** ${args.notifyEmails.join(', ')}\n`;
     }
@@ -1733,7 +1733,7 @@ export async function listPropertyActivations(
         text += `- **Submitted:** ${activation.submitDate}\n`;
         text += `- **Updated:** ${activation.updateDate}\n`;
         text += `- **Submitted By:** ${activation.submitUser || 'Unknown'}\n`;
-        if (activation.note) text += `- **Notes:** ${activation.note}\n`;
+        if (activation.note) {text += `- **Notes:** ${activation.note}\n`;}
         text += `\n`;
       });
       
@@ -1755,7 +1755,7 @@ export async function listPropertyActivations(
         text += `- **Status:** ${activation.status}\n`;
         text += `- **Activation ID:** ${activation.activationId}\n`;
         text += `- **Submitted:** ${activation.submitDate}\n`;
-        if (activation.note) text += `- **Notes:** ${activation.note}\n`;
+        if (activation.note) {text += `- **Notes:** ${activation.note}\n`;}
         text += `\n`;
       });
       
@@ -2524,9 +2524,9 @@ export async function cloneProperty(
       }
       
       // Use source property's values as defaults
-      if (!args.productId) args.productId = sourceProperty.productId;
-      if (!args.contractId) args.contractId = sourceProperty.contractId;
-      if (!args.groupId) args.groupId = sourceProperty.groupId;
+      if (!args.productId) {args.productId = sourceProperty.productId;}
+      if (!args.contractId) {args.contractId = sourceProperty.contractId;}
+      if (!args.groupId) {args.groupId = sourceProperty.groupId;}
     }
 
     const requestBody: any = {
@@ -2742,8 +2742,8 @@ export async function listCPCodes(
 ): Promise<MCPToolResponse> {
   try {
     const queryParams: Record<string, string> = {};
-    if (args.contractId) queryParams['contractId'] = args.contractId;
-    if (args.groupId) queryParams['groupId'] = args.groupId;
+    if (args.contractId) {queryParams['contractId'] = args.contractId;}
+    if (args.groupId) {queryParams['groupId'] = args.groupId;}
 
     const response = await client.request({
       path: '/papi/v1/cpcodes',
@@ -2843,8 +2843,8 @@ export async function createCPCode(
     };
 
     const queryParams: Record<string, string> = {};
-    if (args.contractId) queryParams['contractId'] = args.contractId;
-    if (args.groupId) queryParams['groupId'] = args.groupId;
+    if (args.contractId) {queryParams['contractId'] = args.contractId;}
+    if (args.groupId) {queryParams['groupId'] = args.groupId;}
 
     const response = await client.request({
       path: '/papi/v1/cpcodes',
@@ -2860,8 +2860,8 @@ export async function createCPCode(
     text += `**CP Code Name:** ${args.cpcodeName}\n`;
     text += `**CP Code ID:** ${cpcodeId}\n`;
     text += `**Product:** ${args.productId}\n`;
-    if (args.contractId) text += `**Contract:** ${args.contractId}\n`;
-    if (args.groupId) text += `**Group:** ${args.groupId}\n`;
+    if (args.contractId) {text += `**Contract:** ${args.contractId}\n`;}
+    if (args.groupId) {text += `**Group:** ${args.groupId}\n`;}
     text += `**Created:** ${new Date().toISOString()}\n\n`;
     
     text += `## What Are CP Codes For?\n\n`;

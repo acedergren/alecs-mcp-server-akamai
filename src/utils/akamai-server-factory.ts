@@ -473,9 +473,9 @@ export class AkamaiMCPServer {
           // KAIZEN: For complex unions, try to find a common type
           const types = options.map((opt: ZodType) => {
             try {
-              if (opt instanceof z.ZodString) return 'string';
-              if (opt instanceof z.ZodNumber) return 'number';
-              if (opt instanceof z.ZodBoolean) return 'boolean';
+              if (opt instanceof z.ZodString) {return 'string';}
+              if (opt instanceof z.ZodNumber) {return 'number';}
+              if (opt instanceof z.ZodBoolean) {return 'boolean';}
               return 'string';
             } catch {
               return 'string';
