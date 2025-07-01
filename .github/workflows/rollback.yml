@@ -1,0 +1,78 @@
+name: Rollback Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to rollback to (e.g., 1.7.3)'
+        required: true
+        type: string
+      reason:
+        description: 'Reason for rollback'
+        required: true
+        type: string
+
+jobs:
+  rollback:
+    name: Rollback to Previous Version
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Validate version format
+      run: |
+        if ! [[ "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "::error::Invalid version format. Please use semantic versioning (e.g., 1.7.3)"
+          exit 1
+        fi
+    
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    - name: Check if version exists
+      run: |
+        if ! docker manifest inspect acedergren/alecs-mcp-server-akamai:${{ inputs.version }} > /dev/null 2>&1; then
+          echo "::error::Version ${{ inputs.version }} not found on Docker Hub"
+          exit 1
+        fi
+    
+    - name: Retag images
+      run: |
+        # Pull the specific version
+        docker pull acedergren/alecs-mcp-server-akamai:${{ inputs.version }}
+        
+        # Retag as latest
+        docker tag acedergren/alecs-mcp-server-akamai:${{ inputs.version }} \
+                   acedergren/alecs-mcp-server-akamai:latest
+        
+        # Push the updated latest tag
+        docker push acedergren/alecs-mcp-server-akamai:latest
+        
+        echo "::notice::Successfully rolled back to version ${{ inputs.version }}"
+    
+    - name: Create rollback record
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const issue = await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `Rollback to v${{ inputs.version }}`,
+            body: `## Rollback Record
+            
+            - **Rolled back to**: v${{ inputs.version }}
+            - **Rolled back by**: @${{ github.actor }}
+            - **Reason**: ${{ inputs.reason }}
+            - **Time**: ${new Date().toISOString()}
+            
+            ### Action Required
+            1. Investigate the issue that caused the rollback
+            2. Fix the issue in a new release
+            3. Close this issue when resolved`,
+            labels: ['rollback', 'urgent']
+          });
+          
+          console.log(`Created rollback issue #${issue.data.number}`);
