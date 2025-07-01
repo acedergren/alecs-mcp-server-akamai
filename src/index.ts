@@ -82,6 +82,9 @@ async function main(): Promise<void> {
       certs: './servers/certs-server',
       reporting: './servers/reporting-server',
       security: './servers/security-server',
+      appsec: './servers/appsec-server',
+      fastpurge: './servers/fastpurge-server',
+      'network-lists': './servers/network-lists-server',
     };
     
     if (moduleMap[moduleName]) {

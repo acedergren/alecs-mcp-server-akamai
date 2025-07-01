@@ -198,7 +198,7 @@ class NetworkListsServer {
     });
 
     this.registerTool({
-      name: 'get-network-list-activation-status',
+      name: 'get-activation-status',
       description: 'Get network list activation status',
       schema: z.object({
         customer: z.string().optional(),
@@ -291,7 +291,7 @@ class NetworkListsServer {
 
     // Geo/ASN Tools
     this.registerTool({
-      name: 'validate-geographic-codes',
+      name: 'validate-geo-codes',
       description: 'Validate geographic codes',
       schema: ValidateGeographicCodesSchema,
       handler: validateGeographicCodes,
@@ -305,7 +305,7 @@ class NetworkListsServer {
     });
 
     this.registerTool({
-      name: 'generate-geographic-blocking-recommendations',
+      name: 'suggest-geo-blocks',
       description: 'Generate geo-blocking recommendations',
       schema: z.object({
         customer: z.string().optional(),
@@ -316,7 +316,7 @@ class NetworkListsServer {
     });
 
     this.registerTool({
-      name: 'generate-asn-security-recommendations',
+      name: 'suggest-asn-blocks',
       description: 'Generate ASN security recommendations',
       schema: z.object({
         customer: z.string().optional(),
@@ -326,7 +326,7 @@ class NetworkListsServer {
     });
 
     this.registerTool({
-      name: 'list-common-geographic-codes',
+      name: 'list-geo-codes',
       description: 'List common geographic codes',
       schema: z.object({
         customer: z.string().optional(),
@@ -337,7 +337,7 @@ class NetworkListsServer {
 
     // Integration Tools
     this.registerTool({
-      name: 'get-security-policy-integration-guidance',
+      name: 'get-secpolicy-guidance',
       description: 'Get guidance on integrating network lists with security policies',
       schema: z.object({
         customer: z.string().optional(),

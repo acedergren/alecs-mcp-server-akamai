@@ -135,3 +135,13 @@ docs/.doctrees/
 .local/
 local-test/
 scratch/archive/
+
+# Security - ensure sensitive files are ignored
+.env
+.env.local
+.env.*.local
+.tokens/
+*.pem
+*.key
+*.crt
+*.p12

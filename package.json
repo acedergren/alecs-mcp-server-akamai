@@ -76,7 +76,8 @@
     "format": "prettier --write 'src/**/*.{ts,json,md}'",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "postinstall": "node scripts/post-install.js || echo 'Post-install setup failed, continuing...'"
   },
   "author": "Alexander Cedergren",
   "license": "AGPL-3.0-or-later",
@@ -124,8 +125,10 @@
   },
   "files": [
     "dist/",
+    "scripts/post-install.js",
     "README.md",
-    "EXAMPLES.md"
+    "EXAMPLES.md",
+    ".env.example"
   ],
   "engines": {
     "node": ">=18.0.0"

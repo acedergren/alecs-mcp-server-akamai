@@ -200,7 +200,7 @@ class DNSALECSServer {
           },
         },
         {
-          name: 'submit-bulk-zone-create-request',
+          name: 'bulk-create-zones',
           description: 'Create multiple zones in bulk',
           inputSchema: {
             type: 'object',
@@ -450,7 +450,7 @@ class DNSALECSServer {
           },
         },
         {
-          name: 'generate-migration-instructions',
+          name: 'generate-migration-guide',
           description: 'Generate step-by-step DNS migration instructions',
           inputSchema: {
             type: 'object',
@@ -469,7 +469,7 @@ class DNSALECSServer {
         },
         // Secondary Zone Management
         {
-          name: 'get-secondary-zone-transfer-status',
+          name: 'get-zone-transfer-status',
           description: 'Get transfer status for secondary zones',
           inputSchema: {
             type: 'object',
