@@ -67,7 +67,18 @@ npm install -g alecs-mcp-server-akamai
 
 # Verify installation
 alecs --version
+
+# Run the main server (all 198+ tools)
+alecs
+
+# Or run specific service modules
+alecs start:property  # Property management only
+alecs start:dns       # DNS management only
+alecs start:certs     # Certificate management only
+# See all variants: alecs --help
 ```
+
+📖 **[Full NPM Variants Guide](./docs/npm-variants-guide.md)** - Learn about all server variants and configurations
 
 ### Configure Akamai Credentials
 

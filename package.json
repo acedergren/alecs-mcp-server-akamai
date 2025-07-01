@@ -25,7 +25,7 @@
   },
   "main": "dist/index.js",
   "bin": {
-    "alecs": "dist/index.js"
+    "alecs": "dist/alecs-cli-wrapper.js"
   },
   "publishConfig": {
     "access": "public"
