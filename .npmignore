@@ -1,0 +1,72 @@
+# SECURITY: Never publish credentials
+.edgerc
+.edgerc.*
+*.edgerc
+.env
+.env.*
+*.env
+
+# Development files
+.github/
+.vscode/
+.idea/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test files
+__tests__/
+test/
+tests/
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+coverage/
+.nyc_output/
+
+# Source files (only dist is published)
+src/
+*.ts
+!*.d.ts
+
+# Documentation source
+docs/
+*.md
+!README.md
+!LICENSE
+
+# Build and config files
+tsconfig.json
+.eslintrc*
+.prettierrc*
+jest.config.*
+rollup.config.*
+webpack.config.*
+
+# Development dependencies
+node_modules/
+.npm/
+.yarn/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Archive folder
+.archive/
+archive/
+
+# Example files
+examples/
+*.example
+.edgerc.example
+
+# Local development
+.local/
+local/
+tmp/
+temp/

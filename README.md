@@ -66,8 +66,47 @@
 # Install globally
 npm install -g alecs-mcp-server-akamai
 
-# Run the server
-alecs
+# Verify installation
+alecs --version
+```
+
+### Configure Akamai Credentials
+
+Create `~/.edgerc` with your Akamai API credentials:
+
+```ini
+[default]
+client_secret = your_client_secret
+host = your_host.luna.akamaiapis.net
+access_token = your_access_token
+client_token = your_client_token
+
+; Optional: Add more customer sections
+[customer-name]
+client_secret = customer_client_secret
+host = customer_host.luna.akamaiapis.net
+access_token = customer_access_token
+client_token = customer_client_token
+```
+
+### Add to Claude Desktop
+
+```bash
+# macOS
+echo '{"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}}' > ~/Library/Application\ Support/Claude/claude_desktop_config.json
+
+# Windows
+echo {"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}} > %APPDATA%\Claude\claude_desktop_config.json
+
+# Linux
+echo '{"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}}' > ~/.config/Claude/claude_desktop_config.json
+```
+
+### Add to Claude Code
+
+```bash
+# One-line installation
+claude mcp add alecs-akamai alecs
 ```
 
 ### Install from Source
@@ -78,9 +117,8 @@ git clone https://github.com/acedergren/alecs-mcp-server-akamai.git
 cd alecs-mcp-server-akamai
 npm install
 
-# Configure Akamai credentials
-cp .edgerc.example ~/.edgerc
-# Edit ~/.edgerc with your Akamai API credentials
+# Build
+npm run build
 ```
 
 ### Docker
@@ -104,6 +142,56 @@ docker run -it --env-file .env acedergr/alecs-mcp-server-akamai:latest
 | `modular` | Microservices architecture | ~180MB |
 | `websocket` | WebSocket transport | ~170MB |
 | `sse` | Server-Sent Events transport | ~170MB |
+
+## 📖 Integration Guide
+
+### Quick Reference
+
+| Tool | Installation Command |
+|------|---------------------|
+| **Claude Desktop** | See platform-specific commands below |
+| **Claude Code** | `claude mcp add alecs-akamai alecs` |
+| **VS Code** | Use MCP extension settings |
+| **Cursor** | Add to MCP config |
+| **Windsurf** | Configure in settings |
+
+### Detailed Setup Instructions
+
+<details>
+<summary><strong>Claude Desktop (Click to expand)</strong></summary>
+
+**macOS:**
+```bash
+echo '{"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}}' > ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
+
+**Windows:**
+```cmd
+echo {"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}} > %APPDATA%\Claude\claude_desktop_config.json
+```
+
+**Linux:**
+```bash
+echo '{"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}}' > ~/.config/Claude/claude_desktop_config.json
+```
+
+Restart Claude Desktop after configuration.
+</details>
+
+<details>
+<summary><strong>Claude Code (Click to expand)</strong></summary>
+
+```bash
+# Install Claude Code CLI if not already installed
+npm install -g claude-code
+
+# Add ALECS MCP server
+claude mcp add alecs-akamai alecs
+
+# Verify installation
+claude mcp list
+```
+</details>
 
 ## 🤝 Works With Your Favorite AI Tools
 
@@ -341,6 +429,37 @@ npm run typecheck
 - EdgeGrid authentication for all API calls
 - Account switching via secure headers
 - No OAuth required - simplified security model
+- `.edgerc` files are excluded from npm package
+
+### ⚠️ Important Security Note
+
+When installing from npm, you must create your own `.edgerc` file with your Akamai credentials. The npm package does NOT include any credential files.
+
+## 🔧 Troubleshooting
+
+### Common Setup Issues
+
+**"Command not found: alecs"**
+```bash
+# Ensure global npm bin is in PATH
+export PATH="$PATH:$(npm bin -g)"
+
+# Or reinstall globally
+npm install -g alecs-mcp-server-akamai
+```
+
+**"No .edgerc file found"**
+```bash
+# Create the file in your home directory
+touch ~/.edgerc
+chmod 600 ~/.edgerc
+# Then add your Akamai credentials
+```
+
+**"Claude Desktop doesn't see the server"**
+1. Restart Claude Desktop after configuration
+2. Check the config file location is correct for your OS
+3. Ensure `alecs` command works in terminal first
 
 ## 🤝 Contributing
 
