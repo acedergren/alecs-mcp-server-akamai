@@ -15,7 +15,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-00ADD8?style=for-the-badge&logo=anthropic)](https://modelcontextprotocol.io/)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg?style=for-the-badge)](https://www.gnu.org/licenses/agpl-3.0)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](http://makeapullrequest.com)
 
 </div>
@@ -470,7 +470,13 @@ chmod 600 ~/.edgerc
 
 ## 📄 License
 
-MIT License - see [LICENSE](./LICENSE) file
+GNU Affero General Public License v3.0 (AGPL-3.0) with additional terms - see [LICENSE](./LICENSE) file
+
+**Important License Terms:**
+- Any modifications must be contributed back to the original project within 30 days of production deployment
+- Production use must display "Powered by ALECS MCP Server" with link to this repository
+- Network use requires source code disclosure
+- See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution requirements
 
 ## 🆘 Support
 

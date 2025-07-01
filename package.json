@@ -77,8 +77,8 @@
     "prepublishOnly": "npm run build",
     "prepare": "npm run build"
   },
-  "author": "",
-  "license": "MIT",
+  "author": "Alexander Cedergren",
+  "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.13.0",
     "akamai-edgegrid": "^3.4.0",
