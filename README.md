@@ -68,9 +68,57 @@
 # Install globally
 npm install -g alecs-mcp-server-akamai
 
-# Run the server
-alecs
+# Configure Akamai credentials (if not already done)
+cp ~/.edgerc.example ~/.edgerc
+# Edit ~/.edgerc with your Akamai API credentials
 ```
+
+### Add to Claude Desktop
+
+**macOS:**
+```bash
+# One-liner to add ALECS to Claude Desktop
+echo '{"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}}' > ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
+
+**Windows (PowerShell):**
+```powershell
+# Add ALECS to Claude Desktop
+@"
+{
+  "mcpServers": {
+    "alecs-akamai": {
+      "command": "alecs",
+      "args": [],
+      "env": {
+        "MCP_TRANSPORT": "stdio"
+      }
+    }
+  }
+}
+"@ | Out-File -FilePath "$env:APPDATA\Claude\claude_desktop_config.json" -Encoding UTF8
+```
+
+**Linux:**
+```bash
+# Add ALECS to Claude Desktop
+mkdir -p ~/.config/Claude && echo '{"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}}' > ~/.config/Claude/claude_desktop_config.json
+```
+
+### Add to Claude Code (CLI)
+
+```bash
+# Add ALECS to Claude Code
+claude mcp add alecs-akamai alecs
+
+# Test the connection
+claude mcp test alecs-akamai
+```
+
+After adding ALECS, restart Claude Desktop or Claude Code and start using commands like:
+- "List my Akamai properties"
+- "Show DNS records for example.com"
+- "Purge cache for www.example.com"
 
 ### Install from Source
 
@@ -287,34 +335,50 @@ graph TB
 - `network-lists.create` - Create IP/geo lists
 - `network-lists.update` - Modify access lists
 
-## 🔧 Installation
+## 🔧 Configuration
 
-### For Claude Desktop
+### Akamai Credentials (.edgerc)
 
-1. Install ALECS:
-```bash
-./install.sh
-# Choose option 4 for Claude Desktop
+Create `~/.edgerc` with your Akamai API credentials:
+
+```ini
+[default]
+client_secret = your-client-secret-here
+host = your-host.luna.akamaiapis.net
+access_token = your-access-token-here
+client_token = your-client-token-here
+
+; Optional: Multiple customers
+[customer-staging]
+client_secret = staging-client-secret
+host = staging.luna.akamaiapis.net
+access_token = staging-access-token
+client_token = staging-client-token
+account_switch_key = STAGING_KEY  ; Optional for account switching
 ```
 
-2. The installer creates a config file. Copy it to Claude:
+### Quick Integration Reference
+
+| Platform | Command |
+|----------|---------|
+| **Claude Desktop (macOS)** | `echo '{"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}}' > ~/Library/Application\ Support/Claude/claude_desktop_config.json` |
+| **Claude Desktop (Windows)** | See PowerShell command above |
+| **Claude Desktop (Linux)** | `mkdir -p ~/.config/Claude && echo '{"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}}' > ~/.config/Claude/claude_desktop_config.json` |
+| **Claude Code** | `claude mcp add alecs-akamai alecs` |
+| **Cursor IDE** | Add to `.cursorrules` with MCP extension |
+| **VS Code** | Use MCP extension from marketplace |
+
+### Test Your Setup
+
 ```bash
-cp claude_desktop_config.json ~/Library/Application\ Support/Claude/
-```
+# Test ALECS directly
+alecs --version
 
-3. Restart Claude Desktop
+# Test with Claude Code
+claude mcp test alecs-akamai
 
-### For Development
-
-```bash
-# Install dependencies
-npm install
-
-# Build TypeScript
-npm run build
-
-# Run in stdio mode (for testing)
-npm run dev
+# In Claude Desktop, try:
+# "List my Akamai properties"
 ```
 
 ## 📚 Documentation

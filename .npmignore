@@ -1,0 +1,94 @@
+# SECURITY: Never publish credentials
+.edgerc
+.edgerc.*
+*.edgerc
+
+# Environment files
+.env
+.env.*
+*.env
+
+# Development files
+.vscode/
+.idea/
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Test files
+__tests__/
+coverage/
+.nyc_output/
+*.test.ts
+*.spec.ts
+jest.config.*
+.jest/
+
+# Build files
+.tsbuildinfo
+*.tsbuildinfo
+
+# Git files
+.git/
+.gitignore
+.github/
+
+# Documentation source
+docs/
+*.md
+!README.md
+!EXAMPLES.md
+
+# Scripts and config
+scripts/
+.eslintrc*
+.prettierrc*
+tsconfig.*
+!tsconfig.json
+
+# Docker files
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# CI/CD
+.travis.yml
+.circleci/
+.gitlab-ci.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+*.swp
+*.swo
+*~
+
+# Archive folder
+.archive/
+
+# Local development
+.claude/
+claude_desktop_config.json
+*.local
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# NPM/Yarn files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Security and credentials
+credentials/
+secrets/
+*.pem
+*.key
+*.crt
+*.pfx
