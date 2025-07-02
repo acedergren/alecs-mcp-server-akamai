@@ -76,7 +76,7 @@ function formatResponse(operation: any, estimatedTime?: number): any {
 
 // FastPurge URL invalidation tool
 export const fastpurgeUrlInvalidate = {
-  name: 'fastpurge.url.invalidate',
+  name: 'fastpurge-url-invalidate',
   description: 'Invalidate content by URL with intelligent batching and progress tracking',
   inputSchema: {
     type: 'object',
@@ -217,7 +217,7 @@ export const fastpurgeUrlInvalidate = {
 
 // FastPurge CP Code invalidation tool
 export const fastpurgeCpcodeInvalidate = {
-  name: 'fastpurge.cpcode.invalidate',
+  name: 'fastpurge-cpcode-invalidate',
   description: 'Invalidate content by CP code with impact estimation and confirmation',
   inputSchema: {
     type: 'object',
@@ -325,7 +325,7 @@ export const fastpurgeCpcodeInvalidate = {
 
 // FastPurge cache tag invalidation tool
 export const fastpurgeTagInvalidate = {
-  name: 'fastpurge.tag.invalidate',
+  name: 'fastpurge-tag-invalidate',
   description: 'Invalidate content by cache tag with tag validation and hierarchical support',
   inputSchema: {
     type: 'object',
@@ -409,7 +409,7 @@ export const fastpurgeTagInvalidate = {
 
 // FastPurge status check tool
 export const fastpurgeStatusCheck = {
-  name: 'fastpurge.status.check',
+  name: 'fastpurge-status-check',
   description: 'Check operation status with real-time progress and detailed reporting',
   inputSchema: {
     type: 'object',
@@ -502,7 +502,7 @@ export const fastpurgeStatusCheck = {
 
 // FastPurge queue status tool
 export const fastpurgeQueueStatus = {
-  name: 'fastpurge.queue.status',
+  name: 'fastpurge-queue-status',
   description: 'Check queue status with customer-specific metrics and capacity planning',
   inputSchema: {
     type: 'object',
@@ -602,7 +602,7 @@ export const fastpurgeQueueStatus = {
 
 // FastPurge operation estimation tool
 export const fastpurgeEstimate = {
-  name: 'fastpurge.estimate',
+  name: 'fastpurge-estimate',
   description: 'Pre-operation impact assessment with time estimates and resource consumption',
   inputSchema: {
     type: 'object',
