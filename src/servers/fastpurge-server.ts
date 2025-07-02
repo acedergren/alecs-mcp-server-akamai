@@ -17,6 +17,7 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 import { AkamaiClient } from '../akamai-client';
 import { CustomerConfigManager } from '../utils/customer-config';
@@ -73,7 +74,8 @@ const FastpurgeEstimateSchema = z.object({
 interface ToolDefinition {
   name: string;
   description: string;
-  schema: z.ZodSchema;
+  schema?: z.ZodSchema;
+  inputSchema?: any;
   handler: (client: any, params: any) => Promise<any>;
 }
 
@@ -108,48 +110,48 @@ class FastPurgeServer {
   }
 
   private registerTools(): void {
-    // Core Purge Operations
+    // Core Purge Operations - Use the actual tool definitions with their inputSchemas
     this.registerTool({
-      name: 'fastpurge-url-invalidate',
-      description: 'Invalidate content by URL with intelligent batching',
-      schema: FastpurgeUrlInvalidateSchema,
+      name: fastpurgeUrlInvalidate.name,
+      description: fastpurgeUrlInvalidate.description,
+      inputSchema: fastpurgeUrlInvalidate.inputSchema,
       handler: async (client, params) => fastpurgeUrlInvalidate.handler(params),
     });
 
     this.registerTool({
-      name: 'fastpurge-cpcode-invalidate',
-      description: 'Invalidate content by CP code with impact estimation',
-      schema: FastpurgeCpcodeInvalidateSchema,
+      name: fastpurgeCpcodeInvalidate.name,
+      description: fastpurgeCpcodeInvalidate.description,
+      inputSchema: fastpurgeCpcodeInvalidate.inputSchema,
       handler: async (client, params) => fastpurgeCpcodeInvalidate.handler(params),
     });
 
     this.registerTool({
-      name: 'fastpurge-tag-invalidate',
-      description: 'Invalidate content by cache tag with tag validation',
-      schema: FastpurgeTagInvalidateSchema,
+      name: fastpurgeTagInvalidate.name,
+      description: fastpurgeTagInvalidate.description,
+      inputSchema: fastpurgeTagInvalidate.inputSchema,
       handler: async (client, params) => fastpurgeTagInvalidate.handler(params),
     });
 
     // Status and Monitoring
     this.registerTool({
-      name: 'fastpurge-status-check',
-      description: 'Check purge operation status with real-time progress',
-      schema: FastpurgeStatusCheckSchema,
+      name: fastpurgeStatusCheck.name,
+      description: fastpurgeStatusCheck.description,
+      inputSchema: fastpurgeStatusCheck.inputSchema,
       handler: async (client, params) => fastpurgeStatusCheck.handler(params),
     });
 
     this.registerTool({
-      name: 'fastpurge-queue-status',
-      description: 'Check FastPurge queue status with customer-specific metrics',
-      schema: FastpurgeQueueStatusSchema,
+      name: fastpurgeQueueStatus.name,
+      description: fastpurgeQueueStatus.description,
+      inputSchema: fastpurgeQueueStatus.inputSchema,
       handler: async (client, params) => fastpurgeQueueStatus.handler(params),
     });
 
     // Planning and Estimation
     this.registerTool({
-      name: 'fastpurge-estimate',
-      description: 'Pre-operation impact assessment with time estimates',
-      schema: FastpurgeEstimateSchema,
+      name: fastpurgeEstimate.name,
+      description: fastpurgeEstimate.description,
+      inputSchema: fastpurgeEstimate.inputSchema,
       handler: async (client, params) => fastpurgeEstimate.handler(params),
     });
 
@@ -288,7 +290,7 @@ class FastPurgeServer {
       tools: Array.from(this.tools.entries()).map(([name, def]) => ({
         name,
         description: def.description,
-        inputSchema: this.zodToJsonSchema(def.schema),
+        inputSchema: def.inputSchema || this.zodToJsonSchema(def.schema),
       })),
     }));
 
@@ -304,7 +306,12 @@ class FastPurgeServer {
       }
 
       try {
-        const validatedArgs = tool.schema.parse(args);
+        // Validate arguments if schema is provided
+        let validatedArgs = args;
+        if (tool.schema) {
+          validatedArgs = tool.schema.parse(args);
+        }
+        
         const result = await tool.handler(this.client, validatedArgs);
         
         return {
@@ -328,12 +335,24 @@ class FastPurgeServer {
   }
 
   private zodToJsonSchema(schema: z.ZodSchema): any {
-    // Simplified schema conversion
-    return {
-      type: 'object',
-      properties: {},
-      required: [],
-    };
+    // Convert Zod schema to JSON Schema for MCP protocol
+    try {
+      const jsonSchema = zodToJsonSchema(schema);
+      // Remove $schema property as it's not needed for MCP
+      if (jsonSchema && typeof jsonSchema === 'object' && '$schema' in jsonSchema) {
+        const { $schema, ...rest } = jsonSchema as any;
+        return rest;
+      }
+      return jsonSchema;
+    } catch (error) {
+      logger.error('Failed to convert Zod schema to JSON schema', error);
+      // Fallback to basic schema
+      return {
+        type: 'object',
+        properties: {},
+        required: [],
+      };
+    }
   }
 
   async start(): Promise<void> {

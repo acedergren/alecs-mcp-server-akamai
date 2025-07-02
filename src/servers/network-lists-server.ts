@@ -16,6 +16,7 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 import { AkamaiClient } from '../akamai-client';
 import { CustomerConfigManager } from '../utils/customer-config';
@@ -418,13 +419,25 @@ class NetworkListsServer {
     });
   }
 
-  private zodToJsonSchema(_schema: z.ZodSchema): any { // CODE KAI: Prefixed unused parameter
-    // Simplified schema conversion
-    return {
-      type: 'object',
-      properties: {},
-      required: [],
-    };
+  private zodToJsonSchema(schema: z.ZodSchema): any {
+    // Convert Zod schema to JSON Schema for MCP protocol
+    try {
+      const jsonSchema = zodToJsonSchema(schema);
+      // Remove $schema property as it's not needed for MCP
+      if (jsonSchema && typeof jsonSchema === 'object' && '$schema' in jsonSchema) {
+        const { $schema, ...rest } = jsonSchema as any;
+        return rest;
+      }
+      return jsonSchema;
+    } catch (error) {
+      logger.error('Failed to convert Zod schema to JSON schema', error);
+      // Fallback to basic schema
+      return {
+        type: 'object',
+        properties: {},
+        required: [],
+      };
+    }
   }
 
   async start(): Promise<void> {
