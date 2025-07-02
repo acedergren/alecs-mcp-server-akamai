@@ -366,7 +366,7 @@ class CleanupAgent {
 
     // Files to delete
     if (plan.delete.length > 0) {
-      console.log(`\n[EMOJI]️  Files to Delete: ${plan.delete.length} files`);
+      console.log(`\n[ERROR] Files to Delete: ${plan.delete.length} files`);
       for (const file of plan.delete.slice(0, 10)) {
         console.log(`  - ${file.path} (${this.formatSize(file.size)}) - ${file.reason}`);
       }
@@ -494,7 +494,7 @@ class CleanupAgent {
     }
 
     if (result.deleted.length > 0) {
-      console.log(`[EMOJI]️  Deleted: ${result.deleted.length} files`);
+      console.log(`[ERROR] Deleted: ${result.deleted.length} files`);
     }
 
     if (result.errors.length > 0) {

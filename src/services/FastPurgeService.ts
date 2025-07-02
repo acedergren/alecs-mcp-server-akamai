@@ -211,12 +211,21 @@ export class FastPurgeService {
   }
 
   private parseRateLimitHeaders(headers: any): RateLimitInfo {
-    return {
+    // CODE KAI: Handle optional properties for exact type compliance
+    const rateLimitInfo: RateLimitInfo = {
       limit: parseInt(headers?.['x-ratelimit-limit'] || '100'),
       remaining: parseInt(headers?.['x-ratelimit-remaining'] || '0'),
-      reset: headers?.['x-ratelimit-reset'] ? parseInt(headers['x-ratelimit-reset']) : undefined,
-      retryAfter: headers?.['retry-after'] ? parseInt(headers['retry-after']) : undefined,
     };
+    
+    if (headers?.['x-ratelimit-reset']) {
+      rateLimitInfo.reset = parseInt(headers['x-ratelimit-reset']);
+    }
+    
+    if (headers?.['retry-after']) {
+      rateLimitInfo.retryAfter = parseInt(headers['retry-after']);
+    }
+    
+    return rateLimitInfo;
   }
 
   private validateNetwork(network: string): 'staging' | 'production' {

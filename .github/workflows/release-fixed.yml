@@ -1,0 +1,203 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.7.0)'
+        required: true
+        type: string
+
+env:
+  GHCR_REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    name: Test & Validate
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Create .edgerc from secret
+      run: |
+        echo "${{ secrets.AKAMAI_EDGEGRID }}" > ~/.edgerc
+        chmod 600 ~/.edgerc
+    
+    - name: Run tests
+      run: npm test
+    
+    - name: Build project
+      run: npm run build
+
+  publish-npm:
+    name: Publish to NPM
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.version)
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        registry-url: 'https://registry.npmjs.org'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build project
+      run: npm run build
+    
+    - name: Set version
+      run: |
+        if [ "${{ github.event_name }}" == "release" ]; then
+          VERSION="${{ github.event.release.tag_name }}"
+        else
+          VERSION="${{ github.event.inputs.version }}"
+        fi
+        VERSION="${VERSION#v}"
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        if [ "$CURRENT_VERSION" != "$VERSION" ]; then
+          npm version $VERSION --no-git-tag-version
+        fi
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+    
+    - name: Publish to NPM
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    
+    - name: Create NPM summary
+      run: |
+        echo "## NPM Package Published" >> $GITHUB_STEP_SUMMARY
+        echo "- **Package**: alecs-mcp-server-akamai" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version**: ${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Registry**: https://www.npmjs.com/package/alecs-mcp-server-akamai" >> $GITHUB_STEP_SUMMARY
+
+  build-docker:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: read
+      packages: write
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        dockerfile: 
+          - path: Dockerfile
+            tag: latest
+          - path: Dockerfile.modular
+            tag: modular
+          - path: Dockerfile.websocket
+            tag: websocket
+          - path: Dockerfile.sse
+            tag: sse
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.GHCR_REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    - name: Set version
+      run: |
+        if [ "${{ github.event_name }}" == "release" ]; then
+          VERSION="${{ github.event.release.tag_name }}"
+        else
+          VERSION="${{ github.event.inputs.version }}"
+        fi
+        VERSION="${VERSION#v}"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}
+          acedergren/alecs-mcp-server-akamai
+        flavor: |
+          suffix=-${{ matrix.dockerfile.tag }},onlatest=false
+        tags: |
+          type=semver,pattern={{version}},value=${{ env.VERSION }}
+          type=semver,pattern={{major}}.{{minor}},value=${{ env.VERSION }}
+          type=raw,value=${{ matrix.dockerfile.tag }}
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ${{ matrix.dockerfile.path }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        platforms: linux/amd64,linux/arm64
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  create-release-summary:
+    name: Create Release Summary
+    runs-on: ubuntu-latest
+    needs: [publish-npm, build-docker]
+    if: always()
+    
+    steps:
+    - name: Create release summary
+      run: |
+        echo "## Release Status" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ needs.publish-npm.result }}" == "success" ]; then
+          echo "✅ **NPM Package Published**" >> $GITHUB_STEP_SUMMARY
+          echo "```bash" >> $GITHUB_STEP_SUMMARY
+          echo "npm install alecs-mcp-server-akamai@${{ github.event.release.tag_name || github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **NPM Package Failed**" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ needs.build-docker.result }}" == "success" ]; then
+          echo "✅ **Docker Images Published**" >> $GITHUB_STEP_SUMMARY
+          echo "```bash" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull acedergren/alecs-mcp-server-akamai:latest" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ghcr.io/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Docker Images Failed**" >> $GITHUB_STEP_SUMMARY
+        fi

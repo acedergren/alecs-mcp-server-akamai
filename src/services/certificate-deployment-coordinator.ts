@@ -9,8 +9,6 @@ import { type AkamaiClient } from '../akamai-client';
 import { 
   DeploymentListResponse,
   DeploymentDetailResponse,
-  Deployment,
-  DeploymentStatus as ApiDeploymentStatus,
   EnrollmentDetailResponse,
   PropertyDetailResponse,
   PropertyHostnamesResponse
@@ -226,6 +224,11 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
       // Get latest deployment
       const latest = deployments[0];
+      
+      // CODE KAI: Ensure latest deployment exists before accessing properties
+      if (!latest) {
+        return null;
+      }
 
       return {
         deploymentId: latest.deploymentId,
@@ -279,7 +282,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
     // Check if all domains are validated
     const allValidated = response.enrollment.sans?.every(
-      (san: string) => true, // In real implementation, would check validation status
+      (_san: string) => true, // In real implementation, would check validation status
     );
 
     if (!allValidated) {

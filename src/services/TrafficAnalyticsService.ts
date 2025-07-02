@@ -269,7 +269,7 @@ export class TrafficAnalyticsService {
       const anomalies = this.detectAnomalies(bandwidthData, requestData, errorData);
 
       // Generate forecasts if requested
-      let forecasts = undefined;
+      let forecasts: TrafficForecast[] | undefined = undefined;
       if (includeForecasting) {
         forecasts = await this.generateTrafficForecasts(bandwidthData, period);
       }
@@ -279,16 +279,22 @@ export class TrafficAnalyticsService {
         growthMetrics: growth.length,
         seasonalityPatterns: seasonality.length,
         anomalyCount: anomalies.length,
-        forecastPoints: 0,
+        forecastPoints: forecasts?.length || 0,
       });
 
-      return {
+      // Build return object conditionally to satisfy exactOptionalPropertyTypes
+      const result = {
         trends,
         growth,
         seasonality,
         anomalies,
-        forecasts,
       };
+
+      if (forecasts !== undefined) {
+        return { ...result, forecasts };
+      }
+
+      return result;
     } catch (_error) {
       logger.error('Failed to analyze traffic trends', { _error, period });
       this.performanceMonitor.endOperation(operationId, { errorOccurred: true });

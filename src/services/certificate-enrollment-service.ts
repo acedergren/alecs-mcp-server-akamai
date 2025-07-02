@@ -455,11 +455,16 @@ export class CertificateEnrollmentService {
       if (this.config.autoCreateDNSRecords) {
         validationSteps += '### Creating DNS Records\n\n';
 
-        const recordsResult = await createACMEValidationRecords(this.client, {
+        // CODE KAI: Handle optional customer parameter for exact type compliance
+        const recordsParams: { enrollmentId: number; autoDetectZones: boolean; customer?: string } = {
           enrollmentId,
-          customer: this.config.customer,
           autoDetectZones: true,
-        });
+        };
+        if (this.config.customer) {
+          recordsParams.customer = this.config.customer;
+        }
+        
+        const recordsResult = await createACMEValidationRecords(this.client, recordsParams);
 
         validationSteps += Array.isArray(recordsResult.content)
           ? recordsResult.content[0]?.text || ''
@@ -503,12 +508,19 @@ export class CertificateEnrollmentService {
       // Step 3: Monitor validation
       validationSteps += '### Monitoring Validation Progress\n\n';
 
-      const monitorResult = await monitorCertificateValidation(this.client, {
+      // CODE KAI: Handle optional parameters for exact type compliance
+      const monitorParams: { enrollmentId: number; maxWaitMinutes: number; customer?: string; checkIntervalSeconds?: number } = {
         enrollmentId,
-        customer: this.config.customer,
         maxWaitMinutes: 15,
-        checkIntervalSeconds: this.config.validationCheckInterval,
-      });
+      };
+      if (this.config.customer) {
+        monitorParams.customer = this.config.customer;
+      }
+      if (this.config.validationCheckInterval) {
+        monitorParams.checkIntervalSeconds = this.config.validationCheckInterval;
+      }
+      
+      const monitorResult = await monitorCertificateValidation(this.client, monitorParams);
 
       validationSteps += Array.isArray(monitorResult.content)
         ? monitorResult.content[0]?.text || ''

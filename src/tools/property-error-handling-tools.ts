@@ -132,24 +132,24 @@ const PropertyVersionItemSchema = z.object({
 }) satisfies z.ZodType<PropertyVersionItem>;
 
 // CODE KAI: Type guard functions for runtime validation
-export function isPropertyVersionResponse(obj: unknown): obj is PropertyVersionResponse {
-  if (!obj || typeof obj !== 'object') return false;
+export function isPropertyVersionResponse(obj: any): obj is PropertyVersionResponse {
+  if (!obj || typeof obj !== 'object') {return false;}
   const response = obj as Record<string, unknown>;
-  if (!response.versions || typeof response.versions !== 'object') return false;
-  const versions = response.versions as Record<string, unknown>;
-  if (!Array.isArray(versions.items)) return false;
-  return versions.items.every((item: unknown) => 
+  if (!response['versions'] || typeof response['versions'] !== 'object') {return false;}
+  const versions = response['versions'] as Record<string, unknown>;
+  if (!Array.isArray(versions['items'])) {return false;}
+  return (versions['items'] as any[]).every((item: any) => 
     PropertyVersionItemSchema.safeParse(item).success
   );
 }
 
-export function isHostnamesResponse(obj: unknown): obj is HostnamesResponse {
-  if (!obj || typeof obj !== 'object') return false;
+export function isHostnamesResponse(obj: any): obj is HostnamesResponse {
+  if (!obj || typeof obj !== 'object') {return false;}
   const response = obj as Record<string, unknown>;
-  if (!response.hostnames) return true; // hostnames is optional
-  if (typeof response.hostnames !== 'object') return false;
-  const hostnames = response.hostnames as Record<string, unknown>;
-  return Array.isArray(hostnames.items) || hostnames.items === undefined;
+  if (!response['hostnames']) {return true;} // hostnames is optional
+  if (typeof response['hostnames'] !== 'object') {return false;}
+  const hostnames = response['hostnames'] as Record<string, unknown>;
+  return Array.isArray(hostnames['items']) || hostnames['items'] === undefined;
 }
 
 /**
@@ -316,7 +316,7 @@ export async function getErrorRecoveryHelp(
 ): Promise<MCPToolResponse> {
   try {
     // CODE KAI: Get validation context first
-    const validationResponse = await getValidationErrors(client, {
+    await getValidationErrors(client, {
       propertyId: args.propertyId,
       version: args.version,
       contractId: args.contractId,
@@ -402,7 +402,7 @@ export async function getErrorRecoveryHelp(
     };
 
     responseText += '## Error Resolution Patterns\n\n';
-    for (const [errorType, solution] of Object.entries(errorSolutions)) {
+    for (const [_errorType, solution] of Object.entries(errorSolutions)) {
       responseText += `### ${solution.title}\n\n`;
       responseText += '**Solutions:**\n';
       solution.solutions.forEach((step, index) => {
@@ -551,7 +551,7 @@ export async function validatePropertyConfiguration(
         );
         
         let certIssues = 0;
-        hostnames.forEach((hostname) => {
+        hostnames.forEach((hostname: any) => {
           if (hostname.certStatus) {
             const prodStatus = hostname.certStatus.production?.[0]?.status;
             const stagingStatus = hostname.certStatus.staging?.[0]?.status;
@@ -719,7 +719,7 @@ function generateRecoveryWorkflow(): string {
  */
 function generateEmergencyProcedures(): string {
   let responseText = '## Emergency Procedures\n\n';
-  responseText += '### 🚨 Immediate Rollback\n';
+  responseText += '### [ALERT] Immediate Rollback\n';
   responseText += 'If issues occur after activation:\n';
   responseText += '1. **Activate previous working version immediately**\n';
   responseText += '2. **Document the incident and impact**\n';

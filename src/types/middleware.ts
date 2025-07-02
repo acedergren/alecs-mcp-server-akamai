@@ -223,7 +223,7 @@ export const Middleware = {
       };
 
       if (includeBody) {
-        logData.params = _req.params;
+        logData['params'] = _req.params;
       }
 
       console.log(`[${level.toUpperCase()}] Request:`, logData);

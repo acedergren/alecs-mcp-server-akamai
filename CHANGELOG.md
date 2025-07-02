@@ -5,6 +5,113 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.4] - 2025-07-01
+
+### 🔒 Security
+- **Automatic security hardening during npm install**
+  - Post-install script generates cryptographically secure TOKEN_MASTER_KEY
+  - Creates .env file with production-ready security defaults
+  - Sets restrictive file permissions (600 for .env, 700 for .tokens/)
+  - Validates .edgerc permissions and provides remediation
+- **Critical security fixes based on comprehensive audit**
+  - Fixed weak master key generation - now requires secure key
+  - Fixed missing authentication in SSE transport
+  - Fixed credential logging in debug mode
+  - TLS/SSL now enforced by default (FORCE_TLS=true)
+  - Debug endpoints disabled by default in production
+  - Rate limiting enabled by default (60 req/min, 1000 req/hour)
+- **New security features**
+  - Comprehensive .env.example with security-focused defaults
+  - Security checklist displayed during installation
+  - IP whitelist support for access control
+  - Session timeout configuration
+  - Audit logging enabled by default
+
+### Added
+- CLI wrapper for intuitive modular server commands
+  - `alecs start:property` - Property management only
+  - `alecs start:dns` - DNS management only
+  - `alecs start:certs` - Certificate management only
+  - `alecs start:reporting` - Reporting only
+  - `alecs start:security` - Security/WAF only
+- Comprehensive NPM variants documentation (`docs/npm-variants-guide.md`)
+- Remote authentication architecture documentation
+- Security audit findings and remediation guide
+- Post-install security setup script
+
+### Fixed
+- Critical stdout corruption bug in Claude Desktop integration
+  - Pino logger was writing to stdout, breaking JSON-RPC communication
+  - All logging now correctly directed to stderr
+  - Resolves "server not connecting" issues in Claude Desktop
+  - Fixes JSON parsing errors and unexpected token errors
+- Missing imports in WebSocket transport authentication
+- TypeScript errors in CLI wrapper
+- File permission issues on Windows
+
+### Changed
+- Pino transport configuration updated to use file descriptor 2 (stderr)
+- Safe console implementation ensures no stdout pollution
+- Normalized logging output - removed BANG logger for cleaner stderr
+- Reduced startup verbosity - minimal output unless DEBUG is enabled
+- Added graceful shutdown handlers for SIGINT/SIGTERM signals
+- Default security posture now production-ready
+- Authentication and TLS enabled by default
+- Rate limiting enabled by default
+- Shortened long tool names across all servers for better Cursor/AI tool compatibility:
+  - Network Lists:
+    - `validate-geographic-codes` → `validate-geo-codes`
+    - `generate-geographic-blocking-recommendations` → `suggest-geo-blocks`
+    - `list-common-geographic-codes` → `list-geo-codes`
+    - `generate-asn-security-recommendations` → `suggest-asn-blocks`
+    - `get-network-list-activation-status` → `get-activation-status`
+    - `get-security-policy-integration-guidance` → `get-secpolicy-guidance`
+  - DNS:
+    - `submit-bulk-zone-create-request` → `bulk-create-zones`
+    - `generate-migration-instructions` → `generate-migration-guide`
+    - `get-secondary-zone-transfer-status` → `get-zone-transfer-status`
+  - Certificates:
+    - `upload-third-party-certificate` → `upload-third-party-cert`
+    - `monitor-certificate-deployment` → `monitor-cert-deployment`
+    - `enroll-certificate-with-validation` → `enroll-cert-with-validation`
+    - `validate-certificate-enrollment` → `validate-cert-enrollment`
+    - `monitor-certificate-enrollment` → `monitor-cert-enrollment`
+  - AppSec:
+    - `activate-security-configuration` → `activate-security-config`
+    - `get-security-activation-status` → `get-sec-activation-status`
+
+### Developer Notes
+- MCP servers must never write to stdout (reserved for JSON-RPC protocol)
+- All debug output, logs, and errors must go to stderr
+- This fix ensures compatibility with Claude Desktop, Cursor, and other MCP clients
+- Security is now "on by default" - must explicitly disable for development
+
+## [1.7.0] - 2025-01-30
+
+### Added
+- New `delegateSubzone()` function for complete DNS delegation workflow
+- Intelligent ADD vs EDIT detection in `upsertRecord()`
+- Automatic phantom/empty changelist cleanup
+- Force mode option for DNS operations to handle blocking changelists
+- Auto-submit option for immediate DNS change activation
+- Provider-aware messaging in DNS delegation
+
+### Changed
+- Enhanced `upsertRecord()` with automatic retry logic
+- Improved error messages with actionable guidance
+- DNS operations now handle Edge DNS complexity internally
+- Complete removal of emojis from codebase (replaced with text indicators)
+
+### Fixed
+- DNS NS record updates now use EDIT operation when records exist
+- Proper handling of "zone must have at least 1 NS record" constraint
+- Resolution of phantom changelist blocking issues
+
+### Developer Experience
+- DNS operations no longer require Akamai API expertise
+- One-call solutions for complex workflows
+- Clear progress indicators throughout operations
+
 ## [1.6.0-rc3] - 2025-01-28
 
 ### Added - Snow Leopard Quality Achievement

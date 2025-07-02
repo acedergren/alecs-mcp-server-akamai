@@ -1,7 +1,20 @@
 # Docker Build Guide
 
-This directory contains Docker configurations for different deployment scenarios of the Alecs MCP
-Server.
+This directory contains Docker configurations for different deployment scenarios of the ALECS MCP Server.
+
+## 🎯 Recommended: Modular Images
+
+**Use modular images to load only the tools you need:**
+
+```bash
+# For domain-specific servers (Property, DNS, Security)
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:modular-latest
+
+# For minimal Property-only operations  
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:essential-latest
+```
+
+Modular deployment prevents tool overload and gives you precise control over which Akamai services to expose.
 
 ## Available Images
 
@@ -13,13 +26,14 @@ Server.
 - **Size**: ~300MB
 - **Ports**: 3000-3013, 8082
 
-### 2. Full Image (180+ Tools)
+### 2. Full Image (180+ Tools) - Advanced Use Cases
 
 - **Dockerfile**: `Dockerfile.full`
 - **Description**: Complete single-process server with all 180+ tools
-- **Use Case**: Maximum functionality in a single process
+- **Use Case**: Advanced scenarios, works well with Claude Code but may overwhelm Claude Desktop
 - **Size**: ~250MB
 - **Port**: 3000
+- **Note**: Best for Claude Code with its higher context limits, comprehensive API exploration
 
 ### 3. Essential Image (15 Tools)
 

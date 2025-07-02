@@ -162,6 +162,117 @@ export function extractContractName(contractType?: string): string | undefined {
 }
 
 /**
+ * Format an edge hostname ID for user-friendly display
+ * @param edgeHostnameId - The raw edge hostname ID (e.g., 'ehn_12345')
+ * @param edgeHostnameDomain - Optional edge hostname domain
+ * @param showRaw - Whether to show the raw ID
+ * @returns Formatted edge hostname display string
+ */
+export function formatEdgeHostnameDisplay(
+  edgeHostnameId: string | undefined,
+  edgeHostnameDomain?: string,
+  showRaw = true,
+): string {
+  if (!edgeHostnameId) {
+    return 'Unknown';
+  }
+
+  // Remove the 'ehn_' prefix for cleaner display
+  const cleanId = edgeHostnameId.replace(/^ehn_/, '');
+
+  if (edgeHostnameDomain) {
+    return showRaw ? `${edgeHostnameDomain} (${edgeHostnameId})` : edgeHostnameDomain;
+  }
+
+  return showRaw ? `Edge Hostname ${cleanId} (${edgeHostnameId})` : `Edge Hostname ${cleanId}`;
+}
+
+/**
+ * Format an activation ID for user-friendly display
+ * @param activationId - The activation ID
+ * @param propertyName - Optional property name
+ * @param network - Optional network (STAGING/PRODUCTION)
+ * @param status - Optional activation status
+ * @returns Formatted activation display string
+ */
+export function formatActivationDisplay(
+  activationId: string | undefined,
+  propertyName?: string,
+  network?: string,
+  status?: string,
+): string {
+  if (!activationId) {
+    return 'Unknown';
+  }
+
+  const parts = [];
+  
+  if (propertyName) {
+    parts.push(propertyName);
+  }
+  
+  if (network) {
+    parts.push(network.toLowerCase());
+  }
+  
+  if (status) {
+    parts.push(status.toLowerCase());
+  }
+  
+  const description = parts.length > 0 ? parts.join(' ') : 'activation';
+  return `${description} (${activationId})`;
+}
+
+/**
+ * Format a network list ID for user-friendly display
+ * @param networkListId - The raw network list ID (e.g., 'nkl_12345')
+ * @param networkListName - Optional network list name
+ * @param showRaw - Whether to show the raw ID
+ * @returns Formatted network list display string
+ */
+export function formatNetworkListDisplay(
+  networkListId: string | undefined,
+  networkListName?: string,
+  showRaw = true,
+): string {
+  if (!networkListId) {
+    return 'Unknown';
+  }
+
+  // Remove the 'nkl_' prefix for cleaner display
+  const cleanId = networkListId.replace(/^nkl_/, '');
+
+  if (networkListName) {
+    return showRaw ? `${networkListName} (${networkListId})` : networkListName;
+  }
+
+  return showRaw ? `Network List ${cleanId} (${networkListId})` : `Network List ${cleanId}`;
+}
+
+/**
+ * Format an AppSec configuration ID for user-friendly display
+ * @param configId - The configuration ID
+ * @param configName - Optional configuration name
+ * @param showRaw - Whether to show the raw ID
+ * @returns Formatted configuration display string
+ */
+export function formatAppSecConfigDisplay(
+  configId: string | undefined,
+  configName?: string,
+  showRaw = true,
+): string {
+  if (!configId) {
+    return 'Unknown';
+  }
+
+  if (configName) {
+    return showRaw ? `${configName} (${configId})` : configName;
+  }
+
+  return showRaw ? `Security Config ${configId}` : `Security Config ${configId}`;
+}
+
+/**
  * Format JSON data for display
  * @param data - The data to format
  * @param indent - Number of spaces for indentation (default: 2)

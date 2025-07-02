@@ -50,7 +50,7 @@ export class KeyStore {
    */
   delete(key: string): boolean {
     const prefix = this.keyToPrefix.get(key);
-    if (!prefix) return false;
+    if (!prefix) {return false;}
     
     const suffix = key.substring(prefix.length);
     const suffixes = this.suffixMap.get(prefix);
@@ -110,7 +110,7 @@ export class KeyStore {
             break;
           }
         }
-        if (!couldMatch) continue;
+        if (!couldMatch) {continue;}
       }
       
       for (const suffix of suffixes) {

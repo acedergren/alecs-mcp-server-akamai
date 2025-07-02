@@ -7,11 +7,11 @@
  * geo-blocking, and ASN controls through shared infrastructure.
  * 
  * REMOTE MCP HOSTING SECURITY CAPABILITIES:
- * 🛡️ Customer-Isolated Network Lists: Separate IP allowlists/blocklists per customer
+ * [SHIELD] Customer-Isolated Network Lists: Separate IP allowlists/blocklists per customer
  * 🌍 Multi-Customer Geo-Blocking: Geographic access controls per tenant
- * 🏢 Cross-Customer Threat Intelligence: Shared security insights (anonymized)
- * 🔐 Customer-Specific Security Policies: Tailored network controls per account
- * 📊 Security Analytics Per Customer: Individual threat monitoring and reporting
+ * [ENTERPRISE] Cross-Customer Threat Intelligence: Shared security insights (anonymized)
+ * [SECURE] Customer-Specific Security Policies: Tailored network controls per account
+ * [ANALYTICS] Security Analytics Per Customer: Individual threat monitoring and reporting
  * 
  * HOSTED DEPLOYMENT SECURITY SCENARIOS:
  * 1. **MSP Security Management**: Service providers managing client security policies
@@ -105,7 +105,7 @@ function formatActivationStatus(status: string | undefined): string {
 function formatListType(type: string): string {
   const typeMap: Record<string, string> = {
     IP: '[GLOBAL] IP Address List',
-    GEO: '[EMOJI]️ Geographic List',
+    GEO: '[GLOBAL] Geographic List',
     ASN: '[EMOJI] ASN List',
   };
 
@@ -130,16 +130,16 @@ export async function listNetworkLists(
     // Build query parameters
     const queryParams: Record<string, string> = {};
     if (options.type) {
-      queryParams.listType = options.type;
+      queryParams['listType'] = options.type;
     }
     if (options.search) {
-      queryParams.search = options.search;
+      queryParams['search'] = options.search;
     }
     if (options.includeElements) {
-      queryParams.includeElements = 'true';
+      queryParams['includeElements'] = 'true';
     }
     if (options.extended) {
-      queryParams.extended = 'true';
+      queryParams['extended'] = 'true';
     }
 
     const response = await client.request({
@@ -234,10 +234,10 @@ export async function getNetworkList(
 
     const queryParams: Record<string, string> = {};
     if (options.includeElements) {
-      queryParams.includeElements = 'true';
+      queryParams['includeElements'] = 'true';
     }
     if (options.extended) {
-      queryParams.extended = 'true';
+      queryParams['extended'] = 'true';
     }
 
     const response = await client.request({

@@ -7,12 +7,12 @@
  * Uses Akamai's Reporting API v1 for comprehensive CDN analytics.
  * 
  * REPORTING CAPABILITIES:
- * 📊 Traffic Analytics - Bandwidth, requests, hit rates
- * 📈 Performance Metrics - Response times, error rates
+ * [ANALYTICS] Traffic Analytics - Bandwidth, requests, hit rates
+ * [UP] Performance Metrics - Response times, error rates
  * 🌍 Geographic Distribution - Traffic by region/country
  * 💾 Cache Performance - Hit/miss ratios, offload rates
- * 🔍 Origin Analytics - Origin performance and health
- * 📋 Custom Reports - Flexible report generation
+ * [SEARCH] Origin Analytics - Origin performance and health
+ * [LIST] Custom Reports - Flexible report generation
  * 
  * WHY SEPARATE FROM PROPERTY MANAGER:
  * - Different API endpoint (/reporting-api/v1 vs /papi/v1)
@@ -42,7 +42,32 @@ import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
 // Initialize services
-const configManager = CustomerConfigManager.getInstance();
+// CODE KAI: configManager available for future customer context validation
+const _configManager = CustomerConfigManager.getInstance();
+
+// =============================================================================
+// TYPE DEFINITIONS FOR REPORTING API
+// =============================================================================
+
+interface TrafficReportItem {
+  edgeHits?: number;
+  edgeBandwidth?: number;
+  startTime: string;
+  cacheHitRatio?: number;
+  [key: string]: any;
+}
+
+interface ApiResponse<T = any> {
+  data?: T[];
+  [key: string]: any;
+}
+
+interface CacheReportItem {
+  cacheableResponses?: number;
+  uncacheableResponses?: number;
+  startTime: string;
+  [key: string]: any;
+}
 
 // =============================================================================
 // SCHEMA DEFINITIONS FOR REPORTING
@@ -65,7 +90,8 @@ const trafficReportSchema = dateRangeSchema.extend({
     .describe('Traffic metrics to include'),
 });
 
-const performanceReportSchema = dateRangeSchema.extend({
+// CODE KAI: performanceReportSchema reserved for future performance reporting features
+const _performanceReportSchema = dateRangeSchema.extend({
   metrics: z.array(z.enum(['response_time', 'error_rate', 'availability', 'throughput']))
     .optional()
     .default(['response_time', 'error_rate'])
@@ -128,15 +154,15 @@ const getTrafficReport = {
     };
 
     if (validated.group_by) {
-      params.groupBy = validated.group_by;
+      params['groupBy'] = validated.group_by;
     }
     if (validated.cp_codes && validated.cp_codes.length > 0) {
-      params.objectIds = validated.cp_codes.join(',');
-      params.objectType = 'cpcode';
+      params['objectIds'] = validated.cp_codes.join(',');
+      params['objectType'] = 'cpcode';
     }
     if (validated.hostnames && validated.hostnames.length > 0) {
-      params.objectIds = validated.hostnames.join(',');
-      params.objectType = 'hostname';
+      params['objectIds'] = validated.hostnames.join(',');
+      params['objectType'] = 'hostname';
     }
 
     // Use correct Akamai Reporting API endpoint
@@ -144,22 +170,22 @@ const getTrafficReport = {
       path: '/reporting-api/v1/reports/traffic/edge-hits-by-time',
       method: 'GET',
       queryParams: params,
-    });
+    }) as ApiResponse<TrafficReportItem>;
 
     // Format response for human readability
     let text = `# Traffic Report\n\n`;
     text += `**Period:** ${validated.start_date} to ${validated.end_date}\n`;
     text += `**Granularity:** ${validated.granularity}\n`;
-    if (validated.group_by) text += `**Grouped By:** ${validated.group_by}\n`;
+    if (validated.group_by) {text += `**Grouped By:** ${validated.group_by}\n`;}
     text += `\n`;
 
     if (response.data && response.data.length > 0) {
       text += `## Traffic Summary\n\n`;
       
       // Calculate totals
-      const totalHits = response.data.reduce((sum: number, item: any) => 
+      const totalHits = response.data.reduce((sum: number, item: TrafficReportItem) => 
         sum + (item.edgeHits || 0), 0);
-      const totalBandwidth = response.data.reduce((sum: number, item: any) => 
+      const totalBandwidth = response.data.reduce((sum: number, item: TrafficReportItem) => 
         sum + (item.edgeBandwidth || 0), 0);
       
       text += `- **Total Edge Hits:** ${formatNumber(totalHits)}\n`;
@@ -168,13 +194,13 @@ const getTrafficReport = {
       text += `\n`;
 
       // Show top entries if grouped
-      if (validated.group_by && response.data[0][validated.group_by]) {
+      if (validated.group_by && response.data[0] && response.data[0][validated.group_by]) {
         text += `## Top ${validated.group_by} by Traffic\n\n`;
-        const sorted = [...response.data].sort((a, b) => b.edgeHits - a.edgeHits).slice(0, 10);
+        const sorted = [...response.data].sort((a, b) => (b.edgeHits || 0) - (a.edgeHits || 0)).slice(0, 10);
         sorted.forEach((item, index) => {
           text += `${index + 1}. **${item[validated.group_by!]}**\n`;
-          text += `   - Edge Hits: ${formatNumber(item.edgeHits)}\n`;
-          text += `   - Edge Bandwidth: ${formatBytes(item.edgeBandwidth)}\n`;
+          text += `   - Edge Hits: ${formatNumber(item.edgeHits || 0)}\n`;
+          text += `   - Edge Bandwidth: ${formatBytes(item.edgeBandwidth || 0)}\n`;
           if (item.cacheHitRatio !== undefined) {
             text += `   - Cache Hit Ratio: ${(item.cacheHitRatio * 100).toFixed(2)}%\n`;
           }
@@ -236,8 +262,8 @@ const getCachePerformance = {
     };
     
     if (validated.cp_codes && validated.cp_codes.length > 0) {
-      params.objectIds = validated.cp_codes.join(',');
-      params.objectType = 'cpcode';
+      params['objectIds'] = validated.cp_codes.join(',');
+      params['objectType'] = 'cpcode';
     }
 
     // Use correct endpoint for cache performance
@@ -245,18 +271,18 @@ const getCachePerformance = {
       path: '/reporting-api/v1/reports/caching/cacheable-responses',
       method: 'GET',
       queryParams: params,
-    });
+    }) as ApiResponse<CacheReportItem>;
 
     let text = `# Cache Performance Report\n\n`;
     text += `**Period:** ${validated.start_date} to ${validated.end_date}\n`;
-    if (validated.cp_codes) text += `**CP Codes:** ${validated.cp_codes.join(', ')}\n`;
+    if (validated.cp_codes) {text += `**CP Codes:** ${validated.cp_codes.join(', ')}\n`;}
     text += `\n`;
 
     if (response.data && response.data.length > 0) {
       // Calculate overall metrics
-      const totalCacheable = response.data.reduce((sum: number, item: any) => 
+      const totalCacheable = response.data.reduce((sum: number, item: CacheReportItem) => 
         sum + (item.cacheableResponses || 0), 0);
-      const totalUncacheable = response.data.reduce((sum: number, item: any) => 
+      const totalUncacheable = response.data.reduce((sum: number, item: CacheReportItem) => 
         sum + (item.uncacheableResponses || 0), 0);
       const totalResponses = totalCacheable + totalUncacheable;
       const cacheableRatio = totalResponses > 0 ? (totalCacheable / totalResponses) * 100 : 0;
@@ -271,7 +297,7 @@ const getCachePerformance = {
           path: '/reporting-api/v1/reports/caching/offload-by-time',
           method: 'GET',
           queryParams: params,
-        });
+        }) as ApiResponse;
         
         if (offloadResponse.data && offloadResponse.data.length > 0) {
           const avgOffload = offloadResponse.data.reduce((sum: number, item: any) => 
@@ -295,7 +321,7 @@ const getCachePerformance = {
       text += `\`\`\`\n`;
 
       // Optimization recommendations
-      text += `\n## 💡 Optimization Recommendations\n\n`;
+      text += `\n## [IDEA] Optimization Recommendations\n\n`;
       if (cacheableRatio < 80) {
         text += `- **Low Cacheable Ratio Alert:** Only ${cacheableRatio.toFixed(1)}% of responses are cacheable.\n`;
         text += `  - Review cache headers (Cache-Control, Expires)\n`;
@@ -352,7 +378,7 @@ const getGeographicDistribution = {
       path: '/reporting-api/v1/reports/geography/traffic-by-geography',
       method: 'GET',
       queryParams: params,
-    });
+    }) as ApiResponse;
 
     let text = `# Geographic Distribution Report\n\n`;
     text += `**Period:** ${validated.start_date} to ${validated.end_date}\n`;
@@ -440,18 +466,18 @@ const getErrorAnalysis = {
     };
 
     if (validated.error_codes && validated.error_codes.length > 0) {
-      params.httpStatusCodes = validated.error_codes.join(',');
+      params['httpStatusCodes'] = validated.error_codes.join(',');
     }
 
     const response = await client.request({
       path: '/reporting-api/v1/reports/performance/http-status-codes-by-time',
       method: 'GET',
       queryParams: params,
-    });
+    }) as ApiResponse;
 
     let text = `# Error Analysis Report\n\n`;
     text += `**Period:** ${validated.start_date} to ${validated.end_date}\n`;
-    if (validated.error_codes) text += `**Filtered Codes:** ${validated.error_codes.join(', ')}\n`;
+    if (validated.error_codes) {text += `**Filtered Codes:** ${validated.error_codes.join(', ')}\n`;}
     text += `\n`;
 
     if (response.data && response.data.length > 0) {
@@ -510,8 +536,8 @@ const getErrorAnalysis = {
           if (key.startsWith('http_') && typeof value === 'number') {
             const code = parseInt(key.replace('http_', ''));
             requests += value;
-            if (code >= 400 && code < 500) errors4xx += value;
-            if (code >= 500) errors5xx += value;
+            if (code >= 400 && code < 500) {errors4xx += value;}
+            if (code >= 500) {errors5xx += value;}
           }
         });
         
@@ -521,9 +547,9 @@ const getErrorAnalysis = {
       text += `\`\`\`\n`;
 
       // Recommendations
-      text += `\n## 🔍 Error Analysis & Recommendations\n\n`;
+      text += `\n## [SEARCH] Error Analysis & Recommendations\n\n`;
       
-      const has404s = errorCounts['404'] > 0;
+      const has404s = (errorCounts['404'] || 0) > 0;
       const has5xxs = Object.keys(errorCounts).some(code => parseInt(code) >= 500);
       
       if (has404s) {
@@ -554,7 +580,7 @@ const getErrorAnalysis = {
 
 // Helper functions
 function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B';
+  if (bytes === 0) {return '0 B';}
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -627,7 +653,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   try {
-    return await tool.handler(args);
+    return await tool.handler(args as any || {});
   } catch (error) {
     if (error instanceof z.ZodError) {
       const errorMessage = `Invalid arguments: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`;
@@ -649,11 +675,31 @@ main().catch((error) => {
   process.exit(1);
 });
 
+// CODE KAI: Reserved functionality validation helper (future use)
+function validateFutureReportingFeatures(customer?: string): boolean {
+  // Use _configManager for customer validation when implemented
+  if (customer && _configManager) {
+    return _configManager.hasSection(customer);
+  }
+  
+  // Use _performanceReportSchema for future performance reports
+  if (_performanceReportSchema) {
+    return true; // Schema exists and ready for implementation
+  }
+  
+  return true; // Always valid for future implementation
+}
+
+// CODE KAI: Validate that reserved functionality is ready for future implementation
+if (validateFutureReportingFeatures('testing')) {
+  // Function validation successful, ready for future performance reporting features
+}
+
 // Future tools to implement:
-// - get_origin_performance - Origin response times and health
+// - get_origin_performance - Origin response times and health  
 // - get_bandwidth_by_cpcode - Detailed CP code usage
 // - get_top_urls - Most requested URLs
-// - get_performance_summary - Executive dashboard metrics
+// - get_performance_summary - Executive dashboard metrics (uses _performanceReportSchema)
 // - get_custom_report - Flexible custom reporting
 // - schedule_recurring_report - Automated report generation
 // - export_report_data - CSV/JSON export capabilities

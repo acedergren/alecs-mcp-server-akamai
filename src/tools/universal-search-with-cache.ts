@@ -276,7 +276,7 @@ export async function universalSearchWithCacheHandler(
       responseText += '• Group ID (grp_12345)\n';
     } else {
       responseText += `[DONE] Found ${results.summary.totalMatches} match${results.summary.totalMatches > 1 ? 'es' : ''}\n`;
-      responseText += `[EMOJI]️ Search time: ${results.performance.searchTimeMs}ms`;
+      responseText += `[TIME] Search time: ${results.performance.searchTimeMs}ms`;
       responseText += results.performance.cacheHit ? ' (from cache)\n\n' : ' (from API)\n\n';
 
       for (const match of results.matches) {

@@ -249,14 +249,14 @@ class AppSecServer {
 
     // Activation and Deployment
     this.registerTool({
-      name: 'activate-security-configuration',
+      name: 'activate-security-config',
       description: 'Activate security configuration',
       schema: ActivateSecurityConfigurationSchema,
       handler: async (client, params) => activateSecurityConfiguration.handler(params),
     });
 
     this.registerTool({
-      name: 'get-security-activation-status',
+      name: 'get-sec-activation-status',
       description: 'Get security activation status',
       schema: GetSecurityActivationStatusSchema,
       handler: async (client, params) => getSecurityActivationStatus.handler(params),

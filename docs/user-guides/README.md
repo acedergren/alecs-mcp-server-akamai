@@ -1,111 +1,195 @@
-# Akamai Developer Reference Package
+# ALECS User Guides
 
-This comprehensive reference package provides everything needed for developing and maintaining Akamai API integrations in the ALECS MCP Server project.
+## Quick Links
 
-## 📁 Package Contents
+- [Property Management Guide](#property-management)
+- [DNS Operations Guide](#dns-operations)
+- [Fast Purge Guide](#fast-purge)
+- [Network Lists Guide](#network-lists)
+- [Secure Onboarding Guide](#secure-onboarding)
 
-### Quick Reference Materials
-- **[api-quick-reference.md](./api-quick-reference.md)** - One-page API endpoint summary
-- **[parameter-checklist.md](./parameter-checklist.md)** - Required parameter checklists
-- **[troubleshooting-guide.md](./troubleshooting-guide.md)** - Common issues and solutions
+## Property Management
 
-### Code Templates
-- **[request-templates/](./request-templates/)** - Request building templates for each endpoint
-- **[response-templates/](./response-templates/)** - Response parsing templates
-- **[error-handling-templates/](./error-handling-templates/)** - Error handling code patterns
-- **[validation-templates/](./validation-templates/)** - Parameter validation templates
-- **[test-templates/](./test-templates/)** - Integration test templates
-
-### Integration Patterns
-- **[workflow-cookbook.md](./workflow-cookbook.md)** - Complete integration workflows
-- **[authentication-patterns.md](./authentication-patterns.md)** - EdgeGrid auth implementations
-- **[multi-customer-patterns.md](./multi-customer-patterns.md)** - Multi-tenant patterns
-
-### Maintenance Resources
-- **[documentation-procedures.md](./documentation-procedures.md)** - Keep docs up-to-date
-- **[api-change-detection.md](./api-change-detection.md)** - Monitor API changes
-- **[testing-procedures.md](./testing-procedures.md)** - Validation workflows
-
-## 🚀 Quick Start
-
-### For New Developers
-1. Start with **[api-quick-reference.md](./api-quick-reference.md)** for overview
-2. Use **[parameter-checklist.md](./parameter-checklist.md)** when implementing new endpoints
-3. Copy templates from **[request-templates/](./request-templates/)** for your endpoint
-4. Follow patterns in **[workflow-cookbook.md](./workflow-cookbook.md)** for complex integrations
-
-### For Maintenance
-1. Review **[api-change-detection.md](./api-change-detection.md)** quarterly
-2. Update templates when API changes occur
-3. Follow **[testing-procedures.md](./testing-procedures.md)** before releases
-4. Keep **[troubleshooting-guide.md](./troubleshooting-guide.md)** updated with new issues
-
-## 📋 API Coverage
-
-This reference covers all Akamai APIs integrated in ALECS:
-
-| API | Version | Endpoints | Status |
-|-----|---------|-----------|---------|
-| **Property Manager** | v1 | 18+ | ✅ Stable |
-| **Edge DNS** | v2 | 12+ | ✅ Stable |  
-| **Certificate Provisioning** | v2 | 8+ | ✅ Stable |
-| **Application Security** | v1 | 12+ | ⚠️ v2 Coming |
-| **Network Lists** | v2 | 8+ | ✅ Stable |
-| **Fast Purge** | v3 | 7+ | ✅ Stable |
-| **Reporting** | v1 | 20+ | ⚠️ Migration Planned |
-
-## 🔧 Template Usage
-
-### Request Templates
-```typescript
-// Copy from request-templates/property-manager/
-import { PropertyCreateTemplate } from './request-templates/property-manager/create-property';
-
-const request = new PropertyCreateTemplate({
-  customer: 'customer1',
-  contractId: 'ctr_C-1FRYVMN',
-  groupId: 'grp_68817',
-  propertyName: 'example.com',
-  productId: 'prd_SPM'
-});
+### Basic Operations
+```
+"List all my properties"
+"Show me property details for my-website"
+"Create a new property called api-gateway"
 ```
 
-### Error Handling
-```typescript
-// Copy from error-handling-templates/
-import { AkamaiErrorHandler } from './error-handling-templates/base-error-handler';
-
-try {
-  const result = await apiCall();
-} catch (error) {
-  const handler = new AkamaiErrorHandler();
-  const response = handler.handle(error);
-  // Structured error response with retry logic
-}
+### Advanced Configuration
+```
+"Show me the caching rules for my-website"
+"Add a new behavior to cache all images for 7 days"
+"Set up origin failover for my-api property"
 ```
 
-## 📊 Validation Rules
+### Activation & Deployment
+```
+"Activate my-website to staging"
+"What's the activation status for my-api?"
+"Deploy my-website to production with email notifications"
+```
 
-All templates include validation for:
-- **Parameter Formats** - ID patterns, hostname validation, IP addresses
-- **Business Rules** - Contract/group relationships, activation requirements
-- **API Constraints** - Rate limits, size limits, character restrictions
+## DNS Operations
 
-## 🔄 Maintenance Schedule
+### Zone Management
+```
+"List all my DNS zones"
+"Create a new zone for example.com"
+"Show all records in example.com"
+```
 
-- **Monthly** - Review troubleshooting guide, update common issues
-- **Quarterly** - Check for API version updates, validate templates
-- **On API Changes** - Update affected templates and documentation
-- **Before Releases** - Run full validation test suite
+### Record Management
+```
+"Add an A record for www pointing to 192.0.2.1"
+"Create a CNAME for blog pointing to blog.example.net"
+"Add MX records for Google Workspace"
+"Update the TTL for all A records to 300 seconds"
+```
 
-## 📞 Support
+### Bulk Operations
+```
+"Import DNS records from this zone file"
+"Add these 10 A records to my zone"
+"Migrate example.com from Cloudflare"
+```
 
-- **Internal Issues** - Use troubleshooting guide and test templates
-- **API Issues** - Check API evolution tracking and contact Akamai support
-- **Integration Questions** - Reference workflow cookbook and patterns
+## Fast Purge
 
----
+### URL-Based Purging
+```
+"Purge https://example.com/index.html"
+"Invalidate all pages under /blog/"
+"Clear cache for these 5 URLs"
+```
 
-**Last Updated:** January 18, 2025  
-**Version:** 1.0.0  
-**Compatibility:** ALECS MCP Server v1.3.0+
+### CP Code Purging
+```
+"Purge all content for CP code 12345"
+"Show me all my CP codes"
+"Clear everything in the Images CP code"
+```
+
+### Tag-Based Purging
+```
+"Purge all content tagged with 'homepage'"
+"Invalidate product-page and shopping-cart tags"
+```
+
+## Network Lists
+
+### IP Lists
+```
+"Create a blocklist with these IP addresses"
+"Add 192.0.2.0/24 to my allowlist"
+"Remove these IPs from the blocklist"
+```
+
+### Geographic Lists
+```
+"Create a list blocking China and Russia"
+"Add European countries to my allowlist"
+"Show me all available country codes"
+```
+
+### List Management
+```
+"Activate my-blocklist to production"
+"Merge blocklist-1 and blocklist-2"
+"Export my-allowlist to CSV"
+```
+
+## Secure Onboarding
+
+### Complete Property Setup
+```
+"Onboard www.example.com with HTTPS"
+"Set up example.com with Enhanced TLS"
+"Create a secure property for my API"
+```
+
+### Certificate Management
+```
+"Create a DV certificate for www.example.com"
+"Check certificate validation status"
+"Add www2.example.com to my certificate"
+```
+
+### Multi-Step Workflows
+```
+"Help me migrate example.com from another CDN"
+"Set up a new property with WAF protection"
+"Configure a property for optimal performance"
+```
+
+## Best Practices
+
+### 1. Always Verify Before Production
+```
+"Activate to staging first"
+"Test configuration in staging"
+"Check activation status before proceeding"
+```
+
+### 2. Use Descriptive Names
+```
+Good: "my-company-website", "api-gateway-prod"
+Bad: "test1", "property2"
+```
+
+### 3. Batch Operations When Possible
+```
+"Add these 5 hostnames to my property"
+"Create records for www, api, and blog"
+"Purge these 10 URLs"
+```
+
+### 4. Monitor Activations
+```
+"Check activation status"
+"Show me recent activations"
+"List failed activations"
+```
+
+## Common Workflows
+
+### New Website Onboarding
+1. "Create property my-website for web delivery"
+2. "Create edge hostname for my-website"
+3. "Add www.example.com to my-website"
+4. "Create DV certificate for www.example.com"
+5. "Configure caching rules for my-website"
+6. "Activate my-website to staging"
+7. "Test in staging"
+8. "Activate my-website to production"
+
+### DNS Migration
+1. "Show current DNS records for example.com"
+2. "Create zone example.com in Akamai"
+3. "Import records from current provider"
+4. "Verify all records are correct"
+5. "Update nameservers at registrar"
+
+### Emergency Cache Clear
+1. "Purge https://example.com/breaking-news.html"
+2. "Check purge status"
+3. "Purge all content tagged 'news'"
+4. "Verify content is refreshed"
+
+## Multi-Customer Operations
+
+If you manage multiple Akamai accounts:
+
+```
+"List properties for customer acme"
+"Create zone example.com for customer staging"
+"Purge content for customer production"
+```
+
+## Getting Help
+
+- For syntax help: "How do I create a property?"
+- For status: "What's the status of my activation?"
+- For troubleshooting: "Why did my activation fail?"
+- For discovery: "What properties do I have?"

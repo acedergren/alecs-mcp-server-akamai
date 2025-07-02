@@ -116,15 +116,16 @@ export interface DNSSECValidation {
   lastValidated: string;
 }
 
-const DNSSECValidationSchema = z.object({
-  zone: z.string(),
-  validationStatus: z.enum(['SECURE', 'INSECURE', 'BOGUS', 'INDETERMINATE']),
-  chainOfTrust: z.array(z.object({
-    zone: z.string(),
-    status: z.string(),
-  })),
-  lastValidated: z.string(),
-}) satisfies z.ZodType<DNSSECValidation>;
+// Unused schema - kept for reference
+// const DNSSECValidationSchema = z.object({
+//   zone: z.string(),
+//   validationStatus: z.enum(['SECURE', 'INSECURE', 'BOGUS', 'INDETERMINATE']),
+//   chainOfTrust: z.array(z.object({
+//     zone: z.string(),
+//     status: z.string(),
+//   })),
+//   lastValidated: z.string(),
+// }) satisfies z.ZodType<DNSSECValidation>;
 
 // CODE KAI: API response interfaces matching Akamai specs
 export interface DNSSECKeysResponse {
@@ -149,18 +150,18 @@ export interface KeyRotationRequest {
 }
 
 // CODE KAI: Type guard functions for runtime validation
-export function isDNSSECKeysResponse(obj: unknown): obj is DNSSECKeysResponse {
-  if (!obj || typeof obj !== 'object') return false;
+export function isDNSSECKeysResponse(obj: any): obj is DNSSECKeysResponse {
+  if (!obj || typeof obj !== 'object') {return false;}
   const response = obj as any;
   return Array.isArray(response.keys) && 
-    response.keys.every((key: unknown) => DNSSECKeySchema.safeParse(key).success);
+    response.keys.every((key: any) => DNSSECKeySchema.safeParse(key).success);
 }
 
-export function isDNSSECDSRecordsResponse(obj: unknown): obj is DNSSECDSRecordsResponse {
-  if (!obj || typeof obj !== 'object') return false;
+export function isDNSSECDSRecordsResponse(obj: any): obj is DNSSECDSRecordsResponse {
+  if (!obj || typeof obj !== 'object') {return false;}
   const response = obj as any;
   return Array.isArray(response.dsRecords) && 
-    response.dsRecords.every((ds: unknown) => DSRecordSchema.safeParse(ds).success);
+    response.dsRecords.every((ds: any) => DSRecordSchema.safeParse(ds).success);
 }
 
 /**
@@ -335,7 +336,7 @@ export async function getDNSSECKeys(
       if (ksks.length > 0) {
         output += `${format.green('Key Signing Keys (KSK)')}:\n`;
         ksks.forEach((key) => {
-          output += `  Key Tag: ${format.cyan(key.keyTag)}\n`;
+          output += `  Key Tag: ${format.cyan(String(key.keyTag))}\n`;
           output += `  Algorithm: ${format.dim(key.algorithm)}\n`;
           output += `  Status: ${key.status === 'ACTIVE' ? format.green(key.status) : format.yellow(key.status)}\n`;
           output += `  Created: ${format.dim(key.createdDate)}\n`;
@@ -349,7 +350,7 @@ export async function getDNSSECKeys(
       if (zsks.length > 0) {
         output += `${format.green('Zone Signing Keys (ZSK)')}:\n`;
         zsks.forEach((key) => {
-          output += `  Key Tag: ${format.cyan(key.keyTag)}\n`;
+          output += `  Key Tag: ${format.cyan(String(key.keyTag))}\n`;
           output += `  Algorithm: ${format.dim(key.algorithm)}\n`;
           output += `  Status: ${key.status === 'ACTIVE' ? format.green(key.status) : format.yellow(key.status)}\n`;
           output += `  Created: ${format.dim(key.createdDate)}\n\n`;
@@ -414,9 +415,9 @@ export async function getDNSSECDSRecords(
       // CODE KAI: Type-safe DS record iteration
       dsRecords.forEach((ds, index) => {
         output += `${format.green(`DS Record ${index + 1}`)}:\n`;
-        output += `  Key Tag: ${format.cyan(ds.keyTag)}\n`;
-        output += `  Algorithm: ${format.cyan(ds.algorithm)} (${getAlgorithmName(ds.algorithm)})\n`;
-        output += `  Digest Type: ${format.cyan(ds.digestType)} (${getDigestTypeName(ds.digestType)})\n`;
+        output += `  Key Tag: ${format.cyan(String(ds.keyTag))}\n`;
+        output += `  Algorithm: ${format.cyan(String(ds.algorithm))} (${getAlgorithmName(ds.algorithm)})\n`;
+        output += `  Digest Type: ${format.cyan(String(ds.digestType))} (${getDigestTypeName(String(ds.digestType))})\n`;
         output += `  Digest: ${format.yellow(ds.digest)}\n\n`;
         
         // Provide copy-paste format
@@ -628,12 +629,12 @@ function getAlgorithmName(algorithm: number): string {
   return algorithms[algorithm] || 'Unknown';
 }
 
-function getDigestTypeName(digestType: number): string {
-  const digestTypes: Record<number, string> = {
-    1: 'SHA-1',
-    2: 'SHA-256',
-    3: 'GOST R 34.11-94',
-    4: 'SHA-384',
+function getDigestTypeName(digestType: string): string {
+  const digestTypes: Record<string, string> = {
+    '1': 'SHA-1',
+    '2': 'SHA-256',
+    '3': 'GOST R 34.11-94',
+    '4': 'SHA-384',
   };
   return digestTypes[digestType] || 'Unknown';
 }

@@ -1,3 +1,22 @@
+/**
+ * LEGACY LOGGER - REDIRECTS TO PINO
+ * 
+ * This file maintains backward compatibility with the old logger interface
+ * All logging now goes through Pino for better performance and features
+ * 
+ * MIGRATION NOTES:
+ * - Old: logger.info('message', data)
+ * - New: logger.info(data, 'message') // Pino style
+ * 
+ * This compatibility layer handles the conversion automatically
+ */
+
+import { loggerCompat } from './pino-logger';
+
+// Re-export the compatibility logger as the main logger
+export const logger = loggerCompat;
+
+// Keep the interface for type compatibility
 export interface LogEntry {
   timestamp: string;
   level: string;
@@ -5,60 +24,12 @@ export interface LogEntry {
   data?: any;
 }
 
+// Re-export the getInstance pattern for backward compatibility
 export class Logger {
-  private static instance: Logger;
-  private debugMode: boolean;
-
-  private constructor() {
-    this.debugMode = process.env.DEBUG === 'true';
-  }
-
-  static getInstance(): Logger {
-    if (!Logger.instance) {
-      Logger.instance = new Logger();
-    }
-    return Logger.instance;
-  }
-
-  debug(message: string, data?: any): void {
-    if (this.debugMode) {
-      this.log('DEBUG', message, data);
-    }
-  }
-
-  info(message: string, data?: any): void {
-    this.log('INFO', message, data);
-  }
-
-  warn(message: string, data?: any): void {
-    this.log('WARN', message, data);
-  }
-
-  error(message: string, data?: any): void {
-    this.log('ERROR', message, data);
-  }
-
-  private log(level: string, message: string, data?: any): void {
-    const entry: LogEntry = {
-      timestamp: new Date().toISOString(),
-      level,
-      message,
-    };
-
-    if (data !== undefined) {
-      entry.data = data;
-    }
-
-    // In production, you might want to send this to a logging service
-    // For now, we'll just use console with appropriate formatting
-    const logMessage = `[${entry.timestamp}] ${entry.level}: ${entry.message}`;
-
-    if (entry.data) {
-      console.error(logMessage, entry.data);
-    } else {
-      console.error(logMessage);
-    }
+  static getInstance() {
+    return loggerCompat;
   }
 }
 
-export const logger = Logger.getInstance();
+// For any direct imports of the Pino logger
+export { createLogger, createRequestLogger } from './pino-logger';

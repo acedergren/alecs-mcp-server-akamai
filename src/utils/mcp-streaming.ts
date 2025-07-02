@@ -213,12 +213,14 @@ export class MCPStreamBuilder {
     // Add timestamp footer to last chunk
     if (sortedChunks.length > 0) {
       const lastChunk = sortedChunks[sortedChunks.length - 1];
-      let footer = `\n---\n*${this.metadata.operation} completed`;
-      if (this.metadata.duration) {
-        footer += ` in ${this.metadata.duration}ms`;
+      if (lastChunk) {
+        let footer = `\n---\n*${this.metadata.operation} completed`;
+        if (this.metadata.duration) {
+          footer += ` in ${this.metadata.duration}ms`;
+        }
+        footer += ` at ${new Date(this.metadata.timestamp).toLocaleString()}*`;
+        lastChunk.content += footer;
       }
-      footer += ` at ${new Date(this.metadata.timestamp).toLocaleString()}*`;
-      lastChunk.content += footer;
     }
 
     // Convert chunks to MCP content blocks
@@ -370,8 +372,8 @@ export const FormatUtils = {
    * Format duration for human readability
    */
   formatDuration(ms: number): string {
-    if (ms < 1000) return `${ms}ms`;
-    if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+    if (ms < 1000) {return `${ms}ms`;}
+    if (ms < 60000) {return `${(ms / 1000).toFixed(1)}s`;}
     return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`;
   },
 
@@ -384,9 +386,9 @@ export const FormatUtils = {
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays === 0) {return 'Today';}
+    if (diffDays === 1) {return 'Yesterday';}
+    if (diffDays < 7) {return `${diffDays} days ago`;}
     return date.toLocaleDateString();
   },
 

@@ -38,9 +38,6 @@ import {
   onboardPropertyTool,
 } from '../tools/property-onboarding-tools';
 import {
-  updatePropertyWithDefaultDV,
-} from '../tools/property-manager-tools';
-import {
   rollbackPropertyVersion,
 } from '../tools/property-version-management';
 import {
@@ -142,8 +139,29 @@ class PropertyALECSServer2025 {
       },
       {
         name: 'activate_property',
-        description: 'Activate a property version to staging or production',
-        inputSchema: PropertyManagerSchemas2025.activate_property,
+        description: 'Activate a property version to staging or production with structured JSON response for Claude Desktop optimization',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+            propertyId: { type: 'string', description: 'Property ID' },
+            version: { type: 'number', description: 'Version to activate' },
+            network: {
+              type: 'string',
+              enum: ['STAGING', 'PRODUCTION'],
+              description: 'Target network',
+            },
+            emails: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Notification emails',
+            },
+            note: { type: 'string', description: 'Activation note' },
+            format: { type: 'string', enum: ['json', 'text'], description: 'Response format (json=Claude optimized, text=legacy)', default: 'text' },
+          },
+          required: ['propertyId', 'version', 'network'],
+          additionalProperties: false,
+        },
       },
       {
         name: 'list_groups',
@@ -179,8 +197,22 @@ class PropertyALECSServer2025 {
       },
       {
         name: 'list_property_activations',
-        description: 'List activation history for a property',
-        inputSchema: PropertyManagerSchemas2025.list_property_activations,
+        description: 'List activation history for a property with structured JSON response for Claude Desktop optimization',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string', description: 'Optional: Customer section name' },
+            propertyId: { type: 'string', description: 'Property ID to list activations for' },
+            network: { 
+              type: 'string',
+              enum: ['STAGING', 'PRODUCTION'],
+              description: 'Filter by network environment'
+            },
+            format: { type: 'string', enum: ['json', 'text'], description: 'Response format (json=Claude optimized, text=legacy)', default: 'text' },
+          },
+          required: ['propertyId'],
+          additionalProperties: false,
+        },
       },
       {
         name: 'validate_rule_tree',
@@ -421,31 +453,6 @@ class PropertyALECSServer2025 {
         },
       },
       {
-        name: 'update_property_with_default_dv',
-        description: 'Update property to use Default DV SSL certificate for HTTPS delivery',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            customer: { type: 'string', description: 'Optional: Customer section name' },
-            propertyId: { type: 'string', description: 'Property ID to update' },
-            hostname: { type: 'string', description: 'Hostname for the certificate' },
-            network: {
-              type: 'string',
-              enum: ['STAGING', 'PRODUCTION'],
-              description: 'Network to update (default: both)'
-            },
-            activateChanges: { type: 'boolean', description: 'Automatically activate changes' },
-            notificationEmails: {
-              type: 'array',
-              items: { type: 'string' },
-              description: 'Email addresses for notifications'
-            },
-          },
-          required: ['propertyId', 'hostname'],
-          additionalProperties: false,
-        },
-      },
-      {
         name: 'rollback_property_version',
         description: 'Rollback to a previous property version by creating new version from it',
         inputSchema: {
@@ -478,17 +485,14 @@ class PropertyALECSServer2025 {
           properties: {
             customer: { type: 'string', description: 'Optional: Customer section name' },
             propertyId: { type: 'string', description: 'Property ID' },
-            version: { type: 'number', description: 'Version to validate' },
+            version: { type: 'number', description: 'Version to validate (uses latest if not specified)' },
             network: {
               type: 'string',
               enum: ['STAGING', 'PRODUCTION'],
               description: 'Target network for validation'
             },
-            checkOrigins: { type: 'boolean', description: 'Validate origin connectivity' },
-            checkCertificates: { type: 'boolean', description: 'Validate SSL certificates' },
-            checkDns: { type: 'boolean', description: 'Validate DNS configuration' },
           },
-          required: ['propertyId', 'version', 'network'],
+          required: ['propertyId', 'network'],
           additionalProperties: false,
         },
       },
@@ -583,15 +587,21 @@ class PropertyALECSServer2025 {
           }
 
           case 'activate_property': {
-            const validated = PropertyManagerZodSchemas.activate_property.parse(args);
-            const response = await activateProperty(this.client, {
-              propertyId: validated.propertyId,
-              version: validated.version,
-              network: validated.network,
-              ...(validated.customer && { customer: validated.customer }),
-              ...(validated.note && { note: validated.note }),
-              ...(validated.emails && { notifyEmails: validated.emails })
-            });
+            // CODE KAI: Type-safe parameter handling for activateProperty
+            // Activates a property version to STAGING or PRODUCTION network
+            if (!args || typeof args !== 'object' || !('propertyId' in args) || !('version' in args) || !('network' in args)) {
+              throw new McpError(ErrorCode.InvalidParams, 'propertyId, version, and network parameters are required');
+            }
+            const activateArgs: Parameters<typeof activateProperty>[1] = {
+              propertyId: args['propertyId'] as string,
+              version: args['version'] as number,
+              network: args['network'] as 'STAGING' | 'PRODUCTION',
+              ...('customer' in args && { customer: args['customer'] as string }),
+              ...('note' in args && { note: args['note'] as string }),
+              ...('emails' in args && Array.isArray(args['emails']) && { notifyEmails: args['emails'] as string[] }),
+              ...('format' in args && { format: args['format'] as 'json' | 'text' })
+            };
+            const response = await activateProperty(this.client, activateArgs);
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
               tool: name,
@@ -631,11 +641,18 @@ class PropertyALECSServer2025 {
           }
 
           case 'list_property_activations': {
-            const validated = PropertyManagerZodSchemas.list_property_activations.parse(args);
-            const response = await listPropertyActivations(this.client, {
-              propertyId: validated.propertyId,
-              ...(validated.network && { network: validated.network })
-            });
+            // CODE KAI: Type-safe parameter handling for listPropertyActivations
+            // Lists all activations for a property with optional network filtering
+            if (!args || typeof args !== 'object' || !('propertyId' in args)) {
+              throw new McpError(ErrorCode.InvalidParams, 'propertyId parameter is required');
+            }
+            const activationArgs: Parameters<typeof listPropertyActivations>[1] = {
+              propertyId: args['propertyId'] as string,
+              ...('customer' in args && { customer: args['customer'] as string }),
+              ...('network' in args && { network: args['network'] as 'STAGING' | 'PRODUCTION' }),
+              ...('format' in args && { format: args['format'] as 'json' | 'text' })
+            };
+            const response = await listPropertyActivations(this.client, activationArgs);
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
               tool: name,
@@ -975,11 +992,11 @@ class PropertyALECSServer2025 {
             }
             const cloneArgs: Parameters<typeof cloneProperty>[1] = {
               sourcePropertyId: args['sourcePropertyId'] as string,
-              newPropertyName: args['propertyName'] as string,
+              propertyName: args['propertyName'] as string,
               ...('customer' in args && { customer: args['customer'] as string }),
               ...('contractId' in args && { contractId: args['contractId'] as string }),
               ...('groupId' in args && { groupId: args['groupId'] as string }),
-              ...('cloneHostnames' in args && typeof args['cloneHostnames'] === 'boolean' && { includeHostnames: args['cloneHostnames'] })
+              ...('cloneHostnames' in args && typeof args['cloneHostnames'] === 'boolean' && { cloneHostnames: args['cloneHostnames'] })
             };
             const response = await cloneProperty(this.client, cloneArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -1087,28 +1104,6 @@ class PropertyALECSServer2025 {
             break;
           }
 
-          case 'update_property_with_default_dv': {
-            // CODE KAI: Update property for HTTPS with Default DV certificate
-            // Enables HTTPS delivery by configuring Default Domain Validation certificate
-            if (!args || typeof args !== 'object' || !('propertyId' in args) || !('hostname' in args)) {
-              throw new McpError(ErrorCode.InvalidParams, 'propertyId and hostname parameters are required');
-            }
-            const dvArgs: Parameters<typeof updatePropertyWithDefaultDV>[1] = {
-              propertyId: args['propertyId'] as string,
-              hostname: args['hostname'] as string,
-              ...('customer' in args && { customer: args['customer'] as string }),
-              ...('network' in args && { network: args['network'] as 'STAGING' | 'PRODUCTION' }),
-              ...('activateChanges' in args && typeof args['activateChanges'] === 'boolean' && { activateChanges: args['activateChanges'] }),
-              ...('notificationEmails' in args && Array.isArray(args['notificationEmails']) && { notificationEmails: args['notificationEmails'] as string[] })
-            };
-            const response = await updatePropertyWithDefaultDV(this.client, dvArgs);
-            result = createMcp2025Response(true, response, undefined, {
-              duration: Date.now() - startTime,
-              tool: name,
-              version: '2.0.0',
-            });
-            break;
-          }
 
           case 'rollback_property_version': {
             // CODE KAI: Emergency rollback to previous property version
@@ -1135,18 +1130,15 @@ class PropertyALECSServer2025 {
 
           case 'validate_property_activation': {
             // CODE KAI: Pre-activation validation to ensure smooth deployment
-            // Performs comprehensive checks on rules, origins, certificates, and DNS
-            if (!args || typeof args !== 'object' || !('propertyId' in args) || !('version' in args) || !('network' in args)) {
-              throw new McpError(ErrorCode.InvalidParams, 'propertyId, version, and network parameters are required');
+            // Performs comprehensive checks on rules, hostnames, and configuration
+            if (!args || typeof args !== 'object' || !('propertyId' in args) || !('network' in args)) {
+              throw new McpError(ErrorCode.InvalidParams, 'propertyId and network parameters are required');
             }
             const validateArgs: Parameters<typeof validatePropertyActivation>[1] = {
               propertyId: args['propertyId'] as string,
-              version: args['version'] as number,
               network: args['network'] as 'STAGING' | 'PRODUCTION',
-              ...('customer' in args && { customer: args['customer'] as string }),
-              ...('checkOrigins' in args && typeof args['checkOrigins'] === 'boolean' && { checkOrigins: args['checkOrigins'] }),
-              ...('checkCertificates' in args && typeof args['checkCertificates'] === 'boolean' && { checkCertificates: args['checkCertificates'] }),
-              ...('checkDns' in args && typeof args['checkDns'] === 'boolean' && { checkDns: args['checkDns'] })
+              ...('version' in args && typeof args['version'] === 'number' && { version: args['version'] }),
+              ...('customer' in args && { customer: args['customer'] as string })
             };
             const response = await validatePropertyActivation(this.client, validateArgs);
             result = createMcp2025Response(true, response, undefined, {

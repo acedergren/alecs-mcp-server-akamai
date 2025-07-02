@@ -12,7 +12,7 @@
  * - Saves bandwidth and server resources
  */
 
-import { z } from 'zod';
+// Removed unused import: z from 'zod'
 
 /**
  * Request cache entry with metadata
@@ -142,7 +142,7 @@ export class RequestCoalescer {
    * CODE KAI: Deterministic key generation for consistent caching
    */
   private normalizeKey(key: string, args?: any): string {
-    if (!args) return key;
+    if (!args) {return key;}
 
     // Sort and serialize args for consistent keys
     const sortedArgs = this.sortObject(args);
@@ -210,7 +210,6 @@ export class RequestCoalescer {
    * CODE KAI: Memory management to prevent memory leaks
    */
   private cleanup(): void {
-    const now = Date.now();
     const beforeSize = this.cache.size;
     
     for (const [key, entry] of this.cache.entries()) {
@@ -320,11 +319,11 @@ export const KeyNormalizers = {
     const { propertyId, version, customer, contractId, groupId } = args || {};
     const parts = [key];
     
-    if (propertyId) parts.push(`prop:${propertyId}`);
-    if (version) parts.push(`v:${version}`);
-    if (customer) parts.push(`cust:${customer}`);
-    if (contractId) parts.push(`ctr:${contractId}`);
-    if (groupId) parts.push(`grp:${groupId}`);
+    if (propertyId) {parts.push(`prop:${propertyId}`);}
+    if (version) {parts.push(`v:${version}`);}
+    if (customer) {parts.push(`cust:${customer}`);}
+    if (contractId) {parts.push(`ctr:${contractId}`);}
+    if (groupId) {parts.push(`grp:${groupId}`);}
     
     return parts.join('|');
   },
@@ -336,11 +335,11 @@ export const KeyNormalizers = {
     const { query, propertyName, hostname, contractId, groupId } = args || {};
     const parts = [key];
     
-    if (query) parts.push(`q:${query.toLowerCase()}`);
-    if (propertyName) parts.push(`name:${propertyName.toLowerCase()}`);
-    if (hostname) parts.push(`host:${hostname.toLowerCase()}`);
-    if (contractId) parts.push(`ctr:${contractId}`);
-    if (groupId) parts.push(`grp:${groupId}`);
+    if (query) {parts.push(`q:${query.toLowerCase()}`);}
+    if (propertyName) {parts.push(`name:${propertyName.toLowerCase()}`);}
+    if (hostname) {parts.push(`host:${hostname.toLowerCase()}`);}
+    if (contractId) {parts.push(`ctr:${contractId}`);}
+    if (groupId) {parts.push(`grp:${groupId}`);}
     
     return parts.join('|');
   },
@@ -352,11 +351,11 @@ export const KeyNormalizers = {
     const { contractId, groupId, customer, limit, offset } = args || {};
     const parts = [key];
     
-    if (contractId) parts.push(`ctr:${contractId}`);
-    if (groupId) parts.push(`grp:${groupId}`);
-    if (customer) parts.push(`cust:${customer}`);
-    if (limit) parts.push(`lim:${limit}`);
-    if (offset) parts.push(`off:${offset}`);
+    if (contractId) {parts.push(`ctr:${contractId}`);}
+    if (groupId) {parts.push(`grp:${groupId}`);}
+    if (customer) {parts.push(`cust:${customer}`);}
+    if (limit) {parts.push(`lim:${limit}`);}
+    if (offset) {parts.push(`off:${offset}`);}
     
     return parts.join('|');
   },

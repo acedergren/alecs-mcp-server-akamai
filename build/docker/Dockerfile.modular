@@ -40,7 +40,7 @@ COPY --from=builder /app/dist/core ./dist/core
 COPY --from=builder /app/dist/services ./dist/services
 
 # Copy PM2 config for modular servers
-COPY ecosystem.config.js ./
+COPY ecosystem.modular.config.js ./
 
 # Create directories
 RUN mkdir -p data logs
@@ -49,11 +49,11 @@ RUN mkdir -p data logs
 USER node
 
 # Expose modular server ports
-EXPOSE 3010 3011 3012
+EXPOSE 3010 3011 3012 3013 3014 3015 3016 3017
 
 # Health check for property server (main modular server)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s \
   CMD node -e "require('http').get('http://localhost:3010/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))" || exit 1
 
-# Run only the modular servers (property, dns, security)
-CMD ["pm2-runtime", "start", "ecosystem.config.js", "--only", "mcp-akamai-property,mcp-akamai-dns,mcp-akamai-security"]
+# Run all modular servers
+CMD ["pm2-runtime", "start", "ecosystem.modular.config.js"]

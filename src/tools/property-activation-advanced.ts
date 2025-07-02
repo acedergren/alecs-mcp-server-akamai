@@ -8,6 +8,9 @@ import { ErrorTranslator, ErrorRecovery } from '../utils/errors';
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
 import { validateApiResponse } from '../utils/api-response-validator';
+import { BaseToolArgs } from '../types/tool-infrastructure';
+import { withPropertyValidation } from '../utils/property-validation';
+import { executeWithTimeout, OperationType } from '../utils/timeout-handler';
 
 // Enhanced activation types
 export interface ActivationProgress {
@@ -101,7 +104,7 @@ export interface ActivationOptions {
  */
 export async function validatePropertyActivation(
   client: AkamaiClient,
-  args: {
+  args: BaseToolArgs & {
     propertyId: string;
     version?: number;
     network: 'STAGING' | 'PRODUCTION';
@@ -109,12 +112,20 @@ export async function validatePropertyActivation(
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
 
-  try {
-    // Get property details
-    const propertyResponse = await client.request({
-      path: `/papi/v1/properties/${args.propertyId}`,
-      method: 'GET',
-    });
+  // CODE KAI: Use property validation wrapper for comprehensive checks
+  return withPropertyValidation(
+    client,
+    args,
+    'validate_property_activation',
+    'validate property for activation',
+    async () => {
+      return executeWithTimeout(
+        async () => {
+          // Get property details with validated access
+          const propertyResponse = await client.request({
+              path: `/papi/v1/properties/${args.propertyId}`,
+              method: 'GET',
+          });
 
     const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
     if (!validatedPropertyResponse.properties?.items?.[0]) {
@@ -285,20 +296,30 @@ export async function validatePropertyActivation(
       });
     }
 
-    return {
-      content: [
-        {
-          type: 'text',
-          text: responseText,
+          return {
+            content: [
+              {
+                type: 'text' as const,
+                text: responseText,
+              },
+            ],
+          };
         },
-      ],
-    };
-  } catch (_error) {
+        {
+          operationType: OperationType.PROPERTY_VALIDATION,
+          toolName: 'validate_property_activation',
+          operationName: 'validate property for activation',
+          timeout: args.timeout,
+          context: args
+        }
+      );
+    }
+  ).catch(error => {
     return {
       content: [
         {
           type: 'text',
-          text: errorTranslator.formatConversationalError(_error, {
+          text: errorTranslator.formatConversationalError(error, {
             operation: 'validate property activation',
             parameters: args,
             timestamp: new Date(),
@@ -306,7 +327,7 @@ export async function validatePropertyActivation(
         },
       ],
     };
-  }
+  });
 }
 
 /**
@@ -467,7 +488,7 @@ export async function activatePropertyWithMonitoring(
       content: [
         {
           type: 'text',
-          text: `[EMOJI]️ Activation timeout reached\n\n**Property:** ${property.propertyName}\n**Version:** ${version}\n**Network:** ${args.network}\n**Activation ID:** ${activationId}\n\nThe activation is still in progress. Continue monitoring with:\n\`\`\`\nGet activation progress ${activationId} for property ${args.propertyId}\n\`\`\``,
+          text: `[TIME] Activation timeout reached\n\n**Property:** ${property.propertyName}\n**Version:** ${version}\n**Network:** ${args.network}\n**Activation ID:** ${activationId}\n\nThe activation is still in progress. Continue monitoring with:\n\`\`\`\nGet activation progress ${activationId} for property ${args.propertyId}\n\`\`\``,
         },
       ],
     };

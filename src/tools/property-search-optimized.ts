@@ -61,7 +61,7 @@ export async function searchPropertiesOptimized(
         content: [
           {
             type: 'text',
-            text: `❌ **Search Error**: At least one search criterion required.
+            text: `[ERROR] **Search Error**: At least one search criterion required.
 
 **Available criteria:**
 - \`propertyName\`: Search by property name (partial matches)
@@ -105,7 +105,12 @@ export async function searchPropertiesOptimized(
     // For hostname searches, we need to use a different approach
     // The PAPI search doesn't directly support hostname search
     if (args.hostname && !args.propertyName) {
-      return await searchByHostname(client, args);
+      return await searchByHostname(client, {
+        hostname: args.hostname,
+        contractId: args.contractId,
+        groupId: args.groupId,
+        customer: args.customer,
+      });
     }
 
     const searchTime = ((Date.now() - searchStartTime) / 1000).toFixed(2);
@@ -154,8 +159,8 @@ async function searchByHostname(
   try {
     // Get targeted property list (not all properties)
     const queryParams: any = {};
-    if (args.contractId) queryParams.contractId = args.contractId;
-    if (args.groupId) queryParams.groupId = args.groupId;
+    if (args.contractId) {queryParams.contractId = args.contractId;}
+    if (args.groupId) {queryParams.groupId = args.groupId;}
 
     let propertiesToSearch: any[] = [];
 
@@ -166,7 +171,7 @@ async function searchByHostname(
         method: 'GET',
         queryParams,
       });
-      propertiesToSearch = response.properties?.items || [];
+      propertiesToSearch = (response as any).properties?.items || [];
     } else {
       // Search across all accessible groups, but efficiently
       const groupsResponse = await client.request({
@@ -174,14 +179,14 @@ async function searchByHostname(
         method: 'GET',
       });
 
-      const groups = groupsResponse.groups?.items || [];
+      const groups = (groupsResponse as any).groups?.items || [];
       const targetGroups = args.groupId 
         ? groups.filter((g: any) => g.groupId === args.groupId)
         : groups.slice(0, 10); // Limit to first 10 groups for performance
 
       for (const group of targetGroups) {
         for (const contractId of group.contractIds || []) {
-          if (args.contractId && contractId !== args.contractId) continue;
+          if (args.contractId && contractId !== args.contractId) {continue;}
 
           try {
             const response = await client.request({
@@ -189,7 +194,7 @@ async function searchByHostname(
               method: 'GET',
               queryParams: { contractId, groupId: group.groupId },
             });
-            propertiesToSearch.push(...(response.properties?.items || []));
+            propertiesToSearch.push(...((response as any).properties?.items || []));
           } catch {
             // Continue with next contract
           }
@@ -205,7 +210,7 @@ async function searchByHostname(
           method: 'GET',
         });
 
-        const hostnames = hostnamesResponse.hostnames?.items || [];
+        const hostnames = (hostnamesResponse as any).hostnames?.items || [];
         const matchedHostnames: string[] = [];
 
         for (const hn of hostnames) {
@@ -225,7 +230,7 @@ async function searchByHostname(
       }
 
       // Limit search for performance (CODE KAI: bounded operation)
-      if (results.length >= 50) break;
+      if (results.length >= 50) {break;}
     }
 
     const searchTime = ((Date.now() - searchStartTime) / 1000).toFixed(2);
@@ -235,7 +240,7 @@ async function searchByHostname(
         content: [
           {
             type: 'text',
-            text: `🔍 **No hostname matches found**
+            text: `[SEARCH] **No hostname matches found**
 
 **Searched for:** ${args.hostname}
 **Search time:** ${searchTime}s
@@ -285,7 +290,7 @@ async function fallbackPropertySearch(
       method: 'GET',
     });
 
-    const groups = groupsResponse.groups?.items || [];
+    const groups = (groupsResponse as any).groups?.items || [];
     const targetGroups = args.groupId 
       ? groups.filter((g: any) => g.groupId === args.groupId)
       : groups.slice(0, 5); // CODE KAI: Limit fallback scope
@@ -303,7 +308,7 @@ async function fallbackPropertySearch(
             queryParams: { contractId, groupId: group.groupId },
           });
 
-          const properties = response.properties?.items || [];
+          const properties = (response as any).properties?.items || [];
           
           for (const property of properties) {
             if (!args.propertyName || 
@@ -348,7 +353,7 @@ function formatOptimizedSearchResults(
   criteria: any,
   searchTime: string,
 ): string {
-  let text = `# 🔍 Property Search Results\n\n`;
+  let text = `# [SEARCH] Property Search Results\n\n`;
   text += `**Found:** ${results.length} properties (${searchTime}s)\n\n`;
 
   // Search criteria
@@ -377,12 +382,14 @@ function formatOptimizedSearchResults(
     text += `| ${result.propertyName} | ${result.propertyId} | ${result.productId || 'Unknown'} | ${status} | v${result.latestVersion || 'N/A'} |\n`;
   }
 
-  text += '\n## 🎯 Next Actions\n';
+  text += '\n## [TARGET] Next Actions\n';
   if (results.length === 1) {
     const prop = results[0];
-    text += `- **View details:** \`get_property propertyId="${prop.propertyId}"\`\n`;
-    text += `- **View rules:** \`get_property_rules propertyId="${prop.propertyId}" version=${prop.latestVersion}\`\n`;
-    text += `- **View hostnames:** \`list_property_hostnames propertyId="${prop.propertyId}"\`\n`;
+    if (prop) {
+      text += `- **View details:** \`get_property propertyId="${prop.propertyId}"\`\n`;
+      text += `- **View rules:** \`get_property_rules propertyId="${prop.propertyId}" version=${prop.latestVersion}\`\n`;
+      text += `- **View hostnames:** \`list_property_hostnames propertyId="${prop.propertyId}"\`\n`;
+    }
   } else {
     text += '- **View details:** `get_property propertyId="[PROPERTY_ID]"`\n';
     text += '- **Refine search:** Add contractId or groupId filters\n';
@@ -399,7 +406,7 @@ function formatHostnameSearchResults(
   criteria: any,
   searchTime: string,
 ): string {
-  let text = `# 🌐 Hostname Search Results\n\n`;
+  let text = `# [GLOBAL] Hostname Search Results\n\n`;
   text += `**Found:** ${results.length} properties with hostname "${criteria.hostname}" (${searchTime}s)\n\n`;
 
   for (const result of results) {
@@ -421,7 +428,7 @@ function formatHostnameSearchResults(
     text += '\n';
   }
 
-  text += '## 🎯 Next Actions\n';
+  text += '## [TARGET] Next Actions\n';
   text += '- **View hostname details:** `list_property_hostnames propertyId="[PROPERTY_ID]"`\n';
   text += '- **View property rules:** `get_property_rules propertyId="[PROPERTY_ID]"`\n';
 
@@ -432,7 +439,7 @@ function formatHostnameSearchResults(
  * Format no results message
  */
 function formatNoSearchResults(criteria: any, searchTime: string): string {
-  let text = `# 🔍 No Properties Found\n\n`;
+  let text = `# [SEARCH] No Properties Found\n\n`;
   text += `**Search completed in:** ${searchTime}s\n\n`;
 
   text += '**Search criteria:**\n';
@@ -449,7 +456,7 @@ function formatNoSearchResults(criteria: any, searchTime: string): string {
     text += `- Group: ${criteria.groupId}\n`;
   }
 
-  text += '\n**💡 Suggestions:**\n';
+  text += '\n**[IDEA] Suggestions:**\n';
   text += '- Try shorter/partial search terms\n';
   text += '- Remove contract/group filters to broaden search\n';
   text += '- Check spelling and try different variations\n';

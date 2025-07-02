@@ -583,7 +583,7 @@ export async function bulkActivateProperties(
 
     const skipped = operation.properties.filter((p) => p.status === 'skipped');
     if (skipped.length > 0) {
-      responseText += `\n## [EMOJI]️ Skipped (${skipped.length})\n`;
+      responseText += `\n## [INFO] Skipped (${skipped.length})\n`;
       skipped.forEach((p) => {
         responseText += `- **${p.propertyName}** (${p.propertyId})\n`;
         responseText += `  ${p.result?.message}\n`;

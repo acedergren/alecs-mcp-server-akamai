@@ -804,8 +804,8 @@ function groupChangesByCategory(changes: any[]): Record<string, any[]> {
     if (grouped[category]) {
       grouped[category].push(change);
     } else {
-      if (grouped.other) {
-        grouped.other.push(change);
+      if (grouped['other']) {
+        grouped['other'].push(change);
       }
     }
   }

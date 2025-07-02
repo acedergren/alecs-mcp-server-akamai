@@ -130,7 +130,7 @@ export class ErrorTranslator {
       `Ensure the ${resource} exists and hasn't been deleted`,
     ];
 
-    if (context?.parameters?.propertyId) {
+    if (context?.parameters?.['propertyId']) {
       suggestions.push('Use property.list to see available properties');
     }
 

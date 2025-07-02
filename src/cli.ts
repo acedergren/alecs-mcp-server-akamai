@@ -272,27 +272,62 @@ program
     console.log('');
   });
 
-// Start command
+// Start command - run main server
 program
   .command('start')
-  .description('Start ALECS server interactively')
+  .description('Start ALECS main server (all tools)')
   .action(() => {
     const projectRoot = getProjectRoot();
-    const launcherPath = path.join(projectRoot, 'dist', 'interactive-launcher.js');
+    const mainPath = path.join(projectRoot, 'dist', 'index.js');
 
-    if (!fs.existsSync(launcherPath)) {
-      log.error('Interactive launcher not found. Run "npm run build" first');
+    if (!fs.existsSync(mainPath)) {
+      log.error('Server not found. Run "npm run build" first');
       return;
     }
 
-    const child = spawn('node', [launcherPath], {
+    const child = spawn('node', [mainPath], {
       stdio: 'inherit',
+      env: { ...process.env },
     });
 
     child.on('error', (err) => {
       log.error(`Failed to start: ${err.message}`);
     });
   });
+
+// Add start:module commands for each server variant
+Object.entries(SERVERS).forEach(([key, server]) => {
+  if (key !== 'minimal') { // Skip minimal as it's the same as main
+    program
+      .command(`start:${key}`)
+      .description(`Start ${server.description} (${server.toolCount} tools)`)
+      .action(() => {
+        const projectRoot = getProjectRoot();
+        const serverPath = path.join(projectRoot, server.path);
+
+        if (!fs.existsSync(serverPath)) {
+          log.error(`Server not found: ${serverPath}`);
+          log.error('Run "npm run build" first');
+          return;
+        }
+
+        log.info(`Starting ${server.name}...`);
+        
+        const child = spawn('node', [serverPath], {
+          stdio: 'inherit',
+          env: { ...process.env },
+        });
+
+        child.on('error', (err) => {
+          log.error(`Failed to start ${key} server: ${err.message}`);
+        });
+
+        child.on('exit', (code) => {
+          process.exit(code || 0);
+        });
+      });
+  }
+});
 
 // Status command
 program

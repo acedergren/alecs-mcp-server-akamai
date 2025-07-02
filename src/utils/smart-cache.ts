@@ -403,12 +403,12 @@ export class SmartCache<T = any> extends EventEmitter {
    */
   async ttl(key: string): Promise<number> {
     const entry = this.cache.get(key);
-    if (!entry) return -2; // Key doesn't exist
+    if (!entry) {return -2;} // Key doesn't exist
     
     const now = Date.now();
     const expiresAt = entry.timestamp + (entry.ttl * 1000);
     
-    if (now > expiresAt) return -1; // Expired
+    if (now > expiresAt) {return -1;} // Expired
     
     return Math.floor((expiresAt - now) / 1000);
   }
@@ -493,7 +493,7 @@ export class SmartCache<T = any> extends EventEmitter {
         this.negativeCacheBloom.add(key);
         setTimeout(() => this.negativeCache.delete(key), 60000); // Clear after 1 min
         
-        if (cached) return cached; // Return stale on error
+        if (cached) {return cached;} // Return stale on error
         throw error;
       } finally {
         this.pendingRequests.delete(key);
@@ -512,7 +512,7 @@ export class SmartCache<T = any> extends EventEmitter {
         this.negativeCacheBloom.add(key);
         setTimeout(() => this.negativeCache.delete(key), 60000); // Clear after 1 min
         
-        if (cached) return cached; // Return stale on error
+        if (cached) {return cached;} // Return stale on error
         throw error;
       }
     }
@@ -903,10 +903,10 @@ export class SmartCache<T = any> extends EventEmitter {
    */
   private getFromSegment(key: string): CacheEntry<T> | undefined {
     const segmentName = this.keyToSegment.get(key);
-    if (!segmentName) return undefined;
+    if (!segmentName) {return undefined;}
     
     const segment = this.segments.get(segmentName);
-    if (!segment) return undefined;
+    if (!segment) {return undefined;}
     
     // Update segment access stats
     segment.accessCount++;
@@ -996,7 +996,7 @@ export class SmartCache<T = any> extends EventEmitter {
    * Save cache to disk for persistence
    */
   private async saveCache(): Promise<void> {
-    if (!this.options.enablePersistence) return;
+    if (!this.options.enablePersistence) {return;}
 
     try {
       const data = {
@@ -1029,7 +1029,7 @@ export class SmartCache<T = any> extends EventEmitter {
    * Load cache from disk
    */
   private async loadCache(): Promise<void> {
-    if (!this.options.enablePersistence) return;
+    if (!this.options.enablePersistence) {return;}
 
     try {
       const content = await fs.readFile(this.options.persistencePath, 'utf-8');

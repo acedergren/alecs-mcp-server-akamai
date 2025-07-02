@@ -92,7 +92,7 @@ export async function validateGeographicCodes(
     const validCodes: GeographicLocation[] = [];
     const invalidCodes: string[] = [];
 
-    let output = '[EMOJI]️ **Geographic Code Validation**\n\n';
+    let output = '[SEARCH] **Geographic Code Validation**\n\n';
     output += `Validating ${codes.length} geographic codes...\n\n`;
 
     for (const code of codes) {
@@ -139,7 +139,7 @@ export async function validateGeographicCodes(
       output += `[DONE] **Valid Codes (${validCodes.length}):**\n`;
       for (const geo of validCodes) {
         if (geo.subdivisionCode) {
-          output += `[EMOJI]️ ${geo.countryCode}-${geo.subdivisionCode}: ${geo.subdivisionName}\n`;
+          output += `[GLOBAL] ${geo.countryCode}-${geo.subdivisionCode}: ${geo.subdivisionName}\n`;
         } else {
           output += `[EMOJI] ${geo.countryCode}: ${geo.countryName}\n`;
         }
@@ -404,7 +404,7 @@ export async function generateASNSecurityRecommendations(
 
     // Cloud providers
     if (options.includeCloudProviders !== false) {
-      output += '**[EMOJI]️ Cloud Provider ASNs:**\n';
+      output += '**[COMPUTER] Cloud Provider ASNs:**\n';
       output += 'These may host both legitimate services and malicious bots:\n';
       output += '- AS16509: Amazon Web Services\n';
       output += '- AS8075: Microsoft Azure\n';
@@ -497,7 +497,7 @@ export async function generateASNSecurityRecommendations(
  * List common geographic codes for reference
  */
 export async function listCommonGeographicCodes(): Promise<MCPToolResponse> {
-  let output = '[EMOJI]️ **Common Geographic Codes Reference**\n\n';
+  let output = '[LIST] **Common Geographic Codes Reference**\n\n';
 
   output += '**Major Countries (ISO 3166-1 alpha-2):**\n';
   const countries = Object.entries(COMMON_GEO_CODES)

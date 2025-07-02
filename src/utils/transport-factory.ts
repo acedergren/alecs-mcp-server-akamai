@@ -12,15 +12,10 @@ import { TransportConfig, getTransportFromEnv } from '../config/transport-config
 let express: any;
 let WebSocketServerTransport: any;
 let SSEServerTransport: any;
-// WebSocketServer and createHttpServer are available but loaded dynamically
 
 async function loadOptionalDependencies() {
   try {
     express = (await import('express')).default;
-    const ws = await import('ws');
-    WebSocketServer = ws.WebSocketServer;
-    const http = await import('http');
-    createHttpServer = http.createServer;
     
     // Load custom transports
     const sseModule = await import('../transport/sse-transport');
@@ -84,9 +79,9 @@ export async function createTransport(config: TransportConfig): Promise<any> {
       const sseHost = config.options.host || '0.0.0.0';
       
       sseApp.listen(ssePort, sseHost, () => {
-        console.log(`[DONE] SSE server listening on http://${sseHost}:${ssePort}${ssePath}`);
+        console.error(`[DONE] SSE server listening on http://${sseHost}:${ssePort}${ssePath}`);
         if (config.options.cors) {
-          console.log('[INFO] CORS enabled for SSE transport');
+          console.error('[INFO] CORS enabled for SSE transport');
         }
       });
       
@@ -111,10 +106,10 @@ export async function startServerWithTransport(
     }
   };
   
-  console.log(`[INFO] Starting server with ${config.type} transport...`);
+  console.error(`[INFO] Starting server with ${config.type} transport...`);
   
   const transport = await createTransport(config);
   await server.connect(transport);
   
-  console.log('[DONE] Server started successfully');
+  console.error('[DONE] Server started successfully');
 }

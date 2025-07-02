@@ -93,7 +93,7 @@ export class PurgeStatusTracker {
 
   private constructor() {
     this.fastPurgeService = FastPurgeService.getInstance();
-    this.statusDir = process.env.STATUS_PERSISTENCE_DIR || '/tmp/alecs-mcp-akamai/purge-status';
+    this.statusDir = process.env['STATUS_PERSISTENCE_DIR'] || '/tmp/alecs-mcp-akamai/purge-status';
     this.initializePersistence();
   }
 

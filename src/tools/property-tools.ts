@@ -7,11 +7,11 @@
  * properties through a shared remote MCP server infrastructure.
  * 
  * HOSTED MCP CAPABILITIES:
- * 🏢 Multi-Customer Property Management: Isolated property operations per customer
- * 🔐 Customer Context Validation: Secure access to customer-specific properties
- * 📊 Cross-Customer Analytics: Portfolio-wide property monitoring for MSPs
- * 🛡️ Property Ownership Validation: Prevents cross-customer property access
- * 🔄 Dynamic Customer Switching: Seamless property management across accounts
+ * [ENTERPRISE] Multi-Customer Property Management: Isolated property operations per customer
+ * [AUTH] Customer Context Validation: Secure access to customer-specific properties
+ * [REPORT] Cross-Customer Analytics: Portfolio-wide property monitoring for MSPs
+ * [SECURE] Property Ownership Validation: Prevents cross-customer property access
+ * [SYNC] Dynamic Customer Switching: Seamless property management across accounts
  * 
  * REMOTE MCP HOSTING SCENARIOS:
  * 1. **MSP Property Management**: Service providers managing multiple client CDNs
@@ -46,10 +46,9 @@
 
 import {
   formatContractDisplay,
-  formatGroupDisplay,
-  formatPropertyDisplay,
   ensurePrefix,
 } from '../utils/formatting';
+import { getAkamaiIdTranslator } from '../utils/property-translator';
 import {
   validateParameters,
   PropertyManagerSchemas,
@@ -57,13 +56,25 @@ import {
   ensureAkamaiIdFormat,
 } from '../utils/parameter-validation';
 import { formatProductDisplay } from '../utils/product-mapping';
-import { parseAkamaiResponse } from '../utils/response-parsing';
 import { withToolErrorHandling, type ErrorContext } from '../utils/tool-error-handling';
 import { type TreeNode, renderTree, generateTreeSummary, formatGroupNode } from '../utils/tree-view';
-import { logger } from '../utils/logger';
+import { createErrorHandler } from '../utils/error-handler';
+import { createLogger } from '../utils/pino-logger';
+import {
+  paginateArray,
+  truncateResponse,
+  formatPaginationInfo,
+  createPaginationSuggestions,
+  wouldExceedTokenLimit,
+} from '../utils/pagination-helper';
+import { withRetry } from '../utils/akamai-search-helper';
 
 import { type AkamaiClient } from '../akamai-client';
-import { type MCPToolResponse, type Property } from '../types';
+import { type MCPToolResponse } from '../types';
+
+// Initialize logger and error handler
+const pinoLogger = createLogger('property-tools');
+const errorHandler = createErrorHandler('property');
 import { validateApiResponse } from '../utils/api-response-validator';
 import {
   PapiPropertiesListResponse,
@@ -93,26 +104,6 @@ import {
 
 // Removed duplicate interfaces - now using precise PAPI types from imports
 
-/**
- * Format a date string to a more readable format
- */
-function formatDate(dateString: string | undefined): string {
-  if (!dateString) {
-    return 'N/A';
-  }
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return dateString;
-  }
-}
 
 /**
  * Format activation status with appropriate indicator
@@ -190,7 +181,7 @@ async function getContractName(client: AkamaiClient, contractId: string): Promis
       return name;
     }
   } catch (error) {
-    logger.debug(`Failed to get contract name for ${contractId}`, error);
+    pinoLogger.debug({ error, contractId }, 'Failed to get contract name');
   }
   
   return `Contract ${contractId.replace('ctr_', '')}`;
@@ -217,7 +208,7 @@ async function getGroupName(client: AkamaiClient, groupId: string): Promise<stri
       return name;
     }
   } catch (error) {
-    logger.debug(`Failed to get group name for ${groupId}`, error);
+    pinoLogger.debug({ error, groupId }, 'Failed to get group name');
   }
   
   return `Group ${groupId}`;
@@ -428,22 +419,48 @@ export async function listProperties(
     const propertiesToShow = allProperties.slice(0, MAX_PROPERTIES_TO_DISPLAY);
     const hasMore = totalProperties > MAX_PROPERTIES_TO_DISPLAY;
 
-    // Structure the data for easy LLM processing
+    // Pre-populate the translator caches with all data
+    const translator = getAkamaiIdTranslator();
+    
+    // Cache properties
+    translator.populatePropertyCache(propertiesToShow.map(prop => ({
+      propertyId: prop.propertyId,
+      propertyName: prop.propertyName,
+      contractId: prop.contractId,
+      groupId: prop.groupId,
+      assetId: prop.assetId,
+    })));
+    
+    // Note: Group and contract caches will be populated on-demand during translation
+    // This avoids additional API calls and maintains performance
+    
+    // Structure the data for easy LLM processing with enhanced translations
     const structuredResponse = {
-      properties: propertiesToShow.map(prop => ({
-        propertyId: prop.propertyId,
-        propertyName: prop.propertyName,
-        contractId: prop.contractId,
-        groupId: prop.groupId,
-        productId: prop.productId || null,
-        assetId: prop.assetId || null,
-        latestVersion: prop.latestVersion || null,
-        productionVersion: prop.productionVersion || null,
-        stagingVersion: prop.stagingVersion || null,
-        productionStatus: prop.productionStatus || null,
-        stagingStatus: prop.stagingStatus || null,
-        note: prop.note || null,
-        ruleFormat: prop.ruleFormat || null
+      properties: await Promise.all(propertiesToShow.map(async (prop) => {
+        // Get group and contract names for human-friendly display
+        const groupTranslation = prop.groupId ? await translator.translateGroup(prop.groupId, client) : null;
+        const contractTranslation = prop.contractId ? await translator.translateContract(prop.contractId, client) : null;
+        
+        return {
+          propertyId: prop.propertyId,
+          propertyName: prop.propertyName,
+          propertyDisplay: `${prop.propertyName} (${prop.propertyId})`, // Human-friendly display
+          contractId: prop.contractId,
+          contractName: contractTranslation?.name || null,
+          contractDisplay: contractTranslation?.displayName || prop.contractId,
+          groupId: prop.groupId,
+          groupName: groupTranslation?.name || null,
+          groupDisplay: groupTranslation?.displayName || prop.groupId,
+          productId: prop.productId || null,
+          assetId: prop.assetId || null,
+          latestVersion: prop.latestVersion || null,
+          productionVersion: prop.productionVersion || null,
+          stagingVersion: prop.stagingVersion || null,
+          productionStatus: prop.productionStatus || null,
+          stagingStatus: prop.stagingStatus || null,
+          note: prop.note || null,
+          ruleFormat: prop.ruleFormat || null
+        };
       })),
       metadata: {
         total: totalProperties,
@@ -596,7 +613,7 @@ export async function listPropertiesTreeView(
     const contractIdPattern = /^ctr_[A-Z0-9-]+$/;
     const validContractIds = targetGroup.contractIds.filter((contractId: string) => {
       if (!contractIdPattern.test(contractId)) {
-        console.warn(`[PROPERTY-TOOLS] Skipping invalid contract ID format: ${contractId}`);
+        pinoLogger.warn({ contractId, groupId: targetGroup.groupId }, 'Skipping invalid contract ID format');
         return false;
       }
       return true;
@@ -681,7 +698,7 @@ export async function listPropertiesTreeView(
                 // Validate child group contract IDs before API calls
                 const validChildContractIds = childGroup.contractIds.filter((contractId: string) => {
                   if (!contractIdPattern.test(contractId)) {
-                    console.warn(`[PROPERTY-TOOLS] Skipping invalid child contract ID: ${contractId}`);
+                    pinoLogger.warn({ contractId, groupId: childGroup.groupId }, 'Skipping invalid child contract ID');
                     return false;
                   }
                   return true;
@@ -722,13 +739,22 @@ export async function listPropertiesTreeView(
                     const isHttpError = errorMessage.includes('HTTP 500') || errorMessage.includes('500');
                     
                     if (isHttpError) {
-                      console.warn(
-                        `[PROPERTY-TOOLS] API validation failed for child group ${childGroup.groupId} with contract ${childContractId}: Invalid parameters or insufficient permissions`,
+                      pinoLogger.warn(
+                        { 
+                          groupId: childGroup.groupId, 
+                          contractId: childContractId, 
+                          error: errorMessage 
+                        },
+                        'API validation failed for child group - Invalid parameters or insufficient permissions'
                       );
                     } else {
-                      console.error(
-                        `[PROPERTY-TOOLS] Failed to get properties for child group ${childGroup.groupId}:`,
-                        errorMessage,
+                      pinoLogger.error(
+                        { 
+                          groupId: childGroup.groupId, 
+                          contractId: childContractId, 
+                          error: errorMessage 
+                        },
+                        'Failed to get properties for child group'
                       );
                     }
                   }
@@ -750,7 +776,7 @@ export async function listPropertiesTreeView(
                   // Validate grandchild contract IDs
                   const validGrandchildContractIds = grandchild.contractIds.filter((contractId: string) => {
                     if (!contractIdPattern.test(contractId)) {
-                      console.warn(`[PROPERTY-TOOLS] Skipping invalid grandchild contract ID: ${contractId}`);
+                      pinoLogger.warn({ contractId, groupId: grandchild.groupId }, 'Skipping invalid grandchild contract ID');
                       return false;
                     }
                     return true;
@@ -781,13 +807,22 @@ export async function listPropertiesTreeView(
                       const isHttpError = errorMessage.includes('HTTP 500') || errorMessage.includes('500');
                       
                       if (isHttpError) {
-                        console.warn(
-                          `[PROPERTY-TOOLS] API validation failed for grandchild group ${grandchild.groupId} with contract ${gcContractId}: Invalid parameters or insufficient permissions`,
+                        pinoLogger.warn(
+                          { 
+                            groupId: grandchild.groupId, 
+                            contractId: gcContractId, 
+                            error: errorMessage 
+                          },
+                          'API validation failed for grandchild group - Invalid parameters or insufficient permissions'
                         );
                       } else {
-                        console.error(
-                          `[PROPERTY-TOOLS] Failed to get properties for grandchild group ${grandchild.groupId}:`,
-                          errorMessage,
+                        pinoLogger.error(
+                          { 
+                            groupId: grandchild.groupId, 
+                            contractId: gcContractId, 
+                            error: errorMessage 
+                          },
+                          'Failed to get properties for grandchild group'
                         );
                       }
                     }
@@ -810,13 +845,22 @@ export async function listPropertiesTreeView(
           const isHttpError = errorMessage.includes('HTTP 500') || errorMessage.includes('500');
           
           if (isHttpError) {
-            console.warn(
-              `[PROPERTY-TOOLS] API validation failed for main group ${groupId} with contract ${contractId}: Invalid parameters or insufficient permissions`,
+            pinoLogger.warn(
+              { 
+                groupId, 
+                contractId, 
+                error: errorMessage 
+              },
+              'API validation failed for main group - Invalid parameters or insufficient permissions'
             );
           } else {
-            console.error(
-              `[PROPERTY-TOOLS] Failed to get properties for main group ${groupId}:`,
-              errorMessage,
+            pinoLogger.error(
+              { 
+                groupId, 
+                contractId, 
+                error: errorMessage 
+              },
+              'Failed to get properties for main group'
             );
           }
         }
@@ -907,7 +951,7 @@ export async function getProperty(
       try {
         // OPTIMIZATION: Limited search to prevent timeouts and memory issues
         const searchTerm = propertyId.toLowerCase();
-        console.error(`[getProperty] Searching for property: ${searchTerm}`);
+        pinoLogger.debug({ searchTerm }, 'Searching for property by name');
 
         // Get groups first
         const groupsRawResponse = await client.request({
@@ -950,7 +994,7 @@ export async function getProperty(
         for (const group of groupsResponse.groups.items) {
           // Check timeout
           if (Date.now() - startTime > TIMEOUT_MS) {
-            console.error('[getProperty] Timeout reached during search');
+            pinoLogger.warn('Timeout reached during property search');
             break;
           }
 
@@ -1000,7 +1044,7 @@ export async function getProperty(
 
               if (exactMatch) {
                 // Found exact match - return immediately
-                console.error(`[getProperty] Found exact match: ${exactMatch.propertyName}`);
+                pinoLogger.debug({ propertyName: exactMatch.propertyName, propertyId: exactMatch.propertyId }, 'Found exact property match');
                 return await getPropertyById(client, exactMatch.propertyId, exactMatch);
               }
 
@@ -1013,7 +1057,7 @@ export async function getProperty(
                 foundProperties.push({ property: prop, group });
               });
             } catch (_err) {
-              console.error(`Failed to search in contract ${contractId}:`, _err);
+              pinoLogger.error({ error: _err, contractId }, 'Failed to search in contract during property search');
             }
           }
         }
@@ -1030,7 +1074,7 @@ export async function getProperty(
                 type: 'text',
                 text:
                   `[ERROR] No properties found matching "${propertyId}" in the first ${groupsSearched} groups (searched ${totalPropertiesSearched} properties).\n\n` +
-                  (hitTimeout ? '[EMOJI]️ **Search was stopped due to timeout.**\n\n' : '') +
+                  (hitTimeout ? '[TIME] **Search was stopped due to timeout.**\n\n' : '') +
                   '**Suggestions:**\n' +
                   '1. Use the exact property ID (e.g., prp_12345)\n' +
                   '2. Use "list properties" to browse available properties\n' +
@@ -1048,7 +1092,10 @@ export async function getProperty(
         if (foundProperties.length === 1) {
           // Single match found
           const match = foundProperties[0];
-          const searchNote = `ℹ️ Found property "${match.property.propertyName}" (${match.property.propertyId})\n\n`;
+          if (!match) {
+            throw new Error('Unexpected error: match not found');
+          }
+          const searchNote = `[INFO] Found property "${match.property.propertyName}" (${match.property.propertyId})\n\n`;
           const result = await getPropertyById(client, match.property.propertyId, match.property);
           if (result.content[0] && 'text' in result.content[0]) {
             result.content[0].text = searchNote + result.content[0].text;
@@ -1106,7 +1153,9 @@ export async function getProperty(
     // Get property by ID
     return await getPropertyById(client, propertyId);
   } catch (_error) {
-    return formatError('get property', _error);
+    return errorHandler.handle('getProperty', _error, undefined, {
+      propertyId: args.propertyId,
+    });
   }
 }
 
@@ -1169,6 +1218,9 @@ async function getPropertyById(
 
         // Only check first contract per group for speed
         const cId = group.contractIds[0];
+        if (!cId) {
+          continue;
+        }
         try {
           const propertiesRawResponse = await client.request({
             path: '/papi/v1/properties',
@@ -1202,7 +1254,7 @@ async function getPropertyById(
           }
         } catch (_err) {
           // Continue searching
-          console.error(`Failed to search in group ${group.groupId}:`, _err);
+          pinoLogger.error({ error: _err, groupId: group.groupId }, 'Failed to search in group during property lookup');
         }
       }
 
@@ -1247,7 +1299,7 @@ async function getPropertyById(
           prop = detailResponse.properties.items[0];
         }
       } catch (detailError) {
-        console.error('Failed to get detailed property info:', detailError);
+        pinoLogger.error({ error: detailError, propertyId }, 'Failed to get detailed property info');
         // Continue with the basic property info we already have
       }
     }
@@ -1276,7 +1328,7 @@ async function getPropertyById(
       }
     } catch (versionError) {
       // Continue without version details
-      console.error('Failed to get version details:', versionError);
+      pinoLogger.error({ error: versionError, propertyId, version: prop.latestVersion }, 'Failed to get version details');
     }
 
     // Get hostnames associated with the property
@@ -1298,7 +1350,7 @@ async function getPropertyById(
       }
     } catch (hostnameError) {
       // Continue without hostname details
-      console.error('Failed to get hostnames:', hostnameError);
+      pinoLogger.error({ error: hostnameError, propertyId, version: prop.latestVersion }, 'Failed to get hostnames');
     }
 
     // Return structured data for Claude Desktop optimization
@@ -1352,7 +1404,9 @@ async function getPropertyById(
       ],
     };
   } catch (_error) {
-    return formatError('get property details', _error);
+    return errorHandler.handle('getPropertyById', _error, undefined, {
+      propertyId,
+    });
   }
 }
 
@@ -1564,14 +1618,429 @@ export async function createProperty(
       };
     }
 
-    // Generic error fallback
+    // Use new error handler for generic errors
+    return errorHandler.handle(_error, {
+      operation: 'create property',
+      parameters: {
+        propertyName: args.propertyName,
+        productId: args.productId,
+        contractId: args.contractId,
+        groupId: args.groupId
+      },
+      context: 'Creating new CDN property'
+    });
+  }
+}
+
+/**
+ * Create delivery configuration with intelligent property + certificate setup
+ * 
+ * ENHANCED USER EXPERIENCE based on official Akamai documentation research:
+ * - Combines property creation with certificate configuration
+ * - Provides step-by-step DNS setup guidance  
+ * - Supports Default DV, CPS-managed, and shared certificates
+ * - Includes domain validation setup for Default DV certificates
+ * - Generates complete next-steps guidance for activation
+ * 
+ * This function implements the complete Akamai delivery workflow from
+ * Property Manager documentation for optimal user experience.
+ */
+export async function createDeliveryConfig(
+  client: AkamaiClient,
+  args: {
+    // Required essentials
+    hostname: string;                    // Domain to accelerate (e.g., "www.example.com")
+    originHostname: string;              // Origin server (e.g., "origin.example.com")
+    
+    // Certificate options (auto-detected if not specified)
+    certificateType?: 'auto' | 'default-dv' | 'cps-managed' | 'shared-cert';
+    deploymentNetwork?: 'standard' | 'enhanced' | 'auto';
+    domainValidationMethod?: 'auto-dns' | 'auto-http' | 'manual-dns' | 'manual-http';
+    
+    // Property customization (intelligent defaults applied)
+    propertyName?: string;               // Auto-generated from hostname if not provided
+    productId?: string;                  // Auto-detected or defaults to Web Acceleration
+    contractId?: string;                 // Auto-detected from account
+    groupId?: string;                    // Auto-detected from account
+    
+    // Advanced options
+    enableAdvancedSecurity?: boolean;    // Enhanced security features
+    optimizeForMobile?: boolean;         // Mobile-specific optimizations
+    enableMonitoring?: boolean;          // Certificate and performance monitoring
+    
+    // Control options
+    dryRun?: boolean;                    // Preview configuration without creating
+    skipValidation?: boolean;            // Skip pre-flight validation checks
+  },
+): Promise<MCPToolResponse> {
+  try {
+    // STEP 1: Input validation and intelligent defaults
+    const validationErrors: string[] = [];
+    
+    if (!args.hostname?.trim()) {
+      validationErrors.push('Hostname is required (e.g., "www.example.com")');
+    } else if (!/^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}$/.test(args.hostname)) {
+      validationErrors.push('Hostname must be a valid domain name');
+    }
+    
+    if (!args.originHostname?.trim()) {
+      validationErrors.push('Origin hostname is required (e.g., "origin.example.com")');
+    }
+    
+    if (validationErrors.length > 0) {
+      return {
+        content: [{
+          type: 'text',
+          text: `${validationErrors.map(e => `• ${e}`).join('\n')}\n\n[IDEA] **Example usage:**\n{\n  "hostname": "www.example.com",\n  "originHostname": "origin.example.com",\n  "certificateType": "default-dv"\n}`,
+        }],
+      };
+    }
+    
+    // Apply intelligent defaults based on Akamai best practices
+    const config = {
+      hostname: args.hostname.toLowerCase(),
+      originHostname: args.originHostname.toLowerCase(),
+      propertyName: args.propertyName || generateDeliveryPropertyName(args.hostname),
+      certificateType: args.certificateType || 'default-dv',  // Default DV recommended
+      deploymentNetwork: args.deploymentNetwork === 'standard' ? 'STANDARD_TLS' : 'ENHANCED_TLS',
+      domainValidationMethod: args.domainValidationMethod || 'auto-dns',  // Recommended method
+      productId: args.productId || 'prd_Web_Accel',  // Most common product
+      enableSecurity: args.enableAdvancedSecurity !== false,  // Default to true
+      enableMobile: args.optimizeForMobile || false,
+      enableMonitoring: args.enableMonitoring !== false,  // Default to true
+    };
+    
+    // STEP 2: Dry run preview (if requested)
+    if (args.dryRun) {
+      return formatDeliveryConfigPreview(config);
+    }
+    
+    // STEP 3: Create the property with delivery-optimized settings
+    const propertyResult = await createProperty(client, {
+      propertyName: config.propertyName,
+      productId: config.productId,
+      contractId: args.contractId || '',  // Will be auto-detected
+      groupId: args.groupId || '',        // Will be auto-detected
+      ruleFormat: 'latest',
+    });
+    
+    // Extract property details from the JSON response
+    const firstContent = propertyResult.content?.[0];
+    if (!firstContent || firstContent.type !== 'text') {
+      return propertyResult;
+    }
+    const propertyData = JSON.parse(firstContent.text);
+    if (!propertyData.success) {
+      // Property creation failed, return the original error
+      return propertyResult;
+    }
+    
+    // STEP 4: Generate comprehensive delivery configuration guidance
+    const deliveryConfig = {
+      success: true,
+      property: propertyData.property,
+      hostname: {
+        hostname: config.hostname,
+        originHostname: config.originHostname,
+        edgeHostname: generateEdgeHostname(config.hostname, config.certificateType),
+        certificateType: config.certificateType,
+        deploymentNetwork: config.deploymentNetwork,
+      },
+      certificate: generateCertificateConfig(config),
+      dnsRecords: generateDNSRecords(config),
+      validation: config.certificateType === 'default-dv' ? generateDVValidation(config) : null,
+      nextSteps: generateDeliveryNextSteps(config),
+      monitoring: generateMonitoringGuidance(config),
+      metadata: {
+        createdAt: new Date().toISOString(),
+        workflow: 'enhanced-delivery-config',
+        estimatedSetupTime: '15-30 minutes',
+        estimatedPropagationTime: '5-10 minutes after activation',
+      },
+    };
+    
+    return formatDeliveryConfigSuccess(deliveryConfig);
+    
+  } catch (error) {
     return {
       content: [{
         type: 'text',
-        text: `Failed to create property\n\n${_error.message || 'Unknown error occurred'}`
-      }]
+        text: `[ERROR] **Failed to create delivery configuration**\n\n**Error:** ${String(error)}\n\n[IDEA] **Common solutions:**\n• Verify hostname and origin are valid\n• Check account permissions and contract features\n• Ensure certificate type is supported in your account`,
+      }],
     };
   }
+}
+
+/**
+ * Generate intelligent property name for delivery configuration
+ */
+function generateDeliveryPropertyName(hostname: string): string {
+  const cleanName = hostname.replace(/^www\./, '').replace(/\./g, '-');
+  return `${cleanName}-delivery`;
+}
+
+/**
+ * Generate edge hostname based on certificate type
+ */
+function generateEdgeHostname(hostname: string, certificateType: string): string {
+  if (certificateType === 'shared-cert') {
+    return `${hostname.replace(/\./g, '-')}.akamaized.net`;
+  }
+  // Default DV and CPS-managed use .edgesuite.net
+  return `${hostname}.edgesuite.net`;
+}
+
+/**
+ * Generate certificate configuration details
+ */
+function generateCertificateConfig(config: { certificateType: string }): Record<string, any> {
+  const certConfigs = {
+    'default-dv': {
+      type: 'Default DV Certificate',
+      autoRenewal: true,
+      validationRequired: true,
+      setupTime: '5-15 minutes after DNS setup',
+      features: ['Auto-renewal', 'Let\'s Encrypt CA', 'TLS 1.2/1.3'],
+    },
+    'cps-managed': {
+      type: 'CPS-Managed Certificate',
+      autoRenewal: false,
+      validationRequired: false,
+      setupTime: 'Immediate (if certificate exists)',
+      features: ['Custom CA', 'Extended validation', 'Custom cipher suites'],
+    },
+    'shared-cert': {
+      type: 'Akamai Shared Certificate',
+      autoRenewal: false,
+      validationRequired: false,
+      setupTime: 'Immediate',
+      features: ['Development use', 'Akamai domain required', 'No custom domain'],
+    },
+  };
+  
+  const certType = config.certificateType as keyof typeof certConfigs;
+  return certConfigs[certType] || certConfigs['default-dv'];
+}
+
+/**
+ * Generate required DNS records
+ */
+function generateDNSRecords(config: any): any[] {
+  const records = [
+    {
+      type: 'CNAME',
+      name: config.hostname,
+      value: generateEdgeHostname(config.hostname, config.certificateType),
+      ttl: 300,
+      purpose: 'Routes traffic to Akamai edge servers',
+      priority: 'Required',
+    },
+  ];
+  
+  // Add validation record for Default DV
+  if (config.certificateType === 'default-dv' && config.domainValidationMethod === 'auto-dns') {
+    const validationTarget = `ac.${config.hostname.replace(/\./g, '-')}.validate-akdv.net`;
+    records.push({
+      type: 'CNAME',
+      name: `_acme-challenge.${config.hostname}`,
+      value: validationTarget,
+      ttl: 300,
+      purpose: 'Certificate domain validation (enables auto-renewal)',
+      priority: 'Required for Default DV',
+    });
+  }
+  
+  return records;
+}
+
+/**
+ * Generate Default DV validation details
+ */
+function generateDVValidation(config: any): any {
+  if (config.domainValidationMethod === 'auto-dns') {
+    return {
+      method: 'Auto DNS Validation',
+      status: 'Pending DNS setup',
+      description: 'Automatic validation via DNS CNAME record',
+      benefits: [
+        'Automatic certificate renewal',
+        'No manual intervention required',
+        'Supports wildcard certificates',
+      ],
+      requirements: [
+        'Create _acme-challenge CNAME record before activation',
+        'Keep validation record permanent for auto-renewal',
+        'DNS propagation typically takes 5-15 minutes',
+      ],
+    };
+  }
+  
+  return {
+    method: config.domainValidationMethod,
+    status: 'Manual setup required',
+    description: 'Manual validation method selected',
+  };
+}
+
+/**
+ * Generate next steps guidance
+ */
+function generateDeliveryNextSteps(config: any): any {
+  const steps = {
+    immediate: [
+      '1. Create the required DNS records shown below',
+      '2. Wait for DNS propagation (5-15 minutes)',
+      '3. Add hostname to property version',
+      '4. Activate property to staging for testing',
+    ],
+    testing: [
+      '1. Verify SSL certificate is working',
+      '2. Test content delivery and caching',
+      '3. Check performance optimizations',
+      '4. Validate mobile experience (if enabled)',
+    ],
+    production: [
+      '1. Activate property to production',
+      '2. Monitor certificate status and expiration',
+      '3. Set up performance and security monitoring',
+      '4. Configure alerts for certificate renewal',
+    ],
+  };
+  
+  if (config.certificateType === 'shared-cert') {
+    steps.immediate[0] = '1. Update DNS to point to .akamaized.net hostname';
+    steps.immediate.splice(3, 0, '3. Note: Shared certificates are for development only');
+  }
+  
+  return steps;
+}
+
+/**
+ * Generate monitoring and alerting guidance
+ */
+function generateMonitoringGuidance(config: any): any {
+  if (config.enableMonitoring && config.certificateType === 'default-dv') {
+    return {
+      required: true,
+      alerts: [
+        'Expired Default certificate',
+        'Domain validation failed', 
+        'Certificate domain is blocked',
+        'DNS does not contain authorized CA',
+      ],
+      setup: 'Configure alerts in Control Center → Alerts application',
+      automation: 'Set up automated notifications for certificate issues',
+    };
+  }
+  
+  if (config.certificateType === 'cps-managed') {
+    return {
+      required: false,
+      note: 'CPS-managed certificates include automatic monitoring',
+    };
+  }
+  
+  return {
+    required: false,
+    note: 'Shared certificates do not require monitoring',
+  };
+}
+
+/**
+ * Format delivery configuration preview
+ */
+function formatDeliveryConfigPreview(config: any): MCPToolResponse {
+  let output = `[SEARCH] **Delivery Configuration Preview**\n\n`;
+  
+  output += `**Recommended Configuration:**\n`;
+  output += `• Property Name: ${config.propertyName}\n`;
+  output += `• Hostname: ${config.hostname}\n`;
+  output += `• Origin: ${config.originHostname}\n`;
+  output += `• Certificate: ${config.certificateType}\n`;
+  output += `• Network: ${config.deploymentNetwork}\n`;
+  output += `• Validation: ${config.domainValidationMethod}\n\n`;
+  
+  output += `**Features Enabled:**\n`;
+  output += `• Security: ${config.enableSecurity ? '[SUCCESS]' : '[ERROR]'}\n`;
+  output += `• Mobile Optimization: ${config.enableMobile ? '[SUCCESS]' : '[ERROR]'}\n`;
+  output += `• Monitoring: ${config.enableMonitoring ? '[SUCCESS]' : '[ERROR]'}\n\n`;
+  
+  output += `[WARNING] **This is a preview only.** Remove \`dryRun: true\` to create the configuration.`;
+  
+  return {
+    content: [{ type: 'text', text: output }],
+  };
+}
+
+/**
+ * Format successful delivery configuration response
+ */
+function formatDeliveryConfigSuccess(config: any): MCPToolResponse {
+  let output = `[SUCCESS] **Delivery Configuration Created Successfully**\n\n`;
+  
+  // Property summary
+  output += `**Property Created:**\n`;
+  output += `• Name: ${config.property.propertyName}\n`;
+  output += `• ID: ${config.property.propertyId}\n`;
+  output += `• Product: ${config.property.productName}\n\n`;
+  
+  // Hostname configuration
+  output += `**Hostname Configuration:**\n`;
+  output += `• Domain: ${config.hostname.hostname}\n`;
+  output += `• Edge Hostname: ${config.hostname.edgeHostname}\n`;
+  output += `• Certificate: ${config.certificate.type}\n`;
+  output += `• Network: ${config.hostname.deploymentNetwork}\n\n`;
+  
+  // Required DNS records
+  output += `**[TOOL] Required DNS Records:**\n`;
+  config.dnsRecords.forEach((record: any, index: number) => {
+    output += `${index + 1}. \`${record.name} ${record.type} ${record.value}\`\n`;
+    output += `   ${record.purpose}\n\n`;
+  });
+  
+  // Certificate validation (if applicable)
+  if (config.validation) {
+    output += `**[LIST] Certificate Validation:**\n`;
+    output += `• Method: ${config.validation.method}\n`;
+    output += `• Status: ${config.validation.status}\n`;
+    if (config.validation.requirements) {
+      output += `• Requirements:\n`;
+      config.validation.requirements.forEach((req: string) => {
+        output += `  - ${req}\n`;
+      });
+    }
+    output += `\n`;
+  }
+  
+  // Next steps
+  output += `**[LIST] Next Steps:**\n\n`;
+  output += `**Immediate (Required):**\n`;
+  config.nextSteps.immediate.forEach((step: string) => {
+    output += `${step}\n`;
+  });
+  
+  output += `\n**Testing Phase:**\n`;
+  config.nextSteps.testing.forEach((step: string) => {
+    output += `${step}\n`;
+  });
+  
+  output += `\n**Production Deployment:**\n`;
+  config.nextSteps.production.forEach((step: string) => {
+    output += `${step}\n`;
+  });
+  
+  // Monitoring setup
+  if (config.monitoring.required) {
+    output += `\n[WARNING] **Important:** ${config.monitoring.setup}\n`;
+    output += `Default DV certificates require manual alert configuration.`;
+  }
+  
+  output += `\n\n[TIME] **Estimated Setup Time:** ${config.metadata.estimatedSetupTime}`;
+  output += `\n[GLOBAL] **Propagation Time:** ${config.metadata.estimatedPropagationTime}`;
+  
+  return {
+    content: [{ type: 'text', text: output }],
+  };
 }
 
 /**
@@ -1696,7 +2165,10 @@ export async function listContracts(
       ],
     };
   } catch (_error) {
-    return formatError('list contracts', _error);
+    return errorHandler.handle('listContracts', _error, undefined, {
+      searchTerm: args.searchTerm,
+      customer: args.customer,
+    });
   }
 }
 
@@ -1706,13 +2178,21 @@ export async function listContracts(
  */
 export async function listGroups(
   client: AkamaiClient,
-  args: { searchTerm?: string },
+  args: { 
+    searchTerm?: string;
+    page?: number;
+    pageSize?: number;
+  },
 ): Promise<MCPToolResponse> {
   try {
+    // Add timeout to prevent hanging requests
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
     const rawResponse = await client.request({
       path: '/papi/v1/groups',
       method: 'GET',
-    });
+    }).finally(() => clearTimeout(timeout));
 
     if (isPapiError(rawResponse)) {
       throw new Error(`Failed to list groups: ${rawResponse.detail}`);
@@ -1767,6 +2247,14 @@ export async function listGroups(
               type: 'text',
               text: JSON.stringify({
                 groups: [],
+                pagination: {
+                  page: 1,
+                  pageSize: 50,
+                  totalItems: 0,
+                  totalPages: 0,
+                  hasNext: false,
+                  hasPrevious: false,
+                },
                 metadata: {
                   total: totalGroups,
                   filtered: 0,
@@ -1784,9 +2272,18 @@ export async function listGroups(
       }
     }
 
-    // Build hierarchy
-    const topLevelGroups = groups.filter((g: any) => !g.parentGroupId);
-    const groupsByParent = groups.reduce(
+    // Apply pagination to prevent token limit issues
+    const paginationOptions = {
+      page: args.page || 1,
+      pageSize: args.pageSize || 50,
+      estimatedItemSize: 500, // Estimated characters per group
+    };
+
+    const paginated = paginateArray(groups, paginationOptions);
+
+    // Build hierarchy only for paginated items
+    const topLevelGroups = paginated.items.filter((g: any) => !g.parentGroupId);
+    const groupsByParent = paginated.items.reduce(
       (acc: any, group: any) => {
         if (group.parentGroupId) {
           if (!acc[group.parentGroupId]) {
@@ -1814,16 +2311,16 @@ export async function listGroups(
     // Build structured response
     const hierarchy = topLevelGroups.map((group: PapiGroup) => buildHierarchy(group));
 
-    // Extract all unique contracts
+    // Extract all unique contracts from paginated items
     const allContracts = new Set<string>();
-    groups.forEach((g: PapiGroup) => {
+    paginated.items.forEach((g: PapiGroup) => {
       if (g.contractIds) {
         g.contractIds.forEach((c: string) => allContracts.add(c));
       }
     });
 
     // Build flat list with parent references
-    const flatList = groups.map((group: PapiGroup) => ({
+    const flatList = paginated.items.map((group: PapiGroup) => ({
       groupId: group.groupId,
       groupName: group.groupName,
       contractIds: group.contractIds || [],
@@ -1839,14 +2336,39 @@ export async function listGroups(
         unique: Array.from(allContracts).sort(),
         total: allContracts.size
       },
+      pagination: {
+        ...paginated.pagination,
+        info: formatPaginationInfo(paginated.pagination),
+      },
       metadata: {
         total: totalGroups,
         filtered: groups.length,
         searchTerm: args.searchTerm || null,
         topLevelGroups: topLevelGroups.length,
-        hasHierarchy: topLevelGroups.length < groups.length
+        hasHierarchy: topLevelGroups.length < paginated.items.length,
+        truncated: false,
+        originalCount: 0,
+        suggestions: [] as string[]
       }
     };
+
+    // Check if response would exceed token limit
+    if (wouldExceedTokenLimit(structuredResponse)) {
+      pinoLogger.warn('Response would exceed token limit, applying additional truncation');
+      
+      // Truncate the flat list to fit
+      const truncated = truncateResponse(structuredResponse.groups.flat, { includeMetadata: true });
+      
+      structuredResponse.groups.flat = truncated.items;
+      structuredResponse.metadata.truncated = truncated.truncated;
+      structuredResponse.metadata.originalCount = truncated.originalCount;
+    }
+
+    // Add pagination suggestions
+    const suggestions = createPaginationSuggestions(paginated, 'list-groups');
+    if (suggestions.length > 0) {
+      structuredResponse.metadata.suggestions = suggestions;
+    }
 
     return {
       content: [
@@ -1857,7 +2379,9 @@ export async function listGroups(
       ],
     };
   } catch (_error) {
-    return formatError('list groups', _error);
+    return errorHandler.handle('listGroups', _error, undefined, {
+      searchTerm: args.searchTerm,
+    });
   }
 }
 
@@ -2041,55 +2565,376 @@ export async function listProducts(
 }
 
 /**
- * Format error responses with helpful guidance
+ * INTERNAL BULK SEARCH IMPLEMENTATION
+ * These functions are used internally by the search functionality
+ * to provide better performance when searching across properties.
+ * Users should use the regular search functions which will automatically
+ * leverage bulk search when appropriate.
  */
-function formatError(operation: string, _error: any): MCPToolResponse {
-  let errorMessage = `[ERROR] Failed to ${operation}`;
-  let solution = '';
 
-  if (_error instanceof Error) {
-    errorMessage += `: ${_error.message}`;
-
-    // Provide specific solutions based on error type
-    if (_error.message.includes('401') || _error.message.includes('credentials')) {
-      solution =
-        '**Solution:** Check your ~/.edgerc file has valid credentials. You may need to generate new API credentials in Akamai Control Center.';
-    } else if (_error.message.includes('403') || _error.message.includes('Forbidden')) {
-      solution =
-        '**Solution:** Your API credentials may lack the necessary permissions. Ensure your API client has read/write access to Property Manager.';
-    } else if (_error.message.includes('404') || _error.message.includes('not found')) {
-      solution =
-        '**Solution:** The requested resource was not found. Verify the ID is correct using the list tools.';
-    } else if (_error.message.includes('429') || _error.message.includes('rate limit')) {
-      solution = '**Solution:** Rate limit exceeded. Please wait 60 seconds before retrying.';
-    } else if (_error.message.includes('network') || _error.message.includes('ENOTFOUND')) {
-      solution =
-        '**Solution:** Network connectivity issue. Check your internet connection and verify the API host in ~/.edgerc is correct.';
-    } else if (_error.message.includes('timeout')) {
-      solution =
-        '**Solution:** Request timed out. The Akamai API might be slow. Try again in a moment.';
-    }
-  } else {
-    errorMessage += `: ${String(_error)}`;
+/**
+ * Internal: Prepare a bulk search across properties
+ * This is step 1 of the bulk search workflow
+ * @internal
+ */
+// @ts-ignore - Unused function preserved for future use
+async function prepareBulkSearch(
+  client: AkamaiClient,
+  args: {
+    searchType: 'origin' | 'hostname' | 'cpCode' | 'behavior' | 'rule' | 'custom';
+    searchValue: string;
+    contractId?: string;
+    groupId?: string;
+    propertyName?: string;
+    customer?: string;
   }
-
-  let text = errorMessage;
-  if (solution) {
-    text += `\n\n${solution}`;
-  }
-
-  // Add general help
-  text += '\n\n**Need Help?**\n';
-  text += '- Verify your credentials: `cat ~/.edgerc`\n';
-  text += '- List available resources: `"List all my properties"`\n';
-  text += '- Check API docs: https://techdocs.akamai.com/property-mgr/reference/api';
-
-  return {
-    content: [
-      {
-        type: 'text',
-        text,
-      },
-    ],
+): Promise<MCPToolResponse> {
+  const _context: ErrorContext = {
+    operation: 'prepareBulkSearch',
+    customer: args.customer || client.getCustomer(),
   };
+
+  return withToolErrorHandling(async () => {
+    // Validate parameters - simple validation for now
+    const validatedArgs = args; // TODO: Add proper schema validation when PropertyManagerSchemas.bulkSearchPrepare is defined
+
+    // Build search query based on type
+    const bulkSearchQuery = buildBulkSearchQuery(
+      validatedArgs.searchType,
+      validatedArgs.searchValue
+    );
+
+    // Add filters if provided
+    const requestBody: any = {
+      bulkSearchQuery,
+    };
+
+    if (validatedArgs.contractId) {
+      requestBody.contractId = validatedArgs.contractId;
+    }
+    if (validatedArgs.groupId) {
+      requestBody.groupId = validatedArgs.groupId;
+    }
+    if (validatedArgs.propertyName) {
+      requestBody.propertyName = validatedArgs.propertyName;
+    }
+
+    // Make the request with retry logic
+    const response = await withRetry(async () => {
+      return await client.request({
+        path: '/papi/v1/bulk/rules-search-requests',
+        method: 'POST',
+        body: requestBody,
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      });
+    });
+
+    // Extract bulk search ID from response
+    const bulkSearchId = extractBulkSearchId(response);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            success: true,
+            bulkSearchId,
+            searchType: validatedArgs.searchType,
+            searchValue: validatedArgs.searchValue,
+            status: 'PENDING',
+            message: 'Bulk search initiated. Use checkBulkSearchStatus to monitor progress.',
+            nextStep: `checkBulkSearchStatus --bulkSearchId ${bulkSearchId}`,
+          }, null, 2),
+        },
+      ],
+    };
+  }, _context);
 }
+
+/**
+ * Internal: Check the status of a bulk search
+ * @internal
+ */
+// @ts-ignore - Unused function preserved for future use
+async function checkBulkSearchStatus(
+  client: AkamaiClient,
+  args: {
+    bulkSearchId: string;
+    customer?: string;
+  }
+): Promise<MCPToolResponse> {
+  const _context: ErrorContext = {
+    operation: 'checkBulkSearchStatus',
+    customer: args.customer || client.getCustomer(),
+  };
+
+  return withToolErrorHandling(async () => {
+    const response = await withRetry(async () => {
+      return await client.request({
+        path: `/papi/v1/bulk/rules-search-requests/${args.bulkSearchId}`,
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+    });
+
+    const status = response as any;
+    
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            bulkSearchId: args.bulkSearchId,
+            searchStatus: status.searchStatus || 'UNKNOWN',
+            searchSubmittedDate: status.searchSubmittedDate,
+            searchCompletedDate: status.searchCompletedDate,
+            results: status.results || {
+              matchesFound: false,
+              numberOfMatches: 0,
+            },
+            nextStep: status.searchStatus === 'COMPLETE' 
+              ? `getBulkSearchResults --bulkSearchId ${args.bulkSearchId}`
+              : 'Wait and check again',
+          }, null, 2),
+        },
+      ],
+    };
+  }, _context);
+}
+
+/**
+ * Internal: Get the results of a completed bulk search
+ * @internal
+ */
+// @ts-ignore - Unused function preserved for future use
+async function getBulkSearchResults(
+  client: AkamaiClient,
+  args: {
+    bulkSearchId: string;
+    page?: number;
+    pageSize?: number;
+    customer?: string;
+  }
+): Promise<MCPToolResponse> {
+  const _context: ErrorContext = {
+    operation: 'getBulkSearchResults',
+    customer: args.customer || client.getCustomer(),
+  };
+
+  return withToolErrorHandling(async () => {
+    const queryParams: any = {};
+    if (args.page) {queryParams.page = args.page;}
+    if (args.pageSize) {queryParams.pageSize = args.pageSize;}
+
+    const response = await withRetry(async () => {
+      return await client.request({
+        path: `/papi/v1/bulk/rules-search-requests/${args.bulkSearchId}/results`,
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+        queryParams,
+      });
+    });
+
+    const results = response as any;
+
+    // Format results for readability
+    const formattedResults = formatBulkSearchResults(results);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(formattedResults, null, 2),
+        },
+      ],
+    };
+  }, _context);
+}
+
+/**
+ * Internal: Perform a synchronous bulk search (faster but limited)
+ * @internal
+ */
+// @ts-ignore - Unused function preserved for future use
+async function synchronousBulkSearch(
+  client: AkamaiClient,
+  args: {
+    searchType: 'origin' | 'hostname' | 'cpCode' | 'behavior' | 'rule' | 'custom';
+    searchValue: string;
+    propertyIds?: string[];
+    maxResults?: number;
+    customer?: string;
+  }
+): Promise<MCPToolResponse> {
+  const _context: ErrorContext = {
+    operation: 'synchronousBulkSearch',
+    customer: args.customer || client.getCustomer(),
+  };
+
+  return withToolErrorHandling(async () => {
+    // Build search query
+    const bulkSearchQuery = buildBulkSearchQuery(args.searchType, args.searchValue);
+
+    const requestBody: any = {
+      bulkSearchQuery,
+    };
+
+    if (args.propertyIds) {
+      requestBody.propertyIds = args.propertyIds;
+    }
+
+    // Use synchronous endpoint
+    const response = await withRetry(async () => {
+      return await client.request({
+        path: '/papi/v1/bulk/rules-search-requests-synch',
+        method: 'POST',
+        body: requestBody,
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      });
+    });
+
+    const results = response as any;
+    const formattedResults = formatBulkSearchResults(results);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(formattedResults, null, 2),
+        },
+      ],
+    };
+  }, _context);
+}
+
+/**
+ * Build search query based on search type
+ */
+function buildBulkSearchQuery(searchType: string, searchValue: string): any {
+  const queries: Record<string, any> = {
+    origin: {
+      match: searchValue,
+      syntax: 'JSONPATH',
+      queryFields: [
+        '$.behaviors[?(@.name == "origin")].options.hostname',
+        '$.behaviors[?(@.name == "origin")].options.originSni',
+        '$.behaviors[?(@.name == "origin")].options.customCertificateAuthority',
+      ],
+    },
+    hostname: {
+      match: searchValue,
+      syntax: 'JSONPATH',
+      queryFields: [
+        '$.criteria[?(@.name == "hostname")].options.values[*]',
+        '$.rules..criteria[?(@.name == "hostname")].options.values[*]',
+      ],
+    },
+    cpCode: {
+      match: searchValue,
+      syntax: 'JSONPATH',
+      queryFields: [
+        '$.behaviors[?(@.name == "cpCode")].options.value.name',
+        '$.behaviors[?(@.name == "cpCode")].options.value.id',
+        '$.rules..behaviors[?(@.name == "cpCode")].options.value.name',
+      ],
+    },
+    behavior: {
+      match: searchValue,
+      syntax: 'JSONPATH',
+      queryFields: [
+        '$.behaviors[*].name',
+        '$.rules..behaviors[*].name',
+      ],
+    },
+    rule: {
+      match: searchValue,
+      syntax: 'JSONPATH',
+      queryFields: [
+        '$.rules[*].name',
+        '$.rules..name',
+      ],
+    },
+    custom: {
+      match: searchValue,
+      syntax: 'JSONPATH',
+      queryFields: ['$..'],
+    },
+  };
+
+  return queries[searchType] || queries['custom'];
+}
+
+/**
+ * Extract bulk search ID from response
+ */
+function extractBulkSearchId(response: any): string {
+  // Try different response formats
+  if (response.bulkSearchId) {
+    return response.bulkSearchId;
+  }
+  
+  // Try to extract from Location header format
+  if (response.bulkSearchLink) {
+    const match = response.bulkSearchLink.match(/\/([^\/]+)$/);
+    if (match) {
+      return match[1];
+    }
+  }
+
+  throw new Error('Could not extract bulk search ID from response');
+}
+
+/**
+ * Format bulk search results for readability
+ */
+function formatBulkSearchResults(results: any): any {
+  const formatted: any = {
+    summary: {
+      totalMatches: 0,
+      totalProperties: 0,
+      searchCompleted: results.searchCompletedDate || null,
+    },
+    matches: [],
+  };
+
+  if (results.results && Array.isArray(results.results)) {
+    for (const result of results.results) {
+      const propertyMatch: any = {
+        propertyId: result.propertyId,
+        propertyName: result.propertyName,
+        propertyVersion: result.propertyVersion,
+        productionVersion: result.productionVersion,
+        stagingVersion: result.stagingVersion,
+        matches: [],
+      };
+
+      if (result.matchLocations && Array.isArray(result.matchLocations)) {
+        for (const location of result.matchLocations) {
+          propertyMatch.matches.push({
+            path: location.path,
+            value: location.value,
+            context: location.context || 'Unknown',
+          });
+        }
+      }
+
+      formatted.matches.push(propertyMatch);
+      formatted.summary.totalMatches += propertyMatch.matches.length;
+    }
+
+    formatted.summary.totalProperties = formatted.matches.length;
+  }
+
+  return formatted;
+}
+

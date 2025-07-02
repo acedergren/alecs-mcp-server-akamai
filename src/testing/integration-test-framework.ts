@@ -223,7 +223,7 @@ export class IntegrationTestFramework {
     report += `- **Total Tests:** ${summary.total}\n`;
     report += `- **Passed:** ${summary.passed} [DONE]\n`;
     report += `- **Failed:** ${summary.failed} [ERROR]\n`;
-    report += `- **Skipped:** ${summary.skipped} [EMOJI]️\n`;
+    report += `- **Skipped:** ${summary.skipped} [INFO]\n`;
     report += `- **Error:** ${summary.error} [EMOJI]\n`;
     report += `- **Success Rate:** ${summary.successRate.toFixed(1)}%\n`;
     report += `- **Average Duration:** ${summary.averageDuration.toFixed(0)}ms\n\n`;
@@ -294,7 +294,7 @@ export class IntegrationTestFramework {
       case 'failed':
         return '[ERROR]';
       case 'skipped':
-        return '[EMOJI]️';
+        return '[TIME]';
       case 'error':
         return '[EMOJI]';
       default:
@@ -390,14 +390,22 @@ export class TestScenarioBuilder {
       throw new Error('Test scenario must have name and category');
     }
 
-    return {
+    const result: TestScenario = {
       name: this.scenario.name,
       description: this.scenario.description || '',
       category: this.scenario.category,
       priority: this.scenario.priority || 'medium',
-      prerequisites: this.scenario.prerequisites,
-      tags: this.scenario.tags,
     };
+    
+    // Only add optional properties if they have values
+    if (this.scenario.prerequisites && this.scenario.prerequisites.length > 0) {
+      result.prerequisites = this.scenario.prerequisites;
+    }
+    if (this.scenario.tags && this.scenario.tags.length > 0) {
+      result.tags = this.scenario.tags;
+    }
+    
+    return result;
   }
 }
 

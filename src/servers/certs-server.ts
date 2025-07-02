@@ -245,7 +245,7 @@ class CertsALECSServer {
           },
         },
         {
-          name: 'upload-third-party-certificate',
+          name: 'upload-third-party-cert',
           description: 'Upload signed certificate from external Certificate Authority',
           inputSchema: {
             type: 'object',
@@ -290,7 +290,7 @@ class CertsALECSServer {
           },
         },
         {
-          name: 'monitor-certificate-deployment',
+          name: 'monitor-cert-deployment',
           description: 'Monitor certificate deployment with real-time status and estimated completion times',
           inputSchema: {
             type: 'object',
@@ -305,7 +305,7 @@ class CertsALECSServer {
         },
         // Advanced Certificate Enrollment
         {
-          name: 'enroll-certificate-with-validation',
+          name: 'enroll-cert-with-validation',
           description: 'Enroll certificate with automatic domain validation',
           inputSchema: {
             type: 'object',
@@ -334,7 +334,7 @@ class CertsALECSServer {
           },
         },
         {
-          name: 'validate-certificate-enrollment',
+          name: 'validate-cert-enrollment',
           description: 'Validate certificate enrollment configuration',
           inputSchema: {
             type: 'object',
@@ -378,7 +378,7 @@ class CertsALECSServer {
           },
         },
         {
-          name: 'monitor-certificate-enrollment',
+          name: 'monitor-cert-enrollment',
           description: 'Monitor certificate enrollment progress',
           inputSchema: {
             type: 'object',

@@ -684,7 +684,7 @@ export async function findOptimalPropertyAssignment(
       const matchingProperty = findMatchingProperty(groupName, hostnames, existingProperties);
 
       if (matchingProperty) {
-        responseText += '### [EMOJI]️ Reuse Existing Property\n';
+        responseText += '### [SYNC] Reuse Existing Property\n';
         responseText += `- **Property:** ${matchingProperty.propertyName} (${matchingProperty.propertyId})\n`;
         responseText += `- **Current Hostnames:** ${matchingProperty.hostnameCount || 0}\n`;
         responseText += `- **Available Capacity:** ${maxPerProperty - (matchingProperty.hostnameCount || 0)}\n\n`;
@@ -852,22 +852,22 @@ export async function createHostnameProvisioningPlan(
     responseText += `**Valid Hostnames:** ${validHostnames.length}/${args.hostnames.length}\n\n`;
 
     // Validation summary
-    responseText += '## 1️⃣ Validation Summary\n';
+    responseText += '## [1] Validation Summary\n';
     responseText += extractSummaryFromResponse(validationResult);
     responseText += '\n';
 
     // Ownership analysis
-    responseText += '## 2️⃣ Ownership Analysis\n';
+    responseText += '## [2] Ownership Analysis\n';
     responseText += extractSummaryFromResponse(ownershipResult);
     responseText += '\n';
 
     // Edge hostname plan
-    responseText += '## 3️⃣ Edge Hostname Configuration\n';
+    responseText += '## [3] Edge Hostname Configuration\n';
     responseText += extractSummaryFromResponse(edgeHostnameResult);
     responseText += '\n';
 
     // Property assignment
-    responseText += '## 4️⃣ Property Assignment Strategy\n';
+    responseText += '## [4] Property Assignment Strategy\n';
     responseText += extractSummaryFromResponse(assignmentResult);
     responseText += '\n';
 
@@ -1180,7 +1180,7 @@ function groupHostnamesByStrategy(
         if (!groups[category]) {
           groups[category] = [];
         }
-        groups[category].push(hostname);
+        groups[category]!.push(hostname);
       });
       break;
 
@@ -1199,7 +1199,7 @@ function groupHostnamesByStrategy(
         if (!groups[env]) {
           groups[env] = [];
         }
-        groups[env].push(hostname);
+        groups[env]!.push(hostname);
       });
       break;
 

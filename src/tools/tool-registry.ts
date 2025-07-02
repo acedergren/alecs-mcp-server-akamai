@@ -14,6 +14,14 @@ export {
   listProducts,
 } from './property-tools';
 
+// Unified Search
+export {
+  search,
+  searchProperties,
+  searchHostnames,
+  searchOrigins,
+} from './search-tool';
+
 export {
   activateProperty,
   addPropertyHostname,
@@ -23,8 +31,6 @@ export {
   createEdgeHostname,
   getPropertyRules,
   updatePropertyRules,
-  updatePropertyWithDefaultDV,
-  updatePropertyWithCPSCertificate,
   listPropertyVersionsEnhanced,
   listPropertyActivations,
   getActivationStatus,
@@ -34,12 +40,10 @@ export {
 } from './property-manager-tools';
 
 export {
-  searchProperties,
   listPropertyVersions,
   getPropertyVersion,
   getLatestPropertyVersion,
   listPropertyVersionHostnames,
-  listAllHostnames,
   listEdgeHostnames,
   getEdgeHostname,
   cloneProperty,
@@ -174,7 +178,6 @@ export {
 // Advanced Property Operations
 export {
   bulkUpdateProperties,
-  searchPropertiesAdvanced,
   compareProperties,
   detectConfigurationDrift,
   checkPropertyHealth,

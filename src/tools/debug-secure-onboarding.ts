@@ -266,7 +266,7 @@ export async function debugSecurePropertyOnboarding(
         text += `[ERROR] **Property detail retrieval failed:** ${propDetailError.message}\n`;
       }
     } else {
-      text += '[EMOJI]️ **Skipped - no property ID available**\n';
+      text += '[WARNING] **Skipped - no property ID available**\n';
     }
     text += '\n';
 

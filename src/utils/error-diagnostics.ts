@@ -160,7 +160,7 @@ function diagnose404Error(error: any, context: ErrorContext): DiagnosticResult {
   };
 }
 
-function diagnose400Error(error: any, context: ErrorContext): DiagnosticResult {
+function diagnose400Error(error: any, _context: ErrorContext): DiagnosticResult {
   const detail = error.response?.data?.detail || '';
   const errors = error.response?.data?.errors || [];
   
@@ -256,7 +256,7 @@ export function formatDiagnosticMessage(result: DiagnosticResult): string {
   }
   
   if (result.canRetry) {
-    message += `\n🔄 This error may be temporary. `;
+    message += `\n[SYNC] This error may be temporary. `;
     if (result.retryDelay) {
       message += `Retry in ${result.retryDelay / 1000} seconds.`;
     } else {

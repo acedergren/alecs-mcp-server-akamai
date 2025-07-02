@@ -83,12 +83,27 @@ export async function provisionCompleteProperty(
   try {
     const agent = await getCDNAgent(client.getCustomer());
 
-    await agent.provisionCompleteProperty(args.propertyName, args.hostnames, args.originHostname, {
-      productId: args.productId,
-      activateStaging: args.activateStaging,
-      activateProduction: args.activateProduction,
-      notifyEmails: args.notifyEmails,
-    });
+    const options: {
+      productId?: string;
+      activateStaging?: boolean;
+      activateProduction?: boolean;
+      notifyEmails?: string[];
+    } = {};
+    
+    if (args.productId !== undefined) {
+      options.productId = args.productId;
+    }
+    if (args.activateStaging !== undefined) {
+      options.activateStaging = args.activateStaging;
+    }
+    if (args.activateProduction !== undefined) {
+      options.activateProduction = args.activateProduction;
+    }
+    if (args.notifyEmails !== undefined) {
+      options.notifyEmails = args.notifyEmails;
+    }
+    
+    await agent.provisionCompleteProperty(args.propertyName, args.hostnames, args.originHostname, options);
 
     return {
       content: [
@@ -185,12 +200,27 @@ export async function provisionAndDeployCertificate(
   try {
     const agent = await getCPSAgent(client.getCustomer());
 
-    await agent.provisionAndDeployCertificate(args.domains, {
-      type: args.type,
-      network: args.network,
-      propertyIds: args.propertyIds,
-      autoRenewal: args.autoRenewal,
-    });
+    const certOptions: {
+      type?: 'default-dv' | 'third-party' | 'ev' | 'ov';
+      network?: 'staging' | 'production';
+      propertyIds?: string[];
+      autoRenewal?: boolean;
+    } = {};
+    
+    if (args.type !== undefined) {
+      certOptions.type = args.type;
+    }
+    if (args.network !== undefined) {
+      certOptions.network = args.network;
+    }
+    if (args.propertyIds !== undefined) {
+      certOptions.propertyIds = args.propertyIds;
+    }
+    if (args.autoRenewal !== undefined) {
+      certOptions.autoRenewal = args.autoRenewal;
+    }
+    
+    await agent.provisionAndDeployCertificate(args.domains, certOptions);
 
     return {
       content: [
@@ -302,12 +332,22 @@ export async function bulkDNSMigration(
   try {
     const orchestrator = await getOrchestrator(client.getCustomer());
 
-    await orchestrator.bulkDNSMigration({
+    const migrationOptions: {
+      zones: Array<{ source: string; target?: string }>;
+      sourceType: 'cloudflare' | 'route53' | 'axfr';
+      sourceConfig: any;
+      parallel?: number;
+    } = {
       zones: args.zones,
       sourceType: args.sourceType,
       sourceConfig: args.sourceConfig,
-      parallel: args.parallel,
-    });
+    };
+    
+    if (args.parallel !== undefined) {
+      migrationOptions.parallel = args.parallel;
+    }
+    
+    await orchestrator.bulkDNSMigration(migrationOptions);
 
     return {
       content: [

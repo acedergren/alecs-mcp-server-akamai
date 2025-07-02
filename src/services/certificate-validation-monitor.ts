@@ -6,11 +6,7 @@
 import { EventEmitter } from 'events';
 
 import { type AkamaiClient } from '../akamai-client';
-import { 
-  DVValidationResponse,
-  DomainValidation as ApiDomainValidation,
-  EnrollmentDetailResponse
-} from '../types/api-responses';
+// Note: Using local DomainValidation interface instead of API types for internal state management
 import { validateApiResponse } from '../utils/api-response-validator';
 
 // Validation States

@@ -1,7 +1,7 @@
 {
   "name": "alecs-mcp-server-akamai",
-  "version": "1.6.0-rc3",
-  "description": "ALECS - A Launchgrid for Edge & Cloud services - MCP server for Akamai with agentic AI workflows",
+  "version": "1.7.4",
+  "description": "ALECS - A Launchgrid for Edge & Cloud Services - MCP server for Akamai with agentic AI workflows",
   "keywords": [
     "mcp",
     "akamai",
@@ -25,13 +25,19 @@
   },
   "main": "dist/index.js",
   "bin": {
-    "alecs": "dist/index.js"
+    "alecs-akamai": "dist/alecs-cli-wrapper.js",
+    "alecs": "dist/alecs-cli-wrapper.js"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
-    "build": "npm run clean && npm run build:ts",
+    "build": "npm run clean && npm run build:ts && npm run docs:update",
     "build:ts": "tsc --project tsconfig.json",
     "build:watch": "tsc --watch --project tsconfig.json",
     "clean": "rm -rf dist .tsbuildinfo",
+    "docs:update": "tsx scripts/update-docs.ts",
+    "deploy:hooks": "./scripts/deploy-hooks.sh",
     "start": "node dist/index.js",
     "start:stdio": "MCP_TRANSPORT=stdio node dist/index.js",
     "start:websocket": "MCP_TRANSPORT=websocket node dist/index.js",
@@ -41,70 +47,93 @@
     "start:certs": "node dist/servers/certs-server.js",
     "start:reporting": "node dist/servers/reporting-server.js",
     "start:security": "node dist/servers/security-server.js",
+    "start:appsec": "node dist/servers/appsec-server.js",
+    "start:fastpurge": "node dist/servers/fastpurge-server.js",
+    "start:network-lists": "node dist/servers/network-lists-server.js",
     "dev": "tsx src/index.ts",
     "dev:watch": "tsx --watch src/index.ts",
-    "test": "jest",
+    "test": "jest --config jest.config.ci.js",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:ci": "npm run build && jest --config jest.config.ci.js --silent",
+    "test:full": "jest",
+    "test:smoke": "jest __tests__/smoke",
+    "test:critical": "jest __tests__/critical",
+    "test:reliable": "jest --config jest.config.reliable.js",
+    "test:reliable:watch": "jest --config jest.config.reliable.js --watch",
+    "test:unit": "jest __tests__/unit --testPathIgnorePatterns='/__tests__/(live|e2e|integration)/'",
     "test:mcp-eval": "jest __tests__/mcp-evals/run-evals.test.ts",
     "eval:property": "jest __tests__/mcp-evals/run-evals.test.ts -t 'Property Management'",
     "eval:dns": "jest __tests__/mcp-evals/run-evals.test.ts -t 'DNS Management'",
     "eval:report": "node scripts/generate-eval-report.js",
+    "api:discover": "node scripts/api-discover-pure.js discover",
+    "api:validate": "node scripts/api-discover-pure.js validate",
+    "api:discover:all": "bash scripts/api-discover.sh all",
+    "api:discover:akamai": "bash scripts/api-discover.sh akamai",
+    "api:discover:mcp": "bash scripts/api-discover.sh mcp",
+    "api:discover:bash": "bash scripts/api-discover.sh",
     "lint": "eslint 'src/**/*.ts' --fix",
     "format": "prettier --write 'src/**/*.{ts,json,md}'",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "postinstall": "node scripts/post-install.js || echo 'Post-install setup failed, continuing...'"
   },
-  "author": "",
-  "license": "MIT",
+  "author": "Alexander Cedergren",
+  "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.13.0",
-    "@types/commander": "^2.12.0",
-    "@types/ws": "^8.18.1",
     "akamai-edgegrid": "^3.4.0",
     "commander": "^14.0.0",
     "express": "^4.21.2",
-    "lru-cache": "^7.18.3",
-    "ws": "^8.18.2",
-    "zod": "^3.22.0"
+    "lru-cache": "^11.1.0",
+    "pino": "^9.7.0",
+    "pino-pretty": "^13.0.0",
+    "ws": "^8.18.2"
   },
   "devDependencies": {
     "@jest/globals": "^30.0.2",
+    "@types/commander": "^2.12.0",
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/lru-cache": "^7.10.9",
     "@types/node": "^24.0.3",
-    "@types/supertest": "^6.0.3",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^8.34.1",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "eslint": "^9.29.0",
     "eslint-plugin-import": "^2.28.0",
     "eslint-plugin-jest": "^29.0.1",
     "fast-check": "^4.1.1",
-    "glob": "^11.0.3",
     "jest": "^30.0.2",
     "jest-junit": "^16.0.0",
     "jsonwebtoken": "^9.0.2",
-    "prettier": "^3.0.0",
-    "supertest": "^7.1.1",
+    "openapi-typescript": "^7.8.0",
+    "prettier": "^3.6.2",
     "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.3",
     "typescript": "^5.0.0",
-    "typescript-eslint": "^8.34.1"
+    "typescript-eslint": "^8.34.1",
+    "uuid": "^11.1.0",
+    "zod": "^3.25.67"
   },
   "files": [
     "dist/",
+    "scripts/post-install.js",
     "README.md",
-    "EXAMPLES.md"
+    "EXAMPLES.md",
+    ".env.example"
   ],
   "engines": {
     "node": ">=18.0.0"
   },
-  "publishConfig": {
-    "access": "public"
+  "optionalDependencies": {
+    "glob": "^11.0.3"
   }
 }

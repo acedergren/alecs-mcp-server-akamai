@@ -1,182 +1,123 @@
 # Claude Desktop Setup Guide for ALECS MCP Server
 
-This guide will help you set up the ALECS MCP Server with Claude Desktop.
+## Installation Issues and Solutions
 
-## Prerequisites
+### Error: Cannot find module 'index-full.js'
 
-1. **Claude Desktop** installed on your system
-2. **Node.js** v18 or higher
-3. **Akamai API credentials** in `~/.edgerc` file
-
-## Installation Steps
-
-### 1. Build the Project
-
-```bash
-cd /Users/acedergr/Projects/alecs-mcp-server-akamai/alecs-mcp-server-akamai
-npm install
-npm run build
+If you're seeing this error:
+```
+Error: Cannot find module '/path/to/alecs-mcp-server-akamai/dist/index-full.js'
 ```
 
-### 2. Test Your Credentials
+**Solution:** The correct file is `index.js`, not `index-full.js`. Update your Claude Desktop configuration.
 
+## Correct Setup Instructions
+
+### 1. Install from NPM (Recommended)
 ```bash
-# Create a test script
-cat > test-connection.js << 'EOF'
-const EdgeGrid = require('akamai-edgegrid');
-const eg = new EdgeGrid({
-  path: process.env.HOME + '/.edgerc',
-  section: 'default'
-});
-
-eg.auth({ path: '/papi/v1/contracts', method: 'GET', headers: {} });
-eg.send((err, response, body) => {
-  if (err) {
-    console.log('❌ Connection failed:', err.message);
-  } else {
-    console.log('✅ Connection successful!');
-    console.log('Account:', JSON.parse(body).accountId);
-  }
-});
-EOF
-
-# Run the test
-node test-connection.js
+npm install -g alecs-mcp-server-akamai
 ```
 
-### 3. Configure Claude Desktop
+### 2. Configure Claude Desktop
 
-Add the following to your Claude Desktop configuration file:
-
-**Location:**
+Edit your Claude Desktop configuration file:
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
 
-**Configuration:**
+Add this configuration:
 
 ```json
 {
   "mcpServers": {
     "alecs-akamai": {
       "command": "node",
-      "args": [
-        "/Users/acedergr/Projects/alecs-mcp-server-akamai/alecs-mcp-server-akamai/dist/index.js"
-      ],
-      "env": {
-        "DEBUG": "0"
-      }
+      "args": ["/path/to/alecs-mcp-server-akamai/dist/index.js"]
     }
   }
 }
 ```
 
-For the full version with all tools:
+**Important:** Use `index.js`, NOT `index-full.js`
+
+### 3. For Global NPM Installation
+
+If you installed globally with npm, use:
 
 ```json
 {
   "mcpServers": {
-    "alecs-akamai-full": {
-      "command": "node",
-      "args": [
-        "/Users/acedergr/Projects/alecs-mcp-server-akamai/alecs-mcp-server-akamai/dist/index-full.js"
-      ],
-      "env": {
-        "DEBUG": "0"
-      }
+    "alecs-akamai": {
+      "command": "alecs"
     }
   }
 }
 ```
 
-### 4. Restart Claude Desktop
+### 4. For Local Development
 
-After saving the configuration, completely quit and restart Claude Desktop.
+If you're running from source:
 
-## Verification
+```bash
+# First build the project
+cd /path/to/alecs-mcp-server-akamai
+npm install
+npm run build
 
-Once Claude Desktop restarts, you should see the MCP tools available. Try these commands:
+# Then use this configuration
+```
 
-1. **List your properties:**
-   ```
-   "Show me all my Akamai properties"
-   ```
+```json
+{
+  "mcpServers": {
+    "alecs-akamai": {
+      "command": "node",
+      "args": ["/path/to/alecs-mcp-server-akamai/dist/index.js"]
+    }
+  }
+}
+```
 
-2. **List contracts:**
-   ```
-   "List my Akamai contracts"
-   ```
+### 5. Verify Your Setup
 
-3. **Get property details:**
-   ```
-   "Get details for property prp_123456"
-   ```
-
-## Available Tools
-
-### Minimal Server (index.js) - 7 tools:
-- `list-properties` - List all CDN properties
-- `get-property` - Get property details
-- `create-property` - Create new property
-- `activate-property` - Activate to staging/production
-- `list-contracts` - List contracts
-- `create-zone` - Create DNS zone
-- `create-record` - Create DNS record
-
-### Full Server (index-full.js) - ~198 tools:
-All minimal tools plus:
-- Certificate management
-- Security configurations
-- Fast purge
-- Reporting and analytics
-- Network lists
-- WAF rules
-- And much more...
-
-## Troubleshooting
-
-### Server doesn't appear in Claude Desktop
-
-1. **Check logs:**
+1. Check that the file exists:
    ```bash
-   # macOS
-   tail -f ~/Library/Logs/Claude/mcp*.log
+   ls -la /path/to/alecs-mcp-server-akamai/dist/index.js
    ```
 
-2. **Test server directly:**
+2. Test the server directly:
    ```bash
-   echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | node dist/index.js
+   node /path/to/alecs-mcp-server-akamai/dist/index.js
    ```
+   
+   You should see: `Server running on stdio`
 
-3. **Verify paths are correct:**
-   - Ensure the path in config matches your actual installation
-   - Use absolute paths, not relative
+3. Restart Claude Desktop after updating the configuration
 
-### Authentication errors
+## Common Issues
 
-1. **Check .edgerc file:**
-   ```bash
-   cat ~/.edgerc
-   ```
+### Issue: Module not found errors
+- Make sure you've run `npm install` and `npm run build`
+- Verify the path in your configuration is correct
+- Use absolute paths, not relative paths
 
-2. **Verify credentials are active:**
-   - Log into Akamai Control Center
-   - Go to Identity & Access → API Users
-   - Check if your credentials are active
+### Issue: Server starts but immediately disconnects
+- Check that you have a valid `.edgerc` file in your home directory
+- Ensure Node.js version is 18 or higher
+- Check the Claude Desktop logs for specific errors
 
-3. **Test with minimal permissions:**
-   - Property Manager: READ
-   - Contracts: READ
+### Issue: Permission denied
+- On macOS/Linux, you may need to make the file executable:
+  ```bash
+  chmod +x /path/to/alecs-mcp-server-akamai/dist/index.js
+  ```
 
-### Performance issues
+## Need Help?
 
-Use the minimal server instead of full if you only need basic functionality:
-- Minimal: ~50ms startup, 7 tools
-- Full: ~200ms startup, 198 tools
-
-## Support
-
-For issues or questions:
-1. Check the [GitHub repository](https://github.com/your-repo/alecs-mcp-server-akamai)
-2. Review logs in `~/.alecs/logs/`
-3. Run with DEBUG=1 for verbose output
+1. Check the [main README](README.md) for detailed setup instructions
+2. Review the [troubleshooting guide](docs/TROUBLESHOOTING.md)
+3. Open an issue on GitHub with:
+   - Your Claude Desktop configuration
+   - The exact error message
+   - Your Node.js version (`node --version`)
+   - Your operating system

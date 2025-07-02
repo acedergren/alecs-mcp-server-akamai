@@ -82,7 +82,7 @@ export class BloomFilter {
    * Get current false positive probability based on actual usage
    */
   getCurrentFalsePositiveRate(): number {
-    if (this.numElements === 0) return 0;
+    if (this.numElements === 0) {return 0;}
     
     // Formula: (1 - e^(-k*n/m))^k
     const ratio = -this.hashFunctions * this.numElements / this.size;
@@ -166,8 +166,10 @@ export class BloomFilter {
     
     // OR the bit arrays together
     for (let i = 0; i < this.bitArray.length; i++) {
-      if (this.bitArray[i] !== undefined && other.bitArray[i] !== undefined) {
-        this.bitArray[i] |= other.bitArray[i];
+      const thisBit = this.bitArray[i];
+      const otherBit = other.bitArray[i];
+      if (thisBit !== undefined && otherBit !== undefined) {
+        this.bitArray[i] = thisBit | otherBit;
       }
     }
     

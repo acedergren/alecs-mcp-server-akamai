@@ -223,7 +223,7 @@ export function validateAkamaiId(id: string): {
  * @example fixAkamaiId("Property 123456", "property") // "prp_123456"
  */
 export function fixAkamaiId(id: string, expectedType: string): string | null {
-  if (!id || !expectedType) return null;
+  if (!id || !expectedType) {return null;}
   
   // If already valid, return as-is
   const validation = validateAkamaiId(id);
@@ -237,7 +237,7 @@ export function fixAkamaiId(id: string, expectedType: string): string | null {
   // Handle "Property 123456" format
   const propertyMatch = id.match(/property\s+(\d+)/i);
   if (propertyMatch) {
-    numericPart = propertyMatch[1];
+    numericPart = propertyMatch[1] || null;
   }
   
   // Handle raw numbers
@@ -248,7 +248,7 @@ export function fixAkamaiId(id: string, expectedType: string): string | null {
   // Handle IDs with wrong prefix
   const wrongPrefixMatch = id.match(/^[a-z]+_(\d+)$/);
   if (wrongPrefixMatch) {
-    numericPart = wrongPrefixMatch[1];
+    numericPart = wrongPrefixMatch[1] || null;
   }
   
   // Apply correct prefix based on type

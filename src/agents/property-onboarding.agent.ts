@@ -8,7 +8,8 @@ import { type AkamaiClient } from '../akamai-client';
 import { createCPCode } from '../tools/cpcode-tools';
 import { listZones, upsertRecord } from '../tools/dns-tools';
 import { listProducts } from '../tools/product-tools';
-import { searchProperties, listEdgeHostnames } from '../tools/property-manager-advanced-tools';
+import { listEdgeHostnames } from '../tools/property-manager-advanced-tools';
+import { universalSearchWithCacheHandler } from '../tools/universal-search-with-cache';
 import {
   createEdgeHostname,
   addPropertyHostname,
@@ -271,17 +272,16 @@ export class PropertyOnboardingAgent {
 
     // Check if property already exists
     try {
-      const searchResult = await searchProperties(this.client, {
-        propertyName: config.hostname,
-        hostname: config.hostname,
+      const searchResult = await universalSearchWithCacheHandler(this.client, {
+        query: config.hostname,
         ...(config.customer && { customer: config.customer }),
       });
 
       // Parse the response to check if property exists
       const responseText = searchResult.content[0]?.text || '';
       if (
-        responseText.includes('Properties found') &&
-        !responseText.includes('No properties found')
+        responseText.includes('property') &&
+        !responseText.includes('No results found')
       ) {
         errors.push(`Property with hostname ${config.hostname} already exists`);
       }

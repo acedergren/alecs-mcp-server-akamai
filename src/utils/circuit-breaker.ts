@@ -239,4 +239,11 @@ export class CircuitBreaker {
     this.nextResetTime = 0;
     this.resetTimeouts = 0;
   }
+  
+  /**
+   * Get the last failure time (for monitoring)
+   */
+  getLastFailureTime(): number {
+    return this.lastFailureTime;
+  }
 }

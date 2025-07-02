@@ -23,9 +23,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Run CI Diagnostic
-        run: node scripts/ci-diagnostic.js
-
       - name: Lint Check (non-blocking)
         run: npm run lint || true
         continue-on-error: true
@@ -35,5 +32,11 @@ jobs:
         continue-on-error: true
 
       - name: Run Tests (non-blocking)
-        run: npm test || true
+        run: npm test -- --coverage || true
         continue-on-error: true
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

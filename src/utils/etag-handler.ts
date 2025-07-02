@@ -152,7 +152,7 @@ export async function getPropertyRulesWithETag(
 ): Promise<{ rules: any; etag: string | null }> {
   const path = `/papi/v1/properties/${propertyId}/versions/${version}/rules`;
   const queryParams: Record<string, string> = {};
-  if (validateRules) queryParams.validateRules = 'true';
+  if (validateRules) {queryParams['validateRules'] = 'true';}
   
   const response = await requestWithETag(client, {
     path,
@@ -182,7 +182,7 @@ export async function updatePropertyRulesWithETag(
 ): Promise<any> {
   const path = `/papi/v1/properties/${propertyId}/versions/${version}/rules`;
   const queryParams: Record<string, string> = {};
-  if (options?.validateRules) queryParams.validateRules = 'true';
+  if (options?.validateRules) {queryParams['validateRules'] = 'true';}
   
   return requestWithETag(client, {
     path,

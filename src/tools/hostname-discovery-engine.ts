@@ -5,7 +5,7 @@
  */
 
 import { handleApiError } from '../utils/error-handling';
-import { validateApiResponse, isPropertyResponse, isHostnamesResponse } from '../utils/api-response-validator';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -211,7 +211,7 @@ export async function analyzeHostnameConflicts(
       }
 
       if (infoConflicts.length > 0) {
-        responseText += `### ℹ️ Informational Conflicts (${infoConflicts.length})\n\n`;
+        responseText += `### [INFO] Informational Conflicts (${infoConflicts.length})\n\n`;
         infoConflicts.forEach((conflict, index) => {
           responseText += buildConflictReport(conflict, index + 1);
         });

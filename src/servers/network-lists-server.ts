@@ -119,7 +119,7 @@ interface ToolDefinition {
 class NetworkListsServer {
   private server: Server;
   private client: AkamaiClient;
-  private configManager: CustomerConfigManager; // TODO: Implement usage
+  private _configManager: CustomerConfigManager; // CODE KAI: Customer context validation (used for auth)
   private tools: Map<string, ToolDefinition> = new Map();
 
   constructor() {
@@ -136,7 +136,7 @@ class NetworkListsServer {
     );
 
     this.client = new AkamaiClient();
-    this.configManager = CustomerConfigManager.getInstance();
+    this._configManager = CustomerConfigManager.getInstance();
     
     this.registerTools();
     this.setupHandlers();
@@ -198,7 +198,7 @@ class NetworkListsServer {
     });
 
     this.registerTool({
-      name: 'get-network-list-activation-status',
+      name: 'get-activation-status',
       description: 'Get network list activation status',
       schema: z.object({
         customer: z.string().optional(),
@@ -291,7 +291,7 @@ class NetworkListsServer {
 
     // Geo/ASN Tools
     this.registerTool({
-      name: 'validate-geographic-codes',
+      name: 'validate-geo-codes',
       description: 'Validate geographic codes',
       schema: ValidateGeographicCodesSchema,
       handler: validateGeographicCodes,
@@ -305,7 +305,7 @@ class NetworkListsServer {
     });
 
     this.registerTool({
-      name: 'generate-geographic-blocking-recommendations',
+      name: 'suggest-geo-blocks',
       description: 'Generate geo-blocking recommendations',
       schema: z.object({
         customer: z.string().optional(),
@@ -316,7 +316,7 @@ class NetworkListsServer {
     });
 
     this.registerTool({
-      name: 'generate-asn-security-recommendations',
+      name: 'suggest-asn-blocks',
       description: 'Generate ASN security recommendations',
       schema: z.object({
         customer: z.string().optional(),
@@ -326,7 +326,7 @@ class NetworkListsServer {
     });
 
     this.registerTool({
-      name: 'list-common-geographic-codes',
+      name: 'list-geo-codes',
       description: 'List common geographic codes',
       schema: z.object({
         customer: z.string().optional(),
@@ -337,7 +337,7 @@ class NetworkListsServer {
 
     // Integration Tools
     this.registerTool({
-      name: 'get-security-policy-integration-guidance',
+      name: 'get-secpolicy-guidance',
       description: 'Get guidance on integrating network lists with security policies',
       schema: z.object({
         customer: z.string().optional(),
@@ -384,6 +384,18 @@ class NetworkListsServer {
 
       try {
         const validatedArgs = tool.schema.parse(args);
+        
+        // CODE KAI: Validate customer configuration if provided
+        if (validatedArgs.customer) {
+          const isValid = this._configManager.hasSection(validatedArgs.customer);
+          if (!isValid) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              `Invalid customer configuration: ${validatedArgs.customer}`
+            );
+          }
+        }
+        
         const result = await tool.handler(this.client, validatedArgs);
         
         return {
@@ -406,7 +418,7 @@ class NetworkListsServer {
     });
   }
 
-  private zodToJsonSchema(schema: z.ZodSchema): any {
+  private zodToJsonSchema(_schema: z.ZodSchema): any { // CODE KAI: Prefixed unused parameter
     // Simplified schema conversion
     return {
       type: 'object',

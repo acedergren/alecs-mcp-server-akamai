@@ -76,8 +76,8 @@ export class RealTimeMonitoringService extends EventEmitter {
   private alertRules: Map<string, AlertRule> = new Map();
   private activeAlerts: Map<string, AlertEvent> = new Map();
   private metricHistory: Map<string, RealTimeMetric[]> = new Map();
-  private monitoringInterval?: NodeJS.Timeout;
-  private alertInterval?: NodeJS.Timeout;
+  private monitoringInterval?: NodeJS.Timeout | undefined;
+  private alertInterval?: NodeJS.Timeout | undefined;
   private isMonitoring = false;
 
   constructor(customer = 'default', config?: Partial<MonitoringConfiguration>) {
@@ -188,13 +188,25 @@ export class RealTimeMonitoringService extends EventEmitter {
       const metricPromises = metricsToFetch.map(async (metric) => {
         try {
           const value = await this.fetchCurrentMetricValue(metric, filter);
-          return {
+          
+          // CODE KAI: Handle optional tags with proper type compliance
+          const realTimeMetric: RealTimeMetric = {
             metric,
             value,
             timestamp,
             unit: this.getMetricUnit(metric),
-            tags: filter,
           };
+          
+          if (filter) {
+            // Convert any to string for tags
+            const stringTags: Record<string, string> = {};
+            for (const [key, val] of Object.entries(filter)) {
+              stringTags[key] = String(val);
+            }
+            realTimeMetric.tags = stringTags;
+          }
+          
+          return realTimeMetric;
         } catch (_error) {
           logger.error(`Failed to fetch metric ${metric}`, { error: _error });
           return null;
@@ -235,7 +247,7 @@ export class RealTimeMonitoringService extends EventEmitter {
       ...rule,
       id: ruleId,
       consecutiveViolations: 0,
-      lastTriggered: undefined,
+      // lastTriggered will be undefined implicitly (optional property)
     };
 
     this.alertRules.set(ruleId, alertRule);
@@ -640,12 +652,18 @@ export class RealTimeMonitoringService extends EventEmitter {
         }
       }
 
-      return {
+      // CODE KAI: Handle optional threshold for exact type compliance
+      const healthMetric: { name: string; value: number; status: 'critical' | 'warning' | 'normal'; threshold?: number } = {
         name: metric.metric,
         value: metric.value,
         status,
-        threshold: alertRule?.threshold,
       };
+      
+      if (alertRule) {
+        healthMetric.threshold = alertRule.threshold;
+      }
+      
+      return healthMetric;
     });
   }
 

@@ -23,93 +23,143 @@ import { setupSafeConsole } from './utils/safe-console';
 setupSafeConsole();
 
 import { getTransportFromEnv } from './config/transport-config';
-import { logger } from './utils/logger';
+
+import { createLogger } from './utils/pino-logger';
+
+const mainLogger = createLogger('main');
+let server: any = null;
+
+// Graceful shutdown handler
+function setupGracefulShutdown() {
+  const shutdown = async (signal: string) => {
+    mainLogger.info(`Received ${signal}, shutting down gracefully...`);
+    
+    if (server && typeof server.stop === 'function') {
+      try {
+        await server.stop();
+        mainLogger.info('Server stopped successfully');
+      } catch (error) {
+        mainLogger.error({ error }, 'Error during server shutdown');
+      }
+    }
+    
+    process.exit(0);
+  };
+
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('uncaughtException', (error) => {
+    mainLogger.fatal({ error }, 'Uncaught exception');
+    process.exit(1);
+  });
+  process.on('unhandledRejection', (reason, promise) => {
+    mainLogger.fatal({ reason, promise }, 'Unhandled rejection');
+    process.exit(1);
+  });
+}
 
 async function main(): Promise<void> {
+  mainLogger.info('ALECS MCP Server starting...');
+  mainLogger.debug({ 
+    argv: process.argv,
+    cwd: process.cwd(),
+    nodeVersion: process.version,
+    pid: process.pid
+  }, 'Process info');
+  
   // Check if running a specific module via npm script
   const scriptName = process.env['npm_lifecycle_event'];
+  mainLogger.debug({ scriptName }, 'npm_lifecycle_event');
   
   if (scriptName && scriptName.startsWith('start:') && scriptName !== 'start:stdio') {
     // Launch specific module server
     const moduleName = scriptName.replace('start:', '');
+    mainLogger.info({ moduleName }, 'Launching specific module');
+    
     const moduleMap: Record<string, string> = {
       property: './servers/property-server',
       dns: './servers/dns-server',
       certs: './servers/certs-server',
       reporting: './servers/reporting-server',
       security: './servers/security-server',
+      appsec: './servers/appsec-server',
+      fastpurge: './servers/fastpurge-server',
+      'network-lists': './servers/network-lists-server',
     };
     
     if (moduleMap[moduleName]) {
+      mainLogger.info({ module: moduleMap[moduleName] }, 'Importing module');
       await import(moduleMap[moduleName]);
       return;
+    } else {
+      const error = new Error(`Unknown module: ${moduleName}`);
+      mainLogger.error({ moduleName }, error.message);
+      throw error;
     }
   }
   
   // Otherwise use unified transport approach
+  mainLogger.info('Using unified transport approach');
+  
   try {
+    mainLogger.debug('Getting transport config...');
     const transportConfig = getTransportFromEnv();
+    mainLogger.info({ transportConfig }, 'Transport config received');
     
-    /**
-     * CRITICAL: JSON-RPC Protocol Compliance Fix
-     * 
-     * Problem: Claude Desktop communicates via JSON-RPC over stdio (stdin/stdout)
-     * Any non-JSON output to stdout corrupts the protocol and causes parsing errors
-     * 
-     * Solution: Conditionally output based on transport type
-     * - stdio: Use logger (stderr) to avoid corrupting stdout JSON-RPC stream
-     * - websocket/sse: Safe to use console.log as they don't use stdout
-     * 
-     * Impact: Fixes "Unexpected token" and "not valid JSON" errors in Claude Desktop
-     */
-    if (transportConfig.type !== 'stdio') {
-      // Safe to use console.log for non-stdio transports
-      console.log(`[INFO] Starting ALECS MCP Server`);
-      console.log(`[INFO] Transport: ${transportConfig.type}`);
-    } else {
-      // stdio transport: Use logger to output to stderr, preserving stdout for JSON-RPC
-      logger.info('Starting ALECS MCP Server for Claude Desktop');
-    }
+    // Log transport type at debug level
+    mainLogger.debug({ transport: transportConfig.type }, 'Transport configuration');
     
     if (transportConfig.type === 'stdio') {
-      // stdio mode: All logs must go to stderr via logger to avoid JSON-RPC corruption
-      logger.info('Running in Claude Desktop mode - stdio transport active');
-    } else {
-      // Non-stdio modes: Console output is safe and provides user configuration guidance
-      console.log(`[INFO] Add to claude_desktop_config.json:`);
-      console.log(`
-{
-  "mcpServers": {
-    "alecs": {
-      "command": "node",
-      "args": ["${process.argv[1]}"]
-    }
-  }
-}
-`);
+      mainLogger.debug('Running in Claude Desktop mode - stdio transport active');
+      mainLogger.debug('All output going to stderr to prevent JSON-RPC corruption');
     }
     
-    // Start modular server based on transport configuration
-    const { createModularServer } = await import('./utils/modular-server-factory');
+    // Start Akamai MCP server with full tool registry
+    mainLogger.debug('Importing akamai-server-factory...');
+    const { createAkamaiServer } = await import('./utils/akamai-server-factory');
+    mainLogger.debug('akamai-server-factory imported successfully');
     
-    const server = await createModularServer({
+    mainLogger.debug('Creating Akamai server...');
+    server = await createAkamaiServer({
       name: `alecs-mcp-server-akamai`,
-      version: '1.6.0',
+      version: '1.7.4',
+      // Load all 171 tools by default
+      // Can be customized with toolFilter for specific deployments
     });
+    mainLogger.debug('Akamai server created successfully');
     
+    mainLogger.debug('Starting server...');
     await server.start();
+    
+    // Only show minimal output after startup unless DEBUG is set
+    if (process.env['DEBUG'] || process.env['LOG_LEVEL'] === 'debug') {
+      mainLogger.info('ALECS MCP Server is running and ready for connections');
+    }
+    
   } catch (_error) {
-    logger.error('Server initialization failed', {
-      error: _error instanceof Error ? _error.message : String(_error),
+    mainLogger.fatal({ error: _error }, 'Failed to start server');
+    mainLogger.error({
+      message: _error instanceof Error ? _error.message : String(_error),
       stack: _error instanceof Error ? _error.stack : undefined,
-    });
+      type: _error?.constructor?.name || typeof _error
+    }, 'Error details');
     process.exit(1);
   }
 }
 
 // Start the server
 if (require.main === module) {
-  main();
+  setupGracefulShutdown();
+  mainLogger.debug('Starting ALECS MCP Server...');
+  main().catch((error) => {
+    mainLogger.fatal({ error }, 'Unhandled error during startup');
+    mainLogger.fatal({ 
+      stack: error instanceof Error ? error.stack : 'No stack trace' 
+    }, 'Stack trace');
+    process.exit(1);
+  });
+} else {
+  mainLogger.debug('Script imported as module, not starting server');
 }
 
 export { main };

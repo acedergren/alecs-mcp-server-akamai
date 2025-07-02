@@ -246,7 +246,7 @@ export async function renewCertificate(
         content: [
           {
             type: 'text',
-            text: `ℹ️ Certificate renewal not needed yet\n\n${statusText}`,
+            text: `[INFO] Certificate renewal not needed yet\n\n${statusText}`,
           },
         ],
       };

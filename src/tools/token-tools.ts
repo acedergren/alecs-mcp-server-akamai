@@ -40,7 +40,7 @@ export async function handleGenerateApiToken(args: any) {
     return {
       content: [
         {
-          type: 'text',
+          type: 'text' as const,
           text: `[DONE] API Token Generated Successfully
 
 **Token ID:** ${result.tokenId}
@@ -80,7 +80,7 @@ curl -H "Authorization: Bearer ${result.token}" \\
     return {
       content: [
         {
-          type: 'text',
+          type: 'text' as const,
           text: `[ERROR] Failed to generate API token: ${error instanceof Error ? error.message : 'Unknown error'}`,
         },
       ],
@@ -109,7 +109,7 @@ export async function handleListApiTokens(_args: any) {
       return {
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: `No API tokens found.`,
           },
         ],
@@ -132,7 +132,7 @@ export async function handleListApiTokens(_args: any) {
     return {
       content: [
         {
-          type: 'text',
+          type: 'text' as const,
           text: `## API Tokens (${tokens.length})
 
 ${tokenList}
@@ -150,7 +150,7 @@ ${tokenList}
     return {
       content: [
         {
-          type: 'text',
+          type: 'text' as const,
           text: `[ERROR] Failed to list API tokens: ${error instanceof Error ? error.message : 'Unknown error'}`,
         },
       ],
@@ -185,7 +185,7 @@ export async function handleRevokeApiToken(args: any) {
       return {
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: `[DONE] Token ${args.tokenId} has been revoked successfully.
 
 The token can no longer be used for authentication.`,
@@ -196,7 +196,7 @@ The token can no longer be used for authentication.`,
       return {
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: `[ERROR] Failed to revoke token ${args.tokenId}. Token may not exist.`,
           },
         ],
@@ -207,7 +207,7 @@ The token can no longer be used for authentication.`,
     return {
       content: [
         {
-          type: 'text',
+          type: 'text' as const,
           text: `[ERROR] Failed to revoke API token: ${error instanceof Error ? error.message : 'Unknown error'}`,
         },
       ],
@@ -242,7 +242,7 @@ export async function handleValidateApiToken(args: any) {
       return {
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: `[DONE] Token is valid
 
 **Token ID:** ${result.tokenId}
@@ -255,7 +255,7 @@ This token can be used for API access.`,
       return {
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: `[ERROR] Token is invalid
 
 **Error:** ${result.error || 'Unknown validation error'}
@@ -270,7 +270,7 @@ This token cannot be used for API access.`,
     return {
       content: [
         {
-          type: 'text',
+          type: 'text' as const,
           text: `[ERROR] Failed to validate API token: ${error instanceof Error ? error.message : 'Unknown error'}`,
         },
       ],
@@ -305,7 +305,7 @@ export async function handleRotateApiToken(args: any) {
       return {
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: `[DONE] Token Rotated Successfully
 
 **Old Token ID:** ${result.oldTokenId} (revoked)
@@ -330,7 +330,7 @@ Replace the old token with this new token in all your applications and scripts.`
       return {
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: `[ERROR] Failed to rotate token: ${result.error || 'Unknown error'}`,
           },
         ],
@@ -341,7 +341,7 @@ Replace the old token with this new token in all your applications and scripts.`
     return {
       content: [
         {
-          type: 'text',
+          type: 'text' as const,
           text: `[ERROR] Failed to rotate API token: ${error instanceof Error ? error.message : 'Unknown error'}`,
         },
       ],

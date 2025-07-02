@@ -646,7 +646,10 @@ export async function importFromCloudflare(
     }
 
     const cfZone = zonesData.result[0];
-    const zoneId = cfZone.id;
+    const zoneId = cfZone?.id;
+    if (!zoneId) {
+      throw new Error('Zone ID not found in Cloudflare response');
+    }
 
     // Step 2: Create zone in Akamai as PRIMARY
     await createZone(client, {

@@ -7,11 +7,11 @@
  * management toolkit following Snow Leopard design principles.
  * 
  * CONSOLIDATED CAPABILITIES:
- * 🏢 Complete Property Lifecycle Management
- * 🔐 Multi-Customer Account Support with secure isolation
- * 📊 Advanced Property Operations and Analytics
- * 🛡️ Enhanced Error Handling and Validation
- * 🔄 Comprehensive Version and Activation Management
+ * [ENTERPRISE] Complete Property Lifecycle Management
+ * [SECURE] Multi-Customer Account Support with secure isolation
+ * [ANALYTICS] Advanced Property Operations and Analytics
+ * [SHIELD] Enhanced Error Handling and Validation
+ * [SYNC] Comprehensive Version and Activation Management
  * 
  * CODE KAI PRINCIPLES APPLIED:
  * - Zero-tolerance for errors through comprehensive validation
@@ -34,15 +34,16 @@ import {
   formatContractDisplay,
   formatGroupDisplay,
   formatPropertyDisplay,
-} from '../utils/display-formatters';
+  formatEdgeHostnameDisplay,
+} from '../utils/formatting';
+import { formatProductDisplay } from '../utils/product-mapping';
 import { handleApiError } from '../utils/error-handling';
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
-import { createActivationProgress, ProgressManager, type ProgressToken } from '../utils/mcp-progress';
+import { createActivationProgress } from '../utils/mcp-progress';
 import {
   validatePropertyId,
   validateContractId,
-  validateGroupId,
   validateCPCodeId,
   getIdValidationError,
   fixAkamaiId,
@@ -51,8 +52,118 @@ import { handleApiErrorRFC7807 } from '../utils/rfc7807-errors';
 import {
   getPropertyRulesWithETag,
   updatePropertyRulesWithETag,
-  createETagAwareClient,
 } from '../utils/etag-handler';
+// Removed unused type imports
+import { 
+  PropertyListResponseSchema
+} from '../validation/api-validator';
+import { z } from 'zod';
+
+// Additional schemas for property manager responses
+// These schemas are aligned with Akamai PAPI v1 OpenAPI specification
+const PropertyDetailResponseSchema = z.object({
+  properties: z.object({
+    items: z.array(z.object({
+      // Required fields per OpenAPI spec
+      accountId: z.string(),
+      contractId: z.string(),
+      groupId: z.string(),
+      propertyId: z.string(),
+      propertyName: z.string(),
+      latestVersion: z.number(),
+      stagingVersion: z.union([z.number(), z.null()]),
+      productionVersion: z.union([z.number(), z.null()]),
+      assetId: z.string(),
+      note: z.string(),
+      // Optional fields
+      productId: z.string().optional(),
+      ruleFormat: z.string().optional()
+    }).passthrough())
+  })
+});
+
+const PropertyVersionListResponseSchema = z.object({
+  propertyId: z.string(),
+  propertyName: z.string(),
+  accountId: z.string(),
+  contractId: z.string(),
+  groupId: z.string(),
+  assetId: z.string().optional(),
+  versions: z.object({
+    items: z.array(z.object({
+      propertyVersion: z.number(),
+      updatedByUser: z.string(),
+      updatedDate: z.string(),
+      productionStatus: z.string().optional(),
+      stagingStatus: z.string().optional(),
+      etag: z.string().optional(),
+      productId: z.string().optional(),
+      ruleFormat: z.string().optional(),
+      note: z.string().optional()
+    }).passthrough())
+  })
+});
+
+const PropertyCreateResponseSchema = z.object({
+  propertyLink: z.string()
+});
+
+const PropertyVersionCreateResponseSchema = z.object({
+  versionLink: z.string()
+});
+
+const EdgeHostnameListResponseSchema = z.object({
+  edgeHostnames: z.object({
+    items: z.array(z.object({
+      edgeHostnameId: z.string(),
+      edgeHostnameDomain: z.string(),
+      productId: z.string(),
+      domainPrefix: z.string(),
+      domainSuffix: z.string(),
+      secure: z.boolean(),
+      ipVersionBehavior: z.string()
+    }).passthrough())
+  })
+});
+
+const EdgeHostnameCreateResponseSchema = z.object({
+  edgeHostnameLink: z.string()
+});
+
+const PropertyActivationResponseSchema = z.object({
+  activationLink: z.string()
+});
+
+const ActivationStatusResponseSchema = z.object({
+  accountId: z.string().optional(),
+  contractId: z.string().optional(),
+  groupId: z.string().optional(),
+  activations: z.object({
+    items: z.array(z.object({
+      activationId: z.string(),
+      propertyName: z.string(),
+      propertyId: z.string(),
+      propertyVersion: z.number(),
+      network: z.string(),
+      activationType: z.string(),
+      status: z.string(),
+      submitDate: z.string(),
+      updateDate: z.string(),
+      note: z.string().optional(),
+      notifyEmails: z.array(z.string()).optional(),
+      errors: z.array(z.object({
+        type: z.string(),
+        title: z.string(),
+        detail: z.string().optional()
+      })).optional(),
+      warnings: z.array(z.object({
+        type: z.string(),
+        title: z.string(),
+        detail: z.string().optional()
+      })).optional()
+    }).passthrough())
+  })
+});
 
 // =============================================================================
 // TYPE DEFINITIONS
@@ -113,6 +224,37 @@ export interface ActivationDetails {
 }
 
 // =============================================================================
+// VALIDATION HELPERS
+// =============================================================================
+
+/**
+ * Validates API response and returns typed result
+ * @param response - Raw API response
+ * @param schema - Zod schema for validation
+ * @param context - Error context for better error messages
+ */
+function validateApiResponse<T>(
+  response: unknown,
+  schema: z.ZodSchema<T>,
+  context: string
+): T {
+  const result = schema.safeParse(response);
+  
+  if (!result.success) {
+    const errorDetails = result.error.errors
+      .map(err => `- ${err.path.join('.')}: ${err.message}`)
+      .join('\n');
+    
+    throw new Error(
+      `Invalid API response from ${context}:\n${errorDetails}\n\n` +
+      `Response received: ${JSON.stringify(response, null, 2)}`
+    );
+  }
+  
+  return result.data;
+}
+
+// =============================================================================
 // 1. CORE PROPERTY MANAGEMENT (CRUD OPERATIONS)
 // =============================================================================
 
@@ -130,14 +272,21 @@ export async function listProperties(
 ): Promise<MCPToolResponse> {
   try {
     const queryParams: Record<string, string> = {};
-    if (args.contractId) queryParams.contractId = args.contractId;
-    if (args.groupId) queryParams.groupId = args.groupId;
+    if (args.contractId) {queryParams['contractId'] = args.contractId;}
+    if (args.groupId) {queryParams['groupId'] = args.groupId;}
 
-    const response = await client.request({
+    const rawResponse = await client.request({
       path: '/papi/v1/properties',
       method: 'GET',
       ...(Object.keys(queryParams).length > 0 && { queryParams }),
     });
+    
+    // Validate response using Zod schema
+    const response = validateApiResponse(
+      rawResponse,
+      PropertyListResponseSchema,
+      'listProperties'
+    );
 
     if (!response.properties?.items || response.properties.items.length === 0) {
       return {
@@ -161,7 +310,7 @@ export async function listProperties(
     text += `**Last Updated:** ${new Date().toISOString()}\n\n`;
 
     text += '## Property List\n\n';
-    response.properties.items.forEach((property: any, index: number) => {
+    response.properties.items.forEach((property, index) => {
       text += `### ${index + 1}. ${formatPropertyDisplay(property.propertyName, property.propertyId)}\n`;
       text += `- **Property ID:** ${property.propertyId}\n`;
       text += `- **Contract:** ${formatContractDisplay(property.contractId)}\n`;
@@ -219,10 +368,17 @@ export async function getProperty(
       };
     }
     
-    const response = await client.request({
+    const rawResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
+    
+    // Validate response using Zod schema
+    const response = validateApiResponse(
+      rawResponse,
+      PropertyDetailResponseSchema,
+      `getProperty(${args.propertyId})`
+    );
 
     if (!response.properties?.items?.[0]) {
       return {
@@ -296,25 +452,29 @@ export async function createProperty(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const requestBody: any = {
+    const requestBody = {
       productId: args.productId,
       propertyName: args.propertyName,
+      ...(args.cloneFrom && { cloneFrom: args.cloneFrom })
     };
 
-    if (args.cloneFrom) {
-      requestBody.cloneFrom = args.cloneFrom;
-    }
-
     const queryParams: Record<string, string> = {};
-    if (args.contractId) queryParams.contractId = args.contractId;
-    if (args.groupId) queryParams.groupId = args.groupId;
+    if (args.contractId) {queryParams['contractId'] = args.contractId;}
+    if (args.groupId) {queryParams['groupId'] = args.groupId;}
 
-    const response = await client.request({
+    const rawResponse = await client.request({
       path: '/papi/v1/properties',
       method: 'POST',
       body: requestBody,
       ...(Object.keys(queryParams).length > 0 && { queryParams }),
     });
+    
+    // Validate response using Zod schema
+    const response = validateApiResponse(
+      rawResponse,
+      PropertyCreateResponseSchema,
+      'createProperty'
+    );
 
     const propertyLink = response.propertyLink;
     const propertyId = propertyLink?.split('/').pop()?.split('?')[0];
@@ -323,8 +483,8 @@ export async function createProperty(
     text += `**Property Name:** ${args.propertyName}\n`;
     text += `**Property ID:** ${propertyId}\n`;
     text += `**Product:** ${args.productId}\n`;
-    if (args.contractId) text += `**Contract:** ${formatContractDisplay(args.contractId)}\n`;
-    if (args.groupId) text += `**Group:** ${formatGroupDisplay(args.groupId)}\n`;
+    if (args.contractId) {text += `**Contract:** ${formatContractDisplay(args.contractId)}\n`;}
+    if (args.groupId) {text += `**Group:** ${formatGroupDisplay(args.groupId)}\n`;}
     text += `**Created:** ${new Date().toISOString()}\n\n`;
 
     if (args.cloneFrom) {
@@ -405,15 +565,23 @@ export async function createPropertyVersion(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const requestBody: any = {};
-    if (args.createFromVersion) requestBody.createFromVersion = args.createFromVersion;
-    if (args.createFromEtag) requestBody.createFromEtag = args.createFromEtag;
+    const requestBody = {
+      ...(args.createFromVersion !== undefined && { createFromVersion: args.createFromVersion }),
+      ...(args.createFromEtag !== undefined && { createFromEtag: args.createFromEtag })
+    };
 
-    const response = await client.request({
+    const rawResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions`,
       method: 'POST',
       body: requestBody,
     });
+    
+    // Validate response using Zod schema
+    const response = validateApiResponse(
+      rawResponse,
+      PropertyVersionCreateResponseSchema,
+      `createPropertyVersion(${args.propertyId})`
+    );
 
     const versionLink = response.versionLink;
     const newVersion = versionLink?.split('/').pop()?.split('?')[0];
@@ -461,10 +629,17 @@ export async function listPropertyVersions(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client.request({
+    const rawResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions`,
       method: 'GET',
     });
+    
+    // Validate response using Zod schema
+    const response = validateApiResponse(
+      rawResponse,
+      PropertyVersionListResponseSchema,
+      `listPropertyVersions(${args.propertyId})`
+    );
 
     if (!response.versions?.items || response.versions.items.length === 0) {
       return {
@@ -481,14 +656,14 @@ export async function listPropertyVersions(
     text += `**Total Versions:** ${response.versions.items.length}\n`;
     text += `**Last Updated:** ${new Date().toISOString()}\n\n`;
 
-    response.versions.items.forEach((version: any) => {
+    response.versions.items.forEach((version) => {
       text += `## Version ${version.propertyVersion}\n\n`;
       text += `- **Updated By:** ${version.updatedByUser}\n`;
       text += `- **Updated Date:** ${version.updatedDate}\n`;
       text += `- **Production Status:** ${version.productionStatus}\n`;
       text += `- **Staging Status:** ${version.stagingStatus}\n`;
       text += `- **Rule Format:** ${version.ruleFormat}\n`;
-      if (version.note) text += `- **Note:** ${version.note}\n`;
+      if (version.note) {text += `- **Note:** ${version.note}\n`;}
       text += '\n';
     });
 
@@ -513,10 +688,17 @@ export async function getPropertyVersion(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client.request({
+    const rawResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}`,
       method: 'GET',
     });
+    
+    // Validate response using Zod schema
+    const response = validateApiResponse(
+      rawResponse,
+      PropertyVersionListResponseSchema,
+      `getPropertyVersion(${args.propertyId}, v${args.version})`
+    );
 
     if (!response.versions?.items?.[0]) {
       return {
@@ -540,7 +722,7 @@ export async function getPropertyVersion(
     text += `**ETag:** ${version.etag}\n`;
     text += `**Product ID:** ${version.productId}\n`;
     text += `**Rule Format:** ${version.ruleFormat}\n`;
-    if (version.note) text += `**Note:** ${version.note}\n`;
+    if (version.note) {text += `**Note:** ${version.note}\n`;}
 
     return {
       content: [{ type: 'text', text }],
@@ -593,8 +775,8 @@ export async function getPropertyRules(
     text += `**Property ID:** ${args.propertyId}\n`;
     text += `**Version:** ${args.version}\n`;
     text += `**Rule Format:** ${response.ruleFormat}\n`;
-    if (args.validateRules) text += `**Validation:** Enabled\n`;
-    if (etag) text += `**ETag:** ${etag} (for concurrent modification protection)\n`;
+    if (args.validateRules) {text += `**Validation:** Enabled\n`;}
+    if (etag) {text += `**ETag:** ${etag} (for concurrent modification protection)\n`;}
     text += `**Retrieved:** ${new Date().toISOString()}\n\n`;
 
     if (response.errors && response.errors.length > 0) {
@@ -658,16 +840,18 @@ export async function updatePropertyRules(
     }
     
     // UPDATE RULES WITH ETAG SUPPORT
+    const options: { validateRules?: boolean; etag?: string; useStoredETag?: boolean } = {
+      useStoredETag: !args.etag, // Use stored ETag if not provided
+    };
+    if (args.validateRules !== undefined) {options.validateRules = args.validateRules;}
+    if (args.etag !== undefined) {options.etag = args.etag;}
+    
     const response = await updatePropertyRulesWithETag(
       client,
       args.propertyId,
       args.version,
       args.rules,
-      {
-        validateRules: args.validateRules,
-        etag: args.etag,
-        useStoredETag: !args.etag, // Use stored ETag if not provided
-      }
+      options
     );
 
     let text = `# Property Rules Updated\n\n`;
@@ -709,8 +893,9 @@ export async function updatePropertyRules(
     };
   } catch (error) {
     // Special handling for concurrent modification errors
-    if (error.status === 409 || error.status === 412) {
-      let text = `# ⚠️ Concurrent Modification Detected\n\n`;
+    const errorStatus = error && typeof error === 'object' && 'status' in error ? (error as {status: number}).status : 0;
+    if (errorStatus === 409 || errorStatus === 412) {
+      let text = `# [WARNING] Concurrent Modification Detected\n\n`;
       text += `Someone else has modified this property version since you last retrieved it.\n\n`;
       text += `**What happened:**\n`;
       text += `- You retrieved the property rules earlier\n`;
@@ -737,7 +922,7 @@ export async function updatePropertyRules(
 // =============================================================================
 
 /**
- * 🌐 CREATE EDGE HOSTNAME
+ * [GLOBAL] CREATE EDGE HOSTNAME
  * 
  * HUMAN-READABLE EXPLANATION:
  * Edge hostnames are Akamai's delivery addresses for your content. Think of them as
@@ -822,27 +1007,34 @@ export async function createEdgeHostname(
       ...(args.productId && { productId: args.productId }),
     };
 
-    const response = await client.request({
+    const rawResponse = await client.request({
       path: '/papi/v1/edgehostnames',
       method: 'POST',
       body: requestBody,
     });
+    
+    // Validate response using Zod schema
+    const response = validateApiResponse(
+      rawResponse,
+      EdgeHostnameCreateResponseSchema,
+      'createEdgeHostname'
+    );
 
     // EXTRACT KEY INFORMATION from the response
     const edgeHostnameLink = response.edgeHostnameLink;
     const edgeHostnameId = edgeHostnameLink?.split('/').pop()?.split('?')[0];
     const fullEdgeHostname = `${args.domainPrefix}${args.domainSuffix || '.edgekey.net'}`;
 
-    let text = `# 🌐 Edge Hostname Created Successfully\n\n`;
+    let text = `# [GLOBAL] Edge Hostname Created Successfully\n\n`;
     text += `**Edge Hostname:** ${fullEdgeHostname}\n`;
     text += `**Edge Hostname ID:** ${edgeHostnameId}\n`;
     text += `**Domain Prefix:** ${args.domainPrefix}\n`;
     text += `**Domain Suffix:** ${args.domainSuffix || '.edgekey.net'}\n`;
-    text += `**Security:** ${args.secure !== false ? 'HTTPS Enabled ✅' : 'HTTP Only ⚠️'}\n`;
+    text += `**Security:** ${args.secure !== false ? 'HTTPS Enabled [SUCCESS]' : 'HTTP Only [WARNING]'}\n`;
     text += `**IP Support:** ${args.ipVersion || 'IPv4 + IPv6 (Dual Stack)'}\n`;
     text += `**Created:** ${new Date().toISOString()}\n\n`;
 
-    text += `## 🚀 Next Steps - Complete Your Setup\n\n`;
+    text += `## [LAUNCH] Next Steps - Complete Your Setup\n\n`;
     text += `### 1. Add Edge Hostname to Property\n`;
     text += `Use this edge hostname in your property configuration:\n`;
     text += `\`\`\`\n`;
@@ -861,7 +1053,7 @@ export async function createEdgeHostname(
       text += `- Default DV certificates: Automatically provisioned by Akamai\n`;
       text += `- Custom certificates: Upload via Certificate Provisioning System (CPS)\n\n`;
     } else {
-      text += `⚠️ **Security Warning:** HTTPS is disabled. Consider enabling for:\n`;
+      text += `[WARNING] **Security Warning:** HTTPS is disabled. Consider enabling for:\n`;
       text += `- User data protection\n`;
       text += `- SEO benefits (Google ranking)\n`;
       text += `- Browser security warnings prevention\n\n`;
@@ -889,7 +1081,7 @@ export async function createEdgeHostname(
 }
 
 /**
- * 📋 LIST EDGE HOSTNAMES
+ * [LIST] LIST EDGE HOSTNAMES
  * 
  * HUMAN-READABLE EXPLANATION:
  * Shows all the edge hostnames (delivery addresses) available in your account.
@@ -924,14 +1116,21 @@ export async function listEdgeHostnames(
   try {
     // BUILD QUERY PARAMETERS: Only include filters that are specified
     const queryParams: Record<string, string> = {};
-    if (args.contractId) queryParams.contractId = args.contractId;
-    if (args.groupId) queryParams.groupId = args.groupId;
+    if (args.contractId) {queryParams['contractId'] = args.contractId;}
+    if (args.groupId) {queryParams['groupId'] = args.groupId;}
 
-    const response = await client.request({
+    const rawResponse = await client.request({
       path: '/papi/v1/edgehostnames',
       method: 'GET',
       ...(Object.keys(queryParams).length > 0 && { queryParams }),
     });
+    
+    // Validate response using Zod schema
+    const response = validateApiResponse(
+      rawResponse,
+      EdgeHostnameListResponseSchema,
+      'listEdgeHostnames'
+    );
 
     // HANDLE EMPTY RESULTS: Provide helpful guidance when no hostnames exist
     if (!response.edgeHostnames?.items || response.edgeHostnames.items.length === 0) {
@@ -945,29 +1144,29 @@ export async function listEdgeHostnames(
       };
     }
 
-    let text = `# 🌐 Edge Hostnames Inventory (${response.edgeHostnames.items.length} found)\n\n`;
+    let text = `# [GLOBAL] Edge Hostnames Inventory (${response.edgeHostnames.items.length} found)\n\n`;
 
     // ADD FILTER CONTEXT: Show what filters are applied
-    if (args.contractId) text += `**Filtered by Contract:** ${args.contractId}\n`;
-    if (args.groupId) text += `**Filtered by Group:** ${args.groupId}\n`;
+    if (args.contractId) {text += `**Filtered by Contract:** ${args.contractId}\n`;}
+    if (args.groupId) {text += `**Filtered by Group:** ${args.groupId}\n`;}
     text += `**Last Updated:** ${new Date().toISOString()}\n\n`;
 
-    text += `## 📊 Edge Hostname Details\n\n`;
+    text += `## [ANALYTICS] Edge Hostname Details\n\n`;
 
     // ORGANIZE BY TYPE: Group similar hostnames together
     const secureHostnames = response.edgeHostnames.items.filter((eh: any) => eh.secure);
     const nonSecureHostnames = response.edgeHostnames.items.filter((eh: any) => !eh.secure);
 
     if (secureHostnames.length > 0) {
-      text += `### 🔒 HTTPS Edge Hostnames (${secureHostnames.length})\n\n`;
+      text += `### [LOCKED] HTTPS Edge Hostnames (${secureHostnames.length})\n\n`;
       secureHostnames.forEach((hostname: any, index: number) => {
         text += `#### ${index + 1}. ${hostname.edgeHostnameDomain}\n`;
-        text += `- **Edge Hostname ID:** ${hostname.edgeHostnameId}\n`;
+        text += `- **Edge Hostname:** ${formatEdgeHostnameDisplay(hostname.edgeHostnameId, hostname.edgeHostnameDomain)}\n`;
         text += `- **Domain Prefix:** ${hostname.domainPrefix}\n`;
         text += `- **Domain Suffix:** ${hostname.domainSuffix}\n`;
-        text += `- **Security:** HTTPS Enabled ✅\n`;
+        text += `- **Security:** HTTPS Enabled [SUCCESS]\n`;
         text += `- **IP Version:** ${hostname.ipVersionBehavior}\n`;
-        text += `- **Product:** ${hostname.productId}\n`;
+        text += `- **Product:** ${formatProductDisplay(hostname.productId)}\n`;
         
         // CERTIFICATE STATUS: Show if certificate info is available
         if (hostname.serialNumber) {
@@ -979,19 +1178,19 @@ export async function listEdgeHostnames(
     }
 
     if (nonSecureHostnames.length > 0) {
-      text += `### 🌐 HTTP Edge Hostnames (${nonSecureHostnames.length})\n\n`;
+      text += `### [GLOBAL] HTTP Edge Hostnames (${nonSecureHostnames.length})\n\n`;
       nonSecureHostnames.forEach((hostname: any, index: number) => {
         text += `#### ${index + 1}. ${hostname.edgeHostnameDomain}\n`;
-        text += `- **Edge Hostname ID:** ${hostname.edgeHostnameId}\n`;
+        text += `- **Edge Hostname:** ${formatEdgeHostnameDisplay(hostname.edgeHostnameId, hostname.edgeHostnameDomain)}\n`;
         text += `- **Domain Prefix:** ${hostname.domainPrefix}\n`;
         text += `- **Domain Suffix:** ${hostname.domainSuffix}\n`;
-        text += `- **Security:** HTTP Only ⚠️\n`;
+        text += `- **Security:** HTTP Only [WARNING]\n`;
         text += `- **IP Version:** ${hostname.ipVersionBehavior}\n`;
         text += `- **Product:** ${hostname.productId}\n\n`;
       });
     }
 
-    text += `## 🎯 Usage Recommendations\n\n`;
+    text += `## [TARGET] Usage Recommendations\n\n`;
     
     if (secureHostnames.length > 0) {
       text += `**For new properties, consider using:**\n`;
@@ -1001,13 +1200,13 @@ export async function listEdgeHostnames(
     }
 
     if (nonSecureHostnames.length > 0) {
-      text += `**⚠️ HTTP-only hostnames detected:**\n`;
+      text += `**[WARNING] HTTP-only hostnames detected:**\n`;
       text += `- Consider upgrading to HTTPS for better security\n`;
       text += `- Modern browsers show warnings for HTTP sites\n`;
       text += `- HTTPS improves SEO rankings and user trust\n\n`;
     }
 
-    text += `## 🚀 Quick Actions\n\n`;
+    text += `## [LAUNCH] Quick Actions\n\n`;
     text += `**Create new edge hostname:**\n`;
     text += `\`\`\`\n`;
     text += `create_edge_hostname --domainPrefix "mysite-com" --secure true\n`;
@@ -1030,7 +1229,7 @@ export async function listEdgeHostnames(
 // =============================================================================
 
 /**
- * 🚀 ACTIVATE PROPERTY
+ * [LAUNCH] ACTIVATE PROPERTY
  * 
  * HUMAN-READABLE EXPLANATION:
  * Property activation is like "publishing" your website configuration to the world.
@@ -1129,7 +1328,7 @@ export async function activateProperty(
 
     // PRODUCTION SAFETY CHECK: Extra validation for production deployments
     if (args.network === 'PRODUCTION') {
-      let warnings = [];
+      const warnings = [];
       if (!args.note || args.note.length < 10) {
         warnings.push('No deployment notes provided (recommended for production)');
       }
@@ -1138,7 +1337,7 @@ export async function activateProperty(
       }
       
       if (warnings.length > 0) {
-        let text = `⚠️ **PRODUCTION DEPLOYMENT CHECKLIST**\n\n`;
+        let text = `[WARNING] **PRODUCTION DEPLOYMENT CHECKLIST**\n\n`;
         text += `You're about to deploy to PRODUCTION which affects real users.\n\n`;
         text += `**Recommendations:**\n`;
         warnings.forEach(warning => {
@@ -1165,45 +1364,49 @@ export async function activateProperty(
     };
 
     // CREATE PROGRESS TRACKING for user feedback during long operations
-    const progressToken = createActivationProgress();
-    ProgressManager.getInstance().updateProgress(progressToken, {
-      stage: 'initiating',
-      message: `Starting ${args.network.toLowerCase()} activation for property ${args.propertyId}`,
-      percentage: 10,
+    const progressToken = createActivationProgress(args.propertyId, args.network);
+    progressToken.update(10, `Starting ${args.network.toLowerCase()} activation for property ${args.propertyId}`, {
+      activationId: 'pending',
+      network: args.network
     });
 
-    const response = await client.request({
+    const rawResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/activations`,
       method: 'POST',
       body: requestBody,
     });
+    
+    const response = validateApiResponse(
+      rawResponse,
+      PropertyActivationResponseSchema,
+      'activateProperty'
+    );
 
     // EXTRACT ACTIVATION DETAILS for tracking and monitoring
     const activationLink = response.activationLink;
     const activationId = activationLink?.split('/').pop()?.split('?')[0];
 
-    ProgressManager.getInstance().updateProgress(progressToken, {
-      stage: 'submitted',
-      message: 'Activation submitted successfully',
-      percentage: 30,
+    progressToken.update(30, 'Activation submitted successfully', {
+      activationId: 'submitted',
+      network: args.network
     });
 
-    let text = `# 🚀 Property Activation ${args.network === 'PRODUCTION' ? '🔴 LIVE' : '🟡 STAGING'}\n\n`;
-    text += `**Status:** Activation Initiated Successfully ✅\n`;
+    let text = `# [LAUNCH] Property Activation ${args.network === 'PRODUCTION' ? '[ERROR] LIVE' : '[WARNING] STAGING'}\n\n`;
+    text += `**Status:** Activation Initiated Successfully [SUCCESS]\n`;
     text += `**Property ID:** ${args.propertyId}\n`;
     text += `**Version:** ${args.version}\n`;
     text += `**Network:** ${args.network}\n`;
     text += `**Activation ID:** ${activationId}\n`;
     text += `**Submitted:** ${new Date().toISOString()}\n`;
     
-    if (args.note) text += `**Deployment Notes:** ${args.note}\n`;
+    if (args.note) {text += `**Deployment Notes:** ${args.note}\n`;}
     if (args.notifyEmails && args.notifyEmails.length > 0) {
       text += `**Notifications:** ${args.notifyEmails.join(', ')}\n`;
     }
     text += `\n`;
 
     // TIMING EXPECTATIONS: Help users understand what to expect
-    text += `## ⏱️ Activation Timeline\n\n`;
+    text += `## [TIME] Activation Timeline\n\n`;
     if (args.network === 'STAGING') {
       text += `**Staging Network:** Usually completes in 2-5 minutes\n`;
       text += `- Fast deployment for testing\n`;
@@ -1216,7 +1419,7 @@ export async function activateProperty(
       text += `- Full production readiness checks\n\n`;
     }
 
-    text += `## 📊 Monitoring Your Activation\n\n`;
+    text += `## [ANALYTICS] Monitoring Your Activation\n\n`;
     text += `**Check activation status:**\n`;
     text += `\`\`\`\n`;
     text += `get_activation_status --propertyId ${args.propertyId} --activationId ${activationId}\n`;
@@ -1227,14 +1430,14 @@ export async function activateProperty(
     text += `list_property_activations --propertyId ${args.propertyId}\n`;
     text += `\`\`\`\n\n`;
 
-    text += `## 🎯 What Happens Next\n\n`;
+    text += `## [TARGET] What Happens Next\n\n`;
     text += `1. **Validation Phase** (1-2 min): Akamai validates your configuration\n`;
     text += `2. **Propagation Phase** (3-10 min): Changes spread to edge servers globally\n`;
     text += `3. **Completion**: All edge servers have your new configuration\n`;
     text += `4. **Verification**: Test your website/API to confirm changes\n\n`;
 
     if (args.network === 'PRODUCTION') {
-      text += `## 🚨 Production Deployment Checklist\n\n`;
+      text += `## [ALERT] Production Deployment Checklist\n\n`;
       text += `**Immediately after activation:**\n`;
       text += `- [ ] Test critical user journeys on your website\n`;
       text += `- [ ] Monitor error rates and performance metrics\n`;
@@ -1270,7 +1473,7 @@ export async function activateProperty(
 }
 
 /**
- * 📊 GET ACTIVATION STATUS
+ * [ANALYTICS] GET ACTIVATION STATUS
  * 
  * HUMAN-READABLE EXPLANATION:
  * Checks the progress of a property activation - like tracking a package delivery.
@@ -1309,10 +1512,16 @@ export async function getActivationStatus(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client.request({
+    const rawResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/activations/${args.activationId}`,
       method: 'GET',
     });
+    
+    const response = validateApiResponse(
+      rawResponse,
+      ActivationStatusResponseSchema,
+      `getActivationStatus(${args.activationId})`
+    );
 
     if (!response.activations?.items?.[0]) {
       return {
@@ -1328,21 +1537,21 @@ export async function getActivationStatus(
     const activation = response.activations.items[0];
     
     // DETERMINE ACTIVATION STATE for clear user communication
-    const isComplete = ['ACTIVE', 'FAILED', 'ABORTED', 'DEACTIVATED'].includes(activation.status);
+    // const isComplete = ['ACTIVE', 'FAILED', 'ABORTED', 'DEACTIVATED'].includes(activation.status);
     const isSuccessful = activation.status === 'ACTIVE';
     const isFailed = activation.status === 'FAILED';
     
-    let text = `# 📊 Activation Status Report\n\n`;
+    let text = `# [ANALYTICS] Activation Status Report\n\n`;
     
     // STATUS HEADER with visual indicators
     if (activation.status === 'PENDING') {
       text += `## ⏳ Status: IN PROGRESS\n\n`;
     } else if (isSuccessful) {
-      text += `## ✅ Status: DEPLOYMENT SUCCESSFUL\n\n`;
+      text += `## [SUCCESS] Status: DEPLOYMENT SUCCESSFUL\n\n`;
     } else if (isFailed) {
-      text += `## ❌ Status: DEPLOYMENT FAILED\n\n`;
+      text += `## [ERROR] Status: DEPLOYMENT FAILED\n\n`;
     } else {
-      text += `## ⚠️ Status: ${activation.status}\n\n`;
+      text += `## [WARNING] Status: ${activation.status}\n\n`;
     }
     
     text += `**Activation ID:** ${activation.activationId}\n`;
@@ -1370,12 +1579,12 @@ export async function getActivationStatus(
       const currentTime = new Date().getTime();
       const elapsedMinutes = Math.round((currentTime - startTime) / 60000);
       
-      text += `## ⏱️ Deployment Progress\n\n`;
+      text += `## [TIME] Deployment Progress\n\n`;
       text += `**Time Elapsed:** ${elapsedMinutes} minutes\n`;
       text += `**Expected Duration:** ${activation.network === 'STAGING' ? '2-5' : '5-15'} minutes\n\n`;
       
       if (elapsedMinutes > (activation.network === 'STAGING' ? 10 : 20)) {
-        text += `⚠️ **Note:** This activation is taking longer than usual.\n`;
+        text += `[WARNING] **Note:** This activation is taking longer than usual.\n`;
         text += `Consider contacting Akamai support if it doesn't complete soon.\n\n`;
       }
       
@@ -1386,9 +1595,9 @@ export async function getActivationStatus(
     }
     
     // ERROR DETAILS for failed activations
-    if (isFailed && activation.fatalError) {
-      text += `## 🚨 Failure Details\n\n`;
-      text += `**Fatal Error:** ${activation.fatalError}\n\n`;
+    if (isFailed && activation['fatalError']) {
+      text += `## [ALERT] Failure Details\n\n`;
+      text += `**Fatal Error:** ${activation['fatalError']}\n\n`;
       
       text += `**Troubleshooting Steps:**\n`;
       text += `1. Review the error message above\n`;
@@ -1399,7 +1608,7 @@ export async function getActivationStatus(
     
     // VALIDATION ERRORS if present
     if (activation.errors && activation.errors.length > 0) {
-      text += `## ❌ Validation Errors\n\n`;
+      text += `## [ERROR] Validation Errors\n\n`;
       activation.errors.forEach((error: any, index: number) => {
         text += `${index + 1}. **${error.type}**\n`;
         text += `   - Message ID: ${error.messageId}\n`;
@@ -1409,7 +1618,7 @@ export async function getActivationStatus(
     
     // WARNINGS if present
     if (activation.warnings && activation.warnings.length > 0) {
-      text += `## ⚠️ Warnings\n\n`;
+      text += `## [WARNING] Warnings\n\n`;
       activation.warnings.forEach((warning: any, index: number) => {
         text += `${index + 1}. **${warning.type}**\n`;
         text += `   - Message ID: ${warning.messageId}\n`;
@@ -1419,7 +1628,7 @@ export async function getActivationStatus(
     
     // SUCCESS ACTIONS
     if (isSuccessful) {
-      text += `## 🎯 Deployment Complete - Next Actions\n\n`;
+      text += `## [TARGET] Deployment Complete - Next Actions\n\n`;
       
       if (activation.network === 'STAGING') {
         text += `**Your staging deployment is live!**\n\n`;
@@ -1453,7 +1662,7 @@ export async function getActivationStatus(
 }
 
 /**
- * 📋 LIST PROPERTY ACTIVATIONS
+ * [LIST] LIST PROPERTY ACTIVATIONS
  * 
  * HUMAN-READABLE EXPLANATION:
  * Shows the deployment history for a property - like viewing your Git commit history
@@ -1478,10 +1687,16 @@ export async function listPropertyActivations(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const response = await client.request({
+    const rawResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}/activations`,
       method: 'GET',
     });
+    
+    const response = validateApiResponse(
+      rawResponse,
+      ActivationStatusResponseSchema,
+      `listPropertyActivations(${args.propertyId})`
+    );
 
     if (!response.activations?.items || response.activations.items.length === 0) {
       return {
@@ -1494,7 +1709,7 @@ export async function listPropertyActivations(
       };
     }
 
-    let text = `# 📋 Property Activation History\n\n`;
+    let text = `# [LIST] Property Activation History\n\n`;
     text += `**Property ID:** ${args.propertyId}\n`;
     text += `**Total Activations:** ${response.activations.items.length}\n`;
     text += `**Retrieved:** ${new Date().toISOString()}\n\n`;
@@ -1505,12 +1720,12 @@ export async function listPropertyActivations(
 
     // PRODUCTION HISTORY (most important)
     if (productionActivations.length > 0) {
-      text += `## 🔴 Production Deployments (${productionActivations.length})\n\n`;
+      text += `## [ERROR] Production Deployments (${productionActivations.length})\n\n`;
       
       productionActivations.slice(0, 5).forEach((activation: any, index: number) => {
-        const statusIcon = activation.status === 'ACTIVE' ? '✅' :
-                          activation.status === 'FAILED' ? '❌' :
-                          activation.status === 'PENDING' ? '⏳' : '⚠️';
+        const statusIcon = activation.status === 'ACTIVE' ? '[SUCCESS]' :
+                          activation.status === 'FAILED' ? '[ERROR]' :
+                          activation.status === 'PENDING' ? '[TIME]' : '[WARNING]';
         
         text += `### ${statusIcon} ${index + 1}. Version ${activation.propertyVersion}\n`;
         text += `- **Status:** ${activation.status}\n`;
@@ -1518,7 +1733,7 @@ export async function listPropertyActivations(
         text += `- **Submitted:** ${activation.submitDate}\n`;
         text += `- **Updated:** ${activation.updateDate}\n`;
         text += `- **Submitted By:** ${activation.submitUser || 'Unknown'}\n`;
-        if (activation.note) text += `- **Notes:** ${activation.note}\n`;
+        if (activation.note) {text += `- **Notes:** ${activation.note}\n`;}
         text += `\n`;
       });
       
@@ -1529,18 +1744,18 @@ export async function listPropertyActivations(
 
     // STAGING HISTORY
     if (stagingActivations.length > 0) {
-      text += `## 🟡 Staging Deployments (${stagingActivations.length})\n\n`;
+      text += `## [WARNING] Staging Deployments (${stagingActivations.length})\n\n`;
       
       stagingActivations.slice(0, 3).forEach((activation: any, index: number) => {
-        const statusIcon = activation.status === 'ACTIVE' ? '✅' :
-                          activation.status === 'FAILED' ? '❌' :
-                          activation.status === 'PENDING' ? '⏳' : '⚠️';
+        const statusIcon = activation.status === 'ACTIVE' ? '[SUCCESS]' :
+                          activation.status === 'FAILED' ? '[ERROR]' :
+                          activation.status === 'PENDING' ? '[TIME]' : '[WARNING]';
         
         text += `### ${statusIcon} ${index + 1}. Version ${activation.propertyVersion}\n`;
         text += `- **Status:** ${activation.status}\n`;
         text += `- **Activation ID:** ${activation.activationId}\n`;
         text += `- **Submitted:** ${activation.submitDate}\n`;
-        if (activation.note) text += `- **Notes:** ${activation.note}\n`;
+        if (activation.note) {text += `- **Notes:** ${activation.note}\n`;}
         text += `\n`;
       });
       
@@ -1550,7 +1765,7 @@ export async function listPropertyActivations(
     }
 
     // DEPLOYMENT INSIGHTS
-    text += `## 📊 Deployment Insights\n\n`;
+    text += `## [ANALYTICS] Deployment Insights\n\n`;
     
     // Find currently active versions
     const activeProduction = productionActivations.find((a: any) => a.status === 'ACTIVE');
@@ -1580,7 +1795,7 @@ export async function listPropertyActivations(
     }
 
     // QUICK ACTIONS
-    text += `\n## 🚀 Quick Actions\n\n`;
+    text += `\n## [LAUNCH] Quick Actions\n\n`;
     
     if (activeProduction && activeStaging && activeProduction.propertyVersion !== activeStaging.propertyVersion) {
       text += `**Promote staging to production:**\n`;
@@ -1603,7 +1818,7 @@ export async function listPropertyActivations(
 }
 
 /**
- * ❌ CANCEL PROPERTY ACTIVATION
+ * [ERROR] CANCEL PROPERTY ACTIVATION
  * 
  * HUMAN-READABLE EXPLANATION:
  * Stops an in-progress deployment before it completes - like hitting the emergency
@@ -1636,7 +1851,7 @@ export async function cancelPropertyActivation(
       method: 'DELETE',
     });
 
-    let text = `# ❌ Activation Cancelled\n\n`;
+    let text = `# [ERROR] Activation Cancelled\n\n`;
     text += `**Property ID:** ${args.propertyId}\n`;
     text += `**Activation ID:** ${args.activationId}\n`;
     text += `**Cancelled:** ${new Date().toISOString()}\n\n`;
@@ -1669,7 +1884,7 @@ export async function cancelPropertyActivation(
 // =============================================================================
 
 /**
- * 🔗 ADD PROPERTY HOSTNAME
+ * [LINK] ADD PROPERTY HOSTNAME
  * 
  * HUMAN-READABLE EXPLANATION:
  * Connects your actual website domains (like www.example.com) to your Akamai
@@ -1740,13 +1955,13 @@ export async function addPropertyHostname(
       return hostnameObj;
     });
 
-    const response = await client.request({
+    await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/hostnames`,
       method: 'PATCH',
       body: hostnamesList,
     });
 
-    let text = `# 🔗 Hostnames Added Successfully\n\n`;
+    let text = `# [LINK] Hostnames Added Successfully\n\n`;
     text += `**Property ID:** ${args.propertyId}\n`;
     text += `**Version:** ${args.version}\n`;
     text += `**Hostnames Added:** ${args.hostnames.length}\n`;
@@ -1761,7 +1976,7 @@ export async function addPropertyHostname(
     });
     text += `\n`;
     
-    text += `## 🚨 Critical Next Steps\n\n`;
+    text += `## [ALERT] Critical Next Steps\n\n`;
     text += `### 1. Configure DNS (Required)\n`;
     text += `For each hostname, create a CNAME record pointing to its edge hostname:\n\n`;
     
@@ -1783,7 +1998,7 @@ export async function addPropertyHostname(
     text += `- Check SSL certificate coverage\n`;
     text += `- Test website functionality\n\n`;
     
-    text += `## ⚠️ Important Notes\n\n`;
+    text += `## [WARNING] Important Notes\n\n`;
     text += `- **DNS Propagation:** Changes can take 5-30 minutes globally\n`;
     text += `- **SSL Certificates:** Ensure certificates cover all hostnames\n`;
     text += `- **Testing:** Always test in staging before production\n`;
@@ -1797,7 +2012,7 @@ export async function addPropertyHostname(
 }
 
 /**
- * 🗑️ REMOVE PROPERTY HOSTNAME
+ * [ERROR] REMOVE PROPERTY HOSTNAME
  * 
  * HUMAN-READABLE EXPLANATION:
  * Disconnects a website domain from your Akamai property. Use with caution as
@@ -1833,7 +2048,8 @@ export async function removePropertyHostname(
       method: 'GET',
     });
 
-    const currentHostnames = currentResponse.hostnames?.items || [];
+    const currentResponse_typed = currentResponse as any;
+    const currentHostnames = currentResponse_typed.hostnames?.items || [];
     
     // Filter out hostnames to remove
     const remainingHostnames = currentHostnames.filter((h: any) => 
@@ -1841,13 +2057,13 @@ export async function removePropertyHostname(
     );
 
     // Update with remaining hostnames
-    const response = await client.request({
+    await client.request({
       path: `/papi/v1/properties/${args.propertyId}/versions/${args.version}/hostnames`,
       method: 'PUT',
       body: remainingHostnames,
     });
 
-    let text = `# 🗑️ Hostnames Removed\n\n`;
+    let text = `# [ERROR] Hostnames Removed\n\n`;
     text += `**Property ID:** ${args.propertyId}\n`;
     text += `**Version:** ${args.version}\n`;
     text += `**Hostnames Removed:** ${args.hostnames.length}\n`;
@@ -1860,7 +2076,7 @@ export async function removePropertyHostname(
     });
     text += `\n`;
     
-    text += `## ⚠️ CRITICAL: Update DNS Immediately\n\n`;
+    text += `## [WARNING] CRITICAL: Update DNS Immediately\n\n`;
     text += `**These hostnames are no longer served by Akamai!**\n\n`;
     text += `For each removed hostname, you must:\n`;
     text += `1. Update DNS to point elsewhere\n`;
@@ -1881,7 +2097,7 @@ export async function removePropertyHostname(
 }
 
 /**
- * 📋 LIST PROPERTY HOSTNAMES
+ * [LIST] LIST PROPERTY HOSTNAMES
  * 
  * HUMAN-READABLE EXPLANATION:
  * Shows all website domains currently configured in a property version.
@@ -1911,7 +2127,8 @@ export async function listPropertyHostnames(
       method: 'GET',
     });
 
-    if (!response.hostnames?.items || response.hostnames.items.length === 0) {
+    const response_typed = response as any;
+    if (!response_typed.hostnames?.items || response_typed.hostnames.items.length === 0) {
       return {
         content: [
           {
@@ -1922,15 +2139,15 @@ export async function listPropertyHostnames(
       };
     }
 
-    let text = `# 📋 Property Hostnames (Version ${args.version})\n\n`;
+    let text = `# [LIST] Property Hostnames (Version ${args.version})\n\n`;
     text += `**Property ID:** ${args.propertyId}\n`;
     text += `**Version:** ${args.version}\n`;
-    text += `**Total Hostnames:** ${response.hostnames.items.length}\n`;
+    text += `**Total Hostnames:** ${response_typed.hostnames.items.length}\n`;
     text += `**Retrieved:** ${new Date().toISOString()}\n\n`;
 
     text += `## Configured Hostnames\n\n`;
     
-    response.hostnames.items.forEach((hostname: any, index: number) => {
+    response_typed.hostnames.items.forEach((hostname: any, index: number) => {
       text += `### ${index + 1}. ${hostname.cnameFrom}\n`;
       text += `- **Points To:** ${hostname.cnameTo}\n`;
       text += `- **Type:** ${hostname.cnameType}\n`;
@@ -1993,7 +2210,7 @@ export async function listPropertyHostnames(
  */
 export async function listContracts(
   client: AkamaiClient,
-  args: {
+  _args: {
     /** Customer account context */
     customer?: string;
   },
@@ -2004,7 +2221,8 @@ export async function listContracts(
       method: 'GET',
     });
 
-    if (!response.contracts?.items || response.contracts.items.length === 0) {
+    const response_typed = response as any;
+    if (!response_typed.contracts?.items || response_typed.contracts.items.length === 0) {
       return {
         content: [
           {
@@ -2015,10 +2233,10 @@ export async function listContracts(
       };
     }
 
-    let text = `# 📄 Akamai Contracts (${response.contracts.items.length} found)\n\n`;
+    let text = `# 📄 Akamai Contracts (${response_typed.contracts.items.length} found)\n\n`;
     text += `Contracts represent your commercial relationship with Akamai.\n\n`;
 
-    response.contracts.items.forEach((contract: any, index: number) => {
+    response_typed.contracts.items.forEach((contract: any, index: number) => {
       text += `## ${index + 1}. ${formatContractDisplay(contract.contractId)}\n`;
       text += `- **Contract ID:** ${contract.contractId}\n`;
       text += `- **Type:** ${contract.contractTypeName || 'Standard'}\n\n`;
@@ -2027,7 +2245,7 @@ export async function listContracts(
     text += `## Using Contracts\n\n`;
     text += `When creating properties, specify the contract:\n`;
     text += `\`\`\`\n`;
-    text += `create_property --contractId ${response.contracts.items[0].contractId} --groupId [GROUP_ID]\n`;
+    text += `create_property --contractId ${(response as any).contracts.items[0].contractId} --groupId [GROUP_ID]\n`;
     text += `\`\`\`\n`;
 
     return {
@@ -2054,7 +2272,7 @@ export async function listContracts(
  */
 export async function listGroups(
   client: AkamaiClient,
-  args: {
+  _args: {
     /** Filter by specific contract */
     contractId?: string;
     
@@ -2068,7 +2286,8 @@ export async function listGroups(
       method: 'GET',
     });
 
-    if (!response.groups?.items || response.groups.items.length === 0) {
+    const groups_response_typed = response as any;
+    if (!groups_response_typed.groups?.items || groups_response_typed.groups.items.length === 0) {
       return {
         content: [
           {
@@ -2079,24 +2298,24 @@ export async function listGroups(
       };
     }
 
-    let text = `# 👥 Account Groups (${response.groups.items.length} found)\n\n`;
+    let text = `# 👥 Account Groups (${groups_response_typed.groups.items.length} found)\n\n`;
     text += `Groups organize properties and control access permissions.\n\n`;
 
     // Build group hierarchy
     const groupMap = new Map();
-    response.groups.items.forEach((group: any) => {
+    groups_response_typed.groups.items.forEach((group: any) => {
       groupMap.set(group.groupId, group);
     });
 
     // Display groups with hierarchy
-    response.groups.items.forEach((group: any, index: number) => {
+    groups_response_typed.groups.items.forEach((group: any, index: number) => {
       if (!group.parentGroupId || !groupMap.has(group.parentGroupId)) {
         text += `## ${index + 1}. ${formatGroupDisplay(group.groupName, group.groupId)}\n`;
         text += `- **Group ID:** ${group.groupId}\n`;
         text += `- **Contracts:** ${group.contractIds.join(', ')}\n\n`;
         
         // Show child groups
-        const children = response.groups.items.filter((g: any) => g.parentGroupId === group.groupId);
+        const children = (response as any).groups.items.filter((g: any) => g.parentGroupId === group.groupId);
         if (children.length > 0) {
           text += `**Sub-groups:**\n`;
           children.forEach((child: any) => {
@@ -2110,7 +2329,7 @@ export async function listGroups(
     text += `## Using Groups\n\n`;
     text += `When creating properties, specify the group:\n`;
     text += `\`\`\`\n`;
-    text += `create_property --groupId ${response.groups.items[0].groupId} --contractId [CONTRACT_ID]\n`;
+    text += `create_property --groupId ${(response as any).groups.items[0].groupId} --contractId [CONTRACT_ID]\n`;
     text += `\`\`\`\n`;
 
     return {
@@ -2165,7 +2384,7 @@ export async function listProducts(
       method: 'GET',
     });
 
-    if (!response.products?.items || response.products.items.length === 0) {
+    if (!(response as any).products?.items || (response as any).products.items.length === 0) {
       return {
         content: [
           {
@@ -2176,41 +2395,41 @@ export async function listProducts(
       };
     }
 
-    let text = `# 📦 Available Products (${response.products.items.length} found)\n\n`;
+    let text = `# 📦 Available Products (${(response as any).products.items.length} found)\n\n`;
     text += `**Contract:** ${formatContractDisplay(args.contractId)}\n\n`;
     text += `Products determine the features available for your properties.\n\n`;
 
     // Group products by category for better organization
-    const webProducts = response.products.items.filter((p: any) => 
+    const webProducts = (response as any).products.items.filter((p: any) => 
       p.productName.toLowerCase().includes('web') || 
       p.productName.toLowerCase().includes('dynamic') ||
       p.productName.toLowerCase().includes('download')
     );
     
-    const securityProducts = response.products.items.filter((p: any) => 
+    const securityProducts = (response as any).products.items.filter((p: any) => 
       p.productName.toLowerCase().includes('security') || 
       p.productName.toLowerCase().includes('kona') ||
       p.productName.toLowerCase().includes('defender')
     );
     
-    const otherProducts = response.products.items.filter((p: any) => 
+    const otherProducts = (response as any).products.items.filter((p: any) => 
       !webProducts.includes(p) && !securityProducts.includes(p)
     );
 
     if (webProducts.length > 0) {
-      text += `## 🌐 Web Performance Products\n\n`;
+      text += `## [GLOBAL] Web Performance Products\n\n`;
       webProducts.forEach((product: any) => {
         text += `### ${product.productName}\n`;
-        text += `- **Product ID:** ${product.productId}\n`;
+        text += `- **Product:** ${formatProductDisplay(product.productId, product.productName)}\n`;
         text += `- **Description:** Optimized for web content delivery\n\n`;
       });
     }
 
     if (securityProducts.length > 0) {
-      text += `## 🛡️ Security Products\n\n`;
+      text += `## [SHIELD] Security Products\n\n`;
       securityProducts.forEach((product: any) => {
         text += `### ${product.productName}\n`;
-        text += `- **Product ID:** ${product.productId}\n`;
+        text += `- **Product:** ${formatProductDisplay(product.productId, product.productName)}\n`;
         text += `- **Description:** Enhanced security features\n\n`;
       });
     }
@@ -2219,14 +2438,14 @@ export async function listProducts(
       text += `## 📦 Other Products\n\n`;
       otherProducts.forEach((product: any) => {
         text += `### ${product.productName}\n`;
-        text += `- **Product ID:** ${product.productId}\n\n`;
+        text += `- **Product:** ${formatProductDisplay(product.productId, product.productName)}\n\n`;
       });
     }
 
     text += `## Using Products\n\n`;
     text += `When creating properties, choose a product based on your needs:\n`;
     text += `\`\`\`\n`;
-    text += `create_property --productId ${response.products.items[0].productId} --propertyName "My Site"\n`;
+    text += `create_property --productId ${(response as any).products.items[0].productId} --propertyName "My Site"\n`;
     text += `\`\`\`\n\n`;
     
     text += `**Product Selection Guide:**\n`;
@@ -2248,7 +2467,7 @@ export async function listProducts(
 // =============================================================================
 
 /**
- * 🔄 CLONE PROPERTY
+ * [SYNC] CLONE PROPERTY
  * 
  * HUMAN-READABLE EXPLANATION:
  * Creates a copy of an existing property with all its configurations.
@@ -2299,15 +2518,15 @@ export async function cloneProperty(
         method: 'GET',
       });
       
-      const sourceProperty = sourceResponse.properties?.items?.[0];
+      const sourceProperty = (sourceResponse as any).properties?.items?.[0];
       if (!sourceProperty) {
         throw new Error('Source property not found');
       }
       
       // Use source property's values as defaults
-      if (!args.productId) args.productId = sourceProperty.productId;
-      if (!args.contractId) args.contractId = sourceProperty.contractId;
-      if (!args.groupId) args.groupId = sourceProperty.groupId;
+      if (!args.productId) {args.productId = sourceProperty.productId;}
+      if (!args.contractId) {args.contractId = sourceProperty.contractId;}
+      if (!args.groupId) {args.groupId = sourceProperty.groupId;}
     }
 
     const requestBody: any = {
@@ -2330,10 +2549,10 @@ export async function cloneProperty(
       },
     });
 
-    const propertyLink = response.propertyLink;
+    const propertyLink = (response as any).propertyLink;
     const newPropertyId = propertyLink?.split('/').pop()?.split('?')[0];
 
-    let text = `# 🔄 Property Cloned Successfully\n\n`;
+    let text = `# [SYNC] Property Cloned Successfully\n\n`;
     text += `**New Property Name:** ${args.newPropertyName}\n`;
     text += `**New Property ID:** ${newPropertyId}\n`;
     text += `**Cloned From:** ${args.sourcePropertyId}\n`;
@@ -2342,7 +2561,7 @@ export async function cloneProperty(
     text += `**Created:** ${new Date().toISOString()}\n\n`;
     
     text += `## What Was Cloned\n\n`;
-    text += `✅ **Included in Clone:**\n`;
+    text += `[SUCCESS] **Included in Clone:**\n`;
     text += `- All property rules and behaviors\n`;
     text += `- Origin server configuration\n`;
     text += `- Caching settings\n`;
@@ -2353,7 +2572,7 @@ export async function cloneProperty(
     }
     text += `\n`;
     
-    text += `❌ **NOT Included:**\n`;
+    text += `[ERROR] **NOT Included:**\n`;
     text += `- Activation history\n`;
     text += `- Active deployment status\n`;
     if (!args.copyHostnames) {
@@ -2390,7 +2609,7 @@ export async function cloneProperty(
 }
 
 /**
- * 🔍 SEARCH PROPERTIES
+ * [SEARCH] SEARCH PROPERTIES
  * 
  * HUMAN-READABLE EXPLANATION:
  * Searches for properties by name or hostname across your account.
@@ -2401,102 +2620,9 @@ export async function cloneProperty(
  * 
  * Consolidated and fixed from property-manager-advanced-tools.ts
  */
-export async function searchProperties(
-  client: AkamaiClient,
-  args: {
-    /** Search term (property name or hostname) */
-    searchTerm: string;
-    
-    /** Search by property name (default) or hostname */
-    searchBy?: 'propertyName' | 'hostname';
-    
-    /** Customer account context */
-    customer?: string;
-  },
-): Promise<MCPToolResponse> {
-  try {
-    // Use the real Akamai search API endpoint
-    const searchType = args.searchBy || 'propertyName';
-    const requestBody = {
-      [searchType]: args.searchTerm,
-    };
-
-    const response = await client.request({
-      path: '/papi/v1/search/find-by-value',
-      method: 'POST',
-      body: requestBody,
-    });
-
-    const results = response.versions?.items || [];
-
-    if (results.length === 0) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `No properties found matching "${args.searchTerm}".\n\n**Search Tips:**\n- Try partial names (e.g., "shop" instead of "shop.example.com")\n- Search by hostname if property name doesn't work\n- Check if you have access to the property\n- Verify spelling and try variations`,
-          },
-        ],
-      };
-    }
-
-    let text = `# 🔍 Property Search Results\n\n`;
-    text += `**Search Term:** "${args.searchTerm}"\n`;
-    text += `**Search By:** ${searchType}\n`;
-    text += `**Results Found:** ${results.length}\n\n`;
-
-    // Group results by property for better organization
-    const propertyMap = new Map<string, any[]>();
-    results.forEach((result: any) => {
-      const propId = result.propertyId;
-      if (!propertyMap.has(propId)) {
-        propertyMap.set(propId, []);
-      }
-      propertyMap.get(propId)!.push(result);
-    });
-
-    let propertyIndex = 1;
-    propertyMap.forEach((versions, propertyId) => {
-      const latestVersion = versions.reduce((latest, current) => 
-        current.propertyVersion > latest.propertyVersion ? current : latest
-      );
-
-      text += `## ${propertyIndex}. ${latestVersion.propertyName}\n`;
-      text += `- **Property ID:** ${propertyId}\n`;
-      text += `- **Latest Version:** ${latestVersion.propertyVersion}\n`;
-      text += `- **Contract:** ${latestVersion.contractId}\n`;
-      text += `- **Group:** ${latestVersion.groupId}\n`;
-      text += `- **Production Version:** ${latestVersion.productionStatus === 'ACTIVE' ? latestVersion.propertyVersion : 'None'}\n`;
-      text += `- **Staging Version:** ${latestVersion.stagingStatus === 'ACTIVE' ? latestVersion.propertyVersion : 'None'}\n`;
-      
-      if (searchType === 'hostname' && latestVersion.hostname) {
-        text += `- **Matching Hostname:** ${latestVersion.hostname}\n`;
-      }
-      
-      text += `\n`;
-      propertyIndex++;
-    });
-
-    text += `## Quick Actions\n\n`;
-    text += `**View property details:**\n`;
-    text += `\`\`\`\n`;
-    text += `get_property --propertyId [PROPERTY_ID]\n`;
-    text += `\`\`\`\n\n`;
-    text += `**View property rules:**\n`;
-    text += `\`\`\`\n`;
-    text += `get_property_rules --propertyId [PROPERTY_ID] --version [VERSION]\n`;
-    text += `\`\`\`\n`;
-
-    return {
-      content: [{ type: 'text', text }],
-    };
-  } catch (error) {
-    return handleApiError(error, 'searching properties');
-  }
-}
 
 /**
- * 📊 GET LATEST PROPERTY VERSION
+ * [ANALYTICS] GET LATEST PROPERTY VERSION
  * 
  * HUMAN-READABLE EXPLANATION:
  * Quick way to get information about the most recent version of a property.
@@ -2521,7 +2647,7 @@ export async function getLatestPropertyVersion(
       method: 'GET',
     });
 
-    const property = propertyResponse.properties?.items?.[0];
+    const property = (propertyResponse as any).properties?.items?.[0];
     if (!property) {
       throw new Error('Property not found');
     }
@@ -2534,12 +2660,12 @@ export async function getLatestPropertyVersion(
       method: 'GET',
     });
 
-    const version = versionResponse.versions?.items?.[0];
+    const version = (versionResponse as any).versions?.items?.[0];
     if (!version) {
       throw new Error('Version details not found');
     }
 
-    let text = `# 📊 Latest Property Version\n\n`;
+    let text = `# [ANALYTICS] Latest Property Version\n\n`;
     text += `**Property:** ${property.propertyName} (${args.propertyId})\n`;
     text += `**Latest Version:** ${latestVersion}\n`;
     text += `**Last Modified:** ${version.updatedDate}\n`;
@@ -2586,7 +2712,7 @@ export async function getLatestPropertyVersion(
 // =============================================================================
 
 /**
- * 📊 LIST CP CODES
+ * [ANALYTICS] LIST CP CODES
  * 
  * HUMAN-READABLE EXPLANATION:
  * CP Codes (Content Provider Codes) are tracking identifiers that help you
@@ -2616,8 +2742,8 @@ export async function listCPCodes(
 ): Promise<MCPToolResponse> {
   try {
     const queryParams: Record<string, string> = {};
-    if (args.contractId) queryParams.contractId = args.contractId;
-    if (args.groupId) queryParams.groupId = args.groupId;
+    if (args.contractId) {queryParams['contractId'] = args.contractId;}
+    if (args.groupId) {queryParams['groupId'] = args.groupId;}
 
     const response = await client.request({
       path: '/papi/v1/cpcodes',
@@ -2625,7 +2751,7 @@ export async function listCPCodes(
       ...(Object.keys(queryParams).length > 0 && { queryParams }),
     });
 
-    if (!response.cpcodes?.items || response.cpcodes.items.length === 0) {
+    if (!(response as any).cpcodes?.items || (response as any).cpcodes.items.length === 0) {
       return {
         content: [
           {
@@ -2636,12 +2762,12 @@ export async function listCPCodes(
       };
     }
 
-    let text = `# 📊 CP Codes (${response.cpcodes.items.length} found)\n\n`;
+    let text = `# [ANALYTICS] CP Codes (${(response as any).cpcodes.items.length} found)\n\n`;
     text += `CP codes track and report on your CDN usage.\n\n`;
 
     // Group by product for better organization
     const byProduct = new Map<string, any[]>();
-    response.cpcodes.items.forEach((cpcode: any) => {
+    (response as any).cpcodes.items.forEach((cpcode: any) => {
       const product = cpcode.productIds?.[0] || 'Unknown';
       if (!byProduct.has(product)) {
         byProduct.set(product, []);
@@ -2717,8 +2843,8 @@ export async function createCPCode(
     };
 
     const queryParams: Record<string, string> = {};
-    if (args.contractId) queryParams.contractId = args.contractId;
-    if (args.groupId) queryParams.groupId = args.groupId;
+    if (args.contractId) {queryParams['contractId'] = args.contractId;}
+    if (args.groupId) {queryParams['groupId'] = args.groupId;}
 
     const response = await client.request({
       path: '/papi/v1/cpcodes',
@@ -2727,15 +2853,15 @@ export async function createCPCode(
       ...(Object.keys(queryParams).length > 0 && { queryParams }),
     });
 
-    const cpcodeLink = response.cpcodeLink;
+    const cpcodeLink = (response as any).cpcodeLink;
     const cpcodeId = cpcodeLink?.split('/').pop()?.split('?')[0];
 
     let text = `# 🆕 CP Code Created Successfully\n\n`;
     text += `**CP Code Name:** ${args.cpcodeName}\n`;
     text += `**CP Code ID:** ${cpcodeId}\n`;
     text += `**Product:** ${args.productId}\n`;
-    if (args.contractId) text += `**Contract:** ${args.contractId}\n`;
-    if (args.groupId) text += `**Group:** ${args.groupId}\n`;
+    if (args.contractId) {text += `**Contract:** ${args.contractId}\n`;}
+    if (args.groupId) {text += `**Group:** ${args.groupId}\n`;}
     text += `**Created:** ${new Date().toISOString()}\n\n`;
     
     text += `## What Are CP Codes For?\n\n`;
@@ -2764,7 +2890,7 @@ export async function createCPCode(
 }
 
 /**
- * 🔍 GET CP CODE DETAILS
+ * [SEARCH] GET CP CODE DETAILS
  * 
  * HUMAN-READABLE EXPLANATION:
  * Shows detailed information about a specific CP code, including its
@@ -2803,7 +2929,7 @@ export async function getCPCode(
       method: 'GET',
     });
 
-    if (!response.cpcodes?.items?.[0]) {
+    if (!(response as any).cpcodes?.items?.[0]) {
       return {
         content: [
           {
@@ -2814,9 +2940,9 @@ export async function getCPCode(
       };
     }
 
-    const cpcode = response.cpcodes.items[0];
+    const cpcode = (response as any).cpcodes.items[0];
 
-    let text = `# 🔍 CP Code Details\n\n`;
+    let text = `# [SEARCH] CP Code Details\n\n`;
     text += `**CP Code ID:** ${cpcode.cpcodeId}\n`;
     text += `**Name:** ${cpcode.cpcodeName}\n`;
     text += `**Contract:** ${cpcode.contractId}\n`;

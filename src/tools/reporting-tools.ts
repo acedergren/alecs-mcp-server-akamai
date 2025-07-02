@@ -705,7 +705,7 @@ const reportingToolsBase: Tool[] = [
  * Uses type assertion to bypass exactOptionalPropertyTypes restriction
  */
 function cleanFilter(filter?: ReportingFilterInput): ReportingFilter | undefined {
-  if (!filter) return undefined;
+  if (!filter) {return undefined;}
   
   const cleaned: Partial<ReportingFilter> = {};
   
@@ -1262,10 +1262,11 @@ export async function getRealtimeMetrics(args: GetRealtimeMetricsArgs): Promise<
     const realtimeData: Record<string, any> = {};
     metrics.forEach((metric: string, index: number) => {
       const data = results[index];
-      const latestValue = data && data.length > 0 ? data[data.length - 1].value : 0;
+      const lastItem = data && data.length > 0 ? data[data.length - 1] : null;
+      const latestValue = lastItem?.value ?? 0;
       realtimeData[metric] = {
         current: latestValue,
-        timestamp: data && data.length > 0 ? data[data.length - 1].timestamp : now.toISOString(),
+        timestamp: lastItem?.timestamp ?? now.toISOString(),
         trend: 'stable', // Would calculate from historical data
       };
     });
@@ -1312,7 +1313,7 @@ export async function analyzeTrafficTrends(args: AnalyzeTrafficTrendsArgs): Prom
     const trends: Record<string, any> = {};
     
     for (const [metric, data] of Object.entries(timeSeriesData)) {
-      if (!Array.isArray(data) || data.length === 0) continue;
+      if (!Array.isArray(data) || data.length === 0) {continue;}
       
       const values = data.map(d => d.value);
       
@@ -1439,9 +1440,9 @@ export async function generatePerformanceReport(args: GeneratePerformanceReportA
 
 function calculatePerformanceScore(summary: TrafficSummary): string {
   let score = 100;
-  if (summary.responseTime > 300) score -= 20;
-  if (summary.cacheHitRatio < 85) score -= 20;
-  if (summary.errorRate > 1) score -= 20;
+  if (summary.responseTime > 300) {score -= 20;}
+  if (summary.cacheHitRatio < 85) {score -= 20;}
+  if (summary.errorRate > 1) {score -= 20;}
   return score >= 90 ? 'Excellent' : score >= 75 ? 'Good' : score >= 60 ? 'Fair' : 'Needs Improvement';
 }
 
@@ -1542,10 +1543,10 @@ function calculateRegionScore(metrics: any): number {
 }
 
 function getPerformanceGrade(responseTime: number): string {
-  if (responseTime < 100) return 'A';
-  if (responseTime < 200) return 'B';
-  if (responseTime < 500) return 'C';
-  if (responseTime < 1000) return 'D';
+  if (responseTime < 100) {return 'A';}
+  if (responseTime < 200) {return 'B';}
+  if (responseTime < 500) {return 'C';}
+  if (responseTime < 1000) {return 'D';}
   return 'F';
 }
 
@@ -1652,9 +1653,9 @@ function analyzeErrorTrends(errorMetrics: Record<string, any>): Record<string, '
     const firstAvg = firstHalf.reduce((a: number, b: number) => a + b, 0) / firstHalf.length;
     const secondAvg = secondHalf.reduce((a: number, b: number) => a + b, 0) / secondHalf.length;
     
-    if (secondAvg > firstAvg * 1.2) trends[type] = 'increasing';
-    else if (secondAvg < firstAvg * 0.8) trends[type] = 'decreasing';
-    else trends[type] = 'stable';
+    if (secondAvg > firstAvg * 1.2) {trends[type] = 'increasing';}
+    else if (secondAvg < firstAvg * 0.8) {trends[type] = 'decreasing';}
+    else {trends[type] = 'stable';}
   }
   
   return trends;

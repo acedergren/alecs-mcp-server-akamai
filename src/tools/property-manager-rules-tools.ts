@@ -683,7 +683,7 @@ export async function resumeDomainValidation(
     text += '\n## Validation Process\n';
     text += '1. [DONE] Validation challenges have been set up\n';
     text += '2. [EMOJI] Resuming validation process...\n';
-    text += '3. [EMOJI]️ Akamai will check the validation challenges\n';
+    text += '3. [SEARCH] Akamai will check the validation challenges\n';
     text += '4. [DONE] Certificate will be issued upon successful validation\n\n';
 
     text += '## Expected Timeline\n';
@@ -771,7 +771,7 @@ export async function getPropertyAuditHistory(
     text += 'A complete audit history includes:\n';
     text += '- [DONE] **Activations**: Version deployments to staging/production\n';
     text += '- [DOCS] **Rule Changes**: Modifications to property configuration\n';
-    text += '- [EMOJI]️ **Hostname Changes**: Added or removed domains\n';
+    text += '- [LINK] **Hostname Changes**: Added or removed domains\n';
     text += '- [EMOJI] **Certificate Updates**: SSL/TLS certificate changes\n';
     text += '- [EMOJI] **Permission Changes**: User access modifications\n\n';
 
