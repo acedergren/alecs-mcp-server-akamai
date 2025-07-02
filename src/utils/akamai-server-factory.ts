@@ -202,8 +202,9 @@ export class AkamaiMCPServer {
     }
     
     // Validate naming conventions for MCP compatibility
-    if (!/^[a-z][a-z0-9-]*[a-z0-9]$/.test(tool.name) && tool.name.length > 1) {
-      const error = new Error(`INVALID TOOL NAME FORMAT: "${tool.name}" - must be kebab-case (lowercase, hyphens only)!`);
+    // Updated pattern to match MCP frontend requirement: ^[a-zA-Z0-9_-]{1,64}$
+    if (!/^[a-zA-Z0-9_-]{1,64}$/.test(tool.name)) {
+      const error = new Error(`INVALID TOOL NAME FORMAT: "${tool.name}" - must match pattern ^[a-zA-Z0-9_-]{1,64}$`);
       logger.fatal({ toolName: tool.name }, error.message);
       throw error;
     }
