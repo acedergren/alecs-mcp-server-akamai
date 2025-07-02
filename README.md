@@ -50,7 +50,7 @@
   
 ### 📊 Latest Release Docs
 
-![Version](https://img.shields.io/badge/Version-1.7.0-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-1.7.4-blue?style=for-the-badge)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/acedergren/alecs-mcp-server-akamai)
 
 </div>

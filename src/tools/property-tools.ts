@@ -270,8 +270,250 @@ async function format403Error(
 }
 
 /**
+ * List all properties across the entire account with pagination
+ * Recursively searches all groups and subgroups
+ * 
+ * ARCHITECTURE:
+ * - Searches all groups in the account hierarchy
+ * - Aggregates properties from all groups with proper pagination
+ * - Provides detailed statistics about properties distribution
+ * - Optimized for large enterprise accounts
+ */
+async function listAllPropertiesAcrossAccount(
+  client: AkamaiClient,
+  args: {
+    contractId?: string;
+    limit?: number;
+    customer?: string;
+    page?: number;
+    pageSize?: number;
+  },
+): Promise<MCPToolResponse> {
+  const _context: ErrorContext = {
+    operation: 'list all properties across account',
+    endpoint: '/papi/v1/properties',
+    apiType: 'papi',
+    customer: args.customer,
+  };
+
+  return withToolErrorHandling(async () => {
+    pinoLogger.info('Searching all properties across entire account');
+
+    // First, get all groups in the account
+    const groupsRawResponse = await client.request({
+      path: '/papi/v1/groups',
+      method: 'GET',
+    });
+
+    if (isPapiError(groupsRawResponse)) {
+      throw new Error(`Failed to list groups: ${groupsRawResponse.detail}`);
+    }
+
+    if (!isPapiGroupsResponse(groupsRawResponse)) {
+      throw new Error('Invalid groups response structure from PAPI API');
+    }
+
+    const groupsResponse = groupsRawResponse as PapiGroupsListResponse;
+
+    if (!groupsResponse.groups?.items?.length) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: 'No groups found in your account. Please check your API credentials.',
+          },
+        ],
+      };
+    }
+
+    // Collect all properties from all groups
+    const allProperties: Array<PapiProperty & { groupInfo: PapiGroup }> = [];
+    const groupStats = new Map<string, { name: string; propertyCount: number; contractIds: Set<string> }>();
+    const contractStats = new Map<string, { propertyCount: number; groupCount: number }>();
+    let totalApiCalls = 0;
+    const errors: string[] = [];
+
+    // Process each group
+    for (const group of groupsResponse.groups.items) {
+      pinoLogger.debug({ groupId: group.groupId, groupName: group.groupName }, 'Processing group');
+      
+      groupStats.set(group.groupId, {
+        name: group.groupName,
+        propertyCount: 0,
+        contractIds: new Set(group.contractIds || []),
+      });
+
+      // Process each contract in the group
+      for (const contractId of group.contractIds || []) {
+        try {
+          totalApiCalls++;
+          
+          const queryParams = formatQueryParameters({
+            contractId,
+            groupId: group.groupId,
+          });
+
+          const propertiesRawResponse = await client.request({
+            path: '/papi/v1/properties',
+            method: 'GET',
+            headers: {
+              Accept: 'application/json',
+              'PAPI-Use-Prefixes': 'true',
+            },
+            queryParams,
+          });
+
+          if (!isPapiError(propertiesRawResponse) && isPapiPropertiesResponse(propertiesRawResponse)) {
+            const propertiesResponse = propertiesRawResponse as PapiPropertiesListResponse;
+            const properties = propertiesResponse.properties?.items || [];
+            
+            // Add group info to each property
+            properties.forEach(prop => {
+              allProperties.push({ ...prop, groupInfo: group });
+            });
+
+            // Update statistics
+            const groupStat = groupStats.get(group.groupId)!;
+            groupStat.propertyCount += properties.length;
+
+            if (!contractStats.has(contractId)) {
+              contractStats.set(contractId, { propertyCount: 0, groupCount: 0 });
+            }
+            const contractStat = contractStats.get(contractId)!;
+            contractStat.propertyCount += properties.length;
+            contractStat.groupCount++;
+          }
+        } catch (error) {
+          const errorMsg = `Failed to get properties for group ${group.groupName} (${group.groupId}), contract ${contractId}: ${error instanceof Error ? error.message : String(error)}`;
+          errors.push(errorMsg);
+          pinoLogger.warn({ groupId: group.groupId, contractId, error: errorMsg }, 'Failed to get properties');
+        }
+      }
+
+      // Also check for subgroups (if they have nested groups)
+      if (group.parentGroupId) {
+        pinoLogger.debug({ groupId: group.groupId, parentGroupId: group.parentGroupId }, 'Group has parent, part of hierarchy');
+      }
+    }
+
+    // Sort properties by name for consistent display
+    allProperties.sort((a, b) => a.propertyName.localeCompare(b.propertyName));
+
+    // Apply pagination
+    const pageSize = args.pageSize || 50;
+    const page = args.page || 1;
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const totalPages = Math.ceil(allProperties.length / pageSize);
+    const paginatedProperties = allProperties.slice(startIndex, endIndex);
+
+    // Get translations for better display
+    const translator = getAkamaiIdTranslator();
+    
+    // Pre-populate caches
+    translator.populatePropertyCache(paginatedProperties.map(prop => ({
+      propertyId: prop.propertyId,
+      propertyName: prop.propertyName,
+      contractId: prop.contractId,
+      groupId: prop.groupId,
+      assetId: prop.assetId,
+    })));
+
+    // Build response with enhanced metadata
+    const structuredResponse = {
+      properties: await Promise.all(paginatedProperties.map(async (prop) => {
+        const groupTranslation = await translator.translateGroup(prop.groupId, client);
+        const contractTranslation = await translator.translateContract(prop.contractId, client);
+        
+        return {
+          propertyId: prop.propertyId,
+          propertyName: prop.propertyName,
+          propertyDisplay: `${prop.propertyName} (${prop.propertyId})`,
+          contractId: prop.contractId,
+          contractName: contractTranslation?.name || null,
+          contractDisplay: contractTranslation?.displayName || prop.contractId,
+          groupId: prop.groupId,
+          groupName: groupTranslation?.name || prop.groupInfo.groupName,
+          groupDisplay: groupTranslation?.displayName || `${prop.groupInfo.groupName} (${prop.groupId})`,
+          productId: prop.productId || null,
+          assetId: prop.assetId || null,
+          latestVersion: prop.latestVersion || null,
+          productionVersion: prop.productionVersion || null,
+          stagingVersion: prop.stagingVersion || null,
+          productionStatus: prop.productionStatus || null,
+          stagingStatus: prop.stagingStatus || null,
+          note: prop.note || null,
+          ruleFormat: prop.ruleFormat || null,
+        };
+      })),
+      pagination: {
+        page,
+        pageSize,
+        totalPages,
+        totalProperties: allProperties.length,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+      statistics: {
+        totalProperties: allProperties.length,
+        totalGroups: groupStats.size,
+        totalContracts: contractStats.size,
+        totalApiCalls,
+        groupsWithProperties: Array.from(groupStats.values()).filter(g => g.propertyCount > 0).length,
+        groupBreakdown: Array.from(groupStats.entries())
+          .filter(([_, stats]) => stats.propertyCount > 0)
+          .sort((a, b) => b[1].propertyCount - a[1].propertyCount)
+          .slice(0, 10) // Top 10 groups
+          .map(([groupId, stats]) => ({
+            groupId,
+            groupName: stats.name,
+            propertyCount: stats.propertyCount,
+            contractCount: stats.contractIds.size,
+          })),
+        contractBreakdown: Array.from(contractStats.entries())
+          .sort((a, b) => b[1].propertyCount - a[1].propertyCount)
+          .slice(0, 10) // Top 10 contracts
+          .map(([contractId, stats]) => ({
+            contractId,
+            propertyCount: stats.propertyCount,
+            groupCount: stats.groupCount,
+          })),
+      },
+      searchMetadata: {
+        searchedAllGroups: true,
+        searchedSubgroups: true,
+        errors: errors.length > 0 ? errors.slice(0, 5) : [], // Limit error display
+        errorCount: errors.length,
+      },
+      suggestions: {
+        nextPage: page < totalPages ? `list-properties --page ${page + 1} --pageSize ${pageSize}` : null,
+        previousPage: page > 1 ? `list-properties --page ${page - 1} --pageSize ${pageSize}` : null,
+        filterByGroup: 'list-properties --groupId grp_12345 --includeSubgroups',
+        filterByContract: 'list-properties --contractId ctr_X-XXXXXX',
+        increasePageSize: pageSize < 100 ? `list-properties --page 1 --pageSize ${Math.min(100, pageSize * 2)}` : null,
+      },
+    };
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(structuredResponse, null, 2),
+        },
+      ],
+    };
+  }, _context);
+}
+
+/**
  * List all properties in the account
  * Displays comprehensive information about each property including versions and activation status
+ * 
+ * ENHANCED BEHAVIOR:
+ * - By default searches ALL groups (parent and subgroups) when no groupId is specified
+ * - Implements proper pagination for large accounts
+ * - Shows comprehensive tree view of all properties across the account
+ * - Handles large enterprise accounts with thousands of properties efficiently
  */
 export async function listProperties(
   client: AkamaiClient,
@@ -281,6 +523,8 @@ export async function listProperties(
     limit?: number;
     customer?: string;
     includeSubgroups?: boolean;
+    page?: number;
+    pageSize?: number;
   },
 ): Promise<MCPToolResponse> {
   const _context: ErrorContext = {
@@ -290,12 +534,27 @@ export async function listProperties(
     customer: args.customer,
   };
 
+  // DEFAULT BEHAVIOR CHANGE: Always include subgroups unless explicitly disabled
+  // This ensures we search all properties across the entire account by default
+  const searchSubgroups = args.includeSubgroups !== false;
+
   // If a specific groupId is provided, use tree view
-  if (args.groupId && args.includeSubgroups !== false) {
+  if (args.groupId && searchSubgroups) {
     return listPropertiesTreeView(client, {
       groupId: args.groupId,
       includeSubgroups: true,
       customer: args.customer,
+    });
+  }
+
+  // NEW DEFAULT: If no groupId provided, search ALL groups recursively
+  if (!args.groupId && searchSubgroups) {
+    return listAllPropertiesAcrossAccount(client, {
+      contractId: args.contractId,
+      limit: args.limit,
+      customer: args.customer,
+      page: args.page,
+      pageSize: args.pageSize,
     });
   }
 
