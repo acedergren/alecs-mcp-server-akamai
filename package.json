@@ -75,6 +75,11 @@
     "lint": "eslint 'src/**/*.ts' --fix",
     "format": "prettier --write 'src/**/*.{ts,json,md}'",
     "typecheck": "tsc --noEmit",
+    "audit": "tsx src/audit/run-audit.ts",
+    "audit:fix": "tsx src/audit/run-audit.ts --fix",
+    "audit:sonarqube": "tsx src/audit/run-sonarqube-audit.ts",
+    "audit:sonarqube:fix": "tsx src/audit/sonarqube-fix-orchestrator.ts",
+    "audit:sonarqube:dry-run": "tsx src/audit/sonarqube-fix-orchestrator.ts --dry-run",
     "prepublishOnly": "npm run build",
     "prepare": "npm run build",
     "postinstall": "node scripts/post-install.js || echo 'Post-install setup failed, continuing...'"
