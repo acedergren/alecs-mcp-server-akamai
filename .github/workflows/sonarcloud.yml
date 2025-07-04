@@ -1,0 +1,208 @@
+name: SonarCloud Analysis
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+      - 'fix/**'
+  pull_request:
+    types: [opened, synchronize, reopened]
+  schedule:
+    # Run analysis daily at 2 AM UTC to catch drift
+    - cron: '0 2 * * *'
+
+jobs:
+  sonarcloud:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Shallow clones should be disabled for better analysis
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: |
+          npm run test:coverage || true
+          # Generate coverage report even if some tests fail
+          # This ensures we get partial coverage data
+
+      - name: Run linting
+        run: |
+          npm run lint -- --format json --output-file eslint-report.json || true
+          # Continue even if linting fails to get the report
+
+      - name: Build project
+        run: npm run build
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=acedergren_alecs-mcp-server-akamai
+            -Dsonar.organization=acedergren
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.eslint.reportPaths=eslint-report.json
+            -Dsonar.typescript.tsconfigPath=tsconfig.json
+            -Dsonar.sources=src
+            -Dsonar.tests=src/__tests__
+            -Dsonar.test.inclusions=**/*.test.ts,**/*.spec.ts
+            -Dsonar.exclusions=**/*.test.ts,**/*.spec.ts,**/node_modules/**,**/dist/**,**/build/**,**/coverage/**,**/*.d.ts
+            -Dsonar.coverage.exclusions=**/*.test.ts,**/*.spec.ts,**/test/**,**/__tests__/**,**/*.mock.ts,**/examples/**
+
+      - name: Check Quality Gate
+        if: github.event_name == 'pull_request'
+        run: |
+          # Install jq for JSON parsing
+          sudo apt-get install -y jq
+          
+          # Wait for the quality gate status
+          sleep 10
+          
+          # Fetch quality gate status using the API
+          STATUS=$(curl -s -u ${{ secrets.SONAR_TOKEN }}: \
+            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=acedergren_alecs-mcp-server-akamai" \
+            | jq -r '.projectStatus.status')
+          
+          echo "Quality Gate Status: $STATUS"
+          
+          if [ "$STATUS" != "OK" ]; then
+            echo "❌ Quality Gate failed! Check the details at:"
+            echo "https://sonarcloud.io/summary/new_code?id=acedergren_alecs-mcp-server-akamai"
+            exit 1
+          else
+            echo "✅ Quality Gate passed!"
+          fi
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const projectKey = 'acedergren_alecs-mcp-server-akamai';
+            const prNumber = context.issue.number;
+            
+            // Fetch metrics from SonarCloud
+            const metrics = await fetch(
+              `https://sonarcloud.io/api/measures/component?component=${projectKey}&metricKeys=bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,security_hotspots`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${{ secrets.SONAR_TOKEN }}`
+                }
+              }
+            ).then(r => r.json());
+            
+            // Parse metrics
+            const measureMap = {};
+            metrics.component.measures.forEach(m => {
+              measureMap[m.metric] = m.value;
+            });
+            
+            // Create comment body
+            const comment = `## 📊 SonarCloud Analysis Results
+            
+            | Metric | Value | Status |
+            |--------|-------|--------|
+            | 🐛 Bugs | ${measureMap.bugs || '0'} | ${measureMap.bugs > 0 ? '⚠️' : '✅'} |
+            | 🔒 Vulnerabilities | ${measureMap.vulnerabilities || '0'} | ${measureMap.vulnerabilities > 0 ? '❌' : '✅'} |
+            | 🧹 Code Smells | ${measureMap.code_smells || '0'} | ${measureMap.code_smells > 50 ? '⚠️' : '✅'} |
+            | 📊 Coverage | ${measureMap.coverage || '0'}% | ${measureMap.coverage < 80 ? '⚠️' : '✅'} |
+            | 🔁 Duplication | ${measureMap.duplicated_lines_density || '0'}% | ${measureMap.duplicated_lines_density > 5 ? '⚠️' : '✅'} |
+            | 🔥 Security Hotspots | ${measureMap.security_hotspots || '0'} | ${measureMap.security_hotspots > 0 ? '⚠️' : '✅'} |
+            
+            [View detailed analysis on SonarCloud →](https://sonarcloud.io/summary/new_code?id=${projectKey}&pullRequest=${prNumber})
+            `;
+            
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('SonarCloud Analysis Results')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: comment
+              });
+            }
+
+  # Separate job for issue validation
+  validate-fixed-issues:
+    name: Validate Fixed Issues
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate and close fixed issues
+        env:
+          SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONARCLOUD_ORGANIZATION: acedergren
+          SONARCLOUD_PROJECT_KEY: acedergren_alecs-mcp-server-akamai
+        run: |
+          # Run validation with auto-close
+          npm run sonarcloud:validate:auto
+          
+          # Check if any issues were closed
+          if grep -q "Successfully closed:" sonarcloud-validation-report.md; then
+            echo "🎉 Some issues were automatically closed!"
+          fi
+
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: sonarcloud-validation-report
+          path: sonarcloud-validation-report.md

@@ -1,0 +1,211 @@
+name: Scheduled Code Analysis
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      auto_close_issues:
+        description: 'Automatically close fixed issues'
+        required: false
+        default: 'true'
+        type: boolean
+
+jobs:
+  deep-analysis:
+    name: Deep Code Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run full test suite with coverage
+        run: |
+          npm run test:coverage || true
+          
+          # Generate coverage badges
+          npx coverage-badges-cli --output coverage/badges
+
+      - name: Run security audit
+        run: |
+          echo "## 🔒 Security Audit Report" > security-report.md
+          echo "Generated: $(date)" >> security-report.md
+          echo "" >> security-report.md
+          
+          # Run npm audit
+          npm audit --json > audit.json || true
+          
+          # Parse and format results
+          node -e "
+          const audit = require('./audit.json');
+          const severities = audit.metadata.vulnerabilities;
+          console.log('### Vulnerability Summary');
+          console.log('| Severity | Count |');
+          console.log('|----------|-------|');
+          console.log('| Critical | ' + (severities.critical || 0) + ' |');
+          console.log('| High | ' + (severities.high || 0) + ' |');
+          console.log('| Moderate | ' + (severities.moderate || 0) + ' |');
+          console.log('| Low | ' + (severities.low || 0) + ' |');
+          " >> security-report.md
+
+      - name: Analyze code complexity
+        run: |
+          # Install complexity report tool
+          npm install -g complexity-report
+          
+          # Generate complexity report
+          cr --format json --output complexity.json src/**/*.ts || true
+          
+          # Create summary
+          echo "## 📊 Code Complexity Analysis" > complexity-report.md
+          echo "Generated: $(date)" >> complexity-report.md
+          node -e "
+          const fs = require('fs');
+          try {
+            const report = JSON.parse(fs.readFileSync('complexity.json', 'utf8'));
+            console.log('### Summary');
+            console.log('- Average maintainability:', report.maintainability.toFixed(2));
+            console.log('- Files analyzed:', report.reports.length);
+            
+            console.log('\\n### Most Complex Files');
+            const complex = report.reports
+              .sort((a, b) => b.complexity - a.complexity)
+              .slice(0, 10);
+            
+            console.log('| File | Complexity | Maintainability |');
+            console.log('|------|------------|-----------------|');
+            complex.forEach(f => {
+              console.log('| ' + f.path + ' | ' + f.complexity + ' | ' + f.maintainability.toFixed(2) + ' |');
+            });
+          } catch (e) {
+            console.log('Could not parse complexity report');
+          }
+          " >> complexity-report.md
+
+      - name: Check for duplicate code
+        run: |
+          # Install jscpd for duplicate detection
+          npm install -g jscpd
+          
+          # Run duplicate detection
+          jscpd src \
+            --reporters json,console \
+            --output .jscpd \
+            --ignore "**/*.test.ts,**/*.spec.ts" || true
+          
+          echo "## 🔁 Duplicate Code Report" > duplication-report.md
+          echo "Generated: $(date)" >> duplication-report.md
+          
+          if [ -f ".jscpd/jscpd-report.json" ]; then
+            node -e "
+            const report = require('./.jscpd/jscpd-report.json');
+            console.log('### Summary');
+            console.log('- Total duplications:', report.statistics.total);
+            console.log('- Duplicated lines:', report.statistics.lines);
+            console.log('- Duplicated percentage:', report.statistics.percentage + '%');
+            " >> duplication-report.md
+          fi
+
+      - name: Run SonarCloud analysis
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Validate and close fixed issues
+        if: github.event.inputs.auto_close_issues == 'true' || github.event_name == 'schedule'
+        env:
+          SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONARCLOUD_ORGANIZATION: acedergren
+          SONARCLOUD_PROJECT_KEY: acedergren_alecs-mcp-server-akamai
+        run: |
+          npm run sonarcloud:validate:auto
+          
+          # Extract summary from report
+          FIXED_COUNT=$(grep -oP 'Fixed: \K\d+' sonarcloud-validation-report.md || echo "0")
+          echo "fixed_count=$FIXED_COUNT" >> $GITHUB_ENV
+
+      - name: Generate comprehensive report
+        run: |
+          cat > weekly-analysis-report.md << 'EOF'
+          # 📊 Weekly Code Analysis Report
+          
+          **Generated**: $(date)
+          **Repository**: ${{ github.repository }}
+          **Branch**: ${{ github.ref_name }}
+          
+          ## 🎯 Executive Summary
+          
+          - **Fixed Issues**: ${{ env.fixed_count || '0' }} issues auto-closed
+          - **Code Coverage**: $(grep -oP 'Lines\s+:\s+\K[\d.]+' coverage/lcov-report/index.html || echo "N/A")%
+          - **Quality Gate**: [View on SonarCloud](https://sonarcloud.io/summary/overall?id=acedergren_alecs-mcp-server-akamai)
+          
+          ## 📈 Trends
+          
+          | Metric | This Week | Last Week | Change |
+          |--------|-----------|-----------|---------|
+          | Open Issues | $(grep -oP 'Total Issues: \K\d+' sonarcloud-validation-report.md || echo "N/A") | N/A | N/A |
+          | Code Smells | $(grep -oP 'code_smells: \K\d+' sonarcloud-validation-report.md || echo "N/A") | N/A | N/A |
+          | Technical Debt | N/A | N/A | N/A |
+          
+          ## 🔍 Detailed Reports
+          
+          - [Security Report](security-report.md)
+          - [Complexity Report](complexity-report.md)
+          - [Duplication Report](duplication-report.md)
+          - [SonarCloud Validation](sonarcloud-validation-report.md)
+          
+          ## 💡 Recommendations
+          
+          1. Focus on fixing high-priority bugs first
+          2. Reduce code duplication to improve maintainability
+          3. Increase test coverage for critical paths
+          4. Review and refactor complex functions
+          
+          ---
+          
+          *This report was automatically generated by the scheduled analysis workflow.*
+          EOF
+
+      - name: Create issue with report
+        if: github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('weekly-analysis-report.md', 'utf8');
+            
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `📊 Weekly Code Analysis Report - ${new Date().toISOString().split('T')[0]}`,
+              body: report,
+              labels: ['code-quality', 'automated']
+            });
+            
+            console.log(`Created issue #${issue.data.number}`);
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: analysis-reports
+          path: |
+            *-report.md
+            coverage/
+            .jscpd/
+            complexity.json
+            audit.json
