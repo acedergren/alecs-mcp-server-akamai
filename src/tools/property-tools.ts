@@ -1691,6 +1691,7 @@ export async function createProperty(
     contractId: string;
     groupId: string;
     ruleFormat?: string;
+    customer?: string;
   },
 ): Promise<MCPToolResponse> {
   try {
@@ -1803,7 +1804,7 @@ export async function createProperty(
     // Invalidate cache after successful property creation
     try {
       const cacheService = await getCacheService();
-      const customer = 'default'; // No customer param in this function signature
+      const customer = args.customer || 'default';
       // Invalidate the all properties list since we added a new one
       await cacheService.del(`${customer}:properties:all`);
       // Also invalidate any search results that might be cached

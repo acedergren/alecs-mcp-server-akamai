@@ -107,14 +107,16 @@ export async function universalSearchWithCacheHandler(
           const property = result.property;
 
           // Get detailed info if requested
+          let propertyWithDetails = property;
           if (detailed && !('hostnames' in property)) {
             const hostnames = await cache.getPropertyHostnames(client, property, customer);
-            Object.assign(property, { hostnames });
+            // Create a new object to avoid mutating the cached data
+            propertyWithDetails = { ...property, hostnames };
           }
 
           results.matches.push({
             type: 'property',
-            resource: property,
+            resource: propertyWithDetails,
             matchReason: result.matchReason || 'Cache match',
             hostname: result.hostname,
           });

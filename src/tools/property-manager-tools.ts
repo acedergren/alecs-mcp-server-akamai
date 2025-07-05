@@ -272,8 +272,7 @@ export async function createPropertyVersion(
     // Invalidate cache after successful version creation
     try {
       const cacheService = await getCacheService();
-      const customer = args.customer || 'default';
-      await cacheService.invalidateProperty(args.propertyId, customer);
+      await cacheService.invalidateProperty(args.propertyId, args.customer || 'default');
     } catch (cacheError) {
       // Log but don't fail the operation if cache invalidation fails
       console.error('[Cache] Failed to invalidate cache after version creation:', cacheError);
@@ -526,6 +525,7 @@ export async function updatePropertyRules(
     version?: number;
     rules: any;
     note?: string;
+    customer?: string;
   },
 ): Promise<MCPToolResponse> {
   try {
@@ -662,7 +662,7 @@ export async function updatePropertyRules(
     // Invalidate cache after successful rules update
     try {
       const cacheService = await getCacheService();
-      const customer = 'default'; // No customer param in this function signature
+      const customer = args.customer || 'default';
       await cacheService.invalidateProperty(args.propertyId, customer);
       // Also invalidate specific rules cache
       await cacheService.del(`${customer}:property:${args.propertyId}:rules:${version}`);
@@ -1010,6 +1010,7 @@ export async function removePropertyHostname(
     propertyId: string;
     hostname: string;
     version?: number;
+    customer?: string;
   },
 ): Promise<MCPToolResponse> {
   try {
@@ -1098,7 +1099,7 @@ export async function removePropertyHostname(
     // Invalidate cache after successful hostname removal
     try {
       const cacheService = await getCacheService();
-      const customer = 'default'; // No customer param in this function signature
+      const customer = args.customer || 'default';
       await cacheService.invalidateProperty(args.propertyId, customer);
       // Also invalidate specific hostname caches
       await cacheService.del(`${customer}:hostname:${args.hostname.toLowerCase()}`);
