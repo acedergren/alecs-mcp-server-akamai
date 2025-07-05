@@ -50,7 +50,7 @@
   
 ### 📊 Latest Release Docs
 
-![Version](https://img.shields.io/badge/Version-1.7.0-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-1.7.4-blue?style=for-the-badge)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/acedergren/alecs-mcp-server-akamai)
 
 </div>
@@ -62,8 +62,11 @@
 ### Install from NPM
 
 ```bash
-# Install globally
+# Install globally (stable release)
 npm install -g alecs-mcp-server-akamai
+
+# Or try the latest nightly build (experimental)
+npm install -g alecs-mcp-server-akamai@nightly
 
 # Verify installation
 alecs --version
@@ -77,6 +80,16 @@ alecs start:dns       # DNS management only
 alecs start:certs     # Certificate management only
 # See all variants: alecs --help
 ```
+
+#### 🌙 Nightly Builds
+
+Nightly builds are automatically created at 2 AM UTC with the latest changes from the main branch:
+
+- **NPM**: `npm install -g alecs-mcp-server-akamai@nightly`
+- **Docker**: `docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:nightly`
+- **GitHub Releases**: Check [nightly releases](https://github.com/acedergren/alecs-mcp-server-akamai/releases?q=nightly&expanded=true)
+
+⚠️ **Warning**: Nightly builds may contain experimental features and bugs. Use with caution!
 
 📖 **[Full NPM Variants Guide](./docs/npm-variants-guide.md)** - Learn about all server variants and configurations
 

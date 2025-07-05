@@ -14,8 +14,10 @@ const BaseToolSchema = z.object({
 export const ListPropertiesSchema = BaseToolSchema.extend({
   contractId: z.string().optional().describe('Filter by contract ID'),
   groupId: z.string().optional().describe('Filter by group ID'),
-  limit: z.number().optional().describe('Maximum number of results'),
-  includeSubgroups: z.boolean().optional().describe('Include properties from subgroups'),
+  limit: z.number().optional().describe('Maximum number of results (deprecated, use pageSize)'),
+  includeSubgroups: z.boolean().optional().describe('Include properties from subgroups (default: true)'),
+  page: z.number().optional().describe('Page number for pagination (default: 1)'),
+  pageSize: z.number().optional().describe('Number of properties per page (default: 50, max: 1000)'),
 });
 
 export const GetPropertySchema = BaseToolSchema.extend({

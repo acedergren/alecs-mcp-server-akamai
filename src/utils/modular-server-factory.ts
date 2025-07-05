@@ -44,6 +44,7 @@ import {
 import { logger } from './logger';
 import { getTransportFromEnv } from '../config/transport-config';
 import { AkamaiClient } from '../akamai-client';
+import { type ZodObject, type ZodRawShape } from 'zod';
 
 // Import the complete tool registry
 // This consolidates all 158 tools from across the codebase into one place
@@ -133,8 +134,8 @@ export class AkamaiMCPServer {
         description: tool.description,
         inputSchema: tool.schema ? {
           type: 'object',
-          properties: (tool.schema as any).shape || {},
-          required: (tool.schema as any)._def?.typeName === 'ZodObject' ? Object.keys((tool.schema as any).shape || {}) : [],
+          properties: this.extractZodProperties(tool.schema),
+          required: this.extractZodRequired(tool.schema),
         } : undefined,
       }));
 
@@ -209,6 +210,39 @@ export class AkamaiMCPServer {
         );
       }
     });
+  }
+
+  /**
+   * Extract properties from a Zod schema safely
+   */
+  private extractZodProperties(schema: ToolDefinition['schema']): Record<string, unknown> {
+    try {
+      if (schema && typeof schema === 'object' && 'shape' in schema) {
+        const zodObject = schema as ZodObject<ZodRawShape>;
+        return zodObject.shape || {};
+      }
+      return {};
+    } catch {
+      return {};
+    }
+  }
+
+  /**
+   * Extract required properties from a Zod schema safely
+   */
+  private extractZodRequired(schema: ToolDefinition['schema']): string[] {
+    try {
+      if (schema && typeof schema === 'object' && '_def' in schema) {
+        const schemaDef = schema._def as { typeName?: string };
+        if (schemaDef.typeName === 'ZodObject' && 'shape' in schema) {
+          const zodObject = schema as ZodObject<ZodRawShape>;
+          return Object.keys(zodObject.shape || {});
+        }
+      }
+      return [];
+    } catch {
+      return [];
+    }
   }
 
   async start(): Promise<void> {

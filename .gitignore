@@ -136,6 +136,26 @@ docs/.doctrees/
 local-test/
 scratch/archive/
 
+# Audit and analysis files (reports and generated content)
+audit-reports/
+audit-results/
+src/audit/batch-fixes/
+src/audit/overnight-*.md
+*.audit.json
+*.audit.md
+sonarqube-tracking.json
+sonarqube-fix-log.md
+sonarqube-*.md
+sonarqube-*.json
+scripts/*sonar*
+scripts/*audit*
+
+# Keep audit framework, rules, and documentation
+!src/audit/rules/
+!src/audit/critical-fixes/
+!src/audit/README.md
+!src/audit/example.*
+
 # Security - ensure sensitive files are ignored
 .env
 .env.local

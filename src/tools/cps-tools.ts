@@ -1,4 +1,8 @@
 import { CPSEnrollmentMetadata } from '../utils/api-response-validator';
+import { 
+  CPSEnrollmentListItem, 
+  CPSEnrollmentStatusResponse as CPSStatusResponse 
+} from '../types/api-responses/cps-certificates';
 
 /**
  * Certificate Provisioning System (CPS) Tools
@@ -787,7 +791,7 @@ export async function linkCertificateToProperty(
  * Helper function to format enrollment summary
  */
 // CODE KAI: Type-safe enrollment summary formatting
-function formatEnrollmentSummary(enrollment: CPSEnrollmentMetadata): string {
+function formatEnrollmentSummary(enrollment: CPSEnrollmentMetadata | CPSEnrollmentListItem | CPSStatusResponse): string {
   const statusMap: Record<string, string> = {
     active: '[DONE]',
     new: '[EMOJI]',
@@ -801,22 +805,22 @@ function formatEnrollmentSummary(enrollment: CPSEnrollmentMetadata): string {
   const statusEmoji = statusMap[enrollment.status.toLowerCase()] || '[EMOJI]';
 
   let text = `### ${statusEmoji} Enrollment ${enrollment.enrollmentId}\n`;
-  text += `- **Type:** ${enrollment.certificateType} (${(enrollment as any)['validationType']?.toUpperCase() || 'Unknown'})\n`;
+  text += `- **Type:** ${enrollment.certificateType} (${enrollment.validationType?.toUpperCase() || 'Unknown'})\n`;
   text += `- **Status:** ${enrollment.status}\n`;
   // Handle both list format (cn + sans) and detail format (allowedDomains)
-  if ((enrollment as any)['cn']) {
-    const domains = [(enrollment as any)['cn']];
-    if ((enrollment as any)['sans']) {
-      domains.push(...(enrollment as any)['sans']);
+  if ('cn' in enrollment) {
+    const domains = [enrollment.cn];
+    if ('sans' in enrollment && enrollment.sans) {
+      domains.push(...enrollment.sans);
     }
     text += `- **Domains:** ${domains.join(', ')}\n`;
-  } else if ((enrollment as any)['allowedDomains']) {
+  } else if ('allowedDomains' in enrollment && enrollment.allowedDomains) {
     // CODE KAI: Type-safe domain name extraction
-    text += `- **Domains:** ${((enrollment as any)['allowedDomains'] as any[]).map((d: any) => d.name).join(', ')}\n`;
+    text += `- **Domains:** ${enrollment.allowedDomains.map((d: { name: string }) => d.name).join(', ')}\n`;
   }
 
-  if ((enrollment as any)['autoRenewalStartTime']) {
-    const renewalDate = new Date((enrollment as any)['autoRenewalStartTime']);
+  if ('autoRenewalStartTime' in enrollment && enrollment.autoRenewalStartTime) {
+    const renewalDate = new Date(enrollment.autoRenewalStartTime);
     const daysUntilRenewal = Math.ceil(
       (renewalDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
     );
@@ -1025,7 +1029,7 @@ export async function updateCertificateEnrollment(
     }
 
     // CODE KAI: Type-safe CPS enrollment response
-    const enrollmentData = currentResponse as CPSEnrollmentStatusResponse;
+    const enrollmentData = currentResponse as CPSEnrollment;
 
     // Build update payload by merging current config with updates
     
@@ -1034,13 +1038,13 @@ export async function updateCertificateEnrollment(
       // Update fields that were provided
       ...(args.commonName && { 
         csr: { 
-          ...(enrollmentData as any)['csr'], 
+          ...enrollmentData.csr, 
           cn: args.commonName 
         }
       }),
       ...(args.sans && { 
         csr: { 
-          ...(enrollmentData as any)['csr'], 
+          ...enrollmentData.csr, 
           sans: args.sans 
         }
       }),
@@ -1048,7 +1052,7 @@ export async function updateCertificateEnrollment(
       ...(args.techContact && { techContact: args.techContact }),
       ...(args.networkConfiguration && { 
         networkConfiguration: {
-          ...(enrollmentData as any)['networkConfiguration'],
+          ...enrollmentData.networkConfiguration,
           ...args.networkConfiguration
         }
       }),

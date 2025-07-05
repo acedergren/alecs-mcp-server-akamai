@@ -67,7 +67,19 @@ export async function listIncludes(
     for (const [type, typeIncludes] of Object.entries(groupedIncludes)) {
       responseText += `## ${type} Includes\n\n`;
 
-      (typeIncludes as any[]).forEach((include: any) => {
+      // Define proper type for includes array
+      interface IncludeItem {
+        includeName: string;
+        includeId: string;
+        includeType: string;
+        latestVersion?: number;
+        createdDate: string;
+        updatedDate: string;
+        productionVersion?: number;
+        stagingVersion?: number;
+        ruleFormat?: string;
+      }
+      (typeIncludes as IncludeItem[]).forEach((include) => {
         responseText += `### ${include.includeName}\n`;
         responseText += `- **ID:** ${include.includeId}\n`;
         responseText += `- **Version:** ${include.latestVersion || 'N/A'}\n`;
@@ -90,7 +102,9 @@ export async function listIncludes(
     // Summary statistics
     responseText += '## Summary\n\n';
     for (const [type, typeIncludes] of Object.entries(groupedIncludes)) {
-      responseText += `- **${type}:** ${(typeIncludes as any[]).length} includes\n`;
+      if (Array.isArray(typeIncludes)) {
+        responseText += `- **${type}:** ${typeIncludes.length} includes\n`;
+      }
     }
 
     return {

@@ -418,11 +418,11 @@ export async function exampleUsage() {
   console.error(
     format.dim(`
     const result = await orchestrator.migrateWebsite({
-      domain: 'example.com',
-      originHostname: 'origin.example.com',
-      sourceProvider: 'cloudflare',
+  domain: 'example.com',
+  originHostname: 'origin.example.com',
+  sourceProvider: 'cloudflare',
       activationNetwork: 'staging'
-    });
+});
     `)
   );
 
@@ -433,7 +433,7 @@ export async function exampleUsage() {
       hostname: 'api.example.com',
       origin: 'backend.example.com:8080',
       certificateType: 'default-dv'
-    });
+});
     `)
   );
 
@@ -443,8 +443,8 @@ export async function exampleUsage() {
     const result = await orchestrator.bulkMigrateDNS({
       zones: ['zone1.com', 'zone2.com', 'zone3.com'],
       sourceType: 'bind',
-      parallel: 3
-    });
+  parallel: 3
+});
     `)
   );
 
@@ -455,7 +455,7 @@ export async function exampleUsage() {
     const result = await dnsAgent.createZone({
       zone: 'newzone.com',
       type: 'primary'
-    });
+});
     `)
   );
 

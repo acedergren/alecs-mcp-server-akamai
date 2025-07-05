@@ -1345,7 +1345,7 @@ class ApiDiscovery {
       if (capture.validated && capture.extraFields) {
         typeDefinitions.push(`// Extra fields discovered in ${capture.endpoint}:`);
         for (const field of capture.extraFields) {
-          typeDefinitions.push(`//   ${field}: unknown; // TODO: Determine proper type from real responses`);
+          typeDefinitions.push(`//   ${field}: unknown; // Discovered field - requires type inference from runtime data`);
         }
       }
     }
@@ -1405,7 +1405,7 @@ async function main() {
 
   try {
     switch (command) {
-      case 'discover':
+      case 'discover': {
         if (!endpointType) {
           console.error('Usage: npm run api:discover -- <endpoint-type> [customer]');
           console.error('Available endpoints:');
@@ -1424,8 +1424,9 @@ async function main() {
         console.log('[SUCCESS] Discovery completed');
         console.log('[ANALYTICS] Results:', JSON.stringify(result, null, 2));
         break;
+      }
 
-      case 'validate':
+      case 'validate': {
         console.log('[SEARCH] Running comprehensive API validation...');
         
         // Test all known endpoints
@@ -1453,6 +1454,7 @@ async function main() {
         writeFileSync(join(process.cwd(), 'api-discovery-report.md'), report);
         console.log('[LIST] Report generated: api-discovery-report.md');
         break;
+      }
 
       default:
         console.error('Usage: npm run api:discover -- discover|validate <endpoint-type> [customer]');

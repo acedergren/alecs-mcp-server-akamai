@@ -389,7 +389,7 @@ export class BaseAkamaiClient {
         // Make request using EdgeGrid auth
         const response = await this.auth._request<T>({
           path,
-          method: method as any,
+          method: method as 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
           body,
           queryParams: queryParams || {},
           headers: {

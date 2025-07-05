@@ -136,7 +136,7 @@ export class SmartCache<T = any> extends EventEmitter {
   private keyToSegment: Map<string, string> = new Map();              // Key to segment mapping
   private keysByPattern: Map<string, Set<string>> = new Map();        // Track keys by patterns
   private refreshingKeys: Set<string> = new Set();                    // Keys being refreshed
-  private pendingRequests: Map<string, PendingRequest<T>> = new Map(); // Request coalescing
+  private pendingRequests: Map<string, PendingRequest<any>> = new Map(); // Request coalescing
   private negativeCache: Set<string> = new Set();                     // Track non-existent keys
   private negativeCacheBloom: BloomFilter;                            // Bloom filter for negative cache
   private circuitBreaker: CircuitBreaker;                             // Circuit breaker for fetch operations
@@ -154,6 +154,7 @@ export class SmartCache<T = any> extends EventEmitter {
   
   private readonly options: Required<SmartCacheOptions>;
   private cleanupInterval?: NodeJS.Timeout;
+  private persistenceInterval?: NodeJS.Timeout;
   
   constructor(options: SmartCacheOptions = {}) {
     super();
@@ -198,21 +199,23 @@ export class SmartCache<T = any> extends EventEmitter {
     this.cleanupInterval = setInterval(() => {
       this.cleanup();
     }, 60000); // Run every minute
+    this.cleanupInterval.unref(); // Don't keep process alive
     
     // Load persisted cache if enabled
     if (this.options.enablePersistence) {
       this.loadCache().catch(err => this.emit('load-error', err));
       // Save periodically
-      setInterval(() => {
+      this.persistenceInterval = setInterval(() => {
         this.saveCache().catch(err => this.emit('save-error', err));
       }, 60000);
+      this.persistenceInterval.unref(); // Don't keep process alive
     }
   }
 
   /**
    * Get value from cache (async for compatibility)
    */
-  async get<V = T>(key: string): Promise<V | null> {
+  async get<V extends T = T>(key: string): Promise<V | null> {
     // Check bloom filter first for negative cache
     if (this.negativeCacheBloom.has(key)) {
       // Might be in negative cache, verify with actual set
@@ -245,7 +248,7 @@ export class SmartCache<T = any> extends EventEmitter {
     let data = entry.data;
     if (entry.compressed && Buffer.isBuffer(data)) {
       try {
-        const decompressed = await gunzip(data as any);
+        const decompressed = await gunzip(data);
         data = JSON.parse(decompressed.toString());
       } catch (error) {
         this.emit('decompress-error', { key, error });
@@ -274,7 +277,7 @@ export class SmartCache<T = any> extends EventEmitter {
     this.updateHitRate();
     
     this.emit('hit', key);
-    return data as unknown as V;
+    return data as V;
   }
 
   /**
@@ -333,9 +336,9 @@ export class SmartCache<T = any> extends EventEmitter {
       };
       
       if (this.options.enableSegmentation) {
-        this.setInSegment(key, entry as unknown as CacheEntry<T>);
+        this.setInSegment(key, entry as CacheEntry<any>);
       } else {
-        this.cache.set(key, entry as unknown as CacheEntry<T>);
+        this.cache.set(key, entry as CacheEntry<any>);
       }
       
       // Track key in KeyStore if enabled
@@ -428,11 +431,11 @@ export class SmartCache<T = any> extends EventEmitter {
       this.emit('coalesce', key);
       
       return new Promise<V>((resolve, reject) => {
-        pending.callbacks.push({ resolve: resolve as any, reject });
+        pending.callbacks.push({ resolve, reject });
       });
     }
     
-    const cached = await this.get<V>(key);
+    const cached = await this.get(key) as V | null;
     const ttlRemaining = await this.ttl(key);
     
     // Return cached if still fresh
@@ -467,7 +470,7 @@ export class SmartCache<T = any> extends EventEmitter {
           callbacks: [],
         };
         
-        this.pendingRequests.set(key, pendingRequest as any);
+        this.pendingRequests.set(key, pendingRequest as PendingRequest<any>);
       }
       
       const pendingRequest = this.pendingRequests.get(key)!;
@@ -579,7 +582,7 @@ export class SmartCache<T = any> extends EventEmitter {
   /**
    * Batch get multiple keys
    */
-  async mget<V = T>(keys: string[]): Promise<Map<string, V>> {
+  async mget<V extends T = T>(keys: string[]): Promise<Map<string, V>> {
     const result = new Map<string, V>();
     
     for (const key of keys) {
@@ -593,11 +596,57 @@ export class SmartCache<T = any> extends EventEmitter {
   }
 
   /**
+   * Delete a key from cache
+   */
+  async delete(key: string): Promise<boolean> {
+    const existed = this.cache.has(key);
+    this.cache.delete(key);
+    this.removeFromPatterns(key);
+    if (existed) {
+      this.metrics.totalEntries--;
+      this.emit('delete', key);
+    }
+    return existed;
+  }
+  
+  /**
+   * Check if key exists in cache
+   */
+  async has(key: string): Promise<boolean> {
+    return this.cache.has(key);
+  }
+  
+  /**
+   * Clear all keys matching a pattern
+   */
+  async clearPattern(pattern: string): Promise<void> {
+    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+    const keysToDelete: string[] = [];
+    
+    for (const key of this.cache.keys()) {
+      if (regex.test(key)) {
+        keysToDelete.push(key);
+      }
+    }
+    
+    for (const key of keysToDelete) {
+      await this.delete(key);
+    }
+    
+    this.emit('clear-pattern', { pattern, count: keysToDelete.length });
+  }
+  
+  /**
    * Close cache (cleanup intervals)
    */
   async close(): Promise<void> {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
+      this.cleanupInterval = undefined;
+    }
+    if (this.persistenceInterval) {
+      clearInterval(this.persistenceInterval);
+      this.persistenceInterval = undefined;
     }
     this.removeAllListeners();
   }
@@ -863,14 +912,29 @@ export class SmartCache<T = any> extends EventEmitter {
       }).length,
     };
     
+    // Create extended stats object for additional properties
+    const extendedStats = stats as CacheMetrics & {
+      circuitBreaker?: ReturnType<CircuitBreaker['getStatus']>;
+      segments?: {
+        count: number;
+        details: Array<{
+          name: string;
+          entries: number;
+          accessCount: number;
+          lastAccessed: number;
+        }>;
+      };
+      keyStore?: ReturnType<KeyStore['getStats']>;
+    };
+    
     // Add circuit breaker status if enabled
     if (this.options.enableCircuitBreaker) {
-      (stats as any).circuitBreaker = this.circuitBreaker.getStatus();
+      extendedStats.circuitBreaker = this.circuitBreaker.getStatus();
     }
     
     // Add segmentation stats if enabled
     if (this.options.enableSegmentation) {
-      (stats as any).segments = {
+      extendedStats.segments = {
         count: this.segments.size,
         details: Array.from(this.segments.entries()).map(([name, segment]) => ({
           name,
@@ -883,10 +947,10 @@ export class SmartCache<T = any> extends EventEmitter {
     
     // Add KeyStore stats if enabled
     if (this.options.enableKeyStore) {
-      (stats as any).keyStore = this.keyStore.getStats();
+      extendedStats.keyStore = this.keyStore.getStats();
     }
     
-    return stats;
+    return extendedStats;
   }
 
   /**
@@ -1053,7 +1117,7 @@ export class SmartCache<T = any> extends EventEmitter {
       this.emit('loaded', loaded);
     } catch (error) {
       // Ignore if file doesn't exist
-      if ((error as any).code !== 'ENOENT') {
+      if (error instanceof Error && 'code' in error && error.code !== 'ENOENT') {
         this.emit('load-error', error);
       }
     }

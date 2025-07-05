@@ -252,18 +252,20 @@ export async function getEdgeHostname(
     text += `- **IP Version:** ${eh.ipVersionBehavior || 'IPV4'}\n`;
     text += `- **Status:** ${eh['status'] || 'Active'}\n\n`;
 
-    if (eh['mapDetails']) {
+    if (eh['mapDetails'] && typeof eh['mapDetails'] === 'object') {
       text += '## Mapping Details\n';
-      const mapDetails = eh['mapDetails'] as any;
-      text += `- **Serial Number:** ${mapDetails?.serialNumber || 'N/A'}\n`;
-      text += `- **Slot Number:** ${mapDetails?.slotNumber || 'N/A'}\n\n`;
+      const mapDetails = eh['mapDetails'] as Record<string, unknown>;
+      text += `- **Serial Number:** ${mapDetails?.['serialNumber'] || 'N/A'}\n`;
+      text += `- **Slot Number:** ${mapDetails?.['slotNumber'] || 'N/A'}\n\n`;
     }
 
-    const useCases = eh['useCases'] as any[];
-    if (useCases && useCases.length > 0) {
+    if (eh['useCases'] && Array.isArray(eh['useCases'])) {
+      const useCases = eh['useCases'] as Record<string, unknown>[];
       text += '## Use Cases\n';
       for (const uc of useCases) {
-        text += `- **${uc.useCase}**: ${uc.option} (${uc.type})\n`;
+        if (uc && typeof uc === 'object') {
+          text += `- **${uc['useCase'] || 'Unknown'}**: ${uc['option'] || 'Unknown'} (${uc['type'] || 'Unknown'})\n`;
+        }
       }
       text += '\n';
     }
@@ -520,11 +522,18 @@ export async function listPropertyVersions(
     }
 
     // Get property details for context
-    const propertyResponse = await client.request({
+    const rawPropertyResponse = await client.request({
       path: `/papi/v1/properties/${args.propertyId}`,
       method: 'GET',
     });
-    const property = (propertyResponse as any).properties?.items?.[0];
+    
+    const propertyResponse = validateApiResponse(
+      rawPropertyResponse,
+      PropertyDetailResponseSchema,
+      `listPropertyVersions.getProperty(${args.propertyId})`
+    );
+    
+    const property = propertyResponse.properties?.items?.[0];
 
     let text = `# Property Versions: ${property?.propertyName || args.propertyId}\n\n`;
     text += `Total versions: ${response.versions.items.length}`;
@@ -953,17 +962,23 @@ export async function listPropertyVersionHostnames(
       text += `| ${hostname.cnameFrom} | ${hostname.cnameTo} | ${hostname.cnameType || 'EDGE_HOSTNAME'} | ${certStatus} |\n`;
     }
 
-    if (args.validateCnames && (response as any).errors?.length > 0) {
+    // Check for validation errors and warnings
+    const responseData = response as Record<string, unknown>;
+    if (args.validateCnames && Array.isArray(responseData['errors']) && responseData['errors'].length > 0) {
       text += '\n## [WARNING] Validation Errors\n';
-      for (const _error of (response as any).errors) {
-        text += `- ${_error.detail}\n`;
+      for (const error of responseData['errors']) {
+        if (error && typeof error === 'object' && 'detail' in error) {
+          text += `- ${error.detail}\n`;
+        }
       }
     }
 
-    if (args.validateCnames && (response as any).warnings?.length > 0) {
+    if (args.validateCnames && Array.isArray(responseData['warnings']) && responseData['warnings'].length > 0) {
       text += '\n## [WARNING] Warnings\n';
-      for (const warning of (response as any).warnings) {
-        text += `- ${warning.detail}\n`;
+      for (const warning of responseData['warnings']) {
+        if (warning && typeof warning === 'object' && 'detail' in warning) {
+          text += `- ${warning.detail}\n`;
+        }
       }
     }
 

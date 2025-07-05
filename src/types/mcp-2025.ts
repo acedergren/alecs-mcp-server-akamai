@@ -663,7 +663,7 @@ export function isMcp2025Response(response: unknown): response is Mcp2025ToolRes
     typeof response === 'object' &&
     response !== null &&
     'success' in response &&
-    typeof (response as any).success === 'boolean'
+    typeof (response as Record<string, unknown>)['success'] === 'boolean'
   );
 }
 

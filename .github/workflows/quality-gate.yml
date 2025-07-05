@@ -1,0 +1,155 @@
+name: Quality Gate Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  quality-gate:
+    name: Quality Gate Enforcement
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run comprehensive quality checks
+        id: quality-checks
+        run: |
+          echo "## 🔍 Running Quality Checks" >> $GITHUB_STEP_SUMMARY
+          
+          # Initialize status
+          CHECKS_PASSED=true
+          
+          # 1. TypeScript compilation check
+          echo "### TypeScript Compilation" >> $GITHUB_STEP_SUMMARY
+          if npm run build; then
+            echo "✅ TypeScript compilation successful" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ TypeScript compilation failed" >> $GITHUB_STEP_SUMMARY
+            CHECKS_PASSED=false
+          fi
+          
+          # 2. Linting check
+          echo "### ESLint Check" >> $GITHUB_STEP_SUMMARY
+          if npm run lint; then
+            echo "✅ No linting errors" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Linting errors found (non-blocking)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # 3. Test execution
+          echo "### Test Suite" >> $GITHUB_STEP_SUMMARY
+          if npm test -- --passWithNoTests; then
+            echo "✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Some tests failed" >> $GITHUB_STEP_SUMMARY
+            CHECKS_PASSED=false
+          fi
+          
+          # 4. Security audit
+          echo "### Security Audit" >> $GITHUB_STEP_SUMMARY
+          npm audit --production --audit-level=high > audit.log 2>&1 || true
+          HIGH_VULNS=$(grep -c "high" audit.log || echo "0")
+          CRITICAL_VULNS=$(grep -c "critical" audit.log || echo "0")
+          
+          if [ "$CRITICAL_VULNS" -gt "0" ]; then
+            echo "❌ Found $CRITICAL_VULNS critical vulnerabilities" >> $GITHUB_STEP_SUMMARY
+            CHECKS_PASSED=false
+          elif [ "$HIGH_VULNS" -gt "0" ]; then
+            echo "⚠️ Found $HIGH_VULNS high vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ No high or critical vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Set output
+          echo "checks_passed=$CHECKS_PASSED" >> $GITHUB_OUTPUT
+
+      - name: Check for new SonarCloud issues
+        id: sonar-check
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          # Get base branch analysis
+          BASE_BRANCH="${{ github.base_ref }}"
+          PR_BRANCH="${{ github.head_ref }}"
+          
+          # Fetch new issues count
+          NEW_ISSUES=$(curl -s -u ${{ secrets.SONAR_TOKEN }}: \
+            "https://sonarcloud.io/api/issues/search?componentKeys=acedergren_alecs-mcp-server-akamai&branch=$PR_BRANCH&sinceLeakPeriod=true" \
+            | jq '.total')
+          
+          echo "### SonarCloud Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "New issues in this PR: $NEW_ISSUES" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$NEW_ISSUES" -gt "10" ]; then
+            echo "❌ Too many new issues introduced ($NEW_ISSUES > 10)" >> $GITHUB_STEP_SUMMARY
+            echo "too_many_issues=true" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Acceptable number of new issues" >> $GITHUB_STEP_SUMMARY
+            echo "too_many_issues=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate quality report
+        if: always()
+        run: |
+          cat > quality-report.md << 'EOF'
+          # Quality Gate Report
+          
+          ## Summary
+          - **TypeScript Build**: ${{ steps.quality-checks.outputs.checks_passed == 'true' && '✅ Passed' || '❌ Failed' }}
+          - **New Issues**: ${{ steps.sonar-check.outputs.too_many_issues == 'true' && '❌ Too Many' || '✅ Acceptable' }}
+          
+          ## Recommendations
+          1. Fix all TypeScript compilation errors before merging
+          2. Address critical security vulnerabilities
+          3. Keep new technical debt under control
+          4. Maintain test coverage above 80%
+          
+          ## Next Steps
+          - Run `npm run lint:fix` to auto-fix linting issues
+          - Run `npm run sonarcloud:validate` to check for fixed issues
+          - Review [SonarCloud report](https://sonarcloud.io/summary/new_code?id=acedergren_alecs-mcp-server-akamai)
+          EOF
+
+      - name: Post quality gate status
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const checks_passed = '${{ steps.quality-checks.outputs.checks_passed }}' === 'true';
+            const too_many_issues = '${{ steps.sonar-check.outputs.too_many_issues }}' === 'true';
+            
+            const status = checks_passed && !too_many_issues ? 'success' : 'failure';
+            const description = checks_passed && !too_many_issues 
+              ? '✅ All quality gates passed' 
+              : '❌ Quality gates failed - see details';
+            
+            // Create commit status
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.payload.pull_request.head.sha,
+              state: status,
+              description: description,
+              context: 'Quality Gate'
+            });
+
+      - name: Fail if quality gates not met
+        if: steps.quality-checks.outputs.checks_passed != 'true' || steps.sonar-check.outputs.too_many_issues == 'true'
+        run: |
+          echo "❌ Quality gates not met. Please fix the issues before merging."
+          exit 1

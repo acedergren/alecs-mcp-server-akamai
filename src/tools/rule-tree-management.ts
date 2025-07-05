@@ -378,7 +378,7 @@ export async function updatePropertyRulesEnhanced(
 ): Promise<MCPToolResponse> {
   try {
     // Pre-validation
-    const validation = await validateRuleTreeInternal(args.rules as any, {
+    const validation = await validateRuleTreeInternal(args.rules, {
       propertyId: args.propertyId,
       version: args.version,
       includeOptimizations: args.autoOptimize || false,
@@ -417,7 +417,10 @@ export async function updatePropertyRulesEnhanced(
     // Apply auto-optimization if requested
     let optimizedRules = args.rules;
     if (args.autoOptimize && validation.suggestions.length > 0) {
-      optimizedRules = applyOptimizations(args.rules as any, validation.suggestions) as any;
+      optimizedRules = {
+        ...args.rules,
+        rules: applyOptimizations(args.rules.rules, validation.suggestions)
+      };
     }
 
     if (args.validateOnly || args.dryRun) {
@@ -516,6 +519,7 @@ export async function createRuleFromTemplate(
     templateId: string;
     variables?: Record<string, string | number | boolean | unknown[] | Record<string, unknown>>;
     validate?: boolean;
+    ruleFormat?: string;
   },
 ): Promise<MCPToolResponse> {
   try {
@@ -558,10 +562,14 @@ export async function createRuleFromTemplate(
     }
 
     // Process template with variables
-    const processedRuleTree = processTemplate(template.ruleTree as any, variables);
+    const processedTemplate = processTemplate(template, variables);
+    const processedRuleTree = processedTemplate.ruleTree;
 
     if (args.validate) {
-      const validation = await validateRuleTreeInternal(processedRuleTree as any, {
+      const validation = await validateRuleTreeInternal({
+        rules: processedRuleTree,
+        ruleFormat: args.ruleFormat || 'latest'
+      }, {
         includeOptimizations: true,
       });
 
@@ -738,10 +746,13 @@ export async function mergeRuleTrees(
       ...args.options,
     };
 
-    const mergeResult = performRuleMerge(args.sourceRules as any, args.targetRules as any, options);
+    const mergeResult = performRuleMerge(args.sourceRules.rules, args.targetRules.rules, options);
 
     if (options.validateResult) {
-      const validation = await validateRuleTreeInternal(mergeResult.mergedRules as any, {
+      const validation = await validateRuleTreeInternal({
+        rules: mergeResult.mergedRules,
+        ruleFormat: args.sourceRules.ruleFormat || 'latest'
+      }, {
         propertyId: args.propertyContext?.propertyId,
         version: args.propertyContext?.version,
         includeOptimizations: false,
@@ -842,17 +853,17 @@ export async function optimizeRuleTree(
     const metrics = args.targetMetrics || ['speed', 'bandwidth'];
 
     // Analyze current performance
-    const analysis = analyzeRulePerformance(args.rules as any);
+    const analysis = analyzeRulePerformance(args.rules.rules);
 
     // Generate optimizations
-    const optimizations = generateOptimizations(args.rules as any, {
+    const optimizations = generateOptimizations(args.rules.rules, {
       level,
       targetMetrics: metrics,
       preserveCustomizations: args.preserveCustomizations ?? true,
     });
 
     // Apply optimizations
-    const optimizedRules = applyOptimizations(args.rules as any, optimizations);
+    const optimizedRules = applyOptimizations(args.rules.rules, optimizations);
 
     // Re-analyze for comparison
     const newAnalysis = analyzeRulePerformance(optimizedRules);
@@ -1020,7 +1031,7 @@ async function validateRuleTreeInternal(rules: PropertyRules, __context: Record<
     });
   }
 
-  if (!(rules as any).name) {
+  if (!rules.rules) {
     errors.push({
       type: 'syntax',
       severity: 'error',
@@ -1031,11 +1042,11 @@ async function validateRuleTreeInternal(rules: PropertyRules, __context: Record<
   }
 
   // Validate behaviors and children recursively
-  validateRuleNode(rules as any, '/', errors, warnings, suggestions);
+  validateRuleNode(rules.rules, '/', errors, warnings, suggestions);
 
   // Calculate scores
-  const performanceScore = calculatePerformanceScore(rules as any, warnings);
-  const complianceScore = calculateComplianceScore(rules as any, errors, warnings);
+  const performanceScore = calculatePerformanceScore(rules.rules, warnings);
+  const complianceScore = calculateComplianceScore(rules.rules, errors, warnings);
 
   return {
     isValid: errors.length === 0,

@@ -314,7 +314,13 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
     });
 
     // Response for POST is in headers, not body
-    const deploymentId = parseInt((response as any).headers?.location?.split('/').pop() || '0');
+    interface ResponseWithHeaders {
+      headers?: {
+        location?: string;
+      };
+    }
+    const responseWithHeaders = response as ResponseWithHeaders;
+    const deploymentId = parseInt(responseWithHeaders.headers?.location?.split('/').pop() || '0');
     if (!deploymentId) {
       throw new Error('Failed to get deployment ID from response');
     }
@@ -376,8 +382,11 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
         },
       });
 
-      const apiStatus = response.deployment?.status || (response as any).status;
-      const status = this.mapDeploymentStatus(apiStatus);
+      interface ResponseWithStatus {
+        status?: string;
+      }
+      const apiStatus = response.deployment?.status || (response as ResponseWithStatus).status;
+      const status = this.mapDeploymentStatus(apiStatus || 'unknown');
 
       // Estimate progress based on status
       let progress = 50;

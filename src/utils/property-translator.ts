@@ -19,6 +19,11 @@
 import { LRUCache } from 'lru-cache';
 import { createLogger } from './logger';
 import { AkamaiClient } from '../akamai-client';
+import { 
+  isPapiPropertyDetailsResponse,
+  isPapiGroupsResponse,
+  isPapiContractsResponse
+} from '../types/api-responses/papi-properties';
 
 const logger = createLogger('property-translator');
 
@@ -283,7 +288,7 @@ export class AkamaiIdTranslator {
       contractIdFields?: string[];
     } = {}
   ): Promise<T> {
-    const enriched = { ...data } as any;
+    const enriched: any = { ...data };
     const { propertyIdFields = ['propertyId'], groupIdFields = ['groupId'], contractIdFields = ['contractId'] } = options;
     
     // Enrich property IDs
@@ -458,8 +463,8 @@ export class AkamaiIdTranslator {
         method: 'GET'
       });
       
-      if ((response as any)?.properties?.items?.[0]) {
-        const property = (response as any).properties.items[0];
+      if (isPapiPropertyDetailsResponse(response) && response.properties?.items?.[0]) {
+        const property = response.properties.items[0];
         const info: PropertyInfo = {
           propertyId: property.propertyId,
           propertyName: property.propertyName,
@@ -495,14 +500,14 @@ export class AkamaiIdTranslator {
         method: 'GET'
       });
       
-      if ((response as any)?.groups?.items) {
-        const group = (response as any).groups.items.find((g: any) => g.groupId === groupId);
+      if (isPapiGroupsResponse(response) && response.groups?.items) {
+        const group = response.groups.items.find(g => g.groupId === groupId);
         if (group) {
           const info: GroupInfo = {
             groupId: group.groupId,
             groupName: group.groupName,
             contractIds: group.contractIds,
-            parentGroupId: group.parentGroupId,
+            parentGroupId: group.parentGroupId || undefined,
           };
           
           // Cache the result
@@ -533,8 +538,8 @@ export class AkamaiIdTranslator {
         method: 'GET'
       });
       
-      if ((response as any)?.contracts?.items) {
-        const contract = (response as any).contracts.items.find((c: any) => c.contractId === contractId);
+      if (isPapiContractsResponse(response) && response.contracts?.items) {
+        const contract = response.contracts.items.find(c => c.contractId === contractId);
         if (contract) {
           const info: ContractInfo = {
             contractId: contract.contractId,
@@ -640,7 +645,7 @@ export async function translateAkamaiResponse<T extends Record<string, any>>(
       );
       
       // Apply translations to items
-      (response as any)[arrayField] = items.map(item => {
+      const enrichedItems = items.map(item => {
         const enriched = { ...item };
         for (const field of propertyIdFields) {
           if (enriched[field]) {
@@ -653,18 +658,18 @@ export async function translateAkamaiResponse<T extends Record<string, any>>(
         }
         return enriched;
       });
+      return { ...response, [arrayField]: enrichedItems };
     } else {
       // Translate individually
-      (response as any)[arrayField] = await Promise.all(
+      const enrichedItems = await Promise.all(
         items.map(item => translator.enrichWithAkamaiIds(item, client, { propertyIdFields, groupIdFields, contractIdFields }))
       );
+      return { ...response, [arrayField]: enrichedItems };
     }
   } else {
     // Handle single object
     return translator.enrichWithAkamaiIds(response, client, { propertyIdFields, groupIdFields, contractIdFields });
   }
-  
-  return response;
 }
 
 /**

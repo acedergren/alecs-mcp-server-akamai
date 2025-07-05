@@ -82,14 +82,17 @@ export enum JsonRpcErrorCode {
  * Type guard for JSON-RPC request
  */
 export function isJsonRpcRequest(message: unknown): message is JsonRpcRequest {
+  if (typeof message !== 'object' || message === null) {
+    return false;
+  }
+  
+  const messageObj = message as Record<string, unknown>;
   return (
-    typeof message === 'object' &&
-    message !== null &&
-    'jsonrpc' in message &&
-    (message as any).jsonrpc === '2.0' &&
-    'method' in message &&
-    typeof (message as any).method === 'string' &&
-    ('id' in message || !('id' in message)) // id is optional for notifications
+    'jsonrpc' in messageObj &&
+    messageObj['jsonrpc'] === '2.0' &&
+    'method' in messageObj &&
+    typeof messageObj['method'] === 'string' &&
+    ('id' in messageObj || !('id' in messageObj)) // id is optional for notifications
   );
 }
 
@@ -97,14 +100,17 @@ export function isJsonRpcRequest(message: unknown): message is JsonRpcRequest {
  * Type guard for JSON-RPC response
  */
 export function isJsonRpcResponse(message: unknown): message is JsonRpcResponse {
+  if (typeof message !== 'object' || message === null) {
+    return false;
+  }
+  
+  const messageObj = message as Record<string, unknown>;
   return (
-    typeof message === 'object' &&
-    message !== null &&
-    'jsonrpc' in message &&
-    (message as any).jsonrpc === '2.0' &&
-    'id' in message &&
-    (('result' in message && !('error' in message)) ||
-      (!('result' in message) && 'error' in message))
+    'jsonrpc' in messageObj &&
+    messageObj['jsonrpc'] === '2.0' &&
+    'id' in messageObj &&
+    (('result' in messageObj && !('error' in messageObj)) ||
+      (!('result' in messageObj) && 'error' in messageObj))
   );
 }
 

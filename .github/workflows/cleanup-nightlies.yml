@@ -1,0 +1,109 @@
+name: Cleanup Old Nightlies
+
+on:
+  schedule:
+    # Run every Sunday at 3 AM UTC
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      days_to_keep:
+        description: 'Number of days to keep nightly releases'
+        required: false
+        type: number
+        default: 7
+
+jobs:
+  cleanup-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Get package info
+        id: package
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+
+      - name: List and cleanup old nightly versions
+        run: |
+          # Get all versions with nightly tag
+          echo "Fetching nightly versions..."
+          VERSIONS=$(npm view ${{ steps.package.outputs.name }} versions --json | jq -r '.[] | select(contains("nightly"))')
+          
+          # Calculate cutoff date
+          DAYS_TO_KEEP=${{ github.event.inputs.days_to_keep || 7 }}
+          CUTOFF_DATE=$(date -d "$DAYS_TO_KEEP days ago" +%Y%m%d)
+          
+          echo "Will keep nightlies from the last $DAYS_TO_KEEP days (after $CUTOFF_DATE)"
+          echo ""
+          
+          # Process each nightly version
+          for version in $VERSIONS; do
+            # Extract date from version (format: X.Y.Z-nightly.YYYYMMDD.HHMMSS)
+            if [[ $version =~ nightly\.([0-9]{8})\. ]]; then
+              VERSION_DATE=${BASH_REMATCH[1]}
+              
+              if [ "$VERSION_DATE" -lt "$CUTOFF_DATE" ]; then
+                echo "Deprecating old version: $version (date: $VERSION_DATE)"
+                npm deprecate "${{ steps.package.outputs.name }}@$version" "Nightly build expired. Please use a newer version." || true
+              else
+                echo "Keeping recent version: $version (date: $VERSION_DATE)"
+              fi
+            fi
+          done
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  cleanup-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old nightly Docker images
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: 'alecs-mcp-server-akamai'
+          package-type: 'container'
+          min-versions-to-keep: 7
+          delete-only-pre-release-versions: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  cleanup-releases:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Cleanup old GitHub releases
+        run: |
+          DAYS_TO_KEEP=${{ github.event.inputs.days_to_keep || 7 }}
+          CUTOFF_DATE=$(date -d "$DAYS_TO_KEEP days ago" +%Y%m%d)
+          
+          echo "Cleaning up nightly releases older than $DAYS_TO_KEEP days"
+          
+          # Get all nightly releases
+          gh release list --limit 100 | grep "Nightly Build" | while read -r line; do
+            TAG=$(echo "$line" | awk '{print $1}')
+            
+            # Extract date from tag (format: nightly-YYYYMMDD)
+            if [[ $TAG =~ nightly-([0-9]{8}) ]]; then
+              TAG_DATE=${BASH_REMATCH[1]}
+              
+              if [ "$TAG_DATE" -lt "$CUTOFF_DATE" ]; then
+                echo "Deleting old release: $TAG (date: $TAG_DATE)"
+                gh release delete $TAG -y || true
+                git push origin :refs/tags/$TAG || true
+              else
+                echo "Keeping recent release: $TAG (date: $TAG_DATE)"
+              fi
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -150,18 +150,34 @@ export interface KeyRotationRequest {
 }
 
 // CODE KAI: Type guard functions for runtime validation
-export function isDNSSECKeysResponse(obj: any): obj is DNSSECKeysResponse {
+export function isDNSSECKeysResponse(obj: unknown): obj is DNSSECKeysResponse {
   if (!obj || typeof obj !== 'object') {return false;}
-  const response = obj as any;
-  return Array.isArray(response.keys) && 
-    response.keys.every((key: any) => DNSSECKeySchema.safeParse(key).success);
+  const response = obj as Record<string, unknown>;
+  if (!Array.isArray(response['keys'])) {return false;}
+  
+  // Validate each key in the array
+  const keys = response['keys'];
+  for (const key of keys) {
+    if (!DNSSECKeySchema.safeParse(key).success) {
+      return false;
+    }
+  }
+  return true;
 }
 
-export function isDNSSECDSRecordsResponse(obj: any): obj is DNSSECDSRecordsResponse {
+export function isDNSSECDSRecordsResponse(obj: unknown): obj is DNSSECDSRecordsResponse {
   if (!obj || typeof obj !== 'object') {return false;}
-  const response = obj as any;
-  return Array.isArray(response.dsRecords) && 
-    response.dsRecords.every((ds: any) => DSRecordSchema.safeParse(ds).success);
+  const response = obj as Record<string, unknown>;
+  if (!Array.isArray(response['dsRecords'])) {return false;}
+  
+  // Validate each DS record in the array
+  const dsRecords = response['dsRecords'];
+  for (const ds of dsRecords) {
+    if (!DSRecordSchema.safeParse(ds).success) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**

@@ -16,7 +16,7 @@
  */
 
 import { handleApiError } from '../utils/error-handling';
-import { validateApiResponse, safeAccess } from '../utils/api-response-validator';
+import { validateApiResponse } from '../utils/api-response-validator';
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
 import { z } from 'zod';
@@ -138,9 +138,15 @@ export function isPropertyVersionResponse(obj: any): obj is PropertyVersionRespo
   if (!response['versions'] || typeof response['versions'] !== 'object') {return false;}
   const versions = response['versions'] as Record<string, unknown>;
   if (!Array.isArray(versions['items'])) {return false;}
-  return (versions['items'] as any[]).every((item: any) => 
-    PropertyVersionItemSchema.safeParse(item).success
-  );
+  
+  // Validate each item in the array
+  const items = versions['items'];
+  for (const item of items) {
+    if (!PropertyVersionItemSchema.safeParse(item).success) {
+      return false;
+    }
+  }
+  return true;
 }
 
 export function isHostnamesResponse(obj: any): obj is HostnamesResponse {
@@ -196,11 +202,8 @@ export async function getValidationErrors(
       throw new Error('Invalid property version response structure');
     }
 
-    const version = safeAccess(
-      validatedResponse,
-      (r) => r.versions?.items?.[0],
-      null as PropertyVersionItem | null
-    );
+    const versionsData = validatedResponse['versions'] as { items?: PropertyVersionItem[] } | undefined;
+    const version = versionsData?.items?.[0] || null;
 
     if (!version) {
       return {
@@ -544,11 +547,8 @@ export async function validatePropertyConfiguration(
           throw new Error('Invalid hostname certificate response structure');
         }
 
-        const hostnames = safeAccess(
-          validatedCertResponse,
-          (r) => r.hostnames?.items || [],
-          [] as HostnameItem[]
-        );
+        const hostnamesData = validatedCertResponse['hostnames'] as { items?: HostnameItem[] } | undefined;
+        const hostnames = hostnamesData?.items || [];
         
         let certIssues = 0;
         hostnames.forEach((hostname: any) => {

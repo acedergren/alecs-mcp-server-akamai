@@ -171,7 +171,8 @@ async function searchByHostname(
         method: 'GET',
         queryParams,
       });
-      propertiesToSearch = (response as any).properties?.items || [];
+      const response_typed = response as { properties?: { items?: Array<{ propertyId: string; propertyName: string; [key: string]: unknown }> } };
+      propertiesToSearch = response_typed.properties?.items || [];
     } else {
       // Search across all accessible groups, but efficiently
       const groupsResponse = await client.request({
@@ -179,7 +180,8 @@ async function searchByHostname(
         method: 'GET',
       });
 
-      const groups = (groupsResponse as any).groups?.items || [];
+      const groups_typed = groupsResponse as { groups?: { items?: Array<{ groupId: string; contractIds?: string[]; [key: string]: unknown }> } };
+      const groups = groups_typed.groups?.items || [];
       const targetGroups = args.groupId 
         ? groups.filter((g: any) => g.groupId === args.groupId)
         : groups.slice(0, 10); // Limit to first 10 groups for performance
@@ -194,7 +196,8 @@ async function searchByHostname(
               method: 'GET',
               queryParams: { contractId, groupId: group.groupId },
             });
-            propertiesToSearch.push(...((response as any).properties?.items || []));
+            const response_typed = response as { properties?: { items?: Array<{ propertyId: string; propertyName: string; [key: string]: unknown }> } };
+            propertiesToSearch.push(...(response_typed.properties?.items || []));
           } catch {
             // Continue with next contract
           }
@@ -210,7 +213,8 @@ async function searchByHostname(
           method: 'GET',
         });
 
-        const hostnames = (hostnamesResponse as any).hostnames?.items || [];
+        const hostnames_typed = hostnamesResponse as { hostnames?: { items?: Array<{ cnameFrom?: string; cnameTo?: string; [key: string]: unknown }> } };
+        const hostnames = hostnames_typed.hostnames?.items || [];
         const matchedHostnames: string[] = [];
 
         for (const hn of hostnames) {
@@ -290,7 +294,8 @@ async function fallbackPropertySearch(
       method: 'GET',
     });
 
-    const groups = (groupsResponse as any).groups?.items || [];
+    const groups_typed = groupsResponse as { groups?: { items?: Array<{ groupId: string; contractIds?: string[]; [key: string]: unknown }> } };
+    const groups = groups_typed.groups?.items || [];
     const targetGroups = args.groupId 
       ? groups.filter((g: any) => g.groupId === args.groupId)
       : groups.slice(0, 5); // CODE KAI: Limit fallback scope
@@ -308,21 +313,22 @@ async function fallbackPropertySearch(
             queryParams: { contractId, groupId: group.groupId },
           });
 
-          const properties = (response as any).properties?.items || [];
+          const properties_typed = response as { properties?: { items?: Array<{ propertyId: string; propertyName?: string; [key: string]: unknown }> } };
+          const properties = properties_typed.properties?.items || [];
           
           for (const property of properties) {
             if (!args.propertyName || 
                 property.propertyName?.toLowerCase().includes(args.propertyName.toLowerCase())) {
               results.push({
                 propertyId: property.propertyId,
-                propertyName: property.propertyName,
-                accountId: property.accountId,
+                propertyName: property.propertyName || 'Unknown',
+                accountId: property['accountId'] as string,
                 contractId: contractId,
                 groupId: group.groupId,
-                productId: property.productId,
-                latestVersion: property.latestVersion,
-                stagingVersion: property.stagingVersion,
-                productionVersion: property.productionVersion,
+                productId: property['productId'] as string | undefined,
+                latestVersion: property['latestVersion'] as number | undefined,
+                stagingVersion: property['stagingVersion'] as number | undefined,
+                productionVersion: property['productionVersion'] as number | undefined,
               });
             }
           }

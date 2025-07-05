@@ -1,0 +1,93 @@
+{
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "conditional",
+        "condition": "tool === 'Write' && filePath.endsWith('.ts')",
+        "actions": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# NO ANY TYPE FOR API RESPONSES - Critical for type safety\nif [[ \"${CLAUDE_FILE_PATH}\" == *.ts ]]; then\n  # Check for any type usage in response/API contexts\n  RESPONSE_ANY_PATTERNS=(\n    'response.*:\\s*any'\n    'data.*:\\s*any'\n    'result.*:\\s*any'\n    'body.*:\\s*any'\n    'payload.*:\\s*any'\n    'await.*\\.request.*:\\s*any'\n    'await.*\\.get.*:\\s*any'\n    'await.*\\.post.*:\\s*any'\n    'await.*\\.makeRequest.*:\\s*any'\n    'apiResponse.*:\\s*any'\n    'Promise<any>'\n    'Observable<any>'\n  )\n  \n  for pattern in \"${RESPONSE_ANY_PATTERNS[@]}\"; do\n    if grep -E \"$pattern\" \"${CLAUDE_CONTENT}\" > /dev/null 2>&1; then\n      echo \"🚫 BLOCKED: Found 'any' type in API response context!\"\n      echo \"Pattern matched: $pattern\"\n      echo \"\"\n      echo \"Please use proper types instead:\"\n      echo \"- Define interfaces for API responses\"\n      echo \"- Use Zod schemas for runtime validation\"\n      echo \"- Import types from '@types/akamai' or create custom types\"\n      echo \"\"\n      echo \"Example fix:\"\n      echo \"  interface ApiResponse<T> {\"\n      echo \"    data: T;\"\n      echo \"    status: number;\"\n      echo \"    message?: string;\"\n      echo \"  }\"\n      exit 1\n    fi\n  done\nfi",
+            "blocking": true
+          }
+        ]
+      }
+    ],
+    "postToolUse": [
+      {
+        "type": "conditional",
+        "condition": "tool === 'Edit' && filePath.endsWith('.ts')",
+        "actions": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Auto-format TypeScript files\nif command -v npx &> /dev/null && [ -f \"${CLAUDE_FILE_PATH}\" ]; then\n  npx prettier --write \"${CLAUDE_FILE_PATH}\" 2>/dev/null || true\n  npx eslint --fix \"${CLAUDE_FILE_PATH}\" 2>/dev/null || true\nfi"
+          },
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Check for any types in edited content\nif grep -E '(response|data|result|body|payload|apiResponse).*:\\s*any' \"${CLAUDE_FILE_PATH}\" > /dev/null 2>&1; then\n  echo \"⚠️  Warning: Found 'any' type in API response context in ${CLAUDE_FILE_PATH}\"\n  echo \"Run: npm run typecheck:responses\"\nfi"
+          },
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Incremental TypeScript build\nif command -v npx &> /dev/null && [ -f tsconfig.json ]; then\n  npx tsc --incremental --noEmit 2>&1 | head -20 || true\nfi"
+          }
+        ]
+      },
+      {
+        "type": "conditional",
+        "condition": "tool === 'Bash' && command.includes('git commit')",
+        "actions": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Pre-commit quality gate\necho '🔍 Running pre-commit checks...'\n\n# TypeScript check\nif ! npx tsc --noEmit; then\n  echo '❌ TypeScript errors found - please fix before committing'\n  exit 1\nfi\n\n# Response type check\nif ./scripts/find-response-any-types.sh 2>&1 | grep -q 'Found.*any.*types'; then\n  echo '❌ Found any types in API responses - please fix before committing'\n  exit 1\nfi\n\n# Lint check\nif ! npm run lint; then\n  echo '❌ Linting errors found - please fix before committing'\n  exit 1\nfi\n\necho '✅ All pre-commit checks passed!'"
+          },
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Post-commit SonarQube scan\necho '🔍 Triggering SonarQube analysis...'\n\n# First try with MCP (if available)\nif command -v mcp &> /dev/null 2>&1; then\n  echo 'Using MCP SonarQube integration...'\n  # MCP will handle the scan\nelif [ ! -z \"$SONAR_TOKEN\" ]; then\n  # Fallback to Docker-based scan\n  echo 'Using Docker-based SonarQube scanner...'\n  ./scripts/sonarqube-docker.sh quick || echo '⚠️  SonarQube scan had issues'\nelse\n  echo '⚠️  SonarQube not configured - skipping scan'\n  echo 'Set SONAR_TOKEN or configure MCP SonarQube to enable'\nfi"
+          }
+        ]
+      },
+      {
+        "type": "conditional",
+        "condition": "tool === 'Write' && (filePath.includes('/tools/') || filePath.includes('/servers/'))",
+        "actions": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Auto-generate tests for new tools\nif [[ \"${CLAUDE_FILE_PATH}\" == *-tools.ts ]] || [[ \"${CLAUDE_FILE_PATH}\" == *-server.ts ]]; then\n  TEST_FILE=\"${CLAUDE_FILE_PATH%.ts}.test.ts\"\n  TEST_FILE=\"${TEST_FILE/src/src\\/__tests__}\"\n  if [ ! -f \"$TEST_FILE\" ]; then\n    echo \"💡 Consider creating tests: $TEST_FILE\"\n    echo \"Run: npm run test:generate ${CLAUDE_FILE_PATH}\"\n  fi\nfi"
+          }
+        ]
+      },
+      {
+        "type": "conditional",
+        "condition": "tool === 'Edit' && filePath.endsWith('.test.ts')",
+        "actions": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Run related tests after editing\nif [ -f \"${CLAUDE_FILE_PATH}\" ]; then\n  echo '🧪 Running related tests...'\n  npm test -- \"${CLAUDE_FILE_PATH}\" --passWithNoTests || echo '⚠️  Some tests failed'\nfi"
+          }
+        ]
+      }
+    ],
+    "notification": [
+      {
+        "type": "conditional",
+        "condition": "message.includes('error') || message.includes('Error')",
+        "actions": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\necho '🔍 Error detected - checking common issues...'\nif echo \"${CLAUDE_MESSAGE}\" | grep -q 'Cannot find module'; then\n  echo '💡 Missing dependency? Try: npm install'\nelif echo \"${CLAUDE_MESSAGE}\" | grep -q 'Property.*does not exist'; then\n  echo '💡 Type error? Check interfaces and imports'\nelif echo \"${CLAUDE_MESSAGE}\" | grep -q 'any.*type'; then\n  echo '💡 Any type detected? Use proper typing!'\nfi"
+          }
+        ]
+      }
+    ],
+    "stop": [
+      {
+        "actions": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Session cleanup and summary\necho '📊 Session Summary'\necho '================'\n\n# Count TypeScript files modified\nTS_MODIFIED=$(git status --porcelain | grep -E '\\.ts$' | wc -l || echo 0)\nif [ \"$TS_MODIFIED\" -gt 0 ]; then\n  echo \"TypeScript files modified: $TS_MODIFIED\"\n  \n  # Quick type check\n  echo ''\n  echo 'Running final type check...'\n  if npx tsc --noEmit 2>&1 | grep -q error; then\n    echo '⚠️  TypeScript errors detected'\n  else\n    echo '✅ No TypeScript errors'\n  fi\n  \n  # Check for any types\n  ANY_COUNT=$(grep -r 'response.*:.*any' src/ 2>/dev/null | wc -l || echo 0)\n  if [ \"$ANY_COUNT\" -gt 0 ]; then\n    echo \"⚠️  Found $ANY_COUNT files with 'any' in responses\"\n  else\n    echo '✅ No any types in API responses'\n  fi\nfi\n\necho ''\necho 'Thanks for using enhanced Claude hooks! 🛡️'"
+          }
+        ]
+      }
+    ]
+  }
+}

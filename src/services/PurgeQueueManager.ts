@@ -129,6 +129,7 @@ export class PurgeQueueManager {
           logger.error(`Failed to persist queues: ${_err.message}`),
         );
       }, this.PERSISTENCE_INTERVAL);
+      this.persistenceTimer.unref(); // Don't keep process alive
     } catch (_error: any) {
       logger.error(`Queue manager error: ${_error.message}`);
     }

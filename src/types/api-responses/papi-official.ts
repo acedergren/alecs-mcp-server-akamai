@@ -330,57 +330,65 @@ export interface PropertyActivationsGetResponse {
 // ===========================
 
 export function isPropertyVersionCreateResponse(obj: unknown): obj is PropertyVersionCreateResponse {
+  const typedObj = obj as Record<string, unknown>;
   return (
     typeof obj === 'object' &&
     obj !== null &&
     'versionLink' in obj &&
-    typeof (obj as any).versionLink === 'string'
+    typeof typedObj['versionLink'] === 'string'
   );
 }
 
 export function isPropertyVersionRulesGetResponse(obj: unknown): obj is PropertyVersionRulesGetResponse {
+  const typedObj = obj as Record<string, unknown>;
   return (
     typeof obj === 'object' &&
     obj !== null &&
     'rules' in obj &&
-    typeof (obj as any).rules === 'object'
+    typeof typedObj['rules'] === 'object'
   );
 }
 
 export function isEdgeHostnameCreateResponse(obj: unknown): obj is EdgeHostnameCreateResponse {
+  const typedObj = obj as Record<string, unknown>;
   return (
     typeof obj === 'object' &&
     obj !== null &&
     'edgeHostnameLink' in obj &&
-    typeof (obj as any).edgeHostnameLink === 'string'
+    typeof typedObj['edgeHostnameLink'] === 'string'
   );
 }
 
 export function isPropertyVersionHostnamesGetResponse(obj: unknown): obj is PropertyVersionHostnamesGetResponse {
+  const typedObj = obj as Record<string, unknown>;
   return (
     typeof obj === 'object' &&
     obj !== null &&
     'hostnames' in obj &&
-    typeof (obj as any).hostnames === 'object' &&
-    'items' in (obj as any).hostnames
+    typeof typedObj['hostnames'] === 'object' &&
+    typedObj['hostnames'] !== null &&
+    'items' in (typedObj['hostnames'] as Record<string, unknown>)
   );
 }
 
 export function isPropertyActivateResponse(obj: unknown): obj is PropertyActivateResponse {
+  const typedObj = obj as Record<string, unknown>;
   return (
     typeof obj === 'object' &&
     obj !== null &&
     'activationLink' in obj &&
-    typeof (obj as any).activationLink === 'string'
+    typeof typedObj['activationLink'] === 'string'
   );
 }
 
 export function isPropertyActivationsGetResponse(obj: unknown): obj is PropertyActivationsGetResponse {
+  const typedObj = obj as Record<string, unknown>;
   return (
     typeof obj === 'object' &&
     obj !== null &&
     'activations' in obj &&
-    typeof (obj as any).activations === 'object' &&
-    'items' in (obj as any).activations
+    typeof typedObj['activations'] === 'object' &&
+    typedObj['activations'] !== null &&
+    'items' in (typedObj['activations'] as Record<string, unknown>)
   );
 }

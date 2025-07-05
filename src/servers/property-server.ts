@@ -830,17 +830,28 @@ class PropertyALECSServer2025 {
 
           case 'remove_property_hostname': {
             const validated = PropertyManagerZodSchemas.remove_property_hostname.parse(args);
-            // TODO: Handle batch removal - for now just remove first hostname
-            const hostname = validated.hostnames?.[0];
-            if (!hostname) {
+            // Handle batch hostname removal
+            if (!validated.hostnames || validated.hostnames.length === 0) {
               throw new McpError(ErrorCode.InvalidParams, 'At least one hostname must be provided');
             }
-            const response = await removePropertyHostname(this.client, {
-              propertyId: validated.propertyId,
-              version: validated.version,
-              hostname: hostname,
-              ...(validated.customer && { customer: validated.customer })
-            });
+            
+            // Remove all hostnames sequentially for safety
+            const results = [];
+            for (const hostname of validated.hostnames) {
+              const response = await removePropertyHostname(this.client, {
+                propertyId: validated.propertyId,
+                version: validated.version,
+                hostname: hostname,
+                ...(validated.customer && { customer: validated.customer })
+              });
+              results.push({ hostname, result: response });
+            }
+            
+            const response = {
+              success: true,
+              removedHostnames: results,
+              message: `Removed ${results.length} hostname(s) from property ${validated.propertyId}`
+            };
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
               tool: name,

@@ -4,7 +4,7 @@
  * Tests all ALECS-specific MCP servers and their tools
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/testing-library/jest-dom';
+import { describe, it, expect, afterAll } from '@jest/testing-library/jest-dom';
 
 interface AlecsServer {
   name: string;
@@ -196,7 +196,7 @@ describe('ALECS MCP Server Tests', () => {
     }
   ];
 
-  const testResults: AlecsTestResult[] = [];
+  const _testResults: AlecsTestResult[] = [];
 
   describe('ALECS Property Server', () => {
     const server = alecsServers.find(s => s.name === 'alecs-property')!;

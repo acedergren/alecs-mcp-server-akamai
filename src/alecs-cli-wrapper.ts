@@ -31,7 +31,8 @@ const startCommands: Record<string, string> = {
 
 // Handle --help
 if (args.includes('--help') || args.includes('-h')) {
-  console.log(`
+  // Using process.stdout for proper CLI output
+  process.stdout.write(`
 ALECS - A Launchgrid for Edge & Cloud Services
 
 Usage:
@@ -72,7 +73,7 @@ Documentation: https://github.com/acedergren/alecs-mcp-server-akamai
 // Handle --version
 if (args.includes('--version') || args.includes('-v')) {
   const packageJson = require('../package.json');
-  console.log(packageJson.version);
+  process.stdout.write(packageJson.version + '\n');
   process.exit(0);
 }
 
@@ -83,15 +84,38 @@ if (command && startCommands[command]) {
   process.env['npm_lifecycle_event'] = startCommands[command];
 }
 
-// Run the main index.js with all args passed through
+// SECURITY: Sanitize args to prevent command injection
+// Only allow whitelisted args that are safe to pass through
+const allowedArgs = args.filter(arg => {
+  // Allow start: commands that are in our whitelist
+  if (startCommands[arg]) {return true;}
+  
+  // Allow common flags
+  if (arg === '--help' || arg === '-h') {return true;}
+  if (arg === '--version' || arg === '-v') {return true;}
+  if (arg === '--debug') {return true;}
+  if (arg === '--verbose') {return true;}
+  
+  // Block any suspicious patterns
+  if (arg.includes(';') || arg.includes('&') || arg.includes('|')) {return false;}
+  if (arg.includes('$') || arg.includes('`') || arg.includes('!')) {return false;}
+  if (arg.includes('<') || arg.includes('>')) {return false;}
+  
+  // Allow environment variable assignments (KEY=value format)
+  if (/^[A-Z_][A-Z0-9_]*=.+$/i.test(arg)) {return true;}
+  
+  return false;
+});
+
+// Run the main index.js with sanitized args
 const indexPath = join(__dirname, 'index.js');
-const child = spawn(process.execPath, [indexPath, ...args], {
+const child = spawn(process.execPath, [indexPath, ...allowedArgs], {
   stdio: 'inherit',
   env: { ...process.env },
 });
 
 child.on('error', (error) => {
-  console.error('Failed to start server:', error);
+  process.stderr.write(`Failed to start server: ${error.message}\n`);
   process.exit(1);
 });
 

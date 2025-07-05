@@ -1,0 +1,38 @@
+{
+  "description": "Example SonarQube configuration for MCP server audit integration",
+  "sonarqube": {
+    "url": "https://sonarcloud.io",
+    "organization": "your-org-here",
+    "project": "your-project-key",
+    "token": "SONARQUBE_TOKEN_FROM_ENV"
+  },
+  "audit": {
+    "autoFixRules": [
+      "typescript:S1172",
+      "typescript:S1481", 
+      "typescript:S125",
+      "typescript:S1854",
+      "typescript:S2589",
+      "typescript:S6268"
+    ],
+    "severityFilter": ["BLOCKER", "CRITICAL", "MAJOR"],
+    "maxIssuesPerRun": 100,
+    "validateBeforeClosing": true,
+    "validationSteps": ["lint", "test", "build"]
+  },
+  "reporting": {
+    "outputDirectory": "audit-results",
+    "generateMarkdown": true,
+    "generateJson": true,
+    "trackProgress": true
+  },
+  "mcp": {
+    "description": "If using MCP tools for SonarQube integration",
+    "server": "sonarqube",
+    "tools": {
+      "issues": "mcp__sonarqube__issues",
+      "resolveIssue": "mcp__sonarqube__resolveIssue",
+      "markIssueFalsePositive": "mcp__sonarqube__markIssueFalsePositive"
+    }
+  }
+}

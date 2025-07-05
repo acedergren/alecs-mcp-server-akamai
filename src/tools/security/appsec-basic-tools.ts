@@ -12,6 +12,7 @@ import { z } from 'zod';
 import { AkamaiClient } from '../../akamai-client';
 import { type MCPToolResponse } from '../../types';
 import { validateApiResponse } from '../../utils/api-response-validator';
+import { withCustomerValidation } from '../validation/customer-validation-wrapper';
 
 // Initialize resilience manager
 const resilienceManager = ResilienceManager.getInstance();
@@ -65,7 +66,7 @@ export const listAppSecConfigurations = {
       },
     },
   },
-  handler: async (args: any): Promise<MCPToolResponse> => {
+  handler: withCustomerValidation(async (args: any): Promise<MCPToolResponse> => {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
@@ -106,7 +107,7 @@ export const listAppSecConfigurations = {
         ],
       };
     }
-  },
+  }),
 };
 
 /**
@@ -133,7 +134,7 @@ export const getAppSecConfiguration = {
     },
     required: ['configId'],
   },
-  handler: async (args: any): Promise<MCPToolResponse> => {
+  handler: withCustomerValidation(async (args: any): Promise<MCPToolResponse> => {
     const parsed = ConfigIdSchema.parse(args);
     const client = new AkamaiClient(parsed.customer || 'default');
 
@@ -164,7 +165,7 @@ export const getAppSecConfiguration = {
         ],
       };
     }
-  },
+  }),
 };
 
 /**
@@ -202,7 +203,7 @@ export const createWAFPolicy = {
     },
     required: ['configId', 'policyName', 'policyMode'],
   },
-  handler: async (args: any) => {
+  handler: withCustomerValidation(async (args: any) => {
     const parsed = WAFPolicySchema.parse(args);
     const customer = parsed.customer || 'default';
 
@@ -234,7 +235,7 @@ export const createWAFPolicy = {
         ],
       };
     });
-  },
+  }),
 };
 
 /**
@@ -270,7 +271,7 @@ export const getSecurityEvents = {
     },
     required: ['configId', 'from', 'to'],
   },
-  handler: async (args: any) => {
+  handler: withCustomerValidation(async (args: any) => {
     const parsed = SecurityEventsSchema.parse(args);
     const customer = parsed.customer || 'default';
 
@@ -313,7 +314,7 @@ export const getSecurityEvents = {
         ],
       };
     });
-  },
+  }),
 };
 
 /**
@@ -349,7 +350,7 @@ export const activateSecurityConfiguration = {
     },
     required: ['configId', 'version', 'network'],
   },
-  handler: async (args: any) => {
+  handler: withCustomerValidation(async (args: any) => {
     const parsed = ActivationSchema.parse(args);
     const customer = parsed.customer || 'default';
 
@@ -381,7 +382,7 @@ export const activateSecurityConfiguration = {
         ],
       };
     });
-  },
+  }),
 };
 
 /**
@@ -408,11 +409,10 @@ export const getSecurityActivationStatus = {
     },
     required: ['configId', 'activationId'],
   },
-  handler: async (args: any) => {
+  handler: withCustomerValidation(async (args: any) => {
     const customer = args.customer || 'default';
 
     return await resilienceManager.executeWithResilience(OperationType.PROPERTY_READ, async () => {
-      await validateCustomerExists(customer);
       const config = getCustomerConfig(customer);
       const auth = new AkamaiClient(customer, config.account_switch_key);
 
@@ -432,7 +432,7 @@ export const getSecurityActivationStatus = {
         ],
       };
     });
-  },
+  }),
 };
 
 // Export all basic security tools

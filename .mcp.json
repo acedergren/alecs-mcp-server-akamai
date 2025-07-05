@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "sonarqube": {
+      "command": "node",
+      "args": [
+        "/Users/acedergr/Projects/alecs-mcp-server-akamai/scripts/sonarqube-mcp-wrapper.js"
+      ],
+      "env": {
+        "SONARQUBE_TOKEN": "${SONARQUBE_TOKEN}",
+        "SONARQUBE_ORG": "acedergren",
+        "STORAGE_PATH": "/tmp/sonarqube-mcp"
+      }
+    }
+  }
+}

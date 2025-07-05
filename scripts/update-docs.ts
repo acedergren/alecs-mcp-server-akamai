@@ -525,6 +525,24 @@ async function updateDocumentation() {
     updateReadmeFile(section.path, content);
   }
 
+  // Also update version badge in main README
+  const stats = getCodebaseStats();
+  try {
+    const readmePath = path.join(process.cwd(), 'README.md');
+    let readmeContent = fs.readFileSync(readmePath, 'utf8');
+    
+    // Update hardcoded version badge
+    readmeContent = readmeContent.replace(
+      /!\[Version\]\(https:\/\/img\.shields\.io\/badge\/Version-\d+\.\d+\.\d+-blue\?style=for-the-badge\)/g,
+      `![Version](https://img.shields.io/badge/Version-${stats.version}-blue?style=for-the-badge)`
+    );
+    
+    fs.writeFileSync(readmePath, readmeContent);
+    console.log('  README.md (version badge updated)');
+  } catch (error) {
+    console.error('❌ Failed to update README.md version badge:', error);
+  }
+
   console.log('✅ Docs updated');
 }
 

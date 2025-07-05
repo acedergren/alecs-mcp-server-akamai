@@ -202,8 +202,9 @@ export class AkamaiMCPServer {
     }
     
     // Validate naming conventions for MCP compatibility
-    if (!/^[a-z][a-z0-9-]*[a-z0-9]$/.test(tool.name) && tool.name.length > 1) {
-      const error = new Error(`INVALID TOOL NAME FORMAT: "${tool.name}" - must be kebab-case (lowercase, hyphens only)!`);
+    // Updated pattern to match MCP frontend requirement: ^[a-zA-Z0-9_-]{1,64}$
+    if (!/^[a-zA-Z0-9_-]{1,64}$/.test(tool.name)) {
+      const error = new Error(`INVALID TOOL NAME FORMAT: "${tool.name}" - must match pattern ^[a-zA-Z0-9_-]{1,64}$`);
       logger.fatal({ toolName: tool.name }, error.message);
       throw error;
     }
@@ -339,7 +340,8 @@ export class AkamaiMCPServer {
           }
           
           // KAIZEN: Extract string constraints if available
-          const def = (field as any)._def;
+          const fieldWithDef = field as ZodType & { _def?: { minLength?: number; maxLength?: number } };
+          const def = fieldWithDef._def;
           if (def && typeof def === 'object') {
             if (def.minLength !== null && def.minLength !== undefined) {
               schema['minLength'] = def.minLength;
@@ -366,7 +368,8 @@ export class AkamaiMCPServer {
           }
           
           // KAIZEN: Extract number constraints if available
-          const def = (field as any)._def;
+          const fieldWithDef = field as ZodType & { _def?: { minimum?: number; maximum?: number } };
+          const def = fieldWithDef._def;
           if (def && typeof def === 'object') {
             if (def.minimum !== null && def.minimum !== undefined) {
               schema['minimum'] = def.minimum;
@@ -401,7 +404,8 @@ export class AkamaiMCPServer {
       // DEFENSIVE: Handle ZodArray with element validation
       if (field instanceof z.ZodArray) {
         try {
-          const element = (field as any).element;
+          const arrayField = field as ZodType & { element?: ZodType };
+          const element = arrayField.element;
           if (!element) {
             logger.warn('ZodArray missing element schema');
             return { type: 'array', items: { type: 'string' } };
@@ -420,7 +424,8 @@ export class AkamaiMCPServer {
       // DEFENSIVE: Handle ZodEnum with options validation
       if (field instanceof z.ZodEnum) {
         try {
-          const options = (field as any).options;
+          const enumField = field as ZodType & { options?: readonly unknown[] };
+          const options = enumField.options;
           if (!Array.isArray(options) || options.length === 0) {
             logger.warn('ZodEnum missing or empty options');
             return { type: 'string' };
@@ -455,7 +460,8 @@ export class AkamaiMCPServer {
       // DEFENSIVE: Handle ZodUnion with comprehensive validation
       if (field instanceof z.ZodUnion) {
         try {
-          const options = (field as any).options;
+          const unionField = field as ZodType & { options?: ZodType[] };
+          const options = unionField.options;
           if (!Array.isArray(options)) {
             logger.warn('ZodUnion missing options array');
             return { type: 'string' };
@@ -473,18 +479,18 @@ export class AkamaiMCPServer {
           }
           
           // KAIZEN: For complex unions, try to find a common type
-          const types = options.map((opt: ZodType) => {
+          const types = options.map((opt) => {
             try {
-              if (opt instanceof z.ZodString) {return 'string';}
-              if (opt instanceof z.ZodNumber) {return 'number';}
-              if (opt instanceof z.ZodBoolean) {return 'boolean';}
+              if (opt instanceof z.ZodString) { return 'string'; }
+              if (opt instanceof z.ZodNumber) { return 'number'; }
+              if (opt instanceof z.ZodBoolean) { return 'boolean'; }
               return 'string';
             } catch {
               return 'string';
             }
           });
           
-          const uniqueTypes = [...new Set(types)];
+          const uniqueTypes = Array.from(new Set(types));
           if (uniqueTypes.length === 1) {
             return { type: uniqueTypes[0] };
           }
@@ -510,7 +516,8 @@ export class AkamaiMCPServer {
       // KAIZEN: Handle additional Zod types
       if (field instanceof z.ZodLiteral) {
         try {
-          const value = (field as any)._def?.value;
+          const literalField = field as ZodType & { _def?: { value?: unknown } };
+          const value = literalField._def?.value;
           if (value !== undefined) {
             return { 
               type: typeof value,
@@ -531,7 +538,8 @@ export class AkamaiMCPServer {
       }
       
       // DEFENSIVE: Log unhandled Zod types for debugging
-      const typeName = (field as any)._def?.typeName || field.constructor.name;
+      const fieldWithDef = field as ZodType & { _def?: { typeName?: string } };
+      const typeName = fieldWithDef._def?.typeName || field.constructor.name;
       logger.warn(`Unhandled Zod type: ${typeName}, falling back to string type`);
       
       // Safe fallback for unhandled types
@@ -672,14 +680,14 @@ export class AkamaiMCPServer {
         
         // Log performance metrics if enabled
         if (process.env['TRACE_TOOLS'] === 'true') {
-          requestLogger.debug({ 
-            response: typeof response === 'object' && response !== null ? { 
-              ...(response as any), 
-              content: Array.isArray((response as any).content) ? 
-                `[${(response as any).content.length} items]` : 
-                (response as any).content 
-            } : response 
-          }, 'Tool response');
+          const responseForLogging = typeof response === 'object' && response !== null ? {
+            ...response,
+            content: 'content' in response && Array.isArray(response.content) ? 
+              `[${response.content.length} items]` : 
+              'content' in response ? response.content : undefined
+          } : response;
+          
+          requestLogger.debug({ response: responseForLogging }, 'Tool response');
         }
         
         // KAIZEN FIX: Convert MCPToolResponse to MCP SDK CallToolResult format

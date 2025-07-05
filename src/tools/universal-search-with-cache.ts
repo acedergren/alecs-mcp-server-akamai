@@ -103,16 +103,20 @@ export async function universalSearchWithCacheHandler(
         results.performance.cacheHit = true;
 
         for (const result of cacheResults) {
-          const property = result.property as any;
+          // Property already typed from cache service
+          const property = result.property;
 
           // Get detailed info if requested
-          if (detailed && !property.hostnames) {
-            property.hostnames = await cache.getPropertyHostnames(client, property, customer);
+          let propertyWithDetails = property;
+          if (detailed && !('hostnames' in property)) {
+            const hostnames = await cache.getPropertyHostnames(client, property, customer);
+            // Create a new object to avoid mutating the cached data
+            propertyWithDetails = { ...property, hostnames } as unknown as typeof property;
           }
 
           results.matches.push({
             type: 'property',
-            resource: property,
+            resource: propertyWithDetails,
             matchReason: result.matchReason || 'Cache match',
             hostname: result.hostname,
           });
@@ -129,7 +133,8 @@ export async function universalSearchWithCacheHandler(
 
           if (property) {
             if (detailed) {
-              (property as any).hostnames = await cache.getPropertyHostnames(client, property, customer);
+              const hostnames = await cache.getPropertyHostnames(client, property, customer);
+              Object.assign(property, { hostnames });
             }
 
             results.matches.push({

@@ -141,6 +141,9 @@ export const PropertyManagerSchemas = {
     contractId: AkamaiIdSchemas.contractId.optional(),
     groupId: AkamaiIdSchemas.groupId.optional(),
     limit: NumericConstraints.pageSize.optional(),
+    includeSubgroups: z.boolean().optional(),
+    page: z.number().int().min(1).optional(),
+    pageSize: z.number().int().min(1).max(1000).optional(),
   }),
 
   getProperty: z.object({

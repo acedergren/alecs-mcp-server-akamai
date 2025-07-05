@@ -78,7 +78,7 @@ describe('ALECS Tool Execution Tests', () => {
     propertyTests.forEach(test => {
       it(`should execute ${test.tool}: ${test.description}`, async () => {
         // Mock implementation would go here
-        const mockResponse = {
+        const _mockResponse = {
           success: test.expectedSuccess,
           data: {
             content: [{

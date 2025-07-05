@@ -66,7 +66,7 @@ export class CacheFactory {
       maxSize: options?.maxSize || parseInt(process.env['CACHE_MAX_SIZE'] || '10000'),
       maxMemoryMB: options?.maxMemoryMB || parseInt(process.env['CACHE_MAX_MEMORY_MB'] || '100'),
       defaultTTL: options?.defaultTTL || parseInt(process.env['CACHE_DEFAULT_TTL'] || '300'),
-      evictionPolicy: (process.env['CACHE_EVICTION_POLICY'] as any) || 'LRU',
+      evictionPolicy: (process.env['CACHE_EVICTION_POLICY'] as 'LRU' | 'LFU' | 'FIFO' | 'LRU-K' | undefined) || 'LRU',
       enableMetrics: process.env['CACHE_METRICS'] !== 'false',
       enableCompression: process.env['CACHE_COMPRESSION'] !== 'false',
       compressionThreshold: parseInt(process.env['CACHE_COMPRESSION_THRESHOLD'] || '10240'),

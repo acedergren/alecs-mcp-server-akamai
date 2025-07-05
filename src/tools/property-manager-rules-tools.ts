@@ -85,7 +85,17 @@ export async function listAvailableBehaviors(
     text += `**Total Behaviors:** ${validatedBehaviorsResponse.behaviors.items.length}\n\n`;
 
     // Group behaviors by category
-    const behaviorsByCategory = validatedBehaviorsResponse.behaviors.items.reduce((acc: any, behavior: any) => {
+    interface BehaviorItem {
+      name: string;
+      displayName?: string;
+      description?: string;
+      category?: string;
+      deprecated?: boolean;
+      deprecatedMessage?: string;
+      [key: string]: unknown;
+    }
+    
+    const behaviorsByCategory = validatedBehaviorsResponse.behaviors.items.reduce((acc: Record<string, BehaviorItem[]>, behavior: BehaviorItem) => {
       const category = behavior.category || 'Other';
       if (!acc[category]) {
         acc[category] = [];
@@ -97,7 +107,7 @@ export async function listAvailableBehaviors(
     for (const [category, behaviors] of Object.entries(behaviorsByCategory)) {
       text += `## ${category}\n\n`;
 
-      for (const behavior of behaviors as any[]) {
+      for (const behavior of behaviors as BehaviorItem[]) {
         text += `### ${behavior.displayName || behavior.name}\n`;
         text += `- **Name:** \`${behavior.name}\`\n`;
         if (behavior.description) {
@@ -226,7 +236,17 @@ export async function listAvailableCriteria(
     text += `**Total Criteria:** ${validatedCriteriaResponse.criteria.items.length}\n\n`;
 
     // Group criteria by category
-    const criteriaByCategory = validatedCriteriaResponse.criteria.items.reduce((acc: any, criterion: any) => {
+    interface CriterionItem {
+      name: string;
+      displayName?: string;
+      description?: string;
+      category?: string;
+      deprecated?: boolean;
+      deprecatedMessage?: string;
+      [key: string]: unknown;
+    }
+    
+    const criteriaByCategory = validatedCriteriaResponse.criteria.items.reduce((acc: Record<string, CriterionItem[]>, criterion: CriterionItem) => {
       const category = criterion.category || 'Other';
       if (!acc[category]) {
         acc[category] = [];
@@ -238,7 +258,7 @@ export async function listAvailableCriteria(
     for (const [category, criteria] of Object.entries(criteriaByCategory)) {
       text += `## ${category}\n\n`;
 
-      for (const criterion of criteria as any[]) {
+      for (const criterion of criteria as CriterionItem[]) {
         text += `### ${criterion.displayName || criterion.name}\n`;
         text += `- **Name:** \`${criterion.name}\`\n`;
         if (criterion.description) {
@@ -537,7 +557,17 @@ export async function getBulkSearchResults(
         text += '## Matching Properties\n\n';
 
         // Group by property
-        const byProperty = results.reduce((acc: any, result: any) => {
+        interface SearchResultItem {
+          propertyId: string;
+          propertyName: string;
+          contractId: string;
+          groupId: string;
+          propertyVersion: number;
+          matchLocations?: Array<{ path: string; line: number; column: number }>;
+          [key: string]: unknown;
+        }
+        
+        const byProperty = results.reduce((acc: Record<string, SearchResultItem[]>, result: SearchResultItem) => {
           const key = result.propertyId;
           if (!acc[key]) {
             acc[key] = [];
@@ -547,13 +577,15 @@ export async function getBulkSearchResults(
         }, {});
 
         for (const [propertyId, matches] of Object.entries(byProperty)) {
-          const firstMatch = (matches as any[])[0];
+          const matchesTyped = matches as SearchResultItem[];
+          const firstMatch = matchesTyped[0];
+          if (!firstMatch) {continue;}
           text += `### ${firstMatch.propertyName} (${propertyId})\n`;
           text += `- **Contract:** ${firstMatch.contractId}\n`;
           text += `- **Group:** ${firstMatch.groupId}\n`;
-          text += `- **Versions with matches:** ${(matches as any[]).length}\n`;
+          text += `- **Versions with matches:** ${matchesTyped.length}\n`;
 
-          for (const match of matches as any[]) {
+          for (const match of matchesTyped) {
             text += `  - Version ${match.propertyVersion}: ${match.matchLocations?.length || 0} match locations\n`;
           }
           text += '\n';

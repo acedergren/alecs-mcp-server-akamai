@@ -374,10 +374,10 @@ export async function listPropertyVersionsPaginated(
       throw new Error(`Failed to get property details: ${propertyResponse.detail}`);
     }
 
-    const property = (propertyResponse as any).properties?.items?.[0];
+    const property = (propertyResponse as { properties?: { items?: Array<{ contractId?: string; groupId?: string }> } }).properties?.items?.[0];
     if (property) {
-      queryParams.contractId = property.contractId;
-      queryParams.groupId = property.groupId;
+      queryParams.contractId = property.contractId || '';
+      queryParams.groupId = property.groupId || '';
     }
 
     // Now get versions
