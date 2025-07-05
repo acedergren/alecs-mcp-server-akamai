@@ -43,9 +43,88 @@
 
 - This understanding is crucial for presenting accurate and helpful error messages to users
 
+## SonarCloud Quality Gate Compliance
+
+### Critical Rules - Quality Gate Failures
+
+#### Type Safety (Critical Priority)
+- **FORBIDDEN**: `any` type usage - use `unknown` with proper type guards
+- **FORBIDDEN**: Type assertions (`as`) without runtime validation  
+- **REQUIRED**: Explicit interfaces for all API responses using Zod schemas
+- **REQUIRED**: Runtime validation for all external inputs
+
+#### Code Complexity (Critical Priority)
+- **LIMIT**: Functions to 50 lines maximum (cyclomatic complexity ≤10)
+- **LIMIT**: Files to 500 lines maximum
+- **LIMIT**: Parameters to 5 per function (use parameter objects)
+- **LIMIT**: Nesting depth to 3 levels maximum
+
+#### Security (Critical Priority) 
+- **FORBIDDEN**: Hardcoded secrets, URLs, or configuration values
+- **REQUIRED**: Input validation with Zod schemas for all user data
+- **REQUIRED**: Parameterized API requests (no string concatenation)
+- **REQUIRED**: Proper error context without exposing internals
+
+#### Testing (Quality Gate Requirement)
+- **REQUIRED**: 80%+ code coverage minimum
+- **REQUIRED**: Unit tests for all error paths and edge cases
+- **REQUIRED**: Integration tests for critical workflows
+- **REQUIRED**: Proper cleanup in test teardown (prevent worker hangs)
+
+### Code Organization Principles
+
+#### Single Responsibility
+- **FORBIDDEN**: Consolidating multiple tools into mega-files
+- **REQUIRED**: Each file serves one clear purpose  
+- **REQUIRED**: Extraction of reusable logic into utility modules
+- **REQUIRED**: Clear separation of concerns
+
+#### Error Handling Standards
+- **REQUIRED**: Typed error classes implementing RFC 7807 Problem Details
+- **REQUIRED**: Specific error handling (no generic `catch(error: any)`)
+- **REQUIRED**: Error recovery strategies and graceful degradation
+- **FORBIDDEN**: Silent error swallowing
+
+#### Constants and Configuration
+- **REQUIRED**: Named constants for all magic numbers/strings
+- **REQUIRED**: Environment variable configuration
+- **REQUIRED**: Type-safe configuration validation
+- **FORBIDDEN**: Inline literals for timeouts, limits, URLs
+
+### Documentation Standards
+
+#### Code Documentation
+- **REQUIRED**: JSDoc for all public APIs and complex logic
+- **REQUIRED**: Clear comments explaining business logic decisions
+- **REQUIRED**: Code annotations following CODE_ANNOTATION.md
+- **FORBIDDEN**: TODO/FIXME comments without tickets
+
+#### Architecture Documentation  
+- **REQUIRED**: Update DOCUMENTATION_ARCHITECTURE_PLAN.md for new features
+- **REQUIRED**: Sequence diagrams for complex workflows
+- **REQUIRED**: API documentation with examples
+
+### Performance and Maintainability
+
+#### Resource Management
+- **REQUIRED**: Proper cleanup of timers, intervals, and resources
+- **REQUIRED**: Memory-efficient caching with size limits
+- **REQUIRED**: Graceful handling of resource exhaustion
+- **FORBIDDEN**: Resource leaks that hang test workers
+
+#### Code Quality
+- **REQUIRED**: DRY principle - extract common patterns
+- **REQUIRED**: Consistent naming conventions
+- **REQUIRED**: Immutable data patterns where possible
+- **FORBIDDEN**: Deep object mutations
+
 ## Development Checklist
 
-- verify all changes works with the latest MCP spec from 2025-06-18 and Akamai APIs
+- **Pre-commit**: Run TypeScript compiler (0 errors required)
+- **Pre-commit**: Run ESLint (0 violations required) 
+- **Pre-commit**: Run tests with coverage check (80%+ required)
+- **Pre-commit**: Validate all changes work with latest MCP spec from 2025-06-18
+- **Quality Gate**: SonarCloud analysis must pass before merge
 
 ## Code Readability and Maintenance
 
