@@ -28,22 +28,12 @@ export class CustomerValidator {
   async validateCustomerAccess(customer: string, context: RequestContext): Promise<void> {
     // Check if customer exists
     if (!this.isValidCustomer(customer)) {
-      throw new UnauthorizedError(`Invalid customer: ${customer}`, {
-        type: 'INVALID_CUSTOMER',
-        title: 'Invalid Customer',
-        detail: `Customer '${customer}' does not exist`,
-        status: 401,
-      });
+      throw new UnauthorizedError(`Invalid customer: ${customer}`);
     }
     
     // Check if user has access to customer
     if (!this.hasAccessToCustomer(context, customer)) {
-      throw new ForbiddenError(`Access denied to customer: ${customer}`, {
-        type: 'CUSTOMER_ACCESS_DENIED',
-        title: 'Customer Access Denied',
-        detail: `You do not have access to customer '${customer}'`,
-        status: 403,
-      });
+      throw new ForbiddenError(`Access denied to customer: ${customer}`);
     }
   }
   
@@ -76,7 +66,7 @@ export class CustomerValidator {
     // Check account switch key if provided
     if (context.accountSwitchKey) {
       const config = this.configManager.getConfig(customer);
-      return config.accountSwitchKey === context.accountSwitchKey;
+      return config.account_switch_key === context.accountSwitchKey;
     }
     
     return true;
@@ -115,8 +105,9 @@ let validatorInstance: CustomerValidator | null = null;
 /**
  * Get or create customer validator instance
  */
-export function getCustomerValidator(configManager: CustomerConfigManager): CustomerValidator {
+export function getCustomerValidator(): CustomerValidator {
   if (!validatorInstance) {
+    const configManager = CustomerConfigManager.getInstance();
     validatorInstance = new CustomerValidator(configManager);
   }
   return validatorInstance;

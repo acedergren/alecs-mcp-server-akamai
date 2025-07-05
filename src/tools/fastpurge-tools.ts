@@ -1,14 +1,13 @@
 import { FastPurgeService } from '../services/FastPurgeService';
 import { PurgeQueueManager } from '../services/PurgeQueueManager';
 import { PurgeStatusTracker } from '../services/PurgeStatusTracker';
-import { CustomerConfigManager } from '../utils/customer-config';
 import { AkamaiError } from '../utils/errors';
 import { logger } from '../utils/logger';
+import { withCustomerValidation } from './validation/customer-validation-wrapper';
 
 const fastPurgeService = FastPurgeService.getInstance();
 const queueManager = PurgeQueueManager.getInstance();
 const statusTracker = PurgeStatusTracker.getInstance();
-const configManager = CustomerConfigManager.getInstance();
 
 // Input validation functions
 function validateUrls(urls: string[]): void {
@@ -127,17 +126,8 @@ export const fastpurgeUrlInvalidate = {
     },
     required: ['customer', 'urls'],
   },
-  handler: async (params: any) => {
+  handler: withCustomerValidation(async (params: any) => {
     try {
-      // Validate customer
-      const customers = await configManager.getCustomers();
-      if (!customers.includes(params.customer)) {
-        throw new AkamaiError(
-          `Unknown customer: ${params.customer}. Available customers: ${customers.join(', ')}`,
-          400,
-          'INVALID_CUSTOMER',
-        );
-      }
 
       // Validate URLs
       validateUrls(params.urls);
@@ -212,7 +202,7 @@ export const fastpurgeUrlInvalidate = {
 
       throw _error;
     }
-  },
+  }),
 };
 
 // FastPurge CP Code invalidation tool
@@ -247,17 +237,8 @@ export const fastpurgeCpcodeInvalidate = {
     },
     required: ['customer', 'cpCodes'],
   },
-  handler: async (params: any) => {
+  handler: withCustomerValidation(async (params: any) => {
     try {
-      // Validate customer
-      const customers = await configManager.getCustomers();
-      if (!customers.includes(params.customer)) {
-        throw new AkamaiError(
-          `Unknown customer: ${params.customer}. Available customers: ${customers.join(', ')}`,
-          400,
-          'INVALID_CUSTOMER',
-        );
-      }
 
       // Validate CP codes
       validateCpCodes(params.cpCodes);
@@ -320,7 +301,7 @@ export const fastpurgeCpcodeInvalidate = {
 
       throw _error;
     }
-  },
+  }),
 };
 
 // FastPurge cache tag invalidation tool
@@ -351,17 +332,8 @@ export const fastpurgeTagInvalidate = {
     },
     required: ['customer', 'tags'],
   },
-  handler: async (params: any) => {
+  handler: withCustomerValidation(async (params: any) => {
     try {
-      // Validate customer
-      const customers = await configManager.getCustomers();
-      if (!customers.includes(params.customer)) {
-        throw new AkamaiError(
-          `Unknown customer: ${params.customer}. Available customers: ${customers.join(', ')}`,
-          400,
-          'INVALID_CUSTOMER',
-        );
-      }
 
       // Validate cache tags
       validateCacheTags(params.tags);
@@ -404,7 +376,7 @@ export const fastpurgeTagInvalidate = {
 
       throw _error;
     }
-  },
+  }),
 };
 
 // FastPurge status check tool
@@ -425,16 +397,8 @@ export const fastpurgeStatusCheck = {
     },
     required: ['customer', 'operationId'],
   },
-  handler: async (params: any) => {
+  handler: withCustomerValidation(async (params: any) => {
     try {
-      const customers = await configManager.getCustomers();
-      if (!customers.includes(params.customer)) {
-        throw new AkamaiError(
-          `Unknown customer: ${params.customer}. Available customers: ${customers.join(', ')}`,
-          400,
-          'INVALID_CUSTOMER',
-        );
-      }
 
       // First try to get operation from tracker
       const operation = await statusTracker.getOperationStatus(params.operationId);
@@ -497,7 +461,7 @@ export const fastpurgeStatusCheck = {
 
       throw _error;
     }
-  },
+  }),
 };
 
 // FastPurge queue status tool
@@ -519,16 +483,8 @@ export const fastpurgeQueueStatus = {
     },
     required: ['customer'],
   },
-  handler: async (params: any) => {
+  handler: withCustomerValidation(async (params: any) => {
     try {
-      const customers = await configManager.getCustomers();
-      if (!customers.includes(params.customer)) {
-        throw new AkamaiError(
-          `Unknown customer: ${params.customer}. Available customers: ${customers.join(', ')}`,
-          400,
-          'INVALID_CUSTOMER',
-        );
-      }
 
       const queueStats = await queueManager.getQueueStatus(params.customer);
       const rateLimitStatus = fastPurgeService.getRateLimitStatus(params.customer);
@@ -597,7 +553,7 @@ export const fastpurgeQueueStatus = {
 
       throw _error;
     }
-  },
+  }),
 };
 
 // FastPurge operation estimation tool
@@ -631,16 +587,8 @@ export const fastpurgeEstimate = {
     },
     required: ['customer', 'type', 'objects'],
   },
-  handler: async (params: any) => {
+  handler: withCustomerValidation(async (params: any) => {
     try {
-      const customers = await configManager.getCustomers();
-      if (!customers.includes(params.customer)) {
-        throw new AkamaiError(
-          `Unknown customer: ${params.customer}. Available customers: ${customers.join(', ')}`,
-          400,
-          'INVALID_CUSTOMER',
-        );
-      }
 
       // Validate objects based on type
       if (params.type === 'url') {
@@ -721,7 +669,7 @@ export const fastpurgeEstimate = {
 
       throw _error;
     }
-  },
+  }),
 };
 
 // Export all tools

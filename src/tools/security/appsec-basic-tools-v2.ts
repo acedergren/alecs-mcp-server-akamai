@@ -6,6 +6,7 @@
 
 import { AkamaiClient } from '../../akamai-client';
 import { validateApiResponse } from '../../utils/api-response-validator';
+import { withCustomerValidation } from '../validation/customer-validation-wrapper';
 
 // Tool response interface
 interface ToolResponse {
@@ -50,7 +51,7 @@ export const listAppSecConfigurations = {
       },
     },
   },
-  handler: async (args: any): Promise<ToolResponse> => {
+  handler: withCustomerValidation(async (args: any): Promise<ToolResponse> => {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
@@ -87,7 +88,7 @@ export const listAppSecConfigurations = {
         error: `Failed to list APPSEC configurations: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
-  },
+  }),
 };
 
 /**
@@ -114,7 +115,7 @@ export const getAppSecConfiguration = {
     },
     required: ['configId'],
   },
-  handler: async (args: any): Promise<ToolResponse> => {
+  handler: withCustomerValidation(async (args: any): Promise<ToolResponse> => {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
@@ -139,7 +140,7 @@ export const getAppSecConfiguration = {
         error: `Failed to get APPSEC configuration: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
-  },
+  }),
 };
 
 /**
@@ -177,7 +178,7 @@ export const createWAFPolicy = {
     },
     required: ['configId', 'policyName', 'policyMode'],
   },
-  handler: async (args: any): Promise<ToolResponse> => {
+  handler: withCustomerValidation(async (args: any): Promise<ToolResponse> => {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
@@ -210,7 +211,7 @@ export const createWAFPolicy = {
         error: `Failed to create WAF policy: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
-  },
+  }),
 };
 
 /**
@@ -246,7 +247,7 @@ export const getSecurityEvents = {
     },
     required: ['configId', 'from', 'to'],
   },
-  handler: async (args: any): Promise<ToolResponse> => {
+  handler: withCustomerValidation(async (args: any): Promise<ToolResponse> => {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
@@ -299,7 +300,7 @@ export const getSecurityEvents = {
         error: `Failed to get security events: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
-  },
+  }),
 };
 
 /**
@@ -335,7 +336,7 @@ export const activateSecurityConfiguration = {
     },
     required: ['configId', 'version', 'network'],
   },
-  handler: async (args: any): Promise<ToolResponse> => {
+  handler: withCustomerValidation(async (args: any): Promise<ToolResponse> => {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
@@ -370,7 +371,7 @@ export const activateSecurityConfiguration = {
         error: `Failed to activate security configuration: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
-  },
+  }),
 };
 
 /**
@@ -397,7 +398,7 @@ export const getSecurityActivationStatus = {
     },
     required: ['configId', 'activationId'],
   },
-  handler: async (args: any): Promise<ToolResponse> => {
+  handler: withCustomerValidation(async (args: any): Promise<ToolResponse> => {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
@@ -425,7 +426,7 @@ export const getSecurityActivationStatus = {
         error: `Failed to get activation status: ${_error instanceof Error ? _error.message : String(_error)}`,
       };
     }
-  },
+  }),
 };
 
 // Export all basic security tools

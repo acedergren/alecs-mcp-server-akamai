@@ -4,16 +4,13 @@
  */
 
 import { AkamaiError } from '../utils/rfc7807-errors';
-import { 
-  type ApiErrorResponse 
-} from '../services/BaseAkamaiClient';
 
 /**
  * Unauthorized error (401)
  */
 export class UnauthorizedError extends AkamaiError {
-  constructor(message: string, response?: ApiErrorResponse) {
-    const defaultResponse = {
+  constructor(message: string) {
+    super({
       type: 'https://problems.luna.akamaiapis.net/auth/v1/unauthorized',
       title: 'Unauthorized',
       detail: message,
@@ -23,9 +20,7 @@ export class UnauthorizedError extends AkamaiError {
         title: 'Authentication Required',
         detail: 'Please provide valid authentication credentials'
       }]
-    };
-    
-    super(response || defaultResponse);
+    });
     this.name = 'UnauthorizedError';
   }
 }
@@ -34,8 +29,8 @@ export class UnauthorizedError extends AkamaiError {
  * Forbidden error (403)
  */
 export class ForbiddenError extends AkamaiError {
-  constructor(message: string, response?: ApiErrorResponse) {
-    const defaultResponse = {
+  constructor(message: string) {
+    super({
       type: 'https://problems.luna.akamaiapis.net/auth/v1/forbidden',
       title: 'Forbidden',
       detail: message,
@@ -45,9 +40,7 @@ export class ForbiddenError extends AkamaiError {
         title: 'Access Denied',
         detail: 'You do not have permission to access this resource'
       }]
-    };
-    
-    super(response || defaultResponse);
+    });
     this.name = 'ForbiddenError';
   }
 }
@@ -58,7 +51,7 @@ export class ForbiddenError extends AkamaiError {
 export class AccountSwitchError extends ForbiddenError {
   constructor(customer: string, reason?: string) {
     const message = `Cannot switch to customer account '${customer}'`;
-    const response = {
+    const response: any = {
       type: 'https://problems.luna.akamaiapis.net/auth/v1/account-switch-error',
       title: 'Account Switch Failed',
       detail: message,
@@ -70,7 +63,7 @@ export class AccountSwitchError extends ForbiddenError {
       }]
     };
     
-    super(message, response);
+    super(response);
     this.name = 'AccountSwitchError';
   }
 }
@@ -81,7 +74,7 @@ export class AccountSwitchError extends ForbiddenError {
 export class InvalidCustomerError extends UnauthorizedError {
   constructor(customer: string) {
     const message = `Customer '${customer}' is not valid`;
-    const response = {
+    const response: any = {
       type: 'https://problems.luna.akamaiapis.net/auth/v1/invalid-customer',
       title: 'Invalid Customer',
       detail: message,
@@ -93,7 +86,7 @@ export class InvalidCustomerError extends UnauthorizedError {
       }]
     };
     
-    super(message, response);
+    super(response);
     this.name = 'InvalidCustomerError';
   }
 }

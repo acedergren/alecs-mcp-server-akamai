@@ -593,6 +593,47 @@ export class SmartCache<T = any> extends EventEmitter {
   }
 
   /**
+   * Delete a key from cache
+   */
+  async delete(key: string): Promise<boolean> {
+    const existed = this.cache.has(key);
+    this.cache.delete(key);
+    this.removeFromPatterns(key);
+    if (existed) {
+      this.metrics.totalEntries--;
+      this.emit('delete', key);
+    }
+    return existed;
+  }
+  
+  /**
+   * Check if key exists in cache
+   */
+  async has(key: string): Promise<boolean> {
+    return this.cache.has(key);
+  }
+  
+  /**
+   * Clear all keys matching a pattern
+   */
+  async clearPattern(pattern: string): Promise<void> {
+    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+    const keysToDelete: string[] = [];
+    
+    for (const key of this.cache.keys()) {
+      if (regex.test(key)) {
+        keysToDelete.push(key);
+      }
+    }
+    
+    for (const key of keysToDelete) {
+      await this.delete(key);
+    }
+    
+    this.emit('clear-pattern', { pattern, count: keysToDelete.length });
+  }
+  
+  /**
    * Close cache (cleanup intervals)
    */
   async close(): Promise<void> {
