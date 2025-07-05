@@ -1,13 +1,63 @@
 # SonarCloud Issue Validation Report
-Generated: 2025-07-04T05:51:09.307Z
+Generated: 2025-07-05T13:44:01.126Z
 
 ## Summary
 - Total Issues: 2167
-- Still Exists: 2167 (100.0%)
-- Fixed: 0 (0.0%)
+- Still Exists: 2155 (99.4%)
+- Fixed: 12 (0.6%)
 - File Not Found: 0
 
 ## Issues to Close
+
+These issues have been fixed and can be closed:
+
+- **AZfC9HcqhJXSHKKi1fwm** - Remove this unused import of 'beforeAll'.
+  - Rule: typescript:S1128
+  - File: acedergren_alecs-mcp-server-akamai:src/__tests__/alecs-comprehensive.test.ts
+
+- **AZfC9HdbhJXSHKKi1fwo** - Remove this unused import of 'beforeAll'.
+  - Rule: typescript:S1128
+  - File: acedergren_alecs-mcp-server-akamai:src/__tests__/baseline/runtime-behavior.test.ts
+
+- **AZe6knqeqTomVwOqf_lz** - Extract this nested ternary operation into an independent statement.
+  - Rule: typescript:S3358
+  - File: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts
+
+- **AZe6knqeqTomVwOqf_l4** - Extract this nested ternary operation into an independent statement.
+  - Rule: typescript:S3358
+  - File: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts
+
+- **AZe6knqeqTomVwOqf_l5** - Extract this nested ternary operation into an independent statement.
+  - Rule: typescript:S3358
+  - File: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts
+
+- **AZe6knqeqTomVwOqf_l6** - Extract this nested ternary operation into an independent statement.
+  - Rule: typescript:S3358
+  - File: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts
+
+- **AZe6knqeqTomVwOqf_l7** - Extract this nested ternary operation into an independent statement.
+  - Rule: typescript:S3358
+  - File: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts
+
+- **AZe6knqeqTomVwOqf_l8** - Extract this nested ternary operation into an independent statement.
+  - Rule: typescript:S3358
+  - File: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts
+
+- **AZe6knqeqTomVwOqf_l9** - Extract this nested ternary operation into an independent statement.
+  - Rule: typescript:S3358
+  - File: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts
+
+- **AZe6knqeqTomVwOqf_mB** - Extract this nested ternary operation into an independent statement.
+  - Rule: typescript:S3358
+  - File: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts
+
+- **AZe6knqeqTomVwOqf_mC** - Extract this nested ternary operation into an independent statement.
+  - Rule: typescript:S3358
+  - File: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts
+
+- **AZe6knuIqTomVwOqf_uA** - Extract this nested ternary operation into an independent statement.
+  - Rule: typescript:S3358
+  - File: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts
 
 ## Issues Still Present
 
@@ -36,7 +86,7 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/alecs-cli-wrapper.ts:99
-- **Current Code**: `  if (arg.includes(';') || arg.includes('&') || arg.includes('|')) return false;`
+- **Current Code**: `  // Block any suspicious patterns`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfFlDLNhJXSHKKiONOj
@@ -118,20 +168,21 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Unnecessary escape character: \/.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-tools.ts:2888
+- **Current Code**: `    const bulkSearchQuery = buildBulkSearchQuery(`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfFlDCrhJXSHKKiONOP
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-tools.ts:2905
-- **Current Code**: `    const response = await withRetry(async () => {`
+- **Current Code**: `      requestBody.propertyName = validatedArgs.propertyName;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfFlDCrhJXSHKKiONOQ
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-tools.ts:2926
-- **Current Code**: `            bulkSearchId,`
+- **Current Code**: `        {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfFlDGOhJXSHKKiONOU
@@ -1047,7 +1098,7 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 19 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:123
-- **Current Code**: `        async () => {`
+- **Current Code**: `      return executeWithTimeout(`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HWJhJXSHKKi1fvW
@@ -1096,132 +1147,130 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:164
-- **Current Code**: `        throw new Error('Invalid property response structure');`
+- **Current Code**: `        path: `/papi/v1/properties/${args.propertyId}`,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvb
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:199
-- **Current Code**: `    }`
+- **Current Code**: `      }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvc
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:203
-- **Current Code**: `    `
+- **Current Code**: `      propertyName = property.propertyName || '';`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvd
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:321
-- **Current Code**: `      const propertyResponse = await client.request({`
+- **Current Code**: `          action: 'activate',`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fve
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:347
-- **Current Code**: `        Accept: 'application/vnd.akamai.papirules.v2023-10-30+json',`
+- **Current Code**: `    };`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvf
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:351
-- **Current Code**: `    // CODE KAI: Type-safe response handling with official Akamai types`
+- **Current Code**: `}`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvg
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:409
-- **Current Code**: `    }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvh
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:412
+- **Current Code**: `      if (response.status === 403) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvi
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:415
-- **Current Code**: `    // Extract key behaviors from default rule`
+- **Current Code**: `        throw new PropertyValidationError(`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvj
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 16 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:439
-- **Current Code**: `          type: 'text',`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvk
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:465
-- **Current Code**: `      const propertyResponse = await client.request({`
+- **Current Code**: `            }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvl
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:490
-- **Current Code**: `      headers: {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvm
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:528
-- **Current Code**: `            op: 'replace',`
+- **Current Code**: `    note?: string;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvn
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:621
-- **Current Code**: `  args: {`
+- **Current Code**: `          {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvo
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:674
-- **Current Code**: `        secureNetwork: args.secure || domainSuffix.includes('edgekey') ? 'ENHANCED_TLS' : undefined,`
+- **Current Code**: `    return {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvp
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:747
-- **Current Code**: `  client: AkamaiClient,`
+- **Current Code**: `    }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvq
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:766
-- **Current Code**: `      }`
+- **Current Code**: `    const response = await client.request({`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvr
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:853
-- **Current Code**: ` * 4. Returns success with reminder to update DNS`
+- **Current Code**: ` * `
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvs
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:872
-- **Current Code**: `  },`
+- **Current Code**: `  client: AkamaiClient,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvt
@@ -1234,153 +1283,151 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1043
-- **Current Code**: `        content: [`
+- **Current Code**: `      }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvv
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1195
+- **Current Code**: `    }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvw
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1217
-- **Current Code**: `          type: 'text',`
+- **Current Code**: `          },`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvx
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1360
-- **Current Code**: `      ],`
+- **Current Code**: `      text += `**Network:** ${args.network}\n`;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvy
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1476
-- **Current Code**: `        `
+- **Current Code**: `      throw new InvalidPropertyResponseError(`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fvz
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1477
-- **Current Code**: `        if (act.status === 'ACTIVE') {`
+- **Current Code**: `        'PropertyActivationsGetResponse',`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fv2
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1515
-- **Current Code**: `          staging: byNetwork.STAGING?.latestVersion || null`
+- **Current Code**: `        }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fv3
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1570
-- **Current Code**: `        ],`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fv4
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1594
-- **Current Code**: `          text: JSON.stringify(jsonResponse, null, 2),`
+- **Current Code**: ` * @param args.network - Filter by network (optional)`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fv5
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1724
-- **Current Code**: `    return formatError('create enhanced property version', _error);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fv6
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1725
-- **Current Code**: `  }`
+- **Current Code**: `    const activationData = {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fv7
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1800
-- **Current Code**: `          type: 'hostnames',`
+- **Current Code**: `        shown: activations.length,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fv8
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1915
-- **Current Code**: `      }`
+- **Current Code**: `      if (patches.length > 0) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fv9
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2053
-- **Current Code**: `    text += `[DONE] Rolled back to version ${args.targetVersion}\n`;`
+- **Current Code**: `          }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fv-
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2060
-- **Current Code**: `    // Auto-activate if requested`
+- **Current Code**: `- Get detailed diff: "Compare property ${args.propertyId} versions ${args.version1} and ${args.version2} with details"`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fv_
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2061
-- **Current Code**: `    if (args.autoActivate && args.network) {`
+- **Current Code**: `- View specific changes: "Get rules for property ${args.propertyId} version ${args.version2}"`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fwA
 - **Message**: Expected a `for-of` loop instead of a `for` loop with this simple iteration.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2107
-- **Current Code**: `  args: {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fwB
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2122
-- **Current Code**: `    if (args.parallel) {`
+- **Current Code**: `      versions = versions.filter((v: any) => v.productionStatus === 'ACTIVE');`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fwC
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2129
-- **Current Code**: `              result = await createPropertyVersionEnhanced(client, {`
+- **Current Code**: `    const totalVersions = versions.length;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXMhJXSHKKi1fwD
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2130
-- **Current Code**: `                propertyId: op.propertyId,`
+- **Current Code**: `    const paginatedVersions = versions.slice(offset, offset + limit);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HRlhJXSHKKi1fu1
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 16 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:817
-- **Current Code**: `export async function updatePropertyRules(`
+- **Current Code**: `        content: [`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HRlhJXSHKKi1fu6
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2052
-- **Current Code**: `    const currentHostnames = currentResponse_typed.hostnames?.items || [];`
+- **Current Code**: `        ],`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HXihJXSHKKi1fwE
@@ -1665,13 +1712,6 @@ Generated: 2025-07-04T05:51:09.307Z
 - **File**: acedergren_alecs-mcp-server-akamai:scripts/update-docs.ts:12
 - **Current Code**: `import { execSync } from 'child_process';`
 - **Suggestion**: Remove unused import: execSync
-
-### AZfC9HcqhJXSHKKi1fwm
-- **Message**: Remove this unused import of 'beforeAll'.
-- **Severity**: MINOR
-- **File**: acedergren_alecs-mcp-server-akamai:src/__tests__/alecs-comprehensive.test.ts:7
-- **Current Code**: `import { describe, it, expect, beforeAll, afterAll } from '@jest/testing-library/jest-dom';`
-- **Suggestion**: Remove unused import: beforeAll
 
 ### AZfC9HHchJXSHKKi1ftw
 - **Message**: Member 'logger' is never reassigned; mark it as `readonly`.
@@ -2272,13 +2312,6 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Current Code**: `// this._maxSize = options.maxResponseSize || 1024 * 1024; // 1MB default - Not used currently`
 - **Suggestion**: Remove commented out code
 
-### AZfC9HdbhJXSHKKi1fwo
-- **Message**: Remove this unused import of 'beforeAll'.
-- **Severity**: MINOR
-- **File**: acedergren_alecs-mcp-server-akamai:src/__tests__/baseline/runtime-behavior.test.ts:8
-- **Current Code**: `import { describe, it, expect, beforeAll } from '@jest/globals';`
-- **Suggestion**: Remove unused import: beforeAll
-
 ### AZfC9HZohJXSHKKi1fwb
 - **Message**: Member 'outputDir' is never reassigned; mark it as `readonly`.
 - **Severity**: MAJOR
@@ -2402,14 +2435,14 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Unexpected lexical declaration in case block.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/scripts/api-discovery.ts:1432
-- **Current Code**: `        const endpoints = [`
+- **Current Code**: `        // Test all known endpoints`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HZahJXSHKKi1fwa
 - **Message**: Unexpected lexical declaration in case block.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/scripts/api-discovery.ts:1452
-- **Current Code**: `        const report = discovery.generateReport();`
+- **Current Code**: `        // Generate report`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZfC9HBPhJXSHKKi1fst
@@ -2808,63 +2841,62 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:183
-- **Current Code**: `      },`
+- **Current Code**: `        }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_nv
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:247
-- **Current Code**: `        ],`
+- **Current Code**: `    // Step 3: Safe type assertion after validation`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oJ
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1371
-- **Current Code**: ` * `
+- **Current Code**: `      return {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oK
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1391
-- **Current Code**: ` * @param args.format - Response format: 'json' or 'text'`
+- **Current Code**: `        total: 1,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oL
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1393
-- **Current Code**: ` */`
+- **Current Code**: `        hasMore: false,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oM
 - **Message**: Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1401
-- **Current Code**: `  },`
+- **Current Code**: `        {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oN
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1450
-- **Current Code**: `      network: act.network,`
+- **Current Code**: `): Promise<MCPToolResponse> {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oO
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1451
-- **Current Code**: `      activationType: act.activationType,`
+- **Current Code**: `  try {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oP
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1456
-- **Current Code**: `      notifyEmails: act.notifyEmails || [],`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knq1qTomVwOqf_m_
@@ -2989,7 +3021,7 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Complete the task associated to this "TODO" comment.
 - **Severity**: INFO
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/property-server.ts:833
-- **Current Code**: `            // TODO: Handle batch removal - for now just remove first hostname`
+- **Current Code**: `            // Handle batch hostname removal`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knmDqTomVwOqf_fJ
@@ -3087,7 +3119,7 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Refactor this code to not use nested template literals.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/reporting-server.ts:659
-- **Current Code**: `    return { content: result.content || [] };`
+- **Current Code**: `      throw new McpError(ErrorCode.InvalidParams, 'Missing arguments');`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knufqTomVwOqf_ua
@@ -3175,293 +3207,291 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-error-handling-tools.ts:222
-- **Current Code**: `    // CODE KAI: Type-safe validation result processing`
+- **Current Code**: `    responseText += `**Version:** ${args.version}\n`;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knwJqTomVwOqf_y3
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 29 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-error-handling-tools.ts:441
-- **Current Code**: `/**`
+- **Current Code**: ` * Performs multi-layer validation including rules, hostnames, and certificates.`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_u1
 - **Message**: Refactor this code to not use nested template literals.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:296
-- **Current Code**: `            text: `No properties found${args.contractId ? ` for contract ${args.contractId}` : ''}.\n\n[INFO] **Next Steps:**\n- Use "create_property" to create a new property\n- Check if you have access to the correct contract and group`,`
+- **Current Code**: `export interface EdgeHostname {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_u2
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:319
-- **Current Code**: `      text += `- **Production Version:** ${property.productionVersion || 'None'}\n`;`
+- **Current Code**: `      status: string;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_u3
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:320
-- **Current Code**: `      text += `- **Staging Version:** ${property.stagingVersion || 'None'}\n`;`
+- **Current Code**: `    }>;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_u4
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:323
-- **Current Code**: `      text += `- **Note:** ${property.note || 'No note'}\n\n`;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_u5
 - **Message**: Refactor this code to not use nested template literals.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:365
-- **Current Code**: `            text: `[ERROR] Invalid Property ID Format\n\n${error}\n\n**You provided:** ${args.propertyId}\n${fixed ? `**Did you mean:** ${fixed}\n` : ''}\n**Example:** get_property --propertyId prp_123456`,`
+- **Current Code**: `  `
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_u6
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:405
-- **Current Code**: `    text += `- **Note:** ${property.note || 'No note'}\n\n`;`
+- **Current Code**: `        content: [`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_u7
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:409
-- **Current Code**: `    text += `- **Production Version:** ${property.productionVersion || 'Not activated'}\n`;`
+- **Current Code**: `          },`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_u8
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:410
-- **Current Code**: `    text += `- **Staging Version:** ${property.stagingVersion || 'Not activated'}\n\n`;`
+- **Current Code**: `        ],`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_u9
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:493
-- **Current Code**: `      text += `- **Source Version:** ${args.cloneFrom.version || 'Latest'}\n`;`
+- **Current Code**: `    );`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_u-
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:1004
-- **Current Code**: `      domainSuffix: args.domainSuffix || '.edgekey.net', // Most common choice`
+- **Current Code**: `      content: [{ type: 'text', text }],`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_u_
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:1006
-- **Current Code**: `      ipVersionBehavior: args.ipVersion || 'IPV4_IPV6', // Future-proof with dual-stack`
+- **Current Code**: `  } catch (error) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vA
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:1026
-- **Current Code**: `    const fullEdgeHostname = `${args.domainPrefix}${args.domainSuffix || '.edgekey.net'}`;`
+- **Current Code**: `    }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vB
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:1032
-- **Current Code**: `    text += `**Domain Suffix:** ${args.domainSuffix || '.edgekey.net'}\n`;`
+- **Current Code**: `// =============================================================================`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vC
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:1034
-- **Current Code**: `    text += `**IP Support:** ${args.ipVersion || 'IPv4 + IPv6 (Dual Stack)'}\n`;`
+- **Current Code**: `// =============================================================================`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vD
 - **Message**: Refactor this code to not use nested template literals.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:1141
-- **Current Code**: `            text: `No edge hostnames found${args.contractId ? ` for contract ${args.contractId}` : ''}.\n\n**Why this might happen:**\n- No properties have been created yet\n- Hostnames exist in different contracts/groups\n- Account permissions may be limited\n\n**Next Steps:**\n- Create a property first (properties auto-create edge hostnames)\n- Use "create_edge_hostname" to manually create one\n- Check if you're looking in the right contract/group`,`
+- **Current Code**: `    text += `**Edge Hostname:** ${fullEdgeHostname}\n`;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vE
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 23 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:1260
-- **Current Code**: `export async function activateProperty(`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vF
 - **Message**: Refactor this code to not use nested template literals.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:1323
-- **Current Code**: `            text: `[ERROR] Invalid Property ID Format\n\n${error}\n\n**You provided:** ${args.propertyId}\n${fixed ? `**Did you mean:** ${fixed}\n` : ''}\n**Example:** activate_property --propertyId prp_123456 --version 1 --network STAGING`,`
+- **Current Code**: `    text += `\`\`\`\n`;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vG
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 26 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:1498
-- **Current Code**: `export async function getActivationStatus(`
+- **Current Code**: `    const activationLink = response.activationLink;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vK
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:1735
-- **Current Code**: `        text += `- **Submitted By:** ${activation.submitUser || 'Unknown'}\n`;`
+- **Current Code**: `        text += `${index + 1}. **${warning.type}**\n`;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vN
 - **Message**: Prefer using an optional chain expression instead, as it's more concise and easier to read.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:1951
-- **Current Code**: `      if (args.edgeHostnameIds && args.edgeHostnameIds[index]) {`
+- **Current Code**: `    propertyId: string;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vP
 - **Message**: Prefer using an optional chain expression instead, as it's more concise and easier to read.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:1973
-- **Current Code**: `      if (args.edgeHostnameIds && args.edgeHostnameIds[index]) {`
+- **Current Code**: `    text += `- No changes will be applied to edge servers\n`;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vS
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2158
-- **Current Code**: `          const prodStatus = hostname.certStatus.production[0]?.status || 'Unknown';`
+- **Current Code**: `    const currentResponse = await client.request({`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vT
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2162
-- **Current Code**: `          const stagingStatus = hostname.certStatus.staging[0]?.status || 'Unknown';`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vU
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2242
-- **Current Code**: `      text += `- **Type:** ${contract.contractTypeName || 'Standard'}\n\n`;`
+- **Current Code**: `    const response_typed = response as HostnamesApiResponse;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vV
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2404
-- **Current Code**: `    const webProducts = products_response_typed.products.items.filter((p) => `
+- **Current Code**: `        content: [`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vW
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2405
-- **Current Code**: `      p.productName.toLowerCase().includes('web') || `
+- **Current Code**: `          {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vX
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2410
-- **Current Code**: `    const securityProducts = products_response_typed.products.items.filter((p) => `
+- **Current Code**: `      };`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vY
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2411
-- **Current Code**: `      p.productName.toLowerCase().includes('security') || `
+- **Current Code**: `    }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vZ
 - **Message**: Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2527
-- **Current Code**: `      `
+- **Current Code**: `    `
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_va
 - **Message**: Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2528
-- **Current Code**: `      // Use source property's values as defaults`
+- **Current Code**: `    const otherProducts = products_response_typed.products.items.filter((p) => `
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vb
 - **Message**: Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2529
-- **Current Code**: `      if (!args.productId) {args.productId = sourceProperty.productId;}`
+- **Current Code**: `      !webProducts.includes(p) && !securityProducts.includes(p)`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vc
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2559
-- **Current Code**: `    text += `**New Property Name:** ${args.newPropertyName}\n`;`
+- **Current Code**: `    text += `When creating properties, choose a product based on your needs:\n`;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vg
 - **Message**: Refactor this code to not use nested template literals.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2676
-- **Current Code**: `    text += `**Last Modified:** ${version.updatedDate}\n`;`
+- **Current Code**: `    text += `**Created:** ${new Date().toISOString()}\n\n`;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vh
 - **Message**: Refactor this code to not use nested template literals.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2677
-- **Current Code**: `    text += `**Modified By:** ${version.updatedByUser}\n`;`
+- **Current Code**: `    `
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vi
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2771
-- **Current Code**: `    let text = `# [ANALYTICS] CP Codes (${cpcodes_response_typed.cpcodes.items.length} found)\n\n`;`
+- **Current Code**: `    const latestVersion = property.latestVersion;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vj
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2787
-- **Current Code**: `      cpcodes.forEach((cpcode) => {`
+- **Current Code**: `    text += `**Latest Version:** ${latestVersion}\n`;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vk
 - **Message**: Refactor this code to not use nested template literals.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2921
-- **Current Code**: `      const fixed = fixAkamaiId(args.cpcodeId, 'cpcode');`
+- **Current Code**: `      content: [{ type: 'text', text }],`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vl
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2950
+- **Current Code**: `    /** Group to create under */`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vm
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2951
-- **Current Code**: `    const cpcode = cpcode_details_response_typed.cpcodes.items[0];`
+- **Current Code**: `    groupId?: string;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuzqTomVwOqf_vn
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager.ts:2967
-- **Current Code**: `    `
+- **Current Code**: `    const response = await client.request({`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knp2qTomVwOqf_k1
@@ -4233,133 +4263,68 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Complete the task associated to this "TODO" comment.
 - **Severity**: INFO
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:770
-- **Current Code**: `    // TODO Phase 2: Add customer validation`
+- **Current Code**: `    // Customer validation - check if customer exists in environment`
 - **Suggestion**: Manual review required for this issue type
-
-### AZe6knqeqTomVwOqf_lz
-- **Message**: Extract this nested ternary operation into an independent statement.
-- **Severity**: MAJOR
-- **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1139
-- **Current Code**: `cacheEfficiency: avgHitRatio >= 85 ? 'Optimal' : avgHitRatio >= 70 ? 'Good' : 'Needs Improvement',`
-- **Suggestion**: Extract nested ternary to if-else or separate variables
 
 ### AZe6knqeqTomVwOqf_l0
 - **Message**: Remove this redundant "undefined".
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1253
-- **Current Code**: `    const params = reportingService.buildReportingParams(period as ReportingPeriod, undefined);`
+- **Current Code**: `    `
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knqeqTomVwOqf_l2
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1358
-- **Current Code**: `        dataPoints: timeSeriesData['bandwidth']?.length || 0,`
+- **Current Code**: `        trends,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knqeqTomVwOqf_l3
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 35 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1375
-- **Current Code**: `export async function generatePerformanceReport(args: GeneratePerformanceReportArgs): Promise<{ success: boolean; data?: PerformanceReport; error?: string; details?: string; message?: string }> {`
+- **Current Code**: `  }`
 - **Suggestion**: Manual review required for this issue type
-
-### AZe6knqeqTomVwOqf_l4
-- **Message**: Extract this nested ternary operation into an independent statement.
-- **Severity**: MAJOR
-- **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1415
-- **Current Code**: `speed: trafficSummary.responseTime < 100 ? 'A' : trafficSummary.responseTime < 300 ? 'B' : trafficSummary.responseTime < 500 ? 'C' : trafficSummary.responseTime < 1000 ? 'D' : 'F',`
-- **Suggestion**: Extract nested ternary to if-else or separate variables
-
-### AZe6knqeqTomVwOqf_l5
-- **Message**: Extract this nested ternary operation into an independent statement.
-- **Severity**: MAJOR
-- **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1415
-- **Current Code**: `speed: trafficSummary.responseTime < 100 ? 'A' : trafficSummary.responseTime < 300 ? 'B' : trafficSummary.responseTime < 500 ? 'C' : trafficSummary.responseTime < 1000 ? 'D' : 'F',`
-- **Suggestion**: Extract nested ternary to if-else or separate variables
-
-### AZe6knqeqTomVwOqf_l6
-- **Message**: Extract this nested ternary operation into an independent statement.
-- **Severity**: MAJOR
-- **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1415
-- **Current Code**: `speed: trafficSummary.responseTime < 100 ? 'A' : trafficSummary.responseTime < 300 ? 'B' : trafficSummary.responseTime < 500 ? 'C' : trafficSummary.responseTime < 1000 ? 'D' : 'F',`
-- **Suggestion**: Extract nested ternary to if-else or separate variables
-
-### AZe6knqeqTomVwOqf_l7
-- **Message**: Extract this nested ternary operation into an independent statement.
-- **Severity**: MAJOR
-- **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1416
-- **Current Code**: `caching: trafficSummary.cacheHitRatio > 90 ? 'A' : trafficSummary.cacheHitRatio > 80 ? 'B' : trafficSummary.cacheHitRatio > 70 ? 'C' : trafficSummary.cacheHitRatio > 60 ? 'D' : 'F',`
-- **Suggestion**: Extract nested ternary to if-else or separate variables
-
-### AZe6knqeqTomVwOqf_l8
-- **Message**: Extract this nested ternary operation into an independent statement.
-- **Severity**: MAJOR
-- **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1416
-- **Current Code**: `caching: trafficSummary.cacheHitRatio > 90 ? 'A' : trafficSummary.cacheHitRatio > 80 ? 'B' : trafficSummary.cacheHitRatio > 70 ? 'C' : trafficSummary.cacheHitRatio > 60 ? 'D' : 'F',`
-- **Suggestion**: Extract nested ternary to if-else or separate variables
-
-### AZe6knqeqTomVwOqf_l9
-- **Message**: Extract this nested ternary operation into an independent statement.
-- **Severity**: MAJOR
-- **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1416
-- **Current Code**: `caching: trafficSummary.cacheHitRatio > 90 ? 'A' : trafficSummary.cacheHitRatio > 80 ? 'B' : trafficSummary.cacheHitRatio > 70 ? 'C' : trafficSummary.cacheHitRatio > 60 ? 'D' : 'F',`
-- **Suggestion**: Extract nested ternary to if-else or separate variables
 
 ### AZe6knqeqTomVwOqf_l-
 - **Message**: Extract this nested ternary operation into an independent statement.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1417
-- **Current Code**: `reliability: trafficSummary.errorRate < 0.1 ? 'A' : trafficSummary.errorRate < 1 ? 'B' : trafficSummary.errorRate < 2 ? 'C' : trafficSummary.errorRate < 5 ? 'D' : 'F',`
+- **Current Code**: `speed: trafficSummary.responseTime < 100 ? 'A' : trafficSummary.responseTime < 300 ? 'B' : trafficSummary.responseTime < 500 ? 'C' : trafficSummary.responseTime < 1000 ? 'D' : 'F',`
 - **Suggestion**: Extract nested ternary to if-else or separate variables
 
 ### AZe6knqeqTomVwOqf_l_
 - **Message**: Extract this nested ternary operation into an independent statement.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1417
-- **Current Code**: `reliability: trafficSummary.errorRate < 0.1 ? 'A' : trafficSummary.errorRate < 1 ? 'B' : trafficSummary.errorRate < 2 ? 'C' : trafficSummary.errorRate < 5 ? 'D' : 'F',`
+- **Current Code**: `speed: trafficSummary.responseTime < 100 ? 'A' : trafficSummary.responseTime < 300 ? 'B' : trafficSummary.responseTime < 500 ? 'C' : trafficSummary.responseTime < 1000 ? 'D' : 'F',`
 - **Suggestion**: Extract nested ternary to if-else or separate variables
 
 ### AZe6knqeqTomVwOqf_mA
 - **Message**: Extract this nested ternary operation into an independent statement.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1417
-- **Current Code**: `reliability: trafficSummary.errorRate < 0.1 ? 'A' : trafficSummary.errorRate < 1 ? 'B' : trafficSummary.errorRate < 2 ? 'C' : trafficSummary.errorRate < 5 ? 'D' : 'F',`
-- **Suggestion**: Extract nested ternary to if-else or separate variables
-
-### AZe6knqeqTomVwOqf_mB
-- **Message**: Extract this nested ternary operation into an independent statement.
-- **Severity**: MAJOR
-- **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1446
-- **Current Code**: `return score >= 90 ? 'Excellent' : score >= 75 ? 'Good' : score >= 60 ? 'Fair' : 'Needs Improvement';`
-- **Suggestion**: Extract nested ternary to if-else or separate variables
-
-### AZe6knqeqTomVwOqf_mC
-- **Message**: Extract this nested ternary operation into an independent statement.
-- **Severity**: MAJOR
-- **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1446
-- **Current Code**: `return score >= 90 ? 'Excellent' : score >= 75 ? 'Good' : score >= 60 ? 'Fair' : 'Needs Improvement';`
+- **Current Code**: `speed: trafficSummary.responseTime < 100 ? 'A' : trafficSummary.responseTime < 300 ? 'B' : trafficSummary.responseTime < 500 ? 'C' : trafficSummary.responseTime < 1000 ? 'D' : 'F',`
 - **Suggestion**: Extract nested ternary to if-else or separate variables
 
 ### AZe6knqeqTomVwOqf_mD
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1504
-- **Current Code**: `          grade: getPerformanceGrade(regionMetrics['response-time']?.average || 0),`
+- **Current Code**: `        performance: {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knqeqTomVwOqf_mE
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1541
-- **Current Code**: `  const responseTime = metrics['response-time']?.average || 1000;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knqeqTomVwOqf_mF
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1554
-- **Current Code**: `  const values = Object.values(geoData).map((data: any) => data.metrics[metric]?.average || 0);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knxGqTomVwOqf_zE
@@ -5080,7 +5045,7 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 61 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/dns-migration-tools.ts:924
-- **Current Code**: `function convertToAkamaiFormat(records: ZoneFileRecord[], _zone: string): DNSRecordSet[] {`
+- **Current Code**: ` */`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnxqTomVwOqf_hp
@@ -5143,7 +5108,6 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:1305
-- **Current Code**: `  const validSection = text.split('## [DONE] Valid Hostnames')[1]?.split('##')[0] || '';`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knv_qTomVwOqf_yk
@@ -5199,28 +5163,20 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:183
-- **Current Code**: `    const hostnames = validatedHostnamesResponse.hostnames?.items || [];`
+- **Current Code**: `    const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: any } }>(hostnamesResponse);`
 - **Suggestion**: Manual review required for this issue type
-
-### AZe6knuIqTomVwOqf_uA
-- **Message**: Extract this nested ternary operation into an independent statement.
-- **Severity**: MAJOR
-- **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:283
-- **Current Code**: `const icon = check.status === 'PASSED' ? '[DONE]' : check.status === 'FAILED' ? '[ERROR]' : '[WARNING]';`
-- **Suggestion**: Extract nested ternary to if-else or separate variables
 
 ### AZe6knuIqTomVwOqf_uB
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 19 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:336
-- **Current Code**: `export async function activatePropertyWithMonitoring(`
+- **Current Code**: ` */`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knwJqTomVwOqf_y4
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-error-handling-tools.ts:549
-- **Current Code**: `        if (!isHostnamesResponse(validatedCertResponse)) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knvjqTomVwOqf_xW
@@ -5323,69 +5279,68 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:685
-- **Current Code**: `    });`
+- **Current Code**: `}`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oI
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1051
-- **Current Code**: `    if (args.network === 'STAGING' && property.stagingVersion === version) {`
+- **Current Code**: `    }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oZ
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 25 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1547
-- **Current Code**: `                           ['PENDING', 'ZONE_1', 'ZONE_2', 'ZONE_3'].includes(act.status) ? '[TIME]' : '[INFO]';`
+- **Current Code**: `    }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oc
 - **Message**: Refactor this code to not use nested template literals.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1633
-- **Current Code**: `      if (!isPapiPropertyVersionsResponse(versionsResponse)) {`
+- **Current Code**: `    `
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oi
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 28 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1781
-- **Current Code**: `          method: 'GET',`
+- **Current Code**: `      return {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_om
 - **Message**: This conditional operation returns the same value whether the condition is "true" or "false".
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1833
-- **Current Code**: `- Merge versions: "Merge property ${args.propertyId} version ${args.version2} into ${args.version1}"`;`
+- **Current Code**: `    note?: string;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oo
 - **Message**: Handle this exception or don't catch it at all.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1990
-- **Current Code**: `      });`
+- **Current Code**: `        rules2Response.rules,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_o3
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2338
+- **Current Code**: `  } catch (_error) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_o4
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2342
-- **Current Code**: `    // Provide specific solutions based on error type`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_o5
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2342
-- **Current Code**: `    // Provide specific solutions based on error type`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knqFqTomVwOqf_lX
@@ -5661,14 +5616,14 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Refactor this code to not use nested template literals.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/rule-tree-management.ts:530
-- **Current Code**: `            text: `[ERROR] Template '${args.templateId}' not found.\n\nAvailable templates:\n${availableTemplates.map((t) => `- ${t}`).join('\n')}`,`
+- **Current Code**: `      return {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnlqTomVwOqf_hK
 - **Message**: Refactor this code to not use nested template literals.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/rule-tree-management.ts:573
-- **Current Code**: `              text: `[ERROR] Generated rule tree validation failed.\n\nErrors:\n${validation.errors.map((e) => `- ${e.message}`).join('\n')}`,`
+- **Current Code**: `        includeOptimizations: true,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuSqTomVwOqf_uS
@@ -6984,7 +6939,7 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Handle this exception or don't catch it at all.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/auth/TokenManager.ts:445
-- **Current Code**: `    } catch (error) {`
+- **Current Code**: `    } catch (_error) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knlbqTomVwOqf_ev
@@ -7040,55 +6995,55 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Member 'server' is never reassigned; mark it as `readonly`.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/fastpurge-server.ts:81
+- **Current Code**: `      inputSchema: fastpurgeUrlInvalidate.inputSchema,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnEqTomVwOqf_gl
 - **Message**: Member 'client' is never reassigned; mark it as `readonly`.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/fastpurge-server.ts:82
-- **Current Code**: `class FastPurgeServer {`
+- **Current Code**: `      handler: async (_client, params) => fastpurgeUrlInvalidate.handler(params),`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnEqTomVwOqf_gm
 - **Message**: Member 'configManager' is never reassigned; mark it as `readonly`.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/fastpurge-server.ts:83
-- **Current Code**: `  private server: Server;`
+- **Current Code**: `    });`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnEqTomVwOqf_gn
 - **Message**: Member 'tools' is never reassigned; mark it as `readonly`.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/fastpurge-server.ts:84
-- **Current Code**: `  private client: AkamaiClient;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnEqTomVwOqf_go
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/fastpurge-server.ts:169
-- **Current Code**: `      handler: async (client, params) => {`
+- **Current Code**: `      name: 'fastpurge-schedule',`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnEqTomVwOqf_gp
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/fastpurge-server.ts:275
-- **Current Code**: `          content: [{`
+- **Current Code**: `        if (tool.schema) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnEqTomVwOqf_gq
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/fastpurge-server.ts:311
-- **Current Code**: `        if (tool.schema) {`
+- **Current Code**: `    } catch (error) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnEqTomVwOqf_gr
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/fastpurge-server.ts:314
-- **Current Code**: `        `
+- **Current Code**: `      return {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knl6qTomVwOqf_fC
@@ -7690,7 +7645,7 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Refactor this code to not use nested template literals.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/dns-server.ts:624
-- **Current Code**: `          );`
+- **Current Code**: `                  stack: _error.stack,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnOqTomVwOqf_gt
@@ -7704,7 +7659,7 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Refactor this code to not use nested template literals.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/security-server.ts:658
-- **Current Code**: `            ErrorCode.InvalidParams,`
+- **Current Code**: `        log('INFO', `[DONE] Tool ${name} completed in ${duration}ms`);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6kn0zqTomVwOqf_3q
@@ -7928,21 +7883,21 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 22 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/dns-migration-tools.ts:615
-- **Current Code**: `export async function importFromCloudflare(`
+- **Current Code**: ` */`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knpkqTomVwOqf_kc
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 56 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/dns-migration-tools.ts:799
-- **Current Code**: `function parseBindZoneFile(content: string, zone: string): ZoneFileRecord[] {`
+- **Current Code**: ` */`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knpkqTomVwOqf_kg
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 25 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/dns-migration-tools.ts:1051
-- **Current Code**: `async function validateSingleRecord(record: DNSRecordSet): Promise<{`
+- **Current Code**: ` */`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnxqTomVwOqf_hu
@@ -7956,21 +7911,20 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 27 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:172
-- **Current Code**: `export async function generateFeatureDocumentation(`
+- **Current Code**: ` * Generate feature documentation from code analysis`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_sx
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 24 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:347
-- **Current Code**: `export async function generateChangelog(`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_tL
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:825
-- **Current Code**: `  return categoryNames[_category] || _category;`
+- **Current Code**: `    fixes: '[BUG] Bug Fixes',`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knvWqTomVwOqf_xL
@@ -8005,7 +7959,7 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 23 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:441
-- **Current Code**: `export async function validateHostnamesBulk(`
+- **Current Code**: ` */`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knr0qTomVwOqf_pX
@@ -8033,14 +7987,14 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:629
-- **Current Code**: `  return resolutions[_error.type] || 'Review the error details and update configuration';`
+- **Current Code**: `    origin_not_reachable: 'Verify origin server is accessible and configured correctly',`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuIqTomVwOqf_uI
 - **Message**: Handle this exception or don't catch it at all.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:716
-- **Current Code**: `  } catch (_error) {`
+- **Current Code**: `      status: 'PASSED',`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knvjqTomVwOqf_yG
@@ -8054,27 +8008,28 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 19 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1663
+- **Current Code**: `      activationId: act.activationId,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oq
 - **Message**: Refactor this function to reduce its Cognitive Complexity from 22 to the 15 allowed.
 - **Severity**: CRITICAL
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2021
-- **Current Code**: `        });`
+- **Current Code**: `      }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_ou
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2073
-- **Current Code**: `        text += `[DEPLOY] Auto-activated on ${args.network.toUpperCase()}\n`;`
+- **Current Code**: `    return formatError('compare property versions', _error);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_o2
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2142
-- **Current Code**: `              result = await getVersionDiff(client, {`
+- **Current Code**: `      if (version.stagingStatus === 'ACTIVE') {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrhqTomVwOqf_pL
@@ -8144,7 +8099,7 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Handle this exception or don't catch it at all.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/rule-tree-management.ts:1352
-- **Current Code**: `      return evaluateExpression(trimmed, variables);`
+- **Current Code**: `      if (trimmed.includes('?')) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuSqTomVwOqf_uN
@@ -8865,49 +8820,49 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:363
-- **Current Code**: `        if (!acc[suffix]) {`
+- **Current Code**: `        const suffix = rec.domainSuffix as string;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_iF
 - **Message**: Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:1159
-- **Current Code**: `        if (!groups[domain]) {`
+- **Current Code**: `    case 'by-domain':`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_iG
 - **Message**: Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:1180
-- **Current Code**: `        if (!groups[category]) {`
+- **Current Code**: `        } else if (hostname.startsWith('www.')) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_iH
 - **Message**: Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:1199
-- **Current Code**: `        if (!groups[env]) {`
+- **Current Code**: `        ) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_iI
 - **Message**: Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:1217
-- **Current Code**: `          if (!groups[key]) {`
+- **Current Code**: `        // Group by function if clear pattern`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_iJ
 - **Message**: Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:1223
-- **Current Code**: `          if (!groups[key]) {`
+- **Current Code**: `          groups[key].push(hostname);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_iK
 - **Message**: Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:1229
-- **Current Code**: `          if (!groups[domain]) {`
+- **Current Code**: `          groups[key].push(hostname);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knu-qTomVwOqf_vt
@@ -9187,14 +9142,14 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/security-server.ts:484
-- **Current Code**: `                typedArgs.type,`
+- **Current Code**: `                typedArgs['type'] as 'IP' | 'GEO' | 'ASN',`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnOqTomVwOqf_g0
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/security-server.ts:628
-- **Current Code**: `              result = await generateDeploymentChecklist(`
+- **Current Code**: `              result = await getASNInformation(typedArgs['asns'] as string[], typedArgs['customer'] as string | undefined);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knzuqTomVwOqf_2S
@@ -9355,14 +9310,14 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:122
-- **Current Code**: `    const toolFiles = files.filter((f) => f.endsWith('-tools.ts') || f.endsWith('-tools.js'));`
+- **Current Code**: `    const files = await fs.readdir(toolsPath);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_s6
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:541
-- **Current Code**: `      version: metadata.version || '1.0.0',`
+- **Current Code**: `    return {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knvWqTomVwOqf_wm
@@ -9473,14 +9428,14 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2087
-- **Current Code**: `- Compare: "Compare property ${args.propertyId} versions ${backupVersionId} and ${newVersionId}"`;`
+- **Current Code**: `    status?: 'active' | 'inactive' | 'all';`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_ow
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2093
-- **Current Code**: `          text,`
+- **Current Code**: `    const response = await client.request({`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrhqTomVwOqf_pK
@@ -10320,7 +10275,7 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1013
-- **Current Code**: `    fastPush?: boolean;`
+- **Current Code**: `  },`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6kn2HqTomVwOqf_5J
@@ -11233,14 +11188,14 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/dns-server.ts:542
-- **Current Code**: `            break;`
+- **Current Code**: `            const request = args as Record<string, unknown>;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knmeqTomVwOqf_fl
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/dns-server.ts:547
-- **Current Code**: `            break;`
+- **Current Code**: `              throw new McpError(ErrorCode.InvalidParams, 'Missing required fields: zones, contractId, groupId');`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knmeqTomVwOqf_fm
@@ -11254,7 +11209,7 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/dns-server.ts:553
-- **Current Code**: `            break;`
+- **Current Code**: `          // Record Management`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knmeqTomVwOqf_fo
@@ -11282,21 +11237,21 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/dns-server.ts:567
-- **Current Code**: `            break;`
+- **Current Code**: `            result = await createMultipleRecordSets(client, args as Parameters<typeof createMultipleRecordSets>[1]);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knmeqTomVwOqf_fs
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/dns-server.ts:570
-- **Current Code**: `            break;`
+- **Current Code**: `            result = await activateZoneChanges(client, args as Parameters<typeof activateZoneChanges>[1]);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knmeqTomVwOqf_ft
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/dns-server.ts:573
-- **Current Code**: `            break;`
+- **Current Code**: `          // Zone Version Management`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knmeqTomVwOqf_fu
@@ -11310,21 +11265,21 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/dns-server.ts:581
-- **Current Code**: `            break;`
+- **Current Code**: `            result = await reactivateZoneVersion(client, args as Parameters<typeof reactivateZoneVersion>[1]);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knmeqTomVwOqf_fw
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/dns-server.ts:584
-- **Current Code**: `            break;`
+- **Current Code**: `            result = await getVersionMasterZoneFile(client, args as Parameters<typeof getVersionMasterZoneFile>[1]);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knmeqTomVwOqf_fx
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/dns-server.ts:587
-- **Current Code**: `            break;`
+- **Current Code**: `          // Migration Tools`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knmeqTomVwOqf_fy
@@ -11338,14 +11293,14 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/dns-server.ts:595
-- **Current Code**: `            break;`
+- **Current Code**: `            result = await bulkImportRecords(client, args as Parameters<typeof bulkImportRecords>[1]);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knmeqTomVwOqf_f0
 - **Message**: This assertion is unnecessary since it does not change the type of the expression.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/dns-server.ts:598
-- **Current Code**: `            break;`
+- **Current Code**: `            result = await generateMigrationInstructions(client, args as Parameters<typeof generateMigrationInstructions>[1]);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knm1qTomVwOqf_gX
@@ -11387,28 +11342,28 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/security-server.ts:578
-- **Current Code**: `              // Extract the uniqueId from the response`
+- **Current Code**: `                bulkOptions,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnOqTomVwOqf_gx
 - **Message**: Use the "RegExp.exec()" method instead.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/security-server.ts:579
-- **Current Code**: `              const responseText = createResult.content[0]?.text || '';`
+- **Current Code**: `              );`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnOqTomVwOqf_gy
 - **Message**: Remove duplicates in this character class.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/security-server.ts:579
-- **Current Code**: `              const responseText = createResult.content[0]?.text || '';`
+- **Current Code**: `              );`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnOqTomVwOqf_gz
 - **Message**: Prefer using an optional chain expression instead, as it's more concise and easier to read.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/servers/security-server.ts:580
-- **Current Code**: `              const uniqueIdMatch = responseText.match(/ID:\s*([^\s\n]+)/);`
+- **Current Code**: `              break;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knzuqTomVwOqf_2P
@@ -12412,21 +12367,21 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Group parts of the regex together to make the intended operator precedence explicit.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/dns-migration-tools.ts:727
-- **Current Code**: `          akamaiRecord.rdata = [cfRecord.content.replace(/^"|"$/g, '')];`
+- **Current Code**: `          // Cloudflare may have quotes, ensure proper formatting`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knpkqTomVwOqf_kd
 - **Message**: Use the "RegExp.exec()" method instead.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/dns-migration-tools.ts:816
-- **Current Code**: `      const ttlMatch = cleanLine.match(/\$TTL\s+(\d+)/);`
+- **Current Code**: `    if (cleanLine.startsWith('$TTL')) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knpkqTomVwOqf_ke
 - **Message**: Prefer using an optional chain expression instead, as it's more concise and easier to read.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/dns-migration-tools.ts:817
-- **Current Code**: `      if (ttlMatch && ttlMatch[1]) {`
+- **Current Code**: `      const ttlMatch = cleanLine.match(/\$TTL\s+(\d+)/);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnxqTomVwOqf_hk
@@ -12489,203 +12444,197 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:115
-- **Current Code**: `  const toolsPath = args.toolsPath || 'src/tools';`
+- **Current Code**: `): Promise<MCPToolResponse> {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_sq
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:116
-- **Current Code**: `  const outputPath = args.outputPath || 'docs/api-reference.md';`
+- **Current Code**: `  const toolsPath = args.toolsPath || 'src/tools';`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_sr
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:117
-- **Current Code**: `  const outputFormat = args.format || 'markdown';`
+- **Current Code**: `  const outputPath = args.outputPath || 'docs/api-reference.md';`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_su
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:181
-- **Current Code**: `  const depth = args.analysisDepth || 'detailed';`
+- **Current Code**: `  },`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_sv
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:183
-- **Current Code**: `  const outputPath = args.outputPath || `docs/features/${args.feature}.md`;`
+- **Current Code**: `  const depth = args.analysisDepth || 'detailed';`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_sw
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:333
-- **Current Code**: `- Examples added: ${args.updates.examples?.length || 0}`
+- **Current Code**: `          text: `Documentation updated successfully:`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_sy
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:357
-- **Current Code**: `  const outputPath = args.outputPath || 'CHANGELOG.md';`
+- **Current Code**: `    includeBreakingChanges?: boolean;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_sz
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:461
-- **Current Code**: `  const outputPath = args.outputPath || `docs/knowledge-base/${args.category}/${slug}.md`;`
+- **Current Code**: `    relatedArticles?: string[];`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_s0
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:507
-- **Current Code**: `- Tags: ${args.tags?.join(', ') || 'none'}`
+- **Current Code**: `        {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_s1
 - **Message**: Use the "RegExp.exec()" method instead.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:522
-- **Current Code**: `  const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);`
+- **Current Code**: `}`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_s2
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:536
-- **Current Code**: `      title: metadata.title || getTitleFromFilename(filename),`
+- **Current Code**: `        if (key && value) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_s3
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:537
-- **Current Code**: `      description: metadata.description || '',`
+- **Current Code**: `          metadata[key] = value;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_s4
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:538
-- **Current Code**: `      category: metadata.category || getCategoryFromFilename(filename),`
+- **Current Code**: `        }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_s5
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:540
-- **Current Code**: `      lastUpdated: metadata.lastUpdated || new Date().toISOString(),`
+- **Current Code**: `    }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_s7
 - **Message**: Use the "RegExp.exec()" method instead.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:546
-- **Current Code**: `  const titleMatch = content.match(/^# (.+)$/m);`
+- **Current Code**: `      lastUpdated: metadata.lastUpdated || new Date().toISOString(),`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_s8
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:548
-- **Current Code**: `    title: titleMatch?.[1] || getTitleFromFilename(filename),`
+- **Current Code**: `    };`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_s9
 - **Message**: Use the "RegExp.exec()" method instead.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:628
-- **Current Code**: `    const jsdocMatch = match[0].match(/\/\*\*([\s\S]*?)\*\//);`
+- **Current Code**: `  // Regular expression to match exported functions with JSDoc`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_s-
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:631
-- **Current Code**: `      const jsdoc = jsdocMatch[1] || '';`
+- **Current Code**: `  let match: RegExpExecArray | null;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_s_
 - **Message**: Use the "RegExp.exec()" method instead.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:632
-- **Current Code**: `      const description = jsdoc.match(/\* (.+)$/m)?.[1] || '';`
+- **Current Code**: `  while ((match = functionRegex.exec(content)) !== null) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_tA
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:632
-- **Current Code**: `      const description = jsdoc.match(/\* (.+)$/m)?.[1] || '';`
+- **Current Code**: `  while ((match = functionRegex.exec(content)) !== null) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_tB
 - **Message**: Use the "RegExp.exec()" method instead.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:648
-- **Current Code**: `  const paramMatch = functionDef.match(/\(([^)]*)\)/);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_tD
 - **Message**: Prefer using an optional chain expression instead, as it's more concise and easier to read.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:650
-- **Current Code**: `  if (paramMatch && paramMatch[1]) {`
+- **Current Code**: `}`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_tE
 - **Message**: Use the "RegExp.exec()" method instead.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:670
-- **Current Code**: `  const returnMatch = jsdoc.match(/@returns?\s+(.+)$/m);`
+- **Current Code**: `}`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_tG
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:671
-- **Current Code**: `  return returnMatch?.[1]?.trim() || 'Promise<MCPToolResponse>';`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_tH
 - **Message**: Use the "RegExp.exec()" method instead.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:757
-- **Current Code**: `  const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_tI
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:760
-- **Current Code**: `    let frontmatter = frontmatterMatch[1] || '';`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_tJ
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:803
-- **Current Code**: `    const category = change.type || 'other';`
+- **Current Code**: `    performance: [],`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_tK
 - **Message**: 'If' statement should not be the only statement in 'else' block
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:807
-- **Current Code**: `      if (grouped['other']) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knteqTomVwOqf_tM
 - **Message**: Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/documentation-tools.ts:862
-- **Current Code**: `    if (!index.articles) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knvWqTomVwOqf_wn
@@ -13147,84 +13096,83 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:324
-- **Current Code**: `      let suffix = args.preferredSuffix || '.edgekey.net';`
+- **Current Code**: `      // Determine suffix`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_h5
 - **Message**: Review this redundant assignment: "certificateType" already holds the assigned value along all execution paths.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:326
-- **Current Code**: `      let certificateType: 'DEFAULT_DV' | 'CPS' | 'THIRD_PARTY' = 'DEFAULT_DV';`
+- **Current Code**: `      let secure = args.forceSecure !== false;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_h6
 - **Message**: Review this redundant assignment: "certificateType" already holds the assigned value along all execution paths.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:331
-- **Current Code**: `        certificateType = 'DEFAULT_DV';`
+- **Current Code**: `        secure = true;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_h9
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:596
-- **Current Code**: `          acc[reason] = (acc[reason] || 0) + 1;`
+- **Current Code**: `      const reasons = validation.invalidHostnames.reduce(`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_h-
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:656
-- **Current Code**: `    const strategy = args.groupingStrategy || 'auto';`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_h_
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:657
-- **Current Code**: `    const maxPerProperty = args.maxHostnamesPerProperty || 100;`
+- **Current Code**: `  try {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_iA
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:689
-- **Current Code**: `        responseText += `- **Current Hostnames:** ${matchingProperty.hostnameCount || 0}\n`;`
+- **Current Code**: `      if (matchingProperty) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_iB
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:690
-- **Current Code**: `        responseText += `- **Available Capacity:** ${maxPerProperty - (matchingProperty.hostnameCount || 0)}\n\n`;`
+- **Current Code**: `        responseText += '### [SYNC] Reuse Existing Property\n';`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_iC
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:850
-- **Current Code**: `    responseText += `**Product:** ${args.productId || 'Ion (auto-selected)'}\n`;`
+- **Current Code**: `    let responseText = '# Comprehensive Hostname Provisioning Plan\n\n';`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_iD
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:851
-- **Current Code**: `    responseText += `**Security Level:** ${args.securityLevel || 'enhanced'}\n`;`
+- **Current Code**: `    responseText += `**Contract:** ${args.contractId}\n`;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_iE
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:907
-- **Current Code**: `    responseText += `akamai property create --name "property-name" --product ${args.productId || 'prd_Ion'} --contract ${args.contractId} --group ${args.groupId}\n\n`;`
+- **Current Code**: `    responseText += '## [AI] Automation Commands\n';`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knn-qTomVwOqf_iL
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/hostname-management-advanced.ts:1293
-- **Current Code**: `      domainCounts[domain] = (domainCounts[domain] || 0) + 1;`
+- **Current Code**: `    const parts = hostname.split('.');`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knv_qTomVwOqf_yl
@@ -13420,91 +13368,90 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:136
-- **Current Code**: `    const version = args.version || property.latestVersion || 1;`
+- **Current Code**: `    const property = validatedPropertyResponse.properties.items[0];`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuIqTomVwOqf_t9
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:136
-- **Current Code**: `    const version = args.version || property.latestVersion || 1;`
+- **Current Code**: `    const property = validatedPropertyResponse.properties.items[0];`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuIqTomVwOqf_uC
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:359
-- **Current Code**: `      const validationText = validationResult.content[0]?.text || '';`
+- **Current Code**: `      // Parse validation result to check if valid`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuIqTomVwOqf_uD
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:380
-- **Current Code**: `    const version = args.version || property.latestVersion || 1;`
+- **Current Code**: `    const property = validatedPropertyResponse.properties.items[0];`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuIqTomVwOqf_uE
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:380
-- **Current Code**: `    const version = args.version || property.latestVersion || 1;`
+- **Current Code**: `    const property = validatedPropertyResponse.properties.items[0];`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuIqTomVwOqf_uF
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:391
-- **Current Code**: `            note: args.note || `Activated via MCP on ${new Date().toISOString()}`,`
+- **Current Code**: `            network: args.network,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuIqTomVwOqf_uG
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:421
-- **Current Code**: `    const maxWaitTime = options.maxWaitTime || 1800000; // 30 minutes default`
+- **Current Code**: `      };`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuIqTomVwOqf_uJ
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:777
-- **Current Code**: `  const percentComplete = statusPercentages[activation.status] || 0;`
+- **Current Code**: `    ABORTED: 0,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuIqTomVwOqf_uK
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:802
-- **Current Code**: `      message: statusMessages[activation.status] || activation.status,`
+- **Current Code**: `    version: activation.propertyVersion,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuIqTomVwOqf_uL
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:1011
-- **Current Code**: `  const strategy = args.strategy || 'SEQUENTIAL';`
+- **Current Code**: `    dependencies?: Record<string, string[]>;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuIqTomVwOqf_uM
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-activation-advanced.ts:1122
-- **Current Code**: `    const version = prop.version || prop.details.latestVersion;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knwJqTomVwOqf_yz
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-error-handling-tools.ts:225
-- **Current Code**: `    responseText += `**Version:** ${args.version}\n`;`
+- **Current Code**: `    responseText += `**Rule Format:** ${version.ruleFormat || 'Unknown'}\n`;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knwJqTomVwOqf_y0
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-error-handling-tools.ts:226
-- **Current Code**: `    responseText += `**Contract:** ${args.contractId}\n`;`
+- **Current Code**: `    responseText += `**Validated:** ${new Date().toISOString()}\n\n`;`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knvjqTomVwOqf_xX
@@ -13823,131 +13770,133 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Refactor this code to not use nested template literals.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:362
-- **Current Code**: `    // Format rules for display`
+- **Current Code**: `): Promise<MCPToolResponse> {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_ny
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:375
-- **Current Code**: `            output += `: ${JSON.stringify(c.options, null, 2).replace(/\n/g, `\n${indent}    `)}`;`
+- **Current Code**: `        } else if (propertyResponse.status === 403) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_nz
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:377
-- **Current Code**: `          output += '\n';`
+- **Current Code**: `        } else {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_n0
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:379
-- **Current Code**: `      }`
+- **Current Code**: `            'propertyId',`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_n1
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:379
-- **Current Code**: `      }`
+- **Current Code**: `            'propertyId',`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_n2
 - **Message**: Refactor this code to not use nested template literals.
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:381
-- **Current Code**: `      if (rule.behaviors?.length > 0) {`
+- **Current Code**: `            args.propertyId`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_n8
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:627
-- **Current Code**: `    ipVersion?: 'IPV4' | 'IPV6' | 'IPV4_IPV6';`
+- **Current Code**: `      });`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_n9
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:628
-- **Current Code**: `    certificateEnrollmentId?: number;`
+- **Current Code**: `    }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_n-
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:650
+- **Current Code**: `    if (rulesUpdateResponse.warnings?.length && rulesUpdateResponse.warnings.length > 0) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oC
 - **Message**: This conditional operation returns the same value whether the condition is "true" or "false".
 - **Severity**: MAJOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:773
-- **Current Code**: `      if (!typedResponse.properties?.items?.[0]) {`
+- **Current Code**: `      },`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oF
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:985
-- **Current Code**: ` * - Enabled by default for faster deployments`
+- **Current Code**: ` * PURPOSE:`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oG
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:985
-- **Current Code**: ` * - Enabled by default for faster deployments`
+- **Current Code**: ` * PURPOSE:`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oe
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1675
+- **Current Code**: `      errors: act.errors || [],`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oh
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1749
-- **Current Code**: `        client.request({`
+- **Current Code**: `    // For backward compatibility, text format returns the original structure`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_ok
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1801
-- **Current Code**: `          changes: hostnamesDiff.length,`
+- **Current Code**: `        hasMore: false,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_ol
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:1802
-- **Current Code**: `          details: hostnamesDiff,`
+- **Current Code**: `        executionTime: 0, // Will be set by responseBuilder`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_op
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2001
-- **Current Code**: `        body: { createFromVersion: latestVersion },`
+- **Current Code**: `    }`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_ox
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2099
-- **Current Code**: `  }`
+- **Current Code**: `      throw new InvalidPropertyResponseError(`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knrQqTomVwOqf_oy
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/property-manager-tools.ts:2100
-- **Current Code**: `}`
+- **Current Code**: `        'PapiPropertyVersionsResponse',`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knqFqTomVwOqf_lF
@@ -14241,7 +14190,7 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/reporting-tools.ts:1007
-- **Current Code**: `          acc[threshold.metric] = (acc[threshold.metric] || 0) + 1;`
+- **Current Code**: `        notificationChannels: notificationChannels.length,`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knvtqTomVwOqf_yM
@@ -14339,28 +14288,27 @@ Generated: 2025-07-04T05:51:09.307Z
 - **Message**: Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/rule-tree-management.ts:841
-- **Current Code**: `    const level = args.optimizationLevel || 'standard';`
+- **Current Code**: `export async function optimizeRuleTree(`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnlqTomVwOqf_hO
 - **Message**: Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/rule-tree-management.ts:1521
-- **Current Code**: `function appendRules(source: any, target: any, result: any): void {`
+- **Current Code**: `    } else {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnlqTomVwOqf_hP
 - **Message**: Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/rule-tree-management.ts:1535
-- **Current Code**: `  if (source.behaviors) {`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knnlqTomVwOqf_ha
 - **Message**: Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.
 - **Severity**: MINOR
 - **File**: acedergren_alecs-mcp-server-akamai:src/tools/rule-tree-management.ts:1800
-- **Current Code**: `  // Ensure behaviors array exists`
+- **Current Code**: `      });`
 - **Suggestion**: Manual review required for this issue type
 
 ### AZe6knuSqTomVwOqf_uQ

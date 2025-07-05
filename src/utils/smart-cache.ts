@@ -136,7 +136,7 @@ export class SmartCache<T = any> extends EventEmitter {
   private keyToSegment: Map<string, string> = new Map();              // Key to segment mapping
   private keysByPattern: Map<string, Set<string>> = new Map();        // Track keys by patterns
   private refreshingKeys: Set<string> = new Set();                    // Keys being refreshed
-  private pendingRequests: Map<string, PendingRequest<T>> = new Map(); // Request coalescing
+  private pendingRequests: Map<string, PendingRequest<any>> = new Map(); // Request coalescing
   private negativeCache: Set<string> = new Set();                     // Track non-existent keys
   private negativeCacheBloom: BloomFilter;                            // Bloom filter for negative cache
   private circuitBreaker: CircuitBreaker;                             // Circuit breaker for fetch operations
@@ -212,7 +212,7 @@ export class SmartCache<T = any> extends EventEmitter {
   /**
    * Get value from cache (async for compatibility)
    */
-  async get<V = T>(key: string): Promise<V | null> {
+  async get<V extends T = T>(key: string): Promise<V | null> {
     // Check bloom filter first for negative cache
     if (this.negativeCacheBloom.has(key)) {
       // Might be in negative cache, verify with actual set
@@ -424,7 +424,7 @@ export class SmartCache<T = any> extends EventEmitter {
   ): Promise<V> {
     // Check for pending request (request coalescing)
     if (this.options.requestCoalescing && this.pendingRequests.has(key)) {
-      const pending = this.pendingRequests.get(key)! as PendingRequest<V>;
+      const pending = this.pendingRequests.get(key)!;
       this.emit('coalesce', key);
       
       return new Promise<V>((resolve, reject) => {
@@ -432,7 +432,7 @@ export class SmartCache<T = any> extends EventEmitter {
       });
     }
     
-    const cached = await this.get<V>(key);
+    const cached = await this.get(key) as V | null;
     const ttlRemaining = await this.ttl(key);
     
     // Return cached if still fresh
@@ -579,7 +579,7 @@ export class SmartCache<T = any> extends EventEmitter {
   /**
    * Batch get multiple keys
    */
-  async mget<V = T>(keys: string[]): Promise<Map<string, V>> {
+  async mget<V extends T = T>(keys: string[]): Promise<Map<string, V>> {
     const result = new Map<string, V>();
     
     for (const key of keys) {

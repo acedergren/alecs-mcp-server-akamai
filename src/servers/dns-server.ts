@@ -32,6 +32,7 @@ import {
   reactivateZoneVersion,
   getVersionMasterZoneFile,
   createMultipleRecordSets,
+  BulkZoneCreateRequest,
 } from '../tools/dns-advanced-tools';
 
 // DNS Migration Tools
@@ -546,7 +547,21 @@ class DNSALECSServer {
             if (!Array.isArray(request['zones']) || !request['contractId'] || !request['groupId']) {
               throw new McpError(ErrorCode.InvalidParams, 'Missing required fields: zones, contractId, groupId');
             }
-            result = await submitBulkZoneCreateRequest(client, request as Parameters<typeof submitBulkZoneCreateRequest>[1]);
+            
+            // Properly construct BulkZoneCreateRequest
+            const bulkRequest: BulkZoneCreateRequest = {
+              zones: request['zones'] as Array<{
+                zone: string;
+                type: 'PRIMARY' | 'SECONDARY' | 'ALIAS';
+                comment?: string;
+                masters?: string[];
+                target?: string;
+              }>,
+              contractId: String(request['contractId']),
+              groupId: String(request['groupId'])
+            };
+            
+            result = await submitBulkZoneCreateRequest(client, bulkRequest);
             break;
           }
 
