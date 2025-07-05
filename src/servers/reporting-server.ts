@@ -141,7 +141,7 @@ const errorAnalysisSchema = dateRangeSchema.extend({
 const getTrafficReport = {
   name: 'get_traffic_report',
   description: 'Retrieve comprehensive traffic analytics including bandwidth, requests, and hit rates',
-  inputSchema: zodToJsonSchema(trafficReportSchema) as any,
+  inputSchema: zodToJsonSchema(trafficReportSchema),
   handler: async (args: z.infer<typeof trafficReportSchema>) => {
     const validated = trafficReportSchema.parse(args);
     const client = new AkamaiClient(validated.customer);
@@ -250,7 +250,7 @@ const getTrafficReport = {
 const getCachePerformance = {
   name: 'get_cache_performance',
   description: 'Analyze cache hit rates, offload percentages, and caching efficiency',
-  inputSchema: zodToJsonSchema(cacheReportSchema) as any,
+  inputSchema: zodToJsonSchema(cacheReportSchema),
   handler: async (args: z.infer<typeof cacheReportSchema>) => {
     const validated = cacheReportSchema.parse(args);
     const client = new AkamaiClient(validated.customer);
@@ -361,7 +361,7 @@ const getCachePerformance = {
 const getGeographicDistribution = {
   name: 'get_geographic_distribution',
   description: 'Analyze traffic distribution by country, region, or city',
-  inputSchema: zodToJsonSchema(geoReportSchema) as any,
+  inputSchema: zodToJsonSchema(geoReportSchema),
   handler: async (args: z.infer<typeof geoReportSchema>) => {
     const validated = geoReportSchema.parse(args);
     const client = new AkamaiClient(validated.customer);
@@ -454,7 +454,7 @@ const getGeographicDistribution = {
 const getErrorAnalysis = {
   name: 'get_error_analysis',
   description: 'Analyze HTTP error codes and their patterns',
-  inputSchema: zodToJsonSchema(errorAnalysisSchema) as any,
+  inputSchema: zodToJsonSchema(errorAnalysisSchema),
   handler: async (args: z.infer<typeof errorAnalysisSchema>) => {
     const validated = errorAnalysisSchema.parse(args);
     const client = new AkamaiClient(validated.customer);
@@ -653,7 +653,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   try {
-    return await tool.handler(args as any || {});
+    // Type assertion needed: MCP provides Record<string, unknown> but handlers expect specific types
+    // Safe because each handler validates with zod schemas
+    if (!args) {
+      throw new McpError(ErrorCode.InvalidParams, 'Missing arguments');
+    }
+    const result = await tool.handler(args as never);
+    return { content: result.content || [] };
   } catch (error) {
     if (error instanceof z.ZodError) {
       const errorMessage = `Invalid arguments: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`;

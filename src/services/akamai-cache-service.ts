@@ -342,6 +342,8 @@ export class AkamaiCacheService {
     const keys = [
       `${customer}:property:${propertyId}`,
       `${customer}:property:${propertyId}:hostnames`,
+      `${customer}:property:${propertyId}:versions`,
+      `${customer}:property:${propertyId}:rules`,
       `${customer}:property:${propertyId}:rules:*`,
       `${customer}:properties:all`,
       `${customer}:hostname:map`,
@@ -388,12 +390,12 @@ export class AkamaiCacheService {
   async getStats(): Promise<any> {
     await this.ensureInitialized();
     const metrics = this.cache.getMetrics();
-
+    const apiCallsSaved = metrics.apiCallsSaved;
     return {
       ...metrics,
       cacheEnabled: this.cache.isAvailable(),
-      hitRatePercent: metrics.hitRate.toFixed(2) + '%',
-      estimatedCostSavings: `$${(metrics.apiCallsSaved * 0.001).toFixed(2)}`, // Rough estimate
+      hitRatePercent: typeof metrics.hitRate === 'number' ? `${metrics.hitRate.toFixed(2)}%` : 'N/A',
+      estimatedCostSavings: `$${(((typeof apiCallsSaved === 'number' && !isNaN(apiCallsSaved)) ? apiCallsSaved : 0) * 0.001).toFixed(2)}`,
     };
   }
 
@@ -423,6 +425,45 @@ export class AkamaiCacheService {
       fetchFn,
       { refreshThreshold: 0.2, softTTL: Math.floor(ttl * 0.1) }
     );
+  }
+
+  /**
+   * Delete key(s) from cache
+   */
+  async del(keys: string | string[]): Promise<number> {
+    await this.ensureInitialized();
+    return this.cache.del(keys);
+  }
+
+  /**
+   * Scan and delete keys matching pattern
+   */
+  async scanAndDelete(pattern: string): Promise<number> {
+    await this.ensureInitialized();
+    return this.cache.scanAndDelete(pattern);
+  }
+
+  /**
+   * Check if cache is available
+   */
+  isAvailable(): boolean {
+    return this.initialized && this.cache.isAvailable();
+  }
+
+  /**
+   * Set a value in the cache
+   */
+  async set(key: string, value: any, ttl?: number): Promise<void> {
+    await this.ensureInitialized();
+    await this.cache.set(key, value, ttl || 300); // Default to 5 minutes if no TTL provided
+  }
+
+  /**
+   * Get a value from the cache
+   */
+  async get(key: string): Promise<any> {
+    await this.ensureInitialized();
+    return this.cache.get(key);
   }
 
   /**

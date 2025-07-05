@@ -5,7 +5,7 @@
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse, type DNSRecordSet } from '../types';
-import { validateApiResponse, safeAccess } from '../utils/api-response-validator';
+import { validateApiResponse } from '../utils/api-response-validator';
 
 import { createZone, ensureCleanChangeList } from './dns-tools';
 
@@ -495,7 +495,8 @@ export async function generateMigrationInstructions(
       method: 'GET',
     });
     const recordsResponse = validateApiResponse<RecordsResponse>(recordsApiResponse);
-    const recordCount = safeAccess(recordsResponse, (r) => r.recordsets?.length, 0);
+    const recordsets = recordsResponse['recordsets'] as { length?: number } | undefined;
+    const recordCount = recordsets?.length || 0;
 
     let text = `# DNS Migration Instructions - ${args.zone}\n\n`;
     text += '## Pre-Migration Checklist\n\n';

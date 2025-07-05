@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// @ts-nocheck
 
 /**
  * ALECS Certificates Server - SSL/TLS Certificate Management Module
@@ -39,6 +38,7 @@ import {
   uploadThirdPartyCertificate,
   updateCertificateEnrollment,
   deleteCertificateEnrollment,
+  monitorCertificateDeployment,
 } from '../tools/cps-tools';
 
 // Edge Hostname Certificate Tools
@@ -52,10 +52,6 @@ import {
   generateDomainValidationChallenges,
   resumeDomainValidation,
 } from '../tools/property-manager-rules-tools';
-import {
-  updatePropertyWithDefaultDV,
-  updatePropertyWithCPSCertificate,
-} from '../tools/property-manager-tools';
 
 // Domain Validation Tools
 
@@ -662,97 +658,91 @@ class CertsALECSServer {
         switch (name) {
           // Basic DV Certificate Tools
           case 'create-dv-enrollment':
-            result = await createDVEnrollment(client, args as any);
+            result = await createDVEnrollment(client, args as Parameters<typeof createDVEnrollment>[1]);
             break;
           case 'check-dv-enrollment-status':
-            result = await checkDVEnrollmentStatus(client, args as any);
+            result = await checkDVEnrollmentStatus(client, args as Parameters<typeof checkDVEnrollmentStatus>[1]);
             break;
           case 'get-dv-validation-challenges':
-            result = await getDVValidationChallenges(client, args as any);
+            result = await getDVValidationChallenges(client, args as Parameters<typeof getDVValidationChallenges>[1]);
             break;
           case 'list-certificate-enrollments':
-            result = await listCertificateEnrollments(client, args as any);
+            result = await listCertificateEnrollments(client, args as Parameters<typeof listCertificateEnrollments>[1]);
             break;
           case 'link-certificate-to-property':
-            result = await linkCertificateToProperty(client, args as any);
+            result = await linkCertificateToProperty(client, args as Parameters<typeof linkCertificateToProperty>[1]);
             break;
 
           // A+ Features - Third-party certificates and lifecycle management
           case 'download-csr':
-            result = await downloadCSR(client, args as any);
+            result = await downloadCSR(client, args as Parameters<typeof downloadCSR>[1]);
             break;
           case 'upload-third-party-certificate':
-            result = await uploadThirdPartyCertificate(client, args as any);
+            result = await uploadThirdPartyCertificate(client, args as Parameters<typeof uploadThirdPartyCertificate>[1]);
             break;
           case 'update-certificate-enrollment':
-            result = await updateCertificateEnrollment(client, args as any);
+            result = await updateCertificateEnrollment(client, args as Parameters<typeof updateCertificateEnrollment>[1]);
             break;
           case 'delete-certificate-enrollment':
-            result = await deleteCertificateEnrollment(client, args as any);
+            result = await deleteCertificateEnrollment(client, args as Parameters<typeof deleteCertificateEnrollment>[1]);
             break;
           case 'monitor-certificate-deployment':
-            result = await monitorCertificateDeployment(client, args as any);
+            result = await monitorCertificateDeployment(client, args as Parameters<typeof monitorCertificateDeployment>[1]);
             break;
 
           // Advanced Certificate Enrollment
           case 'enroll-certificate-with-validation':
-            result = await enrollCertificateWithValidation(client, args as any);
+            result = await enrollCertificateWithValidation(client, args as Parameters<typeof enrollCertificateWithValidation>[1]);
             break;
           case 'validate-certificate-enrollment':
-            result = await validateCertificateEnrollment(client, args as any);
+            result = await validateCertificateEnrollment(client, args as Parameters<typeof validateCertificateEnrollment>[1]);
             break;
           case 'deploy-certificate-to-network':
-            result = await deployCertificateToNetwork(client, args as any);
+            result = await deployCertificateToNetwork(client, args as Parameters<typeof deployCertificateToNetwork>[1]);
             break;
           case 'monitor-certificate-enrollment':
-            result = await monitorCertificateEnrollment(client, args as any);
+            result = await monitorCertificateEnrollment(client, args as Parameters<typeof monitorCertificateEnrollment>[1]);
             break;
           case 'get-certificate-deployment-status':
-            result = await getCertificateDeploymentStatus(client, args as any);
+            result = await getCertificateDeploymentStatus(client, args as Parameters<typeof getCertificateDeploymentStatus>[1]);
             break;
           case 'renew-certificate':
-            result = await renewCertificate(client, args as any);
+            result = await renewCertificate(client, args as Parameters<typeof renewCertificate>[1]);
             break;
           case 'cleanup-validation-records':
-            result = await cleanupValidationRecords(client, args as any);
+            result = await cleanupValidationRecords(client, args as Parameters<typeof cleanupValidationRecords>[1]);
             break;
           case 'get-certificate-validation-history':
-            result = await getCertificateValidationHistory(client, args as any);
+            result = await getCertificateValidationHistory(client, args as Parameters<typeof getCertificateValidationHistory>[1]);
             break;
 
           // Domain Validation
           case 'generate-domain-validation-challenges':
-            result = await generateDomainValidationChallenges(client, args as any);
+            result = await generateDomainValidationChallenges(client, args as Parameters<typeof generateDomainValidationChallenges>[1]);
             break;
           case 'resume-domain-validation':
-            result = await resumeDomainValidation(client, args as any);
+            result = await resumeDomainValidation(client, args as Parameters<typeof resumeDomainValidation>[1]);
             break;
 
-          // Property Integration
-          case 'update-property-with-default-dv':
-            result = await updatePropertyWithDefaultDV(client, args as any);
-            break;
-          case 'update-property-with-cps-certificate':
-            result = await updatePropertyWithCPSCertificate(client, args as any);
-            break;
+          // Property Integration - Note: Direct property DV integration is handled via linkCertificateToProperty and edge hostname management
 
           // Edge Hostname Certificate
           case 'validate-edge-hostname-certificate':
-            result = await validateEdgeHostnameCertificate(client, args as any);
+            result = await validateEdgeHostnameCertificate(client, args as Parameters<typeof validateEdgeHostnameCertificate>[1]);
             break;
           case 'associate-certificate-with-edge-hostname':
-            result = await associateCertificateWithEdgeHostname(client, args as any);
+            result = await associateCertificateWithEdgeHostname(client, args as Parameters<typeof associateCertificateWithEdgeHostname>[1]);
             break;
 
           // Secure by Default
           case 'onboard-secure-property':
-            result = await onboardSecureByDefaultProperty(client, args as any);
+            result = await onboardSecureByDefaultProperty(client, args as Parameters<typeof onboardSecureByDefaultProperty>[1]);
             break;
           case 'quick-secure-property-setup':
-            result = await quickSecureByDefaultSetup(client, args as any);
+            result = await quickSecureByDefaultSetup(client, args as Parameters<typeof quickSecureByDefaultSetup>[1]);
             break;
           case 'check-secure-property-status':
-            result = await checkSecureByDefaultStatus(client, args as any);
+            result = await checkSecureByDefaultStatus(client, args as Parameters<typeof checkSecureByDefaultStatus>[1]);
             break;
 
           default:

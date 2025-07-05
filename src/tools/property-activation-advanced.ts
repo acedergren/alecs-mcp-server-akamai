@@ -4,6 +4,7 @@
  */
 
 import { ErrorTranslator, ErrorRecovery } from '../utils/errors';
+import { logger } from '../utils/logger';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -398,7 +399,10 @@ export async function activatePropertyWithMonitoring(
       },
       3,
       (attempt, _error) => {
-        console.log(`Activation attempt ${attempt} failed, retrying...`);
+        logger.warn(`Activation attempt ${attempt} failed, retrying...`, { 
+          attempt, 
+          error: _error instanceof Error ? _error.message : String(_error) 
+        });
       },
     );
 

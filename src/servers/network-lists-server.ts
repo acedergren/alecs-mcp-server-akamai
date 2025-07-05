@@ -425,7 +425,7 @@ class NetworkListsServer {
       const jsonSchema = zodToJsonSchema(schema);
       // Remove $schema property as it's not needed for MCP
       if (jsonSchema && typeof jsonSchema === 'object' && '$schema' in jsonSchema) {
-        const { $schema, ...rest } = jsonSchema as any;
+        const { $schema, ...rest } = jsonSchema as Record<string, unknown>;
         return rest;
       }
       return jsonSchema;

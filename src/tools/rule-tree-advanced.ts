@@ -1154,21 +1154,42 @@ function generateOptimizationSuggestions(rules: any): RuleOptimization[] {
   return suggestions;
 }
 
+interface AnalysisFinding {
+  severity?: string;
+  message?: string;
+  [key: string]: unknown;
+}
+
+interface Bottleneck {
+  behavior: string;
+  path: string;
+  issue: string;
+  recommendation: string;
+}
+
+interface Recommendation {
+  priority: string;
+  title: string;
+  description: string;
+  impact: string;
+  effort: string;
+}
+
 function performRuleTreeAnalysis(rules: any): any {
   const analysis = {
     complexity: 0,
     cacheEfficiency: 0,
     redundancy: 0,
     optimizationPotential: 0,
-    criticalFindings: [] as any[],
-    bottlenecks: [] as any[],
+    criticalFindings: [] as AnalysisFinding[],
+    bottlenecks: [] as Bottleneck[],
     caching: {
       staticCoverage: 0,
       dynamicStrategy: 'Not configured',
       ttlOptimization: 'Not analyzed',
       cacheKeyEfficiency: 'Standard',
     },
-    recommendations: [] as any[],
+    recommendations: [] as Recommendation[],
     efficiency: {
       default: 0,
       pathBased: 0,

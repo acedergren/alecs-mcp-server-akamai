@@ -20,8 +20,8 @@ export class JsonRpcMiddleware {
   /**
    * Wrap a handler to ensure JSON-RPC 2.0 compliance
    */
-  static wrapHandler<T = any>(
-    handler: (params: any) => Promise<T>,
+  static wrapHandler<T = unknown>(
+    handler: (params: unknown) => Promise<T>,
   ): (_request: JsonRpcRequest) => Promise<JsonRpcResponse> {
     return async (_request: JsonRpcRequest): Promise<JsonRpcResponse> => {
       // Validate request ID
@@ -102,7 +102,11 @@ export class JsonRpcMiddleware {
 
     // Handle custom error objects
     if (typeof error === 'object' && error !== null && 'code' in error) {
-      const customError = error as any;
+      const customError = error as {
+        code?: number;
+        message?: string;
+        data?: unknown;
+      };
       return createJsonRpcError(
         id,
         customError.code || JsonRpcErrorCode.InternalError,
@@ -130,23 +134,31 @@ export class JsonRpcMiddleware {
       throw new Error('Request must be an object');
     }
 
-    const req = _request as any;
+    const req = _request as Record<string, unknown>;
 
     // Check required fields
-    if (req.jsonrpc !== '2.0') {
+    if (req['jsonrpc'] !== '2.0') {
       throw new Error('Invalid JSON-RPC version');
     }
 
-    if (typeof req.method !== 'string') {
+    if (typeof req['method'] !== 'string') {
       throw new Error('Method must be a string');
     }
 
     // Validate ID if present
-    if ('id' in req && !isValidRequestId(req.id)) {
+    if ('id' in req && !isValidRequestId(req['id'])) {
       throw new Error('Invalid request ID');
     }
 
-    return req as JsonRpcRequest;
+    // At this point, we've validated all required fields exist with correct types
+    // We can safely construct a JsonRpcRequest object
+    return {
+      jsonrpc: '2.0',
+      method: req['method'] as string,
+      id: req['id'] as string | number | null,
+      ...(req['params'] !== undefined && { params: req['params'] }),
+      ...(req['_meta'] !== undefined && { _meta: req['_meta'] as Record<string, unknown> }),
+    };
   }
 
   /**

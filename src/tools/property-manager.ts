@@ -82,6 +82,118 @@ const PropertyDetailResponseSchema = z.object({
   })
 });
 
+// Define proper interfaces for API responses to replace 'as unknown as' patterns
+interface HostnameItem {
+  cnameFrom: string;
+  cnameTo?: string;
+  cnameType?: string;
+  certStatus?: unknown;
+}
+
+interface HostnamesApiResponse {
+  hostnames?: { 
+    items?: HostnameItem[];
+  };
+}
+
+interface ContractItem {
+  contractId: string;
+  contractTypeName?: string;
+}
+
+interface ContractsApiResponse {
+  contracts?: {
+    items?: ContractItem[];
+  };
+}
+
+interface GroupItem {
+  groupId: string;
+  groupName: string;
+  contractIds: string[];
+  parentGroupId?: string;
+}
+
+interface GroupsApiResponse {
+  groups?: {
+    items?: GroupItem[];
+  };
+}
+
+interface ProductItem {
+  productId: string;
+  productName: string;
+}
+
+interface ProductsApiResponse {
+  products?: {
+    items?: ProductItem[];
+  };
+}
+
+interface PropertyVersionItem {
+  updatedDate: string;
+  updatedByUser: string;
+  ruleFormat: string;
+  productionStatus: string;
+  stagingStatus: string;
+  note?: string;
+}
+
+interface PropertyVersionsApiResponse {
+  versions?: {
+    items?: PropertyVersionItem[];
+  };
+}
+
+interface CpcodeItem {
+  cpcodeId: string;
+  cpcodeName: string;
+  contractId: string;
+  groupId: string;
+  productIds?: string[];
+  createdDate?: string;
+}
+
+interface CpcodesApiResponse {
+  cpcodes?: {
+    items?: CpcodeItem[];
+  };
+}
+
+interface CreateCpcodeResponse {
+  cpcodeLink?: string;
+}
+
+interface CreatePropertyResponse {
+  propertyLink?: string;
+}
+
+interface PropertyDetailsItem {
+  productId: string;
+  contractId: string;
+  groupId: string;
+}
+
+interface PropertyDetailsResponse {
+  properties?: {
+    items?: PropertyDetailsItem[];
+  };
+}
+
+interface PropertyBasicItem {
+  propertyName: string;
+  latestVersion: number;
+  productionVersion?: number;
+  stagingVersion?: number;
+}
+
+interface PropertyBasicResponse {
+  properties?: {
+    items?: PropertyBasicItem[];
+  };
+}
+
 const PropertyVersionListResponseSchema = z.object({
   propertyId: z.string(),
   propertyName: z.string(),
@@ -2048,11 +2160,11 @@ export async function removePropertyHostname(
       method: 'GET',
     });
 
-    const currentResponse_typed = currentResponse as any;
+    const currentResponse_typed = currentResponse as HostnamesApiResponse;
     const currentHostnames = currentResponse_typed.hostnames?.items || [];
     
     // Filter out hostnames to remove
-    const remainingHostnames = currentHostnames.filter((h: any) => 
+    const remainingHostnames = currentHostnames.filter((h) => 
       !args.hostnames.includes(h.cnameFrom)
     );
 
@@ -2127,7 +2239,7 @@ export async function listPropertyHostnames(
       method: 'GET',
     });
 
-    const response_typed = response as any;
+    const response_typed = response as HostnamesApiResponse;
     if (!response_typed.hostnames?.items || response_typed.hostnames.items.length === 0) {
       return {
         content: [
@@ -2221,7 +2333,7 @@ export async function listContracts(
       method: 'GET',
     });
 
-    const response_typed = response as any;
+    const response_typed = response as ContractsApiResponse;
     if (!response_typed.contracts?.items || response_typed.contracts.items.length === 0) {
       return {
         content: [
@@ -2245,7 +2357,7 @@ export async function listContracts(
     text += `## Using Contracts\n\n`;
     text += `When creating properties, specify the contract:\n`;
     text += `\`\`\`\n`;
-    text += `create_property --contractId ${(response as any).contracts.items[0].contractId} --groupId [GROUP_ID]\n`;
+    text += `create_property --contractId ${response_typed.contracts.items?.[0]?.contractId || 'CONTRACT_ID'} --groupId [GROUP_ID]\n`;
     text += `\`\`\`\n`;
 
     return {
@@ -2286,7 +2398,7 @@ export async function listGroups(
       method: 'GET',
     });
 
-    const groups_response_typed = response as any;
+    const groups_response_typed = response as GroupsApiResponse;
     if (!groups_response_typed.groups?.items || groups_response_typed.groups.items.length === 0) {
       return {
         content: [
@@ -2315,7 +2427,7 @@ export async function listGroups(
         text += `- **Contracts:** ${group.contractIds.join(', ')}\n\n`;
         
         // Show child groups
-        const children = (response as any).groups.items.filter((g: any) => g.parentGroupId === group.groupId);
+        const children = groups_response_typed.groups?.items?.filter((g) => g.parentGroupId === group.groupId) || [];
         if (children.length > 0) {
           text += `**Sub-groups:**\n`;
           children.forEach((child: any) => {
@@ -2329,7 +2441,7 @@ export async function listGroups(
     text += `## Using Groups\n\n`;
     text += `When creating properties, specify the group:\n`;
     text += `\`\`\`\n`;
-    text += `create_property --groupId ${(response as any).groups.items[0].groupId} --contractId [CONTRACT_ID]\n`;
+    text += `create_property --groupId ${groups_response_typed.groups.items?.[0]?.groupId || 'GROUP_ID'} --contractId [CONTRACT_ID]\n`;
     text += `\`\`\`\n`;
 
     return {
@@ -2384,7 +2496,8 @@ export async function listProducts(
       method: 'GET',
     });
 
-    if (!(response as any).products?.items || (response as any).products.items.length === 0) {
+    const products_response_typed = response as ProductsApiResponse;
+    if (!products_response_typed.products?.items || products_response_typed.products.items.length === 0) {
       return {
         content: [
           {
@@ -2395,30 +2508,30 @@ export async function listProducts(
       };
     }
 
-    let text = `# 📦 Available Products (${(response as any).products.items.length} found)\n\n`;
+    let text = `# 📦 Available Products (${products_response_typed.products.items.length} found)\n\n`;
     text += `**Contract:** ${formatContractDisplay(args.contractId)}\n\n`;
     text += `Products determine the features available for your properties.\n\n`;
 
     // Group products by category for better organization
-    const webProducts = (response as any).products.items.filter((p: any) => 
+    const webProducts = products_response_typed.products.items.filter((p) => 
       p.productName.toLowerCase().includes('web') || 
       p.productName.toLowerCase().includes('dynamic') ||
       p.productName.toLowerCase().includes('download')
     );
     
-    const securityProducts = (response as any).products.items.filter((p: any) => 
+    const securityProducts = products_response_typed.products.items.filter((p) => 
       p.productName.toLowerCase().includes('security') || 
       p.productName.toLowerCase().includes('kona') ||
       p.productName.toLowerCase().includes('defender')
     );
     
-    const otherProducts = (response as any).products.items.filter((p: any) => 
+    const otherProducts = products_response_typed.products.items.filter((p) => 
       !webProducts.includes(p) && !securityProducts.includes(p)
     );
 
     if (webProducts.length > 0) {
       text += `## [GLOBAL] Web Performance Products\n\n`;
-      webProducts.forEach((product: any) => {
+      webProducts.forEach((product) => {
         text += `### ${product.productName}\n`;
         text += `- **Product:** ${formatProductDisplay(product.productId, product.productName)}\n`;
         text += `- **Description:** Optimized for web content delivery\n\n`;
@@ -2427,7 +2540,7 @@ export async function listProducts(
 
     if (securityProducts.length > 0) {
       text += `## [SHIELD] Security Products\n\n`;
-      securityProducts.forEach((product: any) => {
+      securityProducts.forEach((product) => {
         text += `### ${product.productName}\n`;
         text += `- **Product:** ${formatProductDisplay(product.productId, product.productName)}\n`;
         text += `- **Description:** Enhanced security features\n\n`;
@@ -2436,7 +2549,7 @@ export async function listProducts(
 
     if (otherProducts.length > 0) {
       text += `## 📦 Other Products\n\n`;
-      otherProducts.forEach((product: any) => {
+      otherProducts.forEach((product) => {
         text += `### ${product.productName}\n`;
         text += `- **Product:** ${formatProductDisplay(product.productId, product.productName)}\n\n`;
       });
@@ -2445,7 +2558,7 @@ export async function listProducts(
     text += `## Using Products\n\n`;
     text += `When creating properties, choose a product based on your needs:\n`;
     text += `\`\`\`\n`;
-    text += `create_property --productId ${(response as any).products.items[0].productId} --propertyName "My Site"\n`;
+    text += `create_property --productId ${products_response_typed.products.items?.[0]?.productId || 'PRODUCT_ID'} --propertyName "My Site"\n`;
     text += `\`\`\`\n\n`;
     
     text += `**Product Selection Guide:**\n`;
@@ -2518,7 +2631,8 @@ export async function cloneProperty(
         method: 'GET',
       });
       
-      const sourceProperty = (sourceResponse as any).properties?.items?.[0];
+      const sourceResponse_typed = sourceResponse as PropertyDetailsResponse;
+      const sourceProperty = sourceResponse_typed.properties?.items?.[0];
       if (!sourceProperty) {
         throw new Error('Source property not found');
       }
@@ -2549,7 +2663,8 @@ export async function cloneProperty(
       },
     });
 
-    const propertyLink = (response as any).propertyLink;
+    const response_typed = response as CreatePropertyResponse;
+    const propertyLink = response_typed.propertyLink;
     const newPropertyId = propertyLink?.split('/').pop()?.split('?')[0];
 
     let text = `# [SYNC] Property Cloned Successfully\n\n`;
@@ -2647,7 +2762,8 @@ export async function getLatestPropertyVersion(
       method: 'GET',
     });
 
-    const property = (propertyResponse as any).properties?.items?.[0];
+    const propertyResponse_typed = propertyResponse as PropertyBasicResponse;
+    const property = propertyResponse_typed.properties?.items?.[0];
     if (!property) {
       throw new Error('Property not found');
     }
@@ -2660,7 +2776,8 @@ export async function getLatestPropertyVersion(
       method: 'GET',
     });
 
-    const version = (versionResponse as any).versions?.items?.[0];
+    const versionResponse_typed = versionResponse as PropertyVersionsApiResponse;
+    const version = versionResponse_typed.versions?.items?.[0];
     if (!version) {
       throw new Error('Version details not found');
     }
@@ -2751,7 +2868,8 @@ export async function listCPCodes(
       ...(Object.keys(queryParams).length > 0 && { queryParams }),
     });
 
-    if (!(response as any).cpcodes?.items || (response as any).cpcodes.items.length === 0) {
+    const cpcodes_response_typed = response as CpcodesApiResponse;
+    if (!cpcodes_response_typed.cpcodes?.items || cpcodes_response_typed.cpcodes.items.length === 0) {
       return {
         content: [
           {
@@ -2762,12 +2880,12 @@ export async function listCPCodes(
       };
     }
 
-    let text = `# [ANALYTICS] CP Codes (${(response as any).cpcodes.items.length} found)\n\n`;
+    let text = `# [ANALYTICS] CP Codes (${cpcodes_response_typed.cpcodes.items.length} found)\n\n`;
     text += `CP codes track and report on your CDN usage.\n\n`;
 
     // Group by product for better organization
-    const byProduct = new Map<string, any[]>();
-    (response as any).cpcodes.items.forEach((cpcode: any) => {
+    const byProduct = new Map<string, Array<{ cpcodeId: string; cpcodeName: string; contractId: string; groupId: string; productIds?: string[]; createdDate?: string }>>;
+    cpcodes_response_typed.cpcodes.items.forEach((cpcode) => {
       const product = cpcode.productIds?.[0] || 'Unknown';
       if (!byProduct.has(product)) {
         byProduct.set(product, []);
@@ -2778,7 +2896,7 @@ export async function listCPCodes(
     byProduct.forEach((cpcodes, productId) => {
       text += `## Product: ${productId}\n\n`;
       
-      cpcodes.forEach((cpcode: any) => {
+      cpcodes.forEach((cpcode) => {
         text += `### ${cpcode.cpcodeName} (${cpcode.cpcodeId})\n`;
         text += `- **CP Code ID:** ${cpcode.cpcodeId}\n`;
         text += `- **Name:** ${cpcode.cpcodeName}\n`;
@@ -2853,7 +2971,8 @@ export async function createCPCode(
       ...(Object.keys(queryParams).length > 0 && { queryParams }),
     });
 
-    const cpcodeLink = (response as any).cpcodeLink;
+    const cpcode_create_response_typed = response as CreateCpcodeResponse;
+    const cpcodeLink = cpcode_create_response_typed.cpcodeLink;
     const cpcodeId = cpcodeLink?.split('/').pop()?.split('?')[0];
 
     let text = `# 🆕 CP Code Created Successfully\n\n`;
@@ -2929,7 +3048,8 @@ export async function getCPCode(
       method: 'GET',
     });
 
-    if (!(response as any).cpcodes?.items?.[0]) {
+    const cpcode_details_response_typed = response as CpcodesApiResponse;
+    if (!cpcode_details_response_typed.cpcodes?.items?.[0]) {
       return {
         content: [
           {
@@ -2940,7 +3060,7 @@ export async function getCPCode(
       };
     }
 
-    const cpcode = (response as any).cpcodes.items[0];
+    const cpcode = cpcode_details_response_typed.cpcodes.items[0];
 
     let text = `# [SEARCH] CP Code Details\n\n`;
     text += `**CP Code ID:** ${cpcode.cpcodeId}\n`;

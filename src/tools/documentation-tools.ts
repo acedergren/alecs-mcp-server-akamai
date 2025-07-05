@@ -96,7 +96,8 @@ export async function generateDocumentationIndex(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', _error);
+    // Use process.stderr for error output in CLI contexts
+    process.stderr.write(`[Error]: ${_error instanceof Error ? _error.message : String(_error)}\n`);
     throw _error;
   }
 }
@@ -161,7 +162,8 @@ export async function generateAPIReference(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', _error);
+    // Use process.stderr for error output in CLI contexts
+    process.stderr.write(`[Error]: ${_error instanceof Error ? _error.message : String(_error)}\n`);
     throw _error;
   }
 }
@@ -264,7 +266,8 @@ export async function generateFeatureDocumentation(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', _error);
+    // Use process.stderr for error output in CLI contexts
+    process.stderr.write(`[Error]: ${_error instanceof Error ? _error.message : String(_error)}\n`);
     throw _error;
   }
 }
@@ -336,7 +339,8 @@ export async function updateDocumentation(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', _error);
+    // Use process.stderr for error output in CLI contexts
+    process.stderr.write(`[Error]: ${_error instanceof Error ? _error.message : String(_error)}\n`);
     throw _error;
   }
 }
@@ -438,7 +442,8 @@ export async function generateChangelog(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', _error);
+    // Use process.stderr for error output in CLI contexts
+    process.stderr.write(`[Error]: ${_error instanceof Error ? _error.message : String(_error)}\n`);
     throw _error;
   }
 }
@@ -510,7 +515,8 @@ export async function createKnowledgeArticle(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', _error);
+    // Use process.stderr for error output in CLI contexts
+    process.stderr.write(`[Error]: ${_error instanceof Error ? _error.message : String(_error)}\n`);
     throw _error;
   }
 }
@@ -622,7 +628,7 @@ function extractToolDefinitions(content: string): any[] {
   // Regular expression to match exported functions with JSDoc
   const functionRegex = /\/\*\*[\s\S]*?\*\/\s*export\s+async\s+function\s+(\w+)\s*\([^)]*\)/g;
 
-  let match;
+  let match: RegExpExecArray | null;
   while ((match = functionRegex.exec(content)) !== null) {
     const functionName = match[1];
     const jsdocMatch = match[0].match(/\/\*\*([\s\S]*?)\*\//);

@@ -255,5 +255,5 @@ export function filterUndefined<T extends Record<string, any>>(
       acc[key as keyof T] = value;
     }
     return acc;
-  }, {} as any);
+  }, {} as { [K in keyof T]: Exclude<T[K], undefined> });
 }

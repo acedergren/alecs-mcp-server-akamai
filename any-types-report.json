@@ -1,0 +1,408 @@
+{
+  "responseTyping": [
+    {
+      "file": "src/types/mcp-2025.ts",
+      "line": 666,
+      "content": "typeof (response as any).success === 'boolean'",
+      "context": "    typeof response === 'object' &&\n    response !== null &&\n    'success' in response &&\n    typeof (response as any).success === 'boolean'\n  );\n}\n"
+    },
+    {
+      "file": "src/tools/property-tools-paginated.ts",
+      "line": 377,
+      "content": "const property = (propertyResponse as any).properties?.items?.[0];",
+      "context": "      throw new Error(`Failed to get property details: ${propertyResponse.detail}`);\n    }\n\n    const property = (propertyResponse as any).properties?.items?.[0];\n    if (property) {\n      queryParams.contractId = property.contractId;\n      queryParams.groupId = property.groupId;"
+    },
+    {
+      "file": "src/tools/dns-operations-priority.ts",
+      "line": 265,
+      "content": "const changelists = ((response as any).changelists || []) as EdgeDNSChangeListMetadata[];",
+      "context": "    spinner.succeed('Changelists retrieved');\n\n    // CODE KAI: Type-safe changelist handling\n    const changelists = ((response as any).changelists || []) as EdgeDNSChangeListMetadata[];\n    let output = `${icons.dns} Changelists (${changelists.length}):\\n\\n`;\n    \n    if (changelists.length === 0) {"
+    },
+    {
+      "file": "src/tools/dns-operations-priority.ts",
+      "line": 330,
+      "content": "const results = ((response as any).changelists || []) as EdgeDNSChangeListMetadata[];",
+      "context": "    spinner.succeed('Search complete');\n\n    // CODE KAI: Type-safe search results handling\n    const results = ((response as any).changelists || []) as EdgeDNSChangeListMetadata[];\n    let output = `${icons.dns} Search Results (${results.length}):\\n\\n`;\n    \n    args.zones.forEach(zone => {"
+    },
+    {
+      "file": "src/tools/dns-operations-priority.ts",
+      "line": 804,
+      "content": "const keys = ((response as any).keys || []) as TSIGKey[];",
+      "context": "    spinner.succeed('TSIG keys retrieved');\n\n    // CODE KAI: Type-safe TSIG key handling\n    const keys = ((response as any).keys || []) as TSIGKey[];\n    let output = `${icons.dns} TSIG Keys (${keys.length}):\\n\\n`;\n    \n    if (keys.length === 0) {"
+    },
+    {
+      "file": "src/services/certificate-deployment-coordinator.ts",
+      "line": 317,
+      "content": "const deploymentId = parseInt((response as any).headers?.location?.split('/').pop() || '0');",
+      "context": "    });\n\n    // Response for POST is in headers, not body\n    const deploymentId = parseInt((response as any).headers?.location?.split('/').pop() || '0');\n    if (!deploymentId) {\n      throw new Error('Failed to get deployment ID from response');\n    }"
+    },
+    {
+      "file": "src/services/certificate-deployment-coordinator.ts",
+      "line": 379,
+      "content": "const apiStatus = response.deployment?.status || (response as any).status;",
+      "context": "        },\n      });\n\n      const apiStatus = response.deployment?.status || (response as any).status;\n      const status = this.mapDeploymentStatus(apiStatus);\n\n      // Estimate progress based on status"
+    }
+  ],
+  "zodSchema": [
+    {
+      "file": "src/utils/modular-server-factory.ts",
+      "line": 136,
+      "content": "properties: (tool.schema as any).shape || {},",
+      "context": "        description: tool.description,\n        inputSchema: tool.schema ? {\n          type: 'object',\n          properties: (tool.schema as any).shape || {},\n          required: (tool.schema as any)._def?.typeName === 'ZodObject' ? Object.keys((tool.schema as any).shape || {}) : [],\n        } : undefined,\n      }));"
+    },
+    {
+      "file": "src/utils/modular-server-factory.ts",
+      "line": 137,
+      "content": "required: (tool.schema as any)._def?.typeName === 'ZodObject' ? Object.keys((tool.schema as any).shape || {}) : [],",
+      "context": "        inputSchema: tool.schema ? {\n          type: 'object',\n          properties: (tool.schema as any).shape || {},\n          required: (tool.schema as any)._def?.typeName === 'ZodObject' ? Object.keys((tool.schema as any).shape || {}) : [],\n        } : undefined,\n      }));\n"
+    },
+    {
+      "file": "src/servers/reporting-server.ts",
+      "line": 144,
+      "content": "inputSchema: zodToJsonSchema(trafficReportSchema) as any,",
+      "context": "const getTrafficReport = {\n  name: 'get_traffic_report',\n  description: 'Retrieve comprehensive traffic analytics including bandwidth, requests, and hit rates',\n  inputSchema: zodToJsonSchema(trafficReportSchema) as any,\n  handler: async (args: z.infer<typeof trafficReportSchema>) => {\n    const validated = trafficReportSchema.parse(args);\n    const client = new AkamaiClient(validated.customer);"
+    },
+    {
+      "file": "src/servers/reporting-server.ts",
+      "line": 253,
+      "content": "inputSchema: zodToJsonSchema(cacheReportSchema) as any,",
+      "context": "const getCachePerformance = {\n  name: 'get_cache_performance',\n  description: 'Analyze cache hit rates, offload percentages, and caching efficiency',\n  inputSchema: zodToJsonSchema(cacheReportSchema) as any,\n  handler: async (args: z.infer<typeof cacheReportSchema>) => {\n    const validated = cacheReportSchema.parse(args);\n    const client = new AkamaiClient(validated.customer);"
+    },
+    {
+      "file": "src/servers/reporting-server.ts",
+      "line": 364,
+      "content": "inputSchema: zodToJsonSchema(geoReportSchema) as any,",
+      "context": "const getGeographicDistribution = {\n  name: 'get_geographic_distribution',\n  description: 'Analyze traffic distribution by country, region, or city',\n  inputSchema: zodToJsonSchema(geoReportSchema) as any,\n  handler: async (args: z.infer<typeof geoReportSchema>) => {\n    const validated = geoReportSchema.parse(args);\n    const client = new AkamaiClient(validated.customer);"
+    },
+    {
+      "file": "src/servers/reporting-server.ts",
+      "line": 457,
+      "content": "inputSchema: zodToJsonSchema(errorAnalysisSchema) as any,",
+      "context": "const getErrorAnalysis = {\n  name: 'get_error_analysis',\n  description: 'Analyze HTTP error codes and their patterns',\n  inputSchema: zodToJsonSchema(errorAnalysisSchema) as any,\n  handler: async (args: z.infer<typeof errorAnalysisSchema>) => {\n    const validated = errorAnalysisSchema.parse(args);\n    const client = new AkamaiClient(validated.customer);"
+    },
+    {
+      "file": "src/servers/network-lists-server.ts",
+      "line": 428,
+      "content": "const { $schema, ...rest } = jsonSchema as any;",
+      "context": "      const jsonSchema = zodToJsonSchema(schema);\n      // Remove $schema property as it's not needed for MCP\n      if (jsonSchema && typeof jsonSchema === 'object' && '$schema' in jsonSchema) {\n        const { $schema, ...rest } = jsonSchema as any;\n        return rest;\n      }\n      return jsonSchema;"
+    },
+    {
+      "file": "src/servers/fastpurge-server.ts",
+      "line": 343,
+      "content": "const { $schema, ...rest } = jsonSchema as any;",
+      "context": "      const jsonSchema = zodToJsonSchema(schema);\n      // Remove $schema property as it's not needed for MCP\n      if (jsonSchema && typeof jsonSchema === 'object' && '$schema' in jsonSchema) {\n        const { $schema, ...rest } = jsonSchema as any;\n        return rest;\n      }\n      return jsonSchema;"
+    },
+    {
+      "file": "src/servers/appsec-server.ts",
+      "line": 359,
+      "content": "const { $schema, ...rest } = jsonSchema as any;",
+      "context": "      const jsonSchema = zodToJsonSchema(schema);\n      // Remove $schema property as it's not needed for MCP\n      if (jsonSchema && typeof jsonSchema === 'object' && '$schema' in jsonSchema) {\n        const { $schema, ...rest } = jsonSchema as any;\n        return rest;\n      }\n      return jsonSchema;"
+    }
+  ],
+  "errorHandling": [
+    {
+      "file": "src/utils/error-handler.ts",
+      "line": 57,
+      "content": "const requestId = akamaiError?.requestId || (error as any)?.requestId;",
+      "context": "    const errorMessage = error instanceof Error ? error.message : String(error);\n    const statusCode = this.extractStatusCode(error);\n    const akamaiError = this.extractAkamaiError(error);\n    const requestId = akamaiError?.requestId || (error as any)?.requestId;\n\n    // Log structured error data\n    this.logger.error({"
+    },
+    {
+      "file": "src/utils/error-handler.ts",
+      "line": 301,
+      "content": "const requestId = akamaiError?.requestId || (error as any)?.requestId;",
+      "context": "    }\n    \n    // Add request ID\n    const requestId = akamaiError?.requestId || (error as any)?.requestId;\n    if (requestId) {\n      text += `\\n**Request ID:** ${requestId}\\n`;\n    }"
+    },
+    {
+      "file": "src/middleware/jsonrpc-middleware.ts",
+      "line": 105,
+      "content": "const customError = error as any;",
+      "context": "\n    // Handle custom error objects\n    if (typeof error === 'object' && error !== null && 'code' in error) {\n      const customError = error as any;\n      return createJsonRpcError(\n        id,\n        customError.code || JsonRpcErrorCode.InternalError,"
+    },
+    {
+      "file": "src/testing/mocks/enhanced-edgegrid-mock.ts",
+      "line": 113,
+      "content": "(error as any).status = matchingConfig.response.status;",
+      "context": "    // Return response or error\n    if (matchingConfig.response.status && matchingConfig.response.status >= 400) {\n      const error = new Error(matchingConfig.response.detail || 'API Error');\n      (error as any).status = matchingConfig.response.status;\n      (error as any).response = matchingConfig.response;\n      throw error;\n    }"
+    },
+    {
+      "file": "src/testing/mocks/enhanced-edgegrid-mock.ts",
+      "line": 114,
+      "content": "(error as any).response = matchingConfig.response;",
+      "context": "    if (matchingConfig.response.status && matchingConfig.response.status >= 400) {\n      const error = new Error(matchingConfig.response.detail || 'API Error');\n      (error as any).status = matchingConfig.response.status;\n      (error as any).response = matchingConfig.response;\n      throw error;\n    }\n"
+    }
+  ],
+  "arrayAccess": [
+    {
+      "file": "src/tools/secure-by-default-onboarding.ts",
+      "line": 343,
+      "content": "children: [] as any[],",
+      "context": "\n    const secureRules = {\n      name: 'default',\n      children: [] as any[],\n      behaviors: [\n        {\n          name: 'origin',"
+    },
+    {
+      "file": "src/tools/secure-by-default-onboarding.ts",
+      "line": 445,
+      "content": "criteria: [] as any[],",
+      "context": "          },\n        },\n      ],\n      criteria: [] as any[],\n      options: {\n        is_secure: true,\n      },"
+    },
+    {
+      "file": "src/tools/rule-tree-advanced.ts",
+      "line": 1163,
+      "content": "criticalFindings: [] as any[],",
+      "context": "    cacheEfficiency: 0,\n    redundancy: 0,\n    optimizationPotential: 0,\n    criticalFindings: [] as any[],\n    bottlenecks: [] as any[],\n    caching: {\n      staticCoverage: 0,"
+    },
+    {
+      "file": "src/tools/rule-tree-advanced.ts",
+      "line": 1164,
+      "content": "bottlenecks: [] as any[],",
+      "context": "    redundancy: 0,\n    optimizationPotential: 0,\n    criticalFindings: [] as any[],\n    bottlenecks: [] as any[],\n    caching: {\n      staticCoverage: 0,\n      dynamicStrategy: 'Not configured',"
+    },
+    {
+      "file": "src/tools/rule-tree-advanced.ts",
+      "line": 1171,
+      "content": "recommendations: [] as any[],",
+      "context": "      ttlOptimization: 'Not analyzed',\n      cacheKeyEfficiency: 'Standard',\n    },\n    recommendations: [] as any[],\n    efficiency: {\n      default: 0,\n      pathBased: 0,"
+    },
+    {
+      "file": "src/tools/property-error-handling-tools.ts",
+      "line": 141,
+      "content": "return (versions['items'] as any[]).every((item: any) =>",
+      "context": "  if (!response['versions'] || typeof response['versions'] !== 'object') {return false;}\n  const versions = response['versions'] as Record<string, unknown>;\n  if (!Array.isArray(versions['items'])) {return false;}\n  return (versions['items'] as any[]).every((item: any) => \n    PropertyVersionItemSchema.safeParse(item).success\n  );\n}"
+    },
+    {
+      "file": "src/services/cache-factory.ts",
+      "line": 69,
+      "content": "evictionPolicy: (process.env['CACHE_EVICTION_POLICY'] as any) || 'LRU',",
+      "context": "      maxSize: options?.maxSize || parseInt(process.env['CACHE_MAX_SIZE'] || '10000'),\n      maxMemoryMB: options?.maxMemoryMB || parseInt(process.env['CACHE_MAX_MEMORY_MB'] || '100'),\n      defaultTTL: options?.defaultTTL || parseInt(process.env['CACHE_DEFAULT_TTL'] || '300'),\n      evictionPolicy: (process.env['CACHE_EVICTION_POLICY'] as any) || 'LRU',\n      enableMetrics: process.env['CACHE_METRICS'] !== 'false',\n      enableCompression: process.env['CACHE_COMPRESSION'] !== 'false',\n      compressionThreshold: parseInt(process.env['CACHE_COMPRESSION_THRESHOLD'] || '10240'),"
+    },
+    {
+      "file": "src/config/transport-config.ts",
+      "line": 32,
+      "content": "auth: (process.env['AUTH_TYPE'] as any) || 'token',",
+      "context": "          port: parseInt(process.env['WS_PORT'] || '8080'),\n          host: process.env['WS_HOST'] || '0.0.0.0',\n          path: process.env['WS_PATH'] || '/mcp',\n          auth: (process.env['AUTH_TYPE'] as any) || 'token',\n          ssl: process.env['SSL_ENABLED'] === 'true'\n        }\n      };"
+    },
+    {
+      "file": "src/config/transport-config.ts",
+      "line": 45,
+      "content": "auth: (process.env['AUTH_TYPE'] as any) || 'none'",
+      "context": "          host: process.env['SSE_HOST'] || '0.0.0.0',\n          path: process.env['SSE_PATH'] || '/mcp/sse',\n          cors: process.env['CORS_ENABLED'] !== 'false',\n          auth: (process.env['AUTH_TYPE'] as any) || 'none'\n        }\n      };\n      "
+    }
+  ],
+  "other": [
+    {
+      "file": "src/utils/request-timeout-handler.ts",
+      "line": 74,
+      "content": "(timeoutError as any).code = 'ETIMEDOUT';",
+      "context": "      const timeoutError = new Error(\n        `Operation${operationName ? ` '${operationName}'` : ''} timed out after ${timeout}ms`\n      );\n      (timeoutError as any).code = 'ETIMEDOUT';\n      (timeoutError as any).timeout = timeout;\n      throw timeoutError;\n    }"
+    },
+    {
+      "file": "src/utils/request-timeout-handler.ts",
+      "line": 75,
+      "content": "(timeoutError as any).timeout = timeout;",
+      "context": "        `Operation${operationName ? ` '${operationName}'` : ''} timed out after ${timeout}ms`\n      );\n      (timeoutError as any).code = 'ETIMEDOUT';\n      (timeoutError as any).timeout = timeout;\n      throw timeoutError;\n    }\n    "
+    },
+    {
+      "file": "src/utils/request-timeout-handler.ts",
+      "line": 164,
+      "content": "(controller as any).timeoutId = timeoutId;",
+      "context": "    }, timeout);\n    \n    // Store controller with timeout ID for cleanup\n    (controller as any).timeoutId = timeoutId;\n    this.controllers.set(operationId, controller);\n    \n    return controller.signal;"
+    },
+    {
+      "file": "src/utils/request-timeout-handler.ts",
+      "line": 176,
+      "content": "const timeoutId = (controller as any).timeoutId;",
+      "context": "  clearTimeout(operationId: string): void {\n    const controller = this.controllers.get(operationId);\n    if (controller) {\n      const timeoutId = (controller as any).timeoutId;\n      if (timeoutId) {\n        clearTimeout(timeoutId);\n      }"
+    },
+    {
+      "file": "src/utils/request-timeout-handler.ts",
+      "line": 189,
+      "content": "const timeoutId = (controller as any).timeoutId;",
+      "context": "   */\n  clearAll(): void {\n    for (const [, controller] of this.controllers) {\n      const timeoutId = (controller as any).timeoutId;\n      if (timeoutId) {\n        clearTimeout(timeoutId);\n      }"
+    },
+    {
+      "file": "src/utils/property-type-guards.ts",
+      "line": 258,
+      "content": "}, {} as any);",
+      "context": "      acc[key as keyof T] = value;\n    }\n    return acc;\n  }, {} as any);\n}"
+    },
+    {
+      "file": "src/utils/mcp-2025-migration.ts",
+      "line": 143,
+      "content": "undefined as any as T,",
+      "context": "\n      return createMcp2025Response(\n        false,\n        undefined as any as T,\n        _error instanceof Error ? _error.message : 'Unknown error',\n        meta,\n      );"
+    },
+    {
+      "file": "src/utils/health-check.ts",
+      "line": 60,
+      "content": "(server as any).setCustomHandler?.('health', async () => {",
+      "context": "): void {\n  // Add custom health check handler\n  // Note: 'health' is a custom method, not part of standard MCP\n  (server as any).setCustomHandler?.('health', async () => {\n    healthLogger.debug('Health check requested');\n    \n    const memUsage = process.memoryUsage();"
+    },
+    {
+      "file": "src/utils/api-response-validator.ts",
+      "line": 49,
+      "content": "return accessor(obj as any) ?? defaultValue;",
+      "context": "export function safeAccess<T>(obj: unknown, accessor: (obj: any) => T, defaultValue: T): T {\n  try {\n    if (obj && typeof obj === 'object') {\n      return accessor(obj as any) ?? defaultValue;\n    }\n    return defaultValue;\n  } catch {"
+    },
+    {
+      "file": "src/types/jsonrpc.ts",
+      "line": 89,
+      "content": "(message as any).jsonrpc === '2.0' &&",
+      "context": "    typeof message === 'object' &&\n    message !== null &&\n    'jsonrpc' in message &&\n    (message as any).jsonrpc === '2.0' &&\n    'method' in message &&\n    typeof (message as any).method === 'string' &&\n    ('id' in message || !('id' in message)) // id is optional for notifications"
+    },
+    {
+      "file": "src/types/jsonrpc.ts",
+      "line": 91,
+      "content": "typeof (message as any).method === 'string' &&",
+      "context": "    'jsonrpc' in message &&\n    (message as any).jsonrpc === '2.0' &&\n    'method' in message &&\n    typeof (message as any).method === 'string' &&\n    ('id' in message || !('id' in message)) // id is optional for notifications\n  );\n}"
+    },
+    {
+      "file": "src/types/jsonrpc.ts",
+      "line": 104,
+      "content": "(message as any).jsonrpc === '2.0' &&",
+      "context": "    typeof message === 'object' &&\n    message !== null &&\n    'jsonrpc' in message &&\n    (message as any).jsonrpc === '2.0' &&\n    'id' in message &&\n    (('result' in message && !('error' in message)) ||\n      (!('result' in message) && 'error' in message))"
+    },
+    {
+      "file": "src/tools/universal-search-with-cache.ts",
+      "line": 106,
+      "content": "const property = result.property as any;",
+      "context": "        results.performance.cacheHit = true;\n\n        for (const result of cacheResults) {\n          const property = result.property as any;\n\n          // Get detailed info if requested\n          if (detailed && !property.hostnames) {"
+    },
+    {
+      "file": "src/tools/universal-search-with-cache.ts",
+      "line": 132,
+      "content": "(property as any).hostnames = await cache.getPropertyHostnames(client, property, customer);",
+      "context": "\n          if (property) {\n            if (detailed) {\n              (property as any).hostnames = await cache.getPropertyHostnames(client, property, customer);\n            }\n\n            results.matches.push({"
+    },
+    {
+      "file": "src/tools/secure-by-default-onboarding.ts",
+      "line": 748,
+      "content": "// Check if property has any activations",
+      "context": " */\nasync function rollbackProperty(client: AkamaiClient, propertyId: string): Promise<void> {\n  try {\n    // Check if property has any activations\n    const propertyResponse = await client.request({\n      path: `/papi/v1/properties/${propertyId}`,\n      method: 'GET',"
+    },
+    {
+      "file": "src/tools/property-manager-tools.ts",
+      "line": 1920,
+      "content": "if (args.includeMetadata && 'metadata' in version && (version as any).metadata) {",
+      "context": "        text += `  └ Note: ${version.note}\\n`;\n      }\n\n      if (args.includeMetadata && 'metadata' in version && (version as any).metadata) {\n        const metadata =\n          typeof (version as any).metadata === 'string' ? JSON.parse((version as any).metadata) : (version as any).metadata;\n        if (metadata.tags) {"
+    },
+    {
+      "file": "src/tools/property-manager-tools.ts",
+      "line": 1922,
+      "content": "typeof (version as any).metadata === 'string' ? JSON.parse((version as any).metadata) : (version as any).metadata;",
+      "context": "\n      if (args.includeMetadata && 'metadata' in version && (version as any).metadata) {\n        const metadata =\n          typeof (version as any).metadata === 'string' ? JSON.parse((version as any).metadata) : (version as any).metadata;\n        if (metadata.tags) {\n          text += `  └ Tags: ${metadata.tags}\\n`;\n        }"
+    },
+    {
+      "file": "src/tools/property-manager-rules-tools.ts",
+      "line": 100,
+      "content": "for (const behavior of behaviors as any[]) {",
+      "context": "    for (const [category, behaviors] of Object.entries(behaviorsByCategory)) {\n      text += `## ${category}\\n\\n`;\n\n      for (const behavior of behaviors as any[]) {\n        text += `### ${behavior.displayName || behavior.name}\\n`;\n        text += `- **Name:** \\`${behavior.name}\\`\\n`;\n        if (behavior.description) {"
+    },
+    {
+      "file": "src/tools/property-manager-rules-tools.ts",
+      "line": 241,
+      "content": "for (const criterion of criteria as any[]) {",
+      "context": "    for (const [category, criteria] of Object.entries(criteriaByCategory)) {\n      text += `## ${category}\\n\\n`;\n\n      for (const criterion of criteria as any[]) {\n        text += `### ${criterion.displayName || criterion.name}\\n`;\n        text += `- **Name:** \\`${criterion.name}\\`\\n`;\n        if (criterion.description) {"
+    },
+    {
+      "file": "src/tools/property-manager-rules-tools.ts",
+      "line": 550,
+      "content": "const firstMatch = (matches as any[])[0];",
+      "context": "        }, {});\n\n        for (const [propertyId, matches] of Object.entries(byProperty)) {\n          const firstMatch = (matches as any[])[0];\n          text += `### ${firstMatch.propertyName} (${propertyId})\\n`;\n          text += `- **Contract:** ${firstMatch.contractId}\\n`;\n          text += `- **Group:** ${firstMatch.groupId}\\n`;"
+    },
+    {
+      "file": "src/tools/property-manager-rules-tools.ts",
+      "line": 554,
+      "content": "text += `- **Versions with matches:** ${(matches as any[]).length}\\n`;",
+      "context": "          text += `### ${firstMatch.propertyName} (${propertyId})\\n`;\n          text += `- **Contract:** ${firstMatch.contractId}\\n`;\n          text += `- **Group:** ${firstMatch.groupId}\\n`;\n          text += `- **Versions with matches:** ${(matches as any[]).length}\\n`;\n\n          for (const match of matches as any[]) {\n            text += `  - Version ${match.propertyVersion}: ${match.matchLocations?.length || 0} match locations\\n`;"
+    },
+    {
+      "file": "src/tools/property-manager-rules-tools.ts",
+      "line": 556,
+      "content": "for (const match of matches as any[]) {",
+      "context": "          text += `- **Group:** ${firstMatch.groupId}\\n`;\n          text += `- **Versions with matches:** ${(matches as any[]).length}\\n`;\n\n          for (const match of matches as any[]) {\n            text += `  - Version ${match.propertyVersion}: ${match.matchLocations?.length || 0} match locations\\n`;\n          }\n          text += '\\n';"
+    },
+    {
+      "file": "src/tools/integration-testing-tools.ts",
+      "line": 363,
+      "content": "(items as any[]).forEach((item, index) => {",
+      "context": "    for (const [type, items] of Object.entries(groupedData)) {\n      responseText += `### ${type.toUpperCase()}\\n\\n`;\n\n      (items as any[]).forEach((item, index) => {\n        responseText += `${index + 1}. `;\n\n        if (item.type === 'contact') {"
+    },
+    {
+      "file": "src/tools/includes-tools.ts",
+      "line": 70,
+      "content": "(typeIncludes as any[]).forEach((include: any) => {",
+      "context": "    for (const [type, typeIncludes] of Object.entries(groupedIncludes)) {\n      responseText += `## ${type} Includes\\n\\n`;\n\n      (typeIncludes as any[]).forEach((include: any) => {\n        responseText += `### ${include.includeName}\\n`;\n        responseText += `- **ID:** ${include.includeId}\\n`;\n        responseText += `- **Version:** ${include.latestVersion || 'N/A'}\\n`;"
+    },
+    {
+      "file": "src/tools/includes-tools.ts",
+      "line": 93,
+      "content": "responseText += `- **${type}:** ${(typeIncludes as any[]).length} includes\\n`;",
+      "context": "    // Summary statistics\n    responseText += '## Summary\\n\\n';\n    for (const [type, typeIncludes] of Object.entries(groupedIncludes)) {\n      responseText += `- **${type}:** ${(typeIncludes as any[]).length} includes\\n`;\n    }\n\n    return {"
+    },
+    {
+      "file": "src/tools/dns-dnssec-operations.ts",
+      "line": 155,
+      "content": "const response = obj as any;",
+      "context": "// CODE KAI: Type guard functions for runtime validation\nexport function isDNSSECKeysResponse(obj: any): obj is DNSSECKeysResponse {\n  if (!obj || typeof obj !== 'object') {return false;}\n  const response = obj as any;\n  return Array.isArray(response.keys) && \n    response.keys.every((key: any) => DNSSECKeySchema.safeParse(key).success);\n}"
+    },
+    {
+      "file": "src/tools/dns-dnssec-operations.ts",
+      "line": 162,
+      "content": "const response = obj as any;",
+      "context": "\nexport function isDNSSECDSRecordsResponse(obj: any): obj is DNSSECDSRecordsResponse {\n  if (!obj || typeof obj !== 'object') {return false;}\n  const response = obj as any;\n  return Array.isArray(response.dsRecords) && \n    response.dsRecords.every((ds: any) => DSRecordSchema.safeParse(ds).success);\n}"
+    },
+    {
+      "file": "src/tools/cpcode-tools.ts",
+      "line": 80,
+      "content": "const sortedCpcodes = (cpcodes as any[]).sort(",
+      "context": "      text += `## ${formatContractDisplay(contractId)}\\n\\n`;\n\n      // Sort by CP Code ID\n      const sortedCpcodes = (cpcodes as any[]).sort(\n        (a, b) =>\n          parseInt(a.cpcodeId.replace('cpc_', '')) - parseInt(b.cpcodeId.replace('cpc_', '')),\n      );"
+    },
+    {
+      "file": "src/testing/test-utils.ts",
+      "line": 18,
+      "content": "} as any;",
+      "context": "    _accountSwitchKey: undefined,\n    _edgercPath: '.edgerc',\n    _section: 'default',\n  } as any;\n\n  // Make request point to _request for compatibility\n  mockClient.request = mockClient._request;"
+    },
+    {
+      "file": "src/services/sonarcloud-client.ts",
+      "line": 149,
+      "content": "? (error.response.data as any).errors[0]?.msg || error.message",
+      "context": "      (error: AxiosError) => {\n        if (error.response) {\n          const message = error.response.data && typeof error.response.data === 'object' && 'errors' in error.response.data\n            ? (error.response.data as any).errors[0]?.msg || error.message\n            : error.message;\n          \n          throw new Error(`SonarCloud API Error: ${message} (Status: ${error.response.status})`);"
+    },
+    {
+      "file": "src/services/BaseAkamaiClient.ts",
+      "line": 392,
+      "content": "method: method as any,",
+      "context": "        // Make request using EdgeGrid auth\n        const response = await this.auth._request<T>({\n          path,\n          method: method as any,\n          body,\n          queryParams: queryParams || {},\n          headers: {"
+    },
+    {
+      "file": "src/middleware/jsonrpc-middleware.ts",
+      "line": 133,
+      "content": "const req = _request as any;",
+      "context": "      throw new Error('Request must be an object');\n    }\n\n    const req = _request as any;\n\n    // Check required fields\n    if (req.jsonrpc !== '2.0') {"
+    },
+    {
+      "file": "src/servers/security-server.ts",
+      "line": 465,
+      "content": "const typedArgs = args as any;",
+      "context": "\n      try {\n        let result;\n        const typedArgs = args as any;\n\n        // Check if it's an app sec tool\n        const appSecTool = basicAppSecTools.find((t) => t.name === name);"
+    },
+    {
+      "file": "src/servers/reporting-server.ts",
+      "line": 656,
+      "content": "return await tool.handler(args as any || {});",
+      "context": "  }\n\n  try {\n    return await tool.handler(args as any || {});\n  } catch (error) {\n    if (error instanceof z.ZodError) {\n      const errorMessage = `Invalid arguments: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`;"
+    },
+    {
+      "file": "src/auth/TokenManager.ts",
+      "line": 392,
+      "content": "const authTag = (cipher as any).getAuthTag();",
+      "context": "    \n    const cipher = createCipheriv(this.algorithm, key, iv);\n    const encrypted = Buffer.concat([cipher.update(data, 'utf8'), cipher.final()]);\n    const authTag = (cipher as any).getAuthTag();\n    \n    return {\n      encrypted: encrypted.toString('base64'),"
+    },
+    {
+      "file": "src/auth/TokenManager.ts",
+      "line": 413,
+      "content": "(decipher as any).setAuthTag(authTag);",
+      "context": "    \n    const key = await this.deriveKey(salt);\n    const decipher = createDecipheriv(this.algorithm, key, iv);\n    (decipher as any).setAuthTag(authTag);\n    \n    const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);\n    return decrypted.toString('utf8');"
+    }
+  ]
+}

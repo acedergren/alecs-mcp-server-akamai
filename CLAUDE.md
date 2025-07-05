@@ -13,6 +13,7 @@
 - .archive is the default folder for archiving things that is not needed anymore and should not be pushed to git
 - No emoji in code
 - Always use the correct response types! Sloppy code breaks apps! We have the correct types in the openapi spec in docs/api
+- All scripts that is not needed to build should go in scripts/ folder. Scripts folder should not be in build
 
 ## Akamai API Access and Permissions
 

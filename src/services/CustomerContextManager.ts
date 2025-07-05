@@ -37,11 +37,7 @@
 import { AkamaiClient } from '../akamai-client';
 import { logger } from '../utils/logger';
 
-// Session token for authentication
-interface SessionToken {
-  token: string;
-  expires_at: Date;
-}
+// Session token interface removed - not used
 
 interface CustomerContext {
   customerId: string;
@@ -57,41 +53,20 @@ interface AuthSession {
   availableContexts: CustomerContext[];
 }
 
-interface AuthorizationContext {
-  subject: string;
-  resource: string;
-  action: string;
-  context?: any;
-  user?: string;
-}
+// AuthorizationContext interface removed - not used
 
 interface AuthorizationDecision {
   allowed: boolean;
   reason?: string;
 }
 
-interface CredentialRotationSchedule {
-  nextRotation: Date;
-  frequency: string;
-}
+// CredentialRotationSchedule interface removed - not used
 
-interface CustomerIsolationPolicy {
-  isolated: boolean;
-  level: string;
-}
+// CustomerIsolationPolicy interface removed - not used
 
-interface Role {
-  id: string;
-  name: string;
-  permissions: string[];
-}
+// Role interface removed - not used
 
-interface EdgeGridCredentials {
-  client_token: string;
-  client_secret: string;
-  access_token: string;
-  host: string;
-}
+// EdgeGridCredentials interface removed - not used
 
 // Simple session management for token-based authentication
 class SessionManager {

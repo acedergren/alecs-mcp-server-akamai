@@ -29,7 +29,7 @@ export function getTransportFromEnv(): TransportConfig {
           port: parseInt(process.env['WS_PORT'] || '8080'),
           host: process.env['WS_HOST'] || '0.0.0.0',
           path: process.env['WS_PATH'] || '/mcp',
-          auth: (process.env['AUTH_TYPE'] as any) || 'token',
+          auth: (process.env['AUTH_TYPE'] as 'none' | 'token') || 'token',
           ssl: process.env['SSL_ENABLED'] === 'true'
         }
       };
@@ -42,7 +42,7 @@ export function getTransportFromEnv(): TransportConfig {
           host: process.env['SSE_HOST'] || '0.0.0.0',
           path: process.env['SSE_PATH'] || '/mcp/sse',
           cors: process.env['CORS_ENABLED'] !== 'false',
-          auth: (process.env['AUTH_TYPE'] as any) || 'none'
+          auth: (process.env['AUTH_TYPE'] as 'none' | 'token') || 'none'
         }
       };
       

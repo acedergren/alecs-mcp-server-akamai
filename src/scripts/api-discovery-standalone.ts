@@ -761,7 +761,7 @@ async function main() {
         }
         break;
 
-      case 'validate':
+      case 'validate': {
         console.log('[SEARCH] Running comprehensive API validation...');
         const results = await discovery.discoverAll(customer);
         
@@ -772,6 +772,7 @@ async function main() {
           console.log(`  ${status} ${key} (${result.responseTime}ms) - Compliance: ${compliance}`);
         });
         break;
+      }
 
       default:
         console.error(`Unknown command: ${command}`);

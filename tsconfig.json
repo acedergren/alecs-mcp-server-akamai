@@ -84,7 +84,9 @@
     "docs/**/*",
     "src/testing/**/*",
     "src/services/CustomerContextManager.ts",
-    "src/servers/*-consolidated.ts"
+    "src/servers/*-consolidated.ts",
+    "src/scripts/**/*",
+    "src/audit/critical-fixes/**/*"
   ],
   "ts-node": {
     "require": [

@@ -5,7 +5,7 @@
  * They serve as a safety net to ensure fixes don't break functionality.
  */
 
-import { describe, it, expect, beforeAll } from '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
 
 describe('Baseline Runtime Behavior', () => {
   describe('Type Coercion Behavior', () => {
@@ -87,8 +87,8 @@ describe('Baseline Runtime Behavior', () => {
   });
 });
 
-// Export test utilities for other tests
-export const testUtils = {
+// Test utilities for this file only
+const testUtils = {
   createMockClient: () => ({
     getCustomer: () => 'test-customer',
     request: jest.fn()

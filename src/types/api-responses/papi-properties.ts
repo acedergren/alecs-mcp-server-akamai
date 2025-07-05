@@ -250,13 +250,15 @@ export function isPapiError(response: unknown): response is PapiErrorResponse {
  * Type guard to check if response is a valid properties list
  */
 export function isPapiPropertiesResponse(response: unknown): response is PapiPropertiesListResponse {
+  const typedResponse = response as Record<string, unknown>;
   return (
     typeof response === 'object' &&
     response !== null &&
     'properties' in response &&
-    typeof (response as any).properties === 'object' &&
-    'items' in (response as any).properties &&
-    Array.isArray((response as any).properties.items)
+    typeof typedResponse['properties'] === 'object' &&
+    typedResponse['properties'] !== null &&
+    'items' in (typedResponse['properties'] as Record<string, unknown>) &&
+    Array.isArray((typedResponse['properties'] as Record<string, unknown>)['items'])
   );
 }
 
@@ -264,13 +266,15 @@ export function isPapiPropertiesResponse(response: unknown): response is PapiPro
  * Type guard to check if response is a valid groups list
  */
 export function isPapiGroupsResponse(response: unknown): response is PapiGroupsListResponse {
+  const typedResponse = response as Record<string, unknown>;
   return (
     typeof response === 'object' &&
     response !== null &&
     'groups' in response &&
-    typeof (response as any).groups === 'object' &&
-    'items' in (response as any).groups &&
-    Array.isArray((response as any).groups.items)
+    typeof typedResponse['groups'] === 'object' &&
+    typedResponse['groups'] !== null &&
+    'items' in (typedResponse['groups'] as Record<string, unknown>) &&
+    Array.isArray((typedResponse['groups'] as Record<string, unknown>)['items'])
   );
 }
 
@@ -472,14 +476,16 @@ export interface PapiPropertyHostnamesResponse {
  * Type guard to check if response is property details
  */
 export function isPapiPropertyDetailsResponse(response: unknown): response is PapiPropertyDetailsResponse {
+  const typedResponse = response as Record<string, unknown>;
   return (
     typeof response === 'object' &&
     response !== null &&
     'properties' in response &&
-    typeof (response as any).properties === 'object' &&
-    'items' in (response as any).properties &&
-    Array.isArray((response as any).properties.items) &&
-    (response as any).properties.items.length === 1
+    typeof typedResponse['properties'] === 'object' &&
+    typedResponse['properties'] !== null &&
+    'items' in (typedResponse['properties'] as Record<string, unknown>) &&
+    Array.isArray((typedResponse['properties'] as Record<string, unknown>)['items']) &&
+    ((typedResponse['properties'] as Record<string, unknown>)['items'] as Array<unknown>).length === 1
   );
 }
 
@@ -487,13 +493,15 @@ export function isPapiPropertyDetailsResponse(response: unknown): response is Pa
  * Type guard to check if response is property versions
  */
 export function isPapiPropertyVersionsResponse(response: unknown): response is PapiPropertyVersionsResponse {
+  const typedResponse = response as Record<string, unknown>;
   return (
     typeof response === 'object' &&
     response !== null &&
     'versions' in response &&
-    typeof (response as any).versions === 'object' &&
-    'items' in (response as any).versions &&
-    Array.isArray((response as any).versions.items)
+    typeof typedResponse['versions'] === 'object' &&
+    typedResponse['versions'] !== null &&
+    'items' in (typedResponse['versions'] as Record<string, unknown>) &&
+    Array.isArray((typedResponse['versions'] as Record<string, unknown>)['items'])
   );
 }
 
@@ -501,13 +509,15 @@ export function isPapiPropertyVersionsResponse(response: unknown): response is P
  * Type guard to check if response is property hostnames
  */
 export function isPapiPropertyHostnamesResponse(response: unknown): response is PapiPropertyHostnamesResponse {
+  const typedResponse = response as Record<string, unknown>;
   return (
     typeof response === 'object' &&
     response !== null &&
     'hostnames' in response &&
-    typeof (response as any).hostnames === 'object' &&
-    'items' in (response as any).hostnames &&
-    Array.isArray((response as any).hostnames.items)
+    typeof typedResponse['hostnames'] === 'object' &&
+    typedResponse['hostnames'] !== null &&
+    'items' in (typedResponse['hostnames'] as Record<string, unknown>) &&
+    Array.isArray((typedResponse['hostnames'] as Record<string, unknown>)['items'])
   );
 }
 
@@ -515,13 +525,15 @@ export function isPapiPropertyHostnamesResponse(response: unknown): response is 
  * Type guard to check if response is contracts list
  */
 export function isPapiContractsResponse(response: unknown): response is PapiContractsListResponse {
+  const typedResponse = response as Record<string, unknown>;
   return (
     typeof response === 'object' &&
     response !== null &&
     'contracts' in response &&
-    typeof (response as any).contracts === 'object' &&
-    'items' in (response as any).contracts &&
-    Array.isArray((response as any).contracts.items)
+    typeof typedResponse['contracts'] === 'object' &&
+    typedResponse['contracts'] !== null &&
+    'items' in (typedResponse['contracts'] as Record<string, unknown>) &&
+    Array.isArray((typedResponse['contracts'] as Record<string, unknown>)['items'])
   );
 }
 
@@ -611,13 +623,15 @@ export interface PapiPropertyCreateResponse {
  * Type guard to check if response is products list
  */
 export function isPapiProductsResponse(response: unknown): response is PapiProductsListResponse {
+  const typedResponse = response as Record<string, unknown>;
   return (
     typeof response === 'object' &&
     response !== null &&
     'products' in response &&
-    typeof (response as any).products === 'object' &&
-    'items' in (response as any).products &&
-    Array.isArray((response as any).products.items)
+    typeof typedResponse['products'] === 'object' &&
+    typedResponse['products'] !== null &&
+    'items' in (typedResponse['products'] as Record<string, unknown>) &&
+    Array.isArray((typedResponse['products'] as Record<string, unknown>)['items'])
   );
 }
 
@@ -625,13 +639,15 @@ export function isPapiProductsResponse(response: unknown): response is PapiProdu
  * Type guard to check if response is rule formats
  */
 export function isPapiRuleFormatsResponse(response: unknown): response is PapiRuleFormatsResponse {
+  const typedResponse = response as Record<string, unknown>;
   return (
     typeof response === 'object' &&
     response !== null &&
     'ruleFormats' in response &&
-    typeof (response as any).ruleFormats === 'object' &&
-    'items' in (response as any).ruleFormats &&
-    Array.isArray((response as any).ruleFormats.items)
+    typeof typedResponse['ruleFormats'] === 'object' &&
+    typedResponse['ruleFormats'] !== null &&
+    'items' in (typedResponse['ruleFormats'] as Record<string, unknown>) &&
+    Array.isArray((typedResponse['ruleFormats'] as Record<string, unknown>)['items'])
   );
 }
 
@@ -639,10 +655,11 @@ export function isPapiRuleFormatsResponse(response: unknown): response is PapiRu
  * Type guard to check if response is property create response
  */
 export function isPapiPropertyCreateResponse(response: unknown): response is PapiPropertyCreateResponse {
+  const typedResponse = response as Record<string, unknown>;
   return (
     typeof response === 'object' &&
     response !== null &&
     'propertyLink' in response &&
-    typeof (response as any).propertyLink === 'string'
+    typeof typedResponse['propertyLink'] === 'string'
   );
 }

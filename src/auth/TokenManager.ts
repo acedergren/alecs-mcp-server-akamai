@@ -389,7 +389,7 @@ export class TokenManager {
     
     const cipher = createCipheriv(this.algorithm, key, iv);
     const encrypted = Buffer.concat([cipher.update(data, 'utf8'), cipher.final()]);
-    const authTag = (cipher as any).getAuthTag();
+    const authTag = cipher.getAuthTag();
     
     return {
       encrypted: encrypted.toString('base64'),
@@ -410,7 +410,7 @@ export class TokenManager {
     
     const key = await this.deriveKey(salt);
     const decipher = createDecipheriv(this.algorithm, key, iv);
-    (decipher as any).setAuthTag(authTag);
+    decipher.setAuthTag(authTag);
     
     const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
     return decrypted.toString('utf8');
@@ -442,7 +442,7 @@ export class TokenManager {
       if (metadata.expiresAt) {metadata.expiresAt = new Date(metadata.expiresAt);}
       
       return metadata;
-    } catch (error) {
+    } catch (_error) {
       // Token not found or decryption failed
       return null;
     }

@@ -1,0 +1,113 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# SonarQube Docker scan after git commit\nif echo \"${CLAUDE_TOOL_PARAMS_COMMAND}\" | grep -qE '^git commit' && [ \"${CLAUDE_TOOL_RESULT_EXIT_CODE}\" = \"0\" ]; then\n  cd /Users/acedergr/Projects/alecs-mcp-server-akamai\n  \n  # Check if Docker is available first\n  if command -v docker &> /dev/null && docker info &> /dev/null 2>&1; then\n    echo \"🐳 Running SonarQube analysis with Docker...\"\n    ./scripts/sonarqube-docker.sh quick\n  elif command -v sonar-scanner &> /dev/null && [ ! -z \"$SONAR_TOKEN\" ]; then\n    echo \"📊 Running SonarQube analysis locally...\"\n    ./scripts/sonarqube-integration.sh\n  else\n    echo \"⚠️  Skipping SonarQube - Docker or scanner not available\"\n  fi\nfi"
+          },
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# SonarQube scan after git push\nif echo \"${CLAUDE_TOOL_PARAMS_COMMAND}\" | grep -qE '^git push' && [ \"${CLAUDE_TOOL_RESULT_EXIT_CODE}\" = \"0\" ]; then\n  cd /Users/acedergr/Projects/alecs-mcp-server-akamai\n  \n  echo \"📊 Push successful - triggering post-push SonarQube analysis...\"\n  \n  # Get current branch\n  branch=$(git branch --show-current)\n  \n  # Run analysis with branch information\n  if [ ! -z \"$SONAR_TOKEN\" ] && command -v sonar-scanner &> /dev/null; then\n    sonar-scanner \\\n      -Dsonar.token=\"$SONAR_TOKEN\" \\\n      -Dsonar.host.url=\"${SONAR_HOST_URL:-https://sonarcloud.io}\" \\\n      -Dsonar.branch.name=\"$branch\" \\\n      > /tmp/sonar-push-scan.log 2>&1 &\n    \n    echo \"📊 SonarQube analysis running in background...\"\n    echo \"📋 Check results at: ${SONAR_HOST_URL:-https://sonarcloud.io}/dashboard?id=alecs-mcp-server-akamai\"\n  fi\nfi"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# TypeScript compilation check\nif [[ \"${CLAUDE_FILE_PATH}\" == *.ts ]] && [[ \"${CLAUDE_FILE_PATH}\" != *test* ]]; then\n  cd /Users/acedergr/Projects/alecs-mcp-server-akamai\n  echo \"🔍 Checking TypeScript compilation for ${CLAUDE_FILE_PATH}...\"\n  if ! npx tsc --noEmit \"${CLAUDE_FILE_PATH}\" 2>&1; then\n    echo \"❌ TypeScript compilation failed!\"\n    exit 2\n  fi\nfi"
+          },
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# NO ANY TYPE FOR API RESPONSES - Critical for type safety\nif [[ \"${CLAUDE_FILE_PATH}\" == *.ts ]]; then\n  # Check for any type usage in response/API contexts\n  RESPONSE_ANY_PATTERNS=(\n    'response.*:\\s*any'\n    'data.*:\\s*any'\n    'result.*:\\s*any'\n    'body.*:\\s*any'\n    'payload.*:\\s*any'\n    'await.*\\.request.*:\\s*any'\n    'await.*\\.get.*:\\s*any'\n    'await.*\\.post.*:\\s*any'\n    'await.*\\.makeRequest.*:\\s*any'\n    'apiResponse.*:\\s*any'\n    'Promise<any>'\n    'Observable<any>'\n  )\n  \n  FOUND_VIOLATION=0\n  VIOLATIONS=\"\"\n  \n  for pattern in \"${RESPONSE_ANY_PATTERNS[@]}\"; do\n    if matches=$(grep -Ein \"$pattern\" \"${CLAUDE_FILE_PATH}\" | grep -v '// eslint-disable\\|// @ts-ignore\\|// @ts-expect-error'); then\n      FOUND_VIOLATION=1\n      VIOLATIONS=\"${VIOLATIONS}${matches}\\n\"\n    fi\n  done\n  \n  if [ $FOUND_VIOLATION -eq 1 ]; then\n    echo \"\\n🚫 BLOCKED: 'any' type detected for API responses in ${CLAUDE_FILE_PATH##*/}\"\n    echo \"❌ API responses must have proper types for safety!\"\n    echo \"\\n📋 Found these violations:\"\n    echo -e \"$VIOLATIONS\" | head -10\n    echo \"\\n✅ Required fixes for API responses:\"\n    echo \"  1. Use proper response types from 'types/api-responses'\"\n    echo \"  2. Use 'unknown' with validateApiResponse()\"\n    echo \"  3. Define Zod schemas for runtime validation\"\n    echo \"\\n📚 Correct patterns from codebase:\"\n    echo \"  // ✅ GOOD:\"\n    echo \"  const response: unknown = await client.request(...);\"\n    echo \"  validateApiResponse(response, PropertyResponseSchema);\"\n    echo \"  \"\n    echo \"  // ✅ GOOD:\"\n    echo \"  const response = await client.request(...) as PropertyResponse;\"\n    echo \"  if (!isValidPropertyResponse(response)) { ... }\"\n    exit 2\n  fi\nfi"
+          },
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Tool documentation header check\nif [[ \"${CLAUDE_FILE_PATH}\" == */tools/*.ts ]] && [[ \"${CLAUDE_FILE_PATH}\" != *test* ]]; then\n  if ! grep -q 'SNOW LEOPARD ARCHITECTURE' \"${CLAUDE_FILE_PATH}\"; then\n    echo \"❌ ERROR: Missing required SNOW LEOPARD ARCHITECTURE documentation header\"\n    echo \"📝 All tool files must include comprehensive documentation per CODE_ANNOTATION.md\"\n    exit 2\n  fi\n  if ! grep -q 'CODE KAI PRINCIPLES' \"${CLAUDE_FILE_PATH}\"; then\n    echo \"❌ ERROR: Missing required CODE KAI PRINCIPLES section\"\n    exit 2\n  fi\nfi"
+          },
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Multi-customer parameter check\nif [[ \"${CLAUDE_FILE_PATH}\" == */tools/*.ts ]] && [[ \"${CLAUDE_FILE_PATH}\" != *test* ]] && [[ \"${CLAUDE_FILE_PATH}\" != *-registry.ts ]]; then\n  if ! grep -q 'customer?: string' \"${CLAUDE_FILE_PATH}\"; then\n    echo \"⚠️  WARNING: Missing customer parameter - required for multi-tenant support\"\n    echo \"📋 All tools must accept optional customer parameter\"\n  fi\nfi"
+          },
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# API response validation check\nif [[ \"${CLAUDE_FILE_PATH}\" == */tools/*.ts ]] && grep -q 'makeRequest' \"${CLAUDE_FILE_PATH}\" 2>/dev/null; then\n  if ! grep -q 'validateApiResponse' \"${CLAUDE_FILE_PATH}\"; then\n    echo \"⚠️  WARNING: API response validation missing\"\n    echo \"📋 Use validateApiResponse() for all API responses\"\n  fi\n  if ! grep -q 'isValid.*Response' \"${CLAUDE_FILE_PATH}\"; then\n    echo \"⚠️  WARNING: Type guard validation missing\"\n    echo \"📋 Use type guards like isValidPropertyResponse() before processing\"\n  fi\nfi"
+          },
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Import validation for tools\nif [[ \"${CLAUDE_FILE_PATH}\" == */tools/*.ts ]] && [[ \"${CLAUDE_FILE_PATH}\" != *test* ]]; then\n  # Check for required imports\n  missing_imports=()\n  \n  if ! grep -q \"from '../utils/pino-logger'\" \"${CLAUDE_FILE_PATH}\"; then\n    missing_imports+=(\"pino-logger\")\n  fi\n  \n  if ! grep -q \"from '../utils/error-diagnostics'\" \"${CLAUDE_FILE_PATH}\"; then\n    missing_imports+=(\"error-diagnostics\")\n  fi\n  \n  if grep -q 'validateApiResponse' \"${CLAUDE_FILE_PATH}\" && ! grep -q \"from '../utils/api-response-validator'\" \"${CLAUDE_FILE_PATH}\"; then\n    missing_imports+=(\"api-response-validator\")\n  fi\n  \n  if [ ${#missing_imports[@]} -gt 0 ]; then\n    echo \"⚠️  WARNING: Missing standard imports: ${missing_imports[*]}\"\n  fi\nfi"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# New tool file registry reminder\nif [[ \"${CLAUDE_FILE_PATH}\" == */tools/*-tools.ts ]] && [[ \"${CLAUDE_FILE_PATH}\" != *-registry.ts ]] && [[ \"${CLAUDE_FILE_PATH}\" != *test* ]]; then\n  tool_name=$(basename \"${CLAUDE_FILE_PATH}\" -tools.ts)\n  echo \"📝 REMINDER: Register new tool functions in src/tools/all-tools-registry.ts\"\n  echo \"   Tool file: ${tool_name}-tools.ts\"\nfi"
+          },
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Test file creation reminder\nif [[ \"${CLAUDE_FILE_PATH}\" == */tools/*.ts ]] && [[ \"${CLAUDE_FILE_PATH}\" != *test* ]] && [[ \"${CLAUDE_FILE_PATH}\" != *-registry.ts ]]; then\n  base_name=$(basename \"${CLAUDE_FILE_PATH}\" .ts)\n  test_file=\"/Users/acedergr/Projects/alecs-mcp-server-akamai/src/__tests__/tools/${base_name}.test.ts\"\n  if [ ! -f \"$test_file\" ]; then\n    echo \"⚠️  WARNING: No test file found\"\n    echo \"📝 Create test file: src/__tests__/tools/${base_name}.test.ts\"\n  fi\nfi"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Security check for credentials\nif echo \"${CLAUDE_TOOL_PARAMS_COMMAND}\" | grep -qE '(client_secret|access_token|client_token|edgerc.*cat|edgerc.*less|edgerc.*more)'; then\n  echo \"🚫 BLOCKED: Potential credential exposure detected\"\n  echo \"📋 Use environment variables or secure methods for credentials\"\n  exit 2\nfi\n\n# Check for dangerous commands\nif echo \"${CLAUDE_TOOL_PARAMS_COMMAND}\" | grep -qE '(rm -rf /|sudo rm|chmod 777|curl.*eval|wget.*sh)'; then\n  echo \"🚫 BLOCKED: Dangerous command pattern detected\"\n  exit 2\nfi"
+          },
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Git operations check\nif echo \"${CLAUDE_TOOL_PARAMS_COMMAND}\" | grep -q '^git push'; then\n  echo \"⚠️  WARNING: git push detected - ensure you want to push to remote\"\n  echo \"📋 Current branch: $(cd /Users/acedergr/Projects/alecs-mcp-server-akamai && git branch --show-current)\"\nfi"
+          },
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# SonarQube scan trigger for git commit\nif echo \"${CLAUDE_TOOL_PARAMS_COMMAND}\" | grep -qE '^git commit'; then\n  echo \"🔍 Git commit detected - SonarQube scan will be triggered after commit\"\n  echo \"📋 Make sure SONAR_TOKEN is set in your environment\"\nfi"
+          },
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# SonarQube scan trigger for git push\nif echo \"${CLAUDE_TOOL_PARAMS_COMMAND}\" | grep -qE '^git push'; then\n  cd /Users/acedergr/Projects/alecs-mcp-server-akamai\n  \n  # Check if sonar-scanner is installed\n  if ! command -v sonar-scanner &> /dev/null; then\n    echo \"⚠️  WARNING: sonar-scanner not found in PATH\"\n    echo \"📋 Install with: brew install sonar-scanner (macOS) or download from SonarQube website\"\n    exit 0\n  fi\n  \n  # Check for SONAR_TOKEN\n  if [ -z \"$SONAR_TOKEN\" ]; then\n    echo \"⚠️  WARNING: SONAR_TOKEN environment variable not set\"\n    echo \"📋 Set it with: export SONAR_TOKEN=your-token-here\"\n    echo \"📋 Or add to your ~/.zshrc or ~/.bash_profile\"\n    exit 0\n  fi\n  \n  echo \"📊 Triggering SonarQube analysis before push...\"\n  echo \"📋 This ensures code quality gate passes before pushing\"\nfi"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Prevent hardcoded secrets AND any types\nif [[ \"${CLAUDE_FILE_PATH}\" == *.ts ]] || [[ \"${CLAUDE_FILE_PATH}\" == *.js ]]; then\n  # Create temp file with new content for checking\n  temp_file=$(mktemp)\n  \n  # For Write tool, check the content directly\n  if [ ! -z \"${CLAUDE_TOOL_PARAMS_CONTENT}\" ]; then\n    echo \"${CLAUDE_TOOL_PARAMS_CONTENT}\" > \"$temp_file\"\n  else\n    # For Edit tools, we'll check after the edit\n    exit 0\n  fi\n  \n  # CHECK FOR ANY TYPE IN API/RESPONSE CONTEXTS\n  RESPONSE_PATTERNS=(\n    'response.*:\\s*any'\n    'data.*:\\s*any'\n    'result.*:\\s*any'\n    'body.*:\\s*any'\n    'payload.*:\\s*any'\n    'request.*:\\s*any'\n    'Promise<any>'\n    'Observable<any>'\n    ': any\\s*=.*await'\n  )\n  \n  for pattern in \"${RESPONSE_PATTERNS[@]}\"; do\n    if grep -Ei \"$pattern\" \"$temp_file\" | grep -v '// eslint-disable\\|// @ts-ignore'; then\n      echo \"\\n🚫 BLOCKED: Attempting to write 'any' type for API response\"\n      echo \"❌ API responses must have proper types!\"\n      echo \"\\n📋 Found in new content:\"\n      grep -Ei \"response.*:\\s*any|data.*:\\s*any|Promise<any>\" \"$temp_file\" | head -5\n      echo \"\\n✅ Use proper types for API responses:\"\n      echo \"  - Import types: import { PropertyResponse } from '../types/api-responses'\"\n      echo \"  - Use unknown: const response: unknown = await ...\"\n      echo \"  - Add validation: validateApiResponse(response, schema)\"\n      echo \"\\n📚 Example:\"\n      echo \"  const response: unknown = await client.request(...);\"\n      echo \"  if (!isValidPropertyResponse(response)) {\"\n      echo \"    throw new Error('Invalid response');\"\n      echo \"  }\"\n      rm \"$temp_file\"\n      exit 2\n    fi\n  done\n  \n  # Check for hardcoded secrets\n  if grep -qE '(client_secret|access_token|private_key)\\s*[:=]\\s*[\"'\\''`][a-zA-Z0-9+/]{20,}[\"'\\''`]' \"$temp_file\"; then\n    echo \"🚫 BLOCKED: Hardcoded credentials detected\"\n    echo \"📋 Use environment variables or .edgerc configuration\"\n    rm \"$temp_file\"\n    exit 2\n  fi\n  \n  # Check for account switch keys\n  if grep -qE 'accountSwitchKey\\s*[:=]\\s*[\"'\\''`][A-Z]-[A-Z0-9]+[\"'\\''`]' \"$temp_file\"; then\n    echo \"🚫 BLOCKED: Hardcoded account switch key detected\"\n    rm \"$temp_file\"\n    exit 2\n  fi\n  \n  rm \"$temp_file\"\nfi"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Periodic audit check (runs on notifications)\ncd /Users/acedergr/Projects/alecs-mcp-server-akamai\nif [ -f \"package.json\" ] && grep -q '\"audit:quick\"' package.json; then\n  # Run quick audit and check for critical issues\n  audit_output=$(npm run audit:quick 2>&1 || true)\n  if echo \"$audit_output\" | grep -qE 'CRITICAL|HIGH.*severity'; then\n    echo \"🔴 Critical audit issues detected!\"\n    echo \"📋 Run: npm run audit:fix\"\n  fi\nfi"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "#!/bin/bash\n# Clean up check on stop\ncd /Users/acedergr/Projects/alecs-mcp-server-akamai\n\n# Check for uncommitted changes\nif git status --porcelain | grep -q '^[MADRC]'; then\n  echo \"📝 Uncommitted changes detected:\"\n  git status --short\nfi\n\n# Find temporary files that should be archived\ntemp_files=$(find . -name '*.md' -not -path './docs/*' -not -path './.archive/*' -not -path './node_modules/*' -not -name 'README.md' -not -name 'CLAUDE.md' -not -name 'CODE_ANNOTATION.md' -not -name 'DOCUMENTATION_ARCHITECTURE_PLAN.md' -mtime -1 2>/dev/null)\nif [ ! -z \"$temp_files\" ]; then\n  echo \"📁 Consider archiving these temporary files:\"\n  echo \"$temp_files\" | sed 's/^/   /'\n  echo \"📋 Move to .archive/ directory\"\nfi\n\n# Check for failed tests\nif [ -f \"package.json\" ] && grep -q '\"test\"' package.json; then\n  echo \"📋 Remember to run tests before committing: npm test\"\nfi"
+          }
+        ]
+      }
+    ]
+  }
+}

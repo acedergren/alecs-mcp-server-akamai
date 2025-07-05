@@ -340,7 +340,7 @@ export const serverAuditRules: AuditRule[] = [
           const stateVars = new Set<string>();
           for (const match of sharedState || []) {
             const varName = match.match(/this\.(\w+)/)?.[1];
-            if (varName) stateVars.add(varName);
+            if (varName) {stateVars.add(varName);}
           }
           
           for (const varName of stateVars) {

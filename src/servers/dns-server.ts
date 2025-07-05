@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// @ts-nocheck
 
 /**
  * ALECS DNS Server - DNS Management Module
@@ -521,81 +520,90 @@ class DNSALECSServer {
         switch (name) {
           // Zone Management
           case 'list-zones':
-            result = await listZones(client, args as any);
+            result = await listZones(client, args as Parameters<typeof listZones>[1]);
             break;
           case 'get-zone':
-            result = await getZone(client, args as any);
+            result = await getZone(client, args as Parameters<typeof getZone>[1]);
             break;
           case 'create-zone':
-            result = await createZone(client, args as any);
+            result = await createZone(client, args as Parameters<typeof createZone>[1]);
             break;
           case 'get-zone-contract':
-            result = await getZoneContract(client, args as any);
+            result = await getZoneContract(client, args as Parameters<typeof getZoneContract>[1]);
             break;
           case 'get-zones-dnssec-status':
-            result = await getZonesDNSSECStatus(client, args as any);
+            result = await getZonesDNSSECStatus(client, args as Parameters<typeof getZonesDNSSECStatus>[1]);
             break;
           case 'convert-zone-to-primary':
-            result = await convertZoneToPrimary(client, args as any);
+            result = await convertZoneToPrimary(client, args as Parameters<typeof convertZoneToPrimary>[1]);
             break;
-          case 'submit-bulk-zone-create-request':
-            result = await submitBulkZoneCreateRequest(client, args as any);
+          case 'submit-bulk-zone-create-request': {
+            // Validate args as BulkZoneCreateRequest interface
+            const request = args as Record<string, unknown>;
+            if (!request || typeof request !== 'object') {
+              throw new McpError(ErrorCode.InvalidParams, 'Invalid request parameters');
+            }
+            if (!Array.isArray(request['zones']) || !request['contractId'] || !request['groupId']) {
+              throw new McpError(ErrorCode.InvalidParams, 'Missing required fields: zones, contractId, groupId');
+            }
+            result = await submitBulkZoneCreateRequest(client, request as Parameters<typeof submitBulkZoneCreateRequest>[1]);
             break;
+          }
 
           // Record Management
           case 'list-records':
-            result = await listRecords(client, args as any);
+            result = await listRecords(client, args as Parameters<typeof listRecords>[1]);
             break;
           case 'upsert-record':
-            result = await upsertRecord(client, args as any);
+            result = await upsertRecord(client, args as Parameters<typeof upsertRecord>[1]);
             break;
           case 'delete-record':
-            result = await deleteRecord(client, args as any);
+            result = await deleteRecord(client, args as Parameters<typeof deleteRecord>[1]);
             break;
           case 'get-record-set':
-            result = await getRecordSet(client, args as any);
+            result = await getRecordSet(client, args as Parameters<typeof getRecordSet>[1]);
             break;
           case 'create-multiple-record-sets':
-            result = await createMultipleRecordSets(client, args as any);
+            result = await createMultipleRecordSets(client, args as Parameters<typeof createMultipleRecordSets>[1]);
             break;
           case 'activate-zone-changes':
-            result = await activateZoneChanges(client, args as any);
+            result = await activateZoneChanges(client, args as Parameters<typeof activateZoneChanges>[1]);
             break;
 
           // Zone Version Management
           case 'get-zone-version':
-            result = await getZoneVersion(client, args as any);
+            result = await getZoneVersion(client, args as Parameters<typeof getZoneVersion>[1]);
             break;
           case 'get-version-record-sets':
-            result = await getVersionRecordSets(client, args as any);
+            result = await getVersionRecordSets(client, args as Parameters<typeof getVersionRecordSets>[1]);
             break;
           case 'reactivate-zone-version':
-            result = await reactivateZoneVersion(client, args as any);
+            result = await reactivateZoneVersion(client, args as Parameters<typeof reactivateZoneVersion>[1]);
             break;
           case 'get-version-master-zone-file':
-            result = await getVersionMasterZoneFile(client, args as any);
+            result = await getVersionMasterZoneFile(client, args as Parameters<typeof getVersionMasterZoneFile>[1]);
             break;
 
           // Migration Tools
           case 'import-zone-via-axfr':
-            result = await importZoneViaAXFR(client, args as any);
+            result = await importZoneViaAXFR(client, args as Parameters<typeof importZoneViaAXFR>[1]);
             break;
           case 'parse-zone-file':
-            result = await parseZoneFile(client, args as any);
+            result = await parseZoneFile(client, args as Parameters<typeof parseZoneFile>[1]);
             break;
           case 'bulk-import-records':
-            result = await bulkImportRecords(client, args as any);
+            result = await bulkImportRecords(client, args as Parameters<typeof bulkImportRecords>[1]);
             break;
           case 'generate-migration-instructions':
-            result = await generateMigrationInstructions(client, args as any);
+            result = await generateMigrationInstructions(client, args as Parameters<typeof generateMigrationInstructions>[1]);
             break;
 
           // Secondary Zone Management
           case 'get-secondary-zone-transfer-status':
-            result = await getSecondaryZoneTransferStatus(client, args as any);
+            result = await getSecondaryZoneTransferStatus(client, args as Parameters<typeof getSecondaryZoneTransferStatus>[1]);
             break;
           case 'update-tsig-key-for-zones':
-            result = await updateTSIGKeyForZones(client, args as any);
+            result = await updateTSIGKeyForZones(client, args as Parameters<typeof updateTSIGKeyForZones>[1]);
             break;
 
           default:

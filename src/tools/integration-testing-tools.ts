@@ -360,15 +360,21 @@ export async function generateTestData(
     for (const [type, items] of Object.entries(groupedData)) {
       responseText += `### ${type.toUpperCase()}\n\n`;
 
-      (items as any[]).forEach((item, index) => {
+      if (!Array.isArray(items)) {continue;}
+
+      items.forEach((item, index) => {
         responseText += `${index + 1}. `;
 
-        if (item.type === 'contact') {
-          responseText += `**${item.firstName} ${item.lastName}**\n`;
-          responseText += `   - Email: ${item.email}\n`;
-          responseText += `   - Phone: ${item.phone}\n`;
-        } else {
-          responseText += `**${item.name}**\n`;
+        // Type-safe property access
+        if (typeof item === 'object' && item !== null) {
+          const itemObj = item as Record<string, unknown>;
+          if (itemObj.type === 'contact') {
+            responseText += `**${itemObj.firstName} ${itemObj.lastName}**\n`;
+            responseText += `   - Email: ${itemObj.email}\n`;
+            responseText += `   - Phone: ${itemObj.phone}\n`;
+          } else {
+            responseText += `**${itemObj.name}**\n`;
+          }
         }
       });
 

@@ -138,9 +138,9 @@ export function wrapToolHandler<T>(
         errorType: _error instanceof Error ? _error.constructor.name : 'UnknownError',
       };
 
-      return createMcp2025Response(
+      return createMcp2025Response<T>(
         false,
-        undefined as any as T,
+        undefined as T,
         _error instanceof Error ? _error.message : 'Unknown error',
         meta,
       );

@@ -122,14 +122,14 @@ class AppSecServer {
       name: 'list-appsec-configurations',
       description: 'List all Application Security configurations',
       schema: ListAppSecConfigurationsSchema,
-      handler: async (client, params) => listAppSecConfigurations.handler(params),
+      handler: async (_client, params) => listAppSecConfigurations.handler(params),
     });
 
     this.registerTool({
       name: 'get-appsec-configuration',
       description: 'Get details of a specific AppSec configuration',
       schema: GetAppSecConfigurationSchema,
-      handler: async (client, params) => getAppSecConfiguration.handler(params),
+      handler: async (_client, params) => getAppSecConfiguration.handler(params),
     });
 
     // WAF Policy Management
@@ -137,7 +137,7 @@ class AppSecServer {
       name: 'create-waf-policy',
       description: 'Create a new WAF security policy',
       schema: CreateWAFPolicySchema,
-      handler: async (client, params) => createWAFPolicy.handler(params),
+      handler: async (_client, params) => createWAFPolicy.handler(params),
     });
 
     // Update WAF policy would be implemented as a separate tool
@@ -147,7 +147,7 @@ class AppSecServer {
       name: 'get-security-events',
       description: 'Retrieve security events and attack data',
       schema: GetSecurityEventsSchema,
-      handler: async (client, params) => getSecurityEvents.handler(params),
+      handler: async (_client, params) => getSecurityEvents.handler(params),
     });
 
     this.registerTool({
@@ -160,7 +160,7 @@ class AppSecServer {
         to: z.number(),
         groupBy: z.enum(['attackType', 'ruleId', 'clientIp', 'country']).optional(),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, params) => {
         // This would analyze attack patterns
         return {
           content: [{
@@ -187,7 +187,7 @@ class AppSecServer {
           action: z.enum(['alert', 'deny', 'challenge']),
         })),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, params) => {
         return {
           content: [{
             type: 'text',
@@ -212,7 +212,7 @@ class AppSecServer {
           authentication: z.enum(['apikey', 'oauth', 'jwt']).optional(),
         })),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, params) => {
         return {
           content: [{
             type: 'text',
@@ -238,7 +238,7 @@ class AppSecServer {
           customBotCategories: z.array(z.string()).optional(),
         }),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, params) => {
         return {
           content: [{
             type: 'text',
@@ -253,14 +253,14 @@ class AppSecServer {
       name: 'activate-security-config',
       description: 'Activate security configuration',
       schema: ActivateSecurityConfigurationSchema,
-      handler: async (client, params) => activateSecurityConfiguration.handler(params),
+      handler: async (_client, params) => activateSecurityConfiguration.handler(params),
     });
 
     this.registerTool({
       name: 'get-sec-activation-status',
       description: 'Get security activation status',
       schema: GetSecurityActivationStatusSchema,
-      handler: async (client, params) => getSecurityActivationStatus.handler(params),
+      handler: async (_client, params) => getSecurityActivationStatus.handler(params),
     });
 
     // Security Recommendations
@@ -272,7 +272,7 @@ class AppSecServer {
         configId: z.number(),
         analysisType: z.enum(['threats', 'configuration', 'compliance']).optional(),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, params) => {
         return {
           content: [{
             type: 'text',
@@ -291,7 +291,7 @@ class AppSecServer {
         configId: z.number(),
         standard: z.enum(['PCI', 'OWASP', 'GDPR', 'HIPAA']).optional(),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, params) => {
         return {
           content: [{
             type: 'text',
@@ -356,7 +356,7 @@ class AppSecServer {
       const jsonSchema = zodToJsonSchema(schema);
       // Remove $schema property as it's not needed for MCP
       if (jsonSchema && typeof jsonSchema === 'object' && '$schema' in jsonSchema) {
-        const { $schema, ...rest } = jsonSchema as any;
+        const { $schema: _$schema, ...rest } = jsonSchema as Record<string, unknown>;
         return rest;
       }
       return jsonSchema;

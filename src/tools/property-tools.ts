@@ -57,6 +57,7 @@ import {
 } from '../utils/parameter-validation';
 import { formatProductDisplay } from '../utils/product-mapping';
 import { withToolErrorHandling, type ErrorContext } from '../utils/tool-error-handling';
+import { getCacheService } from '../services/cache-service-singleton';
 import { type TreeNode, renderTree, generateTreeSummary, formatGroupNode } from '../utils/tree-view';
 import { createErrorHandler } from '../utils/error-handler';
 import { createLogger } from '../utils/pino-logger';
@@ -174,7 +175,8 @@ async function getContractName(client: AkamaiClient, contractId: string): Promis
       method: 'GET'
     });
     
-    const contract = (response as any)?.contracts?.items?.find((c: any) => c.contractId === contractId);
+    const contracts_typed = response as { contracts?: { items?: Array<{ contractId: string; contractTypeName?: string }> } };
+    const contract = contracts_typed?.contracts?.items?.find((c) => c.contractId === contractId);
     if (contract?.contractTypeName) {
       const name = contract.contractTypeName;
       nameCache.contracts.set(contractId, name);
@@ -201,7 +203,8 @@ async function getGroupName(client: AkamaiClient, groupId: string): Promise<stri
       method: 'GET'
     });
     
-    const group = (response as any)?.groups?.items?.find((g: any) => g.groupId === groupId);
+    const groups_typed = response as { groups?: { items?: Array<{ groupId: string; groupName?: string }> } };
+    const group = groups_typed?.groups?.items?.find((g) => g.groupId === groupId);
     if (group?.groupName) {
       const name = group.groupName;
       nameCache.groups.set(groupId, name);
@@ -941,7 +944,7 @@ export async function listPropertiesTreeView(
           stats.propertyCount += properties.length;
 
           // Create the main group node
-          const groupNode = formatGroupNode(targetGroup, properties as any[]);
+          const groupNode = formatGroupNode(targetGroup, properties);
 
           // If including subgroups, find and add them
           if (args.includeSubgroups !== false) {
@@ -1021,7 +1024,7 @@ export async function listPropertiesTreeView(
               }
 
               // Add child group to parent's children
-              const childNode = formatGroupNode(childGroup, childProperties as any[]);
+              const childNode = formatGroupNode(childGroup, childProperties);
 
               // Check for grandchildren
               const grandchildGroups = groupsResponse.groups.items.filter(
@@ -1088,7 +1091,7 @@ export async function listPropertiesTreeView(
                   }
                 }
 
-                const grandchildNode = formatGroupNode(grandchild, grandchildProperties as any[]);
+                const grandchildNode = formatGroupNode(grandchild, grandchildProperties);
                 childNode.children?.push(grandchildNode);
               }
 
@@ -1640,7 +1643,14 @@ async function getPropertyById(
         etag: versionDetails.versions.items[0].etag || null
       } : null,
       hostnames: hostnames?.hostnames?.items ? 
-        (hostnames.hostnames.items as any[]).map(h => ({
+        (hostnames.hostnames.items as Array<{ 
+          cnameFrom: string; 
+          cnameTo?: string; 
+          cnameType?: string;
+          certStatus?: { status?: string };
+          validationStatus?: string;
+          [key: string]: unknown;
+        }>).map(h => ({
           hostname: h.cnameFrom,
           edgeHostname: h.cnameTo,
           certStatus: h.certStatus?.status || null,
@@ -1789,6 +1799,19 @@ export async function createProperty(
 
     // Extract property ID from the link (remove query parameters)
     const propertyId = response.propertyLink.split('/').pop()?.split('?')[0];
+
+    // Invalidate cache after successful property creation
+    try {
+      const cacheService = await getCacheService();
+      const customer = 'default'; // No customer param in this function signature
+      // Invalidate the all properties list since we added a new one
+      await cacheService.del(`${customer}:properties:all`);
+      // Also invalidate any search results that might be cached
+      await cacheService.scanAndDelete(`${customer}:search:*`);
+    } catch (cacheError) {
+      // Log but don't fail the operation if cache invalidation fails
+      console.error('[Cache] Failed to invalidate cache after property creation:', cacheError);
+    }
 
     // Return structured data for Claude Desktop
     const contractName = await getContractName(client, args.contractId);
@@ -2854,8 +2877,12 @@ async function prepareBulkSearch(
   };
 
   return withToolErrorHandling(async () => {
-    // Validate parameters - simple validation for now
-    const validatedArgs = args; // TODO: Add proper schema validation when PropertyManagerSchemas.bulkSearchPrepare is defined
+    // Validate required parameters
+    if (!args.searchType || !args.searchValue) {
+      throw new Error('searchType and searchValue are required parameters');
+    }
+    
+    const validatedArgs = args;
 
     // Build search query based on type
     const bulkSearchQuery = buildBulkSearchQuery(
@@ -2941,7 +2968,17 @@ async function checkBulkSearchStatus(
       });
     });
 
-    const status = response as any;
+    const status = response as { 
+      activations?: { items?: Array<{ activationId: string; status: string; network: string; propertyVersion: number; submitDate: string; updateDate: string; [key: string]: unknown }> };
+      searchStatus?: string;
+      searchSubmittedDate?: string;
+      searchCompletedDate?: string;
+      results?: {
+        matchesFound?: boolean;
+        [key: string]: unknown;
+      };
+      [key: string]: unknown;
+    };
     
     return {
       content: [
@@ -3001,7 +3038,7 @@ async function getBulkSearchResults(
       });
     });
 
-    const results = response as any;
+    const results = response as { properties?: { items?: Array<{ propertyId: string; propertyName: string; [key: string]: unknown }> } };
 
     // Format results for readability
     const formattedResults = formatBulkSearchResults(results);
@@ -3062,7 +3099,7 @@ async function synchronousBulkSearch(
       });
     });
 
-    const results = response as any;
+    const results = response as { properties?: { items?: Array<{ propertyId: string; propertyName: string; accountId: string; contractId: string; groupId: string; [key: string]: unknown }> } };
     const formattedResults = formatBulkSearchResults(results);
 
     return {

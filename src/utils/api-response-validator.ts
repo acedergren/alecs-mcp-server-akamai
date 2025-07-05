@@ -43,10 +43,10 @@ export function isNetworkListResponse(response: unknown): response is any {
 /**
  * Generic safe property access
  */
-export function safeAccess<T>(obj: unknown, accessor: (obj: any) => T, defaultValue: T): T {
+export function safeAccess<T>(obj: unknown, accessor: (obj: Record<string, unknown>) => T, defaultValue: T): T {
   try {
     if (obj && typeof obj === 'object') {
-      return accessor(obj as any) ?? defaultValue;
+      return accessor(obj as Record<string, unknown>) ?? defaultValue;
     }
     return defaultValue;
   } catch {

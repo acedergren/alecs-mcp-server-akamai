@@ -245,7 +245,7 @@ export class SmartCache<T = any> extends EventEmitter {
     let data = entry.data;
     if (entry.compressed && Buffer.isBuffer(data)) {
       try {
-        const decompressed = await gunzip(data as any);
+        const decompressed = await gunzip(data);
         data = JSON.parse(decompressed.toString());
       } catch (error) {
         this.emit('decompress-error', { key, error });
@@ -274,7 +274,7 @@ export class SmartCache<T = any> extends EventEmitter {
     this.updateHitRate();
     
     this.emit('hit', key);
-    return data as unknown as V;
+    return data as V;
   }
 
   /**
@@ -333,9 +333,9 @@ export class SmartCache<T = any> extends EventEmitter {
       };
       
       if (this.options.enableSegmentation) {
-        this.setInSegment(key, entry as unknown as CacheEntry<T>);
+        this.setInSegment(key, entry as CacheEntry<any>);
       } else {
-        this.cache.set(key, entry as unknown as CacheEntry<T>);
+        this.cache.set(key, entry as CacheEntry<any>);
       }
       
       // Track key in KeyStore if enabled
@@ -424,11 +424,11 @@ export class SmartCache<T = any> extends EventEmitter {
   ): Promise<V> {
     // Check for pending request (request coalescing)
     if (this.options.requestCoalescing && this.pendingRequests.has(key)) {
-      const pending = this.pendingRequests.get(key)!;
+      const pending = this.pendingRequests.get(key)! as PendingRequest<V>;
       this.emit('coalesce', key);
       
       return new Promise<V>((resolve, reject) => {
-        pending.callbacks.push({ resolve: resolve as any, reject });
+        pending.callbacks.push({ resolve, reject });
       });
     }
     
@@ -467,7 +467,7 @@ export class SmartCache<T = any> extends EventEmitter {
           callbacks: [],
         };
         
-        this.pendingRequests.set(key, pendingRequest as any);
+        this.pendingRequests.set(key, pendingRequest as PendingRequest<any>);
       }
       
       const pendingRequest = this.pendingRequests.get(key)!;
@@ -863,14 +863,29 @@ export class SmartCache<T = any> extends EventEmitter {
       }).length,
     };
     
+    // Create extended stats object for additional properties
+    const extendedStats = stats as CacheMetrics & {
+      circuitBreaker?: ReturnType<CircuitBreaker['getStatus']>;
+      segments?: {
+        count: number;
+        details: Array<{
+          name: string;
+          entries: number;
+          accessCount: number;
+          lastAccessed: number;
+        }>;
+      };
+      keyStore?: ReturnType<KeyStore['getStats']>;
+    };
+    
     // Add circuit breaker status if enabled
     if (this.options.enableCircuitBreaker) {
-      (stats as any).circuitBreaker = this.circuitBreaker.getStatus();
+      extendedStats.circuitBreaker = this.circuitBreaker.getStatus();
     }
     
     // Add segmentation stats if enabled
     if (this.options.enableSegmentation) {
-      (stats as any).segments = {
+      extendedStats.segments = {
         count: this.segments.size,
         details: Array.from(this.segments.entries()).map(([name, segment]) => ({
           name,
@@ -883,10 +898,10 @@ export class SmartCache<T = any> extends EventEmitter {
     
     // Add KeyStore stats if enabled
     if (this.options.enableKeyStore) {
-      (stats as any).keyStore = this.keyStore.getStats();
+      extendedStats.keyStore = this.keyStore.getStats();
     }
     
-    return stats;
+    return extendedStats;
   }
 
   /**
@@ -1053,7 +1068,7 @@ export class SmartCache<T = any> extends EventEmitter {
       this.emit('loaded', loaded);
     } catch (error) {
       // Ignore if file doesn't exist
-      if ((error as any).code !== 'ENOENT') {
+      if (error instanceof Error && 'code' in error && error.code !== 'ENOENT') {
         this.emit('load-error', error);
       }
     }

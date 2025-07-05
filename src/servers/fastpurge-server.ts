@@ -33,43 +33,7 @@ import {
   fastpurgeEstimate,
 } from '../tools/fastpurge-tools';
 
-// Schemas
-const FastpurgeUrlInvalidateSchema = z.object({
-  customer: z.string().optional(),
-  urls: z.array(z.string()).min(1).max(5000),
-  network: z.enum(['production', 'staging']).optional().default('production'),
-  action: z.enum(['invalidate', 'delete']).optional().default('invalidate'),
-});
-
-const FastpurgeCpcodeInvalidateSchema = z.object({
-  customer: z.string().optional(),
-  cpcodes: z.array(z.string()).min(1).max(100),
-  network: z.enum(['production', 'staging']).optional().default('production'),
-  action: z.enum(['invalidate', 'delete']).optional().default('invalidate'),
-});
-
-const FastpurgeTagInvalidateSchema = z.object({
-  customer: z.string().optional(),
-  tags: z.array(z.string()).min(1).max(100),
-  network: z.enum(['production', 'staging']).optional().default('production'),
-  action: z.enum(['invalidate', 'delete']).optional().default('invalidate'),
-});
-
-const FastpurgeStatusCheckSchema = z.object({
-  customer: z.string().optional(),
-  purgeId: z.string(),
-});
-
-const FastpurgeQueueStatusSchema = z.object({
-  customer: z.string().optional(),
-});
-
-const FastpurgeEstimateSchema = z.object({
-  customer: z.string().optional(),
-  type: z.enum(['url', 'cpcode', 'tag']),
-  values: z.array(z.string()).min(1),
-  network: z.enum(['production', 'staging']).optional().default('production'),
-});
+// Schemas removed - they are defined inline in the tool definitions below
 
 interface ToolDefinition {
   name: string;
@@ -115,21 +79,21 @@ class FastPurgeServer {
       name: fastpurgeUrlInvalidate.name,
       description: fastpurgeUrlInvalidate.description,
       inputSchema: fastpurgeUrlInvalidate.inputSchema,
-      handler: async (client, params) => fastpurgeUrlInvalidate.handler(params),
+      handler: async (_client, params) => fastpurgeUrlInvalidate.handler(params),
     });
 
     this.registerTool({
       name: fastpurgeCpcodeInvalidate.name,
       description: fastpurgeCpcodeInvalidate.description,
       inputSchema: fastpurgeCpcodeInvalidate.inputSchema,
-      handler: async (client, params) => fastpurgeCpcodeInvalidate.handler(params),
+      handler: async (_client, params) => fastpurgeCpcodeInvalidate.handler(params),
     });
 
     this.registerTool({
       name: fastpurgeTagInvalidate.name,
       description: fastpurgeTagInvalidate.description,
       inputSchema: fastpurgeTagInvalidate.inputSchema,
-      handler: async (client, params) => fastpurgeTagInvalidate.handler(params),
+      handler: async (_client, params) => fastpurgeTagInvalidate.handler(params),
     });
 
     // Status and Monitoring
@@ -137,14 +101,14 @@ class FastPurgeServer {
       name: fastpurgeStatusCheck.name,
       description: fastpurgeStatusCheck.description,
       inputSchema: fastpurgeStatusCheck.inputSchema,
-      handler: async (client, params) => fastpurgeStatusCheck.handler(params),
+      handler: async (_client, params) => fastpurgeStatusCheck.handler(params),
     });
 
     this.registerTool({
       name: fastpurgeQueueStatus.name,
       description: fastpurgeQueueStatus.description,
       inputSchema: fastpurgeQueueStatus.inputSchema,
-      handler: async (client, params) => fastpurgeQueueStatus.handler(params),
+      handler: async (_client, params) => fastpurgeQueueStatus.handler(params),
     });
 
     // Planning and Estimation
@@ -152,7 +116,7 @@ class FastPurgeServer {
       name: fastpurgeEstimate.name,
       description: fastpurgeEstimate.description,
       inputSchema: fastpurgeEstimate.inputSchema,
-      handler: async (client, params) => fastpurgeEstimate.handler(params),
+      handler: async (_client, params) => fastpurgeEstimate.handler(params),
     });
 
     // Bulk Operations
@@ -166,7 +130,7 @@ class FastPurgeServer {
         network: z.enum(['production', 'staging']).optional().default('production'),
         batchSize: z.number().optional().default(500),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, params) => {
         // This would handle bulk URL purging
         const urls = params.urls || [];
         const batches = Math.ceil(urls.length / params.batchSize);
@@ -190,7 +154,7 @@ class FastPurgeServer {
         network: z.enum(['production', 'staging']).optional().default('production'),
         dryRun: z.boolean().optional().default(false),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, params) => {
         return {
           content: [{
             type: 'text',
@@ -211,7 +175,7 @@ class FastPurgeServer {
         scheduleTime: z.string(), // ISO datetime
         network: z.enum(['production', 'staging']).optional().default('production'),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, params) => {
         return {
           content: [{
             type: 'text',
@@ -231,7 +195,7 @@ class FastPurgeServer {
         endDate: z.string().optional(),
         limit: z.number().optional().default(100),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, params) => {
         return {
           content: [{
             type: 'text',
@@ -250,7 +214,7 @@ class FastPurgeServer {
         propertyId: z.string(),
         analysisType: z.enum(['content-update', 'security', 'performance']).optional(),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, params) => {
         return {
           content: [{
             type: 'text',
@@ -270,7 +234,7 @@ class FastPurgeServer {
         urls: z.array(z.string()).optional(),
         checkEdgeServers: z.boolean().optional().default(true),
       }),
-      handler: async (client, params) => {
+      handler: async (_client, params) => {
         return {
           content: [{
             type: 'text',
@@ -340,7 +304,7 @@ class FastPurgeServer {
       const jsonSchema = zodToJsonSchema(schema);
       // Remove $schema property as it's not needed for MCP
       if (jsonSchema && typeof jsonSchema === 'object' && '$schema' in jsonSchema) {
-        const { $schema, ...rest } = jsonSchema as any;
+        const { $schema, ...rest } = jsonSchema as Record<string, unknown>;
         return rest;
       }
       return jsonSchema;

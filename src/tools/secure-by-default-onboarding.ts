@@ -338,9 +338,22 @@ export async function onboardSecureByDefaultProperty(
     spinner?.start('Configuring property rules...');
     steps.push('[SETTINGS] Configuring property with secure settings...');
 
+    // Define rule structure types inline for clarity
+    interface RuleTreeChild {
+      name: string;
+      behaviors?: Array<{ name: string; options: Record<string, unknown> }>;
+      criteria?: Array<{ name: string; options: Record<string, unknown> }>;
+      children?: RuleTreeChild[];
+    }
+    
+    interface RuleCriterion {
+      name: string;
+      options: Record<string, unknown>;
+    }
+    
     const secureRules = {
       name: 'default',
-      children: [] as any[],
+      children: [] as RuleTreeChild[],
       behaviors: [
         {
           name: 'origin',
@@ -442,7 +455,7 @@ export async function onboardSecureByDefaultProperty(
           },
         },
       ],
-      criteria: [] as any[],
+      criteria: [] as RuleCriterion[],
       options: {
         is_secure: true,
       },

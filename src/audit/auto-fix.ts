@@ -220,7 +220,7 @@ async function fixGenericErrors(filePath: string): Promise<FixResult[]> {
     }
     
     // Replace generic errors
-    fixed = fixed.replace(/throw new Error\((['"`])(.*?)\1\)/g, (match, quote, message) => {
+    fixed = fixed.replace(/throw new Error\((['"`])(.*?)\1\)/g, (_match, quote, message) => {
       results.push({
         file: filePath,
         issue: 'Generic Error instead of McpError',
@@ -229,9 +229,9 @@ async function fixGenericErrors(filePath: string): Promise<FixResult[]> {
       
       // Determine appropriate error code
       let errorCode = 'InternalError';
-      if (message.toLowerCase().includes('not found')) errorCode = 'MethodNotFound';
-      else if (message.toLowerCase().includes('invalid')) errorCode = 'InvalidParams';
-      else if (message.toLowerCase().includes('permission')) errorCode = 'InvalidRequest';
+      if (message.toLowerCase().includes('not found')) {errorCode = 'MethodNotFound';}
+      else if (message.toLowerCase().includes('invalid')) {errorCode = 'InvalidParams';}
+      else if (message.toLowerCase().includes('permission')) {errorCode = 'InvalidRequest';}
       
       return `throw new McpError(ErrorCode.${errorCode}, ${quote}${message}${quote})`;
     });
@@ -268,7 +268,7 @@ async function addMissingSchemas(filePath: string): Promise<FixResult[]> {
     for (const match of matches) {
       const [fullMatch, toolName, toolBody] = match;
       
-      if (!toolBody.includes('schema:') && !toolBody.includes('inputSchema:')) {
+      if (toolBody && !toolBody.includes('schema:') && !toolBody.includes('inputSchema:')) {
         results.push({
           file: filePath,
           issue: `Tool ${toolName} missing schema`,
@@ -332,7 +332,7 @@ async function autoFix(reportPath: string): Promise<void> {
     const fullPath = path.join(process.cwd(), file);
     
     for (const issue of issues) {
-      if (issue.severity !== 'critical' && issue.severity !== 'high') continue;
+      if (issue.severity !== 'critical' && issue.severity !== 'high') {continue;}
       
       let results: FixResult[] = [];
       
@@ -386,7 +386,7 @@ async function autoFix(reportPath: string): Promise<void> {
       .filter(r => !r.fixed)
       .forEach(r => {
         console.log(`- ${r.file}: ${r.issue}`);
-        if (r.error) console.log(`  Error: ${r.error}`);
+        if (r.error) {console.log(`  Error: ${r.error}`);}
       });
   }
   

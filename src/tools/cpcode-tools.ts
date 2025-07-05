@@ -77,7 +77,14 @@ export async function listCPCodes(
       text += `## ${formatContractDisplay(contractId)}\n\n`;
 
       // Sort by CP Code ID
-      const sortedCpcodes = (cpcodes as any[]).sort(
+      // Define proper type for cpcodes array
+      interface CPCodeItem {
+        cpcodeId: string;
+        cpcodeName?: string;
+        productIds?: string[];
+        createdDate?: string;
+      }
+      const sortedCpcodes = (cpcodes as CPCodeItem[]).sort(
         (a, b) =>
           parseInt(a.cpcodeId.replace('cpc_', '')) - parseInt(b.cpcodeId.replace('cpc_', '')),
       );

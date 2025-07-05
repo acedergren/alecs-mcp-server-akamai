@@ -462,7 +462,8 @@ class SecurityALECSServer {
 
       try {
         let result;
-        const typedArgs = args as any;
+        // Args is already typed from the request parameter
+        const typedArgs = args || {};
 
         // Check if it's an app sec tool
         const appSecTool = basicAppSecTools.find((t) => t.name === name);
@@ -472,95 +473,108 @@ class SecurityALECSServer {
           // Handle network list tools
           switch (name) {
             case 'list-network-lists':
-              result = await listNetworkLists(typedArgs.customer, typedArgs);
+              result = await listNetworkLists(typedArgs['customer'] as string | undefined, typedArgs);
               break;
             case 'get-network-list':
-              result = await getNetworkList(typedArgs.networkListId, typedArgs.customer, typedArgs);
+              result = await getNetworkList(typedArgs['networkListId'] as string, typedArgs['customer'] as string | undefined, typedArgs);
               break;
             case 'create-network-list':
               result = await createNetworkList(
-                typedArgs.name,
-                typedArgs.type,
-                typedArgs.elements || [],
-                typedArgs.customer,
+                typedArgs['name'] as string,
+                typedArgs['type'] as 'IP' | 'GEO' | 'ASN',
+                typedArgs['elements'] as string[] || [],
+                typedArgs['customer'] as string | undefined,
                 typedArgs,
               );
               break;
             case 'update-network-list': {
-              const updateOptions: any = {};
-              if (typedArgs.mode === 'append') {
-                updateOptions.addElements = typedArgs.elements;
-              } else if (typedArgs.mode === 'remove') {
-                updateOptions.removeElements = typedArgs.elements;
-              } else if (typedArgs.mode === 'replace') {
-                updateOptions.replaceElements = typedArgs.elements;
+              const updateOptions: Record<string, unknown> = {};
+              const mode = typedArgs['mode'] as string;
+              const elements = typedArgs['elements'] as string[];
+              if (mode === 'append') {
+                updateOptions['addElements'] = elements;
+              } else if (mode === 'remove') {
+                updateOptions['removeElements'] = elements;
+              } else if (mode === 'replace') {
+                updateOptions['replaceElements'] = elements;
               }
-              if (typedArgs.description) {
-                updateOptions.description = typedArgs.description;
+              const description = typedArgs['description'] as string | undefined;
+              if (description) {
+                updateOptions['description'] = description;
               }
               result = await updateNetworkList(
-                typedArgs.networkListId,
-                typedArgs.customer,
+                typedArgs['networkListId'] as string,
+                typedArgs['customer'] as string | undefined,
                 updateOptions,
               );
               break;
             }
             case 'delete-network-list':
-              result = await deleteNetworkList(typedArgs.networkListId, typedArgs.customer);
+              result = await deleteNetworkList(typedArgs['networkListId'] as string, typedArgs['customer'] as string | undefined);
               break;
             case 'activate-network-list': {
-              const activateOptions: any = {};
-              if (typedArgs.comment) {
-                activateOptions.comments = typedArgs.comment;
+              const activateOptions: Record<string, unknown> = {};
+              const comment = typedArgs['comment'] as string | undefined;
+              if (comment) {
+                activateOptions['comments'] = comment;
               }
-              if (typedArgs.notificationRecipients) {
-                activateOptions.notificationEmails = typedArgs.notificationRecipients;
+              const notificationRecipients = typedArgs['notificationRecipients'] as string[] | undefined;
+              if (notificationRecipients) {
+                activateOptions['notificationEmails'] = notificationRecipients;
               }
               result = await activateNetworkList(
-                typedArgs.networkListId,
-                typedArgs.network,
-                typedArgs.customer,
+                typedArgs['networkListId'] as string,
+                typedArgs['network'] as 'STAGING' | 'PRODUCTION',
+                typedArgs['customer'] as string | undefined,
                 activateOptions,
               );
               break;
             }
             case 'get-network-list-activation-status':
               result = await getNetworkListActivationStatus(
-                typedArgs.activationId,
-                typedArgs.customer,
+                typedArgs['activationId'] as string,
+                typedArgs['customer'] as string | undefined,
               );
               break;
             case 'list-network-list-activations':
               result = await listNetworkListActivations(
-                typedArgs.networkListId,
-                typedArgs.customer,
+                typedArgs['customer'] as string | undefined,
+                {
+                  listType: typedArgs['listType'] as 'IP' | 'GEO' | 'ASN' | undefined,
+                  network: typedArgs['network'] as 'STAGING' | 'PRODUCTION' | undefined,
+                  status: typedArgs['status'] as 'PENDING' | 'ACTIVE' | 'FAILED' | 'INACTIVE' | undefined,
+                },
               );
               break;
             case 'deactivate-network-list': {
-              const deactivateOptions: any = {};
-              if (typedArgs.comment) {
-                deactivateOptions.comments = typedArgs.comment;
+              const deactivateOptions: Record<string, unknown> = {};
+              const comment = typedArgs['comment'] as string | undefined;
+              if (comment) {
+                deactivateOptions['comments'] = comment;
               }
               result = await deactivateNetworkList(
-                typedArgs.networkListId,
-                typedArgs.network,
-                typedArgs.customer,
+                typedArgs['networkListId'] as string,
+                typedArgs['network'] as 'STAGING' | 'PRODUCTION',
+                typedArgs['customer'] as string | undefined,
                 deactivateOptions,
               );
               break;
             }
             case 'bulk-activate-network-lists': {
-              const bulkActivations = typedArgs.networkListIds.map((id: string) => ({
+              const networkListIds = typedArgs['networkListIds'] as string[];
+              const network = typedArgs['network'] as 'STAGING' | 'PRODUCTION';
+              const bulkActivations = networkListIds.map((id: string) => ({
                 uniqueId: id,
-                network: typedArgs.network,
+                network: network,
               }));
-              const bulkOptions: any = {};
-              if (typedArgs.comment) {
-                bulkOptions.comments = typedArgs.comment;
+              const bulkOptions: Record<string, unknown> = {};
+              const comment = typedArgs['comment'] as string | undefined;
+              if (comment) {
+                bulkOptions['comments'] = comment;
               }
               result = await bulkActivateNetworkLists(
                 bulkActivations,
-                typedArgs.customer,
+                typedArgs['customer'] as string | undefined,
                 bulkOptions,
               );
               break;
@@ -568,11 +582,11 @@ class SecurityALECSServer {
             case 'import-network-list-from-csv': {
               // First create the list, then import
               const createResult = await createNetworkList(
-                typedArgs.name,
-                typedArgs.type,
+                typedArgs['name'] as string,
+                typedArgs['type'] as 'IP' | 'GEO' | 'ASN',
                 [],
-                typedArgs.customer,
-                { contractId: typedArgs.contractId, groupId: typedArgs.groupId },
+                typedArgs['customer'] as string | undefined,
+                { contractId: typedArgs['contractId'] as string, groupId: typedArgs['groupId'] as string },
               );
               // Extract the uniqueId from the response
               const responseText = createResult.content[0]?.text || '';
@@ -580,8 +594,8 @@ class SecurityALECSServer {
               if (uniqueIdMatch && uniqueIdMatch[1]) {
                 result = await importNetworkListFromCSV(
                   uniqueIdMatch[1],
-                  typedArgs.csvContent,
-                  typedArgs.customer,
+                  typedArgs['csvContent'] as string,
+                  typedArgs['customer'] as string | undefined,
                   { operation: 'replace' },
                 );
               } else {
@@ -590,43 +604,47 @@ class SecurityALECSServer {
               break;
             }
             case 'export-network-list-to-csv':
-              result = await exportNetworkListToCSV(typedArgs.networkListId, typedArgs.customer);
+              result = await exportNetworkListToCSV(typedArgs['networkListId'] as string, typedArgs['customer'] as string | undefined);
               break;
             case 'bulk-update-network-lists':
-              result = await bulkUpdateNetworkLists(typedArgs.updates, typedArgs.customer);
+              result = await bulkUpdateNetworkLists(typedArgs['updates'] as never[], typedArgs['customer'] as string | undefined);
               break;
             case 'merge-network-lists':
               result = await mergeNetworkLists(
-                typedArgs.sourceListIds,
-                typedArgs.targetListId,
-                typedArgs.mode,
-                typedArgs.customer,
+                typedArgs['sourceListIds'] as string[],
+                typedArgs['targetListId'] as string,
+                typedArgs['customer'] as string | undefined,
+                {
+                  operation: typedArgs['mode'] as 'union' | 'intersection' | 'difference' | undefined,
+                  removeDuplicates: typedArgs['removeDuplicates'] as boolean | undefined,
+                  deleteSourceLists: typedArgs['deleteSourceLists'] as boolean | undefined,
+                },
               );
               break;
             case 'validate-geographic-codes':
-              result = await validateGeographicCodes(typedArgs.codes, typedArgs.customer);
+              result = await validateGeographicCodes(typedArgs['codes'] as string[], typedArgs['customer'] as string | undefined);
               break;
             case 'get-asn-information':
-              result = await getASNInformation(typedArgs.asns, typedArgs.customer);
+              result = await getASNInformation(typedArgs['asns'] as string[], typedArgs['customer'] as string | undefined);
               break;
             case 'generate-geographic-blocking-recommendations':
-              result = await generateGeographicBlockingRecommendations(typedArgs.customer, {
-                purpose: typedArgs.analysisType,
+              result = await generateGeographicBlockingRecommendations(typedArgs['customer'] as string | undefined, {
+                purpose: typedArgs['analysisType'] as 'security' | 'performance' | 'compliance' | 'licensing' | undefined,
               });
               break;
             case 'generate-asn-security-recommendations':
-              result = await generateASNSecurityRecommendations(typedArgs.customer, {});
+              result = await generateASNSecurityRecommendations(typedArgs['customer'] as string | undefined, {});
               break;
             case 'list-common-geographic-codes':
               result = await listCommonGeographicCodes();
               break;
             case 'get-security-policy-integration-guidance':
-              result = await getSecurityPolicyIntegrationGuidance(typedArgs.customer, typedArgs);
+              result = await getSecurityPolicyIntegrationGuidance(typedArgs['customer'] as string | undefined, typedArgs);
               break;
             case 'generate-deployment-checklist':
               result = await generateDeploymentChecklist(
-                typedArgs.networkListIds || [],
-                typedArgs.customer,
+                typedArgs['networkListIds'] as string[] || [],
+                typedArgs['customer'] as string | undefined,
                 typedArgs,
               );
               break;

@@ -21,10 +21,13 @@ import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
 import { createActivationProgress, type ProgressToken } from '../utils/mcp-progress';
 import { JsonResponseBuilder, validateFormatParameter } from '../utils/json-response-builder';
+import { getCacheService } from '../services/cache-service-singleton';
 import {
   PapiPropertyDetailsResponse,
+  PapiPropertyVersion,
   isPapiPropertyDetailsResponse,
   isPapiError,
+  isPapiPropertyVersionsResponse,
 } from '../types/api-responses/papi-properties';
 import {
   PropertyVersionCreateResponse,
@@ -41,6 +44,15 @@ import {
   isPropertyActivateResponse,
   isPropertyActivationsGetResponse,
 } from '../types/api-responses/papi-official';
+import {
+  PropertyNotFoundError,
+  InvalidPropertyResponseError,
+  PropertyValidationError,
+  PropertyAccessDeniedError,
+  PropertyActivationError,
+  EdgeHostnameError,
+  RuleValidationError,
+} from '../errors/property-errors';
 
 // Extended types for property management
 export interface PropertyVersionDetails {
@@ -154,16 +166,36 @@ export async function createPropertyVersion(
       });
 
       if (isPapiError(propertyResponse)) {
-        throw new Error(`Failed to get property: ${propertyResponse.detail}`);
+        // Check for specific error types based on status code
+        if (propertyResponse.status === 404) {
+          throw new PropertyNotFoundError(
+            args.propertyId,
+            'Ensure the property ID is correct and you have access to it'
+          );
+        } else if (propertyResponse.status === 403) {
+          throw new PropertyAccessDeniedError(args.propertyId, 'read');
+        } else {
+          throw new PropertyValidationError(
+            'propertyId',
+            propertyResponse.detail || 'Invalid property request',
+            args.propertyId
+          );
+        }
       }
 
       if (!isPapiPropertyDetailsResponse(propertyResponse)) {
-        throw new Error('Invalid property response structure');
+        throw new InvalidPropertyResponseError(
+          'PapiPropertyDetailsResponse',
+          propertyResponse
+        );
       }
 
       const typedResponse = propertyResponse as PapiPropertyDetailsResponse;
       if (!typedResponse.properties?.items?.[0]) {
-        throw new Error('Property not found');
+        throw new PropertyNotFoundError(
+          args.propertyId,
+          'The property exists but contains no data. It may have been deleted.'
+        );
       }
 
       const property = typedResponse.properties.items[0];
@@ -187,12 +219,29 @@ export async function createPropertyVersion(
     // CODE KAI: Type-safe response handling with official Akamai types
     // Step 1: Check if the API returned an error response
     if (isPapiError(response)) {
-      throw new Error(`Failed to create property version: ${response.detail}`);
+      if (response.status === 403) {
+        throw new PropertyAccessDeniedError(args.propertyId, 'create-version');
+      } else if (response.status === 409) {
+        throw new PropertyValidationError(
+          'version',
+          'A version is already being created or there is a conflict',
+          baseVersion
+        );
+      } else {
+        throw new PropertyValidationError(
+          'propertyVersion',
+          response.detail || 'Failed to create new version',
+          { propertyId: args.propertyId, baseVersion }
+        );
+      }
     }
     
     // Step 2: Validate the response structure matches expected schema
     if (!isPropertyVersionCreateResponse(response)) {
-      throw new Error('Invalid response: expected PropertyVersionCreateResponse with versionLink');
+      throw new InvalidPropertyResponseError(
+        'PropertyVersionCreateResponse with versionLink',
+        response
+      );
     }
     
     // Step 3: Safe type assertion after validation
@@ -218,6 +267,16 @@ export async function createPropertyVersion(
           },
         ],
       });
+    }
+
+    // Invalidate cache after successful version creation
+    try {
+      const cacheService = await getCacheService();
+      const customer = args.customer || 'default';
+      await cacheService.invalidateProperty(args.propertyId, customer);
+    } catch (cacheError) {
+      // Log but don't fail the operation if cache invalidation fails
+      console.error('[Cache] Failed to invalidate cache after version creation:', cacheError);
     }
 
     // Determine response format
@@ -311,16 +370,29 @@ export async function getPropertyRules(
       });
 
       if (isPapiError(propertyResponse)) {
-        throw new Error(`Failed to get property: ${propertyResponse.detail}`);
+        if (propertyResponse.status === 404) {
+          throw new PropertyNotFoundError(args.propertyId);
+        } else if (propertyResponse.status === 403) {
+          throw new PropertyAccessDeniedError(args.propertyId, 'read');
+        } else {
+          throw new PropertyValidationError(
+            'propertyId',
+            propertyResponse.detail || 'Failed to get property',
+            args.propertyId
+          );
+        }
       }
 
       if (!isPapiPropertyDetailsResponse(propertyResponse)) {
-        throw new Error('Invalid property response structure');
+        throw new InvalidPropertyResponseError(
+          'PapiPropertyDetailsResponse',
+          propertyResponse
+        );
       }
 
       const typedResponse = propertyResponse as PapiPropertyDetailsResponse;
       if (!typedResponse.properties?.items?.[0]) {
-        throw new Error('Property not found');
+        throw new PropertyNotFoundError(args.propertyId, 'Property has no data');
       }
 
       version = typedResponse.properties.items[0].latestVersion || 1;
@@ -337,11 +409,22 @@ export async function getPropertyRules(
 
     // CODE KAI: Type-safe response handling with official Akamai types
     if (isPapiError(response)) {
-      throw new Error(`Failed to get property rules: ${response.detail}`);
+      if (response.status === 403) {
+        throw new PropertyAccessDeniedError(args.propertyId, 'read-rules');
+      } else {
+        throw new PropertyValidationError(
+          'rules',
+          response.detail || 'Failed to get property rules',
+          { propertyId: args.propertyId, version }
+        );
+      }
     }
     
     if (!isPropertyVersionRulesGetResponse(response)) {
-      throw new Error('Invalid response: expected PropertyVersionRulesGetResponse');
+      throw new InvalidPropertyResponseError(
+        'PropertyVersionRulesGetResponse',
+        response
+      );
     }
     
     const rulesResponse = response as PropertyVersionRulesGetResponse;
@@ -455,16 +538,29 @@ export async function updatePropertyRules(
       });
 
       if (isPapiError(propertyResponse)) {
-        throw new Error(`Failed to get property: ${propertyResponse.detail}`);
+        if (propertyResponse.status === 404) {
+          throw new PropertyNotFoundError(args.propertyId);
+        } else if (propertyResponse.status === 403) {
+          throw new PropertyAccessDeniedError(args.propertyId, 'read');
+        } else {
+          throw new PropertyValidationError(
+            'propertyId',
+            propertyResponse.detail || 'Failed to get property',
+            args.propertyId
+          );
+        }
       }
 
       if (!isPapiPropertyDetailsResponse(propertyResponse)) {
-        throw new Error('Invalid property response structure');
+        throw new InvalidPropertyResponseError(
+          'PapiPropertyDetailsResponse',
+          propertyResponse
+        );
       }
 
       const typedResponse = propertyResponse as PapiPropertyDetailsResponse;
       if (!typedResponse.properties?.items?.[0]) {
-        throw new Error('Property not found');
+        throw new PropertyNotFoundError(args.propertyId, 'Property has no data');
       }
 
       version = typedResponse.properties.items[0].latestVersion || 1;
@@ -480,11 +576,22 @@ export async function updatePropertyRules(
     });
 
     if (isPapiError(currentRulesResponse)) {
-      throw new Error(`Failed to get current rules: ${currentRulesResponse.detail}`);
+      if (currentRulesResponse.status === 403) {
+        throw new PropertyAccessDeniedError(args.propertyId, 'read-rules');
+      } else {
+        throw new PropertyValidationError(
+          'rules',
+          currentRulesResponse.detail || 'Failed to get current rules',
+          { propertyId: args.propertyId, version }
+        );
+      }
     }
     
     if (!isPropertyVersionRulesGetResponse(currentRulesResponse)) {
-      throw new Error('Invalid response: expected PropertyVersionRulesGetResponse');
+      throw new InvalidPropertyResponseError(
+        'PropertyVersionRulesGetResponse',
+        currentRulesResponse
+      );
     }
     
     const currentRules = currentRulesResponse as PropertyVersionRulesGetResponse;
@@ -522,7 +629,10 @@ export async function updatePropertyRules(
 
     // Step 3: Validate the update response
     if (!isPropertyVersionRulesGetResponse(response)) {
-      throw new Error('Invalid response: expected PropertyVersionRulesGetResponse after update');
+      throw new InvalidPropertyResponseError(
+        'PropertyVersionRulesGetResponse after update',
+        response
+      );
     }
     
     const rulesUpdateResponse = response as PropertyVersionRulesGetResponse;
@@ -548,6 +658,18 @@ export async function updatePropertyRules(
     text += '## Next Steps\n';
     text += `- Review rules: "Show rules for property ${args.propertyId}"\n`;
     text += `- Activate to staging: "Activate property ${args.propertyId} to staging"\n`;
+
+    // Invalidate cache after successful rules update
+    try {
+      const cacheService = await getCacheService();
+      const customer = 'default'; // No customer param in this function signature
+      await cacheService.invalidateProperty(args.propertyId, customer);
+      // Also invalidate specific rules cache
+      await cacheService.del(`${customer}:property:${args.propertyId}:rules:${version}`);
+    } catch (cacheError) {
+      // Log but don't fail the operation if cache invalidation fails
+      console.error('[Cache] Failed to invalidate cache after rules update:', cacheError);
+    }
 
     return {
       content: [
@@ -611,16 +733,29 @@ export async function createEdgeHostname(
     });
 
     if (isPapiError(propertyResponse)) {
-      throw new Error(`Failed to get property: ${propertyResponse.detail}`);
+      if (propertyResponse.status === 404) {
+        throw new PropertyNotFoundError(args.propertyId);
+      } else if (propertyResponse.status === 403) {
+        throw new PropertyAccessDeniedError(args.propertyId, 'read');
+      } else {
+        throw new PropertyValidationError(
+          'propertyId',
+          propertyResponse.detail || 'Failed to get property',
+          args.propertyId
+        );
+      }
     }
 
     if (!isPapiPropertyDetailsResponse(propertyResponse)) {
-      throw new Error('Invalid property response structure');
+      throw new InvalidPropertyResponseError(
+        'PapiPropertyDetailsResponse',
+        propertyResponse
+      );
     }
 
     const typedResponse = propertyResponse as PapiPropertyDetailsResponse;
     if (!typedResponse.properties?.items?.[0]) {
-      throw new Error('Property not found');
+      throw new PropertyNotFoundError(args.propertyId, 'Property has no data');
     }
 
     const property = typedResponse.properties.items[0];
@@ -662,12 +797,27 @@ export async function createEdgeHostname(
     // CODE KAI: Type-safe response handling with official Akamai types
     // Step 1: Check for API error response
     if (isPapiError(response)) {
-      throw new Error(`Failed to create edge hostname: ${response.detail}`);
+      if (response.status === 403) {
+        throw new PropertyAccessDeniedError(args.propertyId, 'create-edgehostname');
+      } else if (response.status === 409) {
+        throw new EdgeHostnameError(
+          args.domainPrefix,
+          'Edge hostname already exists or conflicts with another hostname'
+        );
+      } else {
+        throw new EdgeHostnameError(
+          args.domainPrefix,
+          response.detail || 'Failed to create edge hostname'
+        );
+      }
     }
     
     // Step 2: Validate response structure matches expected schema
     if (!isEdgeHostnameCreateResponse(response)) {
-      throw new Error('Invalid response: expected EdgeHostnameCreateResponse with edgeHostnameLink');
+      throw new InvalidPropertyResponseError(
+        'EdgeHostnameCreateResponse with edgeHostnameLink',
+        response
+      );
     }
     
     // Step 3: Safe type assertion after validation
@@ -737,16 +887,29 @@ export async function addPropertyHostname(
       });
 
       if (isPapiError(propertyResponse)) {
-        throw new Error(`Failed to get property: ${propertyResponse.detail}`);
+        if (propertyResponse.status === 404) {
+          throw new PropertyNotFoundError(args.propertyId);
+        } else if (propertyResponse.status === 403) {
+          throw new PropertyAccessDeniedError(args.propertyId, 'read');
+        } else {
+          throw new PropertyValidationError(
+            'propertyId',
+            propertyResponse.detail || 'Failed to get property',
+            args.propertyId
+          );
+        }
       }
 
       if (!isPapiPropertyDetailsResponse(propertyResponse)) {
-        throw new Error('Invalid property response structure');
+        throw new InvalidPropertyResponseError(
+          'PapiPropertyDetailsResponse',
+          propertyResponse
+        );
       }
 
       const typedResponse = propertyResponse as PapiPropertyDetailsResponse;
       if (!typedResponse.properties?.items?.[0]) {
-        throw new Error('Property not found');
+        throw new PropertyNotFoundError(args.propertyId, 'Property has no data');
       }
 
       version = typedResponse.properties.items[0].latestVersion || 1;
@@ -760,7 +923,10 @@ export async function addPropertyHostname(
 
     // Validate hostname response structure
     if (!isPropertyVersionHostnamesGetResponse(currentHostnamesResponse)) {
-      throw new Error('Invalid response: expected PropertyVersionHostnamesGetResponse');
+      throw new InvalidPropertyResponseError(
+        'PropertyVersionHostnamesGetResponse',
+        currentHostnamesResponse
+      );
     }
     
     const currentHostnames = currentHostnamesResponse as PropertyVersionHostnamesGetResponse;
@@ -784,6 +950,19 @@ export async function addPropertyHostname(
         hostnames: hostnames,
       },
     });
+
+    // Invalidate cache after successful hostname addition
+    try {
+      const cacheService = await getCacheService();
+      const customer = 'default'; // No customer param in this function signature
+      await cacheService.invalidateProperty(args.propertyId, customer);
+      // Also invalidate specific hostname caches
+      await cacheService.del(`${customer}:hostname:${args.hostname.toLowerCase()}`);
+      await cacheService.del(`${customer}:hostname:map`);
+    } catch (cacheError) {
+      // Log but don't fail the operation if cache invalidation fails
+      console.error('[Cache] Failed to invalidate cache after hostname addition:', cacheError);
+    }
 
     return {
       content: [
@@ -843,16 +1022,29 @@ export async function removePropertyHostname(
       });
 
       if (isPapiError(propertyResponse)) {
-        throw new Error(`Failed to get property: ${propertyResponse.detail}`);
+        if (propertyResponse.status === 404) {
+          throw new PropertyNotFoundError(args.propertyId);
+        } else if (propertyResponse.status === 403) {
+          throw new PropertyAccessDeniedError(args.propertyId, 'read');
+        } else {
+          throw new PropertyValidationError(
+            'propertyId',
+            propertyResponse.detail || 'Failed to get property',
+            args.propertyId
+          );
+        }
       }
 
       if (!isPapiPropertyDetailsResponse(propertyResponse)) {
-        throw new Error('Invalid property response structure');
+        throw new InvalidPropertyResponseError(
+          'PapiPropertyDetailsResponse',
+          propertyResponse
+        );
       }
 
       const typedResponse = propertyResponse as PapiPropertyDetailsResponse;
       if (!typedResponse.properties?.items?.[0]) {
-        throw new Error('Property not found');
+        throw new PropertyNotFoundError(args.propertyId, 'Property has no data');
       }
 
       version = typedResponse.properties.items[0].latestVersion || 1;
@@ -866,7 +1058,10 @@ export async function removePropertyHostname(
     
     // Validate hostname response structure
     if (!isPropertyVersionHostnamesGetResponse(currentHostnamesResponse)) {
-      throw new Error('Invalid response: expected PropertyVersionHostnamesGetResponse');
+      throw new InvalidPropertyResponseError(
+        'PropertyVersionHostnamesGetResponse',
+        currentHostnamesResponse
+      );
     }
     
     const currentHostnames = currentHostnamesResponse as PropertyVersionHostnamesGetResponse;
@@ -899,6 +1094,19 @@ export async function removePropertyHostname(
         hostnames: hostnames,
       },
     });
+
+    // Invalidate cache after successful hostname removal
+    try {
+      const cacheService = await getCacheService();
+      const customer = 'default'; // No customer param in this function signature
+      await cacheService.invalidateProperty(args.propertyId, customer);
+      // Also invalidate specific hostname caches
+      await cacheService.del(`${customer}:hostname:${args.hostname.toLowerCase()}`);
+      await cacheService.del(`${customer}:hostname:map`);
+    } catch (cacheError) {
+      // Log but don't fail the operation if cache invalidation fails
+      console.error('[Cache] Failed to invalidate cache after hostname removal:', cacheError);
+    }
 
     return {
       content: [
@@ -976,12 +1184,17 @@ export async function activateProperty(
     });
 
     // Validate API response
-    const typedPropertyResponse = propertyResponse as any;
-    if (!typedPropertyResponse.properties?.items?.[0]) {
-      throw new Error('Property not found');
+    if (!isPapiPropertyDetailsResponse(propertyResponse)) {
+      throw new InvalidPropertyResponseError(
+        'PapiPropertyDetailsResponse',
+        propertyResponse
+      );
+    }
+    if (!propertyResponse.properties?.items?.[0]) {
+      throw new PropertyNotFoundError(args.propertyId);
     }
 
-    const property = typedPropertyResponse.properties.items[0];
+    const property = propertyResponse.properties.items[0];
     const version = args.version || property.latestVersion || 1;
 
     // Check if already active
@@ -1033,11 +1246,36 @@ export async function activateProperty(
 
     // CODE KAI: Type-safe activation response handling
     if (isPapiError(response)) {
-      throw new Error(`Failed to create activation: ${response.detail}`);
+      if (response.status === 403) {
+        throw new PropertyAccessDeniedError(args.propertyId, 'activate');
+      } else if (response.status === 409) {
+        throw new PropertyActivationError(
+          args.propertyId,
+          version,
+          args.network,
+          'An activation is already in progress or there is a conflict'
+        );
+      } else if (response.status === 422) {
+        // Validation errors
+        throw new RuleValidationError(
+          args.propertyId,
+          response.errors || [{ detail: response.detail || 'Validation failed' }]
+        );
+      } else {
+        throw new PropertyActivationError(
+          args.propertyId,
+          version,
+          args.network,
+          response.detail || 'Failed to create activation'
+        );
+      }
     }
     
     if (!isPropertyActivateResponse(response)) {
-      throw new Error('Invalid response: expected PropertyActivateResponse with activationLink');
+      throw new InvalidPropertyResponseError(
+        'PropertyActivateResponse with activationLink',
+        response
+      );
     }
     
     const typedResponse = response as PropertyActivateResponse;
@@ -1049,6 +1287,17 @@ export async function activateProperty(
 
     // Start monitoring activation status in background
     monitorActivation(client, args.propertyId, activationId || '', progressToken);
+
+    // Invalidate cache after activation is initiated
+    try {
+      const cacheService = await getCacheService();
+      const customer = args.customer || 'default';
+      await cacheService.invalidateProperty(args.propertyId, customer);
+      // Note: We'll invalidate again when activation completes in monitorActivation
+    } catch (cacheError) {
+      // Log but don't fail the operation if cache invalidation fails
+      console.error('[Cache] Failed to invalidate cache after activation start:', cacheError);
+    }
 
     const format = validateFormatParameter(args.format);
     const responseBuilder = new JsonResponseBuilder();
@@ -1207,16 +1456,35 @@ export async function getActivationStatus(
 
     // CODE KAI: Type-safe activation status handling
     if (isPapiError(response)) {
-      throw new Error(`Failed to get activation status: ${response.detail}`);
+      if (response.status === 404) {
+        throw new PropertyNotFoundError(
+          args.activationId,
+          `Activation ${args.activationId} not found for property ${args.propertyId}`
+        );
+      } else if (response.status === 403) {
+        throw new PropertyAccessDeniedError(args.propertyId, 'read-activation');
+      } else {
+        throw new PropertyValidationError(
+          'activationId',
+          response.detail || 'Failed to get activation status',
+          args.activationId
+        );
+      }
     }
     
     if (!isPropertyActivationsGetResponse(response)) {
-      throw new Error('Invalid response: expected PropertyActivationsGetResponse');
+      throw new InvalidPropertyResponseError(
+        'PropertyActivationsGetResponse',
+        response
+      );
     }
     
     const typedResponse = response as PropertyActivationsGetResponse;
     if (!typedResponse.activations?.items?.[0]) {
-      throw new Error('Activation not found');
+      throw new PropertyNotFoundError(
+        args.activationId,
+        `Activation ${args.activationId} not found`
+      );
     }
 
     const activation = typedResponse.activations.items[0];
@@ -1350,11 +1618,24 @@ export async function listPropertyActivations(
 
     // CODE KAI: Type-safe activation list handling
     if (isPapiError(response)) {
-      throw new Error(`Failed to list activations: ${response.detail}`);
+      if (response.status === 404) {
+        throw new PropertyNotFoundError(args.propertyId);
+      } else if (response.status === 403) {
+        throw new PropertyAccessDeniedError(args.propertyId, 'list-activations');
+      } else {
+        throw new PropertyValidationError(
+          'propertyId',
+          response.detail || 'Failed to list activations',
+          args.propertyId
+        );
+      }
     }
     
     if (!isPropertyActivationsGetResponse(response)) {
-      throw new Error('Invalid response: expected PropertyActivationsGetResponse');
+      throw new InvalidPropertyResponseError(
+        'PropertyActivationsGetResponse',
+        response
+      );
     }
     
     const typedResponse = response as PropertyActivationsGetResponse;
@@ -1566,17 +1847,22 @@ export async function createPropertyVersionEnhanced(
         path: `/papi/v1/properties/${args.propertyId}/versions`,
       });
 
-      const typedVersionsResponse = versionsResponse as any;
-      const versions = typedVersionsResponse.data?.versions?.items || [];
+      if (!isPapiPropertyVersionsResponse(versionsResponse)) {
+        throw new InvalidPropertyResponseError(
+          'PapiPropertyVersionsResponse',
+          versionsResponse
+        );
+      }
+      const versions = versionsResponse.versions?.items || [];
       if (versions.length > 0) {
         // Select latest staging version, or latest production if no staging
-        const stagingVersions = versions.filter((v: any) => v.stagingStatus === 'ACTIVE');
-        const productionVersions = versions.filter((v: any) => v.productionStatus === 'ACTIVE');
+        const stagingVersions = versions.filter(v => v.stagingStatus === 'ACTIVE');
+        const productionVersions = versions.filter(v => v.productionStatus === 'ACTIVE');
 
         if (stagingVersions.length > 0) {
-          baseVersion = Math.max(...stagingVersions.map((v: any) => v.propertyVersion));
+          baseVersion = Math.max(...stagingVersions.map(v => v.propertyVersion));
         } else if (productionVersions.length > 0) {
-          baseVersion = Math.max(...productionVersions.map((v: any) => v.propertyVersion));
+          baseVersion = Math.max(...productionVersions.map(v => v.propertyVersion));
         } else {
           baseVersion = Math.max(...versions.map((v: any) => v.propertyVersion));
         }
@@ -1590,8 +1876,13 @@ export async function createPropertyVersionEnhanced(
       body: baseVersion ? { createFromVersion: baseVersion } : {},
     });
 
-    const typedResponse = response as any;
-    const newVersion = typedResponse.versionLink?.split('/').pop() || 'unknown';
+    if (!isPropertyVersionCreateResponse(response)) {
+      throw new InvalidPropertyResponseError(
+        'PropertyVersionCreateResponse',
+        response
+      );
+    }
+    const newVersion = response.versionLink?.split('/').pop() || 'unknown';
 
     // Add note and metadata if provided
     if (args.note || args.tags || args.metadata) {
@@ -1688,11 +1979,15 @@ export async function getVersionDiff(
         }),
       ]);
 
-      const typedRules1Response = rules1Response as any;
-      const typedRules2Response = rules2Response as any;
+      if (!isPropertyVersionRulesGetResponse(rules1Response) || !isPropertyVersionRulesGetResponse(rules2Response)) {
+        throw new InvalidPropertyResponseError(
+          'PropertyVersionRulesGetResponse',
+          { rules1Response, rules2Response }
+        );
+      }
       const rulesDiff = compareRuleTrees(
-        typedRules1Response.data.rules,
-        typedRules2Response.data.rules,
+        rules1Response.rules,
+        rules2Response.rules,
         args.includeDetails || false,
       );
 
@@ -1718,11 +2013,15 @@ export async function getVersionDiff(
         }),
       ]);
 
-      const typedHostnames1Response = hostnames1Response as any;
-      const typedHostnames2Response = hostnames2Response as any;
+      if (!isPropertyVersionHostnamesGetResponse(hostnames1Response) || !isPropertyVersionHostnamesGetResponse(hostnames2Response)) {
+        throw new InvalidPropertyResponseError(
+          'PropertyVersionHostnamesGetResponse',
+          { hostnames1Response, hostnames2Response }
+        );
+      }
       const hostnamesDiff = compareHostnames(
-        typedHostnames1Response.data.hostnames?.items || [],
-        typedHostnames2Response.data.hostnames?.items || [],
+        hostnames1Response.hostnames?.items || [],
+        hostnames2Response.hostnames?.items || [],
       );
 
       if (hostnamesDiff.length > 0) {
@@ -1796,15 +2095,20 @@ export async function listPropertyVersionsEnhanced(
       path: `/papi/v1/properties/${args.propertyId}/versions`,
     });
 
-    const typedResponse = response as any;
-    let versions = typedResponse.data?.versions?.items || [];
+    if (!isPapiPropertyVersionsResponse(response)) {
+      throw new InvalidPropertyResponseError(
+        'PapiPropertyVersionsResponse',
+        response
+      );
+    }
+    let versions = response.versions?.items || [];
     const limit = args.limit || 20;
     const offset = args.offset || 0;
 
     // Apply filters
     if (args.status === 'active') {
       versions = versions.filter(
-        (v: any) => v.stagingStatus === 'ACTIVE' || v.productionStatus === 'ACTIVE',
+        v => v.stagingStatus === 'ACTIVE' || v.productionStatus === 'ACTIVE',
       );
     } else if (args.status === 'inactive') {
       versions = versions.filter(
@@ -1846,9 +2150,15 @@ export async function listPropertyVersionsEnhanced(
         text += `  └ Note: ${version.note}\n`;
       }
 
-      if (args.includeMetadata && version.metadata) {
+      // Type extension: Some API responses include metadata field not in base interface
+      interface VersionWithMetadata extends PapiPropertyVersion {
+        metadata?: string | Record<string, unknown>;
+      }
+      
+      const versionWithMetadata = version as VersionWithMetadata;
+      if (args.includeMetadata && 'metadata' in version && versionWithMetadata.metadata) {
         const metadata =
-          typeof version.metadata === 'string' ? JSON.parse(version.metadata) : version.metadata;
+          typeof versionWithMetadata.metadata === 'string' ? JSON.parse(versionWithMetadata.metadata) : versionWithMetadata.metadata;
         if (metadata.tags) {
           text += `  └ Tags: ${metadata.tags}\n`;
         }
@@ -1911,9 +2221,14 @@ export async function rollbackPropertyVersion(
         path: `/papi/v1/properties/${args.propertyId}/versions`,
       });
 
-      const typedCurrentVersionResponse = currentVersionResponse as any;
-      const versions = typedCurrentVersionResponse.data?.versions?.items || [];
-      const latestVersion = Math.max(...versions.map((v: any) => v.propertyVersion));
+      if (!isPapiPropertyVersionsResponse(currentVersionResponse)) {
+        throw new InvalidPropertyResponseError(
+          'PapiPropertyVersionsResponse',
+          currentVersionResponse
+        );
+      }
+      const versions = currentVersionResponse.versions?.items || [];
+      const latestVersion = Math.max(...versions.map(v => v.propertyVersion));
 
       const backupResponse = await client.request({
         method: 'POST',
@@ -1921,8 +2236,13 @@ export async function rollbackPropertyVersion(
         body: { createFromVersion: latestVersion },
       });
 
-      const typedBackupResponse = backupResponse as any;
-      backupVersionId = typedBackupResponse.versionLink?.split('/').pop();
+      if (!isPropertyVersionCreateResponse(backupResponse)) {
+        throw new InvalidPropertyResponseError(
+          'PropertyVersionCreateResponse',
+          backupResponse
+        );
+      }
+      backupVersionId = backupResponse.versionLink?.split('/').pop();
 
       // Add backup note
       if (backupVersionId) {
@@ -1947,8 +2267,13 @@ export async function rollbackPropertyVersion(
       body: { createFromVersion: args.targetVersion },
     });
 
-    const typedRollbackResponse = rollbackResponse as any;
-    const newVersionId = typedRollbackResponse.versionLink?.split('/').pop();
+    if (!isPropertyVersionCreateResponse(rollbackResponse)) {
+      throw new InvalidPropertyResponseError(
+        'PropertyVersionCreateResponse',
+        rollbackResponse
+      );
+    }
+    const newVersionId = rollbackResponse.versionLink?.split('/').pop();
 
     // Add rollback note
     if (newVersionId && args.note) {
@@ -1980,7 +2305,7 @@ export async function rollbackPropertyVersion(
           method: 'POST',
           path: `/papi/v1/properties/${args.propertyId}/activations`,
           body: {
-            propertyVersion: parseInt(newVersionId),
+            propertyVersion: parseInt(newVersionId || '0'),
             network: args.network.toUpperCase(),
             note: `Auto-activation after rollback to version ${args.targetVersion}`,
             acknowledgeAllWarnings: true,
@@ -2063,7 +2388,11 @@ export async function batchVersionOperations(
               });
               break;
             default:
-              throw new Error(`Unknown operation: ${op.operation}`);
+              throw new PropertyValidationError(
+                'operation',
+                `Unknown operation: ${op.operation}`,
+                op.operation
+              );
           }
           return { index, success: true, result, propertyId: op.propertyId };
         } catch (_error: any) {
@@ -2132,7 +2461,11 @@ export async function batchVersionOperations(
               });
               break;
             default:
-              throw new Error(`Unknown operation: ${op.operation}`);
+              throw new PropertyValidationError(
+                'operation',
+                `Unknown operation: ${op.operation}`,
+                op.operation
+              );
           }
           results.push({ propertyId: op.propertyId, operation: op.operation, result });
         } catch (_error: any) {
@@ -2313,13 +2646,16 @@ async function monitorActivation(
         method: 'GET',
       });
 
-      const typedResponse = response as any;
-      if (!typedResponse.activations?.items?.[0]) {
+      if (!isPropertyActivationsGetResponse(response)) {
+        progressToken.fail('Invalid response from activation status check');
+        return;
+      }
+      if (!response.activations?.items?.[0]) {
         progressToken.fail('Activation not found');
         return;
       }
 
-      const activation = typedResponse.activations.items[0];
+      const activation = response.activations.items[0];
       const elapsed = Date.now() - startTime;
 
       // Map activation status to progress
@@ -2335,7 +2671,7 @@ async function monitorActivation(
         DEACTIVATED: -1,
       };
 
-      const progress = progressMap[activation.status] || 50;
+      const progress = progressMap[activation.status || 'UNKNOWN'] || 50;
 
       if (progress === -1) {
         // Failed status

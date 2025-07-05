@@ -428,7 +428,7 @@ export const securityAuditRules: AuditRule[] = [
       
       // Check for insecure protocols
       if (context.content.includes('http://') && !context.content.includes('localhost')) {
-        const httpMatches = context.content.matchAll(/http:\/\/[^\/\s]+/g);
+        const httpMatches = context.content.matchAll(/http:\/\/[^/\s]+/g);
         for (const match of httpMatches) {
           if (!match[0].includes('localhost') && !match[0].includes('127.0.0.1')) {
             const lines = context.content.substring(0, match.index).split('\n');

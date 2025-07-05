@@ -19,6 +19,16 @@
 
 import { createLogger } from './pino-logger';
 
+// CODE KAI: Type-safe timeout error interfaces
+interface TimeoutError extends Error {
+  code: 'ETIMEDOUT';
+  timeout: number;
+}
+
+interface ControllerWithTimeout extends AbortController {
+  timeoutId?: NodeJS.Timeout;
+}
+
 const logger = createLogger('request-timeout-handler');
 
 /**
@@ -70,9 +80,9 @@ export async function withTimeout<T>(
     if (controller.signal.aborted) {
       const timeoutError = new Error(
         `Operation${operationName ? ` '${operationName}'` : ''} timed out after ${timeout}ms`
-      );
-      (timeoutError as any).code = 'ETIMEDOUT';
-      (timeoutError as any).timeout = timeout;
+      ) as TimeoutError;
+      timeoutError.code = 'ETIMEDOUT';
+      timeoutError.timeout = timeout;
       throw timeoutError;
     }
     
@@ -161,7 +171,8 @@ export class BatchTimeoutHandler {
     }, timeout);
     
     // Store controller with timeout ID for cleanup
-    (controller as any).timeoutId = timeoutId;
+    const controllerWithTimeout = controller as ControllerWithTimeout;
+    controllerWithTimeout.timeoutId = timeoutId;
     this.controllers.set(operationId, controller);
     
     return controller.signal;
@@ -173,7 +184,8 @@ export class BatchTimeoutHandler {
   clearTimeout(operationId: string): void {
     const controller = this.controllers.get(operationId);
     if (controller) {
-      const timeoutId = (controller as any).timeoutId;
+      const controllerWithTimeout = controller as ControllerWithTimeout;
+      const timeoutId = controllerWithTimeout.timeoutId;
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
@@ -186,7 +198,8 @@ export class BatchTimeoutHandler {
    */
   clearAll(): void {
     for (const [, controller] of this.controllers) {
-      const timeoutId = (controller as any).timeoutId;
+      const controllerWithTimeout = controller as ControllerWithTimeout;
+      const timeoutId = controllerWithTimeout.timeoutId;
       if (timeoutId) {
         clearTimeout(timeoutId);
       }

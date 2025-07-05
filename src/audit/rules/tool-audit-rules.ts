@@ -69,7 +69,7 @@ export const toolAuditRules: AuditRule[] = [
               file: context.filePath,
               line: lines.length,
               message: 'Incomplete tool description',
-              suggestion: 'Complete the TODO in description',
+              suggestion: 'Complete the incomplete description',
               codeSnippet: match[0],
             });
           }
@@ -258,7 +258,7 @@ export const toolAuditRules: AuditRule[] = [
             nameMap.set(name, []);
           }
           const nameList = nameMap.get(name);
-          if (nameList) nameList.push(lines);
+          if (nameList) {nameList.push(lines);}
         });
         
         for (const [name, lines] of nameMap.entries()) {
@@ -376,7 +376,7 @@ export const toolAuditRules: AuditRule[] = [
         const schemas = context.content.matchAll(/(\w+):\s*z\./g);
         for (const match of schemas) {
           const field = match[1];
-          if (field) schemaFields.add(field);
+          if (field) {schemaFields.add(field);}
         }
         
         // Check if params are validated

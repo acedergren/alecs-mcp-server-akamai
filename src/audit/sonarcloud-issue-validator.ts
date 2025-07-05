@@ -4,7 +4,7 @@ import * as path from 'path';
 import { z } from 'zod';
 
 // Validation result schema
-const ValidationResultSchema = z.object({
+const _ValidationResultSchema = z.object({
   issue: z.object({
     key: z.string(),
     rule: z.string(),
@@ -22,7 +22,7 @@ const ValidationResultSchema = z.object({
   }).optional(),
 });
 
-export type ValidationResult = z.infer<typeof ValidationResultSchema>;
+export type ValidationResult = z.infer<typeof _ValidationResultSchema>;
 
 export class SonarCloudIssueValidator {
   constructor(
@@ -121,7 +121,7 @@ export class SonarCloudIssueValidator {
         status: validation.exists ? 'STILL_EXISTS' : 'FIXED',
         details: validation.details,
       };
-    } catch (error) {
+    } catch (_error) {
       // File not found
       return {
         issue: {

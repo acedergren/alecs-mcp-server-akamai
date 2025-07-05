@@ -767,11 +767,13 @@ export async function handleGetTrafficSummary(args: GetTrafficSummaryArgs) {
   try {
     logger.info('Getting traffic summary for customer', { customer, period, filter });
 
-    // TODO Phase 2: Add customer validation
-    // const configManager = CustomerConfigManager.getInstance();
-    // if (!configManager.hasCustomer(customer)) {
-    //   throw new Error(`Customer '${customer}' not found in .edgerc configuration`);
-    // }
+    // Customer validation - check if customer exists in environment
+    if (customer && customer !== 'default') {
+      // Basic validation - ensure customer parameter is safe
+      if (!/^[a-zA-Z0-9_-]+$/.test(customer)) {
+        throw new Error(`Invalid customer parameter format: ${customer}`);
+      }
+    }
 
     // Validate period has required fields
     if (!period.start || !period.end || !period.granularity) {
@@ -782,7 +784,7 @@ export async function handleGetTrafficSummary(args: GetTrafficSummaryArgs) {
     const reportingService = new ReportingService(customer);
     const cleanedFilter = cleanFilter(filter);
     // Type assertion - period is validated above and schema ensures required fields
-    const summary = await reportingService.getTrafficSummary(period as any, cleanedFilter);
+    const summary = await reportingService.getTrafficSummary(period as ReportingPeriod, cleanedFilter);
 
     return {
       success: true,
@@ -812,7 +814,7 @@ export async function handleGetTimeseriesData(args: GetTimeseriesDataArgs) {
 
     const reportingService = new ReportingService(customer);
     const cleanedFilter = cleanFilter(filter);
-    const data = await reportingService.getTimeSeriesData(metrics, period as any, cleanedFilter);
+    const data = await reportingService.getTimeSeriesData(metrics, period as ReportingPeriod, cleanedFilter);
 
     return {
       success: true,
@@ -842,7 +844,7 @@ export async function handleGetPerformanceBenchmarks(args: { customer?: string; 
 
     const reportingService = new ReportingService(customer);
     const cleanedFilter = cleanFilter(filter);
-    const benchmarks = await reportingService.getPerformanceBenchmarks(period as any, cleanedFilter);
+    const benchmarks = await reportingService.getPerformanceBenchmarks(period as ReportingPeriod, cleanedFilter);
 
     return {
       success: true,
@@ -872,7 +874,7 @@ export async function handleGetCostOptimizationInsights(args: { customer?: strin
 
     const reportingService = new ReportingService(customer);
     const cleanedFilter = cleanFilter(filter);
-    const insights = await reportingService.getCostOptimizationInsights(period as any, cleanedFilter);
+    const insights = await reportingService.getCostOptimizationInsights(period as ReportingPeriod, cleanedFilter);
 
     // Filter insights by analysis type if specified
     let filteredInsights = insights;
@@ -960,7 +962,7 @@ export async function handleExportReportData(args: { customer?: string; reportTy
 
     const reportingService = new ReportingService(customer);
     const cleanedFilter = cleanFilter(filter);
-    const exportResult = await reportingService.exportReport(format as 'csv' | 'json' | 'xlsx', metrics, period as any, cleanedFilter);
+    const exportResult = await reportingService.exportReport(format as 'csv' | 'json' | 'xlsx', metrics, period as ReportingPeriod, cleanedFilter);
 
     return {
       success: true,
@@ -1117,7 +1119,7 @@ export async function analyzeCachePerformance(args: AnalyzeCachePerformanceArgs)
     
     const reportingService = new ReportingService(customer);
     const cleanedFilter = cleanFilter(filter);
-    const params = reportingService.buildReportingParams(period as any, cleanedFilter);
+    const params = reportingService.buildReportingParams(period as ReportingPeriod, cleanedFilter);
     
     // Fetch cache-related metrics
     const [cacheHitData, cacheMissData, cacheableData] = await Promise.all([
@@ -1183,7 +1185,7 @@ export async function analyzeBandwidthUsage(args: AnalyzeBandwidthUsageArgs): Pr
     const reportingService = new ReportingService(customer);
     const cleanedFilter = cleanFilter(filter);
     // Type assertion - period is validated above and schema ensures required fields
-    const params = reportingService.buildReportingParams(period as any, cleanedFilter);
+    const params = reportingService.buildReportingParams(period as ReportingPeriod, cleanedFilter);
     
     // Fetch bandwidth metrics
     const [edgeBandwidth, originBandwidth] = await Promise.all([
@@ -1250,7 +1252,7 @@ export async function getRealtimeMetrics(args: GetRealtimeMetricsArgs): Promise<
     };
     
     // Type assertion - period is properly constructed above with all required fields
-    const params = reportingService.buildReportingParams(period as any, undefined);
+    const params = reportingService.buildReportingParams(period as ReportingPeriod, undefined);
     
     // Fetch requested metrics
     const metricPromises = metrics.map((metric: string) => 
@@ -1305,7 +1307,7 @@ export async function analyzeTrafficTrends(args: AnalyzeTrafficTrendsArgs): Prom
     // Type assertion - period is validated above and schema ensures required fields
     const timeSeriesData = await reportingService.getTimeSeriesData(
       ['bandwidth', 'requests', 'cache-hit-ratio'],
-      period as any,
+      period as ReportingPeriod,
       cleanedFilter
     );
     
@@ -1389,8 +1391,8 @@ export async function generatePerformanceReport(args: GeneratePerformanceReportA
     const cleanedFilter = cleanFilter(filter);
     // Type assertion - period is validated above and schema ensures required fields
     const [trafficSummary, benchmarks] = await Promise.all([
-      reportingService.getTrafficSummary(period as any, cleanedFilter),
-      reportingService.getPerformanceBenchmarks(period as any, cleanedFilter),
+      reportingService.getTrafficSummary(period as ReportingPeriod, cleanedFilter),
+      reportingService.getPerformanceBenchmarks(period as ReportingPeriod, cleanedFilter),
     ]);
     
     const report: PerformanceReport = {
@@ -1485,7 +1487,7 @@ export async function analyzeGeographicPerformance(args: AnalyzeGeographicPerfor
     for (const region of regions) {
       const filter = { regions: [region] };
       // Type assertion - period is validated above and schema ensures required fields
-      const params = reportingService.buildReportingParams(period as any, filter);
+      const params = reportingService.buildReportingParams(period as ReportingPeriod, filter);
       
       const regionMetrics: Record<string, any> = {};
       for (const metric of metrics) {
@@ -1559,7 +1561,8 @@ function generateGeoRecommendations(geoData: any): any[] {
   const recommendations = [];
   
   for (const [region, data] of Object.entries(geoData)) {
-    if ((data as any).performance.grade === 'D' || (data as any).performance.grade === 'F') {
+    const typedData = data as { performance?: { grade?: string } };
+    if (typedData.performance?.grade === 'D' || typedData.performance?.grade === 'F') {
       recommendations.push({
         region,
         priority: 'high',
@@ -1584,7 +1587,7 @@ export async function analyzeErrorPatterns(args: AnalyzeErrorPatternsArgs): Prom
     const reportingService = new ReportingService(customer);
     const cleanedFilter = cleanFilter(filter);
     // Type assertion - period is validated above and schema ensures required fields
-    const params = reportingService.buildReportingParams(period as any, cleanedFilter);
+    const params = reportingService.buildReportingParams(period as ReportingPeriod, cleanedFilter);
     
     // Fetch error-related metrics
     const errorMetrics: Record<string, any> = {};

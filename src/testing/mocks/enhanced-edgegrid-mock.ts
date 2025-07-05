@@ -109,9 +109,12 @@ export class EnhancedEdgeGridMock {
 
     // Return response or error
     if (matchingConfig.response.status && matchingConfig.response.status >= 400) {
-      const error = new Error(matchingConfig.response.detail || 'API Error');
-      (error as any).status = matchingConfig.response.status;
-      (error as any).response = matchingConfig.response;
+      const error = new Error(matchingConfig.response.detail || 'API Error') as Error & {
+        status: number;
+        response: any;
+      };
+      error.status = matchingConfig.response.status;
+      error.response = matchingConfig.response;
       throw error;
     }
 

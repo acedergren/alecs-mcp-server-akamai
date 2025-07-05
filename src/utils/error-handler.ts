@@ -54,7 +54,8 @@ export class ToolErrorHandler {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const statusCode = this.extractStatusCode(error);
     const akamaiError = this.extractAkamaiError(error);
-    const requestId = akamaiError?.requestId || (error as any)?.requestId;
+    const errorWithRequestId = error as { requestId?: string };
+    const requestId = akamaiError?.requestId || errorWithRequestId?.requestId;
 
     // Log structured error data
     this.logger.error({
@@ -298,7 +299,8 @@ export class ToolErrorHandler {
     }
     
     // Add request ID
-    const requestId = akamaiError?.requestId || (error as any)?.requestId;
+    const errorWithRequestId = error as { requestId?: string };
+    const requestId = akamaiError?.requestId || errorWithRequestId?.requestId;
     if (requestId) {
       text += `\n**Request ID:** ${requestId}\n`;
     }

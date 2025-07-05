@@ -262,7 +262,11 @@ export async function listChangelists(
     spinner.succeed('Changelists retrieved');
 
     // CODE KAI: Type-safe changelist handling
-    const changelists = ((response as any).changelists || []) as EdgeDNSChangeListMetadata[];
+    interface ChangelistsResponse {
+      changelists?: EdgeDNSChangeListMetadata[];
+    }
+    const typedResponse = response as ChangelistsResponse;
+    const changelists = typedResponse.changelists || [];
     let output = `${icons.dns} Changelists (${changelists.length}):\n\n`;
     
     if (changelists.length === 0) {
@@ -327,7 +331,11 @@ export async function searchChangelists(
     spinner.succeed('Search complete');
 
     // CODE KAI: Type-safe search results handling
-    const results = ((response as any).changelists || []) as EdgeDNSChangeListMetadata[];
+    interface ChangelistSearchResponse {
+      changelists?: EdgeDNSChangeListMetadata[];
+    }
+    const typedResponse = response as ChangelistSearchResponse;
+    const results = typedResponse.changelists || [];
     let output = `${icons.dns} Search Results (${results.length}):\n\n`;
     
     args.zones.forEach(zone => {
@@ -801,7 +809,11 @@ export async function listTSIGKeys(
     spinner.succeed('TSIG keys retrieved');
 
     // CODE KAI: Type-safe TSIG key handling
-    const keys = ((response as any).keys || []) as TSIGKey[];
+    interface TSIGKeysResponse {
+      keys?: TSIGKey[];
+    }
+    const typedResponse = response as TSIGKeysResponse;
+    const keys = typedResponse.keys || [];
     let output = `${icons.dns} TSIG Keys (${keys.length}):\n\n`;
     
     if (keys.length === 0) {
