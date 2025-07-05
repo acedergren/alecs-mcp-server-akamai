@@ -154,6 +154,7 @@ export class SmartCache<T = any> extends EventEmitter {
   
   private readonly options: Required<SmartCacheOptions>;
   private cleanupInterval?: NodeJS.Timeout;
+  private persistenceInterval?: NodeJS.Timeout;
   
   constructor(options: SmartCacheOptions = {}) {
     super();
@@ -198,14 +199,16 @@ export class SmartCache<T = any> extends EventEmitter {
     this.cleanupInterval = setInterval(() => {
       this.cleanup();
     }, 60000); // Run every minute
+    this.cleanupInterval.unref(); // Don't keep process alive
     
     // Load persisted cache if enabled
     if (this.options.enablePersistence) {
       this.loadCache().catch(err => this.emit('load-error', err));
       // Save periodically
-      setInterval(() => {
+      this.persistenceInterval = setInterval(() => {
         this.saveCache().catch(err => this.emit('save-error', err));
       }, 60000);
+      this.persistenceInterval.unref(); // Don't keep process alive
     }
   }
 
@@ -639,6 +642,11 @@ export class SmartCache<T = any> extends EventEmitter {
   async close(): Promise<void> {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
+      this.cleanupInterval = undefined;
+    }
+    if (this.persistenceInterval) {
+      clearInterval(this.persistenceInterval);
+      this.persistenceInterval = undefined;
     }
     this.removeAllListeners();
   }
