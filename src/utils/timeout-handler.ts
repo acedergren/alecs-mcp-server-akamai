@@ -139,7 +139,7 @@ export async function executeWithTimeout<T>(
     toolName: string;
     operationName: string;
     timeout?: number;
-    context?: BaseToolArgs & Record<string, any>;
+    context?: BaseToolArgs & Record<string, unknown>;
   }
 ): Promise<T> {
   const timeout = getOperationTimeout(options.operationType, options.timeout);
@@ -161,7 +161,7 @@ export async function executeWithTimeout<T>(
       operation(),
       timeoutPromise
     ]);
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Enhance timeout errors with context
     if (error.message?.includes('timed out')) {
       throw new ToolError({
@@ -212,7 +212,7 @@ export async function retryWithBackoff<T>(
     initialDelay?: number;
     maxDelay?: number;
     backoffFactor?: number;
-    shouldRetry?: (error: any) => boolean;
+    shouldRetry?: (error: unknown) => boolean;
   } = {}
 ): Promise<T> {
   const {
@@ -227,13 +227,13 @@ export async function retryWithBackoff<T>(
     }
   } = options;
   
-  let lastError: any;
+  let lastError: unknown;
   let delay = initialDelay;
   
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
-    } catch (error: any) {
+    } catch (error: unknown) {
       lastError = error;
       
       if (attempt === maxRetries || !shouldRetry(error)) {

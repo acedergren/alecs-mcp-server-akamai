@@ -108,7 +108,7 @@ export async function listGroupsPaginated(
     if (args.searchTerm) {
       const searchLower = args.searchTerm.toLowerCase();
       groups = groups.filter(
-        (g: any) =>
+        (g: unknown) =>
           g.groupName.toLowerCase().includes(searchLower) ||
           g.groupId.toLowerCase().includes(searchLower),
       );
@@ -124,9 +124,9 @@ export async function listGroupsPaginated(
     const paginated = paginateArray(groups, paginationOptions);
 
     // Build hierarchy for paginated results
-    const topLevelGroups = paginated.items.filter((g: any) => !g.parentGroupId);
+    const topLevelGroups = paginated.items.filter((g: unknown) => !g.parentGroupId);
     const groupsByParent = paginated.items.reduce(
-      (acc: any, group: any) => {
+      (acc: unknown, group: unknown) => {
         if (group.parentGroupId) {
           if (!acc[group.parentGroupId]) {
             acc[group.parentGroupId] = [];
@@ -139,23 +139,23 @@ export async function listGroupsPaginated(
     );
 
     // Function to build hierarchical structure
-    const buildHierarchy = (group: any): any => {
+    const buildHierarchy = (group: unknown): any => {
       const children = groupsByParent[group.groupId] || [];
       return {
         groupId: group.groupId,
         groupName: group.groupName,
         contractIds: group.contractIds || [],
         parentGroupId: group.parentGroupId || null,
-        children: children.map((child: any) => buildHierarchy(child)),
+        children: children.map((child: unknown) => buildHierarchy(child)),
       };
     };
 
     // Build structured response
-    const hierarchy = topLevelGroups.map((group: any) => buildHierarchy(group));
+    const hierarchy = topLevelGroups.map((group: unknown) => buildHierarchy(group));
 
     // Extract all unique contracts from paginated results
     const allContracts = new Set<string>();
-    paginated.items.forEach((g: any) => {
+    paginated.items.forEach((g: unknown) => {
       if (g.contractIds) {
         g.contractIds.forEach((c: string) => allContracts.add(c));
       }
@@ -164,7 +164,7 @@ export async function listGroupsPaginated(
     const structuredResponse = {
       groups: {
         hierarchy: hierarchy,
-        flat: paginated.items.map((group: any) => ({
+        flat: paginated.items.map((group: unknown) => ({
           groupId: group.groupId,
           groupName: group.groupName,
           contractIds: group.contractIds || [],
@@ -299,7 +299,7 @@ export async function listPropertiesPaginated(
     const paginated = paginateArray(response.properties.items, paginationOptions);
 
     const structuredResponse = {
-      properties: paginated.items.map((prop: any) => ({
+      properties: paginated.items.map((prop: unknown) => ({
         propertyId: prop.propertyId,
         propertyName: prop.propertyName,
         contractId: prop.contractId,
@@ -437,7 +437,7 @@ export async function listPropertyVersionsPaginated(
     const structuredResponse = {
       propertyId: args.propertyId,
       propertyName: response.propertyName,
-      versions: paginated.items.map((version: any) => ({
+      versions: paginated.items.map((version: unknown) => ({
         propertyVersion: version.propertyVersion,
         updatedDate: version.updatedDate,
         updatedByUser: version.updatedByUser,

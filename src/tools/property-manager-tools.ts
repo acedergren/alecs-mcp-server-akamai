@@ -433,12 +433,12 @@ export async function getPropertyRules(
     text += `**Rule Format:** ${rulesResponse.ruleFormat || 'latest'}\n\n`;
 
     // Function to format rules recursively
-    const formatRule = (rule: any, indent = ''): string => {
+    const formatRule = (rule: unknown, indent = ''): string => {
       let output = `${indent}[EMOJI] **${rule.name}**\n`;
 
       if (rule.criteria?.length > 0) {
         output += `${indent}  Criteria:\n`;
-        rule.criteria.forEach((c: any) => {
+        rule.criteria.forEach((c: unknown) => {
           output += `${indent}  - ${c.name}`;
           if (c.options && Object.keys(c.options).length > 0) {
             output += `: ${JSON.stringify(c.options, null, 2).replace(/\n/g, `\n${indent}    `)}`;
@@ -449,7 +449,7 @@ export async function getPropertyRules(
 
       if (rule.behaviors?.length > 0) {
         output += `${indent}  Behaviors:\n`;
-        rule.behaviors.forEach((b: any) => {
+        rule.behaviors.forEach((b: unknown) => {
           output += `${indent}  - ${b.name}`;
           if (b.options && Object.keys(b.options).length > 0) {
             // Special handling for common behaviors
@@ -469,7 +469,7 @@ export async function getPropertyRules(
 
       if (rule.children?.length > 0) {
         output += `${indent}  Children:\n`;
-        rule.children.forEach((child: any) => {
+        rule.children.forEach((child: unknown) => {
           output += formatRule(child, indent + '    ');
         });
       }
@@ -483,9 +483,9 @@ export async function getPropertyRules(
 
     // Extract key behaviors from default rule
     const defaultRule = rulesResponse.rules;
-    const originBehavior = defaultRule.behaviors?.find((b: any) => b.name === 'origin');
-    const cachingBehavior = defaultRule.behaviors?.find((b: any) => b.name === 'caching');
-    const cpCodeBehavior = defaultRule.behaviors?.find((b: any) => b.name === 'cpCode');
+    const originBehavior = defaultRule.behaviors?.find((b: unknown) => b.name === 'origin');
+    const cachingBehavior = defaultRule.behaviors?.find((b: unknown) => b.name === 'caching');
+    const cpCodeBehavior = defaultRule.behaviors?.find((b: unknown) => b.name === 'cpCode');
 
     if (originBehavior) {
       text += `- **Origin Server:** ${originBehavior.options?.['hostname'] || 'Not configured'}\n`;
@@ -523,7 +523,7 @@ export async function updatePropertyRules(
   args: {
     propertyId: string;
     version?: number;
-    rules: any;
+    rules: unknown;
     note?: string;
     customer?: string;
   },
@@ -641,7 +641,7 @@ export async function updatePropertyRules(
 
     if (rulesUpdateResponse.errors?.length && rulesUpdateResponse.errors.length > 0) {
       text += '[WARNING] **Validation Errors:**\n';
-      rulesUpdateResponse.errors.forEach((_error: any) => {
+      rulesUpdateResponse.errors.forEach((_error: unknown) => {
         text += `- ${_error.detail}\n`;
       });
       text += '\n';
@@ -649,7 +649,7 @@ export async function updatePropertyRules(
 
     if (rulesUpdateResponse.warnings?.length && rulesUpdateResponse.warnings.length > 0) {
       text += '[WARNING] **Warnings:**\n';
-      rulesUpdateResponse.warnings.forEach((warning: any) => {
+      rulesUpdateResponse.warnings.forEach((warning: unknown) => {
         text += `- ${warning.detail}\n`;
       });
       text += '\n';
@@ -1221,7 +1221,7 @@ export async function activateProperty(
     }
 
     // Create activation with enhanced parameters
-    const activationBody: any = {
+    const activationBody: unknown = {
       propertyVersion: version,
       network: args.network,
       note: args.note || `Activated via MCP on ${new Date().toISOString()}`,
@@ -1535,14 +1535,14 @@ export async function getActivationStatus(
 
     if (activation.errors && activation.errors.length > 0) {
       text += '\n## Errors\n';
-      activation.errors.forEach((_error: any) => {
+      activation.errors.forEach((_error: unknown) => {
         text += `- ${_error.messageId}: ${_error.detail}\n`;
       });
     }
 
     if (activation.warnings && activation.warnings.length > 0) {
       text += '\n## Warnings\n';
-      activation.warnings.forEach((warning: any) => {
+      activation.warnings.forEach((warning: unknown) => {
         text += `- ${warning.messageId}: ${warning.detail}\n`;
       });
     }
@@ -1606,7 +1606,7 @@ export async function listPropertyActivations(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const queryParams: any = {};
+    const queryParams: unknown = {};
     if (args.network) {
       queryParams.network = args.network;
     }
@@ -1679,7 +1679,7 @@ export async function listPropertyActivations(
 
     // Group by network for summary
     const byNetwork = activations.reduce(
-      (acc: any, act: any) => {
+      (acc: unknown, act: unknown) => {
         if (!acc[act.network]) {
           acc[act.network] = {
             total: 0,
@@ -1717,7 +1717,7 @@ export async function listPropertyActivations(
         
         return acc;
       },
-      {} as Record<string, any>,
+      {} as Record<string, unknown>,
     );
 
     const format = validateFormatParameter(args.format);
@@ -1738,7 +1738,7 @@ export async function listPropertyActivations(
         network: args.network || 'ALL',
         total: activations.length
       },
-      nextSteps: activations.some((act: any) => ['PENDING', 'ZONE_1', 'ZONE_2', 'ZONE_3'].includes(act.status)) ? [
+      nextSteps: activations.some((act: unknown) => ['PENDING', 'ZONE_1', 'ZONE_2', 'ZONE_3'].includes(act.status)) ? [
         {
           action: 'monitor_activations',
           description: 'Monitor pending activations',
@@ -1759,7 +1759,7 @@ export async function listPropertyActivations(
         text += `**Current Staging Version:** ${byNetwork.STAGING?.latestVersion || 'None'}\n\n`;
         
         text += '## Recent Activations\n\n';
-        activations.slice(0, 5).forEach((act: any) => {
+        activations.slice(0, 5).forEach((act: unknown) => {
           const statusIcon = act.status === 'ACTIVE' ? '[SUCCESS]' : 
                            act.status === 'FAILED' ? '[ERROR]' : 
                            ['PENDING', 'ZONE_1', 'ZONE_2', 'ZONE_3'].includes(act.status) ? '[TIME]' : '[INFO]';
@@ -1801,7 +1801,7 @@ export async function listPropertyActivations(
         shown: activations.length,
         hasMore: false,
         executionTime: 0, // Will be set by responseBuilder
-        warnings: activations.some((act: any) => act.warnings?.length > 0) ? ['Some activations have warnings. Check individual activation details.'] : [],
+        warnings: activations.some((act: unknown) => act.warnings?.length > 0) ? ['Some activations have warnings. Check individual activation details.'] : [],
       }
     );
 
@@ -1865,7 +1865,7 @@ export async function createPropertyVersionEnhanced(
         } else if (productionVersions.length > 0) {
           baseVersion = Math.max(...productionVersions.map(v => v.propertyVersion));
         } else {
-          baseVersion = Math.max(...versions.map((v: any) => v.propertyVersion));
+          baseVersion = Math.max(...versions.map((v: unknown) => v.propertyVersion));
         }
       }
     }
@@ -2045,7 +2045,7 @@ export async function getVersionDiff(
         text += `**${diff.type.toUpperCase()} Changes:** ${diff.changes} differences\n`;
 
         if (args.includeDetails && diff.details) {
-          diff.details.slice(0, 10).forEach((detail: any, index: number) => {
+          diff.details.slice(0, 10).forEach((detail: unknown, index: number) => {
             text += `  ${index + 1}. ${detail.type}: ${detail.path || detail.description}\n`;
           });
 
@@ -2113,18 +2113,18 @@ export async function listPropertyVersionsEnhanced(
       );
     } else if (args.status === 'inactive') {
       versions = versions.filter(
-        (v: any) => v.stagingStatus !== 'ACTIVE' && v.productionStatus !== 'ACTIVE',
+        (v: unknown) => v.stagingStatus !== 'ACTIVE' && v.productionStatus !== 'ACTIVE',
       );
     }
 
     if (args.network === 'staging') {
-      versions = versions.filter((v: any) => v.stagingStatus === 'ACTIVE');
+      versions = versions.filter((v: unknown) => v.stagingStatus === 'ACTIVE');
     } else if (args.network === 'production') {
-      versions = versions.filter((v: any) => v.productionStatus === 'ACTIVE');
+      versions = versions.filter((v: unknown) => v.productionStatus === 'ACTIVE');
     }
 
     // Sort by version number (newest first)
-    versions.sort((a: any, b: any) => b.propertyVersion - a.propertyVersion);
+    versions.sort((a: unknown, b: unknown) => b.propertyVersion - a.propertyVersion);
 
     // Apply pagination
     const totalVersions = versions.length;
@@ -2351,7 +2351,7 @@ export async function batchVersionOperations(
     operations: Array<{
       propertyId: string;
       operation: 'create' | 'rollback' | 'compare';
-      parameters: Record<string, any>;
+      parameters: Record<string, unknown>;
     }>;
     parallel?: boolean;
     continueOnError?: boolean;
@@ -2396,7 +2396,7 @@ export async function batchVersionOperations(
               );
           }
           return { index, success: true, result, propertyId: op.propertyId };
-        } catch (_error: any) {
+        } catch (_error: unknown) {
           return {
             index,
             success: false,
@@ -2469,7 +2469,7 @@ export async function batchVersionOperations(
               );
           }
           results.push({ propertyId: op.propertyId, operation: op.operation, result });
-        } catch (_error: any) {
+        } catch (_error: unknown) {
           errors.push({
             propertyId: op.propertyId,
             operation: op.operation,
@@ -2526,7 +2526,7 @@ export async function batchVersionOperations(
 /**
  * Helper function to compare rule trees and identify differences
  */
-function compareRuleTrees(rules1: any, rules2: any, _includeDetails: boolean): any[] {
+function compareRuleTrees(rules1: unknown, rules2: unknown, _includeDetails: boolean): unknown[] {
   const differences = [];
 
   // Deep comparison logic would go here
@@ -2548,8 +2548,8 @@ function compareRuleTrees(rules1: any, rules2: any, _includeDetails: boolean): a
 /**
  * Helper function to compare hostnames
  */
-function compareHostnames(hostnames1: any[], hostnames2: any[]): any[] {
-  const differences: any[] = [];
+function compareHostnames(hostnames1: unknown[], hostnames2: unknown[]): unknown[] {
+  const differences: unknown[] = [];
 
   const h1Map = new Map(hostnames1.map((h) => [h.cnameFrom, h]));
   const h2Map = new Map(hostnames2.map((h) => [h.cnameFrom, h]));
@@ -2582,7 +2582,7 @@ function compareHostnames(hostnames1: any[], hostnames2: any[]): any[] {
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, _error: any): MCPToolResponse {
+function formatError(operation: string, _error: unknown): MCPToolResponse {
   let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 

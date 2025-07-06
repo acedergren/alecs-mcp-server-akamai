@@ -55,7 +55,7 @@ function validateCacheTags(tags: string[]): void {
   }
 }
 
-function formatResponse(operation: any, estimatedTime?: number): any {
+function formatResponse(operation: unknown, estimatedTime?: number): unknown {
   return {
     success: true,
     operationId: operation.id || operation.purgeId,
@@ -126,7 +126,7 @@ export const fastpurgeUrlInvalidate = {
     },
     required: ['customer', 'urls'],
   },
-  handler: withCustomerValidation(async (params: any) => {
+  handler: withCustomerValidation(async (params: unknown) => {
     try {
 
       // Validate URLs
@@ -185,7 +185,7 @@ export const fastpurgeUrlInvalidate = {
           totalObjects: params.urls.length,
         };
       }
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
@@ -237,7 +237,7 @@ export const fastpurgeCpcodeInvalidate = {
     },
     required: ['customer', 'cpCodes'],
   },
-  handler: withCustomerValidation(async (params: any) => {
+  handler: withCustomerValidation(async (params: unknown) => {
     try {
 
       // Validate CP codes
@@ -287,7 +287,7 @@ export const fastpurgeCpcodeInvalidate = {
             ? 'Production content invalidated - monitor for any impact'
             : undefined,
       };
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
@@ -332,7 +332,7 @@ export const fastpurgeTagInvalidate = {
     },
     required: ['customer', 'tags'],
   },
-  handler: withCustomerValidation(async (params: any) => {
+  handler: withCustomerValidation(async (params: unknown) => {
     try {
 
       // Validate cache tags
@@ -361,7 +361,7 @@ export const fastpurgeTagInvalidate = {
         efficiency: 'Cache tag purging is the most efficient invalidation method',
         tip: 'Use hierarchical tags (e.g., "product.123", "category.electronics") for better cache management',
       };
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
@@ -397,7 +397,7 @@ export const fastpurgeStatusCheck = {
     },
     required: ['customer', 'operationId'],
   },
-  handler: withCustomerValidation(async (params: any) => {
+  handler: withCustomerValidation(async (params: unknown) => {
     try {
 
       // First try to get operation from tracker
@@ -447,7 +447,7 @@ export const fastpurgeStatusCheck = {
           isComplete: status.status === 'Done' || status.status === 'Failed',
         };
       }
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
@@ -483,14 +483,14 @@ export const fastpurgeQueueStatus = {
     },
     required: ['customer'],
   },
-  handler: withCustomerValidation(async (params: any) => {
+  handler: withCustomerValidation(async (params: unknown) => {
     try {
 
       const queueStats = await queueManager.getQueueStatus(params.customer);
       const rateLimitStatus = fastPurgeService.getRateLimitStatus(params.customer);
       const dashboard = await statusTracker.getCustomerDashboard(params.customer);
 
-      const response: any = {
+      const response: unknown = {
         success: true,
         customer: params.customer,
         queue: {
@@ -540,7 +540,7 @@ export const fastpurgeQueueStatus = {
       }
 
       return response;
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {
@@ -587,7 +587,7 @@ export const fastpurgeEstimate = {
     },
     required: ['customer', 'type', 'objects'],
   },
-  handler: withCustomerValidation(async (params: any) => {
+  handler: withCustomerValidation(async (params: unknown) => {
     try {
 
       // Validate objects based on type
@@ -655,7 +655,7 @@ export const fastpurgeEstimate = {
       }
 
       return estimate;
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       logger.error(`FastPurge tools error: ${_error.message}`);
 
       if (_error instanceof AkamaiError) {

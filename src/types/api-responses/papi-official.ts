@@ -87,7 +87,7 @@ export interface Variable {
 }
 
 export interface BehaviorOption {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface Behavior {
@@ -98,7 +98,7 @@ export interface Behavior {
 }
 
 export interface CriterionOption {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface Criterion {

@@ -113,7 +113,7 @@ export async function createEdgeHostnameEnhanced(
           method: 'GET',
         });
 
-        const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+        const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: unknown[] } }>(propertyResponse);
         const property = validatedPropertyResponse.properties?.items?.[0];
         if (!property) {
           throw new Error('Property not found');
@@ -167,7 +167,7 @@ export async function createEdgeHostnameEnhanced(
       },
     });
 
-    const validatedResponse = validateApiResponse<{ edgeHostnameLink?: string; mapDetails?: any }>(response);
+    const validatedResponse = validateApiResponse<{ edgeHostnameLink?: string; mapDetails?: unknown }>(response);
     const edgeHostnameId = validatedResponse.edgeHostnameLink?.split('/').pop()?.split('?')[0];
     const edgeHostname = `${args.domainPrefix}.${domainSuffix.replace(/^\./, '')}`;
 
@@ -395,7 +395,7 @@ export async function getEdgeHostnameDetails(
 
     // If domain provided instead of ID, find the ID
     if (!edgeHostnameId && args.edgeHostnameDomain) {
-      const queryParams: any = {};
+      const queryParams: unknown = {};
       if (args.contractId) {
         queryParams.contractId = args.contractId;
       }
@@ -409,9 +409,9 @@ export async function getEdgeHostnameDetails(
         queryParams,
       });
 
-      const validatedListResponse = validateApiResponse<{ edgeHostnames?: { items?: any[] } }>(listResponse);
+      const validatedListResponse = validateApiResponse<{ edgeHostnames?: { items?: unknown[] } }>(listResponse);
       const found = validatedListResponse.edgeHostnames?.items?.find(
-        (eh: any) =>
+        (eh: unknown) =>
           eh.edgeHostnameDomain === args.edgeHostnameDomain ||
           `${eh.domainPrefix}.${eh.domainSuffix}` === args.edgeHostnameDomain,
       );
@@ -443,7 +443,7 @@ export async function getEdgeHostnameDetails(
       },
     });
 
-    const validatedResponse = validateApiResponse<{ edgeHostnames?: { items?: any[] } }>(response);
+    const validatedResponse = validateApiResponse<{ edgeHostnames?: { items?: unknown[] } }>(response);
     const eh = validatedResponse.edgeHostnames?.items?.[0];
     if (!eh) {
       throw new Error('Edge hostname details not found');
@@ -477,7 +477,7 @@ export async function getEdgeHostnameDetails(
 
     if (eh.useCases && eh.useCases.length > 0) {
       responseText += '### Use Cases\n';
-      eh.useCases.forEach((uc: any) => {
+      eh.useCases.forEach((uc: unknown) => {
         responseText += `- **${uc.useCase}**: ${uc.option} (${uc.type})\n`;
       });
       responseText += '\n';
@@ -493,7 +493,7 @@ export async function getEdgeHostnameDetails(
       },
     });
 
-    const validatedPropertiesResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertiesResponse);
+    const validatedPropertiesResponse = validateApiResponse<{ properties?: { items?: unknown[] } }>(propertiesResponse);
     const usingProperties: string[] = [];
     for (const prop of validatedPropertiesResponse.properties?.items || []) {
       try {
@@ -502,9 +502,9 @@ export async function getEdgeHostnameDetails(
           method: 'GET',
         });
 
-        const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: any[] } }>(hostnamesResponse);
+        const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: unknown[] } }>(hostnamesResponse);
         const usesThisEdgeHostname = validatedHostnamesResponse.hostnames?.items?.some(
-          (h: any) =>
+          (h: unknown) =>
             h.cnameTo === eh.edgeHostnameDomain ||
             h.cnameTo === `${eh.domainPrefix}.${eh.domainSuffix}`,
         );
@@ -749,7 +749,7 @@ export async function validateEdgeHostnameCertificate(
       method: 'GET',
     });
 
-    const validatedEhResponse = validateApiResponse<{ edgeHostnames?: { items?: any[] } }>(ehResponse);
+    const validatedEhResponse = validateApiResponse<{ edgeHostnames?: { items?: unknown[] } }>(ehResponse);
     const eh = validatedEhResponse.edgeHostnames?.items?.[0];
     if (!eh) {
       throw new Error('Edge hostname not found');
@@ -909,7 +909,7 @@ export async function associateCertificateWithEdgeHostname(
       method: 'GET',
     });
 
-    const validatedEhResponse = validateApiResponse<{ edgeHostnames?: { items?: any[] } }>(ehResponse);
+    const validatedEhResponse = validateApiResponse<{ edgeHostnames?: { items?: unknown[] } }>(ehResponse);
     const eh = validatedEhResponse.edgeHostnames?.items?.[0];
     const edgeHostnameDomain = eh?.edgeHostnameDomain || 'Unknown';
 

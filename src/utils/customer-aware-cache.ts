@@ -5,10 +5,17 @@
 
 import { SmartCache } from './smart-cache';
 
+
+// Cache type definitions
+type CacheKey = string;
+type CacheValue = unknown;
+type CacheOptions = { ttl?: number; customer?: string; tags?: string[] };
+type CacheEntry = { value: CacheValue; expires: number; tags?: string[] };
+
 /**
  * Cache wrapper that enforces customer-scoped cache keys
  */
-export class CustomerAwareCache<T = any> {
+export class CustomerAwareCache<T = unknown> {
   private cache: SmartCache<T>;
   private customer: string;
   
@@ -124,17 +131,17 @@ export class CustomerAwareCache<T = any> {
  * Factory to create customer-aware cache instances
  */
 export class CustomerCacheFactory {
-  private baseCache: SmartCache<any>;
-  private customerCaches: Map<string, CustomerAwareCache<any>> = new Map();
+  private baseCache: SmartCache<unknown>;
+  private customerCaches: Map<string, CustomerAwareCache<unknown>> = new Map();
   
-  constructor(baseCache: SmartCache<any>) {
+  constructor(baseCache: SmartCache<unknown>) {
     this.baseCache = baseCache;
   }
   
   /**
    * Get or create customer-specific cache wrapper
    */
-  getCustomerCache<T = any>(customer: string): CustomerAwareCache<T> {
+  getCustomerCache<T = unknown>(customer: string): CustomerAwareCache<T> {
     if (!customer) {
       throw new Error('Customer identifier is required');
     }

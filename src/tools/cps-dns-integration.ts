@@ -285,29 +285,29 @@ export async function monitorCertificateValidation(
         path: `/cps/v2/enrollments/${args.enrollmentId}`,
       });
 
-      const validatedResponse = validateApiResponse<{ data: any }>(response);
+      const validatedResponse = validateApiResponse<{ data: unknown }>(response);
       const enrollment = validatedResponse.data;
       spinner.stop();
 
       // Check if all domains are validated
       const allValidated = enrollment.allowedDomains.every(
-        (domain: any) => domain.validationStatus === 'VALIDATED',
+        (domain: unknown) => domain.validationStatus === 'VALIDATED',
       );
 
       const pendingDomains = enrollment.allowedDomains.filter(
-        (domain: any) =>
+        (domain: unknown) =>
           domain.validationStatus === 'PENDING' || domain.validationStatus === 'IN_PROGRESS',
       );
 
       const errorDomains = enrollment.allowedDomains.filter(
-        (domain: any) => domain.validationStatus === 'ERROR',
+        (domain: unknown) => domain.validationStatus === 'ERROR',
       );
 
       // Display current status
       console.log(`\n[METRICS] Validation Status at ${new Date().toLocaleTimeString()}`);
       console.log(`${'─'.repeat(50)}`);
 
-      enrollment.allowedDomains.forEach((domain: any) => {
+      enrollment.allowedDomains.forEach((domain: unknown) => {
         const statusMap: Record<string, string> = {
           VALIDATED: '[DONE]',
           PENDING: '[EMOJI]',

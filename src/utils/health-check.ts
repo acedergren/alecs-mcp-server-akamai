@@ -57,7 +57,7 @@ export function addHealthCheckHandler(
 ): void {
   // Add custom health check handler
   // Note: 'health' is a custom method, not part of standard MCP
-  (server as Server & { setCustomHandler?: (method: string, handler: () => Promise<any>) => void }).setCustomHandler?.('health', async () => {
+  (server as Server & { setCustomHandler?: (method: string, handler: () => Promise<unknown>) => void }).setCustomHandler?.('health', async () => {
     healthLogger.debug('Health check requested');
     
     const memUsage = process.memoryUsage();

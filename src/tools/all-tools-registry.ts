@@ -319,7 +319,7 @@ import {
 } from './token-tools';
 
 // Define stub handlers for elicitation tools
-const handleDNSElicitationTool = async (_args: any) => {
+const handleDNSElicitationTool = async (_args: unknown) => {
   return {
     content: [
       {
@@ -330,7 +330,7 @@ const handleDNSElicitationTool = async (_args: any) => {
   };
 };
 
-const handleSecureHostnameOnboardingTool = async (_args: any) => {
+const handleSecureHostnameOnboardingTool = async (_args: unknown) => {
   return {
     content: [
       {
@@ -564,8 +564,8 @@ export interface ToolDefinition {
 // CODE KAI: Enhanced type-safe wrapper function with flexible handler support
 // KAIZEN: Supports multiple function signatures while maintaining type safety
 function createToolHandler(
-  handler: ((...args: any[]) => Promise<MCPToolResponse>) |
-           ((...args: any[]) => Promise<any>)
+  handler: ((...args: unknown[]) => Promise<MCPToolResponse>) |
+           ((...args: unknown[]) => Promise<unknown>)
 ): ToolHandler {
   // DEFENSIVE PROGRAMMING: Comprehensive validation and error handling
   return async (client: AkamaiClient, params: ToolParameters): Promise<MCPToolResponse> => {
@@ -581,7 +581,7 @@ function createToolHandler(
       }
       
       // KAIZEN: Flexible handler execution based on function signature
-      let result: any;
+      let result: unknown;
       
       // DEFENSIVE: Try different calling patterns based on handler arity
       try {
@@ -645,7 +645,7 @@ function createToolHandler(
       }
       
       // KAIZEN: Ensure all content items have valid type literals
-      const validatedContent = result.content.map((item: any) => {
+      const validatedContent = result.content.map((item: unknown) => {
         if (!item || typeof item !== 'object') {
           throw new Error('Content item must be a valid object');
         }

@@ -1,6 +1,38 @@
+
+interface TrafficMetric {
+  timestamp: number;
+  value: number;
+  unit: string;
+  label?: string;
+}
+
 import { EdgeGridClient } from '../utils/edgegrid-client';
 import { logger } from '../utils/logger';
 import { PerformanceMonitor } from '../utils/performance-monitor';
+
+
+
+// Common type definitions for Akamai API responses
+type PeriodType = { start: string; end: string; granularity?: string };
+type FilterType = { hostname?: string; cpCode?: string; region?: string; contentType?: string };
+type TimeSeriesData = Array<{ timestamp: string; value: number }>;
+type MetricData = { [key: string]: number | string };
+type AkamaiResponse<T = unknown> = { data?: T; error?: string; status?: number };
+
+
+// Traffic Analytics specific types
+interface BandwidthData {
+  timestamp: string;
+  value: number;
+  hostname?: string;
+  region?: string;
+  contentType?: string;
+}
+
+interface GrowthData {
+  current: { bandwidth: TimeSeriesData; requests: TimeSeriesData; errors: TimeSeriesData };
+  previous: { bandwidth: TimeSeriesData; requests: TimeSeriesData; errors: TimeSeriesData };
+}
 
 export interface TrafficPattern {
   type: 'peak' | 'valley' | 'spike' | 'trend' | 'seasonality';
@@ -124,7 +156,7 @@ export class TrafficAnalyticsService {
    */
   async analyzeBandwidthUsage(
     period: { start: string; end: string; granularity: string },
-    filter?: any,
+    filter?: { hostname?: string; cpCode?: string; region?: string; contentType?: string },
     includeProjections = false,
   ): Promise<BandwidthAnalysis> {
     const operationId = this.performanceMonitor.startOperation('analytics_bandwidth_analysis');
@@ -311,7 +343,7 @@ export class TrafficAnalyticsService {
    */
   async analyzeCachePerformance(
     period: { start: string; end: string; granularity: string },
-    filter?: any,
+    filter?: FilterType,
     includeRecommendations = true,
   ): Promise<CacheAnalysisDetailed> {
     const operationId = this.performanceMonitor.startOperation('analytics_cache_performance');
@@ -389,7 +421,7 @@ export class TrafficAnalyticsService {
    */
   async analyzeRequestPatterns(
     period: { start: string; end: string; granularity: string },
-    filter?: any,
+    filter?: FilterType,
   ): Promise<RequestAnalysis> {
     const operationId = this.performanceMonitor.startOperation('analytics_request_patterns');
 
@@ -470,7 +502,7 @@ export class TrafficAnalyticsService {
 
   // Private helper methods
 
-  private async fetchBandwidthTimeSeries(period: any, filter?: any): Promise<any[]> {
+  private async fetchBandwidthTimeSeries(period: PeriodType, filter?: FilterType): Promise<Array<{ timestamp: string; value: number }>> {
     // Simulate API call to Akamai Reporting API
     const response = await this.client.request({
       method: 'GET',
@@ -480,7 +512,7 @@ export class TrafficAnalyticsService {
     return response.data;
   }
 
-  private async fetchBandwidthByHostname(period: any, filter?: any): Promise<any[]> {
+  private async fetchBandwidthByHostname(period: PeriodType, filter?: FilterType): Promise<TimeSeriesData> {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/bandwidth-by-hostname',
@@ -489,7 +521,7 @@ export class TrafficAnalyticsService {
     return response.data;
   }
 
-  private async fetchBandwidthByRegion(period: any, filter?: any): Promise<any[]> {
+  private async fetchBandwidthByRegion(period: PeriodType, filter?: FilterType): Promise<TimeSeriesData> {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/bandwidth-by-region',
@@ -498,7 +530,7 @@ export class TrafficAnalyticsService {
     return response.data;
   }
 
-  private async fetchBandwidthByContentType(period: any, filter?: any): Promise<any[]> {
+  private async fetchBandwidthByContentType(period: PeriodType, filter?: FilterType): Promise<TimeSeriesData> {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/bandwidth-by-content-type',
@@ -507,7 +539,7 @@ export class TrafficAnalyticsService {
     return response.data;
   }
 
-  private async fetchRequestTimeSeries(period: any, filter?: any): Promise<any[]> {
+  private async fetchRequestTimeSeries(period: PeriodType, filter?: FilterType): Promise<TimeSeriesData> {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/requests',
@@ -516,7 +548,7 @@ export class TrafficAnalyticsService {
     return response.data;
   }
 
-  private async fetchErrorTimeSeries(period: any, filter?: any): Promise<any[]> {
+  private async fetchErrorTimeSeries(period: PeriodType, filter?: FilterType): Promise<TimeSeriesData> {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/errors',
@@ -525,7 +557,7 @@ export class TrafficAnalyticsService {
     return response.data;
   }
 
-  private async fetchCacheMetrics(period: any, filter?: any): Promise<any> {
+  private async fetchCacheMetrics(period: PeriodType, filter?: FilterType): Promise<unknown> {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/cache-metrics',
@@ -534,7 +566,7 @@ export class TrafficAnalyticsService {
     return response.data;
   }
 
-  private async fetchCacheMissReasons(period: any, filter?: any): Promise<any[]> {
+  private async fetchCacheMissReasons(period: PeriodType, filter?: FilterType): Promise<TimeSeriesData> {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/cache-miss-reasons',
@@ -543,7 +575,7 @@ export class TrafficAnalyticsService {
     return response.data;
   }
 
-  private async fetchCacheByContentType(period: any, filter?: any): Promise<any[]> {
+  private async fetchCacheByContentType(period: PeriodType, filter?: FilterType): Promise<TimeSeriesData> {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/cache-by-content-type',
@@ -552,7 +584,7 @@ export class TrafficAnalyticsService {
     return response.data;
   }
 
-  private async fetchRequestMetrics(period: any, filter?: any): Promise<any> {
+  private async fetchRequestMetrics(period: PeriodType, filter?: FilterType): Promise<unknown> {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/request-metrics',
@@ -561,7 +593,7 @@ export class TrafficAnalyticsService {
     return response.data;
   }
 
-  private async fetchRequestsByMethod(period: any, filter?: any): Promise<any[]> {
+  private async fetchRequestsByMethod(period: PeriodType, filter?: FilterType): Promise<TimeSeriesData> {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/requests-by-method',
@@ -570,7 +602,7 @@ export class TrafficAnalyticsService {
     return response.data;
   }
 
-  private async fetchRequestsByStatusCode(period: any, filter?: any): Promise<any[]> {
+  private async fetchRequestsByStatusCode(period: PeriodType, filter?: FilterType): Promise<TimeSeriesData> {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/requests-by-status',
@@ -579,7 +611,7 @@ export class TrafficAnalyticsService {
     return response.data;
   }
 
-  private async fetchTopEndpoints(period: any, filter?: any): Promise<any[]> {
+  private async fetchTopEndpoints(period: PeriodType, filter?: FilterType): Promise<TimeSeriesData> {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/top-endpoints',
@@ -588,7 +620,7 @@ export class TrafficAnalyticsService {
     return response.data;
   }
 
-  private async fetchBotTraffic(period: any, filter?: any): Promise<any> {
+  private async fetchBotTraffic(period: PeriodType, filter?: FilterType): Promise<unknown> {
     const response = await this.client.request({
       method: 'GET',
       path: '/reporting/v1/reports/bot-traffic',
@@ -597,7 +629,7 @@ export class TrafficAnalyticsService {
     return response.data;
   }
 
-  private detectTrafficPatterns(timeSeriesData: any[]): TrafficPattern[] {
+  private detectTrafficPatterns(timeSeriesData: unknown[]): TrafficPattern[] {
     // Simplified pattern detection algorithm
     const patterns: TrafficPattern[] = [];
 
@@ -628,12 +660,12 @@ export class TrafficAnalyticsService {
     return patterns;
   }
 
-  private calculateGrowthRates(data: any): any[] {
+  private calculateGrowthRates(data: unknown): unknown[] {
     // Simplified growth rate calculation
     const growth = [];
 
-    const currentTotal = data.current.bandwidth.reduce((sum: number, d: any) => sum + d.value, 0);
-    const previousTotal = data.previous.bandwidth.reduce((sum: number, d: any) => sum + d.value, 0);
+    const currentTotal = data.current.bandwidth.reduce((sum: number, d: unknown) => sum + d.value, 0);
+    const previousTotal = data.previous.bandwidth.reduce((sum: number, d: unknown) => sum + d.value, 0);
 
     const bandwidthGrowth = ((currentTotal - previousTotal) / previousTotal) * 100;
 
@@ -646,7 +678,7 @@ export class TrafficAnalyticsService {
     return growth;
   }
 
-  private detectSeasonality(_bandwidthData: any[], _requestData: any[]): any[] {
+  private detectSeasonality(_bandwidthData: unknown[], _requestData: unknown[]): unknown[] {
     // Simplified seasonality detection
     return [
       {
@@ -657,9 +689,9 @@ export class TrafficAnalyticsService {
     ];
   }
 
-  private detectAnomalies(bandwidthData: any[], _requestData: any[], _errorData: any[]): any[] {
+  private detectAnomalies(bandwidthData: unknown[], _requestData: unknown[], _errorData: unknown[]): unknown[] {
     // Simplified anomaly detection
-    const anomalies: any[] = [];
+    const anomalies: unknown[] = [];
 
     const bandwidthMean = bandwidthData.reduce((sum, d) => sum + d.value, 0) / bandwidthData.length;
     const bandwidthStdDev = Math.sqrt(
@@ -683,8 +715,8 @@ export class TrafficAnalyticsService {
   }
 
   private async generateTrafficForecasts(
-    timeSeriesData: any[],
-    _period: any,
+    timeSeriesData: unknown[],
+    _period: PeriodType,
   ): Promise<TrafficForecast[]> {
     // Simplified forecasting - would use proper time series forecasting algorithms
     const forecasts: TrafficForecast[] = [];
@@ -732,7 +764,7 @@ export class TrafficAnalyticsService {
     return slope;
   }
 
-  private generateBandwidthRecommendations(analysisData: any): string[] {
+  private generateBandwidthRecommendations(analysisData: unknown): string[] {
     const recommendations = [];
 
     // Check for high peak variance
@@ -744,7 +776,7 @@ export class TrafficAnalyticsService {
 
     // Check for content type optimization
     const imagePercentage =
-      analysisData.contentTypeData.find((ct: any) => ct.contentType === 'image')?.percentage || 0;
+      analysisData.contentTypeData.find((ct: unknown) => ct.contentType === 'image')?.percentage || 0;
     if (imagePercentage > 40) {
       recommendations.push(
         'Implement image optimization and compression to reduce bandwidth usage',
@@ -752,7 +784,7 @@ export class TrafficAnalyticsService {
     }
 
     // Check for geographic optimization
-    const maxRegionPercentage = Math.max(...analysisData.regionData.map((r: any) => r.percentage));
+    const maxRegionPercentage = Math.max(...analysisData.regionData.map((r: unknown) => r.percentage));
     if (maxRegionPercentage > 60) {
       recommendations.push('Consider edge server optimization for the dominant geographic region');
     }
@@ -760,7 +792,7 @@ export class TrafficAnalyticsService {
     return recommendations;
   }
 
-  private generateCacheOptimizations(cacheData: any): any[] {
+  private generateCacheOptimizations(cacheData: unknown): unknown[] {
     const optimizations = [];
 
     if (cacheData.hitRatio < 80) {
@@ -772,7 +804,7 @@ export class TrafficAnalyticsService {
       });
     }
 
-    const nocacheReason = cacheData.missReasons.find((r: any) => r.reason === 'no-cache');
+    const nocacheReason = cacheData.missReasons.find((r: unknown) => r.reason === 'no-cache');
     if (nocacheReason && nocacheReason.percentage > 20) {
       optimizations.push({
         type: 'cache_headers',

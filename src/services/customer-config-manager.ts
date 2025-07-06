@@ -46,7 +46,7 @@ export class CustomerConfigManager {
       for (const section of sections) {
         const lines = section.split('\n').filter(line => line.trim());
         const sectionName = lines[0]?.replace(/[\[\]]/g, '').trim() || '';
-        const config: any = {};
+        const config: unknown = {};
         
         for (let i = 1; i < lines.length; i++) {
           const line = lines[i];

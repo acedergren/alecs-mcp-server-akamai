@@ -12,7 +12,7 @@ const validator = getCustomerValidator();
 /**
  * Tool handler type
  */
-type ToolHandler = (args: any) => Promise<any>;
+type ToolHandler = (args: unknown) => Promise<unknown>;
 
 /**
  * Tool definition interface
@@ -20,7 +20,7 @@ type ToolHandler = (args: any) => Promise<any>;
 interface ToolDefinition {
   name: string;
   description: string;
-  inputSchema: any;
+  inputSchema: unknown;
   handler: ToolHandler;
 }
 
@@ -28,7 +28,7 @@ interface ToolDefinition {
  * Wrap a tool handler with customer validation
  */
 export function withCustomerValidation(handler: ToolHandler): ToolHandler {
-  return async (args: any) => {
+  return async (args: unknown) => {
     // Extract customer from args
     const customer = args.customer || 'default';
     
@@ -74,9 +74,9 @@ export function applyCustomerValidationToTools(tools: ToolDefinition[]): ToolDef
  * Create a validated tool handler that creates AkamaiClient with validation
  */
 export function createValidatedHandler(
-  handlerLogic: (client: any, args: any) => Promise<any>
+  handlerLogic: (client: unknown, args: unknown) => Promise<unknown>
 ): ToolHandler {
-  return withCustomerValidation(async (args: any) => {
+  return withCustomerValidation(async (args: unknown) => {
     // Import dynamically to avoid circular dependencies
     const { AkamaiClient } = await import('../../akamai-client');
     

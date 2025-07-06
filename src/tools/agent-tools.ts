@@ -325,7 +325,7 @@ export async function bulkDNSMigration(
   args: {
     zones: Array<{ source: string; target?: string }>;
     sourceType: 'cloudflare' | 'route53' | 'axfr';
-    sourceConfig: any;
+    sourceConfig: unknown;
     parallel?: number;
   },
 ): Promise<MCPToolResponse> {
@@ -335,7 +335,7 @@ export async function bulkDNSMigration(
     const migrationOptions: {
       zones: Array<{ source: string; target?: string }>;
       sourceType: 'cloudflare' | 'route53' | 'axfr';
-      sourceConfig: any;
+      sourceConfig: unknown;
       parallel?: number;
     } = {
       zones: args.zones,

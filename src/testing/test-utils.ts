@@ -15,7 +15,7 @@ export function createMockAkamaiClient(): jest.Mocked<AkamaiClient> {
     _accountSwitchKey: undefined,
     _edgercPath: '.edgerc',
     _section: 'default',
-  } as any;
+  } as unknown;
 
   // Make request point to _request for compatibility
   mockClient.request = mockClient._request;
@@ -24,7 +24,7 @@ export function createMockAkamaiClient(): jest.Mocked<AkamaiClient> {
 }
 
 // Validate MCP Response
-export function validateMCPResponse(response: any): void {
+export function validateMCPResponse(response: unknown): void {
   expect(response).toBeDefined();
   expect(response).toHaveProperty('content');
   expect(Array.isArray(response.content)).toBe(true);
@@ -49,7 +49,7 @@ export const ErrorScenarios = {
 // Test Server Helper
 export function createTestServer(): {
   getServer: () => any;
-  callTool: (name: string, args: any) => Promise<any>;
+  callTool: (name: string, args: unknown) => Promise<unknown>;
 } {
   const mockServer = {
     name: 'test-server',
@@ -58,7 +58,7 @@ export function createTestServer(): {
 
   return {
     getServer: () => mockServer,
-    callTool: async (name: string, args: any) => {
+    callTool: async (name: string, args: unknown) => {
       // Provide realistic mock responses based on tool name
       return getRealisticMockResponse(name, args);
     },
@@ -69,8 +69,8 @@ export function createTestServer(): {
 const callTracker: Record<string, number> = {};
 
 // Realistic mock responses for different tools
-function getRealisticMockResponse(toolName: string, args: any): any {
-  const responses: Record<string, (args: any) => any> = {
+function getRealisticMockResponse(toolName: string, args: unknown): unknown {
+  const responses: Record<string, (args: unknown) => any> = {
     'agent.property.analysis': (args) => ({
       content: [
         {

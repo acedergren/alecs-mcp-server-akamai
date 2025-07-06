@@ -13,7 +13,7 @@ interface JsonRpcRequest {
   jsonrpc: '2.0';
   id: string | number;
   method: string;
-  params?: any;
+  params?: unknown;
 }
 
 interface JsonRpcResponse {
@@ -75,7 +75,7 @@ class SimpleMCPTest {
     }
   }
 
-  private async sendRequest(method: string, params?: any): Promise<JsonRpcResponse> {
+  private async sendRequest(method: string, params?: unknown): Promise<JsonRpcResponse> {
     const id = ++this.requestId;
     const request: JsonRpcRequest = {
       jsonrpc: '2.0',
@@ -127,7 +127,7 @@ class SimpleMCPTest {
         console.log('[FAIL] No result in response');
         failed++;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.log('[FAIL]', error.message);
       failed++;
     }
@@ -140,7 +140,7 @@ class SimpleMCPTest {
       if (response.result?.tools) {
         console.log(`[PASS] Found ${response.result.tools.length} tools`);
         // Show first 3 tools
-        response.result.tools.slice(0, 3).forEach((tool: any) => {
+        response.result.tools.slice(0, 3).forEach((tool: unknown) => {
           console.log(`  - ${tool.name}: ${tool.description?.substring(0, 50)}...`);
         });
         passed++;
@@ -148,7 +148,7 @@ class SimpleMCPTest {
         console.log('[FAIL] No tools in response');
         failed++;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.log('[FAIL]', error.message);
       failed++;
     }
@@ -175,7 +175,7 @@ class SimpleMCPTest {
         console.log('[FAIL] Invalid response format');
         failed++;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.log('[FAIL]', error.message);
       failed++;
     }
@@ -197,7 +197,7 @@ class SimpleMCPTest {
         console.log('[FAIL] Should have returned error');
         failed++;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.log('[FAIL]', error.message);
       failed++;
     }
@@ -219,7 +219,7 @@ class SimpleMCPTest {
         console.log('[FAIL] Should have returned validation error');
         failed++;
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.log('[FAIL]', error.message);
       failed++;
     }

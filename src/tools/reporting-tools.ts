@@ -909,7 +909,7 @@ export async function handleGetCostOptimizationInsights(args: { customer?: strin
   }
 }
 
-export async function handleCreateReportingDashboard(args: { customer?: string; name: string; widgets: any[]; description?: string; filters?: any; refreshInterval?: number; shared?: boolean }) {
+export async function handleCreateReportingDashboard(args: { customer?: string; name: string; widgets: unknown[]; description?: string; filters?: any; refreshInterval?: number; shared?: boolean }) {
   const {
     customer = 'default',
     name,
@@ -986,10 +986,10 @@ export async function handleExportReportData(args: { customer?: string; reportTy
   }
 }
 
-export async function handleConfigureMonitoringAlerts(args: { customer?: string; alerts: any[] }) {
+export async function handleConfigureMonitoringAlerts(args: { customer?: string; alerts: unknown[] }) {
   const { customer = 'default', alerts } = args;
   const thresholds = alerts;
-  const notificationChannels: any[] = [];
+  const notificationChannels: unknown[] = [];
 
   try {
     logger.info('Configuring monitoring alerts', { customer, thresholdCount: thresholds.length });
@@ -997,7 +997,7 @@ export async function handleConfigureMonitoringAlerts(args: { customer?: string;
     const reportingService = new ReportingService(customer);
     await reportingService.configureAlerts(thresholds);
 
-    const enabledAlerts = thresholds.filter((t: any) => t.enabled).length;
+    const enabledAlerts = thresholds.filter((t: unknown) => t.enabled).length;
 
     return {
       success: true,
@@ -1005,7 +1005,7 @@ export async function handleConfigureMonitoringAlerts(args: { customer?: string;
         totalAlerts: thresholds.length,
         enabledAlerts,
         notificationChannels: notificationChannels.length,
-        alertsByMetric: thresholds.reduce((acc: any, threshold: any) => {
+        alertsByMetric: thresholds.reduce((acc: unknown, threshold: unknown) => {
           acc[threshold.metric] = (acc[threshold.metric] || 0) + 1;
           return acc;
         }, {}),
@@ -1074,7 +1074,7 @@ function getHandlerForTool(toolName: string) {
       return handleConfigureMonitoringAlerts;
     // Additional handlers would be mapped here for remaining tools
     default:
-      return async (_args: any) => ({
+      return async (_args: unknown) => ({
         success: false,
         error: `Handler not implemented for tool: ${toolName}`,
         details: 'This reporting tool is defined but handler implementation is pending',
@@ -1261,7 +1261,7 @@ export async function getRealtimeMetrics(args: GetRealtimeMetricsArgs): Promise<
     
     const results = await Promise.all(metricPromises);
     
-    const realtimeData: Record<string, any> = {};
+    const realtimeData: Record<string, unknown> = {};
     metrics.forEach((metric: string, index: number) => {
       const data = results[index];
       const lastItem = data && data.length > 0 ? data[data.length - 1] : null;
@@ -1312,7 +1312,7 @@ export async function analyzeTrafficTrends(args: AnalyzeTrafficTrendsArgs): Prom
     );
     
     // Analyze trends for each metric
-    const trends: Record<string, any> = {};
+    const trends: Record<string, unknown> = {};
     
     for (const [metric, data] of Object.entries(timeSeriesData)) {
       if (!Array.isArray(data) || data.length === 0) {continue;}
@@ -1481,7 +1481,7 @@ export async function analyzeGeographicPerformance(args: AnalyzeGeographicPerfor
     }
     
     const reportingService = new ReportingService(customer);
-    const geoData: Record<string, any> = {};
+    const geoData: Record<string, unknown> = {};
     
     // Fetch data for each region
     for (const region of regions) {
@@ -1489,7 +1489,7 @@ export async function analyzeGeographicPerformance(args: AnalyzeGeographicPerfor
       // Type assertion - period is validated above and schema ensures required fields
       const params = reportingService.buildReportingParams(period as ReportingPeriod, filter);
       
-      const regionMetrics: Record<string, any> = {};
+      const regionMetrics: Record<string, unknown> = {};
       for (const metric of metrics) {
         const data = await reportingService.fetchMetric(metric, params);
         regionMetrics[metric] = {
@@ -1539,7 +1539,7 @@ export async function analyzeGeographicPerformance(args: AnalyzeGeographicPerfor
   }
 }
 
-function calculateRegionScore(metrics: any): number {
+function calculateRegionScore(metrics: unknown): number {
   const responseTime = metrics['response-time']?.average || 1000;
   return Math.max(0, 100 - (responseTime / 10));
 }
@@ -1552,12 +1552,12 @@ function getPerformanceGrade(responseTime: number): string {
   return 'F';
 }
 
-function calculateGlobalAverage(geoData: any, metric: string): number {
-  const values = Object.values(geoData).map((data: any) => data.metrics[metric]?.average || 0);
+function calculateGlobalAverage(geoData: unknown, metric: string): number {
+  const values = Object.values(geoData).map((data: unknown) => data.metrics[metric]?.average || 0);
   return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
-function generateGeoRecommendations(geoData: any): any[] {
+function generateGeoRecommendations(geoData: unknown): unknown[] {
   const recommendations = [];
   
   for (const [region, data] of Object.entries(geoData)) {
@@ -1590,7 +1590,7 @@ export async function analyzeErrorPatterns(args: AnalyzeErrorPatternsArgs): Prom
     const params = reportingService.buildReportingParams(period as ReportingPeriod, cleanedFilter);
     
     // Fetch error-related metrics
-    const errorMetrics: Record<string, any> = {};
+    const errorMetrics: Record<string, unknown> = {};
     
     for (const errorType of errorTypes) {
       const metricName = `http-status-${errorType}`;
@@ -1613,7 +1613,7 @@ export async function analyzeErrorPatterns(args: AnalyzeErrorPatternsArgs): Prom
     
     const analysis: ErrorPattern = {
       summary: {
-        totalErrors: Object.values(errorMetrics).reduce((sum: number, data: any) => sum + data.total, 0),
+        totalErrors: Object.values(errorMetrics).reduce((sum: number, data: unknown) => sum + data.total, 0),
         errorRate: calculateOverallErrorRate(errorMetrics),
         mostCommonType: getMostCommonErrorType(errorMetrics),
       },
@@ -1639,7 +1639,7 @@ export async function analyzeErrorPatterns(args: AnalyzeErrorPatternsArgs): Prom
   }
 }
 
-function analyzeErrorTrends(errorMetrics: Record<string, any>): Record<string, 'increasing' | 'decreasing' | 'stable' | 'insufficient_data'> {
+function analyzeErrorTrends(errorMetrics: Record<string, unknown>): Record<string, 'increasing' | 'decreasing' | 'stable' | 'insufficient_data'> {
   const trends: Record<string, 'increasing' | 'decreasing' | 'stable' | 'insufficient_data'> = {};
   
   for (const [type, data] of Object.entries(errorMetrics)) {
@@ -1664,7 +1664,7 @@ function analyzeErrorTrends(errorMetrics: Record<string, any>): Record<string, '
   return trends;
 }
 
-function identifyErrorHotspots(errorMetrics: Record<string, any>): Array<{ type: string; severity: string; peakToAverageRatio: number }> {
+function identifyErrorHotspots(errorMetrics: Record<string, unknown>): Array<{ type: string; severity: string; peakToAverageRatio: number }> {
   const hotspots = [];
   
   for (const [type, data] of Object.entries(errorMetrics)) {
@@ -1681,13 +1681,13 @@ function identifyErrorHotspots(errorMetrics: Record<string, any>): Array<{ type:
   return hotspots;
 }
 
-function calculateOverallErrorRate(errorMetrics: any): number {
+function calculateOverallErrorRate(errorMetrics: unknown): number {
   // This is simplified - in reality would need total requests
-  const totalErrors = Object.values(errorMetrics).reduce((sum: number, data: any) => sum + data.total, 0);
+  const totalErrors = Object.values(errorMetrics).reduce((sum: number, data: unknown) => sum + data.total, 0);
   return totalErrors / 1000000 * 100; // Assuming 1M requests for demo
 }
 
-function getMostCommonErrorType(errorMetrics: Record<string, any>): string {
+function getMostCommonErrorType(errorMetrics: Record<string, unknown>): string {
   let maxErrors = 0;
   let mostCommon = 'none';
   
@@ -1702,7 +1702,7 @@ function getMostCommonErrorType(errorMetrics: Record<string, any>): string {
   return mostCommon;
 }
 
-function generateErrorRecommendations(patterns: any): any[] {
+function generateErrorRecommendations(patterns: unknown): unknown[] {
   const recommendations = [];
   
   for (const [type, trend] of Object.entries(patterns.trends)) {

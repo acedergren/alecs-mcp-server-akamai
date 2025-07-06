@@ -124,7 +124,7 @@ export async function getCertificateDeploymentStatus(
       },
     });
 
-    const validatedResponse = validateApiResponse<{ results?: any[] }>(response);
+    const validatedResponse = validateApiResponse<{ results?: unknown[] }>(response);
     const deployments = validatedResponse.results || [];
 
     if (deployments.length === 0) {
@@ -143,7 +143,7 @@ export async function getCertificateDeploymentStatus(
 
     // Group by network
     const byNetwork: Record<string, any[]> = {};
-    deployments.forEach((dep: any) => {
+    deployments.forEach((dep: unknown) => {
       const network = dep.primaryCertificate?.network || dep.targetEnvironment || 'unknown';
       if (!byNetwork[network]) {
         byNetwork[network] = [];
@@ -155,7 +155,7 @@ export async function getCertificateDeploymentStatus(
     Object.entries(byNetwork).forEach(([network, deps]) => {
       text += `## ${network.toUpperCase()} Network\n\n`;
 
-      deps.forEach((dep: any) => {
+      deps.forEach((dep: unknown) => {
         const statusEmoji = (() => {
           const statusMap: Record<string, string> = {
             active: '[DONE]',
@@ -339,15 +339,15 @@ export async function cleanupValidationRecords(
       },
     });
 
-    const validatedChallengesResponse = validateApiResponse<{ allowedDomains?: any[] }>(challengesResponse);
+    const validatedChallengesResponse = validateApiResponse<{ allowedDomains?: unknown[] }>(challengesResponse);
     const enrollment = validatedChallengesResponse;
     const recordsToDelete: Array<{ zone: string; recordName: string }> = [];
 
     // Extract DNS records from validation details
     if (enrollment.allowedDomains) {
-      enrollment.allowedDomains.forEach((domain: any) => {
+      enrollment.allowedDomains.forEach((domain: unknown) => {
         if (domain.validationDetails?.challenges) {
-          domain.validationDetails.challenges.forEach((challenge: any) => {
+          domain.validationDetails.challenges.forEach((challenge: unknown) => {
             if (challenge.type === 'dns-01' && challenge.token) {
               const recordName = `_acme-challenge.${domain.name}`;
               const zone = domain.name.split('.').slice(-2).join('.');
@@ -441,7 +441,7 @@ export async function getCertificateValidationHistory(
       },
     });
 
-    const validatedResponse = validateApiResponse<{ results?: any[] }>(response);
+    const validatedResponse = validateApiResponse<{ results?: unknown[] }>(response);
     const history = validatedResponse.results || [];
 
     if (history.length === 0) {
@@ -460,7 +460,7 @@ export async function getCertificateValidationHistory(
 
     // Group by domain
     const byDomain: Record<string, any[]> = {};
-    history.forEach((entry: any) => {
+    history.forEach((entry: unknown) => {
       const domain = entry.domain || 'unknown';
       if (!byDomain[domain]) {
         byDomain[domain] = [];
@@ -476,7 +476,7 @@ export async function getCertificateValidationHistory(
         (a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime(),
       );
 
-      entries.forEach((entry: any) => {
+      entries.forEach((entry: unknown) => {
         const statusEmoji = (() => {
           const statusMap: Record<string, string> = {
             completed: '[DONE]',

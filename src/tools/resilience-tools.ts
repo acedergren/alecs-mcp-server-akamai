@@ -552,7 +552,7 @@ function getCircuitBreakerEmoji(state: CircuitBreakerState): string {
   }
 }
 
-function formatOperationMetrics(operationType: OperationType, metrics: any): string {
+function formatOperationMetrics(operationType: OperationType, metrics: unknown): string {
   let text = `### ${operationType}\n`;
   text += `- **Total Calls:** ${metrics.totalCalls}\n`;
   text += `- **Success Rate:** ${((1 - metrics.errorRate) * 100).toFixed(1)}%\n`;

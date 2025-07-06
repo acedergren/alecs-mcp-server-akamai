@@ -13,6 +13,6 @@ export { SmartCache as CacheService } from '../utils/smart-cache';
 export type { SmartCacheOptions } from '../utils/smart-cache';
 
 // Default cache instance factory
-export function createCacheService(options?: any): SmartCache {
+export function createCacheService(options?: unknown): SmartCache {
   return new SmartCache(options);
 }

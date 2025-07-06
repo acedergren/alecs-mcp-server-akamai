@@ -8,7 +8,7 @@ import { logger } from './logger';
 export interface EdgeGridRequestOptions {
   path: string;
   method?: string;
-  body?: any;
+  body?: unknown;
   headers?: Record<string, string>;
   queryParams?: Record<string, string>;
   customer?: string;
@@ -121,7 +121,7 @@ export class EdgeGridClient {
     return signature.digest('base64');
   }
 
-  private async handleError(_error: any): Promise<never> {
+  private async handleError(_error: unknown): Promise<never> {
     if (_error.response) {
       const { status, data } = _error.response;
       logger.error(`API Error [${status}]`, {
@@ -141,7 +141,7 @@ export class EdgeGridClient {
         } else if (data.title) {
           errorMessage = data.title;
         } else if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
-          errorMessage = data.errors.map((_e: any) => _e.detail || _e.error || _e).join(', ');
+          errorMessage = data.errors.map((_e: unknown) => _e.detail || _e.error || _e).join(', ');
         }
       }
 
@@ -161,7 +161,7 @@ export class EdgeGridClient {
     }
   }
 
-  async request<T = any>(_options: EdgeGridRequestOptions): Promise<T> {
+  async request<T = unknown>(_options: EdgeGridRequestOptions): Promise<T> {
     const { path, method = 'GET', body, headers = {}, queryParams = {} } = _options;
 
     logger.debug(`${method} ${path}`, {
@@ -182,23 +182,23 @@ export class EdgeGridClient {
   }
 
   // Convenience methods
-  async get<T = any>(path: string, queryParams?: Record<string, string>): Promise<T> {
+  async get<T = unknown>(path: string, queryParams?: Record<string, string>): Promise<T> {
     return this.request<T>({ path, method: 'GET', queryParams });
   }
 
-  async post<T = any>(path: string, body?: any, queryParams?: Record<string, string>): Promise<T> {
+  async post<T = unknown>(path: string, body?: unknown, queryParams?: Record<string, string>): Promise<T> {
     return this.request<T>({ path, method: 'POST', body, queryParams });
   }
 
-  async put<T = any>(path: string, body?: any, queryParams?: Record<string, string>): Promise<T> {
+  async put<T = unknown>(path: string, body?: unknown, queryParams?: Record<string, string>): Promise<T> {
     return this.request<T>({ path, method: 'PUT', body, queryParams });
   }
 
-  async delete<T = any>(path: string, queryParams?: Record<string, string>): Promise<T> {
+  async delete<T = unknown>(path: string, queryParams?: Record<string, string>): Promise<T> {
     return this.request<T>({ path, method: 'DELETE', queryParams });
   }
 
-  async patch<T = any>(path: string, body?: any, queryParams?: Record<string, string>): Promise<T> {
+  async patch<T = unknown>(path: string, body?: unknown, queryParams?: Record<string, string>): Promise<T> {
     return this.request<T>({ path, method: 'PATCH', body, queryParams });
   }
 }

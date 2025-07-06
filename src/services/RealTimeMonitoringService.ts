@@ -47,7 +47,7 @@ export interface MonitoringConfiguration {
   maxMetricsPerRequest: number;
   alertEvaluationInterval: number; // seconds
   enabledMetrics: string[];
-  defaultFilters?: Record<string, any>;
+  defaultFilters?: Record<string, unknown>;
 }
 
 export interface HealthStatus {
@@ -173,7 +173,7 @@ export class RealTimeMonitoringService extends EventEmitter {
    */
   async getCurrentMetrics(
     metrics?: string[],
-    filter?: Record<string, any>,
+    filter?: Record<string, unknown>,
   ): Promise<RealTimeMetric[]> {
     const timer = this.performanceMonitor.startOperation('realtime_get_current_metrics');
 
@@ -533,7 +533,7 @@ export class RealTimeMonitoringService extends EventEmitter {
 
   private async fetchCurrentMetricValue(
     metric: string,
-    filter?: Record<string, any>,
+    filter?: Record<string, unknown>,
   ): Promise<number> {
     // This would make actual API calls to Akamai's real-time reporting endpoints
     const response = await this.client.request({

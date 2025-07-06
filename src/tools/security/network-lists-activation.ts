@@ -67,7 +67,7 @@ export async function activateNetworkList(
       };
     }
 
-    const requestBody: any = {
+    const requestBody: unknown = {
       networkList: {
         uniqueId: uniqueId,
       },
@@ -222,7 +222,7 @@ export async function listNetworkListActivations(
       queryParams,
     });
 
-    const validatedResponse = validateApiResponse<{ activations: any }>(response);
+    const validatedResponse = validateApiResponse<{ activations: unknown }>(response);
 
 
     const activations = validatedResponse.activations || [];
@@ -316,7 +316,7 @@ export async function deactivateNetworkList(
       };
     }
 
-    const requestBody: any = {
+    const requestBody: unknown = {
       networkList: {
         uniqueId: uniqueId,
       },
@@ -398,7 +398,7 @@ export async function bulkActivateNetworkLists(
     // Process each activation
     for (const activation of activations) {
       try {
-        const requestBody: any = {
+        const requestBody: unknown = {
           networkList: {
             uniqueId: activation.uniqueId,
           },

@@ -102,7 +102,7 @@ interface DeploymentStatus {
 export class CPSCertificateAgent {
   private auth: EdgeGridAuth;
   private multiProgress: MultiProgress;
-  private dnsAgent: any; // Will be injected for DNS operations
+  private dnsAgent: unknown; // Will be injected for DNS operations
 
   constructor(
     private customer = 'default',

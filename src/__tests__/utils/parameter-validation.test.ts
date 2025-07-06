@@ -85,7 +85,7 @@ describe('Parameter Validation Tests', () => {
     });
 
     it('should throw error for unsupported ID types', () => {
-      expect(() => ensureAkamaiIdFormat('123', 'unknown' as any)).toThrow();
+      expect(() => ensureAkamaiIdFormat('123', 'unknown' as unknown)).toThrow();
     });
   });
 
@@ -280,7 +280,7 @@ describe('Parameter Validation Tests', () => {
 
       it('should reject invalid sort options', () => {
         const invalidSort = {
-          sortBy: 'invalid' as any,
+          sortBy: 'invalid' as unknown,
           order: 'ASC',
         };
         expect(() => validateParameters(DNSSchemas.listZones, invalidSort)).toThrow();
@@ -289,7 +289,7 @@ describe('Parameter Validation Tests', () => {
       it('should reject invalid order options', () => {
         const invalidOrder = {
           sortBy: 'zone',
-          order: 'RANDOM' as any,
+          order: 'RANDOM' as unknown,
         };
         expect(() => validateParameters(DNSSchemas.listZones, invalidOrder)).toThrow();
       });
@@ -626,7 +626,7 @@ describe('Parameter Validation Tests', () => {
           expect(() => validateParameters(FastPurgeSchemas.purgeByUrl, purge)).not.toThrow();
         });
 
-        const invalidPriority = { urls: ['https://example.com'], priority: 'urgent' as any };
+        const invalidPriority = { urls: ['https://example.com'], priority: 'urgent' as unknown };
         expect(() => validateParameters(FastPurgeSchemas.purgeByUrl, invalidPriority)).toThrow();
       });
 
@@ -661,7 +661,7 @@ describe('Parameter Validation Tests', () => {
 
       it('should reject non-numeric CP codes', () => {
         const invalidCodes = {
-          cpcodes: ['abc' as any, 123],
+          cpcodes: ['abc' as unknown, 123],
         };
         expect(() => validateParameters(FastPurgeSchemas.purgeByCpcode, invalidCodes)).toThrow();
       });

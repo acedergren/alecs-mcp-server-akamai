@@ -55,7 +55,7 @@ export async function listIncludes(
     }
 
     // Group by type
-    const groupedIncludes = includes.reduce((groups: any, include: any) => {
+    const groupedIncludes = includes.reduce((groups: unknown, include: unknown) => {
       const type = include.includeType || 'UNKNOWN';
       if (!groups[type]) {
         groups[type] = [];
@@ -190,7 +190,7 @@ export async function getInclude(
     // Version information
     if (include.versions) {
       responseText += '## Available Versions\n\n';
-      include.versions.items?.forEach((version: any) => {
+      include.versions.items?.forEach((version: unknown) => {
         responseText += `- **Version ${version.includeVersion}**`;
         if (version.note) {
           responseText += `: ${version.note}`;
@@ -233,7 +233,7 @@ export async function createInclude(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const requestBody: any = {
+    const requestBody: unknown = {
       includeName: args.includeName,
       includeType: args.includeType,
       contractId: args.contractId,
@@ -301,7 +301,7 @@ export async function updateInclude(
     includeId: string;
     contractId: string;
     groupId: string;
-    rules: any;
+    rules: unknown;
     version?: number;
     note?: string;
     customer?: string;
@@ -314,7 +314,7 @@ export async function updateInclude(
     });
 
     const versionPath = args.version ? `/versions/${args.version}` : '';
-    const requestBody: any = {
+    const requestBody: unknown = {
       rules: args.rules,
     };
 
@@ -384,7 +384,7 @@ export async function createIncludeVersion(
       groupId: args.groupId,
     });
 
-    const requestBody: any = {};
+    const requestBody: unknown = {};
 
     if (args.baseVersion) {
       requestBody.createFromVersion = args.baseVersion;
@@ -454,7 +454,7 @@ export async function activateInclude(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const requestBody: any = {
+    const requestBody: unknown = {
       network: args.network,
       note: args.note || `Activating include ${args.includeId} v${args.version} to ${args.network}`,
       acknowledgeAllWarnings: args.acknowledgeAllWarnings || false,
@@ -610,14 +610,14 @@ export async function getIncludeActivationStatus(
 
     if (activation.warnings && activation.warnings.length > 0) {
       responseText += '\n## Warnings\n\n';
-      activation.warnings.forEach((warning: any) => {
+      activation.warnings.forEach((warning: unknown) => {
         responseText += `[WARNING] **${warning.title}**: ${warning.detail}\n`;
       });
     }
 
     if (activation.errors && activation.errors.length > 0) {
       responseText += '\n## Errors\n\n';
-      activation.errors.forEach((_error: any) => {
+      activation.errors.forEach((_error: unknown) => {
         responseText += `[ERROR] **${_error.title}**: ${_error.detail}\n`;
       });
     }
@@ -670,12 +670,12 @@ export async function listIncludeActivations(
     }
 
     // Group by network
-    const stagingActivations = activations.filter((a: any) => a.network === 'STAGING');
-    const productionActivations = activations.filter((a: any) => a.network === 'PRODUCTION');
+    const stagingActivations = activations.filter((a: unknown) => a.network === 'STAGING');
+    const productionActivations = activations.filter((a: unknown) => a.network === 'PRODUCTION');
 
     if (stagingActivations.length > 0) {
       responseText += '## Staging Activations\n\n';
-      stagingActivations.forEach((activation: any) => {
+      stagingActivations.forEach((activation: unknown) => {
         const statusIcon =
           activation.status === 'ACTIVE'
             ? '[DONE]'
@@ -701,7 +701,7 @@ export async function listIncludeActivations(
 
     if (productionActivations.length > 0) {
       responseText += '## Production Activations\n\n';
-      productionActivations.forEach((activation: any) => {
+      productionActivations.forEach((activation: unknown) => {
         const statusIcon =
           activation.status === 'ACTIVE'
             ? '[DONE]'

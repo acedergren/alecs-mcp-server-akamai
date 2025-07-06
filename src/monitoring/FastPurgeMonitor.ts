@@ -188,7 +188,7 @@ export class FastPurgeMonitor {
         // Check alerts
         await this.checkAlerts(metrics);
       }
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       logger.error(`Monitor error: ${_error instanceof Error ? _error.message : String(_error)}`);
     }
   }
@@ -222,7 +222,7 @@ export class FastPurgeMonitor {
     };
   }
 
-  private calculateEfficiency(dashboard: any): number {
+  private calculateEfficiency(dashboard: unknown): number {
     // Calculate efficiency based on success rate, throughput, and average latency
     const successWeight = dashboard.performance.successRate;
     const throughputWeight = Math.min(100, dashboard.performance.throughput);
@@ -368,7 +368,7 @@ export class FastPurgeMonitor {
     };
   }
 
-  async getMetricsSummary(customer: string, hoursBack = 24): Promise<any> {
+  async getMetricsSummary(customer: string, hoursBack = 24): Promise<unknown> {
     const customerMetrics = this.metrics.get(customer) || [];
     const cutoff = Date.now() - hoursBack * 60 * 60 * 1000;
     const recentMetrics = customerMetrics.filter((m) => m.timestamp.getTime() > cutoff);

@@ -247,7 +247,7 @@ export function isDefined<T>(value: T | undefined | null): value is T {
 /**
  * Filter undefined values from objects
  */
-export function filterUndefined<T extends Record<string, any>>(
+export function filterUndefined<T extends Record<string, unknown>>(
   obj: T
 ): { [K in keyof T]: Exclude<T[K], undefined> } {
   return Object.entries(obj).reduce((acc, [key, value]) => {

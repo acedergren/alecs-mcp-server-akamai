@@ -406,8 +406,8 @@ export function ensureAkamaiIdFormat(id: string, type: keyof typeof AKAMAI_ID_PA
 /**
  * Utility to validate and format query parameters for API calls
  */
-export function formatQueryParameters(params: Record<string, any>): Record<string, any> {
-  const formatted: Record<string, any> = {};
+export function formatQueryParameters(params: Record<string, unknown>): Record<string, unknown> {
+  const formatted: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(params)) {
     if (value !== undefined && value !== null && value !== '') {
@@ -426,7 +426,7 @@ export function formatQueryParameters(params: Record<string, any>): Record<strin
  * Utility to validate required parameter combinations
  */
 export function validateParameterDependencies(
-  params: Record<string, any>,
+  params: Record<string, unknown>,
   dependencies: Record<string, string[]>,
 ): void {
   for (const [param, requiredParams] of Object.entries(dependencies)) {

@@ -12,7 +12,7 @@ describe('Baseline Runtime Behavior', () => {
     it('should handle undefined vs optional properties as currently implemented', () => {
       // Document current behavior with exactOptionalPropertyTypes
       const createObject = (value: string | undefined) => {
-        const obj: any = {};
+        const obj: unknown = {};
         if (value) {
           obj.prop = value;
         }
@@ -25,7 +25,7 @@ describe('Baseline Runtime Behavior', () => {
     });
 
     it('should handle index signature access patterns', () => {
-      const data: Record<string, any> = {
+      const data: Record<string, unknown> = {
         propertyId: 'prop123',
         groupId: 'grp456'
       };
@@ -60,7 +60,7 @@ describe('Baseline Runtime Behavior', () => {
   describe('MCP Tool Interface Behavior', () => {
     it('should handle unused client parameters in tool functions', async () => {
       // Simulating current MCP tool pattern
-      const mockTool = async (_client: any, args: { value: string }) => {
+      const mockTool = async (_client: unknown, args: { value: string }) => {
         return { result: args.value };
       };
 
@@ -70,7 +70,7 @@ describe('Baseline Runtime Behavior', () => {
 
   describe('Dynamic Property Access', () => {
     it('should handle dynamic property access in current implementation', () => {
-      const config: any = {
+      const config: unknown = {
         settings: {
           propertyId: 'prop123',
           contractId: 'ctr456'

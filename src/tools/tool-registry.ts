@@ -193,7 +193,7 @@ export {
 // All tool definitions for easy registration
 // Commented out due to module resolution issues - not used anywhere
 /*
-export const ALL_TOOL_DEFINITIONS: Record<string, { handler: any; description: string }> = {
+export const ALL_TOOL_DEFINITIONS: Record<string, { handler: unknown; description: string }> = {
   // Property Management
   'list-properties': {
     handler: listProperties,

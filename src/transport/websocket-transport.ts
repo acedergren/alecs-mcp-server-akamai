@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * WebSocket Transport for MCP
  * Production-ready implementation with proper session management,
@@ -218,7 +217,7 @@ export class WebSocketServerTransport implements Transport {
    * Verify client during handshake
    */
   private async verifyClient(
-    info: { origin: string; secure: boolean; req: any },
+    info: { origin: string; secure: boolean; req: unknown },
     callback: (res: boolean, code?: number, message?: string) => void
   ): Promise<void> {
     try {
@@ -251,7 +250,7 @@ export class WebSocketServerTransport implements Transport {
   /**
    * Handle new WebSocket connection
    */
-  private handleConnection(ws: WebSocket, request: any): void {
+  private handleConnection(ws: WebSocket, request: unknown): void {
     const sessionId = `ws-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     
     // Create session
@@ -414,7 +413,7 @@ export class WebSocketServerTransport implements Transport {
    */
   private sendError(
     session: WebSocketSession, 
-    id: any, 
+    id: unknown, 
     code: number, 
     message: string
   ): void {

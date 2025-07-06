@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Integration Testing Tools
  * MCP tools for running integration tests and validation frameworks
@@ -305,7 +304,7 @@ export async function generateTestData(
     responseText += `**Prefix:** ${prefix}\n`;
     responseText += `**Generated:** ${new Date().toISOString()}\n\n`;
 
-    const generateData = (type: string): any[] => {
+    const generateData = (type: string): unknown[] => {
       switch (type) {
         case 'property':
           return Array.from({ length: count }, () => ({
@@ -348,7 +347,7 @@ export async function generateTestData(
 
     responseText += '## Generated Test Data\n\n';
 
-    const groupedData = testData.reduce((groups: any, item: any) => {
+    const groupedData = testData.reduce((groups: unknown, item: unknown) => {
       const type = item.type;
       if (!groups[type]) {
         groups[type] = [];
@@ -386,24 +385,24 @@ export async function generateTestData(
     responseText += '### Property Creation\n';
     responseText += '```bash\n';
     responseText += '# Use generated property name\n';
-    if (testData.find((d: any) => d.type === 'property')) {
-      responseText += `createProperty --name "${testData.find((d: any) => d.type === 'property')?.name}"\n`;
+    if (testData.find((d: unknown) => d.type === 'property')) {
+      responseText += `createProperty --name "${testData.find((d: unknown) => d.type === 'property')?.name}"\n`;
     }
     responseText += '```\n\n';
 
     responseText += '### DNS Zone Creation\n';
     responseText += '```bash\n';
     responseText += '# Use generated zone name\n';
-    if (testData.find((d: any) => d.type === 'dns-zone')) {
-      responseText += `createZone --zone "${testData.find((d: any) => d.type === 'dns-zone')?.name}"\n`;
+    if (testData.find((d: unknown) => d.type === 'dns-zone')) {
+      responseText += `createZone --zone "${testData.find((d: unknown) => d.type === 'dns-zone')?.name}"\n`;
     }
     responseText += '```\n\n';
 
     responseText += '### Hostname Configuration\n';
     responseText += '```bash\n';
     responseText += '# Use generated hostname\n';
-    if (testData.find((d: any) => d.type === 'hostname')) {
-      responseText += `addPropertyHostname --hostname "${testData.find((d: any) => d.type === 'hostname')?.name}"\n`;
+    if (testData.find((d: unknown) => d.type === 'hostname')) {
+      responseText += `addPropertyHostname --hostname "${testData.find((d: unknown) => d.type === 'hostname')?.name}"\n`;
     }
     responseText += '```\n\n';
 
@@ -484,7 +483,7 @@ export async function validateToolResponses(
       },
     ];
 
-    const results: any[] = [];
+    const results: unknown[] = [];
 
     for (const scenario of validationScenarios) {
       try {

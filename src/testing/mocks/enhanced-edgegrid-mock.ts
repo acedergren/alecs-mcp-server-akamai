@@ -5,7 +5,7 @@
 
 export interface MockEndpointConfig {
   pattern: string;
-  response: any;
+  response: unknown;
   delay?: number;
   headers?: Record<string, string>;
 }
@@ -65,7 +65,7 @@ export class EnhancedEdgeGridMock {
   /**
    * Mock specific API endpoint with response
    */
-  mockEndpoint(pattern: string, response: any, options: { delay?: number; headers?: Record<string, string> } = {}) {
+  mockEndpoint(pattern: string, response: unknown, options: { delay?: number; headers?: Record<string, string> } = {}) {
     this.responses.set(pattern, {
       pattern,
       response,
@@ -111,7 +111,7 @@ export class EnhancedEdgeGridMock {
     if (matchingConfig.response.status && matchingConfig.response.status >= 400) {
       const error = new Error(matchingConfig.response.detail || 'API Error') as Error & {
         status: number;
-        response: any;
+        response: unknown;
       };
       error.status = matchingConfig.response.status;
       error.response = matchingConfig.response;

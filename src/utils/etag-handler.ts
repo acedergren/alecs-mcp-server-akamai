@@ -35,7 +35,7 @@ const etagCache = new Map<string, string>();
  * @param response - API response object
  * @returns ETag value or null if not present
  */
-export function extractETag(response: any): string | null {
+export function extractETag(response: unknown): string | null {
   // Check various header formats
   const etag = response.headers?.etag || 
                 response.headers?.ETag || 
@@ -95,12 +95,12 @@ export async function requestWithETag(
   options: {
     path: string;
     method: string;
-    body?: any;
+    body?: unknown;
     queryParams?: Record<string, string>;
     useStoredETag?: boolean;
     etag?: string;
   }
-): Promise<any> {
+): Promise<unknown> {
   const headers: Record<string, string> = {};
   
   // For update operations, include If-Match header
@@ -128,7 +128,7 @@ export async function requestWithETag(
     }
     
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle 412 Precondition Failed (ETag mismatch)
     if (error.response?.status === 412) {
       throw createConcurrentModificationError(
@@ -149,7 +149,7 @@ export async function getPropertyRulesWithETag(
   propertyId: string,
   version: number,
   validateRules?: boolean
-): Promise<{ rules: any; etag: string | null }> {
+): Promise<{ rules: unknown; etag: string | null }> {
   const path = `/papi/v1/properties/${propertyId}/versions/${version}/rules`;
   const queryParams: Record<string, string> = {};
   if (validateRules) {queryParams['validateRules'] = 'true';}
@@ -173,13 +173,13 @@ export async function updatePropertyRulesWithETag(
   client: AkamaiClient,
   propertyId: string,
   version: number,
-  rules: any,
+  rules: unknown,
   options?: {
     validateRules?: boolean;
     etag?: string;
     useStoredETag?: boolean;
   }
-): Promise<any> {
+): Promise<unknown> {
   const path = `/papi/v1/properties/${propertyId}/versions/${version}/rules`;
   const queryParams: Record<string, string> = {};
   if (options?.validateRules) {queryParams['validateRules'] = 'true';}
@@ -202,12 +202,12 @@ export async function retryWithFreshETag<T>(
   refreshOperation: () => Promise<void>,
   maxRetries: number = 3
 ): Promise<T> {
-  let lastError: any;
+  let lastError: unknown;
   
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       return await operation();
-    } catch (error: any) {
+    } catch (error: unknown) {
       lastError = error;
       
       // Only retry on ETag conflicts
@@ -248,7 +248,7 @@ export class ETagAwarePropertyManager {
   async updateRules(
     propertyId: string,
     version: number,
-    rules: any,
+    rules: unknown,
     options?: { validateRules?: boolean; etag?: string }
   ) {
     return updatePropertyRulesWithETag(this.client, propertyId, version, rules, options);
@@ -260,9 +260,9 @@ export class ETagAwarePropertyManager {
   async updateRulesWithRetry(
     propertyId: string,
     version: number,
-    transformer: (currentRules: any) => any,
+    transformer: (currentRules: unknown) => any,
     options?: { validateRules?: boolean; maxRetries?: number }
-  ): Promise<any> {
+  ): Promise<unknown> {
     return retryWithFreshETag(
       async () => {
         // Get current rules with ETag

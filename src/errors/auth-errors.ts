@@ -51,7 +51,7 @@ export class ForbiddenError extends AkamaiError {
 export class AccountSwitchError extends ForbiddenError {
   constructor(customer: string, reason?: string) {
     const message = `Cannot switch to customer account '${customer}'`;
-    const response: any = {
+    const response: unknown = {
       type: 'https://problems.luna.akamaiapis.net/auth/v1/account-switch-error',
       title: 'Account Switch Failed',
       detail: message,
@@ -74,7 +74,7 @@ export class AccountSwitchError extends ForbiddenError {
 export class InvalidCustomerError extends UnauthorizedError {
   constructor(customer: string) {
     const message = `Customer '${customer}' is not valid`;
-    const response: any = {
+    const response: unknown = {
       type: 'https://problems.luna.akamaiapis.net/auth/v1/invalid-customer',
       title: 'Invalid Customer',
       detail: message,

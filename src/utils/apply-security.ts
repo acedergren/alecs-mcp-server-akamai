@@ -44,7 +44,7 @@ export function applySecurityFeatures(_server: Server): void {
 /**
  * Create rate-limited request handler wrapper
  */
-export function withRateLimit<T extends (...args: any[]) => any>(
+export function withRateLimit<T extends (...args: unknown[]) => any>(
   handler: T,
   identifier: string = 'global'
 ): T {

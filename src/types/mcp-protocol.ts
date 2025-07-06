@@ -7,31 +7,31 @@ export interface MCPRequest {
   jsonrpc: "2.0";
   id: string | number;
   method: string;
-  params?: Record<string, any>;
+  params?: Record<string, unknown>;
 }
 
 export interface MCPResponse {
   jsonrpc: "2.0";
   id: string | number;
-  result?: any;
+  result?: unknown;
   error?: MCPError;
 }
 
 export interface MCPNotification {
   jsonrpc: "2.0";
   method: string;
-  params?: Record<string, any>;
+  params?: Record<string, unknown>;
 }
 
 export interface MCPError {
   code: number;
   message: string;
-  data?: any;
+  data?: unknown;
 }
 
 export interface MCPToolRequest {
   name: string;
-  arguments?: Record<string, any>;
+  arguments?: Record<string, unknown>;
 }
 
 export interface MCPToolResponse {
@@ -62,7 +62,7 @@ export interface MCPPrompt {
 }
 
 export interface MCPServerCapabilities {
-  experimental?: Record<string, any>;
+  experimental?: Record<string, unknown>;
   logging?: object;
   prompts?: {
     listChanged?: boolean;
@@ -77,7 +77,7 @@ export interface MCPServerCapabilities {
 }
 
 export interface MCPClientCapabilities {
-  experimental?: Record<string, any>;
+  experimental?: Record<string, unknown>;
   roots?: {
     listChanged?: boolean;
   };
@@ -119,7 +119,7 @@ export interface MCPListToolsResponse extends MCPResponse {
       description?: string;
       inputSchema: {
         type: "object";
-        properties?: Record<string, any>;
+        properties?: Record<string, unknown>;
         required?: string[];
       };
     }>;
@@ -130,7 +130,7 @@ export interface MCPCallToolRequest extends MCPRequest {
   method: "tools/call";
   params: {
     name: string;
-    arguments?: Record<string, any>;
+    arguments?: Record<string, unknown>;
   };
 }
 
@@ -182,7 +182,7 @@ export interface MCPGetPromptRequest extends MCPRequest {
   method: "prompts/get";
   params: {
     name: string;
-    arguments?: Record<string, any>;
+    arguments?: Record<string, unknown>;
   };
 }
 
@@ -207,7 +207,7 @@ export interface MCPLoggingMessageNotification extends MCPNotification {
   params: {
     level: "debug" | "info" | "notice" | "warning" | "error" | "critical" | "alert" | "emergency";
     message: string;
-    data?: any;
+    data?: unknown;
   };
 }
 
@@ -235,7 +235,7 @@ export interface MCPTransport {
   start(): Promise<void>;
   send(message: MCPRequest | MCPResponse | MCPNotification): Promise<void>;
   close(): Promise<void>;
-  onMessage(handler: (message: any) => void): void;
+  onMessage(handler: (message: unknown) => void): void;
   onError(handler: (error: Error) => void): void;
   onClose(handler: () => void): void;
 }
@@ -244,9 +244,9 @@ export interface MCPServer {
   capabilities: MCPServerCapabilities;
   name: string;
   version: string;
-  setRequestHandler<T = any>(
+  setRequestHandler<T = unknown>(
     method: string,
-    handler: (request: MCPRequest, extra?: any) => Promise<T>
+    handler: (request: MCPRequest, extra?: unknown) => Promise<T>
   ): void;
   setNotificationHandler(
     method: string,

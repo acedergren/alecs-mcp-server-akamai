@@ -12,7 +12,7 @@ import type { MCPToolResponse } from '../types';
 export interface ErrorContext {
   tool: string;
   operation: string;
-  params?: Record<string, any>;
+  params?: Record<string, unknown>;
   customer?: string;
   requestId?: string;
 }
@@ -44,7 +44,7 @@ export class ToolErrorHandler {
   /**
    * Handle and log errors with enhanced debugging information
    */
-  handleError(error: any, spinner?: any): MCPToolResponse {
+  handleError(error: unknown, spinner?: any): MCPToolResponse {
     // Stop spinner if provided
     if (spinner) {
       spinner.fail(`Operation failed: ${this.context.operation}`);
@@ -93,7 +93,7 @@ export class ToolErrorHandler {
   /**
    * Extract status code from various error formats
    */
-  private extractStatusCode(error: any): number | undefined {
+  private extractStatusCode(error: unknown): number | undefined {
     return error?.statusCode || 
            error?.response?.status || 
            error?.status ||
@@ -103,7 +103,7 @@ export class ToolErrorHandler {
   /**
    * Extract Akamai error details from error object
    */
-  private extractAkamaiError(error: any): AkamaiErrorDetails | undefined {
+  private extractAkamaiError(error: unknown): AkamaiErrorDetails | undefined {
     return error?.akamaiError || 
            error?.response?.data ||
            (error?.message?.includes('Akamai API Error') ? this.parseErrorMessage(error.message) : undefined);
@@ -267,7 +267,7 @@ export class ToolErrorHandler {
   /**
    * Format error as MCPToolResponse instead of throwing
    */
-  formatAsMCPResponse(error: any): MCPToolResponse {
+  formatAsMCPResponse(error: unknown): MCPToolResponse {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const statusCode = this.extractStatusCode(error);
     const akamaiError = this.extractAkamaiError(error);
@@ -385,8 +385,8 @@ export class ToolErrorHandler {
   /**
    * Create a context-aware error handler for a specific operation
    */
-  static create(tool: string, operation: string): (error: any, spinner?: any, params?: Record<string, any>) => MCPToolResponse {
-    return (error: any, spinner?: any, params?: Record<string, any>) => {
+  static create(tool: string, operation: string): (error: unknown, spinner?: unknown, params?: Record<string, unknown>) => MCPToolResponse {
+    return (error: unknown, spinner?: any, params?: Record<string, unknown>) => {
       const handler = new ToolErrorHandler({
         tool,
         operation,
@@ -402,7 +402,7 @@ export class ToolErrorHandler {
  */
 export function createErrorHandler(tool: string) {
   return {
-    handle: (operation: string, error: any, spinner?: any, params?: Record<string, any>) => {
+    handle: (operation: string, error: unknown, spinner?: unknown, params?: Record<string, unknown>) => {
       const handler = new ToolErrorHandler({
         tool,
         operation,

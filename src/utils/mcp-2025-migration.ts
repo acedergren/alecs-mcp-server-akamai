@@ -100,11 +100,11 @@ export function createMcp2025Tool(
  * Wrap existing tool handler for MCP 2025 compliance
  */
 export function wrapToolHandler<T>(
-  handler: (...args: any[]) => Promise<McpToolResponse<T>>,
+  handler: (...args: unknown[]) => Promise<McpToolResponse<T>>,
   toolName: string,
   version: string = '1.0.0',
-): (...args: any[]) => Promise<Mcp2025ToolResponse<T>> {
-  return async (...args: any[]): Promise<Mcp2025ToolResponse<T>> => {
+): (...args: unknown[]) => Promise<Mcp2025ToolResponse<T>> {
+  return async (...args: unknown[]): Promise<Mcp2025ToolResponse<T>> => {
     const startTime = Date.now();
 
     try {
@@ -155,13 +155,13 @@ export interface ToolMigrationConfig {
   name: string;
   description: string;
   zodSchema: ZodSchema;
-  handler: (...args: any[]) => Promise<any>;
+  handler: (...args: unknown[]) => Promise<unknown>;
   version?: string;
 }
 
 export function migrateTools(tools: ToolMigrationConfig[]): Array<{
   definition: Mcp2025ToolDefinition;
-  handler: (...args: any[]) => Promise<Mcp2025ToolResponse>;
+  handler: (...args: unknown[]) => Promise<Mcp2025ToolResponse>;
 }> {
   return tools.map((tool) => ({
     definition: createMcp2025Tool(tool.name, tool.description, tool.zodSchema),
@@ -239,7 +239,7 @@ export function generateMigrationReport(
 /**
  * Check if schema is valid JSON Schema
  */
-function isValidJsonSchema(schema: any): boolean {
+function isValidJsonSchema(schema: unknown): boolean {
   return (
     typeof schema === 'object' && schema.type === 'object' && typeof schema.properties === 'object'
   );
@@ -248,7 +248,7 @@ function isValidJsonSchema(schema: any): boolean {
 /**
  * Check if response has _meta field capability
  */
-function hasMetaField(response: any): boolean {
+function hasMetaField(response: unknown): boolean {
   return typeof response === 'object' && ('_meta' in response || response._meta === undefined);
 }
 
@@ -259,16 +259,16 @@ function hasMetaField(response: any): boolean {
 export function createBackwardsCompatibleTool(
   oldName: string,
   newName: string,
-  handler: (...args: any[]) => Promise<Mcp2025ToolResponse>,
+  handler: (...args: unknown[]) => Promise<Mcp2025ToolResponse>,
 ): Array<{
   name: string;
-  handler: (...args: any[]) => Promise<Mcp2025ToolResponse>;
+  handler: (...args: unknown[]) => Promise<Mcp2025ToolResponse>;
 }> {
   return [
     { name: newName, handler },
     {
       name: oldName,
-      handler: async (...args: any[]) => {
+      handler: async (...args: unknown[]) => {
         console.warn(`Tool '${oldName}' is deprecated. Use '${newName}' instead.`);
         return handler(...args);
       },

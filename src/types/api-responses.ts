@@ -144,10 +144,10 @@ export interface ActivationStatusResponse {
 export interface RuleTreeResponse {
   rules: {
     name: string;
-    children: Array<any>;
-    behaviors: Array<any>;
-    criteria: Array<any>;
-    variables?: Array<any>;
+    children: Array<unknown>;
+    behaviors: Array<unknown>;
+    criteria: Array<unknown>;
+    variables?: Array<unknown>;
   };
   ruleFormat: string;
   comments?: string;
@@ -310,7 +310,7 @@ export interface CPSDeploymentStatusResponse {
       trustChain: string;
       expiry: string;
     };
-    multiStackedCertificates: Array<any>;
+    multiStackedCertificates: Array<unknown>;
   };
   staging: {
     primaryCertificate: {
@@ -318,7 +318,7 @@ export interface CPSDeploymentStatusResponse {
       trustChain: string;
       expiry: string;
     };
-    multiStackedCertificates: Array<any>;
+    multiStackedCertificates: Array<unknown>;
   };
 }
 

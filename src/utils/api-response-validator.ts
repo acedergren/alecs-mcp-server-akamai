@@ -20,23 +20,23 @@ export function validateApiResponse<T>(response: unknown): T {
 /**
  * Type guards for common Akamai response structures
  */
-export function isPropertyResponse(response: unknown): response is any {
+export function isPropertyResponse(response: unknown): response is { properties: unknown } {
   return response !== null && typeof response === 'object' && 'properties' in response;
 }
 
-export function isHostnamesResponse(response: unknown): response is any {
+export function isHostnamesResponse(response: unknown): response is { hostnames: unknown } {
   return response !== null && typeof response === 'object' && 'hostnames' in response;
 }
 
-export function isActivationResponse(response: unknown): response is any {
+export function isActivationResponse(response: unknown): response is { activationId: unknown } {
   return response !== null && typeof response === 'object' && 'activationId' in response;
 }
 
-export function isZonesResponse(response: unknown): response is any {
+export function isZonesResponse(response: unknown): response is { zones: unknown } {
   return response !== null && typeof response === 'object' && 'zones' in response;
 }
 
-export function isNetworkListResponse(response: unknown): response is any {
+export function isNetworkListResponse(response: unknown): response is { networkLists: unknown } {
   return response !== null && typeof response === 'object' && 'networkLists' in response;
 }
 
@@ -73,5 +73,5 @@ export type CPSEnrollmentMetadata = {
   enrollmentId: number;
   status: string;
   certificateType: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }

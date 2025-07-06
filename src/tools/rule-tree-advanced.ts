@@ -1,13 +1,12 @@
-// @ts-nocheck
 /**
  * Advanced Rule Tree Management Tools
  * Comprehensive rule validation, templates, optimization, and analysis
  */
 
 import { ErrorTranslator } from '../utils/errors';
-
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+import { type RuleTree, type Rule, type Behavior, type Criterion } from '../types/api-responses/property-manager';
 
 // Rule validation types
 export interface RuleValidationResult {
@@ -37,8 +36,8 @@ export interface RuleWarning {
 export interface RuleOptimization {
   type: 'PERFORMANCE' | 'SECURITY' | 'COST' | 'BEST_PRACTICE';
   path: string;
-  current: any;
-  recommended: any;
+  current: unknown;
+  recommended: unknown;
   impact: string;
   effort: 'LOW' | 'MEDIUM' | 'HIGH';
 }
@@ -65,7 +64,7 @@ export interface RuleTemplate {
   minRuleFormat?: string;
   requiredBehaviors?: string[];
   variables?: TemplateVariable[];
-  rules: any;
+  rules: RuleTree;
 }
 
 export interface TemplateVariable {
@@ -73,12 +72,12 @@ export interface TemplateVariable {
   type: 'string' | 'number' | 'boolean' | 'array' | 'object';
   description: string;
   required: boolean;
-  default?: any;
+  default?: unknown;
   validation?: {
     pattern?: string;
     min?: number;
     max?: number;
-    enum?: any[];
+    enum?: unknown[];
   };
 }
 
@@ -94,7 +93,7 @@ export interface RuleConflict {
 
 export interface RuleDependency {
   behavior: string;
-  requi_res: string[];
+  requires: string[];
   conflicts: string[];
   recommendedOrder?: number;
 }
@@ -107,7 +106,7 @@ export async function validateRuleTree(
   args: {
     propertyId: string;
     version?: number;
-    rules?: any;
+    rules?: RuleTree;
     includeOptimizations?: boolean;
     includeStatistics?: boolean;
   },
@@ -302,7 +301,7 @@ export async function createRuleTreeFromTemplate(
   client: AkamaiClient,
   args: {
     templateId: string;
-    variables?: Record<string, any>;
+    variables?: Record<string, unknown>;
     propertyId?: string;
     version?: number;
     validate?: boolean;
@@ -371,7 +370,7 @@ export async function createRuleTreeFromTemplate(
           content: [
             {
               type: 'text',
-              text: `[ERROR] Failed to apply template:\n\n${updateResponse.errors.map((_e: any) => `- ${_e.detail}`).join('\n')}`,
+              text: `[ERROR] Failed to apply template:\n\n${updateResponse.errors.map((_e: unknown) => `- ${_e.detail}`).join('\n')}`,
             },
           ],
         };
@@ -443,7 +442,7 @@ export async function analyzeRuleTreePerformance(
   args: {
     propertyId: string;
     version?: number;
-    rules?: any;
+    rules?: RuleTree;
     includeRecommendations?: boolean;
   },
 ): Promise<MCPToolResponse> {
@@ -497,7 +496,7 @@ export async function analyzeRuleTreePerformance(
     // Critical findings
     if (analysis.criticalFindings.length > 0) {
       responseText += '## [EMOJI] Critical Findings\n';
-      analysis.criticalFindings.forEach((finding: any, idx: number) => {
+      analysis.criticalFindings.forEach((finding: unknown, idx: number) => {
         responseText += `${idx + 1}. **${finding.type}**: ${finding.description}\n`;
         responseText += `   - **Impact:** ${finding.impact}\n`;
         responseText += `   - **Location:** \`${finding.path}\`\n`;
@@ -508,7 +507,7 @@ export async function analyzeRuleTreePerformance(
     // Performance bottlenecks
     if (analysis.bottlenecks.length > 0) {
       responseText += '## [EMOJI] Performance Bottlenecks\n';
-      analysis.bottlenecks.forEach((bottleneck: any, idx: number) => {
+      analysis.bottlenecks.forEach((bottleneck: unknown, idx: number) => {
         responseText += `${idx + 1}. **${bottleneck.behavior}** at \`${bottleneck.path}\`\n`;
         responseText += `   - **Issue:** ${bottleneck.issue}\n`;
         responseText += `   - **Recommendation:** ${bottleneck.recommendation}\n`;
@@ -526,7 +525,7 @@ export async function analyzeRuleTreePerformance(
     // Recommendations
     if (args.includeRecommendations && analysis.recommendations.length > 0) {
       responseText += '## [EMOJI] Recommendations\n';
-      analysis.recommendations.forEach((rec: any, idx: number) => {
+      analysis.recommendations.forEach((rec: unknown, idx: number) => {
         responseText += `${idx + 1}. **${rec.priority} Priority**: ${rec.title}\n`;
         responseText += `   - ${rec.description}\n`;
         responseText += `   - **Expected Impact:** ${rec.impact}\n`;
@@ -593,7 +592,7 @@ export async function detectRuleConflicts(
   args: {
     propertyId: string;
     version?: number;
-    rules?: any;
+    rules?: RuleTree;
   },
 ): Promise<MCPToolResponse> {
   const errorTranslator = new ErrorTranslator();
@@ -820,13 +819,13 @@ export async function listRuleTemplates(
 
 // Helper functions
 
-function calculateRuleStatistics(rules: any): RuleStatistics {
+function calculateRuleStatistics(rules: unknown): RuleStatistics {
   let totalRules = 0;
   let totalBehaviors = 0;
   let totalCriteria = 0;
   let maxDepth = 0;
 
-  function traverse(rule: any, depth: number) {
+  function traverse(rule: unknown, depth: number) {
     totalRules++;
     maxDepth = Math.max(maxDepth, depth);
 
@@ -839,7 +838,7 @@ function calculateRuleStatistics(rules: any): RuleStatistics {
     }
 
     if (rule.children) {
-      rule.children.forEach((child: any) => traverse(child, depth + 1));
+      rule.children.forEach((child: unknown) => traverse(child, depth + 1));
     }
   }
 
@@ -864,7 +863,7 @@ function calculateRuleStatistics(rules: any): RuleStatistics {
   };
 }
 
-function validateRuleStructure(rule: any, validation: RuleValidationResult, path: string) {
+function validateRuleStructure(rule: RuleTree | Rule, validation: RuleValidationResult, path: string) {
   // Check required fields
   if (!rule.name) {
     validation.valid = false;
@@ -890,15 +889,15 @@ function validateRuleStructure(rule: any, validation: RuleValidationResult, path
 
   // Validate children recursively
   if (rule.children) {
-    rule.children.forEach((child: any, index: number) => {
+    rule.children.forEach((child: unknown, index: number) => {
       validateRuleStructure(child, validation, `${path}/children/${index}`);
     });
   }
 }
 
-function validateBehaviors(rule: any, validation: RuleValidationResult, path: string) {
+function validateBehaviors(rule: Behavior, validation: RuleValidationResult, path: string) {
   if (rule.behaviors) {
-    const behaviorNames = rule.behaviors.map((b: any) => b.name);
+    const behaviorNames = rule.behaviors.map((b: unknown) => b.name);
 
     // Check for duplicates
     const duplicates = behaviorNames.filter(
@@ -916,7 +915,7 @@ function validateBehaviors(rule: any, validation: RuleValidationResult, path: st
     }
 
     // Check behavior-specific validations
-    rule.behaviors.forEach((behavior: any, index: number) => {
+    rule.behaviors.forEach((behavior: unknown, index: number) => {
       const behaviorPath = `${path}/behaviors/${index}`;
 
       // Origin validation
@@ -948,7 +947,7 @@ function validateBehaviors(rule: any, validation: RuleValidationResult, path: st
   }
 
   // Check for required behaviors in default rule
-  if (path === '' && !rule.behaviors?.some((b: any) => b.name === 'origin')) {
+  if (path === '' && !rule.behaviors?.some((b: unknown) => b.name === 'origin')) {
     validation.errors.push({
       severity: 'ERROR',
       path,
@@ -960,16 +959,16 @@ function validateBehaviors(rule: any, validation: RuleValidationResult, path: st
 
   // Recurse for children
   if (rule.children) {
-    rule.children.forEach((child: any, index: number) => {
+    rule.children.forEach((child: unknown, index: number) => {
       validateBehaviors(child, validation, `${path}/children/${index}`);
     });
   }
 }
 
-function validateCriteria(rule: any, validation: RuleValidationResult, path: string) {
+function validateCriteria(rule: unknown, validation: RuleValidationResult, path: string) {
   if (rule.criteria && rule.criteria.length > 0) {
     // Check for conflicting criteria
-    const criteriaTypes = rule.criteria.map((c: any) => c.name);
+    const criteriaTypes = rule.criteria.map((c: unknown) => c.name);
 
     // Path and hostname conflicts
     if (criteriaTypes.includes('path') && criteriaTypes.includes('hostname')) {
@@ -985,20 +984,20 @@ function validateCriteria(rule: any, validation: RuleValidationResult, path: str
 
   // Recurse for children
   if (rule.children) {
-    rule.children.forEach((child: any, index: number) => {
+    rule.children.forEach((child: unknown, index: number) => {
       validateCriteria(child, validation, `${path}/children/${index}`);
     });
   }
 }
 
-function detectRuleConflictsInternal(rules: any): RuleConflict[] {
+function detectRuleConflictsInternal(rules: unknown): RuleConflict[] {
   const conflicts: RuleConflict[] = [];
   const behaviorMap = new Map<string, string[]>();
 
   // Build behavior location map
-  function mapBehaviors(rule: any, path: string) {
+  function mapBehaviors(rule: Behavior, path: string) {
     if (rule.behaviors) {
-      rule.behaviors.forEach((behavior: any, index: number) => {
+      rule.behaviors.forEach((behavior: unknown, index: number) => {
         const behaviorPath = `${path}/behaviors/${index}`;
         if (!behaviorMap.has(behavior.name)) {
           behaviorMap.set(behavior.name, []);
@@ -1008,7 +1007,7 @@ function detectRuleConflictsInternal(rules: any): RuleConflict[] {
     }
 
     if (rule.children) {
-      rule.children.forEach((child: any, index: number) => {
+      rule.children.forEach((child: unknown, index: number) => {
         mapBehaviors(child, `${path}/children/${index}`);
       });
     }
@@ -1072,17 +1071,17 @@ function detectRuleConflictsInternal(rules: any): RuleConflict[] {
   return conflicts;
 }
 
-function generateOptimizationSuggestions(rules: any): RuleOptimization[] {
+function generateOptimizationSuggestions(rules: unknown): RuleOptimization[] {
   const suggestions: RuleOptimization[] = [];
 
-  function analyzeRule(rule: any, path: string) {
+  function analyzeRule(rule: RuleTree | Rule, path: string) {
     // Check caching optimizations
     if (rule.behaviors) {
-      const cachingBehavior = rule.behaviors.find((b: any) => b.name === 'caching');
+      const cachingBehavior = rule.behaviors.find((b: unknown) => b.name === 'caching');
 
       if (cachingBehavior && cachingBehavior.options?.behavior === 'NO_CACHE') {
         // Check if this could be cached
-        const pathCriteria = rule.criteria?.find((c: any) => c.name === 'path');
+        const pathCriteria = rule.criteria?.find((c: unknown) => c.name === 'path');
         if (
           pathCriteria?.options?.values?.some(
             (v: string) =>
@@ -1101,7 +1100,7 @@ function generateOptimizationSuggestions(rules: any): RuleOptimization[] {
       }
 
       // Check for missing gzip
-      const hasGzip = rule.behaviors.some((b: any) => b.name === 'gzipResponse');
+      const hasGzip = rule.behaviors.some((b: unknown) => b.name === 'gzipResponse');
       if (!hasGzip && path === '') {
         suggestions.push({
           type: 'PERFORMANCE',
@@ -1118,7 +1117,7 @@ function generateOptimizationSuggestions(rules: any): RuleOptimization[] {
 
       // Check for missing security headers
       const hasSecurityHeaders = rule.behaviors.some(
-        (b: any) =>
+        (b: unknown) =>
           b.name === 'modifyOutgoingResponseHeader' &&
           b.options?.customHeaderName?.includes('Security'),
       );
@@ -1144,7 +1143,7 @@ function generateOptimizationSuggestions(rules: any): RuleOptimization[] {
 
     // Recurse for children
     if (rule.children) {
-      rule.children.forEach((child: any, index: number) => {
+      rule.children.forEach((child: unknown, index: number) => {
         analyzeRule(child, `${path}/children/${index}`);
       });
     }
@@ -1175,7 +1174,7 @@ interface Recommendation {
   effort: string;
 }
 
-function performRuleTreeAnalysis(rules: any): any {
+function performRuleTreeAnalysis(rules: unknown): unknown {
   const analysis = {
     complexity: 0,
     cacheEfficiency: 0,
@@ -1207,15 +1206,15 @@ function performRuleTreeAnalysis(rules: any): any {
   let rulesWithCaching = 0;
   let staticRules = 0;
 
-  function analyzeCaching(rule: any) {
+  function analyzeCaching(rule: unknown) {
     totalRules++;
 
-    const hasCaching = rule.behaviors?.some((b: any) => b.name === 'caching');
+    const hasCaching = rule.behaviors?.some((b: unknown) => b.name === 'caching');
     if (hasCaching) {
       rulesWithCaching++;
     }
 
-    const pathCriteria = rule.criteria?.find((c: any) => c.name === 'path');
+    const pathCriteria = rule.criteria?.find((c: unknown) => c.name === 'path');
     if (
       pathCriteria?.options?.values?.some((v: string) =>
         /\.(js|css|jpg|jpeg|png|gif|svg|woff|woff2|ttf|eot)$/.test(v),
@@ -1225,7 +1224,7 @@ function performRuleTreeAnalysis(rules: any): any {
     }
 
     if (rule.children) {
-      rule.children.forEach((child: any) => analyzeCaching(child));
+      rule.children.forEach((child: unknown) => analyzeCaching(child));
     }
   }
 
@@ -1235,7 +1234,7 @@ function performRuleTreeAnalysis(rules: any): any {
   analysis.caching.staticCoverage = Math.round((staticRules / totalRules) * 100);
 
   // Check for bottlenecks
-  if (!rules.behaviors?.some((b: any) => b.name === 'gzipResponse')) {
+  if (!rules.behaviors?.some((b: unknown) => b.name === 'gzipResponse')) {
     analysis.bottlenecks.push({
       behavior: 'gzipResponse',
       path: '/behaviors',
@@ -1455,7 +1454,7 @@ function getRuleTemplates(): RuleTemplate[] {
 
 function validateTemplateVariables(
   template: RuleTemplate,
-  variables: Record<string, any>,
+  variables: Record<string, unknown>,
 ): string[] {
   const errors: string[] = [];
 
@@ -1519,18 +1518,18 @@ function validateTemplateVariables(
 }
 
 function applyTemplateVariables(
-  rules: any,
-  variables: Record<string, any>,
+  rules: unknown,
+  variables: Record<string, unknown>,
   templateVars: TemplateVariable[],
-): any {
+): unknown {
   // Create a map with defaults
-  const varMap: Record<string, any> = {};
+  const varMap: Record<string, unknown> = {};
   templateVars.forEach((v) => {
     varMap[v.name] = variables[v.name] !== undefined ? variables[v.name] : v.default;
   });
 
   // Deep clone and replace
-  const processValue = (value: any): any => {
+  const processValue = (value: unknown): any => {
     if (typeof value === 'string') {
       // Replace template variables
       return value.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
@@ -1539,7 +1538,7 @@ function applyTemplateVariables(
     } else if (Array.isArray(value)) {
       return value.map(processValue);
     } else if (value && typeof value === 'object') {
-      const result: any = {};
+      const result: unknown = {};
       Object.entries(value).forEach(([key, val]) => {
         result[key] = processValue(val);
       });

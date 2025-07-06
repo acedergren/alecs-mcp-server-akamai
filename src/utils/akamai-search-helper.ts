@@ -45,7 +45,7 @@ export interface BulkSearchMatch {
   propertyVersion: number;
   matchLocations: Array<{
     path: string;
-    value: any;
+    value: unknown;
     context: string;
   }>;
 }
@@ -53,8 +53,8 @@ export interface BulkSearchMatch {
 /**
  * Build search query for Akamai's bulk search API
  */
-export function buildBulkSearchQuery(options: SearchOptions): any {
-  const query: any = {
+export function buildBulkSearchQuery(options: SearchOptions): unknown {
+  const query: unknown = {
     bulkSearchQuery: {
       syntax: 'JSONPATH',
       match: options.searchTerm,
@@ -88,11 +88,11 @@ export function buildBulkSearchQuery(options: SearchOptions): any {
  */
 export async function performIntelligentSearch(
   searchTerm: string,
-  items: any[],
+  items: unknown[],
   searchFields: string[]
-): Promise<any[]> {
+): Promise<Array<{ timestamp: string; value: number }>> {
   const searchLower = searchTerm.toLowerCase();
-  const results: Array<{ item: any; score: number; matches: string[] }> = [];
+  const results: Array<{ item: unknown; score: number; matches: string[] }> = [];
 
   for (const item of items) {
     let score = 0;
@@ -146,7 +146,7 @@ export async function performIntelligentSearch(
 /**
  * Get nested object value by path
  */
-function getNestedValue(obj: any, path: string): any {
+function getNestedValue(obj: unknown, path: string): unknown {
   return path.split('.').reduce((curr, prop) => curr?.[prop], obj);
 }
 
@@ -197,10 +197,10 @@ export function generateSearchSuggestions(
  * Build optimized search index for faster lookups
  */
 export class SearchIndex {
-  private index: Map<string, Set<any>> = new Map();
-  private items: any[] = [];
+  private index: Map<string, Set<unknown>> = new Map();
+  private items: unknown[] = [];
 
-  constructor(items: any[], indexFields: string[]) {
+  constructor(items: unknown[], indexFields: string[]) {
     this.items = items;
     this.buildIndex(indexFields);
   }
@@ -223,7 +223,7 @@ export class SearchIndex {
     }
   }
 
-  search(term: string): any[] {
+  search(term: string): unknown[] {
     const searchWords = term.toLowerCase().split(/\s+/);
     const resultSets = searchWords.map(word => this.index.get(word) || new Set());
     
@@ -265,13 +265,13 @@ export async function withRetry<T>(
   operation: () => Promise<T>,
   config: RetryConfig = DEFAULT_RETRY_CONFIG
 ): Promise<T> {
-  let lastError: any;
+  let lastError: unknown;
   let delay = config.initialDelay;
 
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
     try {
       return await operation();
-    } catch (error: any) {
+    } catch (error: unknown) {
       lastError = error;
       
       // Don't retry on client errors (4xx)

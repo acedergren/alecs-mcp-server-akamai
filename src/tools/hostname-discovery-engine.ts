@@ -332,7 +332,7 @@ export async function identifyOwnershipPatterns(
 
 // Helper functions for hostname analysis
 
-async function getAllPropertiesWithHostnames(client: AkamaiClient, args: any): Promise<any[]> {
+async function getAllPropertiesWithHostnames(client: AkamaiClient, args: unknown): Promise<Array<{ timestamp: string; value: number }>> {
   // Implementation would fetch all properties and their hostnames
   // This is a simplified version - real implementation would paginate through all properties
   const params = new URLSearchParams();
@@ -349,19 +349,19 @@ async function getAllPropertiesWithHostnames(client: AkamaiClient, args: any): P
     method: 'GET',
   });
 
-  const validatedResponse = validateApiResponse<{ properties?: { items?: any[] } }>(response);
+  const validatedResponse = validateApiResponse<{ properties?: { items?: unknown[] } }>(response);
   const properties = validatedResponse.properties?.items || [];
 
   // Fetch hostnames for each property
   const propertiesWithHostnames = await Promise.all(
-    properties.map(async (property: any) => {
+    properties.map(async (property: unknown) => {
       try {
         const hostnameResponse = await client.request({
           path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames?contractId=${property.contractId}&groupId=${property.groupId}`,
           method: 'GET',
         });
 
-        const validatedHostnameResponse = validateApiResponse<{ hostnames?: { items?: any[] } }>(hostnameResponse);
+        const validatedHostnameResponse = validateApiResponse<{ hostnames?: { items?: unknown[] } }>(hostnameResponse);
 
         return {
           ...property,
@@ -379,12 +379,12 @@ async function getAllPropertiesWithHostnames(client: AkamaiClient, args: any): P
   return propertiesWithHostnames;
 }
 
-function extractAllHostnames(properties: any[]): string[] {
+function extractAllHostnames(properties: unknown[]): string[] {
   const hostnames = new Set<string>();
 
   properties.forEach((property) => {
     if (property.hostnames) {
-      property.hostnames.forEach((hostname: any) => {
+      property.hostnames.forEach((hostname: unknown) => {
         hostnames.add(hostname.cnameFrom || hostname.hostname);
       });
     }
@@ -396,8 +396,8 @@ function extractAllHostnames(properties: any[]): string[] {
 async function analyzeConflictsBetweenHostnames(
   targetHostnames: string[],
   existingHostnames: string[],
-  properties: any[],
-  options: any,
+  properties: unknown[],
+  options: unknown,
 ): Promise<HostnameConflict[]> {
   const conflicts: HostnameConflict[] = [];
 
@@ -432,7 +432,7 @@ async function analyzeConflictsBetweenHostnames(
 
 async function analyzeWildcardEfficiency(
   hostnames: string[],
-  properties: any[],
+  properties: unknown[],
 ): Promise<WildcardCoverage[]> {
   const wildcardCoverage: WildcardCoverage[] = [];
 
@@ -462,7 +462,7 @@ async function analyzeWildcardEfficiency(
   return wildcardCoverage;
 }
 
-function findOwnershipPatterns(properties: any[], _options: any = {}): PropertyOwnershipPattern[] {
+function findOwnershipPatterns(properties: unknown[], _options: unknown = {}): PropertyOwnershipPattern[] {
   const patterns: PropertyOwnershipPattern[] = [];
   const minProperties = _options.minPropertiesForPattern || 3;
 
@@ -471,7 +471,7 @@ function findOwnershipPatterns(properties: any[], _options: any = {}): PropertyO
 
   properties.forEach((property) => {
     if (property.hostnames) {
-      property.hostnames.forEach((hostname: any) => {
+      property.hostnames.forEach((hostname: unknown) => {
         const domain = extractDomain(hostname.cnameFrom || hostname.hostname);
         if (domain) {
           if (!domainGroups.has(domain)) {
@@ -492,7 +492,7 @@ function findOwnershipPatterns(properties: any[], _options: any = {}): PropertyO
         properties: properties.map((p) => ({
           propertyId: p.propertyId,
           propertyName: p.propertyName,
-          hostnames: p.hostnames.map((h: any) => h.cnameFrom || h.hostname),
+          hostnames: p.hostnames.map((h: unknown) => h.cnameFrom || h.hostname),
           confidence: calculatePatternConfidence(domain, p.hostnames),
         })),
       });
@@ -684,7 +684,7 @@ function buildConsolidationRecommendations(patterns: PropertyOwnershipPattern[])
 
 // Utility functions
 
-function findPropertyByHostname(properties: any[], hostname: string): any {
+function findPropertyByHostname(properties: unknown[], hostname: string): unknown {
   for (const property of properties) {
     if (property.hostnames) {
       for (const h of property.hostnames) {
@@ -728,8 +728,8 @@ function generateWildcardRecommendations(_wildcard: string, coveredHostnames: st
   return recommendations;
 }
 
-function calculatePatternConfidence(domain: string, hostnames: any[]): number {
-  const domainHostnames = hostnames.filter((h: any) =>
+function calculatePatternConfidence(domain: string, hostnames: unknown[]): number {
+  const domainHostnames = hostnames.filter((h: unknown) =>
     (h.cnameFrom || h.hostname).includes(domain),
   );
   return domainHostnames.length / hostnames.length;
@@ -737,11 +737,11 @@ function calculatePatternConfidence(domain: string, hostnames: any[]): number {
 
 function generateOptimizationRecommendations(
   _hostnames: string[],
-  _properties: any[],
+  _properties: unknown[],
   _conflicts: HostnameConflict[],
   _wildcardCoverage: WildcardCoverage[],
   _ownershipPatterns: PropertyOwnershipPattern[],
-): any {
+): unknown {
   return {
     newPropertySuggestions: [],
     consolidationOpportunities: [],
@@ -755,10 +755,10 @@ function generateOptimizationRecommendations(
 
 function calculateAnalytics(
   hostnames: string[],
-  properties: any[],
+  properties: unknown[],
   conflicts: HostnameConflict[],
   wildcardCoverage: WildcardCoverage[],
-): any {
+): unknown {
   return {
     totalHostnamesAnalyzed: hostnames.length,
     totalProperties: properties.length,

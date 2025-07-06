@@ -279,7 +279,7 @@ export class AkamaiIdTranslator {
   /**
    * Enrich an object containing Akamai IDs with names
    */
-  async enrichWithAkamaiIds<T extends Record<string, any>>(
+  async enrichWithAkamaiIds<T extends Record<string, unknown>>(
     data: T,
     client: AkamaiClient,
     options: {
@@ -288,7 +288,7 @@ export class AkamaiIdTranslator {
       contractIdFields?: string[];
     } = {}
   ): Promise<T> {
-    const enriched: any = { ...data };
+    const enriched: unknown = { ...data };
     const { propertyIdFields = ['propertyId'], groupIdFields = ['groupId'], contractIdFields = ['contractId'] } = options;
     
     // Enrich property IDs
@@ -339,7 +339,7 @@ export class AkamaiIdTranslator {
   /**
    * Legacy method for backward compatibility
    */
-  async enrichWithPropertyNames<T extends Record<string, any>>(
+  async enrichWithPropertyNames<T extends Record<string, unknown>>(
     data: T,
     client: AkamaiClient,
     propertyIdFields: string[] = ['propertyId']
@@ -608,7 +608,7 @@ export const PropertyTranslator = AkamaiIdTranslator;
 /**
  * Helper function to translate Akamai IDs in responses
  */
-export async function translateAkamaiResponse<T extends Record<string, any>>(
+export async function translateAkamaiResponse<T extends Record<string, unknown>>(
   response: T,
   client: AkamaiClient,
   options: {
@@ -675,7 +675,7 @@ export async function translateAkamaiResponse<T extends Record<string, any>>(
 /**
  * Legacy helper function for backward compatibility
  */
-export async function translatePropertyResponse<T extends Record<string, any>>(
+export async function translatePropertyResponse<T extends Record<string, unknown>>(
   response: T,
   client: AkamaiClient,
   options: {

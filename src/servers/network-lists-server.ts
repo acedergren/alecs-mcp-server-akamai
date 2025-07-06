@@ -114,7 +114,7 @@ interface ToolDefinition {
   name: string;
   description: string;
   schema: z.ZodSchema;
-  handler: (client: any, params: any) => Promise<any>;
+  handler: (client: unknown, params: unknown) => Promise<unknown>;
 }
 
 class NetworkListsServer {
@@ -419,7 +419,7 @@ class NetworkListsServer {
     });
   }
 
-  private zodToJsonSchema(schema: z.ZodSchema): any {
+  private zodToJsonSchema(schema: z.ZodSchema): unknown {
     // Convert Zod schema to JSON Schema for MCP protocol
     try {
       const jsonSchema = zodToJsonSchema(schema);

@@ -927,7 +927,7 @@ export async function uploadThirdPartyCertificate(
     }
 
     
-    const requestBody: any = {
+    const requestBody: unknown = {
       certificate: args.certificate.trim(),
     };
 
@@ -1033,7 +1033,7 @@ export async function updateCertificateEnrollment(
 
     // Build update payload by merging current config with updates
     
-    const updatePayload: any = {
+    const updatePayload: unknown = {
       ...currentResponse,
       // Update fields that were provided
       ...(args.commonName && { 

@@ -118,7 +118,7 @@ export async function updatePropertyRulesWithCacheInvalidation(
   args: {
     propertyId: string;
     version: number;
-    rules: any;
+    rules: unknown;
     customer?: string;
   }
 ): Promise<MCPToolResponse> {
@@ -179,7 +179,7 @@ export async function batchUpdatePropertiesWithCacheInvalidation(
     operations: Array<{
       propertyId: string;
       action: string;
-      params: any;
+      params: unknown;
     }>;
     customer?: string;
   }

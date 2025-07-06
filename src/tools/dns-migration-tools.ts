@@ -347,7 +347,7 @@ export async function bulkImportRecords(
     }
 
     // Submit changelist if we have successful records
-    let submitResponse: any = {};
+    let submitResponse: unknown = {};
     if (successCount > 0) {
       submitResponse = await client.request({
         path: `/config-dns/v2/changelists/${args.zone}/submit`,
@@ -662,7 +662,7 @@ export async function importFromCloudflare(
     });
 
     // Step 3: Get all DNS records from Cloudflare
-    let allRecords: any[] = [];
+    let allRecords: unknown[] = [];
     let page = 1;
     let hasMore = true;
 
@@ -774,7 +774,7 @@ export async function importFromCloudflare(
     text += `   - Create property for ${args.zone}\n`;
     text += '   - Add CNAME records for CDN delivery\n\n';
 
-    if (allRecords.some((r: any) => r.proxied)) {
+    if (allRecords.some((r: unknown) => r.proxied)) {
       text += '[WARNING] **Note:** Some records were proxied through Cloudflare.\n';
       text += 'You may need to configure similar security features in Akamai.\n';
     }
@@ -1165,7 +1165,7 @@ const globalMigrationCache = new Map<string, DNSRecordSet[]>();
 /**
  * Format error responses
  */
-function formatError(operation: string, _error: any): MCPToolResponse {
+function formatError(operation: string, _error: unknown): MCPToolResponse {
   let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 

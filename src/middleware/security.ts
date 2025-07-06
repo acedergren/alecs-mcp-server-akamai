@@ -86,7 +86,7 @@ export interface SecurityEvent {
   ip: string;
   userAgent?: string;
   tokenId?: string;
-  details?: any;
+  details?: unknown;
 }
 
 /**

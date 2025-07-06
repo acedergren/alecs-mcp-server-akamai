@@ -71,7 +71,7 @@ interface WorkflowEvent {
     | 'workflow_completed'
     | 'workflow_failed';
   timestamp: Date;
-  data: any;
+  data: unknown;
 }
 
 export class CertificateEnrollmentService {
@@ -367,12 +367,12 @@ export class CertificateEnrollmentService {
       // Performance Metrics
       const metrics = this.performanceMonitor.getMetrics();
       const enrollmentMetrics = metrics.filter(
-        (metric: any) => metric.operation === 'CERTIFICATE_ENROLLMENT',
+        (metric: unknown) => metric.operation === 'CERTIFICATE_ENROLLMENT',
       );
 
       if (enrollmentMetrics.length > 0) {
         report += '\n\n## Performance Metrics\n\n';
-        enrollmentMetrics.forEach((metric: any) => {
+        enrollmentMetrics.forEach((metric: unknown) => {
           report += `- **Duration:** ${metric.duration}ms\n`;
           report += `- **Success:** ${metric.success ? '[DONE]' : '[ERROR]'}\n`;
         });
@@ -400,7 +400,7 @@ export class CertificateEnrollmentService {
 
   // Private helper methods
 
-  private async createEnrollment(args: any): Promise<{ enrollmentId: number }> {
+  private async createEnrollment(args: unknown): Promise<{ enrollmentId: number }> {
     const response = await this.client.request<CPSEnrollmentCreateResponse>({
       path: `/cps/v2/enrollments?contractId=${args.contractId}`,
       method: 'POST',
@@ -639,7 +639,7 @@ export class CertificateEnrollmentService {
     return Array.from(zones);
   }
 
-  private logWorkflowEvent(type: WorkflowEvent['type'], data: any): void {
+  private logWorkflowEvent(type: WorkflowEvent['type'], data: unknown): void {
     this.workflowEvents.push({
       type,
       timestamp: new Date(),

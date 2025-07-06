@@ -245,7 +245,7 @@ Your property is ready for configuration!`,
     };
   }
 
-  static mcpJsonResponse(data: any) {
+  static mcpJsonResponse(data: unknown) {
     return {
       content: [{
         type: 'text' as const,

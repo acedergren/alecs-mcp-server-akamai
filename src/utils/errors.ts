@@ -4,7 +4,7 @@
 
 export interface ErrorContext {
   operation: string;
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
   customer?: string;
   timestamp: Date;
 }
@@ -20,7 +20,7 @@ export class ErrorTranslator {
   /**
    * Translate API errors into user-friendly messages
    */
-  translateError(_error: any, context?: ErrorContext): TranslatedError {
+  translateError(_error: unknown, context?: ErrorContext): TranslatedError {
     // Handle different error types
     if (_error.response) {
       return this.translateHTTPError(_error.response, context);
@@ -36,7 +36,7 @@ export class ErrorTranslator {
     };
   }
 
-  private translateHTTPError(response: any, context?: ErrorContext): TranslatedError {
+  private translateHTTPError(response: unknown, context?: ErrorContext): TranslatedError {
     const { status, data } = response;
 
     switch (status) {
@@ -61,12 +61,12 @@ export class ErrorTranslator {
     }
   }
 
-  private translateValidationError(data: any, _context?: ErrorContext): TranslatedError {
+  private translateValidationError(data: unknown, _context?: ErrorContext): TranslatedError {
     const errors = data.errors || [{ detail: data.detail || data.message }];
     const messages: string[] = [];
     const suggestions: string[] = [];
 
-    errors.forEach((_error: any) => {
+    errors.forEach((_error: unknown) => {
       if (_error.detail) {
         messages.push(this.cleanErrorMessage(_error.detail));
       }
@@ -90,7 +90,7 @@ export class ErrorTranslator {
     };
   }
 
-  private translateAuthenticationError(data: any, context?: ErrorContext): TranslatedError {
+  private translateAuthenticationError(data: unknown, context?: ErrorContext): TranslatedError {
     const message = data.detail || data.message || 'Authentication failed';
 
     const suggestions = [
@@ -106,7 +106,7 @@ export class ErrorTranslator {
     return { message: this.cleanErrorMessage(message), suggestions };
   }
 
-  private translatePermissionError(data: any, _context?: ErrorContext): TranslatedError {
+  private translatePermissionError(data: unknown, _context?: ErrorContext): TranslatedError {
     const message = data.detail || "You don't have permission to perform this action";
     const suggestions = ['Contact your administrator to request access'];
 
@@ -121,7 +121,7 @@ export class ErrorTranslator {
     return { message: this.cleanErrorMessage(message), suggestions };
   }
 
-  private translateNotFoundError(data: any, context?: ErrorContext): TranslatedError {
+  private translateNotFoundError(data: unknown, context?: ErrorContext): TranslatedError {
     const resource = this.extractResourceType(context?.operation || '');
     const message = data.detail || `${resource} not found`;
 
@@ -137,7 +137,7 @@ export class ErrorTranslator {
     return { message: this.cleanErrorMessage(message), suggestions };
   }
 
-  private translateConflictError(data: any, _context?: ErrorContext): TranslatedError {
+  private translateConflictError(data: unknown, _context?: ErrorContext): TranslatedError {
     const message = data.detail || 'Resource already exists';
     const suggestions = [];
 
@@ -152,7 +152,7 @@ export class ErrorTranslator {
     return { message: this.cleanErrorMessage(message), suggestions };
   }
 
-  private translateRateLimitError(response: any, _context?: ErrorContext): TranslatedError {
+  private translateRateLimitError(response: unknown, _context?: ErrorContext): TranslatedError {
     const retryAfter = response.headers?.['retry-after'] || '60';
     const message = 'Rate limit exceeded';
 
@@ -165,7 +165,7 @@ export class ErrorTranslator {
     return { message, suggestions };
   }
 
-  private translateServerError(data: any, _context?: ErrorContext): TranslatedError {
+  private translateServerError(data: unknown, _context?: ErrorContext): TranslatedError {
     const message = 'The service is temporarily unavailable';
     const suggestions = [
       'This appears to be a temporary issue',
@@ -184,7 +184,7 @@ export class ErrorTranslator {
     };
   }
 
-  private translateSystemError(_error: any, _context?: ErrorContext): TranslatedError {
+  private translateSystemError(_error: unknown, _context?: ErrorContext): TranslatedError {
     const errorMap: Record<string, TranslatedError> = {
       ECONNREFUSED: {
         message: 'Connection refused',
@@ -220,7 +220,7 @@ export class ErrorTranslator {
     );
   }
 
-  private translateGenericError(_error: any, _context?: ErrorContext): TranslatedError {
+  private translateGenericError(_error: unknown, _context?: ErrorContext): TranslatedError {
     return {
       message: this.cleanErrorMessage(_error.message || 'An error occurred'),
       suggestions: ['Please try again', 'Check your input parameters'],
@@ -229,7 +229,7 @@ export class ErrorTranslator {
 
   private translateGenericHTTPError(
     status: number,
-    _data: any,
+    _data: unknown,
     _context?: ErrorContext,
   ): TranslatedError {
     const statusMessages: Record<number, string> = {
@@ -255,7 +255,7 @@ export class ErrorTranslator {
       .trim();
   }
 
-  private getFormatSuggestion(_error: any): string {
+  private getFormatSuggestion(_error: unknown): string {
     const field = _error.field || _error.errorLocation || 'value';
     const format = _error.expectedFormat || _error.format;
 
@@ -294,7 +294,7 @@ export class ErrorTranslator {
   /**
    * Format error for conversational response
    */
-  formatConversationalError(_error: any, context?: ErrorContext): string {
+  formatConversationalError(_error: unknown, context?: ErrorContext): string {
     const translated = this.translateError(_error, context);
 
     let response = `Error: ${translated.message}\n\n`;
@@ -316,7 +316,7 @@ export class ErrorTranslator {
   /**
    * Extract actionable next steps from error
    */
-  getNextSteps(_error: any, context?: ErrorContext): string[] {
+  getNextSteps(_error: unknown, context?: ErrorContext): string[] {
     const translated = this.translateError(_error, context);
     return translated.suggestions;
   }
@@ -325,7 +325,7 @@ export class ErrorTranslator {
 /**
  * Helper to format bulk operation results with errors
  */
-export function formatBulkOperationResults(results: any[]): string {
+export function formatBulkOperationResults(results: unknown[]): string {
   const successful = results.filter((r) => r.status === 'success');
   const failed = results.filter((r) => r.status === 'failed');
 
@@ -389,9 +389,9 @@ export class AkamaiError extends Error {
   errorCode?: string;
   code?: string;
   reference?: string;
-  details?: any;
+  details?: unknown;
 
-  constructor(message: string, statusCode?: number, errorCode?: string, details?: any) {
+  constructor(message: string, statusCode?: number, errorCode?: string, details?: unknown) {
     super(message);
     this.name = 'AkamaiError';
     this.statusCode = statusCode;
@@ -410,7 +410,7 @@ export class AkamaiError extends Error {
  * Error recovery helper
  */
 export class ErrorRecovery {
-  static canRetry(_error: any): boolean {
+  static canRetry(_error: unknown): boolean {
     // Retryable error codes
     const retryableCodes = ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNREFUSED'];
     if (_error.code && retryableCodes.includes(_error.code)) {
@@ -426,7 +426,7 @@ export class ErrorRecovery {
     return false;
   }
 
-  static getRetryDelay(attempt: number, _error: any): number {
+  static getRetryDelay(attempt: number, _error: unknown): number {
     // Check for Retry-After header
     if (_error.response?.headers?.['retry-after']) {
       const retryAfter = _error.response.headers['retry-after'];
@@ -445,9 +445,9 @@ export class ErrorRecovery {
   static async withRetry<T>(
     operation: () => Promise<T>,
     maxAttempts = 3,
-    onRetry?: (attempt: number, _error: any) => void,
+    onRetry?: (attempt: number, _error: unknown) => void,
   ): Promise<T> {
-    let lastError: any;
+    let lastError: unknown;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {

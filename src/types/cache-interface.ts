@@ -9,7 +9,7 @@ export interface CacheMetrics {
   errors: number;
   apiCallsSaved: number;
   hitRate: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface CacheOptions {
@@ -22,12 +22,12 @@ export interface ICache {
   /**
    * Get value from cache
    */
-  get<T = any>(key: string): Promise<T | null>;
+  get<T = unknown>(key: string): Promise<T | null>;
 
   /**
    * Set value in cache with TTL (in seconds)
    */
-  set<T = any>(key: string, value: T, ttl: number): Promise<boolean>;
+  set<T = unknown>(key: string, value: T, ttl: number): Promise<boolean>;
 
   /**
    * Delete key(s) from cache
@@ -52,7 +52,7 @@ export interface ICache {
   /**
    * Batch get multiple keys
    */
-  mget<T = any>(keys: string[]): Promise<Map<string, T>>;
+  mget<T = unknown>(keys: string[]): Promise<Map<string, T>>;
 
   /**
    * Scan and delete keys matching pattern

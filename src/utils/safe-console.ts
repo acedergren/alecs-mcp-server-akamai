@@ -24,7 +24,7 @@ export class SafeConsole {
   /**
    * Safe replacement for console.log - redirects to stderr
    */
-  static log(...args: any[]): void {
+  static log(...args: unknown[]): void {
     // Use console.error to ensure output goes to stderr, not stdout
     console.error('[LOG]', ...args);
   }
@@ -32,21 +32,21 @@ export class SafeConsole {
   /**
    * Safe replacement for console.info - redirects to stderr
    */
-  static info(...args: any[]): void {
+  static info(...args: unknown[]): void {
     console.error('[INFO]', ...args);
   }
 
   /**
    * Safe replacement for console.warn - already goes to stderr
    */
-  static warn(...args: any[]): void {
+  static warn(...args: unknown[]): void {
     console.warn('[WARN]', ...args);
   }
 
   /**
    * Safe replacement for console.error - already goes to stderr
    */
-  static error(...args: any[]): void {
+  static error(...args: unknown[]): void {
     console.error('[ERROR]', ...args);
   }
 
@@ -74,12 +74,12 @@ export class SafeConsole {
  */
 export function setupSafeConsole(): void {
   // Override console.log to redirect to stderr
-  console.log = (...args: any[]) => {
+  console.log = (...args: unknown[]) => {
     console.error('[STDOUT-REDIRECT]', ...args);
   };
 
   // Override console.info to redirect to stderr
-  console.info = (...args: any[]) => {
+  console.info = (...args: unknown[]) => {
     console.error('[INFO-REDIRECT]', ...args);
   };
 

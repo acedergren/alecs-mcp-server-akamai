@@ -20,14 +20,14 @@ export interface TestResult {
   status: 'passed' | 'failed' | 'skipped' | 'error';
   duration: number;
   error?: string;
-  details?: any;
+  details?: unknown;
   assertions?: TestAssertion[];
 }
 
 export interface TestAssertion {
   description: string;
-  expected: any;
-  actual: any;
+  expected: unknown;
+  actual: unknown;
   passed: boolean;
 }
 
@@ -42,7 +42,7 @@ export interface TestSuite {
 export interface ValidationRule {
   name: string;
   description: string;
-  validator: (data: any) => boolean | Promise<boolean>;
+  validator: (data: unknown) => boolean | Promise<boolean>;
   errorMessage: string;
 }
 
@@ -67,7 +67,7 @@ export class IntegrationTestFramework {
   }
 
   // Run specific test scenario
-  async runScenario(scenario: TestScenario, testFunction: () => Promise<any>): Promise<TestResult> {
+  async runScenario(scenario: TestScenario, testFunction: () => Promise<unknown>): Promise<TestResult> {
     const testId = `${scenario.category}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const startTime = Date.now();
 
@@ -151,7 +151,7 @@ export class IntegrationTestFramework {
   }
 
   // Validate data against rules
-  async validateData(data: any, ruleNames: string[]): Promise<TestAssertion[]> {
+  async validateData(data: unknown, ruleNames: string[]): Promise<TestAssertion[]> {
     const assertions: TestAssertion[] = [];
 
     for (const ruleName of ruleNames) {
@@ -281,7 +281,7 @@ export class IntegrationTestFramework {
     return true;
   }
 
-  private getTestFunction(_scenario: TestScenario): (() => Promise<any>) | null {
+  private getTestFunction(_scenario: TestScenario): (() => Promise<unknown>) | null {
     // Map scenarios to test functions
     // This would be implemented based on available test scenarios
     return null;

@@ -199,7 +199,7 @@ export async function importNetworkListFromCSV(
     }
 
     // Perform the actual update
-    const requestBody: any = {};
+    const requestBody: unknown = {};
 
     switch (options.operation || 'replace') {
       case 'replace':

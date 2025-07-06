@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Advanced Property Operations and Search Tools
  * Comprehensive property management including search, comparison, health checks, and bulk updates
@@ -10,6 +9,15 @@ import { formatPropertyDisplay } from '../utils/formatting';
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
 import { validateApiResponse } from '../utils/api-response-validator';
+
+
+
+// Common type definitions for Akamai API responses
+type PeriodType = { start: string; end: string; granularity?: string };
+type FilterType = { hostname?: string; cpCode?: string; region?: string; contentType?: string };
+type TimeSeriesData = Array<{ timestamp: string; value: number }>;
+type MetricData = { [key: string]: number | string };
+type AkamaiResponse<T = unknown> = { data?: T; error?: string; status?: number };
 
 // Property search types
 export interface PropertySearchCriteria {
@@ -73,8 +81,8 @@ export interface PropertyInfo {
 
 export interface MetadataDifference {
   field: string;
-  valueA: any;
-  valueB: any;
+  valueA: unknown;
+  valueB: unknown;
 }
 
 export interface HostnameDifference {
@@ -86,8 +94,8 @@ export interface HostnameDifference {
 export interface RuleDifference {
   path: string;
   type: 'added' | 'removed' | 'modified';
-  ruleA?: any;
-  ruleB?: any;
+  ruleA?: Record<string, unknown>;
+  ruleB?: Record<string, unknown>;
 }
 
 export interface BehaviorDifference {
@@ -151,8 +159,8 @@ export interface ConfigurationDrift {
 export interface DriftItem {
   type: 'rule' | 'behavior' | 'hostname' | 'setting';
   description: string;
-  expectedValue: any;
-  actualValue: any;
+  expectedValue: unknown;
+  actualValue: unknown;
   impact: 'low' | 'medium' | 'high';
   recommendation: string;
 }
@@ -261,11 +269,11 @@ export async function compareProperties(
         }),
       ]);
 
-      const hostSetA = new Set(hostnamesA.hostnames?.items?.map((h: any) => h.cnameFrom) || []);
-      const hostSetB = new Set(hostnamesB.hostnames?.items?.map((h: any) => h.cnameFrom) || []);
+      const hostSetA = new Set(hostnamesA.hostnames?.items?.map((h: unknown) => h.cnameFrom) || []);
+      const hostSetB = new Set(hostnamesB.hostnames?.items?.map((h: unknown) => h.cnameFrom) || []);
 
       // Find differences
-      hostSetA.forEach((hostname: any) => {
+      hostSetA.forEach((hostname: unknown) => {
         if (!hostSetB.has(hostname)) {
           comparison.differences.hostnames.push({
             type: 'removed',
@@ -275,7 +283,7 @@ export async function compareProperties(
         }
       });
 
-      hostSetB.forEach((hostname: any) => {
+      hostSetB.forEach((hostname: unknown) => {
         if (!hostSetA.has(hostname)) {
           comparison.differences.hostnames.push({
             type: 'added',
@@ -546,7 +554,7 @@ export async function checkPropertyHealth(
 
     // Certificate checks
     let hasInvalidCerts = false;
-    hostnames.forEach((hostname: any) => {
+    hostnames.forEach((hostname: unknown) => {
       if (hostname.certStatus?.production?.[0]?.status === 'NEEDS_ACTIVATION') {
         hasInvalidCerts = true;
         healthCheck.issues.push({
@@ -565,7 +573,7 @@ export async function checkPropertyHealth(
     }
 
     // Hostname checks
-    const edgeHostnames = new Set(hostnames.map((h: any) => h.cnameTo));
+    const edgeHostnames = new Set(hostnames.map((h: unknown) => h.cnameTo));
     if (edgeHostnames.size > 5) {
       healthCheck.checks.hostnames.status = 'warning';
       healthCheck.checks.hostnames.message = 'Multiple edge hostnames detected';
@@ -648,7 +656,7 @@ export async function checkPropertyHealth(
       responseText += `### ${category.charAt(0).toUpperCase() + category.slice(1)}\n`;
       responseText += `${getHealthEmoji(result.status)} **Status:** ${result.status.toUpperCase()}\n`;
       responseText += `**Message:** ${result.message}\n`;
-      const validatedResult = validateApiResponse<{ details: any }>(result);
+      const validatedResult = validateApiResponse<{ details: unknown }>(result);
       if (result.details && validatedResult.details && validatedResult.details.length > 0) {
         responseText += '**Details:**\n';
         validatedResult.details.forEach((detail) => {
@@ -940,12 +948,12 @@ export async function bulkUpdateProperties(
     updates: {
       addBehavior?: {
         name: string;
-        options?: any;
-        criteria?: any[];
+        options?: unknown;
+        criteria?: unknown[];
       };
       updateBehavior?: {
         name: string;
-        options?: any;
+        options?: unknown;
       };
       addHostname?: {
         hostname: string;
@@ -1041,7 +1049,7 @@ export async function bulkUpdateProperties(
           // Update behavior
           if (args.updates.updateBehavior) {
             const behaviorIndex = rules.behaviors?.findIndex(
-              (b: any) => b.name === args.updates.updateBehavior!.name,
+              (b: unknown) => b.name === args.updates.updateBehavior!.name,
             );
             if (behaviorIndex !== undefined && behaviorIndex >= 0) {
               rules.behaviors[behaviorIndex].options = {
@@ -1109,7 +1117,7 @@ export async function bulkUpdateProperties(
             });
 
             const hostnameIndex = hostnamesResponse.hostnames?.items?.findIndex(
-              (h: any) => h.cnameFrom === args.updates.removeHostname,
+              (h: unknown) => h.cnameFrom === args.updates.removeHostname,
             );
 
             if (hostnameIndex !== undefined && hostnameIndex >= 0) {
@@ -1276,11 +1284,11 @@ function hasAnyCriteria(criteria: PropertySearchCriteria): boolean {
   );
 }
 
-function compareRuleStructures(rulesA: any, rulesB: any): RuleDifference[] {
+function compareRuleStructures(rulesA: unknown, rulesB: unknown): RuleDifference[] {
   const differences: RuleDifference[] = [];
 
   // Compare children recursively
-  const compareChildren = (childrenA: any[], childrenB: any[], path: string) => {
+  const compareChildren = (childrenA: unknown[], childrenB: unknown[], path: string) => {
     const namesA = childrenA.map((c) => c.name);
     const namesB = childrenB.map((c) => c.name);
 
@@ -1328,12 +1336,12 @@ function compareRuleStructures(rulesA: any, rulesB: any): RuleDifference[] {
   return differences;
 }
 
-function compareBehaviors(rulesA: any, rulesB: any): BehaviorDifference[] {
+function compareBehaviors(rulesA: unknown, rulesB: unknown): BehaviorDifference[] {
   const differences: BehaviorDifference[] = [];
 
-  const extractBehaviors = (rule: any, path: string, behaviors: Map<string, any>) => {
+  const extractBehaviors = (rule: unknown, path: string, behaviors: Map<string, any>) => {
     if (rule.behaviors) {
-      rule.behaviors.forEach((behavior: any) => {
+      rule.behaviors.forEach((behavior: unknown) => {
         behaviors.set(`${path}:${behavior.name}`, {
           behavior: behavior.name,
           path,
@@ -1343,7 +1351,7 @@ function compareBehaviors(rulesA: any, rulesB: any): BehaviorDifference[] {
     }
 
     if (rule.children) {
-      rule.children.forEach((child: any) => {
+      rule.children.forEach((child: unknown) => {
         extractBehaviors(child, `${path}/children/${child.name}`, behaviors);
       });
     }
@@ -1390,15 +1398,15 @@ function compareBehaviors(rulesA: any, rulesB: any): BehaviorDifference[] {
   return differences;
 }
 
-function extractAllBehaviors(rules: any): Set<string> {
+function extractAllBehaviors(rules: unknown): Set<string> {
   const behaviors = new Set<string>();
 
-  const extract = (rule: any) => {
+  const extract = (rule: unknown) => {
     if (rule.behaviors) {
-      rule.behaviors.forEach((b: any) => behaviors.add(b.name));
+      rule.behaviors.forEach((b: unknown) => behaviors.add(b.name));
     }
     if (rule.children) {
-      rule.children.forEach((child: any) => extract(child));
+      rule.children.forEach((child: unknown) => extract(child));
     }
   };
 
@@ -1406,7 +1414,7 @@ function extractAllBehaviors(rules: any): Set<string> {
   return behaviors;
 }
 
-function analyzeRuleTree(rules: any): { warnings: string[] } {
+function analyzeRuleTree(rules: unknown): { warnings: string[] } {
   const warnings: string[] = [];
 
   // Check for empty rules
@@ -1415,14 +1423,14 @@ function analyzeRuleTree(rules: any): { warnings: string[] } {
   }
 
   // Check for missing origin
-  const hasOrigin = rules.behaviors?.some((b: any) => b.name === 'origin');
+  const hasOrigin = rules.behaviors?.some((b: unknown) => b.name === 'origin');
   if (!hasOrigin) {
     warnings.push('No origin behavior found');
   }
 
   // Check for duplicate behaviors
   const behaviorCounts = new Map<string, number>();
-  rules.behaviors?.forEach((b: any) => {
+  rules.behaviors?.forEach((b: unknown) => {
     const count = behaviorCounts.get(b.name) || 0;
     behaviorCounts.set(b.name, count + 1);
   });
@@ -1436,13 +1444,13 @@ function analyzeRuleTree(rules: any): { warnings: string[] } {
   return { warnings };
 }
 
-function analyzePerformance(rules: any): { hasHttp2: boolean; hasCaching: boolean } {
+function analyzePerformance(rules: unknown): { hasHttp2: boolean; hasCaching: boolean } {
   let hasHttp2 = false;
   let hasCaching = false;
 
-  const analyze = (rule: any) => {
+  const analyze = (rule: unknown) => {
     if (rule.behaviors) {
-      rule.behaviors.forEach((b: any) => {
+      rule.behaviors.forEach((b: unknown) => {
         if (b.name === 'http2' && b.options?.enabled) {
           hasHttp2 = true;
         }
@@ -1452,7 +1460,7 @@ function analyzePerformance(rules: any): { hasHttp2: boolean; hasCaching: boolea
       });
     }
     if (rule.children) {
-      rule.children.forEach((child: any) => analyze(child));
+      rule.children.forEach((child: unknown) => analyze(child));
     }
   };
 
@@ -1460,13 +1468,13 @@ function analyzePerformance(rules: any): { hasHttp2: boolean; hasCaching: boolea
   return { hasHttp2, hasCaching };
 }
 
-function analyzeSecurity(rules: any): { hasHttpsRedirect: boolean; hasSecurityHeaders: boolean } {
+function analyzeSecurity(rules: unknown): { hasHttpsRedirect: boolean; hasSecurityHeaders: boolean } {
   let hasHttpsRedirect = false;
   let hasSecurityHeaders = false;
 
-  const analyze = (rule: any) => {
+  const analyze = (rule: unknown) => {
     if (rule.behaviors) {
-      rule.behaviors.forEach((b: any) => {
+      rule.behaviors.forEach((b: unknown) => {
         if (b.name === 'redirectPlus' && b.options?.destination?.includes('https://')) {
           hasHttpsRedirect = true;
         }
@@ -1480,7 +1488,7 @@ function analyzeSecurity(rules: any): { hasHttpsRedirect: boolean; hasSecurityHe
       });
     }
     if (rule.children) {
-      rule.children.forEach((child: any) => analyze(child));
+      rule.children.forEach((child: unknown) => analyze(child));
     }
   };
 
@@ -1514,7 +1522,7 @@ function formatIssue(issue: HealthIssue): string {
   return text;
 }
 
-function detectBehaviorDrifts(baselineRules: any, compareRules: any): DriftItem[] {
+function detectBehaviorDrifts(baselineRules: unknown, compareRules: unknown): DriftItem[] {
   const drifts: DriftItem[] = [];
 
   const behaviorDiffs = compareBehaviors(baselineRules, compareRules);
@@ -1548,7 +1556,7 @@ function detectBehaviorDrifts(baselineRules: any, compareRules: any): DriftItem[
   return drifts;
 }
 
-function detectHostnameDrifts(baselineHostnames: any[], compareHostnames: any[]): DriftItem[] {
+function detectHostnameDrifts(baselineHostnames: unknown[], compareHostnames: unknown[]): DriftItem[] {
   const drifts: DriftItem[] = [];
 
   const baselineSet = new Set(baselineHostnames.map((h) => h.cnameFrom));

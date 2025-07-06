@@ -36,7 +36,7 @@ interface DiscoveryResult {
   reality: {
     statusCode: number;
     fieldsFound: string[];
-    responseStructure: any;
+    responseStructure: unknown;
     extraFields: string[];
   };
   validation: {
@@ -190,7 +190,7 @@ class ApiDiscovery {
         }
       };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Even errors are valuable for API discovery
       const capture = captureApiResponse(endpoint, error.response?.data, error.response?.status || 500);
       this.captures.push(capture);
@@ -344,7 +344,7 @@ class ApiDiscovery {
         }
       };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Reporting API might not be available in test environment
       const capture = captureApiResponse(endpoint, error.response?.data, error.response?.status || 500);
       this.captures.push(capture);
@@ -947,7 +947,7 @@ class ApiDiscovery {
         }
       };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       const capture = captureApiResponse(endpoint, error.response?.data, error.response?.status || 500);
       this.captures.push(capture);
       throw error;
@@ -1017,7 +1017,7 @@ class ApiDiscovery {
         }
       };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       const capture = captureApiResponse(endpoint, error.response?.data, error.response?.status || 500);
       this.captures.push(capture);
       throw error;
@@ -1117,7 +1117,7 @@ class ApiDiscovery {
         }
       };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       const capture = captureApiResponse(endpoint, error.response?.data, error.response?.status || 500);
       this.captures.push(capture);
       throw error;
@@ -1127,7 +1127,7 @@ class ApiDiscovery {
   /**
    * MCP Protocol Validation Methods
    */
-  private validateMcpToolsList(response: any): { passed: boolean; errors: string[]; suggestions: string[] } {
+  private validateMcpToolsList(response: unknown): { passed: boolean; errors: string[]; suggestions: string[] } {
     const errors: string[] = [];
     const suggestions: string[] = [];
 
@@ -1144,7 +1144,7 @@ class ApiDiscovery {
     if (!response.result?.tools || !Array.isArray(response.result.tools)) {
       errors.push('Missing or invalid tools array in result');
     } else {
-      response.result.tools.forEach((tool: any, index: number) => {
+      response.result.tools.forEach((tool: unknown, index: number) => {
         if (!tool.name || typeof tool.name !== 'string') {
           errors.push(`Tool ${index}: missing or invalid name`);
         }
@@ -1169,7 +1169,7 @@ class ApiDiscovery {
     return { passed: errors.length === 0, errors, suggestions };
   }
 
-  private validateMcpInitialize(response: any): { passed: boolean; errors: string[]; suggestions: string[] } {
+  private validateMcpInitialize(response: unknown): { passed: boolean; errors: string[]; suggestions: string[] } {
     const errors: string[] = [];
     const suggestions: string[] = [];
 
@@ -1200,7 +1200,7 @@ class ApiDiscovery {
     return { passed: errors.length === 0, errors, suggestions };
   }
 
-  private validateMcpProtocolCompliance(response: any): { passed: boolean; errors: string[]; suggestions: string[] } {
+  private validateMcpProtocolCompliance(response: unknown): { passed: boolean; errors: string[]; suggestions: string[] } {
     const errors: string[] = [];
     const suggestions: string[] = [];
 
@@ -1242,7 +1242,7 @@ class ApiDiscovery {
   /**
    * Simple validation method to replace complex imports
    */
-  private validateBasicResponse(data: any, expectedTopLevelKey?: string): { success: boolean; errors?: string[]; extraFields?: string[] } {
+  private validateBasicResponse(data: unknown, expectedTopLevelKey?: string): { success: boolean; errors?: string[]; extraFields?: string[] } {
     const errors: string[] = [];
     
     if (typeof data !== 'object' || data === null) {
@@ -1265,7 +1265,7 @@ class ApiDiscovery {
     return result;
   }
 
-  private extractFieldNames(obj: any, prefix = ''): string[] {
+  private extractFieldNames(obj: unknown, prefix = ''): string[] {
     const fields: string[] = [];
     
     if (typeof obj === 'object' && obj !== null) {
@@ -1284,11 +1284,11 @@ class ApiDiscovery {
     return fields;
   }
 
-  private summarizeStructure(obj: any): any {
+  private summarizeStructure(obj: unknown): unknown {
     if (Array.isArray(obj)) {
       return obj.length > 0 ? [`Array(${obj.length})`, this.summarizeStructure(obj[0])] : [];
     } else if (typeof obj === 'object' && obj !== null) {
-      const summary: any = {};
+      const summary: unknown = {};
       for (const [key, value] of Object.entries(obj)) {
         summary[key] = typeof value;
         if (typeof value === 'object') {
@@ -1300,7 +1300,7 @@ class ApiDiscovery {
     return typeof obj;
   }
 
-  private generateSuggestions(endpointType: string, validation: any): string[] {
+  private generateSuggestions(endpointType: string, validation: unknown): string[] {
     const suggestions: string[] = [];
     
     if (!validation.success) {

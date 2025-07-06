@@ -96,7 +96,7 @@ export async function getZonesDNSSECStatus(
 
         const validatedResponse = validateApiResponse<DNSSECStatus>(response);
         results.push(validatedResponse);
-      } catch (_error: any) {
+      } catch (_error: unknown) {
         // If DNSSEC is not enabled, API returns 404
         if (_error.message?.includes('404')) {
           results.push({
@@ -307,7 +307,7 @@ export async function getRecordSet(
         },
       ],
     };
-  } catch (_error: any) {
+  } catch (_error: unknown) {
     if (_error.message?.includes('404')) {
       return {
         content: [
@@ -353,7 +353,7 @@ export async function updateTSIGKeyForZones(
           },
         });
 
-        const validatedZoneConfig = validateApiResponse<Record<string, any>>(zoneConfig);
+        const validatedZoneConfig = validateApiResponse<Record<string, unknown>>(zoneConfig);
 
         // Update with new TSIG key
         await client.request({
@@ -369,7 +369,7 @@ export async function updateTSIGKeyForZones(
         });
 
         results.push({ zone, success: true });
-      } catch (_error: any) {
+      } catch (_error: unknown) {
         results.push({
           zone,
           success: false,
@@ -523,7 +523,7 @@ export async function getVersionRecordSets(
   args: { zone: string; versionId: string; offset?: number; limit?: number },
 ): Promise<MCPToolResponse> {
   try {
-    const queryParams: any = {};
+    const queryParams: unknown = {};
     if (args.offset !== undefined) {
       queryParams.offset = args.offset;
     }
@@ -692,7 +692,7 @@ export async function createMultipleRecordSets(
           record: `${recordSet.name} ${recordSet.type}`,
           success: true,
         });
-      } catch (_error: any) {
+      } catch (_error: unknown) {
         results.push({
           record: `${recordSet.name} ${recordSet.type}`,
           success: false,

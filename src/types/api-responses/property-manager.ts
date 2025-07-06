@@ -256,7 +256,7 @@ export interface Rule {
  */
 export interface Behavior {
   name: string;
-  options: Record<string, any>;
+  options: Record<string, unknown>;
   uuid?: string;
   templateUuid?: string;
   templateLink?: string;
@@ -267,7 +267,7 @@ export interface Behavior {
  */
 export interface Criterion {
   name: string;
-  options: Record<string, any>;
+  options: Record<string, unknown>;
   uuid?: string;
   templateUuid?: string;
   templateLink?: string;

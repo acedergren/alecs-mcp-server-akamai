@@ -8,7 +8,7 @@ export interface AuthContext {
   authenticated: boolean;
 }
 
-export function getAuthContext(params?: any): AuthContext {
+export function getAuthContext(params?: unknown): AuthContext {
   return {
     customer: params?.customer || 'default',
     accountKey: params?.accountKey,
@@ -21,7 +21,7 @@ export function validateAuth(context: AuthContext): boolean {
 }
 
 // Stub for consolidated tools - returns mock client for demo
-export async function getAkamaiClient(customer?: string): Promise<any> {
+export async function getAkamaiClient(customer?: string): Promise<unknown> {
   return {
     customer: customer || 'default',
     // Mock client methods for demo

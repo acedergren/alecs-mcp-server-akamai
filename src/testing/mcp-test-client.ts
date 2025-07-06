@@ -22,13 +22,13 @@ interface TestResult {
   success: boolean;
   duration: number;
   error?: string;
-  result?: any;
+  result?: unknown;
 }
 
 export class MCPTestClient {
   private client?: Client;
   private transport?: StdioClientTransport;
-  private serverProcess?: any;
+  private serverProcess?: unknown;
 
   constructor(private serverPath: string) {}
 
@@ -105,7 +105,7 @@ export class MCPTestClient {
   /**
    * Call a tool with parameters
    */
-  async callTool(name: string, args: any): Promise<CallToolResult> {
+  async callTool(name: string, args: unknown): Promise<CallToolResult> {
     if (!this.client) {
       throw new Error('Client not connected');
     }
@@ -136,7 +136,7 @@ export class MCPTestClient {
   /**
    * Run a test scenario
    */
-  async runTest(toolName: string, args: any, description?: string): Promise<TestResult> {
+  async runTest(toolName: string, args: unknown, description?: string): Promise<TestResult> {
     console.log(`\n[TEST SCENARIO] ${description || toolName}`);
     console.log('[PARAMS]', JSON.stringify(args, null, 2));
     
@@ -157,7 +157,7 @@ export class MCPTestClient {
         duration,
         result
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       const duration = Date.now() - startTime;
       console.error('[RESULT] Failed:', error.message);
       

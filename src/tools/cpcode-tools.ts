@@ -32,7 +32,7 @@ export async function listCPCodes(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const queryParams: any = {};
+    const queryParams: unknown = {};
 
     if (args.contractId) {
       queryParams.contractId = ensurePrefix(args.contractId, 'ctr_');
@@ -47,7 +47,7 @@ export async function listCPCodes(
       queryParams,
     });
 
-    const validatedResponse = validateApiResponse<{ cpcodes?: { items?: any[] } }>(response);
+    const validatedResponse = validateApiResponse<{ cpcodes?: { items?: unknown[] } }>(response);
     if (!validatedResponse.cpcodes?.items || validatedResponse.cpcodes.items.length === 0) {
       return {
         content: [
@@ -64,7 +64,7 @@ export async function listCPCodes(
       'CP Codes are used for traffic reporting, billing analysis, and content categorization.\n\n';
 
     // Group by contract for better organization
-    const byContract = validatedResponse.cpcodes.items.reduce((acc: any, cpcode: any) => {
+    const byContract = validatedResponse.cpcodes.items.reduce((acc: unknown, cpcode: unknown) => {
       const contract = cpcode.contractIds?.[0] || 'Unknown';
       if (!acc[contract]) {
         acc[contract] = [];
@@ -152,14 +152,14 @@ export async function getCPCode(
       method: 'GET',
     });
 
-    const validatedResponse = validateApiResponse<{ cpcodes?: { items?: any[] } }>(response);
+    const validatedResponse = validateApiResponse<{ cpcodes?: { items?: unknown[] } }>(response);
     if (!validatedResponse.cpcodes?.items) {
       throw new Error('No CP Codes available');
     }
 
     // Find the specific CP Code
     const targetCpcode = validatedResponse.cpcodes.items.find(
-      (cpcode: any) =>
+      (cpcode: unknown) =>
         cpcode.cpcodeId === cpcodeId ||
         cpcode.cpcodeId === `cpc_${args.cpcodeId}` ||
         cpcode.cpcodeId.replace('cpc_', '') === args.cpcodeId,
@@ -311,7 +311,7 @@ export async function createCPCode(
           },
         });
 
-        const validatedProductsResponse = validateApiResponse<{ products?: { items?: any[] } }>(productsResponse);
+        const validatedProductsResponse = validateApiResponse<{ products?: { items?: unknown[] } }>(productsResponse);
         if (validatedProductsResponse.products?.items?.length && validatedProductsResponse.products.items.length > 0) {
           const bestProduct = selectBestProduct(validatedProductsResponse.products.items);
           if (bestProduct) {
@@ -429,7 +429,7 @@ export async function searchCPCodes(
   },
 ): Promise<MCPToolResponse> {
   try {
-    const queryParams: any = {};
+    const queryParams: unknown = {};
 
     if (args.contractId) {
       queryParams.contractId = ensurePrefix(args.contractId, 'ctr_');
@@ -444,7 +444,7 @@ export async function searchCPCodes(
       queryParams,
     });
 
-    const validatedResponse = validateApiResponse<{ cpcodes?: { items?: any[] } }>(response);
+    const validatedResponse = validateApiResponse<{ cpcodes?: { items?: unknown[] } }>(response);
     if (!validatedResponse.cpcodes?.items || validatedResponse.cpcodes.items.length === 0) {
       return {
         content: [
@@ -458,7 +458,7 @@ export async function searchCPCodes(
 
     // Search by name or ID
     const searchTerm = args.searchTerm.toLowerCase();
-    const matchingCpcodes = validatedResponse.cpcodes.items.filter((cpcode: any) => {
+    const matchingCpcodes = validatedResponse.cpcodes.items.filter((cpcode: unknown) => {
       const name = (cpcode.cpcodeName || '').toLowerCase();
       const id = cpcode.cpcodeId.replace('cpc_', '');
       return name.includes(searchTerm) || id.includes(searchTerm);
@@ -517,7 +517,7 @@ export async function searchCPCodes(
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, _error: any): MCPToolResponse {
+function formatError(operation: string, _error: unknown): MCPToolResponse {
   let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 

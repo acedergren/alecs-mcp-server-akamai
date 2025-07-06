@@ -16,11 +16,11 @@ interface ToolResponse {
 }
 
 // Simple formatting functions
-function formatJson(obj: any): string {
+function formatJson(obj: unknown): string {
   return JSON.stringify(obj, null, 2);
 }
 
-function formatTable(data: any[]): string {
+function formatTable(data: unknown[]): string {
   if (!data || data.length === 0) {
     return 'No data available';
   }
@@ -51,7 +51,7 @@ export const listAppSecConfigurations = {
       },
     },
   },
-  handler: withCustomerValidation(async (args: any): Promise<ToolResponse> => {
+  handler: withCustomerValidation(async (args: unknown): Promise<ToolResponse> => {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
@@ -60,7 +60,7 @@ export const listAppSecConfigurations = {
         method: 'GET',
       });
 
-      const validatedResponse = validateApiResponse<{ configurations: any }>(response);
+      const validatedResponse = validateApiResponse<{ configurations: unknown }>(response);
 
 
       const configurations = validatedResponse.configurations || [];
@@ -71,7 +71,7 @@ export const listAppSecConfigurations = {
           configurations,
           count: configurations.length,
           formatted: formatTable(
-            configurations.map((config: any) => ({
+            configurations.map((config: unknown) => ({
               'Config ID': config.id,
               Name: config.name,
               Description: config.description || 'N/A',
@@ -115,7 +115,7 @@ export const getAppSecConfiguration = {
     },
     required: ['configId'],
   },
-  handler: withCustomerValidation(async (args: any): Promise<ToolResponse> => {
+  handler: withCustomerValidation(async (args: unknown): Promise<ToolResponse> => {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
@@ -125,7 +125,7 @@ export const getAppSecConfiguration = {
         method: 'GET',
       });
 
-      const validatedResponse = validateApiResponse<any>(response);
+      const validatedResponse = validateApiResponse<unknown>(response);
 
       return {
         success: true,
@@ -178,7 +178,7 @@ export const createWAFPolicy = {
     },
     required: ['configId', 'policyName', 'policyMode'],
   },
-  handler: withCustomerValidation(async (args: any): Promise<ToolResponse> => {
+  handler: withCustomerValidation(async (args: unknown): Promise<ToolResponse> => {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
@@ -247,7 +247,7 @@ export const getSecurityEvents = {
     },
     required: ['configId', 'from', 'to'],
   },
-  handler: withCustomerValidation(async (args: any): Promise<ToolResponse> => {
+  handler: withCustomerValidation(async (args: unknown): Promise<ToolResponse> => {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
@@ -266,7 +266,7 @@ export const getSecurityEvents = {
         queryParams,
       });
 
-      const validatedResponse = validateApiResponse<{ securityEvents: any; totalEvents?: number }>(response);
+      const validatedResponse = validateApiResponse<{ securityEvents: unknown; totalEvents?: number }>(response);
 
 
       const events = validatedResponse.securityEvents || [];
@@ -282,7 +282,7 @@ export const getSecurityEvents = {
             configId: args.configId,
           },
           formatted: formatTable(
-            events.map((event: any) => ({
+            events.map((event: unknown) => ({
               'Event Time': new Date(event.httpMessage?.start || event.timestamp).toLocaleString(),
               'Client IP': event.clientIP,
               'Rule ID': event.ruleId,
@@ -336,7 +336,7 @@ export const activateSecurityConfiguration = {
     },
     required: ['configId', 'version', 'network'],
   },
-  handler: withCustomerValidation(async (args: any): Promise<ToolResponse> => {
+  handler: withCustomerValidation(async (args: unknown): Promise<ToolResponse> => {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
@@ -398,7 +398,7 @@ export const getSecurityActivationStatus = {
     },
     required: ['configId', 'activationId'],
   },
-  handler: withCustomerValidation(async (args: any): Promise<ToolResponse> => {
+  handler: withCustomerValidation(async (args: unknown): Promise<ToolResponse> => {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {

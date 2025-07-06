@@ -27,7 +27,7 @@ import { getTransportFromEnv } from './config/transport-config';
 import { createLogger } from './utils/pino-logger';
 
 const mainLogger = createLogger('main');
-let server: any = null;
+let server: unknown = null;
 
 // Graceful shutdown handler
 function setupGracefulShutdown() {

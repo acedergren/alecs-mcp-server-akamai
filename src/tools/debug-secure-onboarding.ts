@@ -81,20 +81,20 @@ export async function debugSecurePropertyOnboarding(
         method: 'GET',
       });
 
-      const validatedGroupsResponse = validateApiResponse<{ groups?: { items?: any[] } }>(groupsResponse);
+      const validatedGroupsResponse = validateApiResponse<{ groups?: { items?: unknown[] } }>(groupsResponse);
       if (validatedGroupsResponse.groups?.items) {
         text += `[DONE] **API connectivity working** (found ${validatedGroupsResponse.groups.items.length} groups)\n`;
 
         // Verify the specified group exists
         const targetGroup = validatedGroupsResponse.groups.items.find(
-          (g: any) => g.groupId === args.groupId,
+          (g: unknown) => g.groupId === args.groupId,
         );
         if (targetGroup) {
           text += `[DONE] **Target group found:** ${targetGroup.groupName}\n`;
         } else {
           text += `[ERROR] **Target group ${args.groupId} not found**\n`;
           text += 'Available groups:\n';
-          validatedGroupsResponse.groups.items.slice(0, 5).forEach((g: any) => {
+          validatedGroupsResponse.groups.items.slice(0, 5).forEach((g: unknown) => {
             text += `- ${g.groupId}: ${g.groupName}\n`;
           });
           text += '\n';
@@ -102,7 +102,7 @@ export async function debugSecurePropertyOnboarding(
       } else {
         text += '[ERROR] **API connectivity issue** - unexpected response format\n';
       }
-    } catch (apiError: any) {
+    } catch (apiError: unknown) {
       text += `[ERROR] **API connectivity failed:** ${apiError.message}\n`;
       text += '\n';
 
@@ -131,7 +131,7 @@ export async function debugSecurePropertyOnboarding(
           },
         });
 
-        const validatedProductsResponse = validateApiResponse<{ products?: { items?: any[] } }>(productsResponse);
+        const validatedProductsResponse = validateApiResponse<{ products?: { items?: unknown[] } }>(productsResponse);
         if (validatedProductsResponse.products?.items?.length && validatedProductsResponse.products.items.length > 0) {
           const bestProduct = selectBestProduct(validatedProductsResponse.products.items);
           if (bestProduct) {
@@ -145,7 +145,7 @@ export async function debugSecurePropertyOnboarding(
           productId = 'prd_fresca';
           text += '[WARNING] **No products found, using default:** Ion (prd_fresca)\n';
         }
-      } catch (_productError: any) {
+      } catch (_productError: unknown) {
         productId = 'prd_fresca';
         text += '[WARNING] **Product lookup failed, using default:** Ion (prd_fresca)\n';
         text += `Error: ${_productError.message}\n`;
@@ -190,7 +190,7 @@ export async function debugSecurePropertyOnboarding(
           ],
         };
       }
-    } catch (propError: any) {
+    } catch (propError: unknown) {
       text += `[ERROR] **Property creation exception:** ${propError.message}\n`;
 
       return {
@@ -214,7 +214,7 @@ export async function debugSecurePropertyOnboarding(
           method: 'GET',
         });
 
-        const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+        const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: unknown[] } }>(propertyResponse);
         if (!validatedPropertyResponse.properties?.items?.[0]) {
           text += `[ERROR] **Cannot retrieve property details for ${propertyId}**\n`;
         } else {
@@ -255,14 +255,14 @@ export async function debugSecurePropertyOnboarding(
               text += '[ERROR] **Edge hostname creation failed** - no link returned\n';
               text += `Response: ${JSON.stringify(edgeResponse, null, 2)}\n`;
             }
-          } catch (edgeError: any) {
+          } catch (edgeError: unknown) {
             text += `[ERROR] **Edge hostname creation exception:** ${edgeError.message}\n`;
             if (edgeError.response?.data) {
               text += `API Response: ${JSON.stringify(edgeError.response.data, null, 2)}\n`;
             }
           }
         }
-      } catch (propDetailError: any) {
+      } catch (propDetailError: unknown) {
         text += `[ERROR] **Property detail retrieval failed:** ${propDetailError.message}\n`;
       }
     } else {
@@ -292,7 +292,7 @@ export async function debugSecurePropertyOnboarding(
         },
       ],
     };
-  } catch (_error: any) {
+  } catch (_error: unknown) {
     text += '\n## [ERROR] Unexpected Error\n';
     text += `**Message:** ${_error.message}\n`;
     text += `**Stack:** ${_error.stack}\n`;
@@ -330,9 +330,9 @@ export async function testBasicPropertyCreation(
         path: '/papi/v1/groups',
         method: 'GET',
       });
-      const validatedResponse = validateApiResponse<{ groups?: { items?: any[] } }>(response);
+      const validatedResponse = validateApiResponse<{ groups?: { items?: unknown[] } }>(response);
       text += `[DONE] API accessible (found ${validatedResponse.groups?.items?.length || 0} groups)\n\n`;
-    } catch (apiError: any) {
+    } catch (apiError: unknown) {
       text += `[ERROR] API not accessible: ${apiError.message}\n\n`;
       return {
         content: [
@@ -356,7 +356,7 @@ export async function testBasicPropertyCreation(
         },
       });
 
-      const validatedProductsResponse = validateApiResponse<{ products?: { items?: any[] } }>(productsResponse);
+      const validatedProductsResponse = validateApiResponse<{ products?: { items?: unknown[] } }>(productsResponse);
       if (validatedProductsResponse.products?.items?.length && validatedProductsResponse.products.items.length > 0) {
         const bestProduct = selectBestProduct(validatedProductsResponse.products.items);
         if (bestProduct) {
@@ -366,7 +366,7 @@ export async function testBasicPropertyCreation(
           text += '[WARNING] Using default product: Ion (prd_fresca)\n\n';
         }
       }
-    } catch (_productError: any) {
+    } catch (_productError: unknown) {
       text += '[WARNING] Product lookup failed, using default: Ion (prd_fresca)\n\n';
     }
 
@@ -380,7 +380,7 @@ export async function testBasicPropertyCreation(
     });
 
     text += '**Result:**\n';
-    const validatedResult = validateApiResponse<{ content: any }>(result);
+    const validatedResult = validateApiResponse<{ content: unknown }>(result);
     text += validatedResult.content[0]?.text || 'No response';
 
     return {
@@ -391,7 +391,7 @@ export async function testBasicPropertyCreation(
         },
       ],
     };
-  } catch (_error: any) {
+  } catch (_error: unknown) {
     return {
       content: [
         {

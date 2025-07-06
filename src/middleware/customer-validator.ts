@@ -76,7 +76,7 @@ export class CustomerValidator {
    * Create a validation wrapper for tool handlers
    */
   static createValidationWrapper(validator: CustomerValidator) {
-    return function validateCustomerTool<T extends (...args: any[]) => any>(
+    return function validateCustomerTool<T extends (...args: unknown[]) => any>(
       handler: T
     ): T {
       return (async (...args: Parameters<T>) => {

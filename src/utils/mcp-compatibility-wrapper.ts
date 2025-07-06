@@ -65,7 +65,7 @@ export class MCPCompatibilityWrapper {
   /**
    * Detects client protocol version from initialize request
    */
-  detectProtocolVersion(initializeParams: any): string {
+  detectProtocolVersion(initializeParams: unknown): string {
     const version = initializeParams?.protocolVersion || '2024-11-05';
     logger.info(`Detected client protocol version: ${version}`);
     this.protocolVersion = version;
@@ -75,7 +75,7 @@ export class MCPCompatibilityWrapper {
   /**
    * Converts MCPToolResponse to legacy format for 2024-11-05 protocol
    */
-  convertToLegacyFormat(response: MCPToolResponse): any {
+  convertToLegacyFormat(response: MCPToolResponse): unknown {
     // Legacy format expects direct content array without wrapper
     if (this.protocolVersion === '2024-11-05') {
       return {
@@ -98,9 +98,9 @@ export class MCPCompatibilityWrapper {
    * Wraps tool handler to provide compatibility
    */
   wrapToolHandler(
-    originalHandler: (client: any, params: any) => Promise<MCPToolResponse>
-  ): (client: any, params: any) => Promise<any> {
-    return async (client: any, params: any) => {
+    originalHandler: (client: unknown, params: unknown) => Promise<MCPToolResponse>
+  ): (client: unknown, params: unknown) => Promise<unknown> {
+    return async (client: unknown, params: unknown) => {
       try {
         // Call original handler
         const response = await originalHandler(client, params);
@@ -141,7 +141,7 @@ export class MCPCompatibilityWrapper {
   /**
    * Converts tool input schema for protocol compatibility
    */
-  convertToolSchema(schema: any): any {
+  convertToolSchema(schema: unknown): unknown {
     if (!schema) {return undefined;}
     
     // Legacy protocol expects simpler schema format
@@ -169,7 +169,7 @@ export class MCPCompatibilityWrapper {
    */
   setupCompatibilityHandlers(
     tools: Map<string, any>,
-    zodToJsonSchema: (schema: any) => any
+    zodToJsonSchema: (schema: unknown) => any
   ): void {
     
     // Wrap ListTools handler for schema compatibility
@@ -231,9 +231,9 @@ export class MCPCompatibilityWrapper {
  * Creates a backwards-compatible MCP server
  */
 export function createCompatibleMCPServer(
-  serverConfig: any,
+  serverConfig: unknown,
   tools: Map<string, any>,
-  zodToJsonSchema: (schema: any) => any
+  zodToJsonSchema: (schema: unknown) => any
 ): { server: Server; wrapper: MCPCompatibilityWrapper } {
   const server = new Server(
     serverConfig,

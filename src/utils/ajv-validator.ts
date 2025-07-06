@@ -1,3 +1,79 @@
+
+// Type definitions for validators
+interface PropertyListResponse {
+  properties: {
+    items: Array<{
+      propertyId: string;
+      propertyName: string;
+      contractId: string;
+      groupId: string;
+      latestVersion: number;
+      stagingVersion: number | null;
+      productionVersion: number | null;
+      assetId: string;
+    }>;
+  };
+}
+
+interface PropertyVersion {
+  propertyId: string;
+  propertyVersion: number;
+  contractId: string;
+  groupId: string;
+  propertyName: string;
+  updatedByUser: string;
+  updatedDate: string;
+  productionStatus: 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'DEACTIVATED';
+  stagingStatus: 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'DEACTIVATED';
+  etag: string;
+  ruleFormat: string;
+}
+
+interface Activation {
+  activationId: string;
+  propertyId: string;
+  propertyVersion: number;
+  network: 'STAGING' | 'PRODUCTION';
+  status: 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'ZONE_1' | 'ZONE_2' | 'ZONE_3' | 'ABORTED' | 'FAILED' | 'DEACTIVATED' | 'PENDING_DEACTIVATION' | 'NEW';
+  submitDate: string;
+  updateDate: string;
+  note: string;
+  notifyEmails: string[];
+}
+
+interface DNSZone {
+  zone: string;
+  type: 'PRIMARY' | 'SECONDARY' | 'ALIAS';
+  comment: string;
+  signAndServe: boolean;
+  contractId: string;
+  activationState: 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'PENDING_DELETION';
+  lastActivationDate: string;
+  lastModifiedDate: string;
+  versionId: string;
+}
+
+interface DNSRecordSet {
+  name: string;
+  type: string;
+  ttl: number;
+  rdata: string[];
+}
+
+interface Enrollment {
+  enrollmentId: number;
+  status: string;
+  certificateType: string;
+  validationType: string;
+  certificateChainType: string;
+  networkConfiguration: {
+    geography: string;
+    secureNetwork: string;
+    sniOnly: boolean;
+    quicEnabled: boolean;
+  };
+}
+
 /**
  * Ajv-based runtime validation for Akamai API responses
  * Provides type-safe validation with proper error messages
@@ -5,6 +81,12 @@
 
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
+
+
+// Validation type definitions
+type ValidatorFunction = (data: unknown) => boolean;
+type ValidationError = { path: string; message: string; code?: string };
+type SchemaValidator = { validate: ValidatorFunction; errors?: ValidationError[] };
 
 // Create and configure Ajv instance
 const ajv = new Ajv({
@@ -210,12 +292,12 @@ export const EnrollmentSchema = {
 };
 
 // Validator instances
-export const propertyListValidator = createValidator<any>(PropertyListSchema);
-export const propertyVersionValidator = createValidator<any>(PropertyVersionSchema);
-export const activationValidator = createValidator<any>(ActivationSchema);
-export const dnsZoneValidator = createValidator<any>(DNSZoneSchema);
-export const dnsRecordSetValidator = createValidator<any>(DNSRecordSetSchema);
-export const enrollmentValidator = createValidator<any>(EnrollmentSchema);
+export const propertyListValidator = createValidator<PropertyListResponse>(PropertyListSchema);
+export const propertyVersionValidator = createValidator<PropertyVersion>(PropertyVersionSchema);
+export const activationValidator = createValidator<Activation>(ActivationSchema);
+export const dnsZoneValidator = createValidator<DNSZone>(DNSZoneSchema);
+export const dnsRecordSetValidator = createValidator<DNSRecordSet>(DNSRecordSetSchema);
+export const enrollmentValidator = createValidator<Enrollment>(EnrollmentSchema);
 
 // Helper to validate and transform API responses
 export function validateAndTransform<T>(

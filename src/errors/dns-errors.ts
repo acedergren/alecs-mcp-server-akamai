@@ -21,7 +21,7 @@ import {
  * Base class for all DNS operation errors
  */
 export class DNSOperationError extends AkamaiError {
-  constructor(message: string, code: string, statusCode: number = 400, details?: any) {
+  constructor(message: string, code: string, statusCode: number = 400, details?: unknown) {
     super({
       type: `https://problems.luna.akamaiapis.net/edge-dns/v2/${code.toLowerCase()}`,
       title: message,

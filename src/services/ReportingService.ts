@@ -490,7 +490,7 @@ export class ReportingService {
     metrics: string[],
     period: ReportingPeriod,
     filter?: ReportingFilter,
-  ): Promise<{ data: any; filename: string; contentType: string }> {
+  ): Promise<{ data: unknown; filename: string; contentType: string }> {
     const operationId = this.performanceMonitor.startOperation('reporting_export');
 
     try {
@@ -510,7 +510,7 @@ export class ReportingService {
       const filename = this.generateExportFilename(format, period);
       const contentType = this.getContentType(format);
 
-      let processedData: any;
+      let processedData: unknown;
 
       switch (format) {
         case 'csv':
@@ -588,8 +588,8 @@ export class ReportingService {
   public buildReportingParams(
     period: ReportingPeriod,
     filter?: ReportingFilter,
-  ): Record<string, any> {
-    const params: Record<string, any> = {
+  ): Record<string, unknown> {
+    const params: Record<string, unknown> = {
       start: period.start,
       end: period.end,
       granularity: period.granularity,
@@ -621,7 +621,7 @@ export class ReportingService {
 
   public async fetchMetric(
     metric: string,
-    params: Record<string, any>,
+    params: Record<string, unknown>,
   ): Promise<ReportingMetric[]> {
     const response = await this.client.request({
       method: 'GET',
@@ -629,7 +629,7 @@ export class ReportingService {
       queryParams: params,
     });
 
-    return response.data.map((item: any) => ({
+    return response.data.map((item: unknown) => ({
       timestamp: item.datetime,
       value: item.value,
       unit: item.unit,
@@ -731,7 +731,7 @@ export class ReportingService {
     return contentTypes[format] || 'application/octet-stream';
   }
 
-  private convertToCSV(data: any): string {
+  private convertToCSV(data: unknown): string {
     // Simplified CSV conversion
     const lines = ['Metric,Value,Unit,Timestamp'];
 
@@ -744,7 +744,7 @@ export class ReportingService {
     return lines.join('\n');
   }
 
-  private convertToExcel(data: any): any {
+  private convertToExcel(data: unknown): unknown {
     // This would require a proper Excel library like 'xlsx'
     // For now, return JSON as placeholder
     return JSON.stringify(data, null, 2);

@@ -57,7 +57,7 @@ async function validatePrerequisites(
     });
 
     const validatedGroupsResponse = validateApiResponse<{ groups?: { items?: any } }>(groupsResponse);
-    const groupExists = validatedGroupsResponse.groups?.items?.some((g: any) => g.groupId === args.groupId);
+    const groupExists = validatedGroupsResponse.groups?.items?.some((g: unknown) => g.groupId === args.groupId);
 
     if (!groupExists) {
       errors.push(`Group ${args.groupId} not found`);
@@ -144,7 +144,7 @@ async function createSecureByDefaultEdgeHostname(
     method: 'GET',
   });
 
-  const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: Array<any> } }>(propertyResponse);
+  const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: Array<unknown> } }>(propertyResponse);
   if (!validatedPropertyResponse.properties?.items?.[0]) {
     throw new Error('Property not found');
   }
@@ -259,7 +259,7 @@ export async function onboardSecureByDefaultProperty(
         },
       });
 
-      const validatedProductsResponse = validateApiResponse<{ products?: { items?: Array<any> } }>(productsResponse);
+      const validatedProductsResponse = validateApiResponse<{ products?: { items?: Array<unknown> } }>(productsResponse);
       if (validatedProductsResponse.products?.items?.length && validatedProductsResponse.products.items.length > 0) {
         const bestProduct = selectBestProduct(validatedProductsResponse.products.items);
         if (bestProduct) {
@@ -628,7 +628,7 @@ export async function checkSecureByDefaultStatus(
       method: 'GET',
     });
 
-    const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: Array<any> } }>(propertyResponse);
+    const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: Array<unknown> } }>(propertyResponse);
     if (!validatedPropertyResponse.properties?.items?.[0]) {
       throw new Error('Property not found');
     }
@@ -649,9 +649,9 @@ export async function checkSecureByDefaultStatus(
     });
 
     text += '## Configured Hostnames\n';
-    const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: Array<any> } }>(hostnamesResponse);
+    const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: Array<unknown> } }>(hostnamesResponse);
     if (validatedHostnamesResponse.hostnames?.items?.length && validatedHostnamesResponse.hostnames.items.length > 0) {
-      validatedHostnamesResponse.hostnames.items.forEach((hostname: any) => {
+      validatedHostnamesResponse.hostnames.items.forEach((hostname: unknown) => {
         text += `- **${hostname.cnameFrom}** → ${hostname.cnameTo}`;
         // DefaultDV certificates are always valid for all hostnames
         text += ' [DONE] (DefaultDV certificate active)\n';
@@ -714,7 +714,7 @@ export async function checkSecureByDefaultStatus(
 /**
  * Generate failure report with recovery options
  */
-function generateFailureReport(state: OnboardingState, _error: any, args: any): string {
+function generateFailureReport(state: OnboardingState, _error: unknown, args: unknown): string {
   let text = '# [ERROR] Secure Property Onboarding Failed\n\n';
 
   text += '## Error Details\n';
@@ -758,7 +758,7 @@ function generateFailureReport(state: OnboardingState, _error: any, args: any): 
  */
 async function rollbackProperty(client: AkamaiClient, propertyId: string): Promise<void> {
   try {
-    // Check if property has any activations
+    // Check if property has unknown activations
     const propertyResponse = await client.request({
       path: `/papi/v1/properties/${propertyId}`,
       method: 'GET',
@@ -785,7 +785,7 @@ async function rollbackProperty(client: AkamaiClient, propertyId: string): Promi
 /**
  * Format error responses
  */
-function formatError(operation: string, _error: any): MCPToolResponse {
+function formatError(operation: string, _error: unknown): MCPToolResponse {
   let errorMessage = `[ERROR] Failed to ${operation}`;
 
   if (_error instanceof Error) {

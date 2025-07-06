@@ -122,7 +122,7 @@ export async function generateAPIReference(
     const files = await fs.readdir(toolsPath);
     const toolFiles = files.filter((f) => f.endsWith('-tools.ts') || f.endsWith('-tools.js'));
 
-    const toolDefinitions: any[] = [];
+    const toolDefinitions: unknown[] = [];
 
     for (const file of toolFiles) {
       const filePath = path.join(toolsPath, file);
@@ -529,7 +529,7 @@ function extractDocumentMetadata(filename: string, content: string): Documentati
   if (frontmatterMatch) {
     // Parse YAML-like frontmatter
     const frontmatter = frontmatterMatch[1];
-    const metadata: any = {};
+    const metadata: unknown = {};
     if (frontmatter) {
       frontmatter.split('\n').forEach((line) => {
         const [key, value] = line.split(':').map((s) => s.trim());
@@ -622,8 +622,8 @@ function extractTags(content: string): string[] {
   return Array.from(tags);
 }
 
-function extractToolDefinitions(content: string): any[] {
-  const tools: any[] = [];
+function extractToolDefinitions(content: string): unknown[] {
+  const tools: unknown[] = [];
 
   // Regular expression to match exported functions with JSDoc
   const functionRegex = /\/\*\*[\s\S]*?\*\/\s*export\s+async\s+function\s+(\w+)\s*\([^)]*\)/g;
@@ -649,8 +649,8 @@ function extractToolDefinitions(content: string): any[] {
   return tools;
 }
 
-function extractParameters(functionDef: string): any[] {
-  const params: any[] = [];
+function extractParameters(functionDef: string): unknown[] {
+  const params: unknown[] = [];
   const paramMatch = functionDef.match(/\(([^)]*)\)/);
 
   if (paramMatch && paramMatch[1]) {
@@ -677,16 +677,16 @@ function extractReturns(jsdoc: string | undefined): string {
   return returnMatch?.[1]?.trim() || 'Promise<MCPToolResponse>';
 }
 
-function generateMarkdownAPIReference(tools: any[]): string {
+function generateMarkdownAPIReference(tools: unknown[]): string {
   let doc = '# API Reference\n\n';
   doc += `Generated on ${new Date().toISOString()}\n\n`;
 
   // Group by category
-  const byCategory = new Map<string, any[]>();
+  const byCategory = new Map<string, unknown[]>();
   for (const tool of tools) {
-    const categoryTools = byCategory.get(tool.category) || [];
+    const categoryTools = byCategory.get((tool as any).category) || [];
     categoryTools.push(tool);
-    byCategory.set(tool.category, categoryTools);
+    byCategory.set((tool as any).category, categoryTools);
   }
 
   // Generate sections
@@ -714,7 +714,7 @@ function generateMarkdownAPIReference(tools: any[]): string {
   return doc;
 }
 
-async function analyzeFeature(feature: string): Promise<any> {
+async function analyzeFeature(feature: string): Promise<unknown> {
   // This would analyze the codebase for the feature
   // For now, return a mock analysis
   return {
@@ -743,7 +743,7 @@ function updateDocumentSection(content: string, section: string, newContent: str
   }
 }
 
-function addExamplesToDocument(content: string, examples: any[]): string {
+function addExamplesToDocument(content: string, examples: unknown[]): string {
   let examplesSection = '';
   for (const example of examples) {
     examplesSection += `### ${example.title}\n\n`;
@@ -785,20 +785,20 @@ function updateLastModified(content: string): string {
   return updateDocumentMetadata(content, { lastUpdated: date });
 }
 
-async function getGitCommits(_fromVersion?: string, _toVersion?: string): Promise<any[]> {
+async function getGitCommits(_fromVersion?: string, _toVersion?: string): Promise<Array<{ timestamp: string; value: number }>> {
   // This would use git commands to get commits
   // For now, return empty array
   return [];
 }
 
-function parseConventionalCommits(_commits: any[]): any[] {
+function parseConventionalCommits(_commits: unknown[]): unknown[] {
   // Parse commits following conventional commit format
   return [];
 }
 
-function groupChangesByCategory(changes: any[]): Record<string, any[]> {
-  const grouped: Record<string, any[]> = {
-    featu_res: [],
+function groupChangesByCategory(changes: unknown[]): Record<string, unknown[]> {
+  const grouped: Record<string, unknown[]> = {
+    features: [],
     fixes: [],
     performance: [],
     documentation: [],
@@ -831,7 +831,7 @@ function formatCategory(_category: string): string {
   return categoryNames[_category] || _category;
 }
 
-function getUniqueContributors(_commits: any[]): string[] {
+function getUniqueContributors(_commits: unknown[]): string[] {
   // Extract unique contributors from commits
   return [];
 }
@@ -854,11 +854,11 @@ function generateSlug(title: string): string {
     .trim();
 }
 
-async function updateKnowledgeBaseIndex(_articlePath: string, metadata: any): Promise<void> {
+async function updateKnowledgeBaseIndex(_articlePath: string, metadata: unknown): Promise<void> {
   const indexPath = 'docs/knowledge-base/index.json';
 
   try {
-    let index: any = {};
+    let index: unknown = {};
 
     if (await fileExists(indexPath)) {
       const content = await fs.readFile(indexPath, 'utf-8');

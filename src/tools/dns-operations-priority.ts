@@ -216,15 +216,15 @@ export interface TSIGKeyRequest {
 }
 
 // CODE KAI: Type guard functions for runtime validation
-export function isAuthoritiesResponse(obj: any): obj is AuthoritiesResponse {
+export function isAuthoritiesResponse(obj: unknown): obj is AuthoritiesResponse {
   return AuthoritiesResponseSchema.safeParse(obj).success;
 }
 
-export function isContractsResponse(obj: any): obj is ContractsResponse {
+export function isContractsResponse(obj: unknown): obj is ContractsResponse {
   return ContractsResponseSchema.safeParse(obj).success;
 }
 
-export function isChangeListDiff(obj: any): obj is ChangeListDiff {
+export function isChangeListDiff(obj: unknown): obj is ChangeListDiff {
   return ChangeListDiffSchema.safeParse(obj).success;
 }
 

@@ -1,3 +1,9 @@
+
+// Request type definitions  
+type RequestConfig = { path: string; method: string; body?: unknown; headers?: Record<string, string> };
+type RequestResponse<T = unknown> = { data: T; status: number; headers: Record<string, string> };
+type CoalescedRequest = { id: string; promise: Promise<unknown>; resolve: (value: unknown) => void; reject: (error: unknown) => void };
+
 /**
  * Request Coalescing Utility - CODE KAI Implementation
  * 
@@ -39,7 +45,7 @@ interface CoalescerConfig {
 /**
  * Request key normalization function
  */
-type KeyNormalizer = (key: string, args: any) => string;
+type KeyNormalizer = (key: string, args: unknown) => string;
 
 /**
  * Default configuration for request coalescing
@@ -57,7 +63,7 @@ const DEFAULT_CONFIG: CoalescerConfig = {
  * Automatically cleans up expired entries and provides metrics.
  */
 export class RequestCoalescer {
-  private cache = new Map<string, CacheEntry<any>>();
+  private cache = new Map<string, CacheEntry<unknown>>();
   private config: CoalescerConfig;
   private cleanupTimer?: NodeJS.Timeout;
   private stats = {
@@ -153,7 +159,7 @@ export class RequestCoalescer {
   /**
    * Sort object keys recursively for consistent serialization
    */
-  private sortObject(obj: any): any {
+  private sortObject(obj: unknown): unknown {
     if (obj === null || typeof obj !== 'object') {
       return obj;
     }
@@ -162,7 +168,7 @@ export class RequestCoalescer {
       return obj.map(item => this.sortObject(item));
     }
 
-    const sorted: any = {};
+    const sorted: unknown = {};
     Object.keys(obj)
       .sort()
       .forEach(key => {
@@ -315,8 +321,8 @@ export const KeyNormalizers = {
   /**
    * Normalizer for property-related requests
    */
-  property: (key: string, args: any): string => {
-    const { propertyId, version, customer, contractId, groupId } = args || {};
+  property: (key: string, args: unknown): string => {
+    const { propertyId, version, customer, contractId, groupId } = (args as Record<string, unknown>) || {};
     const parts = [key];
     
     if (propertyId) {parts.push(`prop:${propertyId}`);}
@@ -331,8 +337,8 @@ export const KeyNormalizers = {
   /**
    * Normalizer for search requests
    */
-  search: (key: string, args: any): string => {
-    const { query, propertyName, hostname, contractId, groupId } = args || {};
+  search: (key: string, args: unknown): string => {
+    const { query, propertyName, hostname, contractId, groupId } = (args as Record<string, unknown>) || {};
     const parts = [key];
     
     if (query) {parts.push(`q:${query.toLowerCase()}`);}
@@ -347,7 +353,7 @@ export const KeyNormalizers = {
   /**
    * Normalizer for list operations
    */
-  list: (key: string, args: any): string => {
+  list: (key: string, args: unknown): string => {
     const { contractId, groupId, customer, limit, offset } = args || {};
     const parts = [key];
     
@@ -366,7 +372,7 @@ export const KeyNormalizers = {
  */
 export async function coalesceRequest<T>(
   operation: string,
-  args: any,
+  args: unknown,
   requestFn: () => Promise<T>,
   normalizer?: KeyNormalizer,
 ): Promise<T> {

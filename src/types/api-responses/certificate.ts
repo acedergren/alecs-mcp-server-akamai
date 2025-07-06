@@ -296,7 +296,7 @@ export interface HistoryEntry {
   deploymentId?: number;
   changeId?: number;
   actionDescription?: string;
-  actionMetadata?: Record<string, any>;
+  actionMetadata?: Record<string, unknown>;
 }
 
 /**

@@ -281,7 +281,7 @@ export class AkamaiOrchestrator {
   async bulkDNSMigration(_options: {
     zones: Array<{ source: string; target?: string }>;
     sourceType: 'cloudflare' | 'route53' | 'axfr';
-    sourceConfig: any;
+    sourceConfig: unknown;
     parallel?: number;
   }): Promise<void> {
     console.error(`\n${format.bold('Bulk DNS Zone Migration')}`);
@@ -380,7 +380,7 @@ export class AkamaiOrchestrator {
     }
   }
 
-  private async generateMigrationReport(_options: any): Promise<void> {
+  private async generateMigrationReport(_options: unknown): Promise<void> {
     console.error(`\n${icons.document} Generating migration report...`);
 
     // This would generate a detailed report

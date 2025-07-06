@@ -359,7 +359,7 @@ export async function createNetworkList(
       };
     }
 
-    const requestBody: any = {
+    const requestBody: unknown = {
       name,
       type,
       list: elements,
@@ -490,7 +490,7 @@ export async function updateNetworkList(
       }
     }
 
-    const requestBody: any = {};
+    const requestBody: unknown = {};
 
     // Update metadata
     if (options.name) {

@@ -73,7 +73,7 @@ export async function withTimeout<T>(
     const result = await operation(controller.signal);
     clearTimeout(timeoutId);
     return result;
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
     
     // Check if it was a timeout
@@ -109,12 +109,12 @@ export async function resilientRequest<T>(
     operationName,
   } = options;
 
-  let lastError: any;
+  let lastError: unknown;
   
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       return await withTimeout(operation, timeout, operationName);
-    } catch (error: any) {
+    } catch (error: unknown) {
       lastError = error;
       
       // Don't retry on client errors

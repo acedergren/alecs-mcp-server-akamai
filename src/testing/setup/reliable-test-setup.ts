@@ -9,7 +9,7 @@ const originalConsoleWarn = console.warn;
 const originalConsoleLog = console.log;
 
 // Suppress known noisy outputs during testing
-console.error = (...args: any[]) => {
+console.error = (...args: unknown[]) => {
   const message = args.join(' ');
   
   // Suppress circuit breaker warnings
@@ -25,7 +25,7 @@ console.error = (...args: any[]) => {
   originalConsoleError(...args);
 };
 
-console.warn = (...args: any[]) => {
+console.warn = (...args: unknown[]) => {
   const message = args.join(' ');
   
   // Suppress retry warnings
@@ -36,7 +36,7 @@ console.warn = (...args: any[]) => {
   originalConsoleWarn(...args);
 };
 
-console.log = (...args: any[]) => {
+console.log = (...args: unknown[]) => {
   const message = args.join(' ');
   
   // Only show test completion messages

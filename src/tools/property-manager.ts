@@ -893,7 +893,7 @@ export async function getPropertyRules(
 
     if (response.errors && response.errors.length > 0) {
       text += '## Validation Errors\n\n';
-      response.errors.forEach((error: any, index: number) => {
+      response.errors.forEach((error: unknown, index: number) => {
         text += `${index + 1}. **${error.title}**\n`;
         text += `   - Type: ${error.type}\n`;
         text += `   - Detail: ${error.detail}\n\n`;
@@ -902,7 +902,7 @@ export async function getPropertyRules(
 
     if (response.warnings && response.warnings.length > 0) {
       text += '## Validation Warnings\n\n';
-      response.warnings.forEach((warning: any, index: number) => {
+      response.warnings.forEach((warning: unknown, index: number) => {
         text += `${index + 1}. **${warning.title}**\n`;
         text += `   - Type: ${warning.type}\n`;
         text += `   - Detail: ${warning.detail}\n\n`;
@@ -931,7 +931,7 @@ export async function updatePropertyRules(
   args: {
     propertyId: string;
     version: number;
-    rules: any;
+    rules: unknown;
     validateRules?: boolean;
     etag?: string;
     customer?: string;
@@ -973,7 +973,7 @@ export async function updatePropertyRules(
 
     if (response.errors && response.errors.length > 0) {
       text += '## Validation Errors\n\n';
-      response.errors.forEach((error: any, index: number) => {
+      response.errors.forEach((error: unknown, index: number) => {
         text += `${index + 1}. **${error.title}**\n`;
         text += `   - Type: ${error.type}\n`;
         text += `   - Detail: ${error.detail}\n\n`;
@@ -982,7 +982,7 @@ export async function updatePropertyRules(
 
     if (response.warnings && response.warnings.length > 0) {
       text += '## Validation Warnings\n\n';
-      response.warnings.forEach((warning: any, index: number) => {
+      response.warnings.forEach((warning: unknown, index: number) => {
         text += `${index + 1}. **${warning.title}**\n`;
         text += `   - Type: ${warning.type}\n`;
         text += `   - Detail: ${warning.detail}\n\n`;
@@ -1266,12 +1266,12 @@ export async function listEdgeHostnames(
     text += `## [ANALYTICS] Edge Hostname Details\n\n`;
 
     // ORGANIZE BY TYPE: Group similar hostnames together
-    const secureHostnames = response.edgeHostnames.items.filter((eh: any) => eh.secure);
-    const nonSecureHostnames = response.edgeHostnames.items.filter((eh: any) => !eh.secure);
+    const secureHostnames = response.edgeHostnames.items.filter((eh: unknown) => eh.secure);
+    const nonSecureHostnames = response.edgeHostnames.items.filter((eh: unknown) => !eh.secure);
 
     if (secureHostnames.length > 0) {
       text += `### [LOCKED] HTTPS Edge Hostnames (${secureHostnames.length})\n\n`;
-      secureHostnames.forEach((hostname: any, index: number) => {
+      secureHostnames.forEach((hostname: unknown, index: number) => {
         text += `#### ${index + 1}. ${hostname.edgeHostnameDomain}\n`;
         text += `- **Edge Hostname:** ${formatEdgeHostnameDisplay(hostname.edgeHostnameId, hostname.edgeHostnameDomain)}\n`;
         text += `- **Domain Prefix:** ${hostname.domainPrefix}\n`;
@@ -1291,7 +1291,7 @@ export async function listEdgeHostnames(
 
     if (nonSecureHostnames.length > 0) {
       text += `### [GLOBAL] HTTP Edge Hostnames (${nonSecureHostnames.length})\n\n`;
-      nonSecureHostnames.forEach((hostname: any, index: number) => {
+      nonSecureHostnames.forEach((hostname: unknown, index: number) => {
         text += `#### ${index + 1}. ${hostname.edgeHostnameDomain}\n`;
         text += `- **Edge Hostname:** ${formatEdgeHostnameDisplay(hostname.edgeHostnameId, hostname.edgeHostnameDomain)}\n`;
         text += `- **Domain Prefix:** ${hostname.domainPrefix}\n`;
@@ -1467,7 +1467,7 @@ export async function activateProperty(
     }
 
     // BUILD ACTIVATION REQUEST with comprehensive settings
-    const requestBody: any = {
+    const requestBody: unknown = {
       propertyVersion: args.version,
       network: args.network,
       ...(args.note && { note: args.note }),
@@ -1721,7 +1721,7 @@ export async function getActivationStatus(
     // VALIDATION ERRORS if present
     if (activation.errors && activation.errors.length > 0) {
       text += `## [ERROR] Validation Errors\n\n`;
-      activation.errors.forEach((error: any, index: number) => {
+      activation.errors.forEach((error: unknown, index: number) => {
         text += `${index + 1}. **${error.type}**\n`;
         text += `   - Message ID: ${error.messageId}\n`;
         text += `   - Detail: ${error.detail}\n\n`;
@@ -1731,7 +1731,7 @@ export async function getActivationStatus(
     // WARNINGS if present
     if (activation.warnings && activation.warnings.length > 0) {
       text += `## [WARNING] Warnings\n\n`;
-      activation.warnings.forEach((warning: any, index: number) => {
+      activation.warnings.forEach((warning: unknown, index: number) => {
         text += `${index + 1}. **${warning.type}**\n`;
         text += `   - Message ID: ${warning.messageId}\n`;
         text += `   - Detail: ${warning.detail}\n\n`;
@@ -1827,14 +1827,14 @@ export async function listPropertyActivations(
     text += `**Retrieved:** ${new Date().toISOString()}\n\n`;
 
     // GROUP BY NETWORK for better organization
-    const stagingActivations = response.activations.items.filter((a: any) => a.network === 'STAGING');
-    const productionActivations = response.activations.items.filter((a: any) => a.network === 'PRODUCTION');
+    const stagingActivations = response.activations.items.filter((a: unknown) => a.network === 'STAGING');
+    const productionActivations = response.activations.items.filter((a: unknown) => a.network === 'PRODUCTION');
 
     // PRODUCTION HISTORY (most important)
     if (productionActivations.length > 0) {
       text += `## [ERROR] Production Deployments (${productionActivations.length})\n\n`;
       
-      productionActivations.slice(0, 5).forEach((activation: any, index: number) => {
+      productionActivations.slice(0, 5).forEach((activation: unknown, index: number) => {
         const statusIcon = activation.status === 'ACTIVE' ? '[SUCCESS]' :
                           activation.status === 'FAILED' ? '[ERROR]' :
                           activation.status === 'PENDING' ? '[TIME]' : '[WARNING]';
@@ -1858,7 +1858,7 @@ export async function listPropertyActivations(
     if (stagingActivations.length > 0) {
       text += `## [WARNING] Staging Deployments (${stagingActivations.length})\n\n`;
       
-      stagingActivations.slice(0, 3).forEach((activation: any, index: number) => {
+      stagingActivations.slice(0, 3).forEach((activation: unknown, index: number) => {
         const statusIcon = activation.status === 'ACTIVE' ? '[SUCCESS]' :
                           activation.status === 'FAILED' ? '[ERROR]' :
                           activation.status === 'PENDING' ? '[TIME]' : '[WARNING]';
@@ -1880,8 +1880,8 @@ export async function listPropertyActivations(
     text += `## [ANALYTICS] Deployment Insights\n\n`;
     
     // Find currently active versions
-    const activeProduction = productionActivations.find((a: any) => a.status === 'ACTIVE');
-    const activeStaging = stagingActivations.find((a: any) => a.status === 'ACTIVE');
+    const activeProduction = productionActivations.find((a: unknown) => a.status === 'ACTIVE');
+    const activeStaging = stagingActivations.find((a: unknown) => a.status === 'ACTIVE');
     
     if (activeProduction) {
       text += `**Current Production:** Version ${activeProduction.propertyVersion}\n`;
@@ -1898,7 +1898,7 @@ export async function listPropertyActivations(
     }
 
     // Calculate failure rate
-    const failedCount = response.activations.items.filter((a: any) => a.status === 'FAILED').length;
+    const failedCount = response.activations.items.filter((a: unknown) => a.status === 'FAILED').length;
     const successRate = ((response.activations.items.length - failedCount) / response.activations.items.length * 100).toFixed(1);
     
     text += `**Deployment Success Rate:** ${successRate}%\n`;
@@ -2055,7 +2055,7 @@ export async function addPropertyHostname(
 
     // BUILD REQUEST: Format hostnames for API
     const hostnamesList = args.hostnames.map((hostname, index) => {
-      const hostnameObj: any = {
+      const hostnameObj: unknown = {
         cnameFrom: hostname,
         cnameType: 'EDGE_HOSTNAME',
       };
@@ -2259,7 +2259,7 @@ export async function listPropertyHostnames(
 
     text += `## Configured Hostnames\n\n`;
     
-    response_typed.hostnames.items.forEach((hostname: any, index: number) => {
+    response_typed.hostnames.items.forEach((hostname: unknown, index: number) => {
       text += `### ${index + 1}. ${hostname.cnameFrom}\n`;
       text += `- **Points To:** ${hostname.cnameTo}\n`;
       text += `- **Type:** ${hostname.cnameType}\n`;
@@ -2348,7 +2348,7 @@ export async function listContracts(
     let text = `# 📄 Akamai Contracts (${response_typed.contracts.items.length} found)\n\n`;
     text += `Contracts represent your commercial relationship with Akamai.\n\n`;
 
-    response_typed.contracts.items.forEach((contract: any, index: number) => {
+    response_typed.contracts.items.forEach((contract: unknown, index: number) => {
       text += `## ${index + 1}. ${formatContractDisplay(contract.contractId)}\n`;
       text += `- **Contract ID:** ${contract.contractId}\n`;
       text += `- **Type:** ${contract.contractTypeName || 'Standard'}\n\n`;
@@ -2415,12 +2415,12 @@ export async function listGroups(
 
     // Build group hierarchy
     const groupMap = new Map();
-    groups_response_typed.groups.items.forEach((group: any) => {
+    groups_response_typed.groups.items.forEach((group: unknown) => {
       groupMap.set(group.groupId, group);
     });
 
     // Display groups with hierarchy
-    groups_response_typed.groups.items.forEach((group: any, index: number) => {
+    groups_response_typed.groups.items.forEach((group: unknown, index: number) => {
       if (!group.parentGroupId || !groupMap.has(group.parentGroupId)) {
         text += `## ${index + 1}. ${formatGroupDisplay(group.groupName, group.groupId)}\n`;
         text += `- **Group ID:** ${group.groupId}\n`;
@@ -2430,7 +2430,7 @@ export async function listGroups(
         const children = groups_response_typed.groups?.items?.filter((g) => g.parentGroupId === group.groupId) || [];
         if (children.length > 0) {
           text += `**Sub-groups:**\n`;
-          children.forEach((child: any) => {
+          children.forEach((child: unknown) => {
             text += `  - ${child.groupName} (${child.groupId})\n`;
           });
           text += `\n`;
@@ -2643,7 +2643,7 @@ export async function cloneProperty(
       if (!args.groupId) {args.groupId = sourceProperty.groupId;}
     }
 
-    const requestBody: any = {
+    const requestBody: unknown = {
       productId: args.productId,
       propertyName: args.newPropertyName,
       cloneFrom: {

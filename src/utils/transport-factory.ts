@@ -9,9 +9,9 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { TransportConfig, getTransportFromEnv } from '../config/transport-config';
 
 // Lazy load optional transports to avoid dependency errors
-let express: any;
-let WebSocketServerTransport: any;
-let SSEServerTransport: any;
+let express: unknown;
+let WebSocketServerTransport: unknown;
+let SSEServerTransport: unknown;
 
 async function loadOptionalDependencies() {
   try {
@@ -28,7 +28,7 @@ async function loadOptionalDependencies() {
   }
 }
 
-export async function createTransport(config: TransportConfig): Promise<any> {
+export async function createTransport(config: TransportConfig): Promise<unknown> {
   switch (config.type) {
     case 'stdio':
       return new StdioServerTransport();

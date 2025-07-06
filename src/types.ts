@@ -80,12 +80,12 @@ export interface Rule {
 
 export interface Behavior {
   name: string;
-  options: Record<string, any>;
+  options: Record<string, unknown>;
 }
 
 export interface Criterion {
   name: string;
-  options: Record<string, any>;
+  options: Record<string, unknown>;
 }
 
 // Activation Types

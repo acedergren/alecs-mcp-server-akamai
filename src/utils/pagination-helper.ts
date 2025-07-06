@@ -74,7 +74,7 @@ export interface PaginatedResponse<T> {
 /**
  * Estimate the token count for a response
  */
-export function estimateTokenCount(data: any): number {
+export function estimateTokenCount(data: unknown): number {
   const jsonString = JSON.stringify(data);
   return Math.ceil(jsonString.length * TOKENS_PER_CHAR);
 }
@@ -82,7 +82,7 @@ export function estimateTokenCount(data: any): number {
 /**
  * Check if response would exceed token limit
  */
-export function wouldExceedTokenLimit(data: any): boolean {
+export function wouldExceedTokenLimit(data: unknown): boolean {
   const estimatedTokens = estimateTokenCount(data);
   return estimatedTokens > MCP_MAX_TOKENS * SAFETY_MARGIN;
 }
@@ -202,7 +202,7 @@ export function truncateResponse<T>(
 /**
  * Format pagination info for display
  */
-export function formatPaginationInfo(pagination: PaginatedResponse<any>['pagination']): string {
+export function formatPaginationInfo(pagination: PaginatedResponse<unknown>['pagination']): string {
   const { page, pageSize, totalItems, totalPages } = pagination;
   const start = (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, totalItems);

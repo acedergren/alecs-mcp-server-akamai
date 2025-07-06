@@ -48,7 +48,7 @@ export interface ProblemDetails {
     messageId?: string;
   }>;
   /** Any additional properties */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -285,7 +285,7 @@ export function createConcurrentModificationError(
 /**
  * Parse Akamai API error responses into RFC 7807 format
  */
-export function parseAkamaiError(error: any): AkamaiError {
+export function parseAkamaiError(error: unknown): AkamaiError {
   // If already an AkamaiError, return it
   if (error instanceof AkamaiError) {
     return error;
@@ -372,7 +372,7 @@ export function parseAkamaiError(error: any): AkamaiError {
 /**
  * Enhanced error handler that uses RFC 7807 format
  */
-export function handleApiErrorRFC7807(error: any, operation: string): MCPToolResponse {
+export function handleApiErrorRFC7807(error: unknown, operation: string): MCPToolResponse {
   const akamaiError = parseAkamaiError(error);
   
   // Add operation context

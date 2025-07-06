@@ -278,7 +278,7 @@ export function formatAppSecConfigDisplay(
  * @param indent - Number of spaces for indentation (default: 2)
  * @returns Formatted JSON string
  */
-export function formatJson(data: any, indent = 2): string {
+export function formatJson(data: unknown, indent = 2): string {
   return JSON.stringify(data, null, indent);
 }
 
@@ -288,7 +288,7 @@ export function formatJson(data: any, indent = 2): string {
  * @param columns - Optional column configuration
  * @returns Formatted table string
  */
-export function formatTable(data: any[], columns?: Array<{ key: string; header: string }>): string {
+export function formatTable(data: unknown[], columns?: Array<{ key: string; header: string }>): string {
   if (!data || data.length === 0) {
     return 'No data';
   }

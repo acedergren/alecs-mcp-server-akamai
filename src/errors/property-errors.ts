@@ -21,7 +21,7 @@ import {
  * Base class for all property operation errors
  */
 export class PropertyOperationError extends AkamaiError {
-  constructor(message: string, code: string, statusCode: number = 400, details?: any) {
+  constructor(message: string, code: string, statusCode: number = 400, details?: unknown) {
     super({
       type: `https://problems.luna.akamaiapis.net/property-manager/v1/${code.toLowerCase()}`,
       title: message,
@@ -209,7 +209,7 @@ export class ActivationInProgressError extends ConflictError {
  * Property rule validation error
  */
 export class RuleValidationError extends BadRequestError {
-  constructor(_propertyId: string, errors: any[]) {
+  constructor(_propertyId: string, errors: unknown[]) {
     const errorSummary = errors.slice(0, 3).map(e => e.detail || e.title).join(', ');
     const message = `Property rules validation failed: ${errorSummary}`;
     

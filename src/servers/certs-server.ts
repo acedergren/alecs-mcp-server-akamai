@@ -62,7 +62,7 @@ import {
   checkSecureByDefaultStatus,
 } from '../tools/secure-by-default-onboarding';
 
-const log = (level: string, message: string, data?: any) => {
+const log = (level: string, message: string, data?: unknown) => {
   const timestamp = new Date().toISOString();
   const logMessage = `[${timestamp}] [CERTS] [${level}] ${message}`;
   if (data) {
@@ -644,7 +644,7 @@ class CertsALECSServer {
     });
 
     // Handle tool calls
-    this.server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> => {
+    this.server.setRequestHandler(CallToolRequestSchema, async (request): Promise<unknown> => {
       const { name, arguments: args } = request.params;
 
       log('INFO', `[CONFIG] Tool called: ${name}`, { args });

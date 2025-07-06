@@ -104,8 +104,8 @@ export async function analyzeHostnameOwnership(
       },
     });
 
-    const validatedResponse = validateApiResponse<{ hostnames?: { items?: any[] } }>(allHostnamesResponse);
-    const hostnamesData = validatedResponse['hostnames'] as { items?: any[] } | undefined;
+    const validatedResponse = validateApiResponse<{ hostnames?: { items?: unknown[] } }>(allHostnamesResponse);
+    const hostnamesData = validatedResponse['hostnames'] as { items?: unknown[] } | undefined;
     const existingHostnames = hostnamesData?.items || [];
     const analyses: HostnameAnalysis[] = [];
 
@@ -127,7 +127,7 @@ export async function analyzeHostnameOwnership(
       }
 
       // Check for exact matches
-      const exactMatch = existingHostnames.find((h: any) => (h['cnameFrom'] as string) === hostname);
+      const exactMatch = existingHostnames.find((h: unknown) => (h['cnameFrom'] as string) === hostname);
 
       if (exactMatch) {
         analysis.status = 'in-use';
@@ -463,8 +463,8 @@ export async function validateHostnamesBulk(
       path: '/papi/v1/hostnames',
       method: 'GET',
     });
-    const validatedResponse = validateApiResponse<{ hostnames?: { items?: any[] } }>(allHostnamesResponse);
-    const hostnamesData2 = validatedResponse['hostnames'] as { items?: any[] } | undefined;
+    const validatedResponse = validateApiResponse<{ hostnames?: { items?: unknown[] } }>(allHostnamesResponse);
+    const hostnamesData2 = validatedResponse['hostnames'] as { items?: unknown[] } | undefined;
     const existingHostnames = hostnamesData2?.items || [];
 
     // Validate each hostname
@@ -663,8 +663,8 @@ export async function findOptimalPropertyAssignment(
       path: '/papi/v1/properties',
       method: 'GET',
     });
-    const validatedPropertiesResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertiesResponse);
-    const propertiesData = validatedPropertiesResponse['properties'] as { items?: any[] } | undefined;
+    const validatedPropertiesResponse = validateApiResponse<{ properties?: { items?: unknown[] } }>(propertiesResponse);
+    const propertiesData = validatedPropertiesResponse['properties'] as { items?: unknown[] } | undefined;
     const existingProperties = propertiesData?.items || [];
 
     // Analyze hostnames for grouping
@@ -952,7 +952,7 @@ function isValidHostname(hostname: string): boolean {
   return hostnameRegex.test(hostname);
 }
 
-function getNetworkStatus(hostname: any): 'STAGING' | 'PRODUCTION' | 'BOTH' | 'NONE' {
+function getNetworkStatus(hostname: unknown): 'STAGING' | 'PRODUCTION' | 'BOTH' | 'NONE' {
   const staging = (hostname['stagingStatus'] as string) === 'ACTIVE';
   const production = (hostname['productionStatus'] as string) === 'ACTIVE';
 
@@ -968,7 +968,7 @@ function getNetworkStatus(hostname: any): 'STAGING' | 'PRODUCTION' | 'BOTH' | 'N
   return 'NONE';
 }
 
-function findWildcardCoverage(hostname: string, existingHostnames: any[]): WildcardCoverage[] {
+function findWildcardCoverage(hostname: string, existingHostnames: unknown[]): WildcardCoverage[] {
   const coverage: WildcardCoverage[] = [];
 
   existingHostnames.forEach((existing) => {
@@ -990,7 +990,7 @@ function findWildcardCoverage(hostname: string, existingHostnames: any[]): Wildc
   return coverage;
 }
 
-function findSubdomainConflicts(hostname: string, existingHostnames: any[]): HostnameConflict[] {
+function findSubdomainConflicts(hostname: string, existingHostnames: unknown[]): HostnameConflict[] {
   const conflicts: HostnameConflict[] = [];
 
   // Check if this hostname would conflict with existing subdomains
@@ -1023,7 +1023,7 @@ function findSubdomainConflicts(hostname: string, existingHostnames: any[]): Hos
 
 function generateHostnameRecommendations(
   analysis: HostnameAnalysis,
-  existingHostnames: any[],
+  existingHostnames: unknown[],
 ): HostnameRecommendation[] {
   const recommendations: HostnameRecommendation[] = [];
 
@@ -1092,7 +1092,7 @@ function generateEdgeHostnameRationale(hostname: string, suffix: string, secure:
   return reasons.join('; ');
 }
 
-function detectHostnameConflicts(hostname: string, existingHostnames: any[]): HostnameConflict[] {
+function detectHostnameConflicts(hostname: string, existingHostnames: unknown[]): HostnameConflict[] {
   const conflicts: HostnameConflict[] = [];
 
   // Check exact match
@@ -1125,7 +1125,7 @@ function detectHostnameConflicts(hostname: string, existingHostnames: any[]): Ho
 
 function generateValidationRecommendations(
   hostname: string,
-  existingHostnames: any[],
+  existingHostnames: unknown[],
 ): HostnameRecommendation[] {
   const recommendations: HostnameRecommendation[] = [];
 
@@ -1244,8 +1244,8 @@ function groupHostnamesByStrategy(
 function findMatchingProperty(
   _groupName: string,
   hostnames: string[],
-  existingProperties: any[],
-): any {
+  existingProperties: unknown[],
+): unknown {
   // Look for properties that already have hostnames from the same domain
   const domain = hostnames[0]?.split('.').slice(-2).join('.');
 

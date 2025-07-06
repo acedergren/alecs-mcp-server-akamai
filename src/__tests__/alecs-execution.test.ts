@@ -15,7 +15,7 @@ jest.mock('../servers/reporting-server');
 
 interface ToolExecutionTest {
   tool: string;
-  params: any;
+  params: unknown;
   expectedSuccess: boolean;
   expectedResponseShape?: any;
   description: string;
@@ -339,7 +339,7 @@ describe('ALECS Tool Execution Tests', () => {
 });
 
 // Mock execution function - in real tests this would call actual tools
-async function executeAlecsToolMock(tool: string, params: any): Promise<any> {
+async function executeAlecsToolMock(tool: string, params: unknown): Promise<unknown> {
   // Basic validation simulation
   if (tool === 'mcp__alecs-property__get_property' && !params.propertyId) {
     return {

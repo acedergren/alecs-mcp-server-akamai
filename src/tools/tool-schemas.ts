@@ -61,7 +61,7 @@ export const GetPropertyRulesSchema = BaseToolSchema.extend({
 export const UpdatePropertyRulesSchema = BaseToolSchema.extend({
   propertyId: z.string().describe('Property ID'),
   version: z.number().describe('Property version'),
-  rules: z.any().describe('Property rules object'),
+  rules: z.unknown().describe('Property rules object'),
   contractId: z.string().optional().describe('Contract ID'),
   groupId: z.string().optional().describe('Group ID'),
 });
@@ -334,7 +334,7 @@ export const BulkClonePropertiesSchema = BaseToolSchema.extend({
 
 export const BulkUpdatePropertyRulesSchema = BaseToolSchema.extend({
   propertyIds: z.array(z.string()).describe('Property IDs to update'),
-  ruleUpdates: z.any().describe('Rule updates to apply'),
+  ruleUpdates: z.unknown().describe('Rule updates to apply'),
   createNewVersion: z.boolean().optional().describe('Create new version for each property'),
 });
 

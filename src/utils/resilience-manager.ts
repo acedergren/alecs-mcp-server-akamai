@@ -87,7 +87,7 @@ export interface ErrorCategory {
 // Recovery strategies
 export interface RecoveryStrategy {
   type: 'RETRY' | 'FALLBACK' | 'CIRCUIT_BREAKER' | 'CACHE' | 'QUEUE' | 'ALERT';
-  config: any;
+  config: unknown;
 }
 
 // Circuit breaker configuration
@@ -240,9 +240,9 @@ export class RetryHandler {
 
   async execute<T>(
     operation: () => Promise<T>,
-    errorHandler?: (_error: any, attempt: number) => boolean,
+    errorHandler?: (_error: unknown, attempt: number) => boolean,
   ): Promise<T> {
-    let lastError: any;
+    let lastError: unknown;
 
     for (let attempt = 1; attempt <= this.config.maxAttempts; attempt++) {
       try {
@@ -427,7 +427,7 @@ export class ErrorClassifier {
     ],
   ]);
 
-  static classify(_error: any): ErrorCategory {
+  static classify(_error: unknown): ErrorCategory {
     let code: string | undefined;
 
     // Extract error code
@@ -459,11 +459,11 @@ export class ErrorClassifier {
     };
   }
 
-  static isRetryable(_error: any): boolean {
+  static isRetryable(_error: unknown): boolean {
     return this.classify(_error).retryable;
   }
 
-  static getSeverity(_error: any): ErrorSeverity {
+  static getSeverity(_error: unknown): ErrorSeverity {
     return this.classify(_error).severity;
   }
 }
@@ -581,7 +581,7 @@ export class ResilienceManager {
     }
   }
 
-  formatUserFriendlyError(_error: any, operationType: OperationType, context?: any): string {
+  formatUserFriendlyError(_error: unknown, operationType: OperationType, context?: Record<string, unknown>): string {
     const category = ErrorClassifier.classify(_error);
 
     // Use existing error translator for base formatting

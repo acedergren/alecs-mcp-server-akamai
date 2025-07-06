@@ -12,7 +12,31 @@ export interface PerformanceMetrics {
   responseSize?: number;
   cacheHit?: boolean;
   errorOccurred?: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
+}
+
+// Batch processing interfaces
+export interface BatchRequest<T = unknown> {
+  request: T;
+  resolve: (value: unknown) => void;
+  reject: (reason: Error) => void;
+}
+
+export interface BatchProcessorResult<T = unknown> {
+  data: T;
+  error?: Error;
+}
+
+// Metadata cache types
+export interface MetadataEntry {
+  readonly type: 'property' | 'dns' | 'certificate' | 'network-list' | 'other';
+  readonly id: string;
+  readonly name?: string;
+  readonly lastModified?: string;
+  readonly version?: number;
+  readonly contractId?: string;
+  readonly groupId?: string;
+  readonly additionalData?: Record<string, unknown>;
 }
 
 export interface PerformanceAnalysis {
@@ -58,7 +82,7 @@ export class PerformanceMonitor {
     };
   }
 
-  startOperation(operationType: string, metadata?: Record<string, any>): string {
+  startOperation(operationType: string, metadata?: Record<string, unknown>): string {
     const operationId = `${operationType}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const metric: PerformanceMetrics = {
       operationType,
@@ -76,7 +100,7 @@ export class PerformanceMonitor {
       responseSize?: number;
       cacheHit?: boolean;
       errorOccurred?: boolean;
-      additionalMetadata?: Record<string, any>;
+      additionalMetadata?: Record<string, unknown>;
     },
   ): PerformanceMetrics | null {
     const metric = this.activeOperations.get(operationId);
@@ -368,12 +392,12 @@ export class SmartCache<T> {
     let lruKey: string | null = null;
     let lruTime = Date.now();
 
-    for (const [key, entry] of this.cache.entries()) {
+    this.cache.forEach((entry, key) => {
       if (entry.lastAccessed < lruTime) {
         lruTime = entry.lastAccessed;
         lruKey = key;
       }
-    }
+    });
 
     if (lruKey) {
       this.cache.delete(lruKey);
@@ -385,12 +409,12 @@ export class SmartCache<T> {
     const now = Date.now();
     let removed = 0;
 
-    for (const [key, entry] of this.cache.entries()) {
+    this.cache.forEach((entry, key) => {
       if (now > entry.timestamp + entry.ttl) {
         this.cache.delete(key);
         removed++;
       }
-    }
+    });
 
     return removed;
   }
@@ -398,7 +422,7 @@ export class SmartCache<T> {
 
 // Request optimization utilities
 export class RequestOptimizer {
-  private batchQueue: Map<string, any[]> = new Map();
+  private batchQueue: Map<string, BatchRequest[]> = new Map();
   private batchTimers: Map<string, NodeJS.Timeout> = new Map();
   private maxBatchSize: number;
   private batchTimeoutMs: number;
@@ -408,19 +432,19 @@ export class RequestOptimizer {
     this.batchTimeoutMs = options?.batchTimeoutMs || 100;
   }
 
-  // Add _request to batch queue
-  addToBatch<T>(
+  // Add request to batch queue
+  addToBatch<T, R = unknown>(
     batchKey: string,
-    _request: T,
-    processor: (requests: T[]) => Promise<any[]>,
-  ): Promise<any> {
+    request: T,
+    processor: (requests: T[]) => Promise<R[]>,
+  ): Promise<R> {
     return new Promise((resolve, reject) => {
       if (!this.batchQueue.has(batchKey)) {
         this.batchQueue.set(batchKey, []);
       }
 
       const batch = this.batchQueue.get(batchKey)!;
-      batch.push({ _request, resolve, reject });
+      batch.push({ request, resolve, reject });
 
       // Process immediately if batch is full
       if (batch.length >= this.maxBatchSize) {
@@ -437,9 +461,9 @@ export class RequestOptimizer {
     });
   }
 
-  private async processBatch<T>(
+  private async processBatch<T, R = unknown>(
     batchKey: string,
-    processor: (requests: T[]) => Promise<any[]>,
+    processor: (requests: T[]) => Promise<R[]>,
   ): Promise<void> {
     const batch = this.batchQueue.get(batchKey);
     if (!batch || batch.length === 0) {
@@ -455,30 +479,30 @@ export class RequestOptimizer {
     }
 
     try {
-      const requests = batch.map((item) => item._request);
+      const requests = batch.map((item) => item.request as T);
       const results = await processor(requests);
 
       // Resolve each promise with corresponding result
       batch.forEach((item, index) => {
         item.resolve(results[index]);
       });
-    } catch (_error) {
+    } catch (error) {
       // Reject all promises with the error
       batch.forEach((item) => {
-        item.reject(_error);
+        item.reject(error instanceof Error ? error : new Error(String(error)));
       });
     }
   }
 
   // Force process all pending batches
   flushAll(): void {
-    for (const batchKey of this.batchQueue.keys()) {
+    this.batchQueue.forEach((_, batchKey) => {
       const timer = this.batchTimers.get(batchKey);
       if (timer) {
         clearTimeout(timer);
         this.batchTimers.delete(batchKey);
       }
-    }
+    });
   }
 }
 
@@ -486,35 +510,35 @@ export class RequestOptimizer {
 export const globalPerformanceMonitor = new PerformanceMonitor();
 
 // Global cache instances
-export const responseCache = new SmartCache<any>({
+export const responseCache = new SmartCache<unknown>({
   defaultTtl: 300000, // 5 minutes
   maxSize: 500,
   performanceMonitor: globalPerformanceMonitor,
 });
 
-export const metadataCache = new SmartCache<any>({
+export const metadataCache = new SmartCache<MetadataEntry>({
   defaultTtl: 600000, // 10 minutes
   maxSize: 1000,
   performanceMonitor: globalPerformanceMonitor,
 });
 
-// Global _request optimizer
+// Global request optimizer
 export const globalRequestOptimizer = new RequestOptimizer({
   maxBatchSize: 5,
   batchTimeoutMs: 50,
 });
 
 // Performance decorator for automatic monitoring
-export function withPerformanceMonitoring<T extends (...args: any[]) => Promise<any>>(
+export function withPerformanceMonitoring<T extends (...args: unknown[]) => Promise<unknown>>(
   operationType: string,
   fn: T,
   options?: {
     enableCaching?: boolean;
-    cacheKeyGenerator?: (...args: any[]) => string;
+    cacheKeyGenerator?: (...args: unknown[]) => string;
     cacheTtl?: number;
   },
 ): T {
-  return (async (...args: any[]) => {
+  return (async (...args: unknown[]) => {
     // Check cache first if enabled
     if (options?.enableCaching && options?.cacheKeyGenerator) {
       const cacheKey = options.cacheKeyGenerator(...args);

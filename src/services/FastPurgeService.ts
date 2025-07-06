@@ -178,7 +178,7 @@ export class FastPurgeService {
           OperationType.BULK_OPERATION,
           operation,
         );
-      } catch (_error: any) {
+      } catch (_error: unknown) {
         lastError = _error;
 
         // Handle rate limiting
@@ -210,7 +210,7 @@ export class FastPurgeService {
     throw lastError || new Error(`Failed after ${this.MAX_RETRIES} retries`);
   }
 
-  private parseRateLimitHeaders(headers: any): RateLimitInfo {
+  private parseRateLimitHeaders(headers: unknown): RateLimitInfo {
     // CODE KAI: Handle optional properties for exact type compliance
     const rateLimitInfo: RateLimitInfo = {
       limit: parseInt(headers?.['x-ratelimit-limit'] || '100'),
@@ -301,7 +301,7 @@ export class FastPurgeService {
         });
 
         processedCount += batchSize;
-      } catch (_error: any) {
+      } catch (_error: unknown) {
         logger.error(
           `FastPurge error: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
@@ -382,7 +382,7 @@ export class FastPurgeService {
           title: response.data.title,
           pingAfterSeconds: response.data.pingAfterSeconds,
         });
-      } catch (_error: any) {
+      } catch (_error: unknown) {
         logger.error(
           `FastPurge error: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
@@ -468,7 +468,7 @@ export class FastPurgeService {
         });
 
         processedCount += batchSize;
-      } catch (_error: any) {
+      } catch (_error: unknown) {
         logger.error(
           `FastPurge error: ${_error instanceof Error ? _error.message : String(_error)}`,
         );
@@ -524,7 +524,7 @@ export class FastPurgeService {
         supportId: response.data.supportId,
         customer: customer,
       };
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       logger.error(
         `FastPurge validation error: ${_error instanceof Error ? _error.message : String(_error)}`,
       );

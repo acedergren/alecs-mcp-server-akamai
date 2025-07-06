@@ -832,7 +832,7 @@ export async function listPropertiesTreeView(
     const groupsResponse = groupsRawResponse as PapiGroupsListResponse;
     
     // CODE KAI: Type-safe API response validation
-    const validatedGroupsResponse = validateApiResponse<{ groups: { items: any[] } }>(groupsResponse);
+    const validatedGroupsResponse = validateApiResponse<{ groups: { items: unknown[] } }>(groupsResponse);
 
     if (!validatedGroupsResponse.groups?.items?.length) {
       return {
@@ -1395,7 +1395,7 @@ export async function getProperty(
             },
           ],
         };
-      } catch (searchError: any) {
+      } catch (searchError: unknown) {
         // If search fails, provide helpful error message
         if (searchError.message?.includes('404')) {
           return {
@@ -1846,7 +1846,7 @@ export async function createProperty(
         },
       ],
     };
-  } catch (_error: any) {
+  } catch (_error: unknown) {
     // Handle 403 Forbidden with human-readable context
     if (_error.response?.status === 403) {
       const errorMessage = await format403Error(
@@ -2076,7 +2076,7 @@ function generateEdgeHostname(hostname: string, certificateType: string): string
 /**
  * Generate certificate configuration details
  */
-function generateCertificateConfig(config: { certificateType: string }): Record<string, any> {
+function generateCertificateConfig(config: { certificateType: string }): Record<string, unknown> {
   const certConfigs = {
     'default-dv': {
       type: 'Default DV Certificate',
@@ -2108,7 +2108,7 @@ function generateCertificateConfig(config: { certificateType: string }): Record<
 /**
  * Generate required DNS records
  */
-function generateDNSRecords(config: any): any[] {
+function generateDNSRecords(config: unknown): unknown[] {
   const records = [
     {
       type: 'CNAME',
@@ -2139,7 +2139,7 @@ function generateDNSRecords(config: any): any[] {
 /**
  * Generate Default DV validation details
  */
-function generateDVValidation(config: any): any {
+function generateDVValidation(config: unknown): unknown {
   if (config.domainValidationMethod === 'auto-dns') {
     return {
       method: 'Auto DNS Validation',
@@ -2168,7 +2168,7 @@ function generateDVValidation(config: any): any {
 /**
  * Generate next steps guidance
  */
-function generateDeliveryNextSteps(config: any): any {
+function generateDeliveryNextSteps(config: unknown): unknown {
   const steps = {
     immediate: [
       '1. Create the required DNS records shown below',
@@ -2201,7 +2201,7 @@ function generateDeliveryNextSteps(config: any): any {
 /**
  * Generate monitoring and alerting guidance
  */
-function generateMonitoringGuidance(config: any): any {
+function generateMonitoringGuidance(config: unknown): unknown {
   if (config.enableMonitoring && config.certificateType === 'default-dv') {
     return {
       required: true,
@@ -2232,7 +2232,7 @@ function generateMonitoringGuidance(config: any): any {
 /**
  * Format delivery configuration preview
  */
-function formatDeliveryConfigPreview(config: any): MCPToolResponse {
+function formatDeliveryConfigPreview(config: unknown): MCPToolResponse {
   let output = `[SEARCH] **Delivery Configuration Preview**\n\n`;
   
   output += `**Recommended Configuration:**\n`;
@@ -2258,7 +2258,7 @@ function formatDeliveryConfigPreview(config: any): MCPToolResponse {
 /**
  * Format successful delivery configuration response
  */
-function formatDeliveryConfigSuccess(config: any): MCPToolResponse {
+function formatDeliveryConfigSuccess(config: unknown): MCPToolResponse {
   let output = `[SUCCESS] **Delivery Configuration Created Successfully**\n\n`;
   
   // Property summary
@@ -2276,7 +2276,7 @@ function formatDeliveryConfigSuccess(config: any): MCPToolResponse {
   
   // Required DNS records
   output += `**[TOOL] Required DNS Records:**\n`;
-  config.dnsRecords.forEach((record: any, index: number) => {
+  config.dnsRecords.forEach((record: unknown, index: number) => {
     output += `${index + 1}. \`${record.name} ${record.type} ${record.value}\`\n`;
     output += `   ${record.purpose}\n\n`;
   });
@@ -2380,7 +2380,7 @@ export async function listContracts(
     if (args.searchTerm) {
       const searchLower = args.searchTerm.toLowerCase();
       contracts = contracts.filter(
-        (c: any) =>
+        (c: unknown) =>
           c.contractId.toLowerCase().includes(searchLower) ||
           c.contractTypeName?.toLowerCase().includes(searchLower),
       );
@@ -2410,7 +2410,7 @@ export async function listContracts(
     }
 
     // Build structured response
-    const structuredContracts = contracts.map((contract: any) => ({
+    const structuredContracts = contracts.map((contract: unknown) => ({
       contractId: contract.contractId || null,
       contractTypeName: contract.contractTypeName || 'Standard',
       status: contract.status || 'Active',
@@ -2420,7 +2420,7 @@ export async function listContracts(
 
     // Analyze contract types
     const contractTypes = new Map<string, number>();
-    contracts.forEach((c: any) => {
+    contracts.forEach((c: unknown) => {
       const type = c.contractTypeName || 'Standard';
       contractTypes.set(type, (contractTypes.get(type) || 0) + 1);
     });
@@ -2429,8 +2429,8 @@ export async function listContracts(
       contracts: structuredContracts,
       summary: {
         byType: Object.fromEntries(contractTypes),
-        activeCount: contracts.filter((c: any) => c.status === 'Active' || !c.status).length,
-        inactiveCount: contracts.filter((c: any) => c.status && c.status !== 'Active').length
+        activeCount: contracts.filter((c: unknown) => c.status === 'Active' || !c.status).length,
+        inactiveCount: contracts.filter((c: unknown) => c.status && c.status !== 'Active').length
       },
       metadata: {
         total: totalContracts,
@@ -2518,7 +2518,7 @@ export async function listGroups(
     if (args.searchTerm) {
       const searchLower = args.searchTerm.toLowerCase();
       groups = groups.filter(
-        (g: any) =>
+        (g: unknown) =>
           g.groupName.toLowerCase().includes(searchLower) ||
           g.groupId.toLowerCase().includes(searchLower),
       );
@@ -2565,9 +2565,9 @@ export async function listGroups(
     const paginated = paginateArray(groups, paginationOptions);
 
     // Build hierarchy only for paginated items
-    const topLevelGroups = paginated.items.filter((g: any) => !g.parentGroupId);
+    const topLevelGroups = paginated.items.filter((g: unknown) => !g.parentGroupId);
     const groupsByParent = paginated.items.reduce(
-      (acc: any, group: any) => {
+      (acc: unknown, group: unknown) => {
         if (group.parentGroupId) {
           if (!acc[group.parentGroupId]) {
             acc[group.parentGroupId] = [];
@@ -2722,9 +2722,9 @@ export async function listProducts(
     text += `Found ${products.length} products available for use:\n\n`;
 
     // Group products by category
-    const deliveryProducts: any[] = [];
-    const securityProducts: any[] = [];
-    const otherProducts: any[] = [];
+    const deliveryProducts: unknown[] = [];
+    const securityProducts: unknown[] = [];
+    const otherProducts: unknown[] = [];
 
     for (const product of products) {
       const productId = product.productId || '';
@@ -2892,7 +2892,7 @@ async function prepareBulkSearch(
     );
 
     // Add filters if provided
-    const requestBody: any = {
+    const requestBody: unknown = {
       bulkSearchQuery,
     };
 
@@ -3024,7 +3024,7 @@ async function getBulkSearchResults(
   };
 
   return withToolErrorHandling(async () => {
-    const queryParams: any = {};
+    const queryParams: unknown = {};
     if (args.page) {queryParams.page = args.page;}
     if (args.pageSize) {queryParams.pageSize = args.pageSize;}
 
@@ -3079,7 +3079,7 @@ async function synchronousBulkSearch(
     // Build search query
     const bulkSearchQuery = buildBulkSearchQuery(args.searchType, args.searchValue);
 
-    const requestBody: any = {
+    const requestBody: unknown = {
       bulkSearchQuery,
     };
 
@@ -3117,8 +3117,8 @@ async function synchronousBulkSearch(
 /**
  * Build search query based on search type
  */
-function buildBulkSearchQuery(searchType: string, searchValue: string): any {
-  const queries: Record<string, any> = {
+function buildBulkSearchQuery(searchType: string, searchValue: string): unknown {
+  const queries: Record<string, unknown> = {
     origin: {
       match: searchValue,
       syntax: 'JSONPATH',
@@ -3174,7 +3174,7 @@ function buildBulkSearchQuery(searchType: string, searchValue: string): any {
 /**
  * Extract bulk search ID from response
  */
-function extractBulkSearchId(response: any): string {
+function extractBulkSearchId(response: unknown): string {
   // Try different response formats
   if (response.bulkSearchId) {
     return response.bulkSearchId;
@@ -3194,8 +3194,8 @@ function extractBulkSearchId(response: any): string {
 /**
  * Format bulk search results for readability
  */
-function formatBulkSearchResults(results: any): any {
-  const formatted: any = {
+function formatBulkSearchResults(results: unknown): unknown {
+  const formatted: unknown = {
     summary: {
       totalMatches: 0,
       totalProperties: 0,
@@ -3206,7 +3206,7 @@ function formatBulkSearchResults(results: any): any {
 
   if (results.results && Array.isArray(results.results)) {
     for (const result of results.results) {
-      const propertyMatch: any = {
+      const propertyMatch: unknown = {
         propertyId: result.propertyId,
         propertyName: result.propertyName,
         propertyVersion: result.propertyVersion,

@@ -9,6 +9,15 @@ import { validateApiResponse } from '../utils/api-response-validator';
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
 
+
+
+// Common type definitions for Akamai API responses
+type PeriodType = { start: string; end: string; granularity?: string };
+type FilterType = { hostname?: string; cpCode?: string; region?: string; contentType?: string };
+type TimeSeriesData = Array<{ timestamp: string; value: number }>;
+type MetricData = { [key: string]: number | string };
+type AkamaiResponse<T = unknown> = { data?: T; error?: string; status?: number };
+
 // Bulk operation types
 export interface BulkOperation {
   id: string;
@@ -68,7 +77,7 @@ export interface BulkRuleUpdateOptions {
   rulePatches: Array<{
     op: 'add' | 'remove' | 'replace' | 'copy' | 'move';
     path: string;
-    value?: any;
+    value?: unknown;
     from?: string;
   }>;
   createNewVersion?: boolean;
@@ -94,7 +103,7 @@ export interface BulkHostnameOptions {
 class BulkOperationTracker {
   private operations: Map<string, BulkOperation> = new Map();
 
-  createOperation(type: BulkOperation['type'], totalItems: number, metadata: any): string {
+  createOperation(type: BulkOperation['type'], totalItems: number, metadata: unknown): string {
     const id = `bulk-${type}-${Date.now()}`;
     const operation: BulkOperation = {
       id,
@@ -190,7 +199,7 @@ export async function bulkCloneProperties(
       method: 'GET',
     });
 
-    const validatedResponse = validateApiResponse<{ properties?: { items?: any[] } }>(sourceResponse);
+    const validatedResponse = validateApiResponse<{ properties?: { items?: unknown[] } }>(sourceResponse);
     const sourceProperty = validatedResponse.properties?.items?.[0];
     if (!sourceProperty) {
       throw new Error('Source property not found');
@@ -204,7 +213,7 @@ export async function bulkCloneProperties(
         Accept: 'application/vnd.akamai.papirules.v2024-02-12+json',
       },
     });
-    const validatedRulesResponse = validateApiResponse<{ rules: any }>(rulesResponse);
+    const validatedRulesResponse = validateApiResponse<{ rules: unknown }>(rulesResponse);
 
     // Get source property hostnames if needed
     let sourceHostnames = [];
@@ -213,7 +222,7 @@ export async function bulkCloneProperties(
         path: `/papi/v1/properties/${args.sourcePropertyId}/versions/${sourceProperty.latestVersion}/hostnames`,
         method: 'GET',
       });
-      const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: any[] } }>(hostnamesResponse);
+      const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: unknown[] } }>(hostnamesResponse);
       sourceHostnames = validatedHostnamesResponse.hostnames?.items || [];
     }
 
@@ -439,7 +448,7 @@ export async function bulkActivateProperties(
           method: 'GET',
         });
 
-        const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+        const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: unknown[] } }>(propertyResponse);
         const property = validatedPropertyResponse.properties?.items?.[0];
         if (!property) {
           throw new Error('Property not found');
@@ -677,7 +686,7 @@ export async function bulkUpdatePropertyRules(
           method: 'GET',
         });
 
-        const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+        const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: unknown[] } }>(propertyResponse);
         const property = validatedPropertyResponse.properties?.items?.[0];
         if (!property) {
           throw new Error('Property not found');
@@ -718,7 +727,7 @@ export async function bulkUpdatePropertyRules(
           },
         });
 
-        const validatedRulesResponse = validateApiResponse<{ rules: any }>(rulesResponse);
+        const validatedRulesResponse = validateApiResponse<{ rules: unknown }>(rulesResponse);
 
         // Store original rules for rollback
         propertyOp.rollbackData = {
@@ -922,10 +931,10 @@ export async function bulkManageHostnames(
           method: 'GET',
         });
 
-        const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+        const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: unknown[] } }>(propertyResponse);
         const property = validatedPropertyResponse.properties?.items?.[0];
         if (!property) {
-          operation.hostnames.forEach((h: any) => {
+          operation.hostnames.forEach((h: unknown) => {
             results.push({
               propertyId: operation.propertyId,
               propertyName: 'Unknown',
@@ -968,7 +977,7 @@ export async function bulkManageHostnames(
           method: 'GET',
         });
 
-        const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: any[] } }>(hostnamesResponse);
+        const validatedHostnamesResponse = validateApiResponse<{ hostnames?: { items?: unknown[] } }>(hostnamesResponse);
         let hostnames = validatedHostnamesResponse.hostnames?.items || [];
 
         // Process each hostname operation
@@ -976,7 +985,7 @@ export async function bulkManageHostnames(
           try {
             if (operation.action === 'add') {
               // Check if hostname already exists
-              if (hostnames.some((h: any) => h.cnameFrom === hostnameOp.hostname)) {
+              if (hostnames.some((h: unknown) => h.cnameFrom === hostnameOp.hostname)) {
                 results.push({
                   propertyId: operation.propertyId,
                   propertyName: property.propertyName,
@@ -1011,7 +1020,7 @@ export async function bulkManageHostnames(
                 cnameTo: hostnameOp.edgeHostname || `${hostnameOp.hostname}.edgekey.net`,
               });
             } else if (operation.action === 'remove') {
-              hostnames = hostnames.filter((h: any) => h.cnameFrom !== hostnameOp.hostname);
+              hostnames = hostnames.filter((h: unknown) => h.cnameFrom !== hostnameOp.hostname);
             }
 
             results.push({
@@ -1061,7 +1070,7 @@ export async function bulkManageHostnames(
           });
         }
       } catch (_error) {
-        operation.hostnames.forEach((h: any) => {
+        operation.hostnames.forEach((h: unknown) => {
           results.push({
             propertyId: operation.propertyId,
             propertyName: 'Unknown',
@@ -1259,11 +1268,11 @@ export async function getBulkOperationStatus(
 }
 
 // Helper functions
-function applyJsonPatch(obj: any, patch: any): any {
+function applyJsonPatch(obj: unknown, patch: unknown): unknown {
   // Simple JSON patch implementation
   const cloned = JSON.parse(JSON.stringify(obj));
 
-  const getValueAtPath = (obj: any, path: string): any => {
+  const getValueAtPath = (obj: unknown, path: string): any => {
     const parts = path.split('/').filter((p) => p);
     let current = obj;
     for (const part of parts) {
@@ -1283,7 +1292,7 @@ function applyJsonPatch(obj: any, patch: any): any {
     return current;
   };
 
-  const setValueAtPath = (obj: any, path: string, value: any): void => {
+  const setValueAtPath = (obj: unknown, path: string, value: unknown): void => {
     const parts = path.split('/').filter((p) => p);
     let current = obj;
     for (let i = 0; i < parts.length - 1; i++) {

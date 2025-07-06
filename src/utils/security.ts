@@ -154,8 +154,8 @@ export class MessageValidator {
     // Remove any potentially dangerous fields
     const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
     
-    const removeDangerous = (obj: any): any => {
-      const cleaned: any = {};
+    const removeDangerous = (obj: unknown): any => {
+      const cleaned: unknown = {};
       for (const key of Object.keys(obj)) {
         if (!dangerousKeys.includes(key)) {
           if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
@@ -209,7 +209,7 @@ export function getSecurityHeaders(): Record<string, string> {
 /**
  * Create request identifier for rate limiting
  */
-export function createRequestIdentifier(request: any): string {
+export function createRequestIdentifier(request: unknown): string {
   // Use a combination of IP and user agent for identification
   const ip = request.ip || request.connection?.remoteAddress || 'unknown';
   const userAgent = request.headers?.['user-agent'] || 'unknown';

@@ -87,7 +87,7 @@ export async function universalSearchWithCacheHandler(
       await cache.warmCache(client, customer);
     }
 
-    const results: any = {
+    const results: unknown = {
       query: args.query,
       queryTypes: queryTypes,
       matches: [],
@@ -223,7 +223,7 @@ export async function universalSearchWithCacheHandler(
             ? await cache.getContracts(client, customer)
             : await fetchContractsDirectly(client);
 
-          const contract = contracts.find((c: any) => c.contractId === args.query);
+          const contract = contracts.find((c: unknown) => c.contractId === args.query);
 
           if (contract) {
             results.matches.push({
@@ -244,7 +244,7 @@ export async function universalSearchWithCacheHandler(
             ? await cache.getGroups(client, customer)
             : await fetchGroupsDirectly(client);
 
-          const group = groups.find((g: any) => g.groupId === args.query);
+          const group = groups.find((g: unknown) => g.groupId === args.query);
 
           if (group) {
             results.matches.push({
@@ -261,11 +261,11 @@ export async function universalSearchWithCacheHandler(
 
     // Update summary
     results.summary.totalMatches = results.matches.length;
-    results.summary.resourceTypes = [...new Set(results.matches.map((m: any) => m.type))];
+    results.summary.resourceTypes = [...new Set(results.matches.map((m: unknown) => m.type))];
     results.performance.searchTimeMs = Date.now() - startTime;
 
     // Get cache stats if enabled
-    let cacheStats: any = null;
+    let cacheStats: unknown = null;
     if (useCache) {
       cacheStats = await cache.getStats();
     }
@@ -296,7 +296,7 @@ export async function universalSearchWithCacheHandler(
 
           if (r.hostnames) {
             responseText += '• **Hostnames:**\n';
-            r.hostnames.slice(0, 5).forEach((h: any) => {
+            r.hostnames.slice(0, 5).forEach((h: unknown) => {
               responseText += `  - ${h.cnameFrom} → ${h.cnameTo}\n`;
             });
             if (r.hostnames.length > 5) {
@@ -335,7 +335,7 @@ export async function universalSearchWithCacheHandler(
 }
 
 // Helper functions for direct API calls (no cache)
-async function fetchPropertiesDirectly(client: AkamaiClient): Promise<any[]> {
+async function fetchPropertiesDirectly(client: AkamaiClient): Promise<Array<{ timestamp: string; value: number }>> {
   const response = await client.request({
     path: '/papi/v1/properties',
     method: 'GET',
@@ -344,7 +344,7 @@ async function fetchPropertiesDirectly(client: AkamaiClient): Promise<any[]> {
   return validatedResponse.properties?.items || [];
 }
 
-async function fetchHostnamesDirectly(client: AkamaiClient, property: any): Promise<any[]> {
+async function fetchHostnamesDirectly(client: AkamaiClient, property: unknown): Promise<TimeSeriesData> {
   const response = await client.request({
     path: `/papi/v1/properties/${property.propertyId}/versions/${property.latestVersion}/hostnames`,
     method: 'GET',
@@ -357,7 +357,7 @@ async function fetchHostnamesDirectly(client: AkamaiClient, property: any): Prom
   return validatedResponse.hostnames?.items || [];
 }
 
-async function fetchContractsDirectly(client: AkamaiClient): Promise<any[]> {
+async function fetchContractsDirectly(client: AkamaiClient): Promise<TimeSeriesData> {
   const response = await client.request({
     path: '/papi/v1/contracts',
     method: 'GET',
@@ -366,7 +366,7 @@ async function fetchContractsDirectly(client: AkamaiClient): Promise<any[]> {
   return validatedResponse.contracts?.items || [];
 }
 
-async function fetchGroupsDirectly(client: AkamaiClient): Promise<any[]> {
+async function fetchGroupsDirectly(client: AkamaiClient): Promise<TimeSeriesData> {
   const response = await client.request({
     path: '/papi/v1/groups',
     method: 'GET',

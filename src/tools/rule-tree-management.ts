@@ -10,6 +10,15 @@ import { type MCPToolResponse } from '../types';
 import { validateApiResponse } from '../utils/api-response-validator';
 import { z } from 'zod';
 
+
+
+// Common type definitions for Akamai API responses
+type PeriodType = { start: string; end: string; granularity?: string };
+type FilterType = { hostname?: string; cpCode?: string; region?: string; contentType?: string };
+type TimeSeriesData = Array<{ timestamp: string; value: number }>;
+type MetricData = { [key: string]: number | string };
+type AkamaiResponse<T = unknown> = { data?: T; error?: string; status?: number };
+
 // CODE KAI: Type-safe Rule Tree interfaces
 // Key: Complete type safety for Akamai Property Manager Rule Trees
 // Approach: Comprehensive interfaces matching official API specifications  
@@ -91,7 +100,7 @@ const RuleCriterionSchema = z.object({
   templateUuid: z.string().optional(),
 });
 
-const RuleTreeRuleSchema: z.ZodType<any> = z.lazy(() => z.object({
+const RuleTreeRuleSchema: z.ZodType<unknown> = z.lazy(() => z.object({
   name: z.string(),
   criteria: z.array(RuleCriterionSchema).optional(),
   behaviors: z.array(RuleBehaviorSchema).optional(),
@@ -1454,17 +1463,17 @@ function mergeRuleNodes(
     mergeChildren(source.children, target.children, `${path}/children`, result, options);
   } else if (source.children) {
     target.children = JSON.parse(JSON.stringify(source.children));
-    const validatedResult = validateApiResponse<{ rulesFromSource: any }>(result);
+    const validatedResult = validateApiResponse<{ rulesFromSource: unknown }>(result);
 
     validatedResult.rulesFromSource += countRules(source);
   }
 }
 
 function mergeBehaviors(
-  sourceBehaviors: any[],
-  targetBehaviors: any[],
+  sourceBehaviors: unknown[],
+  targetBehaviors: unknown[],
   path: string,
-  result: any,
+  result: unknown,
   options: RuleMergeOptions,
 ): void {
   const targetBehaviorMap = new Map(
@@ -1476,7 +1485,7 @@ function mergeBehaviors(
 
     if (existing) {
       // Conflict detected
-      const validatedResult = validateApiResponse<{ conflicts: any }>(result);
+      const validatedResult = validateApiResponse<{ conflicts: unknown }>(result);
 
       validatedResult.conflicts.push({
         path: `${path}[${existing.index}]`,
@@ -1488,7 +1497,7 @@ function mergeBehaviors(
 
       if (options.conflictResolution === 'source') {
         targetBehaviors[existing.index] = JSON.parse(JSON.stringify(sourceBehavior));
-        const validatedResult = validateApiResponse<{ conflictsResolved: any }>(result);
+        const validatedResult = validateApiResponse<{ conflictsResolved: unknown }>(result);
 
         validatedResult.conflictsResolved++;
       }
@@ -1496,7 +1505,7 @@ function mergeBehaviors(
     } else {
       // Add new behavior
       targetBehaviors.push(JSON.parse(JSON.stringify(sourceBehavior)));
-      const validatedResult = validateApiResponse<{ rulesAdded: any }>(result);
+      const validatedResult = validateApiResponse<{ rulesAdded: unknown }>(result);
 
       validatedResult.rulesAdded++;
     }
@@ -1504,10 +1513,10 @@ function mergeBehaviors(
 }
 
 function mergeChildren(
-  sourceChildren: any[],
-  targetChildren: any[],
+  sourceChildren: unknown[],
+  targetChildren: unknown[],
   path: string,
-  result: any,
+  result: unknown,
   options: RuleMergeOptions,
 ): void {
   const targetChildMap = new Map(targetChildren.map((c, index) => [c.name, { child: c, index }]));
@@ -1521,22 +1530,22 @@ function mergeChildren(
     } else {
       // Add new child
       targetChildren.push(JSON.parse(JSON.stringify(sourceChild)));
-      const validatedResult = validateApiResponse<{ rulesAdded: any }>(result);
+      const validatedResult = validateApiResponse<{ rulesAdded: unknown }>(result);
 
       validatedResult.rulesAdded += countRules(sourceChild);
     }
   });
 }
 
-function appendRules(source: any, target: any, result: any): void {
+function appendRules(source: unknown, target: unknown, result: unknown): void {
   if (!target.children) {
     target.children = [];
   }
 
   if (source.children) {
-    source.children.forEach((child: any) => {
+    source.children.forEach((child: unknown) => {
       target.children.push(JSON.parse(JSON.stringify(child)));
-      const validatedResult = validateApiResponse<{ rulesAdded: any }>(result);
+      const validatedResult = validateApiResponse<{ rulesAdded: unknown }>(result);
 
       validatedResult.rulesAdded += countRules(child);
     });
@@ -1546,9 +1555,9 @@ function appendRules(source: any, target: any, result: any): void {
     if (!target.behaviors) {
       target.behaviors = [];
     }
-    source.behaviors.forEach((behavior: any) => {
+    source.behaviors.forEach((behavior: unknown) => {
       target.behaviors.push(JSON.parse(JSON.stringify(behavior)));
-      const validatedResult = validateApiResponse<{ rulesAdded: any }>(result);
+      const validatedResult = validateApiResponse<{ rulesAdded: unknown }>(result);
 
       validatedResult.rulesAdded++;
     });
@@ -1893,7 +1902,7 @@ function applySecurityOptimization(rules: RuleTreeRule, _optimization: RuleOptim
 /**
  * Format error responses
  */
-function formatError(operation: string, _error: any): MCPToolResponse {
+function formatError(operation: string, _error: unknown): MCPToolResponse {
   let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 

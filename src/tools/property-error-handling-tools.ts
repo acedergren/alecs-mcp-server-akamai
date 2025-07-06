@@ -132,7 +132,7 @@ const PropertyVersionItemSchema = z.object({
 }) satisfies z.ZodType<PropertyVersionItem>;
 
 // CODE KAI: Type guard functions for runtime validation
-export function isPropertyVersionResponse(obj: any): obj is PropertyVersionResponse {
+export function isPropertyVersionResponse(obj: unknown): obj is PropertyVersionResponse {
   if (!obj || typeof obj !== 'object') {return false;}
   const response = obj as Record<string, unknown>;
   if (!response['versions'] || typeof response['versions'] !== 'object') {return false;}
@@ -149,7 +149,7 @@ export function isPropertyVersionResponse(obj: any): obj is PropertyVersionRespo
   return true;
 }
 
-export function isHostnamesResponse(obj: any): obj is HostnamesResponse {
+export function isHostnamesResponse(obj: unknown): obj is HostnamesResponse {
   if (!obj || typeof obj !== 'object') {return false;}
   const response = obj as Record<string, unknown>;
   if (!response['hostnames']) {return true;} // hostnames is optional
@@ -551,7 +551,7 @@ export async function validatePropertyConfiguration(
         const hostnames = hostnamesData?.items || [];
         
         let certIssues = 0;
-        hostnames.forEach((hostname: any) => {
+        hostnames.forEach((hostname: unknown) => {
           if (hostname.certStatus) {
             const prodStatus = hostname.certStatus.production?.[0]?.status;
             const stagingStatus = hostname.certStatus.staging?.[0]?.status;

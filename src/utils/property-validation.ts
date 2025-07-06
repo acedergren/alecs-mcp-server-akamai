@@ -78,7 +78,7 @@ export async function validatePropertyAccess(
       accessible: true,
       property
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Detailed error analysis for better user experience
     const statusCode = error.response?.status;
     
@@ -176,7 +176,7 @@ export async function withPropertyValidation<T>(
   // Property is valid and accessible, proceed with operation
   try {
     return await handler();
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Wrap errors with context
     throw new ToolError({
       operation,
@@ -193,7 +193,7 @@ export async function withPropertyValidation<T>(
 /**
  * Get helpful suggestions based on operation and error
  */
-function getOperationErrorSuggestion(operation: string, error: any): string {
+function getOperationErrorSuggestion(operation: string, error: unknown): string {
   const statusCode = error.response?.status;
   
   if (statusCode === 400) {

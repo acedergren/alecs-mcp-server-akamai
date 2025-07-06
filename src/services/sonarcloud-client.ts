@@ -16,7 +16,7 @@ const SonarCloudIssueSchema = z.object({
     startOffset: z.number(),
     endOffset: z.number(),
   }).optional(),
-  flows: z.array(z.any()).optional(),
+  flows: z.array(z.unknown()).optional(),
   status: z.enum(['OPEN', 'CONFIRMED', 'REOPENED', 'RESOLVED', 'CLOSED']),
   message: z.string(),
   effort: z.string().optional(),
@@ -54,7 +54,7 @@ const IssuesResponseSchema = z.object({
   issues: z.array(SonarCloudIssueSchema),
   components: z.array(SonarCloudComponentSchema),
   rules: z.array(SonarCloudRuleSchema).optional(),
-  facets: z.array(z.any()).optional(),
+  facets: z.array(z.unknown()).optional(),
   paging: z.object({
     pageIndex: z.number(),
     pageSize: z.number(),
@@ -74,7 +74,7 @@ const QualityGateStatusSchema = z.object({
       warningThreshold: z.string().optional(),
       actualValue: z.string().optional(),
     })),
-    periods: z.array(z.any()).optional(),
+    periods: z.array(z.unknown()).optional(),
     ignoredConditions: z.boolean().optional(),
   }),
 });

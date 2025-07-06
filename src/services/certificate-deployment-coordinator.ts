@@ -298,7 +298,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
   }
 
   private async initiateDeployment(enrollmentId: number, network: string): Promise<number> {
-    const response = await this.client.request<any>({
+    const response = await this.client.request<unknown>({
       method: 'POST',
       path: `/cps/v2/enrollments/${enrollmentId}/deployments`,
       headers: {
@@ -433,7 +433,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
       // Update hostnames with certificate enrollment ID
       const hostnames = hostnamesResponse.hostnames?.items || [];
-      const updatedHostnames = hostnames.map((h: any) => ({
+      const updatedHostnames = hostnames.map((h: unknown) => ({
         ...h,
         certEnrollmentId: enrollmentId,
       }));
@@ -480,7 +480,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
     }
   }
 
-  private updateDeploymentProgress(enrollmentId: number, linkingState: any): void {
+  private updateDeploymentProgress(enrollmentId: number, linkingState: unknown): void {
     const deploymentState = this.activeDeployments.get(enrollmentId);
     if (deploymentState) {
       deploymentState.propertyLinking = linkingState;

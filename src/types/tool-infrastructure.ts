@@ -22,7 +22,7 @@ export interface BaseToolArgs {
  * Tool implementation function type with strict typing
  */
 export type ToolImplementation<TArgs extends BaseToolArgs = BaseToolArgs> = (
-  client: any, // Will be AkamaiClient
+  client: unknown, // Will be AkamaiClient
   args: TArgs
 ) => Promise<MCPToolResponse>;
 
@@ -70,7 +70,7 @@ export class ToolError extends Error {
     public readonly context: {
       operation: string;
       toolName: string;
-      args: Record<string, any>;
+      args: Record<string, unknown>;
       customer?: string;
       propertyId?: string;
       originalError?: Error;
@@ -144,7 +144,7 @@ export type ValidateToolParams<TDef, TImpl> = TDef extends TImpl ? TDef : never;
  * Runtime tool registry with type safety
  */
 export class ToolRegistry {
-  private tools = new Map<string, ToolDefinition<any>>();
+  private tools = new Map<string, ToolDefinition<unknown>>();
 
   /**
    * Register a tool with compile-time and runtime validation

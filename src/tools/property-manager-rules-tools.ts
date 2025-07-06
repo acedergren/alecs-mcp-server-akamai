@@ -31,7 +31,7 @@ export async function listAvailableBehaviors(
         method: 'GET',
       });
 
-      const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+      const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: unknown[] } }>(propertyResponse);
       const property = validatedPropertyResponse.properties?.items?.[0];
       if (!property) {
         return {
@@ -67,7 +67,7 @@ export async function listAvailableBehaviors(
       },
     });
 
-    const validatedBehaviorsResponse = validateApiResponse<{ behaviors?: { items?: any[] } }>(response);
+    const validatedBehaviorsResponse = validateApiResponse<{ behaviors?: { items?: unknown[] } }>(response);
     if (!validatedBehaviorsResponse.behaviors?.items || validatedBehaviorsResponse.behaviors.items.length === 0) {
       return {
         content: [
@@ -182,7 +182,7 @@ export async function listAvailableCriteria(
         method: 'GET',
       });
 
-      const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+      const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: unknown[] } }>(propertyResponse);
       const property = validatedPropertyResponse.properties?.items?.[0];
       if (!property) {
         return {
@@ -218,7 +218,7 @@ export async function listAvailableCriteria(
       },
     });
 
-    const validatedCriteriaResponse = validateApiResponse<{ criteria?: { items?: any[] } }>(response);
+    const validatedCriteriaResponse = validateApiResponse<{ criteria?: { items?: unknown[] } }>(response);
     if (!validatedCriteriaResponse.criteria?.items || validatedCriteriaResponse.criteria.items.length === 0) {
       return {
         content: [
@@ -319,7 +319,7 @@ export async function patchPropertyRules(
     patches: Array<{
       op: 'add' | 'remove' | 'replace' | 'move' | 'copy' | 'test';
       path: string;
-      value?: any;
+      value?: unknown;
       from?: string;
     }>;
     validateRules?: boolean;
@@ -333,7 +333,7 @@ export async function patchPropertyRules(
       method: 'GET',
     });
 
-    const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+    const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: unknown[] } }>(propertyResponse);
     const property = validatedPropertyResponse.properties?.items?.[0];
     if (!property) {
       return {
@@ -359,7 +359,7 @@ export async function patchPropertyRules(
       body: args.patches,
     });
 
-    const validatedPatchResponse = validateApiResponse<{ errors?: any[], warnings?: any[] }>(response);
+    const validatedPatchResponse = validateApiResponse<{ errors?: unknown[], warnings?: unknown[] }>(response);
     let text = '[DONE] **Rule Tree Patched Successfully**\n\n';
     text += `**Property:** ${property.propertyName} (${args.propertyId})\n`;
     text += `**Version:** ${version}\n`;
@@ -426,7 +426,7 @@ export async function bulkSearchProperties(
 ): Promise<MCPToolResponse> {
   try {
     // Initiate bulk search
-    const searchBody: any = {
+    const searchBody: unknown = {
       bulkSearchQuery: {
         jsonPath: args.jsonPath,
       },
@@ -513,7 +513,7 @@ export async function getBulkSearchResults(
     });
 
     const validatedSearchResponse = validateApiResponse<{ 
-      results?: any, 
+      results?: unknown, 
       searchStatus?: string, 
       searchProgress?: number,
       searchError?: string 
@@ -766,7 +766,7 @@ export async function getPropertyAuditHistory(
       method: 'GET',
     });
 
-    const validatedActivationsResponse = validateApiResponse<{ activations?: { items?: any[] } }>(response);
+    const validatedActivationsResponse = validateApiResponse<{ activations?: { items?: unknown[] } }>(response);
     let text = `# Property Audit History: ${args.propertyId}\n\n`;
 
     if (args.startDate) {
@@ -828,7 +828,7 @@ export async function getPropertyAuditHistory(
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, _error: any): MCPToolResponse {
+function formatError(operation: string, _error: unknown): MCPToolResponse {
   let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 

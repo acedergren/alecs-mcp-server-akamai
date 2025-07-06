@@ -128,7 +128,7 @@ export async function validatePropertyActivation(
               method: 'GET',
           });
 
-    const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: any[] } }>(propertyResponse);
+    const validatedPropertyResponse = validateApiResponse<{ properties?: { items?: unknown[] } }>(propertyResponse);
     if (!validatedPropertyResponse.properties?.items?.[0]) {
       throw new Error('Property not found');
     }
@@ -149,10 +149,10 @@ export async function validatePropertyActivation(
       method: 'GET',
     });
 
-    const validatedRulesValidation = validateApiResponse<{ errors?: any[], warnings?: any[] }>(rulesValidation);
+    const validatedRulesValidation = validateApiResponse<{ errors?: unknown[], warnings?: unknown[] }>(rulesValidation);
     if (validatedRulesValidation.errors && validatedRulesValidation.errors.length > 0) {
       validation.valid = false;
-      validatedRulesValidation.errors.forEach((_error: any) => {
+      validatedRulesValidation.errors.forEach((_error: unknown) => {
         validation.errors.push({
           severity: _error.type === 'error' ? 'CRITICAL' : 'ERROR',
           type: _error.type,
@@ -164,7 +164,7 @@ export async function validatePropertyActivation(
     }
 
     if (validatedRulesValidation.warnings && validatedRulesValidation.warnings.length > 0) {
-      validatedRulesValidation.warnings.forEach((warning: any) => {
+      validatedRulesValidation.warnings.forEach((warning: unknown) => {
         validation.warnings.push({
           severity: 'WARNING',
           type: warning.type,
@@ -195,7 +195,7 @@ export async function validatePropertyActivation(
 
     // 3. Check certificate status for HTTPS hostnames
     const httpsHostnames = hostnames.filter(
-      (h: any) => h.cnameTo && (h.cnameTo.includes('edgekey') || h.cnameTo.includes('edgesuite')),
+      (h: unknown) => h.cnameTo && (h.cnameTo.includes('edgekey') || h.cnameTo.includes('edgesuite')),
     );
 
     if (httpsHostnames.length > 0) {
@@ -209,9 +209,9 @@ export async function validatePropertyActivation(
       method: 'GET',
     });
 
-    const validatedActivationsResponse = validateApiResponse<{ activations?: { items?: any[] } }>(activationsResponse);
+    const validatedActivationsResponse = validateApiResponse<{ activations?: { items?: unknown[] } }>(activationsResponse);
     const pendingActivations = (validatedActivationsResponse.activations?.items || []).filter(
-      (a: any) => a.status === 'PENDING' && a.network === args.network,
+      (a: unknown) => a.status === 'PENDING' && a.network === args.network,
     );
 
     if (pendingActivations.length > 0) {
@@ -376,7 +376,7 @@ export async function activatePropertyWithMonitoring(
       method: 'GET',
     });
 
-    const validatedPropertyResponse = validateApiResponse<{ properties: { items: any[] } }>(propertyResponse);
+    const validatedPropertyResponse = validateApiResponse<{ properties: { items: unknown[] } }>(propertyResponse);
     const property = validatedPropertyResponse.properties.items[0];
     const version = args.version || property.latestVersion || 1;
 
@@ -621,7 +621,7 @@ export async function getActivationProgress(
 
 // Helper functions
 
-function getErrorResolution(_error: any): string {
+function getErrorResolution(_error: unknown): string {
   const resolutions: Record<string, string> = {
     missing_required_behavior: 'Add the required behavior to your rule tree',
     invalid_criteria: 'Update the criteria to use valid values',
@@ -633,7 +633,7 @@ function getErrorResolution(_error: any): string {
   return resolutions[_error.type] || 'Review the error details and update configuration';
 }
 
-async function checkCertificateStatus(hostnames: any[], network: string): Promise<PreflightCheck> {
+async function checkCertificateStatus(hostnames: unknown[], network: string): Promise<PreflightCheck> {
   // In a real implementation, this would check actual certificate status
   const httpsHostnames = hostnames.filter((h) => h.cnameTo?.includes('edgekey'));
 
@@ -679,9 +679,9 @@ async function checkOriginConnectivity(
       method: 'GET',
     });
 
-    const validatedRulesResponse = validateApiResponse<{ rules: any }>(rulesResponse);
+    const validatedRulesResponse = validateApiResponse<{ rules: unknown }>(rulesResponse);
     // Find origin behavior
-    const findOrigin = (rules: any): string | null => {
+    const findOrigin = (rules: unknown): string | null => {
       if (rules.behaviors) {
         for (const behavior of rules.behaviors) {
           if (behavior.name === 'origin' && behavior.options?.hostname) {
@@ -762,7 +762,7 @@ function generateActivationSuggestions(validation: ValidationResult): string[] {
   return suggestions;
 }
 
-function buildActivationProgress(activation: any, startTime: number): ActivationProgress {
+function buildActivationProgress(activation: unknown, startTime: number): ActivationProgress {
   const now = Date.now();
   const elapsed = now - startTime;
 
@@ -836,7 +836,7 @@ function generateProgressBar(percentage: number): string {
 }
 
 function formatActivationSuccess(
-  property: any,
+  property: unknown,
   version: number,
   network: string,
   progress: ActivationProgress,
@@ -859,7 +859,7 @@ function formatActivationSuccess(
 }
 
 function formatActivationFailure(
-  property: any,
+  property: unknown,
   version: number,
   network: string,
   progress: ActivationProgress,
@@ -906,9 +906,9 @@ async function rollbackActivation(
 
     const validatedActivationsResponse = validateApiResponse<{ activations?: { items?: any } }>(activationsResponse);
     const previousActivation = validatedActivationsResponse.activations?.items
-      ?.filter((a: any) => a.network === network && a.status === 'ACTIVE')
+      ?.filter((a: unknown) => a.network === network && a.status === 'ACTIVE')
       ?.sort(
-        (a: any, b: any) => new Date(b.updateDate).getTime() - new Date(a.updateDate).getTime(),
+        (a: unknown, b: unknown) => new Date(b.updateDate).getTime() - new Date(a.updateDate).getTime(),
       )[1];
 
     if (previousActivation) {
@@ -1023,7 +1023,7 @@ export async function createActivationPlan(
           method: 'GET',
         });
 
-        const validatedResponse = validateApiResponse<{ properties?: { items?: any[] } }>(response);
+        const validatedResponse = validateApiResponse<{ properties?: { items?: unknown[] } }>(response);
         if (!validatedResponse.properties?.items?.[0]) {
           throw new Error(`Property ${prop.propertyId} not found`);
         }
@@ -1096,9 +1096,9 @@ export async function createActivationPlan(
   }
 }
 
-function topologicalSort(properties: any[], dependencies: Record<string, string[]>): any[] {
+function topologicalSort(properties: unknown[], dependencies: Record<string, string[]>): unknown[] {
   // Simple topological sort for dependency ordering
-  const sorted: any[] = [];
+  const sorted: unknown[] = [];
   const visited = new Set<string>();
 
   const visit = (propId: string) => {
@@ -1120,7 +1120,7 @@ function topologicalSort(properties: any[], dependencies: Record<string, string[
   return sorted;
 }
 
-function formatDeploymentOrder(properties: any[]): string {
+function formatDeploymentOrder(properties: unknown[]): string {
   let text = '';
   properties.forEach((prop, index) => {
     const version = prop.version || prop.details.latestVersion;
@@ -1132,7 +1132,7 @@ function formatDeploymentOrder(properties: any[]): string {
   return text;
 }
 
-function calculateEstimatedTime(properties: any[], strategy: string): { total: number } {
+function calculateEstimatedTime(properties: unknown[], strategy: string): { total: number } {
   const baseTime = properties.reduce((sum, prop) => {
     return sum + (prop.network === 'PRODUCTION' ? 30 : 10);
   }, 0);

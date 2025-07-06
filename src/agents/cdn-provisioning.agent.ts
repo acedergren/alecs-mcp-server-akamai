@@ -30,9 +30,9 @@ interface PropertyVersion {
 
 interface RuleTree {
   name: string;
-  children: any[];
-  behaviors: any[];
-  criteria: any[];
+  children: unknown[];
+  behaviors: unknown[];
+  criteria: unknown[];
   criteriaMustSatisfy?: string;
   comments?: string;
 }
@@ -229,7 +229,7 @@ export class CDNProvisioningAgent {
     propertyId: string,
     version: number,
     template: 'origin' | 'caching' | 'performance' | 'security',
-    options: any = {},
+    options: LoggerOptions = {},
   ): Promise<void> {
     const spinner = new Spinner();
     spinner.start(`Applying ${template} template`);
@@ -281,7 +281,7 @@ export class CDNProvisioningAgent {
     try {
       progress.update({ current: 1, message: 'Preparing configuration' });
 
-      const request: any = {
+      const request: unknown = {
         productId,
         domainPrefix,
         domainSuffix: options.domainSuffix || 'edgesuite.net',
@@ -354,7 +354,7 @@ export class CDNProvisioningAgent {
 
       progress.update({ current: 10, message: 'Submitting activation request' });
 
-      const request: any = {
+      const request: unknown = {
         propertyVersion: version,
         network,
         activationType: 'FAST',
@@ -533,7 +533,7 @@ export class CDNProvisioningAgent {
   }
 
   // Helper methods
-  private async getGroups(): Promise<any[]> {
+  private async getGroups(): Promise<Array<{ timestamp: string; value: number }>> {
     const response = await this.auth._request<PapiGroupsResponse>({
       method: 'GET',
       path: '/papi/v1/groups',
@@ -585,7 +585,7 @@ export class CDNProvisioningAgent {
     });
   }
 
-  private async getPropertyHostnames(propertyId: string, version: number): Promise<any[]> {
+  private async getPropertyHostnames(propertyId: string, version: number): Promise<TimeSeriesData> {
     const response = await this.auth._request<PapiHostnamesResponse>({
       method: 'GET',
       path: `/papi/v1/properties/${propertyId}/versions/${version}/hostnames?contractId=${this.contractId}&groupId=${this.groupId}`,
@@ -633,7 +633,7 @@ export class CDNProvisioningAgent {
   }
 
   // Template application methods
-  private applyOriginTemplate(ruleTree: RuleTree, options: any): void {
+  private applyOriginTemplate(ruleTree: RuleTree, options: LoggerOptions): void {
     const originBehavior = {
       name: 'origin',
       options: {
@@ -659,7 +659,7 @@ export class CDNProvisioningAgent {
     }
   }
 
-  private applyCachingTemplate(ruleTree: RuleTree, options: any): void {
+  private applyCachingTemplate(ruleTree: RuleTree, options: LoggerOptions): void {
     const cachingRule = {
       name: 'Performance',
       children: [
@@ -717,7 +717,7 @@ export class CDNProvisioningAgent {
     }
   }
 
-  private applyPerformanceTemplate(ruleTree: RuleTree, options: any): void {
+  private applyPerformanceTemplate(ruleTree: RuleTree, options: LoggerOptions): void {
     const performanceBehaviors = [
       {
         name: 'http2',
@@ -760,7 +760,7 @@ export class CDNProvisioningAgent {
     });
   }
 
-  private applySecurityTemplate(ruleTree: RuleTree, _options: any): void {
+  private applySecurityTemplate(ruleTree: RuleTree, _options: LoggerOptions): void {
     const securityRule = {
       name: 'Security',
       children: [
@@ -812,7 +812,7 @@ export class CDNProvisioningAgent {
   }
 
   // Stub methods for certificate operations (to be implemented with CPS agent)
-  private async createDefaultDVEnrollment(hostnames: string[]): Promise<any> {
+  private async createDefaultDVEnrollment(hostnames: string[]): Promise<unknown> {
     // This would integrate with CPS API
     return {
       enrollmentId: 'dv-123456',

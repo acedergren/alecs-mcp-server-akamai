@@ -734,7 +734,7 @@ export class DNSMigrationAgent {
     }
   }
 
-  private async performAXFR(_zoneName: string, _primaryNS: string, _options: any): Promise<any[]> {
+  private async performAXFR(_zoneName: string, _primaryNS: string, _options: LoggerOptions): Promise<Array<{ timestamp: string; value: number }>> {
     // This would use a DNS library that supports AXFR
     // For now, return mock data
     return [
@@ -752,7 +752,7 @@ export class DNSMigrationAgent {
     ];
   }
 
-  private transformRecordsToAkamai(records: any[]): DNSRecord[] {
+  private transformRecordsToAkamai(records: unknown[]): DNSRecord[] {
     return records.map((r) => ({
       name: r.name === '@' ? r.zone || '@' : r.name,
       type: r.type,
@@ -924,12 +924,12 @@ export class DNSMigrationAgent {
     return result;
   }
 
-  private async fetchCloudflareRecords(_apiToken: string, _zoneId: string): Promise<any[]> {
+  private async fetchCloudflareRecords(_apiToken: string, _zoneId: string): Promise<TimeSeriesData> {
     // This would fetch from Cloudflare API
     return [];
   }
 
-  private transformCloudflareToAkamai(cfRecords: any[]): DNSRecord[] {
+  private transformCloudflareToAkamai(cfRecords: unknown[]): DNSRecord[] {
     // Transform Cloudflare record format to Akamai format
     return cfRecords.map((r) => ({
       name: r.name,

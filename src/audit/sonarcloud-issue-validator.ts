@@ -167,7 +167,7 @@ export class SonarCloudIssueValidator {
   private async validateIssueInContent(
     issue: SonarCloudIssue,
     lines: string[]
-  ): Promise<{ exists: boolean; details?: any }> {
+  ): Promise<{ exists: boolean; details?: unknown }> {
     // Get the specific line if available
     const lineNumber = issue.line ? issue.line - 1 : -1;
     const lineContent = lineNumber >= 0 && lineNumber < lines.length 
@@ -212,7 +212,7 @@ export class SonarCloudIssueValidator {
     }
   }
 
-  private validateConstAssertion(line: string | undefined): { exists: boolean; details?: any } {
+  private validateConstAssertion(line: string | undefined): { exists: boolean; details?: unknown } {
     if (!line) {return { exists: false };}
     
     const hasAsConst = line.includes('as const');
@@ -228,7 +228,7 @@ export class SonarCloudIssueValidator {
     };
   }
 
-  private validateUnusedImport(lines: string[], importName: string): { exists: boolean; details?: any } {
+  private validateUnusedImport(lines: string[], importName: string): { exists: boolean; details?: unknown } {
     // Extract the imported identifier from the message
     const match = importName.match(/Remove this unused import of ['"](.*?)['"]/);
     const identifier = match ? match[1] : importName;
@@ -255,7 +255,7 @@ export class SonarCloudIssueValidator {
     };
   }
 
-  private validateCommentedCode(line: string | undefined): { exists: boolean; details?: any } {
+  private validateCommentedCode(line: string | undefined): { exists: boolean; details?: unknown } {
     if (!line) {return { exists: false };}
     
     const isCommentedCode = /^\s*\/\/.*[{};]|^\s*\/\*/.test(line);
@@ -269,7 +269,7 @@ export class SonarCloudIssueValidator {
     };
   }
 
-  private validateEmptyFunction(lines: string[], lineNumber: number): { exists: boolean; details?: any } {
+  private validateEmptyFunction(lines: string[], lineNumber: number): { exists: boolean; details?: unknown } {
     if (lineNumber < 0 || lineNumber >= lines.length) {return { exists: false };}
     
     const line = lines[lineNumber];
@@ -292,7 +292,7 @@ export class SonarCloudIssueValidator {
     };
   }
 
-  private validateAnyType(line: string | undefined): { exists: boolean; details?: any } {
+  private validateAnyType(line: string | undefined): { exists: boolean; details?: unknown } {
     if (!line) {return { exists: false };}
     
     const hasAnyType = /:\s*any\b/.test(line);
@@ -306,7 +306,7 @@ export class SonarCloudIssueValidator {
     };
   }
 
-  private validateDeadCode(lines: string[], lineNumber: number): { exists: boolean; details?: any } {
+  private validateDeadCode(lines: string[], lineNumber: number): { exists: boolean; details?: unknown } {
     if (lineNumber < 0 || lineNumber >= lines.length) {return { exists: false };}
     
     const line = lines[lineNumber];
@@ -327,7 +327,7 @@ export class SonarCloudIssueValidator {
     };
   }
 
-  private validateNestedTernary(line: string | undefined): { exists: boolean; details?: any } {
+  private validateNestedTernary(line: string | undefined): { exists: boolean; details?: unknown } {
     if (!line) {return { exists: false };}
     
     // Count number of ? in the line (rough check for nested ternary)
@@ -343,7 +343,7 @@ export class SonarCloudIssueValidator {
     };
   }
 
-  private validateCatchClause(lines: string[], lineNumber: number): { exists: boolean; details?: any } {
+  private validateCatchClause(lines: string[], lineNumber: number): { exists: boolean; details?: unknown } {
     if (lineNumber < 0 || lineNumber >= lines.length) {return { exists: false };}
     
     const line = lines[lineNumber];

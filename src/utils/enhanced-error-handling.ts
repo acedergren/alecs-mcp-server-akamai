@@ -61,7 +61,7 @@ export class EnhancedErrorHandler {
   /**
    * Handle _error with comprehensive analysis and suggestions
    */
-  handle(_error: any, _context: ErrorContext = {}): EnhancedErrorResult {
+  handle(_error: unknown, _context: ErrorContext = {}): EnhancedErrorResult {
     const _httpStatus = this.extractHttpStatus(_error);
     const akamaiError = this.parseAkamaiErrorResponse(_error);
     const errorType = this.categorizeError(_httpStatus, akamaiError, _context);
@@ -97,8 +97,8 @@ export class EnhancedErrorHandler {
     retryConfig?: Partial<RetryConfig>,
   ): Promise<T> {
     const config = { ...this.defaultRetryConfig, ...retryConfig };
-    let lastError: any;
-    const attempts: Array<{ attempt: number; error: any; delay: number }> = [];
+    let lastError: unknown;
+    const attempts: Array<{ attempt: number; error: unknown; delay: number }> = [];
 
     for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
       try {
@@ -142,7 +142,7 @@ export class EnhancedErrorHandler {
   /**
    * Extract HTTP status from various _error formats
    */
-  private extractHttpStatus(_error: any): number {
+  private extractHttpStatus(_error: unknown): number {
     if (_error.response?.status) {
       return _error.response.status;
     }
@@ -170,7 +170,7 @@ export class EnhancedErrorHandler {
   /**
    * Parse Akamai _error response with enhanced extraction
    */
-  private parseAkamaiErrorResponse(_error: any): AkamaiErrorResponse | null {
+  private parseAkamaiErrorResponse(_error: unknown): AkamaiErrorResponse | null {
     let errorData = _error.response?.data || _error.data || _error;
 
     // Handle string responses
@@ -253,7 +253,7 @@ export class EnhancedErrorHandler {
     // Check for validation errors in errors array
     if (akamaiError?.errors && akamaiError.errors.length > 0) {
       const hasFieldErrors = akamaiError.errors.some(
-        (_err: any) => _err.field || _err.type === 'field-_error',
+        (_err: unknown) => _err.field || _err.type === 'field-_error',
       );
       if (hasFieldErrors) {
         return ErrorType.VALIDATION;
@@ -477,7 +477,7 @@ export class EnhancedErrorHandler {
   /**
    * Extract retry-after value from _error response
    */
-  private extractRetryAfter(_error: any): number | undefined {
+  private extractRetryAfter(_error: unknown): number | undefined {
     const retryAfter = _error.response?.headers?.['retry-after'] || _error.headers?.['retry-after'];
 
     if (retryAfter) {
@@ -491,7 +491,7 @@ export class EnhancedErrorHandler {
   /**
    * Extract request ID for support tracking
    */
-  private extractRequestId(_error: any): string | undefined {
+  private extractRequestId(_error: unknown): string | undefined {
     return (
       _error.response?.headers?.['x-request-id'] ||
       _error.headers?.['x-request-id'] ||
@@ -554,7 +554,7 @@ export class EnhancedErrorHandler {
    * Log final failure with all attempts
    */
   private logFailure(
-    attempts: Array<{ attempt: number; error: any; delay: number }>,
+    attempts: Array<{ attempt: number; error: unknown; delay: number }>,
     _context: ErrorContext,
   ): void {
     console.error('Operation failed after all retry attempts:', {
@@ -588,7 +588,7 @@ export async function withEnhancedErrorHandling<T>(
 /**
  * Convenience function for handling single errors
  */
-export function handleAkamaiError(_error: any, _context: ErrorContext = {}): EnhancedErrorResult {
+export function handleAkamaiError(_error: unknown, _context: ErrorContext = {}): EnhancedErrorResult {
   const handler = new EnhancedErrorHandler();
   return handler.handle(_error, _context);
 }

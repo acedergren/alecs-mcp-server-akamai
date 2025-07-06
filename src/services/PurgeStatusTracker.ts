@@ -118,7 +118,7 @@ export class PurgeStatusTracker {
         },
         60 * 60 * 1000,
       ); // Every hour
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       logger.error(`Status tracker error: ${_error.message}`);
     }
   }
@@ -145,13 +145,13 @@ export class PurgeStatusTracker {
               operation.completedAt = new Date(operation.completedAt);
             }
 
-            operation.batches.forEach((batch: any) => {
+            operation.batches.forEach((batch: unknown) => {
               if (batch.completedAt) {
                 batch.completedAt = new Date(batch.completedAt);
               }
             });
 
-            operation.errors.forEach((_error: any) => {
+            operation.errors.forEach((_error: unknown) => {
               _error.occurredAt = new Date(_error.occurredAt);
             });
 
@@ -161,14 +161,14 @@ export class PurgeStatusTracker {
             if (operation.status === 'in-progress') {
               this.startPolling(operationId);
             }
-          } catch (_err: any) {
+          } catch (_err: unknown) {
             logger.error(`Failed to load operation ${operationId}: ${_err.message}`);
           }
         }
       }
 
       logger.info(`Loaded ${this.operations.size} purge operations from persistence`);
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       logger.error(`Status tracker error: ${_error.message}`);
     }
   }
@@ -178,7 +178,7 @@ export class PurgeStatusTracker {
 
     try {
       await fs.writeFile(filePath, JSON.stringify(operation, null, 2));
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       logger.error(`Status tracker error: ${_error.message}`);
     }
   }
@@ -309,7 +309,7 @@ export class PurgeStatusTracker {
               occurredAt: new Date(),
             });
           }
-        } catch (_error: any) {
+        } catch (_error: unknown) {
           logger.error(`Status tracker error: ${_error.message}`);
 
           this.addError(operation, {
@@ -362,7 +362,7 @@ export class PurgeStatusTracker {
 
       // Notify progress callbacks
       this.notifyProgressUpdate(operation);
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       logger.error(`Status tracker error: ${_error.message}`);
     }
   }
@@ -533,7 +533,7 @@ export class PurgeStatusTracker {
       try {
         const filePath = path.join(this.statusDir, `${operationId}.json`);
         await fs.unlink(filePath);
-      } catch (_error: any) {
+      } catch (_error: unknown) {
         // File might not exist, ignore error
       }
     }

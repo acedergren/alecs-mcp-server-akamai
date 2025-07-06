@@ -66,7 +66,7 @@ export const listAppSecConfigurations = {
       },
     },
   },
-  handler: withCustomerValidation(async (args: any): Promise<MCPToolResponse> => {
+  handler: withCustomerValidation(async (args: unknown): Promise<MCPToolResponse> => {
     const client = new AkamaiClient(args.customer || 'default');
 
     try {
@@ -75,7 +75,7 @@ export const listAppSecConfigurations = {
         method: 'GET',
       });
 
-      const validatedResponse = validateApiResponse<{ configurations: any }>(response);
+      const validatedResponse = validateApiResponse<{ configurations: unknown }>(response);
 
 
       const configurations = validatedResponse.configurations || [];
@@ -85,7 +85,7 @@ export const listAppSecConfigurations = {
           {
             type: 'text',
             text: `Found ${configurations.length} Application Security configurations:\n\n${formatTable(
-              configurations.map((config: any) => ({
+              configurations.map((config: unknown) => ({
                 'Config ID': config.id,
                 Name: config.name,
                 Description: config.description || 'N/A',
@@ -134,7 +134,7 @@ export const getAppSecConfiguration = {
     },
     required: ['configId'],
   },
-  handler: withCustomerValidation(async (args: any): Promise<MCPToolResponse> => {
+  handler: withCustomerValidation(async (args: unknown): Promise<MCPToolResponse> => {
     const parsed = ConfigIdSchema.parse(args);
     const client = new AkamaiClient(parsed.customer || 'default');
 
@@ -145,7 +145,7 @@ export const getAppSecConfiguration = {
         method: 'GET',
       });
 
-      const validatedResponse = validateApiResponse<any>(response);
+      const validatedResponse = validateApiResponse<unknown>(response);
 
       return {
         content: [
@@ -203,7 +203,7 @@ export const createWAFPolicy = {
     },
     required: ['configId', 'policyName', 'policyMode'],
   },
-  handler: withCustomerValidation(async (args: any) => {
+  handler: withCustomerValidation(async (args: unknown) => {
     const parsed = WAFPolicySchema.parse(args);
     const customer = parsed.customer || 'default';
 
@@ -271,7 +271,7 @@ export const getSecurityEvents = {
     },
     required: ['configId', 'from', 'to'],
   },
-  handler: withCustomerValidation(async (args: any) => {
+  handler: withCustomerValidation(async (args: unknown) => {
     const parsed = SecurityEventsSchema.parse(args);
     const customer = parsed.customer || 'default';
 
@@ -291,14 +291,14 @@ export const getSecurityEvents = {
         method: 'GET',
       });
 
-      const validatedData = validateApiResponse<{ securityEvents: any; totalEvents?: number }>(response);
+      const validatedData = validateApiResponse<{ securityEvents: unknown; totalEvents?: number }>(response);
 
       return {
         content: [
           {
             type: 'text',
             text: `Security Events (${parsed.from} to ${parsed.to}):\nTotal Events: ${validatedData.totalEvents || 0}\n\n${formatTable(
-              validatedData.securityEvents?.map((event: any) => ({
+              validatedData.securityEvents?.map((event: unknown) => ({
                 'Event Time': new Date(
                   event.httpMessage?.start || event.timestamp,
                 ).toLocaleString(),
@@ -350,7 +350,7 @@ export const activateSecurityConfiguration = {
     },
     required: ['configId', 'version', 'network'],
   },
-  handler: withCustomerValidation(async (args: any) => {
+  handler: withCustomerValidation(async (args: unknown) => {
     const parsed = ActivationSchema.parse(args);
     const customer = parsed.customer || 'default';
 
@@ -409,7 +409,7 @@ export const getSecurityActivationStatus = {
     },
     required: ['configId', 'activationId'],
   },
-  handler: withCustomerValidation(async (args: any) => {
+  handler: withCustomerValidation(async (args: unknown) => {
     const customer = args.customer || 'default';
 
     return await resilienceManager.executeWithResilience(OperationType.PROPERTY_READ, async () => {

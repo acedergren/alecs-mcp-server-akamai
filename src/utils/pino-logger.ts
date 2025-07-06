@@ -21,6 +21,13 @@
 import pino from 'pino';
 import type { Logger as PinoLogger } from 'pino';
 
+
+// Logger type definitions
+type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+type LoggerOptions = { level?: LogLevel; name?: string; enabled?: boolean };
+type LogContext = Record<string, unknown>;
+type LogMethod = (message: string, context?: LogContext) => void;
+
 /**
  * MCP-safe transport configuration
  * Forces ALL output to stderr to prevent JSON-RPC corruption
@@ -71,7 +78,7 @@ export const logger: PinoLogger = pino({
   serializers: {
     err: pino.stdSerializers.err,
     error: pino.stdSerializers.err,
-    req: (req: any) => ({
+    req: (req: unknown) => ({
       method: req.method,
       url: req.url,
       params: req.params,
@@ -82,7 +89,7 @@ export const logger: PinoLogger = pino({
         cookie: req.headers?.cookie ? '[REDACTED]' : undefined
       }
     }),
-    res: (res: any) => ({
+    res: (res: unknown) => ({
       statusCode: res.statusCode,
       duration: res.duration
     })
@@ -145,10 +152,10 @@ export type { Logger } from 'pino';
 // Define the type for legacy compatibility
 export interface LoggerCompat {
   getInstance(): LoggerCompat;
-  debug(message: string, data?: any): void;
-  info(message: string, data?: any): void;
-  warn(message: string, data?: any): void;
-  error(message: string, data?: any): void;
+  debug(message: string, data?: LogContext): void;
+  info(message: string, data?: LogContext): void;
+  warn(message: string, data?: LogContext): void;
+  error(message: string, data?: LogContext): void;
 }
 
 // Legacy compatibility - redirect old logger to Pino
@@ -157,7 +164,7 @@ export const loggerCompat: LoggerCompat = {
     return loggerCompat;
   },
   
-  debug(message: string, data?: any): void {
+  debug(message: string, data?: LogContext): void {
     if (data) {
       logger.debug(data, message);
     } else {
@@ -165,7 +172,7 @@ export const loggerCompat: LoggerCompat = {
     }
   },
   
-  info(message: string, data?: any): void {
+  info(message: string, data?: LogContext): void {
     if (data) {
       logger.info(data, message);
     } else {
@@ -173,7 +180,7 @@ export const loggerCompat: LoggerCompat = {
     }
   },
   
-  warn(message: string, data?: any): void {
+  warn(message: string, data?: LogContext): void {
     if (data) {
       logger.warn(data, message);
     } else {
@@ -181,7 +188,7 @@ export const loggerCompat: LoggerCompat = {
     }
   },
   
-  error(message: string, data?: any): void {
+  error(message: string, data?: LogContext): void {
     if (data) {
       logger.error(data, message);
     } else {

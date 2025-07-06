@@ -158,11 +158,11 @@ async function searchByHostname(
 
   try {
     // Get targeted property list (not all properties)
-    const queryParams: any = {};
+    const queryParams: unknown = {};
     if (args.contractId) {queryParams.contractId = args.contractId;}
     if (args.groupId) {queryParams.groupId = args.groupId;}
 
-    let propertiesToSearch: any[] = [];
+    let propertiesToSearch: unknown[] = [];
 
     if (args.contractId && args.groupId) {
       // Direct search in specific contract/group
@@ -183,7 +183,7 @@ async function searchByHostname(
       const groups_typed = groupsResponse as { groups?: { items?: Array<{ groupId: string; contractIds?: string[]; [key: string]: unknown }> } };
       const groups = groups_typed.groups?.items || [];
       const targetGroups = args.groupId 
-        ? groups.filter((g: any) => g.groupId === args.groupId)
+        ? groups.filter((g: unknown) => g.groupId === args.groupId)
         : groups.slice(0, 10); // Limit to first 10 groups for performance
 
       for (const group of targetGroups) {
@@ -297,7 +297,7 @@ async function fallbackPropertySearch(
     const groups_typed = groupsResponse as { groups?: { items?: Array<{ groupId: string; contractIds?: string[]; [key: string]: unknown }> } };
     const groups = groups_typed.groups?.items || [];
     const targetGroups = args.groupId 
-      ? groups.filter((g: any) => g.groupId === args.groupId)
+      ? groups.filter((g: unknown) => g.groupId === args.groupId)
       : groups.slice(0, 5); // CODE KAI: Limit fallback scope
 
     for (const group of targetGroups) {
@@ -356,7 +356,7 @@ async function fallbackPropertySearch(
  */
 function formatOptimizedSearchResults(
   results: SearchResultItem[],
-  criteria: any,
+  criteria: unknown,
   searchTime: string,
 ): string {
   let text = `# [SEARCH] Property Search Results\n\n`;
@@ -409,7 +409,7 @@ function formatOptimizedSearchResults(
  */
 function formatHostnameSearchResults(
   results: Array<SearchResultItem & { matchedHostnames: string[] }>,
-  criteria: any,
+  criteria: unknown,
   searchTime: string,
 ): string {
   let text = `# [GLOBAL] Hostname Search Results\n\n`;
@@ -444,7 +444,7 @@ function formatHostnameSearchResults(
 /**
  * Format no results message
  */
-function formatNoSearchResults(criteria: any, searchTime: string): string {
+function formatNoSearchResults(criteria: unknown, searchTime: string): string {
   let text = `# [SEARCH] No Properties Found\n\n`;
   text += `**Search completed in:** ${searchTime}s\n\n`;
 

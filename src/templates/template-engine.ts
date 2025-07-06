@@ -15,7 +15,7 @@ import {
   propertyTemplates,
 } from './property-templates';
 
-// Strongly typed template inputs instead of Record<string, any>
+// Strongly typed template inputs instead of Record<string, unknown>
 export interface TemplateInputs {
   hostname: string;
   additionalHostnames?: string[];
@@ -50,7 +50,7 @@ export interface ProvisioningPlan {
     ipVersionBehavior: string;
     certificateType: string;
   };
-  ruleTree: any;
+  ruleTree: unknown;
   certificateEnrollment?: {
     commonName: string;
     sans: string[];
@@ -104,7 +104,7 @@ export async function collectTemplateInputs(
   template: PropertyTemplate,
   providedInputs?: Partial<TemplateInputs>,
 ): Promise<TemplateInputs> {
-  const inputs: Record<string, any> = { ...providedInputs };
+  const inputs: Record<string, unknown> = { ...providedInputs };
 
   // Process required inputs
   for (const input of template.requiredInputs) {
@@ -171,7 +171,7 @@ export function generateProvisioningPlan(_context: TemplateContext): Provisionin
 
   // Generate DNS records
   const dnsRecords =
-    template.recommendedDNSRecords?.map((record: any) => ({
+    template.recommendedDNSRecords?.map((record: unknown) => ({
       type: record.type,
       name: record.name.replace('{{hostname}}', inputs.hostname),
       value: record.value.replace('{{edgeHostname}}', edgeHostname.hostname),
@@ -259,7 +259,7 @@ export function validateProvisioningPlan(plan: ProvisioningPlan): {
     warnings.push('Large number of SANs may require special approval');
   }
 
-  if (plan.ruleTree.behaviors && !plan.ruleTree.behaviors.find((b: any) => b.name === 'cpCode')) {
+  if (plan.ruleTree.behaviors && !plan.ruleTree.behaviors.find((b: unknown) => b.name === 'cpCode')) {
     warnings.push('No CP Code specified - one will be generated');
   }
 
@@ -386,7 +386,7 @@ export async function provisionPropertyFromTemplate(
  */
 export const TemplateInputSchema = z.object({
   templateId: z.string(),
-  inputs: z.record(z.any()),
+  inputs: z.record(z.unknown()),
   customer: z.string().optional(),
   contractId: z.string(),
   groupId: z.string(),

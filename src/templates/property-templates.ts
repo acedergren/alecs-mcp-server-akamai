@@ -12,7 +12,7 @@ export interface PropertyTemplate {
   category: 'web' | 'api' | 'media' | 'security';
   requiredInputs: TemplateInput[];
   optionalInputs: TemplateInput[];
-  ruleTree: any; // PAPI rule tree structure
+  ruleTree: unknown; // PAPI rule tree structure
   edgeHostnameConfig: EdgeHostnameConfig;
   certificateRequirements?: CertificateRequirements;
   recommendedDNSRecords?: DNSRecordTemplate[];
@@ -24,7 +24,7 @@ export interface TemplateInput {
   description: string;
   type: 'string' | 'number' | 'boolean' | 'select' | 'multiselect' | 'url' | 'domain';
   validation?: InputValidation;
-  defaultValue?: any;
+  defaultValue?: unknown;
   options?: SelectOption[]; // For select/multiselect types
   placeholder?: string;
 }
@@ -34,7 +34,7 @@ export interface InputValidation {
   pattern?: string; // Regex pattern
   min?: number;
   max?: number;
-  customValidator?: (value: any) => boolean | string; // Return true or error message
+  customValidator?: (value: unknown) => boolean | string; // Return true or error message
 }
 
 export interface SelectOption {
@@ -901,7 +901,7 @@ export function getTemplateById(id: string): PropertyTemplate | undefined {
 // Helper function to validate inputs against template requirements
 export function validateTemplateInputs(
   template: PropertyTemplate,
-  inputs: Record<string, any>,
+  inputs: Record<string, unknown>,
 ): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
@@ -948,12 +948,12 @@ export function validateTemplateInputs(
 }
 
 // Helper function to apply inputs to template rule tree
-export function applyTemplateInputs(template: PropertyTemplate, inputs: Record<string, any>): any {
+export function applyTemplateInputs(template: PropertyTemplate, inputs: Record<string, unknown>): unknown {
   // Deep clone the rule tree
   const ruleTree = JSON.parse(JSON.stringify(template.ruleTree));
 
   // Replace placeholders with actual values
-  const replacePlaceholders = (obj: any): any => {
+  const replacePlaceholders = (obj: unknown): unknown => {
     if (typeof obj === 'string') {
       // Handle template expressions like {{variable}}
       return obj.replace(/\{\{([^}]+)\}\}/g, (match, expression) => {
@@ -976,7 +976,7 @@ export function applyTemplateInputs(template: PropertyTemplate, inputs: Record<s
     } else if (Array.isArray(obj)) {
       return obj.map(replacePlaceholders);
     } else if (typeof obj === 'object' && obj !== null) {
-      const result: any = {};
+      const result: unknown = {};
       for (const [key, value] of Object.entries(obj)) {
         result[key] = replacePlaceholders(value);
       }

@@ -172,7 +172,7 @@ export class AkamaiCacheService {
     properties: Property[],
   ): Promise<void> {
     const startTime = Date.now();
-    const hostnameMap: Record<string, any> = {};
+    const hostnameMap: Record<string, unknown> = {};
     const batchSize = 10;
 
     console.error(`[Cache] Creating hostname mapping for ${properties.length} properties...`);
@@ -242,7 +242,7 @@ export class AkamaiCacheService {
     const queryLower = query.toLowerCase();
 
     // Quick hostname lookup
-    const hostnameData = await this.cache.get<any>(`${customer}:hostname:${queryLower}`);
+    const hostnameData = await this.cache.get<unknown>(`${customer}:hostname:${queryLower}`);
     if (hostnameData) {
       results.push({
         type: 'exact_hostname',
@@ -387,7 +387,7 @@ export class AkamaiCacheService {
   /**
    * Get cache statistics
    */
-  async getStats(): Promise<any> {
+  async getStats(): Promise<unknown> {
     await this.ensureInitialized();
     const metrics = this.cache.getMetrics();
     const apiCallsSaved = metrics.apiCallsSaved;
@@ -453,7 +453,7 @@ export class AkamaiCacheService {
   /**
    * Set a value in the cache
    */
-  async set(key: string, value: any, ttl?: number): Promise<void> {
+  async set(key: string, value: unknown, ttl?: number): Promise<void> {
     await this.ensureInitialized();
     await this.cache.set(key, value, ttl || 300); // Default to 5 minutes if no TTL provided
   }
@@ -461,7 +461,7 @@ export class AkamaiCacheService {
   /**
    * Get a value from the cache
    */
-  async get(key: string): Promise<any> {
+  async get(key: string): Promise<unknown> {
     await this.ensureInitialized();
     return this.cache.get(key);
   }

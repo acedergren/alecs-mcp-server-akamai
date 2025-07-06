@@ -46,7 +46,7 @@ export const BatchVersionOperationsSchema = BaseToolSchema.extend({
   operations: z.array(z.object({
     propertyId: z.string(),
     action: z.enum(['create', 'activate', 'rollback']),
-    params: z.any(),
+    params: z.unknown(),
   })),
 });
 
@@ -307,29 +307,29 @@ export const BulkManageHostnamesSchema = BaseToolSchema.extend({
 // Rule Tree Management Schemas
 export const CreateRuleFromTemplateSchema = BaseToolSchema.extend({
   templateName: z.string(),
-  parameters: z.record(z.any()).optional(),
+  parameters: z.record(z.unknown()).optional(),
 });
 
 export const UpdatePropertyRulesEnhancedSchema = BaseToolSchema.extend({
   propertyId: z.string(),
   version: z.number(),
-  rules: z.any(),
+  rules: z.unknown(),
   validateRules: z.boolean().optional(),
 });
 
 export const MergeRuleTreesSchema = BaseToolSchema.extend({
-  baseRules: z.any(),
-  mergeRules: z.any(),
+  baseRules: z.unknown(),
+  mergeRules: z.unknown(),
   strategy: z.enum(['override', 'append', 'prepend']).optional(),
 });
 
 export const OptimizeRuleTreeSchema = BaseToolSchema.extend({
-  rules: z.any(),
+  rules: z.unknown(),
   optimizations: z.array(z.enum(['dedupe', 'consolidate', 'reorder'])).optional(),
 });
 
 export const ValidateRuleTreeSchema = BaseToolSchema.extend({
-  rules: z.any(),
+  rules: z.unknown(),
   ruleFormat: z.string().optional(),
 });
 
@@ -343,7 +343,7 @@ export const SearchCPCodesSchema = BaseToolSchema.extend({
 export const UpdateIncludeSchema = BaseToolSchema.extend({
   includeId: z.string(),
   version: z.number(),
-  rules: z.any(),
+  rules: z.unknown(),
 });
 
 export const CreateIncludeVersionSchema = BaseToolSchema.extend({
@@ -370,7 +370,7 @@ export const GetIncludeActivationStatusSchema = BaseToolSchema.extend({
 export const BulkUpdatePropertiesSchema = BaseToolSchema.extend({
   propertyIds: z.array(z.string()),
   updates: z.object({
-    rules: z.any().optional(),
+    rules: z.unknown().optional(),
     hostnames: z.array(z.string()).optional(),
   }),
 });
@@ -552,7 +552,7 @@ export const CreateReportingDashboardSchema = BaseToolSchema.extend({
   name: z.string(),
   widgets: z.array(z.object({
     type: z.string(),
-    config: z.any(),
+    config: z.unknown(),
   })),
 });
 

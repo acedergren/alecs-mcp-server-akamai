@@ -45,7 +45,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
     timeoutCount: 0,
     circuitBreakerTrips: 0,
   };
-  private originalAuth: ((_req: any) => any) | null = null;
+  private originalAuth: ((_req: unknown) => any) | null = null;
 
   constructor(config: EnhancedEdgeGridConfig = {}) {
     super();
@@ -98,7 +98,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
     this.originalAuth = this.edgeGrid.auth.bind(this.edgeGrid);
 
     // Replace with enhanced auth method
-    this.edgeGrid.auth = (requestOptions: any) => {
+    this.edgeGrid.auth = (requestOptions: unknown) => {
       const startTime = performance.now();
 
       try {
@@ -173,7 +173,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
   public async executeRequest(
     _options: EdgeGridRequestOptions,
     data?: string | Buffer,
-  ): Promise<{ response: any; data: Buffer; metrics: any }> {
+  ): Promise<{ response: unknown; data: Buffer; metrics: unknown }> {
     this.metrics.totalRequests++;
 
     return this.circuitBreaker.execute(async () => {
@@ -239,7 +239,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
   /**
    * Execute GET _request
    */
-  public async get(path: string, headers?: Record<string, string>): Promise<any> {
+  public async get(path: string, headers?: Record<string, string>): Promise<unknown> {
     return this.executeRequest({
       method: 'GET',
       path,
@@ -254,7 +254,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
     path: string,
     data?: string | Buffer,
     headers?: Record<string, string>,
-  ): Promise<any> {
+  ): Promise<unknown> {
     return this.executeRequest(
       {
         method: 'POST',
@@ -275,7 +275,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
     path: string,
     data?: string | Buffer,
     headers?: Record<string, string>,
-  ): Promise<any> {
+  ): Promise<unknown> {
     return this.executeRequest(
       {
         method: 'PUT',
@@ -292,7 +292,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
   /**
    * Execute DELETE _request
    */
-  public async delete(path: string, headers?: Record<string, string>): Promise<any> {
+  public async delete(path: string, headers?: Record<string, string>): Promise<unknown> {
     return this.executeRequest({
       method: 'DELETE',
       path,
@@ -382,7 +382,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
   /**
    * Get network optimization metrics
    */
-  public getNetworkMetrics(): any {
+  public getNetworkMetrics(): unknown {
     return this.optimizedClient.getMetrics();
   }
 
@@ -406,9 +406,9 @@ export class EnhancedEdgeGrid extends EventEmitter {
    */
   public async healthCheck(): Promise<{
     status: 'healthy' | 'degraded' | 'unhealthy';
-    metrics: any;
+    metrics: unknown;
     circuitBreakerState: string;
-    networkOptimization: any;
+    networkOptimization: unknown;
   }> {
     const successRate = this.getSuccessRate();
     const circuitBreakerState = this.getCircuitBreakerState();

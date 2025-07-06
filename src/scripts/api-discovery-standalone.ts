@@ -21,7 +21,7 @@ interface DiscoveryResult {
   responseTime: number;
   statusCode?: number;
   responseSize?: number;
-  sampleData?: any;
+  sampleData?: unknown;
   errorDetails?: string;
   validationResults?: {
     schemaCompliant: boolean;
@@ -39,7 +39,7 @@ interface EndpointConfig {
   name: string;
   category: 'akamai' | 'mcp';
   description: string;
-  simulation: () => Promise<any>;
+  simulation: () => Promise<unknown>;
 }
 
 class StandaloneApiDiscovery {
@@ -493,7 +493,7 @@ class StandaloneApiDiscovery {
   /**
    * Validate API response structure
    */
-  private validateResponse(endpointKey: string, response: any, category: 'akamai' | 'mcp'): {
+  private validateResponse(endpointKey: string, response: unknown, category: 'akamai' | 'mcp'): {
     schemaCompliant: boolean;
     typesSafe: boolean;
     issues: string[];
@@ -534,7 +534,7 @@ class StandaloneApiDiscovery {
           issues.push('Missing or invalid tools array in result');
           schemaCompliant = false;
         } else {
-          response.result.tools.forEach((tool: any, index: number) => {
+          response.result.tools.forEach((tool: unknown, index: number) => {
             if (!tool.name || typeof tool.name !== 'string') {
               issues.push(`Tool ${index}: missing or invalid name`);
               schemaCompliant = false;
@@ -613,17 +613,17 @@ class StandaloneApiDiscovery {
   /**
    * Sanitize response data for sample storage
    */
-  private sanitizeResponseData(response: any): any {
+  private sanitizeResponseData(response: unknown): unknown {
     // Remove sensitive data and limit response size
     const sanitized = JSON.parse(JSON.stringify(response));
     
     // Limit array sizes for sample data
-    const limitArrays = (obj: any, maxItems = 3): any => {
+    const limitArrays = (obj: unknown, maxItems = 3): any => {
       if (Array.isArray(obj)) {
         return obj.slice(0, maxItems);
       }
       if (typeof obj === 'object' && obj !== null) {
-        const result: any = {};
+        const result: unknown = {};
         for (const [key, value] of Object.entries(obj)) {
           result[key] = limitArrays(value, maxItems);
         }

@@ -288,14 +288,14 @@ export class ResponseParser {
   /**
    * Parse Property Manager responses
    */
-  static parsePropertyResponse(response: any): any {
+  static parsePropertyResponse(response: unknown): unknown {
     if (!response) {
       return response;
     }
 
     if (response.properties?.items) {
       return {
-        properties: response.properties.items.map((item: any) => {
+        properties: response.properties.items.map((item: unknown) => {
           try {
             return PropertyResponseSchemas.property.parse(item);
           } catch (_e) {
@@ -309,7 +309,7 @@ export class ResponseParser {
 
     if (response.versions?.items) {
       return {
-        versions: response.versions.items.map((item: any) =>
+        versions: response.versions.items.map((item: unknown) =>
           PropertyResponseSchemas.propertyVersion.parse(item),
         ),
         pagination: ResponseParser.extractPaginationInfo(response),
@@ -318,7 +318,7 @@ export class ResponseParser {
 
     if (response.activations?.items) {
       return {
-        activations: response.activations.items.map((item: any) =>
+        activations: response.activations.items.map((item: unknown) =>
           PropertyResponseSchemas.activation.parse(item),
         ),
         pagination: ResponseParser.extractPaginationInfo(response),
@@ -327,7 +327,7 @@ export class ResponseParser {
 
     if (response.hostnames?.items) {
       return {
-        hostnames: response.hostnames.items.map((item: any) =>
+        hostnames: response.hostnames.items.map((item: unknown) =>
           PropertyResponseSchemas.hostname.parse(item),
         ),
       };
@@ -339,21 +339,21 @@ export class ResponseParser {
   /**
    * Parse DNS responses
    */
-  static parseDNSResponse(response: any): any {
+  static parseDNSResponse(response: unknown): unknown {
     if (!response) {
       return response;
     }
 
     if (response.zones) {
       return {
-        zones: response.zones.map((item: any) => DNSResponseSchemas.zone.parse(item)),
+        zones: response.zones.map((item: unknown) => DNSResponseSchemas.zone.parse(item)),
         pagination: ResponseParser.extractPaginationInfo(response),
       };
     }
 
     if (response.recordsets) {
       return {
-        records: response.recordsets.map((item: any) => DNSResponseSchemas.record.parse(item)),
+        records: response.recordsets.map((item: unknown) => DNSResponseSchemas.record.parse(item)),
       };
     }
 
@@ -363,10 +363,10 @@ export class ResponseParser {
   /**
    * Parse Certificate responses
    */
-  static parseCertificateResponse(response: any): any {
+  static parseCertificateResponse(response: unknown): unknown {
     if (response.enrollments) {
       return {
-        enrollments: response.enrollments.map((item: any) =>
+        enrollments: response.enrollments.map((item: unknown) =>
           CertificateResponseSchemas.enrollment.parse(item),
         ),
       };
@@ -374,7 +374,7 @@ export class ResponseParser {
 
     if (response.domainHistory) {
       return {
-        validationHistory: response.domainHistory.map((item: any) =>
+        validationHistory: response.domainHistory.map((item: unknown) =>
           CertificateResponseSchemas.dvChallenge.parse(item),
         ),
       };
@@ -386,7 +386,7 @@ export class ResponseParser {
   /**
    * Parse Fast Purge responses
    */
-  static parseFastPurgeResponse(response: any): any {
+  static parseFastPurgeResponse(response: unknown): unknown {
     if (response.httpStatus && response.purgeId) {
       return FastPurgeResponseSchemas.purgeResponse.parse(response);
     }
@@ -406,10 +406,10 @@ export class ResponseParser {
   /**
    * Parse Network Lists responses
    */
-  static parseNetworkListResponse(response: any): any {
+  static parseNetworkListResponse(response: unknown): unknown {
     if (Array.isArray(response)) {
       return {
-        networkLists: response.map((item: any) =>
+        networkLists: response.map((item: unknown) =>
           NetworkListResponseSchemas.networkList.parse(item),
         ),
       };
@@ -425,8 +425,8 @@ export class ResponseParser {
   /**
    * Extract pagination information from responses
    */
-  static extractPaginationInfo(response: any): any {
-    const pagination: any = {};
+  static extractPaginationInfo(response: unknown): unknown {
+    const pagination: unknown = {};
 
     if (response.totalItems !== undefined) {
       pagination.totalItems = response.totalItems;
@@ -451,10 +451,10 @@ export class ResponseParser {
    * Parse _error responses with enhanced context
    */
   static parseErrorResponse(
-    _error: any,
+    _error: unknown,
     _context?: { endpoint?: string; operation?: string },
   ): AkamaiErrorResponse {
-    let errorData: any = _error.response?.data || _error.data || _error;
+    let errorData: unknown = _error.response?.data || _error.data || _error;
 
     // Handle string responses
     if (typeof errorData === 'string') {
@@ -481,7 +481,7 @@ export class ResponseParser {
 
     // Extract detailed _error information
     if (errorData.errors && Array.isArray(errorData.errors)) {
-      parsedError.errors = errorData.errors.map((_err: any) => ({
+      parsedError.errors = errorData.errors.map((_err: unknown) => ({
         type: _err.type,
         title: _err.title || _err.message,
         detail: _err.detail || _err.description,
@@ -495,7 +495,7 @@ export class ResponseParser {
   /**
    * Validate response against expected schema
    */
-  static validateResponse<T>(schema: z.ZodSchema<T>, response: any): T {
+  static validateResponse<T>(schema: z.ZodSchema<T>, response: unknown): T {
     try {
       return schema.parse(response);
     } catch (_error) {
@@ -513,8 +513,8 @@ export class ResponseParser {
   /**
    * Extract all metadata from response headers
    */
-  static extractResponseMetadata(response: any): any {
-    const metadata: any = {};
+  static extractResponseMetadata(response: unknown): unknown {
+    const metadata: unknown = {};
 
     if (response.headers) {
       // Rate limiting information
@@ -553,8 +553,8 @@ export class ResponseParser {
   /**
    * Handle async operation responses (activations, etc.)
    */
-  static parseAsyncOperationResponse(response: any): any {
-    const result: any = {
+  static parseAsyncOperationResponse(response: unknown): unknown {
+    const result: unknown = {
       ...response,
     };
 
@@ -585,9 +585,9 @@ export class ResponseParser {
  * Utility function to safely parse any Akamai API response
  */
 export function parseAkamaiResponse(
-  response: any,
+  response: unknown,
   apiType?: 'papi' | 'dns' | 'cps' | 'purge' | 'network-lists',
-): any {
+): unknown {
   try {
     // Add response metadata
     const metadata = ResponseParser.extractResponseMetadata(response);

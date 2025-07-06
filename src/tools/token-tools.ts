@@ -28,7 +28,7 @@ export const generateApiToken: Tool = {
   },
 };
 
-export async function handleGenerateApiToken(args: any) {
+export async function handleGenerateApiToken(args: unknown) {
   try {
     const tokenManager = TokenManager.getInstance();
     
@@ -100,7 +100,7 @@ export const listApiTokens: Tool = {
   },
 };
 
-export async function handleListApiTokens(_args: any) {
+export async function handleListApiTokens(_args: unknown) {
   try {
     const tokenManager = TokenManager.getInstance();
     const tokens = await tokenManager.listTokens();
@@ -176,7 +176,7 @@ export const revokeApiToken: Tool = {
   },
 };
 
-export async function handleRevokeApiToken(args: any) {
+export async function handleRevokeApiToken(args: unknown) {
   try {
     const tokenManager = TokenManager.getInstance();
     const success = await tokenManager.revokeToken(args.tokenId);
@@ -233,7 +233,7 @@ export const validateApiToken: Tool = {
   },
 };
 
-export async function handleValidateApiToken(args: any) {
+export async function handleValidateApiToken(args: unknown) {
   try {
     const tokenManager = TokenManager.getInstance();
     const result = await tokenManager.validateToken(args.token);
@@ -296,7 +296,7 @@ export const rotateApiToken: Tool = {
   },
 };
 
-export async function handleRotateApiToken(args: any) {
+export async function handleRotateApiToken(args: unknown) {
   try {
     const tokenManager = TokenManager.getInstance();
     const result = await tokenManager.rotateToken(args.tokenId);

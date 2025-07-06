@@ -13,7 +13,7 @@ export interface PropertyVersionResponse {
 }
 
 export interface PropertyResponse {
-  property: any;
+  property: unknown;
 }
 
 export interface ActivationResponse {
@@ -40,7 +40,7 @@ export interface PapiVersionResponse {
 }
 
 export interface PapiRulesResponse {
-  rules: any;
+  rules: unknown;
 }
 
 export interface PapiEdgeHostnameResponse {
@@ -53,31 +53,31 @@ export interface PapiActivationResponse {
 
 export interface PapiGroupsResponse {
   groups: {
-    items: any[];
+    items: unknown[];
   };
 }
 
 export interface PapiVersionsResponse {
   versions: {
-    items: any[];
+    items: unknown[];
   };
 }
 
 export interface PapiHostnamesResponse {
   hostnames: {
-    items: any[];
+    items: unknown[];
   };
 }
 
 export interface PapiEdgeHostnamesResponse {
   edgeHostnames: {
-    items: any[];
+    items: unknown[];
   };
 }
 
 export interface PapiActivationsResponse {
   activations: {
-    items: any[];
+    items: unknown[];
   };
 }
 
@@ -86,7 +86,7 @@ export interface PapiPropertyResponse {
 }
 
 export interface PapiErrorsResponse {
-  errors?: any[];
+  errors?: unknown[];
 }
 
 export interface PapiEtagResponse {
@@ -98,12 +98,12 @@ export interface PapiEtagResponse {
 
 // DNS response types
 export interface DnsRecordsetsResponse {
-  recordsets: any[];
+  recordsets: unknown[];
 }
 
 // CPS response types
 export interface CpsResultsResponse {
-  results: any[];
+  results: unknown[];
 }
 
 export interface CpsLocationResponse {

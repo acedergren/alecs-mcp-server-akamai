@@ -54,19 +54,19 @@ interface TrafficReportItem {
   edgeBandwidth?: number;
   startTime: string;
   cacheHitRatio?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface ApiResponse<T = any> {
   data?: T[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface CacheReportItem {
   cacheableResponses?: number;
   uncacheableResponses?: number;
   startTime: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // =============================================================================
@@ -147,7 +147,7 @@ const getTrafficReport = {
     const client = new AkamaiClient(validated.customer);
     
     // Build report parameters following Akamai API structure
-    const params: Record<string, any> = {
+    const params: Record<string, unknown> = {
       start: validated.start_date,
       end: validated.end_date,
       interval: validated.granularity,
@@ -213,7 +213,7 @@ const getTrafficReport = {
       text += `\`\`\`\n`;
       text += `Date/Time          | Edge Hits      | Edge Bandwidth | Cache Hit %\n`;
       text += `-------------------|----------------|----------------|------------\n`;
-      response.data.slice(0, 20).forEach((item: any) => {
+      response.data.slice(0, 20).forEach((item: unknown) => {
         const hitRatio = item.cacheHitRatio !== undefined ? 
           `${(item.cacheHitRatio * 100).toFixed(1)}%` : 'N/A';
         text += `${item.startTime.padEnd(18)} | ${formatNumber(item.edgeHits).padEnd(14)} | ${formatBytes(item.edgeBandwidth).padEnd(14)} | ${hitRatio}\n`;
@@ -255,7 +255,7 @@ const getCachePerformance = {
     const validated = cacheReportSchema.parse(args);
     const client = new AkamaiClient(validated.customer);
     
-    const params: Record<string, any> = {
+    const params: Record<string, unknown> = {
       start: validated.start_date,
       end: validated.end_date,
       interval: validated.granularity,
@@ -300,7 +300,7 @@ const getCachePerformance = {
         }) as ApiResponse;
         
         if (offloadResponse.data && offloadResponse.data.length > 0) {
-          const avgOffload = offloadResponse.data.reduce((sum: number, item: any) => 
+          const avgOffload = offloadResponse.data.reduce((sum: number, item: unknown) => 
             sum + (item.offloadRate || 0), 0) / offloadResponse.data.length;
           text += `- **Average Offload Rate:** ${(avgOffload * 100).toFixed(2)}%\n`;
         }
@@ -312,7 +312,7 @@ const getCachePerformance = {
       text += `\`\`\`\n`;
       text += `Timestamp          | Cacheable % | Cacheable    | Uncacheable\n`;
       text += `-------------------|-------------|--------------|------------\n`;
-      response.data.slice(0, 20).forEach((item: any) => {
+      response.data.slice(0, 20).forEach((item: unknown) => {
         const ratio = item.cacheableResponses + item.uncacheableResponses > 0 
           ? (item.cacheableResponses / (item.cacheableResponses + item.uncacheableResponses)) * 100 
           : 0;
@@ -366,7 +366,7 @@ const getGeographicDistribution = {
     const validated = geoReportSchema.parse(args);
     const client = new AkamaiClient(validated.customer);
     
-    const params: Record<string, any> = {
+    const params: Record<string, unknown> = {
       start: validated.start_date,
       end: validated.end_date,
       interval: validated.granularity,
@@ -389,7 +389,7 @@ const getGeographicDistribution = {
       // Aggregate data by location
       const locationData: Record<string, { hits: number; bandwidth: number }> = {};
       
-      response.data.forEach((item: any) => {
+      response.data.forEach((item: unknown) => {
         const location = item[validated.level] || 'Unknown';
         if (!locationData[location]) {
           locationData[location] = { hits: 0, bandwidth: 0 };
@@ -459,7 +459,7 @@ const getErrorAnalysis = {
     const validated = errorAnalysisSchema.parse(args);
     const client = new AkamaiClient(validated.customer);
     
-    const params: Record<string, any> = {
+    const params: Record<string, unknown> = {
       start: validated.start_date,
       end: validated.end_date,
       interval: validated.granularity,
@@ -486,7 +486,7 @@ const getErrorAnalysis = {
       let totalErrors = 0;
       let totalRequests = 0;
       
-      response.data.forEach((item: any) => {
+      response.data.forEach((item: unknown) => {
         Object.entries(item).forEach(([key, value]) => {
           if (key.startsWith('http_') && typeof value === 'number') {
             const code = key.replace('http_', '');
@@ -527,7 +527,7 @@ const getErrorAnalysis = {
       text += `Timestamp          | 4xx Errors | 5xx Errors | Error Rate\n`;
       text += `-------------------|------------|------------|------------\n`;
       
-      response.data.slice(0, 20).forEach((item: any) => {
+      response.data.slice(0, 20).forEach((item: unknown) => {
         let errors4xx = 0;
         let errors5xx = 0;
         let requests = 0;

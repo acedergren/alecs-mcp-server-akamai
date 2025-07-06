@@ -47,7 +47,7 @@ export async function listProducts(
       },
     });
 
-    const validatedResponse = validateApiResponse<{ products?: { items?: Array<any> } }>(response);
+    const validatedResponse = validateApiResponse<{ products?: { items?: Array<unknown> } }>(response);
     if (!validatedResponse.products?.items || validatedResponse.products.items.length === 0) {
       return {
         content: [
@@ -168,7 +168,7 @@ export async function getProduct(
       },
     });
 
-    const validatedResponse = validateApiResponse<{ products?: { items?: Array<any> } }>(response);
+    const validatedResponse = validateApiResponse<{ products?: { items?: Array<unknown> } }>(response);
     const product = validatedResponse.products?.items?.find((p) => p.productId === args.productId);
 
     if (!product) {
@@ -384,7 +384,7 @@ export async function listUseCases(
 /**
  * Format error responses with helpful guidance
  */
-function formatError(operation: string, _error: any): MCPToolResponse {
+function formatError(operation: string, _error: unknown): MCPToolResponse {
   let errorMessage = `[ERROR] Failed to ${operation}`;
   let solution = '';
 
@@ -465,7 +465,7 @@ export async function listBillingProducts(
       },
     });
 
-    const validatedResponse = validateApiResponse<{ billingProducts?: Array<any> }>(response);
+    const validatedResponse = validateApiResponse<{ billingProducts?: Array<unknown> }>(response);
     if (!validatedResponse.billingProducts || validatedResponse.billingProducts.length === 0) {
       return {
         content: [

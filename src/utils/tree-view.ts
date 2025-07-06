@@ -11,7 +11,7 @@ export interface TreeNode {
     version?: number;
     status?: string;
     propertyCount?: number;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -211,7 +211,7 @@ function calculateTreeStats(nodes: TreeNode[], level = 0): TreeStats {
 /**
  * Formats a property for tree display
  */
-export function formatPropertyNode(property: any, showDetails = true): TreeNode {
+export function formatPropertyNode(property: unknown, showDetails = true): TreeNode {
   const node: TreeNode = {
     type: 'property',
     id: property.propertyId,
@@ -235,9 +235,9 @@ export function formatPropertyNode(property: any, showDetails = true): TreeNode 
  * Formats a group for tree display
  */
 export function formatGroupNode(
-  group: any,
-  properties: any[] = [],
-  childGroups: any[] = [],
+  group: unknown,
+  properties: unknown[] = [],
+  childGroups: unknown[] = [],
 ): TreeNode {
   const node: TreeNode = {
     type: 'group',

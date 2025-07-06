@@ -201,7 +201,7 @@ export class AkamaiClient {
           };
           signal.addEventListener('abort', abortHandler);
           
-          this.edgeGrid.send((_error: any, response: any, body?: string) => {
+          this.edgeGrid.send((_error: unknown, response: unknown, body?: string) => {
             // Clean up abort listener
             signal.removeEventListener('abort', abortHandler);
             

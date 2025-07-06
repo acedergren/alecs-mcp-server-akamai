@@ -4,6 +4,7 @@
  */
 
 import { ErrorTranslator } from '../utils/errors';
+import { type RuleTree } from '../types/api-responses/property-manager';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
@@ -13,8 +14,8 @@ import { validateApiResponse } from '../utils/api-response-validator';
 export interface VersionDiff {
   type: 'added' | 'removed' | 'modified';
   path: string;
-  oldValue?: any;
-  newValue?: any;
+  oldValue?: unknown;
+  newValue?: unknown;
   description?: string;
 }
 
@@ -44,7 +45,7 @@ export interface VersionMetadata {
   createdDate?: string;
   lastModifiedBy?: string;
   lastModifiedDate?: string;
-  customData?: Record<string, any>;
+  customData?: Record<string, unknown>;
 }
 
 export interface VersionTimeline {
@@ -90,7 +91,7 @@ export async function comparePropertyVersions(
     });
 
     const validatedResponse = validateApiResponse<{
-      properties?: { items?: any[] };
+      properties?: { items?: unknown[] };
     }>(propertyResponse);
 
     if (!validatedResponse.properties?.items?.[0]) {
@@ -125,8 +126,8 @@ export async function comparePropertyVersions(
         }),
       ]);
 
-      const validatedRules1 = validateApiResponse<{ rules?: any }>(rules1);
-      const validatedRules2 = validateApiResponse<{ rules?: any }>(rules2);
+      const validatedRules1 = validateApiResponse<{ rules?: RuleTree }>(rules1);
+      const validatedRules2 = validateApiResponse<{ rules?: RuleTree }>(rules2);
       
       comparison.differences.rules = compareRuleTrees(validatedRules1.rules, validatedRules2.rules, includeDetails);
 
@@ -155,10 +156,10 @@ export async function comparePropertyVersions(
       ]);
 
       const validatedHostnames1 = validateApiResponse<{
-        hostnames?: { items?: any[] };
+        hostnames?: { items?: unknown[] };
       }>(hostnames1);
       const validatedHostnames2 = validateApiResponse<{
-        hostnames?: { items?: any[] };
+        hostnames?: { items?: unknown[] };
       }>(hostnames2);
 
       comparison.differences.hostnames = compareHostnames(
@@ -263,7 +264,7 @@ export async function batchCreateVersions(
         });
 
         const validatedPropResponse = validateApiResponse<{
-          properties?: { items?: any[] };
+          properties?: { items?: unknown[] };
         }>(propertyResponse);
         
         const property = validatedPropResponse.properties?.items?.[0];
@@ -309,7 +310,7 @@ export async function batchCreateVersions(
             prop.note || args.defaultNote || '',
           );
         }
-      } catch (_error: any) {
+      } catch (_error: unknown) {
         results.push({
           propertyId: prop.propertyId,
           success: false,
@@ -397,7 +398,7 @@ export async function getVersionTimeline(
     });
 
     const validatedPropResponse = validateApiResponse<{
-      properties?: { items?: any[] };
+      properties?: { items?: unknown[] };
     }>(propertyResponse);
     
     const property = validatedPropResponse.properties?.items?.[0];
@@ -426,7 +427,7 @@ export async function getVersionTimeline(
 
     // Build timeline from versions
     const validatedVersionsResp = validateApiResponse<{
-      versions?: { items?: any[] };
+      versions?: { items?: unknown[] };
     }>(versionsResponse);
     const versions = validatedVersionsResp.versions?.items || [];
     for (const version of versions) {
@@ -450,11 +451,11 @@ export async function getVersionTimeline(
 
       // Add activation events
       const validatedActivationsResp = validateApiResponse<{
-        activations?: { items?: any[] };
+        activations?: { items?: unknown[] };
       }>(activationsResponse);
       const activations =
         validatedActivationsResp.activations?.items?.filter(
-          (a: any) => a.propertyVersion === version.propertyVersion,
+          (a: unknown) => a.propertyVersion === version.propertyVersion,
         ) || [];
 
       for (const activation of activations) {
@@ -562,7 +563,7 @@ export async function rollbackPropertyVersion(
     });
 
     const validatedPropResponse = validateApiResponse<{
-      properties?: { items?: any[] };
+      properties?: { items?: unknown[] };
     }>(propertyResponse);
     
     const property = validatedPropResponse.properties?.items?.[0];
@@ -579,7 +580,7 @@ export async function rollbackPropertyVersion(
     });
 
     const validatedTargetVersionResp = validateApiResponse<{
-      versions?: { items?: any[] };
+      versions?: { items?: unknown[] };
     }>(targetVersionResponse);
     if (!validatedTargetVersionResp.versions?.items?.[0]) {
       throw new Error(`Version ${args.targetVersion} not found`);
@@ -614,14 +615,14 @@ export async function rollbackPropertyVersion(
     }
 
     // Get current hostnames if preserving
-    let currentHostnames: any[] = [];
+    let currentHostnames: unknown[] = [];
     if (preserveHostnames) {
       const hostnamesResponse = await client.request({
         path: `/papi/v1/properties/${args.propertyId}/versions/${currentVersion}/hostnames`,
         method: 'GET',
       });
       const validatedHostnamesResp = validateApiResponse<{
-        hostnames?: { items?: any[] };
+        hostnames?: { items?: unknown[] };
       }>(hostnamesResponse);
       currentHostnames = validatedHostnamesResp.hostnames?.items || [];
     }
@@ -742,11 +743,11 @@ export async function updateVersionMetadata(
     ]);
 
     const validatedPropResponse = validateApiResponse<{
-      properties?: { items?: any[] };
+      properties?: { items?: unknown[] };
     }>(propertyResponse);
     
     const property = validatedPropResponse.properties?.items?.[0];
-    const version = validateApiResponse<{ versions?: { items?: any[] } }>(versionResponse).versions?.items?.[0];
+    const version = validateApiResponse<{ versions?: { items?: unknown[] } }>(versionResponse).versions?.items?.[0];
 
     if (!property || !version) {
       throw new Error('Property or version not found');
@@ -765,7 +766,7 @@ export async function updateVersionMetadata(
       });
 
       const validatedRulesResp = validateApiResponse<{
-        rules?: any;
+        rules?: unknown;
       }>(rulesResponse);
       const rules = validatedRulesResp.rules;
 
@@ -869,7 +870,7 @@ export async function mergePropertyVersions(
     });
 
     const validatedPropResponse = validateApiResponse<{
-      properties?: { items?: any[] };
+      properties?: { items?: unknown[] };
     }>(propertyResponse);
     
     const property = validatedPropResponse.properties?.items?.[0];
@@ -890,11 +891,11 @@ export async function mergePropertyVersions(
     ]);
 
     // Validate rules responses
-    const validatedSourceRules = validateApiResponse<{ rules?: any }>(sourceRules);
-    const validatedTargetRules = validateApiResponse<{ rules?: any }>(targetRules);
+    const validatedSourceRules = validateApiResponse<{ rules?: RuleTree }>(sourceRules);
+    const validatedTargetRules = validateApiResponse<{ rules?: RuleTree }>(targetRules);
 
     // Perform merge based on strategy
-    let mergedRules: any;
+    let mergedRules: unknown;
     let mergeDescription: string;
 
     if (args.mergeStrategy === 'cherry-pick' && args.includePaths) {
@@ -1001,11 +1002,11 @@ export async function mergePropertyVersions(
 
 // Helper functions
 
-function compareRuleTrees(rules1: any, rules2: any, includeDetails: boolean): VersionDiff[] {
+function compareRuleTrees(rules1: unknown, rules2: unknown, includeDetails: boolean): VersionDiff[] {
   const diffs: VersionDiff[] = [];
 
   // Deep comparison of rule trees
-  const compareObjects = (obj1: any, obj2: any, path: string) => {
+  const compareObjects = (obj1: unknown, obj2: unknown, path: string) => {
     // Handle arrays
     if (Array.isArray(obj1) && Array.isArray(obj2)) {
       const maxLength = Math.max(obj1.length, obj2.length);
@@ -1081,7 +1082,7 @@ function compareRuleTrees(rules1: any, rules2: any, includeDetails: boolean): Ve
   return diffs;
 }
 
-function compareHostnames(hostnames1: any[], hostnames2: any[]): VersionDiff[] {
+function compareHostnames(hostnames1: unknown[], hostnames2: unknown[]): VersionDiff[] {
   const diffs: VersionDiff[] = [];
   const hostMap1 = new Map(hostnames1.map((h) => [h.cnameFrom, h]));
   const hostMap2 = new Map(hostnames2.map((h) => [h.cnameFrom, h]));
@@ -1225,11 +1226,11 @@ async function updateVersionNote(
 }
 
 function cherryPickChanges(
-  sourceRules: any,
-  targetRules: any,
+  sourceRules: unknown,
+  targetRules: unknown,
   includePaths: string[],
   excludePaths?: string[],
-): any {
+): unknown {
   // Deep clone target rules as base
   const result = JSON.parse(JSON.stringify(targetRules));
 
@@ -1248,9 +1249,9 @@ function cherryPickChanges(
   return result;
 }
 
-function mergeRuleTrees(sourceRules: any, targetRules: any, excludePaths?: string[]): any {
+function mergeRuleTrees(sourceRules: unknown, targetRules: unknown, excludePaths?: string[]): unknown {
   // Deep merge with conflict resolution
-  const merge = (source: any, target: any, currentPath = ''): any => {
+  const merge = (source: unknown, target: unknown, currentPath = ''): any => {
     if (excludePaths?.some((p) => currentPath.startsWith(p))) {
       return target;
     }
@@ -1260,13 +1261,13 @@ function mergeRuleTrees(sourceRules: any, targetRules: any, excludePaths?: strin
       return [
         ...target,
         ...source.filter(
-          (item: any) => !target.some((t: any) => JSON.stringify(t) === JSON.stringify(item)),
+          (item: unknown) => !target.some((t: unknown) => JSON.stringify(t) === JSON.stringify(item)),
         ),
       ];
     }
 
     if (typeof source === 'object' && typeof target === 'object' && source && target) {
-      const result: any = { ...target };
+      const result: unknown = { ...target };
 
       for (const key in source) {
         const newPath = currentPath ? `${currentPath}/${key}` : key;
@@ -1288,7 +1289,7 @@ function mergeRuleTrees(sourceRules: any, targetRules: any, excludePaths?: strin
   return merge(sourceRules, targetRules);
 }
 
-function getValueAtPath(obj: any, path: string): any {
+function getValueAtPath(obj: unknown, path: string): unknown {
   const parts = path.split('/').filter((p) => p);
   let current = obj;
 
@@ -1311,7 +1312,7 @@ function getValueAtPath(obj: any, path: string): any {
   return current;
 }
 
-function setValueAtPath(obj: any, path: string, value: any): void {
+function setValueAtPath(obj: unknown, path: string, value: unknown): void {
   const parts = path.split('/').filter((p) => p);
   let current = obj;
 

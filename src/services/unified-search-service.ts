@@ -99,7 +99,7 @@ export interface SearchResult {
   type: string;
   id: string;
   name: string;
-  details?: any;
+  details?: unknown;
   relevanceScore: number;
   source: 'cache' | 'api' | 'bulk-search';
 }
@@ -209,7 +209,7 @@ export class UnifiedSearchService {
       );
 
       if (Array.isArray(cacheResults) && cacheResults.length > 0) {
-        return cacheResults.map((match: any) => ({
+        return cacheResults.map((match: unknown) => ({
           type: match.resourceType || 'property',
           id: match.resourceId || match.propertyId,
           name: match.resourceName || match.propertyName,
@@ -344,8 +344,8 @@ export class UnifiedSearchService {
   /**
    * Build bulk search query
    */
-  private buildBulkSearchQuery(searchType: string, searchValue: string): any {
-    const queries: Record<string, any> = {
+  private buildBulkSearchQuery(searchType: string, searchValue: string): unknown {
+    const queries: Record<string, unknown> = {
       origin: {
         match: searchValue,
         syntax: 'JSONPATH',
@@ -399,7 +399,7 @@ export class UnifiedSearchService {
   /**
    * Process bulk search results
    */
-  private processBulkSearchResults(response: any): SearchResult[] {
+  private processBulkSearchResults(response: unknown): SearchResult[] {
     const results: SearchResult[] = [];
 
     if (response.results && Array.isArray(response.results)) {
@@ -424,7 +424,7 @@ export class UnifiedSearchService {
   /**
    * Check if a property matches the search query
    */
-  private matchesQuery(property: any, query: string, searchType: SearchType): boolean {
+  private matchesQuery(property: unknown, query: string, searchType: SearchType): boolean {
     const queryLower = query.toLowerCase();
     
     switch (searchType) {
@@ -445,7 +445,7 @@ export class UnifiedSearchService {
   /**
    * Calculate relevance score for a result
    */
-  private calculateRelevance(item: any, query: string): number {
+  private calculateRelevance(item: unknown, query: string): number {
     const queryLower = query.toLowerCase();
     let score = 0;
 

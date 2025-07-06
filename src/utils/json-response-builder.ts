@@ -17,7 +17,7 @@ export interface StandardJsonResponse<T = any> {
     executionTime: number;
     warnings: string[];
   };
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   navigation?: {
     nextCursor?: string;
     prevCursor?: string;
@@ -30,7 +30,7 @@ export interface JsonErrorResponse {
   error: {
     code: string;
     message: string;
-    details: Record<string, any>;
+    details: Record<string, unknown>;
   };
   resolution: {
     steps: string[];
@@ -65,7 +65,7 @@ export class JsonResponseBuilder {
    */
   success<T>(
     data: T, 
-    parameters: Record<string, any> = {}, 
+    parameters: Record<string, unknown> = {}, 
     metadata: Partial<StandardJsonResponse<T>['metadata']> = {}
   ): StandardJsonResponse<T> {
     const executionTime = Date.now() - this.startTime;
@@ -106,7 +106,7 @@ export class JsonResponseBuilder {
    */
   paginated<T>(
     allData: T[],
-    parameters: Record<string, any> = {},
+    parameters: Record<string, unknown> = {},
     pagination: { page?: number; perPage?: number; cursor?: string } = {}
   ): StandardJsonResponse<T[]> {
     const { page = 1, perPage = 50 } = pagination;
@@ -138,11 +138,11 @@ export class JsonResponseBuilder {
    * Create a summary response for oversized data
    */
   summary<_T>(
-    summary: any,
+    summary: unknown,
     totalCount: number,
-    parameters: Record<string, any> = {},
+    parameters: Record<string, unknown> = {},
     suggestedQueries: string[] = []
-  ): StandardJsonResponse<any> {
+  ): StandardJsonResponse<unknown> {
     const executionTime = Date.now() - this.startTime;
 
     return {
@@ -170,7 +170,7 @@ export class JsonResponseBuilder {
   error(
     code: string,
     message: string,
-    details: Record<string, any> = {},
+    details: Record<string, unknown> = {},
     resolutionSteps: string[] = []
   ): JsonErrorResponse {
     return {
@@ -197,7 +197,7 @@ export class JsonResponseBuilder {
 export function formatResponse(
   jsonResponse: StandardJsonResponse | JsonErrorResponse,
   format: 'json' | 'text' = 'json'
-): any {
+): unknown {
   if (format === 'json') {
     return {
       content: [
@@ -223,7 +223,7 @@ export const ResponsePatterns = {
    */
   entityList<T extends { id?: string; name?: string }>(
     entities: T[],
-    parameters: Record<string, any>,
+    parameters: Record<string, unknown>,
     metadata: { entityType: string; searchTerm?: string } = { entityType: 'items' }
   ): StandardJsonResponse<T[]> {
     const builder = new JsonResponseBuilder();
@@ -242,7 +242,7 @@ export const ResponsePatterns = {
    */
   entity<T>(
     entity: T,
-    parameters: Record<string, any>,
+    parameters: Record<string, unknown>,
     _metadata: { entityType: string } = { entityType: 'item' }
   ): StandardJsonResponse<T> {
     const builder = new JsonResponseBuilder();
@@ -253,9 +253,9 @@ export const ResponsePatterns = {
    * Standard operation result (create, update, delete)
    */
   operation(
-    result: any,
+    result: unknown,
     _operation: string,
-    parameters: Record<string, any>,
+    parameters: Record<string, unknown>,
     nextSteps: Array<{ action: string; description: string; command?: string }> = []
   ): StandardJsonResponse<any> {
     const builder = new JsonResponseBuilder();

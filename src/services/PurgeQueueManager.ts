@@ -130,7 +130,7 @@ export class PurgeQueueManager {
         );
       }, this.PERSISTENCE_INTERVAL);
       this.persistenceTimer.unref(); // Don't keep process alive
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       logger.error(`Queue manager error: ${_error.message}`);
     }
   }
@@ -146,7 +146,7 @@ export class PurgeQueueManager {
 
           try {
             const data = await fs.readFile(filePath, 'utf-8');
-            const items = JSON.parse(data).map((item: any) => ({
+            const items = JSON.parse(data).map((item: unknown) => ({
               ...item,
               createdAt: new Date(item.createdAt),
               lastAttempt: item.lastAttempt ? new Date(item.lastAttempt) : undefined,
@@ -154,12 +154,12 @@ export class PurgeQueueManager {
 
             this.queues.set(customer, items);
             logger.info(`Loaded ${items.length} queue items for customer ${customer}`);
-          } catch (_err: any) {
+          } catch (_err: unknown) {
             logger.error(`Failed to load queue for ${customer}: ${_err.message}`);
           }
         }
       }
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       logger.error(`Queue manager error: ${_error.message}`);
     }
   }
@@ -173,7 +173,7 @@ export class PurgeQueueManager {
         // Write to temp file first for atomic operation
         await fs.writeFile(tempPath, JSON.stringify(items, null, 2));
         await fs.rename(tempPath, filePath);
-      } catch (_error: any) {
+      } catch (_error: unknown) {
         logger.error(`Queue manager error: ${_error.message}`);
       }
     }
@@ -390,7 +390,7 @@ export class PurgeQueueManager {
       logger.info(
         `Completed purge ${item.id} for ${item.customer}: ${item.objects.length} objects`,
       );
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       item.error = _error.message;
 
       if (item.attempts >= 3) {

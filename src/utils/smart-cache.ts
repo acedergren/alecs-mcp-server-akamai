@@ -56,6 +56,13 @@ import { BloomFilter } from './bloom-filter';
 import { CircuitBreaker } from './circuit-breaker';
 import { KeyStore } from './key-store';
 
+
+// Cache type definitions
+type CacheKey = string;
+type CacheValue = unknown;
+type CacheOptions = { ttl?: number; customer?: string; tags?: string[] };
+type CacheEntry = { value: CacheValue; expires: number; tags?: string[] };
+
 const gzip = promisify(zlib.gzip);
 const gunzip = promisify(zlib.gunzip);
 
@@ -113,7 +120,7 @@ interface PendingRequest<T> {
   promise: Promise<T>;
   callbacks: Array<{
     resolve: (value: T) => void;
-    reject: (error: any) => void;
+    reject: (error: unknown) => void;
   }>;
 }
 
@@ -130,13 +137,13 @@ interface CacheSegment<T> {
   lastAccessed: number;
 }
 
-export class SmartCache<T = any> extends EventEmitter {
+export class SmartCache<T = unknown> extends EventEmitter {
   private cache: Map<string, CacheEntry<T>> = new Map();              // Main cache storage
   private segments: Map<string, CacheSegment<T>> = new Map();         // Segmented cache storage
   private keyToSegment: Map<string, string> = new Map();              // Key to segment mapping
   private keysByPattern: Map<string, Set<string>> = new Map();        // Track keys by patterns
   private refreshingKeys: Set<string> = new Set();                    // Keys being refreshed
-  private pendingRequests: Map<string, PendingRequest<any>> = new Map(); // Request coalescing
+  private pendingRequests: Map<string, PendingRequest<unknown>> = new Map(); // Request coalescing
   private negativeCache: Set<string> = new Set();                     // Track non-existent keys
   private negativeCacheBloom: BloomFilter;                            // Bloom filter for negative cache
   private circuitBreaker: CircuitBreaker;                             // Circuit breaker for fetch operations
@@ -285,7 +292,7 @@ export class SmartCache<T = any> extends EventEmitter {
    */
   async set<V = T>(key: string, value: V, ttl?: number): Promise<boolean> {
     try {
-      let dataToStore: any = value;
+      let dataToStore: unknown = value;
       let compressed = false;
       const size = this.estimateSize(value);
       
@@ -336,9 +343,9 @@ export class SmartCache<T = any> extends EventEmitter {
       };
       
       if (this.options.enableSegmentation) {
-        this.setInSegment(key, entry as CacheEntry<any>);
+        this.setInSegment(key, entry as CacheEntry<unknown>);
       } else {
-        this.cache.set(key, entry as CacheEntry<any>);
+        this.cache.set(key, entry as CacheEntry<unknown>);
       }
       
       // Track key in KeyStore if enabled
@@ -795,7 +802,7 @@ export class SmartCache<T = any> extends EventEmitter {
     return removed;
   }
 
-  private estimateSize(value: any): number {
+  private estimateSize(value: unknown): number {
     // Rough estimation of object size in bytes
     const str = JSON.stringify(value);
     return str.length * 2; // Assuming UTF-16
@@ -891,7 +898,7 @@ export class SmartCache<T = any> extends EventEmitter {
   /**
    * Get cache statistics with additional details
    */
-  getDetailedStats(): any {
+  getDetailedStats(): unknown {
     const entries = Array.from(this.cache.values());
     const now = Date.now();
     

@@ -500,7 +500,7 @@ export class PropertyOnboardingAgent {
     });
   }
 
-  private getIonStandardTemplate(config: Required<OnboardingConfig>): any {
+  private getIonStandardTemplate(config: Required<OnboardingConfig>): unknown {
     // Based on the user-provided Ion Standard template
     const template = {
       name: 'default',

@@ -99,7 +99,7 @@ export class ReliableTestBase {
   /**
    * Add customer configuration for testing
    */
-  addCustomerConfig(customer: string, config: any): void {
+  addCustomerConfig(customer: string, config: unknown): void {
     // Mock customer configuration
     const customerConfigModule = this.mockModule('../../src/utils/customer-config');
     customerConfigModule.validateCustomer = jest.fn().mockReturnValue(true);
@@ -109,7 +109,7 @@ export class ReliableTestBase {
   /**
    * Mock specific API endpoint
    */
-  mockApiEndpoint(endpoint: string, response: any, options?: { delay?: number }): void {
+  mockApiEndpoint(endpoint: string, response: unknown, options?: { delay?: number }): void {
     this.mockEdgeGrid.mockEndpoint(endpoint, response, options);
   }
 
@@ -210,7 +210,7 @@ export class ReliableTestBase {
   /**
    * Mock a module and track for cleanup
    */
-  private mockModule(modulePath: string, mockImplementation?: any): any {
+  private mockModule(modulePath: string, mockImplementation?: unknown): unknown {
     try {
       const originalModule = require(modulePath);
       this.originalModules.set(modulePath, originalModule);
@@ -291,7 +291,7 @@ export class ContractTestBase extends ReliableTestBase {
   /**
    * Validate response against OpenAPI schema
    */
-  validateResponseSchema(response: any, schemaPath: string): boolean {
+  validateResponseSchema(response: unknown, schemaPath: string): boolean {
     // This would integrate with actual schema validation
     // For now, just check basic structure
     return response && typeof response === 'object';
@@ -300,7 +300,7 @@ export class ContractTestBase extends ReliableTestBase {
   /**
    * Validate request format
    */
-  validateRequestFormat(request: any, endpoint: string): boolean {
+  validateRequestFormat(request: unknown, endpoint: string): boolean {
     // Basic request validation
     return request && typeof request === 'object';
   }

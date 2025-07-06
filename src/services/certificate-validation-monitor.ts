@@ -55,7 +55,7 @@ export interface MonitorEvents {
   'validation:progress': (domain: string, status: ValidationStatus) => void;
   'validation:completed': (enrollmentId: number, domains: string[]) => void;
   'validation:failed': (enrollmentId: number, _error: string) => void;
-  'dns:record_created': (domain: string, record: any) => void;
+  'dns:record_created': (domain: string, record: unknown) => void;
   'dns:propagation_complete': (domain: string) => void;
   'domain:validated': (domain: string) => void;
   'domain:failed': (domain: string, _error: string) => void;
@@ -167,10 +167,10 @@ export class CertificateValidationMonitor extends EventEmitter {
         return false;
       }
 
-      const data: any = await response.json();
+      const data: unknown = await response.json();
       const answers = data.Answer || [];
 
-      return answers.some((answer: any) => answer.data?.includes(expectedValue));
+      return answers.some((answer: unknown) => answer.data?.includes(expectedValue));
     } catch (_error) {
       console.error('[Error]:', _error);
       return false;
@@ -219,7 +219,7 @@ export class CertificateValidationMonitor extends EventEmitter {
     });
 
     const validatedResponse = validateApiResponse<{ allowedDomains?: Array<{ name: string }> }>(response);
-    return validatedResponse.allowedDomains?.map((d: any) => d.name) || [];
+    return validatedResponse.allowedDomains?.map((d: unknown) => d.name) || [];
   }
 
   private async checkValidationStatus(enrollmentId: number): Promise<boolean> {

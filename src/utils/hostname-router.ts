@@ -303,7 +303,7 @@ export class AkamaiHostnameRouter {
    */
   private async parseSearchResult(
     hostname: string,
-    searchResult: any,
+    searchResult: unknown,
     pattern: HostnamePattern,
     client: AkamaiClient
   ): Promise<HostnameRoute> {

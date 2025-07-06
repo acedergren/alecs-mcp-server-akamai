@@ -8,7 +8,7 @@ export interface CircuitBreakerConfig {
   successThreshold?: number;
   recoveryTimeout?: number;
   monitorTimeout?: number;
-  expectedErrors?: Array<new (...args: any[]) => Error>;
+  expectedErrors?: Array<new (...args: unknown[]) => Error>;
 }
 
 export interface CircuitBreakerMetrics {

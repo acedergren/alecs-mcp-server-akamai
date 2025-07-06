@@ -145,7 +145,7 @@ export class OptimizedHTTPClient extends EventEmitter {
    * Create DNS lookup function with caching
    */
   private createDNSLookup(_hostname: string) {
-    return (hostname: string, _options: any, callback: any) => {
+    return (hostname: string, _options: unknown, callback: unknown) => {
       const cacheKey = `${hostname}:${_options.family || 4}`;
       const cached = this.dnsCache.get(cacheKey);
 
@@ -158,7 +158,7 @@ export class OptimizedHTTPClient extends EventEmitter {
       const dns = require('dns');
       const lookupFn = _options.family === 6 ? dns.lookup : dns.lookup;
 
-      lookupFn(hostname, _options, (_err: any, address: string, family: number) => {
+      lookupFn(hostname, _options, (_err: unknown, address: string, family: number) => {
         if (_err) {
           this.emit('dnsLookupError', { hostname, _error: _err });
           return callback(_err);
@@ -182,9 +182,9 @@ export class OptimizedHTTPClient extends EventEmitter {
    * Execute HTTP request with optimizations
    */
   public async executeRequest(
-    options: any,
+    options: Record<string, unknown>,
     data?: Buffer | string,
-  ): Promise<{ response: any; data: Buffer; metrics: any }> {
+  ): Promise<{ response: unknown; data: Buffer; metrics: unknown }> {
     const startTime = performance.now();
     this.metrics.totalRequests++;
 
@@ -249,12 +249,12 @@ export class OptimizedHTTPClient extends EventEmitter {
   /**
    * Make single HTTP request
    */
-  private makeRequest(_options: any, data?: Buffer | string): Promise<any> {
+  private makeRequest(_options: Record<string, unknown>, data?: Buffer | string): Promise<unknown> {
     return new Promise((resolve, reject) => {
       const protocol = _options.protocol === 'https:' ? 'https' : 'http';
       const mod = require(protocol);
 
-      const req = mod._request(_options, (_res: any) => {
+      const req = mod._request(_options, (_res: unknown) => {
         const chunks: Buffer[] = [];
 
         _res.on('data', (chunk: Buffer) => {
