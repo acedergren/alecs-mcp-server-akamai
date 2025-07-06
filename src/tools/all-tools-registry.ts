@@ -563,9 +563,9 @@ export interface ToolDefinition {
 
 // CODE KAI: Enhanced type-safe wrapper function with flexible handler support
 // KAIZEN: Supports multiple function signatures while maintaining type safety
-function createToolHandler(
-  handler: ((...args: unknown[]) => Promise<MCPToolResponse>) |
-           ((...args: unknown[]) => Promise<unknown>)
+function createToolHandler<T extends Record<string, any>>(
+  handler: ((client: AkamaiClient, args: T) => Promise<MCPToolResponse>) |
+           ((client: AkamaiClient, args: T) => Promise<any>)
 ): ToolHandler {
   // DEFENSIVE PROGRAMMING: Comprehensive validation and error handling
   return async (client: AkamaiClient, params: ToolParameters): Promise<MCPToolResponse> => {
@@ -625,8 +625,16 @@ function createToolHandler(
         throw new Error('Handler returned null or undefined');
       }
       
+      // Type guard for MCPToolResponse
+      const isMCPToolResponse = (obj: unknown): obj is MCPToolResponse => {
+        return obj !== null && 
+               typeof obj === 'object' && 
+               'content' in obj &&
+               Array.isArray((obj as any).content);
+      };
+      
       // DEFENSIVE: Convert non-MCPToolResponse results to proper format
-      if (!result.content) {
+      if (!isMCPToolResponse(result)) {
         // KAIZEN: Wrap non-MCP responses in proper format
         result = {
           content: [
@@ -639,13 +647,33 @@ function createToolHandler(
         };
       }
       
+      // Convert result to MCPToolResponse
+      let mcpResponse: MCPToolResponse;
+      
+      if (isMCPToolResponse(result)) {
+        // Already a valid MCPToolResponse
+        mcpResponse = result;
+      } else {
+        // Convert to MCPToolResponse
+        const responseText = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
+        mcpResponse = {
+          content: [
+            {
+              type: 'text' as const,
+              text: responseText
+            }
+          ],
+          isError: false
+        };
+      }
+      
       // DEFENSIVE: Validate response format
-      if (!Array.isArray(result.content)) {
+      if (!Array.isArray(mcpResponse.content)) {
         throw new Error('Tool handler must return MCPToolResponse with content array');
       }
       
       // KAIZEN: Ensure all content items have valid type literals
-      const validatedContent = result.content.map((item: unknown) => {
+      const validatedContent = mcpResponse.content.map((item: any) => {
         if (!item || typeof item !== 'object') {
           throw new Error('Content item must be a valid object');
         }
@@ -669,10 +697,9 @@ function createToolHandler(
       });
       
       // UNIVERSAL TRANSLATION: Apply ID-to-name translation to all responses
-      const baseResponse = {
-        ...result,
+      const baseResponse: MCPToolResponse = {
         content: validatedContent,
-        isError: result.isError || false
+        isError: mcpResponse.isError || false
       };
       
       // Apply translation middleware to convert Akamai IDs to human-readable names

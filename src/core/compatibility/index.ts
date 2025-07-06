@@ -432,6 +432,17 @@ export const DeprecationUtils = {
 };
 
 /**
+ * Simple deprecation warning for immediate use
+ */
+export function deprecationWarning(
+  oldName: string,
+  newName: string,
+  migrationExample?: string
+): void {
+  logDeprecation(oldName, newName, migrationExample);
+}
+
+/**
  * Common migration patterns for the consolidation
  */
 export const CommonMigrations = {
