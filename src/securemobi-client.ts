@@ -1,6 +1,6 @@
 import { AuthToken, Zone, Tenant, CreateTenantRequest, UpdateTenantRequest } from './types/securemobi-api';
 
-const SECUREMOBI_API_BASE = 'https://api.securemobi.net/v2';
+const SECUREMOBI_API_BASE = 'https://api.int.mo2c.eivasa.net/v2';
 
 /**
  * A client for interacting with the Securemobi API.
@@ -53,13 +53,18 @@ export class SecuremobiClient {
   /**
    * A generic method to make authenticated requests to the Securemobi API.
    */
-  private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private async makeRequest<T>(endpoint: string, options: RequestInit = {}, tenantId?: string): Promise<T> {
     const token = await this.getAuthToken();
-    const headers = {
-      ...options.headers,
+    const headers: Record<string, string> = {
+      ...(options.headers as Record<string, string>),
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     };
+
+    // Add X-Tenant-Id header if tenantId is provided
+    if (tenantId) {
+      headers['X-Tenant-Id'] = tenantId;
+    }
 
     const response = await fetch(`${SECUREMOBI_API_BASE}${endpoint}`, {
       ...options,
@@ -84,43 +89,53 @@ export class SecuremobiClient {
 
   /**
    * List all tenants
+   * @param tenantId Optional tenant ID to scope the request via X-Tenant-Id header
    */
-  async listTenants(): Promise<Tenant[]> {
-    return this.makeRequest<Tenant[]>('/tenants');
+  async listTenants(tenantId?: string): Promise<Tenant[]> {
+    return this.makeRequest<Tenant[]>('/management/tenants', {}, tenantId);
   }
 
   /**
    * Create a new tenant
+   * @param data Tenant creation data
+   * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
    */
-  async createTenant(data: CreateTenantRequest): Promise<Tenant> {
-    return this.makeRequest<Tenant>('/tenants', {
+  async createTenant(data: CreateTenantRequest, scopeTenantId?: string): Promise<Tenant> {
+    return this.makeRequest<Tenant>('/management/tenants', {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }, scopeTenantId);
   }
 
   /**
    * Get a tenant by ID
+   * @param tenantId ID of the tenant to retrieve
+   * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
    */
-  async getTenant(tenantId: string): Promise<Tenant> {
-    return this.makeRequest<Tenant>(`/tenants/${tenantId}`);
+  async getTenant(tenantId: string, scopeTenantId?: string): Promise<Tenant> {
+    return this.makeRequest<Tenant>(`/management/tenants/${tenantId}`, {}, scopeTenantId);
   }
 
   /**
    * Update a tenant by ID
+   * @param tenantId ID of the tenant to update
+   * @param data Update data
+   * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
    */
-  async updateTenant(tenantId: string, data: UpdateTenantRequest): Promise<Tenant> {
-    return this.makeRequest<Tenant>(`/tenants/${tenantId}`, {
+  async updateTenant(tenantId: string, data: UpdateTenantRequest, scopeTenantId?: string): Promise<Tenant> {
+    return this.makeRequest<Tenant>(`/management/tenants/${tenantId}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
-    });
+    }, scopeTenantId);
   }
 
   /**
    * Delete a tenant by ID
+   * @param tenantId ID of the tenant to delete
+   * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
    */
-  async deleteTenant(tenantId: string): Promise<{ success: boolean }> {
-    await this.makeRequest(`/tenants/${tenantId}`, { method: 'DELETE' });
+  async deleteTenant(tenantId: string, scopeTenantId?: string): Promise<{ success: boolean }> {
+    await this.makeRequest(`/management/tenants/${tenantId}`, { method: 'DELETE' }, scopeTenantId);
     return { success: true };
   }
 

@@ -79,8 +79,9 @@ describe('Securemobi Management Tools', () => {
     const mockTenant: Tenant = { id: 'tenant-1', name: 'Tenant One', description: 'desc' };
 
     it('listTenants returns tenants', async () => {
+      const mockListTenants = jest.fn().mockResolvedValue([mockTenant]);
       MockSecuremobiClient.mockImplementation(() => ({
-        listTenants: jest.fn().mockResolvedValue([mockTenant]),
+        listTenants: mockListTenants,
       } as any));
 
       const result = await listTenants(mockAkamaiClient, {});
@@ -89,11 +90,29 @@ describe('Securemobi Management Tools', () => {
       const responseData = JSON.parse(result.content[0]?.text || '{}');
       expect(responseData.success).toBe(true);
       expect(responseData.tenants).toEqual([mockTenant]);
+      expect(mockListTenants).toHaveBeenCalledWith(undefined);
+    });
+
+    it('listTenants with scopeTenantId passes X-Tenant-Id header', async () => {
+      const mockListTenants = jest.fn().mockResolvedValue([mockTenant]);
+      MockSecuremobiClient.mockImplementation(() => ({
+        listTenants: mockListTenants,
+      } as any));
+
+      const scopeTenantId = 'scope-tenant-123';
+      const result = await listTenants(mockAkamaiClient, { scopeTenantId });
+      expect(result.isError).toBe(false);
+      
+      const responseData = JSON.parse(result.content[0]?.text || '{}');
+      expect(responseData.success).toBe(true);
+      expect(responseData.scopeTenantId).toBe(scopeTenantId);
+      expect(mockListTenants).toHaveBeenCalledWith(scopeTenantId);
     });
 
     it('createTenant returns created tenant', async () => {
+      const mockCreateTenant = jest.fn().mockResolvedValue(mockTenant);
       MockSecuremobiClient.mockImplementation(() => ({
-        createTenant: jest.fn().mockResolvedValue(mockTenant),
+        createTenant: mockCreateTenant,
       } as any));
 
       const result = await createTenant(mockAkamaiClient, { name: 'Tenant One', description: 'desc' });
@@ -102,11 +121,13 @@ describe('Securemobi Management Tools', () => {
       const responseData = JSON.parse(result.content[0]?.text || '{}');
       expect(responseData.success).toBe(true);
       expect(responseData.tenant).toEqual(mockTenant);
+      expect(mockCreateTenant).toHaveBeenCalledWith({ name: 'Tenant One', description: 'desc' }, undefined);
     });
 
     it('getTenant returns tenant', async () => {
+      const mockGetTenant = jest.fn().mockResolvedValue(mockTenant);
       MockSecuremobiClient.mockImplementation(() => ({
-        getTenant: jest.fn().mockResolvedValue(mockTenant),
+        getTenant: mockGetTenant,
       } as any));
 
       const result = await getTenant(mockAkamaiClient, { tenantId: 'tenant-1' });
@@ -115,12 +136,14 @@ describe('Securemobi Management Tools', () => {
       const responseData = JSON.parse(result.content[0]?.text || '{}');
       expect(responseData.success).toBe(true);
       expect(responseData.tenant).toEqual(mockTenant);
+      expect(mockGetTenant).toHaveBeenCalledWith('tenant-1', undefined);
     });
 
     it('updateTenant returns updated tenant', async () => {
       const updatedTenant = { ...mockTenant, name: 'Updated Name' };
+      const mockUpdateTenant = jest.fn().mockResolvedValue(updatedTenant);
       MockSecuremobiClient.mockImplementation(() => ({
-        updateTenant: jest.fn().mockResolvedValue(updatedTenant),
+        updateTenant: mockUpdateTenant,
       } as any));
 
       const result = await updateTenant(mockAkamaiClient, { tenantId: 'tenant-1', name: 'Updated Name' });
@@ -129,11 +152,30 @@ describe('Securemobi Management Tools', () => {
       const responseData = JSON.parse(result.content[0]?.text || '{}');
       expect(responseData.success).toBe(true);
       expect(responseData.tenant).toEqual(updatedTenant);
+      expect(mockUpdateTenant).toHaveBeenCalledWith('tenant-1', { name: 'Updated Name' }, undefined);
+    });
+
+    it('updateTenant with scopeTenantId passes X-Tenant-Id header', async () => {
+      const updatedTenant = { ...mockTenant, name: 'Updated Name' };
+      const mockUpdateTenant = jest.fn().mockResolvedValue(updatedTenant);
+      MockSecuremobiClient.mockImplementation(() => ({
+        updateTenant: mockUpdateTenant,
+      } as any));
+
+      const scopeTenantId = 'scope-tenant-123';
+      const result = await updateTenant(mockAkamaiClient, { tenantId: 'tenant-1', name: 'Updated Name', scopeTenantId });
+      expect(result.isError).toBe(false);
+      
+      const responseData = JSON.parse(result.content[0]?.text || '{}');
+      expect(responseData.success).toBe(true);
+      expect(responseData.tenant).toEqual(updatedTenant);
+      expect(mockUpdateTenant).toHaveBeenCalledWith('tenant-1', { name: 'Updated Name' }, scopeTenantId);
     });
 
     it('deleteTenant returns success', async () => {
+      const mockDeleteTenant = jest.fn().mockResolvedValue({ success: true });
       MockSecuremobiClient.mockImplementation(() => ({
-        deleteTenant: jest.fn().mockResolvedValue({ success: true }),
+        deleteTenant: mockDeleteTenant,
       } as any));
 
       const result = await deleteTenant(mockAkamaiClient, { tenantId: 'tenant-1' });
@@ -141,6 +183,22 @@ describe('Securemobi Management Tools', () => {
       
       const responseData = JSON.parse(result.content[0]?.text || '{}');
       expect(responseData.success).toBe(true);
+      expect(mockDeleteTenant).toHaveBeenCalledWith('tenant-1', undefined);
+    });
+
+    it('deleteTenant with scopeTenantId passes X-Tenant-Id header', async () => {
+      const mockDeleteTenant = jest.fn().mockResolvedValue({ success: true });
+      MockSecuremobiClient.mockImplementation(() => ({
+        deleteTenant: mockDeleteTenant,
+      } as any));
+
+      const scopeTenantId = 'scope-tenant-123';
+      const result = await deleteTenant(mockAkamaiClient, { tenantId: 'tenant-1', scopeTenantId });
+      expect(result.isError).toBe(false);
+      
+      const responseData = JSON.parse(result.content[0]?.text || '{}');
+      expect(responseData.success).toBe(true);
+      expect(mockDeleteTenant).toHaveBeenCalledWith('tenant-1', scopeTenantId);
     });
   });
 
