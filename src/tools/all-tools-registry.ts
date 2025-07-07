@@ -318,6 +318,22 @@ import {
   handleRotateApiToken,
 } from './token-tools';
 
+// SecureMobi Tools
+import {
+  listZones as listSecureMobiZones,
+  listTenants,
+  createTenant,
+  getTenant,
+  updateTenant,
+  deleteTenant,
+  ListSecureMobiZonesSchema,
+  ListSecureMobiTenantsSchema,
+  CreateSecureMobiTenantSchema,
+  GetSecureMobiTenantSchema,
+  UpdateSecureMobiTenantSchema,
+  DeleteSecureMobiTenantSchema,
+} from './securemobi-tools';
+
 // Define stub handlers for elicitation tools
 const handleDNSElicitationTool = async (_args: any) => {
   return {
@@ -1872,6 +1888,44 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       description: 'Rotate an API token (generate new, revoke old)',
       schema: RotateApiTokenSchema,
       handler: createToolHandler(handleRotateApiToken),
+    },
+
+    // SecureMobi Tools (6 tools)
+    {
+      name: 'securemobi-list-zones',
+      description: 'List all SecureMobi DNS zones',
+      schema: ListSecureMobiZonesSchema,
+      handler: createToolHandler(listSecureMobiZones),
+    },
+    {
+      name: 'securemobi-list-tenants',
+      description: 'List all SecureMobi tenants',
+      schema: ListSecureMobiTenantsSchema,
+      handler: createToolHandler(listTenants),
+    },
+    {
+      name: 'securemobi-create-tenant',
+      description: 'Create a new SecureMobi tenant',
+      schema: CreateSecureMobiTenantSchema,
+      handler: createToolHandler(createTenant),
+    },
+    {
+      name: 'securemobi-get-tenant',
+      description: 'Get details of a specific SecureMobi tenant',
+      schema: GetSecureMobiTenantSchema,
+      handler: createToolHandler(getTenant),
+    },
+    {
+      name: 'securemobi-update-tenant',
+      description: 'Update an existing SecureMobi tenant',
+      schema: UpdateSecureMobiTenantSchema,
+      handler: createToolHandler(updateTenant),
+    },
+    {
+      name: 'securemobi-delete-tenant',
+      description: 'Delete a SecureMobi tenant',
+      schema: DeleteSecureMobiTenantSchema,
+      handler: createToolHandler(deleteTenant),
     },
   ];
 }
