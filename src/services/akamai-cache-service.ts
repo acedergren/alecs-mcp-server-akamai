@@ -444,6 +444,13 @@ export class AkamaiCacheService {
   }
 
   /**
+   * Invalidate cache by pattern (alias for scanAndDelete)
+   */
+  async invalidatePattern(pattern: string): Promise<number> {
+    return this.scanAndDelete(pattern);
+  }
+
+  /**
    * Check if cache is available
    */
   isAvailable(): boolean {
