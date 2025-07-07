@@ -5,40 +5,56 @@
  * Eliminates duplication while maintaining full functionality
  */
 
-import { z } from 'zod';
-import { AkamaiClient } from '../../akamai-client';
+import type { AkamaiClient } from '../../akamai-client';
 import { 
   performanceOptimized, 
   PerformanceProfiles,
-  withCache,
-  withCoalescing,
   CacheInvalidation 
 } from '../../core/performance';
 import { 
-  isValidPropertyId,
-  isValidContractId,
-  isValidGroupId,
+  isPropertyId,
   normalizeId 
 } from '../../core/validation/akamai-ids';
 import { validateCustomer } from '../../core/validation/customer';
-import { formatError, handleApiError, PropertyError } from '../../core/errors';
+import { handleApiError } from '../../core/errors';
+
+/**
+ * Property-specific errors
+ */
+class PropertyError extends Error {
+  constructor(message: string, public code?: string) {
+    super(message);
+    this.name = 'PropertyError';
+  }
+  
+  static notFound(propertyId: string): PropertyError {
+    return new PropertyError(`Property ${propertyId} not found`, 'PROPERTY_NOT_FOUND');
+  }
+  
+  static invalidVersion(propertyId: string, version: number): PropertyError {
+    return new PropertyError(
+      `Version ${version} not found for property ${propertyId}`,
+      'VERSION_NOT_FOUND'
+    );
+  }
+}
 import {
   Property,
   PropertyVersion,
   PropertyActivation,
   PropertyRules,
-  PropertyHostname,
   ListPropertiesParams,
   ListPropertiesResponse,
   CreatePropertyParams,
   CreatePropertyResponse,
   ActivatePropertyParams,
   ActivatePropertyResponse,
-  ListPropertiesParamsSchema,
-  CreatePropertyParamsSchema,
-  ActivatePropertyParamsSchema,
-  ACTIVATION_TIMEOUTS,
 } from './types';
+import {
+  ListPropertiesSchema,
+  CreatePropertySchema,
+  ActivatePropertySchema,
+} from './schemas';
 
 /**
  * List all properties with caching and pagination
@@ -50,7 +66,7 @@ export const listProperties = performanceOptimized(
     params: ListPropertiesParams
   ): Promise<ListPropertiesResponse> => {
     // Validate parameters
-    const validated = ListPropertiesParamsSchema.parse(params);
+    const validated = ListPropertiesSchema.parse(params);
     
     // Validate customer
     validateCustomer(validated.customer);
@@ -58,17 +74,18 @@ export const listProperties = performanceOptimized(
     // Build request parameters
     const requestParams: Record<string, string> = {};
     if (validated.contractId) {
-      requestParams.contractId = normalizeId.contract(validated.contractId);
+      requestParams['contractId'] = normalizeId.contract(validated.contractId);
     }
     if (validated.groupId) {
-      requestParams.groupId = normalizeId.group(validated.groupId);
+      requestParams['groupId'] = normalizeId.group(validated.groupId);
     }
     
     try {
-      const response = await client.request('/papi/v1/properties', {
+      const response = await client.request({
+        path: '/papi/v1/properties',
         method: 'GET',
-        params: requestParams,
-      });
+        queryParams: requestParams,
+      }) as any;
       
       // Ensure consistent response format
       return {
@@ -94,16 +111,17 @@ export const getProperty = performanceOptimized(
   ): Promise<Property> => {
     const propertyId = normalizeId.property(params.propertyId);
     
-    if (!isValidPropertyId(propertyId)) {
+    if (!isPropertyId(propertyId)) {
       throw PropertyError.notFound(propertyId);
     }
     
     validateCustomer(params.customer);
     
     try {
-      const response = await client.request(`/papi/v1/properties/${propertyId}`, {
+      const response = await client.request({
+        path: `/papi/v1/properties/${propertyId}`,
         method: 'GET',
-      });
+      }) as any;
       
       if (!response.properties?.items?.[0]) {
         throw PropertyError.notFound(propertyId);
@@ -128,7 +146,7 @@ export const createProperty = performanceOptimized(
     params: CreatePropertyParams
   ): Promise<CreatePropertyResponse> => {
     // Validate parameters
-    const validated = CreatePropertyParamsSchema.parse(params);
+    const validated = CreatePropertySchema.parse(params);
     
     validateCustomer(validated.customer);
     
@@ -138,7 +156,8 @@ export const createProperty = performanceOptimized(
     const productId = normalizeId.product(validated.productId);
     
     try {
-      const response = await client.request('/papi/v1/properties', {
+      const response = await client.request({
+        path: '/papi/v1/properties',
         method: 'POST',
         body: {
           propertyName: validated.propertyName,
@@ -147,7 +166,7 @@ export const createProperty = performanceOptimized(
           groupId,
           ruleFormat: validated.ruleFormat || 'latest',
         },
-      });
+      }) as any;
       
       // Extract property ID from location header
       const propertyLink = response.propertyLink || response.headers?.location;
@@ -158,7 +177,7 @@ export const createProperty = performanceOptimized(
       }
       
       // Invalidate list cache for this customer
-      await CacheInvalidation.invalidatePattern(`${validated.customer || 'default'}:property.list:*`);
+      await CacheInvalidation.invalidate(`${validated.customer || 'default'}:property.list:*`);
       
       return {
         propertyLink,
@@ -208,20 +227,21 @@ export const createPropertyVersion = performanceOptimized(
     }
     
     try {
-      const response = await client.request(`/papi/v1/properties/${propertyId}/versions`, {
+      const response = await client.request({
+        path: `/papi/v1/properties/${propertyId}/versions`,
         method: 'POST',
         body: {
           createFromVersion,
           createFromVersionEtag: createFromEtag,
         },
-      });
+      }) as any;
       
       const versionLink = response.versionLink || response.headers?.location;
       const propertyVersion = parseInt(versionLink?.match(/versions\/(\d+)/)?.[1] || '0');
       
       // Invalidate property cache
-      await CacheInvalidation.invalidatePattern(`${params.customer || 'default'}:property.get:*${propertyId}*`);
-      await CacheInvalidation.invalidatePattern(`${params.customer || 'default'}:property.version.*:*${propertyId}*`);
+      await CacheInvalidation.invalidate(`${params.customer || 'default'}:property.get:*${propertyId}*`);
+      await CacheInvalidation.invalidate(`${params.customer || 'default'}:property.version.*:*${propertyId}*`);
       
       return {
         versionLink,
@@ -252,10 +272,10 @@ export const getPropertyVersion = performanceOptimized(
     validateCustomer(params.customer);
     
     try {
-      const response = await client.request(
-        `/papi/v1/properties/${propertyId}/versions/${params.version}`,
-        { method: 'GET' }
-      );
+      const response = await client.request({
+        path: `/papi/v1/properties/${propertyId}/versions/${params.version}`,
+        method: 'GET',
+      }) as any;
       
       if (!response.versions?.items?.[0]) {
         throw PropertyError.invalidVersion(propertyId, params.version);
@@ -286,10 +306,10 @@ export const listPropertyVersions = performanceOptimized(
     validateCustomer(params.customer);
     
     try {
-      const response = await client.request(
-        `/papi/v1/properties/${propertyId}/versions`,
-        { method: 'GET' }
-      );
+      const response = await client.request({
+        path: `/papi/v1/properties/${propertyId}/versions`,
+        method: 'GET',
+      }) as any;
       
       return response.versions?.items || [];
     } catch (error) {
@@ -318,15 +338,13 @@ export const getPropertyRules = performanceOptimized(
     validateCustomer(params.customer);
     
     try {
-      const response = await client.request(
-        `/papi/v1/properties/${propertyId}/versions/${params.version}/rules`,
-        {
-          method: 'GET',
-          params: {
-            validateRules: params.validateRules ? 'true' : 'false',
-          },
-        }
-      );
+      const response = await client.request({
+        path: `/papi/v1/properties/${propertyId}/versions/${params.version}/rules`,
+        method: 'GET',
+        queryParams: {
+          validateRules: params.validateRules ? 'true' : 'false',
+        },
+      }) as any;
       
       return response;
     } catch (error) {
@@ -363,25 +381,23 @@ export const updatePropertyRules = performanceOptimized(
     });
     
     try {
-      const response = await client.request(
-        `/papi/v1/properties/${propertyId}/versions/${params.version}/rules`,
-        {
-          method: 'PUT',
-          headers: {
-            'If-Match': currentRules.etag || '',
-          },
-          body: {
-            ...params.rules,
-            ruleFormat: params.rules.ruleFormat || currentRules.ruleFormat,
-          },
-          params: {
-            validateRules: params.validateRules ? 'true' : 'false',
-          },
-        }
-      );
+      const response = await client.request({
+        path: `/papi/v1/properties/${propertyId}/versions/${params.version}/rules`,
+        method: 'PUT',
+        headers: {
+          'If-Match': currentRules.etag || '',
+        },
+        body: {
+          ...params.rules,
+          ruleFormat: params.rules.ruleFormat || currentRules.ruleFormat,
+        },
+        queryParams: {
+          validateRules: params.validateRules ? 'true' : 'false',
+        },
+      }) as any;
       
       // Invalidate rules cache
-      await CacheInvalidation.invalidatePattern(`${params.customer || 'default'}:property.rules.*:*${propertyId}*`);
+      await CacheInvalidation.invalidate(`${params.customer || 'default'}:property.rules.*:*${propertyId}*`);
       
       return {
         errors: response.errors,
@@ -404,7 +420,7 @@ export const activateProperty = performanceOptimized(
     params: ActivatePropertyParams
   ): Promise<ActivatePropertyResponse> => {
     // Validate parameters
-    const validated = ActivatePropertyParamsSchema.parse(params);
+    const validated = ActivatePropertySchema.parse(params);
     const propertyId = normalizeId.property(validated.propertyId);
     
     validateCustomer(validated.customer);
@@ -413,11 +429,10 @@ export const activateProperty = performanceOptimized(
     const network = validated.network.toUpperCase() as 'STAGING' | 'PRODUCTION';
     
     try {
-      const response = await client.request(
-        `/papi/v1/properties/${propertyId}/activations`,
-        {
-          method: 'POST',
-          body: {
+      const response = await client.request({
+        path: `/papi/v1/properties/${propertyId}/activations`,
+        method: 'POST',
+        body: {
             propertyVersion: validated.version,
             network,
             note: validated.note || `Activation via ALECS MCP - ${new Date().toISOString()}`,
@@ -426,7 +441,7 @@ export const activateProperty = performanceOptimized(
             activationType: 'ACTIVATE',
           },
         }
-      );
+      ) as any;
       
       const activationLink = response.activationLink || response.headers?.location;
       const activationId = activationLink?.match(/activations\/(atv_\d+)/)?.[1];
@@ -436,7 +451,7 @@ export const activateProperty = performanceOptimized(
       }
       
       // Invalidate activation cache
-      await CacheInvalidation.invalidatePattern(`${validated.customer || 'default'}:property.activation.*:*${propertyId}*`);
+      await CacheInvalidation.invalidate(`${validated.customer || 'default'}:property.activation.*:*${propertyId}*`);
       
       return {
         activationLink,
@@ -468,10 +483,10 @@ export const getActivationStatus = performanceOptimized(
     validateCustomer(params.customer);
     
     try {
-      const response = await client.request(
-        `/papi/v1/properties/${propertyId}/activations/${activationId}`,
-        { method: 'GET' }
-      );
+      const response = await client.request({
+        path: `/papi/v1/properties/${propertyId}/activations/${activationId}`,
+        method: 'GET',
+      }) as any;
       
       if (!response.activations?.items?.[0]) {
         throw new Error(`Activation ${activationId} not found`);
@@ -502,10 +517,10 @@ export const listPropertyActivations = performanceOptimized(
     validateCustomer(params.customer);
     
     try {
-      const response = await client.request(
-        `/papi/v1/properties/${propertyId}/activations`,
-        { method: 'GET' }
-      );
+      const response = await client.request({
+        path: `/papi/v1/properties/${propertyId}/activations`,
+        method: 'GET',
+      }) as any;
       
       return response.activations?.items || [];
     } catch (error) {
@@ -534,13 +549,13 @@ export const cancelPropertyActivation = performanceOptimized(
     validateCustomer(params.customer);
     
     try {
-      await client.request(
-        `/papi/v1/properties/${propertyId}/activations/${activationId}`,
-        { method: 'DELETE' }
-      );
+      await client.request({
+        path: `/papi/v1/properties/${propertyId}/activations/${activationId}`,
+        method: 'DELETE',
+      });
       
       // Invalidate activation cache
-      await CacheInvalidation.invalidatePattern(`${params.customer || 'default'}:property.activation.*:*${propertyId}*`);
+      await CacheInvalidation.invalidate(`${params.customer || 'default'}:property.activation.*:*${propertyId}*`);
     } catch (error) {
       handleApiError(error, 'cancelPropertyActivation');
     }
@@ -582,13 +597,13 @@ export const removeProperty = performanceOptimized(
     }
     
     try {
-      await client.request(
-        `/papi/v1/properties/${propertyId}`,
-        { method: 'DELETE' }
-      );
+      await client.request({
+        path: `/papi/v1/properties/${propertyId}`,
+        method: 'DELETE',
+      });
       
       // Clear all caches for this property
-      await CacheInvalidation.invalidatePattern(`*:*${propertyId}*`);
+      await CacheInvalidation.invalidate(`*:*${propertyId}*`);
     } catch (error) {
       handleApiError(error, 'removeProperty');
     }
@@ -608,9 +623,10 @@ export const listContracts = performanceOptimized(
     validateCustomer(params.customer);
     
     try {
-      const response = await client.request('/papi/v1/contracts', {
+      const response = await client.request({
+        path: '/papi/v1/contracts',
         method: 'GET',
-      });
+      }) as any;
       
       return response.contracts?.items || [];
     } catch (error) {
@@ -632,9 +648,10 @@ export const listGroups = performanceOptimized(
     validateCustomer(params.customer);
     
     try {
-      const response = await client.request('/papi/v1/groups', {
+      const response = await client.request({
+        path: '/papi/v1/groups',
         method: 'GET',
-      });
+      }) as any;
       
       return response.groups?.items || [];
     } catch (error) {
@@ -658,10 +675,11 @@ export const listProducts = performanceOptimized(
     validateCustomer(params.customer);
     
     try {
-      const response = await client.request('/papi/v1/products', {
+      const response = await client.request({
+        path: '/papi/v1/products',
         method: 'GET',
-        params: { contractId },
-      });
+        queryParams: { contractId },
+      }) as any;
       
       return response.products?.items || [];
     } catch (error) {

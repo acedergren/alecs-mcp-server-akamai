@@ -103,6 +103,7 @@
     "mustache": "^4.2.0",
     "pino": "^9.7.0",
     "pino-pretty": "^13.0.0",
+    "uuid": "^11.1.0",
     "ws": "^8.18.2"
   },
   "devDependencies": {
@@ -137,7 +138,6 @@
     "tsx": "^4.20.3",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.34.1",
-    "uuid": "^11.1.0",
     "zod": "^3.25.67"
   },
   "files": [

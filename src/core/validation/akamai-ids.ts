@@ -93,7 +93,7 @@ export const normalizeId = {
  */
 export function extractNumericId(id: string): number | null {
   const match = id.match(/_(\d+)$/);
-  return match ? parseInt(match[1], 10) : null;
+  return match && match[1] ? parseInt(match[1], 10) : null;
 }
 
 /**

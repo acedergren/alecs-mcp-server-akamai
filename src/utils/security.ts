@@ -154,14 +154,21 @@ export class MessageValidator {
     // Remove any potentially dangerous fields
     const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
     
-    const removeDangerous = (obj: unknown): any => {
-      const cleaned: unknown = {};
-      for (const key of Object.keys(obj)) {
-        if (!dangerousKeys.includes(key)) {
-          if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
-            cleaned[key] = removeDangerous(obj[key]);
+    const removeDangerous = (obj: unknown): Record<string, unknown> => {
+      if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
+        return {};
+      }
+      
+      const cleaned: Record<string, unknown> = {};
+      const objRecord = obj as Record<string, unknown>;
+      
+      for (const key of Object.keys(objRecord)) {
+        if (!dangerousKeys.includes(key) && typeof key === 'string') {
+          const value = objRecord[key];
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            cleaned[key] = removeDangerous(value);
           } else {
-            cleaned[key] = obj[key];
+            cleaned[key] = value;
           }
         }
       }

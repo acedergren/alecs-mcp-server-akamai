@@ -29,7 +29,7 @@ export interface PerformanceConfig {
   circuitBreaker?: {
     enabled: boolean;
     failureThreshold?: number;
-    resetTimeout?: number;
+    timeout?: number;
   };
   metrics?: {
     enabled: boolean;
@@ -101,8 +101,7 @@ function getCircuitBreaker(operation: string): CircuitBreaker {
   if (!circuitBreakers.has(operation)) {
     circuitBreakers.set(operation, new CircuitBreaker({
       failureThreshold: 5,
-      resetTimeout: 60000, // 1 minute
-      halfOpenRequests: 3,
+      timeout: 60000, // 1 minute
     }));
   }
   return circuitBreakers.get(operation)!;
@@ -121,7 +120,7 @@ class PerformanceMetrics {
     totalTime: number;
   }>();
   
-  record(operation: string, metric: keyof PerformanceMetrics['metrics'][string], value = 1): void {
+  record(operation: string, metric: 'calls' | 'cacheHits' | 'cacheMisses' | 'coalescedCalls' | 'errors' | 'totalTime', value = 1): void {
     if (!this.metrics.has(operation)) {
       this.metrics.set(operation, {
         calls: 0,
@@ -134,7 +133,7 @@ class PerformanceMetrics {
     }
     
     const stats = this.metrics.get(operation)!;
-    stats[metric] += value;
+    (stats as any)[metric] += value;
   }
   
   getStats(operation: string) {
@@ -240,7 +239,7 @@ export function withCoalescing<T extends (...args: any[]) => Promise<any>>(
   }
   
   return (async (...args: Parameters<T>) => {
-    const [client, params] = args;
+    const [, params] = args;
     
     const normalizer = operation.includes('property') ? KeyNormalizers.property :
                       operation.includes('search') ? KeyNormalizers.search :
@@ -381,22 +380,22 @@ export const PerformanceWrappers = {
 export const CacheInvalidation = {
   // Invalidate specific cache entries
   invalidate: async (pattern: string) => {
-    await globalCache.invalidatePattern(pattern);
+    await globalCache.scanAndDelete(pattern);
   },
   
   // Invalidate all entries for a customer
   invalidateCustomer: async (customer: string) => {
-    await globalCache.invalidatePattern(`${customer}:*`);
+    await globalCache.scanAndDelete(`${customer}:*`);
   },
   
   // Invalidate all entries for a domain
   invalidateDomain: async (domain: string, customer = '*') => {
-    await globalCache.invalidatePattern(`${customer}:${domain}.*`);
+    await globalCache.scanAndDelete(`${customer}:${domain}.*`);
   },
   
   // Clear entire cache
   clearAll: async () => {
-    await globalCache.clear();
+    await globalCache.flushAll();
   },
 };
 
@@ -411,7 +410,7 @@ export const PerformanceMonitor = {
   getAllStats: () => metrics.getAllStats(),
   
   // Get cache statistics
-  getCacheStats: async () => globalCache.getStats(),
+  getCacheStats: async () => globalCache.getDetailedStats(),
   
   // Get coalescer statistics  
   getCoalescerStats: () => globalCoalescer.getStats(),
@@ -420,15 +419,15 @@ export const PerformanceMonitor = {
   getCircuitBreakerStates: () => {
     const states: Record<string, string> = {};
     for (const [operation, breaker] of circuitBreakers) {
-      states[operation] = breaker.getState();
+      states[operation] = breaker.getStatus().state;
     }
     return states;
   },
   
   // Reset all metrics
-  reset: () => {
-    metrics['metrics'].clear();
-    globalCache.clear();
+  reset: async () => {
+    (metrics as any).metrics.clear();
+    await globalCache.flushAll();
     globalCoalescer.clear();
     circuitBreakers.clear();
   },

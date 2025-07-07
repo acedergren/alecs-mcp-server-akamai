@@ -57,11 +57,11 @@ import { CircuitBreaker } from './circuit-breaker';
 import { KeyStore } from './key-store';
 
 
-// Cache type definitions
-type CacheKey = string;
-type CacheValue = unknown;
-type CacheOptions = { ttl?: number; customer?: string; tags?: string[] };
-type CacheEntry = { value: CacheValue; expires: number; tags?: string[] };
+// Cache type definitions (commented out - unused)
+// type CacheKey = string;
+// type CacheValue = unknown;
+// type CacheOptions = { ttl?: number; customer?: string; tags?: string[] };
+// type CacheEntry = { value: CacheValue; expires: number; tags?: string[] };
 
 const gzip = promisify(zlib.gzip);
 const gunzip = promisify(zlib.gunzip);
@@ -290,7 +290,7 @@ export class SmartCache<T = unknown> extends EventEmitter {
   /**
    * Set value in cache with TTL (async for compatibility)
    */
-  async set<V = T>(key: string, value: V, ttl?: number): Promise<boolean> {
+  async set<V extends T = T>(key: string, value: V, ttl?: number): Promise<boolean> {
     try {
       let dataToStore: unknown = value;
       let compressed = false;
@@ -331,7 +331,7 @@ export class SmartCache<T = unknown> extends EventEmitter {
       const lastUpdateInterval = existing ? Date.now() - existing.timestamp : undefined;
       
       const entry: CacheEntry<V> = {
-        data: dataToStore,
+        data: dataToStore as V,
         timestamp: Date.now(),
         ttl: actualTTL,
         hitCount: 0,
@@ -343,9 +343,9 @@ export class SmartCache<T = unknown> extends EventEmitter {
       };
       
       if (this.options.enableSegmentation) {
-        this.setInSegment(key, entry as CacheEntry<unknown>);
+        this.setInSegment(key, entry as CacheEntry<T>);
       } else {
-        this.cache.set(key, entry as CacheEntry<unknown>);
+        this.cache.set(key, entry as CacheEntry<T>);
       }
       
       // Track key in KeyStore if enabled
@@ -438,7 +438,7 @@ export class SmartCache<T = unknown> extends EventEmitter {
       this.emit('coalesce', key);
       
       return new Promise<V>((resolve, reject) => {
-        pending.callbacks.push({ resolve, reject });
+        pending.callbacks.push({ resolve: resolve as (value: unknown) => void, reject });
       });
     }
     
@@ -484,7 +484,7 @@ export class SmartCache<T = unknown> extends EventEmitter {
       
       try {
         const result = await pendingRequest.promise;
-        await this.set(key, result, ttl);
+        await this.set(key, result as T, ttl);
         
         // Resolve all waiting callbacks
         for (const { resolve } of pendingRequest.callbacks) {
@@ -514,7 +514,7 @@ export class SmartCache<T = unknown> extends EventEmitter {
         const fresh = this.options.enableCircuitBreaker
           ? await this.circuitBreaker.execute(() => fetchFn())
           : await fetchFn();
-        await this.set(key, fresh, ttl);
+        await this.set(key, fresh as T, ttl);
         return fresh;
       } catch (error) {
         // Add to negative cache
@@ -669,7 +669,7 @@ export class SmartCache<T = unknown> extends EventEmitter {
     
     try {
       const fresh = await fetchFn();
-      await this.set(key, fresh, ttl);
+      await this.set(key, fresh as T, ttl);
       this.emit('refresh', key);
     } catch (error) {
       this.emit('refresh-error', { key, error });

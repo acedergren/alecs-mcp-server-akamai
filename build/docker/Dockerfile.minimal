@@ -36,7 +36,7 @@ COPY --from=builder /app/dist/auth ./dist/auth
 COPY --from=builder /app/dist/core ./dist/core
 
 # Create directories
-RUN mkdir -p data logs
+RUN mkdir -p data logs && chown -R node:node /app
 
 # Use non-root user
 USER node

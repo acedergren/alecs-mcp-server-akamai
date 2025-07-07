@@ -31,7 +31,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=builder /app/dist ./dist
 
 # Create directories
-RUN mkdir -p data logs
+RUN mkdir -p data logs && chown -R node:node /app
 
 # Use non-root user
 USER node

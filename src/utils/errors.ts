@@ -16,18 +16,70 @@ export interface TranslatedError {
   supportReference?: string;
 }
 
+interface ErrorWithResponse {
+  response?: {
+    status?: number;
+    data?: unknown;
+    headers?: Record<string, string>;
+  };
+  code?: string;
+  message?: string;
+}
+
+interface ErrorData {
+  detail?: string;
+  message?: string;
+  errors?: Array<{
+    detail?: string;
+    type?: string;
+    errorLocation?: string;
+    field?: string;
+    min?: number;
+    max?: number;
+  }>;
+  reference?: string;
+  requiredPermissions?: string[];
+  contractId?: string;
+  existingResource?: string;
+  conflictingResource?: string;
+}
+
+interface ValidationError {
+  detail?: string;
+  type?: string;
+  errorLocation?: string;
+  field?: string;
+  min?: number;
+  max?: number;
+  expectedFormat?: string;
+  format?: string;
+}
+
+interface BulkOperationResult {
+  status: 'success' | 'failed';
+  resource?: string;
+  name?: string;
+  error?: string;
+}
+
+interface DetailsWithReference {
+  reference?: string;
+  [key: string]: unknown;
+}
+
 export class ErrorTranslator {
   /**
    * Translate API errors into user-friendly messages
    */
   translateError(_error: unknown, context?: ErrorContext): TranslatedError {
+    const typedError = _error as ErrorWithResponse;
     // Handle different error types
-    if (_error.response) {
-      return this.translateHTTPError(_error.response, context);
-    } else if (_error.code) {
-      return this.translateSystemError(_error, context);
-    } else if (_error.message) {
-      return this.translateGenericError(_error, context);
+    if (typedError.response) {
+      return this.translateHTTPError(typedError.response, context);
+    } else if (typedError.code) {
+      return this.translateSystemError(typedError, context);
+    } else if (typedError.message) {
+      return this.translateGenericError(typedError, context);
     }
 
     return {
@@ -36,7 +88,7 @@ export class ErrorTranslator {
     };
   }
 
-  private translateHTTPError(response: unknown, context?: ErrorContext): TranslatedError {
+  private translateHTTPError(response: { status?: number; data?: unknown; headers?: Record<string, string> }, context?: ErrorContext): TranslatedError {
     const { status, data } = response;
 
     switch (status) {
@@ -62,11 +114,12 @@ export class ErrorTranslator {
   }
 
   private translateValidationError(data: unknown, _context?: ErrorContext): TranslatedError {
-    const errors = data.errors || [{ detail: data.detail || data.message }];
+    const typedData = data as ErrorData;
+    const errors = typedData.errors || [{ detail: typedData.detail || typedData.message }];
     const messages: string[] = [];
     const suggestions: string[] = [];
 
-    errors.forEach((_error: unknown) => {
+    errors.forEach((_error) => {
       if (_error.detail) {
         messages.push(this.cleanErrorMessage(_error.detail));
       }
@@ -77,8 +130,8 @@ export class ErrorTranslator {
           `Please provide the required field: ${_error.errorLocation || _error.field}`,
         );
       } else if (_error.type === 'invalid_format') {
-        suggestions.push(this.getFormatSuggestion(_error));
-      } else if (_error.type === 'value_out_of_range') {
+        suggestions.push(this.getFormatSuggestion(_error as ValidationError));
+      } else if (_error.type === 'value_out_of_range' && _error.min !== undefined && _error.max !== undefined) {
         suggestions.push(`Value must be between ${_error.min} and ${_error.max}`);
       }
     });
@@ -86,12 +139,13 @@ export class ErrorTranslator {
     return {
       message: messages.join('. ') || 'Validation failed',
       suggestions: suggestions.length > 0 ? suggestions : ['Check your input values and try again'],
-      supportReference: data.reference,
+      supportReference: typedData.reference,
     };
   }
 
   private translateAuthenticationError(data: unknown, context?: ErrorContext): TranslatedError {
-    const message = data.detail || data.message || 'Authentication failed';
+    const typedData = data as ErrorData;
+    const message = typedData.detail || typedData.message || 'Authentication failed';
 
     const suggestions = [
       'Check your .edgerc file configuration',
@@ -107,23 +161,25 @@ export class ErrorTranslator {
   }
 
   private translatePermissionError(data: unknown, _context?: ErrorContext): TranslatedError {
-    const message = data.detail || "You don't have permission to perform this action";
+    const typedData = data as ErrorData;
+    const message = typedData.detail || "You don't have permission to perform this action";
     const suggestions = ['Contact your administrator to request access'];
 
-    if (data.requiredPermissions) {
-      suggestions.push(`Required permissions: ${data.requiredPermissions.join(', ')}`);
+    if (typedData.requiredPermissions) {
+      suggestions.push(`Required permissions: ${typedData.requiredPermissions.join(', ')}`);
     }
 
-    if (data.contractId) {
-      suggestions.push(`Ensure you have access to contract ${data.contractId}`);
+    if (typedData.contractId) {
+      suggestions.push(`Ensure you have access to contract ${typedData.contractId}`);
     }
 
     return { message: this.cleanErrorMessage(message), suggestions };
   }
 
   private translateNotFoundError(data: unknown, context?: ErrorContext): TranslatedError {
+    const typedData = data as ErrorData;
     const resource = this.extractResourceType(context?.operation || '');
-    const message = data.detail || `${resource} not found`;
+    const message = typedData.detail || `${resource} not found`;
 
     const suggestions = [
       `Check that the ${resource} ID is correct`,
@@ -138,11 +194,12 @@ export class ErrorTranslator {
   }
 
   private translateConflictError(data: unknown, _context?: ErrorContext): TranslatedError {
-    const message = data.detail || 'Resource already exists';
-    const suggestions = [];
+    const typedData = data as ErrorData;
+    const message = typedData.detail || 'Resource already exists';
+    const suggestions: string[] = [];
 
-    if (data.existingResource || data.conflictingResource) {
-      const resourceId = data.existingResource || data.conflictingResource;
+    if (typedData.existingResource || typedData.conflictingResource) {
+      const resourceId = typedData.existingResource || typedData.conflictingResource;
       suggestions.push(`A resource with this name already exists: ${resourceId}`);
       suggestions.push('Use a different name or update the existing resource');
     } else {
@@ -152,7 +209,7 @@ export class ErrorTranslator {
     return { message: this.cleanErrorMessage(message), suggestions };
   }
 
-  private translateRateLimitError(response: unknown, _context?: ErrorContext): TranslatedError {
+  private translateRateLimitError(response: { headers?: Record<string, string> }, _context?: ErrorContext): TranslatedError {
     const retryAfter = response.headers?.['retry-after'] || '60';
     const message = 'Rate limit exceeded';
 
@@ -166,6 +223,7 @@ export class ErrorTranslator {
   }
 
   private translateServerError(data: unknown, _context?: ErrorContext): TranslatedError {
+    const typedData = data as ErrorData;
     const message = 'The service is temporarily unavailable';
     const suggestions = [
       'This appears to be a temporary issue',
@@ -173,18 +231,18 @@ export class ErrorTranslator {
       'If the problem persists, contact support',
     ];
 
-    if (data.reference) {
-      suggestions.push(`Reference for support: ${data.reference}`);
+    if (typedData.reference) {
+      suggestions.push(`Reference for support: ${typedData.reference}`);
     }
 
     return {
       message,
       suggestions,
-      supportReference: data.reference,
+      supportReference: typedData.reference,
     };
   }
 
-  private translateSystemError(_error: unknown, _context?: ErrorContext): TranslatedError {
+  private translateSystemError(_error: ErrorWithResponse, _context?: ErrorContext): TranslatedError {
     const errorMap: Record<string, TranslatedError> = {
       ECONNREFUSED: {
         message: 'Connection refused',
@@ -213,14 +271,14 @@ export class ErrorTranslator {
     };
 
     return (
-      errorMap[_error.code] || {
+      errorMap[_error.code || ''] || {
         message: _error.message || 'System error occurred',
         suggestions: ['Check your system configuration', 'Try again'],
       }
     );
   }
 
-  private translateGenericError(_error: unknown, _context?: ErrorContext): TranslatedError {
+  private translateGenericError(_error: ErrorWithResponse, _context?: ErrorContext): TranslatedError {
     return {
       message: this.cleanErrorMessage(_error.message || 'An error occurred'),
       suggestions: ['Please try again', 'Check your input parameters'],
@@ -255,7 +313,7 @@ export class ErrorTranslator {
       .trim();
   }
 
-  private getFormatSuggestion(_error: unknown): string {
+  private getFormatSuggestion(_error: ValidationError): string {
     const field = _error.field || _error.errorLocation || 'value';
     const format = _error.expectedFormat || _error.format;
 
@@ -268,7 +326,7 @@ export class ErrorTranslator {
       date: 'Use ISO 8601 date format (e.g., 2024-01-20)',
     };
 
-    return formatSuggestions[format] || `Check the format of ${field}`;
+    return formatSuggestions[format || ''] || `Check the format of ${field}`;
   }
 
   private extractResourceType(operation: string): string {
@@ -326,15 +384,16 @@ export class ErrorTranslator {
  * Helper to format bulk operation results with errors
  */
 export function formatBulkOperationResults(results: unknown[]): string {
-  const successful = results.filter((r) => r.status === 'success');
-  const failed = results.filter((r) => r.status === 'failed');
+  const typedResults = results as BulkOperationResult[];
+  const successful = typedResults.filter((r) => r.status === 'success');
+  const failed = typedResults.filter((r) => r.status === 'failed');
 
   let response = `Completed: ${successful.length} successful, ${failed.length} failed\n\n`;
 
   if (successful.length > 0) {
     response += 'Successful:\n';
     successful.forEach((result) => {
-      response += `[EMOJI] ${result.resource || result.name}\n`;
+      response += `✓ ${result.resource || result.name}\n`;
     });
     response += '\n';
   }
@@ -342,7 +401,7 @@ export function formatBulkOperationResults(results: unknown[]): string {
   if (failed.length > 0) {
     response += 'Failed:\n';
     failed.forEach((result) => {
-      response += `[EMOJI] ${result.resource || result.name}: ${result.error}\n`;
+      response += `✗ ${result.resource || result.name}: ${result.error}\n`;
     });
     response += '\n';
 
@@ -350,7 +409,7 @@ export function formatBulkOperationResults(results: unknown[]): string {
       response += 'To fix these errors:\n';
       const uniqueErrors = [...new Set(failed.map((r) => r.error))];
       uniqueErrors.forEach((_error, index) => {
-        response += `${index + 1}. ${getFixSuggestion(_error)}\n`;
+        response += `${index + 1}. ${getFixSuggestion(_error || '')}\n`;
       });
     } else {
       response += 'Multiple errors occurred. Common issues:\n';
@@ -400,8 +459,9 @@ export class AkamaiError extends Error {
     this.details = details;
 
     // Extract reference if present in details
-    if (details?.reference) {
-      this.reference = details.reference;
+    const typedDetails = details as DetailsWithReference;
+    if (typedDetails?.reference) {
+      this.reference = typedDetails.reference;
     }
   }
 }
@@ -411,15 +471,16 @@ export class AkamaiError extends Error {
  */
 export class ErrorRecovery {
   static canRetry(_error: unknown): boolean {
+    const typedError = _error as ErrorWithResponse;
     // Retryable error codes
     const retryableCodes = ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNREFUSED'];
-    if (_error.code && retryableCodes.includes(_error.code)) {
+    if (typedError.code && retryableCodes.includes(typedError.code)) {
       return true;
     }
 
     // Retryable HTTP status codes
     const retryableStatus = [408, 429, 502, 503, 504];
-    if (_error.response?.status && retryableStatus.includes(_error.response.status)) {
+    if (typedError.response?.status && retryableStatus.includes(typedError.response.status)) {
       return true;
     }
 
@@ -427,9 +488,10 @@ export class ErrorRecovery {
   }
 
   static getRetryDelay(attempt: number, _error: unknown): number {
+    const typedError = _error as ErrorWithResponse;
     // Check for Retry-After header
-    if (_error.response?.headers?.['retry-after']) {
-      const retryAfter = _error.response.headers['retry-after'];
+    if (typedError.response?.headers?.['retry-after']) {
+      const retryAfter = typedError.response.headers['retry-after'];
       return parseInt(retryAfter) * 1000; // Convert to milliseconds
     }
 

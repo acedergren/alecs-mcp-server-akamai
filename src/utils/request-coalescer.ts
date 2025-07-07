@@ -1,8 +1,9 @@
 
 // Request type definitions  
-type RequestConfig = { path: string; method: string; body?: unknown; headers?: Record<string, string> };
-type RequestResponse<T = unknown> = { data: T; status: number; headers: Record<string, string> };
-type CoalescedRequest = { id: string; promise: Promise<unknown>; resolve: (value: unknown) => void; reject: (error: unknown) => void };
+// NOTE: These types are preserved for future use but are not currently utilized
+// type RequestConfig = { path: string; method: string; body?: unknown; headers?: Record<string, string> };
+// type RequestResponse<T = unknown> = { data: T; status: number; headers: Record<string, string> };
+// type CoalescedRequest = { id: string; promise: Promise<unknown>; resolve: (value: unknown) => void; reject: (error: unknown) => void };
 
 /**
  * Request Coalescing Utility - CODE KAI Implementation
@@ -99,7 +100,7 @@ export class RequestCoalescer {
         existing.hits++;
         this.stats.hits++;
         this.stats.coalesced++;
-        return existing.promise;
+        return existing.promise as Promise<T>;
       }
 
       // Create new request
@@ -168,13 +169,13 @@ export class RequestCoalescer {
       return obj.map(item => this.sortObject(item));
     }
 
-    const sorted: unknown = {};
+    const sorted: Record<string, unknown> = {};
     Object.keys(obj)
       .sort()
       .forEach(key => {
         // Skip undefined values to normalize keys
-        if (obj[key] !== undefined) {
-          sorted[key] = this.sortObject(obj[key]);
+        if ((obj as any)[key] !== undefined) {
+          sorted[key] = this.sortObject((obj as any)[key]);
         }
       });
 
@@ -208,6 +209,10 @@ export class RequestCoalescer {
     this.cleanupTimer = setInterval(() => {
       this.cleanup();
     }, this.config.cleanupInterval);
+    // Don't keep the process alive just for cleanup
+    if (this.cleanupTimer && typeof this.cleanupTimer.unref === 'function') {
+      this.cleanupTimer.unref();
+    }
   }
 
   /**
@@ -341,9 +346,9 @@ export const KeyNormalizers = {
     const { query, propertyName, hostname, contractId, groupId } = (args as Record<string, unknown>) || {};
     const parts = [key];
     
-    if (query) {parts.push(`q:${query.toLowerCase()}`);}
-    if (propertyName) {parts.push(`name:${propertyName.toLowerCase()}`);}
-    if (hostname) {parts.push(`host:${hostname.toLowerCase()}`);}
+    if (query && typeof query === 'string') {parts.push(`q:${query.toLowerCase()}`);}
+    if (propertyName && typeof propertyName === 'string') {parts.push(`name:${propertyName.toLowerCase()}`);}
+    if (hostname && typeof hostname === 'string') {parts.push(`host:${hostname.toLowerCase()}`);}
     if (contractId) {parts.push(`ctr:${contractId}`);}
     if (groupId) {parts.push(`grp:${groupId}`);}
     
@@ -354,7 +359,7 @@ export const KeyNormalizers = {
    * Normalizer for list operations
    */
   list: (key: string, args: unknown): string => {
-    const { contractId, groupId, customer, limit, offset } = args || {};
+    const { contractId, groupId, customer, limit, offset } = (args as Record<string, unknown>) || {};
     const parts = [key];
     
     if (contractId) {parts.push(`ctr:${contractId}`);}

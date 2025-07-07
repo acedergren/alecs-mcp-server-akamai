@@ -281,6 +281,106 @@ export const NetworkListResponseSchemas = {
   }),
 };
 
+// Type definitions for responses
+interface PropertyListResponse {
+  properties?: {
+    items: unknown[];
+  };
+}
+
+interface VersionListResponse {
+  versions?: {
+    items: unknown[];
+  };
+}
+
+interface ActivationListResponse {
+  activations?: {
+    items: unknown[];
+  };
+}
+
+interface HostnameListResponse {
+  hostnames?: {
+    items: unknown[];
+  };
+}
+
+interface ZoneListResponse {
+  zones?: unknown[];
+}
+
+interface RecordsetListResponse {
+  recordsets?: unknown[];
+}
+
+interface EnrollmentListResponse {
+  enrollments?: unknown[];
+}
+
+interface DomainHistoryResponse {
+  domainHistory?: unknown[];
+}
+
+interface NetworkListItem {
+  uniqueId?: string;
+  [key: string]: unknown;
+}
+
+interface PurgeResponse {
+  httpStatus?: number;
+  _httpStatus?: number;
+  purgeId?: string;
+  status?: string;
+  [key: string]: unknown;
+}
+
+interface ResponseWithHeaders {
+  headers?: Record<string, string>;
+  data?: unknown;
+  [key: string]: unknown;
+}
+
+interface ErrorResponseData {
+  title?: string;
+  detail?: string;
+  message?: string;
+  error?: string;
+  status?: number;
+  type?: string;
+  instance?: string;
+  requestId?: string;
+  errors?: Array<{
+    type?: string;
+    title?: string;
+    message?: string;
+    detail?: string;
+    description?: string;
+    field?: string;
+    path?: string;
+  }>;
+}
+
+interface ErrorWithResponse {
+  response?: {
+    data?: unknown;
+    status?: number;
+    headers?: Record<string, string>;
+  };
+  data?: unknown;
+  status?: number;
+  [key: string]: unknown;
+}
+
+interface AsyncOperationResponse {
+  activationId?: string;
+  changeId?: string;
+  purgeId?: string;
+  estimatedSeconds?: number;
+  status?: string;
+  [key: string]: unknown;
+}
+
 /**
  * Enhanced response parser with validation and complete field extraction
  */
@@ -293,9 +393,10 @@ export class ResponseParser {
       return response;
     }
 
-    if (response.properties?.items) {
+    const typedResponse = response as PropertyListResponse;
+    if (typedResponse.properties?.items) {
       return {
-        properties: response.properties.items.map((item: unknown) => {
+        properties: typedResponse.properties.items.map((item: unknown) => {
           try {
             return PropertyResponseSchemas.property.parse(item);
           } catch (_e) {
@@ -307,27 +408,30 @@ export class ResponseParser {
       };
     }
 
-    if (response.versions?.items) {
+    const versionResponse = response as VersionListResponse;
+    if (versionResponse.versions?.items) {
       return {
-        versions: response.versions.items.map((item: unknown) =>
+        versions: versionResponse.versions.items.map((item: unknown) =>
           PropertyResponseSchemas.propertyVersion.parse(item),
         ),
         pagination: ResponseParser.extractPaginationInfo(response),
       };
     }
 
-    if (response.activations?.items) {
+    const activationResponse = response as ActivationListResponse;
+    if (activationResponse.activations?.items) {
       return {
-        activations: response.activations.items.map((item: unknown) =>
+        activations: activationResponse.activations.items.map((item: unknown) =>
           PropertyResponseSchemas.activation.parse(item),
         ),
         pagination: ResponseParser.extractPaginationInfo(response),
       };
     }
 
-    if (response.hostnames?.items) {
+    const hostnameResponse = response as HostnameListResponse;
+    if (hostnameResponse.hostnames?.items) {
       return {
-        hostnames: response.hostnames.items.map((item: unknown) =>
+        hostnames: hostnameResponse.hostnames.items.map((item: unknown) =>
           PropertyResponseSchemas.hostname.parse(item),
         ),
       };
@@ -344,16 +448,18 @@ export class ResponseParser {
       return response;
     }
 
-    if (response.zones) {
+    const zoneResponse = response as ZoneListResponse;
+    if (zoneResponse.zones) {
       return {
-        zones: response.zones.map((item: unknown) => DNSResponseSchemas.zone.parse(item)),
+        zones: zoneResponse.zones.map((item: unknown) => DNSResponseSchemas.zone.parse(item)),
         pagination: ResponseParser.extractPaginationInfo(response),
       };
     }
 
-    if (response.recordsets) {
+    const recordResponse = response as RecordsetListResponse;
+    if (recordResponse.recordsets) {
       return {
-        records: response.recordsets.map((item: unknown) => DNSResponseSchemas.record.parse(item)),
+        records: recordResponse.recordsets.map((item: unknown) => DNSResponseSchemas.record.parse(item)),
       };
     }
 
@@ -364,17 +470,19 @@ export class ResponseParser {
    * Parse Certificate responses
    */
   static parseCertificateResponse(response: unknown): unknown {
-    if (response.enrollments) {
+    const enrollmentResponse = response as EnrollmentListResponse;
+    if (enrollmentResponse.enrollments) {
       return {
-        enrollments: response.enrollments.map((item: unknown) =>
+        enrollments: enrollmentResponse.enrollments.map((item: unknown) =>
           CertificateResponseSchemas.enrollment.parse(item),
         ),
       };
     }
 
-    if (response.domainHistory) {
+    const historyResponse = response as DomainHistoryResponse;
+    if (historyResponse.domainHistory) {
       return {
-        validationHistory: response.domainHistory.map((item: unknown) =>
+        validationHistory: historyResponse.domainHistory.map((item: unknown) =>
           CertificateResponseSchemas.dvChallenge.parse(item),
         ),
       };
@@ -387,15 +495,16 @@ export class ResponseParser {
    * Parse Fast Purge responses
    */
   static parseFastPurgeResponse(response: unknown): unknown {
-    if (response.httpStatus && response.purgeId) {
+    const purgeResponse = response as PurgeResponse;
+    if ((purgeResponse.httpStatus || purgeResponse._httpStatus) && purgeResponse.purgeId) {
       return FastPurgeResponseSchemas.purgeResponse.parse(response);
     }
 
     if (
-      response.status &&
-      (response.status === 'In-Progress' ||
-        response.status === 'Done' ||
-        response.status === 'Error')
+      purgeResponse.status &&
+      (purgeResponse.status === 'In-Progress' ||
+        purgeResponse.status === 'Done' ||
+        purgeResponse.status === 'Error')
     ) {
       return FastPurgeResponseSchemas.purgeStatus.parse(response);
     }
@@ -415,7 +524,8 @@ export class ResponseParser {
       };
     }
 
-    if (response.uniqueId) {
+    const networkListItem = response as NetworkListItem;
+    if (networkListItem.uniqueId) {
       return NetworkListResponseSchemas.networkList.parse(response);
     }
 
@@ -425,23 +535,31 @@ export class ResponseParser {
   /**
    * Extract pagination information from responses
    */
-  static extractPaginationInfo(response: unknown): unknown {
-    const pagination: unknown = {};
+  static extractPaginationInfo(response: unknown): Record<string, unknown> | undefined {
+    interface PaginationResponse {
+      totalItems?: number;
+      pageSize?: number;
+      currentPage?: number;
+      links?: unknown;
+    }
+    
+    const typedResponse = response as PaginationResponse;
+    const pagination: Record<string, unknown> = {};
 
-    if (response.totalItems !== undefined) {
-      pagination.totalItems = response.totalItems;
+    if (typedResponse.totalItems !== undefined) {
+      pagination.totalItems = typedResponse.totalItems;
     }
 
-    if (response.pageSize !== undefined) {
-      pagination.pageSize = response.pageSize;
+    if (typedResponse.pageSize !== undefined) {
+      pagination.pageSize = typedResponse.pageSize;
     }
 
-    if (response.currentPage !== undefined) {
-      pagination.currentPage = response.currentPage;
+    if (typedResponse.currentPage !== undefined) {
+      pagination.currentPage = typedResponse.currentPage;
     }
 
-    if (response.links) {
-      pagination.links = response.links;
+    if (typedResponse.links) {
+      pagination.links = typedResponse.links;
     }
 
     return Object.keys(pagination).length > 0 ? pagination : undefined;
@@ -454,7 +572,8 @@ export class ResponseParser {
     _error: unknown,
     _context?: { endpoint?: string; operation?: string },
   ): AkamaiErrorResponse {
-    let errorData: unknown = _error.response?.data || _error.data || _error;
+    const errorWithResponse = _error as ErrorWithResponse;
+    let errorData: unknown = errorWithResponse.response?.data || errorWithResponse.data || _error;
 
     // Handle string responses
     if (typeof errorData === 'string') {
@@ -470,18 +589,19 @@ export class ResponseParser {
     }
 
     // Extract _error information
+    const typedErrorData = errorData as ErrorResponseData;
     const parsedError: AkamaiErrorResponse = {
-      title: errorData.title || errorData._error || 'Unknown Error',
-      detail: errorData.detail || errorData.message || errorData._error,
-      status: errorData.status || _error.response?.status || _error.status,
-      type: errorData.type,
-      instance: errorData.instance,
-      requestId: errorData.requestId || _error.response?.headers?.['x-request-id'],
+      title: typedErrorData.title || typedErrorData.error || 'Unknown Error',
+      detail: typedErrorData.detail || typedErrorData.message || typedErrorData.error,
+      status: typedErrorData.status || errorWithResponse.response?.status || errorWithResponse.status,
+      type: typedErrorData.type,
+      instance: typedErrorData.instance,
+      requestId: typedErrorData.requestId || errorWithResponse.response?.headers?.['x-request-id'],
     };
 
-    // Extract detailed _error information
-    if (errorData.errors && Array.isArray(errorData.errors)) {
-      parsedError.errors = errorData.errors.map((_err: unknown) => ({
+    // Extract detailed error information
+    if (typedErrorData.errors && Array.isArray(typedErrorData.errors)) {
+      parsedError.errors = typedErrorData.errors.map((_err) => ({
         type: _err.type,
         title: _err.title || _err.message,
         detail: _err.detail || _err.description,
@@ -506,44 +626,45 @@ export class ResponseParser {
         });
       }
       // Return original response if validation fails (for backward compatibility)
-      return response;
+      return response as T;
     }
   }
 
   /**
    * Extract all metadata from response headers
    */
-  static extractResponseMetadata(response: unknown): unknown {
-    const metadata: unknown = {};
-
-    if (response.headers) {
+  static extractResponseMetadata(response: unknown): Record<string, unknown> {
+    const metadata: Record<string, unknown> = {};
+    const typedResponse = response as ResponseWithHeaders;
+    
+    if (typedResponse.headers) {
       // Rate limiting information
-      if (response.headers['x-ratelimit-limit']) {
+      if (typedResponse.headers['x-ratelimit-limit']) {
         metadata.rateLimit = {
-          limit: parseInt(response.headers['x-ratelimit-limit']),
-          remaining: parseInt(response.headers['x-ratelimit-remaining']),
-          reset: parseInt(response.headers['x-ratelimit-reset']),
+          limit: parseInt(typedResponse.headers['x-ratelimit-limit']),
+          remaining: parseInt(typedResponse.headers['x-ratelimit-remaining'] || '0'),
+          reset: parseInt(typedResponse.headers['x-ratelimit-reset'] || '0'),
         };
       }
 
       // Request tracking
-      if (response.headers['x-request-id']) {
-        metadata.requestId = response.headers['x-request-id'];
+      if (typedResponse.headers['x-request-id']) {
+        metadata.requestId = typedResponse.headers['x-request-id'];
       }
 
       // ETag for caching
-      if (response.headers['etag']) {
-        metadata.etag = response.headers['etag'];
+      if (typedResponse.headers['etag']) {
+        metadata.etag = typedResponse.headers['etag'];
       }
 
       // Last modified
-      if (response.headers['last-modified']) {
-        metadata.lastModified = response.headers['last-modified'];
+      if (typedResponse.headers['last-modified']) {
+        metadata.lastModified = typedResponse.headers['last-modified'];
       }
 
       // Cache control
-      if (response.headers['cache-control']) {
-        metadata.cacheControl = response.headers['cache-control'];
+      if (typedResponse.headers['cache-control']) {
+        metadata.cacheControl = typedResponse.headers['cache-control'];
       }
     }
 
@@ -553,28 +674,29 @@ export class ResponseParser {
   /**
    * Handle async operation responses (activations, etc.)
    */
-  static parseAsyncOperationResponse(response: unknown): unknown {
-    const result: unknown = {
-      ...response,
+  static parseAsyncOperationResponse(response: unknown): Record<string, unknown> {
+    const typedResponse = response as AsyncOperationResponse;
+    const result: Record<string, unknown> = {
+      ...typedResponse,
     };
 
     // Extract operation tracking information
-    if (response.activationId || response.changeId || response.purgeId) {
-      result.operationId = response.activationId || response.changeId || response.purgeId;
+    if (typedResponse.activationId || typedResponse.changeId || typedResponse.purgeId) {
+      result.operationId = typedResponse.activationId || typedResponse.changeId || typedResponse.purgeId;
     }
 
     // Extract estimated completion time
-    if (response.estimatedSeconds) {
+    if (typedResponse.estimatedSeconds) {
       result.estimatedCompletion = new Date(
-        Date.now() + response.estimatedSeconds * 1000,
+        Date.now() + typedResponse.estimatedSeconds * 1000,
       ).toISOString();
     }
 
     // Extract status information
-    if (response.status) {
-      result.operationStatus = response.status;
-      result.isComplete = ['ACTIVE', 'Done', 'COMPLETED'].includes(response.status);
-      result.isFailed = ['FAILED', 'Error', 'ABORTED'].includes(response.status);
+    if (typedResponse.status) {
+      result.operationStatus = typedResponse.status;
+      result.isComplete = ['ACTIVE', 'Done', 'COMPLETED'].includes(typedResponse.status);
+      result.isFailed = ['FAILED', 'Error', 'ABORTED'].includes(typedResponse.status);
     }
 
     return result;
@@ -588,6 +710,7 @@ export function parseAkamaiResponse(
   response: unknown,
   apiType?: 'papi' | 'dns' | 'cps' | 'purge' | 'network-lists',
 ): unknown {
+  const typedResponse = response as ResponseWithHeaders;
   try {
     // Add response metadata
     const metadata = ResponseParser.extractResponseMetadata(response);
@@ -596,31 +719,31 @@ export function parseAkamaiResponse(
 
     switch (apiType) {
       case 'papi':
-        parsedData = ResponseParser.parsePropertyResponse(response.data || response);
+        parsedData = ResponseParser.parsePropertyResponse(typedResponse.data || response);
         break;
       case 'dns':
-        parsedData = ResponseParser.parseDNSResponse(response.data || response);
+        parsedData = ResponseParser.parseDNSResponse(typedResponse.data || response);
         break;
       case 'cps':
-        parsedData = ResponseParser.parseCertificateResponse(response.data || response);
+        parsedData = ResponseParser.parseCertificateResponse(typedResponse.data || response);
         break;
       case 'purge':
-        parsedData = ResponseParser.parseFastPurgeResponse(response.data || response);
+        parsedData = ResponseParser.parseFastPurgeResponse(typedResponse.data || response);
         break;
       case 'network-lists':
-        parsedData = ResponseParser.parseNetworkListResponse(response.data || response);
+        parsedData = ResponseParser.parseNetworkListResponse(typedResponse.data || response);
         break;
       default:
-        parsedData = response.data || response;
+        parsedData = typedResponse.data || response;
     }
 
     if (Object.keys(metadata).length > 0) {
-      parsedData._metadata = metadata;
+      (parsedData as Record<string, unknown>)._metadata = metadata;
     }
 
     return parsedData;
   } catch (_error) {
     console.warn('Failed to parse response:', _error);
-    return response.data || response;
+    return typedResponse.data || response;
   }
 }

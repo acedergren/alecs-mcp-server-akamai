@@ -71,7 +71,7 @@ const errorHandler = createErrorHandler('dns');
 // Operational logging utilities
 function generateRequestId(): string {
   return createHash('md5')
-    .update(Date.now().toString() + Math.random().toString())
+    .update(Date.now().toString() + require('crypto').randomBytes(16).toString('hex'))
     .digest('hex')
     .substring(0, 8);
 }
@@ -1199,7 +1199,7 @@ export async function waitForZoneActivation(
 
         // Exponential backoff with jitter
         backoffMultiplier = Math.min(backoffMultiplier * 2, 10);
-        const delay = opts.pollInterval * backoffMultiplier + Math.random() * 1000;
+        const delay = opts.pollInterval * backoffMultiplier + (require('crypto').randomBytes(2).readUInt16BE(0) / 65536) * 1000;
 
         await new Promise((resolve) => setTimeout(resolve, delay));
         continue;

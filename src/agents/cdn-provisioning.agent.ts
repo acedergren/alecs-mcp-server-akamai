@@ -17,46 +17,18 @@ import {
   type PapiEtagResponse,
 } from './types';
 
-interface PropertyVersion {
-  propertyId: string;
-  propertyVersion: number;
-  etag: string;
-  note: string;
-  productionStatus: string;
-  stagingStatus: string;
-  updatedByUser: string;
-  updatedDate: string;
-}
-
-interface RuleTree {
-  name: string;
-  children: unknown[];
-  behaviors: unknown[];
-  criteria: unknown[];
-  criteriaMustSatisfy?: string;
-  comments?: string;
-}
-
-interface EdgeHostname {
-  edgeHostnameId: string;
-  domainPrefix: string;
-  domainSuffix: string;
-  status: string;
-  ipVersionBehavior: string;
-  productId: string;
-}
-
-interface ActivationStatus {
-  activationId: string;
-  propertyId: string;
-  propertyVersion: number;
-  network: 'STAGING' | 'PRODUCTION';
-  status: string;
-  submitDate: string;
-  updateDate: string;
-  activationType: string;
-  notifyEmails: string[];
-}
+import {
+  type CreateEdgeHostnameRequest,
+  type RuleTree,
+  type EdgeHostname,
+  type ActivationStatus,
+  type PropertyVersion,
+  type DnsRecord,
+  type PropertyMetrics,
+  type TimeSeriesData,
+  type LoggerOptions,
+  type ActivationRequest,
+} from './cdn-provisioning-types';
 
 export class CDNProvisioningAgent {
   private auth: EdgeGridAuth;
@@ -281,7 +253,7 @@ export class CDNProvisioningAgent {
     try {
       progress.update({ current: 1, message: 'Preparing configuration' });
 
-      const request: unknown = {
+      const request: CreateEdgeHostnameRequest = {
         productId,
         domainPrefix,
         domainSuffix: options.domainSuffix || 'edgesuite.net',
@@ -354,7 +326,7 @@ export class CDNProvisioningAgent {
 
       progress.update({ current: 10, message: 'Submitting activation request' });
 
-      const request: unknown = {
+      const request: ActivationRequest = {
         propertyVersion: version,
         network,
         activationType: 'FAST',

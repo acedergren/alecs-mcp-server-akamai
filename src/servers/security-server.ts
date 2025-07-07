@@ -40,6 +40,7 @@ import {
   getSecurityPolicyIntegrationGuidance,
   generateDeploymentChecklist,
 } from '../tools/security/network-lists-integration';
+import { safeExtractCustomer, safeCustomerParam } from '../core/validation/customer';
 
 // Application Security Tools
 

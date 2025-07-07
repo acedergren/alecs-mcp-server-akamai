@@ -38,8 +38,8 @@ COPY ecosystem.config.js ./
 COPY start-sse-server.js ./
 COPY start-websocket-server.js ./
 
-# Create directories
-RUN mkdir -p data logs
+# Create directories with proper ownership
+RUN mkdir -p data logs && chown -R node:node /app
 
 # Use non-root user
 USER node

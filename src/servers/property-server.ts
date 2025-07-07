@@ -79,6 +79,7 @@ import {
 } from '../types/mcp-2025';
 import { wrapToolHandler as _wrapToolHandler } from '../utils/mcp-2025-migration';
 import { coalesceRequest, KeyNormalizers } from '../utils/request-coalescer';
+import { safeExtractCustomer, safeCustomerParam } from '../core/validation/customer';
 
 // Import existing tool implementations
 
@@ -536,7 +537,7 @@ class PropertyALECSServer2025 {
               'list_properties',
               validated,
               () => listProperties(this.client, {
-                ...(validated.customer && { customer: validated.customer }),
+                ...safeCustomerParam(validated),
                 ...(validated.contractId && { contractId: validated.contractId }),
                 ...(validated.groupId && { groupId: validated.groupId }),
                 ...(validated.limit && { limit: validated.limit }),
@@ -575,7 +576,7 @@ class PropertyALECSServer2025 {
               productId: validated.productId,
               contractId: validated.contractId,
               groupId: validated.groupId,
-              ...(validated.customer && { customer: validated.customer }),
+              ...safeCustomerParam(validated),
               ...(validated.ruleFormat && { ruleFormat: validated.ruleFormat })
             });
             result = createMcp2025Response(true, response, undefined, {
@@ -596,7 +597,7 @@ class PropertyALECSServer2025 {
               propertyId: args['propertyId'] as string,
               version: args['version'] as number,
               network: args['network'] as 'STAGING' | 'PRODUCTION',
-              ...('customer' in args && { customer: args['customer'] as string }),
+              ...safeCustomerParam(args as Record<string, unknown>),
               ...('note' in args && { note: args['note'] as string }),
               ...('emails' in args && Array.isArray(args['emails']) && { notifyEmails: args['emails'] as string[] }),
               ...('format' in args && { format: args['format'] as 'json' | 'text' })
@@ -614,7 +615,7 @@ class PropertyALECSServer2025 {
             const validated = PropertyManagerZodSchemas.list_property_versions.parse(args);
             const response = await listPropertyVersions(this.client, {
               propertyId: validated.propertyId,
-              ...(validated.customer && { customer: validated.customer }),
+              ...safeCustomerParam(validated),
               ...(validated.limit && { limit: validated.limit })
             });
             result = createMcp2025Response(true, response, undefined, {
@@ -630,7 +631,7 @@ class PropertyALECSServer2025 {
             const response = await getPropertyVersion(this.client, {
               propertyId: validated.propertyId,
               version: validated.version,
-              ...(validated.customer && { customer: validated.customer })
+              ...safeCustomerParam(validated)
             });
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
@@ -648,7 +649,7 @@ class PropertyALECSServer2025 {
             }
             const activationArgs: Parameters<typeof listPropertyActivations>[1] = {
               propertyId: args['propertyId'] as string,
-              ...('customer' in args && { customer: args['customer'] as string }),
+              ...safeCustomerParam(args as Record<string, unknown>),
               ...('network' in args && { network: args['network'] as 'STAGING' | 'PRODUCTION' }),
               ...('format' in args && { format: args['format'] as 'json' | 'text' })
             };
@@ -682,7 +683,7 @@ class PropertyALECSServer2025 {
             const validated = PropertyManagerZodSchemas.list_products.parse(args);
             const response = await listProducts(this.client, {
               contractId: validated.contractId,
-              ...(validated.customer && { customer: validated.customer })
+              ...safeCustomerParam(validated)
             });
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
@@ -696,7 +697,7 @@ class PropertyALECSServer2025 {
             const validated = PropertyManagerZodSchemas.search.parse(args);
             const response = await universalSearchWithCacheHandler(this.client, {
               query: validated.query,
-              ...(validated.customer && { customer: validated.customer }),
+              ...safeCustomerParam(validated),
               ...(validated.detailed !== undefined && { detailed: validated.detailed }),
               ...(validated.useCache !== undefined && { useCache: validated.useCache }),
               ...(validated.warmCache !== undefined && { warmCache: validated.warmCache })
@@ -714,7 +715,7 @@ class PropertyALECSServer2025 {
             // Lists all contract groups available to the authenticated user
             const safeArgs = args && typeof args === 'object' ? args : {};
             const groupArgs: Parameters<typeof listGroups>[1] = {
-              ...('customer' in safeArgs && { customer: safeArgs['customer'] as string }),
+              ...safeCustomerParam(safeArgs),
               ...('searchTerm' in safeArgs && { searchTerm: safeArgs['searchTerm'] as string })
             };
             const response = await listGroups(this.client, groupArgs);
@@ -731,7 +732,7 @@ class PropertyALECSServer2025 {
             // Lists all contracts with access permissions for the authenticated user
             const safeArgs = args && typeof args === 'object' ? args : {};
             const contractArgs: Parameters<typeof listContracts>[1] = {
-              ...('customer' in safeArgs && { customer: safeArgs['customer'] as string }),
+              ...safeCustomerParam(safeArgs),
               ...('searchTerm' in safeArgs && { searchTerm: safeArgs['searchTerm'] as string })
             };
             const response = await listContracts(this.client, contractArgs);
@@ -751,7 +752,7 @@ class PropertyALECSServer2025 {
             }
             const versionArgs: Parameters<typeof createPropertyVersion>[1] = {
               propertyId: args['propertyId'] as string,
-              ...('customer' in args && { customer: args['customer'] as string }),
+              ...safeCustomerParam(args as Record<string, unknown>),
               ...('createFromVersion' in args && { baseVersion: args['createFromVersion'] as number }),
               ...('createFromVersionEtag' in args && { etag: args['createFromVersionEtag'] as string }),
               ...('note' in args && { note: args['note'] as string })
@@ -774,7 +775,7 @@ class PropertyALECSServer2025 {
             const rulesArgs: Parameters<typeof getPropertyRules>[1] = {
               propertyId: args['propertyId'] as string,
               version: args['version'] as number,
-              ...('customer' in args && { customer: args['customer'] as string }),
+              ...safeCustomerParam(args as Record<string, unknown>),
               ...('validateRules' in args && typeof args['validateRules'] === 'boolean' && { validateRules: args['validateRules'] })
             };
             const response = await getPropertyRules(this.client, rulesArgs);
@@ -796,7 +797,7 @@ class PropertyALECSServer2025 {
               propertyId: args['propertyId'] as string,
               version: args['version'] as number,
               rules: args['rules'] as PropertyRules,
-              ...('customer' in args && { customer: args['customer'] as string }),
+              ...safeCustomerParam(args as Record<string, unknown>),
               ...('validateRules' in args && typeof args['validateRules'] === 'boolean' && { validateRules: args['validateRules'] })
             };
             const response = await updatePropertyRules(this.client, updateRulesArgs);
@@ -817,7 +818,7 @@ class PropertyALECSServer2025 {
             const statusArgs: Parameters<typeof getActivationStatus>[1] = {
               propertyId: args['propertyId'] as string,
               activationId: args['activationId'] as string,
-              ...('customer' in args && { customer: args['customer'] as string })
+              ...safeCustomerParam(args as Record<string, unknown>)
             };
             const response = await getActivationStatus(this.client, statusArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -842,7 +843,7 @@ class PropertyALECSServer2025 {
                 propertyId: validated.propertyId,
                 version: validated.version,
                 hostname: hostname,
-                ...(validated.customer && { customer: validated.customer })
+                ...safeCustomerParam(validated)
               });
               results.push({ hostname, result: response });
             }
@@ -866,7 +867,7 @@ class PropertyALECSServer2025 {
               propertyId: validated.propertyId,
               ...(validated.version !== undefined && { version: validated.version }),
               ...(validated.validateCnames !== undefined && { validateCnames: validated.validateCnames }),
-              ...(validated.customer && { customer: validated.customer })
+              ...safeCustomerParam(validated)
             });
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
@@ -883,7 +884,7 @@ class PropertyALECSServer2025 {
               hostname: validated.hostname,
               edgeHostname: validated.edgeHostname,
               ...(validated.version !== undefined && { version: validated.version }),
-              ...(validated.customer && { customer: validated.customer })
+              ...safeCustomerParam(validated)
             });
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
@@ -898,7 +899,7 @@ class PropertyALECSServer2025 {
             const response = await listEdgeHostnames(this.client, {
               ...(validated.contractId && { contractId: validated.contractId }),
               ...(validated.groupId && { groupId: validated.groupId }),
-              ...(validated.customer && { customer: validated.customer })
+              ...safeCustomerParam(validated)
             });
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
@@ -918,7 +919,7 @@ class PropertyALECSServer2025 {
               ...(validated.secure !== undefined && { secure: validated.secure }),
               ...(validated.ipVersion && { ipVersion: validated.ipVersion }),
               ...(validated.certificateEnrollmentId !== undefined && { certificateEnrollmentId: validated.certificateEnrollmentId }),
-              ...(validated.customer && { customer: validated.customer })
+              ...safeCustomerParam(validated)
             });
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
@@ -933,7 +934,7 @@ class PropertyALECSServer2025 {
             const response = await listCPCodes(this.client, {
               ...(validated.contractId && { contractId: validated.contractId }),
               ...(validated.groupId && { groupId: validated.groupId }),
-              ...(validated.customer && { customer: validated.customer })
+              ...safeCustomerParam(validated)
             });
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
@@ -950,7 +951,7 @@ class PropertyALECSServer2025 {
               contractId: validated.contractId,
               groupId: validated.groupId,
               productId: validated.productId,
-              ...(validated.customer && { customer: validated.customer })
+              ...safeCustomerParam(validated)
             });
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
@@ -966,7 +967,7 @@ class PropertyALECSServer2025 {
               cpcodeId: validated.cpcodeId,
               ...(validated.contractId && { contractId: validated.contractId }),
               ...(validated.groupId && { groupId: validated.groupId }),
-              ...(validated.customer && { customer: validated.customer })
+              ...safeCustomerParam(validated)
             });
             result = createMcp2025Response(true, response, undefined, {
               duration: Date.now() - startTime,
@@ -984,7 +985,7 @@ class PropertyALECSServer2025 {
             }
             const deleteArgs: Parameters<typeof removeProperty>[1] = {
               propertyId: args['propertyId'] as string,
-              ...('customer' in args && { customer: args['customer'] as string })
+              ...safeCustomerParam(args as Record<string, unknown>)
             };
             const response = await removeProperty(this.client, deleteArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -1004,7 +1005,7 @@ class PropertyALECSServer2025 {
             const cloneArgs: Parameters<typeof cloneProperty>[1] = {
               sourcePropertyId: args['sourcePropertyId'] as string,
               propertyName: args['propertyName'] as string,
-              ...('customer' in args && { customer: args['customer'] as string }),
+              ...safeCustomerParam(args as Record<string, unknown>),
               ...('contractId' in args && { contractId: args['contractId'] as string }),
               ...('groupId' in args && { groupId: args['groupId'] as string }),
               ...('cloneHostnames' in args && typeof args['cloneHostnames'] === 'boolean' && { cloneHostnames: args['cloneHostnames'] })
@@ -1027,7 +1028,7 @@ class PropertyALECSServer2025 {
             const cancelArgs: Parameters<typeof cancelPropertyActivation>[1] = {
               propertyId: args['propertyId'] as string,
               activationId: args['activationId'] as string,
-              ...('customer' in args && { customer: args['customer'] as string })
+              ...safeCustomerParam(args as Record<string, unknown>)
             };
             const response = await cancelPropertyActivation(this.client, cancelArgs);
             result = createMcp2025Response(true, response, undefined, {
@@ -1043,7 +1044,7 @@ class PropertyALECSServer2025 {
             // Searches for properties using PAPI search endpoint with multiple criteria
             const safeArgs = args && typeof args === 'object' ? args : {};
             const searchArgs: Parameters<typeof searchPropertiesOptimized>[1] = {
-              ...('customer' in safeArgs && { customer: safeArgs['customer'] as string }),
+              ...safeCustomerParam(safeArgs),
               ...('propertyName' in safeArgs && { propertyName: safeArgs['propertyName'] as string }),
               ...('hostname' in safeArgs && { hostname: safeArgs['hostname'] as string }),
               ...('edgeHostname' in safeArgs && { edgeHostname: safeArgs['edgeHostname'] as string }),
@@ -1074,7 +1075,7 @@ class PropertyALECSServer2025 {
             }
             const latestArgs: Parameters<typeof getLatestPropertyVersion>[1] = {
               propertyId: args['propertyId'] as string,
-              ...('customer' in args && { customer: args['customer'] as string }),
+              ...safeCustomerParam(args as Record<string, unknown>),
               ...('activatedOn' in args && { activatedOn: args['activatedOn'] as 'PRODUCTION' | 'STAGING' | 'LATEST' })
             };
             const response = await getLatestPropertyVersion(this.client, latestArgs);
@@ -1094,7 +1095,7 @@ class PropertyALECSServer2025 {
             }
             const onboardArgs: Parameters<typeof onboardPropertyTool>[1] = {
               hostname: args['hostname'] as string,
-              ...('customer' in args && { customer: args['customer'] as string }),
+              ...safeCustomerParam(args as Record<string, unknown>),
               ...('originHostname' in args && { originHostname: args['originHostname'] as string }),
               ...('contractId' in args && { contractId: args['contractId'] as string }),
               ...('groupId' in args && { groupId: args['groupId'] as string }),
@@ -1125,7 +1126,7 @@ class PropertyALECSServer2025 {
             const rollbackArgs: Parameters<typeof rollbackPropertyVersion>[1] = {
               propertyId: args['propertyId'] as string,
               targetVersion: args['targetVersion'] as number,
-              ...('customer' in args && { customer: args['customer'] as string }),
+              ...safeCustomerParam(args as Record<string, unknown>),
               ...('activateNetwork' in args && { activateNetwork: args['activateNetwork'] as 'STAGING' | 'PRODUCTION' | 'BOTH' }),
               ...('reason' in args && { reason: args['reason'] as string }),
               ...('notificationEmails' in args && Array.isArray(args['notificationEmails']) && { notificationEmails: args['notificationEmails'] as string[] })
@@ -1149,7 +1150,7 @@ class PropertyALECSServer2025 {
               propertyId: args['propertyId'] as string,
               network: args['network'] as 'STAGING' | 'PRODUCTION',
               ...('version' in args && typeof args['version'] === 'number' && { version: args['version'] }),
-              ...('customer' in args && { customer: args['customer'] as string })
+              ...safeCustomerParam(args as Record<string, unknown>)
             };
             const response = await validatePropertyActivation(this.client, validateArgs);
             result = createMcp2025Response(true, response, undefined, {

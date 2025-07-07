@@ -64,7 +64,9 @@ function loadEdgeConfig(): EdgeConfig | null {
       if (currentSection && line.includes('=')) {
         const [key, ...valueParts] = line.split('=');
         const value = valueParts.join('=').trim();
-        config[currentSection][key.trim()] = value;
+        if (key && config[currentSection]) {
+          (config[currentSection] as any)[key.trim()] = value;
+        }
       }
     });
     
@@ -126,7 +128,7 @@ export function validateCustomer(customer?: string): CustomerValidationResult {
   
   // Validate required fields
   const requiredFields = ['host', 'client_token', 'client_secret', 'access_token'];
-  const missingFields = requiredFields.filter(field => !section[field]);
+  const missingFields = requiredFields.filter(field => !(section as any)[field]);
   
   if (missingFields.length > 0) {
     return {
@@ -245,4 +247,49 @@ export function clearConfigCache(): void {
 export function hasAccountSwitching(customer: string): boolean {
   const config = getCustomerConfig(customer);
   return !!config?.account_key;
+}
+
+/**
+ * Safely extract customer parameter from MCP args
+ * Validates type and existence in .edgerc
+ */
+export function safeExtractCustomer(args: Record<string, unknown>): string | undefined {
+  if (!('customer' in args)) {
+    return undefined;
+  }
+  
+  const customer = args['customer'];
+  
+  // Type validation
+  if (typeof customer !== 'string') {
+    throw new Error(`Customer parameter must be a string, got: ${typeof customer}`);
+  }
+  
+  // Empty string validation
+  if (customer.length === 0) {
+    throw new Error('Customer parameter cannot be empty');
+  }
+  
+  // Validate customer exists in .edgerc
+  const validation = validateCustomer(customer);
+  if (!validation.valid) {
+    throw new Error(`Invalid customer '${customer}': ${validation.error}`);
+  }
+  
+  return customer;
+}
+
+/**
+ * Create safe customer parameter object for spreading
+ * Returns empty object if customer is not provided or invalid
+ */
+export function safeCustomerParam(args: Record<string, unknown>): { customer?: string } {
+  try {
+    const customer = safeExtractCustomer(args);
+    return customer ? { customer } : {};
+  } catch (error) {
+    // Log error but don't throw - allows graceful fallback to default customer
+    console.warn(`Customer parameter validation warning: ${error}`);
+    return {};
+  }
 }

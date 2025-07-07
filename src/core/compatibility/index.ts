@@ -23,9 +23,9 @@ export interface DeprecationConfig {
  * Global deprecation settings
  */
 let globalConfig: DeprecationConfig = {
-  silent: process.env.SUPPRESS_DEPRECATION_WARNINGS === 'true',
-  throwOnDeprecated: process.env.THROW_ON_DEPRECATED === 'true',
-  logToFile: process.env.DEPRECATION_LOG_FILE,
+  silent: process.env['SUPPRESS_DEPRECATION_WARNINGS'] === 'true',
+  throwOnDeprecated: process.env['THROW_ON_DEPRECATED'] === 'true',
+  logToFile: process.env['DEPRECATION_LOG_FILE'],
 };
 
 /**
@@ -241,7 +241,7 @@ export function createDeprecatedAliases<T extends Record<string, any>>(
 ): Record<string, any> {
   const deprecatedModule: Record<string, any> = {};
   
-  for (const [key, config] of Object.entries(aliases)) {
+  for (const [, config] of Object.entries(aliases)) {
     const parts = config.new.split('.');
     let target: any = newModule;
     
@@ -413,7 +413,7 @@ export const DeprecationUtils = {
    * Check if running in migration mode
    */
   isMigrationMode(): boolean {
-    return process.env.MIGRATION_MODE === 'true';
+    return process.env['MIGRATION_MODE'] === 'true';
   },
   
   /**

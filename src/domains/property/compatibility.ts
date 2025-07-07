@@ -103,8 +103,8 @@ export async function getPropertyRules(
   client: AkamaiClient,
   propertyId: string,
   version: number,
-  contractId?: string,
-  groupId?: string,
+  _contractId?: string,
+  _groupId?: string,
   validateRules?: boolean,
   customer?: string
 ): Promise<any> {
@@ -127,8 +127,8 @@ export async function updatePropertyRules(
   propertyId: string,
   version: number,
   rules: any,
-  contractId?: string,
-  groupId?: string,
+  _contractId?: string,
+  _groupId?: string,
   validateRules?: boolean,
   customer?: string
 ): Promise<any> {
@@ -197,8 +197,8 @@ export async function getActivationStatus(
 export async function listPropertyActivations(
   client: AkamaiClient,
   propertyId: string,
-  contractId?: string,
-  groupId?: string,
+  _contractId?: string,
+  _groupId?: string,
   customer?: string
 ): Promise<any> {
   deprecationWarning(
@@ -233,8 +233,8 @@ export async function cancelPropertyActivation(
 export async function removeProperty(
   client: AkamaiClient,
   propertyId: string,
-  contractId?: string,
-  groupId?: string,
+  _contractId?: string,
+  _groupId?: string,
   customer?: string
 ): Promise<any> {
   deprecationWarning(

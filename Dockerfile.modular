@@ -44,7 +44,7 @@ COPY --from=builder /app/dist/services ./dist/services
 COPY ecosystem.modular.config.js ./
 
 # Create directories
-RUN mkdir -p data logs
+RUN mkdir -p data logs && chown -R node:node /app
 
 # Use non-root user
 USER node
