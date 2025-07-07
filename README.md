@@ -99,8 +99,29 @@ access_token = customer_access_token
 client_token = customer_client_token
 ```
 
+### Configure SecureMobi (Optional)
+
+If you want to use SecureMobi tools, add your SecureMobi credentials to environment variables:
+
+```bash
+# Add to your shell profile (.bashrc, .zshrc, etc.) or .env file
+export SECUREMOBI_CLIENT_ID="your_securemobi_client_id"
+export SECUREMOBI_CLIENT_SECRET="your_securemobi_client_secret"
+```
+
+Or configure in Claude Desktop (see next section).
+
+**SecureMobi Tools Available:**
+- `securemobi-list-zones` - List DNS zones
+- `securemobi-list-tenants` - List tenants
+- `securemobi-create-tenant` - Create new tenant
+- `securemobi-get-tenant` - Get tenant details
+- `securemobi-update-tenant` - Update tenant
+- `securemobi-delete-tenant` - Delete tenant
+
 ### Add to Claude Desktop
 
+**Basic Configuration (Akamai only):**
 ```bash
 # macOS
 echo '{"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}}' > ~/Library/Application\ Support/Claude/claude_desktop_config.json
@@ -111,6 +132,28 @@ echo {"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRAN
 # Linux
 echo '{"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}}' > ~/.config/Claude/claude_desktop_config.json
 ```
+
+**With SecureMobi Support:**
+```json
+{
+  "mcpServers": {
+    "alecs-akamai": {
+      "command": "alecs",
+      "args": [],
+      "env": {
+        "MCP_TRANSPORT": "stdio",
+        "SECUREMOBI_CLIENT_ID": "your_securemobi_client_id_here",
+        "SECUREMOBI_CLIENT_SECRET": "your_securemobi_client_secret_here"
+      }
+    }
+  }
+}
+```
+
+Copy this configuration to your Claude Desktop config file:
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`  
+- **Linux**: `~/.config/Claude/claude_desktop_config.json`
 
 ### Add to Claude Code
 

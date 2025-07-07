@@ -6,7 +6,9 @@
         "/path/to/alecs-mcp-server-akamai/dist/index.js"
       ],
       "env": {
-        "DEBUG": "0"
+        "DEBUG": "0",
+        "SECUREMOBI_CLIENT_ID": "your_securemobi_client_id_here",
+        "SECUREMOBI_CLIENT_SECRET": "your_securemobi_client_secret_here"
       }
     }
   }
