@@ -1,4 +1,4 @@
-import { AuthToken, Zone, Tenant, CreateTenantRequest, UpdateTenantRequest } from './types/securemobi-api';
+import { AuthToken, Tenant, CreateTenantRequest, UpdateTenantRequest } from './types/securemobi-api';
 
 const SECUREMOBI_API_BASE = 'https://api.int.mo2c.eivasa.net/v2';
 
@@ -10,8 +10,8 @@ export class SecuremobiClient {
   private tokenExpiry: Date | null = null;
 
   constructor(
-    private clientId: string,
-    private clientSecret: string
+    private readonly clientId: string,
+    private readonly clientSecret: string
   ) {
     if (!clientId || !clientSecret) {
       throw new Error('Securemobi client ID and secret are required.');
