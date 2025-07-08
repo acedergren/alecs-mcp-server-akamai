@@ -112,7 +112,6 @@ export SECUREMOBI_CLIENT_SECRET="your_securemobi_client_secret"
 Or configure in Claude Desktop (see next section).
 
 **SecureMobi Tools Available:**
-- `securemobi-list-zones` - List DNS zones
 - `securemobi-list-tenants` - List tenants
 - `securemobi-create-tenant` - Create new tenant
 - `securemobi-get-tenant` - Get tenant details

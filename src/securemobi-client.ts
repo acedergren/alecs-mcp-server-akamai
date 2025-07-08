@@ -80,14 +80,6 @@ export class SecuremobiClient {
   }
 
   /**
-   * Lists all zones.
-   * See: https://developer.securemobi.net/reference/listallzones
-   */
-  async listZones(): Promise<Zone[]> {
-    return this.makeRequest<Zone[]>('/zones');
-  }
-
-  /**
    * List all tenants
    * @param tenantId Optional tenant ID to scope the request via X-Tenant-Id header
    */

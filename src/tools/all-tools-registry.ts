@@ -320,13 +320,11 @@ import {
 
 // SecureMobi Tools
 import {
-  listZones as listSecureMobiZones,
   listTenants,
   createTenant,
   getTenant,
   updateTenant,
   deleteTenant,
-  ListSecureMobiZonesSchema,
   ListSecureMobiTenantsSchema,
   CreateSecureMobiTenantSchema,
   GetSecureMobiTenantSchema,
@@ -1891,12 +1889,6 @@ export function getAllToolDefinitions(): ToolDefinition[] {
     },
 
     // SecureMobi Tools (6 tools)
-    {
-      name: 'securemobi-list-zones',
-      description: 'List all SecureMobi DNS zones',
-      schema: ListSecureMobiZonesSchema,
-      handler: createToolHandler(listSecureMobiZones),
-    },
     {
       name: 'securemobi-list-tenants',
       description: 'List all SecureMobi tenants',

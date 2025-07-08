@@ -3,10 +3,7 @@ import { SecuremobiClient } from '../securemobi-client';
 import { MCPToolResponse } from '../types/mcp-protocol';
 import { AkamaiClient } from '../akamai-client';
 
-// Zod schemas for SecureMobi tool parameters
-export const ListSecureMobiZonesSchema = z.object({
-  customer: z.string().optional().describe('Customer context for multi-tenant support'),
-});
+
 
 export const ListSecureMobiTenantsSchema = z.object({
   customer: z.string().optional().describe('Customer context for multi-tenant support'),
@@ -40,65 +37,11 @@ export const DeleteSecureMobiTenantSchema = z.object({
   scopeTenantId: z.string().optional().describe('Optional tenant ID to scope the request via X-Tenant-Id header'),
 });
 
-// Type definitions derived from schemas
-type ListZonesParams = z.infer<typeof ListSecureMobiZonesSchema>;
 type ListTenantsParams = z.infer<typeof ListSecureMobiTenantsSchema>;
 type CreateTenantParams = z.infer<typeof CreateSecureMobiTenantSchema>;
 type GetTenantParams = z.infer<typeof GetSecureMobiTenantSchema>;
 type UpdateTenantParams = z.infer<typeof UpdateSecureMobiTenantSchema>;
 type DeleteTenantParams = z.infer<typeof DeleteSecureMobiTenantSchema>;
-
-/**
- * Lists all DNS zones from Securemobi.
- * @param akamaiClient AkamaiClient instance (for customer context)
- * @param params Parameters for listing zones.
- */
-export async function listZones(_akamaiClient: AkamaiClient, _params: ListZonesParams): Promise<MCPToolResponse> {
-  try {
-    // Get SecureMobi credentials from environment or customer config
-    const clientId = process.env['SECUREMOBI_CLIENT_ID'];
-    const clientSecret = process.env['SECUREMOBI_CLIENT_SECRET'];
-    
-    if (!clientId || !clientSecret) {
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: 'SecureMobi credentials not configured. Please set SECUREMOBI_CLIENT_ID and SECUREMOBI_CLIENT_SECRET environment variables.'
-          }
-        ],
-        isError: true
-      };
-    }
-
-    const client = new SecuremobiClient(clientId, clientSecret);
-    const zones = await client.listZones();
-    
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: JSON.stringify({ 
-            success: true, 
-            zones: zones,
-            count: zones.length 
-          }, null, 2)
-        }
-      ],
-      isError: false
-    };
-  } catch (error) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: `Failed to list SecureMobi zones: ${error instanceof Error ? error.message : 'An unknown error occurred'}`
-        }
-      ],
-      isError: true
-    };
-  }
-}
 
 // TENANT TOOLS
 
