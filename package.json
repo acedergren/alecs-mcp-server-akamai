@@ -2,6 +2,8 @@
   "name": "alecs-mcp-server-akamai",
   "version": "1.7.4",
   "description": "ALECS - A Launchgrid for Edge & Cloud Services - MCP server for Akamai with agentic AI workflows",
+  "type": "commonjs",
+  "private": false,
   "keywords": [
     "mcp",
     "akamai",
@@ -24,6 +26,13 @@
     "url": "git+https://github.com/acedergren/alecs-mcp-server-akamai.git"
   },
   "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
   "bin": {
     "alecs-akamai": "dist/alecs-cli-wrapper.js",
     "alecs": "dist/alecs-cli-wrapper.js"
@@ -32,12 +41,9 @@
     "access": "public"
   },
   "scripts": {
-    "build": "npm run clean && npm run build:ts && npm run docs:update",
+    "build": "npm run clean && npm run build:ts",
     "build:ts": "tsc --project tsconfig.json",
-    "build:watch": "tsc --watch --project tsconfig.json",
     "clean": "rm -rf dist .tsbuildinfo",
-    "docs:update": "tsx scripts/update-docs.ts",
-    "deploy:hooks": "./scripts/deploy-hooks.sh",
     "start": "node dist/index.js",
     "start:stdio": "MCP_TRANSPORT=stdio node dist/index.js",
     "start:websocket": "MCP_TRANSPORT=websocket node dist/index.js",
@@ -45,56 +51,20 @@
     "start:property": "node dist/servers/property-server.js",
     "start:dns": "node dist/servers/dns-server.js",
     "start:certs": "node dist/servers/certs-server.js",
-    "start:reporting": "node dist/servers/reporting-server.js",
     "start:security": "node dist/servers/security-server.js",
-    "start:appsec": "node dist/servers/appsec-server.js",
     "start:fastpurge": "node dist/servers/fastpurge-server.js",
-    "start:network-lists": "node dist/servers/network-lists-server.js",
-    "dev": "tsx src/index.ts",
-    "dev:watch": "tsx --watch src/index.ts",
     "test": "jest --config jest.config.ci.js",
-    "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:ci": "npm run build && jest --config jest.config.ci.js --silent",
-    "test:full": "jest",
-    "test:smoke": "jest __tests__/smoke",
-    "test:critical": "jest __tests__/critical",
-    "test:reliable": "jest --config jest.config.reliable.js",
-    "test:reliable:watch": "jest --config jest.config.reliable.js --watch",
-    "test:unit": "jest __tests__/unit --testPathIgnorePatterns='/__tests__/(live|e2e|integration)/'",
-    "test:mcp-eval": "jest __tests__/mcp-evals/run-evals.test.ts",
-    "test:comprehensive": "tsx src/__tests__/comprehensive/run-comprehensive-tests.ts",
-    "test:comprehensive:jest": "jest --config jest.config.comprehensive.js",
-    "test:comprehensive:report": "npm run test:comprehensive:jest && open test-reports/comprehensive-test-report.html",
-    "eval:property": "jest __tests__/mcp-evals/run-evals.test.ts -t 'Property Management'",
-    "eval:dns": "jest __tests__/mcp-evals/run-evals.test.ts -t 'DNS Management'",
-    "eval:report": "node scripts/generate-eval-report.js",
-    "api:discover": "node scripts/api-discover-pure.js discover",
-    "api:validate": "node scripts/api-discover-pure.js validate",
-    "api:discover:all": "bash scripts/api-discover.sh all",
-    "api:discover:akamai": "bash scripts/api-discover.sh akamai",
-    "api:discover:mcp": "bash scripts/api-discover.sh mcp",
-    "api:discover:bash": "bash scripts/api-discover.sh",
-    "lint": "eslint 'src/**/*.ts' --fix",
-    "format": "prettier --write 'src/**/*.{ts,json,md}'",
-    "typecheck": "tsc --noEmit",
-    "typecheck:any": "./scripts/find-any-types.sh",
-    "typecheck:responses": "./scripts/find-response-any-types.sh",
-    "audit": "tsx src/audit/run-audit.ts",
-    "audit:fix": "tsx src/audit/run-audit.ts --fix",
-    "audit:sonarqube": "tsx src/audit/run-sonarqube-audit.ts",
-    "audit:sonarqube:fix": "tsx src/audit/sonarqube-fix-orchestrator.ts",
-    "audit:sonarqube:dry-run": "tsx src/audit/sonarqube-fix-orchestrator.ts --dry-run",
-    "sonarcloud:validate": "tsx scripts/validate-sonarcloud-issues.ts",
-    "sonarcloud:validate:auto": "tsx scripts/validate-sonarcloud-issues.ts --auto-close",
-    "sonarcloud:scan": "./scripts/sonarqube-docker.sh",
-    "sonarcloud:scan:quick": "./scripts/sonarqube-docker.sh quick",
     "prepublishOnly": "npm run build",
     "prepare": "npm run build",
     "postinstall": "node scripts/post-install.js || echo 'Post-install setup failed, continuing...'"
   },
   "author": "Alexander Cedergren",
   "license": "AGPL-3.0-or-later",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/acedergren"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.13.0",
     "akamai-edgegrid": "^3.4.0",
@@ -147,13 +117,22 @@
   "files": [
     "dist/",
     "scripts/post-install.js",
+    "scripts/install-*.sh",
+    "scripts/generate-*.js",
     "README.md",
     "EXAMPLES.md",
-    ".env.example"
+    ".env.example",
+    "alecs.rb"
   ],
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
   "optionalDependencies": {
     "glob": "^11.0.3"
   }
