@@ -2885,5 +2885,132 @@ export class ConsolidatedPropertyTools extends BaseTool {
     );
   }
 
+  /**
+   * Perform batch operations on property versions
+   */
+  async batchVersionOperations(args: {
+    operations: Array<{
+      propertyId: string;
+      action: 'create' | 'activate' | 'deactivate';
+      version?: number;
+      network?: 'STAGING' | 'PRODUCTION';
+      notes?: string;
+    }>;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      operations: z.array(z.object({
+        propertyId: PropertyIdSchema,
+        action: z.enum(['create', 'activate', 'deactivate']),
+        version: z.number().int().positive().optional(),
+        network: z.enum(['STAGING', 'PRODUCTION']).optional(),
+        notes: z.string().optional()
+      })),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.withProgress(
+      `Performing ${params.operations.length} batch operations`,
+      async (progress: ProgressToken) => {
+        return this.executeStandardOperation(
+          'batch-version-operations',
+          params,
+          async (client) => {
+            const results = [];
+            const totalOperations = params.operations.length;
+
+            for (let i = 0; i < params.operations.length; i++) {
+              const operation = params.operations[i];
+              const progressPercent = Math.floor((i / totalOperations) * 90);
+              progress.update(progressPercent, `Processing ${operation.action} for ${operation.propertyId}...`);
+
+              try {
+                let result;
+                switch (operation.action) {
+                  case 'create':
+                    const createResult = await this.createPropertyVersion({
+                      propertyId: operation.propertyId,
+                      createFromVersion: operation.version,
+                      customer: params.customer
+                    });
+                    result = {
+                      propertyId: operation.propertyId,
+                      action: operation.action,
+                      status: 'success',
+                      newVersion: (createResult as any).newVersion
+                    };
+                    break;
+
+                  case 'activate':
+                    const activateResult = await this.activateProperty({
+                      propertyId: operation.propertyId,
+                      version: operation.version || 0, // Will use latest if 0
+                      network: operation.network || 'STAGING',
+                      notes: operation.notes || 'Batch activation',
+                      acknowledgeWarnings: true,
+                      customer: params.customer
+                    });
+                    result = {
+                      propertyId: operation.propertyId,
+                      action: operation.action,
+                      status: 'success',
+                      activationId: (activateResult as any).activationId
+                    };
+                    break;
+
+                  case 'deactivate':
+                    // Note: PAPI doesn't support deactivation directly
+                    // You would need to activate an older version instead
+                    result = {
+                      propertyId: operation.propertyId,
+                      action: operation.action,
+                      status: 'failed',
+                      error: 'Deactivation not supported. Activate an older version instead.'
+                    };
+                    break;
+
+                  default:
+                    result = {
+                      propertyId: operation.propertyId,
+                      action: operation.action,
+                      status: 'failed',
+                      error: `Unknown action: ${operation.action}`
+                    };
+                }
+
+                results.push(result);
+              } catch (error) {
+                results.push({
+                  propertyId: operation.propertyId,
+                  action: operation.action,
+                  status: 'failed',
+                  error: error instanceof Error ? error.message : 'Unknown error'
+                });
+              }
+            }
+
+            progress.update(100, 'Batch operations complete!');
+
+            const summary = {
+              total: results.length,
+              successful: results.filter(r => r.status === 'success').length,
+              failed: results.filter(r => r.status === 'failed').length
+            };
+
+            return {
+              operations: results,
+              summary,
+              message: `✅ Completed ${summary.successful}/${summary.total} operations successfully`
+            };
+          },
+          {
+            customer: params.customer
+          }
+        );
+      }
+    );
+  }
+}
+
 // Export singleton instance
 export const consolidatedPropertyTools = new ConsolidatedPropertyTools();
