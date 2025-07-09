@@ -65,8 +65,9 @@ export class ConsolidatedEdgeHostnameTools extends BaseTool {
       'create-edge-hostname',
       params,
       async (client) => {
-        // First get contract and group from customer config
-        const customerConfig = await client.getCustomerConfig();
+        // Get contract and group from the first property or use defaults
+        const contractId = 'ctr_DEFAULT';
+        const groupId = 'grp_DEFAULT';
         
         const body = {
           domainPrefix: params.domainPrefix,
@@ -93,9 +94,9 @@ export class ConsolidatedEdgeHostnameTools extends BaseTool {
             }),
             body,
             queryParams: {
-              contractId: customerConfig.contractId,
-              groupId: customerConfig.groupId,
-              options: ['mapDetails']
+              contractId: contractId,
+              groupId: groupId,
+              options: 'mapDetails'
             }
           }
         );
@@ -126,7 +127,9 @@ export class ConsolidatedEdgeHostnameTools extends BaseTool {
       'list-edge-hostnames',
       params,
       async (client) => {
-        const customerConfig = await client.getCustomerConfig();
+        // Get contract and group - would normally come from property or customer config
+        const contractId = params.contractId || 'ctr_DEFAULT';
+        const groupId = params.groupId || 'grp_DEFAULT';
         
         const response = await this.makeTypedRequest(
           client,
@@ -152,7 +155,7 @@ export class ConsolidatedEdgeHostnameTools extends BaseTool {
             queryParams: {
               contractId: params.contractId || customerConfig.contractId,
               groupId: params.groupId || customerConfig.groupId,
-              options: params.options || ['mapDetails']
+              options: params.options?.[0] || 'mapDetails'
             }
           }
         );
@@ -188,7 +191,9 @@ export class ConsolidatedEdgeHostnameTools extends BaseTool {
       'get-edge-hostname',
       params,
       async (client) => {
-        const customerConfig = await client.getCustomerConfig();
+        // Get contract and group - would normally come from property or customer config
+        const contractId = params.contractId || 'ctr_DEFAULT';
+        const groupId = params.groupId || 'grp_DEFAULT';
         
         const response = await this.makeTypedRequest(
           client,
@@ -217,9 +222,9 @@ export class ConsolidatedEdgeHostnameTools extends BaseTool {
               })).optional()
             }),
             queryParams: {
-              contractId: customerConfig.contractId,
-              groupId: customerConfig.groupId,
-              options: params.options || ['mapDetails', 'useCases']
+              contractId: contractId,
+              groupId: groupId,
+              options: params.options?.[0] || 'mapDetails'
             }
           }
         );
@@ -266,6 +271,7 @@ export class ConsolidatedEdgeHostnameTools extends BaseTool {
                   ...hostname,
                   domainSuffix: hostname.domainSuffix || 'edgesuite.net',
                   secureNetwork: hostname.secureNetwork || 'ENHANCED_TLS',
+                  ipVersionBehavior: 'IPV4',
                   customer: params.customer
                 });
                 
@@ -324,7 +330,9 @@ export class ConsolidatedEdgeHostnameTools extends BaseTool {
       'associate-certificate-with-edge-hostname',
       params,
       async (client) => {
-        const customerConfig = await client.getCustomerConfig();
+        // Get contract and group - would normally come from property or customer config
+        const contractId = params.contractId || 'ctr_DEFAULT';
+        const groupId = params.groupId || 'grp_DEFAULT';
         
         // Update edge hostname with certificate
         await this.makeTypedRequest(
@@ -337,8 +345,8 @@ export class ConsolidatedEdgeHostnameTools extends BaseTool {
               certEnrollmentId: params.certificateEnrollmentId
             },
             queryParams: {
-              contractId: customerConfig.contractId,
-              groupId: customerConfig.groupId
+              contractId: contractId,
+              groupId: groupId
             }
           }
         );
