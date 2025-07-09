@@ -2886,6 +2886,172 @@ export class ConsolidatedPropertyTools extends BaseTool {
   }
 
   /**
+   * Compare two properties configuration
+   */
+  async compareProperties(args: {
+    sourcePropertyId: string;
+    targetPropertyId: string;
+    version?: number;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      sourcePropertyId: PropertyIdSchema,
+      targetPropertyId: PropertyIdSchema,
+      version: z.number().int().positive().optional(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'compare-properties',
+      params,
+      async (client) => {
+        // Get both property details
+        const [sourceResponse, targetResponse] = await Promise.all([
+          this.makeTypedRequest(
+            client,
+            {
+              path: `/papi/v1/properties/${params.sourcePropertyId}`,
+              method: 'GET',
+              schema: z.object({
+                properties: z.object({
+                  items: z.array(PropertySchema)
+                })
+              })
+            }
+          ),
+          this.makeTypedRequest(
+            client,
+            {
+              path: `/papi/v1/properties/${params.targetPropertyId}`,
+              method: 'GET',
+              schema: z.object({
+                properties: z.object({
+                  items: z.array(PropertySchema)
+                })
+              })
+            }
+          )
+        ]);
+
+        const sourceProperty = sourceResponse.properties.items[0];
+        const targetProperty = targetResponse.properties.items[0];
+
+        if (!sourceProperty || !targetProperty) {
+          throw new Error('One or both properties not found');
+        }
+
+        const sourceVersion = params.version || sourceProperty.productionVersion || sourceProperty.latestVersion;
+        const targetVersion = params.version || targetProperty.productionVersion || targetProperty.latestVersion;
+
+        // Get rules for both properties
+        const [sourceRules, targetRules] = await Promise.all([
+          this.makeTypedRequest(
+            client,
+            {
+              path: `/papi/v1/properties/${params.sourcePropertyId}/versions/${sourceVersion}/rules`,
+              method: 'GET',
+              schema: PropertyRulesResponseSchema,
+              queryParams: {
+                contractId: sourceProperty.contractId,
+                groupId: sourceProperty.groupId
+              }
+            }
+          ),
+          this.makeTypedRequest(
+            client,
+            {
+              path: `/papi/v1/properties/${params.targetPropertyId}/versions/${targetVersion}/rules`,
+              method: 'GET',
+              schema: PropertyRulesResponseSchema,
+              queryParams: {
+                contractId: targetProperty.contractId,
+                groupId: targetProperty.groupId
+              }
+            }
+          )
+        ]);
+
+        // Get hostnames for both properties
+        const [sourceHostnames, targetHostnames] = await Promise.all([
+          this.listPropertyVersionHostnames({
+            propertyId: params.sourcePropertyId,
+            version: sourceVersion,
+            customer: params.customer
+          }),
+          this.listPropertyVersionHostnames({
+            propertyId: params.targetPropertyId,
+            version: targetVersion,
+            customer: params.customer
+          })
+        ]);
+
+        // Compare configurations
+        const differences = {
+          metadata: {
+            contractMatch: sourceProperty.contractId === targetProperty.contractId,
+            groupMatch: sourceProperty.groupId === targetProperty.groupId,
+            ruleFormatMatch: sourceRules.ruleFormat === targetRules.ruleFormat
+          },
+          versions: {
+            source: {
+              latest: sourceProperty.latestVersion,
+              production: sourceProperty.productionVersion,
+              staging: sourceProperty.stagingVersion
+            },
+            target: {
+              latest: targetProperty.latestVersion,
+              production: targetProperty.productionVersion,
+              staging: targetProperty.stagingVersion
+            }
+          },
+          rules: this.calculateRuleDifferences(sourceRules.rules, targetRules.rules),
+          hostnames: {
+            sourceOnly: (sourceHostnames as any).hostnames.filter((sh: any) => 
+              !(targetHostnames as any).hostnames.some((th: any) => th.cnameFrom === sh.cnameFrom)
+            ),
+            targetOnly: (targetHostnames as any).hostnames.filter((th: any) => 
+              !(sourceHostnames as any).hostnames.some((sh: any) => sh.cnameFrom === th.cnameFrom)
+            ),
+            different: (sourceHostnames as any).hostnames.filter((sh: any) => {
+              const targetHost = (targetHostnames as any).hostnames.find((th: any) => th.cnameFrom === sh.cnameFrom);
+              return targetHost && targetHost.cnameTo !== sh.cnameTo;
+            })
+          }
+        };
+
+        return {
+          sourceProperty: {
+            id: sourceProperty.propertyId,
+            name: sourceProperty.propertyName,
+            version: sourceVersion
+          },
+          targetProperty: {
+            id: targetProperty.propertyId,
+            name: targetProperty.propertyName,
+            version: targetVersion
+          },
+          differences: differences,
+          summary: {
+            hasRuleDifferences: differences.rules.length > 0,
+            hasHostnameDifferences: 
+              differences.hostnames.sourceOnly.length > 0 ||
+              differences.hostnames.targetOnly.length > 0 ||
+              differences.hostnames.different.length > 0,
+            configurationMatch: 
+              differences.rules.length === 0 && 
+              differences.hostnames.sourceOnly.length === 0 &&
+              differences.hostnames.targetOnly.length === 0 &&
+              differences.hostnames.different.length === 0
+          }
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
    * Perform batch operations on property versions
    */
   async batchVersionOperations(args: {
