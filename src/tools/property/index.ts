@@ -138,10 +138,161 @@ export const propertyTools = {
       consolidatedPropertyTools.getActivationStatus(args)
   },
 
-  // NOTE: Advanced functionality will be added in future phases
-  // Current consolidated property tools already provide comprehensive
-  // property management functionality including rule management,
-  // activation, version control, and metadata access
+  // Advanced version management
+  'property_version_rollback': {
+    description: 'Rollback property to a previous version',
+    inputSchema: z.object({
+      propertyId: z.string(),
+      targetVersion: z.number(),
+      notes: z.string().optional(),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.rollbackPropertyVersion(args)
+  },
+
+  'property_version_diff': {
+    description: 'Get differences between two property versions',
+    inputSchema: z.object({
+      propertyId: z.string(),
+      fromVersion: z.number(),
+      toVersion: z.number(),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.getVersionDiff(args)
+  },
+
+  // Property comparison and analysis
+  'property_compare': {
+    description: 'Compare configuration between two properties',
+    inputSchema: z.object({
+      sourcePropertyId: z.string(),
+      targetPropertyId: z.string(),
+      version: z.number().optional(),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.compareProperties(args)
+  },
+
+  'property_drift_detect': {
+    description: 'Detect configuration drift across property versions',
+    inputSchema: z.object({
+      propertyId: z.string(),
+      baselineVersion: z.number().optional(),
+      includeInactiveVersions: z.boolean().optional(),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.detectConfigurationDrift(args)
+  },
+
+  'property_health_check': {
+    description: 'Check property health and identify issues',
+    inputSchema: z.object({
+      propertyId: z.string(),
+      version: z.number().optional(),
+      checks: z.array(z.enum([
+        'certificate_expiry',
+        'rule_warnings',
+        'activation_status',
+        'hostname_coverage',
+        'origin_connectivity'
+      ])).optional(),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.checkPropertyHealth(args)
+  },
+
+  // Batch operations
+  'property_batch_version_operations': {
+    description: 'Perform batch operations on property versions',
+    inputSchema: z.object({
+      operations: z.array(z.object({
+        propertyId: z.string(),
+        action: z.enum(['create', 'activate', 'deactivate']),
+        version: z.number().optional(),
+        network: z.enum(['STAGING', 'PRODUCTION']).optional(),
+        notes: z.string().optional()
+      })),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.batchVersionOperations(args)
+  },
+
+  'property_bulk_activate': {
+    description: 'Bulk activate multiple properties',
+    inputSchema: z.object({
+      properties: z.array(z.object({
+        propertyId: z.string(),
+        version: z.number(),
+        network: z.enum(['STAGING', 'PRODUCTION'])
+      })),
+      notes: z.string().optional(),
+      notifyEmails: z.array(z.string()).optional(),
+      acknowledgeWarnings: z.boolean().optional(),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.bulkActivateProperties(args)
+  },
+
+  'property_bulk_clone': {
+    description: 'Bulk clone multiple properties',
+    inputSchema: z.object({
+      sourceProperties: z.array(z.object({
+        propertyId: z.string(),
+        newName: z.string(),
+        contractId: z.string().optional(),
+        groupId: z.string().optional()
+      })),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.bulkCloneProperties(args)
+  },
+
+  'property_bulk_hostnames': {
+    description: 'Bulk manage hostnames across properties',
+    inputSchema: z.object({
+      operations: z.array(z.object({
+        propertyId: z.string(),
+        version: z.number(),
+        action: z.enum(['add', 'remove']),
+        hostnames: z.array(z.string())
+      })),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.bulkManageHostnames(args)
+  },
+
+  'property_bulk_rules_update': {
+    description: 'Bulk update property rules',
+    inputSchema: z.object({
+      updates: z.array(z.object({
+        propertyId: z.string(),
+        version: z.number(),
+        rules: z.any()
+      })),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.bulkUpdatePropertyRules(args)
+  },
+
+  'property_bulk_operation_status': {
+    description: 'Get bulk operation status',
+    inputSchema: z.object({
+      operationId: z.string(),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.getBulkOperationStatus(args)
+  }
 };
 
 /**
@@ -156,7 +307,18 @@ export const {
   updatePropertyRules,
   activateProperty,
   createPropertyVersion,
-  getActivationStatus
+  getActivationStatus,
+  rollbackPropertyVersion,
+  getVersionDiff,
+  compareProperties,
+  detectConfigurationDrift,
+  checkPropertyHealth,
+  batchVersionOperations,
+  bulkActivateProperties,
+  bulkCloneProperties,
+  bulkManageHostnames,
+  bulkUpdatePropertyRules,
+  getBulkOperationStatus
 } = consolidatedPropertyTools;
 
 /**
@@ -169,12 +331,21 @@ export { consolidatedPropertyTools };
  */
 export const propertyDomainMetadata = {
   name: 'property',
-  description: 'Akamai Property Manager - CDN configuration management',
+  description: 'Akamai Property Manager - CDN configuration management with advanced features',
   toolCount: Object.keys(propertyTools).length,
+  features: [
+    'Basic property CRUD operations',
+    'Version management and rollback',
+    'Configuration comparison and drift detection',
+    'Health monitoring and diagnostics',
+    'Bulk operations for enterprise scale'
+  ],
   consolidationStats: {
     originalFiles: 7,
     consolidatedFiles: 2,
     errorReduction: 330,
-    codeReduction: '60%'
+    codeReduction: '60%',
+    restoredTools: 11,
+    totalTools: Object.keys(propertyTools).length
   }
 };
