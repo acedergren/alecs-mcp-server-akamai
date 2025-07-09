@@ -3313,6 +3313,208 @@ export class ConsolidatedPropertyTools extends BaseTool {
       }
     );
   }
+
+  /**
+   * Check property health and identify issues
+   */
+  async checkPropertyHealth(args: {
+    propertyId: string;
+    version?: number;
+    checks?: Array<'certificate_expiry' | 'rule_warnings' | 'activation_status' | 'hostname_coverage' | 'origin_connectivity'>;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      propertyId: PropertyIdSchema,
+      version: z.number().int().positive().optional(),
+      checks: z.array(z.enum([
+        'certificate_expiry',
+        'rule_warnings',
+        'activation_status',
+        'hostname_coverage',
+        'origin_connectivity'
+      ])).optional(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.withProgress(
+      `Checking health for property ${params.propertyId}`,
+      async (progress: ProgressToken) => {
+        return this.executeStandardOperation(
+          'check-property-health',
+          params,
+          async (client) => {
+            progress.update(10, 'Getting property details...');
+
+            // Get property details
+            const propResponse = await this.makeTypedRequest(
+              client,
+              {
+                path: `/papi/v1/properties/${params.propertyId}`,
+                method: 'GET',
+                schema: z.object({
+                  properties: z.object({
+                    items: z.array(PropertySchema)
+                  })
+                })
+              }
+            );
+
+            const property = propResponse.properties.items[0];
+            if (!property) {
+              throw new Error(`Property ${params.propertyId} not found`);
+            }
+
+            const version = params.version || property.productionVersion || property.latestVersion;
+            const healthChecks = params.checks || [
+              'certificate_expiry',
+              'rule_warnings',
+              'activation_status',
+              'hostname_coverage',
+              'origin_connectivity'
+            ];
+
+            const healthReport: any = {
+              propertyId: params.propertyId,
+              propertyName: property.propertyName,
+              version: version,
+              checkTime: new Date().toISOString(),
+              checks: {}
+            };
+
+            // Certificate expiry check
+            if (healthChecks.includes('certificate_expiry')) {
+              progress.update(25, 'Checking certificate expiry...');
+              
+              try {
+                const hostnamesResponse = await this.listPropertyVersionHostnames({
+                  propertyId: params.propertyId,
+                  version: version,
+                  customer: params.customer
+                });
+
+                const certificateIssues = [];
+                const now = new Date();
+                const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+                for (const hostname of (hostnamesResponse as any).hostnames) {
+                  if (hostname.certStatus?.production) {
+                    for (const cert of hostname.certStatus.production) {
+                      if (cert.validNotAfter) {
+                        const expiryDate = new Date(cert.validNotAfter);
+                        if (expiryDate < now) {
+                          certificateIssues.push({
+                            hostname: hostname.cnameFrom,
+                            status: 'expired',
+                            expiredOn: cert.validNotAfter
+                          });
+                        } else if (expiryDate < thirtyDaysFromNow) {
+                          certificateIssues.push({
+                            hostname: hostname.cnameFrom,
+                            status: 'expiring_soon',
+                            expiresOn: cert.validNotAfter
+                          });
+                        }
+                      }
+                    }
+                  }
+                }
+
+                healthReport.checks.certificate_expiry = {
+                  status: certificateIssues.length > 0 ? 'warning' : 'healthy',
+                  issues: certificateIssues
+                };
+              } catch (error) {
+                healthReport.checks.certificate_expiry = {
+                  status: 'error',
+                  error: error instanceof Error ? error.message : 'Unknown error'
+                };
+              }
+            }
+
+            // Rule warnings check
+            if (healthChecks.includes('rule_warnings')) {
+              progress.update(50, 'Checking rule warnings...');
+              
+              try {
+                const rulesResponse = await this.getPropertyRules({
+                  propertyId: params.propertyId,
+                  version: version,
+                  validateRules: true,
+                  customer: params.customer
+                });
+
+                const warnings = (rulesResponse as any).warnings || [];
+                healthReport.checks.rule_warnings = {
+                  status: warnings.length > 0 ? 'warning' : 'healthy',
+                  warningCount: warnings.length,
+                  warnings: warnings.slice(0, 10) // First 10 warnings
+                };
+              } catch (error) {
+                healthReport.checks.rule_warnings = {
+                  status: 'error',
+                  error: error instanceof Error ? error.message : 'Unknown error'
+                };
+              }
+            }
+
+            // Activation status check
+            if (healthChecks.includes('activation_status')) {
+              progress.update(75, 'Checking activation status...');
+              
+              healthReport.checks.activation_status = {
+                status: 'healthy',
+                production: {
+                  version: property.productionVersion,
+                  isLatest: property.productionVersion === property.latestVersion
+                },
+                staging: {
+                  version: property.stagingVersion,
+                  isLatest: property.stagingVersion === property.latestVersion
+                }
+              };
+            }
+
+            // Hostname coverage check
+            if (healthChecks.includes('hostname_coverage')) {
+              progress.update(90, 'Checking hostname coverage...');
+              
+              try {
+                const hostnamesResponse = await this.listPropertyVersionHostnames({
+                  propertyId: params.propertyId,
+                  version: version,
+                  customer: params.customer
+                });
+
+                const hostnames = (hostnamesResponse as any).hostnames || [];
+                healthReport.checks.hostname_coverage = {
+                  status: hostnames.length > 0 ? 'healthy' : 'warning',
+                  totalHostnames: hostnames.length,
+                  hasDefaultCert: hostnames.some((h: any) => h.certStatus?.production?.some((c: any) => c.status === 'DEPLOYED'))
+                };
+              } catch (error) {
+                healthReport.checks.hostname_coverage = {
+                  status: 'error',
+                  error: error instanceof Error ? error.message : 'Unknown error'
+                };
+              }
+            }
+
+            progress.update(100, 'Health check complete!');
+
+            // Calculate overall health
+            const statuses = Object.values(healthReport.checks).map((check: any) => check.status);
+            healthReport.overallStatus = statuses.includes('error') ? 'error' : 
+                                       statuses.includes('warning') ? 'warning' : 'healthy';
+
+            return healthReport;
+          },
+          {
+            customer: params.customer
+          }
+        );
+      }
+    );
+  }
 }
 
 // Export singleton instance
