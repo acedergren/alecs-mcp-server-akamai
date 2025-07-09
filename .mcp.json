@@ -19,6 +19,15 @@
         "@modelcontextprotocol/server-puppeteer"
       ],
       "env": {}
+    },
+    "github-remote": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://api.githubcopilot.com/mcp/"
+      ],
+      "env": {}
     }
   }
 }

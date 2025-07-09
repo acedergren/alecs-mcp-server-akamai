@@ -57,7 +57,11 @@ export class ToolErrorHandler {
     const errorWithRequestId = error as { requestId?: string };
     const requestId = akamaiError?.requestId || errorWithRequestId?.requestId;
 
-    // Log structured error data
+    // Enhanced debugging info
+    const debugInfo = this.extractDebugInfo(error);
+    const timestamp = new Date().toISOString();
+
+    // Log structured error data with enhanced context
     this.logger.error({
       tool: this.context.tool,
       operation: this.context.operation,
@@ -67,11 +71,20 @@ export class ToolErrorHandler {
       errorMessage,
       akamaiError,
       requestId,
+      timestamp,
+      debugInfo,
       stack: error instanceof Error ? error.stack : undefined,
+      environment: process.env.NODE_ENV,
     }, `${this.context.tool} operation failed: ${this.context.operation}`);
+
+    // Development mode enhanced logging
+    if (process.env.NODE_ENV === 'development') {
+      this.logDevelopmentInfo(error, debugInfo);
+    }
 
     // Log user-friendly error information to console
     console.error(`\n[${this.context.tool.toUpperCase()} Error]:`, errorMessage);
+    console.error(`[Timestamp]: ${timestamp}`);
 
     // Handle specific status codes
     this.logStatusCodeHelp(statusCode, akamaiError);
@@ -86,8 +99,77 @@ export class ToolErrorHandler {
       console.error(`\n[Request ID for Support]: ${requestId}`);
     }
 
+    // Log parameter validation issues
+    this.logParameterIssues();
+
     // Return formatted error response instead of throwing
     return this.formatAsMCPResponse(error);
+  }
+
+  /**
+   * Extract debug information from error
+   */
+  private extractDebugInfo(error: unknown): Record<string, any> {
+    const err = error as any;
+    return {
+      errorType: error?.constructor?.name || 'Unknown',
+      hasResponse: !!err?.response,
+      hasAkamaiError: !!err?.akamaiError,
+      method: err?.config?.method || err?.request?.method,
+      url: err?.config?.url || err?.request?.url,
+      headers: err?.config?.headers || err?.request?.headers,
+      data: err?.config?.data || err?.request?.data,
+    };
+  }
+
+  /**
+   * Log development-specific debugging information
+   */
+  private logDevelopmentInfo(error: unknown, debugInfo: Record<string, any>): void {
+    console.error('\n[DEVELOPMENT DEBUG INFO]:');
+    console.error('• Error Type:', debugInfo.errorType);
+    console.error('• Has Response:', debugInfo.hasResponse);
+    console.error('• Has Akamai Error:', debugInfo.hasAkamaiError);
+    
+    if (debugInfo.method && debugInfo.url) {
+      console.error(`• Request: ${debugInfo.method} ${debugInfo.url}`);
+    }
+    
+    // Log stack trace in development
+    if (error instanceof Error && error.stack) {
+      console.error('\n[Stack Trace]:');
+      const stackLines = error.stack.split('\n').slice(1, 6); // First 5 stack frames
+      stackLines.forEach(line => console.error(line.trim()));
+    }
+  }
+
+  /**
+   * Log parameter validation issues
+   */
+  private logParameterIssues(): void {
+    if (!this.context.params || Object.keys(this.context.params).length === 0) {
+      return;
+    }
+
+    // Check for common parameter issues
+    const issues: string[] = [];
+    
+    for (const [key, value] of Object.entries(this.context.params)) {
+      if (value === undefined) {
+        issues.push(`• Parameter '${key}' is undefined`);
+      } else if (value === null) {
+        issues.push(`• Parameter '${key}' is null`);
+      } else if (value === '') {
+        issues.push(`• Parameter '${key}' is empty string`);
+      } else if (typeof value === 'string' && value.includes('undefined')) {
+        issues.push(`• Parameter '${key}' contains 'undefined': ${value}`);
+      }
+    }
+
+    if (issues.length > 0) {
+      console.error('\n[Potential Parameter Issues]:');
+      issues.forEach(issue => console.error(issue));
+    }
   }
 
   /**
@@ -273,50 +355,80 @@ export class ToolErrorHandler {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const statusCode = this.extractStatusCode(error);
     const akamaiError = this.extractAkamaiError(error);
+    const debugInfo = this.extractDebugInfo(error);
+    const timestamp = new Date().toISOString();
     
-    // Build user-friendly error message
-    let text = `[ERROR] ${this.context.tool.toUpperCase()} Error: ${this.context.operation}\n\n`;
-    text += `**Error:** ${errorMessage}\n`;
+    // Build developer-friendly error message
+    let text = `🔴 ${this.context.tool.toUpperCase()} Operation Failed\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
     
-    // Add status code context
+    // Operation context
+    text += `**Operation:** ${this.context.operation}\n`;
+    text += `**Timestamp:** ${timestamp}\n`;
+    
+    // Main error
+    text += `\n**Error Message:**\n${this.formatErrorMessage(errorMessage)}\n`;
+    
+    // Status code with visual indicator
     if (statusCode) {
-      text += `**Status Code:** ${statusCode}\n`;
+      const statusIcon = this.getStatusIcon(statusCode);
+      text += `\n**Status:** ${statusIcon} ${statusCode} ${this.getStatusText(statusCode)}\n`;
       text += this.getStatusCodeGuidance(statusCode);
     }
     
-    // Add Akamai-specific error details
+    // Akamai-specific error details in structured format
     if (akamaiError) {
-      if (akamaiError.title) {
-        text += `\n**Details:** ${akamaiError.title}\n`;
-      }
-      if (akamaiError.detail) {
-        text += `**Description:** ${akamaiError.detail}\n`;
-      }
-      if (akamaiError.errors && akamaiError.errors.length > 0) {
-        text += '\n**Validation Errors:**\n';
-        akamaiError.errors.forEach((err, index) => {
-          text += `${index + 1}. ${err.field ? `${err.field}: ` : ''}${err.detail || err.title}\n`;
-        });
-      }
+      text += '\n**API Response Details:**\n';
+      text += '```json\n';
+      text += JSON.stringify({
+        title: akamaiError.title,
+        detail: akamaiError.detail,
+        errors: akamaiError.errors,
+      }, null, 2);
+      text += '\n```\n';
     }
     
-    // Add request ID
+    // Parameter issues
+    const paramIssues = this.getParameterIssues();
+    if (paramIssues.length > 0) {
+      text += '\n**⚠️ Parameter Issues Detected:**\n';
+      paramIssues.forEach(issue => {
+        text += `${issue}\n`;
+      });
+    }
+    
+    // Request details in development mode
+    if (process.env.NODE_ENV === 'development' && (debugInfo.method || debugInfo.url)) {
+      text += '\n**🔍 Debug Information:**\n';
+      text += `• Request: ${debugInfo.method || 'N/A'} ${debugInfo.url || 'N/A'}\n`;
+      text += `• Error Type: ${debugInfo.errorType}\n`;
+    }
+    
+    // Request ID for support
     const errorWithRequestId = error as { requestId?: string };
     const requestId = akamaiError?.requestId || errorWithRequestId?.requestId;
     if (requestId) {
-      text += `\n**Request ID:** ${requestId}\n`;
+      text += `\n**📋 Support Reference:**\n`;
+      text += `Request ID: \`${requestId}\`\n`;
     }
     
-    // Add tool-specific guidance
-    text += '\n**Next Steps:**\n';
-    if (this.context.tool === 'cps') {
-      text += this.getCPSSpecificGuidance();
-    } else {
-      text += '• Check your API credentials and permissions\n';
-      text += '• Verify all required parameters are provided\n';
-      text += '• Review the Akamai API documentation\n';
-      text += '• Contact Akamai support if the issue persists\n';
+    // Actionable next steps
+    text += '\n**💡 Suggested Actions:**\n';
+    text += this.getSuggestedActions(statusCode, error);
+    
+    // Quick fix commands if applicable
+    const quickFixes = this.getQuickFixCommands(statusCode, error);
+    if (quickFixes.length > 0) {
+      text += '\n**🛠️ Quick Fix Commands:**\n';
+      quickFixes.forEach(fix => {
+        text += `\`\`\`bash\n${fix.command}\n\`\`\`\n`;
+        text += `${fix.description}\n\n`;
+      });
     }
+    
+    // Documentation links
+    text += '\n**📚 Relevant Documentation:**\n';
+    text += this.getDocumentationLinks();
     
     return {
       content: [
@@ -325,6 +437,7 @@ export class ToolErrorHandler {
           text,
         },
       ],
+      isError: true,
     };
   }
 
@@ -382,6 +495,171 @@ export class ToolErrorHandler {
 
     guidance += '• Contact Akamai support if the issue persists\n';
     return guidance;
+  }
+
+  /**
+   * Format error message for better readability
+   */
+  private formatErrorMessage(message: string): string {
+    // Clean up common error patterns
+    return message
+      .replace(/Error:\s*/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  /**
+   * Get status icon based on code
+   */
+  private getStatusIcon(statusCode: number): string {
+    if (statusCode >= 200 && statusCode < 300) return '✅';
+    if (statusCode >= 300 && statusCode < 400) return '↩️';
+    if (statusCode >= 400 && statusCode < 500) return '❌';
+    if (statusCode >= 500) return '💥';
+    return '❓';
+  }
+
+  /**
+   * Get status text description
+   */
+  private getStatusText(statusCode: number): string {
+    const statusTexts: Record<number, string> = {
+      400: 'Bad Request',
+      401: 'Unauthorized',
+      403: 'Forbidden',
+      404: 'Not Found',
+      409: 'Conflict',
+      429: 'Too Many Requests',
+      500: 'Internal Server Error',
+      502: 'Bad Gateway',
+      503: 'Service Unavailable',
+    };
+    return statusTexts[statusCode] || 'Unknown Status';
+  }
+
+  /**
+   * Get parameter issues as array
+   */
+  private getParameterIssues(): string[] {
+    const issues: string[] = [];
+    
+    if (!this.context.params) return issues;
+    
+    for (const [key, value] of Object.entries(this.context.params)) {
+      if (value === undefined) {
+        issues.push(`• Parameter '${key}' is undefined`);
+      } else if (value === null) {
+        issues.push(`• Parameter '${key}' is null`);
+      } else if (value === '') {
+        issues.push(`• Parameter '${key}' is empty string`);
+      } else if (typeof value === 'string' && value.includes('undefined')) {
+        issues.push(`• Parameter '${key}' contains 'undefined': ${value}`);
+      }
+    }
+    
+    return issues;
+  }
+
+  /**
+   * Get suggested actions based on error
+   */
+  private getSuggestedActions(statusCode: number | undefined, error: unknown): string {
+    const actions: string[] = [];
+    
+    // Status code specific actions
+    if (statusCode === 401) {
+      actions.push('• Verify your .edgerc file has valid credentials');
+      actions.push('• Check if credentials have expired');
+      actions.push('• Ensure the customer section exists in .edgerc');
+    } else if (statusCode === 403) {
+      actions.push('• Verify you have permissions for this operation');
+      actions.push('• Check if account switching is required');
+      actions.push('• Confirm API access is enabled for your account');
+    } else if (statusCode === 404) {
+      actions.push('• Verify the resource ID or name is correct');
+      actions.push('• Check if the resource exists in this account');
+      actions.push('• Ensure you\'re using the correct API version');
+    } else if (statusCode === 429) {
+      actions.push('• Wait 60 seconds before retrying');
+      actions.push('• Implement exponential backoff for retries');
+      actions.push('• Check your API rate limits');
+    } else if (statusCode && statusCode >= 500) {
+      actions.push('• Wait a few minutes and retry');
+      actions.push('• Check Akamai status page for outages');
+      actions.push('• Contact support if issue persists');
+    }
+    
+    // Tool-specific actions
+    if (this.context.tool === 'property' && actions.length === 0) {
+      actions.push('• Verify property ID and version');
+      actions.push('• Check property activation status');
+      actions.push('• Ensure contract and group IDs are valid');
+    } else if (this.context.tool === 'dns' && actions.length === 0) {
+      actions.push('• Verify zone name format');
+      actions.push('• Check DNS record syntax');
+      actions.push('• Ensure zone is active');
+    }
+    
+    // Default actions
+    if (actions.length === 0) {
+      actions.push('• Verify all parameters are correct');
+      actions.push('• Check API documentation for requirements');
+      actions.push('• Try with minimal required parameters first');
+    }
+    
+    return actions.join('\n');
+  }
+
+  /**
+   * Get quick fix commands
+   */
+  private getQuickFixCommands(statusCode: number | undefined, error: unknown): Array<{command: string, description: string}> {
+    const fixes: Array<{command: string, description: string}> = [];
+    
+    if (statusCode === 401) {
+      fixes.push({
+        command: 'cat ~/.edgerc | grep -A 4 "\\[default\\]"',
+        description: 'Check your default credentials configuration'
+      });
+    } else if (statusCode === 404 && this.context.tool === 'property') {
+      fixes.push({
+        command: 'alecs property_list --limit 10',
+        description: 'List available properties to verify IDs'
+      });
+    } else if (statusCode === 403 && this.context.customer) {
+      fixes.push({
+        command: `cat ~/.edgerc | grep -A 4 "\\[${this.context.customer}\\]"`,
+        description: `Check customer section configuration`
+      });
+    }
+    
+    return fixes;
+  }
+
+  /**
+   * Get documentation links
+   */
+  private getDocumentationLinks(): string {
+    const baseDoc = 'https://techdocs.akamai.com/developer/docs/';
+    const links: string[] = [];
+    
+    // General links
+    links.push(`• [API Authentication](${baseDoc}authenticate-with-edgegrid)`);
+    links.push(`• [Error Codes](${baseDoc}api-error-codes)`);
+    
+    // Tool-specific links
+    if (this.context.tool === 'property') {
+      links.push(`• [Property Manager API](${baseDoc}property-manager-api)`);
+    } else if (this.context.tool === 'dns') {
+      links.push(`• [Edge DNS API](${baseDoc}edge-dns-api)`);
+    } else if (this.context.tool === 'cps') {
+      links.push(`• [CPS API](${baseDoc}cps-api)`);
+    }
+    
+    // GitHub docs
+    links.push('• [ALECSCore Documentation](https://github.com/acedergren/alecs-mcp-server-akamai)');
+    
+    return links.join('\n');
   }
 
   /**

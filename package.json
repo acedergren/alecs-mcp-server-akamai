@@ -59,6 +59,9 @@
     "test:coverage": "jest --coverage",
     "prepublishOnly": "npm run build",
     "prepare": "npm run build",
+    "dev": "tsx src/index.ts",
+    "dev:hot": "tsx src/dev-server.ts",
+    "dev:server": "tsx src/index.ts",
     "postinstall": "node scripts/post-install.js || echo 'Post-install setup failed, continuing...'"
   },
   "author": "Alexander Cedergren",
@@ -99,6 +102,7 @@
     "@typescript-eslint/parser": "^8.34.1",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
+    "clear-module": "^4.1.2",
     "eslint": "^9.29.0",
     "eslint-plugin-import": "^2.28.0",
     "eslint-plugin-jest": "^29.0.1",

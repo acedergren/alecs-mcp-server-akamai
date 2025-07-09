@@ -8,8 +8,6 @@
 import { MCPStreamableHTTPTransport } from '../../transport/mcp-streamable-http-transport';
 import { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js';
 import express from 'express';
-import { EventSource } from 'eventsource';
-import fetch from 'node-fetch';
 
 // Mock express for testing
 jest.mock('express', () => {
@@ -17,7 +15,7 @@ jest.mock('express', () => {
     use: jest.fn(),
     get: jest.fn(),
     post: jest.fn(),
-    listen: jest.fn((port, host, callback) => {
+    listen: jest.fn((port: any, host: any, callback: any) => {
       // Simulate server start
       if (callback) callback();
       return { on: jest.fn(), close: jest.fn() };
@@ -26,8 +24,9 @@ jest.mock('express', () => {
   return jest.fn(() => mockApp);
 });
 
-// Polyfill fetch for Node.js test environment
-global.fetch = fetch as any;
+// Mock fetch for testing
+const mockFetch = jest.fn();
+global.fetch = mockFetch as any;
 
 describe('MCPStreamableHTTPTransport', () => {
   let transport: MCPStreamableHTTPTransport;
