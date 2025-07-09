@@ -3052,6 +3052,143 @@ export class ConsolidatedPropertyTools extends BaseTool {
   }
 
   /**
+   * Detect configuration drift across property versions
+   */
+  async detectConfigurationDrift(args: {
+    propertyId: string;
+    baselineVersion?: number;
+    includeInactiveVersions?: boolean;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      propertyId: PropertyIdSchema,
+      baselineVersion: z.number().int().positive().optional(),
+      includeInactiveVersions: z.boolean().optional().default(false),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'detect-configuration-drift',
+      params,
+      async (client) => {
+        // Get property details
+        const propResponse = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}`,
+            method: 'GET',
+            schema: z.object({
+              properties: z.object({
+                items: z.array(PropertySchema)
+              })
+            })
+          }
+        );
+
+        const property = propResponse.properties.items[0];
+        if (!property) {
+          throw new Error(`Property ${params.propertyId} not found`);
+        }
+
+        // Get all versions
+        const versionsResponse = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}/versions`,
+            method: 'GET',
+            schema: z.object({
+              versions: z.object({
+                items: z.array(PropertyVersionDetailsSchema)
+              })
+            }),
+            queryParams: {
+              contractId: property.contractId,
+              groupId: property.groupId
+            }
+          }
+        );
+
+        const versions = versionsResponse.versions.items;
+        const baselineVersion = params.baselineVersion || property.productionVersion || property.latestVersion;
+        
+        // Get baseline rules
+        const baselineRules = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}/versions/${baselineVersion}/rules`,
+            method: 'GET',
+            schema: PropertyRulesResponseSchema,
+            queryParams: {
+              contractId: property.contractId,
+              groupId: property.groupId
+            }
+          }
+        );
+
+        // Analyze drift
+        const driftAnalysis = [];
+        
+        for (const version of versions) {
+          if (version.propertyVersion === baselineVersion) continue;
+          if (!params.includeInactiveVersions && 
+              version.productionStatus === 'INACTIVE' && 
+              version.stagingStatus === 'INACTIVE') continue;
+
+          // Get rules for this version
+          const versionRules = await this.makeTypedRequest(
+            client,
+            {
+              path: `/papi/v1/properties/${params.propertyId}/versions/${version.propertyVersion}/rules`,
+              method: 'GET',
+              schema: PropertyRulesResponseSchema,
+              queryParams: {
+                contractId: property.contractId,
+                groupId: property.groupId
+              }
+            }
+          );
+
+          const differences = this.calculateRuleDifferences(baselineRules.rules, versionRules.rules);
+          
+          if (differences.length > 0) {
+            driftAnalysis.push({
+              version: version.propertyVersion,
+              updatedDate: version.updatedDate,
+              updatedBy: version.updatedByUser,
+              productionStatus: version.productionStatus,
+              stagingStatus: version.stagingStatus,
+              driftCount: differences.length,
+              driftTypes: {
+                added: differences.filter(d => d.type === 'added').length,
+                modified: differences.filter(d => d.type === 'modified').length,
+                deleted: differences.filter(d => d.type === 'deleted').length
+              },
+              note: version.note
+            });
+          }
+        }
+
+        return {
+          propertyId: params.propertyId,
+          propertyName: property.propertyName,
+          baselineVersion: baselineVersion,
+          totalVersions: versions.length,
+          versionsWithDrift: driftAnalysis.length,
+          driftAnalysis: driftAnalysis,
+          summary: {
+            hasDrift: driftAnalysis.length > 0,
+            driftPercentage: (driftAnalysis.length / versions.length) * 100,
+            mostRecentDrift: driftAnalysis.length > 0 ? driftAnalysis[0] : null
+          }
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
    * Perform batch operations on property versions
    */
   async batchVersionOperations(args: {
