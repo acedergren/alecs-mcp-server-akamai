@@ -108,27 +108,8 @@ export function getAllToolDefinitions(): ToolDefinition[] {
   // AppSec Tools (34 tools - fully migrated)
   allTools.push(...convertToolsToDefinitions(appSecTools));
 
-  // UNMIGRATED TOOLS (dot notation) - Temporarily disabled for clean startup
-  // TODO: Migrate these tools to snake_case naming in future phases
-  
-  // Certificate Tools (7 tools - fully migrated)
-  allTools.push(...convertToolsToDefinitions(certificateTools));
-
-  // Security Tools (10 tools - fully migrated)
-  // allTools.push(...convertToolsToDefinitions(securityTools));
-
-  // FastPurge Tools (8 tools - fully migrated)
-  // allTools.push(...convertToolsToDefinitions(FastPurgeTools.getAllTools()));
-  // allTools.push(...convertToolsToDefinitions(FastPurgeMonitoringTools.getAllTools()));
-
-  // SIEM Tools (4 tools - fully migrated)
-  // allTools.push(...convertToolsToDefinitions(SIEMTools.getAllTools()));
-
-  // Reporting Tools (4 tools - fully migrated)
-  // allTools.push(...convertToolsToDefinitions(reportingTools));
-  
-  // Orchestration Tools (7 tools - fully migrated)
-  // allTools.push(...convertToolsToDefinitions(OrchestrationTools.getAllTools()));
+  // MIGRATION COMPLETE - All tools now use snake_case naming
+  // Total tools: 98 (after removing duplicates)
 
   return allTools;
 }

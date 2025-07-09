@@ -16,7 +16,7 @@ _AI-powered Akamai CDN management through natural language_
 
 <br>
 
-**🔧 287 Tools** • **🌐 8 Services** • **🔐 Multi-Customer** • **⚡ Production Ready**
+**🔧 287 Tools** • **🌐 8 Services** • **🔐 Full EdgeRC Support** • **⚡ Production Ready**
 
 <br>
 
@@ -24,9 +24,9 @@ _AI-powered Akamai CDN management through natural language_
 
 ## 🎯 What is ALECS?
 
-ALECS bridges the gap between **AI assistants** and **Akamai's Connected Cloud Platform**. Ask
-Claude, Cursor, or any MCP-compatible AI tool to manage your Akamai infrastructure using natural
-language and minimise context switching when creating Infrastructure-as-Code!
+ALECS bridges the gap between **AI tools** and **Akamai's Connected Cloud Platform**. Ask Claude,
+Cursor, or any MCP-compatible tool to manage your Akamai infrastructure using natural language and
+minimize context switching when creating Infrastructure-as-Code!
 
 <div align="center">
 

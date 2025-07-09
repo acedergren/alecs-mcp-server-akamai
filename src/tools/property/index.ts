@@ -136,7 +136,12 @@ export const propertyTools = {
     }),
     handler: async (args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.getActivationStatus(args)
-  }
+  },
+
+  // NOTE: Advanced functionality will be added in future phases
+  // Current consolidated property tools already provide comprehensive
+  // property management functionality including rule management,
+  // activation, version control, and metadata access
 };
 
 /**
