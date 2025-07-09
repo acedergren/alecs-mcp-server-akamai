@@ -107,7 +107,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
   // Security Tools (13 tools - fully migrated with updates and deletes)
   allTools.push(...convertToolsToDefinitions(securityTools));
 
-  // Reporting Tools (10 tools - fully migrated with comprehensive analytics)
+  // Reporting Tools (9 tools - fully migrated, billing moved to Phase 2)
   allTools.push(...convertToolsToDefinitions(reportingTools));
 
   // FastPurge Tools (8 tools - fully migrated)
@@ -139,7 +139,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
   allTools.push(...convertToolsToDefinitions(bulkOperationsTools));
 
   // MIGRATION COMPLETE - All tools now use snake_case naming
-  // Total tools: 159 (after adding comprehensive reporting)
+  // Total tools: 156 (after removing duplicates and mock billing)
 
   return allTools;
 }

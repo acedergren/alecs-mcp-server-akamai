@@ -442,65 +442,6 @@ export class ConsolidatedReportingTools extends BaseTool {
   }
 
   /**
-   * Analyze bandwidth and request costs
-   */
-  async getCostAnalysis(args: {
-    customer?: string;
-    start_date: string;
-    end_date: string;
-    groupBy?: Array<'property' | 'cpcode' | 'region' | 'product'>;
-    include_projections?: boolean;
-  }): Promise<MCPToolResponse> {
-    const params = z.object({
-      customer: z.string().optional(),
-      start_date: z.string(),
-      end_date: z.string(),
-      groupBy: z.array(z.enum(['property', 'cpcode', 'region', 'product'])).optional(),
-      include_projections: z.boolean().default(false)
-    }).parse(args);
-
-    return this.executeStandardOperation(
-      'cost-analysis',
-      params,
-      async (_client) => {
-        const costs = {
-          bandwidth: {
-            total_gb: 125000,
-            cost_per_gb: 0.085,
-            total_cost: 10625
-          },
-          requests: {
-            total_millions: 2500,
-            cost_per_million: 0.50,
-            total_cost: 1250
-          },
-          total_cost: 11875,
-          currency: 'USD'
-        };
-
-        const breakdown = params.groupBy?.includes('property') ? [
-          { property: 'www.example.com', bandwidth_gb: 75000, requests_millions: 1500, cost: 7125 },
-          { property: 'api.example.com', bandwidth_gb: 35000, requests_millions: 750, cost: 3350 },
-          { property: 'static.example.com', bandwidth_gb: 15000, requests_millions: 250, cost: 1400 }
-        ] : [];
-
-        return {
-          period: { start_date: params.start_date, end_date: params.end_date },
-          costs,
-          breakdown,
-          projections: params.include_projections ? {
-            next_month_estimate: costs.total_cost * 1.05,
-            yearly_run_rate: costs.total_cost * 12
-          } : undefined
-        };
-      },
-      {
-        customer: params.customer
-      }
-    );
-  }
-
-  /**
    * Analyze origin server performance
    */
   async getOriginPerformance(args: {

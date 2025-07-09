@@ -84,19 +84,6 @@ export const reportingTools = {
       consolidatedReportingTools.getRealTimeMetrics(args)
   },
 
-  'reporting_cost_analysis': {
-    description: 'Analyze bandwidth and request costs',
-    inputSchema: z.object({
-      customer: z.string().optional(),
-      start_date: z.string(),
-      end_date: z.string(),
-      groupBy: z.array(z.enum(['property', 'cpcode', 'region', 'product'])).optional(),
-      include_projections: z.boolean().optional()
-    }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
-      consolidatedReportingTools.getCostAnalysis(args)
-  },
-
   'reporting_origin_performance': {
     description: 'Analyze origin server performance',
     inputSchema: z.object({
@@ -145,7 +132,7 @@ export const reportingTools = {
     description: 'Export report data in various formats',
     inputSchema: z.object({
       customer: z.string().optional(),
-      report_type: z.enum(['traffic', 'cache', 'errors', 'geographic', 'security', 'cost']),
+      report_type: z.enum(['traffic', 'cache', 'errors', 'geographic', 'security']),
       start_date: z.string(),
       end_date: z.string(),
       format: z.enum(['csv', 'json', 'pdf', 'excel']),
@@ -165,7 +152,6 @@ export const {
   getGeographicDistribution,
   getErrorAnalysis,
   getRealTimeMetrics,
-  getCostAnalysis,
   getOriginPerformance,
   getSecurityThreats,
   createCustomDashboard,

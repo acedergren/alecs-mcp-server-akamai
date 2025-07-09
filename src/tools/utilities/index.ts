@@ -43,32 +43,6 @@ export const utilityTools = {
       consolidatedUtilityTools.createCPCode(args)
   },
 
-  // Include operations
-  'include_list': {
-    description: 'List property includes',
-    inputSchema: z.object({
-      contractId: z.string().optional(),
-      groupId: z.string().optional(),
-      customer: z.string().optional()
-    }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
-      consolidatedUtilityTools.listIncludes(args)
-  },
-
-  'include_create': {
-    description: 'Create a new include',
-    inputSchema: z.object({
-      includeName: z.string(),
-      includeType: z.enum(['MICROSERVICES', 'COMMON_SETTINGS']),
-      contractId: z.string(),
-      groupId: z.string(),
-      productId: z.string().optional(),
-      customer: z.string().optional()
-    }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
-      consolidatedUtilityTools.createInclude(args)
-  },
-
   // Reporting operations are handled by reporting module
 };
 
@@ -97,7 +71,7 @@ export { consolidatedUtilityTools };
  */
 export const utilityDomainMetadata = {
   name: 'utility',
-  description: 'Akamai Utilities - FastPurge, CP Codes, Includes, and Reporting',
+  description: 'Akamai Utilities - CP Codes and Common Operations',
   toolCount: Object.keys(utilityTools).length,
   consolidationStats: {
     originalFiles: 4,

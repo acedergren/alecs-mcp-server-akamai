@@ -57,7 +57,7 @@ export class CacheFactory {
    * Create cache instance based on configuration
    */
   static async create(options: CacheFactoryOptions = {}): Promise<ICache> {
-    logger.info('[Cache] Using SmartCache - zero dependencies, excellent performance');
+    logger.debug('[Cache] Using SmartCache - zero dependencies, excellent performance');
     return this.createSmartCache(options.smartCacheOptions);
   }
 

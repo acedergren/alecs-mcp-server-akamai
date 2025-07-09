@@ -84,7 +84,9 @@ async function main(): Promise<void> {
     // Display rich startup dashboard
     displayStartupDashboard(cliConfig);
     
-    mainLogger.info('ALECS MCP Server initialized with CLI configuration');
+    if (process.env['DEBUG'] || process.env['LOG_LEVEL'] === 'debug') {
+      mainLogger.info('ALECS MCP Server initialized with CLI configuration');
+    }
     mainLogger.debug({ 
       argv: process.argv,
       cwd: process.cwd(),
@@ -106,7 +108,9 @@ async function main(): Promise<void> {
   if (scriptName && scriptName.startsWith('start:') && scriptName !== 'start:stdio') {
     // Launch specific module server
     const moduleName = scriptName.replace('start:', '');
-    mainLogger.info({ moduleName }, 'Launching specific module');
+    if (process.env['DEBUG'] || process.env['LOG_LEVEL'] === 'debug') {
+      mainLogger.info({ moduleName }, 'Launching specific module');
+    }
     
     const moduleMap: Record<string, string> = {
       property: './servers/property-server',
@@ -120,7 +124,9 @@ async function main(): Promise<void> {
     };
     
     if (moduleMap[moduleName]) {
-      mainLogger.info({ module: moduleMap[moduleName] }, 'Importing module');
+      if (process.env['DEBUG'] || process.env['LOG_LEVEL'] === 'debug') {
+        mainLogger.info({ module: moduleMap[moduleName] }, 'Importing module');
+      }
       await import(moduleMap[moduleName]);
       return;
     } else {
@@ -131,12 +137,16 @@ async function main(): Promise<void> {
   }
   
   // Otherwise use unified transport approach
-  mainLogger.info('Using unified transport approach');
+  if (process.env['DEBUG'] || process.env['LOG_LEVEL'] === 'debug') {
+    mainLogger.info('Using unified transport approach');
+  }
   
   try {
     mainLogger.debug('Getting transport config...');
     const transportConfig = getTransportFromEnv();
-    mainLogger.info({ transportConfig }, 'Transport config received');
+    if (process.env['DEBUG'] || process.env['LOG_LEVEL'] === 'debug') {
+      mainLogger.info({ transportConfig }, 'Transport config received');
+    }
     
     // Log transport type at debug level
     mainLogger.debug({ transport: transportConfig.type }, 'Transport configuration');
