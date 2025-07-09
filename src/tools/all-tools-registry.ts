@@ -50,6 +50,9 @@ import { appSecTools } from './appsec';
 // Edge Hostname Tools
 import { edgeHostnameTools } from './edge-hostnames';
 
+// Include Tools
+import { includeTools } from './includes';
+
 /**
  * Tool definition interface with strong typing
  */
@@ -114,8 +117,11 @@ export function getAllToolDefinitions(): ToolDefinition[] {
   // Edge Hostname Tools (7 tools - newly added)
   allTools.push(...convertToolsToDefinitions(edgeHostnameTools));
 
+  // Include Tools (8 tools - newly added)
+  allTools.push(...convertToolsToDefinitions(includeTools));
+
   // MIGRATION COMPLETE - All tools now use snake_case naming
-  // Total tools: 116 (after adding edge hostnames)
+  // Total tools: 124 (after adding includes)
 
   return allTools;
 }
