@@ -67,10 +67,8 @@ export class EdgeGridClient {
     config.headers.set('Authorization', authHeader);
     config.headers.set('Content-Type', 'application/json');
 
-    // Add account switch key if available
-    if (this.config.account_switch_key) {
-      config.headers.set('AKAMAI-ACCOUNT-SWITCH-KEY', this.config.account_switch_key);
-    }
+    // Note: Account switch key should be passed as query parameter
+    // per Akamai documentation, not as a header
 
     return config;
   }

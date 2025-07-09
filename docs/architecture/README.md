@@ -19,8 +19,9 @@ graph TB
     
     subgraph "MCP Transport"
         STDIO[STDIO Transport]
+        HTTP[Streamable HTTP]
         WS[WebSocket Transport]
-        SSE[SSE Transport]
+        SSE[SSE Transport - Legacy]
     end
     
     subgraph "ALECS Core"
@@ -54,10 +55,10 @@ graph TB
     end
     
     CD --> STDIO
-    API --> WS
+    API --> HTTP
     CLI --> STDIO
     
-    STDIO & WS & SSE --> Server
+    STDIO & HTTP & WS & SSE --> Server
     Server --> Router
     Router --> Auth & Context
     
@@ -75,10 +76,11 @@ graph TB
 ## Component Architecture
 
 ### 1. MCP Server Core
-- Handles protocol implementation
-- Manages tool registration
+- Handles protocol implementation (MCP 2025-06-18)
+- Manages tool registration  
 - Routes requests to handlers
-- Provides transport abstraction
+- Provides transport abstraction (stdio, HTTP, WebSocket, SSE)
+- Auto-detects optimal transport based on deployment
 
 ### 2. Service Modules (159 tools)
 - **alecs-property** - CDN property configuration and management
@@ -151,13 +153,31 @@ EdgeGrid authentication with secure credential management
 
 ## Deployment Architecture
 
-### Production Setup
+### Local Development (Claude Desktop/Cursor)
 ```
 ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
 │   Claude    │────▶│ ALECS Server │────▶│   Akamai    │
 │   Desktop   │◀────│   (Local)    │◀────│    APIs     │
 └─────────────┘     └──────────────┘     └─────────────┘
        stdio              HTTPS               HTTPS
+```
+
+### CDN Deployment (Streamable HTTP)
+```
+┌─────────────┐     ┌──────────────┐     ┌──────────────┐     ┌─────────────┐
+│   Browser   │────▶│     CDN      │────▶│ ALECS Server │────▶│   Akamai    │
+│   Client    │◀────│  Edge Node   │◀────│   (Origin)   │◀────│    APIs     │
+└─────────────┘     └──────────────┘     └──────────────┘     └─────────────┘
+   HTTP POST/SSE         HTTP/2              HTTPS               HTTPS
+```
+
+### WebSocket Deployment
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+│  Real-time  │────▶│ ALECS Server │────▶│   Akamai    │
+│   Client    │◀────│  (WebSocket) │◀────│    APIs     │
+└─────────────┘     └──────────────┘     └─────────────┘
+       WSS                HTTPS               HTTPS
 ```
 
 ### Multi-Customer Architecture
@@ -173,6 +193,44 @@ EdgeGrid authentication with secure credential management
                  │         │
                  └────────▶├─ Account Switch
                           └─ Request Signing
+```
+
+## Transport Architecture
+
+### Transport Selection Strategy
+The server automatically selects the optimal transport based on:
+1. **Environment Variable**: `MCP_TRANSPORT` (highest priority)
+2. **Deployment Context**: Auto-detection based on environment
+3. **Default**: stdio for maximum compatibility
+
+### Transport Characteristics
+
+| Transport | Use Case | Protocol | Stateful | CDN-Friendly | Browser Support |
+|-----------|----------|----------|----------|--------------|-----------------|
+| **stdio** | CLI tools, Claude Desktop | stdin/stdout | Yes | No | No |
+| **streamable-http** | Web apps, CDN deployment | HTTP POST + SSE | No | Yes | Yes |
+| **websocket** | Real-time apps | WebSocket | Yes | Limited | Yes |
+| **sse** | Legacy compatibility | HTTP + SSE | Partial | Yes | Yes |
+
+### Transport Configuration
+
+#### Streamable HTTP (Recommended for Web)
+```bash
+# Environment variables
+MCP_TRANSPORT=streamable-http
+HTTP_PORT=8080              # Server port
+HTTP_HOST=0.0.0.0          # Bind address
+HTTP_PATH=/mcp             # URL path prefix
+CORS_ENABLED=true          # Enable CORS
+AUTH_TYPE=token            # Authentication type
+```
+
+#### WebSocket
+```bash
+MCP_TRANSPORT=websocket
+WS_PORT=8080               # WebSocket port
+WS_HOST=0.0.0.0          # Bind address
+WS_PATH=/mcp              # WebSocket path
 ```
 
 ## Performance Characteristics

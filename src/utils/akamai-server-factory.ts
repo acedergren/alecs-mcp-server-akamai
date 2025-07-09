@@ -44,6 +44,7 @@ import { getTransportFromEnv } from '../config/transport-config';
 import { AkamaiClient } from '../akamai-client';
 import { MCPToolResponse } from '../types/mcp-protocol';
 import { MCPCompatibilityWrapper } from './mcp-compatibility-wrapper';
+import { createTransport } from './transport-factory';
 
 // Import the complete tool registry
 import { getAllToolDefinitions, type ToolDefinition } from '../tools/all-tools-registry';
@@ -740,23 +741,29 @@ export class AkamaiMCPServer {
     const transportConfig = getTransportFromEnv();
     logger.debug({ transportConfig }, 'Transport config');
     
-    if (transportConfig.type === 'stdio') {
-      logger.debug('Creating StdioServerTransport...');
-      const transport = new StdioServerTransport();
-      
-      logger.debug('Connecting server to transport...');
-      try {
+    try {
+      if (transportConfig.type === 'stdio') {
+        // Use built-in stdio transport for Claude Desktop compatibility
+        logger.debug('Creating StdioServerTransport...');
+        const transport = new StdioServerTransport();
+        
+        logger.debug('Connecting server to transport...');
         await this.server.connect(transport);
         logger.debug({ toolCount: this.tools.size }, 'SERVER STARTED SUCCESSFULLY!');
         logger.debug('Server is now waiting for JSON-RPC messages on stdio...');
-      } catch (error) {
-        logger.fatal({ error }, 'FAILED TO CONNECT TO TRANSPORT!');
-        throw new Error(`Transport connection failed: ${error instanceof Error ? error.message : String(error)}`);
+      } else {
+        // Use transport factory for all other transports
+        logger.debug(`Creating ${transportConfig.type} transport via factory...`);
+        const transport = await createTransport(transportConfig);
+        
+        logger.debug('Connecting server to transport...');
+        await this.server.connect(transport as any);
+        logger.debug({ toolCount: this.tools.size, transport: transportConfig.type }, 'SERVER STARTED SUCCESSFULLY!');
+        logger.debug(`Server is now waiting for JSON-RPC messages on ${transportConfig.type}...`);
       }
-    } else {
-      const error = new Error(`UNSUPPORTED TRANSPORT TYPE: ${transportConfig.type} - only 'stdio' is supported!`);
-      logger.fatal({ transportType: transportConfig.type }, error.message);
-      throw error;
+    } catch (error) {
+      logger.fatal({ error }, 'FAILED TO CONNECT TO TRANSPORT!');
+      throw new Error(`Transport connection failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

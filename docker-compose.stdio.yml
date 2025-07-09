@@ -1,0 +1,18 @@
+version: '3.8'
+
+# Example docker-compose for stdio transport (Claude Desktop)
+services:
+  alecs-stdio:
+    build:
+      context: .
+      dockerfile: build/docker/Dockerfile
+    container_name: alecs-mcp-server-stdio
+    environment:
+      - NODE_ENV=production
+      - MCP_TRANSPORT=stdio
+    volumes:
+      - ~/.edgerc:/root/.edgerc:ro
+      - ./logs:/app/logs
+    stdin_open: true
+    tty: true
+    restart: unless-stopped

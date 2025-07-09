@@ -165,6 +165,8 @@ export class CustomerConfigManager {
             currentConfig.access_token = value;
             break;
           case 'account-switch-key':
+          case 'account_switch_key':
+          case 'account_key':
             currentConfig.account_switch_key = value;
             break;
         }

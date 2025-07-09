@@ -4,7 +4,7 @@
  * Configures transport type based on environment variables
  */
 
-export type TransportType = 'stdio' | 'sse' | 'websocket';
+export type TransportType = 'stdio' | 'sse' | 'websocket' | 'streamable-http' | 'http';
 
 export interface TransportConfig {
   type: TransportType;
@@ -46,6 +46,19 @@ export function getTransportFromEnv(): TransportConfig {
         }
       };
       
+    case 'streamable-http':
+    case 'http':
+      return {
+        type: 'streamable-http',
+        options: {
+          port: parseInt(process.env['HTTP_PORT'] || '8080'),
+          host: process.env['HTTP_HOST'] || '0.0.0.0',
+          path: process.env['HTTP_PATH'] || '/mcp',
+          cors: process.env['CORS_ENABLED'] !== 'false',
+          auth: (process.env['AUTH_TYPE'] as 'none' | 'token') || 'none'
+        }
+      };
+      
     case 'stdio':
     default:
       return {
@@ -62,7 +75,9 @@ export function getTransportDescription(config: TransportConfig): string {
     case 'websocket':
       return `WebSocket server on ${config.options.host}:${config.options.port}`;
     case 'sse':
-      return `Server-Sent Events (Streamable HTTP) on ${config.options.host}:${config.options.port}`;
+      return `Server-Sent Events (Legacy) on ${config.options.host}:${config.options.port}`;
+    case 'streamable-http':
+      return `MCP Streamable HTTP on ${config.options.host}:${config.options.port}`;
     default:
       return 'Unknown transport';
   }

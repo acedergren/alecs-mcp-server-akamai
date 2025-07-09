@@ -27,6 +27,10 @@ const startCommands: Record<string, string> = {
   'start:appsec': 'start:appsec',
   'start:fastpurge': 'start:fastpurge',
   'start:network-lists': 'start:network-lists',
+  'start:stdio': 'start:stdio',
+  'start:http': 'start:http',
+  'start:websocket': 'start:websocket',
+  'start:sse': 'start:sse',
 };
 
 // Handle --help
@@ -46,12 +50,23 @@ Usage:
   alecs start:fastpurge        Fast purge server only
   alecs start:network-lists    Network lists server only
 
+Transport Options:
+  alecs start:stdio            Start with stdio transport (default)
+  alecs start:http             Start with streamable HTTP transport
+  alecs start:websocket        Start with WebSocket transport
+  alecs start:sse              Start with SSE transport (legacy)
+
 Options:
   -h, --help                   Show this help message
   -v, --version                Show version number
 
 Environment Variables:
-  MCP_TRANSPORT               Transport type (stdio, websocket, sse)
+  MCP_TRANSPORT               Transport type (stdio, streamable-http, websocket, sse)
+  HTTP_PORT                   Port for HTTP transport (default: 8080)
+  HTTP_HOST                   Host for HTTP transport (default: 0.0.0.0)
+  HTTP_PATH                   Base path for HTTP transport (default: /mcp)
+  CORS_ENABLED                Enable CORS for browser clients (default: true)
+  AUTH_TYPE                   Authentication type (none, token)
   EDGERC_PATH                 Path to .edgerc file
   AKAMAI_CUSTOMER             Default customer section
 
@@ -62,8 +77,13 @@ Examples:
   # Run only DNS management  
   alecs start:dns
   
+  # Run with streamable HTTP transport (CDN-friendly)
+  alecs start:http
+  # or
+  MCP_TRANSPORT=streamable-http alecs
+  
   # Run with WebSocket transport
-  MCP_TRANSPORT=websocket alecs
+  alecs start:websocket
 
 Documentation: https://github.com/acedergren/alecs-mcp-server-akamai
 `);

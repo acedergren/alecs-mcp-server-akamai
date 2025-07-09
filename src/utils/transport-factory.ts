@@ -12,6 +12,7 @@ import { TransportConfig, getTransportFromEnv } from '../config/transport-config
 let express: unknown;
 let WebSocketServerTransport: unknown;
 let SSEServerTransport: unknown;
+let MCPStreamableHTTPTransport: unknown;
 
 async function loadOptionalDependencies() {
   try {
@@ -23,6 +24,9 @@ async function loadOptionalDependencies() {
     
     const wsModule = await import('../transport/websocket-transport');
     WebSocketServerTransport = wsModule.WebSocketServerTransport;
+    
+    const httpModule = await import('../transport/mcp-streamable-http-transport');
+    MCPStreamableHTTPTransport = httpModule.MCPStreamableHTTPTransport;
   } catch (error) {
     // Optional dependencies not available
   }
@@ -89,6 +93,33 @@ export async function createTransport(config: TransportConfig): Promise<unknown>
       });
       
       return sseTransport;
+      
+    case 'streamable-http':
+      await loadOptionalDependencies();
+      if (!express || !MCPStreamableHTTPTransport) {
+        throw new Error('[ERROR] Streamable HTTP transport requires express. Install with: npm install express');
+      }
+      
+      const httpPort = config.options.port || 8080;
+      const httpHost = config.options.host || '0.0.0.0';
+      const httpPath = config.options.path || '/mcp';
+      
+      const HTTPTransport = MCPStreamableHTTPTransport as any;
+      const httpTransport = new HTTPTransport({
+        port: httpPort,
+        host: httpHost,
+        path: httpPath,
+        corsOrigin: config.options.cors ? '*' : undefined
+      });
+      
+      await httpTransport.start();
+      
+      console.error(`[DONE] Streamable HTTP server listening on http://${httpHost}:${httpPort}${httpPath}`);
+      if (config.options.cors) {
+        console.error('[INFO] CORS enabled for Streamable HTTP transport');
+      }
+      
+      return httpTransport;
       
     default:
       throw new Error(`[ERROR] Unknown transport type: ${config.type}`);

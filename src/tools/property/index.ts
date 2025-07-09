@@ -25,7 +25,7 @@ export const propertyTools = {
       customer: z.string().optional(),
       format: z.enum(['json', 'text']).optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.listProperties(args)
   },
 
@@ -37,7 +37,7 @@ export const propertyTools = {
       version: z.number().optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.getProperty(args)
   },
 
@@ -49,7 +49,7 @@ export const propertyTools = {
       customer: z.string().optional(),
       validateRules: z.boolean().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.getPropertyRules(args)
   },
 
@@ -64,7 +64,7 @@ export const propertyTools = {
       ruleFormat: z.string().optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.createProperty(args)
   },
 
@@ -79,7 +79,7 @@ export const propertyTools = {
       productId: z.string().optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.cloneProperty(args)
   },
 
@@ -90,7 +90,7 @@ export const propertyTools = {
       createFromVersion: z.number().optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.createPropertyVersion(args)
   },
 
@@ -104,7 +104,7 @@ export const propertyTools = {
       validateRules: z.boolean().optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.updatePropertyRules(args)
   },
 
@@ -123,7 +123,7 @@ export const propertyTools = {
       }).optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.activateProperty(args)
   },
 
@@ -134,7 +134,7 @@ export const propertyTools = {
       activationId: z.string(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.getActivationStatus(args)
   },
 
@@ -146,7 +146,7 @@ export const propertyTools = {
       confirm: z.boolean().describe('Confirm deletion'),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.removeProperty(args)
   },
 
@@ -165,7 +165,7 @@ export const propertyTools = {
       limit: z.number().optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.searchPropertiesOptimized(args)
   },
 
@@ -179,7 +179,7 @@ export const propertyTools = {
       cnameType: z.enum(['EDGE_HOSTNAME']).optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.addPropertyHostname(args)
   },
 
@@ -191,7 +191,7 @@ export const propertyTools = {
       hostname: z.string(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.removePropertyHostname(args)
   },
 
@@ -204,7 +204,7 @@ export const propertyTools = {
       notes: z.string().optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.rollbackPropertyVersion(args)
   },
 
@@ -216,7 +216,7 @@ export const propertyTools = {
       toVersion: z.number(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.getVersionDiff(args)
   },
 
@@ -229,7 +229,7 @@ export const propertyTools = {
       version: z.number().optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.compareProperties(args)
   },
 
@@ -241,7 +241,7 @@ export const propertyTools = {
       includeInactiveVersions: z.boolean().optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.detectConfigurationDrift(args)
   },
 
@@ -259,7 +259,7 @@ export const propertyTools = {
       ])).optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.checkPropertyHealth(args)
   },
 
@@ -276,7 +276,7 @@ export const propertyTools = {
       })),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.batchVersionOperations(args)
   },
 
@@ -293,7 +293,7 @@ export const propertyTools = {
       acknowledgeWarnings: z.boolean().optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.bulkActivateProperties(args)
   },
 
@@ -308,7 +308,7 @@ export const propertyTools = {
       })),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.bulkCloneProperties(args)
   },
 
@@ -323,7 +323,7 @@ export const propertyTools = {
       })),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.bulkManageHostnames(args)
   },
 
@@ -337,7 +337,7 @@ export const propertyTools = {
       })),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.bulkUpdatePropertyRules(args)
   },
 
@@ -347,7 +347,7 @@ export const propertyTools = {
       operationId: z.string(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedPropertyTools.getBulkOperationStatus(args)
   }
 };

@@ -133,7 +133,7 @@ export class AkamaiClient {
       // Build query parameters object
       const queryParams: Record<string, string> = {};
 
-      // Add account switch key if available
+      // Add account switch key as query parameter if available
       if (this.accountSwitchKey) {
         queryParams['accountSwitchKey'] = this.accountSwitchKey;
       }

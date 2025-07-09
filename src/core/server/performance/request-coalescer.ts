@@ -11,6 +11,8 @@
 
 export class RequestCoalescer {
   private inFlight = new Map<string, Promise<any>>();
+  private totalRequests = 0;
+  private coalescedRequests = 0;
   
   /**
    * Wrap a handler to coalesce duplicate requests
@@ -23,10 +25,14 @@ export class RequestCoalescer {
       // Generate cache key from function name and args
       const key = this.generateKey(name, args);
       
+      // Track total requests
+      this.totalRequests++;
+      
       // Check if identical request is in flight
       const existing = this.inFlight.get(key);
       if (existing) {
         // Return existing promise - no new API call!
+        this.coalescedRequests++;
         return existing;
       }
       
@@ -57,9 +63,34 @@ export class RequestCoalescer {
   }
   
   /**
+   * Get coalescer statistics
+   */
+  getStats(): {
+    pending: number;
+    activeBatches: number;
+    totalRequests: number;
+    coalescedRequests: number;
+    coalescingRate: number;
+  } {
+    const coalescingRate = this.totalRequests > 0 
+      ? (this.coalescedRequests / this.totalRequests) * 100 
+      : 0;
+    
+    return {
+      pending: this.inFlight.size,
+      activeBatches: this.inFlight.size, // Each in-flight request represents a batch
+      totalRequests: this.totalRequests,
+      coalescedRequests: this.coalescedRequests,
+      coalescingRate: Math.round(coalescingRate * 100) / 100 // Round to 2 decimal places
+    };
+  }
+
+  /**
    * Clear all in-flight requests (for testing)
    */
   clear(): void {
     this.inFlight.clear();
+    this.totalRequests = 0;
+    this.coalescedRequests = 0;
   }
 }

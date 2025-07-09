@@ -13,10 +13,11 @@ _AI-powered Akamai CDN management through natural language_
 [![npm version](https://img.shields.io/npm/v/alecs-mcp-server-akamai.svg?style=for-the-badge&logo=npm&color=red)](https://www.npmjs.com/package/alecs-mcp-server-akamai)
 [![GitHub release](https://img.shields.io/github/v/release/acedergren/alecs-mcp-server-akamai?style=for-the-badge&logo=github&color=blue)](https://github.com/acedergren/alecs-mcp-server-akamai/releases)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/acedergren/alecs-mcp-server-akamai/ci-cd.yml?branch=main&style=for-the-badge&logo=github-actions&color=green)](https://github.com/acedergren/alecs-mcp-server-akamai/actions)
+[![Add to Cursor](https://img.shields.io/badge/Add%20to-Cursor-blue?style=for-the-badge&logo=cursor)](cursor://anysphere.cursor-deeplink/mcp/install?name=alecs-akamai&config=eyJhbGVjcy1ha2FtYWkiOnsiY29tbWFuZCI6ImFsZWNzIiwiYXJncyI6W10sImVudiI6eyJNQ1BfVFJBTlNQT1JUIjoic3RkaW8ifX19)
 
 <br>
 
-**🔧 159 Tools** • **🌐 15 Services** • **🔐 Full EdgeRC Support** • **⚡ Production Ready**
+**🔧 160 Tools** • **🌐 15 Services** • **🔐 Full EdgeRC Support** • **⚡ Production Ready**
 
 <br>
 
@@ -45,7 +46,7 @@ minimize context switching when creating Infrastructure-as-Code!
 
 <table>
 <tr>
-<td align="center" width="14.28%">
+<td align="center" width="20%">
 <img src="https://www.anthropic.com/favicon.ico" width="48" height="48"/>
 <br><strong>Claude Desktop</strong>
 <br>
@@ -74,7 +75,7 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 
 </details>
 </td>
-<td align="center" width="14.28%">
+<td align="center" width="20%">
 <img src="https://cursor.sh/favicon.ico" width="48" height="48"/>
 <br><strong>Cursor IDE</strong>
 <br>
@@ -90,7 +91,7 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 ```
 </details>
 </td>
-<td align="center" width="14.28%">
+<td align="center" width="20%">
 <img src="https://lmstudio.ai/favicon.ico" width="48" height="48"/>
 <br><strong>LM Studio</strong>
 <br>
@@ -106,26 +107,7 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 ```
 </details>
 </td>
-<td align="center" width="14.28%">
-<img src="https://brew.sh/assets/img/homebrew-256x256.png" width="48" height="48"/>
-<br><strong>Homebrew</strong>
-<br>
-<details>
-<summary>🍺 Install</summary>
-
-**macOS/Linux:**
-```bash
-curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-homebrew.sh | bash
-```
-
-**Manual:**
-```bash
-brew install node
-npm install -g alecs-mcp-server-akamai
-```
-</details>
-</td>
-<td align="center" width="14.28%">
+<td align="center" width="20%">
 <img src="https://code.visualstudio.com/favicon.ico" width="48" height="48"/>
 <br><strong>VS Code</strong>
 <br>
@@ -144,7 +126,7 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 4. Command: `alecs`
 </details>
 </td>
-<td align="center" width="14.28%">
+<td align="center" width="20%">
 <img src="https://www.windsurf.ai/favicon.ico" width="48" height="48"/>
 <br><strong>Windsurf</strong>
 <br>
@@ -162,7 +144,9 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 3. Add server with command: `alecs`
 </details>
 </td>
-<td align="center" width="14.28%">
+</tr>
+<tr>
+<td align="center" width="20%">
 <img src="https://www.anthropic.com/favicon.ico" width="48" height="48"/>
 <br><strong>Claude Code</strong>
 <br>
@@ -180,8 +164,26 @@ claude mcp list
 ```
 </details>
 </td>
-<td align="center" width="14.28%">
-<img src="https://www.npmjs.com/favicon.ico" width="48" height="48"/>
+<td colspan="4" align="center">
+<br><strong>More AI Tools Coming Soon...</strong>
+</td>
+</tr>
+</table>
+
+</div>
+
+## 📦 Quick Start
+
+### 1. Install ALECS
+
+Choose your preferred method:
+
+<div align="center">
+
+<table>
+<tr>
+<td align="center" width="33%">
+<img src="https://static-production.npmjs.com/b0f1a8318363185cc2ea6a40ac23eeb2.png" width="48" height="48"/>
 <br><strong>NPM</strong>
 <br>
 <details>
@@ -198,18 +200,44 @@ alecs --version
 ```
 </details>
 </td>
+<td align="center" width="33%">
+<img src="https://brew.sh/assets/img/homebrew-256x256.png" width="48" height="48"/>
+<br><strong>Homebrew</strong>
+<br>
+<details>
+<summary>🍺 Install</summary>
+
+**macOS/Linux:**
+```bash
+curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-homebrew.sh | bash
+```
+
+**Manual:**
+```bash
+brew install node
+npm install -g alecs-mcp-server-akamai
+```
+</details>
+</td>
+<td align="center" width="33%">
+<img src="https://docker.com/favicon.ico" width="48" height="48"/>
+<br><strong>Docker</strong>
+<br>
+<details>
+<summary>🐳 Install</summary>
+
+**Quick start:**
+```bash
+docker run -it --env-file .env ghcr.io/acedergren/alecs-mcp-server-akamai:latest
+```
+
+**See full Docker section below for more options**
+</details>
+</td>
 </tr>
 </table>
 
 </div>
-
-## 📦 Quick Start
-
-### 1. Install ALECS
-
-```bash
-npm install -g alecs-mcp-server-akamai
-```
 
 ### 2. Configure Akamai
 
@@ -235,7 +263,7 @@ Pick your favorite AI assistant and use the one-click installers above! 🚀
 <tr>
 <td align="center" width="25%">
 <img src="https://img.icons8.com/color/96/000000/settings.png" width="64"/>
-<br><strong>🔧 287 Tools</strong>
+<br><strong>🔧 160 Tools</strong>
 <br>Complete Akamai API coverage
 </td>
 <td align="center" width="25%">
@@ -357,17 +385,38 @@ graph LR
 
 </div>
 
-## 🐳 Docker
+## 🐳 Docker & Deployment
 
+### Quick Start
 ```bash
-# Quick start with Docker
+# Standard I/O for Claude Desktop (default)
 docker run -it --env-file .env ghcr.io/acedergren/alecs-mcp-server-akamai:latest
 
-# Available variants
+# Streamable HTTP for web/CDN deployment
+docker run -it -p 8080:8080 -e MCP_TRANSPORT=streamable-http --env-file .env ghcr.io/acedergren/alecs-mcp-server-akamai:latest
+```
+
+### Transport Options
+```bash
+# Available transports
+MCP_TRANSPORT=stdio           # Default - Claude Desktop, Cursor, CLI tools
+MCP_TRANSPORT=streamable-http # Web clients, CDN deployment (recommended)
+MCP_TRANSPORT=websocket       # Real-time bidirectional communication
+MCP_TRANSPORT=sse             # Legacy Server-Sent Events (deprecated)
+
+# Transport-specific configuration
+HTTP_PORT=8080                # Port for streamable HTTP (default: 8080)
+HTTP_HOST=0.0.0.0            # Host for streamable HTTP
+HTTP_PATH=/mcp               # Base path for HTTP endpoints
+CORS_ENABLED=true            # Enable CORS for browser clients
+```
+
+### Available Docker Images
+```bash
 docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:latest    # Full server
 docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:modular   # Microservices
 docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:websocket # WebSocket
-docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:sse       # Server-Sent Events
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:http      # Streamable HTTP
 ```
 
 ## 📚 Documentation
@@ -378,6 +427,7 @@ docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:sse       # Server-Sent E
 | ------------------------------------------------------- | --------------------------- |
 | **[API Reference](./docs/api/README.md)**               | Complete tool documentation |
 | **[Getting Started](./docs/getting-started/README.md)** | Setup tutorials             |
+| **[Transport Guide](./docs/TRANSPORT_GUIDE.md)**        | Network transports & CDN    |
 | **[Architecture](./docs/architecture/README.md)**       | System design               |
 | **[Tool Creation](./docs/TOOL_CREATION_GUIDE.md)**      | Build custom tools          |
 | **[Troubleshooting](./docs/troubleshooting/README.md)** | Common issues               |

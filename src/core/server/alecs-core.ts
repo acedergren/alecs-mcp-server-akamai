@@ -36,6 +36,7 @@ import { CustomerConfigManager } from '../../utils/customer-config';
 import { safeExtractCustomer } from '../validation/customer';
 import { WebSocketServerTransport } from '../../transport/websocket-transport';
 import { SSEServerTransport } from '../../transport/sse-transport';
+import { ProductionMetricsExporter, type MetricsComponents } from '../../utils/export-metrics';
 
 // Tool definition helper for ultimate simplicity
 export function tool<T = any>(
@@ -111,6 +112,7 @@ export class ALECSCore {
   protected pool: ConnectionPool;
   protected configManager: CustomerConfigManager;
   protected monitoringInterval?: NodeJS.Timeout;
+  protected metricsExporter?: ProductionMetricsExporter;
   
   // Simple tool array - override in subclass
   tools: ToolDefinition[] = [];
@@ -150,6 +152,7 @@ export class ALECSCore {
     // Optional monitoring
     if (config.enableMonitoring) {
       this.startMonitoring();
+      this.initializeMetrics();
     }
   }
   
@@ -232,6 +235,11 @@ export class ALECSCore {
           cached: false,
         });
         
+        // Record metrics if enabled
+        if (this.metricsExporter) {
+          this.metricsExporter.recordToolExecution(name, duration, true, customer);
+        }
+        
         // Stream large responses
         if (tool.options?.stream && this.isLargeResponse(result)) {
           return new StreamingResponse(result);
@@ -243,6 +251,12 @@ export class ALECSCore {
           error: error instanceof Error ? error.message : String(error),
           customer,
         });
+        
+        // Record error metrics if enabled
+        if (this.metricsExporter) {
+          this.metricsExporter.recordToolExecution(name, 0, false, customer);
+        }
+        
         return this.formatError(error);
       }
     });
@@ -296,22 +310,89 @@ export class ALECSCore {
     await this.cache.clear();
     this.coalescer.clear();
     
+    // Shutdown metrics exporter
+    if (this.metricsExporter) {
+      this.metricsExporter.shutdown();
+    }
+    
     process.exit(0);
   }
   
+  // Initialize metrics exporter
+  private initializeMetrics(): void {
+    this.metricsExporter = ProductionMetricsExporter.initialize({
+      enabled: true,
+      enableDefaultMetrics: true,
+      privacyMode: true,
+      prefix: 'alecs',
+      customerHashing: true,
+      collectInterval: this.config.monitoringInterval || 60000
+    });
+    
+    // Register components for metrics collection
+    const components: MetricsComponents = {
+      smartCache: this.cache,
+      connectionPool: this.pool,
+      requestCoalescer: this.coalescer,
+      performanceMonitor: undefined, // Will be added later
+      monitorMiddleware: undefined   // Will be added later
+    };
+    
+    this.metricsExporter.registerComponents(components);
+    
+    logger.info(`[${this.config.name}] Metrics exporter initialized`);
+  }
+
   // Monitoring for health checks
   private startMonitoring(): void {
     this.monitoringInterval = setInterval(() => {
+      const cacheStats = this.cache.stats();
+      const poolStats = this.pool.getStats();
+      const coalescerStats = this.coalescer.getStats();
+      
       const stats = {
-        cache: { size: 0, hits: 0, misses: 0 }, // TODO: Implement getStats in SmartCache
-        pool: { active: 0, pending: 0, available: 0 }, // TODO: Implement getStats in ConnectionPool
-        coalescer: { pending: 0, completed: 0 }, // TODO: Implement getStats in RequestCoalescer
+        cache: {
+          size: cacheStats.entries,
+          hits: cacheStats.avgHits,
+          hitRate: cacheStats.hitRate,
+          memory: cacheStats.memory
+        },
+        pool: {
+          active: poolStats.active,
+          free: poolStats.free,
+          created: poolStats.created,
+          reused: poolStats.reused,
+          reuseRate: poolStats.reuseRate
+        },
+        coalescer: {
+          pending: coalescerStats.pending,
+          activeBatches: coalescerStats.activeBatches,
+          totalRequests: coalescerStats.totalRequests,
+          coalescedRequests: coalescerStats.coalescedRequests,
+          coalescingRate: coalescerStats.coalescingRate
+        },
         memory: process.memoryUsage(),
         uptime: process.uptime(),
       };
       
       logger.debug(`[${this.config.name}] Health check`, stats);
     }, this.config.monitoringInterval || 60000);
+  }
+  
+  // Get Prometheus metrics
+  async getMetrics(): Promise<string> {
+    if (!this.metricsExporter) {
+      return '# Metrics not enabled\n';
+    }
+    return this.metricsExporter.getMetrics();
+  }
+  
+  // Get metrics in JSON format for debugging
+  async getMetricsJSON(): Promise<any> {
+    if (!this.metricsExporter) {
+      return { enabled: false };
+    }
+    return this.metricsExporter.getMetricsJSON();
   }
   
   // Format data based on requested format

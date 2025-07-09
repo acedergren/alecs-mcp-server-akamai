@@ -135,11 +135,8 @@ export class EnhancedEdgeGrid extends EventEmitter {
           'Keep-Alive': 'timeout=60, max=100',
         };
 
-        // Add account switch key if available
-        const accountSwitchKey = process.env['AKAMAI_ACCOUNT_SWITCH_KEY'];
-        if (accountSwitchKey) {
-          authenticatedOptions.headers['account-switch-key'] = accountSwitchKey;
-        }
+        // Note: Account switch key is handled as query parameter in the main client
+        // not as a header, per Akamai documentation
 
         const authTime = performance.now() - startTime;
         this.updateAuthMetrics(authTime, true);
