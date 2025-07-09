@@ -138,6 +138,11 @@ export function getAllToolDefinitions(): ToolDefinition[] {
   // Bulk Operations Tools (5 tools - newly added)
   allTools.push(...convertToolsToDefinitions(bulkOperationsTools));
 
+
+  // TODO: Add new domains here
+  // Use: alecs generate domain <name> to create new domains
+  // Generated domains will automatically add their imports and registrations here
+
   // MIGRATION COMPLETE - All tools now use snake_case naming
   // Total tools: 156 (after removing duplicates and mock billing)
 

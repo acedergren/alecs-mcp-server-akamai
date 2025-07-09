@@ -10,6 +10,15 @@
         "SONARQUBE_ORG": "acedergren",
         "STORAGE_PATH": "/tmp/sonarqube-mcp"
       }
+    },
+    "puppeteer": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-puppeteer"
+      ],
+      "env": {}
     }
   }
 }

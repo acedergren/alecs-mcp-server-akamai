@@ -54,6 +54,7 @@
     "start:certs": "node dist/servers/certs-server.js",
     "start:security": "node dist/servers/security-server.js",
     "start:fastpurge": "node dist/servers/fastpurge-server.js",
+    "generate": "node dist/cli/index.js",
     "test": "jest --config jest.config.ci.js",
     "test:coverage": "jest --coverage",
     "prepublishOnly": "npm run build",

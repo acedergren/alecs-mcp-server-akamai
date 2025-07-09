@@ -17,7 +17,7 @@ _AI-powered Akamai CDN management through natural language_
 
 <br>
 
-**🔧 160 Tools** • **🌐 15 Services** • **🔐 Full EdgeRC Support** • **⚡ Production Ready**
+**🔧 156 Tools** • **🌐 15 Services** • **🔐 Full EdgeRC Support** • **⚡ Production Ready**
 
 <br>
 
@@ -77,7 +77,7 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 </td>
 <td align="center" width="20%">
 <img src="https://cursor.sh/favicon.ico" width="48" height="48"/>
-<br><strong>Cursor IDE</strong>
+<br><strong>Cursor</strong>
 <br>
 <details>
 <summary>🎯 Install</summary>
@@ -86,9 +86,11 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 [![Add to Cursor](https://img.shields.io/badge/Add%20to-Cursor-blue?style=for-the-badge&logo=cursor)](cursor://anysphere.cursor-deeplink/mcp/install?name=alecs-akamai&config=eyJhbGVjcy1ha2FtYWkiOnsiY29tbWFuZCI6ImFsZWNzIiwiYXJncyI6W10sImVudiI6eyJNQ1BfVFJBTlNQT1JUIjoic3RkaW8ifX19)
 
 **Auto-install script:**
+
 ```bash
 curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-cursor.sh | bash
 ```
+
 </details>
 </td>
 <td align="center" width="20%">
@@ -102,9 +104,11 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 [![Add to LM Studio](https://img.shields.io/badge/Add%20to-LM%20Studio-orange?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K)](lmstudio://mcp/install?name=alecs-akamai&config=eyJhbGVjcy1ha2FtYWkiOnsiY29tbWFuZCI6ImFsZWNzIiwiYXJncyI6W10sImVudiI6eyJNQ1BfVFJBTlNQT1JUIjoic3RkaW8ifX19)
 
 **Auto-install script:**
+
 ```bash
 curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-lmstudio.sh | bash
 ```
+
 </details>
 </td>
 <td align="center" width="20%">
@@ -115,11 +119,13 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 <summary>💻 Install</summary>
 
 **Extension + Server:**
+
 ```bash
 curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-vscode.sh | bash
 ```
 
 **Manual Setup:**
+
 1. Install MCP extension
 2. `Cmd/Ctrl + Shift + P`
 3. "MCP: Add Server"
@@ -134,11 +140,13 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 <summary>🌊 Install</summary>
 
 **Auto-configure:**
+
 ```bash
 curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-windsurf.sh | bash
 ```
 
 **Manual Setup:**
+
 1. Open Windsurf Settings
 2. Navigate to MCP Servers
 3. Add server with command: `alecs`
@@ -154,14 +162,17 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 <summary>⚡ Install</summary>
 
 **Simple command:**
+
 ```bash
 claude mcp add alecs-akamai alecs
 ```
 
 **Verify:**
+
 ```bash
 claude mcp list
 ```
+
 </details>
 </td>
 <td colspan="4" align="center">
@@ -190,14 +201,17 @@ Choose your preferred method:
 <summary>📦 Install</summary>
 
 **Global install:**
+
 ```bash
 npm install -g alecs-mcp-server-akamai
 ```
 
 **Verify:**
+
 ```bash
 alecs --version
 ```
+
 </details>
 </td>
 <td align="center" width="33%">
@@ -208,15 +222,18 @@ alecs --version
 <summary>🍺 Install</summary>
 
 **macOS/Linux:**
+
 ```bash
 curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-homebrew.sh | bash
 ```
 
 **Manual:**
+
 ```bash
 brew install node
 npm install -g alecs-mcp-server-akamai
 ```
+
 </details>
 </td>
 <td align="center" width="33%">
@@ -227,11 +244,13 @@ npm install -g alecs-mcp-server-akamai
 <summary>🐳 Install</summary>
 
 **Quick start:**
+
 ```bash
 docker run -it --env-file .env ghcr.io/acedergren/alecs-mcp-server-akamai:latest
 ```
 
 **See full Docker section below for more options**
+
 </details>
 </td>
 </tr>
@@ -263,7 +282,7 @@ Pick your favorite AI assistant and use the one-click installers above! 🚀
 <tr>
 <td align="center" width="25%">
 <img src="https://img.icons8.com/color/96/000000/settings.png" width="64"/>
-<br><strong>🔧 160 Tools</strong>
+<br><strong>🔧 156 Tools</strong>
 <br>Complete Akamai API coverage
 </td>
 <td align="center" width="25%">
@@ -295,9 +314,9 @@ Pick your favorite AI assistant and use the one-click installers above! 🚀
 | **🏢 Property Manager** | 25    | CDN configs, rules, activations |
 | **🛡️ Security**         | 47    | Network lists, WAF policies     |
 | **🌐 Edge DNS**         | 12    | DNS zones, records, DNSSEC      |
-| **📋 Includes**         | 12    | Include configurations          |
+| **📋 Includes**         | 10    | Include configurations          |
 | **🔗 Edge Hostnames**   | 10    | Hostname management             |
-| **📊 Reporting**        | 10    | Analytics and metrics           |
+| **📊 Reporting**        | 9     | Analytics and metrics           |
 | **🔐 Certificates**     | 8     | SSL/TLS lifecycle management    |
 | **⚡ Fast Purge**       | 8     | Cache invalidation              |
 | **🔧 Workflow**         | 7     | Orchestration and automation    |
@@ -388,6 +407,7 @@ graph LR
 ## 🐳 Docker & Deployment
 
 ### Quick Start
+
 ```bash
 # Standard I/O for Claude Desktop (default)
 docker run -it --env-file .env ghcr.io/acedergren/alecs-mcp-server-akamai:latest
@@ -397,6 +417,7 @@ docker run -it -p 8080:8080 -e MCP_TRANSPORT=streamable-http --env-file .env ghc
 ```
 
 ### Transport Options
+
 ```bash
 # Available transports
 MCP_TRANSPORT=stdio           # Default - Claude Desktop, Cursor, CLI tools
@@ -412,6 +433,7 @@ CORS_ENABLED=true            # Enable CORS for browser clients
 ```
 
 ### Available Docker Images
+
 ```bash
 docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:latest    # Full server
 docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:modular   # Microservices

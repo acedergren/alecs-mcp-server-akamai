@@ -13,12 +13,11 @@ This guide will help you get ALECS up and running in minutes.
 ### 1. Install ALECS
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/alecs-mcp-server-akamai.git
-cd alecs-mcp-server-akamai
+# Install globally via npm
+npm install -g alecs-mcp-server-akamai
 
-# Run the installer
-./install.sh
+# Or use one-click installers from the main README
+# For Cursor: https://github.com/acedergren/alecs-mcp-server-akamai#one-click-installation
 ```
 
 ### 2. Configure Akamai Credentials
@@ -51,17 +50,15 @@ client_token = acme-client-token
 account_switch_key = ACME_ACCOUNT_KEY
 ```
 
-### 3. Choose Your Setup
+### 3. Choose Your Integration
 
-The installer will ask how you want to run ALECS:
+ALECS works with multiple AI tools and environments:
 
-```
-How would you like to run ALECS?
-1) Direct Node.js (recommended for development)
-2) Docker (recommended for production)
-3) PM2 (for background service)
-4) Claude Desktop integration
-```
+- **Claude Desktop**: Use one-click installer or manual config
+- **Cursor IDE**: Use deep link button for instant setup  
+- **VS Code**: Install MCP extension + ALECS server
+- **Docker**: For production deployments
+- **Command Line**: Direct Node.js execution
 
 ## Integration Options
 
