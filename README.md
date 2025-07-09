@@ -445,14 +445,18 @@ docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:http      # Streamable HT
 
 <div align="center">
 
-| 📖 Guide                                                | 📝 Description              |
-| ------------------------------------------------------- | --------------------------- |
-| **[API Reference](./docs/api/README.md)**               | Complete tool documentation |
-| **[Getting Started](./docs/getting-started/README.md)** | Setup tutorials             |
-| **[Transport Guide](./docs/TRANSPORT_GUIDE.md)**        | Network transports & CDN    |
-| **[Architecture](./docs/architecture/README.md)**       | System design               |
-| **[Tool Creation](./docs/TOOL_CREATION_GUIDE.md)**      | Build custom tools          |
-| **[Troubleshooting](./docs/troubleshooting/README.md)** | Common issues               |
+| 📖 Guide                                                     | 📝 Description                         |
+| ------------------------------------------------------------ | -------------------------------------- |
+| **[Developer Documentation](./docs/README.md)**              | Complete developer guide               |
+| **[Developer Onboarding](./docs/DEVELOPER_ONBOARDING.md)**  | New team member onboarding             |
+| **[API Reference](./docs/API_REFERENCE.md)**                | All 156 tools documented               |
+| **[Getting Started](./docs/getting-started/README.md)**      | Setup tutorials                        |
+| **[Architecture Deep Dive](./docs/ARCHITECTURE_DEEP_DIVE.md)**| Technical system design                |
+| **[Development Guide](./docs/DEVELOPMENT_GUIDE.md)**         | Coding standards & patterns            |
+| **[Testing Strategy](./docs/TESTING_STRATEGY.md)**           | Comprehensive testing approach         |
+| **[Deployment Guide](./docs/DEPLOYMENT_GUIDE.md)**           | Production deployment                  |
+| **[Operations Runbook](./docs/OPERATIONS_RUNBOOK.md)**       | Production operations & troubleshooting|
+| **[Tool Creation](./docs/TOOL_CREATION_GUIDE.md)**           | Build custom tools                     |
 
 </div>
 
