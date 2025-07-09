@@ -47,6 +47,9 @@ import { OrchestrationTools } from './orchestration';
 // AppSec Tools
 import { appSecTools } from './appsec';
 
+// Edge Hostname Tools
+import { edgeHostnameTools } from './edge-hostnames';
+
 /**
  * Tool definition interface with strong typing
  */
@@ -108,8 +111,11 @@ export function getAllToolDefinitions(): ToolDefinition[] {
   // AppSec Tools (34 tools - fully migrated)
   allTools.push(...convertToolsToDefinitions(appSecTools));
 
+  // Edge Hostname Tools (7 tools - newly added)
+  allTools.push(...convertToolsToDefinitions(edgeHostnameTools));
+
   // MIGRATION COMPLETE - All tools now use snake_case naming
-  // Total tools: 98 (after removing duplicates)
+  // Total tools: 116 (after adding edge hostnames)
 
   return allTools;
 }
