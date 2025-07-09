@@ -2752,140 +2752,6 @@ export class ConsolidatedPropertyTools extends BaseTool {
    */
 
   /**
-   * Rollback property to a previous version
-   * RESTORED FROM: property-manager-tools.ts
-   */
-  async rollbackPropertyVersion(args: {
-    propertyId: string;
-    targetVersion: number;
-    notes?: string;
-    customer?: string;
-  }): Promise<MCPToolResponse> {
-    const params = z.object({
-      propertyId: PropertyIdSchema,
-      targetVersion: z.number().int().positive().describe('Version to rollback to'),
-      notes: z.string().optional().describe('Notes for the rollback'),
-      customer: z.string().optional()
-    }).parse(args);
-
-    return this.withProgress(
-      `Rolling back property ${params.propertyId} to version ${params.targetVersion}`,
-      async (progress: ProgressToken) => {
-        return this.executeStandardOperation(
-          'rollback-property-version',
-          params,
-          async (client) => {
-            progress.update(10, 'Getting property details...');
-            
-            // Get property details
-            const propResponse = await this.makeTypedRequest(
-              client,
-              {
-                path: `/papi/v1/properties/${params.propertyId}`,
-                method: 'GET',
-                schema: z.object({
-                  properties: z.object({
-                    items: z.array(z.object({
-                      propertyId: z.string(),
-                      propertyName: z.string(),
-                      contractId: z.string(),
-                      groupId: z.string(),
-                      latestVersion: z.number()
-                    }))
-                  })
-                })
-              }
-            );
-
-            const property = propResponse.properties.items[0];
-            if (!property) {
-              throw new Error(`Property ${params.propertyId} not found`);
-            }
-
-            progress.update(30, 'Getting target version rules...');
-
-            // Get rules from target version
-            const rulesResponse = await this.makeTypedRequest(
-              client,
-              {
-                path: `/papi/v1/properties/${params.propertyId}/versions/${params.targetVersion}/rules`,
-                method: 'GET',
-                schema: z.object({
-                  rules: z.any(),
-                  ruleFormat: z.string()
-                }),
-                queryParams: {
-                  contractId: property.contractId,
-                  groupId: property.groupId
-                }
-              }
-            );
-
-            progress.update(50, 'Creating new version from target...');
-
-            // Create new version
-            const versionResponse = await this.makeTypedRequest(
-              client,
-              {
-                path: `/papi/v1/properties/${params.propertyId}/versions`,
-                method: 'POST',
-                schema: z.object({
-                  versionLink: z.string()
-                }),
-                body: {
-                  createFromVersion: params.targetVersion
-                },
-                queryParams: {
-                  contractId: property.contractId,
-                  groupId: property.groupId
-                }
-              }
-            );
-
-            const newVersion = parseInt(versionResponse.versionLink.split('/').pop() || '0');
-
-            progress.update(70, 'Applying rollback notes...');
-
-            // Update version notes
-            if (params.notes) {
-              await this.makeTypedRequest(
-                client,
-                {
-                  path: `/papi/v1/properties/${params.propertyId}/versions/${newVersion}`,
-                  method: 'PATCH',
-                  schema: z.object({ versionLink: z.string() }),
-                  body: {
-                    note: `Rollback to v${params.targetVersion}: ${params.notes}`
-                  },
-                  queryParams: {
-                    contractId: property.contractId,
-                    groupId: property.groupId
-                  }
-                }
-              );
-            }
-
-            progress.update(90, 'Rollback complete!');
-
-            return {
-              propertyId: params.propertyId,
-              rolledBackFrom: property.latestVersion,
-              rolledBackTo: params.targetVersion,
-              newVersion: newVersion,
-              message: `✅ Successfully rolled back property ${params.propertyId} from v${property.latestVersion} to v${params.targetVersion} (new version: ${newVersion})`
-            };
-          },
-          {
-            customer: params.customer,
-            format: 'text',
-            successMessage: (result) => result.message
-          }
-        );
-      }
-    );
-  }
-
-  /**
    * Compare two properties configuration
    */
   async compareProperties(args: {
@@ -3218,12 +3084,13 @@ export class ConsolidatedPropertyTools extends BaseTool {
         return this.executeStandardOperation(
           'batch-version-operations',
           params,
-          async (client) => {
+          async (_client) => {
             const results = [];
             const totalOperations = params.operations.length;
 
             for (let i = 0; i < params.operations.length; i++) {
               const operation = params.operations[i];
+              if (!operation) continue;
               const progressPercent = Math.floor((i / totalOperations) * 90);
               progress.update(progressPercent, `Processing ${operation.action} for ${operation.propertyId}...`);
 
@@ -3554,6 +3421,7 @@ export class ConsolidatedPropertyTools extends BaseTool {
 
             for (let i = 0; i < params.properties.length; i++) {
               const prop = params.properties[i];
+              if (!prop) continue;
               const progressPercent = Math.floor((i / totalProperties) * 90);
               progress.update(progressPercent, `Activating ${prop.propertyId} to ${prop.network}...`);
 
@@ -3642,6 +3510,7 @@ export class ConsolidatedPropertyTools extends BaseTool {
 
             for (let i = 0; i < params.sourceProperties.length; i++) {
               const source = params.sourceProperties[i];
+              if (!source) continue;
               const progressPercent = Math.floor((i / totalProperties) * 90);
               progress.update(progressPercent, `Cloning ${source.propertyId} as ${source.newName}...`);
 
@@ -3726,25 +3595,39 @@ export class ConsolidatedPropertyTools extends BaseTool {
 
             for (let i = 0; i < params.operations.length; i++) {
               const operation = params.operations[i];
+              if (!operation) continue;
               const progressPercent = Math.floor((i / totalOperations) * 90);
               progress.update(progressPercent, `${operation.action === 'add' ? 'Adding' : 'Removing'} hostnames for ${operation.propertyId}...`);
 
               try {
-                let result;
-                if (operation.action === 'add') {
-                  result = await this.addPropertyVersionHostnames({
-                    propertyId: operation.propertyId,
-                    version: operation.version,
-                    hostnames: operation.hostnames,
-                    customer: params.customer
-                  });
-                } else {
-                  result = await this.removePropertyVersionHostnames({
-                    propertyId: operation.propertyId,
-                    version: operation.version,
-                    hostnames: operation.hostnames,
-                    customer: params.customer
-                  });
+                // Process all hostnames for this operation
+                const hostnameResults = [];
+                for (const hostname of operation.hostnames) {
+                  try {
+                    if (operation.action === 'add') {
+                      await this.addPropertyHostname({
+                        propertyId: operation.propertyId,
+                        version: operation.version,
+                        hostname: hostname,
+                        customer: params.customer
+                      });
+                      hostnameResults.push({ hostname, status: 'added' });
+                    } else {
+                      await this.removePropertyHostname({
+                        propertyId: operation.propertyId,
+                        version: operation.version,
+                        hostname: hostname,
+                        customer: params.customer
+                      });
+                      hostnameResults.push({ hostname, status: 'removed' });
+                    }
+                  } catch (error) {
+                    hostnameResults.push({ 
+                      hostname, 
+                      status: 'failed', 
+                      error: error instanceof Error ? error.message : 'Unknown error' 
+                    });
+                  }
                 }
 
                 results.push({
@@ -3753,7 +3636,8 @@ export class ConsolidatedPropertyTools extends BaseTool {
                   action: operation.action,
                   hostnames: operation.hostnames,
                   status: 'success',
-                  message: (result as any).message
+                  hostnameResults: hostnameResults,
+                  message: `Processed ${hostnameResults.filter(r => r.status !== 'failed').length}/${operation.hostnames.length} hostnames`
                 });
               } catch (error) {
                 results.push({
@@ -3821,6 +3705,7 @@ export class ConsolidatedPropertyTools extends BaseTool {
 
             for (let i = 0; i < params.updates.length; i++) {
               const update = params.updates[i];
+              if (!update) continue;
               const progressPercent = Math.floor((i / totalUpdates) * 90);
               progress.update(progressPercent, `Updating rules for ${update.propertyId} v${update.version}...`);
 
