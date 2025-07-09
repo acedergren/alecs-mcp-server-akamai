@@ -3515,6 +3515,391 @@ export class ConsolidatedPropertyTools extends BaseTool {
       }
     );
   }
+
+  /**
+   * Bulk activate multiple properties
+   */
+  async bulkActivateProperties(args: {
+    properties: Array<{
+      propertyId: string;
+      version: number;
+      network: 'STAGING' | 'PRODUCTION';
+    }>;
+    notes?: string;
+    notifyEmails?: string[];
+    acknowledgeWarnings?: boolean;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      properties: z.array(z.object({
+        propertyId: PropertyIdSchema,
+        version: z.number().int().positive(),
+        network: z.enum(['STAGING', 'PRODUCTION'])
+      })),
+      notes: z.string().optional(),
+      notifyEmails: z.array(z.string().email()).optional(),
+      acknowledgeWarnings: z.boolean().optional().default(false),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.withProgress(
+      `Activating ${params.properties.length} properties`,
+      async (progress: ProgressToken) => {
+        return this.executeStandardOperation(
+          'bulk-activate-properties',
+          params,
+          async (_client) => {
+            const results = [];
+            const totalProperties = params.properties.length;
+
+            for (let i = 0; i < params.properties.length; i++) {
+              const prop = params.properties[i];
+              const progressPercent = Math.floor((i / totalProperties) * 90);
+              progress.update(progressPercent, `Activating ${prop.propertyId} to ${prop.network}...`);
+
+              try {
+                const activateResult = await this.activateProperty({
+                  propertyId: prop.propertyId,
+                  version: prop.version,
+                  network: prop.network,
+                  notes: params.notes || `Bulk activation to ${prop.network}`,
+                  notifyEmails: params.notifyEmails,
+                  acknowledgeWarnings: params.acknowledgeWarnings,
+                  customer: params.customer
+                });
+
+                results.push({
+                  propertyId: prop.propertyId,
+                  version: prop.version,
+                  network: prop.network,
+                  status: 'submitted',
+                  activationId: (activateResult as any).activationId
+                });
+              } catch (error) {
+                results.push({
+                  propertyId: prop.propertyId,
+                  version: prop.version,
+                  network: prop.network,
+                  status: 'failed',
+                  error: error instanceof Error ? error.message : 'Unknown error'
+                });
+              }
+            }
+
+            progress.update(100, 'Bulk activation complete!');
+
+            const summary = {
+              total: results.length,
+              submitted: results.filter(r => r.status === 'submitted').length,
+              failed: results.filter(r => r.status === 'failed').length
+            };
+
+            return {
+              operations: results,
+              summary,
+              message: `✅ Submitted ${summary.submitted}/${summary.total} activations`
+            };
+          },
+          {
+            customer: params.customer
+          }
+        );
+      }
+    );
+  }
+
+  /**
+   * Bulk clone multiple properties
+   */
+  async bulkCloneProperties(args: {
+    sourceProperties: Array<{
+      propertyId: string;
+      newName: string;
+      contractId?: string;
+      groupId?: string;
+    }>;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      sourceProperties: z.array(z.object({
+        propertyId: PropertyIdSchema,
+        newName: z.string().min(1),
+        contractId: z.string().optional(),
+        groupId: z.string().optional()
+      })),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.withProgress(
+      `Cloning ${params.sourceProperties.length} properties`,
+      async (progress: ProgressToken) => {
+        return this.executeStandardOperation(
+          'bulk-clone-properties',
+          params,
+          async (_client) => {
+            const results = [];
+            const totalProperties = params.sourceProperties.length;
+
+            for (let i = 0; i < params.sourceProperties.length; i++) {
+              const source = params.sourceProperties[i];
+              const progressPercent = Math.floor((i / totalProperties) * 90);
+              progress.update(progressPercent, `Cloning ${source.propertyId} as ${source.newName}...`);
+
+              try {
+                const cloneResult = await this.cloneProperty({
+                  sourcePropertyId: source.propertyId,
+                  propertyName: source.newName,
+                  contractId: source.contractId,
+                  groupId: source.groupId,
+                  customer: params.customer
+                });
+
+                results.push({
+                  sourcePropertyId: source.propertyId,
+                  newName: source.newName,
+                  status: 'success',
+                  newPropertyId: (cloneResult as any).propertyId
+                });
+              } catch (error) {
+                results.push({
+                  sourcePropertyId: source.propertyId,
+                  newName: source.newName,
+                  status: 'failed',
+                  error: error instanceof Error ? error.message : 'Unknown error'
+                });
+              }
+            }
+
+            progress.update(100, 'Bulk cloning complete!');
+
+            const summary = {
+              total: results.length,
+              successful: results.filter(r => r.status === 'success').length,
+              failed: results.filter(r => r.status === 'failed').length
+            };
+
+            return {
+              operations: results,
+              summary,
+              message: `✅ Cloned ${summary.successful}/${summary.total} properties successfully`
+            };
+          },
+          {
+            customer: params.customer
+          }
+        );
+      }
+    );
+  }
+
+  /**
+   * Bulk manage hostnames across properties
+   */
+  async bulkManageHostnames(args: {
+    operations: Array<{
+      propertyId: string;
+      version: number;
+      action: 'add' | 'remove';
+      hostnames: string[];
+    }>;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      operations: z.array(z.object({
+        propertyId: PropertyIdSchema,
+        version: z.number().int().positive(),
+        action: z.enum(['add', 'remove']),
+        hostnames: z.array(z.string())
+      })),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.withProgress(
+      `Processing ${params.operations.length} hostname operations`,
+      async (progress: ProgressToken) => {
+        return this.executeStandardOperation(
+          'bulk-manage-hostnames',
+          params,
+          async (_client) => {
+            const results = [];
+            const totalOperations = params.operations.length;
+
+            for (let i = 0; i < params.operations.length; i++) {
+              const operation = params.operations[i];
+              const progressPercent = Math.floor((i / totalOperations) * 90);
+              progress.update(progressPercent, `${operation.action === 'add' ? 'Adding' : 'Removing'} hostnames for ${operation.propertyId}...`);
+
+              try {
+                let result;
+                if (operation.action === 'add') {
+                  result = await this.addPropertyVersionHostnames({
+                    propertyId: operation.propertyId,
+                    version: operation.version,
+                    hostnames: operation.hostnames,
+                    customer: params.customer
+                  });
+                } else {
+                  result = await this.removePropertyVersionHostnames({
+                    propertyId: operation.propertyId,
+                    version: operation.version,
+                    hostnames: operation.hostnames,
+                    customer: params.customer
+                  });
+                }
+
+                results.push({
+                  propertyId: operation.propertyId,
+                  version: operation.version,
+                  action: operation.action,
+                  hostnames: operation.hostnames,
+                  status: 'success',
+                  message: (result as any).message
+                });
+              } catch (error) {
+                results.push({
+                  propertyId: operation.propertyId,
+                  version: operation.version,
+                  action: operation.action,
+                  hostnames: operation.hostnames,
+                  status: 'failed',
+                  error: error instanceof Error ? error.message : 'Unknown error'
+                });
+              }
+            }
+
+            progress.update(100, 'Bulk hostname operations complete!');
+
+            const summary = {
+              total: results.length,
+              successful: results.filter(r => r.status === 'success').length,
+              failed: results.filter(r => r.status === 'failed').length
+            };
+
+            return {
+              operations: results,
+              summary,
+              message: `✅ Completed ${summary.successful}/${summary.total} hostname operations`
+            };
+          },
+          {
+            customer: params.customer
+          }
+        );
+      }
+    );
+  }
+
+  /**
+   * Bulk update property rules
+   */
+  async bulkUpdatePropertyRules(args: {
+    updates: Array<{
+      propertyId: string;
+      version: number;
+      rules: any; // Will be validated as RuleTreeSchema
+    }>;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      updates: z.array(z.object({
+        propertyId: PropertyIdSchema,
+        version: z.number().int().positive(),
+        rules: RuleTreeSchema
+      })),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.withProgress(
+      `Updating rules for ${params.updates.length} properties`,
+      async (progress: ProgressToken) => {
+        return this.executeStandardOperation(
+          'bulk-update-property-rules',
+          params,
+          async (_client) => {
+            const results = [];
+            const totalUpdates = params.updates.length;
+
+            for (let i = 0; i < params.updates.length; i++) {
+              const update = params.updates[i];
+              const progressPercent = Math.floor((i / totalUpdates) * 90);
+              progress.update(progressPercent, `Updating rules for ${update.propertyId} v${update.version}...`);
+
+              try {
+                await this.updatePropertyRules({
+                  propertyId: update.propertyId,
+                  version: update.version,
+                  rules: update.rules,
+                  validateRules: true,
+                  customer: params.customer
+                });
+
+                results.push({
+                  propertyId: update.propertyId,
+                  version: update.version,
+                  status: 'success',
+                  message: 'Rules updated successfully'
+                });
+              } catch (error) {
+                results.push({
+                  propertyId: update.propertyId,
+                  version: update.version,
+                  status: 'failed',
+                  error: error instanceof Error ? error.message : 'Unknown error'
+                });
+              }
+            }
+
+            progress.update(100, 'Bulk rule updates complete!');
+
+            const summary = {
+              total: results.length,
+              successful: results.filter(r => r.status === 'success').length,
+              failed: results.filter(r => r.status === 'failed').length
+            };
+
+            return {
+              operations: results,
+              summary,
+              message: `✅ Updated ${summary.successful}/${summary.total} property rules`
+            };
+          },
+          {
+            customer: params.customer
+          }
+        );
+      }
+    );
+  }
+
+  /**
+   * Get bulk operation status (placeholder for future implementation)
+   */
+  async getBulkOperationStatus(args: {
+    operationId: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      operationId: z.string(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'get-bulk-operation-status',
+      params,
+      async () => {
+        // This would typically track async bulk operations
+        // For now, return a placeholder response
+        return {
+          operationId: params.operationId,
+          status: 'completed',
+          message: 'Bulk operation tracking not yet implemented'
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
 }
 
 // Export singleton instance
