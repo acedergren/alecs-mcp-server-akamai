@@ -1192,6 +1192,195 @@ export class ConsolidatedPropertyTools extends BaseTool {
   }
 
   /**
+   * Get differences between two property versions
+   */
+  async getVersionDiff(args: {
+    propertyId: string;
+    fromVersion: number;
+    toVersion: number;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      propertyId: PropertyIdSchema,
+      fromVersion: z.number().int().positive(),
+      toVersion: z.number().int().positive(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'get-version-diff',
+      params,
+      async (client) => {
+        // Get property details for context
+        const propResponse = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}`,
+            method: 'GET',
+            schema: z.object({
+              properties: z.object({
+                items: z.array(PropertySchema)
+              })
+            })
+          }
+        );
+
+        const property = propResponse.properties.items[0];
+        if (!property) {
+          throw new Error(`Property ${params.propertyId} not found`);
+        }
+
+        // Get rules for both versions
+        const [fromRules, toRules] = await Promise.all([
+          this.makeTypedRequest(
+            client,
+            {
+              path: `/papi/v1/properties/${params.propertyId}/versions/${params.fromVersion}/rules`,
+              method: 'GET',
+              schema: PropertyRulesResponseSchema,
+              queryParams: {
+                contractId: property.contractId,
+                groupId: property.groupId
+              }
+            }
+          ),
+          this.makeTypedRequest(
+            client,
+            {
+              path: `/papi/v1/properties/${params.propertyId}/versions/${params.toVersion}/rules`,
+              method: 'GET',
+              schema: PropertyRulesResponseSchema,
+              queryParams: {
+                contractId: property.contractId,
+                groupId: property.groupId
+              }
+            }
+          )
+        ]);
+
+        // Get version details
+        const [fromVersionDetails, toVersionDetails] = await Promise.all([
+          this.getPropertyVersion({
+            propertyId: params.propertyId,
+            version: params.fromVersion,
+            customer: params.customer
+          }),
+          this.getPropertyVersion({
+            propertyId: params.propertyId,
+            version: params.toVersion,
+            customer: params.customer
+          })
+        ]);
+
+        // Calculate differences
+        const differences = this.calculateRuleDifferences(fromRules.rules, toRules.rules);
+
+        return {
+          propertyId: params.propertyId,
+          propertyName: property.propertyName,
+          fromVersion: {
+            version: params.fromVersion,
+            details: fromVersionDetails
+          },
+          toVersion: {
+            version: params.toVersion,
+            details: toVersionDetails
+          },
+          differences: differences,
+          summary: {
+            totalChanges: differences.length,
+            addedBehaviors: differences.filter(d => d.type === 'added').length,
+            modifiedBehaviors: differences.filter(d => d.type === 'modified').length,
+            deletedBehaviors: differences.filter(d => d.type === 'deleted').length
+          }
+        };
+      },
+      {
+        customer: params.customer,
+        cacheKey: (p) => `property:${p.propertyId}:diff:v${p.fromVersion}-v${p.toVersion}`,
+        cacheTtl: 600 // 10 minutes
+      }
+    );
+  }
+
+  /**
+   * Calculate differences between two rule trees
+   * @private
+   */
+  private calculateRuleDifferences(fromRules: any, toRules: any): Array<{
+    type: 'added' | 'modified' | 'deleted';
+    path: string;
+    behaviorName?: string;
+    fromValue?: any;
+    toValue?: any;
+  }> {
+    const differences: Array<{
+      type: 'added' | 'modified' | 'deleted';
+      path: string;
+      behaviorName?: string;
+      fromValue?: any;
+      toValue?: any;
+    }> = [];
+
+    // Helper function to traverse rule tree
+    const traverseRules = (node: any, path: string, ruleMap: Map<string, any>) => {
+      if (node.behaviors) {
+        node.behaviors.forEach((behavior: any, index: number) => {
+          const behaviorPath = `${path}/behaviors[${index}]/${behavior.name}`;
+          ruleMap.set(behaviorPath, behavior);
+        });
+      }
+      if (node.children) {
+        node.children.forEach((child: any, index: number) => {
+          traverseRules(child, `${path}/children[${index}]`, ruleMap);
+        });
+      }
+    };
+
+    // Build maps of all behaviors in each version
+    const fromMap = new Map<string, any>();
+    const toMap = new Map<string, any>();
+    
+    traverseRules(fromRules, 'rules', fromMap);
+    traverseRules(toRules, 'rules', toMap);
+
+    // Find added and modified behaviors
+    toMap.forEach((toBehavior, path) => {
+      const fromBehavior = fromMap.get(path);
+      if (!fromBehavior) {
+        differences.push({
+          type: 'added',
+          path,
+          behaviorName: toBehavior.name,
+          toValue: toBehavior.options
+        });
+      } else if (JSON.stringify(fromBehavior.options) !== JSON.stringify(toBehavior.options)) {
+        differences.push({
+          type: 'modified',
+          path,
+          behaviorName: toBehavior.name,
+          fromValue: fromBehavior.options,
+          toValue: toBehavior.options
+        });
+      }
+    });
+
+    // Find deleted behaviors
+    fromMap.forEach((fromBehavior, path) => {
+      if (!toMap.has(path)) {
+        differences.push({
+          type: 'deleted',
+          path,
+          behaviorName: fromBehavior.name,
+          fromValue: fromBehavior.options
+        });
+      }
+    });
+
+    return differences;
+  }
+
+  /**
    * Cancel property activation
    */
   async cancelPropertyActivation(args: {
@@ -2561,7 +2750,140 @@ export class ConsolidatedPropertyTools extends BaseTool {
    * The missing tools have been restored through the existing comprehensive
    * property management implementation.
    */
-}
+
+  /**
+   * Rollback property to a previous version
+   * RESTORED FROM: property-manager-tools.ts
+   */
+  async rollbackPropertyVersion(args: {
+    propertyId: string;
+    targetVersion: number;
+    notes?: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      propertyId: PropertyIdSchema,
+      targetVersion: z.number().int().positive().describe('Version to rollback to'),
+      notes: z.string().optional().describe('Notes for the rollback'),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.withProgress(
+      `Rolling back property ${params.propertyId} to version ${params.targetVersion}`,
+      async (progress: ProgressToken) => {
+        return this.executeStandardOperation(
+          'rollback-property-version',
+          params,
+          async (client) => {
+            progress.update(10, 'Getting property details...');
+            
+            // Get property details
+            const propResponse = await this.makeTypedRequest(
+              client,
+              {
+                path: `/papi/v1/properties/${params.propertyId}`,
+                method: 'GET',
+                schema: z.object({
+                  properties: z.object({
+                    items: z.array(z.object({
+                      propertyId: z.string(),
+                      propertyName: z.string(),
+                      contractId: z.string(),
+                      groupId: z.string(),
+                      latestVersion: z.number()
+                    }))
+                  })
+                })
+              }
+            );
+
+            const property = propResponse.properties.items[0];
+            if (!property) {
+              throw new Error(`Property ${params.propertyId} not found`);
+            }
+
+            progress.update(30, 'Getting target version rules...');
+
+            // Get rules from target version
+            const rulesResponse = await this.makeTypedRequest(
+              client,
+              {
+                path: `/papi/v1/properties/${params.propertyId}/versions/${params.targetVersion}/rules`,
+                method: 'GET',
+                schema: z.object({
+                  rules: z.any(),
+                  ruleFormat: z.string()
+                }),
+                queryParams: {
+                  contractId: property.contractId,
+                  groupId: property.groupId
+                }
+              }
+            );
+
+            progress.update(50, 'Creating new version from target...');
+
+            // Create new version
+            const versionResponse = await this.makeTypedRequest(
+              client,
+              {
+                path: `/papi/v1/properties/${params.propertyId}/versions`,
+                method: 'POST',
+                schema: z.object({
+                  versionLink: z.string()
+                }),
+                body: {
+                  createFromVersion: params.targetVersion
+                },
+                queryParams: {
+                  contractId: property.contractId,
+                  groupId: property.groupId
+                }
+              }
+            );
+
+            const newVersion = parseInt(versionResponse.versionLink.split('/').pop() || '0');
+
+            progress.update(70, 'Applying rollback notes...');
+
+            // Update version notes
+            if (params.notes) {
+              await this.makeTypedRequest(
+                client,
+                {
+                  path: `/papi/v1/properties/${params.propertyId}/versions/${newVersion}`,
+                  method: 'PATCH',
+                  schema: z.object({ versionLink: z.string() }),
+                  body: {
+                    note: `Rollback to v${params.targetVersion}: ${params.notes}`
+                  },
+                  queryParams: {
+                    contractId: property.contractId,
+                    groupId: property.groupId
+                  }
+                }
+              );
+            }
+
+            progress.update(90, 'Rollback complete!');
+
+            return {
+              propertyId: params.propertyId,
+              rolledBackFrom: property.latestVersion,
+              rolledBackTo: params.targetVersion,
+              newVersion: newVersion,
+              message: `✅ Successfully rolled back property ${params.propertyId} from v${property.latestVersion} to v${params.targetVersion} (new version: ${newVersion})`
+            };
+          },
+          {
+            customer: params.customer,
+            format: 'text',
+            successMessage: (result) => result.message
+          }
+        );
+      }
+    );
+  }
 
 // Export singleton instance
 export const consolidatedPropertyTools = new ConsolidatedPropertyTools();

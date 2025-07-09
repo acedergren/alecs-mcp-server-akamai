@@ -72,8 +72,8 @@
     - **Impact**: HIGH - Real-time data streaming
     - **Tools Needed**: ~15 tools (stream config, connectors)
 
-17. **Imaging** - `imaging/`
-    - **Impact**: HIGH - Image optimization
+17. **Image Manager** - `imaging/`
+    - **Impact**: HIGH - Image optimization and transformation
     - **Tools Needed**: ~10 tools (policies, transformations)
 
 18. **Site Shield** - `siteshield/`
