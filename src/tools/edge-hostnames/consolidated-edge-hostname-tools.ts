@@ -37,6 +37,8 @@ const ListEdgeHostnamesSchema = CustomerSchema.extend({
 
 const GetEdgeHostnameSchema = CustomerSchema.extend({
   edgeHostnameId: EdgeHostnameIdSchema,
+  contractId: z.string().optional(),
+  groupId: z.string().optional(),
   options: z.array(z.string()).optional()
 });
 
@@ -153,8 +155,8 @@ export class ConsolidatedEdgeHostnameTools extends BaseTool {
               }))
             }),
             queryParams: {
-              contractId: params.contractId || customerConfig.contractId,
-              groupId: params.groupId || customerConfig.groupId,
+              contractId: contractId,
+              groupId: groupId,
               options: params.options?.[0] || 'mapDetails'
             }
           }
@@ -318,11 +320,15 @@ export class ConsolidatedEdgeHostnameTools extends BaseTool {
   async associateCertificateWithEdgeHostname(args: {
     edgeHostnameId: number;
     certificateEnrollmentId: number;
+    contractId?: string;
+    groupId?: string;
     customer?: string;
   }): Promise<MCPToolResponse> {
     const params = z.object({
       edgeHostnameId: EdgeHostnameIdSchema,
       certificateEnrollmentId: z.number().int().positive(),
+      contractId: z.string().optional(),
+      groupId: z.string().optional(),
       customer: z.string().optional()
     }).parse(args);
 
@@ -330,10 +336,6 @@ export class ConsolidatedEdgeHostnameTools extends BaseTool {
       'associate-certificate-with-edge-hostname',
       params,
       async (client) => {
-        // Get contract and group - would normally come from property or customer config
-        const contractId = params.contractId || 'ctr_DEFAULT';
-        const groupId = params.groupId || 'grp_DEFAULT';
-        
         // Update edge hostname with certificate
         await this.makeTypedRequest(
           client,
@@ -345,8 +347,8 @@ export class ConsolidatedEdgeHostnameTools extends BaseTool {
               certEnrollmentId: params.certificateEnrollmentId
             },
             queryParams: {
-              contractId: contractId,
-              groupId: groupId
+              contractId: params.contractId || 'ctr_DEFAULT',
+              groupId: params.groupId || 'grp_DEFAULT'
             }
           }
         );
