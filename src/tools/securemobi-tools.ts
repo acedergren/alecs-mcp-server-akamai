@@ -494,13 +494,14 @@ export async function deleteTenantConfiguration(_akamaiClient: AkamaiClient, par
     const client = new SecuremobiClient(clientId, clientSecret);
     await client.deleteTenantConfiguration(params.tenantId, params.configType, params.scopeTenantId);
     
+    const typeInfo = params.configType ? ` (${params.configType} type)` : '';
     return {
       content: [
         {
           type: 'text' as const,
           text: JSON.stringify({ 
             success: true,
-            message: `Tenant configuration deleted successfully for ${params.tenantId || 'current tenant'}${params.configType ? ` (${params.configType} type)` : ''}`
+            message: `Tenant configuration deleted successfully for ${params.tenantId || 'current tenant'}${typeInfo}`
           }, null, 2)
         }
       ],

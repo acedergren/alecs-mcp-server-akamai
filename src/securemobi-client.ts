@@ -148,9 +148,10 @@ export class SecuremobiClient {
    * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
    */
   async getTenantConfiguration(tenantId?: string, configType?: 'system' | 'custom', scopeTenantId?: string): Promise<TenantConfiguration> {
+    const configTypePath = configType ? `/${configType}` : '';
     const endpoint = tenantId 
-      ? `/management/tenants/${tenantId}/configuration${configType ? `/${configType}` : ''}`
-      : `/management/tenants/configuration${configType ? `/${configType}` : ''}`;
+      ? `/management/tenants/${tenantId}/configuration${configTypePath}`
+      : `/management/tenants/configuration${configTypePath}`;
     
     return this.makeRequest<TenantConfiguration>(endpoint, {}, scopeTenantId);
   }
@@ -196,9 +197,10 @@ export class SecuremobiClient {
    * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
    */
   async deleteTenantConfiguration(tenantId?: string, configType?: 'system' | 'custom', scopeTenantId?: string): Promise<{ success: boolean }> {
+    const configTypePath = configType ? `/${configType}` : '';
     const endpoint = tenantId 
-      ? `/management/tenants/${tenantId}/configuration${configType ? `/${configType}` : ''}`
-      : `/management/tenants/configuration${configType ? `/${configType}` : ''}`;
+      ? `/management/tenants/${tenantId}/configuration${configTypePath}`
+      : `/management/tenants/configuration${configTypePath}`;
 
     await this.makeRequest(endpoint, { method: 'DELETE' }, scopeTenantId);
     return { success: true };
