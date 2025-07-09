@@ -53,6 +53,9 @@ import { edgeHostnameTools } from './edge-hostnames';
 // Include Tools
 import { includeTools } from './includes';
 
+// Rule Tree Tools
+import { ruleTreeTools } from './rule-tree';
+
 /**
  * Tool definition interface with strong typing
  */
@@ -120,8 +123,11 @@ export function getAllToolDefinitions(): ToolDefinition[] {
   // Include Tools (8 tools - newly added)
   allTools.push(...convertToolsToDefinitions(includeTools));
 
+  // Rule Tree Tools (5 tools - newly added)
+  allTools.push(...convertToolsToDefinitions(ruleTreeTools));
+
   // MIGRATION COMPLETE - All tools now use snake_case naming
-  // Total tools: 124 (after adding includes)
+  // Total tools: 129 (after adding rule tree tools)
 
   return allTools;
 }
