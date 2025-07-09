@@ -1782,6 +1782,197 @@ SUMMARY: Analyzed 150 ASNs - 12 high risk, 25 medium risk, 113 low risk`;
       }]
     };
   }
+
+  /**
+   * Delete a network list
+   */
+  async deleteNetworkList(args: {
+    networkListId: string;
+    confirm: boolean;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      networkListId: z.string(),
+      confirm: z.boolean(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    if (!params.confirm) {
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            error: 'Deletion requires confirmation',
+            message: 'Set confirm: true to delete the network list'
+          }, null, 2)
+        }]
+      };
+    }
+
+    return this.executeStandardOperation(
+      'delete-network-list',
+      params,
+      async (client) => {
+        const path = `/network-list/v2/network-lists/${params.networkListId}`;
+
+        await client.request({
+          path,
+          method: 'DELETE'
+        });
+
+        return {
+          networkListId: params.networkListId,
+          status: 'deleted',
+          message: `Network list ${params.networkListId} has been deleted`
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Update WAF policy settings
+   */
+  async updateWAFPolicy(args: {
+    configId: number;
+    version: number;
+    policyId: string;
+    policyMode?: 'ASE_AUTO' | 'ASE_MANUAL' | 'KRS';
+    paranoidLevel?: number;
+    ruleSets?: string[];
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      configId: z.number(),
+      version: z.number(),
+      policyId: z.string(),
+      policyMode: z.enum(['ASE_AUTO', 'ASE_MANUAL', 'KRS']).optional(),
+      paranoidLevel: z.number().min(0).max(10).optional(),
+      ruleSets: z.array(z.string()).optional(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'update-waf-policy',
+      params,
+      async (client) => {
+        const path = `/appsec/v1/configs/${params.configId}/versions/${params.version}/security-policies/${params.policyId}`;
+
+        // First get the current policy
+        const currentPolicy = await this.makeTypedRequest(
+          client,
+          {
+            path,
+            method: 'GET',
+            schema: z.object({
+              policyId: z.string(),
+              policyName: z.string(),
+              policyMode: z.string(),
+              paranoidLevel: z.number().optional(),
+              ruleSets: z.array(z.string()).optional()
+            })
+          }
+        );
+
+        // Merge updates with current policy
+        const updatedPolicy = {
+          ...currentPolicy,
+          ...(params.policyMode && { policyMode: params.policyMode }),
+          ...(params.paranoidLevel !== undefined && { paranoidLevel: params.paranoidLevel }),
+          ...(params.ruleSets && { ruleSets: params.ruleSets })
+        };
+
+        // Update the policy
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path,
+            method: 'PUT',
+            body: updatedPolicy,
+            schema: z.object({
+              policyId: z.string(),
+              policyName: z.string(),
+              policyMode: z.string(),
+              paranoidLevel: z.number().optional(),
+              ruleSets: z.array(z.string()).optional()
+            })
+          }
+        );
+
+        return {
+          configId: params.configId,
+          version: params.version,
+          policyId: response.policyId,
+          policyName: response.policyName,
+          policyMode: response.policyMode,
+          paranoidLevel: response.paranoidLevel,
+          ruleSets: response.ruleSets,
+          status: 'updated',
+          message: `WAF policy ${params.policyId} has been updated`
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Delete a WAF policy
+   */
+  async deleteWAFPolicy(args: {
+    configId: number;
+    version: number;
+    policyId: string;
+    confirm: boolean;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      configId: z.number(),
+      version: z.number(),
+      policyId: z.string(),
+      confirm: z.boolean(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    if (!params.confirm) {
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            error: 'Deletion requires confirmation',
+            message: 'Set confirm: true to delete the WAF policy'
+          }, null, 2)
+        }]
+      };
+    }
+
+    return this.executeStandardOperation(
+      'delete-waf-policy',
+      params,
+      async (client) => {
+        const path = `/appsec/v1/configs/${params.configId}/versions/${params.version}/security-policies/${params.policyId}`;
+
+        await client.request({
+          path,
+          method: 'DELETE'
+        });
+
+        return {
+          configId: params.configId,
+          version: params.version,
+          policyId: params.policyId,
+          status: 'deleted',
+          message: `WAF policy ${params.policyId} has been deleted from configuration ${params.configId} version ${params.version}`
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
 }
 
 // Export singleton instance

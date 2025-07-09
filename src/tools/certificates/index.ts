@@ -74,6 +74,25 @@ export const certificateTools = {
       consolidatedCertificateTools.listCertificateEnrollments(args)
   },
 
+  'certificate_search': {
+    description: 'Search certificate enrollments by domain or status',
+    inputSchema: z.object({
+      searchTerm: z.string().optional(),
+      filters: z.object({
+        domain: z.string().optional(),
+        status: z.enum(['pending', 'active', 'expired', 'cancelled']).optional(),
+        expiresWithinDays: z.number().optional(),
+        hasDeployments: z.boolean().optional(),
+        certificateType: z.enum(['DV', 'EV', 'OV']).optional()
+      }).optional(),
+      limit: z.number().optional(),
+      offset: z.number().optional(),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedCertificateTools.searchCertificates(args)
+  },
+
   // Validation operations
   'certificate_validation_get': {
     description: 'Get domain validation challenges',
@@ -132,7 +151,8 @@ export const {
   linkCertificateToProperty,
   monitorCertificateDeployment,
   getCertificateDeploymentStatus,
-  listCertificateEnrollments
+  listCertificateEnrollments,
+  searchCertificates
 } = consolidatedCertificateTools;
 
 /**

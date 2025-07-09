@@ -184,6 +184,113 @@ export class ConsolidatedEdgeHostnameTools extends BaseTool {
   }
 
   /**
+   * Search edge hostnames by domain prefix, suffix, or certificate
+   */
+  async searchEdgeHostnames(args: {
+    searchTerm?: string;
+    filters?: {
+      domainPrefix?: string;
+      domainSuffix?: string;
+      secureNetwork?: 'ENHANCED_TLS' | 'STANDARD_TLS' | 'SHARED_CERT';
+      hasCertificate?: boolean;
+      productId?: string;
+    };
+    limit?: number;
+    offset?: number;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      searchTerm: z.string().optional(),
+      filters: z.object({
+        domainPrefix: z.string().optional(),
+        domainSuffix: z.string().optional(),
+        secureNetwork: z.enum(['ENHANCED_TLS', 'STANDARD_TLS', 'SHARED_CERT']).optional(),
+        hasCertificate: z.boolean().optional(),
+        productId: z.string().optional()
+      }).optional(),
+      limit: z.number().default(100),
+      offset: z.number().default(0),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'search-edge-hostnames',
+      params,
+      async (_client) => {
+        // First get all edge hostnames
+        const allHostnames = await this.listEdgeHostnames({
+          customer: params.customer
+        });
+
+        if (!allHostnames.content?.[0]?.text) {
+          return [];
+        }
+
+        const hostnamesData = JSON.parse(allHostnames.content[0].text);
+        let filteredHostnames = hostnamesData.edgeHostnames || [];
+
+        // Apply search term
+        if (params.searchTerm) {
+          const searchLower = params.searchTerm.toLowerCase();
+          filteredHostnames = filteredHostnames.filter((eh: any) => {
+            const fullDomain = `${eh.domainPrefix}.${eh.domainSuffix}`.toLowerCase();
+            return fullDomain.includes(searchLower) ||
+                   eh.domainPrefix.toLowerCase().includes(searchLower) ||
+                   eh.domainSuffix.toLowerCase().includes(searchLower);
+          });
+        }
+
+        // Apply filters
+        if (params.filters) {
+          if (params.filters.domainPrefix) {
+            filteredHostnames = filteredHostnames.filter((eh: any) => 
+              eh.domainPrefix.toLowerCase().includes(params.filters!.domainPrefix!.toLowerCase())
+            );
+          }
+          if (params.filters.domainSuffix) {
+            filteredHostnames = filteredHostnames.filter((eh: any) => 
+              eh.domainSuffix.toLowerCase().includes(params.filters!.domainSuffix!.toLowerCase())
+            );
+          }
+          if (params.filters.secureNetwork) {
+            filteredHostnames = filteredHostnames.filter((eh: any) => 
+              eh.secureNetwork === params.filters!.secureNetwork
+            );
+          }
+          if (params.filters.hasCertificate !== undefined) {
+            filteredHostnames = filteredHostnames.filter((eh: any) => 
+              params.filters!.hasCertificate ? eh.certificateEnrollmentId !== null : eh.certificateEnrollmentId === null
+            );
+          }
+          if (params.filters.productId) {
+            filteredHostnames = filteredHostnames.filter((eh: any) => 
+              eh.productId === params.filters!.productId
+            );
+          }
+        }
+
+        // Apply pagination
+        const totalCount = filteredHostnames.length;
+        const paginatedResults = filteredHostnames.slice(params.offset, params.offset + params.limit);
+
+        return {
+          searchTerm: params.searchTerm,
+          filters: params.filters,
+          totalCount,
+          resultCount: paginatedResults.length,
+          offset: params.offset,
+          limit: params.limit,
+          edgeHostnames: paginatedResults,
+          hasMore: params.offset + params.limit < totalCount
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
    * Get edge hostname details
    */
   async getEdgeHostname(args: z.infer<typeof GetEdgeHostnameSchema>): Promise<MCPToolResponse> {
@@ -475,6 +582,128 @@ export class ConsolidatedEdgeHostnameTools extends BaseTool {
             wildcards: recommendations.filter(r => r.hostname.startsWith('*.')).length,
             apexDomains: recommendations.filter(r => r.hostname.split('.').length === 2).length
           }
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Update edge hostname configuration
+   */
+  async updateEdgeHostname(args: {
+    edgeHostnameId: number;
+    ipVersionBehavior?: 'IPV4' | 'IPV6_PERFORMANCE' | 'IPV6_COMPLIANCE';
+    certificateEnrollmentId?: number;
+    comments?: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      edgeHostnameId: EdgeHostnameIdSchema,
+      ipVersionBehavior: z.enum(['IPV4', 'IPV6_PERFORMANCE', 'IPV6_COMPLIANCE']).optional(),
+      certificateEnrollmentId: z.number().int().positive().optional(),
+      comments: z.string().max(1000).optional(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'update-edge-hostname',
+      params,
+      async (client) => {
+        const path = `/hapi/v1/edge-hostnames/${params.edgeHostnameId}`;
+
+        // Build update body with only provided fields
+        const updateBody: any = {};
+        if (params.ipVersionBehavior) {
+          updateBody.ipVersionBehavior = params.ipVersionBehavior;
+        }
+        if (params.certificateEnrollmentId !== undefined) {
+          updateBody.certificateEnrollmentId = params.certificateEnrollmentId;
+        }
+        if (params.comments !== undefined) {
+          updateBody.comments = params.comments;
+        }
+
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path,
+            method: 'PATCH',
+            body: updateBody,
+            schema: z.object({
+              edgeHostnameId: z.number(),
+              domainPrefix: z.string(),
+              domainSuffix: z.string(),
+              productId: z.string(),
+              ipVersionBehavior: z.string(),
+              certificateEnrollmentId: z.number().nullable(),
+              comments: z.string().nullable(),
+              status: z.string()
+            })
+          }
+        );
+
+        return {
+          edgeHostnameId: response.edgeHostnameId,
+          domainPrefix: response.domainPrefix,
+          domainSuffix: response.domainSuffix,
+          edgeHostname: `${response.domainPrefix}.${response.domainSuffix}`,
+          ipVersionBehavior: response.ipVersionBehavior,
+          certificateEnrollmentId: response.certificateEnrollmentId,
+          comments: response.comments,
+          status: response.status,
+          message: `Edge hostname ${params.edgeHostnameId} has been updated`
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Delete an edge hostname
+   */
+  async deleteEdgeHostname(args: {
+    edgeHostnameId: number;
+    confirm: boolean;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      edgeHostnameId: EdgeHostnameIdSchema,
+      confirm: z.boolean(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    if (!params.confirm) {
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            error: 'Deletion requires confirmation',
+            message: 'Set confirm: true to delete the edge hostname'
+          }, null, 2)
+        }]
+      };
+    }
+
+    return this.executeStandardOperation(
+      'delete-edge-hostname',
+      params,
+      async (client) => {
+        const path = `/hapi/v1/edge-hostnames/${params.edgeHostnameId}`;
+
+        await client.request({
+          path,
+          method: 'DELETE'
+        });
+
+        return {
+          edgeHostnameId: params.edgeHostnameId,
+          status: 'deleted',
+          message: `Edge hostname ${params.edgeHostnameId} has been deleted`
         };
       },
       {

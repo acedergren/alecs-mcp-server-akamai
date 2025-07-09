@@ -26,6 +26,24 @@ export const includeTools = {
       consolidatedIncludeTools.listIncludes(args)
   },
 
+  'include_search': {
+    description: 'Search includes by name or type',
+    inputSchema: z.object({
+      searchTerm: z.string().optional(),
+      filters: z.object({
+        includeType: z.enum(['MICROSERVICES', 'COMMON_SETTINGS']).optional(),
+        contractId: z.string().optional(),
+        groupId: z.string().optional(),
+        hasActivation: z.boolean().optional()
+      }).optional(),
+      limit: z.number().optional(),
+      offset: z.number().optional(),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedIncludeTools.searchIncludes(args)
+  },
+
   'include_create': {
     description: 'Create a new include',
     inputSchema: z.object({
@@ -110,6 +128,17 @@ export const includeTools = {
     }),
     handler: async (args: any): Promise<MCPToolResponse> => 
       consolidatedIncludeTools.getIncludeActivationStatus(args)
+  },
+
+  'include_delete': {
+    description: 'Delete an include',
+    inputSchema: z.object({
+      includeId: z.string(),
+      confirm: z.boolean().describe('Confirm deletion'),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedIncludeTools.deleteInclude(args)
   }
 };
 
@@ -118,9 +147,11 @@ export const includeTools = {
  */
 export const {
   listIncludes,
+  searchIncludes,
   createInclude,
   getInclude,
   updateInclude,
+  deleteInclude,
   createIncludeVersion,
   activateInclude,
   listIncludeActivations,

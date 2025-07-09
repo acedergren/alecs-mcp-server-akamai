@@ -1,7 +1,7 @@
 # ALECS Architecture Overview
 
 **Version:** 1.7.4  
-**Last Updated:** 2025-07-09
+**Last Updated:** 2025-01-09
 
 ## System Design
 
@@ -80,7 +80,7 @@ graph TB
 - Routes requests to handlers
 - Provides transport abstraction
 
-### 2. Service Modules (113 tools)
+### 2. Service Modules (159 tools)
 - **alecs-property** - CDN property configuration and management
 - **alecs-dns** - DNS zones, records, and DNSSEC management
 - **alecs-security** - Network lists, WAF, and security policies

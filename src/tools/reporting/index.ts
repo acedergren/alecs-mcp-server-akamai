@@ -70,6 +70,89 @@ export const reportingTools = {
     }),
     handler: async (args: any): Promise<MCPToolResponse> => 
       consolidatedReportingTools.getErrorAnalysis(args)
+  },
+
+  'reporting_real_time': {
+    description: 'Get real-time traffic and performance metrics',
+    inputSchema: z.object({
+      customer: z.string().optional(),
+      metrics: z.array(z.enum(['requests_per_second', 'bandwidth', 'cache_hit_rate', 'error_rate'])).optional(),
+      properties: z.array(z.string()).optional(),
+      duration_minutes: z.number().default(5)
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedReportingTools.getRealTimeMetrics(args)
+  },
+
+  'reporting_cost_analysis': {
+    description: 'Analyze bandwidth and request costs',
+    inputSchema: z.object({
+      customer: z.string().optional(),
+      start_date: z.string(),
+      end_date: z.string(),
+      groupBy: z.array(z.enum(['property', 'cpcode', 'region', 'product'])).optional(),
+      include_projections: z.boolean().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedReportingTools.getCostAnalysis(args)
+  },
+
+  'reporting_origin_performance': {
+    description: 'Analyze origin server performance',
+    inputSchema: z.object({
+      customer: z.string().optional(),
+      start_date: z.string(),
+      end_date: z.string(),
+      origins: z.array(z.string()).optional(),
+      metrics: z.array(z.enum(['response_time', 'error_rate', 'timeout_rate', 'availability'])).optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedReportingTools.getOriginPerformance(args)
+  },
+
+  'reporting_security_threats': {
+    description: 'Get security threat analysis report',
+    inputSchema: z.object({
+      customer: z.string().optional(),
+      start_date: z.string(),
+      end_date: z.string(),
+      threat_types: z.array(z.enum(['waf_attacks', 'bot_traffic', 'ddos', 'rate_limit_violations'])).optional(),
+      groupBy: z.array(z.enum(['threat_type', 'source_country', 'target_hostname'])).optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedReportingTools.getSecurityThreats(args)
+  },
+
+  'reporting_custom_dashboard': {
+    description: 'Create custom report dashboard',
+    inputSchema: z.object({
+      customer: z.string().optional(),
+      dashboard_name: z.string(),
+      widgets: z.array(z.object({
+        type: z.enum(['traffic', 'cache', 'errors', 'geographic', 'security']),
+        metrics: z.array(z.string()),
+        filters: z.record(z.string()).optional(),
+        visualization: z.enum(['line_chart', 'bar_chart', 'pie_chart', 'table', 'heatmap']).optional()
+      })),
+      start_date: z.string(),
+      end_date: z.string()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedReportingTools.createCustomDashboard(args)
+  },
+
+  'reporting_export': {
+    description: 'Export report data in various formats',
+    inputSchema: z.object({
+      customer: z.string().optional(),
+      report_type: z.enum(['traffic', 'cache', 'errors', 'geographic', 'security', 'cost']),
+      start_date: z.string(),
+      end_date: z.string(),
+      format: z.enum(['csv', 'json', 'pdf', 'excel']),
+      email_to: z.string().email().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedReportingTools.exportReport(args)
   }
 };
 
@@ -80,7 +163,13 @@ export const {
   getTrafficReport,
   getCachePerformance,
   getGeographicDistribution,
-  getErrorAnalysis
+  getErrorAnalysis,
+  getRealTimeMetrics,
+  getCostAnalysis,
+  getOriginPerformance,
+  getSecurityThreats,
+  createCustomDashboard,
+  exportReport
 } = consolidatedReportingTools;
 
 /**

@@ -138,6 +138,63 @@ export const propertyTools = {
       consolidatedPropertyTools.getActivationStatus(args)
   },
 
+  // Property deletion
+  'property_delete': {
+    description: 'Delete a property (requires no active versions)',
+    inputSchema: z.object({
+      propertyId: z.string(),
+      confirm: z.boolean().describe('Confirm deletion'),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.removeProperty(args)
+  },
+
+  // Property search
+  'property_search': {
+    description: 'Search properties by name, hostname, or status',
+    inputSchema: z.object({
+      searchTerm: z.string().optional(),
+      filters: z.object({
+        contractId: z.string().optional(),
+        groupId: z.string().optional(),
+        productId: z.string().optional(),
+        hostname: z.string().optional(),
+        hasActiveVersion: z.boolean().optional()
+      }).optional(),
+      limit: z.number().optional(),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.searchPropertiesOptimized(args)
+  },
+
+  // Hostname management
+  'property_hostname_add': {
+    description: 'Add hostname to property version',
+    inputSchema: z.object({
+      propertyId: z.string(),
+      version: z.number(),
+      hostname: z.string(),
+      cnameType: z.enum(['EDGE_HOSTNAME']).optional(),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.addPropertyHostname(args)
+  },
+
+  'property_hostname_remove': {
+    description: 'Remove hostname from property version',
+    inputSchema: z.object({
+      propertyId: z.string(),
+      version: z.number(),
+      hostname: z.string(),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.removePropertyHostname(args)
+  },
+
   // Advanced version management
   'property_version_rollback': {
     description: 'Rollback property to a previous version',

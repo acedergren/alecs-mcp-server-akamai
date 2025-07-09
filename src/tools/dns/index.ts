@@ -177,6 +177,17 @@ export const dnsTools = {
     }),
     handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedDNSTools.getDsRecords(args)
+  },
+
+  'dns_zone_delete': {
+    description: 'Delete a DNS zone',
+    inputSchema: z.object({
+      zone: z.string(),
+      confirm: z.boolean().describe('Confirm deletion'),
+      customer: z.string().optional()
+    }),
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
+      consolidatedDNSTools.deleteZone(args)
   }
 };
 
@@ -187,6 +198,7 @@ export const {
   listZones,
   getZone,
   createZone,
+  deleteZone,
   activateZone,
   listRecords,
   upsertRecord,

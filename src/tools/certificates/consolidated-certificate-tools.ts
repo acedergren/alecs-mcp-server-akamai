@@ -1685,6 +1685,122 @@ export class ConsolidatedCertificateTools extends BaseTool {
       }
     );
   }
+
+  /**
+   * Search certificate enrollments by domain or status
+   */
+  async searchCertificates(args: {
+    searchTerm?: string;
+    filters?: {
+      domain?: string;
+      status?: 'pending' | 'active' | 'expired' | 'cancelled';
+      expiresWithinDays?: number;
+      hasDeployments?: boolean;
+      certificateType?: 'DV' | 'EV' | 'OV';
+    };
+    limit?: number;
+    offset?: number;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      searchTerm: z.string().optional(),
+      filters: z.object({
+        domain: z.string().optional(),
+        status: z.enum(['pending', 'active', 'expired', 'cancelled']).optional(),
+        expiresWithinDays: z.number().optional(),
+        hasDeployments: z.boolean().optional(),
+        certificateType: z.enum(['DV', 'EV', 'OV']).optional()
+      }).optional(),
+      limit: z.number().default(100),
+      offset: z.number().default(0),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'search-certificates',
+      params,
+      async (_client) => {
+        // Get all enrollments
+        const allEnrollments = await this.listCertificateEnrollments({
+          customer: params.customer
+        });
+
+        if (!allEnrollments.content?.[0]?.text) {
+          return [];
+        }
+
+        const enrollmentsData = JSON.parse(allEnrollments.content[0].text);
+        let filteredEnrollments = enrollmentsData.enrollments || [];
+
+        // Apply search term
+        if (params.searchTerm) {
+          const searchLower = params.searchTerm.toLowerCase();
+          filteredEnrollments = filteredEnrollments.filter((cert: any) => {
+            const domainsToSearch = [cert.cn, ...(cert.sans || [])];
+            return domainsToSearch.some(domain => 
+              domain.toLowerCase().includes(searchLower)
+            );
+          });
+        }
+
+        // Apply filters
+        if (params.filters) {
+          if (params.filters.domain) {
+            const domainFilter = params.filters.domain.toLowerCase();
+            filteredEnrollments = filteredEnrollments.filter((cert: any) => {
+              const domainsToSearch = [cert.cn, ...(cert.sans || [])];
+              return domainsToSearch.some(domain => 
+                domain.toLowerCase().includes(domainFilter)
+              );
+            });
+          }
+          if (params.filters.status) {
+            filteredEnrollments = filteredEnrollments.filter((cert: any) => 
+              cert.status === params.filters!.status
+            );
+          }
+          if (params.filters.certificateType) {
+            filteredEnrollments = filteredEnrollments.filter((cert: any) => 
+              cert.certificateType === params.filters!.certificateType
+            );
+          }
+          if (params.filters.hasDeployments !== undefined) {
+            // This would require additional API calls to check deployments
+            // For now, we'll filter based on networkType being present
+            filteredEnrollments = filteredEnrollments.filter((cert: any) => {
+              const hasNetwork = cert.networkType !== null && cert.networkType !== undefined;
+              return params.filters!.hasDeployments ? hasNetwork : !hasNetwork;
+            });
+          }
+          if (params.filters.expiresWithinDays !== undefined) {
+            // Filter by expiration date if available in the response
+            // This is a placeholder as actual implementation would need expiration date from API
+            const daysFromNow = new Date();
+            daysFromNow.setDate(daysFromNow.getDate() + params.filters.expiresWithinDays);
+            // Implementation would filter based on cert.expirationDate
+          }
+        }
+
+        // Apply pagination
+        const totalCount = filteredEnrollments.length;
+        const paginatedResults = filteredEnrollments.slice(params.offset, params.offset + params.limit);
+
+        return {
+          searchTerm: params.searchTerm,
+          filters: params.filters,
+          totalCount,
+          resultCount: paginatedResults.length,
+          offset: params.offset,
+          limit: params.limit,
+          certificates: paginatedResults,
+          hasMore: params.offset + params.limit < totalCount
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
 }
 
 // Export singleton instance

@@ -17,21 +17,21 @@ import {
 } from '../common';
 
 /**
- * Rule Tree Schemas
+ * Rule Tree Types
  */
-const RuleTemplateSchema = z.object({
-  name: z.string(),
-  description: z.string().optional(),
-  behaviors: z.array(z.object({
-    name: z.string(),
-    options: z.record(z.any())
-  })),
-  criteria: z.array(z.object({
-    name: z.string(),
-    options: z.record(z.any())
-  })).optional(),
-  children: z.array(z.any()).optional()
-});
+interface RuleTemplate {
+  name: string;
+  description?: string;
+  behaviors: Array<{
+    name: string;
+    options: Record<string, any>;
+  }>;
+  criteria?: Array<{
+    name: string;
+    options: Record<string, any>;
+  }>;
+  children?: any[];
+}
 
 const CreateRuleFromTemplateSchema = CustomerSchema.extend({
   templateName: z.enum(['performance', 'security', 'caching', 'mobile', 'custom']),
@@ -73,7 +73,7 @@ export class ConsolidatedRuleTreeTools extends BaseTool {
       params,
       async () => {
         // Define templates
-        const templates: Record<string, RuleTemplateSchema> = {
+        const templates: Record<string, RuleTemplate> = {
           performance: {
             name: 'Performance Optimization',
             description: 'Optimized for web performance',
@@ -179,6 +179,9 @@ export class ConsolidatedRuleTreeTools extends BaseTool {
         };
 
         const template = templates[params.templateName];
+        if (!template) {
+          throw new Error(`Unknown template: ${params.templateName}`);
+        }
         
         // Apply customizations
         if (params.customizations) {
@@ -224,9 +227,9 @@ export class ConsolidatedRuleTreeTools extends BaseTool {
           switch (params.mergeStrategy) {
             case 'override':
               // Override behaviors with same name
-              overlayTree.behaviors?.forEach(overlayBehavior => {
+              overlayTree.behaviors?.forEach((overlayBehavior: any) => {
                 const existingIndex = mergedTree.behaviors.findIndex(
-                  b => b.name === overlayBehavior.name
+                  (b: any) => b.name === overlayBehavior.name
                 );
                 if (existingIndex >= 0) {
                   mergedTree.behaviors[existingIndex] = overlayBehavior;
@@ -282,7 +285,7 @@ export class ConsolidatedRuleTreeTools extends BaseTool {
         // Performance optimizations
         if (targets.includes('performance')) {
           // Add HTTP/2 if not present
-          if (!optimizedTree.behaviors.some(b => b.name === 'http2')) {
+          if (!optimizedTree.behaviors.some((b: any) => b.name === 'http2')) {
             optimizedTree.behaviors.push({
               name: 'http2',
               options: { enabled: true }
@@ -291,7 +294,7 @@ export class ConsolidatedRuleTreeTools extends BaseTool {
           }
 
           // Enable prefetch
-          if (!optimizedTree.behaviors.some(b => b.name === 'prefetch')) {
+          if (!optimizedTree.behaviors.some((b: any) => b.name === 'prefetch')) {
             optimizedTree.behaviors.push({
               name: 'prefetch',
               options: { enabled: true }
@@ -302,7 +305,7 @@ export class ConsolidatedRuleTreeTools extends BaseTool {
 
         // Caching optimizations
         if (targets.includes('caching')) {
-          const cachingBehavior = optimizedTree.behaviors.find(b => b.name === 'caching');
+          const cachingBehavior = optimizedTree.behaviors.find((b: any) => b.name === 'caching');
           if (cachingBehavior) {
             // Optimize caching settings
             if (cachingBehavior.options.defaultTtl === '0s') {
@@ -315,7 +318,7 @@ export class ConsolidatedRuleTreeTools extends BaseTool {
         // Security optimizations
         if (targets.includes('security')) {
           // Remove unnecessary headers
-          if (!optimizedTree.behaviors.some(b => b.name === 'modifyOutgoingResponseHeader')) {
+          if (!optimizedTree.behaviors.some((b: any) => b.name === 'modifyOutgoingResponseHeader')) {
             optimizedTree.behaviors.push({
               name: 'modifyOutgoingResponseHeader',
               options: {
@@ -332,7 +335,7 @@ export class ConsolidatedRuleTreeTools extends BaseTool {
         if (targets.includes('size')) {
           // Remove duplicate behaviors
           const seen = new Set();
-          optimizedTree.behaviors = optimizedTree.behaviors.filter(behavior => {
+          optimizedTree.behaviors = optimizedTree.behaviors.filter((behavior: any) => {
             const key = `${behavior.name}-${JSON.stringify(behavior.options)}`;
             if (seen.has(key)) {
               optimizations.push(`Removed duplicate ${behavior.name} behavior`);
@@ -384,7 +387,7 @@ export class ConsolidatedRuleTreeTools extends BaseTool {
         }
 
         // Validate behaviors
-        params.ruleTree.behaviors?.forEach((behavior, index) => {
+        params.ruleTree.behaviors?.forEach((behavior: any, index: number) => {
           if (!behavior.name) {
             validationErrors.push(`Behavior at index ${index} missing name`);
           }
@@ -396,7 +399,7 @@ export class ConsolidatedRuleTreeTools extends BaseTool {
         // Check for required behaviors
         const requiredBehaviors = ['origin', 'cpCode'];
         requiredBehaviors.forEach(required => {
-          if (!params.ruleTree.behaviors?.some(b => b.name === required)) {
+          if (!params.ruleTree.behaviors?.some((b: any) => b.name === required)) {
             warnings.push(`Missing recommended behavior: ${required}`);
           }
         });
@@ -496,8 +499,11 @@ export class ConsolidatedRuleTreeTools extends BaseTool {
           customer: params.customer
         });
 
-        if (!validationResult.valid && !params.validateOnly) {
-          throw new Error(`Rule validation failed: ${validationResult.errors.join(', ')}`);
+        const isValid = validationResult.content && typeof validationResult.content === 'object' && 'valid' in validationResult.content && validationResult.content.valid === true;
+        const errors = validationResult.content && typeof validationResult.content === 'object' && 'errors' in validationResult.content ? (validationResult.content.errors as string[]) : [];
+        
+        if (!isValid && !params.validateOnly) {
+          throw new Error(`Rule validation failed: ${errors.join(', ')}`);
         }
 
         if (params.validateOnly) {
@@ -527,8 +533,8 @@ export class ConsolidatedRuleTreeTools extends BaseTool {
   private deepMergeRules(target: any, source: any): void {
     // Merge behaviors
     if (source.behaviors) {
-      source.behaviors.forEach(sourceBehavior => {
-        const targetBehavior = target.behaviors.find(b => b.name === sourceBehavior.name);
+      source.behaviors.forEach((sourceBehavior: any) => {
+        const targetBehavior = target.behaviors.find((b: any) => b.name === sourceBehavior.name);
         if (targetBehavior) {
           // Deep merge options
           Object.assign(targetBehavior.options, sourceBehavior.options);
@@ -540,8 +546,8 @@ export class ConsolidatedRuleTreeTools extends BaseTool {
 
     // Merge children recursively
     if (source.children) {
-      source.children.forEach(sourceChild => {
-        const targetChild = target.children.find(c => c.name === sourceChild.name);
+      source.children.forEach((sourceChild: any) => {
+        const targetChild = target.children.find((c: any) => c.name === sourceChild.name);
         if (targetChild) {
           this.deepMergeRules(targetChild, sourceChild);
         } else {

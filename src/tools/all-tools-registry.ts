@@ -56,6 +56,12 @@ import { includeTools } from './includes';
 // Rule Tree Tools
 import { ruleTreeTools } from './rule-tree';
 
+// Hostname Management Tools
+import { hostnameTools } from './hostname';
+
+// Bulk Operations Tools
+import { bulkOperationsTools } from './bulk-operations';
+
 /**
  * Tool definition interface with strong typing
  */
@@ -86,22 +92,22 @@ export function getAllToolDefinitions(): ToolDefinition[] {
   const allTools: ToolDefinition[] = [];
 
   // MIGRATED TOOLS (snake_case) - Phase 1 Complete
-  // Property Manager Tools (9 tools - fully migrated)
+  // Property Manager Tools (26 tools - fully migrated with bulk ops)
   allTools.push(...convertToolsToDefinitions(propertyTools));
 
-  // DNS Tools (11 tools - fully migrated)
+  // DNS Tools (12 tools - fully migrated with delete)
   allTools.push(...convertToolsToDefinitions(dnsTools));
 
   // Utility Tools (4 tools - fully migrated)
   allTools.push(...convertToolsToDefinitions(utilityTools));
 
-  // Certificate Tools (7 tools - fully migrated)
+  // Certificate Tools (8 tools - fully migrated with search)
   allTools.push(...convertToolsToDefinitions(certificateTools));
 
-  // Security Tools (10 tools - fully migrated)
+  // Security Tools (13 tools - fully migrated with updates and deletes)
   allTools.push(...convertToolsToDefinitions(securityTools));
 
-  // Reporting Tools (4 tools - fully migrated)
+  // Reporting Tools (10 tools - fully migrated with comprehensive analytics)
   allTools.push(...convertToolsToDefinitions(reportingTools));
 
   // FastPurge Tools (8 tools - fully migrated)
@@ -117,17 +123,23 @@ export function getAllToolDefinitions(): ToolDefinition[] {
   // AppSec Tools (34 tools - fully migrated)
   allTools.push(...convertToolsToDefinitions(appSecTools));
 
-  // Edge Hostname Tools (7 tools - newly added)
+  // Edge Hostname Tools (10 tools - newly added with search, update and delete)
   allTools.push(...convertToolsToDefinitions(edgeHostnameTools));
 
-  // Include Tools (8 tools - newly added)
+  // Include Tools (10 tools - newly added with search and delete)
   allTools.push(...convertToolsToDefinitions(includeTools));
 
   // Rule Tree Tools (5 tools - newly added)
   allTools.push(...convertToolsToDefinitions(ruleTreeTools));
 
+  // Hostname Management Tools (5 tools - newly added)
+  allTools.push(...convertToolsToDefinitions(hostnameTools));
+
+  // Bulk Operations Tools (5 tools - newly added)
+  allTools.push(...convertToolsToDefinitions(bulkOperationsTools));
+
   // MIGRATION COMPLETE - All tools now use snake_case naming
-  // Total tools: 129 (after adding rule tree tools)
+  // Total tools: 159 (after adding comprehensive reporting)
 
   return allTools;
 }

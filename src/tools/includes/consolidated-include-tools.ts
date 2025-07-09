@@ -11,7 +11,6 @@ import { z } from 'zod';
 import { 
   BaseTool,
   CustomerSchema,
-  PropertyIdSchema,
   type MCPToolResponse
 } from '../common';
 
@@ -155,6 +154,105 @@ export class ConsolidatedIncludeTools extends BaseTool {
           includeName: params.includeName,
           includeType: params.includeType,
           message: `✅ Created include ${params.includeName} (${includeId})`
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Search includes by name or type
+   */
+  async searchIncludes(args: {
+    searchTerm?: string;
+    filters?: {
+      includeType?: 'MICROSERVICES' | 'COMMON_SETTINGS';
+      contractId?: string;
+      groupId?: string;
+      hasActivation?: boolean;
+    };
+    limit?: number;
+    offset?: number;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      searchTerm: z.string().optional(),
+      filters: z.object({
+        includeType: z.enum(['MICROSERVICES', 'COMMON_SETTINGS']).optional(),
+        contractId: z.string().optional(),
+        groupId: z.string().optional(),
+        hasActivation: z.boolean().optional()
+      }).optional(),
+      limit: z.number().default(100),
+      offset: z.number().default(0),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'search-includes',
+      params,
+      async (_client) => {
+        // Get all includes
+        const allIncludes = await this.listIncludes({
+          customer: params.customer
+        });
+
+        if (!allIncludes.content?.[0]?.text) {
+          return [];
+        }
+
+        const includesData = JSON.parse(allIncludes.content[0].text);
+        let filteredIncludes = includesData.includes || [];
+
+        // Apply search term
+        if (params.searchTerm) {
+          const searchLower = params.searchTerm.toLowerCase();
+          filteredIncludes = filteredIncludes.filter((inc: any) => 
+            inc.includeName.toLowerCase().includes(searchLower) ||
+            inc.includeId.toLowerCase().includes(searchLower)
+          );
+        }
+
+        // Apply filters
+        if (params.filters) {
+          if (params.filters.includeType) {
+            filteredIncludes = filteredIncludes.filter((inc: any) => 
+              inc.includeType === params.filters!.includeType
+            );
+          }
+          if (params.filters.contractId) {
+            filteredIncludes = filteredIncludes.filter((inc: any) => 
+              inc.contractId === params.filters!.contractId
+            );
+          }
+          if (params.filters.groupId) {
+            filteredIncludes = filteredIncludes.filter((inc: any) => 
+              inc.groupId === params.filters!.groupId
+            );
+          }
+          if (params.filters.hasActivation !== undefined) {
+            filteredIncludes = filteredIncludes.filter((inc: any) => {
+              const hasActiveVersion = inc.stagingVersion !== null || inc.productionVersion !== null;
+              return params.filters!.hasActivation ? hasActiveVersion : !hasActiveVersion;
+            });
+          }
+        }
+
+        // Apply pagination
+        const totalCount = filteredIncludes.length;
+        const paginatedResults = filteredIncludes.slice(params.offset, params.offset + params.limit);
+
+        return {
+          searchTerm: params.searchTerm,
+          filters: params.filters,
+          totalCount,
+          resultCount: paginatedResults.length,
+          offset: params.offset,
+          limit: params.limit,
+          includes: paginatedResults,
+          hasMore: params.offset + params.limit < totalCount
         };
       },
       {
@@ -534,6 +632,83 @@ export class ConsolidatedIncludeTools extends BaseTool {
         customer: params.customer,
         cacheKey: (p) => `include:${p.includeId}:activation:${p.activationId}`,
         cacheTtl: 30
+      }
+    );
+  }
+
+  /**
+   * Delete an include
+   */
+  async deleteInclude(args: {
+    includeId: string;
+    confirm: boolean;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      includeId: IncludeIdSchema,
+      confirm: z.boolean(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    if (!params.confirm) {
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            error: 'Deletion requires confirmation',
+            message: 'Set confirm: true to delete the include'
+          }, null, 2)
+        }]
+      };
+    }
+
+    return this.executeStandardOperation(
+      'delete-include',
+      params,
+      async (client) => {
+        // First get the include to obtain contractId and groupId
+        const includeResponse = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/includes/${params.includeId}`,
+            method: 'GET',
+            schema: z.object({
+              includes: z.object({
+                items: z.array(z.object({
+                  includeId: z.string(),
+                  includeName: z.string(),
+                  contractId: z.string(),
+                  groupId: z.string()
+                }))
+              })
+            })
+          }
+        );
+
+        const include = includeResponse.includes.items[0];
+        if (!include) {
+          throw new Error(`Include ${params.includeId} not found`);
+        }
+
+        const path = `/papi/v1/includes/${params.includeId}`;
+
+        await client.request({
+          path,
+          method: 'DELETE',
+          queryParams: {
+            contractId: include.contractId,
+            groupId: include.groupId
+          }
+        });
+
+        return {
+          includeId: params.includeId,
+          status: 'deleted',
+          message: `Include ${params.includeId} has been deleted`
+        };
+      },
+      {
+        customer: params.customer
       }
     );
   }

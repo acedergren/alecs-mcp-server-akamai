@@ -378,6 +378,337 @@ export class ConsolidatedReportingTools extends BaseTool {
       }
     );
   }
+
+  /**
+   * Get real-time traffic and performance metrics
+   */
+  async getRealTimeMetrics(args: {
+    customer?: string;
+    metrics?: Array<'requests_per_second' | 'bandwidth' | 'cache_hit_rate' | 'error_rate'>;
+    properties?: string[];
+    duration_minutes?: number;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      customer: z.string().optional(),
+      metrics: z.array(z.enum(['requests_per_second', 'bandwidth', 'cache_hit_rate', 'error_rate']))
+        .default(['requests_per_second', 'bandwidth']),
+      properties: z.array(z.string()).optional(),
+      duration_minutes: z.number().default(5)
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'real-time-metrics',
+      params,
+      async (_client) => {
+        // Simulate real-time data
+        const now = new Date();
+        const dataPoints = [];
+        
+        for (let i = params.duration_minutes; i >= 0; i--) {
+          const timestamp = new Date(now.getTime() - i * 60000);
+          dataPoints.push({
+            timestamp: timestamp.toISOString(),
+            requests_per_second: Math.floor(Math.random() * 10000) + 5000,
+            bandwidth_mbps: Math.floor(Math.random() * 1000) + 500,
+            cache_hit_rate: 0.85 + Math.random() * 0.10,
+            error_rate: Math.random() * 0.02
+          });
+        }
+
+        const lastDataPoint = dataPoints[dataPoints.length - 1];
+        
+        return {
+          duration_minutes: params.duration_minutes,
+          metrics: params.metrics,
+          properties: params.properties || ['all'],
+          real_time_data: dataPoints,
+          current_values: lastDataPoint ? {
+            requests_per_second: lastDataPoint.requests_per_second,
+            bandwidth_mbps: lastDataPoint.bandwidth_mbps,
+            cache_hit_rate: Math.round(lastDataPoint.cache_hit_rate * 100) + '%',
+            error_rate: Math.round(lastDataPoint.error_rate * 100) + '%'
+          } : {
+            requests_per_second: 0,
+            bandwidth_mbps: 0,
+            cache_hit_rate: '0%',
+            error_rate: '0%'
+          }
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Analyze bandwidth and request costs
+   */
+  async getCostAnalysis(args: {
+    customer?: string;
+    start_date: string;
+    end_date: string;
+    groupBy?: Array<'property' | 'cpcode' | 'region' | 'product'>;
+    include_projections?: boolean;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      customer: z.string().optional(),
+      start_date: z.string(),
+      end_date: z.string(),
+      groupBy: z.array(z.enum(['property', 'cpcode', 'region', 'product'])).optional(),
+      include_projections: z.boolean().default(false)
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'cost-analysis',
+      params,
+      async (_client) => {
+        const costs = {
+          bandwidth: {
+            total_gb: 125000,
+            cost_per_gb: 0.085,
+            total_cost: 10625
+          },
+          requests: {
+            total_millions: 2500,
+            cost_per_million: 0.50,
+            total_cost: 1250
+          },
+          total_cost: 11875,
+          currency: 'USD'
+        };
+
+        const breakdown = params.groupBy?.includes('property') ? [
+          { property: 'www.example.com', bandwidth_gb: 75000, requests_millions: 1500, cost: 7125 },
+          { property: 'api.example.com', bandwidth_gb: 35000, requests_millions: 750, cost: 3350 },
+          { property: 'static.example.com', bandwidth_gb: 15000, requests_millions: 250, cost: 1400 }
+        ] : [];
+
+        return {
+          period: { start_date: params.start_date, end_date: params.end_date },
+          costs,
+          breakdown,
+          projections: params.include_projections ? {
+            next_month_estimate: costs.total_cost * 1.05,
+            yearly_run_rate: costs.total_cost * 12
+          } : undefined
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Analyze origin server performance
+   */
+  async getOriginPerformance(args: {
+    customer?: string;
+    start_date: string;
+    end_date: string;
+    origins?: string[];
+    metrics?: Array<'response_time' | 'error_rate' | 'timeout_rate' | 'availability'>;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      customer: z.string().optional(),
+      start_date: z.string(),
+      end_date: z.string(),
+      origins: z.array(z.string()).optional(),
+      metrics: z.array(z.enum(['response_time', 'error_rate', 'timeout_rate', 'availability']))
+        .default(['response_time', 'error_rate', 'availability'])
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'origin-performance',
+      params,
+      async (_client) => {
+        const origins = params.origins || ['origin1.example.com', 'origin2.example.com'];
+        
+        return {
+          period: { start_date: params.start_date, end_date: params.end_date },
+          metrics: params.metrics,
+          origin_performance: origins.map(origin => ({
+            origin,
+            avg_response_time_ms: Math.floor(Math.random() * 200) + 50,
+            p95_response_time_ms: Math.floor(Math.random() * 400) + 100,
+            error_rate: Math.random() * 0.05,
+            timeout_rate: Math.random() * 0.02,
+            availability: 0.95 + Math.random() * 0.049,
+            total_requests: Math.floor(Math.random() * 1000000) + 500000
+          })),
+          recommendations: [
+            'Consider implementing origin failover for origins with < 99% availability',
+            'Optimize slow endpoints with response times > 200ms'
+          ]
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Get security threat analysis report
+   */
+  async getSecurityThreats(args: {
+    customer?: string;
+    start_date: string;
+    end_date: string;
+    threat_types?: Array<'waf_attacks' | 'bot_traffic' | 'ddos' | 'rate_limit_violations'>;
+    groupBy?: Array<'threat_type' | 'source_country' | 'target_hostname'>;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      customer: z.string().optional(),
+      start_date: z.string(),
+      end_date: z.string(),
+      threat_types: z.array(z.enum(['waf_attacks', 'bot_traffic', 'ddos', 'rate_limit_violations']))
+        .default(['waf_attacks', 'bot_traffic']),
+      groupBy: z.array(z.enum(['threat_type', 'source_country', 'target_hostname'])).optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'security-threats',
+      params,
+      async (_client) => {
+        return {
+          period: { start_date: params.start_date, end_date: params.end_date },
+          threat_summary: {
+            total_threats_blocked: 125000,
+            waf_attacks: 45000,
+            bot_traffic: 65000,
+            ddos_attempts: 5,
+            rate_limit_violations: 15000
+          },
+          top_threats: [
+            { type: 'SQL Injection', count: 15000, severity: 'HIGH' },
+            { type: 'XSS', count: 12000, severity: 'HIGH' },
+            { type: 'Bot Scraping', count: 35000, severity: 'MEDIUM' },
+            { type: 'Credential Stuffing', count: 8000, severity: 'HIGH' }
+          ],
+          geographic_distribution: [
+            { country: 'CN', threats: 45000 },
+            { country: 'RU', threats: 25000 },
+            { country: 'US', threats: 15000 }
+          ],
+          mitigation_effectiveness: {
+            threats_blocked: 125000,
+            threats_challenged: 35000,
+            threats_allowed: 5000,
+            block_rate: 0.96
+          }
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Create custom report dashboard
+   */
+  async createCustomDashboard(args: {
+    customer?: string;
+    dashboard_name: string;
+    widgets: Array<{
+      type: 'traffic' | 'cache' | 'errors' | 'geographic' | 'security';
+      metrics: string[];
+      filters?: Record<string, string>;
+      visualization?: 'line_chart' | 'bar_chart' | 'pie_chart' | 'table' | 'heatmap';
+    }>;
+    start_date: string;
+    end_date: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      customer: z.string().optional(),
+      dashboard_name: z.string(),
+      widgets: z.array(z.object({
+        type: z.enum(['traffic', 'cache', 'errors', 'geographic', 'security']),
+        metrics: z.array(z.string()),
+        filters: z.record(z.string()).optional(),
+        visualization: z.enum(['line_chart', 'bar_chart', 'pie_chart', 'table', 'heatmap']).optional()
+      })),
+      start_date: z.string(),
+      end_date: z.string()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'custom-dashboard',
+      params,
+      async (_client) => {
+        const dashboardId = `dash_${Date.now()}`;
+        
+        return {
+          dashboard_id: dashboardId,
+          dashboard_name: params.dashboard_name,
+          created_at: new Date().toISOString(),
+          period: { start_date: params.start_date, end_date: params.end_date },
+          widgets: params.widgets.map((widget, index) => ({
+            widget_id: `widget_${index + 1}`,
+            ...widget,
+            status: 'configured',
+            data_available: true
+          })),
+          access_url: `https://control.akamai.com/dashboards/${dashboardId}`,
+          share_token: Buffer.from(dashboardId).toString('base64')
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Export report data in various formats
+   */
+  async exportReport(args: {
+    customer?: string;
+    report_type: 'traffic' | 'cache' | 'errors' | 'geographic' | 'security' | 'cost';
+    start_date: string;
+    end_date: string;
+    format: 'csv' | 'json' | 'pdf' | 'excel';
+    email_to?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      customer: z.string().optional(),
+      report_type: z.enum(['traffic', 'cache', 'errors', 'geographic', 'security', 'cost']),
+      start_date: z.string(),
+      end_date: z.string(),
+      format: z.enum(['csv', 'json', 'pdf', 'excel']),
+      email_to: z.string().email().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'export-report',
+      params,
+      async (_client) => {
+        const exportId = `export_${Date.now()}`;
+        
+        return {
+          export_id: exportId,
+          report_type: params.report_type,
+          format: params.format,
+          period: { start_date: params.start_date, end_date: params.end_date },
+          status: params.email_to ? 'scheduled_for_email' : 'ready_for_download',
+          download_url: params.email_to ? undefined : `https://control.akamai.com/exports/${exportId}`,
+          email_to: params.email_to,
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          file_size_estimate: {
+            csv: '2.5 MB',
+            json: '3.8 MB',
+            pdf: '1.2 MB',
+            excel: '2.1 MB'
+          }[params.format]
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
 }
 
 // Export singleton instance

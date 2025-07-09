@@ -138,6 +138,45 @@ export const securityTools = {
     }),
     handler: async (args: any): Promise<MCPToolResponse> => 
       consolidatedSecurityTools.createWAFPolicy(args)
+  },
+
+  'security_waf_update': {
+    description: 'Update WAF policy settings',
+    inputSchema: z.object({
+      configId: z.number(),
+      version: z.number(),
+      policyId: z.string(),
+      policyMode: z.enum(['ASE_AUTO', 'ASE_MANUAL', 'KRS']).optional(),
+      paranoidLevel: z.number().optional(),
+      ruleSets: z.array(z.string()).optional(),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedSecurityTools.updateWAFPolicy(args)
+  },
+
+  'security_network_list_delete': {
+    description: 'Delete a network list',
+    inputSchema: z.object({
+      networkListId: z.string(),
+      confirm: z.boolean().describe('Confirm deletion'),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedSecurityTools.deleteNetworkList(args)
+  },
+
+  'security_waf_delete': {
+    description: 'Delete a WAF policy',
+    inputSchema: z.object({
+      configId: z.number(),
+      version: z.number(),
+      policyId: z.string(),
+      confirm: z.boolean().describe('Confirm deletion'),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedSecurityTools.deleteWAFPolicy(args)
   }
 };
 
@@ -149,12 +188,15 @@ export const {
   getNetworkList,
   createNetworkList,
   updateNetworkList,
+  deleteNetworkList,
   activateNetworkList,
   getNetworkListActivationStatus,
   validateGeographicCodes,
   getASNInformation,
   listAppSecConfigurations,
-  createWAFPolicy
+  createWAFPolicy,
+  updateWAFPolicy,
+  deleteWAFPolicy
 } = consolidatedSecurityTools;
 
 /**

@@ -16,7 +16,7 @@ _AI-powered Akamai CDN management through natural language_
 
 <br>
 
-**🔧 287 Tools** • **🌐 8 Services** • **🔐 Full EdgeRC Support** • **⚡ Production Ready**
+**🔧 159 Tools** • **🌐 15 Services** • **🔐 Full EdgeRC Support** • **⚡ Production Ready**
 
 <br>
 
@@ -45,7 +45,7 @@ minimize context switching when creating Infrastructure-as-Code!
 
 <table>
 <tr>
-<td align="center" width="16.66%">
+<td align="center" width="14.28%">
 <img src="https://www.anthropic.com/favicon.ico" width="48" height="48"/>
 <br><strong>Claude Desktop</strong>
 <br>
@@ -60,8 +60,10 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 
 **Windows:**
 
-```cmd
-curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-claude-desktop.bat | cmd
+```powershell
+# Download and run installation script
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-claude-desktop.sh" -OutFile "install-claude-desktop.sh"
+bash install-claude-desktop.sh
 ```
 
 **Linux:**
@@ -72,7 +74,7 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 
 </details>
 </td>
-<td align="center" width="16.66%">
+<td align="center" width="14.28%">
 <img src="https://cursor.sh/favicon.ico" width="48" height="48"/>
 <br><strong>Cursor IDE</strong>
 <br>
@@ -83,14 +85,12 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 [![Add to Cursor](https://img.shields.io/badge/Add%20to-Cursor-blue?style=for-the-badge&logo=cursor)](cursor://anysphere.cursor-deeplink/mcp/install?name=alecs-akamai&config=eyJhbGVjcy1ha2FtYWkiOnsiY29tbWFuZCI6ImFsZWNzIiwiYXJncyI6W10sImVudiI6eyJNQ1BfVFJBTlNQT1JUIjoic3RkaW8ifX19)
 
 **Auto-install script:**
-
 ```bash
 curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-cursor.sh | bash
 ```
-
 </details>
 </td>
-<td align="center" width="16.66%">
+<td align="center" width="14.28%">
 <img src="https://lmstudio.ai/favicon.ico" width="48" height="48"/>
 <br><strong>LM Studio</strong>
 <br>
@@ -101,14 +101,31 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 [![Add to LM Studio](https://img.shields.io/badge/Add%20to-LM%20Studio-orange?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K)](lmstudio://mcp/install?name=alecs-akamai&config=eyJhbGVjcy1ha2FtYWkiOnsiY29tbWFuZCI6ImFsZWNzIiwiYXJncyI6W10sImVudiI6eyJNQ1BfVFJBTlNQT1JUIjoic3RkaW8ifX19)
 
 **Auto-install script:**
-
 ```bash
 curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-lmstudio.sh | bash
 ```
-
 </details>
 </td>
-<td align="center" width="16.66%">
+<td align="center" width="14.28%">
+<img src="https://brew.sh/assets/img/homebrew-256x256.png" width="48" height="48"/>
+<br><strong>Homebrew</strong>
+<br>
+<details>
+<summary>🍺 Install</summary>
+
+**macOS/Linux:**
+```bash
+curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-homebrew.sh | bash
+```
+
+**Manual:**
+```bash
+brew install node
+npm install -g alecs-mcp-server-akamai
+```
+</details>
+</td>
+<td align="center" width="14.28%">
 <img src="https://code.visualstudio.com/favicon.ico" width="48" height="48"/>
 <br><strong>VS Code</strong>
 <br>
@@ -116,20 +133,18 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 <summary>💻 Install</summary>
 
 **Extension + Server:**
-
 ```bash
 curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-vscode.sh | bash
 ```
 
 **Manual Setup:**
-
 1. Install MCP extension
 2. `Cmd/Ctrl + Shift + P`
 3. "MCP: Add Server"
 4. Command: `alecs`
 </details>
 </td>
-<td align="center" width="16.66%">
+<td align="center" width="14.28%">
 <img src="https://www.windsurf.ai/favicon.ico" width="48" height="48"/>
 <br><strong>Windsurf</strong>
 <br>
@@ -137,19 +152,17 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 <summary>🌊 Install</summary>
 
 **Auto-configure:**
-
 ```bash
 curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-windsurf.sh | bash
 ```
 
 **Manual Setup:**
-
 1. Open Windsurf Settings
 2. Navigate to MCP Servers
 3. Add server with command: `alecs`
 </details>
 </td>
-<td align="center" width="16.66%">
+<td align="center" width="14.28%">
 <img src="https://www.anthropic.com/favicon.ico" width="48" height="48"/>
 <br><strong>Claude Code</strong>
 <br>
@@ -157,17 +170,32 @@ curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/m
 <summary>⚡ Install</summary>
 
 **Simple command:**
-
 ```bash
 claude mcp add alecs-akamai alecs
 ```
 
 **Verify:**
-
 ```bash
 claude mcp list
 ```
+</details>
+</td>
+<td align="center" width="14.28%">
+<img src="https://www.npmjs.com/favicon.ico" width="48" height="48"/>
+<br><strong>NPM</strong>
+<br>
+<details>
+<summary>📦 Install</summary>
 
+**Global install:**
+```bash
+npm install -g alecs-mcp-server-akamai
+```
+
+**Verify:**
+```bash
+alecs --version
+```
 </details>
 </td>
 </tr>
@@ -236,14 +264,20 @@ Pick your favorite AI assistant and use the one-click installers above! 🚀
 
 | Service                 | Tools | Key Features                    |
 | ----------------------- | ----- | ------------------------------- |
-| **🏢 Property Manager** | 67    | CDN configs, rules, activations |
-| **🌐 Edge DNS**         | 40    | DNS zones, records, DNSSEC      |
-| **🔐 Certificates**     | 26    | SSL/TLS lifecycle management    |
-| **🛡️ Security**         | 29    | Network lists, WAF policies     |
-| **⚡ Fast Purge**       | 2     | Cache invalidation              |
-| **🔒 App Security**     | 11    | Security configurations         |
-| **📊 Reporting**        | 8     | Analytics and metrics           |
-| **🚨 SIEM**             | 1     | Security monitoring             |
+| **🏢 Property Manager** | 25    | CDN configs, rules, activations |
+| **🛡️ Security**         | 47    | Network lists, WAF policies     |
+| **🌐 Edge DNS**         | 12    | DNS zones, records, DNSSEC      |
+| **📋 Includes**         | 12    | Include configurations          |
+| **🔗 Edge Hostnames**   | 10    | Hostname management             |
+| **📊 Reporting**        | 10    | Analytics and metrics           |
+| **🔐 Certificates**     | 8     | SSL/TLS lifecycle management    |
+| **⚡ Fast Purge**       | 8     | Cache invalidation              |
+| **🔧 Workflow**         | 7     | Orchestration and automation    |
+| **🌐 Hostname Mgmt**    | 5     | Advanced hostname operations    |
+| **📦 Bulk Operations**  | 5     | Batch processing                |
+| **🚨 SIEM**             | 4     | Security monitoring             |
+| **🏗️ Rule Tree**        | 4     | Rule processing                 |
+| **📊 CPCode**           | 2     | Traffic analysis codes          |
 
 </div>
 

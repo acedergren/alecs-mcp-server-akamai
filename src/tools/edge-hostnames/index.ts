@@ -42,6 +42,25 @@ export const edgeHostnameTools = {
       consolidatedEdgeHostnameTools.listEdgeHostnames(args)
   },
 
+  'edge_hostname_search': {
+    description: 'Search edge hostnames by domain prefix, suffix, or certificate',
+    inputSchema: z.object({
+      searchTerm: z.string().optional(),
+      filters: z.object({
+        domainPrefix: z.string().optional(),
+        domainSuffix: z.string().optional(),
+        secureNetwork: z.enum(['ENHANCED_TLS', 'STANDARD_TLS', 'SHARED_CERT']).optional(),
+        hasCertificate: z.boolean().optional(),
+        productId: z.string().optional()
+      }).optional(),
+      limit: z.number().optional(),
+      offset: z.number().optional(),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedEdgeHostnameTools.searchEdgeHostnames(args)
+  },
+
   'edge_hostname_get': {
     description: 'Get edge hostname details',
     inputSchema: z.object({
@@ -51,6 +70,19 @@ export const edgeHostnameTools = {
     }),
     handler: async (args: any): Promise<MCPToolResponse> => 
       consolidatedEdgeHostnameTools.getEdgeHostname(args)
+  },
+
+  'edge_hostname_update': {
+    description: 'Update edge hostname configuration',
+    inputSchema: z.object({
+      edgeHostnameId: z.number(),
+      ipVersionBehavior: z.enum(['IPV4', 'IPV6_PERFORMANCE', 'IPV6_COMPLIANCE']).optional(),
+      certificateEnrollmentId: z.number().optional(),
+      comments: z.string().optional(),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedEdgeHostnameTools.updateEdgeHostname(args)
   },
 
   // Bulk operations
@@ -101,6 +133,17 @@ export const edgeHostnameTools = {
     }),
     handler: async (args: any): Promise<MCPToolResponse> => 
       consolidatedEdgeHostnameTools.generateEdgeHostnameRecommendations(args)
+  },
+
+  'edge_hostname_delete': {
+    description: 'Delete an edge hostname',
+    inputSchema: z.object({
+      edgeHostnameId: z.number(),
+      confirm: z.boolean().describe('Confirm deletion'),
+      customer: z.string().optional()
+    }),
+    handler: async (args: any): Promise<MCPToolResponse> => 
+      consolidatedEdgeHostnameTools.deleteEdgeHostname(args)
   }
 };
 
@@ -110,7 +153,10 @@ export const edgeHostnameTools = {
 export const {
   createEdgeHostname,
   listEdgeHostnames,
+  searchEdgeHostnames,
   getEdgeHostname,
+  updateEdgeHostname,
+  deleteEdgeHostname,
   createBulkEdgeHostnames,
   associateCertificateWithEdgeHostname,
   validateEdgeHostnameCertificate,
