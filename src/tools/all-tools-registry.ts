@@ -330,6 +330,23 @@ import {
   GetSecureMobiTenantSchema,
   UpdateSecureMobiTenantSchema,
   DeleteSecureMobiTenantSchema,
+  // Configuration Tools
+  getTenantConfiguration,
+  createTenantConfiguration,
+  updateTenantConfiguration,
+  deleteTenantConfiguration,
+  getTenantSystemConfiguration,
+  createTenantSystemConfiguration,
+  deleteTenantSystemConfiguration,
+  getTenantCustomConfiguration,
+  createTenantCustomConfiguration,
+  updateTenantCustomConfiguration,
+  deleteTenantCustomConfiguration,
+  // Configuration Schemas
+  GetTenantConfigurationSchema,
+  CreateTenantConfigurationSchema,
+  UpdateTenantConfigurationSchema,
+  DeleteTenantConfigurationSchema,
 } from './securemobi-tools';
 
 // Define stub handlers for elicitation tools
@@ -1888,7 +1905,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       handler: createToolHandler(handleRotateApiToken),
     },
 
-    // SecureMobi Tools (6 tools)
+    // SecureMobi Tools (16 tools)
     {
       name: 'securemobi-list-tenants',
       description: 'List all SecureMobi tenants',
@@ -1918,6 +1935,74 @@ export function getAllToolDefinitions(): ToolDefinition[] {
       description: 'Delete a SecureMobi tenant',
       schema: DeleteSecureMobiTenantSchema,
       handler: createToolHandler(deleteTenant),
+    },
+
+    // SecureMobi Configuration Tools (11 tools)
+    {
+      name: 'securemobi-get-tenant-configuration',
+      description: 'Get tenant configuration (system or custom)',
+      schema: GetTenantConfigurationSchema,
+      handler: createToolHandler(getTenantConfiguration),
+    },
+    {
+      name: 'securemobi-create-tenant-configuration',
+      description: 'Create tenant configuration with inheritance options',
+      schema: CreateTenantConfigurationSchema,
+      handler: createToolHandler(createTenantConfiguration),
+    },
+    {
+      name: 'securemobi-update-tenant-configuration',
+      description: 'Update tenant configuration with merge options',
+      schema: UpdateTenantConfigurationSchema,
+      handler: createToolHandler(updateTenantConfiguration),
+    },
+    {
+      name: 'securemobi-delete-tenant-configuration',
+      description: 'Delete tenant configuration (system or custom)',
+      schema: DeleteTenantConfigurationSchema,
+      handler: createToolHandler(deleteTenantConfiguration),
+    },
+    {
+      name: 'securemobi-get-tenant-system-configuration',
+      description: 'Get tenant system configuration',
+      schema: GetTenantConfigurationSchema,
+      handler: createToolHandler(getTenantSystemConfiguration),
+    },
+    {
+      name: 'securemobi-create-tenant-system-configuration',
+      description: 'Create tenant system configuration',
+      schema: CreateTenantConfigurationSchema,
+      handler: createToolHandler(createTenantSystemConfiguration),
+    },
+    {
+      name: 'securemobi-delete-tenant-system-configuration',
+      description: 'Delete tenant system configuration',
+      schema: DeleteTenantConfigurationSchema,
+      handler: createToolHandler(deleteTenantSystemConfiguration),
+    },
+    {
+      name: 'securemobi-get-tenant-custom-configuration',
+      description: 'Get tenant custom configuration',
+      schema: GetTenantConfigurationSchema,
+      handler: createToolHandler(getTenantCustomConfiguration),
+    },
+    {
+      name: 'securemobi-create-tenant-custom-configuration',
+      description: 'Create tenant custom configuration',
+      schema: CreateTenantConfigurationSchema,
+      handler: createToolHandler(createTenantCustomConfiguration),
+    },
+    {
+      name: 'securemobi-update-tenant-custom-configuration',
+      description: 'Update tenant custom configuration',
+      schema: UpdateTenantConfigurationSchema,
+      handler: createToolHandler(updateTenantCustomConfiguration),
+    },
+    {
+      name: 'securemobi-delete-tenant-custom-configuration',
+      description: 'Delete tenant custom configuration',
+      schema: DeleteTenantConfigurationSchema,
+      handler: createToolHandler(deleteTenantCustomConfiguration),
     },
   ];
 }

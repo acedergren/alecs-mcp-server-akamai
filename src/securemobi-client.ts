@@ -1,4 +1,12 @@
-import { AuthToken, Tenant, CreateTenantRequest, UpdateTenantRequest } from './types/securemobi-api';
+import { 
+  AuthToken, 
+  Tenant, 
+  CreateTenantRequest, 
+  UpdateTenantRequest,
+  TenantConfiguration,
+  CreateConfigurationRequest,
+  UpdateConfigurationRequest
+} from './types/securemobi-api';
 
 const SECUREMOBI_API_BASE = 'https://api.int.mo2c.eivasa.net/v2';
 
@@ -131,6 +139,140 @@ export class SecuremobiClient {
     return { success: true };
   }
 
-  // Add other methods for different Securemobi endpoints here.
-  // e.g., createZone, getZone, etc.
+  // TENANT CONFIGURATION METHODS
+
+  /**
+   * Get tenant configuration
+   * @param tenantId Optional tenant ID (uses current tenant if not provided)
+   * @param configType Optional configuration type filter
+   * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
+   */
+  async getTenantConfiguration(tenantId?: string, configType?: 'system' | 'custom', scopeTenantId?: string): Promise<TenantConfiguration> {
+    const endpoint = tenantId 
+      ? `/management/tenants/${tenantId}/configuration${configType ? `/${configType}` : ''}`
+      : `/management/tenants/configuration${configType ? `/${configType}` : ''}`;
+    
+    return this.makeRequest<TenantConfiguration>(endpoint, {}, scopeTenantId);
+  }
+
+  /**
+   * Create tenant configuration
+   * @param data Configuration creation data
+   * @param tenantId Optional tenant ID (uses current tenant if not provided)
+   * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
+   */
+  async createTenantConfiguration(data: CreateConfigurationRequest, tenantId?: string, scopeTenantId?: string): Promise<TenantConfiguration> {
+    const endpoint = tenantId 
+      ? `/management/tenants/${tenantId}/configuration`
+      : `/management/tenants/configuration`;
+
+    return this.makeRequest<TenantConfiguration>(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }, scopeTenantId);
+  }
+
+  /**
+   * Update tenant configuration
+   * @param data Configuration update data
+   * @param tenantId Optional tenant ID (uses current tenant if not provided)
+   * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
+   */
+  async updateTenantConfiguration(data: UpdateConfigurationRequest, tenantId?: string, scopeTenantId?: string): Promise<TenantConfiguration> {
+    const endpoint = tenantId 
+      ? `/management/tenants/${tenantId}/configuration`
+      : `/management/tenants/configuration`;
+
+    return this.makeRequest<TenantConfiguration>(endpoint, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }, scopeTenantId);
+  }
+
+  /**
+   * Delete tenant configuration
+   * @param tenantId Optional tenant ID (uses current tenant if not provided)
+   * @param configType Optional configuration type to delete
+   * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
+   */
+  async deleteTenantConfiguration(tenantId?: string, configType?: 'system' | 'custom', scopeTenantId?: string): Promise<{ success: boolean }> {
+    const endpoint = tenantId 
+      ? `/management/tenants/${tenantId}/configuration${configType ? `/${configType}` : ''}`
+      : `/management/tenants/configuration${configType ? `/${configType}` : ''}`;
+
+    await this.makeRequest(endpoint, { method: 'DELETE' }, scopeTenantId);
+    return { success: true };
+  }
+
+  // SYSTEM CONFIGURATION METHODS
+
+  /**
+   * Get tenant system configuration
+   * @param tenantId Optional tenant ID (uses current tenant if not provided)
+   * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
+   */
+  async getTenantSystemConfiguration(tenantId?: string, scopeTenantId?: string): Promise<TenantConfiguration> {
+    return this.getTenantConfiguration(tenantId, 'system', scopeTenantId);
+  }
+
+  /**
+   * Create tenant system configuration
+   * @param data Configuration creation data
+   * @param tenantId Optional tenant ID (uses current tenant if not provided)
+   * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
+   */
+  async createTenantSystemConfiguration(data: CreateConfigurationRequest, tenantId?: string, scopeTenantId?: string): Promise<TenantConfiguration> {
+    const configData = { ...data, configType: 'system' as const };
+    return this.createTenantConfiguration(configData, tenantId, scopeTenantId);
+  }
+
+  /**
+   * Delete tenant system configuration
+   * @param tenantId Optional tenant ID (uses current tenant if not provided)
+   * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
+   */
+  async deleteTenantSystemConfiguration(tenantId?: string, scopeTenantId?: string): Promise<{ success: boolean }> {
+    return this.deleteTenantConfiguration(tenantId, 'system', scopeTenantId);
+  }
+
+  // CUSTOM CONFIGURATION METHODS
+
+  /**
+   * Get tenant custom configuration
+   * @param tenantId Optional tenant ID (uses current tenant if not provided)
+   * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
+   */
+  async getTenantCustomConfiguration(tenantId?: string, scopeTenantId?: string): Promise<TenantConfiguration> {
+    return this.getTenantConfiguration(tenantId, 'custom', scopeTenantId);
+  }
+
+  /**
+   * Create tenant custom configuration
+   * @param data Configuration creation data
+   * @param tenantId Optional tenant ID (uses current tenant if not provided)
+   * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
+   */
+  async createTenantCustomConfiguration(data: CreateConfigurationRequest, tenantId?: string, scopeTenantId?: string): Promise<TenantConfiguration> {
+    const configData = { ...data, configType: 'custom' as const };
+    return this.createTenantConfiguration(configData, tenantId, scopeTenantId);
+  }
+
+  /**
+   * Update tenant custom configuration
+   * @param data Configuration update data
+   * @param tenantId Optional tenant ID (uses current tenant if not provided)
+   * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
+   */
+  async updateTenantCustomConfiguration(data: UpdateConfigurationRequest, tenantId?: string, scopeTenantId?: string): Promise<TenantConfiguration> {
+    return this.updateTenantConfiguration(data, tenantId, scopeTenantId);
+  }
+
+  /**
+   * Delete tenant custom configuration
+   * @param tenantId Optional tenant ID (uses current tenant if not provided)
+   * @param scopeTenantId Optional tenant ID to scope the request via X-Tenant-Id header
+   */
+  async deleteTenantCustomConfiguration(tenantId?: string, scopeTenantId?: string): Promise<{ success: boolean }> {
+    return this.deleteTenantConfiguration(tenantId, 'custom', scopeTenantId);
+  }
 } 
