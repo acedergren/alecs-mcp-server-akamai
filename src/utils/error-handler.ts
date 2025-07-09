@@ -74,11 +74,11 @@ export class ToolErrorHandler {
       timestamp,
       debugInfo,
       stack: error instanceof Error ? error.stack : undefined,
-      environment: process.env.NODE_ENV,
+      environment: process.env['NODE_ENV'],
     }, `${this.context.tool} operation failed: ${this.context.operation}`);
 
     // Development mode enhanced logging
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env['NODE_ENV'] === 'development') {
       this.logDevelopmentInfo(error, debugInfo);
     }
 
@@ -127,12 +127,12 @@ export class ToolErrorHandler {
    */
   private logDevelopmentInfo(error: unknown, debugInfo: Record<string, any>): void {
     console.error('\n[DEVELOPMENT DEBUG INFO]:');
-    console.error('• Error Type:', debugInfo.errorType);
-    console.error('• Has Response:', debugInfo.hasResponse);
-    console.error('• Has Akamai Error:', debugInfo.hasAkamaiError);
+    console.error('• Error Type:', debugInfo['errorType']);
+    console.error('• Has Response:', debugInfo['hasResponse']);
+    console.error('• Has Akamai Error:', debugInfo['hasAkamaiError']);
     
-    if (debugInfo.method && debugInfo.url) {
-      console.error(`• Request: ${debugInfo.method} ${debugInfo.url}`);
+    if (debugInfo['method'] && debugInfo['url']) {
+      console.error(`• Request: ${debugInfo['method']} ${debugInfo['url']}`);
     }
     
     // Log stack trace in development
@@ -398,10 +398,10 @@ export class ToolErrorHandler {
     }
     
     // Request details in development mode
-    if (process.env.NODE_ENV === 'development' && (debugInfo.method || debugInfo.url)) {
+    if (process.env['NODE_ENV'] === 'development' && (debugInfo['method'] || debugInfo['url'])) {
       text += '\n**🔍 Debug Information:**\n';
-      text += `• Request: ${debugInfo.method || 'N/A'} ${debugInfo.url || 'N/A'}\n`;
-      text += `• Error Type: ${debugInfo.errorType}\n`;
+      text += `• Request: ${debugInfo['method'] || 'N/A'} ${debugInfo['url'] || 'N/A'}\n`;
+      text += `• Error Type: ${debugInfo['errorType']}\n`;
     }
     
     // Request ID for support
@@ -414,10 +414,10 @@ export class ToolErrorHandler {
     
     // Actionable next steps
     text += '\n**💡 Suggested Actions:**\n';
-    text += this.getSuggestedActions(statusCode, error);
+    text += this.getSuggestedActions(statusCode);
     
     // Quick fix commands if applicable
-    const quickFixes = this.getQuickFixCommands(statusCode, error);
+    const quickFixes = this.getQuickFixCommands(statusCode);
     if (quickFixes.length > 0) {
       text += '\n**🛠️ Quick Fix Commands:**\n';
       quickFixes.forEach(fix => {
@@ -436,8 +436,7 @@ export class ToolErrorHandler {
           type: 'text',
           text,
         },
-      ],
-      isError: true,
+      ]
     };
   }
 
@@ -462,7 +461,7 @@ export class ToolErrorHandler {
   /**
    * Get CPS-specific guidance based on operation
    */
-  private getCPSSpecificGuidance(): string {
+  getCPSSpecificGuidance(): string {
     const { operation } = this.context;
     let guidance = '';
 
@@ -563,7 +562,7 @@ export class ToolErrorHandler {
   /**
    * Get suggested actions based on error
    */
-  private getSuggestedActions(statusCode: number | undefined, error: unknown): string {
+  private getSuggestedActions(statusCode: number | undefined): string {
     const actions: string[] = [];
     
     // Status code specific actions
@@ -613,7 +612,7 @@ export class ToolErrorHandler {
   /**
    * Get quick fix commands
    */
-  private getQuickFixCommands(statusCode: number | undefined, error: unknown): Array<{command: string, description: string}> {
+  private getQuickFixCommands(statusCode: number | undefined): Array<{command: string, description: string}> {
     const fixes: Array<{command: string, description: string}> = [];
     
     if (statusCode === 401) {

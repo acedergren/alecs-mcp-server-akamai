@@ -1,18 +1,46 @@
 version: '3.8'
 
-# Example docker-compose for stdio transport (Claude Desktop)
+# STDIO Transport Configuration
+# For Claude Desktop and CLI integration
 services:
   alecs-stdio:
     build:
       context: .
-      dockerfile: build/docker/Dockerfile
-    container_name: alecs-mcp-server-stdio
+      dockerfile: Dockerfile
+    container_name: alecs-mcp-stdio
     environment:
+      # Transport configuration
       - NODE_ENV=production
       - MCP_TRANSPORT=stdio
+      
+      # Akamai configuration
+      - EDGERC_PATH=/root/.edgerc
+      - AKAMAI_CUSTOMER=${AKAMAI_CUSTOMER:-default}
+      
+      # Logging (stderr only for stdio)
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_FORMAT=json
+      
     volumes:
       - ~/.edgerc:/root/.edgerc:ro
       - ./logs:/app/logs
+      - ./data:/app/data
+      
+    # Required for stdio transport
     stdin_open: true
     tty: true
+    
+    # No healthcheck needed for stdio
+    # Process monitoring handled by Claude Desktop
+    
     restart: unless-stopped
+    
+    # Resource limits for desktop usage
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M

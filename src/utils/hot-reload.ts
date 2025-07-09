@@ -8,10 +8,10 @@
  */
 
 import { watch } from 'fs';
-import { join, relative } from 'path';
+import { join } from 'path';
 import { spawn, ChildProcess } from 'child_process';
 import { createLogger } from './pino-logger';
-import { clearModule } from 'clear-module';
+import clearModule from 'clear-module';
 
 const logger = createLogger('hot-reload');
 
@@ -61,9 +61,9 @@ export class HotReloadManager {
 
   constructor(config: HotReloadConfig) {
     this.config = {
-      debounceMs: 500,
-      extensions: ['.ts', '.js', '.json'],
-      ...config
+      ...config,
+      debounceMs: config.debounceMs || 500,
+      extensions: config.extensions || ['.ts', '.js', '.json']
     };
     
     // Handle process termination
@@ -94,7 +94,7 @@ export class HotReloadManager {
       const watcher = watch(
         dir,
         { recursive: true },
-        (eventType, filename) => {
+        (_eventType, filename) => {
           if (filename && this.shouldReload(filename)) {
             this.scheduleRestart(filename);
           }
@@ -229,14 +229,19 @@ export class HotReloadManager {
         }
       }, 5000);
       
-      this.currentProcess.once('exit', () => {
+      if (this.currentProcess) {
+        this.currentProcess.once('exit', () => {
+          clearTimeout(killTimer);
+          this.currentProcess = null;
+          resolve();
+        });
+        
+        // Try graceful shutdown first
+        this.currentProcess.kill('SIGTERM');
+      } else {
         clearTimeout(killTimer);
-        this.currentProcess = null;
         resolve();
-      });
-      
-      // Try graceful shutdown first
-      this.currentProcess.kill('SIGTERM');
+      }
     });
   }
 

@@ -18,6 +18,7 @@
 import { Command } from 'commander';
 import { generateDomain } from './generators/domain-generator';
 import { generateTool } from './generators/tool-generator';
+import { TestGenerator, generateDomainTestSuite } from './generators/test-generator';
 import { listTemplates } from './generators/template-manager';
 import { createLogger } from '../utils/pino-logger';
 
@@ -68,6 +69,32 @@ generateCommand
       logger.info('Tool generated successfully');
     } catch (error) {
       logger.error({ error }, 'Failed to generate tool');
+      process.exit(1);
+    }
+  });
+
+// Generate tests subcommand
+generateCommand
+  .command('test <domain> [tool]')
+  .description('Generate tests for domain or specific tool')
+  .option('--dry-run', 'Show what would be generated without creating files')
+  .action(async (domain: string, tool: string | undefined, options: any) => {
+    try {
+      if (tool) {
+        logger.info({ domain, tool }, 'Generating tool test');
+        const generator = new TestGenerator();
+        await generator.generateToolTest({
+          domainName: domain,
+          toolName: tool,
+          dryRun: options.dryRun
+        });
+      } else {
+        logger.info({ domain }, 'Generating domain test suite');
+        await generateDomainTestSuite(domain, options);
+      }
+      logger.info('Tests generated successfully');
+    } catch (error) {
+      logger.error({ error }, 'Failed to generate tests');
       process.exit(1);
     }
   });

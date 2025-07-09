@@ -1,0 +1,180 @@
+version: '3.8'
+
+# Production-ready multi-transport deployment
+# Includes reverse proxy, monitoring, and auto-scaling
+
+services:
+  # Reverse proxy for HTTP/WebSocket routing
+  traefik:
+    image: traefik:v3.0
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    networks:
+      - alecs-network
+
+  # Streamable HTTP service (primary)
+  alecs-http:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - MCP_TRANSPORT=streamable-http
+      - HTTP_PORT=8080
+      - HTTP_HOST=0.0.0.0
+      - HTTP_PATH=/mcp
+      - CORS_ENABLED=true
+      - AUTH_TYPE=${AUTH_TYPE:-token}
+      - TOKEN_MASTER_KEY=${TOKEN_MASTER_KEY}
+      - EDGERC_PATH=/root/.edgerc
+      - AKAMAI_CUSTOMER=${AKAMAI_CUSTOMER:-default}
+      - LOG_LEVEL=info
+      - ENABLE_METRICS=true
+      - METRICS_PORT=9090
+    volumes:
+      - ~/.edgerc:/root/.edgerc:ro
+      - ./logs/http:/app/logs
+      - ./data:/app/data:rw
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.alecs-http.rule=Host(`${HTTP_DOMAIN}`)"
+      - "traefik.http.routers.alecs-http.entrypoints=websecure"
+      - "traefik.http.routers.alecs-http.tls.certresolver=letsencrypt"
+      - "traefik.http.services.alecs-http.loadbalancer.server.port=8080"
+      - "traefik.http.services.alecs-http.loadbalancer.healthcheck.path=/mcp/health"
+      - "traefik.http.services.alecs-http.loadbalancer.healthcheck.interval=10s"
+    deploy:
+      replicas: ${HTTP_REPLICAS:-2}
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/mcp/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - alecs-network
+
+  # WebSocket service
+  alecs-websocket:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - MCP_TRANSPORT=websocket
+      - WS_PORT=8082
+      - WS_HOST=0.0.0.0
+      - WS_PATH=/mcp
+      - AUTH_TYPE=token
+      - TOKEN_MASTER_KEY=${TOKEN_MASTER_KEY}
+      - EDGERC_PATH=/root/.edgerc
+      - AKAMAI_CUSTOMER=${AKAMAI_CUSTOMER:-default}
+      - LOG_LEVEL=info
+    volumes:
+      - ~/.edgerc:/root/.edgerc:ro
+      - ./logs/websocket:/app/logs
+      - ./data:/app/data:rw
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.alecs-ws.rule=Host(`${WS_DOMAIN}`) && PathPrefix(`/ws`)"
+      - "traefik.http.routers.alecs-ws.entrypoints=websecure"
+      - "traefik.http.routers.alecs-ws.tls.certresolver=letsencrypt"
+      - "traefik.http.services.alecs-ws.loadbalancer.server.port=8082"
+    deploy:
+      replicas: ${WS_REPLICAS:-1}
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    networks:
+      - alecs-network
+
+  # Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    networks:
+      - alecs-network
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - "3000:3000"
+    networks:
+      - alecs-network
+
+  # Log aggregation with Loki
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki-data:/loki
+    networks:
+      - alecs-network
+
+  # Log shipper
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - ./logs:/var/log/alecs:ro
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - alecs-network
+
+networks:
+  alecs-network:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  loki-data:

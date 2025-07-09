@@ -1,0 +1,64 @@
+version: '3.8'
+
+# Development configuration with hot-reload and debugging
+services:
+  alecs-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder  # Use builder stage for development
+    container_name: alecs-mcp-dev
+    ports:
+      - '${HTTP_PORT:-8080}:8080'  # Streamable HTTP
+      - '${WS_PORT:-8082}:8082'    # WebSocket
+      - '9229:9229'                # Node.js debugging port
+    environment:
+      # Development environment
+      - NODE_ENV=development
+      - MCP_TRANSPORT=${MCP_TRANSPORT:-streamable-http}
+      
+      # Transport settings
+      - HTTP_PORT=${HTTP_PORT:-8080}
+      - HTTP_HOST=0.0.0.0
+      - HTTP_PATH=/mcp
+      - CORS_ENABLED=true
+      - AUTH_TYPE=none
+      
+      # Akamai configuration
+      - EDGERC_PATH=/root/.edgerc
+      - AKAMAI_CUSTOMER=${AKAMAI_CUSTOMER:-testing}
+      
+      # Development features
+      - LOG_LEVEL=debug
+      - LOG_FORMAT=pretty
+      - DEBUG=*
+      - ENABLE_HOT_RELOAD=true
+      - VERBOSE_ERRORS=true
+      
+    volumes:
+      - ~/.edgerc:/root/.edgerc:ro
+      - ./src:/app/src:ro               # Source code for hot-reload
+      - ./dist:/app/dist                # Built files
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./package.json:/app/package.json:ro
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      
+    # Override command for development with watch mode
+    command: ["npm", "run", "dev"]
+    
+    # No health check in dev mode - we'll see errors directly
+    
+    stdin_open: true
+    tty: true
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 2G
+
+# Development network with DNS for service discovery
+networks:
+  default:
+    name: alecs-dev-network

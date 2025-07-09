@@ -1,16 +1,17 @@
 version: '3.8'
 
+# Default configuration with Streamable HTTP transport
+# For other transports, use: docker-compose -f docker-compose.<transport>.yml up
 services:
   alecs:
     build:
       context: .
-      dockerfile: build/docker/Dockerfile
+      dockerfile: Dockerfile
     container_name: alecs-mcp-server
     ports:
-      - '8080:8080' # HTTP Transport (default for web/CDN)
-      - '8082:8082' # WebSocket Transport
-      - '3013:3013' # SSE Transport (legacy)
+      - '${HTTP_PORT:-8080}:8080' # Streamable HTTP Transport (default)
     environment:
+      # Transport configuration
       - NODE_ENV=production
       - MCP_TRANSPORT=${MCP_TRANSPORT:-streamable-http}
       - HTTP_PORT=${HTTP_PORT:-8080}
@@ -18,13 +19,25 @@ services:
       - HTTP_PATH=${HTTP_PATH:-/mcp}
       - CORS_ENABLED=${CORS_ENABLED:-true}
       - AUTH_TYPE=${AUTH_TYPE:-none}
-      - TOKEN_MASTER_KEY=${TOKEN_MASTER_KEY:-development-key}
+      
+      # Akamai configuration
+      - EDGERC_PATH=/root/.edgerc
+      - AKAMAI_CUSTOMER=${AKAMAI_CUSTOMER:-default}
+      
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      
     volumes:
+      - ~/.edgerc:/root/.edgerc:ro
       - ./data:/app/data
       - ./logs:/app/logs
+      
     restart: unless-stopped
+    
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:8080/mcp/health']
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8080/mcp/health']
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s

@@ -27,7 +27,7 @@ const logger = createLogger('cli-parser');
 
 export interface CLIConfig {
   section?: string;
-  transport?: 'stdio' | 'sse' | 'websocket';
+  transport?: 'stdio' | 'sse' | 'websocket' | 'streamable-http';
   help?: boolean;
   version?: boolean;
   debug?: boolean;
@@ -59,12 +59,12 @@ export function parseArguments(args: string[] = process.argv.slice(2)): CLIConfi
       case '--transport':
       case '-t':
         if (!nextArg || nextArg.startsWith('-')) {
-          throw new Error('--transport requires a value (stdio|sse|websocket)');
+          throw new Error('--transport requires a value (stdio|sse|websocket|streamable-http)');
         }
-        if (!['stdio', 'sse', 'websocket'].includes(nextArg)) {
-          throw new Error(`Invalid transport: ${nextArg}. Must be stdio, sse, or websocket`);
+        if (!['stdio', 'sse', 'websocket', 'streamable-http'].includes(nextArg)) {
+          throw new Error(`Invalid transport: ${nextArg}. Must be stdio, sse, websocket, or streamable-http`);
         }
-        config.transport = nextArg as 'stdio' | 'sse' | 'websocket';
+        config.transport = nextArg as 'stdio' | 'sse' | 'websocket' | 'streamable-http';
         i++;
         break;
         
@@ -153,9 +153,10 @@ export function displayHelp(): void {
                                
   🔧 SERVER CONFIGURATION:
     -t, --transport <TYPE>      MCP transport type (default: stdio)
-                               stdio:     AI assistants (Cursor, Claude Code)
-                               websocket: Advanced bidirectional communication
-                               sse:       Server-Sent Events for web clients
+                               stdio:           AI assistants (Claude CLI, Cursor)
+                               streamable-http: Modern HTTP streaming (recommended)
+                               websocket:       Bidirectional real-time communication
+                               sse:             Server-Sent Events (legacy)
                                
     -m, --module <MODULE>       Run specific service module only
                                property:  CDN configuration (9 tools)
@@ -179,13 +180,13 @@ export function displayHelp(): void {
   # Cursor IDE Integration
   alecs --section staging-client --debug
   
-  # Claude Code with specific domain
+  # Claude CLI with specific domain
   alecs --section prod-acme --module property
   
-  # Gemini CLI with full logging
-  alecs --section testing --log-level debug
+  # Modern HTTP streaming
+  alecs --section testing --transport streamable-http
   
-  # WebSocket for advanced tools
+  # WebSocket for real-time tools
   alecs --section enterprise --transport websocket --port 8080
 
 🏢 MULTI-SECTION SETUP (.edgerc):
@@ -272,6 +273,21 @@ export function applyConfiguration(config: CLIConfig): void {
   if (config.transport) {
     process.env['MCP_TRANSPORT'] = config.transport;
     logger.info({ transport: config.transport }, 'Using MCP transport');
+    
+    // Set appropriate port defaults for each transport
+    if (!config.port) {
+      switch (config.transport) {
+        case 'websocket':
+          process.env['WS_PORT'] = process.env['WS_PORT'] || '8080';
+          break;
+        case 'sse':
+          process.env['SSE_PORT'] = process.env['SSE_PORT'] || '3001';
+          break;
+        case 'streamable-http':
+          process.env['HTTP_PORT'] = process.env['HTTP_PORT'] || '8080';
+          break;
+      }
+    }
   }
   
   // Set debug and logging
@@ -321,9 +337,15 @@ export function validateConfiguration(config: CLIConfig): void {
   }
   
   // Validate transport and port combination
-  if (config.transport !== 'stdio' && !config.port) {
-    logger.info({ transport: config.transport }, 'No port specified, using default 3000');
-    config.port = 3000;
+  if (config.transport && config.transport !== 'stdio' && !config.port) {
+    const defaultPorts: Record<string, number> = {
+      'websocket': 8080,
+      'sse': 3001,
+      'streamable-http': 8080
+    };
+    const defaultPort = defaultPorts[config.transport] || 3000;
+    logger.info({ transport: config.transport, port: defaultPort }, 'No port specified, using default');
+    config.port = defaultPort;
   }
 }
 

@@ -336,7 +336,7 @@ export function formatDiagnosticMessage(result: DiagnosticResult): string {
   message += `**Technical Details:**\n${result.technicalDetails}\n\n`;
   
   // Debug info in development mode
-  if (process.env.NODE_ENV === 'development' && result.debugInfo) {
+  if (process.env['NODE_ENV'] === 'development' && result.debugInfo) {
     message += `**🔍 Debug Information:**\n`;
     if (result.debugInfo.requestMethod && result.debugInfo.requestUrl) {
       message += `• Request: ${result.debugInfo.requestMethod} ${result.debugInfo.requestUrl}\n`;

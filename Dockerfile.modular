@@ -39,6 +39,8 @@ COPY --from=builder /app/dist/auth ./dist/auth
 COPY --from=builder /app/dist/middleware ./dist/middleware
 COPY --from=builder /app/dist/core ./dist/core
 COPY --from=builder /app/dist/services ./dist/services
+COPY --from=builder /app/dist/transport ./dist/transport
+COPY --from=builder /app/dist/config ./dist/config
 
 # Copy PM2 config for modular servers
 COPY ecosystem.modular.config.js ./

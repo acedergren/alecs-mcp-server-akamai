@@ -1,0 +1,55 @@
+version: '3.8'
+
+# WebSocket Transport Configuration
+# For real-time bidirectional communication
+services:
+  alecs-websocket:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: alecs-mcp-websocket
+    ports:
+      - '${WS_PORT:-8082}:8082'
+    environment:
+      # Transport configuration
+      - NODE_ENV=production
+      - MCP_TRANSPORT=websocket
+      - WS_PORT=8082
+      - WS_HOST=0.0.0.0
+      - WS_PATH=/mcp
+      - AUTH_TYPE=${AUTH_TYPE:-token}
+      - SSL_ENABLED=${SSL_ENABLED:-false}
+      
+      # Akamai configuration
+      - EDGERC_PATH=/root/.edgerc
+      - AKAMAI_CUSTOMER=${AKAMAI_CUSTOMER:-default}
+      
+      # Security
+      - TOKEN_MASTER_KEY=${TOKEN_MASTER_KEY}
+      - REQUIRE_AUTHENTICATION=true
+      
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      
+    volumes:
+      - ~/.edgerc:/root/.edgerc:ro
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./certs:/app/certs:ro  # For SSL certificates if needed
+      
+    healthcheck:
+      test: ['CMD', 'node', '-e', "require('net').createConnection(8082, 'localhost').on('connect', function() { this.end(); process.exit(0); }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      
+    restart: unless-stopped
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
