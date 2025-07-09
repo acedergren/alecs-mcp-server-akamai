@@ -55,15 +55,15 @@ export function isValidCIDR(cidr: string): boolean {
   }
   
   const [ip, prefix] = parts;
-  const prefixNum = parseInt(prefix, 10);
+  const prefixNum = parseInt(prefix!, 10);
   
   // Check if IP is valid
-  if (!isValidIPAddress(ip)) {
+  if (!isValidIPAddress(ip!)) {
     return false;
   }
   
   // Check prefix range
-  const isIPv4 = ip.includes('.');
+  const isIPv4 = ip?.includes('.') ?? false;
   const maxPrefix = isIPv4 ? 32 : 128;
   
   return !isNaN(prefixNum) && prefixNum >= 0 && prefixNum <= maxPrefix;
@@ -217,7 +217,7 @@ export class ValidationError extends Error {
 export function validateBatch<T>(
   items: T[],
   validator: (item: T) => boolean,
-  itemName: string
+  _itemName: string
 ): { valid: T[]; invalid: T[] } {
   const valid: T[] = [];
   const invalid: T[] = [];

@@ -163,14 +163,14 @@ export async function executeWithTimeout<T>(
     ]);
   } catch (error: unknown) {
     // Enhance timeout errors with context
-    if (error.message?.includes('timed out')) {
+    if ((error as any).message?.includes('timed out')) {
       throw new ToolError({
         operation: options.operationName,
         toolName: options.toolName,
         args: options.context || {},
-        customer: options.context?.customer,
-        propertyId: options.context?.['propertyId'],
-        originalError: error,
+        customer: options.context?.['customer'] as string | undefined,
+        propertyId: options.context?.['propertyId'] as string | undefined,
+        originalError: error as Error,
         suggestion: `Operation exceeded ${timeout / 1000}s timeout. ${getTimeoutSuggestion(options.operationType)}`
       });
     }
@@ -222,8 +222,8 @@ export async function retryWithBackoff<T>(
     backoffFactor = 2,
     shouldRetry = (error) => {
       // Retry on timeout and 5xx errors
-      return error.message?.includes('timed out') ||
-             error.response?.status >= 500;
+      return (error as any).message?.includes('timed out') ||
+             (error as any).response?.status >= 500;
     }
   } = options;
   

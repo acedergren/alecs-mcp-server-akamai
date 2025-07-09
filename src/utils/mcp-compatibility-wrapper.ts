@@ -66,7 +66,7 @@ export class MCPCompatibilityWrapper {
    * Detects client protocol version from initialize request
    */
   detectProtocolVersion(initializeParams: unknown): string {
-    const version = initializeParams?.protocolVersion || '2024-11-05';
+    const version = (initializeParams as any)?.protocolVersion || '2024-11-05';
     logger.info(`Detected client protocol version: ${version}`);
     this.protocolVersion = version;
     return version;
@@ -147,11 +147,11 @@ export class MCPCompatibilityWrapper {
     // Legacy protocol expects simpler schema format
     if (this.protocolVersion === '2024-11-05') {
       // Ensure we have a valid JSON Schema
-      if (schema.type === 'object') {
+      if ((schema as any).type === 'object') {
         return {
           type: 'object',
-          properties: schema.properties || {},
-          required: schema.required || [],
+          properties: (schema as any).properties || {},
+          required: (schema as any).required || [],
           additionalProperties: false
         };
       }
@@ -190,7 +190,7 @@ export class MCPCompatibilityWrapper {
     });
 
     // Wrap CallTool handler for response compatibility
-    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    this.server.setRequestHandler(CallToolRequestSchema, async (request, _extra) => {
       const { name, arguments: args } = request.params;
       
       const tool = tools.get(name);
@@ -211,10 +211,10 @@ export class MCPCompatibilityWrapper {
       const client = new AkamaiClient(customerName);
       
       // Use wrapped handler for compatibility
-      const wrappedHandler = this.wrapToolHandler(tool.handler);
+      const wrappedHandler = this.wrapToolHandler(tool.handler as (client: unknown, params: unknown) => Promise<MCPToolResponse>);
       const response = await wrappedHandler(client, args || {});
       
-      return response;
+      return { content: [{ type: 'text', text: JSON.stringify(response) }] };
     });
   }
 
@@ -236,7 +236,7 @@ export function createCompatibleMCPServer(
   zodToJsonSchema: (schema: unknown) => any
 ): { server: Server; wrapper: MCPCompatibilityWrapper } {
   const server = new Server(
-    serverConfig,
+    serverConfig as { [x: string]: unknown; version: string; name: string; title?: string | undefined; },
     {
       capabilities: {
         tools: {}

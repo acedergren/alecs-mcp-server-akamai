@@ -167,10 +167,10 @@ export class CertificateValidationMonitor extends EventEmitter {
         return false;
       }
 
-      const data: unknown = await response.json();
+      const data: any = await response.json();
       const answers = data.Answer || [];
 
-      return answers.some((answer: unknown) => answer.data?.includes(expectedValue));
+      return answers.some((answer: any) => answer.data?.includes(expectedValue));
     } catch (_error) {
       console.error('[Error]:', _error);
       return false;
@@ -219,7 +219,7 @@ export class CertificateValidationMonitor extends EventEmitter {
     });
 
     const validatedResponse = validateApiResponse<{ allowedDomains?: Array<{ name: string }> }>(response);
-    return validatedResponse.allowedDomains?.map((d: unknown) => d.name) || [];
+    return validatedResponse.allowedDomains?.map((d: any) => d.name) || [];
   }
 
   private async checkValidationStatus(enrollmentId: number): Promise<boolean> {

@@ -4,8 +4,8 @@
 
 ### Published on NPM Registry
 - **Package**: `alecs-mcp-server-akamai`
-- **Latest Version**: 1.7.3
-- **Published Versions**: 1.7.0, 1.7.1, 1.7.2, 1.7.3
+- **Latest Version**: 1.7.4
+- **Published Versions**: 1.7.0, 1.7.1, 1.7.2, 1.7.3, 1.7.4
 - **Install**: `npm install -g alecs-mcp-server-akamai`
 
 ### Missing Historical Versions

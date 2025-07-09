@@ -214,17 +214,17 @@ function calculateTreeStats(nodes: TreeNode[], level = 0): TreeStats {
 export function formatPropertyNode(property: unknown, showDetails = true): TreeNode {
   const node: TreeNode = {
     type: 'property',
-    id: property.propertyId,
-    name: property.propertyName,
+    id: (property as any).propertyId,
+    name: (property as any).propertyName,
     metadata: {},
   };
 
   if (showDetails) {
     node.metadata = {
-      version: property.latestVersion || property.version,
-      status: property.productionStatus === 'ACTIVE' ? 'Active' : 'Inactive',
-      staging: property.stagingStatus,
-      production: property.productionStatus,
+      version: (property as any).latestVersion || (property as any).version,
+      status: (property as any).productionStatus === 'ACTIVE' ? 'Active' : 'Inactive',
+      staging: (property as any).stagingStatus,
+      production: (property as any).productionStatus,
     };
   }
 
@@ -241,8 +241,8 @@ export function formatGroupNode(
 ): TreeNode {
   const node: TreeNode = {
     type: 'group',
-    id: group.groupId,
-    name: group.groupName,
+    id: (group as any).groupId,
+    name: (group as any).groupName,
     metadata: {
       propertyCount: properties.length,
     },
@@ -256,7 +256,7 @@ export function formatGroupNode(
 
   // Then add child groups
   if (childGroups.length > 0) {
-    node.children!.push(...childGroups);
+    node.children!.push(...(childGroups as TreeNode[]));
   }
 
   return node;

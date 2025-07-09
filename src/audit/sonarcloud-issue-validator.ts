@@ -119,7 +119,7 @@ export class SonarCloudIssueValidator {
           line: issue.line,
         },
         status: validation.exists ? 'STILL_EXISTS' : 'FIXED',
-        details: validation.details,
+        details: validation.details as { suggestion?: string; currentContent?: string; expectedPattern?: string; } | undefined,
       };
     } catch (_error) {
       // File not found

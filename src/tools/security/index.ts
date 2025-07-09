@@ -15,7 +15,7 @@ import { type MCPToolResponse } from '../../types';
  */
 export const securityTools = {
   // Network List operations
-  'security.network-lists.list': {
+  'security_network_lists_list': {
     description: 'List all network lists',
     inputSchema: z.object({
       type: z.string().optional(),
@@ -30,7 +30,7 @@ export const securityTools = {
       consolidatedSecurityTools.listNetworkLists(args)
   },
 
-  'security.network-list.get': {
+  'security_network_list_get': {
     description: 'Get network list details',
     inputSchema: z.object({
       networkListId: z.string(),
@@ -41,7 +41,7 @@ export const securityTools = {
       consolidatedSecurityTools.getNetworkList(args)
   },
 
-  'security.network-list.create': {
+  'security_network_list_create': {
     description: 'Create a new network list',
     inputSchema: z.object({
       name: z.string(),
@@ -56,7 +56,7 @@ export const securityTools = {
       consolidatedSecurityTools.createNetworkList(args)
   },
 
-  'security.network-list.update': {
+  'security_network_list_update': {
     description: 'Update network list elements',
     inputSchema: z.object({
       networkListId: z.string(),
@@ -69,7 +69,7 @@ export const securityTools = {
       consolidatedSecurityTools.updateNetworkList(args)
   },
 
-  'security.network-list.activate': {
+  'security_network_list_activate': {
     description: 'Activate network list to staging or production',
     inputSchema: z.object({
       networkListId: z.string(),
@@ -82,7 +82,7 @@ export const securityTools = {
       consolidatedSecurityTools.activateNetworkList(args)
   },
 
-  'security.network-list.activation-status': {
+  'security_network_list_activation_status': {
     description: 'Get network list activation status',
     inputSchema: z.object({
       networkListId: z.string(),
@@ -94,7 +94,7 @@ export const securityTools = {
   },
 
   // Geographic and ASN operations
-  'security.geo.validate': {
+  'security_geo_validate': {
     description: 'Validate geographic codes',
     inputSchema: z.object({
       codes: z.array(z.string()),
@@ -104,7 +104,7 @@ export const securityTools = {
       consolidatedSecurityTools.validateGeographicCodes(args)
   },
 
-  'security.asn.info': {
+  'security_asn_info': {
     description: 'Get ASN information',
     inputSchema: z.object({
       asns: z.array(z.number()),
@@ -115,7 +115,7 @@ export const securityTools = {
   },
 
   // AppSec operations
-  'security.appsec.list': {
+  'security_appsec_list': {
     description: 'List Application Security configurations',
     inputSchema: z.object({
       contractId: z.string().optional(),
@@ -126,7 +126,7 @@ export const securityTools = {
       consolidatedSecurityTools.listAppSecConfigurations(args)
   },
 
-  'security.waf.create': {
+  'security_waf_create': {
     description: 'Create a new WAF policy',
     inputSchema: z.object({
       configId: z.number(),

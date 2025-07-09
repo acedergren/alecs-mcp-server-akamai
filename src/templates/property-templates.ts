@@ -918,16 +918,16 @@ export function validateTemplateInputs(
 
       if (input.validation.pattern) {
         const regex = new RegExp(input.validation.pattern);
-        if (!regex.test(value)) {
+        if (!regex.test(String(value))) {
           errors.push(`Invalid format for ${input.label}`);
         }
       }
 
       if (input.type === 'number') {
-        if (input.validation.min !== undefined && value < input.validation.min) {
+        if (input.validation.min !== undefined && (value as any) < input.validation.min) {
           errors.push(`${input.label} must be at least ${input.validation.min}`);
         }
-        if (input.validation.max !== undefined && value > input.validation.max) {
+        if (input.validation.max !== undefined && (value as any) > input.validation.max) {
           errors.push(`${input.label} must be at most ${input.validation.max}`);
         }
       }
@@ -978,7 +978,7 @@ export function applyTemplateInputs(template: PropertyTemplate, inputs: Record<s
     } else if (typeof obj === 'object' && obj !== null) {
       const result: unknown = {};
       for (const [key, value] of Object.entries(obj)) {
-        result[key] = replacePlaceholders(value);
+        (result as any)[key] = replacePlaceholders(value);
       }
       return result;
     }

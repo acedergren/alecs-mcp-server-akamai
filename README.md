@@ -1,101 +1,191 @@
-<div align="center">
-
 # 🚀 ALECS MCP Server for Akamai
 
-[![npm version](https://img.shields.io/npm/v/alecs-mcp-server-akamai.svg?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/alecs-mcp-server-akamai)
-[![npm downloads](https://img.shields.io/npm/dm/alecs-mcp-server-akamai.svg?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/alecs-mcp-server-akamai)
-[![GitHub Container Registry](https://img.shields.io/badge/ghcr.io-Latest-blue?style=for-the-badge&logo=docker)](https://github.com/acedergren/alecs-mcp-server-akamai/pkgs/container/alecs-mcp-server-akamai)
-[![GitHub release](https://img.shields.io/github/v/release/acedergren/alecs-mcp-server-akamai?style=for-the-badge&logo=github)](https://github.com/acedergren/alecs-mcp-server-akamai/releases)
+<div align="center">
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/acedergren/alecs-mcp-server-akamai/ci-cd.yml?branch=main&style=for-the-badge&logo=github-actions&label=Build)](https://github.com/acedergren/alecs-mcp-server-akamai/actions)
-[![Tests](https://img.shields.io/badge/Tests-Passing-success?style=for-the-badge&logo=jest)](https://github.com/acedergren/alecs-mcp-server-akamai/actions)
-[![Code Coverage](https://img.shields.io/badge/Coverage-85%25-brightgreen?style=for-the-badge&logo=codecov)](https://github.com/acedergren/alecs-mcp-server-akamai)
+<img src="https://img.icons8.com/color/96/000000/rocket.png" alt="ALECS Logo" width="96" height="96">
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-00ADD8?style=for-the-badge&logo=anthropic)](https://modelcontextprotocol.io/)
+**A Launchgrid for Edge & Cloud Services**
 
-[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg?style=for-the-badge)](https://www.gnu.org/licenses/agpl-3.0)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](http://makeapullrequest.com)
+_AI-powered Akamai CDN management through natural language_
+
+<br>
+
+[![npm version](https://img.shields.io/npm/v/alecs-mcp-server-akamai.svg?style=for-the-badge&logo=npm&color=red)](https://www.npmjs.com/package/alecs-mcp-server-akamai)
+[![GitHub release](https://img.shields.io/github/v/release/acedergren/alecs-mcp-server-akamai?style=for-the-badge&logo=github&color=blue)](https://github.com/acedergren/alecs-mcp-server-akamai/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/acedergren/alecs-mcp-server-akamai/ci-cd.yml?branch=main&style=for-the-badge&logo=github-actions&color=green)](https://github.com/acedergren/alecs-mcp-server-akamai/actions)
+
+<br>
+
+**🔧 287 Tools** • **🌐 8 Services** • **🔐 Multi-Customer** • **⚡ Production Ready**
+
+<br>
 
 </div>
+
+## 🎯 What is ALECS?
+
+ALECS bridges the gap between **AI assistants** and **Akamai's Connected Cloud Platform**. Ask
+Claude, Cursor, or any MCP-compatible AI tool to manage your Akamai infrastructure using natural
+language and minimise context switching when creating Infrastructure-as-Code!
 
 <div align="center">
-  <p align="center">
-    <strong>A</strong> <strong>L</strong>aunchgrid for <strong>E</strong>dge & <strong>C</strong>loud <strong>S</strong>ervices
-  </p>
-  <p align="center">
-    <i>A Model Context Protocol (MCP) server that brings AI-powered automation to Akamai CDN management</i>
-  </p>
-  
-  <p align="center">
-    <strong>Compatible with:</strong>
-    <a href="https://claude.ai">Claude Desktop</a> •
-    <a href="https://claude.ai/code">Claude Code</a> •
-    <a href="https://cursor.com">Cursor</a> •
-    <a href="https://www.windsurf.ai">Windsurf</a> •
-    <a href="https://code.visualstudio.com">VS Code</a> •
-    <a href="https://github.com/modelcontextprotocol/servers">Any MCP Client</a>
-  </p>
-  
-  <p align="center">
-    <a href="#-quick-start">Quick Start</a> •
-    <a href="#-features">Features</a> •
-    <a href="https://docs.alecs.io">Documentation</a> •
-    <a href="#-contributing">Contributing</a>
-  </p>
-</div>
 
-<div align="center">
-  
-### 📊 Latest Release Docs
-
-![Version](https://img.shields.io/badge/Version-1.7.4-blue?style=for-the-badge)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/acedergren/alecs-mcp-server-akamai)
-
-</div>
-
----
-
-## 🚀 Quick Start
-
-### Install from NPM
-
-```bash
-# Install globally (stable release)
-npm install -g alecs-mcp-server-akamai
-
-# Or try the latest nightly build (experimental)
-npm install -g alecs-mcp-server-akamai@nightly
-
-# Verify installation
-alecs --version
-
-# Run the main server (all 198+ tools)
-alecs
-
-# Or run specific service modules
-alecs start:property  # Property management only
-alecs start:dns       # DNS management only
-alecs start:certs     # Certificate management only
-# See all variants: alecs --help
+```
+"List my Akamai properties"          →  Complete property inventory
+"Create a DNS zone for example.com"  →  Zone created and configured
+"Purge cache for /images/*"          →  Cache invalidated instantly
+"Check SSL certificate status"       →  Validation progress shown
 ```
 
-#### 🌙 Nightly Builds
+</div>
 
-Nightly builds are automatically created at 2 AM UTC with the latest changes from the main branch:
+## 🎉 One-Click Installation
 
-- **NPM**: `npm install -g alecs-mcp-server-akamai@nightly`
-- **Docker**: `docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:nightly`
-- **GitHub Releases**: Check [nightly releases](https://github.com/acedergren/alecs-mcp-server-akamai/releases?q=nightly&expanded=true)
+<div align="center">
 
-⚠️ **Warning**: Nightly builds may contain experimental features and bugs. Use with caution!
+<table>
+<tr>
+<td align="center" width="16.66%">
+<img src="https://www.anthropic.com/favicon.ico" width="48" height="48"/>
+<br><strong>Claude Desktop</strong>
+<br>
+<details>
+<summary>📱 Install</summary>
 
-📖 **[Full NPM Variants Guide](./docs/npm-variants-guide.md)** - Learn about all server variants and configurations
+**macOS:**
 
-### Configure Akamai Credentials
+```bash
+curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-claude-desktop.sh | bash
+```
 
-Create `~/.edgerc` with your Akamai API credentials:
+**Windows:**
+
+```cmd
+curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-claude-desktop.bat | cmd
+```
+
+**Linux:**
+
+```bash
+curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-claude-desktop.sh | bash
+```
+
+</details>
+</td>
+<td align="center" width="16.66%">
+<img src="https://cursor.sh/favicon.ico" width="48" height="48"/>
+<br><strong>Cursor IDE</strong>
+<br>
+<details>
+<summary>🎯 Install</summary>
+
+**One-click button:**
+[![Add to Cursor](https://img.shields.io/badge/Add%20to-Cursor-blue?style=for-the-badge&logo=cursor)](cursor://anysphere.cursor-deeplink/mcp/install?name=alecs-akamai&config=eyJhbGVjcy1ha2FtYWkiOnsiY29tbWFuZCI6ImFsZWNzIiwiYXJncyI6W10sImVudiI6eyJNQ1BfVFJBTlNQT1JUIjoic3RkaW8ifX19)
+
+**Auto-install script:**
+
+```bash
+curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-cursor.sh | bash
+```
+
+</details>
+</td>
+<td align="center" width="16.66%">
+<img src="https://lmstudio.ai/favicon.ico" width="48" height="48"/>
+<br><strong>LM Studio</strong>
+<br>
+<details>
+<summary>🎬 Install</summary>
+
+**One-click button:**
+[![Add to LM Studio](https://img.shields.io/badge/Add%20to-LM%20Studio-orange?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K)](lmstudio://mcp/install?name=alecs-akamai&config=eyJhbGVjcy1ha2FtYWkiOnsiY29tbWFuZCI6ImFsZWNzIiwiYXJncyI6W10sImVudiI6eyJNQ1BfVFJBTlNQT1JUIjoic3RkaW8ifX19)
+
+**Auto-install script:**
+
+```bash
+curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-lmstudio.sh | bash
+```
+
+</details>
+</td>
+<td align="center" width="16.66%">
+<img src="https://code.visualstudio.com/favicon.ico" width="48" height="48"/>
+<br><strong>VS Code</strong>
+<br>
+<details>
+<summary>💻 Install</summary>
+
+**Extension + Server:**
+
+```bash
+curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-vscode.sh | bash
+```
+
+**Manual Setup:**
+
+1. Install MCP extension
+2. `Cmd/Ctrl + Shift + P`
+3. "MCP: Add Server"
+4. Command: `alecs`
+</details>
+</td>
+<td align="center" width="16.66%">
+<img src="https://www.windsurf.ai/favicon.ico" width="48" height="48"/>
+<br><strong>Windsurf</strong>
+<br>
+<details>
+<summary>🌊 Install</summary>
+
+**Auto-configure:**
+
+```bash
+curl -sSL https://raw.githubusercontent.com/acedergren/alecs-mcp-server-akamai/main/scripts/install-windsurf.sh | bash
+```
+
+**Manual Setup:**
+
+1. Open Windsurf Settings
+2. Navigate to MCP Servers
+3. Add server with command: `alecs`
+</details>
+</td>
+<td align="center" width="16.66%">
+<img src="https://www.anthropic.com/favicon.ico" width="48" height="48"/>
+<br><strong>Claude Code</strong>
+<br>
+<details>
+<summary>⚡ Install</summary>
+
+**Simple command:**
+
+```bash
+claude mcp add alecs-akamai alecs
+```
+
+**Verify:**
+
+```bash
+claude mcp list
+```
+
+</details>
+</td>
+</tr>
+</table>
+
+</div>
+
+## 📦 Quick Start
+
+### 1. Install ALECS
+
+```bash
+npm install -g alecs-mcp-server-akamai
+```
+
+### 2. Configure Akamai
+
+Create `~/.edgerc` with your credentials:
 
 ```ini
 [default]
@@ -103,412 +193,185 @@ client_secret = your_client_secret
 host = your_host.luna.akamaiapis.net
 access_token = your_access_token
 client_token = your_client_token
-
-; Optional: Add more customer sections
-[customer-name]
-client_secret = customer_client_secret
-host = customer_host.luna.akamaiapis.net
-access_token = customer_access_token
-client_token = customer_client_token
 ```
 
-### Add to Claude Desktop
+### 3. Choose Your AI Tool
 
-```bash
-# macOS
-echo '{"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}}' > ~/Library/Application\ Support/Claude/claude_desktop_config.json
+Pick your favorite AI assistant and use the one-click installers above! 🚀
 
-# Windows
-echo {"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}} > %APPDATA%\Claude\claude_desktop_config.json
-
-# Linux
-echo '{"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}}' > ~/.config/Claude/claude_desktop_config.json
-```
-
-### Add to Claude Code
-
-```bash
-# One-line installation
-claude mcp add alecs-akamai alecs
-```
-
-### Install from Source
-
-```bash
-# Clone and install
-git clone https://github.com/acedergren/alecs-mcp-server-akamai.git
-cd alecs-mcp-server-akamai
-npm install
-
-# Build
-npm run build
-```
-
-### Docker
-
-```bash
-# Pull from Docker Hub (recommended)
-docker pull acedergr/alecs-mcp-server-akamai:latest
-
-# Or pull from GitHub Container Registry
-docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:latest
-
-# Run with environment variables
-docker run -it --env-file .env acedergr/alecs-mcp-server-akamai:latest
-```
-
-#### Available Docker Tags
-
-| Tag | Description | Size |
-|-----|-------------|------|
-| `latest` | Main server with PM2 management | ~200MB |
-| `modular` | Microservices architecture | ~180MB |
-| `websocket` | WebSocket transport | ~170MB |
-| `sse` | Server-Sent Events transport | ~170MB |
-
-## 📖 Integration Guide
-
-### Quick Reference
-
-| Tool | Installation Command |
-|------|---------------------|
-| **Claude Desktop** | See platform-specific commands below |
-| **Claude Code** | `claude mcp add alecs-akamai alecs` |
-| **VS Code** | Use MCP extension settings |
-| **Cursor** | Add to MCP config |
-| **Windsurf** | Configure in settings |
-
-### Detailed Setup Instructions
-
-<details>
-<summary><strong>Claude Desktop (Click to expand)</strong></summary>
-
-**macOS:**
-```bash
-echo '{"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}}' > ~/Library/Application\ Support/Claude/claude_desktop_config.json
-```
-
-**Windows:**
-```cmd
-echo {"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}} > %APPDATA%\Claude\claude_desktop_config.json
-```
-
-**Linux:**
-```bash
-echo '{"mcpServers":{"alecs-akamai":{"command":"alecs","args":[],"env":{"MCP_TRANSPORT":"stdio"}}}}' > ~/.config/Claude/claude_desktop_config.json
-```
-
-Restart Claude Desktop after configuration.
-</details>
-
-<details>
-<summary><strong>Claude Code (Click to expand)</strong></summary>
-
-```bash
-# Install Claude Code CLI if not already installed
-npm install -g claude-code
-
-# Add ALECS MCP server
-claude mcp add alecs-akamai alecs
-
-# Verify installation
-claude mcp list
-```
-</details>
-
-## 🤝 Works With Your Favorite AI Tools
-
-<div align="center">
-<table>
-<tr>
-<td align="center" width="16%">
-<img src="https://www.anthropic.com/favicon.ico" width="48" height="48"/>
-<br><strong>Claude Desktop</strong>
-<br>Native MCP support
-</td>
-<td align="center" width="16%">
-<img src="https://www.anthropic.com/favicon.ico" width="48" height="48"/>
-<br><strong>Claude Code</strong>
-<br>CLI with MCP
-</td>
-<td align="center" width="16%">
-<img src="https://cursor.sh/favicon.ico" width="48" height="48"/>
-<br><strong>Cursor IDE</strong>
-<br>AI-first editor
-</td>
-<td align="center" width="16%">
-<img src="https://www.windsurf.ai/favicon.ico" width="48" height="48"/>
-<br><strong>Windsurf</strong>
-<br>Agentic IDE
-</td>
-<td align="center" width="16%">
-<img src="https://code.visualstudio.com/favicon.ico" width="48" height="48"/>
-<br><strong>VS Code</strong>
-<br>MCP extensions
-</td>
-<td align="center" width="20%">
-<img src="https://img.icons8.com/color/48/000000/api.png" width="48" height="48"/>
-<br><strong>Any MCP Client</strong>
-<br>Open protocol
-</td>
-</tr>
-</table>
-</div>
-
-### 🎆 Natural Language, Real Actions
-
-```bash
-# Ask: "List my Akamai properties"
-# Get: Complete list with versions, hostnames, and activation status
-
-# Ask: "Show DNS records for example.com"
-# Get: All A, CNAME, MX records with TTLs
-
-# Ask: "Purge cache for /images/*"
-# Get: Fast purge executed, confirmation in seconds
-```
-
-## 🏆 Stats & Features
+## 🌟 Features
 
 <div align="center">
 
-| Stat | Value |
-|------|-------|
-| **🔧 Tools Available** | ![Tools](https://img.shields.io/badge/69_Tools-blue?style=for-the-badge) |
-| **🌐 Services Supported** | ![Services](https://img.shields.io/badge/8_Services-green?style=for-the-badge) |
-| **📝 TypeScript Files** | ![Files](https://img.shields.io/badge/232_Files-orange?style=for-the-badge) |
-| **🧪 Test Coverage** | ![Coverage](https://img.shields.io/badge/85%25_Coverage-brightgreen?style=for-the-badge) |
-| **⚡ Response Time** | ![Response](https://img.shields.io/badge/<100ms-success?style=for-the-badge) |
-| **💾 Memory Usage** | ![Memory](https://img.shields.io/badge/<256MB-success?style=for-the-badge) |
-
-</div>
-
-### 🌟 Supported Akamai Services
-
-<div align="center">
-
-[![Property Manager](https://img.shields.io/badge/Property_Manager-✅-success?style=for-the-badge)](https://techdocs.akamai.com/property-mgr/reference/api)
-[![Edge DNS](https://img.shields.io/badge/Edge_DNS-✅-success?style=for-the-badge)](https://techdocs.akamai.com/edge-dns/reference/edge-dns-api)
-[![CPS](https://img.shields.io/badge/CPS_Certificates-✅-success?style=for-the-badge)](https://techdocs.akamai.com/cps/reference/api)
-[![Fast Purge](https://img.shields.io/badge/Fast_Purge-✅-success?style=for-the-badge)](https://techdocs.akamai.com/purge-cache/reference/api)
-
-[![Network Lists](https://img.shields.io/badge/Network_Lists-✅-success?style=for-the-badge)](https://techdocs.akamai.com/network-lists/reference/api)
-[![App Security](https://img.shields.io/badge/App_Security-✅-success?style=for-the-badge)](https://techdocs.akamai.com/application-security/reference)
-[![Reporting](https://img.shields.io/badge/Reporting-✅-success?style=for-the-badge)](https://techdocs.akamai.com/reporting/reference)
-[![Edge Hostnames](https://img.shields.io/badge/Edge_Hostnames-✅-success?style=for-the-badge)](https://techdocs.akamai.com/edge-hostnames/reference)
-
-</div>
-
-## 📋 Overview
-
-ALECS bridges AI assistants (like Claude) with Akamai's powerful CDN platform through the Model Context Protocol. It provides a type-safe, production-ready interface for managing properties, DNS zones, certificates, and more.
-
-
-### 🚀 Key Features
-
-<div align="center">
 <table>
 <tr>
 <td align="center" width="25%">
-<img src="https://img.icons8.com/color/96/000000/multiple-devices.png" width="60"/>
-<br><strong>Multi-Customer</strong>
-<br>Manage multiple accounts<br>via .edgerc sections
+<img src="https://img.icons8.com/color/96/000000/settings.png" width="64"/>
+<br><strong>🔧 287 Tools</strong>
+<br>Complete Akamai API coverage
 </td>
 <td align="center" width="25%">
-<img src="https://img.icons8.com/color/96/000000/security-checked.png" width="60"/>
-<br><strong>Secure Auth</strong>
-<br>EdgeGrid authentication<br>with account switching
+<img src="https://img.icons8.com/color/96/000000/multiple-devices.png" width="64"/>
+<br><strong>🏢 Multi-Customer</strong>
+<br>Manage multiple accounts
 </td>
 <td align="center" width="25%">
-<img src="https://img.icons8.com/color/96/000000/api-settings.png" width="60"/>
-<br><strong>Full Coverage</strong>
-<br>All major Akamai APIs<br>in one interface
+<img src="https://img.icons8.com/color/96/000000/security-checked.png" width="64"/>
+<br><strong>🔒 Secure</strong>
+<br>EdgeGrid authentication
 </td>
 <td align="center" width="25%">
-<img src="https://img.icons8.com/color/96/000000/artificial-intelligence.png" width="60"/>
-<br><strong>AI-Native</strong>
-<br>Works with all<br>MCP-compatible tools
+<img src="https://img.icons8.com/color/96/000000/artificial-intelligence.png" width="64"/>
+<br><strong>🤖 AI-Native</strong>
+<br>Natural language control
 </td>
 </tr>
 </table>
+
+</div>
+
+## 🛠️ Service Coverage
+
+<div align="center">
+
+| Service                 | Tools | Key Features                    |
+| ----------------------- | ----- | ------------------------------- |
+| **🏢 Property Manager** | 67    | CDN configs, rules, activations |
+| **🌐 Edge DNS**         | 40    | DNS zones, records, DNSSEC      |
+| **🔐 Certificates**     | 26    | SSL/TLS lifecycle management    |
+| **🛡️ Security**         | 29    | Network lists, WAF policies     |
+| **⚡ Fast Purge**       | 2     | Cache invalidation              |
+| **🔒 App Security**     | 11    | Security configurations         |
+| **📊 Reporting**        | 8     | Analytics and metrics           |
+| **🚨 SIEM**             | 1     | Security monitoring             |
+
+</div>
+
+## 🎨 Natural Language Examples
+
+<div align="center">
+
+<table>
+<tr>
+<td width="50%">
+
+**🗣️ What You Say**
+
+```
+"List my properties"
+"Create DNS zone for example.com"
+"Purge cache for /images/*"
+"Check my SSL certificates"
+"Show traffic for last 7 days"
+"Add IP 192.168.1.0/24 to blocklist"
+```
+
+</td>
+<td width="50%">
+
+**🤖 What ALECS Does**
+
+```
+✅ property_list → Full inventory
+✅ dns_zone_create → Zone configured
+✅ fastpurge_url → Cache cleared
+✅ certificate_status → SSL validated
+✅ traffic_report → Analytics shown
+✅ network_list_add → IP blocked
+```
+
+</td>
+</tr>
+</table>
+
 </div>
 
 ## 🏗️ Architecture
 
+<div align="center">
+
 ```mermaid
-graph TB
-    subgraph "AI Assistant"
-        Claude[Claude Desktop/API]
+graph LR
+    A[🤖 AI Assistant] --> B[🚀 ALECS Server]
+    B --> C[🌐 Akamai APIs]
+
+    subgraph "🔧 ALECS Components"
+        B1[📡 MCP Protocol]
+        B2[🔐 EdgeGrid Auth]
+        B3[📋 Tool Registry]
+        B4[🏪 Service Modules]
     end
-    
-    subgraph "ALECS MCP Server"
-        MCP[MCP Protocol Handler]
-        Auth[EdgeGrid Auth]
-        Tools[Tool Registry]
-        
-        subgraph "Service Modules"
-            PM[Property Manager]
-            DNS[Edge DNS]
-            CPS[CPS/Certificates]
-            NL[Network Lists]
-            FP[Fast Purge]
-            AS[App Security]
-        end
+
+    subgraph "🌐 Akamai Services"
+        C1[🏢 Property Manager]
+        C2[🌍 Edge DNS]
+        C3[🔐 Certificates]
+        C4[🛡️ Security]
+        C5[⚡ Fast Purge]
     end
-    
-    subgraph "Akamai Platform"
-        API[Akamai APIs]
-        Edge[Edge Network]
-    end
-    
-    Claude -->|MCP Protocol| MCP
-    MCP --> Tools
-    Tools --> PM & DNS & CPS & NL & FP & AS
-    PM & DNS & CPS & NL & FP & AS --> Auth
-    Auth -->|EdgeGrid| API
-    API --> Edge
+
+    B --> B1
+    B1 --> B2
+    B2 --> B3
+    B3 --> B4
+    B4 --> C1
+    B4 --> C2
+    B4 --> C3
+    B4 --> C4
+    B4 --> C5
 ```
 
-## 🛠️ Available Tools
+</div>
 
-### Property Management
-- `property.list` - List CDN properties
-- `property.create` - Create new property
-- `property.activate` - Deploy to staging/production
-- `property.rules.get` - Get configuration rules
-- `property.rules.update` - Modify behaviors
-
-### DNS Management  
-- `dns.zone.list` - List DNS zones
-- `dns.zone.create` - Create zones
-- `dns.record.create` - Add DNS records
-- `dns.record.update` - Modify records
-- `dns.zone.activate` - Activate changes
-
-### Certificate Management
-- `certs.dv.create` - Create DV certificates
-- `certs.enrollment.status` - Check validation
-- `certs.challenges.get` - Get validation records
-
-### Content Control
-- `fastpurge.url` - Purge by URL
-- `fastpurge.cpcode` - Purge by CP code
-- `network-lists.create` - Create IP/geo lists
-- `network-lists.update` - Modify access lists
-
-## 🔧 Installation
-
-### For Claude Desktop
-
-1. Install ALECS:
-```bash
-./install.sh
-# Choose option 4 for Claude Desktop
-```
-
-2. The installer creates a config file. Copy it to Claude:
-```bash
-cp claude_desktop_config.json ~/Library/Application\ Support/Claude/
-```
-
-3. Restart Claude Desktop
-
-### For Development
+## 🐳 Docker
 
 ```bash
-# Install dependencies
-npm install
+# Quick start with Docker
+docker run -it --env-file .env ghcr.io/acedergren/alecs-mcp-server-akamai:latest
 
-# Build TypeScript
-npm run build
-
-# Run in stdio mode (for testing)
-npm run dev
+# Available variants
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:latest    # Full server
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:modular   # Microservices
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:websocket # WebSocket
+docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:sse       # Server-Sent Events
 ```
 
 ## 📚 Documentation
 
-- [Architecture Overview](./docs/architecture/README.md) - System design and components
-- [Getting Started Guide](./docs/getting-started/README.md) - Quick tutorials
-- [API Reference](./docs/api/README.md) - Detailed tool documentation
-- [User Guides](./docs/user-guides/README.md) - How-to guides and examples
+<div align="center">
 
-## 🧪 Testing
+| 📖 Guide                                                | 📝 Description              |
+| ------------------------------------------------------- | --------------------------- |
+| **[API Reference](./docs/api/README.md)**               | Complete tool documentation |
+| **[Getting Started](./docs/getting-started/README.md)** | Setup tutorials             |
+| **[Architecture](./docs/architecture/README.md)**       | System design               |
+| **[Tool Creation](./docs/TOOL_CREATION_GUIDE.md)**      | Build custom tools          |
+| **[Troubleshooting](./docs/troubleshooting/README.md)** | Common issues               |
 
-```bash
-# Run all tests
-npm test
-
-# Run specific test suite
-npm test -- property-tools
-
-# Type checking
-npm run typecheck
-```
-
-## 🔒 Security
-
-- Credentials stored in `~/.edgerc` (never in code)
-- EdgeGrid authentication for all API calls
-- Account switching via secure headers
-- No OAuth required - simplified security model
-- `.edgerc` files are excluded from npm package
-
-### ⚠️ Important Security Note
-
-When installing from npm, you must create your own `.edgerc` file with your Akamai credentials. The npm package does NOT include any credential files.
-
-## 🔧 Troubleshooting
-
-### Common Setup Issues
-
-**"Command not found: alecs"**
-```bash
-# Ensure global npm bin is in PATH
-export PATH="$PATH:$(npm bin -g)"
-
-# Or reinstall globally
-npm install -g alecs-mcp-server-akamai
-```
-
-**"No .edgerc file found"**
-```bash
-# Create the file in your home directory
-touch ~/.edgerc
-chmod 600 ~/.edgerc
-# Then add your Akamai credentials
-```
-
-**"Claude Desktop doesn't see the server"**
-1. Restart Claude Desktop after configuration
-2. Check the config file location is correct for your OS
-3. Ensure `alecs` command works in terminal first
+</div>
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes with tests
-4. Run `npm test` and `npm run typecheck`
-5. Submit a pull request
+We welcome contributions! Check out our [Contributing Guide](./CONTRIBUTING.md) to get started.
+
+<div align="center">
+
+**🐛 Found a bug?** [Report it](https://github.com/acedergren/alecs-mcp-server-akamai/issues) **💡
+Have an idea?** [Suggest it](https://github.com/acedergren/alecs-mcp-server-akamai/issues/new) **❓
+Need help?** [Ask us](https://github.com/acedergren/alecs-mcp-server-akamai/discussions)
+
+</div>
 
 ## 📄 License
 
-GNU Affero General Public License v3.0 (AGPL-3.0) with additional terms - see [LICENSE](./LICENSE) file
-
-**Important License Terms:**
-- Any modifications must be contributed back to the original project within 30 days of production deployment
-- Production use must display "Powered by ALECS MCP Server" with link to this repository
-- Network use requires source code disclosure
-- See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution requirements
-
-## 🆘 Support
-
-- [GitHub Issues](https://github.com/your-org/alecs-mcp-server-akamai/issues)
-- [Akamai Developer Docs](https://techdocs.akamai.com)
-- [MCP Specification](https://modelcontextprotocol.io)
+GNU Affero General Public License v3.0 (AGPL-3.0) - see [LICENSE](./LICENSE)
 
 ---
 
-Built with ❤️ for the Akamai and AI communities
-# Trigger CI/CD
+<div align="center">
+
+**🌟 Star us on GitHub** • **📦 Follow on NPM** • **🐳 Use with Docker**
+
+Built with ❤️ for Akamai by Alexander Cedergren, alex@solutionsedge.io
+
+</div>

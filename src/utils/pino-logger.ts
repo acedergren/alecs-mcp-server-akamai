@@ -23,10 +23,10 @@ import type { Logger as PinoLogger } from 'pino';
 
 
 // Logger type definitions
-type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
-type LoggerOptions = { level?: LogLevel; name?: string; enabled?: boolean };
+// type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+// type LoggerOptions = { level?: LogLevel; name?: string; enabled?: boolean };
 type LogContext = Record<string, unknown>;
-type LogMethod = (message: string, context?: LogContext) => void;
+// type LogMethod = (message: string, context?: LogContext) => void;
 
 /**
  * MCP-safe transport configuration
@@ -40,7 +40,7 @@ const transport = pino.transport({
     colorize: true,
     translateTime: 'HH:MM:ss.l',
     ignore: 'pid,hostname', // Reduce noise
-    messageFormat: '{levelLabel} [{context}] {msg}',
+    messageFormat: '{levelLabel} {msg}',
     errorLikeObjectKeys: ['err', 'error'],
     errorProps: 'message,stack,type,code',
     sync: false, // Allow async for better performance
@@ -55,7 +55,7 @@ export const logger: PinoLogger = pino({
   // Base context for all logs
   base: {
     service: 'alecs-mcp-server',
-    version: '1.6.2',
+    version: require('../../package.json').version,
     env: process.env['NODE_ENV'] || 'development'
   },
   // Redact sensitive information
@@ -78,7 +78,7 @@ export const logger: PinoLogger = pino({
   serializers: {
     err: pino.stdSerializers.err,
     error: pino.stdSerializers.err,
-    req: (req: unknown) => ({
+    req: (req: any) => ({
       method: req.method,
       url: req.url,
       params: req.params,
@@ -89,7 +89,7 @@ export const logger: PinoLogger = pino({
         cookie: req.headers?.cookie ? '[REDACTED]' : undefined
       }
     }),
-    res: (res: unknown) => ({
+    res: (res: any) => ({
       statusCode: res.statusCode,
       duration: res.duration
     })

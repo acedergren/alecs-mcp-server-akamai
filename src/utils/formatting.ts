@@ -294,14 +294,14 @@ export function formatTable(data: unknown[], columns?: Array<{ key: string; head
   }
 
   // If no columns specified, use all keys from first item
-  const keys = columns ? columns.map((c) => c.key) : Object.keys(data[0]);
+  const keys = columns ? columns.map((c) => c.key) : Object.keys(data[0] as Record<string, unknown>);
   const headers = columns ? columns.map((c) => c.header) : keys;
 
   // Build simple table
   const rows = [
     headers.join(' | '),
     headers.map((h) => '-'.repeat(h.length)).join('-|-'),
-    ...data.map((item) => keys.map((key) => String(item[key] || '')).join(' | ')),
+    ...data.map((item) => keys.map((key) => String((item as any)[key] || '')).join(' | ')),
   ];
 
   return rows.join('\n');

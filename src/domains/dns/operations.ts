@@ -19,19 +19,14 @@ import {
   // Types
   Zone,
   ZoneType,
-  RecordSet,
   RecordType,
   DNSError,
   EdgeDNSZonesResponse,
   EdgeDNSZoneResponse,
   EdgeDNSRecordSetsResponse,
-  EdgeDNSChangeListResponse,
+  // EdgeDNSChangeListResponse, // Unused import
   EdgeDNSZoneSubmitResponse,
   EdgeDNSZoneActivationStatusResponse,
-  EdgeDNSValidationError,
-  DNSSECConfig,
-  DNSSECKey,
-  DSRecord,
   DNSSECStatus,
   ZoneFileRecord,
   MigrationPlan,
@@ -43,7 +38,6 @@ import {
   CreateZoneParams,
   ListRecordsParams,
   CreateRecordParams,
-  UpdateRecordParams,
   DeleteRecordParams,
   ActivateZoneParams,
 } from './types';
@@ -56,7 +50,6 @@ import {
   DeleteZoneSchema,
   ListRecordsSchema,
   CreateRecordSchema,
-  UpdateRecordSchema,
   DeleteRecordSchema,
   ActivateZoneSchema,
   EnableDNSSECSchema,
@@ -65,10 +58,6 @@ import {
   ImportViaAXFRSchema,
   ParseZoneFileSchema,
   BulkImportRecordsSchema,
-  // Validators
-  validateZoneName,
-  validateRecordName,
-  validateTTL,
 } from './schemas';
 
 /**
@@ -91,16 +80,16 @@ export const listZones = performanceOptimized(
       const queryParams: Record<string, string> = {};
       
       if (validated.contractIds?.length) {
-        queryParams.contractIds = validated.contractIds.join(',');
+        queryParams['contractIds'] = validated.contractIds.join(',');
       }
       if (validated.types?.length) {
-        queryParams.types = validated.types.join(',');
+        queryParams['types'] = validated.types.join(',');
       }
       if (validated.search) {
-        queryParams.search = validated.search;
+        queryParams['search'] = validated.search;
       }
       if (validated.showAll) {
-        queryParams.showAll = 'true';
+        queryParams['showAll'] = 'true';
       }
       
       const response = await client.request({
@@ -140,7 +129,7 @@ export const getZone = performanceOptimized(
         throw DNSError.zoneNotFound(validated.zone);
       }
       
-      return response.zone as Zone;
+      return response.zone as unknown as Zone;
     } catch (error) {
       handleApiError(error, 'getZone');
     }
@@ -231,7 +220,7 @@ export const deleteZone = performanceOptimized(
     try {
       const queryParams: Record<string, string> = {};
       if (validated.force) {
-        queryParams.force = 'true';
+        queryParams['force'] = 'true';
       }
       
       await client.request({
@@ -270,16 +259,16 @@ export const listRecords = performanceOptimized(
       const queryParams: Record<string, string> = {};
       
       if (validated.type) {
-        queryParams.types = validated.type;
+        queryParams['types'] = validated.type;
       }
       if (validated.search) {
-        queryParams.search = validated.search;
+        queryParams['search'] = validated.search;
       }
       if (validated.page) {
-        queryParams.page = validated.page.toString();
+        queryParams['page'] = validated.page.toString();
       }
       if (validated.pageSize) {
-        queryParams.pageSize = validated.pageSize.toString();
+        queryParams['pageSize'] = validated.pageSize.toString();
       }
       
       const response = await client.request({
@@ -303,7 +292,7 @@ export const listRecords = performanceOptimized(
 export const upsertRecord = performanceOptimized(
   async (
     client: AkamaiClient,
-    params: CreateRecordParams | UpdateRecordParams
+    params: CreateRecordParams
   ): Promise<EdgeDNSZoneSubmitResponse> => {
     // Validate parameters
     const validated = CreateRecordSchema.parse(params);
@@ -311,11 +300,11 @@ export const upsertRecord = performanceOptimized(
     
     try {
       // Step 1: Create changelist
-      const changelistResponse = await client.request({
+      await client.request({
         path: '/config-dns/v2/changelists',
         method: 'POST',
         queryParams: { zone: validated.zone },
-      }) as EdgeDNSChangeListResponse;
+      });
       
       // Step 2: Check if record exists (to determine add vs update)
       let operation = 'add-change';
@@ -377,11 +366,11 @@ export const deleteRecord = performanceOptimized(
     
     try {
       // Step 1: Create changelist
-      const changelistResponse = await client.request({
+      await client.request({
         path: '/config-dns/v2/changelists',
         method: 'POST',
         queryParams: { zone: validated.zone },
-      }) as EdgeDNSChangeListResponse;
+      });
       
       // Step 2: Add delete change
       await client.request({
@@ -542,7 +531,7 @@ export const disableDNSSEC = performanceOptimized(
     try {
       const queryParams: Record<string, string> = {};
       if (validated.force) {
-        queryParams.force = 'true';
+        queryParams['force'] = 'true';
       }
       
       await client.request({
@@ -579,7 +568,7 @@ export const getDNSSECStatus = performanceOptimized(
       }) as any;
       
       // Get additional status info
-      const keysResponse = await client.request({
+      void await client.request({
         path: `/config-dns/v2/zones/${encodeURIComponent(params.zone)}/dnssec/keys`,
         method: 'GET',
       }) as any;
@@ -671,7 +660,7 @@ export const importZoneViaAXFR = performanceOptimized(
         type: ZoneType.SECONDARY,
         contractId: validated.contractId || 'default',
         masters: [validated.masterServer],
-        tsigKey: validated.tsigKey,
+        tsigKey: validated.tsigKey as any,
         customer: validated.customer,
       });
       
@@ -825,23 +814,23 @@ function parseBindZoneFile(content: string): ZoneFileRecord[] {
       let recordType = '';
       let recordData = '';
       
-      if (/^\d+$/.test(ttlOrClass)) {
+      if (/^\d+$/.test(ttlOrClass || '')) {
         // Format: name ttl class type data
-        recordTTL = parseInt(ttlOrClass);
-        recordType = typeOrData;
+        recordTTL = parseInt(ttlOrClass || '300');
+        recordType = typeOrData || 'A';
         recordData = rest.join(' ');
       } else if (ttlOrClass === 'IN') {
         // Format: name class type data
-        recordType = classOrType;
+        recordType = classOrType || 'A';
         recordData = [typeOrData, ...rest].join(' ');
       } else {
         // Format: name type data
-        recordType = ttlOrClass;
+        recordType = ttlOrClass!;
         recordData = [classOrType, typeOrData, ...rest].join(' ');
       }
       
       records.push({
-        name: recordName,
+        name: recordName!,
         type: recordType as RecordType,
         ttl: recordTTL,
         data: recordData,
@@ -864,11 +853,11 @@ async function bulkImportRecordBatch(
   }
 ): Promise<void> {
   // Create changelist
-  const changelistResponse = await client.request({
+  await client.request({
     path: '/config-dns/v2/changelists',
     method: 'POST',
     queryParams: { zone: params.zone },
-  }) as EdgeDNSChangeListResponse;
+  });
   
   // Add all records
   for (const record of params.records) {
@@ -1049,7 +1038,7 @@ export const bulkImportRecords = performanceOptimized(
               name: r.name,
               type: r.type,
               ttl: r.ttl,
-              data: r.rdata.join(' '),
+              data: Array.isArray(r.value) ? r.value.join(' ') : String(r.value),
             })),
             customer: validated.customer,
           });
@@ -1158,11 +1147,11 @@ export const createMultipleRecordSets = performanceOptimized(
     
     try {
       // Create changelist
-      const changelistResponse = await client.request({
+      await client.request({
         path: '/config-dns/v2/changelists',
         method: 'POST',
         queryParams: { zone: params.zone },
-      }) as EdgeDNSChangeListResponse;
+      });
       
       // Add all record sets
       for (const recordSet of params.recordSets) {
@@ -1221,9 +1210,9 @@ export const listChangelists = performanceOptimized(
     
     try {
       const queryParams: Record<string, string> = {};
-      if (params.page) queryParams.page = params.page.toString();
-      if (params.pageSize) queryParams.pageSize = params.pageSize.toString();
-      if (params.showAll) queryParams.showAll = 'true';
+      if (params.page) queryParams['page'] = params.page.toString();
+      if (params.pageSize) queryParams['pageSize'] = params.pageSize.toString();
+      if (params.showAll) queryParams['showAll'] = 'true';
       
       const response = await client.request({
         path: '/config-dns/v2/changelists',
@@ -1650,7 +1639,7 @@ export const updateTSIGKeyForZones = performanceOptimized(
  */
 export const generateMigrationInstructions = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: {
       sourceProvider: 'cloudflare' | 'route53' | 'godaddy' | 'other';
       zones: string[];
@@ -1660,10 +1649,11 @@ export const generateMigrationInstructions = performanceOptimized(
     validateCustomer(params.customer);
     
     // Get Akamai nameservers
-    const nameservers = await getAuthoritativeNameservers(client, { customer: params.customer });
+    // const _nameservers = await getAuthoritativeNameservers(client, { customer: params.customer });
     
     // Provider-specific instructions
-    const providerInstructions: Record<string, string[]> = {
+    /*
+    const _providerInstructions: Record<string, string[]> = {
       cloudflare: [
         'Export zones from Cloudflare dashboard or API',
         'Use parseZoneFile to import zone data',
@@ -1689,6 +1679,7 @@ export const generateMigrationInstructions = performanceOptimized(
         'Update nameservers at domain registrar',
       ],
     };
+    */
     
     const conflicts: Array<{ record: string; issue: string; resolution: string }> = [];
     

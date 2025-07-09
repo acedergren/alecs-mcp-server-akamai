@@ -15,7 +15,7 @@ import { type MCPToolResponse } from '../../types';
  */
 export const dnsTools = {
   // Zone operations
-  'dns.zones.list': {
+  'dns_zones_list': {
     description: 'List all DNS zones',
     inputSchema: z.object({
       limit: z.number().optional(),
@@ -27,21 +27,21 @@ export const dnsTools = {
       customer: z.string().optional(),
       format: z.enum(['json', 'text']).optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedDNSTools.listZones(args)
   },
 
-  'dns.zone.get': {
+  'dns_zone_get': {
     description: 'Get DNS zone details',
     inputSchema: z.object({
       zone: z.string(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedDNSTools.getZone(args)
   },
 
-  'dns.zone.create': {
+  'dns_zone_create': {
     description: 'Create a new DNS zone',
     inputSchema: z.object({
       zone: z.string(),
@@ -59,23 +59,23 @@ export const dnsTools = {
       target: z.string().optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedDNSTools.createZone(args)
   },
 
-  'dns.zone.activate': {
+  'dns_zone_activate': {
     description: 'Activate pending zone changes',
     inputSchema: z.object({
       zone: z.string(),
       comment: z.string().optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedDNSTools.activateZone(args)
   },
 
   // Record operations
-  'dns.records.list': {
+  'dns_records_list': {
     description: 'List DNS records in a zone',
     inputSchema: z.object({
       zone: z.string(),
@@ -86,11 +86,11 @@ export const dnsTools = {
       customer: z.string().optional(),
       format: z.enum(['json', 'text']).optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedDNSTools.listRecords(args)
   },
 
-  'dns.record.upsert': {
+  'dns_record_upsert': {
     description: 'Create or update a DNS record',
     inputSchema: z.object({
       zone: z.string(),
@@ -101,11 +101,11 @@ export const dnsTools = {
       priority: z.number().optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedDNSTools.upsertRecord(args)
   },
 
-  'dns.record.delete': {
+  'dns_record_delete': {
     description: 'Delete a DNS record',
     inputSchema: z.object({
       zone: z.string(),
@@ -113,11 +113,11 @@ export const dnsTools = {
       type: z.string(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedDNSTools.deleteRecord(args)
   },
 
-  'dns.records.bulk-import': {
+  'dns_records_bulk_import': {
     description: 'Bulk import DNS records',
     inputSchema: z.object({
       zone: z.string(),
@@ -131,12 +131,12 @@ export const dnsTools = {
       replaceExisting: z.boolean().optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedDNSTools.bulkImportRecords(args)
   },
 
   // Migration operations
-  'dns.zone.import-axfr': {
+  'dns_zone_import_axfr': {
     description: 'Import zone via AXFR transfer',
     inputSchema: z.object({
       zone: z.string(),
@@ -150,12 +150,12 @@ export const dnsTools = {
       }).optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedDNSTools.importZoneViaAxfr(args)
   },
 
   // DNSSEC operations
-  'dns.dnssec.enable': {
+  'dns_dnssec_enable': {
     description: 'Enable DNSSEC for a zone',
     inputSchema: z.object({
       zone: z.string(),
@@ -165,17 +165,17 @@ export const dnsTools = {
       iterations: z.number().optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedDNSTools.enableDnssec(args)
   },
 
-  'dns.dnssec.ds-records': {
+  'dns_dnssec_ds_records': {
     description: 'Get DS records for parent delegation',
     inputSchema: z.object({
       zone: z.string(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
       consolidatedDNSTools.getDsRecords(args)
   }
 };

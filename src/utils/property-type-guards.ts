@@ -252,7 +252,7 @@ export function filterUndefined<T extends Record<string, unknown>>(
 ): { [K in keyof T]: Exclude<T[K], undefined> } {
   return Object.entries(obj).reduce((acc, [key, value]) => {
     if (value !== undefined) {
-      acc[key as keyof T] = value;
+      acc[key as keyof T] = value as Exclude<T[keyof T], undefined>;
     }
     return acc;
   }, {} as { [K in keyof T]: Exclude<T[K], undefined> });

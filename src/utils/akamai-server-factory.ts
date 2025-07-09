@@ -145,7 +145,7 @@ export class AkamaiMCPServer {
     
     // Apply filter - FAIL if filter throws
     const toolsToLoad = this.config.toolFilter 
-      ? allTools.filter((tool) => {
+      ? allTools.filter((tool: ToolDefinition) => {
           const result = this.config.toolFilter!(tool);
           if (!result) {
             logger.debug({ tool: tool.name }, 'Tool filtered out');
@@ -202,11 +202,21 @@ export class AkamaiMCPServer {
     }
     
     // Validate naming conventions for MCP compatibility
-    // Updated pattern to match MCP frontend requirement: ^[a-zA-Z0-9_-]{1,64}$
-    if (!/^[a-zA-Z0-9_-]{1,64}$/.test(tool.name)) {
-      const error = new Error(`INVALID TOOL NAME FORMAT: "${tool.name}" - must match pattern ^[a-zA-Z0-9_-]{1,64}$`);
+    // Prefer snake_case naming (MCP ecosystem standard), but allow dots during transition
+    const preferredPattern = /^[a-zA-Z0-9_]{1,64}$/;
+    const legacyPattern = /^[a-zA-Z0-9_.-]{1,64}$/;
+    
+    if (!legacyPattern.test(tool.name)) {
+      const error = new Error(`INVALID TOOL NAME FORMAT: "${tool.name}" - must match pattern ^[a-zA-Z0-9_.-]{1,64}$`);
       logger.fatal({ toolName: tool.name }, error.message);
       throw error;
+    }
+    
+    // Log deprecation warning for dot notation tools (only in debug mode)
+    if (!preferredPattern.test(tool.name) && tool.name.includes('.')) {
+      if (process.env['DEBUG'] === 'true' || process.env['LOG_LEVEL'] === 'debug') {
+        logger.warn({ toolName: tool.name }, 'DEPRECATION WARNING: Dot notation tool names should be migrated to snake_case for MCP ecosystem compatibility');
+      }
     }
     
     // Validate description
@@ -580,7 +590,7 @@ export class AkamaiMCPServer {
     if (this.compatibilityWrapper) {
       this.compatibilityWrapper.setupCompatibilityHandlers(
         this.tools,
-        (schema) => this.zodToJsonSchema(schema)
+        (schema: unknown) => this.zodToJsonSchema(schema as ZodType<unknown, ZodTypeDef, unknown>)
       );
       return;
     }
@@ -646,7 +656,7 @@ export class AkamaiMCPServer {
           const parseResult = tool.schema.safeParse(args);
           if (!parseResult.success) {
             const zodError = parseResult.error;
-            const issues = zodError.errors.map(err => {
+            const issues = zodError.errors.map((err: any) => {
               const path = err.path.length > 0 ? err.path.join('.') + ': ' : '';
               return `${path}${err.message}`;
             }).join(', ');

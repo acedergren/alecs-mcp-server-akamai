@@ -94,19 +94,21 @@ export class ToolErrorHandler {
    * Extract status code from various error formats
    */
   private extractStatusCode(error: unknown): number | undefined {
-    return error?.statusCode || 
-           error?.response?.status || 
-           error?.status ||
-           (error?.message?.match(/\((\d{3})\):/)?.[1] ? parseInt(error.message.match(/\((\d{3})\):/)[1]) : undefined);
+    const err = error as any;
+    return err?.statusCode || 
+           err?.response?.status || 
+           err?.status ||
+           (err?.message?.match(/\((\d{3})\):/)?.[1] ? parseInt(err.message.match(/\((\d{3})\):/)[1]) : undefined);
   }
 
   /**
    * Extract Akamai error details from error object
    */
   private extractAkamaiError(error: unknown): AkamaiErrorDetails | undefined {
-    return error?.akamaiError || 
-           error?.response?.data ||
-           (error?.message?.includes('Akamai API Error') ? this.parseErrorMessage(error.message) : undefined);
+    const err = error as any;
+    return err?.akamaiError || 
+           err?.response?.data ||
+           (err?.message?.includes('Akamai API Error') ? this.parseErrorMessage(err.message) : undefined);
   }
 
   /**

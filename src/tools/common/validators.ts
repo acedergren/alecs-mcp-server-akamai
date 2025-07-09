@@ -241,7 +241,7 @@ export function createArrayValidator<T>(
   }
   
   if (options?.unique) {
-    schema = schema.transform((items) => [...new Set(items)]);
+    return schema.transform((items) => [...new Set(items)]) as z.ZodSchema<T[]>;
   }
   
   return schema;
@@ -254,7 +254,7 @@ export function createOptionalWithDefault<T>(
   schema: z.ZodSchema<T>,
   defaultValue: T
 ): z.ZodSchema<T> {
-  return schema.optional().default(defaultValue);
+  return schema.optional().default(defaultValue as any) as z.ZodSchema<T>;
 }
 
 /**

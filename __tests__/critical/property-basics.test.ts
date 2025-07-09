@@ -26,11 +26,11 @@ jest.mock('../../src/akamai-client', () => ({
 
 describe('Critical: Property Operations', () => {
   const allTools = getAllToolDefinitions();
-  const listProperties = allTools.find((t: any) => t.name === 'list-properties')?.handler;
+  const listProperties = allTools.find((t: any) => t.name === 'property_list')?.handler;
   
   it('should list properties without crashing', async () => {
     if (!listProperties) {
-      throw new Error('list-properties tool not found');
+      throw new Error('property_list tool not found');
     }
     
     const { AkamaiClient } = require('../../src/akamai-client');
@@ -53,7 +53,7 @@ describe('Critical: Property Operations', () => {
     }));
     
     if (!listProperties) {
-      throw new Error('list-properties tool not found');
+      throw new Error('property_list tool not found');
     }
     
     const mockClient = new AkamaiClient();

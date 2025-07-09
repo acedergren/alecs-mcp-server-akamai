@@ -71,11 +71,13 @@ const CreateIncludeSchema = CustomerSchema.extend({
   productId: z.string().optional()
 });
 
-const ActivateIncludeSchema = CustomerSchema.extend({
+/*
+const ActivateIncludeSchema = CustomerSchema.extend({ // Unused schema
   includeId: z.string(),
   version: z.number().int().positive(),
   network: z.enum(['STAGING', 'PRODUCTION'])
 });
+*/
 
 /**
  * Reporting schemas

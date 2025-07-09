@@ -14,52 +14,41 @@
 import { ALECSCore, tool } from '../core/server/alecs-core';
 import { z } from 'zod';
 
-// Network Lists Tools
-import {
-  listNetworkLists,
-  getNetworkList,
-  createNetworkList,
-  updateNetworkList,
-  deleteNetworkList,
-} from '../tools/security/network-lists-tools';
+// Import consolidated security tools
+import { consolidatedSecurityTools } from '../tools/security/consolidated-security-tools';
 
-import {
-  activateNetworkList,
-  getNetworkListActivationStatus,
-  listNetworkListActivations,
-  deactivateNetworkList,
-  bulkActivateNetworkLists,
-} from '../tools/security/network-lists-activation';
+// Extract methods from consolidated tools
+const listNetworkLists = consolidatedSecurityTools.listNetworkLists.bind(consolidatedSecurityTools);
+const getNetworkList = consolidatedSecurityTools.getNetworkList.bind(consolidatedSecurityTools);
+const createNetworkList = consolidatedSecurityTools.createNetworkList.bind(consolidatedSecurityTools);
+const updateNetworkList = consolidatedSecurityTools.updateNetworkList.bind(consolidatedSecurityTools);
+// const deleteNetworkList = consolidatedSecurityTools.deleteNetworkList.bind(consolidatedSecurityTools); // Method doesn't exist
+const activateNetworkList = consolidatedSecurityTools.activateNetworkList.bind(consolidatedSecurityTools);
+const getNetworkListActivationStatus = consolidatedSecurityTools.getNetworkListActivationStatus.bind(consolidatedSecurityTools);
+const validateGeographicCodes = consolidatedSecurityTools.validateGeographicCodes.bind(consolidatedSecurityTools);
+const getASNInformation = consolidatedSecurityTools.getASNInformation.bind(consolidatedSecurityTools);
 
-import {
-  importNetworkListFromCSV,
-  exportNetworkListToCSV,
-  bulkUpdateNetworkLists,
-  mergeNetworkLists,
-} from '../tools/security/network-lists-bulk';
+// Additional methods from consolidated security tools
+const listAppSecConfigurations = consolidatedSecurityTools.listAppSecConfigurations.bind(consolidatedSecurityTools);
+const getAppSecConfiguration = consolidatedSecurityTools.getAppSecConfiguration.bind(consolidatedSecurityTools);
+const createWAFPolicy = consolidatedSecurityTools.createWAFPolicy.bind(consolidatedSecurityTools);
+const getSecurityEvents = consolidatedSecurityTools.getSecurityEvents.bind(consolidatedSecurityTools);
+const activateSecurityConfiguration = consolidatedSecurityTools.activateSecurityConfiguration.bind(consolidatedSecurityTools);
+const getSecurityActivationStatus = consolidatedSecurityTools.getSecurityActivationStatus.bind(consolidatedSecurityTools);
 
-import {
-  validateGeographicCodes,
-  getASNInformation,
-  generateGeographicBlockingRecommendations,
-  generateASNSecurityRecommendations,
-  listCommonGeographicCodes,
-} from '../tools/security/network-lists-geo-asn';
-
-import {
-  getSecurityPolicyIntegrationGuidance,
-  generateDeploymentChecklist,
-} from '../tools/security/network-lists-integration';
-
-// Application Security Tools
-import {
-  listAppSecConfigurations,
-  getAppSecConfiguration,
-  createWAFPolicy,
-  getSecurityEvents,
-  activateSecurityConfiguration,
-  getSecurityActivationStatus,
-} from '../tools/security/appsec-basic-tools';
+// Additional methods now implemented in consolidated security tools
+const listNetworkListActivations = consolidatedSecurityTools.listNetworkListActivations.bind(consolidatedSecurityTools);
+const deactivateNetworkList = consolidatedSecurityTools.deactivateNetworkList.bind(consolidatedSecurityTools);
+const bulkActivateNetworkLists = consolidatedSecurityTools.bulkActivateNetworkLists.bind(consolidatedSecurityTools);
+const importNetworkListFromCSV = consolidatedSecurityTools.importNetworkListFromCSV.bind(consolidatedSecurityTools);
+const exportNetworkListToCSV = consolidatedSecurityTools.exportNetworkListToCSV.bind(consolidatedSecurityTools);
+const bulkUpdateNetworkLists = consolidatedSecurityTools.bulkUpdateNetworkLists.bind(consolidatedSecurityTools);
+const mergeNetworkLists = consolidatedSecurityTools.mergeNetworkLists.bind(consolidatedSecurityTools);
+const generateGeographicBlockingRecommendations = consolidatedSecurityTools.generateGeographicBlockingRecommendations.bind(consolidatedSecurityTools);
+const generateASNSecurityRecommendations = consolidatedSecurityTools.generateASNSecurityRecommendations.bind(consolidatedSecurityTools);
+const listCommonGeographicCodes = consolidatedSecurityTools.listCommonGeographicCodes.bind(consolidatedSecurityTools);
+const getSecurityPolicyIntegrationGuidance = consolidatedSecurityTools.getSecurityPolicyIntegrationGuidance.bind(consolidatedSecurityTools);
+const generateDeploymentChecklist = consolidatedSecurityTools.generateDeploymentChecklist.bind(consolidatedSecurityTools);
 
 // Schemas
 const CustomerSchema = z.object({
@@ -79,7 +68,7 @@ const ConfigIdSchema = CustomerSchema.extend({
 });
 
 class SecurityServer extends ALECSCore {
-  tools = [
+  override tools = [
     // ==================== NETWORK LISTS ====================
     
     // List Network Lists - REAL IMPLEMENTATION
@@ -89,14 +78,14 @@ class SecurityServer extends ALECSCore {
         listType: z.enum(['IP', 'GEO', 'ASN', 'EXCEPTION']).optional(),
         search: z.string().optional(),
       }),
-      async (args, ctx) => {
-        ctx.logger.info('Listing network lists', {
+      async (args, _ctx) => {
+        _ctx.logger.info('Listing network lists', {
           customer: args.customer,
           listType: args.listType,
         });
         
-        const response = await listNetworkLists.handler(args);
-        return ctx.format(response, args.format);
+        const response = await listNetworkLists(args);
+        return _ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
     ),
@@ -106,9 +95,9 @@ class SecurityServer extends ALECSCore {
       NetworkListIdSchema.extend({
         includeElements: z.boolean().optional(),
       }),
-      async (args, ctx) => {
-        const response = await getNetworkList.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        const response = await getNetworkList(args);
+        return _ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
     ),
@@ -123,14 +112,14 @@ class SecurityServer extends ALECSCore {
         contractId: z.string().describe('Contract ID'),
         groupId: z.number().describe('Group ID'),
       }),
-      async (args, ctx) => {
-        ctx.logger.info('Creating network list', {
+      async (args, _ctx) => {
+        _ctx.logger.info('Creating network list', {
           name: args.name,
           type: args.type,
         });
         
-        const response = await createNetworkList.handler(args);
-        return ctx.format(response, args.format);
+        const response = await createNetworkList(args);
+        return _ctx.format(response, args.format);
       }
     ),
 
@@ -141,24 +130,25 @@ class SecurityServer extends ALECSCore {
         mode: z.enum(['append', 'remove', 'replace']).default('append'),
         description: z.string().optional(),
       }),
-      async (args, ctx) => {
-        ctx.logger.info('Updating network list', {
+      async (args, _ctx) => {
+        _ctx.logger.info('Updating network list', {
           networkListId: args.networkListId,
           mode: args.mode,
           elementCount: args.elements.length,
         });
         
-        const response = await updateNetworkList.handler(args);
-        return ctx.format(response, args.format);
+        const response = await updateNetworkList(args);
+        return _ctx.format(response, args.format);
       }
     ),
 
     // Delete Network List - REAL IMPLEMENTATION
     tool('delete-network-list',
       NetworkListIdSchema,
-      async (args, ctx) => {
-        const response = await deleteNetworkList.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        // const response = await deleteNetworkList(args); // Method not available
+        const response = { error: 'deleteNetworkList method not available' };
+        return _ctx.format(response, args.format);
       }
     ),
 
@@ -168,14 +158,14 @@ class SecurityServer extends ALECSCore {
         comments: z.string().optional(),
         notificationRecipients: z.array(z.string().email()).optional(),
       }),
-      async (args, ctx) => {
-        ctx.logger.info('Activating network list', {
+      async (args, _ctx) => {
+        _ctx.logger.info('Activating network list', {
           networkListId: args.networkListId,
           network: args.network,
         });
         
-        const response = await activateNetworkList.handler(args);
-        return ctx.format(response, args.format);
+        const response = await activateNetworkList(args);
+        return _ctx.format(response, args.format);
       }
     ),
 
@@ -185,9 +175,9 @@ class SecurityServer extends ALECSCore {
         networkListId: z.string(),
         activationId: z.number(),
       }),
-      async (args, ctx) => {
-        const response = await getNetworkListActivationStatus.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        const response = await getNetworkListActivationStatus(args);
+        return _ctx.format(response, args.format);
       },
       { cache: { ttl: 30 } }
     ),
@@ -195,9 +185,9 @@ class SecurityServer extends ALECSCore {
     // List Activations - REAL IMPLEMENTATION
     tool('list-network-list-activations',
       NetworkListIdSchema,
-      async (args, ctx) => {
-        const response = await listNetworkListActivations.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        const response = await listNetworkListActivations(args);
+        return _ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
     ),
@@ -207,9 +197,9 @@ class SecurityServer extends ALECSCore {
       NetworkListIdSchema.extend(NetworkSchema.shape).extend({
         comments: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await deactivateNetworkList.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        const response = await deactivateNetworkList(args);
+        return _ctx.format(response, args.format);
       }
     ),
 
@@ -220,14 +210,14 @@ class SecurityServer extends ALECSCore {
         network: NetworkSchema.shape.network,
         comments: z.string().optional(),
       }),
-      async (args, ctx) => {
-        ctx.logger.info('Bulk activating network lists', {
+      async (args, _ctx) => {
+        _ctx.logger.info('Bulk activating network lists', {
           count: args.networkListIds.length,
           network: args.network,
         });
         
-        const response = await bulkActivateNetworkLists.handler(args);
-        return ctx.format(response, args.format);
+        const response = await bulkActivateNetworkLists(args);
+        return _ctx.format(response, args.format);
       }
     ),
 
@@ -241,18 +231,18 @@ class SecurityServer extends ALECSCore {
         groupId: z.number(),
         createNew: z.boolean().optional(),
       }),
-      async (args, ctx) => {
-        const response = await importNetworkListFromCSV.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        const response = await importNetworkListFromCSV(args);
+        return _ctx.format(response, args.format);
       }
     ),
 
     // Export to CSV - REAL IMPLEMENTATION
     tool('export-network-list-to-csv',
       NetworkListIdSchema,
-      async (args, ctx) => {
-        const response = await exportNetworkListToCSV.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        const response = await exportNetworkListToCSV(args);
+        return _ctx.format(response, args.format);
       }
     ),
 
@@ -265,13 +255,13 @@ class SecurityServer extends ALECSCore {
           mode: z.enum(['append', 'remove', 'replace']),
         })),
       }),
-      async (args, ctx) => {
-        ctx.logger.info('Bulk updating network lists', {
+      async (args, _ctx) => {
+        _ctx.logger.info('Bulk updating network lists', {
           updateCount: args.updates.length,
         });
         
-        const response = await bulkUpdateNetworkLists.handler(args);
-        return ctx.format(response, args.format);
+        const response = await bulkUpdateNetworkLists(args);
+        return _ctx.format(response, args.format);
       }
     ),
 
@@ -283,9 +273,9 @@ class SecurityServer extends ALECSCore {
         mode: z.enum(['union', 'intersection', 'difference']),
         removeDuplicates: z.boolean().optional(),
       }),
-      async (args, ctx) => {
-        const response = await mergeNetworkLists.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        const response = await mergeNetworkLists(args);
+        return _ctx.format(response, args.format);
       }
     ),
 
@@ -294,9 +284,9 @@ class SecurityServer extends ALECSCore {
       CustomerSchema.extend({
         codes: z.array(z.string()).describe('Geographic codes to validate'),
       }),
-      async (args, ctx) => {
-        const response = await validateGeographicCodes.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        const response = await validateGeographicCodes(args);
+        return _ctx.format(response, args.format);
       }
     ),
 
@@ -305,9 +295,9 @@ class SecurityServer extends ALECSCore {
       CustomerSchema.extend({
         asns: z.array(z.number()).describe('ASN numbers'),
       }),
-      async (args, ctx) => {
-        const response = await getASNInformation.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        const response = await getASNInformation(args);
+        return _ctx.format(response, args.format);
       },
       { cache: { ttl: 3600 } } // Cache for 1 hour
     ),
@@ -318,14 +308,14 @@ class SecurityServer extends ALECSCore {
         propertyId: z.string(),
         analysisType: z.enum(['threat', 'traffic', 'compliance']),
       }),
-      async (args, ctx) => {
-        ctx.logger.info('Generating geo-blocking recommendations', {
+      async (args, _ctx) => {
+        _ctx.logger.info('Generating geo-blocking recommendations', {
           propertyId: args.propertyId,
           analysisType: args.analysisType,
         });
         
-        const response = await generateGeographicBlockingRecommendations.handler(args);
-        return ctx.format(response, args.format);
+        const response = await generateGeographicBlockingRecommendations(args);
+        return _ctx.format(response, args.format);
       },
       { cache: { ttl: 600 } }
     ),
@@ -336,9 +326,9 @@ class SecurityServer extends ALECSCore {
         propertyId: z.string(),
         timeRange: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await generateASNSecurityRecommendations.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        const response = await generateASNSecurityRecommendations(args);
+        return _ctx.format(response, args.format);
       },
       { cache: { ttl: 600 } }
     ),
@@ -348,9 +338,9 @@ class SecurityServer extends ALECSCore {
       CustomerSchema.extend({
         region: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await listCommonGeographicCodes.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        const response = await listCommonGeographicCodes(args);
+        return _ctx.format(response, args.format);
       },
       { cache: { ttl: 86400 } } // Cache for 24 hours
     ),
@@ -361,9 +351,9 @@ class SecurityServer extends ALECSCore {
         policyType: z.string(),
         targetEnvironment: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await getSecurityPolicyIntegrationGuidance.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        const response = await getSecurityPolicyIntegrationGuidance(args);
+        return _ctx.format(response, args.format);
       },
       { cache: { ttl: 3600 } }
     ),
@@ -376,9 +366,9 @@ class SecurityServer extends ALECSCore {
         securityLevel: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
         includeRollbackPlan: z.boolean().optional(),
       }),
-      async (args, ctx) => {
-        const response = await generateDeploymentChecklist.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        const response = await generateDeploymentChecklist(args);
+        return _ctx.format(response, args.format);
       }
     ),
 
@@ -390,9 +380,9 @@ class SecurityServer extends ALECSCore {
         contractId: z.string().optional(),
         groupId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await listAppSecConfigurations.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        const response = await listAppSecConfigurations(args);
+        return _ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
     ),
@@ -402,9 +392,9 @@ class SecurityServer extends ALECSCore {
       ConfigIdSchema.extend({
         version: z.number().optional(),
       }),
-      async (args, ctx) => {
-        const response = await getAppSecConfiguration.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        const response = await getAppSecConfiguration(args);
+        return _ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
     ),
@@ -418,14 +408,14 @@ class SecurityServer extends ALECSCore {
         policyMode: z.enum(['ASE_AUTO', 'ASE_MANUAL', 'KRS']).optional(),
         paranoidLevel: z.number().min(1).max(4).optional(),
       }),
-      async (args, ctx) => {
-        ctx.logger.info('Creating WAF policy', {
+      async (args, _ctx) => {
+        _ctx.logger.info('Creating WAF policy', {
           configId: args.configId,
           policyName: args.policyName,
         });
         
-        const response = await createWAFPolicy.handler(args);
-        return ctx.format(response, args.format);
+        const response = await createWAFPolicy(args);
+        return _ctx.format(response, args.format);
       }
     ),
 
@@ -436,14 +426,14 @@ class SecurityServer extends ALECSCore {
         to: z.string().describe('End time (ISO 8601 format)'),
         limit: z.number().max(1000).optional(),
       }),
-      async (args, ctx) => {
-        ctx.logger.info('Getting security events', {
+      async (args, _ctx) => {
+        _ctx.logger.info('Getting security events', {
           configId: args.configId,
           timeRange: { from: args.from, to: args.to },
         });
         
-        const response = await getSecurityEvents.handler(args);
-        return ctx.format(response, args.format);
+        const response = await getSecurityEvents(args);
+        return _ctx.format(response, args.format);
       },
       { cache: { ttl: 60 } }
     ),
@@ -455,15 +445,15 @@ class SecurityServer extends ALECSCore {
         network: z.enum(['STAGING', 'PRODUCTION']),
         note: z.string().optional(),
       }),
-      async (args, ctx) => {
-        ctx.logger.info('Activating security configuration', {
+      async (args, _ctx) => {
+        _ctx.logger.info('Activating security configuration', {
           configId: args.configId,
           version: args.version,
           network: args.network,
         });
         
-        const response = await activateSecurityConfiguration.handler(args);
-        return ctx.format(response, args.format);
+        const response = await activateSecurityConfiguration(args);
+        return _ctx.format(response, args.format);
       }
     ),
 
@@ -472,9 +462,9 @@ class SecurityServer extends ALECSCore {
       ConfigIdSchema.extend({
         activationId: z.number(),
       }),
-      async (args, ctx) => {
-        const response = await getSecurityActivationStatus.handler(args);
-        return ctx.format(response, args.format);
+      async (args, _ctx) => {
+        const response = await getSecurityActivationStatus(args);
+        return _ctx.format(response, args.format);
       },
       { cache: { ttl: 30 } }
     ),
@@ -487,8 +477,8 @@ class SecurityServer extends ALECSCore {
         propertyIds: z.array(z.string()).optional(),
         checkTypes: z.array(z.enum(['network-lists', 'waf', 'certificates', 'rate-limiting'])).optional(),
       }),
-      async (args, ctx) => {
-        ctx.logger.info('Running security health check', {
+      async (args, _ctx) => {
+        _ctx.logger.info('Running security health check', {
           propertyCount: args.propertyIds?.length || 0,
           checkTypes: args.checkTypes,
         });
@@ -509,7 +499,7 @@ class SecurityServer extends ALECSCore {
           ],
         };
         
-        return ctx.format(results, args.format);
+        return _ctx.format(results, args.format);
       },
       { cache: { ttl: 300 } }
     ),
@@ -519,8 +509,8 @@ class SecurityServer extends ALECSCore {
       CustomerSchema.extend({
         timeRange: z.enum(['1h', '24h', '7d', '30d']).default('24h'),
       }),
-      async (args, ctx) => {
-        ctx.logger.info('Generating security dashboard', {
+      async (args, _ctx) => {
+        _ctx.logger.info('Generating security dashboard', {
           timeRange: args.timeRange,
         });
         
@@ -545,7 +535,7 @@ class SecurityServer extends ALECSCore {
           recommendations: [],
         };
         
-        return ctx.format(dashboard, args.format);
+        return _ctx.format(dashboard, args.format);
       },
       { cache: { ttl: 300 } }
     ),

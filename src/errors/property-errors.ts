@@ -27,7 +27,7 @@ export class PropertyOperationError extends AkamaiError {
       title: message,
       detail: message,
       status: statusCode,
-      ...details
+      ...(details as Record<string, unknown>)
     });
     this.name = 'PropertyOperationError';
   }
@@ -210,7 +210,7 @@ export class ActivationInProgressError extends ConflictError {
  */
 export class RuleValidationError extends BadRequestError {
   constructor(_propertyId: string, errors: unknown[]) {
-    const errorSummary = errors.slice(0, 3).map(e => e.detail || e.title).join(', ');
+    const errorSummary = errors.slice(0, 3).map(e => (e as any).detail || (e as any).title).join(', ');
     const message = `Property rules validation failed: ${errorSummary}`;
     
     const response: ApiErrorResponse = {
@@ -219,9 +219,9 @@ export class RuleValidationError extends BadRequestError {
       detail: message,
       status: 400,
       errors: errors.slice(0, 10).map(e => ({
-        type: e.type || 'validation_error',
-        title: e.title || 'Validation Error',
-        detail: e.detail || e.message || 'Unknown validation error'
+        type: (e as any).type || 'validation_error',
+        title: (e as any).title || 'Validation Error',
+        detail: (e as any).detail || (e as any).message || 'Unknown validation error'
       }))
     };
     

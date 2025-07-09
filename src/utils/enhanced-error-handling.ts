@@ -143,25 +143,26 @@ export class EnhancedErrorHandler {
    * Extract HTTP status from various _error formats
    */
   private extractHttpStatus(_error: unknown): number {
-    if (_error.response?.status) {
-      return _error.response.status;
+    const err = _error as any;
+    if (err?.response?.status) {
+      return err.response.status;
     }
-    if (_error.status) {
-      return _error.status;
+    if (err?.status) {
+      return err.status;
     }
-    if (_error.statusCode) {
-      return _error.statusCode;
+    if (err?.statusCode) {
+      return err.statusCode;
     }
-    if (_error.code === 'ECONNREFUSED') {
+    if (err?.code === 'ECONNREFUSED') {
       return 503;
     }
-    if (_error.code === 'ETIMEDOUT') {
+    if (err?.code === 'ETIMEDOUT') {
       return 408;
     }
-    if (_error.code === 'ENOTFOUND') {
+    if (err?.code === 'ENOTFOUND') {
       return 503;
     }
-    if (_error.code === 'ECONNRESET') {
+    if (err?.code === 'ECONNRESET') {
       return 503;
     }
     return 500;
@@ -171,7 +172,8 @@ export class EnhancedErrorHandler {
    * Parse Akamai _error response with enhanced extraction
    */
   private parseAkamaiErrorResponse(_error: unknown): AkamaiErrorResponse | null {
-    let errorData = _error.response?.data || _error.data || _error;
+    const err = _error as any;
+    let errorData = err?.response?.data || err?.data || err;
 
     // Handle string responses
     if (typeof errorData === 'string') {
@@ -253,7 +255,7 @@ export class EnhancedErrorHandler {
     // Check for validation errors in errors array
     if (akamaiError?.errors && akamaiError.errors.length > 0) {
       const hasFieldErrors = akamaiError.errors.some(
-        (_err: unknown) => _err.field || _err.type === 'field-_error',
+        (_err: any) => _err.field || _err.type === 'field-_error',
       );
       if (hasFieldErrors) {
         return ErrorType.VALIDATION;
@@ -478,7 +480,8 @@ export class EnhancedErrorHandler {
    * Extract retry-after value from _error response
    */
   private extractRetryAfter(_error: unknown): number | undefined {
-    const retryAfter = _error.response?.headers?.['retry-after'] || _error.headers?.['retry-after'];
+    const err = _error as any;
+    const retryAfter = err?.response?.headers?.['retry-after'] || err?.headers?.['retry-after'];
 
     if (retryAfter) {
       const seconds = parseInt(retryAfter, 10);
@@ -492,12 +495,13 @@ export class EnhancedErrorHandler {
    * Extract request ID for support tracking
    */
   private extractRequestId(_error: unknown): string | undefined {
+    const err = _error as any;
     return (
-      _error.response?.headers?.['x-request-id'] ||
-      _error.headers?.['x-request-id'] ||
-      _error.response?.headers?.['x-trace-id'] ||
-      _error.headers?.['x-trace-id'] ||
-      _error.response?.data?.requestId
+      err?.response?.headers?.['x-request-id'] ||
+      err?.headers?.['x-request-id'] ||
+      err?.response?.headers?.['x-trace-id'] ||
+      err?.headers?.['x-trace-id'] ||
+      err?.response?.data?.requestId
     );
   }
 
@@ -565,7 +569,7 @@ export class EnhancedErrorHandler {
       totalAttempts: attempts.length,
       attempts: attempts.map((a) => ({
         attempt: a.attempt,
-        errorType: a.error.errorType,
+        errorType: (a.error as any).errorType,
         delay: a.delay,
       })),
       finalError: attempts[attempts.length - 1]?.error,

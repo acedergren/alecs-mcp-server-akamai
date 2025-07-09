@@ -217,6 +217,7 @@ export interface LogContext {
   status?: number;
   retryCount?: number;
   error?: Error;
+  [key: string]: unknown;
 }
 
 /**

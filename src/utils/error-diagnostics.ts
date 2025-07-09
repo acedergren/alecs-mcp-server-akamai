@@ -26,30 +26,33 @@ export interface DiagnosticResult {
 /**
  * Analyzes API errors and provides actionable diagnostics
  */
-export function diagnoseError(error: unknown, context: ErrorContext): DiagnosticResult {
+export function diagnoseError(error: any, context: ErrorContext): DiagnosticResult {
+  // Type guard for error with response
+  const apiError = error as any;
+  
   // Handle Akamai API errors
-  if (error.response?.status === 403) {
-    return diagnose403Error(error, context);
+  if (apiError?.response?.status === 403) {
+    return diagnose403Error(apiError, context);
   }
   
-  if (error.response?.status === 404) {
-    return diagnose404Error(error, context);
+  if (apiError?.response?.status === 404) {
+    return diagnose404Error(apiError, context);
   }
   
-  if (error.response?.status === 400) {
-    return diagnose400Error(error, context);
+  if (apiError?.response?.status === 400) {
+    return diagnose400Error(apiError, context);
   }
   
-  if (error.response?.status === 429) {
-    return diagnose429Error(error);
+  if (apiError?.response?.status === 429) {
+    return diagnose429Error(apiError);
   }
   
-  if (error.response?.status >= 500) {
-    return diagnose5xxError(error);
+  if (apiError?.response?.status >= 500) {
+    return diagnose5xxError(apiError);
   }
   
   // Network errors
-  if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+  if ((error as any).code === 'ECONNREFUSED' || (error as any).code === 'ETIMEDOUT') {
     return diagnoseNetworkError(error);
   }
   
@@ -57,7 +60,7 @@ export function diagnoseError(error: unknown, context: ErrorContext): Diagnostic
   return {
     errorType: 'unknown',
     userMessage: 'An unexpected error occurred',
-    technicalDetails: error.message || 'Unknown error',
+    technicalDetails: (error as any).message || 'Unknown error',
     suggestedActions: [
       'Check your network connection',
       'Verify API credentials are valid',
@@ -68,7 +71,7 @@ export function diagnoseError(error: unknown, context: ErrorContext): Diagnostic
   };
 }
 
-function diagnose403Error(error: unknown, context: ErrorContext): DiagnosticResult {
+function diagnose403Error(error: any, context: ErrorContext): DiagnosticResult {
   const detail = error.response?.data?.detail || '';
   const title = error.response?.data?.title || '';
   
@@ -130,7 +133,7 @@ function diagnose403Error(error: unknown, context: ErrorContext): DiagnosticResu
   };
 }
 
-function diagnose404Error(error: unknown, context: ErrorContext): DiagnosticResult {
+function diagnose404Error(error: any, context: ErrorContext): DiagnosticResult {
   const detail = error.response?.data?.detail || '';
   
   if (context.propertyId) {
@@ -160,18 +163,18 @@ function diagnose404Error(error: unknown, context: ErrorContext): DiagnosticResu
   };
 }
 
-function diagnose400Error(error: unknown, _context: ErrorContext): DiagnosticResult {
+function diagnose400Error(error: any, _context: ErrorContext): DiagnosticResult {
   const detail = error.response?.data?.detail || '';
   const errors = error.response?.data?.errors || [];
   
   // Validation errors
   if (errors.length > 0) {
-    const errorMessages = errors.map((e: unknown) => e.detail || e.message).join(', ');
+    const errorMessages = errors.map((e: any) => e.detail || e.message).join(', ');
     return {
       errorType: 'validation',
       userMessage: 'Invalid request parameters',
       technicalDetails: `400 Bad Request: ${errorMessages}`,
-      suggestedActions: errors.map((e: unknown) => {
+      suggestedActions: errors.map((e: any) => {
         if (e.field) {
           return `Fix ${e.field}: ${e.detail}`;
         }
@@ -194,7 +197,7 @@ function diagnose400Error(error: unknown, _context: ErrorContext): DiagnosticRes
   };
 }
 
-function diagnose429Error(error: unknown): DiagnosticResult {
+function diagnose429Error(error: any): DiagnosticResult {
   const retryAfter = error.response?.headers?.['retry-after'];
   const retryDelay = retryAfter ? parseInt(retryAfter) * 1000 : 60000;
   
@@ -212,7 +215,7 @@ function diagnose429Error(error: unknown): DiagnosticResult {
   };
 }
 
-function diagnose5xxError(error: unknown): DiagnosticResult {
+function diagnose5xxError(error: any): DiagnosticResult {
   return {
     errorType: 'network',
     userMessage: 'Akamai API service error',
@@ -227,7 +230,7 @@ function diagnose5xxError(error: unknown): DiagnosticResult {
   };
 }
 
-function diagnoseNetworkError(error: unknown): DiagnosticResult {
+function diagnoseNetworkError(error: any): DiagnosticResult {
   return {
     errorType: 'network',
     userMessage: 'Network connection error',
@@ -287,7 +290,7 @@ export async function retryWithDiagnostics<T>(
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
-    } catch (error) {
+    } catch (error: any) {
       lastError = error;
       const diagnostic = diagnoseError(error, context);
       

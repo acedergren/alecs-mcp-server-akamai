@@ -44,6 +44,9 @@ import { utilityTools } from './utilities';
 // Orchestration Tools
 import { OrchestrationTools } from './orchestration';
 
+// AppSec Tools
+import { appSecTools } from './appsec';
+
 /**
  * Tool definition interface with strong typing
  */
@@ -101,6 +104,9 @@ export function getAllToolDefinitions(): ToolDefinition[] {
 
   // Orchestration Tools (7 tools - fully migrated)
   allTools.push(...convertToolsToDefinitions(OrchestrationTools.getAllTools()));
+
+  // AppSec Tools (34 tools - fully migrated)
+  allTools.push(...convertToolsToDefinitions(appSecTools));
 
   // UNMIGRATED TOOLS (dot notation) - Temporarily disabled for clean startup
   // TODO: Migrate these tools to snake_case naming in future phases

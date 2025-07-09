@@ -1,0 +1,60 @@
+{
+  "domains": {
+    "Property Manager": {
+      "tools": [
+        "property.list",
+        "property.get",
+        "property.create",
+        "property.update",
+        "property.delete",
+        "property.activate",
+        "property.deactivate",
+        "property.clone",
+        "property.versions.list",
+        "property.hostnames.list",
+        "property.rules.get",
+        "property.rules.update",
+        "property.variables.list"
+      ],
+      "count": 40
+    },
+    "DNS": {
+      "tools": [
+        "dns.zone.list",
+        "dns.zone.get",
+        "dns.zone.create",
+        "dns.zone.update",
+        "dns.zone.delete",
+        "dns.record.list",
+        "dns.record.create",
+        "dns.record.update",
+        "dns.record.delete",
+        "dns.zone.activate"
+      ],
+      "count": 30
+    },
+    "Security": {
+      "tools": [
+        "appsec.config.list",
+        "appsec.config.create",
+        "appsec.config.get",
+        "appsec.waf.rules.list",
+        "appsec.waf.rules.update",
+        "appsec.rate-policy.create",
+        "appsec.config.activate"
+      ],
+      "count": 126
+    },
+    "Certificates": {
+      "tools": [
+        "certificate.enrollment.list",
+        "certificate.enrollment.create",
+        "certificate.enrollment.get",
+        "certificate.validation.update",
+        "certificate.deployment.status"
+      ],
+      "count": 20
+    }
+  },
+  "totalTools": 287
+}

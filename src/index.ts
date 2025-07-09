@@ -1,19 +1,22 @@
 #!/usr/bin/env node
 
 /**
- * ALECS MCP Server - Streamlined Entry Point
+ * ALECS MCP Server - Command Line Interface Entry Point
  * 
- * Usage:
- * - Default (stdio for Claude Desktop): npm start
- * - WebSocket (bidirectional): MCP_TRANSPORT=websocket npm start
- * - SSE (Streamable HTTP): MCP_TRANSPORT=sse npm start
- * - Specific module: npm start:property
+ * USAGE:
+ * - Default: alecs
+ * - Customer section: alecs --section customer-prod
+ * - Specific module: alecs --module property --section testing
+ * - Help: alecs --help
+ * - Version: alecs --version
  * 
- * CRITICAL FIX APPLIED (v1.6.0-rc2):
- * Fixed JSON-RPC protocol corruption in Claude Desktop integration.
- * Issue: console.log statements to stdout interfered with JSON-RPC communication
- * Solution: Conditional logging based on transport type (stdio uses stderr via logger)
- * Impact: Eliminates "Unexpected token" and JSON parsing errors in Claude Desktop
+ * TRANSPORT OPTIONS:
+ * - stdio: Claude Desktop integration (default)
+ * - websocket: Advanced bidirectional communication
+ * - sse: Server-Sent Events for web clients
+ * 
+ * CUSTOMER SWITCHING:
+ * Use --section to specify .edgerc section for multi-customer support
  */
 
 // CRITICAL: Must be first import to prevent stdout pollution
@@ -22,12 +25,12 @@ import { setupSafeConsole } from './utils/safe-console';
 // Initialize safe console BEFORE any other imports that might use console.log
 setupSafeConsole();
 
+import { parseArguments, displayHelp, displayVersion, applyConfiguration, validateConfiguration, displayStartupDashboard } from './utils/cli-parser';
 import { getTransportFromEnv } from './config/transport-config';
-
 import { createLogger } from './utils/pino-logger';
 
 const mainLogger = createLogger('main');
-let server: unknown = null;
+let server: any = null;
 
 // Graceful shutdown handler
 function setupGracefulShutdown() {
@@ -59,15 +62,44 @@ function setupGracefulShutdown() {
 }
 
 async function main(): Promise<void> {
-  mainLogger.info('ALECS MCP Server starting...');
-  mainLogger.debug({ 
-    argv: process.argv,
-    cwd: process.cwd(),
-    nodeVersion: process.version,
-    pid: process.pid
-  }, 'Process info');
+  // Parse command line arguments first
+  try {
+    const cliConfig = parseArguments();
+    
+    // Handle help and version requests immediately
+    if (cliConfig.help) {
+      displayHelp();
+      return;
+    }
+    
+    if (cliConfig.version) {
+      displayVersion();
+      return;
+    }
+    
+    // Apply CLI configuration to environment
+    applyConfiguration(cliConfig);
+    validateConfiguration(cliConfig);
+    
+    // Display rich startup dashboard
+    displayStartupDashboard(cliConfig);
+    
+    mainLogger.info('ALECS MCP Server initialized with CLI configuration');
+    mainLogger.debug({ 
+      argv: process.argv,
+      cwd: process.cwd(),
+      nodeVersion: process.version,
+      pid: process.pid,
+      cliConfig
+    }, 'Process info');
+    
+  } catch (error) {
+    console.error(`❌ CLI Error: ${error instanceof Error ? error.message : String(error)}`);
+    console.error('💡 Use --help for usage information');
+    process.exit(1);
+  }
   
-  // Check if running a specific module via npm script
+  // Check if running a specific module via npm script or CLI
   const scriptName = process.env['npm_lifecycle_event'];
   mainLogger.debug({ scriptName }, 'npm_lifecycle_event');
   

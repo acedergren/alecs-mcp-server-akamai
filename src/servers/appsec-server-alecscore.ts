@@ -11,14 +11,15 @@ import { ALECSCore, tool } from '../core/server/alecs-core';
 import { z } from 'zod';
 
 // Import AppSec tools
-import {
-  listAppSecConfigurations,
-  getAppSecConfiguration,
-  createWAFPolicy,
-  getSecurityEvents,
-  activateSecurityConfiguration,
-  getSecurityActivationStatus,
-} from '../tools/security/appsec-basic-tools';
+import { consolidatedSecurityTools } from '../tools/security/consolidated-security-tools';
+
+// Extract tool methods
+const listAppSecConfigurations = consolidatedSecurityTools.listAppSecConfigurations.bind(consolidatedSecurityTools);
+const createWAFPolicy = consolidatedSecurityTools.createWAFPolicy.bind(consolidatedSecurityTools);
+const getAppSecConfiguration = consolidatedSecurityTools.getAppSecConfiguration.bind(consolidatedSecurityTools);
+const getSecurityEvents = consolidatedSecurityTools.getSecurityEvents.bind(consolidatedSecurityTools);
+const activateSecurityConfiguration = consolidatedSecurityTools.activateSecurityConfiguration.bind(consolidatedSecurityTools);
+const getSecurityActivationStatus = consolidatedSecurityTools.getSecurityActivationStatus.bind(consolidatedSecurityTools);
 
 // Schemas
 const CustomerSchema = z.object({
@@ -30,7 +31,7 @@ const ConfigIdSchema = CustomerSchema.extend({
 });
 
 class AppSecServer extends ALECSCore {
-  tools = [
+  override tools = [
     // List Security Configurations - REAL IMPLEMENTATION
     tool('list-appsec-configurations',
       CustomerSchema.extend({
@@ -44,7 +45,7 @@ class AppSecServer extends ALECSCore {
           contractId: args.contractId,
         });
         
-        const response = await listAppSecConfigurations.handler(args);
+        const response = await listAppSecConfigurations(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
@@ -62,7 +63,7 @@ class AppSecServer extends ALECSCore {
           version: args.version,
         });
         
-        const response = await getAppSecConfiguration.handler(args);
+        const response = await getAppSecConfiguration(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
@@ -85,7 +86,7 @@ class AppSecServer extends ALECSCore {
           policyMode: args.policyMode,
         });
         
-        const response = await createWAFPolicy.handler(args);
+        const response = await createWAFPolicy(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -97,7 +98,7 @@ class AppSecServer extends ALECSCore {
         policyId: z.string().describe('Security policy ID'),
         from: z.number().describe('Start time (epoch milliseconds)'),
         to: z.number().describe('End time (epoch milliseconds)'),
-        limit: z.number().default(100).max(1000).optional(),
+        limit: z.number().max(1000).default(100).optional(),
         offset: z.number().default(0).optional(),
       }),
       async (args, ctx) => {
@@ -108,7 +109,7 @@ class AppSecServer extends ALECSCore {
           timeRange: { from: args.from, to: args.to },
         });
         
-        const response = await getSecurityEvents.handler(args);
+        const response = await getSecurityEvents(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 60 } } // Short cache for events
@@ -130,7 +131,7 @@ class AppSecServer extends ALECSCore {
           network: args.network,
         });
         
-        const response = await activateSecurityConfiguration.handler(args);
+        const response = await activateSecurityConfiguration(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -142,7 +143,7 @@ class AppSecServer extends ALECSCore {
       }),
       async (args, ctx) => {
         // REAL API CALL - No mocks
-        const response = await getSecurityActivationStatus.handler(args);
+        const response = await getSecurityActivationStatus(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 30 } }
@@ -164,11 +165,12 @@ class AppSecServer extends ALECSCore {
           '30d': 2592000000,
         };
         
-        const from = now - ranges[args.timeRange];
+        const from = now - (ranges as any)[args.timeRange];
         const to = now;
         
         // Get events with aggregation
-        const eventsArgs = {
+        /*
+        const _eventsArgs = {
           customer: args.customer,
           configId: args.configId,
           version: 1, // Latest version
@@ -177,6 +179,7 @@ class AppSecServer extends ALECSCore {
           to: to.toString(),
           limit: 1000,
         };
+        */
         
         ctx.logger.info('Getting attack dashboard', {
           configId: args.configId,

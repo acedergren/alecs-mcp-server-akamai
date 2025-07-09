@@ -165,7 +165,7 @@ export function migrateTools(tools: ToolMigrationConfig[]): Array<{
 }> {
   return tools.map((tool) => ({
     definition: createMcp2025Tool(tool.name, tool.description, tool.zodSchema),
-    handler: wrapToolHandler(tool.handler, tool.name, tool.version),
+    handler: wrapToolHandler(tool.handler as (...args: unknown[]) => Promise<McpToolResponse<unknown>>, tool.name, tool.version),
   }));
 }
 
@@ -241,7 +241,7 @@ export function generateMigrationReport(
  */
 function isValidJsonSchema(schema: unknown): boolean {
   return (
-    typeof schema === 'object' && schema.type === 'object' && typeof schema.properties === 'object'
+    typeof schema === 'object' && schema !== null && (schema as any).type === 'object' && typeof (schema as any).properties === 'object'
   );
 }
 
@@ -249,7 +249,7 @@ function isValidJsonSchema(schema: unknown): boolean {
  * Check if response has _meta field capability
  */
 function hasMetaField(response: unknown): boolean {
-  return typeof response === 'object' && ('_meta' in response || response._meta === undefined);
+  return typeof response === 'object' && response !== null && ('_meta' in response || (response as any)._meta === undefined);
 }
 
 /**

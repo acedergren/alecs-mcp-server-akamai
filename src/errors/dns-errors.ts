@@ -27,7 +27,7 @@ export class DNSOperationError extends AkamaiError {
       title: message,
       detail: message,
       status: statusCode,
-      ...details
+      ...(details as Record<string, unknown>)
     });
     this.name = 'DNSOperationError';
   }

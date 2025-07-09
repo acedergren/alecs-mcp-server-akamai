@@ -11,64 +11,93 @@
 import { ALECSCore, tool } from '../core/server/alecs-core';
 import { z } from 'zod';
 
-// Import DNS tools
-import {
+// Import consolidated DNS tools
+import { consolidatedDNSTools } from '../tools/dns/consolidated-dns-tools';
+
+// Extract methods from the consolidated tools
+const {
   listZones,
   getZone,
   createZone,
-  listRecords,
-  upsertRecord,
+  deleteZone,
   deleteRecord,
   activateZoneChanges,
-} from '../tools/dns-tools';
-
-// DNS Advanced Tools
-import {
-  getZonesDNSSECStatus,
-  getSecondaryZoneTransferStatus,
-  getZoneContract,
+  listTSIGKeys,
+  createTSIGKey,
+  getZoneStatus,
+  listRecords,
+  upsertRecord,
   getRecordSet,
-  updateTSIGKeyForZones,
-  submitBulkZoneCreateRequest,
+  createMultipleRecordSets,
   getZoneVersion,
   getVersionRecordSets,
   reactivateZoneVersion,
   getVersionMasterZoneFile,
-  createMultipleRecordSets,
-} from '../tools/dns-advanced-tools';
-
-// DNS Migration Tools
-import {
-  importZoneViaAXFR,
-  parseZoneFile,
-  bulkImportRecords,
-  convertZoneToPrimary,
-  generateMigrationInstructions,
-} from '../tools/dns-migration-tools';
-
-// DNSSEC Operations
-import {
   enableDNSSEC,
   disableDNSSEC,
   getDNSSECKeys,
   getDNSSECDSRecords,
   checkDNSSECValidation,
   rotateDNSSECKeys,
-} from '../tools/dns-dnssec-operations';
-
-// DNS Operations Priority
-import {
+  getZonesDNSSECStatus,
+  importZoneViaAXFR,
+  parseZoneFile,
+  bulkImportRecords,
+  convertZoneToPrimary,
+  generateMigrationInstructions,
+  submitBulkZoneCreateRequest,
+  getSecondaryZoneTransferStatus,
+  getZoneContract,
+  updateTSIGKeyForZones,
   listChangelists,
   searchChangelists,
   getChangelistDiff,
   getAuthoritativeNameservers,
   listDNSContracts,
   getSupportedRecordTypes,
-  deleteZone,
-  getZoneStatus,
-  listTSIGKeys,
-  createTSIGKey,
-} from '../tools/dns-operations-priority';
+} = {
+  listZones: consolidatedDNSTools.listZones.bind(consolidatedDNSTools),
+  getZone: consolidatedDNSTools.getZone.bind(consolidatedDNSTools),
+  createZone: consolidatedDNSTools.createZone.bind(consolidatedDNSTools),
+  deleteZone: consolidatedDNSTools.deleteZone.bind(consolidatedDNSTools),
+  deleteRecord: consolidatedDNSTools.deleteRecord.bind(consolidatedDNSTools),
+  activateZoneChanges: consolidatedDNSTools.activateZoneChanges.bind(consolidatedDNSTools),
+  listTSIGKeys: consolidatedDNSTools.listTSIGKeys.bind(consolidatedDNSTools),
+  createTSIGKey: consolidatedDNSTools.createTSIGKey.bind(consolidatedDNSTools),
+  getZoneStatus: consolidatedDNSTools.getZoneStatus.bind(consolidatedDNSTools),
+  listRecords: consolidatedDNSTools.listRecords.bind(consolidatedDNSTools),
+  upsertRecord: consolidatedDNSTools.upsertRecord.bind(consolidatedDNSTools),
+  getRecordSet: consolidatedDNSTools.getRecordSet.bind(consolidatedDNSTools),
+  createMultipleRecordSets: consolidatedDNSTools.createMultipleRecordSets.bind(consolidatedDNSTools),
+  getZoneVersion: consolidatedDNSTools.getZoneVersion.bind(consolidatedDNSTools),
+  getVersionRecordSets: consolidatedDNSTools.getVersionRecordSets.bind(consolidatedDNSTools),
+  reactivateZoneVersion: consolidatedDNSTools.reactivateZoneVersion.bind(consolidatedDNSTools),
+  getVersionMasterZoneFile: consolidatedDNSTools.getVersionMasterZoneFile.bind(consolidatedDNSTools),
+  enableDNSSEC: consolidatedDNSTools.enableDnssec.bind(consolidatedDNSTools),
+  disableDNSSEC: consolidatedDNSTools.disableDNSSEC.bind(consolidatedDNSTools),
+  getDNSSECKeys: consolidatedDNSTools.getDNSSECKeys.bind(consolidatedDNSTools),
+  getDNSSECDSRecords: consolidatedDNSTools.getDNSSECDSRecords.bind(consolidatedDNSTools),
+  checkDNSSECValidation: consolidatedDNSTools.checkDNSSECValidation.bind(consolidatedDNSTools),
+  rotateDNSSECKeys: consolidatedDNSTools.rotateDNSSECKeys.bind(consolidatedDNSTools),
+  getZonesDNSSECStatus: consolidatedDNSTools.getZonesDNSSECStatus.bind(consolidatedDNSTools),
+  importZoneViaAXFR: consolidatedDNSTools.importZoneViaAXFR.bind(consolidatedDNSTools),
+  parseZoneFile: consolidatedDNSTools.parseZoneFile.bind(consolidatedDNSTools),
+  bulkImportRecords: consolidatedDNSTools.bulkImportRecords.bind(consolidatedDNSTools),
+  convertZoneToPrimary: consolidatedDNSTools.convertZoneToPrimary.bind(consolidatedDNSTools),
+  generateMigrationInstructions: consolidatedDNSTools.generateMigrationInstructions.bind(consolidatedDNSTools),
+  submitBulkZoneCreateRequest: consolidatedDNSTools.submitBulkZoneCreateRequest.bind(consolidatedDNSTools),
+  getSecondaryZoneTransferStatus: consolidatedDNSTools.getSecondaryZoneTransferStatus.bind(consolidatedDNSTools),
+  getZoneContract: consolidatedDNSTools.getZoneContract.bind(consolidatedDNSTools),
+  updateTSIGKeyForZones: consolidatedDNSTools.updateTSIGKeyForZones.bind(consolidatedDNSTools),
+  listChangelists: consolidatedDNSTools.listChangelists.bind(consolidatedDNSTools),
+  searchChangelists: consolidatedDNSTools.searchChangelists.bind(consolidatedDNSTools),
+  getChangelistDiff: consolidatedDNSTools.getChangelistDiff.bind(consolidatedDNSTools),
+  getAuthoritativeNameservers: consolidatedDNSTools.getAuthoritativeNameservers.bind(consolidatedDNSTools),
+  listDNSContracts: consolidatedDNSTools.listDNSContracts.bind(consolidatedDNSTools),
+  getSupportedRecordTypes: consolidatedDNSTools.getSupportedRecordTypes.bind(consolidatedDNSTools),
+};
+
+// All DNS methods are now implemented in consolidated DNS tools
 
 // Schemas
 const CustomerSchema = z.object({
@@ -91,7 +120,7 @@ const TSIGKeySchema = z.object({
 });
 
 class DNSServer extends ALECSCore {
-  tools = [
+  override tools = [
     // Zone Management
     tool('list-zones',
       CustomerSchema.extend({
@@ -101,7 +130,7 @@ class DNSServer extends ALECSCore {
         types: z.array(z.enum(['PRIMARY', 'SECONDARY', 'ALIAS'])).optional(),
       }),
       async (args, ctx) => {
-        const response = await listZones.handler(args);
+        const response = await listZones(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 300 }, coalesce: true }
@@ -110,7 +139,7 @@ class DNSServer extends ALECSCore {
     tool('get-zone',
       ZoneSchema,
       async (args, ctx) => {
-        const response = await getZone.handler(args);
+        const response = await getZone(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
@@ -129,7 +158,7 @@ class DNSServer extends ALECSCore {
         signAndServe: z.boolean().optional().describe('Enable DNSSEC'),
       }),
       async (args, ctx) => {
-        const response = await createZone.handler(args);
+        const response = await createZone(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -139,7 +168,7 @@ class DNSServer extends ALECSCore {
         force: z.boolean().optional().describe('Force deletion'),
       }),
       async (args, ctx) => {
-        const response = await deleteZone.handler(args);
+        const response = await deleteZone(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -147,7 +176,7 @@ class DNSServer extends ALECSCore {
     tool('get-zone-status',
       ZoneSchema,
       async (args, ctx) => {
-        const response = await getZoneStatus.handler(args);
+        const response = await getZoneStatus(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 60 } }
@@ -163,7 +192,7 @@ class DNSServer extends ALECSCore {
         sortBy: z.string().optional(),
       }),
       async (args, ctx) => {
-        const response = await listRecords.handler(args);
+        const response = await listRecords(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
@@ -175,7 +204,7 @@ class DNSServer extends ALECSCore {
         rdata: z.array(z.string()).describe('Record data'),
       }),
       async (args, ctx) => {
-        const response = await upsertRecord.handler(args);
+        const response = await upsertRecord(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -183,7 +212,7 @@ class DNSServer extends ALECSCore {
     tool('delete-record',
       RecordSchema,
       async (args, ctx) => {
-        const response = await deleteRecord.handler(args);
+        const response = await deleteRecord(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -191,7 +220,7 @@ class DNSServer extends ALECSCore {
     tool('get-record-set',
       RecordSchema,
       async (args, ctx) => {
-        const response = await getRecordSet.handler(args);
+        const response = await getRecordSet(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
@@ -207,7 +236,7 @@ class DNSServer extends ALECSCore {
         })),
       }),
       async (args, ctx) => {
-        const response = await createMultipleRecordSets.handler(args);
+        const response = await createMultipleRecordSets(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -218,7 +247,7 @@ class DNSServer extends ALECSCore {
         comment: z.string().optional().describe('Activation comment'),
       }),
       async (args, ctx) => {
-        const response = await activateZoneChanges.handler(args);
+        const response = await activateZoneChanges(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -229,7 +258,7 @@ class DNSServer extends ALECSCore {
         version: z.string().describe('Version ID'),
       }),
       async (args, ctx) => {
-        const response = await getZoneVersion.handler(args);
+        const response = await getZoneVersion(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
@@ -240,7 +269,7 @@ class DNSServer extends ALECSCore {
         version: z.string().describe('Version ID'),
       }),
       async (args, ctx) => {
-        const response = await getVersionRecordSets.handler(args);
+        const response = await getVersionRecordSets(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
@@ -251,7 +280,7 @@ class DNSServer extends ALECSCore {
         version: z.string().describe('Version ID to reactivate'),
       }),
       async (args, ctx) => {
-        const response = await reactivateZoneVersion.handler(args);
+        const response = await reactivateZoneVersion(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -261,7 +290,7 @@ class DNSServer extends ALECSCore {
         version: z.string().describe('Version ID'),
       }),
       async (args, ctx) => {
-        const response = await getVersionMasterZoneFile.handler(args);
+        const response = await getVersionMasterZoneFile(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
@@ -276,7 +305,7 @@ class DNSServer extends ALECSCore {
         iterations: z.number().optional(),
       }),
       async (args, ctx) => {
-        const response = await enableDNSSEC.handler(args);
+        const response = await enableDNSSEC(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -286,7 +315,7 @@ class DNSServer extends ALECSCore {
         force: z.boolean().optional(),
       }),
       async (args, ctx) => {
-        const response = await disableDNSSEC.handler(args);
+        const response = await disableDNSSEC(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -294,7 +323,7 @@ class DNSServer extends ALECSCore {
     tool('get-dnssec-keys',
       ZoneSchema,
       async (args, ctx) => {
-        const response = await getDNSSECKeys.handler(args);
+        const response = await getDNSSECKeys(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
@@ -303,7 +332,7 @@ class DNSServer extends ALECSCore {
     tool('get-dnssec-ds-records',
       ZoneSchema,
       async (args, ctx) => {
-        const response = await getDNSSECDSRecords.handler(args);
+        const response = await getDNSSECDSRecords(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
@@ -312,7 +341,7 @@ class DNSServer extends ALECSCore {
     tool('check-dnssec-validation',
       ZoneSchema,
       async (args, ctx) => {
-        const response = await checkDNSSECValidation.handler(args);
+        const response = await checkDNSSECValidation(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 60 } }
@@ -324,7 +353,7 @@ class DNSServer extends ALECSCore {
         algorithm: z.string().optional(),
       }),
       async (args, ctx) => {
-        const response = await rotateDNSSECKeys.handler(args);
+        const response = await rotateDNSSECKeys(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -334,7 +363,7 @@ class DNSServer extends ALECSCore {
         zones: z.array(z.string()).describe('Zones to check'),
       }),
       async (args, ctx) => {
-        const response = await getZonesDNSSECStatus.handler(args);
+        const response = await getZonesDNSSECStatus(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
@@ -349,7 +378,7 @@ class DNSServer extends ALECSCore {
         groupId: z.string().optional(),
       }),
       async (args, ctx) => {
-        const response = await importZoneViaAXFR.handler(args);
+        const response = await importZoneViaAXFR(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -362,7 +391,7 @@ class DNSServer extends ALECSCore {
         createZone: z.boolean().optional(),
       }),
       async (args, ctx) => {
-        const response = await parseZoneFile.handler(args);
+        const response = await parseZoneFile(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -379,7 +408,7 @@ class DNSServer extends ALECSCore {
         replaceExisting: z.boolean().optional(),
       }),
       async (args, ctx) => {
-        const response = await bulkImportRecords.handler(args);
+        const response = await bulkImportRecords(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -387,7 +416,7 @@ class DNSServer extends ALECSCore {
     tool('convert-zone-to-primary',
       ZoneSchema,
       async (args, ctx) => {
-        const response = await convertZoneToPrimary.handler(args);
+        const response = await convertZoneToPrimary(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -400,7 +429,7 @@ class DNSServer extends ALECSCore {
         includeValidation: z.boolean().optional(),
       }),
       async (args, ctx) => {
-        const response = await generateMigrationInstructions.handler(args);
+        const response = await generateMigrationInstructions(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -415,7 +444,7 @@ class DNSServer extends ALECSCore {
         })),
       }),
       async (args, ctx) => {
-        const response = await submitBulkZoneCreateRequest.handler(args);
+        const response = await submitBulkZoneCreateRequest(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -424,7 +453,7 @@ class DNSServer extends ALECSCore {
     tool('get-secondary-zone-transfer-status',
       ZoneSchema,
       async (args, ctx) => {
-        const response = await getSecondaryZoneTransferStatus.handler(args);
+        const response = await getSecondaryZoneTransferStatus(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 60 } }
@@ -434,7 +463,7 @@ class DNSServer extends ALECSCore {
     tool('list-tsig-keys',
       CustomerSchema,
       async (args, ctx) => {
-        const response = await listTSIGKeys.handler(args);
+        const response = await listTSIGKeys(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 3600 } }
@@ -447,7 +476,7 @@ class DNSServer extends ALECSCore {
         secret: z.string().optional(),
       }),
       async (args, ctx) => {
-        const response = await createTSIGKey.handler(args);
+        const response = await createTSIGKey(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -458,7 +487,7 @@ class DNSServer extends ALECSCore {
         tsigKey: TSIGKeySchema,
       }),
       async (args, ctx) => {
-        const response = await updateTSIGKeyForZones.handler(args);
+        const response = await updateTSIGKeyForZones(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -467,7 +496,7 @@ class DNSServer extends ALECSCore {
     tool('get-zone-contract',
       ZoneSchema,
       async (args, ctx) => {
-        const response = await getZoneContract.handler(args);
+        const response = await getZoneContract(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 3600 } }
@@ -476,7 +505,7 @@ class DNSServer extends ALECSCore {
     tool('list-dns-contracts',
       CustomerSchema,
       async (args, ctx) => {
-        const response = await listDNSContracts.handler(args);
+        const response = await listDNSContracts(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 3600 } }
@@ -490,7 +519,7 @@ class DNSServer extends ALECSCore {
         showAll: z.boolean().optional(),
       }),
       async (args, ctx) => {
-        const response = await listChangelists.handler(args);
+        const response = await listChangelists(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 60 } }
@@ -501,7 +530,7 @@ class DNSServer extends ALECSCore {
         zones: z.array(z.string()),
       }),
       async (args, ctx) => {
-        const response = await searchChangelists.handler(args);
+        const response = await searchChangelists(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 60 } }
@@ -510,7 +539,7 @@ class DNSServer extends ALECSCore {
     tool('get-changelist-diff',
       ZoneSchema,
       async (args, ctx) => {
-        const response = await getChangelistDiff.handler(args);
+        const response = await getChangelistDiff(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 60 } }
@@ -520,7 +549,7 @@ class DNSServer extends ALECSCore {
     tool('get-authoritative-nameservers',
       CustomerSchema,
       async (args, ctx) => {
-        const response = await getAuthoritativeNameservers.handler(args);
+        const response = await getAuthoritativeNameservers(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 86400 } } // Cache for 24 hours
@@ -529,7 +558,7 @@ class DNSServer extends ALECSCore {
     tool('get-supported-record-types',
       CustomerSchema,
       async (args, ctx) => {
-        const response = await getSupportedRecordTypes.handler(args);
+        const response = await getSupportedRecordTypes(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 86400 } } // Cache for 24 hours

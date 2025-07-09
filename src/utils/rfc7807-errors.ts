@@ -66,6 +66,7 @@ export class AkamaiError extends Error implements ProblemDetails {
     detail: string;
     messageId?: string;
   }>;
+  [key: string]: unknown;
 
   constructor(problem: ProblemDetails) {
     super(problem.detail);
@@ -292,13 +293,13 @@ export function parseAkamaiError(error: unknown): AkamaiError {
   }
   
   // If it has RFC 7807 structure
-  if (error.type && error.title && error.detail && error.status) {
-    return new AkamaiError(error);
+  if ((error as any).type && (error as any).title && (error as any).detail && (error as any).status) {
+    return new AkamaiError(error as ProblemDetails);
   }
   
   // Parse common error response formats
-  if (error.response?.data) {
-    const data = error.response.data;
+  if ((error as any).response?.data) {
+    const data = (error as any).response.data;
     
     // Akamai API error format
     if (data.type && data.title) {
@@ -306,7 +307,7 @@ export function parseAkamaiError(error: unknown): AkamaiError {
         type: data.type,
         title: data.title,
         detail: data.detail || data.title,
-        status: error.response.status || 500,
+        status: (error as any).response.status || 500,
         instance: data.instance,
         errors: data.errors,
       });
@@ -318,14 +319,14 @@ export function parseAkamaiError(error: unknown): AkamaiError {
         type: AkamaiErrorTypes.INTERNAL_SERVER_ERROR,
         title: 'API Error',
         detail: data.message || data.error || 'An unknown error occurred',
-        status: error.response.status || 500,
+        status: (error as any).response.status || 500,
       });
     }
   }
   
   // HTTP status errors
-  if (error.response?.status) {
-    const status = error.response.status;
+  if ((error as any).response?.status) {
+    const status = (error as any).response.status;
     let type = AkamaiErrorTypes.INTERNAL_SERVER_ERROR;
     let title = 'Server Error';
     
@@ -355,7 +356,7 @@ export function parseAkamaiError(error: unknown): AkamaiError {
     return new AkamaiError({
       type,
       title,
-      detail: error.message || `HTTP ${status} error occurred`,
+      detail: (error as any).message || `HTTP ${status} error occurred`,
       status,
     });
   }
@@ -364,7 +365,7 @@ export function parseAkamaiError(error: unknown): AkamaiError {
   return new AkamaiError({
     type: AkamaiErrorTypes.INTERNAL_SERVER_ERROR,
     title: 'Unknown Error',
-    detail: error.message || 'An unexpected error occurred',
+    detail: (error as any).message || 'An unexpected error occurred',
     status: 500,
   });
 }

@@ -33,7 +33,7 @@ const GranularitySchema = z.object({
 });
 
 class ReportingServer extends ALECSCore {
-  tools = [
+  override tools = [
     // Traffic Analytics - REAL IMPLEMENTATION
     tool('get-traffic-report',
       CustomerSchema.extend(DateRangeSchema.shape).extend(GranularitySchema.shape).extend({
@@ -51,7 +51,7 @@ class ReportingServer extends ALECSCore {
           format: args.format,
         });
         
-        const response = await getTrafficReport.handler(args);
+        const response = await getTrafficReport(args);
         
         // Enhanced markdown formatting for reports
         if (args.format === 'markdown') {
@@ -79,7 +79,7 @@ class ReportingServer extends ALECSCore {
           format: args.format,
         });
         
-        const response = await getCachePerformance.handler(args);
+        const response = await getCachePerformance(args);
         
         // Enhanced markdown formatting
         if (args.format === 'markdown') {
@@ -107,7 +107,7 @@ class ReportingServer extends ALECSCore {
           format: args.format,
         });
         
-        const response = await getGeographicDistribution.handler(args);
+        const response = await getGeographicDistribution(args);
         
         // Enhanced markdown formatting with maps
         if (args.format === 'markdown') {
@@ -134,7 +134,7 @@ class ReportingServer extends ALECSCore {
           format: args.format,
         });
         
-        const response = await getErrorAnalysis.handler(args);
+        const response = await getErrorAnalysis(args);
         
         // Enhanced markdown formatting
         if (args.format === 'markdown') {
@@ -165,26 +165,26 @@ class ReportingServer extends ALECSCore {
         
         // Gather all reports in parallel
         const [traffic, cache, geo, errors] = await Promise.all([
-          getTrafficReport.handler({
+          getTrafficReport({
             ...args,
             start_date: start,
             end_date: end,
             metrics: ['edge_hits', 'edge_bandwidth'],
           }),
-          getCachePerformance.handler({
+          getCachePerformance({
             ...args,
             start_date: start,
             end_date: end,
             include_offload: true,
           }),
-          getGeographicDistribution.handler({
+          getGeographicDistribution({
             ...args,
             start_date: start,
             end_date: end,
             level: 'country',
             top_n: 5,
           }),
-          getErrorAnalysis.handler({
+          getErrorAnalysis({
             ...args,
             start_date: start,
             end_date: end,
@@ -312,7 +312,7 @@ class ReportingServer extends ALECSCore {
   ];
 
   // Helper methods for enhanced markdown formatting
-  private formatTrafficReportAsMarkdown(data: any, args: any): string {
+  private formatTrafficReportAsMarkdown(_data: any, args: any): string {
     let markdown = `# Traffic Report\n\n`;
     markdown += `**Period**: ${args.start_date} to ${args.end_date}\n`;
     markdown += `**Granularity**: ${args.granularity}\n\n`;
@@ -326,7 +326,7 @@ class ReportingServer extends ALECSCore {
     return markdown;
   }
 
-  private formatCacheReportAsMarkdown(data: any, args: any): string {
+  private formatCacheReportAsMarkdown(_data: any, args: any): string {
     let markdown = `# Cache Performance Report\n\n`;
     markdown += `**Period**: ${args.start_date} to ${args.end_date}\n\n`;
     
@@ -339,7 +339,7 @@ class ReportingServer extends ALECSCore {
     return markdown;
   }
 
-  private formatGeoReportAsMarkdown(data: any, args: any): string {
+  private formatGeoReportAsMarkdown(_data: any, args: any): string {
     let markdown = `# Geographic Distribution Report\n\n`;
     markdown += `**Period**: ${args.start_date} to ${args.end_date}\n`;
     markdown += `**Level**: ${args.level}\n\n`;
@@ -351,7 +351,7 @@ class ReportingServer extends ALECSCore {
     return markdown;
   }
 
-  private formatErrorReportAsMarkdown(data: any, args: any): string {
+  private formatErrorReportAsMarkdown(_data: any, args: any): string {
     let markdown = `# Error Analysis Report\n\n`;
     markdown += `**Period**: ${args.start_date} to ${args.end_date}\n\n`;
     
@@ -362,7 +362,7 @@ class ReportingServer extends ALECSCore {
     return markdown;
   }
 
-  private formatExecutiveDashboard(data: any, args: any): string {
+  private formatExecutiveDashboard(_data: any, args: any): string {
     let markdown = `# Executive Dashboard\n\n`;
     markdown += `**Generated**: ${new Date().toISOString()}\n`;
     markdown += `**Period**: ${args.period}\n\n`;
@@ -381,14 +381,14 @@ class ReportingServer extends ALECSCore {
     return markdown;
   }
 
-  private formatTrendsAsMarkdown(data: any, args: any): string {
+  private formatTrendsAsMarkdown(_data: any, args: any): string {
     let markdown = `# Performance Trends\n\n`;
     markdown += `**Metric**: ${args.metric}\n`;
     markdown += `**Period**: ${args.period}\n\n`;
     
-    if (data.trend === 'improving') {
+    if ((_data as any).trend === 'improving') {
       markdown += `📈 **Trend**: Improving\n`;
-    } else if (data.trend === 'degrading') {
+    } else if ((_data as any).trend === 'degrading') {
       markdown += `📉 **Trend**: Degrading\n`;
     } else {
       markdown += `➡️ **Trend**: Stable\n`;
@@ -397,16 +397,16 @@ class ReportingServer extends ALECSCore {
     return markdown;
   }
 
-  private formatCostAnalysisAsMarkdown(data: any, args: any): string {
+  private formatCostAnalysisAsMarkdown(_data: any, args: any): string {
     let markdown = `# Cost Analysis Report\n\n`;
     markdown += `**Period**: ${args.start_date} to ${args.end_date}\n\n`;
     
-    markdown += `## Total Cost: $${data.totalCost}\n\n`;
+    markdown += `## Total Cost: $${(_data as any).totalCost || 0}\n\n`;
     
     return markdown;
   }
 
-  private formatRUMDataAsMarkdown(data: any, args: any): string {
+  private formatRUMDataAsMarkdown(_data: any, args: any): string {
     let markdown = `# Real User Monitoring Report\n\n`;
     markdown += `**Period**: ${args.start_date} to ${args.end_date}\n\n`;
     
@@ -447,7 +447,7 @@ class ReportingServer extends ALECSCore {
         start.setDate(start.getDate() - 7);
     }
     
-    return { start: start.toISOString().split('T')[0], end };
+    return { start: start.toISOString().split('T')[0]!, end: end! };
   }
 }
 

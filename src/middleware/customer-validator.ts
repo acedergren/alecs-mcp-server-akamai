@@ -83,12 +83,12 @@ export class CustomerValidator {
         const [client, params] = args;
         
         // Extract customer from params
-        const customer = params?.customer || 'default';
+        const customer = (params as any)?.customer || 'default';
         
         // Validate customer access
         await validator.validateCustomerAccess(customer, {
-          customer: client.config?.customer,
-          accountSwitchKey: client.config?.accountSwitchKey,
+          customer: (client as any).config?.customer,
+          accountSwitchKey: (client as any).config?.accountSwitchKey,
         });
         
         return handler(...args);

@@ -48,7 +48,7 @@ async function testServer(serverInfo: { name: string; file: string }): Promise<T
 
     let output = '';
     let errorOutput = '';
-    let toolsListed = false;
+    // let toolsListed = false;
 
     // Set timeout
     const timeout = setTimeout(() => {
@@ -77,7 +77,7 @@ async function testServer(serverInfo: { name: string; file: string }): Promise<T
       // Look for tool count
       const toolCountMatch = errorOutput.match(/(\d+) tools/);
       if (toolCountMatch) {
-        result.toolCount = parseInt(toolCountMatch[1], 10);
+        result.toolCount = parseInt(toolCountMatch[1]!, 10);
       }
     });
 

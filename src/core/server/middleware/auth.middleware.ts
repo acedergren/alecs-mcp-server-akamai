@@ -4,7 +4,7 @@
  * Handles customer validation, permission checks, and multi-tenant support
  */
 
-import { z } from 'zod';
+// import { z } from 'zod'; // Unused but may be needed for future validation
 import { CustomerConfigManager } from '../../../utils/customer-config';
 import { logger } from '../../../utils/logger';
 import { AkamaiError } from '../../../utils/errors';
@@ -71,7 +71,7 @@ export class AuthMiddleware {
     }
     
     // Get customer config
-    const config = this.configManager.getCustomerConfig(customerName);
+    const config = this.configManager.getSection(customerName);
     
     // Check account switch requirement
     if (this.options.requireAccountSwitch && !config.account_switch_key) {
@@ -120,7 +120,7 @@ export class AuthMiddleware {
   /**
    * Get customer permissions (future extension point)
    */
-  private getCustomerPermissions(customer: string): string[] {
+  private getCustomerPermissions(_customer: string): string[] {
     // Future: Load from config or external source
     return ['read', 'write', 'activate'];
   }

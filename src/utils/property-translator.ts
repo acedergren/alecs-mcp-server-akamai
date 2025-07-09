@@ -288,7 +288,7 @@ export class AkamaiIdTranslator {
       contractIdFields?: string[];
     } = {}
   ): Promise<T> {
-    const enriched: unknown = { ...data };
+    const enriched: any = { ...data };
     const { propertyIdFields = ['propertyId'], groupIdFields = ['groupId'], contractIdFields = ['contractId'] } = options;
     
     // Enrich property IDs

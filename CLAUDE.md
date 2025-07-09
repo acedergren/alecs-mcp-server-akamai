@@ -114,9 +114,15 @@
 
 #### Code Quality
 - **REQUIRED**: DRY principle - extract common patterns
-- **REQUIRED**: Consistent naming conventions
+- **REQUIRED**: Consistent naming conventions (snake_case for MCP tools)
 - **REQUIRED**: Immutable data patterns where possible
 - **FORBIDDEN**: Deep object mutations
+
+### MCP Tool Naming Standards
+- **REQUIRED**: Use snake_case for all MCP tool names (e.g., `property_list`, `dns_zone_create`)
+- **FORBIDDEN**: Dot notation in tool names (legacy `property.list` format deprecated)
+- **ALIGNMENT**: Follow MCP ecosystem standards used by Cursor IDE and Claude Desktop
+- **COMPATIBILITY**: Ensures proper tool discovery and auto-completion in MCP clients
 
 ## Development Checklist
 

@@ -18,10 +18,10 @@ describe('Import Smoke Test', () => {
 
   it('should import tool modules without errors', () => {
     const toolModules = [
-      '../../src/tools/property-manager',
-      '../../src/tools/dns-tools',
-      '../../src/tools/fastpurge-tools',
-      '../../src/tools/cps-tools',
+      '../../src/tools/property/consolidated-property-tools',
+      '../../src/tools/dns/consolidated-dns-tools',
+      '../../src/tools/fastpurge/consolidated-fastpurge-tools',
+      '../../src/tools/certificates/consolidated-certificate-tools',
     ];
     
     toolModules.forEach(module => {

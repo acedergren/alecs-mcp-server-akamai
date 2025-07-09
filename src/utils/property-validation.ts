@@ -80,7 +80,7 @@ export async function validatePropertyAccess(
     };
   } catch (error: unknown) {
     // Detailed error analysis for better user experience
-    const statusCode = error.response?.status;
+    const statusCode = (error as any).response?.status;
     
     if (statusCode === 404) {
       return {
@@ -126,7 +126,7 @@ export async function validatePropertyAccess(
       accessible: false,
       error: {
         code: statusCode || 0,
-        message: error.message || 'Unknown error occurred',
+        message: (error as any).message || 'Unknown error occurred',
         suggestion: 'Check network connectivity and API status'
       }
     };
@@ -184,7 +184,7 @@ export async function withPropertyValidation<T>(
       args,
       propertyId: args.propertyId,
       customer: args.customer,
-      originalError: error,
+      originalError: error as Error,
       suggestion: getOperationErrorSuggestion(operation, error)
     });
   }
@@ -194,7 +194,7 @@ export async function withPropertyValidation<T>(
  * Get helpful suggestions based on operation and error
  */
 function getOperationErrorSuggestion(operation: string, error: unknown): string {
-  const statusCode = error.response?.status;
+  const statusCode = (error as any).response?.status;
   
   if (statusCode === 400) {
     if (operation.includes('activate')) {
@@ -220,7 +220,7 @@ function getOperationErrorSuggestion(operation: string, error: unknown): string 
     return 'Property configuration may be invalid. Run validation first';
   }
   
-  if (error.message?.includes('timeout')) {
+  if ((error as any).message?.includes('timeout')) {
     return 'Operation timed out. Try again or check API status';
   }
   

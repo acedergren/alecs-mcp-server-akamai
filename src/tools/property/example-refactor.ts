@@ -127,12 +127,14 @@ class PropertyTools extends BaseTool {
     customer?: string;
   }): Promise<MCPToolResponse> {
     // Input validation with clear error messages
-    const createRequest = z.object({
+    /*
+    const _createRequest = z.object({ // Unused schema validation
       propertyName: z.string().min(1),
       contractId: z.string(),
       groupId: z.string(),
       productId: z.string()
     }).parse(args);
+    */
 
     return this.executeStandardOperation(
       'create-property',

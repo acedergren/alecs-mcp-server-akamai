@@ -12,48 +12,44 @@ import { ALECSCore, tool } from '../core/server/alecs-core';
 import { z } from 'zod';
 
 // Certificate Tools
-import {
-  enrollCertificateWithValidation,
-  validateCertificateEnrollment,
-  deployCertificateToNetwork,
-  monitorCertificateEnrollment,
-  getCertificateDeploymentStatus,
-  renewCertificate,
-  cleanupValidationRecords,
-  getCertificateValidationHistory,
-} from '../tools/certificate-enrollment-tools';
+import { consolidatedCertificateTools } from '../tools/certificates/consolidated-certificate-tools';
 
-import {
+// Extract methods from the consolidated tools
+const {
   createDVEnrollment,
   getDVValidationChallenges,
   checkDVEnrollmentStatus,
   listCertificateEnrollments,
   linkCertificateToProperty,
-  downloadCSR,
-  uploadThirdPartyCertificate,
-  updateCertificateEnrollment,
-  deleteCertificateEnrollment,
+  getCertificateDeploymentStatus,
   monitorCertificateDeployment,
-} from '../tools/cps-tools';
+} = {
+  createDVEnrollment: consolidatedCertificateTools.createDVEnrollment.bind(consolidatedCertificateTools),
+  getDVValidationChallenges: consolidatedCertificateTools.getDVValidationChallenges.bind(consolidatedCertificateTools),
+  checkDVEnrollmentStatus: consolidatedCertificateTools.checkDVEnrollmentStatus.bind(consolidatedCertificateTools),
+  listCertificateEnrollments: consolidatedCertificateTools.listCertificateEnrollments.bind(consolidatedCertificateTools),
+  linkCertificateToProperty: consolidatedCertificateTools.linkCertificateToProperty.bind(consolidatedCertificateTools),
+  getCertificateDeploymentStatus: consolidatedCertificateTools.getCertificateDeploymentStatus.bind(consolidatedCertificateTools),
+  monitorCertificateDeployment: consolidatedCertificateTools.monitorCertificateDeployment.bind(consolidatedCertificateTools),
+};
 
-// Edge Hostname Certificate Tools
-import {
-  validateEdgeHostnameCertificate,
-  associateCertificateWithEdgeHostname,
-} from '../tools/edge-hostname-management';
-
-// Property Certificate Integration
-import {
-  generateDomainValidationChallenges,
-  resumeDomainValidation,
-} from '../tools/property-manager-rules-tools';
-
-// Secure Property Certificate Tools
-import {
-  onboardSecureByDefaultProperty,
-  quickSecureByDefaultSetup,
-  checkSecureByDefaultStatus,
-} from '../tools/secure-by-default-onboarding';
+// Extract additional methods from consolidated certificate tools
+const downloadCSR = consolidatedCertificateTools.downloadCSR.bind(consolidatedCertificateTools);
+const uploadThirdPartyCertificate = consolidatedCertificateTools.uploadThirdPartyCertificate.bind(consolidatedCertificateTools);
+const updateCertificateEnrollment = consolidatedCertificateTools.updateCertificateEnrollment.bind(consolidatedCertificateTools);
+const deleteCertificateEnrollment = consolidatedCertificateTools.deleteCertificateEnrollment.bind(consolidatedCertificateTools);
+const enrollCertificateWithValidation = consolidatedCertificateTools.enrollCertificateWithValidation.bind(consolidatedCertificateTools);
+const validateCertificateEnrollment = consolidatedCertificateTools.validateCertificateEnrollment.bind(consolidatedCertificateTools);
+const deployCertificateToNetwork = consolidatedCertificateTools.deployCertificateToNetwork.bind(consolidatedCertificateTools);
+const monitorCertificateEnrollment = consolidatedCertificateTools.monitorCertificateEnrollment.bind(consolidatedCertificateTools);
+const renewCertificate = consolidatedCertificateTools.renewCertificate.bind(consolidatedCertificateTools);
+const cleanupValidationRecords = consolidatedCertificateTools.cleanupValidationRecords.bind(consolidatedCertificateTools);
+const getCertificateValidationHistory = consolidatedCertificateTools.getCertificateValidationHistory.bind(consolidatedCertificateTools);
+const validateEdgeHostnameCertificate = consolidatedCertificateTools.validateEdgeHostnameCertificate.bind(consolidatedCertificateTools);
+const associateCertificateWithEdgeHostname = consolidatedCertificateTools.associateCertificateWithEdgeHostname.bind(consolidatedCertificateTools);
+const onboardSecureByDefaultProperty = consolidatedCertificateTools.onboardSecureByDefaultProperty.bind(consolidatedCertificateTools);
+const quickSecureByDefaultSetup = consolidatedCertificateTools.quickSecureByDefaultSetup.bind(consolidatedCertificateTools);
+const checkSecureByDefaultStatus = consolidatedCertificateTools.checkSecureByDefaultStatus.bind(consolidatedCertificateTools);
 
 // Schemas
 const CustomerSchema = z.object({
@@ -91,17 +87,17 @@ class CertificateServer extends ALECSCore {
     setInterval(async () => {
       try {
         // Check active enrollments
-        const enrollments = await listCertificateEnrollments.handler({ customer: 'default' });
-        this.logger.debug('[CERTS] Certificate health check', {
+        const enrollments = await listCertificateEnrollments({ customer: 'default' });
+        console.error('[CERTS] Certificate health check', {
           activeEnrollments: enrollments?.content?.length || 0,
         });
       } catch (error) {
-        this.logger.error('[CERTS] Health check failed', { error });
+        console.error('[CERTS] Health check failed', { error });
       }
     }, 300000); // Every 5 minutes
   }
 
-  tools = [
+  override tools = [
     // Certificate Enrollment
     tool('create-dv-enrollment',
       CustomerSchema.extend({
@@ -121,7 +117,7 @@ class CertificateServer extends ALECSCore {
         networkConfiguration: NetworkConfigSchema.optional(),
       }),
       async (args, ctx) => {
-        const response = await createDVEnrollment.handler(args);
+        const response = await createDVEnrollment(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -129,7 +125,7 @@ class CertificateServer extends ALECSCore {
     tool('get-dv-validation-challenges',
       EnrollmentIdSchema,
       async (args, ctx) => {
-        const response = await getDVValidationChallenges.handler(args);
+        const response = await getDVValidationChallenges(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 60 } }
@@ -138,7 +134,7 @@ class CertificateServer extends ALECSCore {
     tool('check-dv-enrollment-status',
       EnrollmentIdSchema,
       async (args, ctx) => {
-        const response = await checkDVEnrollmentStatus.handler(args);
+        const response = await checkDVEnrollmentStatus(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 30 } }
@@ -150,7 +146,7 @@ class CertificateServer extends ALECSCore {
         status: z.string().optional(),
       }),
       async (args, ctx) => {
-        const response = await listCertificateEnrollments.handler(args);
+        const response = await listCertificateEnrollments(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
@@ -162,7 +158,7 @@ class CertificateServer extends ALECSCore {
         propertyVersion: z.number().describe('Property version'),
       }),
       async (args, ctx) => {
-        const response = await linkCertificateToProperty.handler(args);
+        const response = await linkCertificateToProperty(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -171,7 +167,8 @@ class CertificateServer extends ALECSCore {
     tool('download-csr',
       EnrollmentIdSchema,
       async (args, ctx) => {
-        const response = await downloadCSR.handler(args);
+        const response = await downloadCSR(args);
+        // const response = await downloadCSR(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -182,7 +179,8 @@ class CertificateServer extends ALECSCore {
         trustChain: z.string().optional().describe('PEM-formatted trust chain'),
       }),
       async (args, ctx) => {
-        const response = await uploadThirdPartyCertificate.handler(args);
+        const response = await uploadThirdPartyCertificate(args);
+        // const response = await uploadThirdPartyCertificate(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -197,7 +195,8 @@ class CertificateServer extends ALECSCore {
         networkConfiguration: NetworkConfigSchema.optional(),
       }),
       async (args, ctx) => {
-        const response = await updateCertificateEnrollment.handler(args);
+        const response = await updateCertificateEnrollment(args);
+        // const response = await updateCertificateEnrollment(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -207,7 +206,8 @@ class CertificateServer extends ALECSCore {
         force: z.boolean().optional().describe('Force deletion of active certificates'),
       }),
       async (args, ctx) => {
-        const response = await deleteCertificateEnrollment.handler(args);
+        const response = await deleteCertificateEnrollment(args);
+        // const response = await deleteCertificateEnrollment(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -231,7 +231,8 @@ class CertificateServer extends ALECSCore {
         autoValidate: z.boolean().default(true),
       }),
       async (args, ctx) => {
-        const response = await enrollCertificateWithValidation.handler(args);
+        const response = await enrollCertificateWithValidation(args);
+        // const response = await enrollCertificateWithValidation(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -243,7 +244,8 @@ class CertificateServer extends ALECSCore {
         checkDNS: z.boolean().default(true),
       }),
       async (args, ctx) => {
-        const response = await validateCertificateEnrollment.handler(args);
+        const response = await validateCertificateEnrollment(args);
+        // const response = await validateCertificateEnrollment(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -254,7 +256,8 @@ class CertificateServer extends ALECSCore {
         allowedNetworks: z.array(z.string()).optional(),
       }),
       async (args, ctx) => {
-        const response = await deployCertificateToNetwork.handler(args);
+        const response = await deployCertificateToNetwork(args);
+        // const response = await deployCertificateToNetwork(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -265,7 +268,8 @@ class CertificateServer extends ALECSCore {
         timeout: z.number().default(300),
       }),
       async (args, ctx) => {
-        const response = await monitorCertificateEnrollment.handler(args);
+        const response = await monitorCertificateEnrollment(args);
+        // const response = await monitorCertificateEnrollment(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -276,7 +280,7 @@ class CertificateServer extends ALECSCore {
         pollIntervalSeconds: z.number().default(30),
       }),
       async (args, ctx) => {
-        const response = await monitorCertificateDeployment.handler(args);
+        const response = await monitorCertificateDeployment(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -286,7 +290,7 @@ class CertificateServer extends ALECSCore {
         network: z.enum(['STAGING', 'PRODUCTION']).optional(),
       }),
       async (args, ctx) => {
-        const response = await getCertificateDeploymentStatus.handler(args);
+        const response = await getCertificateDeploymentStatus(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 60 } }
@@ -300,7 +304,8 @@ class CertificateServer extends ALECSCore {
         autoValidate: z.boolean().default(true),
       }),
       async (args, ctx) => {
-        const response = await renewCertificate.handler(args);
+        const response = await renewCertificate(args);
+        // const response = await renewCertificate(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -311,7 +316,8 @@ class CertificateServer extends ALECSCore {
         validationType: z.enum(['dns-01', 'http-01']).optional(),
       }),
       async (args, ctx) => {
-        const response = await cleanupValidationRecords.handler(args);
+        const response = await cleanupValidationRecords(args);
+        // const response = await cleanupValidationRecords(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -321,33 +327,35 @@ class CertificateServer extends ALECSCore {
         includeDetails: z.boolean().default(true),
       }),
       async (args, ctx) => {
-        const response = await getCertificateValidationHistory.handler(args);
+        const response = await getCertificateValidationHistory(args);
+        // const response = await getCertificateValidationHistory(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 300 } }
     ),
 
     // Domain Validation
-    tool('generate-domain-validation-challenges',
-      CustomerSchema.extend({
-        domains: z.array(z.string()),
-        validationType: z.enum(['dns-01', 'http-01']),
-      }),
-      async (args, ctx) => {
-        const response = await generateDomainValidationChallenges.handler(args);
-        return ctx.format(response, args.format);
-      }
-    ),
+    // TODO: These tools need to be implemented in consolidated certificate tools
+    // tool('generate-domain-validation-challenges',
+    //   CustomerSchema.extend({
+    //     domains: z.array(z.string()),
+    //     validationType: z.enum(['dns-01', 'http-01']),
+    //   }),
+    //   async (args, ctx) => {
+    //     const response = await generateDomainValidationChallenges.handler(args);
+    //     return ctx.format(response, args.format);
+    //   }
+    // ),
 
-    tool('resume-domain-validation',
-      EnrollmentIdSchema.extend({
-        domains: z.array(z.string()).optional(),
-      }),
-      async (args, ctx) => {
-        const response = await resumeDomainValidation.handler(args);
-        return ctx.format(response, args.format);
-      }
-    ),
+    // tool('resume-domain-validation',
+    //   EnrollmentIdSchema.extend({
+    //     domains: z.array(z.string()).optional(),
+    //   }),
+    //   async (args, ctx) => {
+    //     const response = await resumeDomainValidation.handler(args);
+    //     return ctx.format(response, args.format);
+    //   }
+    // ),
 
     // Edge Hostname Integration
     tool('validate-edge-hostname-certificate',
@@ -356,7 +364,8 @@ class CertificateServer extends ALECSCore {
         certificateType: z.enum(['DEFAULT', 'CPS']).optional(),
       }),
       async (args, ctx) => {
-        const response = await validateEdgeHostnameCertificate.handler(args);
+        const response = await validateEdgeHostnameCertificate(args);
+        // const response = await validateEdgeHostnameCertificate(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -367,7 +376,8 @@ class CertificateServer extends ALECSCore {
         enrollmentId: z.number(),
       }),
       async (args, ctx) => {
-        const response = await associateCertificateWithEdgeHostname.handler(args);
+        const response = await associateCertificateWithEdgeHostname(args);
+        // const response = await associateCertificateWithEdgeHostname(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -385,7 +395,8 @@ class CertificateServer extends ALECSCore {
         edgeHostnameSuffix: z.string().default('edgesuite.net'),
       }),
       async (args, ctx) => {
-        const response = await onboardSecureByDefaultProperty.handler(args);
+        const response = await onboardSecureByDefaultProperty(args);
+        // const response = await onboardSecureByDefaultProperty(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -397,7 +408,8 @@ class CertificateServer extends ALECSCore {
         groupId: z.string(),
       }),
       async (args, ctx) => {
-        const response = await quickSecureByDefaultSetup.handler(args);
+        const response = await quickSecureByDefaultSetup(args);
+        // const response = await quickSecureByDefaultSetup(args);
         return ctx.format(response, args.format);
       }
     ),
@@ -408,7 +420,8 @@ class CertificateServer extends ALECSCore {
         includeValidation: z.boolean().default(true),
       }),
       async (args, ctx) => {
-        const response = await checkSecureByDefaultStatus.handler(args);
+        const response = await checkSecureByDefaultStatus(args);
+        // const response = await checkSecureByDefaultStatus(args);
         return ctx.format(response, args.format);
       },
       { cache: { ttl: 60 } }

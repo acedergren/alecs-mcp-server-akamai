@@ -95,10 +95,10 @@ export class EnhancedEdgeGrid extends EventEmitter {
     }
 
     // Store original auth method
-    this.originalAuth = this.edgeGrid.auth.bind(this.edgeGrid);
+    this.originalAuth = (this.edgeGrid as any).auth.bind(this.edgeGrid);
 
     // Replace with enhanced auth method
-    this.edgeGrid.auth = (requestOptions: unknown) => {
+    (this.edgeGrid as any).auth = (requestOptions: object) => {
       const startTime = performance.now();
 
       try {
@@ -194,7 +194,7 @@ export class EnhancedEdgeGrid extends EventEmitter {
         const authenticatedOptions = this.edgeGrid.auth(requestOptions);
 
         // Execute _request through optimized client
-        const result = await this.optimizedClient.executeRequest(authenticatedOptions, data);
+        const result = await this.optimizedClient.executeRequest(authenticatedOptions as any, data);
 
         const totalTime = performance.now() - startTime;
         this.metrics.successfulAuth++;
@@ -203,14 +203,14 @@ export class EnhancedEdgeGrid extends EventEmitter {
           path: _options.path,
           method: _options.method,
           totalTime,
-          authTime: result.metrics?.authTime,
-          networkTime: result.metrics?.latency,
+          authTime: (result as any).metrics?.authTime,
+          networkTime: (result as any).metrics?.latency,
         });
 
         return {
-          ...result,
+          ...(result as any),
           metrics: {
-            ...result.metrics,
+            ...(result as any).metrics,
             totalTime,
             circuitBreakerState: this.circuitBreaker.getState(),
           },

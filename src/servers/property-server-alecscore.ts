@@ -29,8 +29,14 @@
 import { ALECSCore, tool } from '../core/server/alecs-core';
 import { z } from 'zod';
 
-// Import existing tool implementations
-import {
+// Import consolidated property tools
+import { consolidatedPropertyTools } from '../tools/property/consolidated-property-tools';
+
+// Extract methods from the consolidated tools
+const {
+  createProperty,
+  listProperties,
+  getProperty,
   createPropertyVersion,
   getPropertyRules,
   updatePropertyRules,
@@ -40,25 +46,12 @@ import {
   removePropertyHostname,
   addPropertyHostname,
   createEdgeHostname,
-} from '../tools/property-manager-tools';
-import {
-  listProperties,
-  getProperty,
-  createProperty,
   listGroups,
   listContracts,
   listProducts,
-} from '../tools/property-tools';
-import {
   onboardPropertyTool,
-} from '../tools/property-onboarding-tools';
-import {
   rollbackPropertyVersion,
-} from '../tools/property-version-management';
-import {
   validatePropertyActivation,
-} from '../tools/property-activation-advanced';
-import {
   listPropertyVersions,
   getPropertyVersion,
   listPropertyVersionHostnames,
@@ -67,22 +60,12 @@ import {
   cloneProperty,
   cancelPropertyActivation,
   getLatestPropertyVersion,
-} from '../tools/property-manager-advanced-tools';
-import {
-  searchPropertiesOptimized,
-} from '../tools/property-search-optimized';
-import {
   validateRuleTree,
-} from '../tools/rule-tree-advanced';
-import {
+  searchPropertiesOptimized,
   universalSearchWithCacheHandler,
-} from '../tools/universal-search-with-cache';
-import {
   listCPCodes,
   createCPCode,
   getCPCode,
-} from '../tools/cpcode-tools';
-import {
   listIncludes,
   getInclude,
   createInclude,
@@ -91,44 +74,110 @@ import {
   activateInclude,
   getIncludeActivationStatus,
   listIncludeActivations,
-} from '../tools/includes-tools';
-import {
-  listAllPropertyHostnames,
-  patchPropertyHostnames,
-  patchPropertyVersionHostnames,
-  getPropertyHostnameActivations,
-  getPropertyHostnameActivationStatus,
-  cancelPropertyHostnameActivation,
-  getPropertyHostnamesDiff,
-  getHostnameAuditHistory,
-} from '../tools/hostname-operations-advanced';
-import {
-  getAvailableBehaviors,
-  getAvailableCriteria,
-  getIncludeAvailableBehaviors,
-  getIncludeAvailableCriteria,
-  patchPropertyVersionRules,
-  headPropertyVersionRules,
-  headIncludeVersionRules,
-} from '../tools/rules-operations-advanced';
-import {
-  linkCertificateToProperty,
-  getPropertyCertificateStatus,
-} from '../tools/certificate-integration-tools';
-import {
-  getRuleFormats,
-  getRuleFormatSchema,
-  validatePropertyRules,
-} from '../tools/schema-validation-tools';
-import {
-  getPropertyMetadata,
-  compareProperties,
-  exportPropertyConfiguration,
-  searchPropertiesAdvanced,
-  bulkUpdateProperties,
-  createPropertyFromTemplate,
-  getPropertyAnalytics,
-} from '../tools/advanced-property-tools';
+} = {
+  createProperty: consolidatedPropertyTools.createProperty.bind(consolidatedPropertyTools),
+  listProperties: consolidatedPropertyTools.listProperties.bind(consolidatedPropertyTools),
+  getProperty: consolidatedPropertyTools.getProperty.bind(consolidatedPropertyTools),
+  createPropertyVersion: consolidatedPropertyTools.createPropertyVersion.bind(consolidatedPropertyTools),
+  getPropertyRules: consolidatedPropertyTools.getPropertyRules.bind(consolidatedPropertyTools),
+  updatePropertyRules: consolidatedPropertyTools.updatePropertyRules.bind(consolidatedPropertyTools),
+  activateProperty: consolidatedPropertyTools.activateProperty.bind(consolidatedPropertyTools),
+  getActivationStatus: consolidatedPropertyTools.getActivationStatus.bind(consolidatedPropertyTools),
+  listPropertyActivations: consolidatedPropertyTools.listPropertyActivations.bind(consolidatedPropertyTools),
+  removePropertyHostname: consolidatedPropertyTools.removePropertyHostname.bind(consolidatedPropertyTools),
+  addPropertyHostname: consolidatedPropertyTools.addPropertyHostname.bind(consolidatedPropertyTools),
+  createEdgeHostname: consolidatedPropertyTools.createEdgeHostname.bind(consolidatedPropertyTools),
+  listGroups: consolidatedPropertyTools.listGroups.bind(consolidatedPropertyTools),
+  listContracts: consolidatedPropertyTools.listContracts.bind(consolidatedPropertyTools),
+  listProducts: consolidatedPropertyTools.listProducts.bind(consolidatedPropertyTools),
+  onboardPropertyTool: consolidatedPropertyTools.onboardPropertyTool.bind(consolidatedPropertyTools),
+  rollbackPropertyVersion: consolidatedPropertyTools.rollbackPropertyVersion.bind(consolidatedPropertyTools),
+  validatePropertyActivation: consolidatedPropertyTools.validatePropertyActivation.bind(consolidatedPropertyTools),
+  listPropertyVersions: consolidatedPropertyTools.listPropertyVersions.bind(consolidatedPropertyTools),
+  getPropertyVersion: consolidatedPropertyTools.getPropertyVersion.bind(consolidatedPropertyTools),
+  listPropertyVersionHostnames: consolidatedPropertyTools.listPropertyVersionHostnames.bind(consolidatedPropertyTools),
+  listEdgeHostnames: consolidatedPropertyTools.listEdgeHostnames.bind(consolidatedPropertyTools),
+  removeProperty: consolidatedPropertyTools.removeProperty.bind(consolidatedPropertyTools),
+  cloneProperty: consolidatedPropertyTools.cloneProperty.bind(consolidatedPropertyTools),
+  cancelPropertyActivation: consolidatedPropertyTools.cancelPropertyActivation.bind(consolidatedPropertyTools),
+  getLatestPropertyVersion: consolidatedPropertyTools.getLatestPropertyVersion.bind(consolidatedPropertyTools),
+  validateRuleTree: consolidatedPropertyTools.validateRuleTree.bind(consolidatedPropertyTools),
+  searchPropertiesOptimized: consolidatedPropertyTools.searchPropertiesOptimized.bind(consolidatedPropertyTools),
+  universalSearchWithCacheHandler: consolidatedPropertyTools.universalSearchWithCacheHandler.bind(consolidatedPropertyTools),
+  listCPCodes: consolidatedPropertyTools.listCPCodes.bind(consolidatedPropertyTools),
+  createCPCode: consolidatedPropertyTools.createCPCode.bind(consolidatedPropertyTools),
+  getCPCode: consolidatedPropertyTools.getCPCode.bind(consolidatedPropertyTools),
+  listIncludes: consolidatedPropertyTools.listIncludes.bind(consolidatedPropertyTools),
+  getInclude: consolidatedPropertyTools.getInclude.bind(consolidatedPropertyTools),
+  createInclude: consolidatedPropertyTools.createInclude.bind(consolidatedPropertyTools),
+  updateInclude: consolidatedPropertyTools.updateInclude.bind(consolidatedPropertyTools),
+  createIncludeVersion: consolidatedPropertyTools.createIncludeVersion.bind(consolidatedPropertyTools),
+  activateInclude: consolidatedPropertyTools.activateInclude.bind(consolidatedPropertyTools),
+  getIncludeActivationStatus: consolidatedPropertyTools.getIncludeActivationStatus.bind(consolidatedPropertyTools),
+  listIncludeActivations: consolidatedPropertyTools.listIncludeActivations.bind(consolidatedPropertyTools),
+};
+// TODO: These imports need to be created or consolidated
+// import {
+//   searchPropertiesOptimized,
+// } from '../tools/property-search-optimized';
+// import {
+//   validateRuleTree,
+// } from '../tools/rule-tree-advanced';
+// import {
+//   universalSearchWithCacheHandler,
+// } from '../tools/universal-search-with-cache';
+// import {
+//   listCPCodes,
+//   createCPCode,
+//   getCPCode,
+// } from '../tools/cpcode-tools';
+// import {
+//   listIncludes,
+//   getInclude,
+//   createInclude,
+//   updateInclude,
+//   createIncludeVersion,
+//   activateInclude,
+//   getIncludeActivationStatus,
+//   listIncludeActivations,
+// } from '../tools/includes-tools';
+// import {
+//   listAllPropertyHostnames,
+//   patchPropertyHostnames,
+//   patchPropertyVersionHostnames,
+//   getPropertyHostnameActivations,
+//   getPropertyHostnameActivationStatus,
+//   cancelPropertyHostnameActivation,
+//   getPropertyHostnamesDiff,
+//   getHostnameAuditHistory,
+// } from '../tools/hostname-operations-advanced';
+// import {
+//   getAvailableBehaviors,
+//   getAvailableCriteria,
+//   getIncludeAvailableBehaviors,
+//   getIncludeAvailableCriteria,
+//   patchPropertyVersionRules,
+//   headPropertyVersionRules,
+//   headIncludeVersionRules,
+// } from '../tools/rules-operations-advanced';
+// import {
+//   linkCertificateToProperty,
+//   getPropertyCertificateStatus,
+// } from '../tools/certificate-integration-tools';
+// import {
+//   getRuleFormats,
+//   getRuleFormatSchema,
+//   validatePropertyRules,
+// } from '../tools/schema-validation-tools';
+// import {
+//   getPropertyMetadata,
+//   compareProperties,
+//   exportPropertyConfiguration,
+//   searchPropertiesAdvanced,
+//   bulkUpdateProperties,
+//   createPropertyFromTemplate,
+//   getPropertyAnalytics,
+// } from '../tools/advanced-property-tools';
 
 // Schemas
 const CustomerSchema = z.object({
@@ -155,8 +204,8 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().optional(),
         groupId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await listProperties(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await listProperties(_args);
         return response;
       },
       { cache: { ttl: 300 }, coalesce: true }
@@ -164,8 +213,8 @@ class PropertyServer extends ALECSCore {
 
     tool('get-property',
       PropertyIdSchema,
-      async (args, ctx) => {
-        const response = await getProperty(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await getProperty(_args);
         return response;
       },
       { cache: { ttl: 300 } }
@@ -179,8 +228,8 @@ class PropertyServer extends ALECSCore {
         groupId: z.string().describe('Group ID'),
         ruleFormat: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await createProperty(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await createProperty(_args);
         return response;
       }
     ),
@@ -191,16 +240,16 @@ class PropertyServer extends ALECSCore {
         createFromVersion: z.number().optional(),
         createFromEtag: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await createPropertyVersion(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await createPropertyVersion(_args);
         return response;
       }
     ),
 
     tool('list-property-versions',
       PropertyIdSchema,
-      async (args, ctx) => {
-        const response = await listPropertyVersions(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await listPropertyVersions(_args);
         return response;
       },
       { cache: { ttl: 60 } }
@@ -208,8 +257,8 @@ class PropertyServer extends ALECSCore {
 
     tool('get-property-version',
       PropertyVersionSchema,
-      async (args, ctx) => {
-        const response = await getPropertyVersion(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await getPropertyVersion(_args);
         return response;
       },
       { cache: { ttl: 300 } }
@@ -217,8 +266,8 @@ class PropertyServer extends ALECSCore {
 
     tool('get-latest-property-version',
       PropertyIdSchema,
-      async (args, ctx) => {
-        const response = await getLatestPropertyVersion(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await getLatestPropertyVersion(_args);
         return response;
       },
       { cache: { ttl: 60 } }
@@ -228,8 +277,8 @@ class PropertyServer extends ALECSCore {
       PropertyIdSchema.extend({
         targetVersion: z.number().describe('Version to rollback to'),
       }),
-      async (args, ctx) => {
-        const response = await rollbackPropertyVersion(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await rollbackPropertyVersion(_args);
         return response;
       }
     ),
@@ -240,8 +289,8 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().optional(),
         groupId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await getPropertyRules(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await getPropertyRules(_args);
         return response;
       },
       { cache: { ttl: 300 } }
@@ -253,8 +302,8 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().optional(),
         groupId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await updatePropertyRules(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await updatePropertyRules(_args);
         return response;
       }
     ),
@@ -264,8 +313,8 @@ class PropertyServer extends ALECSCore {
         rules: z.any().describe('Rule tree to validate'),
         ruleFormat: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await validateRuleTree(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await validateRuleTree(_args);
         return response;
       }
     ),
@@ -279,8 +328,8 @@ class PropertyServer extends ALECSCore {
         acknowledgeWarnings: z.boolean().optional(),
         format: FormatSchema.shape.format,
       }),
-      async (args, ctx) => {
-        const response = await activateProperty(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await activateProperty(_args);
         return response;
       }
     ),
@@ -289,8 +338,8 @@ class PropertyServer extends ALECSCore {
       PropertyIdSchema.extend({
         activationId: z.string().describe('Activation ID'),
       }),
-      async (args, ctx) => {
-        const response = await getActivationStatus(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await getActivationStatus(_args);
         return response;
       },
       { cache: { ttl: 30 } }
@@ -301,8 +350,8 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().optional(),
         groupId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await listPropertyActivations(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await listPropertyActivations(_args);
         return response;
       },
       { cache: { ttl: 60 } }
@@ -312,8 +361,8 @@ class PropertyServer extends ALECSCore {
       PropertyIdSchema.extend({
         activationId: z.string().describe('Activation ID to cancel'),
       }),
-      async (args, ctx) => {
-        const response = await cancelPropertyActivation(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await cancelPropertyActivation(_args);
         return response;
       }
     ),
@@ -322,8 +371,8 @@ class PropertyServer extends ALECSCore {
       PropertyVersionSchema.extend({
         network: z.enum(['staging', 'production']),
       }),
-      async (args, ctx) => {
-        const response = await validatePropertyActivation(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await validatePropertyActivation(_args);
         return response;
       }
     ),
@@ -335,8 +384,8 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().optional(),
         groupId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await addPropertyHostname(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await addPropertyHostname(_args);
         return response;
       }
     ),
@@ -347,8 +396,8 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().optional(),
         groupId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await removePropertyHostname(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await removePropertyHostname(_args);
         return response;
       }
     ),
@@ -358,8 +407,8 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().optional(),
         groupId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await listPropertyVersionHostnames(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await listPropertyVersionHostnames(_args);
         return response;
       },
       { cache: { ttl: 300 } }
@@ -374,8 +423,8 @@ class PropertyServer extends ALECSCore {
         ipVersionBehavior: z.enum(['ipv4', 'ipv6', 'ipv4+ipv6']).optional(),
         secureNetwork: z.enum(['enhanced-tls', 'standard-tls']).optional(),
       }),
-      async (args, ctx) => {
-        const response = await createEdgeHostname(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await createEdgeHostname(_args);
         return response;
       }
     ),
@@ -385,8 +434,8 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().optional(),
         groupId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await listEdgeHostnames(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await listEdgeHostnames(_args);
         return response;
       },
       { cache: { ttl: 300 } }
@@ -399,8 +448,8 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().optional(),
         groupId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await cloneProperty(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await cloneProperty(_args);
         return response;
       }
     ),
@@ -410,8 +459,8 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().optional(),
         groupId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await removeProperty(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await removeProperty(_args);
         return response;
       }
     ),
@@ -425,8 +474,8 @@ class PropertyServer extends ALECSCore {
         groupId: z.string().optional(),
         productId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await onboardPropertyTool(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await onboardPropertyTool(_args);
         return response;
       }
     ),
@@ -436,8 +485,8 @@ class PropertyServer extends ALECSCore {
       CustomerSchema.extend({
         query: z.string().describe('Search query'),
       }),
-      async (args, ctx) => {
-        const response = await searchPropertiesOptimized(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await searchPropertiesOptimized(_args);
         return response;
       },
       { cache: { ttl: 60 } }
@@ -449,8 +498,8 @@ class PropertyServer extends ALECSCore {
         limit: z.number().optional(),
         types: z.array(z.string()).optional(),
       }),
-      async (args, ctx) => {
-        const response = await universalSearchWithCacheHandler(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await universalSearchWithCacheHandler(_args);
         return response;
       },
       { cache: { ttl: 60 } }
@@ -462,8 +511,8 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().optional(),
         groupId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await listCPCodes(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await listCPCodes(_args);
         return response;
       },
       { cache: { ttl: 300 } }
@@ -476,8 +525,8 @@ class PropertyServer extends ALECSCore {
         groupId: z.string().describe('Group ID'),
         productId: z.string().describe('Product ID'),
       }),
-      async (args, ctx) => {
-        const response = await createCPCode(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await createCPCode(_args);
         return response;
       }
     ),
@@ -488,8 +537,8 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().optional(),
         groupId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await getCPCode(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await getCPCode(_args);
         return response;
       },
       { cache: { ttl: 300 } }
@@ -498,8 +547,8 @@ class PropertyServer extends ALECSCore {
     // Account Management
     tool('list-groups',
       CustomerSchema,
-      async (args, ctx) => {
-        const response = await listGroups(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await listGroups(_args);
         return response;
       },
       { cache: { ttl: 3600 } }
@@ -507,8 +556,8 @@ class PropertyServer extends ALECSCore {
 
     tool('list-contracts',
       CustomerSchema,
-      async (args, ctx) => {
-        const response = await listContracts(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await listContracts(_args);
         return response;
       },
       { cache: { ttl: 3600 } }
@@ -518,8 +567,8 @@ class PropertyServer extends ALECSCore {
       CustomerSchema.extend({
         contractId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await listProducts(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await listProducts(_args);
         return response;
       },
       { cache: { ttl: 3600 } }
@@ -534,8 +583,8 @@ class PropertyServer extends ALECSCore {
         groupId: z.string().describe('Group ID'),
         includeType: z.enum(['MICROSERVICES', 'COMMON_SETTINGS', 'ALL']).optional(),
       }),
-      async (args, ctx) => {
-        const response = await listIncludes(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await listIncludes(_args);
         return response;
       },
       { cache: { ttl: 300 } }
@@ -548,8 +597,8 @@ class PropertyServer extends ALECSCore {
         groupId: z.string().describe('Group ID'),
         version: z.number().optional().describe('Include version'),
       }),
-      async (args, ctx) => {
-        const response = await getInclude(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await getInclude(_args);
         return response;
       },
       { cache: { ttl: 300 } }
@@ -568,8 +617,8 @@ class PropertyServer extends ALECSCore {
           version: z.number(),
         }).optional(),
       }),
-      async (args, ctx) => {
-        const response = await createInclude(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await createInclude(_args);
         return response;
       }
     ),
@@ -583,8 +632,8 @@ class PropertyServer extends ALECSCore {
         version: z.number().optional(),
         note: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await updateInclude(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await updateInclude(_args);
         return response;
       }
     ),
@@ -597,8 +646,8 @@ class PropertyServer extends ALECSCore {
         baseVersion: z.number().optional(),
         note: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await createIncludeVersion(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await createIncludeVersion(_args);
         return response;
       }
     ),
@@ -614,8 +663,8 @@ class PropertyServer extends ALECSCore {
         notifyEmails: z.array(z.string()).optional(),
         acknowledgeAllWarnings: z.boolean().optional(),
       }),
-      async (args, ctx) => {
-        const response = await activateInclude(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await activateInclude(_args);
         return response;
       }
     ),
@@ -627,8 +676,8 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().describe('Contract ID'),
         groupId: z.string().describe('Group ID'),
       }),
-      async (args, ctx) => {
-        const response = await getIncludeActivationStatus(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await getIncludeActivationStatus(_args);
         return response;
       },
       { cache: { ttl: 30 } }
@@ -640,8 +689,8 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().describe('Contract ID'),
         groupId: z.string().describe('Group ID'),
       }),
-      async (args, ctx) => {
-        const response = await listIncludeActivations(ctx.client, args);
+      async (_args, _ctx) => {
+        const response = await listIncludeActivations(_args);
         return response;
       },
       { cache: { ttl: 300 } }
@@ -652,9 +701,11 @@ class PropertyServer extends ALECSCore {
     
     tool('list-all-property-hostnames',
       PropertyIdSchema,
-      async (args, ctx) => {
-        const response = await listAllPropertyHostnames(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement listAllPropertyHostnames
+        throw new Error('listAllPropertyHostnames not implemented');
+        // const response = await listAllPropertyHostnames(_args);
+
       },
       { cache: { ttl: 300 } }
     ),
@@ -667,9 +718,11 @@ class PropertyServer extends ALECSCore {
           value: z.any().optional(),
         })).describe('JSON Patch operations'),
       }),
-      async (args, ctx) => {
-        const response = await patchPropertyHostnames(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement patchPropertyHostnames
+        throw new Error('patchPropertyHostnames not implemented');
+        // const response = await patchPropertyHostnames(_args);
+
       }
     ),
 
@@ -681,9 +734,11 @@ class PropertyServer extends ALECSCore {
           value: z.any().optional(),
         })).describe('JSON Patch operations'),
       }),
-      async (args, ctx) => {
-        const response = await patchPropertyVersionHostnames(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement patchPropertyVersionHostnames
+        throw new Error('patchPropertyVersionHostnames not implemented');
+        // const response = await patchPropertyVersionHostnames(_args);
+
       }
     ),
 
@@ -691,9 +746,11 @@ class PropertyServer extends ALECSCore {
       PropertyIdSchema.extend({
         hostname: z.string().optional().describe('Filter by specific hostname'),
       }),
-      async (args, ctx) => {
-        const response = await getPropertyHostnameActivations(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement getPropertyHostnameActivations
+        throw new Error('getPropertyHostnameActivations not implemented');
+        // const response = await getPropertyHostnameActivations(_args);
+
       },
       { cache: { ttl: 60 } }
     ),
@@ -702,9 +759,11 @@ class PropertyServer extends ALECSCore {
       PropertyIdSchema.extend({
         activationId: z.string().describe('Hostname activation ID'),
       }),
-      async (args, ctx) => {
-        const response = await getPropertyHostnameActivationStatus(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement getPropertyHostnameActivationStatus
+        throw new Error('getPropertyHostnameActivationStatus not implemented');
+        // const response = await getPropertyHostnameActivationStatus(_args);
+
       },
       { cache: { ttl: 30 } }
     ),
@@ -713,9 +772,11 @@ class PropertyServer extends ALECSCore {
       PropertyIdSchema.extend({
         activationId: z.string().describe('Hostname activation ID to cancel'),
       }),
-      async (args, ctx) => {
-        const response = await cancelPropertyHostnameActivation(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement cancelPropertyHostnameActivation
+        throw new Error('cancelPropertyHostnameActivation not implemented');
+        // const response = await cancelPropertyHostnameActivation(_args);
+
       }
     ),
 
@@ -724,9 +785,11 @@ class PropertyServer extends ALECSCore {
         version1: z.number().describe('First version to compare'),
         version2: z.number().describe('Second version to compare'),
       }),
-      async (args, ctx) => {
-        const response = await getPropertyHostnamesDiff(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement getPropertyHostnamesDiff
+        throw new Error('getPropertyHostnamesDiff not implemented');
+        // const response = await getPropertyHostnamesDiff(_args);
+
       },
       { cache: { ttl: 300 } }
     ),
@@ -736,9 +799,11 @@ class PropertyServer extends ALECSCore {
         hostname: z.string().describe('Hostname to audit'),
         limit: z.number().optional().describe('Maximum audit entries to retrieve'),
       }),
-      async (args, ctx) => {
-        const response = await getHostnameAuditHistory(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement getHostnameAuditHistory
+        throw new Error('getHostnameAuditHistory not implemented');
+        // const response = await getHostnameAuditHistory(_args);
+
       },
       { cache: { ttl: 300 } }
     ),
@@ -753,9 +818,11 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().optional(),
         groupId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await getAvailableBehaviors(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement getAvailableBehaviors
+        throw new Error('getAvailableBehaviors not implemented');
+        // const response = await getAvailableBehaviors(_args);
+
       },
       { cache: { ttl: 86400 } } // 24 hour cache for behaviors
     ),
@@ -767,9 +834,11 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().optional(),
         groupId: z.string().optional(),
       }),
-      async (args, ctx) => {
-        const response = await getAvailableCriteria(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement getAvailableCriteria
+        throw new Error('getAvailableCriteria not implemented');
+        // const response = await getAvailableCriteria(_args);
+
       },
       { cache: { ttl: 86400 } } // 24 hour cache for criteria
     ),
@@ -781,9 +850,11 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().describe('Contract ID'),
         groupId: z.string().describe('Group ID'),
       }),
-      async (args, ctx) => {
-        const response = await getIncludeAvailableBehaviors(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement getIncludeAvailableBehaviors
+        throw new Error('getIncludeAvailableBehaviors not implemented');
+        // const response = await getIncludeAvailableBehaviors(_args);
+
       },
       { cache: { ttl: 86400 } }
     ),
@@ -795,9 +866,11 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().describe('Contract ID'),
         groupId: z.string().describe('Group ID'),
       }),
-      async (args, ctx) => {
-        const response = await getIncludeAvailableCriteria(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement getIncludeAvailableCriteria
+        throw new Error('getIncludeAvailableCriteria not implemented');
+        // const response = await getIncludeAvailableCriteria(_args);
+
       },
       { cache: { ttl: 86400 } }
     ),
@@ -814,9 +887,11 @@ class PropertyServer extends ALECSCore {
         groupId: z.string().describe('Group ID'),
         validateRules: z.boolean().optional().describe('Validate rules after patching'),
       }),
-      async (args, ctx) => {
-        const response = await patchPropertyVersionRules(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement patchPropertyVersionRules
+        throw new Error('patchPropertyVersionRules not implemented');
+        // const response = await patchPropertyVersionRules(_args);
+
       }
     ),
 
@@ -825,9 +900,11 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().describe('Contract ID'),
         groupId: z.string().describe('Group ID'),
       }),
-      async (args, ctx) => {
-        const response = await headPropertyVersionRules(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement headPropertyVersionRules
+        throw new Error('headPropertyVersionRules not implemented');
+        // const response = await headPropertyVersionRules(_args);
+
       },
       { cache: { ttl: 60 } } // 1 minute cache for HEAD requests
     ),
@@ -839,9 +916,11 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().describe('Contract ID'),
         groupId: z.string().describe('Group ID'),
       }),
-      async (args, ctx) => {
-        const response = await headIncludeVersionRules(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement headIncludeVersionRules
+        throw new Error('headIncludeVersionRules not implemented');
+        // const response = await headIncludeVersionRules(_args);
+
       },
       { cache: { ttl: 60 } }
     ),
@@ -858,9 +937,11 @@ class PropertyServer extends ALECSCore {
         groupId: z.string().describe('Group ID'),
         acknowledgeWarnings: z.boolean().optional().describe('Acknowledge validation warnings'),
       }),
-      async (args, ctx) => {
-        const response = await linkCertificateToProperty(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement linkCertificateToProperty
+        throw new Error('linkCertificateToProperty not implemented');
+        // const response = await linkCertificateToProperty(_args);
+
       }
     ),
 
@@ -869,9 +950,11 @@ class PropertyServer extends ALECSCore {
         contractId: z.string().describe('Contract ID'),
         groupId: z.string().describe('Group ID'),
       }),
-      async (args, ctx) => {
-        const response = await getPropertyCertificateStatus(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement getPropertyCertificateStatus
+        throw new Error('getPropertyCertificateStatus not implemented');
+        // const response = await getPropertyCertificateStatus(_args);
+
       },
       { cache: { ttl: 300 } } // 5 minute cache
     ),
@@ -881,9 +964,11 @@ class PropertyServer extends ALECSCore {
     
     tool('get-rule-formats',
       CustomerSchema,
-      async (args, ctx) => {
-        const response = await getRuleFormats(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement getRuleFormats
+        throw new Error('getRuleFormats not implemented');
+        // const response = await getRuleFormats(_args);
+
       },
       { cache: { ttl: 86400 } } // 24 hour cache
     ),
@@ -893,9 +978,11 @@ class PropertyServer extends ALECSCore {
         productId: z.string().describe('Product ID'),
         ruleFormat: z.string().describe('Rule format version'),
       }),
-      async (args, ctx) => {
-        const response = await getRuleFormatSchema(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement getRuleFormatSchema
+        throw new Error('getRuleFormatSchema not implemented');
+        // const response = await getRuleFormatSchema(_args);
+
       },
       { cache: { ttl: 86400 } } // 24 hour cache for schemas
     ),
@@ -905,9 +992,11 @@ class PropertyServer extends ALECSCore {
         rules: z.any().describe('Rule tree to validate'),
         ruleFormat: z.string().optional().describe('Rule format to validate against'),
       }),
-      async (args, ctx) => {
-        const response = await validatePropertyRules(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement validatePropertyRules
+        throw new Error('validatePropertyRules not implemented');
+        // const response = await validatePropertyRules(_args);
+
       }
     ),
 
@@ -918,9 +1007,11 @@ class PropertyServer extends ALECSCore {
       PropertyIdSchema.extend({
         includeHistory: z.boolean().optional().describe('Include property history'),
       }),
-      async (args, ctx) => {
-        const response = await getPropertyMetadata(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement getPropertyMetadata
+        throw new Error('getPropertyMetadata not implemented');
+        // const response = await getPropertyMetadata(_args);
+
       },
       { cache: { ttl: 300 } }
     ),
@@ -934,9 +1025,11 @@ class PropertyServer extends ALECSCore {
         includeRules: z.boolean().optional().describe('Include rules comparison'),
         includeHostnames: z.boolean().optional().describe('Include hostnames comparison'),
       }),
-      async (args, ctx) => {
-        const response = await compareProperties(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement compareProperties
+        throw new Error('compareProperties not implemented');
+        // const response = await compareProperties(_args);
+
       }
     ),
 
@@ -945,9 +1038,11 @@ class PropertyServer extends ALECSCore {
         format: z.enum(['json', 'terraform', 'yaml']).optional().describe('Export format'),
         includeComments: z.boolean().optional().describe('Include inline comments'),
       }),
-      async (args, ctx) => {
-        const response = await exportPropertyConfiguration(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement exportPropertyConfiguration
+        throw new Error('exportPropertyConfiguration not implemented');
+        // const response = await exportPropertyConfiguration(_args);
+
       }
     ),
 
@@ -964,9 +1059,11 @@ class PropertyServer extends ALECSCore {
         hasActivation: z.enum(['staging', 'production', 'both']).optional(),
         limit: z.number().optional().describe('Maximum results'),
       }),
-      async (args, ctx) => {
-        const response = await searchPropertiesAdvanced(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement searchPropertiesAdvanced
+        throw new Error('searchPropertiesAdvanced not implemented');
+        // const response = await searchPropertiesAdvanced(_args);
+
       },
       { cache: { ttl: 60 } }
     ),
@@ -979,9 +1076,11 @@ class PropertyServer extends ALECSCore {
           value: z.any(),
         })).describe('Operations to apply'),
       }),
-      async (args, ctx) => {
-        const response = await bulkUpdateProperties(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement bulkUpdateProperties
+        throw new Error('bulkUpdateProperties not implemented');
+        // const response = await bulkUpdateProperties(_args);
+
       }
     ),
 
@@ -993,9 +1092,11 @@ class PropertyServer extends ALECSCore {
         groupId: z.string().describe('Group ID'),
         variables: z.record(z.any()).optional().describe('Template variables'),
       }),
-      async (args, ctx) => {
-        const response = await createPropertyFromTemplate(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement createPropertyFromTemplate
+        throw new Error('createPropertyFromTemplate not implemented');
+        // const response = await createPropertyFromTemplate(_args);
+
       }
     ),
 
@@ -1006,9 +1107,11 @@ class PropertyServer extends ALECSCore {
         metrics: z.array(z.string()).optional().describe('Specific metrics to retrieve'),
         granularity: z.enum(['hour', 'day', 'week']).optional(),
       }),
-      async (args, ctx) => {
-        const response = await getPropertyAnalytics(ctx.client, args);
-        return response;
+      async (_args, _ctx) => {
+        // TODO: Implement getPropertyAnalytics
+        throw new Error('getPropertyAnalytics not implemented');
+        // const response = await getPropertyAnalytics(_args);
+
       },
       { cache: { ttl: 300 } }
     ),

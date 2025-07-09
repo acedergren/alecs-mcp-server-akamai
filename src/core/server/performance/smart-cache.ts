@@ -142,7 +142,7 @@ export class SmartCache {
       
       // Remove least recently used
       const lru = this.accessOrder[0];
-      this.delete(lru);
+      this.delete(lru!);
     }
   }
   

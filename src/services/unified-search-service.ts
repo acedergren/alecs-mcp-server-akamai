@@ -99,7 +99,7 @@ export interface SearchResult {
   type: string;
   id: string;
   name: string;
-  details?: unknown;
+  details?: any;
   relevanceScore: number;
   source: 'cache' | 'api' | 'bulk-search';
 }
@@ -209,14 +209,17 @@ export class UnifiedSearchService {
       );
 
       if (Array.isArray(cacheResults) && cacheResults.length > 0) {
-        return cacheResults.map((match: unknown) => ({
-          type: match.resourceType || 'property',
-          id: match.resourceId || match.propertyId,
-          name: match.resourceName || match.propertyName,
-          details: match,
-          relevanceScore: match.score || 100,
-          source: 'cache' as const,
-        }));
+        return cacheResults.map((match: unknown) => {
+          const m = match as any;
+          return {
+            type: m.resourceType || 'property',
+            id: m.resourceId || m.propertyId,
+            name: m.resourceName || m.propertyName,
+            details: m,
+            relevanceScore: m.score || 100,
+            source: 'cache' as const,
+          };
+        });
       }
     } catch (error) {
       logger.warn({ error }, 'Cache search failed, falling back to API');
@@ -401,9 +404,10 @@ export class UnifiedSearchService {
    */
   private processBulkSearchResults(response: unknown): SearchResult[] {
     const results: SearchResult[] = [];
+    const resp = response as any;
 
-    if (response.results && Array.isArray(response.results)) {
-      for (const result of response.results) {
+    if (resp.results && Array.isArray(resp.results)) {
+      for (const result of resp.results) {
         results.push({
           type: 'property',
           id: result.propertyId,
@@ -426,18 +430,19 @@ export class UnifiedSearchService {
    */
   private matchesQuery(property: unknown, query: string, searchType: SearchType): boolean {
     const queryLower = query.toLowerCase();
+    const prop = property as any;
     
     switch (searchType) {
       case SearchType.PROPERTY_ID:
-        return property.propertyId === query;
+        return prop.propertyId === query;
       
       case SearchType.PROPERTY_NAME:
-        return property.propertyName.toLowerCase().includes(queryLower);
+        return prop.propertyName.toLowerCase().includes(queryLower);
       
       default:
         return (
-          property.propertyName.toLowerCase().includes(queryLower) ||
-          property.propertyId.includes(query)
+          prop.propertyName.toLowerCase().includes(queryLower) ||
+          prop.propertyId.includes(query)
         );
     }
   }
@@ -448,17 +453,18 @@ export class UnifiedSearchService {
   private calculateRelevance(item: unknown, query: string): number {
     const queryLower = query.toLowerCase();
     let score = 0;
+    const i = item as any;
 
     // Exact match
-    if (item.propertyName?.toLowerCase() === queryLower) {
+    if (i.propertyName?.toLowerCase() === queryLower) {
       score += 100;
     }
     // Starts with
-    else if (item.propertyName?.toLowerCase().startsWith(queryLower)) {
+    else if (i.propertyName?.toLowerCase().startsWith(queryLower)) {
       score += 50;
     }
     // Contains
-    else if (item.propertyName?.toLowerCase().includes(queryLower)) {
+    else if (i.propertyName?.toLowerCase().includes(queryLower)) {
       score += 25;
     }
 

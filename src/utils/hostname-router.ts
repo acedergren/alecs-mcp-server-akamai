@@ -308,7 +308,7 @@ export class AkamaiHostnameRouter {
     client: AkamaiClient
   ): Promise<HostnameRoute> {
     // Extract first text content from search result
-    const textContent = searchResult.content?.[0]?.text || '';
+    const textContent = (searchResult as any).content?.[0]?.text || '';
     
     // Look for property information in results
     const propertyMatch = textContent.match(/prp_(\d+)/);

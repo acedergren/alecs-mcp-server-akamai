@@ -35,7 +35,7 @@ const etagCache = new Map<string, string>();
  * @param response - API response object
  * @returns ETag value or null if not present
  */
-export function extractETag(response: unknown): string | null {
+export function extractETag(response: any): string | null {
   // Check various header formats
   const etag = response.headers?.etag || 
                 response.headers?.ETag || 
@@ -119,7 +119,7 @@ export async function requestWithETag(
       body: options.body,
       queryParams: options.queryParams,
       headers: Object.keys(headers).length > 0 ? headers : undefined,
-    });
+    }) as any;
     
     // Store ETag from response for future use
     const newETag = extractETag(response);
@@ -128,7 +128,7 @@ export async function requestWithETag(
     }
     
     return response;
-  } catch (error: unknown) {
+  } catch (error: any) {
     // Handle 412 Precondition Failed (ETag mismatch)
     if (error.response?.status === 412) {
       throw createConcurrentModificationError(
@@ -207,7 +207,7 @@ export async function retryWithFreshETag<T>(
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       return await operation();
-    } catch (error: unknown) {
+    } catch (error: any) {
       lastError = error;
       
       // Only retry on ETag conflicts

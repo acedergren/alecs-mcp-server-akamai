@@ -215,8 +215,8 @@ export class AkamaiClient {
             }
 
             // Check for HTTP errors
-            if (response && response.statusCode >= 400) {
-              const akamaiError = this.parseErrorResponse(body, response.statusCode);
+            if (response && (response as any).statusCode >= 400) {
+              const akamaiError = this.parseErrorResponse(body, (response as any).statusCode);
               reject(akamaiError);
               return;
             }

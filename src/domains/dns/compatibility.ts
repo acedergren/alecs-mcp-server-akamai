@@ -8,7 +8,7 @@
 import type { AkamaiClient } from '../../akamai-client';
 import type { MCPToolResponse } from '../../types';
 import { dnsOperations } from './operations';
-import { handleApiError } from '../../core/errors';
+// import { handleApiError } from '../../core/errors'; // Available for future use
 import type { RecordType } from './types';
 
 /**
@@ -85,7 +85,7 @@ export async function createZone(
   }
 ): Promise<MCPToolResponse> {
   try {
-    const zone = await dnsOperations.createZone(client, {
+    void await dnsOperations.createZone(client, {
       zone: args.zone,
       type: args.type.toUpperCase() as any,
       contractId: args.contractId,
@@ -123,7 +123,7 @@ export async function listRecords(
     const records = await dnsOperations.listRecords(client, {
       zone: args.zone,
       search: args.name,
-      type: args.type,
+      type: args.type as any,
       customer: args.customer,
     });
     
@@ -153,7 +153,7 @@ export async function upsertRecord(
   }
 ): Promise<MCPToolResponse> {
   try {
-    const response = await dnsOperations.upsertRecord(client, {
+    void await dnsOperations.upsertRecord(client, {
       zone: args.zone,
       name: args.name,
       type: args.type as RecordType,
@@ -485,7 +485,7 @@ export async function importZoneViaAXFR(
     const result = await dnsOperations.importZoneViaAXFR(client, {
       zone: args.zone,
       masterServer: args.masterServer,
-      tsigKey: args.tsigKey,
+      tsigKey: args.tsigKey as any,
       contractId: args.contractId,
       customer: args.customer,
     });
@@ -576,7 +576,7 @@ export async function getZoneContract(
 ): Promise<MCPToolResponse> {
   try {
     // Get zone details to extract contract info
-    const zone = await dnsOperations.getZone(client, args);
+    await dnsOperations.getZone(client, args);
     
     return {
       content: [{

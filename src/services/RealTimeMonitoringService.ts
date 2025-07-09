@@ -545,7 +545,7 @@ export class RealTimeMonitoringService extends EventEmitter {
       },
     });
 
-    return response.data.value || 0;
+    return (response as any).data.value || 0;
   }
 
   private updateMetricHistory(metric: RealTimeMetric): void {

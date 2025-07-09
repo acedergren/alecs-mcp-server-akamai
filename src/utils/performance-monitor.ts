@@ -444,7 +444,7 @@ export class RequestOptimizer {
       }
 
       const batch = this.batchQueue.get(batchKey)!;
-      batch.push({ request, resolve, reject });
+      batch.push({ request, resolve: resolve as (value: unknown) => void, reject });
 
       // Process immediately if batch is full
       if (batch.length >= this.maxBatchSize) {

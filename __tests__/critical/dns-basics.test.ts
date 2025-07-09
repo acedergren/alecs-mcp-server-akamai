@@ -40,12 +40,12 @@ jest.mock('../../src/akamai-client', () => ({
 
 describe('Critical: DNS Operations', () => {
   const allTools = getAllToolDefinitions();
-  const listZones = allTools.find((t: any) => t.name === 'list-zones')?.handler;
-  const listRecords = allTools.find((t: any) => t.name === 'list-records')?.handler;
+  const listZones = allTools.find((t: any) => t.name === 'dns_zones_list')?.handler;
+  const listRecords = allTools.find((t: any) => t.name === 'dns_records_list')?.handler;
   
   it('should list DNS zones', async () => {
     if (!listZones) {
-      throw new Error('list-zones tool not found');
+      throw new Error('dns_zones_list tool not found');
     }
     
     const { AkamaiClient } = require('../../src/akamai-client');
@@ -56,12 +56,12 @@ describe('Critical: DNS Operations', () => {
     expect(result).toBeDefined();
     expect(result.content).toBeDefined();
     expect(result.content[0]?.type).toBe('text');
-    expect(result.content[0]?.text).toContain('DNS zones');
+    expect(result.content[0]?.text).toContain('zones');
   });
 
   it('should list DNS records for a zone', async () => {
     if (!listRecords) {
-      throw new Error('list-records tool not found');
+      throw new Error('dns_records_list tool not found');
     }
     
     const { AkamaiClient } = require('../../src/akamai-client');

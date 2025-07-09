@@ -158,7 +158,7 @@ export class CircuitBreaker {
 
       this.recordSuccess(responseTime);
       return result;
-    } catch (_error) {
+    } catch (_error: any) {
       this.recordFailure();
       throw _error;
     }
@@ -240,14 +240,14 @@ export class RetryHandler {
 
   async execute<T>(
     operation: () => Promise<T>,
-    errorHandler?: (_error: unknown, attempt: number) => boolean,
+    errorHandler?: (_error: any, attempt: number) => boolean,
   ): Promise<T> {
     let lastError: unknown;
 
     for (let attempt = 1; attempt <= this.config.maxAttempts; attempt++) {
       try {
         return await operation();
-      } catch (_error) {
+      } catch (_error: any) {
         lastError = _error;
 
         // Check if error is retryable
@@ -427,7 +427,7 @@ export class ErrorClassifier {
     ],
   ]);
 
-  static classify(_error: unknown): ErrorCategory {
+  static classify(_error: any): ErrorCategory {
     let code: string | undefined;
 
     // Extract error code
@@ -459,11 +459,11 @@ export class ErrorClassifier {
     };
   }
 
-  static isRetryable(_error: unknown): boolean {
+  static isRetryable(_error: any): boolean {
     return this.classify(_error).retryable;
   }
 
-  static getSeverity(_error: unknown): ErrorSeverity {
+  static getSeverity(_error: any): ErrorSeverity {
     return this.classify(_error).severity;
   }
 }
@@ -534,7 +534,7 @@ export class ResilienceManager {
 
     return retryHandler.execute(
       () => circuitBreaker.execute(operation),
-      (_error, attempt) => {
+      (_error: any, attempt) => {
         const category = ErrorClassifier.classify(_error);
 
         // Log error for monitoring
@@ -581,11 +581,11 @@ export class ResilienceManager {
     }
   }
 
-  formatUserFriendlyError(_error: unknown, operationType: OperationType, context?: Record<string, unknown>): string {
+  formatUserFriendlyError(_error: any, operationType: OperationType, context?: Record<string, unknown>): string {
     const category = ErrorClassifier.classify(_error);
 
     // Use existing error translator for base formatting
-    const baseMessage = this.errorTranslator.formatConversationalError(_error, {
+    const baseMessage = this.errorTranslator.formatConversationalError(_error as any, {
       operation: operationType,
       parameters: context,
       timestamp: new Date(),

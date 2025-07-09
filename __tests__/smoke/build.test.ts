@@ -26,9 +26,13 @@ describe('Build Smoke Test', () => {
     const path = require('path');
     
     const files = [
-      'dist/servers/property-server.js',
-      'dist/servers/dns-server.js',
-      'dist/servers/certs-server.js',
+      'dist/servers/property-server-alecscore.js',
+      'dist/servers/dns-server-alecscore.js',
+      'dist/servers/certs-server-alecscore.js',
+      'dist/servers/security-server-alecscore.js',
+      'dist/servers/reporting-server-alecscore.js',
+      'dist/servers/fastpurge-server-alecscore.js',
+      'dist/servers/siem-server-alecscore.js',
     ];
     
     files.forEach(file => {

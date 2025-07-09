@@ -242,7 +242,7 @@ export class AkamaiCacheService {
     const queryLower = query.toLowerCase();
 
     // Quick hostname lookup
-    const hostnameData = await this.cache.get<unknown>(`${customer}:hostname:${queryLower}`);
+    const hostnameData = await this.cache.get<any>(`${customer}:hostname:${queryLower}`);
     if (hostnameData) {
       results.push({
         type: 'exact_hostname',

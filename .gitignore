@@ -29,6 +29,7 @@ build/**/*.d.ts
 !ecosystem.modular.config.js
 !start-websocket-server.js
 !start-sse-server.js
+!scripts/generate-*.js
 *.js.map
 *.d.ts
 !src/**/*.d.ts
@@ -149,6 +150,7 @@ sonarqube-*.md
 sonarqube-*.json
 scripts/*sonar*
 scripts/*audit*
+scripts/.archive/
 
 # Keep audit framework, rules, and documentation
 !src/audit/rules/

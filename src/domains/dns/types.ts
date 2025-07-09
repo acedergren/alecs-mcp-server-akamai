@@ -5,7 +5,7 @@
  * Eliminates duplication and provides type safety across the domain
  */
 
-import { z } from 'zod';
+// import { z } from 'zod'; // Available for future use
 
 // Re-export validated types from edge-dns-zones
 export {
@@ -20,7 +20,7 @@ export {
   EdgeDNSBulkZoneCreateResponse,
   EdgeDNSDnssecStatusResponse,
   EdgeDNSValidationError,
-  TSIGKey,
+  TSIGKey as EdgeDNSTSIGKey,
   SOARecord,
   ZoneListMetadata,
   ValidationError as EdgeDNSValidationErrorType,

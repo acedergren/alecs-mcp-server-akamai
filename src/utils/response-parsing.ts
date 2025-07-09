@@ -547,19 +547,19 @@ export class ResponseParser {
     const pagination: Record<string, unknown> = {};
 
     if (typedResponse.totalItems !== undefined) {
-      pagination.totalItems = typedResponse.totalItems;
+      pagination['totalItems'] = typedResponse.totalItems;
     }
 
     if (typedResponse.pageSize !== undefined) {
-      pagination.pageSize = typedResponse.pageSize;
+      pagination['pageSize'] = typedResponse.pageSize;
     }
 
     if (typedResponse.currentPage !== undefined) {
-      pagination.currentPage = typedResponse.currentPage;
+      pagination['currentPage'] = typedResponse.currentPage;
     }
 
     if (typedResponse.links) {
-      pagination.links = typedResponse.links;
+      pagination['links'] = typedResponse.links;
     }
 
     return Object.keys(pagination).length > 0 ? pagination : undefined;
@@ -582,8 +582,8 @@ export class ResponseParser {
       } catch {
         return {
           title: 'API Error',
-          detail: errorData,
-          status: _error.response?.status || _error.status || 500,
+          detail: errorData as string,
+          status: (_error as any).response?.status || (_error as any).status || 500,
         };
       }
     }
@@ -601,9 +601,9 @@ export class ResponseParser {
 
     // Extract detailed error information
     if (typedErrorData.errors && Array.isArray(typedErrorData.errors)) {
-      parsedError.errors = typedErrorData.errors.map((_err) => ({
+      parsedError.errors = typedErrorData.errors.map((_err: any) => ({
         type: _err.type,
-        title: _err.title || _err.message,
+        title: _err.title || _err.message || 'Error',
         detail: _err.detail || _err.description,
         field: _err.field || _err.path,
       }));
@@ -640,7 +640,7 @@ export class ResponseParser {
     if (typedResponse.headers) {
       // Rate limiting information
       if (typedResponse.headers['x-ratelimit-limit']) {
-        metadata.rateLimit = {
+        metadata['rateLimit'] = {
           limit: parseInt(typedResponse.headers['x-ratelimit-limit']),
           remaining: parseInt(typedResponse.headers['x-ratelimit-remaining'] || '0'),
           reset: parseInt(typedResponse.headers['x-ratelimit-reset'] || '0'),
@@ -649,22 +649,22 @@ export class ResponseParser {
 
       // Request tracking
       if (typedResponse.headers['x-request-id']) {
-        metadata.requestId = typedResponse.headers['x-request-id'];
+        metadata['requestId'] = typedResponse.headers['x-request-id'];
       }
 
       // ETag for caching
       if (typedResponse.headers['etag']) {
-        metadata.etag = typedResponse.headers['etag'];
+        metadata['etag'] = typedResponse.headers['etag'];
       }
 
       // Last modified
       if (typedResponse.headers['last-modified']) {
-        metadata.lastModified = typedResponse.headers['last-modified'];
+        metadata['lastModified'] = typedResponse.headers['last-modified'];
       }
 
       // Cache control
       if (typedResponse.headers['cache-control']) {
-        metadata.cacheControl = typedResponse.headers['cache-control'];
+        metadata['cacheControl'] = typedResponse.headers['cache-control'];
       }
     }
 
@@ -682,21 +682,21 @@ export class ResponseParser {
 
     // Extract operation tracking information
     if (typedResponse.activationId || typedResponse.changeId || typedResponse.purgeId) {
-      result.operationId = typedResponse.activationId || typedResponse.changeId || typedResponse.purgeId;
+      result['operationId'] = typedResponse.activationId || typedResponse.changeId || typedResponse.purgeId;
     }
 
     // Extract estimated completion time
     if (typedResponse.estimatedSeconds) {
-      result.estimatedCompletion = new Date(
+      result['estimatedCompletion'] = new Date(
         Date.now() + typedResponse.estimatedSeconds * 1000,
       ).toISOString();
     }
 
     // Extract status information
     if (typedResponse.status) {
-      result.operationStatus = typedResponse.status;
-      result.isComplete = ['ACTIVE', 'Done', 'COMPLETED'].includes(typedResponse.status);
-      result.isFailed = ['FAILED', 'Error', 'ABORTED'].includes(typedResponse.status);
+      result['operationStatus'] = typedResponse.status;
+      result['isComplete'] = ['ACTIVE', 'Done', 'COMPLETED'].includes(typedResponse.status);
+      result['isFailed'] = ['FAILED', 'Error', 'ABORTED'].includes(typedResponse.status);
     }
 
     return result;
@@ -738,7 +738,7 @@ export function parseAkamaiResponse(
     }
 
     if (Object.keys(metadata).length > 0) {
-      (parsedData as Record<string, unknown>)._metadata = metadata;
+      (parsedData as Record<string, unknown>)['_metadata'] = metadata;
     }
 
     return parsedData;

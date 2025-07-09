@@ -53,8 +53,8 @@ export interface BulkSearchMatch {
 /**
  * Build search query for Akamai's bulk search API
  */
-export function buildBulkSearchQuery(options: SearchOptions): unknown {
-  const query: unknown = {
+export function buildBulkSearchQuery(options: SearchOptions): any {
+  const query: any = {
     bulkSearchQuery: {
       syntax: 'JSONPATH',
       match: options.searchTerm,
@@ -90,7 +90,7 @@ export async function performIntelligentSearch(
   searchTerm: string,
   items: unknown[],
   searchFields: string[]
-): Promise<Array<{ timestamp: string; value: number }>> {
+): Promise<any[]> {
   const searchLower = searchTerm.toLowerCase();
   const results: Array<{ item: unknown; score: number; matches: string[] }> = [];
 
@@ -135,7 +135,7 @@ export async function performIntelligentSearch(
   results.sort((a, b) => b.score - a.score);
 
   return results.map(r => ({
-    ...r.item,
+    ...(r.item as any),
     _searchMetadata: {
       score: r.score,
       matches: r.matches,
@@ -147,7 +147,7 @@ export async function performIntelligentSearch(
  * Get nested object value by path
  */
 function getNestedValue(obj: unknown, path: string): unknown {
-  return path.split('.').reduce((curr, prop) => curr?.[prop], obj);
+  return path.split('.').reduce((curr, prop) => (curr as any)?.[prop], obj);
 }
 
 /**
@@ -275,7 +275,7 @@ export async function withRetry<T>(
       lastError = error;
       
       // Don't retry on client errors (4xx)
-      if (error.status && error.status >= 400 && error.status < 500) {
+      if ((error as any).status && (error as any).status >= 400 && (error as any).status < 500) {
         throw error;
       }
 
@@ -284,7 +284,7 @@ export async function withRetry<T>(
           attempt: attempt + 1,
           maxRetries: config.maxRetries,
           delay,
-          error: error.message,
+          error: (error as any).message,
         }, 'Request failed, retrying...');
 
         await new Promise(resolve => setTimeout(resolve, delay));

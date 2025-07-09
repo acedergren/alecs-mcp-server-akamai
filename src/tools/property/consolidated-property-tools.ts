@@ -24,10 +24,10 @@ import {
   RuleTreeSchema,
   ListRequestSchema,
   CustomerSchema,
-  NetworkEnvironmentSchema,
+  NetworkTypeSchema,
   type MCPToolResponse
 } from '../common';
-import { AkamaiClient } from '../../akamai-client';
+// import type { AkamaiClient } from '../../akamai-client'; // Unused in this file
 import { ProgressToken } from '../../utils/mcp-progress';
 
 /**
@@ -56,7 +56,7 @@ const UpdatePropertyRulesSchema = CustomerSchema.extend({
 const ActivatePropertySchema = CustomerSchema.extend({
   propertyId: PropertyIdSchema,
   version: z.number().int().positive(),
-  network: NetworkEnvironmentSchema,
+  network: NetworkTypeSchema,
   notes: z.string().optional(),
   notifyEmails: z.array(z.string().email()).optional(),
   acknowledgeWarnings: z.boolean().optional().default(false),
@@ -509,7 +509,7 @@ export class ConsolidatedPropertyTools extends BaseTool {
                 }),
                 body: {
                   propertyVersion: params.version,
-                  network: params.network.toUpperCase(),
+                  network: String(params.network).toUpperCase(),
                   note: params.notes || `Activated via MCP on ${new Date().toISOString()}`,
                   notifyEmails: params.notifyEmails || [],
                   acknowledgeWarnings: params.acknowledgeWarnings || [],
@@ -587,11 +587,11 @@ export class ConsolidatedPropertyTools extends BaseTool {
               throw new Error(`Activation failed with status: ${status}`);
             }
           },
-          {
-            customer: params.customer,
-            format: 'text',
-            successMessage: (result) => result.message
-          }
+          ({
+            customer: params.customer || 'default',
+            format: 'text' as const,
+            successMessage: (result: any) => (result as any).message
+          } as any)
         );
       }
     );
@@ -752,6 +752,1805 @@ export class ConsolidatedPropertyTools extends BaseTool {
         customer: params.customer,
         cacheKey: (p) => `activation:${p.propertyId}:${p.activationId}`,
         cacheTtl: 30 // 30 seconds for status checks
+      }
+    );
+  }
+
+  /**
+   * List property versions
+   */
+  async listPropertyVersions(args: {
+    propertyId: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      propertyId: PropertyIdSchema,
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'list-property-versions',
+      params,
+      async (client) => {
+        // Get property details for contract/group
+        const propResponse = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}`,
+            method: 'GET',
+            schema: z.object({
+              properties: z.object({
+                items: z.array(PropertySchema)
+              })
+            })
+          }
+        );
+
+        const property = propResponse.properties.items[0];
+        if (!property) {
+          throw new Error(`Property ${params.propertyId} not found`);
+        }
+
+        // Get versions
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}/versions`,
+            method: 'GET',
+            schema: z.object({
+              versions: z.object({
+                items: z.array(PropertyVersionDetailsSchema)
+              })
+            }),
+            queryParams: {
+              contractId: property.contractId,
+              groupId: property.groupId
+            }
+          }
+        );
+
+        return {
+          versions: response.versions.items,
+          totalCount: response.versions.items.length
+        };
+      },
+      {
+        customer: params.customer,
+        cacheKey: (p) => `property:${p.propertyId}:versions`,
+        cacheTtl: 60
+      }
+    );
+  }
+
+  /**
+   * List property activations
+   */
+  async listPropertyActivations(args: {
+    propertyId: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      propertyId: PropertyIdSchema,
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'list-property-activations',
+      params,
+      async (client) => {
+        // Get property details for contract/group
+        const propResponse = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}`,
+            method: 'GET',
+            schema: z.object({
+              properties: z.object({
+                items: z.array(PropertySchema)
+              })
+            })
+          }
+        );
+
+        const property = propResponse.properties.items[0];
+        if (!property) {
+          throw new Error(`Property ${params.propertyId} not found`);
+        }
+
+        // Get activations
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}/activations`,
+            method: 'GET',
+            schema: z.object({
+              activations: z.object({
+                items: z.array(z.object({
+                  activationId: z.string(),
+                  propertyName: z.string(),
+                  propertyVersion: z.number(),
+                  network: z.string(),
+                  status: z.string(),
+                  submitDate: z.string(),
+                  updateDate: z.string(),
+                  note: z.string().optional()
+                }))
+              })
+            }),
+            queryParams: {
+              contractId: property.contractId,
+              groupId: property.groupId
+            }
+          }
+        );
+
+        return {
+          activations: response.activations.items,
+          totalCount: response.activations.items.length
+        };
+      },
+      {
+        customer: params.customer,
+        cacheKey: (p) => `property:${p.propertyId}:activations`,
+        cacheTtl: 60
+      }
+    );
+  }
+
+  /**
+   * List groups
+   */
+  async listGroups(args: {
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'list-groups',
+      params,
+      async (client) => {
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: '/papi/v1/groups',
+            method: 'GET',
+            schema: z.object({
+              groups: z.object({
+                items: z.array(z.object({
+                  groupId: z.string(),
+                  groupName: z.string(),
+                  parentGroupId: z.string().optional(),
+                  contractIds: z.array(z.string())
+                }))
+              })
+            })
+          }
+        );
+
+        return {
+          groups: response.groups.items,
+          totalCount: response.groups.items.length
+        };
+      },
+      {
+        customer: params.customer,
+        cacheKey: () => 'groups:list',
+        cacheTtl: 3600
+      }
+    );
+  }
+
+  /**
+   * List contracts
+   */
+  async listContracts(args: {
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'list-contracts',
+      params,
+      async (client) => {
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: '/papi/v1/contracts',
+            method: 'GET',
+            schema: z.object({
+              contracts: z.object({
+                items: z.array(z.object({
+                  contractId: z.string(),
+                  contractTypeName: z.string()
+                }))
+              })
+            })
+          }
+        );
+
+        return {
+          contracts: response.contracts.items,
+          totalCount: response.contracts.items.length
+        };
+      },
+      {
+        customer: params.customer,
+        cacheKey: () => 'contracts:list',
+        cacheTtl: 3600
+      }
+    );
+  }
+
+  /**
+   * List products
+   */
+  async listProducts(args: {
+    contractId?: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      contractId: z.string().optional(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'list-products',
+      params,
+      async (client) => {
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: '/papi/v1/products',
+            method: 'GET',
+            schema: z.object({
+              products: z.object({
+                items: z.array(z.object({
+                  productId: z.string(),
+                  productName: z.string()
+                }))
+              })
+            }),
+            queryParams: {
+              ...(params.contractId && { contractId: params.contractId })
+            }
+          }
+        );
+
+        return {
+          products: response.products.items,
+          totalCount: response.products.items.length
+        };
+      },
+      {
+        customer: params.customer,
+        cacheKey: () => `products:list:${params.contractId || 'all'}`,
+        cacheTtl: 3600
+      }
+    );
+  }
+
+  /**
+   * Get latest property version
+   */
+  async getLatestPropertyVersion(args: {
+    propertyId: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      propertyId: PropertyIdSchema,
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'get-latest-property-version',
+      params,
+      async (client) => {
+        // Get property details which includes latest version
+        const propResponse = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}`,
+            method: 'GET',
+            schema: z.object({
+              properties: z.object({
+                items: z.array(PropertySchema)
+              })
+            })
+          }
+        );
+
+        const property = propResponse.properties.items[0];
+        if (!property) {
+          throw new Error(`Property ${params.propertyId} not found`);
+        }
+
+        return {
+          propertyId: params.propertyId,
+          latestVersion: property.latestVersion,
+          stagingVersion: property.stagingVersion,
+          productionVersion: property.productionVersion
+        };
+      },
+      {
+        customer: params.customer,
+        cacheKey: (p) => `property:${p.propertyId}:latest-version`,
+        cacheTtl: 60
+      }
+    );
+  }
+
+  /**
+   * Get property version
+   */
+  async getPropertyVersion(args: {
+    propertyId: string;
+    version: number;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      propertyId: PropertyIdSchema,
+      version: z.number(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'get-property-version',
+      params,
+      async (client) => {
+        // Get property details for contract/group
+        const propResponse = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}`,
+            method: 'GET',
+            schema: z.object({
+              properties: z.object({
+                items: z.array(PropertySchema)
+              })
+            })
+          }
+        );
+
+        const property = propResponse.properties.items[0];
+        if (!property) {
+          throw new Error(`Property ${params.propertyId} not found`);
+        }
+
+        // Get version details
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}/versions/${params.version}`,
+            method: 'GET',
+            schema: z.object({
+              versions: z.object({
+                items: z.array(PropertyVersionDetailsSchema)
+              })
+            }),
+            queryParams: {
+              contractId: property.contractId,
+              groupId: property.groupId
+            }
+          }
+        );
+
+        const version = response.versions.items[0];
+        if (!version) {
+          throw new Error(`Version ${params.version} not found for property ${params.propertyId}`);
+        }
+
+        return version;
+      },
+      {
+        customer: params.customer,
+        cacheKey: (p) => `property:${p.propertyId}:version:${p.version}`,
+        cacheTtl: 300
+      }
+    );
+  }
+
+  /**
+   * Rollback property version
+   */
+  async rollbackPropertyVersion(args: {
+    propertyId: string;
+    targetVersion: number;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      propertyId: PropertyIdSchema,
+      targetVersion: z.number(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'rollback-property-version',
+      params,
+      async (_client) => {
+        // Create new version based on target version
+        const createResult = await this.createPropertyVersion({
+          propertyId: params.propertyId,
+          createFromVersion: params.targetVersion,
+          customer: params.customer
+        });
+
+        return {
+          propertyId: params.propertyId,
+          newVersion: (createResult as any).newVersion,
+          rolledBackFrom: params.targetVersion,
+          message: `✅ Created new version based on version ${params.targetVersion}`
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Cancel property activation
+   */
+  async cancelPropertyActivation(args: {
+    propertyId: string;
+    activationId: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      propertyId: PropertyIdSchema,
+      activationId: z.string(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'cancel-property-activation',
+      params,
+      async (client) => {
+        // Get property details for contract/group
+        const propResponse = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}`,
+            method: 'GET',
+            schema: z.object({
+              properties: z.object({
+                items: z.array(PropertySchema)
+              })
+            })
+          }
+        );
+
+        const property = propResponse.properties.items[0];
+        if (!property) {
+          throw new Error(`Property ${params.propertyId} not found`);
+        }
+
+        // Cancel activation
+        await client.request({
+          path: `/papi/v1/properties/${params.propertyId}/activations/${params.activationId}`,
+          method: 'DELETE',
+          queryParams: {
+            contractId: property.contractId,
+            groupId: property.groupId
+          }
+        });
+
+        // Invalidate caches
+        await this.invalidateCache([
+          `property:${params.propertyId}:activations`,
+          `activation:${params.propertyId}:${params.activationId}`
+        ]);
+
+        return {
+          propertyId: params.propertyId,
+          activationId: params.activationId,
+          status: 'cancelled',
+          message: `✅ Cancelled activation ${params.activationId}`
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Validate property activation
+   */
+  async validatePropertyActivation(args: {
+    propertyId: string;
+    version: number;
+    network: 'staging' | 'production';
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      propertyId: PropertyIdSchema,
+      version: z.number(),
+      network: NetworkTypeSchema,
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'validate-property-activation',
+      params,
+      async (client) => {
+        // Get property details for contract/group
+        const propResponse = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}`,
+            method: 'GET',
+            schema: z.object({
+              properties: z.object({
+                items: z.array(PropertySchema)
+              })
+            })
+          }
+        );
+
+        const property = propResponse.properties.items[0];
+        if (!property) {
+          throw new Error(`Property ${params.propertyId} not found`);
+        }
+
+        // Validate activation
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}/versions/${params.version}/activations`,
+            method: 'POST',
+            schema: z.object({
+              activationLink: z.string().optional(),
+              errors: z.array(z.object({
+                type: z.string(),
+                title: z.string(),
+                detail: z.string()
+              })).optional(),
+              warnings: z.array(z.object({
+                type: z.string(),
+                title: z.string(),
+                detail: z.string()
+              })).optional()
+            }),
+            body: {
+              propertyVersion: params.version,
+              network: String(params.network).toUpperCase(),
+              activationType: 'ACTIVATE',
+              validateOnly: true
+            },
+            queryParams: {
+              contractId: property.contractId,
+              groupId: property.groupId
+            }
+          }
+        );
+
+        return {
+          propertyId: params.propertyId,
+          version: params.version,
+          network: params.network,
+          valid: !response.errors || response.errors.length === 0,
+          errors: response.errors || [],
+          warnings: response.warnings || []
+        };
+      },
+      ({
+        customer: params.customer || 'default'
+      } as any)
+    );
+  }
+
+  /**
+   * Add property hostname
+   */
+  async addPropertyHostname(args: {
+    propertyId: string;
+    version: number;
+    hostnames: string[];
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      propertyId: PropertyIdSchema,
+      version: z.number(),
+      hostnames: z.array(z.string()),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'add-property-hostname',
+      params,
+      async (client) => {
+        // Get property details for contract/group
+        const propResponse = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}`,
+            method: 'GET',
+            schema: z.object({
+              properties: z.object({
+                items: z.array(PropertySchema)
+              })
+            })
+          }
+        );
+
+        const property = propResponse.properties.items[0];
+        if (!property) {
+          throw new Error(`Property ${params.propertyId} not found`);
+        }
+
+        // Get current hostnames
+        const currentResponse = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}/versions/${params.version}/hostnames`,
+            method: 'GET',
+            schema: z.object({
+              hostnames: z.object({
+                items: z.array(z.object({
+                  cnameFrom: z.string(),
+                  cnameTo: z.string(),
+                  cnameType: z.string()
+                }))
+              })
+            }),
+            queryParams: {
+              contractId: property.contractId,
+              groupId: property.groupId
+            }
+          }
+        );
+
+        // Add new hostnames
+        const newHostnames = params.hostnames.map(hostname => ({
+          cnameFrom: hostname,
+          cnameTo: `${hostname}.edgekey.net`,
+          cnameType: 'EDGE_HOSTNAME'
+        }));
+
+        const allHostnames = [...currentResponse.hostnames.items, ...newHostnames];
+
+        // Update hostnames
+        await client.request({
+          path: `/papi/v1/properties/${params.propertyId}/versions/${params.version}/hostnames`,
+          method: 'PUT',
+          body: { hostnames: allHostnames },
+          queryParams: {
+            contractId: property.contractId,
+            groupId: property.groupId
+          }
+        });
+
+        // Invalidate caches
+        await this.invalidateCache([
+          `property:${params.propertyId}:version:${params.version}:hostnames`
+        ]);
+
+        return {
+          propertyId: params.propertyId,
+          version: params.version,
+          addedHostnames: params.hostnames,
+          totalHostnames: allHostnames.length,
+          message: `✅ Added ${params.hostnames.length} hostname(s) to property version ${params.version}`
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Remove property hostname
+   */
+  async removePropertyHostname(args: {
+    propertyId: string;
+    version: number;
+    hostnames: string[];
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      propertyId: PropertyIdSchema,
+      version: z.number(),
+      hostnames: z.array(z.string()),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'remove-property-hostname',
+      params,
+      async (client) => {
+        // Get property details for contract/group
+        const propResponse = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}`,
+            method: 'GET',
+            schema: z.object({
+              properties: z.object({
+                items: z.array(PropertySchema)
+              })
+            })
+          }
+        );
+
+        const property = propResponse.properties.items[0];
+        if (!property) {
+          throw new Error(`Property ${params.propertyId} not found`);
+        }
+
+        // Get current hostnames
+        const currentResponse = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}/versions/${params.version}/hostnames`,
+            method: 'GET',
+            schema: z.object({
+              hostnames: z.object({
+                items: z.array(z.object({
+                  cnameFrom: z.string(),
+                  cnameTo: z.string(),
+                  cnameType: z.string()
+                }))
+              })
+            }),
+            queryParams: {
+              contractId: property.contractId,
+              groupId: property.groupId
+            }
+          }
+        );
+
+        // Remove specified hostnames
+        const remainingHostnames = currentResponse.hostnames.items.filter(
+          h => !params.hostnames.includes(h.cnameFrom)
+        );
+
+        // Update hostnames
+        await client.request({
+          path: `/papi/v1/properties/${params.propertyId}/versions/${params.version}/hostnames`,
+          method: 'PUT',
+          body: { hostnames: remainingHostnames },
+          queryParams: {
+            contractId: property.contractId,
+            groupId: property.groupId
+          }
+        });
+
+        // Invalidate caches
+        await this.invalidateCache([
+          `property:${params.propertyId}:version:${params.version}:hostnames`
+        ]);
+
+        return {
+          propertyId: params.propertyId,
+          version: params.version,
+          removedHostnames: params.hostnames,
+          remainingHostnames: remainingHostnames.length,
+          message: `✅ Removed ${params.hostnames.length} hostname(s) from property version ${params.version}`
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * List property version hostnames
+   */
+  async listPropertyVersionHostnames(args: {
+    propertyId: string;
+    version: number;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      propertyId: PropertyIdSchema,
+      version: z.number(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'list-property-version-hostnames',
+      params,
+      async (client) => {
+        // Get property details for contract/group
+        const propResponse = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}`,
+            method: 'GET',
+            schema: z.object({
+              properties: z.object({
+                items: z.array(PropertySchema)
+              })
+            })
+          }
+        );
+
+        const property = propResponse.properties.items[0];
+        if (!property) {
+          throw new Error(`Property ${params.propertyId} not found`);
+        }
+
+        // Get hostnames
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}/versions/${params.version}/hostnames`,
+            method: 'GET',
+            schema: z.object({
+              hostnames: z.object({
+                items: z.array(z.object({
+                  cnameFrom: z.string(),
+                  cnameTo: z.string(),
+                  cnameType: z.string(),
+                  certStatus: z.object({
+                    production: z.array(z.object({
+                      status: z.string()
+                    })).optional(),
+                    staging: z.array(z.object({
+                      status: z.string()
+                    })).optional()
+                  }).optional()
+                }))
+              })
+            }),
+            queryParams: {
+              contractId: property.contractId,
+              groupId: property.groupId
+            }
+          }
+        );
+
+        return {
+          propertyId: params.propertyId,
+          version: params.version,
+          hostnames: response.hostnames.items,
+          totalCount: response.hostnames.items.length
+        };
+      },
+      {
+        customer: params.customer,
+        cacheKey: (p) => `property:${p.propertyId}:version:${p.version}:hostnames`,
+        cacheTtl: 300
+      }
+    );
+  }
+
+  /**
+   * Create edge hostname
+   */
+  async createEdgeHostname(args: {
+    domainPrefix: string;
+    domainSuffix: string;
+    productId: string;
+    ipVersionBehavior?: string;
+    secureNetwork?: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      domainPrefix: z.string(),
+      domainSuffix: z.string(),
+      productId: z.string(),
+      ipVersionBehavior: z.string().optional(),
+      secureNetwork: z.string().optional(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'create-edge-hostname',
+      params,
+      async (client) => {
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: '/hapi/v1/edge-hostnames',
+            method: 'POST',
+            schema: z.object({
+              edgeHostnameLink: z.string(),
+              edgeHostnameId: z.string()
+            }),
+            body: {
+              domainPrefix: params.domainPrefix,
+              domainSuffix: params.domainSuffix,
+              productId: params.productId,
+              ipVersionBehavior: params.ipVersionBehavior || 'IPV4',
+              secure: params.secureNetwork === 'enhanced-tls',
+              cert: 0 // Default DV
+            }
+          }
+        );
+
+        return {
+          edgeHostnameId: response.edgeHostnameId,
+          edgeHostname: `${params.domainPrefix}.${params.domainSuffix}`,
+          message: `✅ Created edge hostname ${params.domainPrefix}.${params.domainSuffix}`
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * List edge hostnames
+   */
+  async listEdgeHostnames(args: {
+    contractId?: string;
+    groupId?: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      contractId: z.string().optional(),
+      groupId: z.string().optional(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'list-edge-hostnames',
+      params,
+      async (client) => {
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: '/hapi/v1/edge-hostnames',
+            method: 'GET',
+            schema: z.object({
+              edgeHostnames: z.object({
+                items: z.array(z.object({
+                  edgeHostnameId: z.string(),
+                  edgeHostnameDomain: z.string(),
+                  productId: z.string(),
+                  domainPrefix: z.string(),
+                  domainSuffix: z.string(),
+                  secure: z.boolean(),
+                  ipVersionBehavior: z.string()
+                }))
+              })
+            }),
+            queryParams: {
+              ...(params.contractId && { contractId: params.contractId }),
+              ...(params.groupId && { groupId: params.groupId })
+            }
+          }
+        );
+
+        return {
+          edgeHostnames: response.edgeHostnames.items,
+          totalCount: response.edgeHostnames.items.length
+        };
+      },
+      {
+        customer: params.customer,
+        cacheKey: () => `edge-hostnames:list:${params.contractId || 'all'}:${params.groupId || 'all'}`,
+        cacheTtl: 300
+      }
+    );
+  }
+
+  /**
+   * Remove property
+   */
+  async removeProperty(args: {
+    propertyId: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      propertyId: PropertyIdSchema,
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'remove-property',
+      params,
+      async (client) => {
+        // Get property details for contract/group
+        const propResponse = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/properties/${params.propertyId}`,
+            method: 'GET',
+            schema: z.object({
+              properties: z.object({
+                items: z.array(PropertySchema)
+              })
+            })
+          }
+        );
+
+        const property = propResponse.properties.items[0];
+        if (!property) {
+          throw new Error(`Property ${params.propertyId} not found`);
+        }
+
+        // Delete property
+        await client.request({
+          path: `/papi/v1/properties/${params.propertyId}`,
+          method: 'DELETE',
+          queryParams: {
+            contractId: property.contractId,
+            groupId: property.groupId
+          }
+        });
+
+        // Invalidate caches
+        await this.invalidateCache([
+          `property:${params.propertyId}:*`,
+          `properties:list:*`
+        ]);
+
+        return {
+          propertyId: params.propertyId,
+          propertyName: property.propertyName,
+          status: 'deleted',
+          message: `✅ Deleted property ${property.propertyName} (${params.propertyId})`
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Onboard property (placeholder)
+   */
+  async onboardPropertyTool(args: {
+    domain: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      domain: z.string(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return {
+      content: [{
+        type: 'text',
+        text: `Property onboarding for ${params.domain} - This is a placeholder implementation`
+      }]
+    };
+  }
+
+  /**
+   * Validate rule tree
+   */
+  async validateRuleTree(args: {
+    rules: any;
+    ruleFormat?: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      rules: z.any(),
+      ruleFormat: z.string().optional(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'validate-rule-tree',
+      params,
+      async (client) => {
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: '/papi/v1/rules/validate',
+            method: 'POST',
+            body: {
+              rules: params.rules,
+              ...(params.ruleFormat && { ruleFormat: params.ruleFormat })
+            },
+            schema: z.object({
+              errors: z.array(z.object({
+                type: z.string(),
+                title: z.string(),
+                detail: z.string().optional(),
+                instance: z.string().optional()
+              })).optional(),
+              warnings: z.array(z.object({
+                type: z.string(),
+                title: z.string(),
+                detail: z.string().optional(),
+                instance: z.string().optional()
+              })).optional(),
+              valid: z.boolean()
+            })
+          }
+        );
+
+        return {
+          valid: response.valid,
+          errors: response.errors || [],
+          warnings: response.warnings || [],
+          message: response.valid ? '✅ Rule tree is valid' : '❌ Rule tree validation failed'
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Search properties
+   */
+  async searchPropertiesOptimized(args: {
+    query: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      query: z.string(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    // Use the listProperties method with filtering
+    const allProperties = await this.listProperties({
+      customer: params.customer,
+      format: 'json' as const
+    });
+
+    const properties = (allProperties.content[0] as any).properties || [];
+    const query = params.query.toLowerCase();
+    
+    const filtered = properties.filter((prop: any) => 
+      prop.propertyName.toLowerCase().includes(query) ||
+      prop.propertyId.toLowerCase().includes(query)
+    );
+
+    return {
+      content: [{
+        type: 'text',
+        text: `Found ${filtered.length} properties matching "${params.query}":\n\n` +
+          filtered.map((p: any) => `• ${p.propertyName} (${p.propertyId})`).join('\n')
+      }]
+    };
+  }
+
+  /**
+   * Universal search (placeholder)
+   */
+  async universalSearchWithCacheHandler(args: {
+    query: string;
+    limit?: number;
+    types?: string[];
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      query: z.string(),
+      limit: z.number().optional(),
+      types: z.array(z.string()).optional(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return {
+      content: [{
+        type: 'text',
+        text: `Universal search for "${params.query}" - This is a placeholder implementation`
+      }]
+    };
+  }
+
+  /**
+   * List CP codes
+   */
+  async listCPCodes(args: {
+    contractId?: string;
+    groupId?: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      contractId: z.string().optional(),
+      groupId: z.string().optional(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'list-cpcodes',
+      params,
+      async (client) => {
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: '/papi/v1/cpcodes',
+            method: 'GET',
+            schema: z.object({
+              cpcodes: z.object({
+                items: z.array(z.object({
+                  cpcodeId: z.string(),
+                  cpcodeName: z.string(),
+                  productIds: z.array(z.string()),
+                  createdDate: z.string()
+                }))
+              })
+            }),
+            queryParams: {
+              ...(params.contractId && { contractId: params.contractId }),
+              ...(params.groupId && { groupId: params.groupId })
+            }
+          }
+        );
+
+        return {
+          cpcodes: response.cpcodes.items,
+          totalCount: response.cpcodes.items.length
+        };
+      },
+      {
+        customer: params.customer,
+        cacheKey: () => `cpcodes:list:${params.contractId || 'all'}:${params.groupId || 'all'}`,
+        cacheTtl: 300
+      }
+    );
+  }
+
+  /**
+   * Create CP code
+   */
+  async createCPCode(args: {
+    cpcodeName: string;
+    contractId: string;
+    groupId: string;
+    productId: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      cpcodeName: z.string(),
+      contractId: z.string(),
+      groupId: z.string(),
+      productId: z.string(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'create-cpcode',
+      params,
+      async (client) => {
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: '/papi/v1/cpcodes',
+            method: 'POST',
+            body: {
+              cpcodeName: params.cpcodeName,
+              productId: params.productId
+            },
+            queryParams: {
+              contractId: params.contractId,
+              groupId: params.groupId
+            },
+            schema: z.object({
+              cpcodeLink: z.string(),
+              cpcodeId: z.string()
+            })
+          }
+        );
+
+        return {
+          cpcodeId: response.cpcodeId,
+          cpcodeName: params.cpcodeName,
+          cpcodeLink: response.cpcodeLink,
+          message: `✅ Created CP code ${params.cpcodeName}`
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Get CP code
+   */
+  async getCPCode(args: {
+    cpcodeId: number;
+    contractId?: string;
+    groupId?: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      cpcodeId: z.number(),
+      contractId: z.string().optional(),
+      groupId: z.string().optional(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'get-cpcode',
+      params,
+      async (client) => {
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/cpcodes/${params.cpcodeId}`,
+            method: 'GET',
+            schema: z.object({
+              cpcodes: z.object({
+                items: z.array(z.object({
+                  cpcodeId: z.string(),
+                  cpcodeName: z.string(),
+                  productIds: z.array(z.string()),
+                  createdDate: z.string()
+                }))
+              })
+            }),
+            queryParams: {
+              ...(params.contractId && { contractId: params.contractId }),
+              ...(params.groupId && { groupId: params.groupId })
+            }
+          }
+        );
+
+        const cpcode = response.cpcodes.items[0];
+        if (!cpcode) {
+          throw new Error(`CP code ${params.cpcodeId} not found`);
+        }
+
+        return cpcode;
+      },
+      {
+        customer: params.customer,
+        cacheKey: (p) => `cpcode:${p.cpcodeId}`,
+        cacheTtl: 300
+      }
+    );
+  }
+
+  /**
+   * List includes
+   */
+  async listIncludes(args: {
+    contractId: string;
+    groupId: string;
+    includeType?: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      contractId: z.string(),
+      groupId: z.string(),
+      includeType: z.string().optional(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'list-includes',
+      params,
+      async (client) => {
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: '/papi/v1/includes',
+            method: 'GET',
+            schema: z.object({
+              includes: z.object({
+                items: z.array(z.object({
+                  includeId: z.string(),
+                  includeName: z.string(),
+                  includeType: z.string(),
+                  latestVersion: z.number(),
+                  stagingVersion: z.number().nullable(),
+                  productionVersion: z.number().nullable()
+                }))
+              })
+            }),
+            queryParams: {
+              contractId: params.contractId,
+              groupId: params.groupId,
+              ...(params.includeType && { includeType: params.includeType })
+            }
+          }
+        );
+
+        return {
+          includes: response.includes.items,
+          totalCount: response.includes.items.length
+        };
+      },
+      {
+        customer: params.customer,
+        cacheKey: () => `includes:list:${params.contractId}:${params.groupId}:${params.includeType || 'all'}`,
+        cacheTtl: 300
+      }
+    );
+  }
+
+  /**
+   * Get include
+   */
+  async getInclude(args: {
+    includeId: string;
+    contractId: string;
+    groupId: string;
+    version?: number;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      includeId: z.string(),
+      contractId: z.string(),
+      groupId: z.string(),
+      version: z.number().optional(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'get-include',
+      params,
+      async (client) => {
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/includes/${params.includeId}`,
+            method: 'GET',
+            schema: z.object({
+              includes: z.object({
+                items: z.array(z.object({
+                  includeId: z.string(),
+                  includeName: z.string(),
+                  includeType: z.string(),
+                  latestVersion: z.number(),
+                  stagingVersion: z.number().nullable(),
+                  productionVersion: z.number().nullable()
+                }))
+              })
+            }),
+            queryParams: {
+              contractId: params.contractId,
+              groupId: params.groupId
+            }
+          }
+        );
+
+        const include = response.includes.items[0];
+        if (!include) {
+          throw new Error(`Include ${params.includeId} not found`);
+        }
+
+        return include;
+      },
+      {
+        customer: params.customer,
+        cacheKey: (p) => `include:${p.includeId}:${p.version || 'latest'}`,
+        cacheTtl: 300
+      }
+    );
+  }
+
+  /**
+   * Create include
+   */
+  async createInclude(args: {
+    includeName: string;
+    includeType: string;
+    contractId: string;
+    groupId: string;
+    productId?: string;
+    ruleFormat?: string;
+    cloneFrom?: {
+      includeId: string;
+      version: number;
+    };
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      includeName: z.string(),
+      includeType: z.string(),
+      contractId: z.string(),
+      groupId: z.string(),
+      productId: z.string().optional(),
+      ruleFormat: z.string().optional(),
+      cloneFrom: z.object({
+        includeId: z.string(),
+        version: z.number()
+      }).optional(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'create-include',
+      params,
+      async (client) => {
+        const body: any = {
+          includeName: params.includeName,
+          includeType: params.includeType
+        };
+
+        if (params.productId) body.productId = params.productId;
+        if (params.ruleFormat) body.ruleFormat = params.ruleFormat;
+        if (params.cloneFrom) body.cloneFrom = params.cloneFrom;
+
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: '/papi/v1/includes',
+            method: 'POST',
+            body,
+            queryParams: {
+              contractId: params.contractId,
+              groupId: params.groupId
+            },
+            schema: z.object({
+              includeLink: z.string(),
+              includeId: z.string()
+            })
+          }
+        );
+
+        return {
+          includeId: response.includeId,
+          includeName: params.includeName,
+          includeLink: response.includeLink,
+          message: `✅ Created include ${params.includeName}`
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Update include
+   */
+  async updateInclude(args: {
+    includeId: string;
+    version: number;
+    rules: any;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      includeId: z.string(),
+      version: z.number(),
+      rules: z.any(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'update-include',
+      params,
+      async (client) => {
+        // Get include details for contract/group
+        /*
+        const _includeResponse = await this.getInclude({ // Unused
+          includeId: params.includeId,
+          contractId: 'dummy', // We'll get this from the include
+          groupId: 'dummy',
+          customer: params.customer
+        });
+        */
+
+        // const _include = includeResponse.content[0] as any; // Unused
+
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/includes/${params.includeId}/versions/${params.version}/rules`,
+            method: 'PUT',
+            body: {
+              rules: params.rules
+            },
+            schema: z.object({
+              etag: z.string(),
+              rules: z.any()
+            })
+          }
+        );
+
+        return {
+          includeId: params.includeId,
+          version: params.version,
+          etag: response.etag,
+          message: `✅ Updated include ${params.includeId} version ${params.version}`
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Create include version
+   */
+  async createIncludeVersion(args: {
+    includeId: string;
+    createFromVersion?: number;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      includeId: z.string(),
+      createFromVersion: z.number().optional(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'create-include-version',
+      params,
+      async (client) => {
+        const body: any = {};
+        if (params.createFromVersion) {
+          body.createFromVersion = params.createFromVersion;
+        }
+
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/includes/${params.includeId}/versions`,
+            method: 'POST',
+            body,
+            schema: z.object({
+              versionLink: z.string(),
+              version: z.number()
+            })
+          }
+        );
+
+        return {
+          includeId: params.includeId,
+          newVersion: response.version,
+          versionLink: response.versionLink,
+          message: `✅ Created new version ${response.version} for include ${params.includeId}`
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Activate include
+   */
+  async activateInclude(args: {
+    includeId: string;
+    version: number;
+    network: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      includeId: z.string(),
+      version: z.number(),
+      network: z.enum(['staging', 'production']),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'activate-include',
+      params,
+      async (client) => {
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/includes/${params.includeId}/activations`,
+            method: 'POST',
+            body: {
+              includeVersion: params.version,
+              network: params.network.toUpperCase()
+            },
+            schema: z.object({
+              activationLink: z.string(),
+              activationId: z.string()
+            })
+          }
+        );
+
+        return {
+          includeId: params.includeId,
+          version: params.version,
+          network: params.network,
+          activationId: response.activationId,
+          activationLink: response.activationLink,
+          message: `✅ Started activation of include ${params.includeId} v${params.version} to ${params.network}`
+        };
+      },
+      {
+        customer: params.customer
+      }
+    );
+  }
+
+  /**
+   * Get include activation status
+   */
+  async getIncludeActivationStatus(args: {
+    includeId: string;
+    activationId: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      includeId: z.string(),
+      activationId: z.string(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'get-include-activation-status',
+      params,
+      async (client) => {
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/includes/${params.includeId}/activations/${params.activationId}`,
+            method: 'GET',
+            schema: z.object({
+              activations: z.object({
+                items: z.array(z.object({
+                  activationId: z.string(),
+                  includeId: z.string(),
+                  includeVersion: z.number(),
+                  network: z.string(),
+                  status: z.string(),
+                  submitDate: z.string(),
+                  updateDate: z.string()
+                }))
+              })
+            })
+          }
+        );
+
+        const activation = response.activations.items[0];
+        if (!activation) {
+          throw new Error(`Activation ${params.activationId} not found`);
+        }
+
+        return activation;
+      },
+      {
+        customer: params.customer,
+        cacheKey: (p) => `include:${p.includeId}:activation:${p.activationId}`,
+        cacheTtl: 30
+      }
+    );
+  }
+
+  /**
+   * List include activations
+   */
+  async listIncludeActivations(args: {
+    includeId: string;
+    customer?: string;
+  }): Promise<MCPToolResponse> {
+    const params = z.object({
+      includeId: z.string(),
+      customer: z.string().optional()
+    }).parse(args);
+
+    return this.executeStandardOperation(
+      'list-include-activations',
+      params,
+      async (client) => {
+        const response = await this.makeTypedRequest(
+          client,
+          {
+            path: `/papi/v1/includes/${params.includeId}/activations`,
+            method: 'GET',
+            schema: z.object({
+              activations: z.object({
+                items: z.array(z.object({
+                  activationId: z.string(),
+                  includeId: z.string(),
+                  includeVersion: z.number(),
+                  network: z.string(),
+                  status: z.string(),
+                  submitDate: z.string(),
+                  updateDate: z.string()
+                }))
+              })
+            })
+          }
+        );
+
+        return {
+          activations: response.activations.items,
+          totalCount: response.activations.items.length
+        };
+      },
+      {
+        customer: params.customer,
+        cacheKey: (p) => `include:${p.includeId}:activations`,
+        cacheTtl: 60
       }
     );
   }

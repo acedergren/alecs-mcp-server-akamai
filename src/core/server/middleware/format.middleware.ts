@@ -87,11 +87,11 @@ export class FormatMiddleware {
           Math.max(h.length, ...data.map(row => String(row[h] || '').length))
         );
         
-        let text = headers.map((h, i) => h.padEnd(maxLengths[i])).join(' | ') + '\n';
+        let text = headers.map((h, i) => h.padEnd(maxLengths[i]!)).join(' | ') + '\n';
         text += maxLengths.map(len => '-'.repeat(len)).join('-+-') + '\n';
         
         data.forEach(row => {
-          text += headers.map((h, i) => String(row[h] || '').padEnd(maxLengths[i])).join(' | ') + '\n';
+          text += headers.map((h, i) => String(row[h] || '').padEnd(maxLengths[i]!)).join(' | ') + '\n';
         });
         
         return text;

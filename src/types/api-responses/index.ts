@@ -30,14 +30,14 @@ export * from './security';
  * Type guard to check if a response is an error
  */
 export function isAkamaiError(response: unknown): response is import('./common').AkamaiErrorResponse {
-  return response && typeof response === 'object' && 'title' in response && 'status' in response;
+  return Boolean(response && typeof response === 'object' && 'title' in response && 'status' in response);
 }
 
 /**
  * Type guard to check if a response has items array
  */
 export function hasItemsArray<T>(response: unknown): response is { items: T[] } {
-  return response && typeof response === 'object' && Array.isArray(response.items);
+  return Boolean(response && typeof response === 'object' && Array.isArray((response as any).items));
 }
 
 /**

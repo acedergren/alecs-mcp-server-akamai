@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { ZoneType, RecordType } from './types';
+import { ZoneType, /* RecordType */ } from './types';
 
 /**
  * Zone operation schemas

@@ -61,7 +61,7 @@ export class CacheFactory {
     return this.createSmartCache(options.smartCacheOptions);
   }
 
-  private static createSmartCache(options?: unknown): ICache {
+  private static createSmartCache(options?: any): ICache {
     const smartCache = new SmartCache({
       maxSize: options?.maxSize || parseInt(process.env['CACHE_MAX_SIZE'] || '10000'),
       maxMemoryMB: options?.maxMemoryMB || parseInt(process.env['CACHE_MAX_MEMORY_MB'] || '100'),
@@ -83,7 +83,7 @@ export class CacheFactory {
       smartCache.on('evict', (key) => logger.debug(`[SmartCache] Evicted: ${key}`));
     }
 
-    return smartCache;
+    return smartCache as unknown as ICache;
   }
 
 }

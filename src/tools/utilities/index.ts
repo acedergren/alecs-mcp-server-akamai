@@ -14,52 +14,12 @@ import { type MCPToolResponse } from '../../types';
  * Utility tool definitions for ALECSCore registration
  */
 export const utilityTools = {
-  // FastPurge operations
-  'fastpurge.url': {
-    description: 'Invalidate content by URL',
-    inputSchema: z.object({
-      urls: z.array(z.string()),
-      network: z.enum(['staging', 'production']).optional(),
-      customer: z.string().optional()
-    }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
-      consolidatedUtilityTools.fastPurgeByURL(args)
-  },
+  // FastPurge operations are handled by fastpurge module
 
-  'fastpurge.cpcode': {
-    description: 'Invalidate content by CP code',
-    inputSchema: z.object({
-      cpcodes: z.array(z.string()),
-      network: z.enum(['staging', 'production']).optional(),
-      customer: z.string().optional()
-    }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
-      consolidatedUtilityTools.fastPurgeByCPCode(args)
-  },
-
-  'fastpurge.tag': {
-    description: 'Invalidate content by cache tag',
-    inputSchema: z.object({
-      tags: z.array(z.string()),
-      network: z.enum(['staging', 'production']).optional(),
-      customer: z.string().optional()
-    }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
-      consolidatedUtilityTools.fastPurgeByTag(args)
-  },
-
-  'fastpurge.status': {
-    description: 'Check FastPurge operation status',
-    inputSchema: z.object({
-      purgeId: z.string(),
-      customer: z.string().optional()
-    }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
-      consolidatedUtilityTools.fastPurgeStatus(args)
-  },
+  // fastpurge.status removed - handled by fastpurge module
 
   // CP Code operations
-  'cpcode.list': {
+  'cpcode_list': {
     description: 'List CP codes',
     inputSchema: z.object({
       contractId: z.string().optional(),
@@ -70,7 +30,7 @@ export const utilityTools = {
       consolidatedUtilityTools.listCPCodes(args)
   },
 
-  'cpcode.create': {
+  'cpcode_create': {
     description: 'Create a new CP code',
     inputSchema: z.object({
       cpcodeName: z.string(),
@@ -84,7 +44,7 @@ export const utilityTools = {
   },
 
   // Include operations
-  'include.list': {
+  'include_list': {
     description: 'List property includes',
     inputSchema: z.object({
       contractId: z.string().optional(),
@@ -95,7 +55,7 @@ export const utilityTools = {
       consolidatedUtilityTools.listIncludes(args)
   },
 
-  'include.create': {
+  'include_create': {
     description: 'Create a new include',
     inputSchema: z.object({
       includeName: z.string(),
@@ -109,21 +69,7 @@ export const utilityTools = {
       consolidatedUtilityTools.createInclude(args)
   },
 
-  // Reporting operations
-  'reporting.traffic': {
-    description: 'Get traffic report',
-    inputSchema: z.object({
-      propertyId: z.string(),
-      startDate: z.string(),
-      endDate: z.string(),
-      granularity: z.enum(['FIVE_MINUTES', 'HOUR', 'DAY', 'WEEK', 'MONTH']).optional(),
-      metrics: z.array(z.string()).optional(),
-      groupBy: z.enum(['cpcode', 'hostname', 'geo', 'protocol']).optional(),
-      customer: z.string().optional()
-    }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
-      consolidatedUtilityTools.getTrafficReport(args)
-  }
+  // Reporting operations are handled by reporting module
 };
 
 /**

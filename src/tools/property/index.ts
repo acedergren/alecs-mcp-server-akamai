@@ -15,7 +15,7 @@ import { type MCPToolResponse } from '../../types';
  */
 export const propertyTools = {
   // List operations
-  'property.list': {
+  'property_list': {
     description: 'List all properties with optional filtering',
     inputSchema: z.object({
       limit: z.number().optional(),
@@ -30,7 +30,7 @@ export const propertyTools = {
   },
 
   // Get operations
-  'property.get': {
+  'property_get': {
     description: 'Get property details',
     inputSchema: z.object({
       propertyId: z.string(),
@@ -41,7 +41,7 @@ export const propertyTools = {
       consolidatedPropertyTools.getProperty(args)
   },
 
-  'property.rules.get': {
+  'property_rules_get': {
     description: 'Get property rules configuration',
     inputSchema: z.object({
       propertyId: z.string(),
@@ -54,7 +54,7 @@ export const propertyTools = {
   },
 
   // Create operations
-  'property.create': {
+  'property_create': {
     description: 'Create a new property',
     inputSchema: z.object({
       propertyName: z.string(),
@@ -68,7 +68,7 @@ export const propertyTools = {
       consolidatedPropertyTools.createProperty(args)
   },
 
-  'property.clone': {
+  'property_clone': {
     description: 'Clone an existing property',
     inputSchema: z.object({
       sourcePropertyId: z.string(),
@@ -83,7 +83,7 @@ export const propertyTools = {
       consolidatedPropertyTools.cloneProperty(args)
   },
 
-  'property.version.create': {
+  'property_version_create': {
     description: 'Create a new property version',
     inputSchema: z.object({
       propertyId: z.string(),
@@ -95,7 +95,7 @@ export const propertyTools = {
   },
 
   // Update operations
-  'property.rules.update': {
+  'property_rules_update': {
     description: 'Update property rules',
     inputSchema: z.object({
       propertyId: z.string(),
@@ -109,7 +109,7 @@ export const propertyTools = {
   },
 
   // Activation operations
-  'property.activate': {
+  'property_activate': {
     description: 'Activate property to staging or production',
     inputSchema: z.object({
       propertyId: z.string(),
@@ -127,7 +127,7 @@ export const propertyTools = {
       consolidatedPropertyTools.activateProperty(args)
   },
 
-  'property.activation.status': {
+  'property_activation_status': {
     description: 'Get property activation status',
     inputSchema: z.object({
       propertyId: z.string(),

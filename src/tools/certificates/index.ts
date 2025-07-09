@@ -15,7 +15,7 @@ import { type MCPToolResponse } from '../../types';
  */
 export const certificateTools = {
   // Enrollment operations
-  'certificate.dv.create': {
+  'certificate_dv_create': {
     description: 'Create a Domain Validated (DV) certificate enrollment',
     inputSchema: z.object({
       cn: z.string(),
@@ -53,7 +53,7 @@ export const certificateTools = {
       consolidatedCertificateTools.createDVEnrollment(args)
   },
 
-  'certificate.status': {
+  'certificate_status': {
     description: 'Check certificate enrollment status',
     inputSchema: z.object({
       enrollmentId: z.number(),
@@ -63,7 +63,7 @@ export const certificateTools = {
       consolidatedCertificateTools.checkDVEnrollmentStatus(args)
   },
 
-  'certificate.list': {
+  'certificate_list': {
     description: 'List all certificate enrollments',
     inputSchema: z.object({
       contractId: z.string().optional(),
@@ -75,7 +75,7 @@ export const certificateTools = {
   },
 
   // Validation operations
-  'certificate.validation.get': {
+  'certificate_validation_get': {
     description: 'Get domain validation challenges',
     inputSchema: z.object({
       enrollmentId: z.number(),
@@ -86,7 +86,7 @@ export const certificateTools = {
   },
 
   // Integration operations
-  'certificate.property.link': {
+  'certificate_property_link': {
     description: 'Link certificate to property',
     inputSchema: z.object({
       enrollmentId: z.number(),
@@ -99,7 +99,7 @@ export const certificateTools = {
   },
 
   // Deployment operations
-  'certificate.deployment.monitor': {
+  'certificate_deployment_monitor': {
     description: 'Monitor certificate deployment progress',
     inputSchema: z.object({
       enrollmentId: z.number(),
@@ -111,7 +111,7 @@ export const certificateTools = {
       consolidatedCertificateTools.monitorCertificateDeployment(args)
   },
 
-  'certificate.deployment.status': {
+  'certificate_deployment_status': {
     description: 'Get certificate deployment status',
     inputSchema: z.object({
       enrollmentId: z.number(),

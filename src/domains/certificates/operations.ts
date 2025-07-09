@@ -8,19 +8,18 @@
 import type { AkamaiClient } from '../../akamai-client';
 import { 
   performanceOptimized, 
-  PerformanceProfiles,
-  CacheInvalidation 
+  PerformanceProfiles
 } from '../../core/performance';
 import { validateCustomer } from '../../core/validation/customer';
 import { handleApiError } from '../../core/errors';
-import { normalizeId } from '../../core/validation/akamai-ids';
+// import { normalizeId } from '../../core/validation/akamai-ids'; // Available for future use
 
 import {
   // Types
   CertificateType,
   ValidationType,
-  NetworkType,
-  Geography,
+  // NetworkType, // Available for future use
+  // Geography, // Available for future use
   EnrollmentStatus,
   EnrollmentDetails,
   CertificateDeployment,
@@ -30,8 +29,8 @@ import {
   PropertyHostname,
   PropertyCertificateLink,
   CertificateHealth,
-  CertificateMetadata,
-  CertificateStatistics,
+  // CertificateMetadata, // Available for future use
+  // CertificateStatistics, // Available for future use
   CertificateError,
   DomainValidationChallenge,
   ValidationChallengesResponse,
@@ -48,10 +47,10 @@ import {
   CPSEnrollmentStatusResponse,
   CPSEnrollmentsListResponse,
   CPSCSRResponse,
-  Contact,
-  NetworkConfiguration,
+  // Contact, // Available for future use
+  // NetworkConfiguration, // Available for future use
   // Error types
-  CPSValidationError,
+  // CPSValidationError, // Available for future use
 } from './types';
 
 import {
@@ -72,9 +71,9 @@ import {
   RenewCertificateSchema,
   CleanupValidationRecordsSchema,
   GetCertificateHealthSchema,
-  SecureByDefaultSetupSchema,
+  // SecureByDefaultSetupSchema, // Available for future use
   QuickSecureSetupSchema,
-  GetCertificateStatsSchema,
+  // GetCertificateStatsSchema, // Available for future use
   // Validators
   validators,
 } from './schemas';
@@ -88,7 +87,7 @@ import {
  */
 export const createEnrollment = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: CreateEnrollmentParams
   ): Promise<CPSEnrollmentCreateResponse> => {
     // Validate parameters
@@ -130,7 +129,7 @@ export const createEnrollment = performanceOptimized(
         signatureAlgorithm: validated.signatureAlgorithm,
       };
 
-      const response = await client.request({
+      const _response = await _client.request({
         path: '/cps/v2/enrollments',
         method: 'POST',
         headers: {
@@ -140,7 +139,7 @@ export const createEnrollment = performanceOptimized(
         body: enrollmentData,
       });
 
-      return response as CPSEnrollmentCreateResponse;
+      return _response as CPSEnrollmentCreateResponse;
     } catch (error) {
       throw handleApiError(error, 'Failed to create certificate enrollment');
     }
@@ -154,7 +153,7 @@ export const createEnrollment = performanceOptimized(
  */
 export const listEnrollments = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: ListEnrollmentsParams = {}
   ): Promise<CPSEnrollmentsListResponse> => {
     // Validate parameters
@@ -165,29 +164,29 @@ export const listEnrollments = performanceOptimized(
       const queryParams: Record<string, string> = {};
       
       if (validated.contractId) {
-        queryParams.contractId = validated.contractId;
+        queryParams['contractId'] = validated.contractId;
       }
       if (validated.status) {
-        queryParams.status = validated.status;
+        queryParams['status'] = validated.status;
       }
       if (validated.certificateType) {
-        queryParams.certificateType = validated.certificateType;
+        queryParams['certificateType'] = validated.certificateType;
       }
       if (validated.validationType) {
-        queryParams.validationType = validated.validationType;
+        queryParams['validationType'] = validated.validationType;
       }
       if (validated.search) {
-        queryParams.search = validated.search;
+        queryParams['search'] = validated.search;
       }
 
-      const response = await client.request({
+      const _response = await _client.request({
         path: '/cps/v2/enrollments',
         method: 'GET',
         headers: { Accept: 'application/json' },
         queryParams,
       });
 
-      return response as CPSEnrollmentsListResponse;
+      return _response as CPSEnrollmentsListResponse;
     } catch (error) {
       throw handleApiError(error, 'Failed to list certificate enrollments');
     }
@@ -201,7 +200,7 @@ export const listEnrollments = performanceOptimized(
  */
 export const getEnrollment = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: { enrollmentId: number; customer?: string }
   ): Promise<CPSEnrollmentStatusResponse> => {
     // Validate parameters
@@ -209,13 +208,13 @@ export const getEnrollment = performanceOptimized(
     validateCustomer(validated.customer);
     
     try {
-      const response = await client.request({
+      const _response = await _client.request({
         path: `/cps/v2/enrollments/${validated.enrollmentId}`,
         method: 'GET',
         headers: { Accept: 'application/json' },
       });
 
-      return response as CPSEnrollmentStatusResponse;
+      return _response as CPSEnrollmentStatusResponse;
     } catch (error) {
       if (error && typeof error === 'object' && 'status' in error && error.status === 404) {
         throw CertificateError.enrollmentNotFound(validated.enrollmentId);
@@ -232,7 +231,7 @@ export const getEnrollment = performanceOptimized(
  */
 export const updateEnrollment = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: UpdateEnrollmentParams
   ): Promise<CPSEnrollmentStatusResponse> => {
     // Validate parameters
@@ -243,31 +242,31 @@ export const updateEnrollment = performanceOptimized(
       const updateData: Record<string, unknown> = {};
       
       if (validated.commonName) {
-        updateData.csr = { cn: validated.commonName };
+        updateData['csr'] = { cn: validated.commonName };
       }
       if (validated.sans) {
-        updateData.csr = { ...updateData.csr as object, sans: validated.sans };
+        updateData['csr'] = { ...updateData['csr'] as object, sans: validated.sans };
       }
       if (validated.adminContact) {
-        updateData.adminContact = validated.adminContact;
+        updateData['adminContact'] = validated.adminContact;
       }
       if (validated.techContact) {
-        updateData.techContact = validated.techContact;
+        updateData['techContact'] = validated.techContact;
       }
       if (validated.org) {
-        updateData.org = validated.org;
+        updateData['org'] = validated.org;
       }
       if (validated.networkConfiguration) {
-        updateData.networkConfiguration = validated.networkConfiguration;
+        updateData['networkConfiguration'] = validated.networkConfiguration;
       }
       if (validated.changeManagement !== undefined) {
-        updateData.changeManagement = validated.changeManagement;
+        updateData['changeManagement'] = validated.changeManagement;
       }
       if (validated.autoRenewalStartTime) {
-        updateData.autoRenewalStartTime = validated.autoRenewalStartTime;
+        updateData['autoRenewalStartTime'] = validated.autoRenewalStartTime;
       }
 
-      const response = await client.request({
+      const _response = await _client.request({
         path: `/cps/v2/enrollments/${validated.enrollmentId}`,
         method: 'PUT',
         headers: {
@@ -277,7 +276,7 @@ export const updateEnrollment = performanceOptimized(
         body: updateData,
       });
 
-      return response as CPSEnrollmentStatusResponse;
+      return _response as CPSEnrollmentStatusResponse;
     } catch (error) {
       throw handleApiError(error, `Failed to update enrollment ${validated.enrollmentId}`);
     }
@@ -291,7 +290,7 @@ export const updateEnrollment = performanceOptimized(
  */
 export const deleteEnrollment = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: { enrollmentId: number; force?: boolean; customer?: string }
   ): Promise<{ success: boolean; message: string }> => {
     // Validate parameters
@@ -299,7 +298,7 @@ export const deleteEnrollment = performanceOptimized(
     validateCustomer(validated.customer);
     
     try {
-      await client.request({
+      await _client.request({
         path: `/cps/v2/enrollments/${validated.enrollmentId}`,
         method: 'DELETE',
         headers: { Accept: 'application/json' },
@@ -329,7 +328,7 @@ export const deleteEnrollment = performanceOptimized(
  */
 export const getValidationChallenges = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: GetValidationChallengesParams
   ): Promise<ValidationChallengesResponse> => {
     // Validate parameters
@@ -337,13 +336,13 @@ export const getValidationChallenges = performanceOptimized(
     validateCustomer(validated.customer);
     
     try {
-      const response = await client.request({
+      const _response = await _client.request({
         path: `/cps/v2/enrollments/${validated.enrollmentId}/dv-challenges`,
         method: 'GET',
         headers: { Accept: 'application/json' },
       });
 
-      const enrollmentData = response as CPSEnrollmentStatusResponse;
+      const enrollmentData = _response as CPSEnrollmentStatusResponse;
       const challenges: DomainValidationChallenge[] = [];
       const dnsInstructions: Array<{
         domain: string;
@@ -411,7 +410,7 @@ export const getValidationChallenges = performanceOptimized(
  */
 export const validateEnrollment = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: { enrollmentId: number; customer?: string }
   ): Promise<CertificateValidation> => {
     // Validate parameters
@@ -420,11 +419,11 @@ export const validateEnrollment = performanceOptimized(
     
     try {
       // Trigger validation by getting current status
-      const enrollment = await getEnrollment(client, { 
+      const enrollment = await getEnrollment(_client, { 
         enrollmentId: validated.enrollmentId, 
         customer: validated.customer 
       });
-      const challenges = await getValidationChallenges(client, { 
+      const challenges = await getValidationChallenges(_client, { 
         enrollmentId: validated.enrollmentId, 
         customer: validated.customer 
       });
@@ -461,7 +460,7 @@ export const validateEnrollment = performanceOptimized(
  */
 export const deployCertificate = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: DeployCertificateParams
   ): Promise<CertificateDeployment> => {
     // Validate parameters
@@ -474,16 +473,16 @@ export const deployCertificate = performanceOptimized(
       };
       
       if (validated.allowedNetworks) {
-        deploymentData.allowedNetworks = validated.allowedNetworks;
+        deploymentData['allowedNetworks'] = validated.allowedNetworks;
       }
       if (validated.notBefore) {
-        deploymentData.notBefore = validated.notBefore;
+        deploymentData['notBefore'] = validated.notBefore;
       }
       if (validated.notAfter) {
-        deploymentData.notAfter = validated.notAfter;
+        deploymentData['notAfter'] = validated.notAfter;
       }
 
-      const response = await client.request({
+      const _response = await _client.request({
         path: `/cps/v2/enrollments/${validated.enrollmentId}/deployments`,
         method: 'POST',
         headers: {
@@ -497,7 +496,7 @@ export const deployCertificate = performanceOptimized(
         enrollmentId: validated.enrollmentId,
         network: validated.network,
         status: 'pending',
-        deploymentId: (response as any).deploymentId,
+        deploymentId: (_response as any).deploymentId,
       };
     } catch (error) {
       throw CertificateError.deploymentFailed(
@@ -516,7 +515,7 @@ export const deployCertificate = performanceOptimized(
  */
 export const getDeploymentStatus = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: { enrollmentId: number; network?: 'staging' | 'production'; customer?: string }
   ): Promise<DeploymentStatusResponse> => {
     // Validate parameters
@@ -524,7 +523,7 @@ export const getDeploymentStatus = performanceOptimized(
     validateCustomer(validated.customer);
     
     try {
-      const enrollment = await getEnrollment(client, { 
+      const enrollment = await getEnrollment(_client, { 
         enrollmentId: validated.enrollmentId, 
         customer: validated.customer 
       });
@@ -574,7 +573,7 @@ export const getDeploymentStatus = performanceOptimized(
  */
 export const monitorEnrollment = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: { enrollmentId: number; waitForCompletion?: boolean; maxWaitTime?: number; pollInterval?: number; customer?: string }
   ): Promise<EnrollmentDetails> => {
     // Validate parameters
@@ -582,7 +581,7 @@ export const monitorEnrollment = performanceOptimized(
     validateCustomer(validated.customer);
     
     try {
-      const enrollment = await getEnrollment(client, {
+      const enrollment = await getEnrollment(_client, {
         enrollmentId: validated.enrollmentId,
       });
 
@@ -608,7 +607,7 @@ export const monitorEnrollment = performanceOptimized(
         while (Date.now() - startTime < maxWait) {
           await new Promise(resolve => setTimeout(resolve, pollInterval));
           
-          const updatedEnrollment = await getEnrollment(client, {
+          const updatedEnrollment = await getEnrollment(_client, {
             enrollmentId: validated.enrollmentId,
               });
           
@@ -640,7 +639,7 @@ export const monitorEnrollment = performanceOptimized(
  */
 export const linkCertificateToProperty = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: LinkCertificateParams
   ): Promise<PropertyCertificateLink> => {
     // Validate parameters
@@ -649,7 +648,7 @@ export const linkCertificateToProperty = performanceOptimized(
     
     try {
       // Get property hostnames
-      const hostnamesResponse = await client.request({
+      const hostnamesResponse = await _client.request({
         path: `/papi/v1/properties/${validated.propertyId}/versions/${validated.propertyVersion}/hostnames`,
         method: 'GET',
         headers: { Accept: 'application/json' },
@@ -669,7 +668,7 @@ export const linkCertificateToProperty = performanceOptimized(
       });
 
       // Update property hostnames
-      await client.request({
+      await _client.request({
         path: `/papi/v1/properties/${validated.propertyId}/versions/${validated.propertyVersion}/hostnames`,
         method: 'PUT',
         headers: {
@@ -704,7 +703,7 @@ export const linkCertificateToProperty = performanceOptimized(
  */
 export const downloadCSR = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: { enrollmentId: number; customer?: string }
   ): Promise<CPSCSRResponse> => {
     // Validate parameters
@@ -712,13 +711,13 @@ export const downloadCSR = performanceOptimized(
     validateCustomer(validated.customer);
     
     try {
-      const response = await client.request({
+      const _response = await _client.request({
         path: `/cps/v2/enrollments/${validated.enrollmentId}/csr`,
         method: 'GET',
         headers: { Accept: 'application/json' },
       });
 
-      return response as CPSCSRResponse;
+      return _response as CPSCSRResponse;
     } catch (error) {
       if (error && typeof error === 'object' && 'status' in error && error.status === 404) {
         throw CertificateError.enrollmentNotFound(validated.enrollmentId);
@@ -735,7 +734,7 @@ export const downloadCSR = performanceOptimized(
  */
 export const uploadThirdPartyCertificate = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: { enrollmentId: number; certificateChain: string; trustChain?: string; customer?: string }
   ): Promise<ThirdPartyCertificate> => {
     // Validate parameters
@@ -748,7 +747,7 @@ export const uploadThirdPartyCertificate = performanceOptimized(
         trustChain: validated.trustChain,
       };
 
-      const response = await client.request({
+      void await _client.request({
         path: `/cps/v2/enrollments/${validated.enrollmentId}/certificate`,
         method: 'PUT',
         headers: {
@@ -792,7 +791,7 @@ export const uploadThirdPartyCertificate = performanceOptimized(
  */
 export const renewCertificate = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: { enrollmentId: number; addDomains?: string[]; removeDomains?: string[]; autoValidate?: boolean; customer?: string }
   ): Promise<CertificateRenewal> => {
     // Validate parameters
@@ -805,13 +804,13 @@ export const renewCertificate = performanceOptimized(
       };
       
       if (validated.addDomains) {
-        renewalData.addDomains = validated.addDomains;
+        renewalData['addDomains'] = validated.addDomains;
       }
       if (validated.removeDomains) {
-        renewalData.removeDomains = validated.removeDomains;
+        renewalData['removeDomains'] = validated.removeDomains;
       }
 
-      const response = await client.request({
+      void await _client.request({
         path: `/cps/v2/enrollments/${validated.enrollmentId}/renewal`,
         method: 'POST',
         headers: {
@@ -843,7 +842,7 @@ export const renewCertificate = performanceOptimized(
  */
 export const getCertificateHealth = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: { enrollmentId: number; includeValidation?: boolean; customer?: string }
   ): Promise<CertificateHealth> => {
     // Validate parameters
@@ -851,7 +850,7 @@ export const getCertificateHealth = performanceOptimized(
     validateCustomer(validated.customer);
     
     try {
-      const enrollment = await getEnrollment(client, {
+      const enrollment = await getEnrollment(_client, {
         enrollmentId: validated.enrollmentId,
       });
 
@@ -897,7 +896,7 @@ export const getCertificateHealth = performanceOptimized(
  */
 export const cleanupValidationRecords = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: { enrollmentId: number; domains?: string[]; validationType?: 'dns-01' | 'http-01'; customer?: string }
   ): Promise<{ success: boolean; recordsRemoved: number }> => {
     // Validate parameters
@@ -928,7 +927,7 @@ export const cleanupValidationRecords = performanceOptimized(
  */
 export const quickSecurePropertySetup = performanceOptimized(
   async (
-    client: AkamaiClient,
+    _client: AkamaiClient,
     params: { hostnames: string[]; contractId: string; groupId: string; customer?: string }
   ): Promise<{ enrollmentId: number; propertyId: string; status: string }> => {
     // Validate parameters

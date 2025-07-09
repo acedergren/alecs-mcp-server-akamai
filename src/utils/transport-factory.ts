@@ -43,7 +43,8 @@ export async function createTransport(config: TransportConfig): Promise<unknown>
       const wsHost = config.options.host || '0.0.0.0';
       const wsPath = config.options.path || '/mcp';
       
-      const wsTransport = new WebSocketServerTransport({
+      const WSTransport = WebSocketServerTransport as any;
+      const wsTransport = new WSTransport({
         port: wsPort,
         host: wsHost,
         path: wsPath,
@@ -59,7 +60,7 @@ export async function createTransport(config: TransportConfig): Promise<unknown>
       
       await wsTransport.start();
       
-      return wsTransport;
+      return wsTransport as any;
       
     case 'sse':
       await loadOptionalDependencies();
@@ -67,8 +68,10 @@ export async function createTransport(config: TransportConfig): Promise<unknown>
         throw new Error('[ERROR] SSE transport requires express. Install with: npm install express');
       }
       
-      const sseApp = express();
-      const sseTransport = new SSEServerTransport();
+      const expressApp = express as any;
+      const sseApp = expressApp();
+      const SSETransport = SSEServerTransport as any;
+      const sseTransport = new SSETransport();
       const ssePath = config.options.path || '/mcp/sse';
       
       sseApp.use(ssePath, sseTransport.router);
@@ -109,7 +112,7 @@ export async function startServerWithTransport(
   console.error(`[INFO] Starting server with ${config.type} transport...`);
   
   const transport = await createTransport(config);
-  await server.connect(transport);
+  await server.connect(transport as any);
   
   console.error('[DONE] Server started successfully');
 }

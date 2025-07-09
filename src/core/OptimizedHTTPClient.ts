@@ -145,23 +145,23 @@ export class OptimizedHTTPClient extends EventEmitter {
    * Create DNS lookup function with caching
    */
   private createDNSLookup(_hostname: string) {
-    return (hostname: string, _options: unknown, callback: unknown) => {
-      const cacheKey = `${hostname}:${_options.family || 4}`;
+    return (hostname: string, _options: any, callback: (err: any, address: string, family: number) => void) => {
+      const cacheKey = `${hostname}:${_options['family'] || 4}`;
       const cached = this.dnsCache.get(cacheKey);
 
       if (cached && Date.now() - cached.timestamp < cached.ttl) {
         this.emit('dnsCacheHit', { hostname, family: cached.family });
-        return callback(null, cached.addresses[0], cached.family);
+        return callback(null, cached.addresses[0]!, cached.family);
       }
 
       // Use Node.js dns module for lookup
       const dns = require('dns');
-      const lookupFn = _options.family === 6 ? dns.lookup : dns.lookup;
+      const lookupFn = _options['family'] === 6 ? dns.lookup : dns.lookup;
 
-      lookupFn(hostname, _options, (_err: unknown, address: string, family: number) => {
+      lookupFn(hostname, _options, (_err: any, address: string, family: number) => {
         if (_err) {
           this.emit('dnsLookupError', { hostname, _error: _err });
-          return callback(_err);
+          return callback(_err, '', 0);
         }
 
         // Cache the result
@@ -188,15 +188,15 @@ export class OptimizedHTTPClient extends EventEmitter {
     const startTime = performance.now();
     this.metrics.totalRequests++;
 
-    const hostname = options.hostname || options.host;
-    const isHttps = options.protocol === 'https:' || options.port === 443;
+    const hostname = options['hostname'] || options['host'];
+    const isHttps = options['protocol'] === 'https:' || options['port'] === 443;
 
     // Get appropriate agent
-    const agent = isHttps ? this.getHttpsAgent(hostname) : this.getHttpAgent(hostname);
-    options.agent = agent;
+    const agent = isHttps ? this.getHttpsAgent(hostname as string) : this.getHttpAgent(hostname as string);
+    options['agent'] = agent;
 
     // Track HTTP version
-    if (options.agent.protocol === 'h2') {
+    if (options['agent'] && (options['agent'] as any).protocol === 'h2') {
       this.metrics.http2Connections++;
     } else {
       this.metrics.http1Connections++;
@@ -217,16 +217,16 @@ export class OptimizedHTTPClient extends EventEmitter {
           hostname,
           attempt: attempt + 1,
           latency,
-          http2: options.agent.protocol === 'h2',
+          http2: (options['agent'] as any)?.protocol === 'h2',
         });
 
         return {
-          ...result,
+          ...(result as any),
           metrics: {
             latency,
             attempt: attempt + 1,
-            http2: options.agent.protocol === 'h2',
-            connectionReused: result.socket?.reused || false,
+            http2: (options['agent'] as any)?.protocol === 'h2',
+            connectionReused: (result as any).socket?.reused || false,
           },
         };
       } catch (_error) {
@@ -251,26 +251,26 @@ export class OptimizedHTTPClient extends EventEmitter {
    */
   private makeRequest(_options: Record<string, unknown>, data?: Buffer | string): Promise<unknown> {
     return new Promise((resolve, reject) => {
-      const protocol = _options.protocol === 'https:' ? 'https' : 'http';
+      const protocol = _options['protocol'] === 'https:' ? 'https' : 'http';
       const mod = require(protocol);
 
-      const req = mod._request(_options, (_res: unknown) => {
+      const req = mod.request(_options, (_res: any) => {
         const chunks: Buffer[] = [];
 
-        _res.on('data', (chunk: Buffer) => {
+        (_res as any).on('data', (chunk: Buffer) => {
           chunks.push(chunk);
         });
 
-        _res.on('end', () => {
+        (_res as any).on('end', () => {
           const responseData = Buffer.concat(chunks);
           resolve({
             _response: _res,
             data: responseData,
-            socket: _res.socket,
+            socket: (_res as any).socket,
           });
         });
 
-        _res.on('error', reject);
+        (_res as any).on('error', reject);
       });
 
       req.on('error', reject);

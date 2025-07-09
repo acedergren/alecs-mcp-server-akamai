@@ -218,8 +218,8 @@ export function getSecurityHeaders(): Record<string, string> {
  */
 export function createRequestIdentifier(request: unknown): string {
   // Use a combination of IP and user agent for identification
-  const ip = request.ip || request.connection?.remoteAddress || 'unknown';
-  const userAgent = request.headers?.['user-agent'] || 'unknown';
+  const ip = (request as any).ip || (request as any).connection?.remoteAddress || 'unknown';
+  const userAgent = (request as any).headers?.['user-agent'] || 'unknown';
   
   return createHash('sha256')
     .update(`${ip}:${userAgent}`)

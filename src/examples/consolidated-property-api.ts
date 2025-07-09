@@ -8,7 +8,7 @@
 import { z } from 'zod';
 import { RequestCoalescer, KeyNormalizers } from '../utils/request-coalescer';
 import { SmartCache } from '../utils/smart-cache';
-import { MCPCompatibilityWrapper } from '../utils/mcp-compatibility-wrapper';
+// import { MCPCompatibilityWrapper } from '../utils/mcp-compatibility-wrapper'; // Will be used in production
 import { AkamaiClient } from '../akamai-client';
 
 // Initialize performance utilities
@@ -68,10 +68,12 @@ class PropertyOperations {
       'property.list',
       async () => {
         // Actual API call
-        const response = await client.request('/papi/v1/properties', {
-          params: {
-            contractId: validated.contractId,
-            groupId: validated.groupId,
+        const response = await client.request({
+          path: '/papi/v1/properties',
+          method: 'GET',
+          queryParams: {
+            ...(validated.contractId && { contractId: validated.contractId }),
+            ...(validated.groupId && { groupId: validated.groupId }),
           },
         });
         
@@ -91,13 +93,13 @@ class PropertyOperations {
   /**
    * Get single property with smart caching
    */
-  async get(client: AkamaiClient, propertyId: string) {
+  async get(client: AkamaiClient, propertyId: string, customer: string = 'default') {
     // Validate property ID format
     if (!propertyId.startsWith('prp_')) {
       propertyId = `prp_${propertyId}`;
     }
     
-    const cacheKey = `${client.customer}:property:${propertyId}`;
+    const cacheKey = `${customer}:property:${propertyId}`;
     
     // Use cache with automatic refresh
     return await cache.getWithRefresh(
@@ -107,10 +109,13 @@ class PropertyOperations {
         return await coalescer.coalesce(
           'property.get',
           async () => {
-            const response = await client.request(`/papi/v1/properties/${propertyId}`);
+            const response = await client.request({
+              path: `/papi/v1/properties/${propertyId}`,
+              method: 'GET',
+            });
             return this.transformProperty(response);
           },
-          { propertyId, customer: client.customer },
+          { propertyId, customer: customer },
           KeyNormalizers.property
         );
       }
@@ -124,7 +129,8 @@ class PropertyOperations {
     const validated = CreatePropertyParams.parse(params);
     
     // No caching for write operations
-    const response = await client.request('/papi/v1/properties', {
+    const response = await client.request({
+      path: '/papi/v1/properties',
       method: 'POST',
       body: {
         propertyName: validated.propertyName,
@@ -136,7 +142,7 @@ class PropertyOperations {
     });
     
     // Invalidate related caches
-    await cache.invalidatePattern(`${validated.customer}:properties:list:*`);
+    await cache.scanAndDelete(`${validated.customer}:properties:list:*`);
     
     return this.transformProperty(response);
   }
@@ -173,9 +179,8 @@ class PropertyOperations {
  */
 class VersionOperations {
   async create(client: AkamaiClient, propertyId: string, createFromVersion?: number) {
-    const response = await client.request(
-      `/papi/v1/properties/${propertyId}/versions`,
-      {
+    const response = await client.request({
+      path: `/papi/v1/properties/${propertyId}/versions`,
         method: 'POST',
         body: {
           createFromVersion,
@@ -185,22 +190,23 @@ class VersionOperations {
     );
     
     // Invalidate property cache
-    await cache.invalidate(`${client.customer}:property:${propertyId}`);
+    await cache.del(`default:property:${propertyId}`);
     
     return response;
   }
   
   async list(client: AkamaiClient, propertyId: string) {
-    const cacheKey = `${client.customer}:versions:${propertyId}`;
+    const cacheKey = `default:versions:${propertyId}`;
     
     return await cache.getWithRefresh(cacheKey, 300, async () => {
       return await coalescer.coalesce(
         'property.versions.list',
         async () => {
-          const response = await client.request(
-            `/papi/v1/properties/${propertyId}/versions`
-          );
-          return response.versions?.items || [];
+          const response = await client.request({
+            path: `/papi/v1/properties/${propertyId}/versions`,
+            method: 'GET',
+          });
+          return (response as any).versions?.items || [];
         },
         { propertyId },
         KeyNormalizers.property
@@ -208,7 +214,7 @@ class VersionOperations {
     });
   }
   
-  private async getVersionEtag(client: AkamaiClient, propertyId: string, version?: number) {
+  private async getVersionEtag(_client: AkamaiClient, _propertyId: string, _version?: number) {
     // Implementation details...
     return 'etag-placeholder';
   }
@@ -224,9 +230,8 @@ class ActivationOperations {
     version: number,
     network: 'staging' | 'production'
   ) {
-    const response = await client.request(
-      `/papi/v1/properties/${propertyId}/activations`,
-      {
+    const response = await client.request({
+      path: `/papi/v1/properties/${propertyId}/activations`,
         method: 'POST',
         body: {
           propertyVersion: version,
@@ -238,18 +243,19 @@ class ActivationOperations {
     );
     
     // Start polling for status
-    return this.pollActivationStatus(client, propertyId, response.activationId);
+    return this.pollActivationStatus(client, propertyId, (response as any).activationId);
   }
   
-  async status(client: AkamaiClient, propertyId: string, activationId: string) {
-    const cacheKey = `${client.customer}:activation:${propertyId}:${activationId}`;
+  async status(client: AkamaiClient, propertyId: string, activationId: string, customer: string = 'default') {
+    const cacheKey = `${customer}:activation:${propertyId}:${activationId}`;
     
     // Short cache for status checks
     return await cache.getWithRefresh(cacheKey, 5, async () => {
-      const response = await client.request(
-        `/papi/v1/properties/${propertyId}/activations/${activationId}`
-      );
-      return response.activations?.items?.[0];
+      const response = await client.request({
+        path: `/papi/v1/properties/${propertyId}/activations/${activationId}`,
+        method: 'GET',
+      });
+      return (response as any).activations?.items?.[0];
     });
   }
   
@@ -288,7 +294,7 @@ class ActivationOperations {
 export const property = {
   // Core operations
   list: (client: AkamaiClient, params: any) => new PropertyOperations().list(client, params),
-  get: (client: AkamaiClient, propertyId: string) => new PropertyOperations().get(client, propertyId),
+  get: (client: AkamaiClient, propertyId: string, customer?: string) => new PropertyOperations().get(client, propertyId, customer),
   create: (client: AkamaiClient, params: any) => new PropertyOperations().create(client, params),
   
   // Version management
@@ -303,8 +309,8 @@ export const property = {
   activation: {
     create: (client: AkamaiClient, propertyId: string, version: number, network: 'staging' | 'production') =>
       new ActivationOperations().create(client, propertyId, version, network),
-    status: (client: AkamaiClient, propertyId: string, activationId: string) =>
-      new ActivationOperations().status(client, propertyId, activationId),
+    status: (client: AkamaiClient, propertyId: string, activationId: string, customer?: string) =>
+      new ActivationOperations().status(client, propertyId, activationId, customer),
   },
 };
 
@@ -317,7 +323,7 @@ export const listProperties = deprecate(
 );
 
 export const getProperty = deprecate(
-  (client: AkamaiClient, propertyId: string) => property.get(client, propertyId),
+  (client: AkamaiClient, propertyId: string, customer?: string) => property.get(client, propertyId, customer),
   'getProperty is deprecated. Use property.get instead.'
 );
 

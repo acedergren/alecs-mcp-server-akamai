@@ -6,11 +6,7 @@
 import { SmartCache } from './smart-cache';
 
 
-// Cache type definitions
-type CacheKey = string;
-type CacheValue = unknown;
-type CacheOptions = { ttl?: number; customer?: string; tags?: string[] };
-type CacheEntry = { value: CacheValue; expires: number; tags?: string[] };
+// Cache type definitions - removed unused types
 
 /**
  * Cache wrapper that enforces customer-scoped cache keys
@@ -49,7 +45,7 @@ export class CustomerAwareCache<T = unknown> {
    * Set value in cache with customer isolation
    */
   async set<V = T>(key: string, value: V, ttl?: number): Promise<boolean> {
-    return this.cache.set(this.getCacheKey(key), value, ttl);
+    return this.cache.set(this.getCacheKey(key), value as unknown as T, ttl);
   }
   
   /**
@@ -149,7 +145,7 @@ export class CustomerCacheFactory {
     if (!this.customerCaches.has(customer)) {
       this.customerCaches.set(
         customer,
-        new CustomerAwareCache<T>(this.baseCache, customer)
+        new CustomerAwareCache<T>(this.baseCache as SmartCache<T>, customer)
       );
     }
     

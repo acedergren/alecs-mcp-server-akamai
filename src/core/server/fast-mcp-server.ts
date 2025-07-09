@@ -19,7 +19,6 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
-  Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { AkamaiClient } from '../../akamai-client';
@@ -100,7 +99,7 @@ export class FastMCPServer {
     this.cache = new SmartCache({ maxSize: 1000, defaultTtl: 300 });
     this.coalescer = new RequestCoalescer();
     this.pool = new ConnectionPool({ maxSockets: 10 });
-    this.client = new AkamaiClient({ pool: this.pool });
+    this.client = new AkamaiClient();
     
     // Setup handlers
     this.setupHandlers();
@@ -128,7 +127,7 @@ export class FastMCPServer {
       // Create context
       const context: ToolContext = {
         client: this.client,
-        customer: args?.customer,
+        customer: args?.['customer'] as string | undefined,
         cache: this.cache,
         pool: this.pool,
       };
@@ -262,7 +261,7 @@ export class FastMCPServer {
 
 // Example usage showing simplicity
 export class ExampleServer extends FastMCPServer {
-  tools = [
+  override tools = [
     // Simple function
     tool('hello', async ({ name }: { name: string }) => `Hello, ${name}!`),
     
@@ -275,7 +274,7 @@ export class ExampleServer extends FastMCPServer {
     // With caching
     tool('expensive',
       z.object({ id: z.string() }),
-      async ({ id }, { client }) => client.get(`/api/data/${id}`),
+      async ({ id }, { client }) => client.request({ path: `/api/data/${id}`, method: 'GET' }),
       { cache: { ttl: 300 } }
     ),
   ];

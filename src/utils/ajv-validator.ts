@@ -84,9 +84,9 @@ import addFormats from 'ajv-formats';
 
 
 // Validation type definitions
-type ValidatorFunction = (data: unknown) => boolean;
-type ValidationError = { path: string; message: string; code?: string };
-type SchemaValidator = { validate: ValidatorFunction; errors?: ValidationError[] };
+// type ValidatorFunction = (data: unknown) => boolean; // Unused
+// type ValidationError = { path: string; message: string; code?: string }; // Unused
+// type SchemaValidator = { validate: ValidatorFunction; errors?: ValidationError[] }; // Unused type
 
 // Create and configure Ajv instance
 const ajv = new Ajv({

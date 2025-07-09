@@ -433,7 +433,7 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
 
       // Update hostnames with certificate enrollment ID
       const hostnames = hostnamesResponse.hostnames?.items || [];
-      const updatedHostnames = hostnames.map((h: unknown) => ({
+      const updatedHostnames = hostnames.map((h: any) => ({
         ...h,
         certEnrollmentId: enrollmentId,
       }));
@@ -483,8 +483,8 @@ export class CertificateDeploymentCoordinator extends EventEmitter {
   private updateDeploymentProgress(enrollmentId: number, linkingState: unknown): void {
     const deploymentState = this.activeDeployments.get(enrollmentId);
     if (deploymentState) {
-      deploymentState.propertyLinking = linkingState;
-      const linkProgress = (linkingState.completed / linkingState.total) * 100;
+      deploymentState.propertyLinking = linkingState as any;
+      const linkProgress = ((linkingState as any).completed / (linkingState as any).total) * 100;
       const overallProgress = Math.min(90 + linkProgress * 0.1, 99);
       this.emit('deployment:progress', enrollmentId, overallProgress);
     }

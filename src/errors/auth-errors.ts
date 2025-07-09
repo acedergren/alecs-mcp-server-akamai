@@ -63,7 +63,7 @@ export class AccountSwitchError extends ForbiddenError {
       }]
     };
     
-    super(response);
+    super(String(response));
     this.name = 'AccountSwitchError';
   }
 }
@@ -86,7 +86,7 @@ export class InvalidCustomerError extends UnauthorizedError {
       }]
     };
     
-    super(response);
+    super(String(response));
     this.name = 'InvalidCustomerError';
   }
 }

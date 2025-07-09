@@ -8,7 +8,7 @@ export interface AuthContext {
   authenticated: boolean;
 }
 
-export function getAuthContext(params?: unknown): AuthContext {
+export function getAuthContext(params?: any): AuthContext {
   return {
     customer: params?.customer || 'default',
     accountKey: params?.accountKey,

@@ -73,7 +73,7 @@ export async function withTimeout<T>(
     const result = await operation(controller.signal);
     clearTimeout(timeoutId);
     return result;
-  } catch (error: unknown) {
+  } catch (error: any) {
     clearTimeout(timeoutId);
     
     // Check if it was a timeout
@@ -114,7 +114,7 @@ export async function resilientRequest<T>(
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       return await withTimeout(operation, timeout, operationName);
-    } catch (error: unknown) {
+    } catch (error: any) {
       lastError = error;
       
       // Don't retry on client errors
@@ -133,7 +133,7 @@ export async function resilientRequest<T>(
           maxRetries: retries,
           delay,
           isTimeout,
-          error: error.message,
+          error: (error as any).message,
           operationName,
         }, 'Request failed, retrying...');
         

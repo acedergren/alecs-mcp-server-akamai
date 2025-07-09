@@ -35,13 +35,13 @@ export class EdgeGridClient {
     // Add request interceptor for EdgeGrid authentication
     this.axiosInstance.interceptors.request.use(
       (config) => this.addAuthHeaders(config),
-      (_error) => Promise.reject(_error),
+      (_error: any) => Promise.reject(_error),
     );
 
     // Add response interceptor for error handling
     this.axiosInstance.interceptors.response.use(
       (response) => response,
-      (_error) => this.handleError(_error),
+      (_error: any) => this.handleError(_error),
     );
   }
 
@@ -121,7 +121,7 @@ export class EdgeGridClient {
     return signature.digest('base64');
   }
 
-  private async handleError(_error: unknown): Promise<never> {
+  private async handleError(_error: any): Promise<never> {
     if (_error.response) {
       const { status, data } = _error.response;
       logger.error(`API Error [${status}]`, {
@@ -141,7 +141,7 @@ export class EdgeGridClient {
         } else if (data.title) {
           errorMessage = data.title;
         } else if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
-          errorMessage = data.errors.map((_e: unknown) => _e.detail || _e.error || _e).join(', ');
+          errorMessage = data.errors.map((_e: any) => _e.detail || _e.error || _e).join(', ');
         }
       }
 

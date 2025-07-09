@@ -364,7 +364,7 @@ export class AuditFramework {
       
       logger.info(`Registered ${this.rules.length} audit rules`);
     } catch (error) {
-      logger.error('Failed to load specialized audit rules:', error);
+      logger.error('Failed to load specialized audit rules:', error as Record<string, unknown>);
     }
   }
 
@@ -393,7 +393,7 @@ export class AuditFramework {
         const issues = await rule.check(context);
         fileIssues.push(...issues);
       } catch (error) {
-        logger.error(`Error running rule ${rule.name} on ${filePath}:`, error);
+        logger.error(`Error running rule ${rule.name} on ${filePath}:`, error as Record<string, unknown>);
       }
     }
 

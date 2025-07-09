@@ -16,6 +16,8 @@ export interface BaseToolArgs {
   customer?: string;
   /** Optional timeout in milliseconds (default: 30000) */
   timeout?: number;
+  /** Allow additional properties */
+  [key: string]: unknown;
 }
 
 /**
@@ -144,7 +146,7 @@ export type ValidateToolParams<TDef, TImpl> = TDef extends TImpl ? TDef : never;
  * Runtime tool registry with type safety
  */
 export class ToolRegistry {
-  private tools = new Map<string, ToolDefinition<unknown>>();
+  private tools = new Map<string, ToolDefinition<BaseToolArgs>>();
 
   /**
    * Register a tool with compile-time and runtime validation
@@ -164,14 +166,14 @@ export class ToolRegistry {
       throw new Error(`Tool '${definition.name}' is already registered`);
     }
 
-    this.tools.set(definition.name, definition);
+    this.tools.set(definition.name, definition as unknown as ToolDefinition<BaseToolArgs>);
   }
 
   /**
    * Get a tool definition
    */
   get<TArgs extends BaseToolArgs>(name: string): ToolDefinition<TArgs> | undefined {
-    return this.tools.get(name);
+    return this.tools.get(name) as ToolDefinition<TArgs> | undefined;
   }
 
   /**

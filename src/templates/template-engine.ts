@@ -171,7 +171,7 @@ export function generateProvisioningPlan(_context: TemplateContext): Provisionin
 
   // Generate DNS records
   const dnsRecords =
-    template.recommendedDNSRecords?.map((record: unknown) => ({
+    template.recommendedDNSRecords?.map((record: any) => ({
       type: record.type,
       name: record.name.replace('{{hostname}}', inputs.hostname),
       value: record.value.replace('{{edgeHostname}}', edgeHostname.hostname),
@@ -259,7 +259,7 @@ export function validateProvisioningPlan(plan: ProvisioningPlan): {
     warnings.push('Large number of SANs may require special approval');
   }
 
-  if (plan.ruleTree.behaviors && !plan.ruleTree.behaviors.find((b: unknown) => b.name === 'cpCode')) {
+  if ((plan.ruleTree as any).behaviors && !(plan.ruleTree as any).behaviors.find((b: any) => b.name === 'cpCode')) {
     warnings.push('No CP Code specified - one will be generated');
   }
 

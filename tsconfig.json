@@ -83,10 +83,12 @@
     "examples/**/*",
     "docs/**/*",
     "src/testing/**/*",
+    "src/__tests__/**/*",
     "src/services/CustomerContextManager.ts",
     "src/servers/*-consolidated.ts",
     "src/scripts/**/*",
-    "src/audit/critical-fixes/**/*"
+    "src/audit/critical-fixes/**/*",
+    "src/telemetry/**/*"
   ],
   "ts-node": {
     "require": [

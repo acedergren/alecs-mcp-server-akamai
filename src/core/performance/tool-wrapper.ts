@@ -103,7 +103,7 @@ export function createOptimizedTool<T = any>(
       
       // Invalidate cache patterns after successful write
       const { CacheInvalidation } = await import('./index');
-      const customer = params?.['customer'] || client?.customer || 'default';
+      const customer = (params as any)?.['customer'] || client?.customer || 'default';
       
       for (const pattern of metadata.cacheInvalidation!) {
         const customerPattern = pattern.replace('{customer}', customer);

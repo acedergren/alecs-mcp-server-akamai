@@ -109,7 +109,7 @@ export class ErrorTranslator {
       case 503:
         return this.translateServerError(data, context);
       default:
-        return this.translateGenericHTTPError(status, data, context);
+        return this.translateGenericHTTPError(status || 500, data, context);
     }
   }
 

@@ -43,7 +43,7 @@ export class PropertyServer extends FastMCPServer {
     super('alecs-property', '2.0.0');
   }
   
-  tools = [
+  override tools = [
     // List properties - with automatic caching
     tool('list_properties',
       z.object({
@@ -52,10 +52,12 @@ export class PropertyServer extends FastMCPServer {
         customer: z.string().optional(),
       }),
       async ({ contractId, groupId }, { client }) => {
-        const response = await client.get('/papi/v1/properties', {
-          params: { contractId, groupId },
+        const response = await client.request({ 
+          path: '/papi/v1/properties',
+          method: 'GET',
+          queryParams: { contractId, groupId } as any,
         });
-        return response.properties.items;
+        return (response as any).properties.items;
       },
       { cache: { ttl: 300 } } // 5 minute cache
     ),
@@ -67,8 +69,11 @@ export class PropertyServer extends FastMCPServer {
         customer: z.string().optional(),
       }),
       async ({ propertyId }, { client }) => {
-        const response = await client.get(`/papi/v1/properties/${propertyId}`);
-        return response.properties.items[0];
+        const response = await client.request({
+          path: `/papi/v1/properties/${propertyId}`,
+          method: 'GET'
+        });
+        return (response as any).properties.items[0];
       }
     ),
     
@@ -82,11 +87,14 @@ export class PropertyServer extends FastMCPServer {
         customer: z.string().optional(),
       }),
       async (args, { client }) => {
-        const response = await client.post('/papi/v1/properties', {
-          propertyName: args.propertyName,
-          productId: args.productId,
-        }, {
-          params: {
+        const response = await client.request({
+          path: '/papi/v1/properties',
+          method: 'POST',
+          body: {
+            propertyName: args.propertyName,
+            productId: args.productId,
+          },
+          queryParams: {
             contractId: args.contractId,
             groupId: args.groupId,
           },
@@ -101,30 +109,31 @@ export class PropertyServer extends FastMCPServer {
 // ============================================
 // ADVANCED: With Legacy Tool Wrapper
 // ============================================
-import { wrapLegacyTool } from '../utils/legacy-wrapper';
-import * as legacyTools from '../../../tools/property-manager-tools';
+// Legacy imports removed - files no longer exist
+// import { wrapLegacyTool } from '../utils/legacy-wrapper';
+// import * as legacyTools from '../../../tools/property-manager-tools';
 
 export class HybridPropertyServer extends FastMCPServer {
-  tools = [
+  override tools = [
     // New optimized tools
     tool('list_properties_v2',
       z.object({ contractId: z.string().optional() }),
       async (args, { client }) => {
         // New implementation with all optimizations
-        return client.get('/papi/v1/properties', { params: args });
+        return client.request({ path: '/papi/v1/properties', method: 'GET', queryParams: args });
       },
       { cache: { ttl: 300 }, stream: true }
     ),
     
-    // Wrapped legacy tools still work
-    wrapLegacyTool(legacyTools.listProperties, {
-      cache: { ttl: 300 },
-      coalesce: true,
-    }),
-    wrapLegacyTool(legacyTools.getProperty),
-    wrapLegacyTool(legacyTools.createProperty, {
-      coalesce: false, // Don't coalesce mutations
-    }),
+    // Wrapped legacy tools would work like this (when available):
+    // wrapLegacyTool(legacyTools.listProperties, {
+    //   cache: { ttl: 300 },
+    //   coalesce: true,
+    // }),
+    // wrapLegacyTool(legacyTools.getProperty),
+    // wrapLegacyTool(legacyTools.createProperty, {
+    //   coalesce: false, // Don't coalesce mutations
+    // }),
   ];
 }
 
