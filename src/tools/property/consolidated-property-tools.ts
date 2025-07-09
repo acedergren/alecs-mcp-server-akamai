@@ -3600,34 +3600,22 @@ export class ConsolidatedPropertyTools extends BaseTool {
               progress.update(progressPercent, `${operation.action === 'add' ? 'Adding' : 'Removing'} hostnames for ${operation.propertyId}...`);
 
               try {
-                // Process all hostnames for this operation
-                const hostnameResults = [];
-                for (const hostname of operation.hostnames) {
-                  try {
-                    if (operation.action === 'add') {
-                      await this.addPropertyHostname({
-                        propertyId: operation.propertyId,
-                        version: operation.version,
-                        hostname: hostname,
-                        customer: params.customer
-                      });
-                      hostnameResults.push({ hostname, status: 'added' });
-                    } else {
-                      await this.removePropertyHostname({
-                        propertyId: operation.propertyId,
-                        version: operation.version,
-                        hostname: hostname,
-                        customer: params.customer
-                      });
-                      hostnameResults.push({ hostname, status: 'removed' });
-                    }
-                  } catch (error) {
-                    hostnameResults.push({ 
-                      hostname, 
-                      status: 'failed', 
-                      error: error instanceof Error ? error.message : 'Unknown error' 
-                    });
-                  }
+                // Process all hostnames at once
+                let result;
+                if (operation.action === 'add') {
+                  result = await this.addPropertyHostname({
+                    propertyId: operation.propertyId,
+                    version: operation.version,
+                    hostnames: operation.hostnames,
+                    customer: params.customer
+                  });
+                } else {
+                  result = await this.removePropertyHostname({
+                    propertyId: operation.propertyId,
+                    version: operation.version,
+                    hostnames: operation.hostnames,
+                    customer: params.customer
+                  });
                 }
 
                 results.push({
@@ -3636,8 +3624,7 @@ export class ConsolidatedPropertyTools extends BaseTool {
                   action: operation.action,
                   hostnames: operation.hostnames,
                   status: 'success',
-                  hostnameResults: hostnameResults,
-                  message: `Processed ${hostnameResults.filter(r => r.status !== 'failed').length}/${operation.hostnames.length} hostnames`
+                  message: (result as any).message || `Successfully ${operation.action}ed ${operation.hostnames.length} hostnames`
                 });
               } catch (error) {
                 results.push({
