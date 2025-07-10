@@ -62,6 +62,7 @@ import { hostnameTools } from './hostname';
 // Bulk Operations Tools
 import { bulkOperationsTools } from './bulk-operations';
 import { billingTools } from './billing';
+import { edgeComputeToolsRegistry } from './edge-compute';
 
 /**
  * Tool definition interface with strong typing
@@ -137,8 +138,15 @@ export function getAllToolDefinitions(): ToolDefinition[] {
   allTools.push(...convertToolsToDefinitions(hostnameTools));
 
   // Bulk Operations Tools (5 tools - newly added)
-  allTools.push(...convertToolsToDefinitions(bulkOperationsTools));  // Billing Tools
+  allTools.push(...convertToolsToDefinitions(bulkOperationsTools));
+  
+  // Billing Tools (10 tools - comprehensive billing operations)
   allTools.push(...convertToolsToDefinitions(billingTools));
+  
+  // Edge Compute Tools (12 tools - EdgeWorkers and Cloudlets)
+  allTools.push(...convertToolsToDefinitions(edgeComputeToolsRegistry));
+
+
 
 
 
