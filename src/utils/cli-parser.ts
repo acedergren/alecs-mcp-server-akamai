@@ -34,6 +34,7 @@ export interface CLIConfig {
   logLevel?: 'debug' | 'info' | 'warn' | 'error';
   port?: number;
   module?: string;
+  silent?: boolean;
 }
 
 /**
@@ -117,6 +118,11 @@ export function parseArguments(args: string[] = process.argv.slice(2)): CLIConfi
         i++;
         break;
         
+      case '--silent':
+      case '-s':
+        config.silent = true;
+        break;
+        
       default:
         if (arg && arg.startsWith('-')) {
           throw new Error(`Unknown option: ${arg}. Use --help for usage information`);
@@ -170,6 +176,8 @@ export function displayHelp(): void {
   📊 LOGGING & DEBUG:
     -d, --debug                Enable rich debug output with performance metrics
     --log-level <LEVEL>        Granular logging (debug|info|warn|error)
+    -s, --silent               Silent mode - run in background with minimal output
+                               Perfect for production deployments
     
   📖 INFORMATION:
     -h, --help                 Show this comprehensive help
@@ -375,60 +383,51 @@ export function displayStartupDashboard(config: CLIConfig): void {
     return text.substring(0, maxLength - 3) + '...';
   };
   
+  // Calculate box width
+  const boxWidth = 80;
+  const pad = (text: string, width: number, align: 'left' | 'center' | 'right' = 'left') => {
+    const len = text.length;
+    if (len >= width) return text.substring(0, width);
+    const padding = width - len;
+    if (align === 'center') {
+      const leftPad = Math.floor(padding / 2);
+      const rightPad = padding - leftPad;
+      return ' '.repeat(leftPad) + text + ' '.repeat(rightPad);
+    } else if (align === 'right') {
+      return ' '.repeat(padding) + text;
+    } else {
+      return text + ' '.repeat(padding);
+    }
+  };
+
+  const line = (text: string) => `║ ${pad(text, boxWidth - 4)} ║`;
+  const centerLine = (text: string) => `║ ${pad(text, boxWidth - 4, 'center')} ║`;
+  
   const dashboard = `
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                        🌟 ALECS MCP Server v${version} - Ready                        ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║ 🏢 EdgeRC Section Configuration                                            ║
-║   Section: ${truncate(customerInfo.section, 20)} │ Status: ${truncate(customerInfo.status, 12)}           ║
-║   Host: ${truncate(customerInfo.host, 62)} ║
-║   Account Switch: ${truncate(customerInfo.accountSwitch, 30)} │ ${customerInfo.accountSwitchStatus}            ║
-║   Credentials: ${truncate(customerInfo.credentialStatus, 20)} │ Health: ${truncate(customerInfo.healthStatus, 12)}        ║
-║                                                                              ║
-║ 🔧 Server Configuration                                                     ║
-║   Transport: ${truncate(config.transport || 'stdio', 8)} │ Process ID: ${pid.toString().padStart(8)}                       ║
-║   Module Filter: ${truncate(config.module || 'all modules', 12)} │ Memory: ${memoryUsage.toString().padStart(3)}MB                           ║
-║   Log Level: ${truncate(config.logLevel || 'info', 8)} │ Platform: ${truncate(platform + ' ' + nodeVersion, 18)}      ║
-║                                                                              ║
-║ ⚡ Service Registry                                                         ║
-║   Property Manager: ${toolStats.property.toString().padStart(2)} tools     │ Security & WAF: ${toolStats.security.toString().padStart(2)} tools                  ║
-║   DNS Management: ${toolStats.dns.toString().padStart(2)} tools      │ Certificates: ${toolStats.certificates.toString().padStart(2)} tools                    ║
-║   Utilities: ${toolStats.utilities.toString().padStart(2)} tools            │ FastPurge: ${toolStats.fastpurge.toString().padStart(2)} tools                       ║
-║   Total: ${toolStats.total.toString().padStart(3)} tools (${toolStats.snakeCase}/${toolStats.total} snake_case)  │ Migration: ${toolStats.migrationPercent}%                ║
-║                                                                              ║
-║ 🎯 Quick Start Commands (Try these with your AI assistant)                 ║
-║   property_list              - List all CDN properties for this section     ║
-║   dns_zones_list             - View DNS zones and records                   ║
-║   security_network_lists     - Check IP/GEO blocking configurations         ║
-║   cpcode_list                - View CP codes and includes                   ║
-║                                                                              ║
-║ 📊 Monitoring & Intelligence                                               ║
-║   Rate Limit Tracking: Active   │ Performance Metrics: Enabled              ║
-║   Cache Status: Warming         │ Error Prediction: Active                  ║
-║   Health Checks: Every 30s      │ Smart Suggestions: Enabled                ║
-║                                                                              ║
-║ 🤖 AI Development Tool Integration                                         ║
-║   Optimized for: Cursor IDE, Claude Code, Gemini CLI                       ║
-║   Rich Context: All operations logged with section & performance data      ║
-║   Error Handling: Detailed messages with troubleshooting suggestions       ║
-║                                                                              ║
-║ ✅ Status: READY FOR AI-POWERED DEVELOPMENT                                ║
-║ 🕐 Started: ${timestamp.substring(0, 19)}Z                                 ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-
-💡 AI Assistant Integration Tips:
-   • ${toolStats.snakeCase}/${toolStats.total} tools use snake_case naming for optimal AI tool compatibility
-   • Section context ('${customerInfo.section}') automatically applied to all operations
-   • Performance metrics and cache hits displayed in real-time logs
-   • Rate limit monitoring prevents API throttling issues
-   • Error messages include specific troubleshooting steps
-
-🔄 Real-time Activity Feed Starting:
-   → Monitoring API calls, performance, and health status
-   → Rate limit threshold monitoring active
-   → Cache warming in progress for faster responses
-   → Ready for tool execution requests
-`;
+╔${'═'.repeat(boxWidth - 2)}╗
+${centerLine(`🌟 ALECS MCP Server v${version} - Ready`)}
+╠${'═'.repeat(boxWidth - 2)}╣
+${line('🏢 EdgeRC Configuration')}
+${line(`   Section: ${customerInfo.section.padEnd(20)} Status: ${customerInfo.status}`)}
+${line(`   Account: ${customerInfo.accountSwitch.substring(0, 40)} ${customerInfo.accountSwitchStatus}`)}
+${line('')}
+${line('⚡ Available Services')}
+${line(`   Property Manager: ${toolStats.property} tools    Security & WAF: ${toolStats.security} tools`)}
+${line(`   DNS Management: ${toolStats.dns} tools       Certificates: ${toolStats.certificates} tools`)}
+${line(`   Edge Compute: 12 tools        GTM: 17 tools`)}
+${line(`   Billing: 10 tools             Diagnostics: 21 tools`)}
+${line('')}
+${line(`📊 Total Tools: ${toolStats.total} (All using snake_case naming)`)}
+${line('')}
+${line('🎯 Quick Start Examples')}
+${line('   property_list              - List all CDN properties')}
+${line('   dns_zones_list             - View DNS zones')}
+${line('   security_network_lists_list - Check security lists')}
+${line('   billing_usage_summary      - Get billing overview')}
+${line('')}
+${line('✅ Status: READY')}
+${line(`🕐 Started: ${timestamp.substring(0, 19)}Z`)}
+╚${'═'.repeat(boxWidth - 2)}╝`;
 
   console.log(dashboard);
 }
@@ -567,7 +566,7 @@ function getCustomerInfo(section?: string): {
         if (trimmed.startsWith('host =')) {
           host = trimmed.split('=')[1]?.trim() || 'Invalid';
         }
-        if (trimmed.startsWith('account_switch_key =')) {
+        if (trimmed.startsWith('account_switch_key =') || trimmed.startsWith('account_key =') || trimmed.startsWith('account-switch-key =')) {
           hasAccountSwitch = true;
           accountSwitchValue = trimmed.split('=')[1]?.trim().substring(0, 20) + '...' || 'Invalid';
         }

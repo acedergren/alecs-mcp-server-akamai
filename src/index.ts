@@ -35,6 +35,14 @@ let server: any = null;
 // Graceful shutdown handler
 function setupGracefulShutdown() {
   const shutdown = async (signal: string) => {
+    const isSilent = process.env['LOG_LEVEL'] === 'error';
+    
+    if (!isSilent) {
+      console.log('\n╔══════════════════════════════════════════════════════════════════════════════╗');
+      console.log('║                    🛑 ALECS Server Shutting Down...                          ║');
+      console.log('╚══════════════════════════════════════════════════════════════════════════════╝');
+    }
+    
     mainLogger.info(`Received ${signal}, shutting down gracefully...`);
     
     if (server && typeof server.stop === 'function') {
@@ -44,6 +52,10 @@ function setupGracefulShutdown() {
       } catch (error) {
         mainLogger.error({ error }, 'Error during server shutdown');
       }
+    }
+    
+    if (!isSilent) {
+      console.log('✅ Shutdown complete. Thank you for using ALECS!');
     }
     
     process.exit(0);
@@ -81,8 +93,15 @@ async function main(): Promise<void> {
     applyConfiguration(cliConfig);
     validateConfiguration(cliConfig);
     
-    // Display rich startup dashboard
-    displayStartupDashboard(cliConfig);
+    // Display rich startup dashboard unless in silent mode
+    if (!cliConfig.silent) {
+      displayStartupDashboard(cliConfig);
+    }
+    
+    // Set log level to error in silent mode unless explicitly set
+    if (cliConfig.silent && !cliConfig.logLevel) {
+      process.env['LOG_LEVEL'] = 'error';
+    }
     
     if (process.env['DEBUG'] || process.env['LOG_LEVEL'] === 'debug') {
       mainLogger.info('ALECS MCP Server initialized with CLI configuration');
@@ -189,19 +208,15 @@ async function main(): Promise<void> {
   }
 }
 
-// Start the server
-if (require.main === module) {
-  setupGracefulShutdown();
-  mainLogger.debug('Starting ALECS MCP Server...');
-  main().catch((error) => {
-    mainLogger.fatal({ error }, 'Unhandled error during startup');
-    mainLogger.fatal({ 
-      stack: error instanceof Error ? error.stack : 'No stack trace' 
-    }, 'Stack trace');
-    process.exit(1);
-  });
-} else {
-  mainLogger.debug('Script imported as module, not starting server');
-}
+// Start the server when run directly
+setupGracefulShutdown();
+mainLogger.debug('Starting ALECS MCP Server...');
+main().catch((error) => {
+  mainLogger.fatal({ error }, 'Unhandled error during startup');
+  mainLogger.fatal({ 
+    stack: error instanceof Error ? error.stack : 'No stack trace' 
+  }, 'Stack trace');
+  process.exit(1);
+});
 
 export { main };

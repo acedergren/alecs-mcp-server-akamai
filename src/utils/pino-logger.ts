@@ -55,7 +55,7 @@ export const logger: PinoLogger = pino({
   // Base context for all logs
   base: {
     service: 'alecs-mcp-server',
-    version: require('../../package.json').version,
+    version: '2.0.0', // Updated for v2.0 release
     env: process.env['NODE_ENV'] || 'development'
   },
   // Redact sensitive information
