@@ -24,114 +24,118 @@ ALECS (A Launchgrid for Edge & Cloud Services) is a Model Context Protocol (MCP)
 
 ```mermaid
 graph TB
-    subgraph "AI Layer"
+    %% AI Assistant Layer
+    subgraph AI["🤖 AI Assistants"]
         A1[Claude Desktop]
         A2[Cursor IDE]
-        A3[LM Studio]
-        A4[VS Code]
-        A5[Windsurf]
-        A6[Claude Code]
+        A3[Other MCP Clients]
     end
     
-    subgraph "MCP Protocol Layer"
-        B[MCP JSON-RPC Request]
-        subgraph "Transport Options"
-            C1[STDIO Transport]
-            C2[HTTP Transport]
-            C3[WebSocket Transport]
-            C4[SSE Transport]
+    %% Transport Layer
+    subgraph Transport["🚀 Transport Layer"]
+        T1[STDIO<br/>Default for Desktop]
+        T2[HTTP<br/>Web/CDN Deploy]
+        T3[WebSocket<br/>Real-time]
+        T4[SSE<br/>Legacy Support]
+    end
+    
+    %% ALECS Core Server
+    subgraph ALECS["⚡ ALECS MCP Server"]
+        %% Entry Point
+        S[server.ts<br/>MCP Request Handler]
+        
+        %% Core Framework
+        subgraph Core["🎯 ALECSCore Framework"]
+            AC[ALECSCore Base<br/>Tool Management]
+            TF[ToolFactory<br/>Dynamic Instantiation]
+            TR[Tool Registry<br/>156 Tools]
+        end
+        
+        %% Core Services
+        subgraph Services["🛠️ Core Services"]
+            VAL[Zod Validation<br/>Runtime Type Safety]
+            ERR[Error Handler<br/>RFC 7807 Format]
+            CACHE[Cache Manager<br/>TTL & Invalidation]
+            LOG[Logger<br/>Structured Logs]
         end
     end
     
-    subgraph "Function Call Flow"
-        D1[server.handleRequest]
-        D2[ALECSCore.handleToolCall]
-        D3[ToolFactory.createTool]
-        D4[DomainTools.toolMethod]
+    %% Domain Tools
+    subgraph Domains["📦 Domain Tools"]
+        PT[PropertyTools<br/>26 tools]
+        DT[DNSTools<br/>12 tools]
+        ST[SecurityTools<br/>47 tools]
+        CT[CertTools<br/>8 tools]
+        FT[FastPurgeTools<br/>8 tools]
+        OT[...55 more tools]
     end
     
-    subgraph "ALECSCore Framework"
-        AC[ALECSCore Base Class]
-        subgraph "Core Services"
-            AC1[loadTools]
-            AC2[validateArgs]
-            AC3[handleError]
-            AC4[cacheResponse]
-        end
+    %% Akamai Integration
+    subgraph Integration["🔐 Akamai Integration"]
+        CLIENT[AkamaiClient<br/>Request Handler]
+        AUTH[EdgeGrid Auth<br/>Request Signing]
+        QUEUE[Rate Limiter<br/>API Protection]
     end
     
-    subgraph "Domain Layer"
-        E1[PropertyTools extends BaseTool]
-        E2[DNSTools extends BaseTool]
-        E3[SecurityTools extends BaseTool]
-        E4[CertTools extends BaseTool]
-        E5[PurgeTools extends BaseTool]
+    %% Akamai APIs
+    subgraph APIs["☁️ Akamai APIs"]
+        API1[Property Manager]
+        API2[Edge DNS]
+        API3[Security]
+        API4[Fast Purge]
+        API5[15+ More Services]
     end
     
-    subgraph "Integration Layer"
-        I[AkamaiClient]
-        J[EdgeGridAuth.signRequest]
-        K[axios.request]
-    end
+    %% Flow connections
+    AI -->|MCP Protocol| Transport
+    Transport -->|JSON-RPC| S
     
-    subgraph "Akamai APIs"
-        L[Property Manager API]
-        M[Edge DNS API]
-        N[Fast Purge API]
-        O[Security API]
-        P[CPS API]
-    end
+    S -->|1. Route Request| AC
+    AC -->|2. Load Tool| TR
+    TR -->|3. Create Instance| TF
+    TF -->|4. Instantiate| Domains
     
-    A1 --> B
-    A2 --> B
-    A3 --> B
-    A4 --> B
-    A5 --> B
-    A6 --> B
+    %% Service connections
+    AC --> VAL
+    AC --> ERR
+    AC --> CACHE
+    AC --> LOG
     
-    B --> C1
-    B --> C2
-    B --> C3
-    B --> C4
+    %% Domain execution
+    PT -->|5. Execute| CLIENT
+    DT -->|5. Execute| CLIENT
+    ST -->|5. Execute| CLIENT
+    CT -->|5. Execute| CLIENT
+    FT -->|5. Execute| CLIENT
+    OT -->|5. Execute| CLIENT
     
-    C1 --> D1
-    C2 --> D1
-    C3 --> D1
-    C4 --> D1
+    %% API calls
+    CLIENT -->|6. Sign Request| AUTH
+    AUTH -->|7. Rate Limit| QUEUE
+    QUEUE -->|8. HTTPS| APIs
     
-    D1 -->|tools.call| D2
-    D2 -->|factory pattern| D3
-    D3 -->|instantiate| E1
-    D3 -->|instantiate| E2
-    D3 -->|instantiate| E3
-    D3 -->|instantiate| E4
-    D3 -->|instantiate| E5
+    %% Response flow
+    APIs -.->|9. Response| CLIENT
+    CLIENT -.->|10. Format| Domains
+    Domains -.->|11. Cache| CACHE
+    Domains -.->|12. Return| S
+    S -.->|13. JSON-RPC| Transport
+    Transport -.->|14. Result| AI
     
-    D2 --> AC
-    AC --> AC1
-    AC --> AC2
-    AC --> AC3
-    AC --> AC4
+    %% Styling
+    classDef aiClass fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef transportClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef coreClass fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef domainClass fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    classDef integrationClass fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    classDef apiClass fill:#e3f2fd,stroke:#0d47a1,stroke-width:2px
     
-    E1 -->|execute| D4
-    E2 -->|execute| D4
-    E3 -->|execute| D4
-    E4 -->|execute| D4
-    E5 -->|execute| D4
-    
-    D4 --> I
-    I --> J
-    J --> K
-    
-    K --> L
-    K --> M
-    K --> N
-    K --> O
-    K --> P
-    
-    AC2 -->|Zod validation| D4
-    D4 -->|on error| AC3
-    D4 -->|on success| AC4
+    class A1,A2,A3 aiClass
+    class T1,T2,T3,T4 transportClass
+    class S,AC,TF,TR coreClass
+    class PT,DT,ST,CT,FT,OT domainClass
+    class CLIENT,AUTH,QUEUE integrationClass
+    class API1,API2,API3,API4,API5 apiClass
 ```
 
 ## Component Breakdown
@@ -369,7 +373,40 @@ export class OpenAPIGenerator {
 
 ## Request Flow
 
-### Function Call Sequence
+### Simplified Function Call Flow
+
+```mermaid
+graph LR
+    subgraph "Request Flow"
+        A[AI Assistant] -->|1. MCP Request| B[Transport Layer]
+        B -->|2. JSON-RPC| C[server.handleRequest]
+        C -->|3. Route| D[ALECSCore.handleToolCall]
+        D -->|4. Factory| E[ToolFactory.createTool]
+        E -->|5. Instance| F[DomainTools.toolMethod]
+        F -->|6. API Call| G[AkamaiClient]
+        G -->|7. HTTPS| H[Akamai API]
+    end
+    
+    subgraph "Response Flow"
+        H -.->|8. Data| G
+        G -.->|9. Parse| F
+        F -.->|10. Format| D
+        D -.->|11. Cache| C
+        C -.->|12. JSON-RPC| B
+        B -.->|13. Result| A
+    end
+    
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#fff3e0
+    style D fill:#fff3e0
+    style E fill:#fff3e0
+    style F fill:#e8f5e9
+    style G fill:#fce4ec
+    style H fill:#e3f2fd
+```
+
+### Detailed Function Call Sequence
 
 ```mermaid
 sequenceDiagram
