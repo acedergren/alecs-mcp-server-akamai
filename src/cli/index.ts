@@ -44,7 +44,7 @@ generateCommand
   .option('-d, --description <desc>', 'Domain description')
   .option('-a, --api <api>', 'API base name (e.g., "property" for PAPI)')
   .option('--dry-run', 'Show what would be generated without creating files')
-  .action(async (name: string, options: any) => {
+  .action(async (name: string, options: { description?: string; api?: string; dryRun?: boolean }) => {
     try {
       logger.info({ name, options }, 'Generating domain');
       await generateDomain(name, options);
@@ -63,7 +63,7 @@ generateCommand
   .option('-m, --method <method>', 'HTTP method (GET, POST, PUT, DELETE)')
   .option('-e, --endpoint <endpoint>', 'API endpoint path')
   .option('--dry-run', 'Show what would be generated without creating files')
-  .action(async (domain: string, name: string, options: any) => {
+  .action(async (domain: string, name: string, options: { description?: string; method?: string; endpoint?: string; dryRun?: boolean }) => {
     try {
       logger.info({ domain, name, options }, 'Generating tool');
       await generateTool(domain, name, options);
@@ -79,7 +79,7 @@ generateCommand
   .command('test <domain> [tool]')
   .description('Generate tests for domain or specific tool')
   .option('--dry-run', 'Show what would be generated without creating files')
-  .action(async (domain: string, tool: string | undefined, options: any) => {
+  .action(async (domain: string, tool: string | undefined, options: { dryRun?: boolean }) => {
     try {
       if (tool) {
         logger.info({ domain, tool }, 'Generating tool test');

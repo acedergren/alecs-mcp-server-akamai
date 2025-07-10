@@ -63,6 +63,8 @@ import { hostnameTools } from './hostname';
 import { bulkOperationsTools } from './bulk-operations';
 import { billingTools } from './billing';
 import { edgeComputeToolsRegistry } from './edge-compute';
+import { gtmTools } from './gtm';
+import { diagnosticsTools } from './diagnostics';
 
 /**
  * Tool definition interface with strong typing
@@ -145,6 +147,14 @@ export function getAllToolDefinitions(): ToolDefinition[] {
   
   // Edge Compute Tools (12 tools - EdgeWorkers and Cloudlets)
   allTools.push(...convertToolsToDefinitions(edgeComputeToolsRegistry));
+  
+  // GTM Tools (17 tools - Global Traffic Management)
+  allTools.push(...convertToolsToDefinitions(gtmTools));  // Diagnostics Tools
+  allTools.push(...convertToolsToDefinitions(diagnosticsTools));
+
+
+
+
 
 
 
