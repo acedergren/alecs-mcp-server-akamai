@@ -21,6 +21,7 @@ import { generateTool } from './generators/tool-generator';
 import { TestGenerator, generateDomainTestSuite } from './generators/test-generator';
 import { listTemplates } from './generators/template-manager';
 import { createDownloadAPIsCommand } from './commands/download-apis';
+import { createGenerateFromAPICommand } from './commands/generate-from-api';
 import { createLogger } from '../utils/pino-logger';
 
 const logger = createLogger('alecs-cli');
@@ -116,6 +117,9 @@ generateCommand
 
 // Download APIs command
 program.addCommand(createDownloadAPIsCommand());
+
+// Generate from API command (OpenAPI-driven generation)
+program.addCommand(createGenerateFromAPICommand());
 
 // Help command
 program

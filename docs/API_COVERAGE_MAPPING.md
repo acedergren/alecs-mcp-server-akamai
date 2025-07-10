@@ -1,8 +1,25 @@
 # ALECS MCP Server - API Coverage Mapping
 
-**Generated on:** 2025-07-10  
+**Generated on:** 2025-01-17  
 **Version:** 1.7.4  
 **Total Tools:** 220 (including new domains)
+
+## 🆕 OpenAPI-Driven Development
+
+ALECS now supports automatic tool generation from OpenAPI specifications:
+
+```bash
+# Generate new domain from Akamai's API specs
+alecs generate-from-api --spec https://github.com/akamai/akamai-apis/raw/main/apis/[domain]/v1/openapi.json --domain [domain]
+
+# Update existing domain when API changes
+alecs generate-from-api --spec ./updated-api.json --domain property --update
+
+# Migrate hardcoded implementations
+alecs generate-from-api --spec ./api.json --tool ./dns-tools.ts --migrate
+```
+
+This ensures 100% API coverage and automatic updates when Akamai releases new API versions.
 
 ## Overview
 

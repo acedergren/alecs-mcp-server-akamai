@@ -149,8 +149,14 @@ export function getAllToolDefinitions(): ToolDefinition[] {
   allTools.push(...convertToolsToDefinitions(edgeComputeToolsRegistry));
   
   // GTM Tools (17 tools - Global Traffic Management)
-  allTools.push(...convertToolsToDefinitions(gtmTools));  // Diagnostics Tools
+  allTools.push(...convertToolsToDefinitions(gtmTools));
+  
+  // Diagnostics Tools
   allTools.push(...convertToolsToDefinitions(diagnosticsTools));
+
+
+
+
 
 
 

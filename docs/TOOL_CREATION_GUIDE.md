@@ -1,6 +1,93 @@
 # ALECS Tool Creation Guide
 
-## Quick Start: Creating Your First Tool
+## 🚀 NEW: OpenAPI-Driven Tool Generation
+
+ALECS now supports automatic tool generation from OpenAPI specifications! This dramatically reduces the time and effort required to create new tools.
+
+### Quick Start with OpenAPI
+
+```bash
+# Generate tools from an API spec
+alecs generate-from-api --spec ./path/to/openapi.json --domain mydomain
+
+# Interactive mode - guides you through the process
+alecs generate-from-api
+
+# Update existing tools when API changes
+alecs generate-from-api --spec ./api-v2.json --domain property --update
+
+# Migrate hardcoded tools to OpenAPI-driven
+alecs generate-from-api --spec ./api.json --domain dns --migrate
+```
+
+### Features
+
+- **Automatic Code Generation**: Generates complete tool implementations from OpenAPI specs
+- **Type-Safe Schemas**: Automatically creates Zod schemas from OpenAPI definitions
+- **Smart Updates**: Detects API changes and updates only affected tools
+- **Migration Support**: Converts existing hardcoded tools to OpenAPI-driven patterns
+- **Interactive Mode**: Step-by-step guidance for complex operations
+
+### Example: Creating a New Domain
+
+```bash
+# Download API spec from Akamai's GitHub
+curl -O https://raw.githubusercontent.com/akamai/akamai-apis/main/apis/mydomain/v1/openapi.json
+
+# Generate complete domain implementation
+alecs generate-from-api \
+  --spec ./openapi.json \
+  --domain mydomain \
+  --output ./src/tools/mydomain
+
+# The command generates:
+# - mydomain-tools.ts (all tool implementations)
+# - mydomain-schemas.ts (Zod schemas)
+# - mydomain-server-alecscore.ts (MCP server)
+# - Automatic registration in all-tools-registry.ts
+```
+
+### Updating Existing Tools
+
+When an API specification changes:
+
+```bash
+# Check what would change
+alecs generate-from-api --spec ./api-v2.json --domain property --dry-run
+
+# Apply updates
+alecs generate-from-api --spec ./api-v2.json --domain property --update
+
+# The tool will:
+# - Identify new endpoints → Generate new methods
+# - Detect changed parameters → Update schemas
+# - Find deprecated endpoints → Mark for removal
+# - Preserve custom logic in existing implementations
+```
+
+### Migration from Hardcoded Tools
+
+Convert legacy implementations:
+
+```bash
+# Analyze existing tool for migration potential
+alecs generate-from-api --spec ./api.json --tool ./src/tools/dns/dns-tools.ts --analyze
+
+# Perform migration with backup
+alecs generate-from-api --spec ./api.json --tool ./src/tools/dns/dns-tools.ts --migrate --backup
+
+# Migration includes:
+# - Replace hardcoded API calls with typed versions
+# - Generate schemas for request/response validation
+# - Add proper error handling patterns
+# - Update to use latest API endpoints
+```
+
+---
+
+## Manual Tool Creation (Traditional Method)
+
+If you need to create tools manually or customize beyond what the generator provides:
 
 ### 1. Basic Tool Pattern
 ```typescript

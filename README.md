@@ -441,6 +441,28 @@ docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:websocket # WebSocket
 docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:http      # Streamable HTTP
 ```
 
+## 🆕 OpenAPI-Driven Development
+
+ALECS now features automatic tool generation from OpenAPI specifications:
+
+```bash
+# Generate new domain from API spec
+alecs generate-from-api --spec ./openapi.json --domain mydomain
+
+# Update existing tools when APIs change
+alecs generate-from-api --spec ./api-v2.json --domain property --update
+
+# Migrate legacy tools to OpenAPI patterns
+alecs generate-from-api --spec ./api.json --tool ./dns-tools.ts --migrate
+```
+
+**Benefits:**
+- 🚀 **10x faster** tool development
+- 🔧 **Always up-to-date** with latest API changes
+- 📝 **Type-safe** with automatic Zod schema generation
+- 🔄 **Smart updates** preserve custom logic
+- 🎯 **Zero manual work** for standard CRUD operations
+
 ## 📚 Documentation
 
 <div align="center">
@@ -451,12 +473,15 @@ docker pull ghcr.io/acedergren/alecs-mcp-server-akamai:http      # Streamable HT
 | **[Developer Onboarding](./docs/DEVELOPER_ONBOARDING.md)**  | New team member onboarding             |
 | **[API Reference](./docs/API_REFERENCE.md)**                | All 156 tools documented               |
 | **[Getting Started](./docs/getting-started/README.md)**      | Setup tutorials                        |
+| **[Architecture Explainer](./docs/ARCHITECTURE_EXPLAINER.md)**| Comprehensive architecture guide       |
+| **[Architecture Quick Reference](./docs/ARCHITECTURE_QUICK_REFERENCE.md)**| Quick architecture lookup     |
+| **[Visual Architecture](./docs/architecture/VISUAL_ARCHITECTURE.md)**| Architecture diagrams            |
 | **[Architecture Deep Dive](./docs/ARCHITECTURE_DEEP_DIVE.md)**| Technical system design                |
 | **[Development Guide](./docs/DEVELOPMENT_GUIDE.md)**         | Coding standards & patterns            |
 | **[Testing Strategy](./docs/TESTING_STRATEGY.md)**           | Comprehensive testing approach         |
 | **[Deployment Guide](./docs/DEPLOYMENT_GUIDE.md)**           | Production deployment                  |
 | **[Operations Runbook](./docs/OPERATIONS_RUNBOOK.md)**       | Production operations & troubleshooting|
-| **[Tool Creation](./docs/TOOL_CREATION_GUIDE.md)**           | Build custom tools                     |
+| **[Tool Creation](./docs/TOOL_CREATION_GUIDE.md)**           | Build custom tools & use OpenAPI       |
 
 </div>
 

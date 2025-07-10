@@ -6,6 +6,23 @@
 
 This guide establishes coding standards and development patterns for ALECS. Follow these guidelines to maintain code quality, consistency, and team productivity.
 
+## 🆕 OpenAPI-Driven Development
+
+**Preferred Approach**: Use OpenAPI specifications to generate tools automatically.
+
+```bash
+# Generate new tools from API spec
+alecs generate-from-api --spec ./openapi.json --domain mydomain
+
+# This automatically ensures:
+# ✅ Type safety with generated Zod schemas
+# ✅ Proper error handling patterns
+# ✅ Consistent code structure
+# ✅ API compliance
+```
+
+See [OPENAPI_DEVELOPMENT_GUIDE.md](../OPENAPI_DEVELOPMENT_GUIDE.md) for detailed instructions.
+
 ## 📋 Code Quality Standards
 
 ### TypeScript Configuration
