@@ -20,6 +20,7 @@ import { generateDomain } from './generators/domain-generator';
 import { generateTool } from './generators/tool-generator';
 import { TestGenerator, generateDomainTestSuite } from './generators/test-generator';
 import { listTemplates } from './generators/template-manager';
+import { createDownloadAPIsCommand } from './commands/download-apis';
 import { createLogger } from '../utils/pino-logger';
 
 const logger = createLogger('alecs-cli');
@@ -112,6 +113,9 @@ generateCommand
       process.exit(1);
     }
   });
+
+// Download APIs command
+program.addCommand(createDownloadAPIsCommand());
 
 // Help command
 program
