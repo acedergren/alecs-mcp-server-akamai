@@ -13,6 +13,15 @@
  * Key: Production-grade observability with minimal overhead
  * Approach: Real-time gauges + structured logging for complete picture
  * Implementation: Standard Prometheus format, privacy-safe, performance-first
+ * 
+ * METRICS STRATEGY:
+ * Since MCP servers use stdio/pipe communication (not HTTP), we don't expose
+ * a /metrics endpoint. Instead, all metrics are logged as structured JSON via Pino,
+ * which can be collected by Loki/Promtail for querying with LogQL.
+ * 
+ * The recordToolExecution() method logs all tool metrics to stdout/stderr,
+ * making them available for log-based metrics without the complexity of 
+ * running an HTTP server alongside the MCP protocol.
  */
 
 import { collectDefaultMetrics, Gauge, Counter, Registry } from 'prom-client';
@@ -452,42 +461,5 @@ export function getMetrics(): ProductionMetricsExporter {
   return ProductionMetricsExporter.getInstance();
 }
 
-/**
- * Express middleware for metrics endpoint
- */
-export function createMetricsMiddleware(path: string = '/metrics') {
-  return async (req: any, res: any, next: any) => {
-    if (req.path === path) {
-      try {
-        const metrics = await getMetrics().getMetrics();
-        res.set('Content-Type', 'text/plain; charset=utf-8');
-        res.send(metrics);
-      } catch (error) {
-        logger.error('Error serving metrics', {
-          error: error instanceof Error ? error.message : String(error)
-        });
-        res.status(500).send('Error generating metrics');
-      }
-    } else {
-      next();
-    }
-  };
-}
-
-/**
- * Health check endpoint data
- */
-export function getHealthCheck(): any {
-  const metrics = getMetrics();
-  if (!metrics) {
-    return { status: 'unknown', enabled: false };
-  }
-  
-  return {
-    status: 'healthy',
-    enabled: true,
-    uptime: process.uptime(),
-    memory: process.memoryUsage(),
-    timestamp: new Date().toISOString()
-  };
-}
+// HTTP middleware functions archived to .archive/metrics-http/http-middleware.ts
+// MCP servers use stdio/pipes, not HTTP. Metrics are logged via Pino for Loki collection.
