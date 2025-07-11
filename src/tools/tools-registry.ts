@@ -125,6 +125,15 @@ import { edgeComputeToolsRegistry } from './edge-compute';
 import { gtmTools } from './gtm';
 import { diagnosticsTools } from './diagnostics';
 
+// Search Tools (Universal Search Engine)
+import { searchTools } from './search';
+
+// Error Recovery Tools (3 tools - intelligent error recovery)
+import { suggestRecoveryTool, executeRecoveryTool, analyzeRecoveryTool } from './error-recovery';
+
+// Workflow Orchestrator Tools (4 tools - KAIZEN workflow orchestration)
+import { workflowOrchestratorTools } from './workflow';
+
 /**
  * Tool definition interface with strong typing
  */
@@ -212,6 +221,17 @@ export function getAllToolDefinitions(): ToolDefinition[] {
   
   // Diagnostics Tools
   allTools.push(...convertToolsToDefinitions(diagnosticsTools));
+  
+  // Search Tools (5 tools - Universal Search Engine)
+  allTools.push(...convertToolsToDefinitions(searchTools));
+  
+  // Error Recovery Tools (3 tools - Intelligent Error Recovery)
+  allTools.push(suggestRecoveryTool as ToolDefinition);
+  allTools.push(executeRecoveryTool as ToolDefinition);
+  allTools.push(analyzeRecoveryTool as ToolDefinition);
+  
+  // Workflow Orchestrator Tools (4 tools - KAIZEN workflow orchestration)
+  allTools.push(...convertToolsToDefinitions(workflowOrchestratorTools));
 
 
 
@@ -231,7 +251,7 @@ export function getAllToolDefinitions(): ToolDefinition[] {
   // Generated domains will automatically add their imports and registrations here
 
   // MIGRATION COMPLETE - All tools now use snake_case naming
-  // Total tools: 156 (after removing duplicates and mock billing)
+  // Total tools: 159 (after removing duplicates and mock billing + 3 error recovery tools)
 
   return allTools;
 }

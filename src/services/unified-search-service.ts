@@ -12,12 +12,19 @@
  * - Automatically selects optimal search strategy
  * - Transparent bulk search integration for better performance
  * - Unified caching layer for all search operations
+ * - Cross-domain search capability across all resource types
+ * - Fuzzy matching for typos and partial matches
+ * - Advanced filtering and ranking algorithms
+ * - Search history and intelligent suggestions
+ * - Analytics and performance tracking
  * 
  * USER EXPERIENCE:
  * - Single search interface that "just works"
  * - Intelligent query type detection
  * - Fast results through caching and bulk operations
  * - No need to choose between different search functions
+ * - Typo-tolerant search with smart suggestions
+ * - Cross-resource discovery capabilities
  */
 
 import { AkamaiClient } from '../akamai-client';
@@ -25,7 +32,7 @@ import { MCPToolResponse } from '../types';
 import { createLogger } from '../utils/pino-logger';
 import { withRetry } from '../utils/akamai-search-helper';
 import { UnifiedCacheService, getCacheService as getUnifiedCacheService } from './unified-cache-service';
-import { idTranslator } from '../utils/id-translator';
+import { idTranslationService } from './id-translation-service';
 import { 
   isPapiError, 
   isPapiPropertiesResponse, 
@@ -56,6 +63,13 @@ export enum SearchType {
   BEHAVIOR = 'behavior',
   RULE = 'rule',
   GENERAL = 'general',
+  DNS_ZONE = 'dnsZone',
+  DNS_RECORD = 'dnsRecord',
+  CERTIFICATE = 'certificate',
+  NETWORK_LIST = 'networkList',
+  SECURITY_POLICY = 'securityPolicy',
+  RATE_POLICY = 'ratePolicy',
+  CUSTOM_RULE = 'customRule',
 }
 
 const SEARCH_PATTERNS: Record<SearchType, RegExp> = {
@@ -69,6 +83,13 @@ const SEARCH_PATTERNS: Record<SearchType, RegExp> = {
   [SearchType.ORIGIN]: /^[\w.-]+$/,
   [SearchType.BEHAVIOR]: /^[\w-]+$/,
   [SearchType.RULE]: /^[\w\s-]+$/,
+  [SearchType.DNS_ZONE]: /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/,
+  [SearchType.DNS_RECORD]: /^(A|AAAA|CNAME|MX|TXT|NS|SOA|SRV|PTR|CAA)$/i,
+  [SearchType.CERTIFICATE]: /^([\w.-]+\.(com|org|net|io|dev|app)|crt_\d+)$/i,
+  [SearchType.NETWORK_LIST]: /^(nl_)?\d+$/i,
+  [SearchType.SECURITY_POLICY]: /^[\w\s-]+_SEC$/i,
+  [SearchType.RATE_POLICY]: /^[\w\s-]+_RATE$/i,
+  [SearchType.CUSTOM_RULE]: /^[\w\s-]+_RULE$/i,
   [SearchType.GENERAL]: /.*/,
 };
 
@@ -82,6 +103,24 @@ export interface UnifiedSearchOptions {
   includeDetails?: boolean;
   maxResults?: number;
   searchDepth?: 'shallow' | 'deep';
+  resourceTypes?: string[]; // Filter by specific resource types
+  fuzzyMatch?: boolean; // Enable fuzzy matching for typos
+  sortBy?: 'relevance' | 'name' | 'type' | 'modified'; // Sort order
+  filters?: SearchFilters; // Advanced filtering
+  trackAnalytics?: boolean; // Track search for analytics
+}
+
+/**
+ * Advanced search filters
+ */
+export interface SearchFilters {
+  contractIds?: string[];
+  groupIds?: string[];
+  status?: string[];
+  modifiedAfter?: string;
+  modifiedBefore?: string;
+  tags?: string[];
+  customFilters?: Record<string, any>;
 }
 
 /**
@@ -94,6 +133,32 @@ export interface SearchResult {
   details?: any;
   relevanceScore: number;
   source: 'cache' | 'api' | 'bulk-search';
+  highlights?: string[]; // Text snippets showing matches
+  breadcrumb?: string[]; // Path to resource (e.g., Contract > Group > Property)
+  lastModified?: string;
+  tags?: string[];
+}
+
+/**
+ * Search analytics data
+ */
+export interface SearchAnalytics {
+  query: string;
+  timestamp: number;
+  resultCount: number;
+  searchTimeMs: number;
+  resourceTypes: string[];
+  clickedResults?: string[];
+}
+
+/**
+ * Search suggestion
+ */
+export interface SearchSuggestion {
+  text: string;
+  type: 'history' | 'popular' | 'correction' | 'completion';
+  score: number;
+  metadata?: any;
 }
 
 /**
@@ -101,6 +166,9 @@ export interface SearchResult {
  */
 export class UnifiedSearchService {
   private cache: UnifiedCacheService | null = null;
+  private searchHistory: SearchAnalytics[] = [];
+  private readonly maxHistorySize = 1000;
+  private popularSearches: Map<string, number> = new Map();
 
   private async ensureCache(): Promise<UnifiedCacheService> {
     if (!this.cache) {
@@ -123,32 +191,64 @@ export class UnifiedSearchService {
       query: options.query,
       searchType,
       useCache: options.useCache,
+      resourceTypes: options.resourceTypes,
+      fuzzyMatch: options.fuzzyMatch,
     }, 'Starting unified search');
 
     try {
       let results: SearchResult[] = [];
 
-      // Try cache first for common searches
-      if (options.useCache !== false) {
-        const cacheResults = await this.searchCache(client, options);
-        if (cacheResults.length > 0) {
-          results = cacheResults;
+      // Check if searching across all resource types
+      if (options.resourceTypes && options.resourceTypes.length > 1) {
+        results = await this.searchAll(client, options);
+      } else {
+        // Try cache first for common searches
+        if (options.useCache !== false) {
+          const cacheResults = await this.searchCache(client, options);
+          if (cacheResults.length > 0) {
+            results = cacheResults;
+          }
+        }
+
+        // If no cache results or need fresh data
+        if (results.length === 0 || options.useCache === false) {
+          // Use bulk search for complex queries
+          if (this.shouldUseBulkSearch(searchType, options)) {
+            results = await this.performBulkSearch(client, options);
+          } else {
+            // Use traditional search for simple queries
+            results = await this.performTraditionalSearch(client, options, searchType);
+          }
         }
       }
 
-      // If no cache results or need fresh data
-      if (results.length === 0 || options.useCache === false) {
-        // Use bulk search for complex queries
-        if (this.shouldUseBulkSearch(searchType, options)) {
-          results = await this.performBulkSearch(client, options);
-        } else {
-          // Use traditional search for simple queries
-          results = await this.performTraditionalSearch(client, options, searchType);
-        }
+      // Apply fuzzy matching if requested
+      if (options.fuzzyMatch && results.length > 0) {
+        results = this.applyFuzzyMatching(results, options.query);
+      }
+
+      // Apply filters if provided
+      if (options.filters) {
+        results = this.applyFilters(results, options.filters);
+      }
+
+      // Sort results
+      results = this.sortResults(results, options.sortBy || 'relevance');
+
+      // Limit results
+      if (options.maxResults) {
+        results = results.slice(0, options.maxResults);
+      }
+
+      // Track analytics if enabled
+      const searchTimeMs = Date.now() - startTime;
+      if (options.trackAnalytics !== false) {
+        const resourceTypes = [...new Set(results.map(r => r.type))];
+        this.trackSearchAnalytics(options.query, results.length, searchTimeMs, resourceTypes);
       }
 
       // Format results for user
-      return await this.formatSearchResults(results, options, Date.now() - startTime, client);
+      return await this.formatSearchResults(results, options, searchTimeMs, client);
     } catch (error) {
       logger.error({ error, query: options.query }, 'Search failed');
       throw error;
@@ -197,7 +297,8 @@ export class UnifiedSearchService {
     options: UnifiedSearchOptions
   ): Promise<SearchResult[]> {
     try {
-      const cacheResults = await this.cache.search(
+      const cache = await this.ensureCache();
+      const cacheResults = await cache.search(
         client,
         options.query,
         options.customer || 'default'
@@ -333,6 +434,13 @@ export class UnifiedSearchService {
       [SearchType.CONTRACT_ID]: 'custom',
       [SearchType.GROUP_ID]: 'custom',
       [SearchType.EDGE_HOSTNAME]: 'hostname',
+      [SearchType.DNS_ZONE]: 'custom',
+      [SearchType.DNS_RECORD]: 'custom',
+      [SearchType.CERTIFICATE]: 'custom',
+      [SearchType.NETWORK_LIST]: 'custom',
+      [SearchType.SECURITY_POLICY]: 'custom',
+      [SearchType.RATE_POLICY]: 'custom',
+      [SearchType.CUSTOM_RULE]: 'custom',
       [SearchType.GENERAL]: 'custom',
     };
 
@@ -467,6 +575,551 @@ export class UnifiedSearchService {
   }
 
   /**
+   * Search across all resource types
+   */
+  async searchAll(
+    client: AkamaiClient,
+    options: UnifiedSearchOptions
+  ): Promise<SearchResult[]> {
+    const results: SearchResult[] = [];
+    const searchPromises: Promise<SearchResult[]>[] = [];
+
+    // Define resource type search handlers
+    const resourceSearchers = {
+      property: () => this.searchProperties(client, options),
+      dns: () => this.searchDnsZones(client, options),
+      certificate: () => this.searchCertificates(client, options),
+      networkList: () => this.searchNetworkLists(client, options),
+      securityPolicy: () => this.searchSecurityPolicies(client, options),
+    };
+
+    // Filter by requested resource types or search all
+    const typesToSearch = options.resourceTypes || Object.keys(resourceSearchers);
+
+    // Execute searches in parallel
+    for (const type of typesToSearch) {
+      const searcher = resourceSearchers[type as keyof typeof resourceSearchers];
+      if (searcher) {
+        searchPromises.push(searcher());
+      }
+    }
+
+    // Wait for all searches to complete
+    const allResults = await Promise.allSettled(searchPromises);
+    
+    // Collect successful results
+    for (const result of allResults) {
+      if (result.status === 'fulfilled' && Array.isArray(result.value)) {
+        results.push(...result.value);
+      }
+    }
+
+    // Apply fuzzy matching if enabled
+    if (options.fuzzyMatch) {
+      return this.applyFuzzyMatching(results, options.query);
+    }
+
+    // Sort results
+    return this.sortResults(results, options.sortBy || 'relevance');
+  }
+
+  /**
+   * Search properties
+   */
+  private async searchProperties(
+    client: AkamaiClient,
+    options: UnifiedSearchOptions
+  ): Promise<SearchResult[]> {
+    // Use existing property search logic
+    const results = await this.performTraditionalSearch(
+      client,
+      options,
+      this.detectSearchType(options.query)
+    );
+
+    // Apply filters if provided
+    if (options.filters) {
+      return this.applyFilters(results, options.filters);
+    }
+
+    return results;
+  }
+
+  /**
+   * Search DNS zones
+   */
+  private async searchDnsZones(
+    client: AkamaiClient,
+    options: UnifiedSearchOptions
+  ): Promise<SearchResult[]> {
+    const results: SearchResult[] = [];
+    
+    try {
+      const response = await client.request({
+        path: '/config-dns/v2/zones',
+        method: 'GET',
+      });
+
+      const zones = (response as any).zones || [];
+      const queryLower = options.query.toLowerCase();
+
+      for (const zone of zones) {
+        if (zone.zone?.toLowerCase().includes(queryLower) ||
+            zone.comment?.toLowerCase().includes(queryLower)) {
+          results.push({
+            type: 'dns_zone',
+            id: zone.zone,
+            name: zone.zone,
+            details: zone,
+            relevanceScore: this.calculateRelevance(zone, options.query),
+            source: 'api',
+            breadcrumb: ['DNS', 'Zones', zone.zone],
+            lastModified: zone.lastModificationDate,
+          });
+        }
+      }
+    } catch (error) {
+      logger.warn({ error }, 'Failed to search DNS zones');
+    }
+
+    return results;
+  }
+
+  /**
+   * Search certificates
+   */
+  private async searchCertificates(
+    client: AkamaiClient,
+    options: UnifiedSearchOptions
+  ): Promise<SearchResult[]> {
+    const results: SearchResult[] = [];
+    
+    try {
+      const response = await client.request({
+        path: '/cps/v2/enrollments',
+        method: 'GET',
+      });
+
+      const enrollments = (response as any).enrollments || [];
+      const queryLower = options.query.toLowerCase();
+
+      for (const enrollment of enrollments) {
+        const cn = enrollment.csr?.cn || enrollment.certificateChain?.[0]?.certificate?.subject?.cn || '';
+        
+        if (cn.toLowerCase().includes(queryLower) ||
+            enrollment.id?.toString().includes(options.query)) {
+          results.push({
+            type: 'certificate',
+            id: enrollment.id?.toString() || '',
+            name: cn || `Certificate ${enrollment.id}`,
+            details: enrollment,
+            relevanceScore: this.calculateRelevance({ cn }, options.query),
+            source: 'api',
+            breadcrumb: ['CPS', 'Certificates', cn],
+            tags: [enrollment.certificateType, enrollment.validationType].filter(Boolean),
+          });
+        }
+      }
+    } catch (error) {
+      logger.warn({ error }, 'Failed to search certificates');
+    }
+
+    return results;
+  }
+
+  /**
+   * Search network lists
+   */
+  private async searchNetworkLists(
+    client: AkamaiClient,
+    options: UnifiedSearchOptions
+  ): Promise<SearchResult[]> {
+    const results: SearchResult[] = [];
+    
+    try {
+      const response = await client.request({
+        path: '/network-list/v2/network-lists',
+        method: 'GET',
+      });
+
+      const lists = (response as any).networkLists || [];
+      const queryLower = options.query.toLowerCase();
+
+      for (const list of lists) {
+        if (list.name?.toLowerCase().includes(queryLower) ||
+            list.uniqueId?.includes(options.query) ||
+            list.description?.toLowerCase().includes(queryLower)) {
+          results.push({
+            type: 'network_list',
+            id: list.uniqueId || '',
+            name: list.name || '',
+            details: list,
+            relevanceScore: this.calculateRelevance(list, options.query),
+            source: 'api',
+            breadcrumb: ['Network Lists', list.type, list.name],
+            tags: [list.type],
+          });
+        }
+      }
+    } catch (error) {
+      logger.warn({ error }, 'Failed to search network lists');
+    }
+
+    return results;
+  }
+
+  /**
+   * Search security policies
+   */
+  private async searchSecurityPolicies(
+    client: AkamaiClient,
+    options: UnifiedSearchOptions
+  ): Promise<SearchResult[]> {
+    const results: SearchResult[] = [];
+    
+    try {
+      // Get security configurations first
+      const configsResponse = await client.request({
+        path: '/appsec/v1/configs',
+        method: 'GET',
+      });
+
+      const configs = (configsResponse as any).configurations || [];
+      const queryLower = options.query.toLowerCase();
+
+      for (const config of configs) {
+        // Search in config name
+        if (config.name?.toLowerCase().includes(queryLower)) {
+          results.push({
+            type: 'security_config',
+            id: config.id?.toString() || '',
+            name: config.name || '',
+            details: config,
+            relevanceScore: this.calculateRelevance(config, options.query),
+            source: 'api',
+            breadcrumb: ['Application Security', 'Configurations', config.name],
+          });
+        }
+
+        // Search in policies
+        const policies = config.policies || [];
+        for (const policy of policies) {
+          if (policy.policyName?.toLowerCase().includes(queryLower)) {
+            results.push({
+              type: 'security_policy',
+              id: policy.policyId || '',
+              name: policy.policyName || '',
+              details: policy,
+              relevanceScore: this.calculateRelevance(policy, options.query),
+              source: 'api',
+              breadcrumb: ['Application Security', config.name, 'Policies', policy.policyName],
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.warn({ error }, 'Failed to search security policies');
+    }
+
+    return results;
+  }
+
+  /**
+   * Apply fuzzy matching to results
+   */
+  private applyFuzzyMatching(results: SearchResult[], query: string): SearchResult[] {
+    const queryLower = query.toLowerCase();
+    
+    // Levenshtein distance calculation
+    const levenshteinDistance = (s1: string, s2: string): number => {
+      const len1 = s1.length;
+      const len2 = s2.length;
+      const matrix: number[][] = [];
+
+      for (let i = 0; i <= len1; i++) {
+        matrix[i] = [i];
+      }
+      for (let j = 0; j <= len2; j++) {
+        matrix[0]![j] = j;
+      }
+
+      for (let i = 1; i <= len1; i++) {
+        for (let j = 1; j <= len2; j++) {
+          const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+          matrix[i]![j] = Math.min(
+            matrix[i - 1]![j]! + 1,
+            matrix[i]![j - 1]! + 1,
+            matrix[i - 1]![j - 1]! + cost
+          );
+        }
+      }
+
+      return matrix[len1]![len2]!;
+    };
+
+    // Calculate fuzzy scores and update relevance
+    return results.map(result => {
+      const nameLower = result.name.toLowerCase();
+      const distance = levenshteinDistance(queryLower, nameLower);
+      const maxLen = Math.max(queryLower.length, nameLower.length);
+      const similarity = 1 - (distance / maxLen);
+      
+      // Boost relevance score based on fuzzy match
+      if (similarity > 0.7) {
+        result.relevanceScore += similarity * 50;
+      }
+      
+      return result;
+    }).filter(result => {
+      // Filter out very poor matches
+      const nameLower = result.name.toLowerCase();
+      const distance = levenshteinDistance(queryLower, nameLower);
+      const maxLen = Math.max(queryLower.length, nameLower.length);
+      const similarity = 1 - (distance / maxLen);
+      return similarity > 0.5; // Keep matches with >50% similarity
+    });
+  }
+
+  /**
+   * Apply filters to results
+   */
+  private applyFilters(results: SearchResult[], filters: SearchFilters): SearchResult[] {
+    return results.filter(result => {
+      // Contract ID filter
+      if (filters.contractIds?.length && result.details?.contractId) {
+        if (!filters.contractIds.includes(result.details.contractId)) {
+          return false;
+        }
+      }
+
+      // Group ID filter
+      if (filters.groupIds?.length && result.details?.groupId) {
+        if (!filters.groupIds.includes(result.details.groupId)) {
+          return false;
+        }
+      }
+
+      // Status filter
+      if (filters.status?.length && result.details?.status) {
+        if (!filters.status.includes(result.details.status)) {
+          return false;
+        }
+      }
+
+      // Date filters
+      if (filters.modifiedAfter && result.lastModified) {
+        if (new Date(result.lastModified) < new Date(filters.modifiedAfter)) {
+          return false;
+        }
+      }
+      if (filters.modifiedBefore && result.lastModified) {
+        if (new Date(result.lastModified) > new Date(filters.modifiedBefore)) {
+          return false;
+        }
+      }
+
+      // Tag filters
+      if (filters.tags?.length && result.tags) {
+        const hasMatchingTag = filters.tags.some(tag => result.tags?.includes(tag));
+        if (!hasMatchingTag) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }
+
+  /**
+   * Sort results by specified criteria
+   */
+  private sortResults(results: SearchResult[], sortBy: string): SearchResult[] {
+    const sorted = [...results];
+    
+    switch (sortBy) {
+      case 'relevance':
+        sorted.sort((a, b) => b.relevanceScore - a.relevanceScore);
+        break;
+      case 'name':
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'type':
+        sorted.sort((a, b) => a.type.localeCompare(b.type));
+        break;
+      case 'modified':
+        sorted.sort((a, b) => {
+          if (!a.lastModified) return 1;
+          if (!b.lastModified) return -1;
+          return new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime();
+        });
+        break;
+    }
+    
+    return sorted;
+  }
+
+  /**
+   * Get search suggestions
+   */
+  async getSuggestions(
+    query: string,
+    _client: AkamaiClient,
+    customer?: string
+  ): Promise<SearchSuggestion[]> {
+    const suggestions: SearchSuggestion[] = [];
+    const queryLower = query.toLowerCase();
+
+    // Add history-based suggestions
+    const historyMatches = this.searchHistory
+      .filter(h => h.query.toLowerCase().startsWith(queryLower))
+      .slice(0, 5)
+      .map(h => ({
+        text: h.query,
+        type: 'history' as const,
+        score: 100,
+        metadata: { timestamp: h.timestamp, resultCount: h.resultCount },
+      }));
+    suggestions.push(...historyMatches);
+
+    // Add popular search suggestions
+    const popularMatches = Array.from(this.popularSearches.entries())
+      .filter(([text]) => text.toLowerCase().startsWith(queryLower))
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([text, count]) => ({
+        text,
+        type: 'popular' as const,
+        score: 90,
+        metadata: { searchCount: count },
+      }));
+    suggestions.push(...popularMatches);
+
+    // Add type-ahead completions based on detected type
+    const searchType = this.detectSearchType(query);
+    if (searchType !== SearchType.GENERAL) {
+      // Get cached items of this type
+      const cache = await this.ensureCache();
+      const cacheKey = `search:${customer || 'default'}:${searchType}`;
+      const cachedItems = await cache.get(cacheKey);
+      
+      if (Array.isArray(cachedItems)) {
+        const completions = cachedItems
+          .filter((item: any) => item.name?.toLowerCase().startsWith(queryLower))
+          .slice(0, 5)
+          .map((item: any) => ({
+            text: item.name,
+            type: 'completion' as const,
+            score: 80,
+            metadata: { id: item.id, type: searchType },
+          }));
+        suggestions.push(...completions);
+      }
+    }
+
+    // Add spell-check suggestions for typos
+    if (query.length > 3) {
+      const corrections = this.generateSpellCorrections(query);
+      suggestions.push(...corrections);
+    }
+
+    // Sort by score and deduplicate
+    const uniqueSuggestions = Array.from(
+      new Map(suggestions.map(s => [s.text, s])).values()
+    );
+    
+    return uniqueSuggestions.sort((a, b) => b.score - a.score).slice(0, 10);
+  }
+
+  /**
+   * Generate spell corrections
+   */
+  private generateSpellCorrections(query: string): SearchSuggestion[] {
+    const corrections: SearchSuggestion[] = [];
+    
+    // Common typo patterns
+    const typoPatterns = [
+      { pattern: /proprty/gi, replacement: 'property' },
+      { pattern: /certifcate/gi, replacement: 'certificate' },
+      { pattern: /netwok/gi, replacement: 'network' },
+      { pattern: /secuirty/gi, replacement: 'security' },
+      { pattern: /polcy/gi, replacement: 'policy' },
+    ];
+
+    for (const { pattern, replacement } of typoPatterns) {
+      if (pattern.test(query)) {
+        corrections.push({
+          text: query.replace(pattern, replacement),
+          type: 'correction',
+          score: 70,
+          metadata: { originalQuery: query },
+        });
+      }
+    }
+
+    return corrections;
+  }
+
+  /**
+   * Track search analytics
+   */
+  private trackSearchAnalytics(
+    query: string,
+    resultCount: number,
+    searchTimeMs: number,
+    resourceTypes: string[]
+  ): void {
+    const analytics: SearchAnalytics = {
+      query,
+      timestamp: Date.now(),
+      resultCount,
+      searchTimeMs,
+      resourceTypes,
+    };
+
+    // Add to history
+    this.searchHistory.unshift(analytics);
+    if (this.searchHistory.length > this.maxHistorySize) {
+      this.searchHistory.pop();
+    }
+
+    // Update popular searches
+    const count = this.popularSearches.get(query) || 0;
+    this.popularSearches.set(query, count + 1);
+
+    // Log analytics
+    logger.info({
+      analytics,
+      historySize: this.searchHistory.length,
+      popularSearchesSize: this.popularSearches.size,
+    }, 'Search analytics tracked');
+  }
+
+  /**
+   * Get search analytics
+   */
+  getSearchAnalytics(): {
+    recentSearches: SearchAnalytics[];
+    popularSearches: Array<{ query: string; count: number }>;
+    averageSearchTime: number;
+    totalSearches: number;
+  } {
+    const popularSearchesArray = Array.from(this.popularSearches.entries())
+      .map(([query, count]) => ({ query, count }))
+      .sort((a, b) => b.count - a.count);
+
+    const averageSearchTime = this.searchHistory.length > 0
+      ? this.searchHistory.reduce((sum, h) => sum + h.searchTimeMs, 0) / this.searchHistory.length
+      : 0;
+
+    return {
+      recentSearches: this.searchHistory.slice(0, 10),
+      popularSearches: popularSearchesArray.slice(0, 10),
+      averageSearchTime,
+      totalSearches: this.searchHistory.length,
+    };
+  }
+
+  /**
    * Format search results for user presentation
    */
   private async formatSearchResults(
@@ -485,7 +1138,7 @@ export class UnifiedSearchService {
     }
 
     // Get ID translator for human-readable names
-    const translator = idTranslator;
+    idTranslationService.setClient(client);
 
     let text = `# Search Results for "${options.query}"\n\n`;
     text += `Found ${results.length} result${results.length > 1 ? 's' : ''} in ${searchTimeMs}ms\n\n`;
@@ -499,29 +1152,77 @@ export class UnifiedSearchService {
 
     // Display results by type
     for (const [type, typeResults] of Object.entries(resultsByType)) {
-      text += `## ${type.charAt(0).toUpperCase() + type.slice(1)}s (${typeResults.length})\n\n`;
+      const displayType = type.replace(/_/g, ' ').split(' ').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ');
+      
+      text += `## ${displayType}s (${typeResults.length})\n\n`;
       
       for (const result of typeResults.slice(0, 10)) {
         // Use translator to get human-readable names
-        const translatedName = type === 'property' 
-          ? await translator.translateProperty(result.id, client)
-          : { displayName: result.name };
+        let translatedName = { displayName: result.name };
+        try {
+          if (type === 'property') {
+            const translation = await idTranslationService.translate(result.id, 'property');
+            translatedName = { displayName: translation.name };
+          } else if (type === 'certificate') {
+            const translation = await idTranslationService.translate(result.id, 'certificate');
+            translatedName = { displayName: translation.name };
+          } else if (type === 'network_list') {
+            const translation = await idTranslationService.translate(result.id, 'network_list');
+            translatedName = { displayName: translation.name };
+          }
+        } catch (error) {
+          // Use fallback name if translation fails
+          logger.debug({ error, type, id: result.id }, 'Failed to translate ID');
+        }
 
         text += `### ${translatedName.displayName || result.name}\n`;
         text += `- ID: \`${result.id}\`\n`;
         
-        // Include contract and group info if available
-        if (result.details?.contractId) {
-          const contractName = await translator.translateContract(result.details.contractId, client);
-          text += `- Contract: ${contractName.displayName}\n`;
-        }
-        if (result.details?.groupId) {
-          const groupName = await translator.translateGroup(result.details.groupId, client);
-          text += `- Group: ${groupName.displayName}\n`;
+        // Show breadcrumb if available
+        if (result.breadcrumb && result.breadcrumb.length > 0) {
+          text += `- Path: ${result.breadcrumb.join(' > ')}\n`;
         }
         
-        text += `- Relevance: ${result.relevanceScore}\n`;
+        // Include contract and group info if available
+        if (result.details?.contractId) {
+          try {
+            const contractTranslation = await idTranslationService.translate(result.details.contractId, 'contract');
+            text += `- Contract: ${contractTranslation.name}\n`;
+          } catch {
+            text += `- Contract: ${result.details.contractId}\n`;
+          }
+        }
+        if (result.details?.groupId) {
+          try {
+            const groupTranslation = await idTranslationService.translate(result.details.groupId, 'group');
+            text += `- Group: ${groupTranslation.name}\n`;
+          } catch {
+            text += `- Group: ${result.details.groupId}\n`;
+          }
+        }
+        
+        // Show last modified if available
+        if (result.lastModified) {
+          text += `- Last Modified: ${new Date(result.lastModified).toLocaleString()}\n`;
+        }
+        
+        // Show tags if available
+        if (result.tags && result.tags.length > 0) {
+          text += `- Tags: ${result.tags.join(', ')}\n`;
+        }
+        
+        text += `- Relevance Score: ${result.relevanceScore}\n`;
         text += `- Source: ${result.source}\n`;
+        
+        // Show highlights if available
+        if (result.highlights && result.highlights.length > 0) {
+          text += `- Matching Text:\n`;
+          for (const highlight of result.highlights.slice(0, 3)) {
+            text += `  - "${highlight}"\n`;
+          }
+        }
         
         if (options.includeDetails && result.details) {
           if (result.details.matches) {
@@ -535,7 +1236,7 @@ export class UnifiedSearchService {
       }
       
       if (typeResults.length > 10) {
-        text += `... and ${typeResults.length - 10} more ${type}s\n\n`;
+        text += `... and ${typeResults.length - 10} more ${displayType.toLowerCase()}s\n\n`;
       }
     }
 

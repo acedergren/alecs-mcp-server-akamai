@@ -21,6 +21,7 @@ import { AkamaiError } from '../../core/errors/error-handler';
 import { getUserHintService, enhanceResponseWithHints, type HintContext } from '../../services/user-hint-service';
 import { idTranslationService, type Translation, type TranslationOptions } from '../../services/id-translation-service';
 import { contractGroupDiscovery } from '../../services/contract-group-discovery-service';
+import { errorRecoveryService, RecoveryContext } from '../../services/error-recovery-service';
 
 /**
  * Request context for propagating metadata through operations
@@ -200,7 +201,8 @@ export abstract class BaseTool {
         baseResponse,
         {
           error: error instanceof Error ? error : new Error(errorDetails.detail),
-          customer: hintContext.customer
+          customer: hintContext.customer,
+          recoverySuggestions: hintContext.recoverySuggestions
         }
       );
     }
@@ -421,6 +423,30 @@ export abstract class BaseTool {
         args: input,
         customer
       });
+      
+      // Build recovery context
+      const recoveryContext: RecoveryContext = {
+        error: enhancedError,
+        tool: options?.toolName || operation,
+        operation,
+        args: input,
+        customer,
+        circuitBreakerState: errorRecoveryService.getCircuitBreaker(this.domain, operation).getState(),
+        requestMetadata: {
+          path: (error as any).path,
+          method: (error as any).method,
+          headers: (error as any).headers,
+          body: (error as any).body
+        }
+      };
+      
+      // Get recovery suggestions
+      const recoverySuggestions = await errorRecoveryService.analyzeError(recoveryContext);
+      
+      // Add recovery suggestions to hint context
+      if (recoverySuggestions.length > 0) {
+        hintContext.recoverySuggestions = recoverySuggestions;
+      }
       
       return this.createErrorResponse(enhancedError, hintContext);
     }

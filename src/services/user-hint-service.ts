@@ -100,6 +100,7 @@ export interface HintContext {
   userExperienceLevel?: 'beginner' | 'intermediate' | 'expert';
   recentErrors?: string[];
   previousTools?: string[];
+  recoverySuggestions?: any[]; // Recovery suggestions from error recovery service
 }
 
 /**
@@ -1149,9 +1150,118 @@ class WorkflowHintProvider implements HintProvider {
           message: '🔄 Workflows orchestrate multiple operations with proper sequencing'
         }
       ];
+      
+      if (context.tool === 'workflow_orchestrator_execute') {
+        hints.before.push({
+          type: HintType.INFO,
+          message: 'Workflows will automatically handle rollback on failure'
+        });
+        hints.tips.push({
+          type: HintType.TIP,
+          message: 'Use dryRun: true to validate parameters without executing'
+        });
+      }
+      
+      if (context.tool === 'workflow_orchestrator_status') {
+        hints.tips.push({
+          type: HintType.TIP,
+          message: 'Check individual step progress and results in the execution details'
+        });
+      }
     }
     
     return hints;
+  }
+  
+  getWorkflowHints(): string[] {
+    return [
+      '💡 Workflows provide atomic operations with automatic rollback',
+      '⚡ Pre-built workflows cover common Akamai operations',
+      '🔧 Custom workflows can be created for specific needs',
+      '📊 Track workflow execution progress in real-time'
+    ];
+  }
+  
+  getWorkflowSpecificHints(workflowName: string, status: string): string[] {
+    const hints: string[] = [];
+    
+    if (status === 'completed') {
+      hints.push('✅ Workflow completed successfully!');
+      
+      switch (workflowName) {
+        case 'property_deploy':
+          hints.push('🌐 Your property is now active. Update DNS to point to the edge hostname.');
+          hints.push('📊 Monitor traffic with reporting_traffic_by_property tool.');
+          break;
+        case 'ssl_certificate_deploy':
+          hints.push('🔐 Certificate deployed! Test HTTPS access to your domains.');
+          hints.push('📅 Set up certificate renewal reminders.');
+          break;
+        case 'dns_zone_setup':
+          hints.push('🌍 DNS zone active! Update your domain registrar nameservers.');
+          hints.push('🔍 Verify DNS resolution with diagnostic tools.');
+          break;
+        case 'security_policy_deploy':
+          hints.push('🛡️ WAF policy active! Monitor security events in reporting.');
+          hints.push('⚙️ Fine-tune rules based on traffic patterns.');
+          break;
+        case 'site_migration':
+          hints.push('🚀 Migration complete! Test thoroughly before cutting over DNS.');
+          hints.push('📋 Keep the old configuration for rollback if needed.');
+          break;
+      }
+    } else if (status === 'failed') {
+      hints.push('❌ Workflow failed. Check the error details above.');
+      hints.push('🔄 Use workflow_rollback to undo completed steps if needed.');
+      hints.push('💡 Fix the issue and retry with workflow_execute.');
+    } else if (status === 'rolling_back') {
+      hints.push('⏪ Rollback in progress. Completed steps are being reversed.');
+      hints.push('⏳ Wait for rollback to complete before retrying.');
+    }
+    
+    return hints;
+  }
+}
+
+// Export specific hint methods for workflows
+export class ConfigurationHintsService {
+  private hintService: UserHintService;
+  private workflowProvider: WorkflowHintProvider;
+  
+  constructor() {
+    this.hintService = getUserHintService();
+    this.workflowProvider = new WorkflowHintProvider();
+  }
+  
+  async getWorkflowHints(): Promise<{ general: string[] }> {
+    return {
+      general: this.workflowProvider.getWorkflowHints()
+    };
+  }
+  
+  async getWorkflowSpecificHints(workflowName: string, status: string): Promise<string[]> {
+    return this.workflowProvider.getWorkflowSpecificHints(workflowName, status);
+  }
+  
+  async getPropertyRuleHints(client: AkamaiClient, context: any): Promise<any> {
+    // Return recommended behaviors for property rules
+    return {
+      recommendedBehaviors: [
+        {
+          name: 'caching',
+          options: {
+            behavior: 'CACHE_CONTROL',
+            mustRevalidate: false
+          }
+        },
+        {
+          name: 'gzipResponse',
+          options: {
+            behavior: 'ALWAYS'
+          }
+        }
+      ]
+    };
   }
 }
 
@@ -1174,6 +1284,7 @@ export async function enhanceResponseWithHints(
     userId?: string;
     customer?: string;
     error?: Error;
+    recoverySuggestions?: any[];
   }
 ): Promise<any> {
   const hintService = getUserHintService();
@@ -1186,7 +1297,8 @@ export async function enhanceResponseWithHints(
     hasError: !!options?.error,
     error: options?.error,
     response,
-    phase: options?.error ? 'error' : 'after'
+    phase: options?.error ? 'error' : 'after',
+    recoverySuggestions: options?.recoverySuggestions
   };
   
   const hints = await hintService.getHints(context);
@@ -1203,6 +1315,21 @@ export async function enhanceResponseWithHints(
   
   // Format hints for display
   let hintText = '';
+  
+  // Add recovery suggestions if available
+  if (options?.recoverySuggestions && options.recoverySuggestions.length > 0) {
+    hintText += '\n\n## 🔧 Automatic Recovery Options\n';
+    options.recoverySuggestions.slice(0, 3).forEach((suggestion, index) => {
+      hintText += `${index + 1}. **${suggestion.description}**\n`;
+      hintText += `   - Confidence: ${Math.round(suggestion.confidence * 100)}%\n`;
+      hintText += `   - Automatic: ${suggestion.automatic ? 'Yes' : 'No'}\n`;
+      if (suggestion.automatic) {
+        hintText += `   - Use \`error_recovery_execute\` with strategy: \`${suggestion.strategy}\`\n`;
+      }
+      hintText += '\n';
+    });
+    hintText += 'Run `error_recovery_suggest` for detailed recovery analysis.\n';
+  }
   
   if (options?.error && hints.common_errors.length > 0) {
     hintText += '\n\n## 💡 Common Solutions\n';

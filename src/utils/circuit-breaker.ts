@@ -228,6 +228,14 @@ export class CircuitBreaker {
   }
   
   /**
+   * Get current state
+   */
+  getState(): CircuitState {
+    this.updateState();
+    return this.state;
+  }
+  
+  /**
    * Reset the circuit breaker
    */
   reset(): void {

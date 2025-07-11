@@ -39,3 +39,4 @@ export * from './dns-changelist-service';
 export * from './RealTimeMonitoringService';
 // export * from './ReportingService';
 // export * from './TrafficAnalyticsService';
+export * from './error-recovery-service';
