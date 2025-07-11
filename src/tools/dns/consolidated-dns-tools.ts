@@ -282,7 +282,8 @@ export class ConsolidatedDNSTools extends BaseTool {
       {
         customer: params.customer,
         format: 'text',
-        successMessage: (result: any) => result.message
+        successMessage: (result: any) => result.message,
+        toolName: 'dns_zone_create'
       }
     );
   }
@@ -386,7 +387,8 @@ export class ConsolidatedDNSTools extends BaseTool {
       {
         customer: params.customer,
         format: 'text',
-        successMessage: (result: any) => result.message
+        successMessage: (result: any) => result.message,
+        toolName: 'dns_record_upsert'
       }
     );
   }
@@ -476,7 +478,8 @@ export class ConsolidatedDNSTools extends BaseTool {
       {
         customer: params.customer,
         format: 'text',
-        successMessage: (result: any) => result.message
+        successMessage: (result: any) => result.message,
+        toolName: 'dns_zone_activate'
       }
     );
   }
