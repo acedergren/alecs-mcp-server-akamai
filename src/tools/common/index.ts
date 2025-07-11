@@ -5,7 +5,7 @@
  * validators, and response schemas used across ALECS tools.
  */
 
-// Base class for all tools
+// Base class for all tools - NOW WITH ENHANCED FEATURES!
 export { BaseTool } from './base-tool';
 
 // Common validators

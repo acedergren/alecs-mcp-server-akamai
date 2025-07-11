@@ -197,7 +197,8 @@ export class ConsolidatedCertificateTools extends BaseTool {
       {
         customer: params.customer,
         format: 'text',
-        successMessage: (result: any) => result.message
+        successMessage: (result: any) => result.message,
+        toolName: 'certificate_dv_create'
       }
     );
   }
@@ -246,7 +247,8 @@ export class ConsolidatedCertificateTools extends BaseTool {
       {
         customer: params.customer,
         cacheKey: (p) => `enrollment:${p.enrollmentId}:status`,
-        cacheTtl: 30 // 30 seconds for status checks
+        cacheTtl: 30, // 30 seconds for status checks
+        toolName: 'certificate_status'
       }
     );
   }
@@ -304,7 +306,8 @@ export class ConsolidatedCertificateTools extends BaseTool {
       {
         customer: params.customer,
         cacheKey: (p) => `enrollment:${p.enrollmentId}:validations`,
-        cacheTtl: 60 // 1 minute
+        cacheTtl: 60, // 1 minute
+        toolName: 'certificate_validation_get'
       }
     );
   }
@@ -404,7 +407,8 @@ export class ConsolidatedCertificateTools extends BaseTool {
       {
         customer: params.customer,
         format: 'text',
-        successMessage: (result: any) => result.message
+        successMessage: (result: any) => result.message,
+        toolName: 'certificate_property_link'
       }
     );
   }
@@ -486,7 +490,8 @@ export class ConsolidatedCertificateTools extends BaseTool {
             };
           },
           {
-            customer: params.customer
+            customer: params.customer,
+            toolName: 'certificate_deployment_monitor'
           }
         );
       }
@@ -575,7 +580,8 @@ export class ConsolidatedCertificateTools extends BaseTool {
       {
         customer: params.customer,
         cacheKey: (p) => `enrollment:${p.enrollmentId}:deployments`,
-        cacheTtl: 60 // 1 minute
+        cacheTtl: 60, // 1 minute
+        toolName: 'certificate_deployment_status'
       }
     );
   }
@@ -632,7 +638,8 @@ export class ConsolidatedCertificateTools extends BaseTool {
       {
         customer: params.customer,
         cacheKey: () => `enrollments:list:${params.contractId || 'all'}:${params.status || 'all'}`,
-        cacheTtl: 300 // 5 minutes
+        cacheTtl: 300, // 5 minutes
+        toolName: 'certificate_list'
       }
     );
   }
@@ -1797,7 +1804,8 @@ export class ConsolidatedCertificateTools extends BaseTool {
         };
       },
       {
-        customer: params.customer
+        customer: params.customer,
+        toolName: 'certificate_search'
       }
     );
   }

@@ -17,6 +17,7 @@ import {
   type MCPToolResponse
 } from '../common';
 import { AkamaiClient } from '../../akamai-client';
+import { enhanceResponseWithHints } from '../../services/user-hint-service';
 
 /**
  * FastPurge-specific schemas
@@ -62,7 +63,7 @@ async function purgeUrls(
       }
     });
 
-    return {
+    const baseResponse = {
       content: [{
         type: 'text',
         text: JSON.stringify({
@@ -77,13 +78,27 @@ async function purgeUrls(
         }, null, 2)
       }]
     };
+    
+    return await enhanceResponseWithHints(
+      'fastpurge_url',
+      args,
+      baseResponse,
+      { customer: args.customer || 'default' }
+    );
   } catch (error: any) {
-    return {
+    const errorResponse = {
       content: [{
         type: 'text',
         text: `Error in FastPurge URL operation: ${error.message || JSON.stringify(error)}`
       }]
     };
+    
+    return await enhanceResponseWithHints(
+      'fastpurge_url',
+      args,
+      errorResponse,
+      { customer: args.customer || 'default', error: error }
+    );
   }
 }
 
@@ -103,7 +118,7 @@ async function purgeCPCodes(
       }
     });
 
-    return {
+    const baseResponse = {
       content: [{
         type: 'text',
         text: JSON.stringify({
@@ -118,13 +133,27 @@ async function purgeCPCodes(
         }, null, 2)
       }]
     };
+    
+    return await enhanceResponseWithHints(
+      'fastpurge_cpcode',
+      args,
+      baseResponse,
+      { customer: args.customer || 'default' }
+    );
   } catch (error: any) {
-    return {
+    const errorResponse = {
       content: [{
         type: 'text',
         text: `Error in FastPurge CP code operation: ${error.message || JSON.stringify(error)}`
       }]
     };
+    
+    return await enhanceResponseWithHints(
+      'fastpurge_cpcode',
+      args,
+      errorResponse,
+      { customer: args.customer || 'default', error: error }
+    );
   }
 }
 
@@ -144,7 +173,7 @@ async function purgeTags(
       }
     });
 
-    return {
+    const baseResponse = {
       content: [{
         type: 'text',
         text: JSON.stringify({
@@ -159,13 +188,27 @@ async function purgeTags(
         }, null, 2)
       }]
     };
+    
+    return await enhanceResponseWithHints(
+      'fastpurge_tag',
+      args,
+      baseResponse,
+      { customer: args.customer || 'default' }
+    );
   } catch (error: any) {
-    return {
+    const errorResponse = {
       content: [{
         type: 'text',
         text: `Error in FastPurge tag operation: ${error.message || JSON.stringify(error)}`
       }]
     };
+    
+    return await enhanceResponseWithHints(
+      'fastpurge_tag',
+      args,
+      errorResponse,
+      { customer: args.customer || 'default', error: error }
+    );
   }
 }
 
