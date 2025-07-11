@@ -48,7 +48,11 @@ export async function listProperties(args: z.infer<typeof PropertyToolSchemas.li
       format: 'text',
       formatter: formatPropertyList,
       cacheKey: (p) => `property:list:${p.contractId || 'all'}:${p.groupId || 'all'}:${p.offset || 0}`,
-      cacheTtl: 300 // 5 minutes
+      cacheTtl: 300, // 5 minutes
+      translation: {
+        enabled: true,
+        mappings: BaseTool.COMMON_TRANSLATIONS.property
+      }
     }
   );
 }
@@ -82,7 +86,11 @@ export async function getProperty(args: z.infer<typeof PropertyToolSchemas.get>)
       format: 'text',
       formatter: formatPropertyDetails,
       cacheKey: (p) => `property:${p.propertyId}:${p.version || 'latest'}`,
-      cacheTtl: 300
+      cacheTtl: 300,
+      translation: {
+        enabled: true,
+        mappings: BaseTool.COMMON_TRANSLATIONS.property
+      }
     }
   );
 }

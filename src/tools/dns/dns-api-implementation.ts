@@ -89,7 +89,10 @@ export const DNSToolSchemas = {
     ttl: z.number().optional(),
     rdata: z.array(z.string()),
     comment: z.string().optional(),
-    customer: z.string().optional()
+    customer: z.string().optional(),
+    useChangelist: z.boolean().optional().describe('Use changelist abstraction for automatic submission and activation'),
+    network: z.enum(['STAGING', 'PRODUCTION']).optional().describe('Network environment when using changelist (default: STAGING)'),
+    autoActivate: z.boolean().optional().describe('Auto-activate changelist after submission (default: true)')
   }),
   
   updateRecord: z.object({
@@ -98,14 +101,20 @@ export const DNSToolSchemas = {
     type: z.string(),
     ttl: z.number().optional(),
     rdata: z.array(z.string()),
-    customer: z.string().optional()
+    customer: z.string().optional(),
+    useChangelist: z.boolean().optional().describe('Use changelist abstraction for automatic submission and activation'),
+    network: z.enum(['STAGING', 'PRODUCTION']).optional().describe('Network environment when using changelist (default: STAGING)'),
+    autoActivate: z.boolean().optional().describe('Auto-activate changelist after submission (default: true)')
   }),
   
   deleteRecord: z.object({
     zone: z.string(),
     name: z.string(),
     type: z.string(),
-    customer: z.string().optional()
+    customer: z.string().optional(),
+    useChangelist: z.boolean().optional().describe('Use changelist abstraction for automatic submission and activation'),
+    network: z.enum(['STAGING', 'PRODUCTION']).optional().describe('Network environment when using changelist (default: STAGING)'),
+    autoActivate: z.boolean().optional().describe('Auto-activate changelist after submission (default: true)')
   }),
   
   bulkRecords: z.object({

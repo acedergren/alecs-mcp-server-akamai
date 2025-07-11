@@ -27,6 +27,7 @@ export * from './certificate-deployment-coordinator';
 export * from './certificate-enrollment-service';
 export * from './certificate-validation-monitor';
 export * from './contract-group-discovery-service';
+export * from './dns-changelist-service';
 // export {
 //   FastPurgeService,
 //   type FastPurgeRequest,

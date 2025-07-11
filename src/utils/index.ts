@@ -1,4 +1,4 @@
-// Export unified error handler as the primary error handling interface
+// Export error handler as the primary error handling interface
 export {
   UnifiedErrorHandler,
   AkamaiError,
@@ -13,7 +13,38 @@ export {
   ErrorRecovery,
   type ProblemDetails,
   type ErrorContext,
-} from './unified-error-handler';
+  // Domain-specific errors
+  PropertyNotFoundError,
+  PropertyVersionNotFoundError,
+  PropertyValidationError,
+  PropertyAccessDeniedError,
+  PropertyActivationError,
+  ActivationInProgressError,
+  RuleValidationError,
+  EdgeHostnameError,
+  ContractAccessError,
+  GroupAccessError,
+  PropertyDependencyError,
+  ZoneNotFoundError,
+  RecordNotFoundError,
+  ZoneAlreadyExistsError,
+  RecordAlreadyExistsError,
+  DNSValidationError,
+  ZoneDependencyError,
+  DNSAccessDeniedError,
+  ChangelistError,
+  DNSSECError,
+  UnauthorizedError,
+  ForbiddenError,
+  AccountSwitchError,
+  InvalidCustomerError,
+  EnrollmentNotFoundError,
+  ValidationPendingError,
+  isPropertyError,
+  isDNSError,
+  isAuthError,
+  isCertificateError,
+} from '../core/errors/error-handler';
 
 // Export all other utility functions
 export * from './customer-config';

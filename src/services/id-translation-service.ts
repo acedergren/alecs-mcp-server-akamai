@@ -2,781 +2,856 @@
  * ID TRANSLATION SERVICE
  * 
  * ARCHITECTURAL PURPOSE:
- * Provides a centralized service for translating Akamai's cryptic IDs
- * (like ctr_V-44KRACO, grp_123456, prp_789012) into human-readable names.
- * This dramatically improves code readability and user experience.
+ * Provides centralized translation of cryptic Akamai IDs (property IDs, contract IDs, etc.)
+ * into human-readable names. Implements caching to minimize API calls and improve performance.
  * 
  * KEY FEATURES:
- * 1. Automatic ID detection and translation
- * 2. Caching for performance optimization
- * 3. Batch translation support
- * 4. Fallback to ID when name unavailable
- * 5. Support for all major Akamai resource types
+ * 1. Translates property IDs to property names
+ * 2. Translates contract IDs to contract names
+ * 3. Translates group IDs to group names
+ * 4. Translates CP codes to CP code names
+ * 5. Implements LRU cache with TTL
+ * 6. Batch translation support
+ * 7. Fallback to ID if translation fails
  * 
- * SUPPORTED RESOURCE TYPES:
- * - Contracts (ctr_*) -> Contract names
- * - Groups (grp_*) -> Group names
- * - Properties (prp_*) -> Property names
- * - CP Codes (cpc_*) -> CP Code names
- * - Certificates (enrollment_*) -> Certificate common names
- * - DNS Zones -> Zone names
- * - Network Lists -> List names
+ * INTEGRATION:
+ * This service is integrated into BaseTool.execute to automatically translate
+ * IDs in API responses before returning to the user.
  */
 
 import { createLogger } from '../utils/pino-logger';
-import { CacheService } from '../utils/cache-service';
-import { EdgeGridClient } from '../utils/edgegrid-client';
 import type { Logger } from 'pino';
+import { AkamaiError, AkamaiErrorTypes } from '../core/errors/error-handler';
 
 /**
- * Resource types that can be translated
+ * Generic Akamai client interface for ID translation
  */
-export enum ResourceType {
-  CONTRACT = 'contract',
-  GROUP = 'group',
-  PROPERTY = 'property',
-  CPCODE = 'cpcode',
-  CERTIFICATE = 'certificate',
-  DNS_ZONE = 'dns_zone',
-  NETWORK_LIST = 'network_list',
+interface AkamaiClientInterface {
+  request<T = unknown>(options: {
+    path: string;
+    method?: string;
+    params?: Record<string, string>;
+    queryParams?: Record<string, string>;
+  }): Promise<T>;
 }
 
 /**
- * Translation result for a single ID
+ * Translation cache entry
  */
-export interface TranslationResult {
+interface CacheEntry<T> {
+  value: T;
+  timestamp: number;
+  ttl: number;
+}
+
+/**
+ * Translation mapping for an ID
+ */
+export interface Translation {
   id: string;
   name: string;
-  type: ResourceType;
+  type: 'property' | 'contract' | 'group' | 'cpcode' | 'product' | 'network_list' | 'certificate';
   metadata?: Record<string, unknown>;
 }
 
 /**
- * Batch translation request
+ * Options for translation
  */
-export interface BatchTranslationRequest {
-  ids: string[];
-  type?: ResourceType;
-  customer?: string;
+export interface TranslationOptions {
+  /** Skip cache and force fresh lookup */
+  skipCache?: boolean;
+  /** Include additional metadata in translation */
+  includeMetadata?: boolean;
+  /** Custom TTL for this translation (ms) */
+  ttl?: number;
 }
-
-/**
- * ID patterns for automatic detection
- */
-const ID_PATTERNS: Record<ResourceType, RegExp> = {
-  [ResourceType.CONTRACT]: /^ctr_[A-Z0-9-]+$/i,
-  [ResourceType.GROUP]: /^grp_\d+$/,
-  [ResourceType.PROPERTY]: /^prp_\d+$/,
-  [ResourceType.CPCODE]: /^cpc_\d+$/,
-  [ResourceType.CERTIFICATE]: /^enrollment_\d+$/,
-  [ResourceType.DNS_ZONE]: /^[a-zA-Z0-9.-]+\.(com|org|net|edu|gov|io|co|uk|de|fr|jp|cn|au|ca|br|in|mx|nl|es|it|ru|kr|sg|hk|tw|ar|pl|se|no|fi|dk|be|ch|at|ie|nz|za|ae|sa|eg|tr|il|my|th|vn|id|ph|pk|bd|ng|ke|et|tz|ug|zm|zw|mz|mg|ao|cm|ci|gh|ma|ne|bf|ml|sn|tg|bj|tn|ly|sd|ss|er|dj|so|rw|bi|km|sc|mu|sz|ls|bw|na|za|mw|zm|zw)$/,
-  [ResourceType.NETWORK_LIST]: /^[a-zA-Z0-9_-]+_LIST$/,
-};
-
-/**
- * Cache configuration
- */
-const CACHE_CONFIG = {
-  ttl: 3600000, // 1 hour
-  maxSize: 10000, // Maximum number of translations to cache
-  keyPrefix: 'id-translation',
-};
 
 /**
  * ID Translation Service
  */
-export class IDTranslationService {
+export class IdTranslationService {
   private logger: Logger;
-  private cache: CacheService;
-  private client: EdgeGridClient;
-  
-  constructor(client: EdgeGridClient) {
+  private cache: Map<string, CacheEntry<Translation>>;
+  private readonly defaultTTL = 3600000; // 1 hour
+  private readonly maxCacheSize = 10000;
+  private client?: AkamaiClientInterface;
+
+  constructor() {
     this.logger = createLogger('id-translation-service');
-    this.cache = new CacheService();
+    this.cache = new Map();
+  }
+
+  /**
+   * Set the Akamai client for API calls
+   */
+  setClient(client: AkamaiClientInterface): void {
     this.client = client;
   }
 
   /**
-   * Translate a single ID to its human-readable name
+   * Translate a single ID
    */
-  async translateId(id: string, type?: ResourceType, customer?: string): Promise<TranslationResult> {
+  async translate(
+    id: string, 
+    type: Translation['type'], 
+    options: TranslationOptions = {}
+  ): Promise<Translation> {
+    const cacheKey = `${type}:${id}`;
+    
     // Check cache first
-    const cacheKey = this.getCacheKey(id, customer);
-    const cached = await this.cache.get<TranslationResult>(cacheKey);
-    if (cached) {
-      this.logger.debug({ id, type, cached }, 'Translation found in cache');
-      return cached;
+    if (!options.skipCache) {
+      const cached = this.getFromCache(cacheKey);
+      if (cached) {
+        return cached;
+      }
     }
 
-    // Detect resource type if not provided
-    const resourceType = type || this.detectResourceType(id);
-    if (!resourceType) {
-      this.logger.warn({ id }, 'Unable to detect resource type');
-      return { id, name: id, type: ResourceType.PROPERTY };
-    }
-
-    // Fetch translation based on type
     try {
-      const result = await this.fetchTranslation(id, resourceType, customer);
+      // Perform translation based on type
+      const translation = await this.performTranslation(id, type, options);
       
       // Cache the result
-      await this.cache.set(cacheKey, result, CACHE_CONFIG.ttl);
+      this.addToCache(cacheKey, translation, options.ttl || this.defaultTTL);
       
-      return result;
+      return translation;
     } catch (error) {
-      this.logger.error({ error, id, type: resourceType }, 'Failed to translate ID');
-      // Return ID as fallback
-      return { id, name: id, type: resourceType };
+      this.logger.warn({ id, type, error }, 'Failed to translate ID, using fallback');
+      
+      // Return fallback translation
+      return {
+        id,
+        name: id, // Use ID as name if translation fails
+        type,
+      };
     }
   }
 
   /**
    * Translate multiple IDs in batch
    */
-  async translateBatch(request: BatchTranslationRequest): Promise<Record<string, TranslationResult>> {
-    const results: Record<string, TranslationResult> = {};
-    
-    // Group IDs by detected type for efficient fetching
-    const groupedIds = this.groupIdsByType(request.ids, request.type);
-    
-    // Process each group
-    for (const [type, ids] of Object.entries(groupedIds)) {
-      const resourceType = type as ResourceType;
+  async translateBatch(
+    items: Array<{ id: string; type: Translation['type'] }>,
+    options: TranslationOptions = {}
+  ): Promise<Map<string, Translation>> {
+    const results = new Map<string, Translation>();
+    const toFetch: typeof items = [];
+
+    // Check cache for each item
+    for (const item of items) {
+      const cacheKey = `${item.type}:${item.id}`;
       
-      // Check cache for each ID
-      const uncachedIds: string[] = [];
-      for (const id of ids) {
-        const cacheKey = this.getCacheKey(id, request.customer);
-        const cached = await this.cache.get<TranslationResult>(cacheKey);
+      if (!options.skipCache) {
+        const cached = this.getFromCache(cacheKey);
         if (cached) {
-          results[id] = cached;
-        } else {
-          uncachedIds.push(id);
+          results.set(item.id, cached);
+          continue;
         }
       }
       
-      // Fetch uncached translations
-      if (uncachedIds.length > 0) {
-        try {
-          const batchResults = await this.fetchBatchTranslations(
-            uncachedIds,
-            resourceType,
-            request.customer
-          );
+      toFetch.push(item);
+    }
+
+    // Batch fetch remaining items by type
+    const byType = this.groupByType(toFetch);
+    
+    for (const [type, ids] of byType.entries()) {
+      try {
+        const translations = await this.performBatchTranslation(ids, type, options);
+        
+        for (const translation of translations) {
+          results.set(translation.id, translation);
           
-          // Cache and store results
-          for (const result of batchResults) {
-            const cacheKey = this.getCacheKey(result.id, request.customer);
-            await this.cache.set(cacheKey, result, CACHE_CONFIG.ttl);
-            results[result.id] = result;
-          }
-        } catch (error) {
-          this.logger.error({ error, type: resourceType, ids: uncachedIds }, 'Batch translation failed');
-          // Add fallback results for failed IDs
-          for (const id of uncachedIds) {
-            results[id] = { id, name: id, type: resourceType };
-          }
+          // Cache each result
+          const cacheKey = `${type}:${translation.id}`;
+          this.addToCache(cacheKey, translation, options.ttl || this.defaultTTL);
+        }
+      } catch (error) {
+        this.logger.warn({ type, ids, error }, 'Failed to batch translate IDs');
+        
+        // Add fallback translations for failed items
+        for (const id of ids) {
+          results.set(id, { id, name: id, type });
         }
       }
     }
-    
+
     return results;
   }
 
   /**
    * Translate IDs in an object recursively
    */
-  async translateObject<T extends Record<string, any>>(
-    obj: T,
-    customer?: string
-  ): Promise<T> {
-    // Find all IDs in the object
-    const ids = this.extractIdsFromObject(obj);
-    
-    if (ids.length === 0) {
+  async translateInObject(
+    obj: any,
+    mappings: Array<{
+      path: string;
+      type: Translation['type'];
+    }>,
+    options: TranslationOptions = {}
+  ): Promise<any> {
+    if (!obj || typeof obj !== 'object') {
       return obj;
     }
-    
-    // Translate all IDs
-    const translations = await this.translateBatch({ ids, customer });
-    
-    // Create a copy of the object with translated names
-    return this.applyTranslations(obj, translations);
+
+    // Clone the object to avoid mutations
+    const result = Array.isArray(obj) ? [...obj] : { ...obj };
+
+    // Collect all IDs to translate
+    const toTranslate: Array<{ id: string; type: Translation['type']; path: string }> = [];
+
+    for (const mapping of mappings) {
+      const ids = this.extractIdsFromPath(result, mapping.path);
+      for (const id of ids) {
+        toTranslate.push({ id, type: mapping.type, path: mapping.path });
+      }
+    }
+
+    // Batch translate all IDs
+    const items = toTranslate.map(t => ({ id: t.id, type: t.type }));
+    const translations = await this.translateBatch(items, options);
+
+    // Apply translations back to object
+    for (const { id, path } of toTranslate) {
+      const translation = translations.get(id);
+      if (translation && translation.name !== id) {
+        this.applyTranslationToPath(result, path, id, translation.name);
+      }
+    }
+
+    return result;
   }
 
   /**
-   * Clear translation cache
+   * Clear the translation cache
    */
-  async clearCache(): Promise<void> {
-    await this.cache.clear();
+  clearCache(): void {
+    this.cache.clear();
     this.logger.info('Translation cache cleared');
   }
 
   /**
-   * Detect resource type from ID format
+   * Get cache statistics
    */
-  private detectResourceType(id: string): ResourceType | null {
-    for (const [type, pattern] of Object.entries(ID_PATTERNS)) {
-      if (pattern.test(id)) {
-        return type as ResourceType;
-      }
-    }
-    return null;
+  getCacheStats(): {
+    size: number;
+    maxSize: number;
+    hitRate: number;
+    entries: Array<{ key: string; age: number }>;
+  } {
+    const now = Date.now();
+    const entries = Array.from(this.cache.entries()).map(([key, entry]) => ({
+      key,
+      age: now - entry.timestamp,
+    }));
+
+    return {
+      size: this.cache.size,
+      maxSize: this.maxCacheSize,
+      hitRate: 0, // Would need to track hits/misses for this
+      entries: entries.sort((a, b) => b.age - a.age),
+    };
   }
 
   /**
-   * Group IDs by their detected type
+   * Perform actual translation based on type
    */
-  private groupIdsByType(ids: string[], defaultType?: ResourceType): Record<string, string[]> {
-    const grouped: Record<string, string[]> = {};
-    
-    for (const id of ids) {
-      const type = defaultType || this.detectResourceType(id);
-      if (type) {
-        if (!grouped[type]) {
-          grouped[type] = [];
-        }
-        grouped[type].push(id);
-      }
-    }
-    
-    return grouped;
-  }
-
-  /**
-   * Get cache key for an ID
-   */
-  private getCacheKey(id: string, customer?: string): string {
-    return `${CACHE_CONFIG.keyPrefix}:${customer || 'default'}:${id}`;
-  }
-
-  /**
-   * Fetch translation for a single ID
-   */
-  private async fetchTranslation(
+  private async performTranslation(
     id: string,
-    type: ResourceType,
-    customer?: string
-  ): Promise<TranslationResult> {
+    type: Translation['type'],
+    options: TranslationOptions
+  ): Promise<Translation> {
+    if (!this.client) {
+      throw new AkamaiError({
+        type: AkamaiErrorTypes.CONFIGURATION_ERROR,
+        title: 'Configuration Error',
+        detail: 'Akamai client not set in ID translation service',
+        status: 500,
+      });
+    }
+
     switch (type) {
-      case ResourceType.CONTRACT:
-        return this.fetchContractName(id, customer);
+      case 'property':
+        return this.translateProperty(id, options);
       
-      case ResourceType.GROUP:
-        return this.fetchGroupName(id, customer);
+      case 'contract':
+        return this.translateContract(id, options);
       
-      case ResourceType.PROPERTY:
-        return this.fetchPropertyName(id, customer);
+      case 'group':
+        return this.translateGroup(id, options);
       
-      case ResourceType.CPCODE:
-        return this.fetchCPCodeName(id, customer);
+      case 'cpcode':
+        return this.translateCpCode(id, options);
       
-      case ResourceType.CERTIFICATE:
-        return this.fetchCertificateName(id, customer);
+      case 'product':
+        return this.translateProduct(id, options);
       
-      case ResourceType.DNS_ZONE:
-        return { id, name: id, type }; // DNS zones use their name as ID
+      case 'network_list':
+        return this.translateNetworkList(id, options);
       
-      case ResourceType.NETWORK_LIST:
-        return this.fetchNetworkListName(id, customer);
+      case 'certificate':
+        return this.translateCertificate(id, options);
       
       default:
-        return { id, name: id, type };
+        throw new AkamaiError({
+          type: AkamaiErrorTypes.INVALID_PARAMETERS,
+          title: 'Invalid Translation Type',
+          detail: `Unknown translation type: ${type}`,
+          status: 400,
+        });
     }
   }
 
   /**
-   * Fetch batch translations for multiple IDs of the same type
+   * Translate property ID to name
    */
-  private async fetchBatchTranslations(
+  private async translateProperty(id: string, options: TranslationOptions): Promise<Translation> {
+    try {
+      const response = await this.client!.request({
+        method: 'GET',
+        path: `/papi/v1/properties/${id}`,
+      });
+
+      const property = response.properties?.items?.[0] || response.property;
+      
+      return {
+        id,
+        name: property?.propertyName || id,
+        type: 'property',
+        ...(options.includeMetadata && {
+          metadata: {
+            contractId: property?.contractId,
+            groupId: property?.groupId,
+            latestVersion: property?.latestVersion,
+          },
+        }),
+      };
+    } catch (error) {
+      throw new AkamaiError({
+        type: AkamaiErrorTypes.INTERNAL_SERVER_ERROR,
+        title: 'Translation Failed',
+        detail: `Failed to translate property ${id}`,
+        status: 500,
+        errors: [{
+          type: 'translation_error',
+          title: 'Property Translation Error',
+          detail: error instanceof Error ? error.message : String(error),
+        }],
+      });
+    }
+  }
+
+  /**
+   * Translate contract ID to name
+   */
+  private async translateContract(id: string, _options: TranslationOptions): Promise<Translation> {
+    try {
+      const response = await this.client!.request({
+        method: 'GET',
+        path: '/papi/v1/contracts',
+      });
+
+      const contract = response.contracts?.items?.find((c: any) => c.contractId === id);
+      
+      return {
+        id,
+        name: contract?.contractTypeName || id,
+        type: 'contract',
+      };
+    } catch (error) {
+      throw new AkamaiError({
+        type: AkamaiErrorTypes.INTERNAL_SERVER_ERROR,
+        title: 'Translation Failed',
+        detail: `Failed to translate contract ${id}`,
+        status: 500,
+        errors: [{
+          type: 'translation_error',
+          title: 'Contract Translation Error',
+          detail: error instanceof Error ? error.message : String(error),
+        }],
+      });
+    }
+  }
+
+  /**
+   * Translate group ID to name
+   */
+  private async translateGroup(id: string, options: TranslationOptions): Promise<Translation> {
+    try {
+      const response = await this.client!.request({
+        method: 'GET',
+        path: '/papi/v1/groups',
+      });
+
+      const group = response.groups?.items?.find((g: any) => g.groupId === id);
+      
+      return {
+        id,
+        name: group?.groupName || id,
+        type: 'group',
+        ...(options.includeMetadata && {
+          metadata: {
+            parentGroupId: group?.parentGroupId,
+            contractIds: group?.contractIds,
+          },
+        }),
+      };
+    } catch (error) {
+      throw new AkamaiError({
+        type: AkamaiErrorTypes.INTERNAL_SERVER_ERROR,
+        title: 'Translation Failed',
+        detail: `Failed to translate group ${id}`,
+        status: 500,
+        errors: [{
+          type: 'translation_error',
+          title: 'Group Translation Error',
+          detail: error instanceof Error ? error.message : String(error),
+        }],
+      });
+    }
+  }
+
+  /**
+   * Translate CP code to name
+   */
+  private async translateCpCode(id: string, options: TranslationOptions): Promise<Translation> {
+    try {
+      const response = await this.client!.request({
+        method: 'GET',
+        path: `/papi/v1/cpcodes/${id}`,
+      });
+
+      const cpcode = response.cpcode;
+      
+      return {
+        id,
+        name: cpcode?.cpcodeName || id,
+        type: 'cpcode',
+        ...(options.includeMetadata && {
+          metadata: {
+            productIds: cpcode?.productIds,
+            createdDate: cpcode?.createdDate,
+          },
+        }),
+      };
+    } catch (error) {
+      throw new AkamaiError({
+        type: AkamaiErrorTypes.INTERNAL_SERVER_ERROR,
+        title: 'Translation Failed',
+        detail: `Failed to translate CP code ${id}`,
+        status: 500,
+        errors: [{
+          type: 'translation_error',
+          title: 'CP Code Translation Error',
+          detail: error instanceof Error ? error.message : String(error),
+        }],
+      });
+    }
+  }
+
+  /**
+   * Translate product ID to name
+   */
+  private async translateProduct(id: string, _options: TranslationOptions): Promise<Translation> {
+    try {
+      const response = await this.client!.request({
+        method: 'GET',
+        path: '/papi/v1/products',
+        queryParams: { contractId: 'all' },
+      });
+
+      const product = response.products?.items?.find((p: any) => p.productId === id);
+      
+      return {
+        id,
+        name: product?.productName || id,
+        type: 'product',
+      };
+    } catch (error) {
+      throw new AkamaiError({
+        type: AkamaiErrorTypes.INTERNAL_SERVER_ERROR,
+        title: 'Translation Failed',
+        detail: `Failed to translate product ${id}`,
+        status: 500,
+        errors: [{
+          type: 'translation_error',
+          title: 'Product Translation Error',
+          detail: error instanceof Error ? error.message : String(error),
+        }],
+      });
+    }
+  }
+
+  /**
+   * Translate network list ID to name
+   */
+  private async translateNetworkList(id: string, options: TranslationOptions): Promise<Translation> {
+    try {
+      const response = await this.client!.request({
+        method: 'GET',
+        path: `/network-list/v2/network-lists/${id}`,
+      });
+
+      return {
+        id,
+        name: response.name || id,
+        type: 'network_list',
+        ...(options.includeMetadata && {
+          metadata: {
+            type: response.type,
+            elementCount: response.elementCount,
+            syncPoint: response.syncPoint,
+          },
+        }),
+      };
+    } catch (error) {
+      throw new AkamaiError({
+        type: AkamaiErrorTypes.INTERNAL_SERVER_ERROR,
+        title: 'Translation Failed',
+        detail: `Failed to translate network list ${id}`,
+        status: 500,
+        errors: [{
+          type: 'translation_error',
+          title: 'Network List Translation Error',
+          detail: error instanceof Error ? error.message : String(error),
+        }],
+      });
+    }
+  }
+
+  /**
+   * Translate certificate enrollment ID to name
+   */
+  private async translateCertificate(id: string, options: TranslationOptions): Promise<Translation> {
+    try {
+      const response = await this.client!.request({
+        method: 'GET',
+        path: `/cps/v2/enrollments/${id}`,
+      });
+
+      const cert = response.enrollment || response;
+      const cn = cert.csr?.cn || cert.certificateChain?.[0]?.certificate?.subject?.cn;
+      
+      return {
+        id,
+        name: cn || `Certificate ${id}`,
+        type: 'certificate',
+        ...(options.includeMetadata && {
+          metadata: {
+            status: cert.status,
+            certificateType: cert.certificateType,
+            validationType: cert.validationType,
+          },
+        }),
+      };
+    } catch (error) {
+      throw new AkamaiError({
+        type: AkamaiErrorTypes.INTERNAL_SERVER_ERROR,
+        title: 'Translation Failed',
+        detail: `Failed to translate certificate ${id}`,
+        status: 500,
+        errors: [{
+          type: 'translation_error',
+          title: 'Certificate Translation Error',
+          detail: error instanceof Error ? error.message : String(error),
+        }],
+      });
+    }
+  }
+
+  /**
+   * Perform batch translation for a specific type
+   */
+  private async performBatchTranslation(
     ids: string[],
-    type: ResourceType,
-    customer?: string
-  ): Promise<TranslationResult[]> {
+    type: Translation['type'],
+    options: TranslationOptions
+  ): Promise<Translation[]> {
+    // Most Akamai APIs don't support true batch fetching,
+    // so we'll fetch lists and filter
     switch (type) {
-      case ResourceType.CONTRACT:
-        return this.fetchContractNames(ids, customer);
-      
-      case ResourceType.GROUP:
-        return this.fetchGroupNames(ids, customer);
-      
-      case ResourceType.PROPERTY:
-        return this.fetchPropertyNames(ids, customer);
-      
-      case ResourceType.CPCODE:
-        return this.fetchCPCodeNames(ids, customer);
-      
-      case ResourceType.CERTIFICATE:
-        return this.fetchCertificateNames(ids, customer);
-      
-      case ResourceType.DNS_ZONE:
-        return ids.map(id => ({ id, name: id, type }));
-      
-      case ResourceType.NETWORK_LIST:
-        return this.fetchNetworkListNames(ids, customer);
+      case 'property':
+      case 'contract':
+      case 'group':
+      case 'product':
+        return this.batchTranslateFromList(ids, type, options);
       
       default:
-        return ids.map(id => ({ id, name: id, type }));
+        // For types without list endpoints, fall back to individual calls
+        const results = await Promise.all(
+          ids.map(id => this.performTranslation(id, type, options).catch(() => ({
+            id,
+            name: id,
+            type,
+          })))
+        );
+        return results;
     }
   }
 
   /**
-   * Fetch contract name
+   * Batch translate by fetching a list and filtering
    */
-  private async fetchContractName(contractId: string, customer?: string): Promise<TranslationResult> {
+  private async batchTranslateFromList(
+    ids: string[],
+    type: Translation['type'],
+    _options: TranslationOptions
+  ): Promise<Translation[]> {
+    const idSet = new Set(ids);
+    const results: Translation[] = [];
+
     try {
-      const response = await this.client.request({
-        method: 'GET',
-        path: '/papi/v1/contracts',
-        headers: {
-          'PAPI-Use-Prefixes': 'false',
-        },
-      }, customer);
+      let items: any[] = [];
       
-      const contracts = response.data?.contracts || [];
-      const contract = contracts.find((c: any) => c.contractId === contractId);
-      
-      return {
-        id: contractId,
-        name: contract?.contractTypeName || contractId,
-        type: ResourceType.CONTRACT,
-        metadata: contract ? {
-          contractTypeName: contract.contractTypeName,
-        } : undefined,
-      };
-    } catch (error) {
-      this.logger.error({ error, contractId }, 'Failed to fetch contract name');
-      return { id: contractId, name: contractId, type: ResourceType.CONTRACT };
-    }
-  }
-
-  /**
-   * Fetch multiple contract names
-   */
-  private async fetchContractNames(contractIds: string[], customer?: string): Promise<TranslationResult[]> {
-    try {
-      const response = await this.client.request({
-        method: 'GET',
-        path: '/papi/v1/contracts',
-        headers: {
-          'PAPI-Use-Prefixes': 'false',
-        },
-      }, customer);
-      
-      const contracts = response.data?.contracts || [];
-      const contractMap = new Map(contracts.map((c: any) => [c.contractId, c]));
-      
-      return contractIds.map(id => {
-        const contract = contractMap.get(id);
-        return {
-          id,
-          name: contract?.contractTypeName || id,
-          type: ResourceType.CONTRACT,
-          metadata: contract ? {
-            contractTypeName: contract.contractTypeName,
-          } : undefined,
-        };
-      });
-    } catch (error) {
-      this.logger.error({ error, contractIds }, 'Failed to fetch contract names');
-      return contractIds.map(id => ({ id, name: id, type: ResourceType.CONTRACT }));
-    }
-  }
-
-  /**
-   * Fetch group name
-   */
-  private async fetchGroupName(groupId: string, customer?: string): Promise<TranslationResult> {
-    try {
-      const response = await this.client.request({
-        method: 'GET',
-        path: '/papi/v1/groups',
-        headers: {
-          'PAPI-Use-Prefixes': 'false',
-        },
-      }, customer);
-      
-      const groups = response.data?.groups?.items || [];
-      const group = this.findGroupById(groups, groupId);
-      
-      return {
-        id: groupId,
-        name: group?.groupName || groupId,
-        type: ResourceType.GROUP,
-        metadata: group ? {
-          parentGroupId: group.parentGroupId,
-          contractIds: group.contractIds,
-        } : undefined,
-      };
-    } catch (error) {
-      this.logger.error({ error, groupId }, 'Failed to fetch group name');
-      return { id: groupId, name: groupId, type: ResourceType.GROUP };
-    }
-  }
-
-  /**
-   * Fetch multiple group names
-   */
-  private async fetchGroupNames(groupIds: string[], customer?: string): Promise<TranslationResult[]> {
-    try {
-      const response = await this.client.request({
-        method: 'GET',
-        path: '/papi/v1/groups',
-        headers: {
-          'PAPI-Use-Prefixes': 'false',
-        },
-      }, customer);
-      
-      const groups = response.data?.groups?.items || [];
-      const groupMap = this.buildGroupMap(groups);
-      
-      return groupIds.map(id => {
-        const group = groupMap.get(id);
-        return {
-          id,
-          name: group?.groupName || id,
-          type: ResourceType.GROUP,
-          metadata: group ? {
-            parentGroupId: group.parentGroupId,
-            contractIds: group.contractIds,
-          } : undefined,
-        };
-      });
-    } catch (error) {
-      this.logger.error({ error, groupIds }, 'Failed to fetch group names');
-      return groupIds.map(id => ({ id, name: id, type: ResourceType.GROUP }));
-    }
-  }
-
-  /**
-   * Find group by ID in nested structure
-   */
-  private findGroupById(groups: any[], groupId: string): any {
-    for (const group of groups) {
-      if (group.groupId === groupId) {
-        return group;
-      }
-      if (group.groups?.items) {
-        const found = this.findGroupById(group.groups.items, groupId);
-        if (found) return found;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Build a flat map of all groups
-   */
-  private buildGroupMap(groups: any[]): Map<string, any> {
-    const map = new Map<string, any>();
-    
-    const addToMap = (items: any[]) => {
-      for (const group of items) {
-        map.set(group.groupId, group);
-        if (group.groups?.items) {
-          addToMap(group.groups.items);
+      switch (type) {
+        case 'property': {
+          const response = await this.client!.request({
+            method: 'GET',
+            path: '/papi/v1/properties',
+          });
+          items = response.properties?.items || [];
+          break;
         }
+        
+        case 'contract': {
+          const response = await this.client!.request({
+            method: 'GET',
+            path: '/papi/v1/contracts',
+          });
+          items = response.contracts?.items || [];
+          break;
+        }
+        
+        case 'group': {
+          const response = await this.client!.request({
+            method: 'GET',
+            path: '/papi/v1/groups',
+          });
+          items = response.groups?.items || [];
+          break;
+        }
+        
+        case 'product': {
+          const response = await this.client!.request({
+            method: 'GET',
+            path: '/papi/v1/products',
+            queryParams: { contractId: 'all' },
+          });
+          items = response.products?.items || [];
+          break;
+        }
+      }
+
+      // Extract translations from list
+      for (const item of items) {
+        let id: string;
+        let name: string;
+        
+        switch (type) {
+          case 'property':
+            id = item.propertyId;
+            name = item.propertyName;
+            break;
+          case 'contract':
+            id = item.contractId;
+            name = item.contractTypeName;
+            break;
+          case 'group':
+            id = item.groupId;
+            name = item.groupName;
+            break;
+          case 'product':
+            id = item.productId;
+            name = item.productName;
+            break;
+          default:
+            continue;
+        }
+        
+        if (idSet.has(id)) {
+          results.push({ id, name: name || id, type });
+          idSet.delete(id);
+        }
+      }
+
+      // Add fallbacks for any IDs not found
+      for (const id of idSet) {
+        results.push({ id, name: id, type });
+      }
+
+      return results;
+    } catch (error) {
+      // On error, return all IDs as fallbacks
+      return ids.map(id => ({ id, name: id, type }));
+    }
+  }
+
+  /**
+   * Group items by type for batch processing
+   */
+  private groupByType(
+    items: Array<{ id: string; type: Translation['type'] }>
+  ): Map<Translation['type'], string[]> {
+    const groups = new Map<Translation['type'], string[]>();
+    
+    for (const item of items) {
+      const ids = groups.get(item.type) || [];
+      ids.push(item.id);
+      groups.set(item.type, ids);
+    }
+    
+    return groups;
+  }
+
+  /**
+   * Get entry from cache if valid
+   */
+  private getFromCache(key: string): Translation | null {
+    const entry = this.cache.get(key);
+    
+    if (!entry) {
+      return null;
+    }
+    
+    const now = Date.now();
+    const age = now - entry.timestamp;
+    
+    if (age > entry.ttl) {
+      // Entry expired
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return entry.value;
+  }
+
+  /**
+   * Add entry to cache with LRU eviction
+   */
+  private addToCache(key: string, value: Translation, ttl: number): void {
+    // Implement simple LRU by removing oldest entries when at capacity
+    if (this.cache.size >= this.maxCacheSize) {
+      const oldest = Array.from(this.cache.entries())
+        .sort(([, a], [, b]) => a.timestamp - b.timestamp)[0];
+      
+      if (oldest) {
+        this.cache.delete(oldest[0]);
+      }
+    }
+    
+    this.cache.set(key, {
+      value,
+      timestamp: Date.now(),
+      ttl,
+    });
+  }
+
+  /**
+   * Extract IDs from object path
+   */
+  private extractIdsFromPath(obj: any, path: string): string[] {
+    const ids: string[] = [];
+    const parts = path.split('.');
+    
+    const traverse = (current: any, depth: number): void => {
+      if (depth >= parts.length) {
+        if (typeof current === 'string') {
+          ids.push(current);
+        }
+        return;
+      }
+      
+      const part = parts[depth];
+      
+      if (part === '*' && Array.isArray(current)) {
+        // Wildcard for array elements
+        for (const item of current) {
+          traverse(item, depth + 1);
+        }
+      } else if (part === '**') {
+        // Recursive wildcard
+        this.traverseRecursive(current, parts.slice(depth + 1), ids);
+      } else if (current && typeof current === 'object') {
+        traverse(current[part], depth + 1);
       }
     };
     
-    addToMap(groups);
-    return map;
+    traverse(obj, 0);
+    return ids;
   }
 
   /**
-   * Fetch property name
+   * Recursively traverse object for IDs
    */
-  private async fetchPropertyName(propertyId: string, customer?: string): Promise<TranslationResult> {
-    try {
-      const response = await this.client.request({
-        method: 'GET',
-        path: `/papi/v1/properties/${propertyId}`,
-        headers: {
-          'PAPI-Use-Prefixes': 'false',
-        },
-      }, customer);
-      
-      const property = response.data?.properties?.items?.[0];
-      
-      return {
-        id: propertyId,
-        name: property?.propertyName || propertyId,
-        type: ResourceType.PROPERTY,
-        metadata: property ? {
-          contractId: property.contractId,
-          groupId: property.groupId,
-          latestVersion: property.latestVersion,
-          productionVersion: property.productionVersion,
-          stagingVersion: property.stagingVersion,
-        } : undefined,
-      };
-    } catch (error) {
-      this.logger.error({ error, propertyId }, 'Failed to fetch property name');
-      return { id: propertyId, name: propertyId, type: ResourceType.PROPERTY };
-    }
-  }
-
-  /**
-   * Fetch multiple property names
-   */
-  private async fetchPropertyNames(propertyIds: string[], customer?: string): Promise<TranslationResult[]> {
-    // For properties, we need to make individual requests
-    // TODO: Optimize with batch endpoint if available
-    const results = await Promise.all(
-      propertyIds.map(id => this.fetchPropertyName(id, customer))
-    );
-    return results;
-  }
-
-  /**
-   * Fetch CP Code name
-   */
-  private async fetchCPCodeName(cpCodeId: string, customer?: string): Promise<TranslationResult> {
-    try {
-      // Extract numeric ID from cpc_123456 format
-      const numericId = cpCodeId.replace('cpc_', '');
-      
-      const response = await this.client.request({
-        method: 'GET',
-        path: `/papi/v1/cpcodes/${numericId}`,
-        headers: {
-          'PAPI-Use-Prefixes': 'false',
-        },
-      }, customer);
-      
-      const cpCode = response.data?.cpcodes?.items?.[0];
-      
-      return {
-        id: cpCodeId,
-        name: cpCode?.cpcodeName || cpCodeId,
-        type: ResourceType.CPCODE,
-        metadata: cpCode ? {
-          productIds: cpCode.productIds,
-          contractId: cpCode.contractId,
-          groupId: cpCode.groupId,
-        } : undefined,
-      };
-    } catch (error) {
-      this.logger.error({ error, cpCodeId }, 'Failed to fetch CP Code name');
-      return { id: cpCodeId, name: cpCodeId, type: ResourceType.CPCODE };
-    }
-  }
-
-  /**
-   * Fetch multiple CP Code names
-   */
-  private async fetchCPCodeNames(cpCodeIds: string[], customer?: string): Promise<TranslationResult[]> {
-    // For CP Codes, we need to make individual requests
-    // TODO: Optimize with batch endpoint if available
-    const results = await Promise.all(
-      cpCodeIds.map(id => this.fetchCPCodeName(id, customer))
-    );
-    return results;
-  }
-
-  /**
-   * Fetch certificate name
-   */
-  private async fetchCertificateName(enrollmentId: string, customer?: string): Promise<TranslationResult> {
-    try {
-      // Extract numeric ID from enrollment_123456 format
-      const numericId = enrollmentId.replace('enrollment_', '');
-      
-      const response = await this.client.request({
-        method: 'GET',
-        path: `/cps/v2/enrollments/${numericId}`,
-      }, customer);
-      
-      const enrollment = response.data;
-      const commonName = enrollment?.csr?.cn || enrollment?.certificateChain?.[0]?.cn;
-      
-      return {
-        id: enrollmentId,
-        name: commonName || enrollmentId,
-        type: ResourceType.CERTIFICATE,
-        metadata: enrollment ? {
-          cn: commonName,
-          sans: enrollment.csr?.sans || [],
-          certificateType: enrollment.certificateType,
-          validationType: enrollment.validationType,
-        } : undefined,
-      };
-    } catch (error) {
-      this.logger.error({ error, enrollmentId }, 'Failed to fetch certificate name');
-      return { id: enrollmentId, name: enrollmentId, type: ResourceType.CERTIFICATE };
-    }
-  }
-
-  /**
-   * Fetch multiple certificate names
-   */
-  private async fetchCertificateNames(enrollmentIds: string[], customer?: string): Promise<TranslationResult[]> {
-    // For certificates, we need to make individual requests
-    const results = await Promise.all(
-      enrollmentIds.map(id => this.fetchCertificateName(id, customer))
-    );
-    return results;
-  }
-
-  /**
-   * Fetch network list name
-   */
-  private async fetchNetworkListName(listId: string, customer?: string): Promise<TranslationResult> {
-    try {
-      const response = await this.client.request({
-        method: 'GET',
-        path: `/network-list/v2/network-lists/${listId}`,
-      }, customer);
-      
-      const list = response.data;
-      
-      return {
-        id: listId,
-        name: list?.name || listId,
-        type: ResourceType.NETWORK_LIST,
-        metadata: list ? {
-          type: list.type,
-          elementCount: list.elementCount,
-          syncPoint: list.syncPoint,
-        } : undefined,
-      };
-    } catch (error) {
-      this.logger.error({ error, listId }, 'Failed to fetch network list name');
-      return { id: listId, name: listId, type: ResourceType.NETWORK_LIST };
-    }
-  }
-
-  /**
-   * Fetch multiple network list names
-   */
-  private async fetchNetworkListNames(listIds: string[], customer?: string): Promise<TranslationResult[]> {
-    // For network lists, we need to make individual requests
-    const results = await Promise.all(
-      listIds.map(id => this.fetchNetworkListName(id, customer))
-    );
-    return results;
-  }
-
-  /**
-   * Extract all IDs from an object recursively
-   */
-  private extractIdsFromObject(obj: any, ids: Set<string> = new Set()): string[] {
-    if (!obj || typeof obj !== 'object') {
-      return Array.from(ids);
+  private traverseRecursive(obj: any, remainingPath: string[], ids: string[]): void {
+    if (remainingPath.length === 0) {
+      if (typeof obj === 'string') {
+        ids.push(obj);
+      }
+      return;
     }
     
-    // Check if current value is an ID
-    if (typeof obj === 'string' && this.detectResourceType(obj)) {
-      ids.add(obj);
-    }
-    
-    // Recursively check all properties
     if (Array.isArray(obj)) {
       for (const item of obj) {
-        this.extractIdsFromObject(item, ids);
+        this.traverseRecursive(item, remainingPath, ids);
       }
-    } else {
-      for (const [key, value] of Object.entries(obj)) {
-        // Check if key name suggests it contains an ID
-        if (this.isIdField(key) && typeof value === 'string') {
-          const type = this.detectResourceType(value);
-          if (type) {
-            ids.add(value);
-          }
+    } else if (obj && typeof obj === 'object') {
+      for (const key in obj) {
+        if (key === remainingPath[0] || remainingPath[0] === '*') {
+          this.traverseRecursive(obj[key], remainingPath.slice(1), ids);
+        } else {
+          this.traverseRecursive(obj[key], remainingPath, ids);
         }
-        // Recursively check value
-        this.extractIdsFromObject(value, ids);
       }
     }
-    
-    return Array.from(ids);
   }
 
   /**
-   * Check if a field name suggests it contains an ID
+   * Apply translation to object path
    */
-  private isIdField(fieldName: string): boolean {
-    const idFieldPatterns = [
-      /^.*Id$/i,
-      /^.*_id$/i,
-      /^id$/i,
-      /^contractId$/i,
-      /^groupId$/i,
-      /^propertyId$/i,
-      /^cpCodeId$/i,
-      /^enrollmentId$/i,
-      /^networkListId$/i,
-      /^parentGroupId$/i,
-    ];
+  private applyTranslationToPath(
+    obj: any,
+    path: string,
+    oldValue: string,
+    newValue: string
+  ): void {
+    const parts = path.split('.');
     
-    return idFieldPatterns.some(pattern => pattern.test(fieldName));
-  }
-
-  /**
-   * Apply translations to an object
-   */
-  private applyTranslations<T extends Record<string, any>>(
-    obj: T,
-    translations: Record<string, TranslationResult>
-  ): T {
-    // Deep clone the object
-    const result = JSON.parse(JSON.stringify(obj));
-    
-    // Apply translations recursively
-    const apply = (target: any): any => {
-      if (!target || typeof target !== 'object') {
-        return target;
-      }
-      
-      if (Array.isArray(target)) {
-        return target.map(item => apply(item));
-      }
-      
-      for (const [key, value] of Object.entries(target)) {
-        if (typeof value === 'string' && translations[value]) {
-          // Add translated name as a new field
-          const translation = translations[value];
-          target[`${key}_name`] = translation.name;
-          
-          // Add metadata if available
-          if (translation.metadata) {
-            target[`${key}_metadata`] = translation.metadata;
+    const traverse = (current: any, depth: number): boolean => {
+      if (depth >= parts.length - 1) {
+        const lastPart = parts[depth];
+        if (current && typeof current === 'object' && lastPart in current) {
+          if (current[lastPart] === oldValue) {
+            // Add translated name as a new field
+            const fieldName = lastPart.replace(/Id$/, 'Name');
+            if (fieldName !== lastPart) {
+              current[fieldName] = newValue;
+            }
+            return true;
           }
-        } else if (typeof value === 'object') {
-          target[key] = apply(value);
         }
+        return false;
       }
       
-      return target;
+      const part = parts[depth];
+      
+      if (part === '*' && Array.isArray(current)) {
+        let found = false;
+        for (const item of current) {
+          if (traverse(item, depth + 1)) {
+            found = true;
+          }
+        }
+        return found;
+      } else if (current && typeof current === 'object' && part in current) {
+        return traverse(current[part], depth + 1);
+      }
+      
+      return false;
     };
     
-    return apply(result);
+    traverse(obj, 0);
   }
 }
 
-/**
- * Create a singleton instance
- */
-let translationService: IDTranslationService | null = null;
-
-/**
- * Get or create the translation service instance
- */
-export function getTranslationService(client: EdgeGridClient): IDTranslationService {
-  if (!translationService) {
-    translationService = new IDTranslationService(client);
-  }
-  return translationService;
-}
-
-/**
- * Helper function to translate IDs in any object
- */
-export async function translateIds<T extends Record<string, any>>(
-  obj: T,
-  client: EdgeGridClient,
-  customer?: string
-): Promise<T> {
-  const service = getTranslationService(client);
-  return service.translateObject(obj, customer);
-}
+// Export singleton instance
+export const idTranslationService = new IdTranslationService();

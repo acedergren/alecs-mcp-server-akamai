@@ -22,7 +22,43 @@ import {
   formatRecordCreated,
   formatBulkOperationResult
 } from './dns-api-implementation';
+import { DNSChangelistService } from '../../services/dns-changelist-service';
+import { BaseAkamaiClient } from '../../services/BaseAkamaiClient';
+import { CustomerConfigManager } from '../../services/customer-config-manager';
 import type { z } from 'zod';
+
+/**
+ * Create a DNSChangelistService instance for changelist operations
+ */
+function createDNSChangelistService(): DNSChangelistService {
+  return new DNSChangelistService();
+}
+
+/**
+ * Format changelist result for display
+ */
+function formatChangelistResult(result: any): string {
+  let text = `✅ **DNS Operation Completed via Changelist!**\n\n`;
+  text += `**Zone:** ${result.zone}\n`;
+  text += `**Status:** ${result.status}\n`;
+  text += `**Records Processed:** ${result.successfulRecords?.length || 0}\n`;
+  
+  if (result.requestId) {
+    text += `**Request ID:** ${result.requestId}\n`;
+  }
+  
+  if (result.message) {
+    text += `**Message:** ${result.message}\n`;
+  }
+  
+  text += `\n🎯 **Benefits of Changelist Workflow:**\n`;
+  text += `- Atomic operation (all changes succeed or none apply)\n`;
+  text += `- Automatic validation and safety checks\n`;
+  text += `- Integrated submission and activation\n`;
+  text += `- Status tracking and progress monitoring\n`;
+  
+  return text;
+}
 
 /**
  * List all DNS zones
@@ -169,6 +205,10 @@ export async function listRecords(args: z.infer<typeof DNSToolSchemas.listRecord
 
 /**
  * Create a DNS record
+ * 
+ * Can use either direct API calls or the changelist abstraction workflow.
+ * When useChangelist=true, provides atomic operations with automatic validation,
+ * submission, and activation.
  */
 export async function createRecord(args: z.infer<typeof DNSToolSchemas.createRecord>): Promise<MCPToolResponse> {
   return BaseTool.execute(
@@ -176,6 +216,29 @@ export async function createRecord(args: z.infer<typeof DNSToolSchemas.createRec
     'dns_record_create',
     args,
     async (client) => {
+      // Use changelist abstraction if requested
+      if (args.useChangelist) {
+        const service = createDNSChangelistService();
+        
+        const config = {
+          customer: args.customer,
+          network: args.network || 'STAGING',
+          description: `Create DNS record ${args.name} (${args.type}) via MCP tool`,
+          autoActivate: args.autoActivate !== false
+        };
+        
+        const result = await service.addRecord(args.zone, {
+          name: args.name,
+          type: args.type as any,
+          rdata: args.rdata,
+          ttl: args.ttl,
+          comment: args.comment
+        }, config);
+        
+        return result;
+      }
+      
+      // Direct API approach (original behavior)
       const body = {
         name: args.name,
         type: args.type,
@@ -193,13 +256,24 @@ export async function createRecord(args: z.infer<typeof DNSToolSchemas.createRec
     },
     {
       format: 'text',
-      formatter: formatRecordCreated
+      formatter: (data) => {
+        // Use changelist formatter if changelist was used
+        if (args.useChangelist && 'changelistId' in data) {
+          return formatChangelistResult(data);
+        }
+        // Otherwise use the standard formatter
+        return formatRecordCreated(data);
+      }
     }
   );
 }
 
 /**
  * Update a DNS record
+ * 
+ * Can use either direct API calls or the changelist abstraction workflow.
+ * When useChangelist=true, provides atomic operations with automatic validation,
+ * submission, and activation.
  */
 export async function updateRecord(args: z.infer<typeof DNSToolSchemas.updateRecord>): Promise<MCPToolResponse> {
   return BaseTool.execute(
@@ -207,6 +281,28 @@ export async function updateRecord(args: z.infer<typeof DNSToolSchemas.updateRec
     'dns_record_update',
     args,
     async (client) => {
+      // Use changelist abstraction if requested
+      if (args.useChangelist) {
+        const service = createDNSChangelistService();
+        
+        const config = {
+          customer: args.customer,
+          network: args.network || 'STAGING',
+          description: `Update DNS record ${args.name} (${args.type}) via MCP tool`,
+          autoActivate: args.autoActivate !== false
+        };
+        
+        const result = await service.updateRecord(args.zone, {
+          name: args.name,
+          type: args.type as any,
+          rdata: args.rdata,
+          ttl: args.ttl
+        }, config);
+        
+        return result;
+      }
+      
+      // Direct API approach (original behavior)
       const body = {
         ttl: args.ttl || 300,
         rdata: args.rdata
@@ -223,11 +319,17 @@ export async function updateRecord(args: z.infer<typeof DNSToolSchemas.updateRec
     {
       format: 'text',
       formatter: (data) => {
+        // Use changelist formatter if changelist was used
+        if (args.useChangelist && 'changelistId' in data) {
+          return formatChangelistResult(data);
+        }
+        
+        // Otherwise use the standard formatter
         let text = `📝 **DNS Record Updated**\n\n`;
-        text += `**Zone:** ${data.zone}\n`;
-        text += `**Record:** ${data.name} (${data.type})\n`;
-        text += `**New Value:** ${data.rdata.join(', ')}\n`;
-        if (data.ttl) text += `**TTL:** ${data.ttl} seconds\n`;
+        text += `**Zone:** ${(data as any).zone}\n`;
+        text += `**Record:** ${(data as any).name} (${(data as any).type})\n`;
+        text += `**New Value:** ${(data as any).rdata?.join(', ')}\n`;
+        if ((data as any).ttl) text += `**TTL:** ${(data as any).ttl} seconds\n`;
         text += `\n✅ Record updated successfully!`;
         
         return text;
@@ -238,6 +340,10 @@ export async function updateRecord(args: z.infer<typeof DNSToolSchemas.updateRec
 
 /**
  * Delete a DNS record
+ * 
+ * Can use either direct API calls or the changelist abstraction workflow.
+ * When useChangelist=true, provides atomic operations with automatic validation,
+ * submission, and activation.
  */
 export async function deleteRecord(args: z.infer<typeof DNSToolSchemas.deleteRecord>): Promise<MCPToolResponse> {
   return BaseTool.execute(
@@ -245,6 +351,26 @@ export async function deleteRecord(args: z.infer<typeof DNSToolSchemas.deleteRec
     'dns_record_delete',
     args,
     async (client) => {
+      // Use changelist abstraction if requested
+      if (args.useChangelist) {
+        const service = createDNSChangelistService();
+        
+        const config = {
+          customer: args.customer,
+          network: args.network || 'STAGING',
+          description: `Delete DNS record ${args.name} (${args.type}) via MCP tool`,
+          autoActivate: args.autoActivate !== false
+        };
+        
+        const result = await service.deleteRecord(args.zone, {
+          name: args.name,
+          type: args.type as any
+        }, config);
+        
+        return result;
+      }
+      
+      // Direct API approach (original behavior)
       await client.request({
         method: 'DELETE',
         path: DNSEndpoints.deleteRecord(args.zone, args.name, args.type)
@@ -255,9 +381,15 @@ export async function deleteRecord(args: z.infer<typeof DNSToolSchemas.deleteRec
     {
       format: 'text',
       formatter: (data) => {
+        // Use changelist formatter if changelist was used
+        if (args.useChangelist && 'changelistId' in data) {
+          return formatChangelistResult(data);
+        }
+        
+        // Otherwise use the standard formatter
         let text = `🗑️ **DNS Record Deleted**\n\n`;
-        text += `**Zone:** ${data.zone}\n`;
-        text += `**Record:** ${data.name} (${data.type})\n`;
+        text += `**Zone:** ${(data as any).zone}\n`;
+        text += `**Record:** ${(data as any).name} (${(data as any).type})\n`;
         text += `\n✅ Record deleted successfully!`;
         
         return text;

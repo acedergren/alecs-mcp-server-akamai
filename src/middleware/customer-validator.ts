@@ -4,7 +4,7 @@
  */
 
 import { CustomerConfigManager } from '../services/customer-config-manager';
-import { UnauthorizedError, ForbiddenError } from '../errors/auth-errors';
+import { UnauthorizedError, ForbiddenError } from '../core/errors/error-handler';
 
 export interface RequestContext {
   user?: string;

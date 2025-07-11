@@ -14,6 +14,18 @@ import { z } from 'zod';
 // Import consolidated DNS tools
 import { consolidatedDNSTools } from '../tools/dns/consolidated-dns-tools';
 
+// Import new changelist tools
+import { 
+  addDNSRecord, 
+  updateDNSRecord, 
+  deleteDNSRecord, 
+  batchUpdateDNS,
+  DNSRecordAddSchema,
+  DNSRecordUpdateSchema,
+  DNSRecordDeleteSchema,
+  DNSBatchUpdateSchema
+} from '../tools/dns/dns-changelist-tools';
+
 // Extract methods from the consolidated tools
 const {
   listZones,
@@ -238,6 +250,52 @@ class DNSServer extends ALECSCore {
       async (args, ctx) => {
         const response = await createMultipleRecordSets(args);
         return ctx.format(response, args.format);
+      }
+    ),
+
+    // DNS Changelist Tools - High-level abstraction for DNS operations
+    tool('dns_record_add',
+      DNSRecordAddSchema,
+      async (args, ctx) => {
+        const response = await addDNSRecord(args);
+        return ctx.format(response, args.format);
+      },
+      {
+        description: 'Add a DNS record using changelist abstraction with automatic validation, submission, and activation'
+      }
+    ),
+
+    tool('dns_record_update',
+      DNSRecordUpdateSchema,
+      async (args, ctx) => {
+        const response = await updateDNSRecord(args);
+        return ctx.format(response, args.format);
+      },
+      {
+        description: 'Update a DNS record using changelist abstraction with automatic validation, submission, and activation'
+      }
+    ),
+
+    tool('dns_record_delete',
+      DNSRecordDeleteSchema,
+      async (args, ctx) => {
+        const response = await deleteDNSRecord(args);
+        return ctx.format(response, args.format);
+      },
+      {
+        description: 'Delete a DNS record using changelist abstraction with automatic validation, submission, and activation'
+      }
+    ),
+
+    tool('dns_batch_update',
+      DNSBatchUpdateSchema,
+      async (args, ctx) => {
+        const response = await batchUpdateDNS(args);
+        return ctx.format(response, args.format);
+      },
+      {
+        description: 'Execute multiple DNS record operations in a single atomic changelist with automatic validation, submission, and activation',
+        progress: true
       }
     ),
 

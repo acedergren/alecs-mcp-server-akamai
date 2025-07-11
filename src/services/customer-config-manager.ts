@@ -97,6 +97,13 @@ export class CustomerConfigManager {
   getCustomers(): string[] {
     return Array.from(this.configs.keys());
   }
+  
+  /**
+   * Validate customer access (for compatibility with DNS changelist service)
+   */
+  async validateCustomerAccess(customer: string): Promise<boolean> {
+    return this.hasCustomer(customer);
+  }
 }
 
 export default CustomerConfigManager;
