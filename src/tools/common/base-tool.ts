@@ -17,8 +17,10 @@ import { type MCPToolResponse } from '../../types';
 import { getCacheService, UnifiedCacheService } from '../../services/unified-cache-service';
 import { ProgressManager, type ProgressToken } from '../../utils/mcp-progress';
 import { JsonResponseBuilder } from '../../utils/json-response-builder';
-import { AkamaiError } from '../../utils/rfc7807-errors';
+import { AkamaiError } from '../../core/errors/error-handler';
 import { getUserHintService, enhanceResponseWithHints, type HintContext } from '../../services/user-hint-service';
+import { idTranslationService, type Translation, type TranslationOptions } from '../../services/id-translation-service';
+import { contractGroupDiscovery } from '../../services/contract-group-discovery-service';
 
 /**
  * Request context for propagating metadata through operations
@@ -29,6 +31,18 @@ export interface RequestContext {
   userId?: string;
   correlationId?: string;
   [key: string]: any;
+}
+
+/**
+ * Translation mapping configuration
+ */
+export interface TranslationMapping {
+  /** JSON path to the ID field (supports wildcards) */
+  path: string;
+  /** Type of ID to translate */
+  type: Translation['type'];
+  /** Whether translation is enabled for this mapping */
+  enabled?: boolean;
 }
 
 /**
@@ -134,13 +148,16 @@ export abstract class BaseTool {
       return validated;
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new AkamaiError({
-          type: '/errors/invalid-api-response',
-          title: 'Invalid API Response',
-          status: 502,
-          detail: `API response validation failed: ${error.errors.map(e => e.message).join(', ')}`,
-          instance: config.path
-        });
+        throw new AkamaiError(
+          `API response validation failed: ${error.errors.map(e => e.message).join(', ')}`,
+          {
+            type: '/errors/invalid-api-response',
+            title: 'Invalid API Response',
+            status: 502,
+            detail: `API response validation failed: ${error.errors.map(e => e.message).join(', ')}`,
+            instance: config.path
+          }
+        );
       }
       throw error;
     }
@@ -317,6 +334,11 @@ export abstract class BaseTool {
       progress?: boolean; // Enable progress tracking
       progressMessage?: string; // Custom progress message
       formatter?: (result: TOutput) => string; // Custom formatter function
+      translation?: {
+        enabled?: boolean; // Whether to enable translation (default: true)
+        mappings?: TranslationMapping[]; // Custom translation mappings
+        options?: TranslationOptions; // Translation options
+      };
     }
   ): Promise<MCPToolResponse> {
     // Extract customer from input or options
@@ -358,14 +380,33 @@ export abstract class BaseTool {
         result = await executeWithProgress();
       }
 
+      // Apply ID translation if enabled
+      let translatedResult = result;
+      if (options?.translation?.enabled !== false && options?.translation?.mappings) {
+        try {
+          // Set the client for translation service
+          idTranslationService.setClient(client);
+          
+          // Apply translations
+          translatedResult = await idTranslationService.translateInObject(
+            result,
+            options.translation.mappings.filter(m => m.enabled !== false),
+            options.translation.options
+          );
+        } catch (translationError) {
+          // Log translation error but continue with untranslated result
+          console.warn('[BaseTool] ID translation failed:', translationError);
+        }
+      }
+
       // Format response with custom formatter if provided
       const message = options?.formatter 
-        ? options.formatter(result)
-        : options?.successMessage?.(result);
+        ? options.formatter(translatedResult)
+        : options?.successMessage?.(translatedResult);
 
       // Return formatted response with hints
       return this.createSuccessResponse(
-        result,
+        translatedResult,
         {
           format: options?.format || (message ? 'text' : 'json'),
           message,
@@ -374,7 +415,7 @@ export abstract class BaseTool {
       );
     } catch (error) {
       // Enhance error with context
-      const enhancedError = this.enhanceError(error as Error, {
+      const enhancedError = await this.enhanceError(error as Error, {
         operation,
         toolName: options?.toolName || operation,
         args: input,
@@ -388,35 +429,95 @@ export abstract class BaseTool {
   /**
    * Enhance error with contextual information
    */
-  protected enhanceError(error: Error, context: {
+  protected async enhanceError(error: Error, context: {
     operation: string;
     toolName: string;
     args: any;
     customer?: string;
-  }): Error {
+  }): Promise<Error> {
     const status = (error as any).status;
+    const customer = context.customer || 'default';
     
     if (status === 403) {
+      // Check for contract/group issues and provide suggestions
+      let detail = `Permission denied for ${context.operation}. `;
+      let suggestions: string[] = [];
+      
+      // Check if this is a contract-related error
+      if (context.args.contractId) {
+        const validation = await contractGroupDiscovery.validateContract(context.args.contractId, customer);
+        if (!validation.isValid && validation.suggestions) {
+          detail += `Contract '${context.args.contractId}' may not be valid or accessible. `;
+          suggestions.push(validation.suggestions.message);
+        }
+      }
+      
+      // Check if this is a group-related error
+      if (context.args.groupId) {
+        const validation = await contractGroupDiscovery.validateGroup(
+          context.args.groupId, 
+          customer,
+          context.args.contractId
+        );
+        if (!validation.isValid && validation.suggestions) {
+          detail += `Group '${context.args.groupId}' may not be valid or accessible. `;
+          suggestions.push(validation.suggestions.message);
+        }
+      }
+      
+      // Check for account switching issues
+      const accountSwitchHint = await contractGroupDiscovery.checkAccountSwitching(customer, error);
+      if (accountSwitchHint) {
+        suggestions.push(accountSwitchHint);
+      }
+      
+      detail += `Current customer: ${customer}`;
+      
       return new AkamaiError({
         type: '/errors/forbidden',
         title: 'Permission Denied',
         status: 403,
-        detail: `Permission denied for ${context.operation}. ` +
-                `Check if your API credentials have access to ${context.args.contractId || 'this resource'}. ` +
-                `Current customer: ${context.customer || 'default'}`,
-        instance: `${this.domain}/${context.operation}`
+        detail,
+        instance: `${this.domain}/${context.operation}`,
+        errors: suggestions.length > 0 ? suggestions.map(s => ({
+          type: 'suggestion',
+          title: 'Suggestion',
+          detail: s
+        })) : undefined
       });
     }
     
     if (status === 404) {
       const resourceType = context.toolName.split('_')[0];
+      let detail = `${resourceType} not found. `;
+      let suggestions: string[] = [];
+      
+      // For property operations, check contract/group validity
+      if (this.domain === 'property' && (context.args.contractId || context.args.groupId)) {
+        const discovery = await contractGroupDiscovery.getDiscoveryForError(customer);
+        if (discovery) {
+          if (context.args.contractId && !discovery.contracts.some(c => c.includes(context.args.contractId))) {
+            suggestions.push(`Available contracts: ${discovery.contracts.join(', ')}`);
+          }
+          if (context.args.groupId && !discovery.groups.some(g => g.includes(context.args.groupId))) {
+            suggestions.push(`Available groups: ${discovery.groups.join(', ')}`);
+          }
+        }
+      }
+      
+      detail += `Verify the ID is correct and you're using the right customer account (${customer}).`;
+      
       return new AkamaiError({
         type: '/errors/not-found',
         title: 'Resource Not Found',
         status: 404,
-        detail: `${resourceType} not found. ` +
-                `Verify the ID is correct and you're using the right customer account (${context.customer || 'default'}).`,
-        instance: `${this.domain}/${context.operation}`
+        detail,
+        instance: `${this.domain}/${context.operation}`,
+        errors: suggestions.length > 0 ? suggestions.map(s => ({
+          type: 'suggestion',
+          title: 'Available Resources',
+          detail: s
+        })) : undefined
       });
     }
     
@@ -915,6 +1016,11 @@ export abstract class BaseTool {
       cacheTtl?: number;
       progress?: boolean;
       progressMessage?: string;
+      translation?: {
+        enabled?: boolean;
+        mappings?: TranslationMapping[];
+        options?: TranslationOptions;
+      };
     }
   ): Promise<MCPToolResponse> {
     // Create a temporary instance just for this execution
@@ -945,7 +1051,8 @@ export abstract class BaseTool {
         cacheTtl: options?.cacheTtl,
         toolName,
         progress: options?.progress,
-        progressMessage: options?.progressMessage
+        progressMessage: options?.progressMessage,
+        translation: options?.translation
       }
     );
   }
@@ -960,6 +1067,58 @@ export abstract class BaseTool {
       hint: 'Future integration with OpenTelemetry or similar'
     };
   }
+
+  /**
+   * Common translation mappings for Akamai IDs
+   */
+  static readonly COMMON_TRANSLATIONS: Record<string, TranslationMapping[]> = {
+    property: [
+      { path: 'propertyId', type: 'property' },
+      { path: '*.propertyId', type: 'property' },
+      { path: 'properties.*.propertyId', type: 'property' },
+      { path: 'items.*.propertyId', type: 'property' },
+      { path: 'contractId', type: 'contract' },
+      { path: '*.contractId', type: 'contract' },
+      { path: 'groupId', type: 'group' },
+      { path: '*.groupId', type: 'group' },
+      { path: 'productId', type: 'product' },
+      { path: '*.productId', type: 'product' },
+    ],
+    certificate: [
+      { path: 'enrollmentId', type: 'certificate' },
+      { path: '*.enrollmentId', type: 'certificate' },
+      { path: 'enrollments.*.enrollmentId', type: 'certificate' },
+      { path: 'certificateId', type: 'certificate' },
+      { path: '*.certificateId', type: 'certificate' },
+    ],
+    network: [
+      { path: 'networkListId', type: 'network_list' },
+      { path: '*.networkListId', type: 'network_list' },
+      { path: 'lists.*.networkListId', type: 'network_list' },
+      { path: 'uniqueId', type: 'network_list' },
+      { path: '*.uniqueId', type: 'network_list' },
+    ],
+    cpcode: [
+      { path: 'cpcodeId', type: 'cpcode' },
+      { path: '*.cpcodeId', type: 'cpcode' },
+      { path: 'cpcodes.*.cpcodeId', type: 'cpcode' },
+      { path: 'cpCode', type: 'cpcode' },
+      { path: '*.cpCode', type: 'cpcode' },
+    ],
+    all: [
+      // Combine all common mappings
+      { path: '**.propertyId', type: 'property' },
+      { path: '**.contractId', type: 'contract' },
+      { path: '**.groupId', type: 'group' },
+      { path: '**.productId', type: 'product' },
+      { path: '**.enrollmentId', type: 'certificate' },
+      { path: '**.certificateId', type: 'certificate' },
+      { path: '**.networkListId', type: 'network_list' },
+      { path: '**.uniqueId', type: 'network_list' },
+      { path: '**.cpcodeId', type: 'cpcode' },
+      { path: '**.cpCode', type: 'cpcode' },
+    ]
+  };
 
   /**
    * Clear all cached data across all domains

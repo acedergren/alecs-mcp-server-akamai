@@ -26,6 +26,7 @@ export * from './BaseAkamaiClient';
 export * from './certificate-deployment-coordinator';
 export * from './certificate-enrollment-service';
 export * from './certificate-validation-monitor';
+export * from './contract-group-discovery-service';
 // export {
 //   FastPurgeService,
 //   type FastPurgeRequest,
