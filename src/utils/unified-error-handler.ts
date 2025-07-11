@@ -892,3 +892,144 @@ export function handleApiError(error: unknown, operation: string, tool = 'unknow
   });
   return handler.handleError(error);
 }
+
+/**
+ * Domain-specific error handlers for backward compatibility
+ */
+export const DomainErrors = {
+  property: {
+    notFound: (propertyId: string, context?: ErrorContext) => createPropertyNotFoundError(propertyId, context),
+    validation: (errors: Array<{ type: string; title: string; detail: string; field?: string }>, context?: ErrorContext) => 
+      createValidationError('property', errors, context),
+    accessDenied: (propertyId: string, operation: string, context?: ErrorContext) => 
+      new AkamaiError({
+        type: AkamaiErrorTypes.FORBIDDEN,
+        title: 'Property Access Denied',
+        detail: `Access denied: You do not have permission to ${operation} property '${propertyId}'`,
+        status: 403,
+        errors: [{
+          type: 'access_denied',
+          title: 'Insufficient Permissions',
+          detail: `Required permission: property:${operation}. Contact your account administrator`
+        }]
+      }, context),
+  },
+  dns: {
+    zoneNotFound: (zone: string, context?: ErrorContext) => 
+      new AkamaiError({
+        type: AkamaiErrorTypes.ZONE_NOT_FOUND,
+        title: 'DNS Zone Not Found',
+        detail: `DNS zone '${zone}' not found`,
+        status: 404,
+        errors: [{
+          type: 'zone_not_found',
+          title: 'Zone Not Found',
+          detail: 'Use dns_zone_list to see available zones'
+        }]
+      }, context),
+    invalidRecord: (zone: string, record: string, reason: string, context?: ErrorContext) => 
+      new AkamaiError({
+        type: AkamaiErrorTypes.INVALID_DNS_RECORD,
+        title: 'Invalid DNS Record',
+        detail: `Invalid DNS record ${record} in zone ${zone}: ${reason}`,
+        status: 400,
+        errors: [{
+          type: 'invalid_record',
+          title: 'Invalid Record Format',
+          detail: reason
+        }]
+      }, context),
+  },
+  certificate: {
+    enrollmentNotFound: (enrollmentId: number, context?: ErrorContext) => 
+      new AkamaiError({
+        type: AkamaiErrorTypes.ENROLLMENT_NOT_FOUND,
+        title: 'Certificate Enrollment Not Found',
+        detail: `Certificate enrollment ${enrollmentId} not found`,
+        status: 404,
+        errors: [{
+          type: 'enrollment_not_found',
+          title: 'Enrollment Not Found',
+          detail: 'The enrollment may have been deleted or completed'
+        }]
+      }, context),
+    validationPending: (domain: string, context?: ErrorContext) => 
+      new AkamaiError({
+        type: AkamaiErrorTypes.VALIDATION_FAILED,
+        title: 'Domain Validation Pending',
+        detail: `Domain validation pending for ${domain}`,
+        status: 400,
+        errors: [{
+          type: 'validation_pending',
+          title: 'Validation Required',
+          detail: 'Complete domain validation before proceeding'
+        }]
+      }, context),
+  },
+  configuration: {
+    missingCredentials: (customer: string, context?: ErrorContext) => 
+      createConfigurationError(
+        `Missing credentials for customer '${customer}'`,
+        'Add credentials to .edgerc file',
+        context
+      ),
+    invalidCredentials: (customer: string, context?: ErrorContext) => 
+      createConfigurationError(
+        `Invalid credentials for customer '${customer}'`,
+        'Verify client_token, client_secret, and access_token in .edgerc',
+        context
+      ),
+    missingAccountKey: (customer: string, context?: ErrorContext) => 
+      createConfigurationError(
+        `Account switching not configured for customer '${customer}'`,
+        'Add account_key to .edgerc section for cross-account access',
+        context
+      ),
+  },
+};
+
+/**
+ * MCP-specific error formatting utilities
+ */
+export const MCPErrorUtils = {
+  /**
+   * Map HTTP status codes to MCP-appropriate error messages
+   */
+  statusToMCPMessage: (status: number): string => {
+    const messages: Record<number, string> = {
+      400: 'Invalid parameters provided',
+      401: 'Authentication required',
+      403: 'Access denied',
+      404: 'Resource not found',
+      409: 'Operation conflicts with current state',
+      429: 'Rate limit exceeded',
+      500: 'Server error occurred',
+      502: 'Gateway error',
+      503: 'Service unavailable',
+      504: 'Request timeout',
+    };
+    return messages[status] || 'Unknown error occurred';
+  },
+
+  /**
+   * Create a simple MCP error response
+   */
+  createSimpleError: (message: string): MCPToolResponse => ({
+    content: [{
+      type: 'text',
+      text: `Error: ${message}`,
+    }],
+  }),
+
+  /**
+   * Create a detailed MCP error response
+   */
+  createDetailedError: (error: AkamaiError): MCPToolResponse => {
+    const handler = new UnifiedErrorHandler({
+      tool: 'unknown',
+      operation: 'unknown',
+      timestamp: new Date(),
+    });
+    return handler.formatMCPResponse(error);
+  },
+};

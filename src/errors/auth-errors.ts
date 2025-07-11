@@ -3,7 +3,7 @@
  * Following RFC 7807 Problem Details standard
  */
 
-import { AkamaiError } from '../utils/rfc7807-errors';
+import { AkamaiError } from '../utils/unified-error-handler';
 
 /**
  * Unauthorized error (401)

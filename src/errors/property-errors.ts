@@ -8,7 +8,7 @@
  * - Maintains compatibility with MCP error protocol
  */
 
-import { AkamaiError } from '../utils/rfc7807-errors';
+import { AkamaiError } from '../utils/unified-error-handler';
 import { 
   NotFoundError, 
   BadRequestError, 
