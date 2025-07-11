@@ -91,7 +91,7 @@ export class ConsolidatedPropertyTools extends BaseTool {
 
     return this.executeStandardOperation(
       'list-properties',
-      params,
+      { ...params, contractId: args.contractId, groupId: args.groupId },
       async (client) => {
         const response = await this.makeTypedRequest(
           client,
@@ -127,7 +127,8 @@ export class ConsolidatedPropertyTools extends BaseTool {
         customer: params.customer,
         format: params.format,
         cacheKey: (p) => `properties:list:${args.contractId || 'all'}:${args.groupId || 'all'}:${p.limit}:${p.offset}`,
-        cacheTtl: 300 // 5 minutes
+        cacheTtl: 300, // 5 minutes
+        toolName: 'property_list'
       }
     );
   }
@@ -245,7 +246,8 @@ export class ConsolidatedPropertyTools extends BaseTool {
       {
         customer: params.customer,
         format: 'text',
-        successMessage: (result) => result.message
+        successMessage: (result) => result.message,
+        toolName: 'property_create'
       }
     );
   }
@@ -590,7 +592,8 @@ export class ConsolidatedPropertyTools extends BaseTool {
           ({
             customer: params.customer || 'default',
             format: 'text' as const,
-            successMessage: (result: any) => (result as any).message
+            successMessage: (result: any) => (result as any).message,
+            toolName: 'property_activate'
           } as any)
         );
       }

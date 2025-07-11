@@ -19,6 +19,7 @@ import { ProgressManager, type ProgressToken } from '../../utils/mcp-progress';
 import { JsonResponseBuilder } from '../../utils/json-response-builder';
 import { AkamaiCacheService } from '../../services/akamai-cache-service';
 import { AkamaiError } from '../../utils/rfc7807-errors';
+import { getUserHintService, enhanceResponseWithHints, type HintContext } from '../../services/user-hint-service';
 
 /**
  * Base class for all ALECS tool implementations
@@ -125,10 +126,13 @@ export abstract class BaseTool {
   }
 
   /**
-   * Creates standardized error response
+   * Creates standardized error response with hints
    * Used 50+ times across all tools
    */
-  protected createErrorResponse(error: unknown): MCPToolResponse {
+  protected async createErrorResponse(
+    error: unknown,
+    hintContext?: Partial<HintContext>
+  ): Promise<MCPToolResponse> {
     const errorDetails = error instanceof AkamaiError ? {
       type: error.type,
       title: error.title,
@@ -143,40 +147,72 @@ export abstract class BaseTool {
       instance: `${this.domain}/operation`
     };
 
-    return {
+    const baseResponse: MCPToolResponse = {
       content: [{
         type: 'text',
         text: `Error: ${errorDetails.title}\n\n${errorDetails.detail}`
       }]
     };
+
+    // Enhance with hints if context provided
+    if (hintContext?.tool) {
+      return enhanceResponseWithHints(
+        hintContext.tool,
+        hintContext.args,
+        baseResponse,
+        {
+          error: error instanceof Error ? error : new Error(errorDetails.detail),
+          customer: hintContext.customer
+        }
+      );
+    }
+
+    return baseResponse;
   }
 
   /**
-   * Creates standardized success response
+   * Creates standardized success response with hints
    * Used 40+ times across all tools
    */
-  protected createSuccessResponse<T>(
+  protected async createSuccessResponse<T>(
     data: T,
     options?: {
       format?: 'json' | 'text';
       message?: string;
+      hintContext?: Partial<HintContext>;
     }
-  ): MCPToolResponse {
-    if (options?.format === 'text' && options.message) {
-      return {
+  ): Promise<MCPToolResponse> {
+    let baseResponse: MCPToolResponse;
+    
+    if (options?.format === 'text' && options?.message) {
+      baseResponse = {
         content: [{
           type: 'text',
           text: options.message
         }]
       };
+    } else {
+      baseResponse = {
+        content: [{
+          type: 'text',
+          text: JSON.stringify(data, null, 2)
+        }]
+      };
     }
 
-    return {
-      content: [{
-        type: 'text',
-        text: JSON.stringify(data, null, 2)
-      }]
-    };
+    // Enhance with hints if context provided
+    if (options?.hintContext?.tool) {
+      return enhanceResponseWithHints(
+        options.hintContext.tool,
+        options.hintContext.args,
+        baseResponse,
+        {
+          customer: options.hintContext.customer
+        }
+      );
+    }
+
+    return baseResponse;
   }
 
   /**
@@ -243,11 +279,11 @@ export abstract class BaseTool {
   }
 
   /**
-   * Standard request execution with error handling
+   * Standard request execution with error handling and hints
    * Combines all common patterns in one method
    */
   protected async executeStandardOperation<TInput, TOutput>(
-    _operation: string,
+    operation: string,
     input: TInput,
     executor: (client: AkamaiClient, params: TInput) => Promise<TOutput>,
     options?: {
@@ -256,8 +292,17 @@ export abstract class BaseTool {
       successMessage?: (result: TOutput) => string;
       cacheKey?: (params: TInput) => string;
       cacheTtl?: number;
+      toolName?: string; // Override tool name for hints
     }
   ): Promise<MCPToolResponse> {
+    // Build hint context
+    const hintContext: Partial<HintContext> = {
+      tool: options?.toolName || operation,
+      args: input,
+      customer: options?.customer || (input as any)?.customer,
+      domain: this.domain
+    };
+
     try {
       // Validate customer
       const client = await this.validateCustomer(options?.customer);
@@ -277,16 +322,17 @@ export abstract class BaseTool {
         result = await executor(client, input);
       }
 
-      // Return formatted response
+      // Return formatted response with hints
       return this.createSuccessResponse(
         result,
         {
           format: options?.format,
-          message: options?.successMessage?.(result)
+          message: options?.successMessage?.(result),
+          hintContext
         }
       );
     } catch (error) {
-      return this.createErrorResponse(error);
+      return this.createErrorResponse(error, hintContext);
     }
   }
 
