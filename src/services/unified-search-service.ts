@@ -24,7 +24,7 @@ import { AkamaiClient } from '../akamai-client';
 import { MCPToolResponse } from '../types';
 import { createLogger } from '../utils/pino-logger';
 import { withRetry } from '../utils/akamai-search-helper';
-import { AkamaiCacheService } from './akamai-cache-service';
+import { UnifiedCacheService, getCacheService as getUnifiedCacheService } from './unified-cache-service';
 import { idTranslator } from '../utils/id-translator';
 import { 
   isPapiError, 
@@ -36,17 +36,9 @@ import {
 
 const logger = createLogger('unified-search');
 
-// Singleton cache service
-let cacheService: AkamaiCacheService | null = null;
-
-function getCacheService(): AkamaiCacheService {
-  if (!cacheService) {
-    cacheService = new AkamaiCacheService();
-    cacheService.initialize().catch((err) => {
-      logger.error({ error: err }, 'Failed to initialize cache');
-    });
-  }
-  return cacheService;
+// Use unified cache service
+async function getCacheService(): Promise<UnifiedCacheService> {
+  return getUnifiedCacheService();
 }
 
 /**
@@ -108,10 +100,13 @@ export interface SearchResult {
  * Main search service class
  */
 export class UnifiedSearchService {
-  private cache: AkamaiCacheService;
+  private cache: UnifiedCacheService | null = null;
 
-  constructor() {
-    this.cache = getCacheService();
+  private async ensureCache(): Promise<UnifiedCacheService> {
+    if (!this.cache) {
+      this.cache = await getCacheService();
+    }
+    return this.cache;
   }
 
   /**

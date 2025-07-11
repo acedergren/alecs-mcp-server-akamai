@@ -5,7 +5,7 @@
  * Verifies that mutation operations properly invalidate cache
  */
 
-import { getCacheService } from '../src/services/cache-service-singleton';
+import { getCacheService } from '../src/services/unified-cache-service';
 import { createLogger } from '../src/utils/logger';
 
 const logger = createLogger('cache-test');

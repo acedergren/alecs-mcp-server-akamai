@@ -7,24 +7,11 @@
 
 import { AkamaiClient } from '../akamai-client';
 import { MCPToolResponse } from '../types';
-import { AkamaiCacheService } from '../services/akamai-cache-service';
+import { getCacheService, UnifiedCacheService } from '../services/unified-cache-service';
 import { 
   isPapiPropertyCreateResponse 
 } from '../types/api-responses/papi-properties';
 import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
-
-// Option 1: Singleton cache service instance
-let globalCacheService: AkamaiCacheService | null = null;
-
-function getCacheService(): AkamaiCacheService {
-  if (!globalCacheService) {
-    globalCacheService = new AkamaiCacheService();
-    globalCacheService.initialize().catch(err => {
-      console.error('[CacheInvalidation] Failed to initialize cache:', err);
-    });
-  }
-  return globalCacheService;
-}
 
 // Example 1: Property creation with cache invalidation
 export async function createPropertyWithCacheInvalidation(
@@ -61,7 +48,7 @@ export async function createPropertyWithCacheInvalidation(
     const propertyId = response.propertyLink.split('/').pop()?.split('?')[0];
 
     // CRITICAL: Invalidate cache after successful creation
-    const cacheService = getCacheService();
+    const cacheService = await getCacheService();
     const customer = args.customer || 'default';
     
     // Invalidate the all properties list since we added a new one
@@ -92,7 +79,7 @@ export async function addPropertyHostnameWithCacheInvalidation(
   // ... existing hostname addition logic ...
     
     // After successful hostname addition
-    const cacheService = getCacheService();
+    const cacheService = await getCacheService();
     const customer = args.customer || 'default';
     
     // Invalidate all property-related caches
@@ -125,7 +112,7 @@ export async function updatePropertyRulesWithCacheInvalidation(
   // ... existing rule update logic ...
     
     // After successful rule update
-    const cacheService = getCacheService();
+    const cacheService = await getCacheService();
     const customer = args.customer || 'default';
     
     // Invalidate property cache including rules
@@ -155,7 +142,7 @@ export async function activatePropertyWithCacheInvalidation(
   // ... existing activation logic ...
     
     // After activation is initiated
-    const cacheService = getCacheService();
+    const cacheService = await getCacheService();
     const customer = args.customer || 'default';
     
     // Invalidate property cache since activation status changed
@@ -184,7 +171,7 @@ export async function batchUpdatePropertiesWithCacheInvalidation(
     customer?: string;
   }
 ): Promise<MCPToolResponse> {
-  const cacheService = getCacheService();
+  const cacheService = await getCacheService();
   const customer = args.customer || 'default';
   const affectedPropertyIds = new Set<string>();
   
@@ -213,7 +200,7 @@ export async function batchUpdatePropertiesWithCacheInvalidation(
 
 // Helper function to extend cache service for DNS operations
 export async function invalidateDNSCache(
-  cacheService: AkamaiCacheService,
+  cacheService: UnifiedCacheService,
   zoneId: string,
   customer: string
 ): Promise<void> {
@@ -231,7 +218,7 @@ export async function invalidateDNSCache(
 
 // Helper function for certificate cache invalidation
 export async function invalidateCertificateCache(
-  cacheService: AkamaiCacheService,
+  cacheService: UnifiedCacheService,
   enrollmentId: string,
   customer: string
 ): Promise<void> {

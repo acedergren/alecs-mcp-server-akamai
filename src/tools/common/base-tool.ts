@@ -14,10 +14,9 @@
 import { z, ZodSchema } from 'zod';
 import { AkamaiClient } from '../../akamai-client';
 import { type MCPToolResponse } from '../../types';
-import { getCacheService } from '../../services/cache-service-singleton';
+import { getCacheService, UnifiedCacheService } from '../../services/unified-cache-service';
 import { ProgressManager, type ProgressToken } from '../../utils/mcp-progress';
 import { JsonResponseBuilder } from '../../utils/json-response-builder';
-import { AkamaiCacheService } from '../../services/akamai-cache-service';
 import { AkamaiError } from '../../utils/rfc7807-errors';
 import { getUserHintService, enhanceResponseWithHints, type HintContext } from '../../services/user-hint-service';
 
@@ -37,7 +36,7 @@ export interface RequestContext {
  * Provides common patterns and type-safe operations
  */
 export abstract class BaseTool {
-  protected cache: AkamaiCacheService | null = null;
+  protected cache: UnifiedCacheService | null = null;
   protected responseBuilder: JsonResponseBuilder;
   private inFlightRequests = new Map<string, Promise<any>>();
   private requestInterceptors: Array<(config: any) => any | Promise<any>> = [];

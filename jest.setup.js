@@ -16,7 +16,7 @@ afterEach(async () => {
   
   // Clean up cache timers to prevent worker hangs
   try {
-    const { resetDefaultCache } = require('./src/services/cache-factory');
+    const { resetDefaultCache } = require('./src/services/unified-cache-service');
     await resetDefaultCache();
   } catch (error) {
     // Cache might not be initialized, ignore
@@ -36,7 +36,7 @@ afterEach(async () => {
 afterAll(async () => {
   // Ensure all intervals are cleared
   try {
-    const { resetDefaultCache } = require('./src/services/cache-factory');
+    const { resetDefaultCache } = require('./src/services/unified-cache-service');
     await resetDefaultCache();
   } catch (error) {
     // Ignore

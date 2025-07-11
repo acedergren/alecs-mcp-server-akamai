@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { RequestCoalescer, KeyNormalizers } from '../utils/request-coalescer';
-import { SmartCache } from '../utils/smart-cache';
+import { UnifiedCacheService } from '../services/unified-cache-service';
 // import { MCPCompatibilityWrapper } from '../utils/mcp-compatibility-wrapper'; // Will be used in production
 import { AkamaiClient } from '../akamai-client';
 
@@ -18,7 +18,7 @@ const coalescer = new RequestCoalescer({
   cleanupInterval: 30000,
 });
 
-const cache = new SmartCache({
+const cache = new UnifiedCacheService({
   maxSize: 10000,
   enableSegmentation: true,
   segmentSize: 1000,

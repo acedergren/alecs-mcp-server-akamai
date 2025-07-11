@@ -10,7 +10,7 @@
  */
 
 import { RequestCoalescer, KeyNormalizers } from '../../utils/request-coalescer';
-import { SmartCache } from '../../utils/smart-cache';
+import { UnifiedCacheService as SmartCache } from '../../services/unified-cache-service';
 import { CircuitBreaker } from '../../utils/circuit-breaker';
 
 /**

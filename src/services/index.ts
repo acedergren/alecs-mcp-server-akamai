@@ -1,6 +1,27 @@
 // Export all services
-// export { AkamaiCacheService as CacheService } from './cache-service'; // File doesn't exist
-export { AkamaiCacheService } from './akamai-cache-service';
+
+// Export unified cache service with all aliases for backward compatibility
+export { 
+  UnifiedCacheService,
+  UnifiedCacheService as CacheService,
+  UnifiedCacheService as AkamaiCacheService,
+  UnifiedCacheService as SmartCache,
+  getCacheService,
+  isCacheAvailable,
+  closeCacheService,
+  CacheFactory,
+  getDefaultCache,
+  resetDefaultCache,
+  createCacheService,
+  CacheTTL,
+  type PropertySearchResult,
+  type SmartCacheOptions,
+  type CacheEntry,
+  type ICache,
+  type CacheMetrics,
+  type CacheFactoryOptions
+} from './unified-cache-service';
+
 export * from './BaseAkamaiClient';
 export * from './certificate-deployment-coordinator';
 export * from './certificate-enrollment-service';
@@ -16,4 +37,3 @@ export * from './certificate-validation-monitor';
 export * from './RealTimeMonitoringService';
 // export * from './ReportingService';
 // export * from './TrafficAnalyticsService';
-// export * from './external-cache-service'; // File doesn't exist
