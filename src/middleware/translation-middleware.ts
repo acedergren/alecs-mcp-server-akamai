@@ -16,7 +16,7 @@
  */
 
 import { AkamaiClient } from '../akamai-client';
-import { getAkamaiIdTranslator } from '../utils/property-translator';
+import { idTranslator } from '../utils/id-translator';
 import { createLogger } from '../utils/pino-logger';
 import { MCPToolResponse } from '../types';
 
@@ -39,11 +39,9 @@ const DEFAULT_CONFIG: TranslationConfig = {
 };
 
 export class TranslationMiddleware {
-  private translator: ReturnType<typeof getAkamaiIdTranslator>;
   private config: TranslationConfig;
 
   constructor(config: Partial<TranslationConfig> = {}) {
-    this.translator = getAkamaiIdTranslator();
     this.config = { ...DEFAULT_CONFIG, ...config };
     logger.info('TranslationMiddleware initialized', this.config);
   }
@@ -180,7 +178,7 @@ export class TranslationMiddleware {
   ): Promise<void> {
     for (const propertyId of propertyIds) {
       try {
-        const translation = await this.translator.translateProperty(propertyId, client);
+        const translation = await idTranslator.translateProperty(propertyId, client);
         translations.set(propertyId, translation.displayName);
       } catch (error) {
         logger.debug(`Failed to translate property ${propertyId}:`, error);
@@ -200,7 +198,7 @@ export class TranslationMiddleware {
   ): Promise<void> {
     for (const groupId of groupIds) {
       try {
-        const translation = await this.translator.translateGroup(groupId, client);
+        const translation = await idTranslator.translateGroup(groupId, client);
         translations.set(groupId, translation.displayName);
       } catch (error) {
         logger.debug(`Failed to translate group ${groupId}:`, error);
@@ -219,7 +217,7 @@ export class TranslationMiddleware {
   ): Promise<void> {
     for (const contractId of contractIds) {
       try {
-        const translation = await this.translator.translateContract(contractId, client);
+        const translation = await idTranslator.translateContract(contractId, client);
         translations.set(contractId, translation.displayName);
       } catch (error) {
         logger.debug(`Failed to translate contract ${contractId}:`, error);

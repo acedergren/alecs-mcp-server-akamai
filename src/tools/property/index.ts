@@ -29,6 +29,36 @@ export const propertyTools = {
       consolidatedPropertyTools.listProperties(args)
   },
 
+  // Contract and Group operations
+  'contract_list': {
+    description: 'List all available contracts',
+    inputSchema: z.object({
+      customer: z.string().optional()
+    }),
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.listContracts(args)
+  },
+
+  'group_list': {
+    description: 'List all groups',
+    inputSchema: z.object({
+      contractId: z.string().optional(),
+      customer: z.string().optional()
+    }),
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.listGroups(args)
+  },
+
+  'product_list': {
+    description: 'List available products',
+    inputSchema: z.object({
+      contractId: z.string().optional(),
+      customer: z.string().optional()
+    }),
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
+      consolidatedPropertyTools.listProducts(args)
+  },
+
   // Get operations
   'property_get': {
     description: 'Get property details',

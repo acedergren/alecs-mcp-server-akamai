@@ -25,7 +25,7 @@ import { MCPToolResponse } from '../types';
 import { createLogger } from '../utils/pino-logger';
 import { withRetry } from '../utils/akamai-search-helper';
 import { AkamaiCacheService } from './akamai-cache-service';
-import { getAkamaiIdTranslator } from '../utils/property-translator';
+import { idTranslator } from '../utils/id-translator';
 import { 
   isPapiError, 
   isPapiPropertiesResponse, 
@@ -490,7 +490,7 @@ export class UnifiedSearchService {
     }
 
     // Get ID translator for human-readable names
-    const translator = getAkamaiIdTranslator();
+    const translator = idTranslator;
 
     let text = `# Search Results for "${options.query}"\n\n`;
     text += `Found ${results.length} result${results.length > 1 ? 's' : ''} in ${searchTimeMs}ms\n\n`;

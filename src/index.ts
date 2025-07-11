@@ -32,6 +32,13 @@ import { createLogger } from './utils/pino-logger';
 const mainLogger = createLogger('main');
 let server: any = null;
 
+// Setup interactive keyboard controls
+function setupInteractiveControls() {
+  // Note: We can't use stdin.setRawMode with stdio transport as it conflicts with MCP
+  // Instead, we'll add the options to the dashboard
+  mainLogger.debug('Interactive controls not available in stdio mode to prevent MCP conflicts');
+}
+
 // Graceful shutdown handler
 function setupGracefulShutdown() {
   const shutdown = async (signal: string) => {
@@ -195,6 +202,12 @@ async function main(): Promise<void> {
     // Only show minimal output after startup unless DEBUG is set
     if (process.env['DEBUG'] || process.env['LOG_LEVEL'] === 'debug') {
       mainLogger.info('ALECS MCP Server is running and ready for connections');
+    }
+    
+    // Setup interactive controls if not in silent mode and using stdio
+    const cliConfig = parseArguments(process.argv.slice(2));
+    if (!cliConfig.silent && process.env['MCP_TRANSPORT'] === 'stdio') {
+      setupInteractiveControls();
     }
     
   } catch (_error) {

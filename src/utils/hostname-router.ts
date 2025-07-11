@@ -21,7 +21,7 @@
 
 import { AkamaiClient } from '../akamai-client';
 import { createLogger } from '../utils/pino-logger';
-import { getAkamaiIdTranslator } from '../utils/property-translator';
+import { idTranslator } from '../utils/id-translator';
 import { unifiedSearch } from '../services/unified-search-service';
 import { LRUCache } from 'lru-cache';
 

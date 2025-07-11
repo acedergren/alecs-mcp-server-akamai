@@ -49,7 +49,6 @@ export function parseArguments(args: string[] = process.argv.slice(2)): CLIConfi
     
     switch (arg) {
       case '--section':
-      case '-s':
         if (!nextArg || nextArg.startsWith('-')) {
           throw new Error('--section requires a value (edgerc section name)');
         }
@@ -119,7 +118,6 @@ export function parseArguments(args: string[] = process.argv.slice(2)): CLIConfi
         break;
         
       case '--silent':
-      case '-s':
         config.silent = true;
         break;
         
@@ -153,9 +151,9 @@ export function displayHelp(): void {
 📋 COMMAND LINE OPTIONS:
 
   🏢 EDGERC SECTION MANAGEMENT (Primary Feature):
-    -s, --section <SECTION>     Use specific .edgerc section for authentication
+    --section <SECTION>         Use specific .edgerc section for authentication
                                Auto-validates credentials and account switching
-                               Examples: --section production-acme, -s dev-client
+                               Examples: --section production-acme, --section dev-client
                                
   🔧 SERVER CONFIGURATION:
     -t, --transport <TYPE>      MCP transport type (default: stdio)
@@ -176,7 +174,7 @@ export function displayHelp(): void {
   📊 LOGGING & DEBUG:
     -d, --debug                Enable rich debug output with performance metrics
     --log-level <LEVEL>        Granular logging (debug|info|warn|error)
-    -s, --silent               Silent mode - run in background with minimal output
+    --silent                   🌙 Night Vision Mode - run silently in background
                                Perfect for production deployments
     
   📖 INFORMATION:
@@ -249,7 +247,7 @@ export function displayHelp(): void {
     • Performance metrics help optimize API usage
     • Error messages include troubleshooting suggestions
 
-Version: ${require('../../package.json').version} | Optimized for Cursor, Claude Code, Gemini CLI
+Version: 2.0.0 | Optimized for Cursor, Claude Code, Gemini CLI
 `;
 
   console.log(help);
@@ -259,8 +257,7 @@ Version: ${require('../../package.json').version} | Optimized for Cursor, Claude
  * Display version information
  */
 export function displayVersion(): void {
-  const packageJson = require('../../package.json');
-  console.log(`ALECS MCP Server v${packageJson.version}`);
+  console.log(`ALECS MCP Server v2.0.0`);
   console.log(`Model Context Protocol Server for Akamai CDN Management`);
   console.log(`Node.js ${process.version} on ${process.platform}`);
 }
@@ -361,12 +358,7 @@ export function validateConfiguration(config: CLIConfig): void {
  * Display rich startup dashboard optimized for AI development tools
  */
 export function displayStartupDashboard(config: CLIConfig): void {
-  const packageJson = require('../../package.json');
-  const version = packageJson.version;
-  const nodeVersion = process.version;
-  const platform = process.platform;
-  const pid = process.pid;
-  const memoryUsage = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
+  const version = '2.0.0';
   
   // Get customer section info
   const customerInfo = getCustomerInfo(config.section);
@@ -376,12 +368,6 @@ export function displayStartupDashboard(config: CLIConfig): void {
   
   // Get tool statistics
   const toolStats = getToolStatistics();
-  
-  // Helper function to truncate text and ensure proper table formatting
-  const truncate = (text: string, maxLength: number) => {
-    if (text.length <= maxLength) return text.padEnd(maxLength);
-    return text.substring(0, maxLength - 3) + '...';
-  };
   
   // Calculate box width
   const boxWidth = 80;
@@ -427,6 +413,11 @@ ${line('   billing_usage_summary      - Get billing overview')}
 ${line('')}
 ${line('✅ Status: READY')}
 ${line(`🕐 Started: ${timestamp.substring(0, 19)}Z`)}
+${line('')}
+${line('⌨️  Server Controls:')}
+${line('   • Press Ctrl+C to exit gracefully')}
+${line('   • Use --silent flag for 🌙 Night Vision Mode (background)')}
+${line('   • Run "alecs --help" for all options')}
 ╚${'═'.repeat(boxWidth - 2)}╝`;
 
   console.log(dashboard);
