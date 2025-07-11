@@ -1,11 +1,20 @@
 /**
  * Certificate Domain Tools Export
  * 
- * This module exports all certificate-related tools for use with ALECSCore.
- * It consolidates DV certificate enrollment, validation, and deployment
- * functionality into a clean interface.
+ * This module exports all certificate-related tools using the standard BaseTool.execute pattern.
+ * Features include dynamic customer support, caching, hints, and progress tracking.
+ * 
+ * Updated on 2025-01-11
  */
 
+import {
+  listCertificates,
+  getCertificate,
+  createDvCertificate,
+  getDvStatus,
+  deployCertificate,
+  downloadCertificate
+} from './certificate-tools';
 import { consolidatedCertificateTools } from './consolidated-certificate-tools';
 import { z } from 'zod';
 import { type MCPToolResponse } from '../../types';
@@ -49,8 +58,8 @@ export const certificateTools = {
       }).optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
-      consolidatedCertificateTools.createDVEnrollment(args)
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
+      createDvCertificate(args)
   },
 
   'certificate_status': {
@@ -59,8 +68,8 @@ export const certificateTools = {
       enrollmentId: z.number(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
-      consolidatedCertificateTools.checkDVEnrollmentStatus(args)
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
+      getCertificate(args)
   },
 
   'certificate_list': {
@@ -70,8 +79,8 @@ export const certificateTools = {
       status: z.string().optional(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
-      consolidatedCertificateTools.listCertificateEnrollments(args)
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
+      listCertificates(args)
   },
 
   'certificate_search': {
@@ -100,8 +109,8 @@ export const certificateTools = {
       enrollmentId: z.number(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
-      consolidatedCertificateTools.getDVValidationChallenges(args)
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
+      getDvStatus(args)
   },
 
   // Integration operations
@@ -136,23 +145,42 @@ export const certificateTools = {
       enrollmentId: z.number(),
       customer: z.string().optional()
     }),
-    handler: async (args: any): Promise<MCPToolResponse> => 
-      consolidatedCertificateTools.getCertificateDeploymentStatus(args)
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
+      deployCertificate(args)
+  },
+
+  'certificate_download': {
+    description: 'Download certificate in PEM or DER format',
+    inputSchema: z.object({
+      enrollmentId: z.string(),
+      format: z.enum(['pem', 'der']).optional(),
+      customer: z.string().optional()
+    }),
+    handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
+      downloadCertificate(args)
   }
 };
 
 /**
- * Export individual tool handlers for backwards compatibility
+ * Export enhanced tool functions
+ */
+export {
+  listCertificates,
+  getCertificate,
+  createDvCertificate,
+  getDvStatus,
+  deployCertificate,
+  downloadCertificate
+};
+
+/**
+ * Export additional tool handlers from consolidated tools for backward compatibility
+ * These will be migrated to enhanced pattern in the next phase
  */
 export const {
-  createDVEnrollment,
-  checkDVEnrollmentStatus,
-  getDVValidationChallenges,
+  searchCertificates,
   linkCertificateToProperty,
-  monitorCertificateDeployment,
-  getCertificateDeploymentStatus,
-  listCertificateEnrollments,
-  searchCertificates
+  monitorCertificateDeployment
 } = consolidatedCertificateTools;
 
 /**
@@ -167,6 +195,13 @@ export const certificateDomainMetadata = {
   name: 'certificate',
   description: 'Akamai CPS - Certificate Provisioning System',
   toolCount: Object.keys(certificateTools).length,
+  features: [
+    'Dynamic customer support',
+    'Built-in caching for better performance',
+    'Automatic hint integration',
+    'Progress tracking for deployments',
+    'Enhanced error messages with context'
+  ],
   consolidationStats: {
     originalFiles: 2,
     consolidatedFiles: 2,

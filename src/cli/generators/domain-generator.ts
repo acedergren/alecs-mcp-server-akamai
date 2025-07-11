@@ -9,8 +9,8 @@ import { join } from 'path';
 import { createLogger } from '../../utils/pino-logger';
 import { validateDomainName, toPascalCase, toSnakeCase } from '../utils/naming';
 import { getDomainTemplate } from '../templates/domain-template';
-import { getConsolidatedToolTemplate } from '../templates/consolidated-tool-template';
-import { getIndexTemplate } from '../templates/index-template';
+import { getToolTemplate, getApiImplementationTemplate } from '../templates/standard-tool-template';
+import { getIndexTemplate } from '../templates/standard-index-template';
 
 const logger = createLogger('domain-generator');
 
@@ -57,7 +57,11 @@ export async function generateDomain(name: string, options: DomainGeneratorOptio
     },
     {
       path: join(domainPath, `${domainName}-tools.ts`),
-      content: getConsolidatedToolTemplate(templateVars),
+      content: getToolTemplate(templateVars),
+    },
+    {
+      path: join(domainPath, `${domainName}-api-implementation.ts`),
+      content: getApiImplementationTemplate(templateVars),
     },
     {
       path: join(domainPath, 'README.md'),
@@ -84,7 +88,7 @@ export async function generateDomain(name: string, options: DomainGeneratorOptio
     logger.info({ path: file.path }, 'Created file');
   }
   
-  // Update all-tools-registry.ts
+  // Update tools-registry.ts
   await updateToolsRegistry(domainName);
   
   logger.info({ domainName }, 'Domain generated successfully');
@@ -96,13 +100,13 @@ export async function generateDomain(name: string, options: DomainGeneratorOptio
   console.log(`\n🚀 Next steps:`);
   console.log(`   1. Review generated files in src/tools/${domainName}/`);
   console.log(`   2. Implement your first tool using: alecs generate tool ${domainName} <tool-name>`);
-  console.log(`   3. Add API client implementation in ${domainName}-tools.ts`);
+  console.log(`   3. Update API endpoints in ${domainName}-api-implementation.ts`);
   console.log(`   4. Run tests: npm test`);
   console.log(`   5. Build server: npm run build`);
 }
 
 async function updateToolsRegistry(domainName: string): Promise<void> {
-  const registryPath = join(process.cwd(), 'src', 'tools', 'all-tools-registry.ts');
+  const registryPath = join(process.cwd(), 'src', 'tools', 'tools-registry.ts');
   
   try {
     const registryContent = await fs.readFile(registryPath, 'utf8');
@@ -130,7 +134,7 @@ async function updateToolsRegistry(domainName: string): Promise<void> {
       const finalContent = updatedContent.replace(toolLoadingRegex, toolLoadingReplacement);
       
       await fs.writeFile(registryPath, finalContent, 'utf8');
-      logger.info('Updated all-tools-registry.ts');
+      logger.info('Updated tools-registry.ts');
     }
   } catch (error) {
     logger.warn({ error }, 'Failed to update tools registry - you may need to update it manually');

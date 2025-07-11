@@ -9,7 +9,7 @@
  */
 
 import { ToolExecutor } from './workflow-engine';
-import { getAllToolDefinitions, getToolByName } from '../tools/all-tools-registry';
+import { getAllToolDefinitions, getToolByName } from '../tools/tools-registry';
 import { AkamaiClient } from '../akamai-client';
 import { logger } from '../utils/pino-logger';
 import { z } from 'zod';

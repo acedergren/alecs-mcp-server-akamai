@@ -230,7 +230,7 @@ export class EnhancedDomainGenerator {
    * Update tools registry
    */
   private async updateToolsRegistry(domainName: string): Promise<void> {
-    const registryPath = join(process.cwd(), 'src', 'tools', 'all-tools-registry.ts');
+    const registryPath = join(process.cwd(), 'src', 'tools', 'tools-registry.ts');
     
     try {
       const registryContent = await fs.readFile(registryPath, 'utf8');
@@ -264,7 +264,7 @@ export class EnhancedDomainGenerator {
       updatedContent = updatedContent.replace(toolLoadingRegex, toolLoadingReplacement);
       
       await fs.writeFile(registryPath, updatedContent, 'utf8');
-      logger.info('Updated all-tools-registry.ts');
+      logger.info('Updated tools-registry.ts');
       
     } catch (error) {
       logger.warn({ error }, 'Failed to update tools registry - manual update required');

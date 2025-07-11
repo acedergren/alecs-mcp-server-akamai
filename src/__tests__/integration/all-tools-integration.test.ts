@@ -7,7 +7,7 @@
  * COVERAGE: Tests 64 unique tools (5 duplicates identified for cleanup)
  */
 
-import { getAllToolDefinitions, getToolByName } from '../../tools/all-tools-registry';
+import { getAllToolDefinitions, getToolByName } from '../../tools/tools-registry';
 import { AkamaiClient } from '../../akamai-client';
 import { z } from 'zod';
 

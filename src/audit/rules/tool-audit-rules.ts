@@ -286,7 +286,7 @@ export const toolAuditRules: AuditRule[] = [
     check: async (context) => {
       const issues: AuditIssue[] = [];
       
-      if (context.filePath.endsWith('all-tools-registry.ts')) {
+      if (context.filePath.endsWith('tools-registry.ts')) {
         // Check for tools defined but not imported
         const toolUsages = context.content.matchAll(/name:\s*(\w+)\.name/g);
         const imports = context.content.match(/import\s*{[^}]+}\s*from/g) || [];

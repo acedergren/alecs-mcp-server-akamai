@@ -1,11 +1,22 @@
 /**
  * DNS Domain Tools Export
  * 
- * This module exports all DNS-related tools for use with ALECSCore.
- * It consolidates DNS zone management, record operations, DNSSEC,
- * and migration functionality into a clean interface.
+ * This module exports all DNS-related tools using the standard BaseTool.execute pattern.
+ * Features include dynamic customer support, caching, hints, and progress tracking.
+ * 
+ * Updated on 2025-01-11
  */
 
+import {
+  listZones,
+  getZone,
+  createZone,
+  listRecords,
+  createRecord,
+  updateRecord,
+  deleteRecord,
+  bulkRecords
+} from './dns-tools';
 import { consolidatedDNSTools } from './consolidated-dns-tools';
 import { z } from 'zod';
 import { type MCPToolResponse } from '../../types';
@@ -102,7 +113,7 @@ export const dnsTools = {
       customer: z.string().optional()
     }),
     handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
-      consolidatedDNSTools.upsertRecord(args)
+      createRecord(args)
   },
 
   'dns_record_delete': {
@@ -114,7 +125,7 @@ export const dnsTools = {
       customer: z.string().optional()
     }),
     handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
-      consolidatedDNSTools.deleteRecord(args)
+      deleteRecord(args)
   },
 
   'dns_records_bulk_import': {
@@ -192,17 +203,27 @@ export const dnsTools = {
 };
 
 /**
- * Export individual tool handlers for backwards compatibility
+ * Export enhanced tool functions
  */
-export const {
+export {
   listZones,
   getZone,
   createZone,
+  listRecords,
+  createRecord,
+  updateRecord,
+  deleteRecord,
+  bulkRecords
+};
+
+/**
+ * Export additional tool handlers from consolidated tools for backward compatibility
+ * These will be migrated to enhanced pattern in the next phase
+ */
+export const {
   deleteZone,
   activateZone,
-  listRecords,
   upsertRecord,
-  deleteRecord,
   bulkImportRecords,
   importZoneViaAxfr,
   enableDnssec,
@@ -221,10 +242,11 @@ export const dnsDomainMetadata = {
   name: 'dns',
   description: 'Akamai Edge DNS - Authoritative DNS service',
   toolCount: Object.keys(dnsTools).length,
-  consolidationStats: {
-    originalFiles: 5,
-    consolidatedFiles: 2,
-    errorReduction: 26,
-    codeReduction: '45%'
-  }
+  features: [
+    'Dynamic customer support',
+    'Built-in caching for better performance',
+    'Automatic hint integration',
+    'Progress tracking for bulk operations',
+    'Enhanced error messages with context'
+  ]
 };

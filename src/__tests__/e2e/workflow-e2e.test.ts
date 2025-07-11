@@ -22,7 +22,7 @@ jest.mock('../../services/cache-service-singleton', () => ({
 }));
 
 // Mock tool registry with realistic tool responses
-jest.mock('../../tools/all-tools-registry', () => ({
+jest.mock('../../tools/tools-registry', () => ({
   getAllToolDefinitions: jest.fn(() => []),
   getToolByName: jest.fn((name) => {
     const toolResponses: Record<string, any> = {

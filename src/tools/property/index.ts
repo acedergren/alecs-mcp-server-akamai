@@ -1,11 +1,21 @@
 /**
  * Property Domain Tools Export
  * 
- * This module exports all property-related tools for use with ALECSCore.
- * It provides a clean interface that eliminates the need for the legacy
- * property tool files, reducing TypeScript errors by 330+ and code by 60%.
+ * This module exports all property-related tools using the standard BaseTool.execute pattern.
+ * Features include dynamic customer support, caching, hints, and progress tracking.
+ * 
+ * Updated on 2025-01-11
  */
 
+import {
+  listProperties,
+  getProperty,
+  createProperty,
+  updatePropertyRules,
+  activateProperty,
+  getPropertyRules,
+  cloneProperty
+} from './property-tools';
 import { consolidatedPropertyTools } from './consolidated-property-tools';
 import { z } from 'zod';
 import { type MCPToolResponse } from '../../types';
@@ -26,7 +36,7 @@ export const propertyTools = {
       format: z.enum(['json', 'text']).optional()
     }),
     handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
-      consolidatedPropertyTools.listProperties(args)
+      listProperties(args)
   },
 
   // Contract and Group operations
@@ -68,7 +78,7 @@ export const propertyTools = {
       customer: z.string().optional()
     }),
     handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
-      consolidatedPropertyTools.getProperty(args)
+      getProperty(args)
   },
 
   'property_rules_get': {
@@ -80,7 +90,7 @@ export const propertyTools = {
       validateRules: z.boolean().optional()
     }),
     handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
-      consolidatedPropertyTools.getPropertyRules(args)
+      getPropertyRules(args)
   },
 
   // Create operations
@@ -95,7 +105,7 @@ export const propertyTools = {
       customer: z.string().optional()
     }),
     handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
-      consolidatedPropertyTools.createProperty(args)
+      createProperty(args)
   },
 
   'property_clone': {
@@ -110,7 +120,7 @@ export const propertyTools = {
       customer: z.string().optional()
     }),
     handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
-      consolidatedPropertyTools.cloneProperty(args)
+      cloneProperty(args)
   },
 
   'property_version_create': {
@@ -135,7 +145,7 @@ export const propertyTools = {
       customer: z.string().optional()
     }),
     handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
-      consolidatedPropertyTools.updatePropertyRules(args)
+      updatePropertyRules(args)
   },
 
   // Activation operations
@@ -144,7 +154,7 @@ export const propertyTools = {
     inputSchema: z.object({
       propertyId: z.string(),
       version: z.number(),
-      network: z.enum(['STAGING', 'PRODUCTION']),
+      network: z.enum(['staging', 'production']),
       notes: z.string().optional(),
       notifyEmails: z.array(z.string()).optional(),
       acknowledgeWarnings: z.boolean().optional(),
@@ -154,7 +164,7 @@ export const propertyTools = {
       customer: z.string().optional()
     }),
     handler: async (_client: any, args: any): Promise<MCPToolResponse> => 
-      consolidatedPropertyTools.activateProperty(args)
+      activateProperty(args)
   },
 
   'property_activation_status': {
@@ -301,7 +311,7 @@ export const propertyTools = {
         propertyId: z.string(),
         action: z.enum(['create', 'activate', 'deactivate']),
         version: z.number().optional(),
-        network: z.enum(['STAGING', 'PRODUCTION']).optional(),
+        network: z.enum(['staging', 'production']).optional(),
         notes: z.string().optional()
       })),
       customer: z.string().optional()
@@ -316,7 +326,7 @@ export const propertyTools = {
       properties: z.array(z.object({
         propertyId: z.string(),
         version: z.number(),
-        network: z.enum(['STAGING', 'PRODUCTION'])
+        network: z.enum(['staging', 'production'])
       })),
       notes: z.string().optional(),
       notifyEmails: z.array(z.string()).optional(),
@@ -383,16 +393,23 @@ export const propertyTools = {
 };
 
 /**
- * Export individual tool handlers for backwards compatibility
+ * Export enhanced tool functions
  */
-export const {
+export {
   listProperties,
   getProperty,
   createProperty,
   cloneProperty,
   getPropertyRules,
   updatePropertyRules,
-  activateProperty,
+  activateProperty
+};
+
+/**
+ * Export additional tool handlers from consolidated tools for backward compatibility
+ * These will be migrated to enhanced pattern in the next phase
+ */
+export const {
   createPropertyVersion,
   getActivationStatus,
   rollbackPropertyVersion,
@@ -418,21 +435,18 @@ export { consolidatedPropertyTools };
  */
 export const propertyDomainMetadata = {
   name: 'property',
-  description: 'Akamai Property Manager - CDN configuration management with advanced features',
+  description: 'Akamai Property Manager - CDN configuration management',
   toolCount: Object.keys(propertyTools).length,
   features: [
+    'Dynamic customer support',
+    'Built-in caching for better performance',
+    'Automatic hint integration',
+    'Progress tracking for long operations',
+    'Enhanced error messages with context',
     'Basic property CRUD operations',
     'Version management and rollback',
     'Configuration comparison and drift detection',
     'Health monitoring and diagnostics',
     'Bulk operations for enterprise scale'
-  ],
-  consolidationStats: {
-    originalFiles: 7,
-    consolidatedFiles: 2,
-    errorReduction: 330,
-    codeReduction: '60%',
-    restoredTools: 11,
-    totalTools: Object.keys(propertyTools).length
-  }
+  ]
 };

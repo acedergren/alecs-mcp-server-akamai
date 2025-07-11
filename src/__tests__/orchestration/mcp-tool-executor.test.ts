@@ -35,7 +35,7 @@ jest.mock('../../services/cache-service-singleton', () => ({
 }));
 
 // Mock tool registry
-jest.mock('../../tools/all-tools-registry', () => ({
+jest.mock('../../tools/tools-registry', () => ({
   getAllToolDefinitions: jest.fn(() => []),
   getToolByName: jest.fn()
 }));
@@ -43,7 +43,7 @@ jest.mock('../../tools/all-tools-registry', () => ({
 // Now import the modules after mocking
 import { MCPToolExecutor } from '../../orchestration/mcp-tool-executor';
 import { AkamaiClient } from '../../akamai-client';
-import * as allToolsRegistry from '../../tools/all-tools-registry';
+import * as allToolsRegistry from '../../tools/tools-registry';
 
 describe('MCPToolExecutor', () => {
   let executor: MCPToolExecutor;

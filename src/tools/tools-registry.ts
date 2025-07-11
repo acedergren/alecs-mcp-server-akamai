@@ -1,18 +1,77 @@
 /**
- * Complete Tool Registration for ALECS Full Server
- * Registers ALL available tools from consolidated modules
- * Updated to use new consolidated tool architecture
+ * Unified Type-Safe Tool Registry for ALECS Full Server
+ * 
+ * CODE KAI IMPLEMENTATION:
+ * - Single source of truth for all MCP tools
+ * - Full type safety with TypeScript
+ * - Runtime validation with Zod
+ * - Automatic tool discovery
+ * - Standard pattern support
+ * 
+ * This registry provides:
+ * 1. Type-safe tool registration
+ * 2. Automatic validation
+ * 3. Tool metadata and capabilities
+ * 4. Domain grouping
+ * 5. Feature detection
  */
 
-import { type ZodSchema } from 'zod';
-
-// CODE KAI: Import proper types to eliminate 'any' usage
-import type { AkamaiClient } from '../akamai-client';
+import { z } from 'zod';
 import type { MCPToolResponse } from '../types/mcp-protocol';
+import type { AkamaiClient } from '../akamai-client';
 
-// CODE KAI: Define flexible parameter type for tool handlers
-// This allows typed parameters while maintaining compatibility with MCP SDK
-type ToolParameters = Record<string, unknown>;
+/**
+ * Base tool handler type
+ */
+export type ToolHandler<TInput = any> = (
+  client: AkamaiClient,
+  args: TInput
+) => Promise<MCPToolResponse>;
+
+/**
+ * Tool definition with full type safety
+ */
+export interface ToolDefinition<TSchema extends z.ZodType = z.ZodType> {
+  name: string;
+  description: string;
+  schema: TSchema;
+  handler: ToolHandler<z.infer<TSchema>>;
+  metadata?: ToolMetadata;
+}
+
+/**
+ * Tool metadata for standard features
+ */
+export interface ToolMetadata {
+  domain: string;
+  category?: string;
+  cacheable?: boolean;
+  cacheTtl?: number;
+  progressTracking?: boolean;
+  deprecated?: boolean;
+  replacedBy?: string;
+  tags?: string[];
+  requiredPermissions?: string[];
+}
+
+/**
+ * Domain definition
+ */
+export interface DomainDefinition {
+  name: string;
+  description: string;
+  toolCount: number;
+  features?: string[];
+}
+
+/**
+ * Tool registry configuration
+ */
+export interface RegistryConfig {
+  validateOnRegister?: boolean;
+  allowDuplicates?: boolean;
+  enableMetrics?: boolean;
+}
 
 // CONSOLIDATED TOOLS - NEW ARCHITECTURE
 // Import from consolidated modules that contain all tools

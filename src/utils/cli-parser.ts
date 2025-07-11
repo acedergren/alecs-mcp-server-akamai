@@ -439,7 +439,7 @@ function getToolStatistics(): {
 } {
   try {
     // Import tool registry to get actual counts
-    const { getAllToolDefinitions } = require('../tools/all-tools-registry');
+    const { getAllToolDefinitions } = require('../tools/tools-registry');
     const allTools = getAllToolDefinitions();
     
     // Count tools by domain and naming convention

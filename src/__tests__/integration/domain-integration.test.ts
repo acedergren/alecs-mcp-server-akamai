@@ -5,7 +5,7 @@
  * error handling, and integration patterns.
  */
 
-import { getToolByName } from '../../tools/all-tools-registry';
+import { getToolByName } from '../../tools/tools-registry';
 import { AkamaiClient } from '../../akamai-client';
 
 // Mock dependencies

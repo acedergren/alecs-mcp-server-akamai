@@ -9,6 +9,9 @@
  * 
  * This module combines all property management functionality into a single,
  * well-organized class that extends BaseTool for consistent patterns.
+ * 
+ * NOTE: This file is being migrated to property-tools-enhanced.ts which uses
+ * the new BaseTool.execute pattern for better features and performance.
  */
 
 import { z } from 'zod';
@@ -76,6 +79,9 @@ const ClonePropertySchema = CustomerSchema.extend({
 
 /**
  * Consolidated property tools implementation
+ */
+/**
+ * @deprecated Use property-tools-enhanced.ts instead for enhanced features
  */
 export class ConsolidatedPropertyTools extends BaseTool {
   protected readonly domain = 'property';

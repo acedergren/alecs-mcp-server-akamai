@@ -47,7 +47,7 @@ import { MCPCompatibilityWrapper } from './mcp-compatibility-wrapper';
 import { createTransport } from './transport-factory';
 
 // Import the complete tool registry
-import { getAllToolDefinitions, type ToolDefinition } from '../tools/all-tools-registry';
+import { getAllToolDefinitions, type ToolDefinition } from '../tools/tools-registry';
 
 // Create logger for this module
 const logger = createLogger('akamai-server-factory');

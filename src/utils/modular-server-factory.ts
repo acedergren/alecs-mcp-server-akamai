@@ -48,7 +48,7 @@ import { type ZodObject, type ZodRawShape } from 'zod';
 
 // Import the complete tool registry
 // This consolidates all 158 tools from across the codebase into one place
-import { getAllToolDefinitions, type ToolDefinition } from '../tools/all-tools-registry';
+import { getAllToolDefinitions, type ToolDefinition } from '../tools/tools-registry';
 
 interface ServerConfig {
   name: string;
