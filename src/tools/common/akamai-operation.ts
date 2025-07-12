@@ -79,6 +79,32 @@ export interface HostnameRoutingMapping {
  * This class eliminates 30%+ of TypeScript errors across tool files by providing
  * consistent, type-safe abstractions for common operations.
  * 
+ * ## Progress Tracking
+ * 
+ * For long-running operations, AkamaiOperation supports progress tracking via MCP:
+ * ```typescript
+ * return AkamaiOperation.execute(
+ *   'property',
+ *   'property_activate',
+ *   args,
+ *   async (client, progress) => {
+ *     // Report progress during operation
+ *     await progress?.report({ progress: 25, total: 100, message: 'Creating activation' });
+ *     const activation = await client.post('/papi/v1/properties/prp_123/activations', body);
+ *     
+ *     await progress?.report({ progress: 50, total: 100, message: 'Waiting for completion' });
+ *     // ... poll for completion ...
+ *     
+ *     await progress?.report({ progress: 100, total: 100, message: 'Activation complete' });
+ *     return activation;
+ *   },
+ *   { 
+ *     enableProgress: true,
+ *     progressSteps: ['Creating', 'Validating', 'Activating', 'Complete']
+ *   }
+ * );
+ * ```
+ * 
  * @abstract
  * @example
  * ```typescript

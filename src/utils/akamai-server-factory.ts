@@ -800,11 +800,6 @@ export async function createAkamaiServer(config: ServerConfig): Promise<AkamaiMC
   try {
     const server = new AkamaiMCPServer(config);
     logger.debug('AkamaiMCPServer instance created successfully');
-    
-    // Initialize the server (loads tools, sets up handlers)
-    await server.initialize();
-    logger.debug('AkamaiMCPServer initialized successfully');
-    
     return server;
   } catch (error) {
     logger.fatal({ error }, 'FAILED TO CREATE AKAMAI SERVER!');

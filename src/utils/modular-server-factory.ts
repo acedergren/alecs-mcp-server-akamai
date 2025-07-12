@@ -46,8 +46,8 @@ import { getTransportFromEnv } from '../config/transport-config';
 import { AkamaiClient } from '../akamai-client';
 
 // Import the complete tool registry
-// This consolidates all 158 tools from across the codebase into one place
-import { getAllToolDefinitions, type ToolDefinition } from '../tools/all-tools-registry';
+// This consolidates all tools from across the codebase into one place
+import { getAllToolDefinitions, initializeRegistry, type ToolDefinition } from '../tools/registry';
 
 interface ServerConfig {
   name: string;
@@ -87,10 +87,15 @@ export class AkamaiMCPServer {
         },
       }
     );
+  }
 
+  /**
+   * Initialize the server - must be called after construction
+   */
+  async initialize(): Promise<void> {
     // Load tools from the central registry
     // This replaces the scattered tool registrations across multiple server files
-    this.loadTools();
+    await this.loadTools();
     this.setupHandlers();
   }
 
@@ -105,7 +110,10 @@ export class AkamaiMCPServer {
    * 3. Dynamic loading - can filter tools based on customer/feature flags
    * 4. Consistent tool naming and schemas across the system
    */
-  private loadTools(): void {
+  private async loadTools(): Promise<void> {
+    // Initialize registry if not already done
+    await initializeRegistry();
+    
     const allTools = getAllToolDefinitions();
     
     // Apply optional filter for customer-specific or feature-gated tools
@@ -277,7 +285,9 @@ export class AkamaiMCPServer {
  * ```
  */
 export async function createAkamaiServer(config: ServerConfig): Promise<AkamaiMCPServer> {
-  return new AkamaiMCPServer(config);
+  const server = new AkamaiMCPServer(config);
+  await server.initialize();
+  return server;
 }
 
 // Keep the old name for backward compatibility during migration
