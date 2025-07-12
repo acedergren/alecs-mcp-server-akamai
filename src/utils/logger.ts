@@ -12,6 +12,11 @@
  */
 
 import { loggerCompat } from './pino-logger';
+import { z } from 'zod';
+
+// Define schema for log data
+const LogDataSchema = z.record(z.string(), z.unknown());
+type LogData = z.infer<typeof LogDataSchema>;
 
 // Re-export the compatibility logger as the main logger
 export const logger = loggerCompat;
@@ -21,7 +26,7 @@ export interface LogEntry {
   timestamp: string;
   level: string;
   message: string;
-  data?: any;
+  data?: LogData;
 }
 
 // Re-export the getInstance pattern for backward compatibility

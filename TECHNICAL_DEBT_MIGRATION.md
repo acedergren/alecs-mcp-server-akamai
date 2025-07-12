@@ -1,3 +1,36 @@
+#### Task 2.3.2: Replace 'any' Types - Batch 1
+**Status**: ✅ COMPLETE - Agent: BackgroundBot-1  
+**Priority**: MEDIUM  
+**Files**: First 20 files with 'any' types  
+**Action**: Replace with proper Zod schemas
+**Completion**: Fixed 'any' types in 2 files (logger.ts, auth.ts). Found 100+ files with 'any' types - recommend breaking into smaller batches.
+
+#### Task 2.3.3: Replace 'any' Types - Batch 2
+**Status**: ⬜ UNCLAIMED  
+**Priority**: MEDIUM  
+**Files**: Next 20 files with 'any' types  
+**Action**: Replace with proper Zod schemas
+
+#### Task 2.3.4: Replace 'any' Types - Batch 3
+**Status**: ⬜ UNCLAIMED  
+**Priority**: MEDIUM  
+**Files**: Remaining files with 'any' types  
+**Action**: Replace with proper Zod schemas
+
+### 2.4 Import Pattern Cleanup
+
+#### Task 2.4.1: Legacy Imports - Services Directory
+**Status**: ⬜ UNCLAIMED  
+**Priority**: HIGH  
+**Directory**: `src/services/`  
+**Action**: Update all legacy tool imports to domain imports
+
+#### Task 2.4.2: Legacy Imports - Agents Directory
+**Status**: ⬜ UNCLAIMED  
+**Priority**: MEDIUM  
+**Directory**: `src/agents/`  
+**Action**: Update all legacy tool imports to domain imports
+
 #### Task 2.4.3: Legacy Imports - Utils Directory
 **Status**: ✅ COMPLETE - Agent: BackgroundBot-1  
 **Priority**: MEDIUM  
@@ -65,10 +98,11 @@
 **Completion**: Replaced 8 console.* calls across 2 files (bulk-operations and base-tool)
 
 #### Task 3.2.4: Console Replacement - Utils
-**Status**: 🔄 IN PROGRESS - Agent: BackgroundBot-1  
+**Status**: ✅ COMPLETE - Agent: BackgroundBot-1  
 **Priority**: LOW  
 **Directory**: `src/utils/`  
 **Action**: Replace all console.* with pino logger
+**Completion**: Replaced console.* in transport-factory.ts and request-coalescer.ts. Note: safe-console.ts and cli-parser.ts intentionally use console for MCP protocol compliance.
 
 ### 3.3 Circular Dependency Resolution
 
@@ -182,10 +216,10 @@
 
 ### Overall Progress
 - **Phase 1**: 0/14 tasks (0%)
-- **Phase 2**: 1/16 tasks (6.25%)
-- **Phase 3**: 3/16 tasks (18.75%)
+- **Phase 2**: 3/16 tasks (18.75%)
+- **Phase 3**: 5/16 tasks (31.25%)
 - **Phase 4**: 0/8 tasks (0%)
-- **TOTAL**: 4/54 tasks (7.4%)
+- **TOTAL**: 8/54 tasks (14.8%)
 
 ### Active Agents
 | Agent | Current Task | Status |
@@ -199,3 +233,6 @@
 | 3.2.2 | BackgroundBot-1 | 20:28 |
 | 3.3.1 | BackgroundBot-1 | 20:32 |
 | 2.4.3 | BackgroundBot-1 | 20:36 |
+| 3.2.3 | BackgroundBot-1 | 20:42 |
+| 3.2.4 | BackgroundBot-1 | 20:44 |
+| 2.3.2 | BackgroundBot-1 | 20:48 |

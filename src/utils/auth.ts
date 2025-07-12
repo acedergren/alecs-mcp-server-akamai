@@ -2,13 +2,24 @@
  * Authentication utilities
  */
 
+import { z } from 'zod';
+
 export interface AuthContext {
   customer?: string;
   accountKey?: string;
   authenticated: boolean;
 }
 
-export function getAuthContext(params?: any): AuthContext {
+// Define schema for auth params
+const AuthParamsSchema = z.object({
+  customer: z.string().optional(),
+  section: z.string().optional(),
+  accountKey: z.string().optional(),
+}).passthrough();
+
+type AuthParams = z.infer<typeof AuthParamsSchema>;
+
+export function getAuthContext(params?: AuthParams): AuthContext {
   return {
     customer: params?.customer || 'default',
     accountKey: params?.accountKey,
