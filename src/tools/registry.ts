@@ -423,6 +423,18 @@ const manualDomainImports = async () => {
       tools.forEach(tool => registry.registerTool(tool));
     }
 
+    // Bulk Operations domain
+    const bulkOperations = await import('./bulk-operations');
+    if (bulkOperations.bulkOperationsOperations) {
+      registry.registerDomain({
+        name: 'bulk-operations',
+        description: 'Bulk operations for multiple properties',
+        toolCount: 0
+      });
+      const tools = registry.convertOperationsToTools(bulkOperations.bulkOperationsOperations, 'bulk-operations');
+      tools.forEach(tool => registry.registerTool(tool));
+    }
+
     // Continue with other domains...
     // This is a temporary solution during migration
     
