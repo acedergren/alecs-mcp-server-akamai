@@ -8,9 +8,12 @@ import { validateApiResponse } from '../utils/api-response-validator';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+import { createLogger } from '../utils/pino-logger';
 
-import { getDVValidationChallenges } from './cps-tools';
-import { upsertRecord } from './dns-tools';
+const logger = createLogger('cps-dns-integration');
+
+import { getDVValidationChallenges } from './certificates/certificates';
+import { dnsOperations } from './dns/dns';
 
 interface ACMERecord {
   domain: string;
@@ -68,7 +71,7 @@ export async function createACMEValidationRecords(
       };
     }
 
-    console.log(`\n[EMOJI] Found ${records.length} ACME validation records to create`);
+    logger.info(`\n[EMOJI] Found ${records.length} ACME validation records to create`);
 
     // Create records
     const progressBar = new ProgressBar({ total: records.length });
@@ -83,7 +86,8 @@ export async function createACMEValidationRecords(
     for (const record of records) {
       try {
         // Try to create the record
-        await upsertRecord(client, {
+        await dnsOperations.upsertRecord({
+          customer: client.getCustomer(),
           zone: record.zone,
           name: record.recordName,
           type: 'TXT',
@@ -98,7 +102,8 @@ export async function createACMEValidationRecords(
         if (args.autoDetectZones && record.zone.includes('.')) {
           try {
             const parentZone = record.zone.split('.').slice(1).join('.');
-            await upsertRecord(client, {
+            await dnsOperations.upsertRecord({
+              customer: client.getCustomer(),
               zone: parentZone,
               name: record.recordName,
               type: 'TXT',
@@ -268,8 +273,8 @@ export async function monitorCertificateValidation(
   const checkInterval = (args.checkIntervalSeconds || 30) * 1000;
   const startTime = Date.now();
 
-  console.log(`\n[SEARCH] Monitoring certificate validation for enrollment ${args.enrollmentId}`);
-  console.log(
+  logger.info(`\n[SEARCH] Monitoring certificate validation for enrollment ${args.enrollmentId}`);
+  logger.info(
     `[TIME] Will check every ${args.checkIntervalSeconds || 30} seconds for up to ${args.maxWaitMinutes || 30} minutes\n`,
   );
 
@@ -304,8 +309,8 @@ export async function monitorCertificateValidation(
       );
 
       // Display current status
-      console.log(`\n[METRICS] Validation Status at ${new Date().toLocaleTimeString()}`);
-      console.log(`${'─'.repeat(50)}`);
+      logger.info(`\n[METRICS] Validation Status at ${new Date().toLocaleTimeString()}`);
+      logger.info(`${'─'.repeat(50)}`);
 
       enrollment.allowedDomains.forEach((domain: any) => {
         const statusMap: Record<string, string> = {
@@ -317,11 +322,11 @@ export async function monitorCertificateValidation(
         };
         const emoji = statusMap[domain.validationStatus] || '[EMOJI]';
 
-        console.log(`${emoji} ${domain.name}: ${domain.validationStatus}`);
+        logger.info(`${emoji} ${domain.name}: ${domain.validationStatus}`);
       });
 
       if (errorDomains.length > 0) {
-        console.log(`\n[ERROR] Validation failed for ${errorDomains.length} domain(s)`);
+        logger.info(`\n[ERROR] Validation failed for ${errorDomains.length} domain(s)`);
         return {
           content: [
             {
@@ -333,8 +338,8 @@ export async function monitorCertificateValidation(
       }
 
       if (allValidated) {
-        console.log('\n[DONE] All domains validated successfully!');
-        console.log('[DEPLOY] Certificate deployment will begin automatically.');
+        logger.info('\n[DONE] All domains validated successfully!');
+        logger.info('[DEPLOY] Certificate deployment will begin automatically.');
 
         return {
           content: [
@@ -348,14 +353,14 @@ export async function monitorCertificateValidation(
 
       // Show progress
       const elapsedMinutes = Math.floor((Date.now() - startTime) / 60000);
-      console.log(`\n[EMOJI] Waiting for validation... (${elapsedMinutes} minutes elapsed)`);
-      console.log(`   ${pendingDomains.length} domain(s) still pending validation`);
+      logger.info(`\n[EMOJI] Waiting for validation... (${elapsedMinutes} minutes elapsed)`);
+      logger.info(`   ${pendingDomains.length} domain(s) still pending validation`);
 
       // Wait before next check
       await new Promise((resolve) => setTimeout(resolve, checkInterval));
     } catch (_error) {
       spinner.stop();
-      console.error(
+      logger.error(
         `\n[ERROR] Error checking validation status: ${_error instanceof Error ? _error.message : 'Unknown _error'}`,
       );
       await new Promise((resolve) => setTimeout(resolve, checkInterval));

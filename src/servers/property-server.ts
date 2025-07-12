@@ -23,9 +23,11 @@ import {
   getActivationStatus,
   listPropertyActivations,
   removePropertyHostname,
-  addPropertyHostname,
-  createEdgeHostname,
-} from '../tools/property-manager-tools';
+  addPropertyHostname
+} from '../tools/property/properties';
+import {
+  createEdgeHostname
+} from '../tools/edge-hostnames/edge-hostnames';
 import {
   listProperties,
   getProperty,

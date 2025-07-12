@@ -10,8 +10,8 @@ import {
   createACMEValidationRecords,
   monitorCertificateValidation,
 } from '../tools/cps-dns-integration';
-import { checkDVEnrollmentStatus, getDVValidationChallenges } from '../tools/cps-tools';
-import { activateZoneChanges } from '../tools/dns-tools';
+import { checkDVEnrollmentStatus, getDVValidationChallenges } from '../tools/certificates/certificates';
+import { dnsOperations } from '../tools/dns/dns';
 import { type MCPToolResponse } from '../types';
 import { CPSEnrollmentCreateResponse } from '../types/api-responses';
 
@@ -493,7 +493,8 @@ export class CertificateEnrollmentService {
         const zones = this.extractZonesFromDomains(enrollmentState.domains);
         for (const zone of zones) {
           try {
-            await activateZoneChanges(this.client, {
+            await dnsOperations.activateZoneChanges({
+              customer: this.client.getCustomer(),
               zone,
               comment: `ACME validation for certificate ${enrollmentId}`,
             });

@@ -24,13 +24,13 @@ import { logger } from '../utils/logger';
 
 // Import FastPurge tools
 import {
-  fastpurgeUrlInvalidate,
-  fastpurgeCpcodeInvalidate,
-  fastpurgeTagInvalidate,
-  fastpurgeStatusCheck,
-  fastpurgeQueueStatus,
-  fastpurgeEstimate,
-} from '../tools/fastpurge-tools';
+  fastPurgeByURL as fastpurgeUrlInvalidate,
+  fastPurgeByCPCode as fastpurgeCpcodeInvalidate,
+  fastPurgeByTag as fastpurgeTagInvalidate,
+  fastPurgeStatus as fastpurgeStatusCheck,
+  // fastpurgeQueueStatus, // TODO: Implement in utilities domain
+  // fastpurgeEstimate, // TODO: Implement in utilities domain
+} from '../tools/utilities/utilities';
 
 // Schemas
 const FastpurgeUrlInvalidateSchema = z.object({
