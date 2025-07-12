@@ -69,8 +69,12 @@ export class ToolErrorHandler {
       stack: error instanceof Error ? error.stack : undefined,
     }, `${this.context.tool} operation failed: ${this.context.operation}`);
 
-    // Log user-friendly error information to console
-    console.error(`\n[${this.context.tool.toUpperCase()} Error]:`, errorMessage);
+    // Log user-friendly error information
+    this.logger.error({ 
+      tool: this.context.tool.toUpperCase(),
+      error: errorMessage,
+      context: this.context 
+    }, `${this.context.tool.toUpperCase()} Error`);
 
     // Handle specific status codes
     this.logStatusCodeHelp(statusCode, akamaiError);
@@ -82,7 +86,7 @@ export class ToolErrorHandler {
 
     // Log request ID for support
     if (requestId) {
-      console.error(`\n[Request ID for Support]: ${requestId}`);
+      this.logger.error({ requestId }, 'Request ID for Support');
     }
 
     // Return formatted error response instead of throwing
@@ -129,65 +133,65 @@ export class ToolErrorHandler {
   private logStatusCodeHelp(statusCode: number | undefined, akamaiError: AkamaiErrorDetails | undefined): void {
     if (!statusCode) {return;}
 
-    console.error(`\n[${statusCode} Error - Possible Causes]:`);
+    this.logger.error(`\n[${statusCode} Error - Possible Causes]:`);
 
     switch (statusCode) {
       case 400:
-        console.error('• Invalid request parameters or malformed request');
-        console.error('• Missing required fields');
-        console.error('• Invalid field values or formats');
+        this.logger.error('• Invalid request parameters or malformed request');
+        this.logger.error('• Missing required fields');
+        this.logger.error('• Invalid field values or formats');
         this.logValidationErrors(akamaiError);
         break;
 
       case 401:
-        console.error('• Invalid or expired API credentials');
-        console.error('• Incorrect .edgerc configuration');
-        console.error('• Missing authentication headers');
-        console.error('\nSolution: Check your .edgerc file and ensure credentials are valid');
+        this.logger.error('• Invalid or expired API credentials');
+        this.logger.error('• Incorrect .edgerc configuration');
+        this.logger.error('• Missing authentication headers');
+        this.logger.error('\nSolution: Check your .edgerc file and ensure credentials are valid');
         break;
 
       case 403:
-        console.error('• Insufficient permissions for this operation');
-        console.error('• API access not enabled for your account');
-        console.error('• Resource belongs to a different account');
+        this.logger.error('• Insufficient permissions for this operation');
+        this.logger.error('• API access not enabled for your account');
+        this.logger.error('• Resource belongs to a different account');
         if (this.context.customer) {
-          console.error(`• Account switch key issues for customer: ${this.context.customer}`);
+          this.logger.error(`• Account switch key issues for customer: ${this.context.customer}`);
         }
-        console.error('\nSolution: Verify API permissions and account access');
+        this.logger.error('\nSolution: Verify API permissions and account access');
         break;
 
       case 404:
-        console.error('• Resource not found');
-        console.error('• Incorrect ID or name');
-        console.error('• Resource may have been deleted');
-        console.error('\nSolution: Verify the resource exists and you have access');
+        this.logger.error('• Resource not found');
+        this.logger.error('• Incorrect ID or name');
+        this.logger.error('• Resource may have been deleted');
+        this.logger.error('\nSolution: Verify the resource exists and you have access');
         break;
 
       case 409:
-        console.error('• Resource conflict or duplicate');
-        console.error('• Operation already in progress');
-        console.error('• State conflict (e.g., activation pending)');
-        console.error('\nSolution: Check for existing resources or wait for pending operations');
+        this.logger.error('• Resource conflict or duplicate');
+        this.logger.error('• Operation already in progress');
+        this.logger.error('• State conflict (e.g., activation pending)');
+        this.logger.error('\nSolution: Check for existing resources or wait for pending operations');
         break;
 
       case 429:
-        console.error('• Rate limit exceeded');
-        console.error('• Too many requests in a short time');
-        console.error('\nSolution: Wait before retrying or implement exponential backoff');
+        this.logger.error('• Rate limit exceeded');
+        this.logger.error('• Too many requests in a short time');
+        this.logger.error('\nSolution: Wait before retrying or implement exponential backoff');
         break;
 
       case 500:
-        console.error('• Internal server error at Akamai');
-        console.error('• Temporary service disruption');
-        console.error('• Invalid data causing server issues');
+        this.logger.error('• Internal server error at Akamai');
+        this.logger.error('• Temporary service disruption');
+        this.logger.error('• Invalid data causing server issues');
         this.log500ErrorHelp();
-        console.error('\nSolution: Wait a few minutes and retry');
+        this.logger.error('\nSolution: Wait a few minutes and retry');
         break;
 
       case 503:
-        console.error('• Service temporarily unavailable');
-        console.error('• Maintenance or high load');
-        console.error('\nSolution: Wait and retry later');
+        this.logger.error('• Service temporarily unavailable');
+        this.logger.error('• Maintenance or high load');
+        this.logger.error('\nSolution: Wait and retry later');
         break;
     }
   }
@@ -198,12 +202,12 @@ export class ToolErrorHandler {
   private logValidationErrors(akamaiError: AkamaiErrorDetails | undefined): void {
     if (!akamaiError?.errors || akamaiError.errors.length === 0) {return;}
 
-    console.error('\n[Validation Errors]:');
+    this.logger.error('\n[Validation Errors]:');
     akamaiError.errors.forEach((err, index) => {
       if (err.field) {
-        console.error(`${index + 1}. Field '${err.field}': ${err.detail || err.title}`);
+        this.logger.error(`${index + 1}. Field '${err.field}': ${err.detail || err.title}`);
       } else {
-        console.error(`${index + 1}. ${err.detail || err.title}`);
+        this.logger.error(`${index + 1}. ${err.detail || err.title}`);
       }
     });
   }
@@ -216,31 +220,31 @@ export class ToolErrorHandler {
 
     // Tool-specific 500 error help
     if (tool === 'dns' && operation.includes('create')) {
-      console.error('\n[DNS-Specific Checks]:');
-      console.error('• Parent zone must exist and be active');
-      console.error('• Contract and Group IDs must be valid');
-      console.error('• Zone name format must be correct');
+      this.logger.error('\n[DNS-Specific Checks]:');
+      this.logger.error('• Parent zone must exist and be active');
+      this.logger.error('• Contract and Group IDs must be valid');
+      this.logger.error('• Zone name format must be correct');
     } else if (tool === 'property' && operation.includes('activation')) {
-      console.error('\n[Property Activation Checks]:');
-      console.error('• Property version must be valid');
-      console.error('• No pending activations on same network');
-      console.error('• Rule tree must be valid');
+      this.logger.error('\n[Property Activation Checks]:');
+      this.logger.error('• Property version must be valid');
+      this.logger.error('• No pending activations on same network');
+      this.logger.error('• Rule tree must be valid');
     } else if (tool === 'cps' || tool === 'certificate') {
-      console.error('\n[CPS Certificate Checks]:');
+      this.logger.error('\n[CPS Certificate Checks]:');
       if (operation.includes('create') || operation.includes('DV')) {
-        console.error('• Domain validation must be complete');
-        console.error('• DNS TXT records must be properly configured');
-        console.error('• Domain must be publicly accessible');
-        console.error('• CSR parameters must be valid');
+        this.logger.error('• Domain validation must be complete');
+        this.logger.error('• DNS TXT records must be properly configured');
+        this.logger.error('• Domain must be publicly accessible');
+        this.logger.error('• CSR parameters must be valid');
       } else if (operation.includes('upload')) {
-        console.error('• Certificate must be in valid PEM format');
-        console.error('• Certificate must match the CSR exactly');
-        console.error('• Trust chain must be complete and valid');
-        console.error('• Certificate must be from a trusted CA');
+        this.logger.error('• Certificate must be in valid PEM format');
+        this.logger.error('• Certificate must match the CSR exactly');
+        this.logger.error('• Trust chain must be complete and valid');
+        this.logger.error('• Certificate must be from a trusted CA');
       } else {
-        console.error('• Enrollment ID must be valid and accessible');
-        console.error('• Certificate must not be in conflicting state');
-        console.error('• API credentials must have CPS permissions');
+        this.logger.error('• Enrollment ID must be valid and accessible');
+        this.logger.error('• Certificate must not be in conflicting state');
+        this.logger.error('• API credentials must have CPS permissions');
       }
     }
   }
@@ -249,14 +253,14 @@ export class ToolErrorHandler {
    * Log Akamai-specific error details
    */
   private logAkamaiErrorDetails(akamaiError: AkamaiErrorDetails): void {
-    console.error('\n[Akamai API Response]:');
+    this.logger.error('\n[Akamai API Response]:');
     
     if (akamaiError.title) {
-      console.error(`Title: ${akamaiError.title}`);
+      this.logger.error(`Title: ${akamaiError.title}`);
     }
     
     if (akamaiError.detail) {
-      console.error(`Detail: ${akamaiError.detail}`);
+      this.logger.error(`Detail: ${akamaiError.detail}`);
     }
 
     // Log full error object for debugging

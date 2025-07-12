@@ -6,6 +6,9 @@
 import { type AkamaiClient } from '../akamai-client';
 import { ICache } from '../types/cache-interface';
 import { getDefaultCache } from './cache-factory';
+import { createLogger } from '../utils/pino-logger';
+
+const logger = createLogger('akamai-cache-service');
 // Cache TTL constants (moved from external-cache-service)
 export const CacheTTL = {
   SHORT: 60,     // 1 minute
@@ -88,7 +91,7 @@ export class AkamaiCacheService {
       cacheKey,
       CacheTTL.PROPERTIES_LIST,
       async () => {
-        console.error('[Cache] Fetching properties from API...');
+        logger.info('[Cache] Fetching properties from API...');
         const response = await client.request<PropertiesResponse>({
           path: '/papi/v1/properties',
           method: 'GET',
@@ -99,7 +102,7 @@ export class AkamaiCacheService {
         // Also create hostname mapping in background
         if (properties.length > 0) {
           this.createHostnameMapping(client, customer, properties).catch((_err) => {
-            console.error('[Cache] Error creating hostname mapping:', _err);
+            logger.info('[Cache] Error creating hostname mapping:', _err);
           });
         }
 
@@ -175,7 +178,7 @@ export class AkamaiCacheService {
     const hostnameMap: Record<string, any> = {};
     const batchSize = 10;
 
-    console.error(`[Cache] Creating hostname mapping for ${properties.length} properties...`);
+    logger.info(`[Cache] Creating hostname mapping for ${properties.length} properties...`);
 
     // Process in batches to avoid overwhelming the API
     for (let i = 0; i < properties.length; i += batchSize) {
@@ -204,7 +207,7 @@ export class AkamaiCacheService {
               }
             }
           } catch (_err) {
-            console.error(`[Cache] Error processing property ${property.propertyId}:`, _err);
+            logger.info(`[Cache] Error processing property ${property.propertyId}:`, _err);
           }
         }),
       );
@@ -214,7 +217,7 @@ export class AkamaiCacheService {
     await this.cache.set(`${customer}:hostname:map`, hostnameMap, CacheTTL.HOSTNAME_MAP);
 
     const elapsed = Date.now() - startTime;
-    console.error(
+    logger.info(
       `[Cache] Created hostname mapping with ${Object.keys(hostnameMap).length} entries in ${elapsed}ms`,
     );
   }
@@ -233,11 +236,11 @@ export class AkamaiCacheService {
     // Try cache first
     const cached = await this.cache.get<PropertySearchResult[]>(searchKey);
     if (cached) {
-      console.error(`[Cache] HIT: Search results for "${query}"`);
+      logger.info(`[Cache] HIT: Search results for "${query}"`);
       return cached;
     }
 
-    console.error(`[Cache] MISS: Searching for "${query}"`);
+    logger.info(`[Cache] MISS: Searching for "${query}"`);
     const results: PropertySearchResult[] = [];
     const queryLower = query.toLowerCase();
 
@@ -337,7 +340,7 @@ export class AkamaiCacheService {
    */
   async invalidateProperty(propertyId: string, customer = 'default'): Promise<void> {
     await this.ensureInitialized();
-    console.error(`[Cache] Invalidating cache for property ${propertyId}`);
+    logger.info(`[Cache] Invalidating cache for property ${propertyId}`);
 
     const keys = [
       `${customer}:property:${propertyId}`,
@@ -364,21 +367,21 @@ export class AkamaiCacheService {
    */
   async warmCache(client: AkamaiClient, customer = 'default'): Promise<void> {
     await this.ensureInitialized();
-    console.error(`[Cache] Starting cache warming for customer: ${customer}`);
+    logger.info(`[Cache] Starting cache warming for customer: ${customer}`);
     const startTime = Date.now();
 
     try {
       // Warm properties and hostname mapping
       const properties = await this.getProperties(client, customer);
-      console.error(`[Cache] Warmed ${properties.length} properties`);
+      logger.info(`[Cache] Warmed ${properties.length} properties`);
 
       // Warm contracts and groups in parallel
       await Promise.all([this.getContracts(client, customer), this.getGroups(client, customer)]);
 
       const elapsed = Date.now() - startTime;
-      console.error(`[Cache] Cache warming completed in ${elapsed}ms`);
+      logger.info(`[Cache] Cache warming completed in ${elapsed}ms`);
     } catch (_err) {
-      console.error('[Cache] Error during cache warming:', _err);
+      logger.info('[Cache] Error during cache warming:', _err);
     }
   }
 

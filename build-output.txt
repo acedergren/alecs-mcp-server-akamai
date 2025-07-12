@@ -1,0 +1,214 @@
+
+> alecs-mcp-server-akamai@2.0.0 build
+> npm run clean && npm run build:ts
+
+
+> alecs-mcp-server-akamai@2.0.0 clean
+> rm -rf dist .tsbuildinfo .build-cache
+
+
+> alecs-mcp-server-akamai@2.0.0 build:ts
+> tsc --project tsconfig.json
+
+src/services/certificate-enrollment-service.ts(638,63): error TS6133: 'params' is declared but its value is never read.
+src/tools/dns/dns.ts(15,32): error TS6133: 'AkamaiOperation' is declared but its value is never read.
+src/tools/dns/dns.ts(32,9): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(36,14): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(37,12): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(38,22): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(39,26): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(40,26): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(41,19): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(43,12): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(47,17): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(48,18): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(48,26): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(49,14): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(50,11): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(51,14): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(52,13): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(53,18): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(54,15): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(57,12): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(61,18): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(62,12): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(62,20): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(63,11): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(64,11): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(65,12): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(65,20): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(66,10): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(67,14): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(69,20): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(70,20): error TS1361: 'z' cannot be used as a value because it was imported using 'import type'.
+src/tools/dns/dns.ts(110,10): error TS2304: Cannot find name 'Tool'.
+src/tools/dns/dns.ts(114,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/dns/dns.ts(133,18): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/tools/dns/dns.ts(143,10): error TS2304: Cannot find name 'Tool'.
+src/tools/dns/dns.ts(147,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/dns/dns.ts(156,18): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/tools/dns/dns.ts(166,10): error TS2304: Cannot find name 'Tool'.
+src/tools/dns/dns.ts(170,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/dns/dns.ts(201,19): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/tools/dns/dns.ts(220,10): error TS2304: Cannot find name 'Tool'.
+src/tools/dns/dns.ts(224,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/dns/dns.ts(243,18): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/tools/dns/dns.ts(257,10): error TS2304: Cannot find name 'Tool'.
+src/tools/dns/dns.ts(261,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/dns/dns.ts(302,19): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/tools/dns/dns.ts(322,10): error TS2304: Cannot find name 'Tool'.
+src/tools/dns/dns.ts(326,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/dns/dns.ts(364,19): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/tools/dns/dns.ts(392,10): error TS2304: Cannot find name 'Tool'.
+src/tools/dns/dns.ts(396,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/dns/dns.ts(426,19): error TS7006: Parameter 'data' implicitly has an 'any' type.
+src/tools/dns/dns.ts(448,10): error TS2304: Cannot find name 'Tool'.
+src/tools/dns/dns.ts(452,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/dns/dns.ts(532,12): error TS2304: Cannot find name 'Tool'.
+src/tools/dns/dns.ts(536,14): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/dns/dns.ts(608,12): error TS2304: Cannot find name 'Tool'.
+src/tools/dns/dns.ts(612,14): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/dns/dns.ts(640,12): error TS2304: Cannot find name 'Tool'.
+src/tools/dns/dns.ts(644,14): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/dns/dns.ts(682,12): error TS2304: Cannot find name 'Tool'.
+src/tools/dns/dns.ts(686,14): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/dns/index.ts(26,1): error TS6133: 'consolidatedDNSAkamaiOperations' is declared but its value is never read.
+src/tools/dns/index.ts(26,10): error TS2305: Module '"./dns"' has no exported member 'consolidatedDNSAkamaiOperations'.
+src/tools/dns/index.ts(48,7): error TS2304: Cannot find name 'consolidatedDNSTools'.
+src/tools/dns/index.ts(58,7): error TS2304: Cannot find name 'consolidatedDNSTools'.
+src/tools/dns/index.ts(80,7): error TS2304: Cannot find name 'consolidatedDNSTools'.
+src/tools/dns/index.ts(91,7): error TS2304: Cannot find name 'consolidatedDNSTools'.
+src/tools/dns/index.ts(107,7): error TS2304: Cannot find name 'consolidatedDNSTools'.
+src/tools/dns/index.ts(152,7): error TS2304: Cannot find name 'consolidatedDNSTools'.
+src/tools/dns/index.ts(171,7): error TS2304: Cannot find name 'consolidatedDNSTools'.
+src/tools/dns/index.ts(186,7): error TS2304: Cannot find name 'consolidatedDNSTools'.
+src/tools/dns/index.ts(196,7): error TS2304: Cannot find name 'consolidatedDNSTools'.
+src/tools/dns/index.ts(207,7): error TS2304: Cannot find name 'consolidatedDNSTools'.
+src/tools/dns/index.ts(304,5): error TS2304: Cannot find name 'consolidatedDNSTools'.
+src/tools/dns/index.ts(309,10): error TS2304: Cannot find name 'consolidatedDNSTools'.
+src/tools/edge-compute/edge-compute.ts(14,32): error TS6133: 'AkamaiOperation' is declared but its value is never read.
+src/tools/edge-compute/edge-compute.ts(153,10): error TS2304: Cannot find name 'Tool'.
+src/tools/edge-compute/edge-compute.ts(157,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/edge-compute/edge-compute.ts(181,10): error TS2304: Cannot find name 'Tool'.
+src/tools/edge-compute/edge-compute.ts(185,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/edge-compute/edge-compute.ts(208,19): error TS7006: Parameter 'result' implicitly has an 'any' type.
+src/tools/edge-compute/edge-compute.ts(209,18): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/tools/edge-compute/edge-compute.ts(219,10): error TS2304: Cannot find name 'Tool'.
+src/tools/edge-compute/edge-compute.ts(223,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/edge-compute/edge-compute.ts(256,10): error TS2304: Cannot find name 'Tool'.
+src/tools/edge-compute/edge-compute.ts(260,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/edge-compute/edge-compute.ts(304,10): error TS2304: Cannot find name 'Tool'.
+src/tools/edge-compute/edge-compute.ts(308,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/edge-compute/edge-compute.ts(320,19): error TS7006: Parameter 'result' implicitly has an 'any' type.
+src/tools/edge-compute/edge-compute.ts(330,10): error TS2304: Cannot find name 'Tool'.
+src/tools/edge-compute/edge-compute.ts(334,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/edge-compute/edge-compute.ts(347,19): error TS7006: Parameter 'result' implicitly has an 'any' type.
+src/tools/edge-compute/edge-compute.ts(348,18): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/tools/edge-compute/edge-compute.ts(358,10): error TS2304: Cannot find name 'Tool'.
+src/tools/edge-compute/edge-compute.ts(362,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/edge-compute/edge-compute.ts(383,18): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/tools/edge-compute/edge-compute.ts(393,10): error TS2304: Cannot find name 'Tool'.
+src/tools/edge-compute/edge-compute.ts(397,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/edge-compute/edge-compute.ts(433,10): error TS2304: Cannot find name 'Tool'.
+src/tools/edge-compute/edge-compute.ts(437,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/edge-compute/edge-compute.ts(449,19): error TS7006: Parameter 'result' implicitly has an 'any' type.
+src/tools/edge-compute/index.ts(22,1): error TS6133: 'EdgeComputeAkamaiOperationSchemas' is declared but its value is never read.
+src/tools/edge-compute/index.ts(22,10): error TS2305: Module '"./api"' has no exported member 'EdgeComputeAkamaiOperationSchemas'.
+src/tools/edge-compute/index.ts(35,34): error TS2304: Cannot find name 'EdgeComputeToolSchemas'.
+src/tools/edge-compute/index.ts(43,34): error TS2304: Cannot find name 'EdgeComputeToolSchemas'.
+src/tools/edge-compute/index.ts(51,34): error TS2304: Cannot find name 'EdgeComputeToolSchemas'.
+src/tools/edge-compute/index.ts(59,34): error TS2304: Cannot find name 'EdgeComputeToolSchemas'.
+src/tools/edge-compute/index.ts(67,34): error TS2304: Cannot find name 'EdgeComputeToolSchemas'.
+src/tools/edge-compute/index.ts(76,34): error TS2304: Cannot find name 'EdgeComputeToolSchemas'.
+src/tools/edge-compute/index.ts(84,34): error TS2304: Cannot find name 'EdgeComputeToolSchemas'.
+src/tools/edge-compute/index.ts(92,34): error TS2304: Cannot find name 'EdgeComputeToolSchemas'.
+src/tools/edge-compute/index.ts(100,34): error TS2304: Cannot find name 'EdgeComputeToolSchemas'.
+src/tools/edge-hostnames/index.ts(8,1): error TS6133: 'consolidatedEdgeHostnameAkamaiOperations' is declared but its value is never read.
+src/tools/edge-hostnames/index.ts(8,10): error TS2305: Module '"./edge-hostnames"' has no exported member 'consolidatedEdgeHostnameAkamaiOperations'.
+src/tools/edge-hostnames/index.ts(30,7): error TS2304: Cannot find name 'consolidatedEdgeHostnameTools'.
+src/tools/edge-hostnames/index.ts(42,7): error TS2304: Cannot find name 'consolidatedEdgeHostnameTools'.
+src/tools/edge-hostnames/index.ts(61,7): error TS2304: Cannot find name 'consolidatedEdgeHostnameTools'.
+src/tools/edge-hostnames/index.ts(72,7): error TS2304: Cannot find name 'consolidatedEdgeHostnameTools'.
+src/tools/edge-hostnames/index.ts(85,7): error TS2304: Cannot find name 'consolidatedEdgeHostnameTools'.
+src/tools/edge-hostnames/index.ts(101,7): error TS2304: Cannot find name 'consolidatedEdgeHostnameTools'.
+src/tools/edge-hostnames/index.ts(113,7): error TS2304: Cannot find name 'consolidatedEdgeHostnameTools'.
+src/tools/edge-hostnames/index.ts(123,7): error TS2304: Cannot find name 'consolidatedEdgeHostnameTools'.
+src/tools/edge-hostnames/index.ts(135,7): error TS2304: Cannot find name 'consolidatedEdgeHostnameTools'.
+src/tools/edge-hostnames/index.ts(146,7): error TS2304: Cannot find name 'consolidatedEdgeHostnameTools'.
+src/tools/edge-hostnames/index.ts(164,5): error TS2304: Cannot find name 'consolidatedEdgeHostnameTools'.
+src/tools/edge-hostnames/index.ts(169,10): error TS2304: Cannot find name 'consolidatedEdgeHostnameTools'.
+src/tools/fastpurge/fastpurge.ts(15,32): error TS6133: 'AkamaiOperation' is declared but its value is never read.
+src/tools/fastpurge/fastpurge.ts(119,10): error TS2304: Cannot find name 'Tool'.
+src/tools/fastpurge/fastpurge.ts(123,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/fastpurge/fastpurge.ts(136,19): error TS7006: Parameter 'result' implicitly has an 'any' type.
+src/tools/fastpurge/fastpurge.ts(146,10): error TS2304: Cannot find name 'Tool'.
+src/tools/fastpurge/fastpurge.ts(150,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/fastpurge/fastpurge.ts(163,19): error TS7006: Parameter 'result' implicitly has an 'any' type.
+src/tools/fastpurge/fastpurge.ts(178,10): error TS2304: Cannot find name 'Tool'.
+src/tools/fastpurge/fastpurge.ts(182,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/fastpurge/fastpurge.ts(195,19): error TS7006: Parameter 'result' implicitly has an 'any' type.
+src/tools/fastpurge/fastpurge.ts(205,10): error TS2304: Cannot find name 'Tool'.
+src/tools/fastpurge/fastpurge.ts(209,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/fastpurge/fastpurge.ts(220,18): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/tools/fastpurge/fastpurge.ts(230,10): error TS2304: Cannot find name 'Tool'.
+src/tools/fastpurge/fastpurge.ts(234,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/fastpurge/fastpurge.ts(244,19): error TS7006: Parameter 'result' implicitly has an 'any' type.
+src/tools/gtm/gtm.ts(14,32): error TS6133: 'AkamaiOperation' is declared but its value is never read.
+src/tools/gtm/gtm.ts(197,10): error TS2304: Cannot find name 'Tool'.
+src/tools/gtm/gtm.ts(201,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/gtm/gtm.ts(220,10): error TS2304: Cannot find name 'Tool'.
+src/tools/gtm/gtm.ts(224,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/gtm/gtm.ts(233,18): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/tools/gtm/gtm.ts(243,10): error TS2304: Cannot find name 'Tool'.
+src/tools/gtm/gtm.ts(247,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/gtm/gtm.ts(280,10): error TS2304: Cannot find name 'Tool'.
+src/tools/gtm/gtm.ts(284,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/gtm/gtm.ts(292,19): error TS7006: Parameter 'result' implicitly has an 'any' type.
+src/tools/gtm/gtm.ts(293,18): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/tools/gtm/gtm.ts(303,10): error TS2304: Cannot find name 'Tool'.
+src/tools/gtm/gtm.ts(307,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/gtm/gtm.ts(340,10): error TS2304: Cannot find name 'Tool'.
+src/tools/gtm/gtm.ts(344,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/gtm/gtm.ts(352,19): error TS7006: Parameter 'result' implicitly has an 'any' type.
+src/tools/gtm/gtm.ts(353,18): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/tools/gtm/gtm.ts(363,10): error TS2304: Cannot find name 'Tool'.
+src/tools/gtm/gtm.ts(367,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/gtm/gtm.ts(375,19): error TS7006: Parameter 'result' implicitly has an 'any' type.
+src/tools/gtm/gtm.ts(376,18): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/tools/gtm/gtm.ts(386,10): error TS2304: Cannot find name 'Tool'.
+src/tools/gtm/gtm.ts(390,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/gtm/gtm.ts(425,10): error TS2304: Cannot find name 'Tool'.
+src/tools/gtm/gtm.ts(429,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/gtm/index.ts(21,1): error TS6133: 'GTMAkamaiOperationSchemas' is declared but its value is never read.
+src/tools/gtm/index.ts(21,10): error TS2305: Module '"./api"' has no exported member 'GTMAkamaiOperationSchemas'.
+src/tools/gtm/index.ts(44,34): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(46,29): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(54,34): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(56,29): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(64,34): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(66,29): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(75,34): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(77,29): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(85,34): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(87,29): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(96,34): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(98,29): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(106,34): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(108,29): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(116,34): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(118,29): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(126,34): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/gtm/index.ts(128,29): error TS2304: Cannot find name 'GTMToolSchemas'.
+src/tools/orchestration/workflows.ts(18,1): error TS6133: 'MCPAkamaiOperationExecutor' is declared but its value is never read.
+src/tools/orchestration/workflows.ts(18,10): error TS2305: Module '"../../orchestration/mcp-tool-executor"' has no exported member 'MCPAkamaiOperationExecutor'.
+src/tools/orchestration/workflows.ts(27,26): error TS2304: Cannot find name 'MCPToolExecutor'.
+src/tools/siem/siem.ts(16,32): error TS6133: 'AkamaiOperation' is declared but its value is never read.
+src/tools/siem/siem.ts(167,10): error TS2304: Cannot find name 'Tool'.
+src/tools/siem/siem.ts(171,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/siem/siem.ts(194,19): error TS7006: Parameter 'result' implicitly has an 'any' type.
+src/tools/siem/siem.ts(204,10): error TS2304: Cannot find name 'Tool'.
+src/tools/siem/siem.ts(208,12): error TS7006: Parameter '_client' implicitly has an 'any' type.
+src/tools/siem/siem.ts(225,19): error TS7006: Parameter 'result' implicitly has an 'any' type.
+src/tools/siem/siem.ts(242,10): error TS2304: Cannot find name 'Tool'.
+src/tools/siem/siem.ts(246,12): error TS7006: Parameter 'client' implicitly has an 'any' type.
+src/tools/siem/siem.ts(263,19): error TS7006: Parameter 'result' implicitly has an 'any' type.

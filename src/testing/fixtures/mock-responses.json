@@ -1,0 +1,225 @@
+{
+  "/papi/v1/properties": {
+    "GET": {
+      "properties": {
+        "items": [
+          {
+            "propertyId": "prp_100001",
+            "propertyName": "test-property-1",
+            "latestVersion": 10,
+            "productionVersion": 9,
+            "stagingVersion": null,
+            "contractId": "ctr_C-TEST123",
+            "groupId": "grp_123456"
+          },
+          {
+            "propertyId": "prp_100002",
+            "propertyName": "test-property-2",
+            "latestVersion": 7,
+            "productionVersion": 10,
+            "stagingVersion": null,
+            "contractId": "ctr_C-TEST123",
+            "groupId": "grp_123456"
+          },
+          {
+            "propertyId": "prp_100003",
+            "propertyName": "test-property-3",
+            "latestVersion": 7,
+            "productionVersion": 3,
+            "stagingVersion": null,
+            "contractId": "ctr_C-TEST123",
+            "groupId": "grp_123456"
+          },
+          {
+            "propertyId": "prp_100004",
+            "propertyName": "test-property-4",
+            "latestVersion": 7,
+            "productionVersion": 10,
+            "stagingVersion": null,
+            "contractId": "ctr_C-TEST123",
+            "groupId": "grp_123456"
+          },
+          {
+            "propertyId": "prp_100005",
+            "propertyName": "test-property-5",
+            "latestVersion": 8,
+            "productionVersion": 3,
+            "stagingVersion": null,
+            "contractId": "ctr_C-TEST123",
+            "groupId": "grp_123456"
+          },
+          {
+            "propertyId": "prp_100006",
+            "propertyName": "test-property-6",
+            "latestVersion": 4,
+            "productionVersion": 1,
+            "stagingVersion": null,
+            "contractId": "ctr_C-TEST123",
+            "groupId": "grp_123456"
+          },
+          {
+            "propertyId": "prp_100007",
+            "propertyName": "test-property-7",
+            "latestVersion": 2,
+            "productionVersion": null,
+            "stagingVersion": null,
+            "contractId": "ctr_C-TEST123",
+            "groupId": "grp_123456"
+          },
+          {
+            "propertyId": "prp_100008",
+            "propertyName": "test-property-8",
+            "latestVersion": 3,
+            "productionVersion": null,
+            "stagingVersion": null,
+            "contractId": "ctr_C-TEST123",
+            "groupId": "grp_123456"
+          },
+          {
+            "propertyId": "prp_100009",
+            "propertyName": "test-property-9",
+            "latestVersion": 10,
+            "productionVersion": null,
+            "stagingVersion": null,
+            "contractId": "ctr_C-TEST123",
+            "groupId": "grp_123456"
+          },
+          {
+            "propertyId": "prp_100010",
+            "propertyName": "test-property-10",
+            "latestVersion": 2,
+            "productionVersion": 10,
+            "stagingVersion": null,
+            "contractId": "ctr_C-TEST123",
+            "groupId": "grp_123456"
+          }
+        ]
+      }
+    },
+    "POST": {
+      "propertyLink": "/papi/v1/properties/prp_NEW123",
+      "propertyId": "prp_NEW123"
+    }
+  },
+  "/config-dns/v2/zones": {
+    "GET": {
+      "zones": [
+        {
+          "zone": "test-zone-1.com",
+          "type": "primary",
+          "signAndServe": true,
+          "contractId": "ctr_C-TEST123"
+        },
+        {
+          "zone": "test-zone-2.com",
+          "type": "primary",
+          "signAndServe": true,
+          "contractId": "ctr_C-TEST123"
+        },
+        {
+          "zone": "test-zone-3.com",
+          "type": "secondary",
+          "signAndServe": true,
+          "contractId": "ctr_C-TEST123"
+        },
+        {
+          "zone": "test-zone-4.com",
+          "type": "primary",
+          "signAndServe": true,
+          "contractId": "ctr_C-TEST123"
+        },
+        {
+          "zone": "test-zone-5.com",
+          "type": "primary",
+          "signAndServe": true,
+          "contractId": "ctr_C-TEST123"
+        }
+      ]
+    },
+    "POST": {
+      "zone": "newzone.com",
+      "type": "primary"
+    }
+  },
+  "/appsec/v1/configs": {
+    "GET": {
+      "configurations": [
+        {
+          "id": 1001,
+          "name": "Security Config 1",
+          "latestVersion": 1,
+          "productionVersion": 1,
+          "stagingVersion": null
+        },
+        {
+          "id": 1002,
+          "name": "Security Config 2",
+          "latestVersion": 4,
+          "productionVersion": null,
+          "stagingVersion": null
+        },
+        {
+          "id": 1003,
+          "name": "Security Config 3",
+          "latestVersion": 4,
+          "productionVersion": null,
+          "stagingVersion": 2
+        }
+      ]
+    },
+    "POST": {
+      "configId": 999,
+      "version": 1
+    }
+  },
+  "/cps/v2/enrollments": {
+    "GET": {
+      "enrollments": [
+        {
+          "id": 2001,
+          "cn": "test-cert-1.com",
+          "sans": [
+            "www.test-cert-1.com",
+            "api.test-cert-1.com"
+          ],
+          "validationType": "dv",
+          "status": "pending"
+        },
+        {
+          "id": 2002,
+          "cn": "test-cert-2.com",
+          "sans": [
+            "www.test-cert-2.com",
+            "api.test-cert-2.com"
+          ],
+          "validationType": "dv",
+          "status": "expired"
+        },
+        {
+          "id": 2003,
+          "cn": "test-cert-3.com",
+          "sans": [
+            "www.test-cert-3.com",
+            "api.test-cert-3.com"
+          ],
+          "validationType": "dv",
+          "status": "expired"
+        },
+        {
+          "id": 2004,
+          "cn": "test-cert-4.com",
+          "sans": [
+            "www.test-cert-4.com",
+            "api.test-cert-4.com"
+          ],
+          "validationType": "dv",
+          "status": "expired"
+        }
+      ]
+    },
+    "POST": {
+      "enrollmentId": 888,
+      "location": "/cps/v2/enrollments/888"
+    }
+  }
+}

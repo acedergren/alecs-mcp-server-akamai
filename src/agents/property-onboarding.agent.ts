@@ -8,15 +8,10 @@ import { type AkamaiClient } from '../akamai-client';
 import { createCPCode } from '../tools/cpcode-tools';
 import { listZones, upsertRecord } from '../tools/dns-tools';
 import { listProducts } from '../tools/product-tools';
-import { listEdgeHostnames } from '../tools/property-manager-advanced-tools';
+// import { listEdgeHostnames } from '../tools/property-manager-advanced-tools'; // TODO: Migrate to edge-hostnames domain
 import { universalSearchWithCacheHandler } from '../tools/universal-search-with-cache';
-import {
-  createEdgeHostname,
-  addPropertyHostname,
-  activateProperty,
-  updatePropertyRules,
-} from '../tools/property-manager-tools';
-import { createProperty, listGroups } from '../tools/property-tools';
+import { propertyOperations, listGroups, addPropertyHostname } from '../tools/property/properties';
+// TODO: createEdgeHostname needs to be added to edge-hostnames domain
 import { type MCPToolResponse } from '../types';
 
 export interface OnboardingConfig {
@@ -417,7 +412,8 @@ export class PropertyOnboardingAgent {
     propertyId?: string;
   }> {
     try {
-      const result = await createProperty(this.client, {
+      const result = await propertyOperations.property_create.handler({
+        customer: this.client.getCustomer(),
         propertyName: config.hostname,
         productId: config.productId,
         contractId: config.contractId || 'ctr_1-5C13O2',

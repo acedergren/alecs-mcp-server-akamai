@@ -895,9 +895,9 @@ export async function submitChangeList(
       }
 
       if (hasWarnings && response.validationResult.warnings) {
-        console.log(`${icons.warning} Validation warnings:`);
+        logger.info(`${icons.warning} Validation warnings:`);
         response.validationResult.warnings.forEach((w) => {
-          console.log(`  ${icons.warning} ${w.field}: ${w.message}`);
+          logger.info(`  ${icons.warning} ${w.field}: ${w.message}`);
         });
       }
 
@@ -1765,25 +1765,25 @@ export async function activateZoneChanges(
     // Show pending changes summary
     spinner.stop();
     const changeCount = changelist.recordSets?.length || 0;
-    console.log(
+    logger.info(
       `${icons.info} Found ${format.bold(changeCount.toString())} pending changes for zone ${format.cyan(args.zone)}`,
     );
-    console.log(`${icons.info} Last modified by: ${format.dim(changelist.lastModifiedBy || 'Unknown')}`);
-    console.log(`${icons.info} Last modified: ${format.dim(changelist.lastModifiedDate || 'Unknown')}`);
+    logger.info(`${icons.info} Last modified by: ${format.dim(changelist.lastModifiedBy || 'Unknown')}`);
+    logger.info(`${icons.info} Last modified: ${format.dim(changelist.lastModifiedDate || 'Unknown')}`);
 
     if (changeCount > 0 && changeCount <= 10) {
-      console.log(`\n${icons.list} Pending changes:`);
+      logger.info(`\n${icons.list} Pending changes:`);
       changelist.recordSets?.forEach((record) => {
-        console.log(`  • ${record.name} ${record.ttl} ${record.type} ${record.rdata.join(' ')}`);
+        logger.info(`  • ${record.name} ${record.ttl} ${record.type} ${record.rdata.join(' ')}`);
       });
     } else if (changeCount > 10) {
-      console.log(`\n${icons.list} Showing first 10 pending changes:`);
+      logger.info(`\n${icons.list} Showing first 10 pending changes:`);
       changelist.recordSets?.slice(0, 10).forEach((record) => {
-        console.log(`  • ${record.name} ${record.ttl} ${record.type} ${record.rdata.join(' ')}`);
+        logger.info(`  • ${record.name} ${record.ttl} ${record.type} ${record.rdata.join(' ')}`);
       });
-      console.log(`  ... and ${changeCount - 10} more changes`);
+      logger.info(`  ... and ${changeCount - 10} more changes`);
     }
-    console.log(''); // Empty line for readability
+    logger.info(''); // Empty line for readability
 
     // Submit the changelist with options
     const submitResponse = await submitChangeList(client, args.zone, args.comment, {

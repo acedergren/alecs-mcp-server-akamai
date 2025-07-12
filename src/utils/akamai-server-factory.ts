@@ -46,7 +46,7 @@ import { MCPToolResponse } from '../types/mcp-protocol';
 import { MCPCompatibilityWrapper } from './mcp-compatibility-wrapper';
 
 // Import the complete tool registry
-import { getAllToolDefinitions, type ToolDefinition } from '../tools/all-tools-registry';
+import { getAllToolDefinitions, initializeRegistry, type ToolDefinition } from '../tools/registry';
 
 // Create logger for this module
 const logger = createLogger('akamai-server-factory');
@@ -137,8 +137,11 @@ export class AkamaiMCPServer {
    * 
    * REFACTORED: Remove graceful degradation - fail immediately on any issue
    */
-  private loadTools(): void {
+  private async loadTools(): Promise<void> {
     logger.debug('Starting tool loading...');
+    
+    // Initialize registry if not already done
+    await initializeRegistry();
     
     const allTools = getAllToolDefinitions();
     logger.debug({ toolCount: allTools.length }, 'Found tools in registry');
@@ -797,6 +800,11 @@ export async function createAkamaiServer(config: ServerConfig): Promise<AkamaiMC
   try {
     const server = new AkamaiMCPServer(config);
     logger.debug('AkamaiMCPServer instance created successfully');
+    
+    // Initialize the server (loads tools, sets up handlers)
+    await server.initialize();
+    logger.debug('AkamaiMCPServer initialized successfully');
+    
     return server;
   } catch (error) {
     logger.fatal({ error }, 'FAILED TO CREATE AKAMAI SERVER!');

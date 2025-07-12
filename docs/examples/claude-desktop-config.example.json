@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "alecs-akamai": {
+      "command": "node",
+      "args": [
+        "/path/to/alecs-mcp-server-akamai/dist/index.js"
+      ],
+      "env": {
+        "DEBUG": "0"
+      }
+    }
+  }
+}

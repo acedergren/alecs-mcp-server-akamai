@@ -12,9 +12,8 @@ import { Spinner } from '../utils/progress';
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
 
-import { createCPCode } from './cpcode-tools';
-import { updatePropertyRules, addPropertyHostname } from './property-manager-tools';
-import { createProperty } from './property-tools';
+import { createCPCode } from './cpcode-tools'; // TODO: Migrate cpcode-tools to utilities domain
+import { propertyOperations } from './property/properties';
 import { validateApiResponse } from '../utils/api-response-validator';
 
 interface OnboardingState {
@@ -280,7 +279,7 @@ export async function onboardSecureByDefaultProperty(
     // Step 2: Create the property
     spinner?.start('Creating property...');
     steps.push('[PACKAGE] Creating property...');
-    const createPropResult = await createProperty(client, {
+    const createPropResult = await propertyOperations.property_create.handler({
       propertyName: args.propertyName,
       productId: productId,
       contractId: args.contractId,

@@ -2,12 +2,13 @@ import * as dns from 'dns';
 import { promisify } from 'util';
 
 import { ProgressBar, Spinner, MultiProgress, format, icons } from '../utils/progress';
-
+import { createLogger } from '../utils/pino-logger';
 import { EdgeGridAuth } from '../auth/EdgeGridAuth';
 
 import { type DnsRecordsetsResponse, type CpsLocationResponse } from './types';
 
 const resolveNs = promisify(dns.resolveNs);
+const logger = createLogger('dns-migration-agent');
 
 interface DNSRecord {
   name: string;
@@ -89,11 +90,11 @@ export class DNSMigrationAgent {
       timeout?: number;
     } = {},
   ): Promise<ZoneImportResult> {
-    console.log(`\n${format.bold('Zone Import via AXFR')}`);
-    console.log(format.dim('─'.repeat(50)));
-    console.log(`${icons.dns} Zone: ${format.cyan(zoneName)}`);
-    console.log(`${icons.server} Primary NS: ${format.green(primaryNameserver)}`);
-    console.log(format.dim('─'.repeat(50)));
+    logger.info(`\n${format.bold('Zone Import via AXFR')}`);
+    logger.info(format.dim('─'.repeat(50)));
+    logger.info(`${icons.dns} Zone: ${format.cyan(zoneName)}`);
+    logger.info(`${icons.server} Primary NS: ${format.green(primaryNameserver)}`);
+    logger.info(format.dim('─'.repeat(50)));
 
     const progress = new ProgressBar({
       total: 5,
@@ -147,17 +148,17 @@ export class DNSMigrationAgent {
       progress.finish(`Import complete: ${result.recordsImported} records imported`);
 
       // Display summary
-      console.log(`\n${icons.success} Import Summary:`);
-      console.log(
+      logger.info(`\n${icons.success} Import Summary:`);
+      logger.info(
         `  ${icons.bullet} Records imported: ${format.green(result.recordsImported.toString())}`,
       );
-      console.log(
+      logger.info(
         `  ${icons.bullet} Records failed: ${format.red(result.recordsFailed.toString())}`,
       );
 
       if (result.warnings.length > 0) {
-        console.log(`\n${icons.warning} Warnings:`);
-        result.warnings.forEach((w) => console.log(`  ${icons.bullet} ${format.yellow(w)}`));
+        logger.info(`\n${icons.warning} Warnings:`);
+        result.warnings.forEach((w) => logger.info(`  ${icons.bullet} ${format.yellow(w)}`));
       }
 
       return result;
@@ -174,8 +175,8 @@ export class DNSMigrationAgent {
 
   // Parse Zone File
   async parseZoneFile(content: string, zoneName: string): Promise<DNSRecord[]> {
-    console.log(`\n${format.bold('Parsing Zone File')}`);
-    console.log(`${icons.dns} Zone: ${format.cyan(zoneName)}`);
+    logger.info(`\n${format.bold('Parsing Zone File')}`);
+    logger.info(`${icons.dns} Zone: ${format.cyan(zoneName)}`);
 
     const spinner = new Spinner();
     spinner.start('Parsing zone file');
@@ -192,7 +193,7 @@ export class DNSMigrationAgent {
 
       if (!validation.valid) {
         spinner.fail(`Validation failed: ${validation.errors.length} errors`);
-        validation.errors.forEach((e) => console.log(`  ${icons.error} ${format.red(e)}`));
+        validation.errors.forEach((e) => logger.info(`  ${icons.error} ${format.red(e)}`));
         throw new Error('Zone file validation failed');
       }
 
@@ -207,9 +208,9 @@ export class DNSMigrationAgent {
         {} as Record<string, number>,
       );
 
-      console.log(`\n${icons.info} Record Types:`);
+      logger.info(`\n${icons.info} Record Types:`);
       Object.entries(typeSummary).forEach(([type, count]) => {
-        console.log(`  ${icons.bullet} ${type}: ${format.cyan(count.toString())}`);
+        logger.info(`  ${icons.bullet} ${type}: ${format.cyan(count.toString())}`);
       });
 
       return records;
@@ -229,14 +230,14 @@ export class DNSMigrationAgent {
       dryRun?: boolean;
     } = {},
   ): Promise<ZoneImportResult> {
-    console.log(`\n${format.bold('Bulk Record Import')}`);
-    console.log(format.dim('─'.repeat(50)));
-    console.log(`${icons.dns} Zone: ${format.cyan(zoneName)}`);
-    console.log(`${icons.package} Records: ${format.green(records.length.toString())}`);
-    console.log(
+    logger.info(`\n${format.bold('Bulk Record Import')}`);
+    logger.info(format.dim('─'.repeat(50)));
+    logger.info(`${icons.dns} Zone: ${format.cyan(zoneName)}`);
+    logger.info(`${icons.package} Records: ${format.green(records.length.toString())}`);
+    logger.info(
       `${icons.rocket} Mode: ${options.dryRun ? format.yellow('DRY RUN') : format.green('LIVE')}`,
     );
-    console.log(format.dim('─'.repeat(50)));
+    logger.info(format.dim('─'.repeat(50)));
 
     const batchSize = options.batchSize || 100;
     const batches = Math.ceil(records.length / batchSize);
@@ -312,7 +313,7 @@ export class DNSMigrationAgent {
     zoneName: string,
     expectedRecords: DNSRecord[],
   ): Promise<{ valid: boolean; warnings: string[] }> {
-    console.log(`\n${format.bold('Verifying Zone Import')}`);
+    logger.info(`\n${format.bold('Verifying Zone Import')}`);
 
     const progress = new ProgressBar({
       total: expectedRecords.length,
@@ -374,8 +375,8 @@ export class DNSMigrationAgent {
       includeRollback?: boolean;
     } = {},
   ): Promise<NameserverMigration> {
-    console.log(`\n${format.bold('Nameserver Migration Instructions')}`);
-    console.log(format.dim('═'.repeat(60)));
+    logger.info(`\n${format.bold('Nameserver Migration Instructions')}`);
+    logger.info(format.dim('═'.repeat(60)));
 
     const spinner = new Spinner();
     spinner.start('Gathering zone information');
@@ -398,17 +399,17 @@ export class DNSMigrationAgent {
       };
 
       // Generate migration steps
-      console.log(`\n${icons.info} ${format.bold('Current Configuration')}`);
-      console.log(`  ${icons.dns} Zone: ${format.cyan(zoneName)}`);
-      console.log(`  ${icons.server} Current Nameservers:`);
-      currentNS.forEach((ns) => console.log(`    ${icons.arrow} ${format.yellow(ns)}`));
+      logger.info(`\n${icons.info} ${format.bold('Current Configuration')}`);
+      logger.info(`  ${icons.dns} Zone: ${format.cyan(zoneName)}`);
+      logger.info(`  ${icons.server} Current Nameservers:`);
+      currentNS.forEach((ns) => logger.info(`    ${icons.arrow} ${format.yellow(ns)}`));
 
-      console.log(`\n${icons.rocket} ${format.bold('Target Configuration')}`);
-      console.log(`  ${icons.server} Akamai Nameservers:`);
-      akamaiNS.forEach((ns) => console.log(`    ${icons.arrow} ${format.green(ns)}`));
+      logger.info(`\n${icons.rocket} ${format.bold('Target Configuration')}`);
+      logger.info(`  ${icons.server} Akamai Nameservers:`);
+      akamaiNS.forEach((ns) => logger.info(`    ${icons.arrow} ${format.green(ns)}`));
 
       // Migration steps
-      console.log(`\n${icons.clipboard} ${format.bold('Migration Steps')}`);
+      logger.info(`\n${icons.clipboard} ${format.bold('Migration Steps')}`);
 
       migration.migrationSteps = [
         '1. Verify all DNS records have been imported correctly',
@@ -430,11 +431,11 @@ export class DNSMigrationAgent {
       }
 
       migration.migrationSteps.forEach((step) => {
-        console.log(`  ${format.dim(step)}`);
+        logger.info(`  ${format.dim(step)}`);
       });
 
       // Verification commands
-      console.log(`\n${icons.terminal} ${format.bold('Verification Commands')}`);
+      logger.info(`\n${icons.terminal} ${format.bold('Verification Commands')}`);
 
       migration.verificationCommands = [
         '# Check current nameservers',
@@ -461,20 +462,20 @@ export class DNSMigrationAgent {
       }
 
       migration.verificationCommands.forEach((cmd) => {
-        console.log(`  ${format.gray(cmd)}`);
+        logger.info(`  ${format.gray(cmd)}`);
       });
 
       // Rollback instructions
       if (options.includeRollback) {
-        console.log(`\n${icons.warning} ${format.bold('Rollback Procedure')}`);
-        console.log('  1. Update nameservers back to original values at registrar');
-        console.log('  2. Original nameservers:');
-        currentNS.forEach((ns) => console.log(`     ${icons.arrow} ${ns}`));
-        console.log('  3. Wait for DNS propagation (monitor with dig)');
-        console.log('  4. Verify services are restored');
+        logger.info(`\n${icons.warning} ${format.bold('Rollback Procedure')}`);
+        logger.info('  1. Update nameservers back to original values at registrar');
+        logger.info('  2. Original nameservers:');
+        currentNS.forEach((ns) => logger.info(`     ${icons.arrow} ${ns}`));
+        logger.info('  3. Wait for DNS propagation (monitor with dig)');
+        logger.info('  4. Verify services are restored');
       }
 
-      console.log(format.dim('\n═'.repeat(60)));
+      logger.info(format.dim('\n═'.repeat(60)));
 
       return migration;
     } catch (_error) {
@@ -607,11 +608,11 @@ export class DNSMigrationAgent {
     cfZoneId: string,
     targetZoneName: string,
   ): Promise<ZoneImportResult> {
-    console.log(`\n${format.bold('Cloudflare Zone Import')}`);
-    console.log(format.dim('─'.repeat(50)));
-    console.log(`${icons.cloud} Source: Cloudflare Zone ${format.cyan(cfZoneId)}`);
-    console.log(`${icons.dns} Target: ${format.green(targetZoneName)}`);
-    console.log(format.dim('─'.repeat(50)));
+    logger.info(`\n${format.bold('Cloudflare Zone Import')}`);
+    logger.info(format.dim('─'.repeat(50)));
+    logger.info(`${icons.cloud} Source: Cloudflare Zone ${format.cyan(cfZoneId)}`);
+    logger.info(`${icons.dns} Target: ${format.green(targetZoneName)}`);
+    logger.info(format.dim('─'.repeat(50)));
 
     const progress = new ProgressBar({
       total: 4,
@@ -951,12 +952,12 @@ export class DNSMigrationAgent {
       validateFirst?: boolean;
     },
   ): Promise<void> {
-    console.log(`\n${format.bold('Complete Zone Migration')}`);
-    console.log(format.dim('═'.repeat(60)));
-    console.log(`${icons.dns} Source: ${format.cyan(sourceZone)}`);
-    console.log(`${icons.dns} Target: ${format.green(targetZone)}`);
-    console.log(`${icons.package} Method: ${format.yellow(options.source.toUpperCase())}`);
-    console.log(format.dim('═'.repeat(60)));
+    logger.info(`\n${format.bold('Complete Zone Migration')}`);
+    logger.info(format.dim('═'.repeat(60)));
+    logger.info(`${icons.dns} Source: ${format.cyan(sourceZone)}`);
+    logger.info(`${icons.dns} Target: ${format.green(targetZone)}`);
+    logger.info(`${icons.package} Method: ${format.yellow(options.source.toUpperCase())}`);
+    logger.info(format.dim('═'.repeat(60)));
 
     try {
       let importResult: ZoneImportResult;
@@ -990,7 +991,7 @@ export class DNSMigrationAgent {
 
       // Auto-activate if requested
       if (options.autoActivate && importResult.recordsImported > 0) {
-        console.log(`\n${icons.rocket} Auto-activating zone...`);
+        logger.info(`\n${icons.rocket} Auto-activating zone...`);
         await this.activateZone(targetZone);
       }
 
@@ -1000,11 +1001,11 @@ export class DNSMigrationAgent {
         includeRollback: true,
       });
 
-      console.log(`\n${format.bold('Migration Complete!')}`);
-      console.log(`${icons.success} Successfully migrated ${importResult.recordsImported} records`);
+      logger.info(`\n${format.bold('Migration Complete!')}`);
+      logger.info(`${icons.success} Successfully migrated ${importResult.recordsImported} records`);
     } catch (_error) {
-      console.error(`\n${icons.error} ${format.red('Migration failed:')}`);
-      console.error(format.red(_error instanceof Error ? _error.message : String(_error)));
+      logger.error(`\n${icons.error} ${format.red('Migration failed:')}`);
+      logger.error(format.red(_error instanceof Error ? _error.message : String(_error)));
       throw _error;
     }
   }

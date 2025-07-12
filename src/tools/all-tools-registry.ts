@@ -6,6 +6,9 @@
  */
 
 import { z, type ZodSchema } from 'zod';
+import { createLogger } from '../utils/pino-logger';
+
+const logger = createLogger('all-tools-registry');
 
 // CODE KAI: Import proper types to eliminate 'any' usage
 import type { AkamaiClient } from '../akamai-client';
@@ -718,7 +721,7 @@ function createToolHandler(
         return await translationMiddleware.translateResponse(baseResponse, client);
       } catch (translationError) {
         // DEFENSIVE: Return original response if translation fails
-        console.warn('Translation middleware failed:', translationError);
+        logger.warn('Translation middleware failed:', translationError);
         return baseResponse;
       }
       

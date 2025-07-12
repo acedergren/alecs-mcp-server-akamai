@@ -1,0 +1,31 @@
+{
+  "/papi/v1/properties/{propertyId}": {
+    "propertyId": "prp_123456",
+    "propertyName": "test"
+  },
+  "/papi/v1/properties/{propertyId}/versions/{version}": {
+    "version": 1,
+    "rules": {}
+  },
+  "/papi/v1/properties/{propertyId}/activations": {
+    "activationId": "atv_123"
+  },
+  "/config-dns/v2/zones/{zone}": {
+    "zone": "example.com",
+    "type": "primary"
+  },
+  "/config-dns/v2/zones/{zone}/recordsets": {
+    "recordsets": []
+  },
+  "/appsec/v1/configs/{configId}": {
+    "configId": 123,
+    "name": "test"
+  },
+  "/appsec/v1/configs/{configId}/versions/{version}": {
+    "version": 1
+  },
+  "/cps/v2/enrollments/{enrollmentId}": {
+    "id": 789,
+    "cn": "example.com"
+  }
+}

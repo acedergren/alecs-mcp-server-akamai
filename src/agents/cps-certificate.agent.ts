@@ -1,6 +1,8 @@
 import { ProgressBar, Spinner, MultiProgress, format, icons, trackProgress } from '../utils/progress';
-
+import { createLogger } from '../utils/pino-logger';
 import { EdgeGridAuth } from '../auth/EdgeGridAuth';
+
+const logger = createLogger('cps-certificate-agent');
 
 import { type CpsResultsResponse, type CpsLocationResponse } from './types';
 
@@ -139,12 +141,12 @@ export class CPSCertificateAgent {
     domains: string[],
     options: Partial<EnrollmentRequest> = {},
   ): Promise<Certificate> {
-    console.log(`\n${format.bold('Certificate Enrollment')}`);
-    console.log(format.dim('─'.repeat(50)));
-    console.log(`${icons.certificate} Type: ${format.cyan(type.toUpperCase())}`);
-    console.log(`${icons.globe} Domains: ${domains.length}`);
-    domains.forEach((d) => console.log(`  ${icons.bullet} ${format.green(d)}`));
-    console.log(format.dim('─'.repeat(50)));
+    logger.info(`\n${format.bold('Certificate Enrollment')}`);
+    logger.info(format.dim('─'.repeat(50)));
+    logger.info(`${icons.certificate} Type: ${format.cyan(type.toUpperCase())}`);
+    logger.info(`${icons.globe} Domains: ${domains.length}`);
+    domains.forEach((d) => logger.info(`  ${icons.bullet} ${format.green(d)}`));
+    logger.info(format.dim('─'.repeat(50)));
 
     const progress = new ProgressBar({
       total: 5,
@@ -186,12 +188,12 @@ export class CPSCertificateAgent {
 
       progress.finish('Certificate enrollment created');
 
-      console.log(`\n${icons.success} Enrollment Details:`);
-      console.log(`  ${icons.bullet} Enrollment ID: ${format.cyan(enrollmentId.toString())}`);
-      console.log(
+      logger.info(`\n${icons.success} Enrollment Details:`);
+      logger.info(`  ${icons.bullet} Enrollment ID: ${format.cyan(enrollmentId.toString())}`);
+      logger.info(
         `  ${icons.bullet} Network: ${format.green(enrollment.networkConfiguration.secureNetwork)}`,
       );
-      console.log(`  ${icons.bullet} Validation: ${format.yellow(enrollment.validationType)}`);
+      logger.info(`  ${icons.bullet} Validation: ${format.yellow(enrollment.validationType)}`);
 
       return enrollment;
     } catch (_error) {
@@ -206,8 +208,8 @@ export class CPSCertificateAgent {
 
   // Automated DNS Validation
   async automatedDNSValidation(enrollmentId: number, autoCreateRecords = true): Promise<void> {
-    console.log(`\n${format.bold('Automated DNS Validation')}`);
-    console.log(format.dim('─'.repeat(50)));
+    logger.info(`\n${format.bold('Automated DNS Validation')}`);
+    logger.info(format.dim('─'.repeat(50)));
 
     const spinner = new Spinner();
     spinner.start('Fetching validation challenges');
@@ -218,7 +220,7 @@ export class CPSCertificateAgent {
       spinner.succeed(`Found ${challenges.length} validation challenges`);
 
       if (challenges.length === 0) {
-        console.log(`${icons.warning} No pending validations found`);
+        logger.info(`${icons.warning} No pending validations found`);
         return;
       }
 
@@ -226,14 +228,14 @@ export class CPSCertificateAgent {
       await trackProgress(
         challenges,
         async (challenge, _index) => {
-          console.log(`\n${icons.dns} Domain: ${format.cyan(challenge.domain)}`);
+          logger.info(`\n${icons.dns} Domain: ${format.cyan(challenge.domain)}`);
 
           if (challenge.type === 'dns' && challenge.dnsTarget) {
-            console.log(
+            logger.info(
               `  ${icons.bullet} Record: ${format.green(challenge.dnsTarget.recordName)}`,
             );
-            console.log(`  ${icons.bullet} Type: ${challenge.dnsTarget.recordType}`);
-            console.log(`  ${icons.bullet} Value: ${format.dim(challenge.dnsTarget.recordValue)}`);
+            logger.info(`  ${icons.bullet} Type: ${challenge.dnsTarget.recordType}`);
+            logger.info(`  ${icons.bullet} Value: ${format.dim(challenge.dnsTarget.recordValue)}`);
 
             if (autoCreateRecords && this.dnsAgent) {
               const recordSpinner = new Spinner();
@@ -255,7 +257,7 @@ export class CPSCertificateAgent {
 
                 // Trigger validation
                 await this.triggerDomainValidation(enrollmentId, challenge.domain);
-                console.log(`  ${icons.success} Validation triggered`);
+                logger.info(`  ${icons.success} Validation triggered`);
               } catch (_error) {
                 recordSpinner.fail(
                   `Failed to create DNS record: ${_error instanceof Error ? _error.message : String(_error)}`,
@@ -269,7 +271,7 @@ export class CPSCertificateAgent {
       );
 
       // Monitor validation status
-      console.log(`\n${icons.time} Monitoring validation status...`);
+      logger.info(`\n${icons.time} Monitoring validation status...`);
       await this.waitForValidations(enrollmentId);
     } catch (_error) {
       spinner.fail(
@@ -284,9 +286,9 @@ export class CPSCertificateAgent {
     enrollmentId: number,
     network: 'staging' | 'production' = 'production',
   ): Promise<DeploymentStatus> {
-    console.log(`\n${format.bold('Certificate Deployment')}`);
-    console.log(format.dim('─'.repeat(50)));
-    console.log(`${icons.rocket} Deploying to ${format.cyan(network.toUpperCase())}`);
+    logger.info(`\n${format.bold('Certificate Deployment')}`);
+    logger.info(format.dim('─'.repeat(50)));
+    logger.info(`${icons.rocket} Deploying to ${format.cyan(network.toUpperCase())}`);
 
     const progress = new ProgressBar({
       total: 100,
@@ -350,8 +352,8 @@ export class CPSCertificateAgent {
 
   // Certificate-Property Linking
   async linkCertificateToProperties(_enrollmentId: number, propertyIds: string[]): Promise<void> {
-    console.log(`\n${format.bold('Linking Certificate to Properties')}`);
-    console.log(format.dim('─'.repeat(50)));
+    logger.info(`\n${format.bold('Linking Certificate to Properties')}`);
+    logger.info(format.dim('─'.repeat(50)));
 
     await trackProgress(
       propertyIds,
@@ -375,7 +377,7 @@ export class CPSCertificateAgent {
       { message: 'Linking properties' },
     );
 
-    console.log(
+    logger.info(
       `\n${icons.success} Successfully linked certificate to ${propertyIds.length} properties`,
     );
   }
@@ -418,8 +420,8 @@ export class CPSCertificateAgent {
 
   // Renewal Processing
   async processCertificateRenewal(enrollmentId: number): Promise<void> {
-    console.log(`\n${format.bold('Certificate Renewal')}`);
-    console.log(format.dim('─'.repeat(50)));
+    logger.info(`\n${format.bold('Certificate Renewal')}`);
+    logger.info(format.dim('─'.repeat(50)));
 
     const progress = new ProgressBar({
       total: 6,
@@ -455,10 +457,10 @@ export class CPSCertificateAgent {
 
       progress.finish('Certificate renewed successfully');
 
-      console.log(`\n${icons.success} Renewal Summary:`);
-      console.log(`  ${icons.bullet} Enrollment ID: ${format.cyan(enrollmentId.toString())}`);
-      console.log(`  ${icons.bullet} Status: ${format.green('Renewed and Deployed')}`);
-      console.log(`  ${icons.bullet} New Expiry: ${format.yellow('+365 days')}`);
+      logger.info(`\n${icons.success} Renewal Summary:`);
+      logger.info(`  ${icons.bullet} Enrollment ID: ${format.cyan(enrollmentId.toString())}`);
+      logger.info(`  ${icons.bullet} Status: ${format.green('Renewed and Deployed')}`);
+      logger.info(`  ${icons.bullet} New Expiry: ${format.yellow('+365 days')}`);
     } catch (_error) {
       progress.update({
         current: progress['current'],
@@ -471,8 +473,8 @@ export class CPSCertificateAgent {
 
   // Certificate Operations Dashboard
   async displayCertificateStatus(enrollmentId: number): Promise<void> {
-    console.log(`\n${format.bold('Certificate Status Dashboard')}`);
-    console.log(format.dim('═'.repeat(60)));
+    logger.info(`\n${format.bold('Certificate Status Dashboard')}`);
+    logger.info(format.dim('═'.repeat(60)));
 
     const spinner = new Spinner();
     spinner.start('Fetching certificate details');
@@ -485,27 +487,27 @@ export class CPSCertificateAgent {
       spinner.stop();
 
       // Certificate Info
-      console.log(`\n${icons.certificate} ${format.bold('Certificate Information')}`);
-      console.log(`  ${icons.bullet} CN: ${format.cyan(enrollment.cn)}`);
-      console.log(`  ${icons.bullet} SANs: ${enrollment.sans.length}`);
-      enrollment.sans.forEach((san) => console.log(`    ${icons.arrow} ${format.green(san)}`));
-      console.log(`  ${icons.bullet} Type: ${format.yellow(enrollment.certificateType)}`);
-      console.log(`  ${icons.bullet} Validation: ${format.yellow(enrollment.validationType)}`);
+      logger.info(`\n${icons.certificate} ${format.bold('Certificate Information')}`);
+      logger.info(`  ${icons.bullet} CN: ${format.cyan(enrollment.cn)}`);
+      logger.info(`  ${icons.bullet} SANs: ${enrollment.sans.length}`);
+      enrollment.sans.forEach((san) => logger.info(`    ${icons.arrow} ${format.green(san)}`));
+      logger.info(`  ${icons.bullet} Type: ${format.yellow(enrollment.certificateType)}`);
+      logger.info(`  ${icons.bullet} Validation: ${format.yellow(enrollment.validationType)}`);
 
       // Network Configuration
-      console.log(`\n${icons.network} ${format.bold('Network Configuration')}`);
-      console.log(
+      logger.info(`\n${icons.network} ${format.bold('Network Configuration')}`);
+      logger.info(
         `  ${icons.bullet} Network: ${format.cyan(enrollment.networkConfiguration.secureNetwork)}`,
       );
-      console.log(`  ${icons.bullet} Geography: ${enrollment.networkConfiguration.geography}`);
-      console.log(
+      logger.info(`  ${icons.bullet} Geography: ${enrollment.networkConfiguration.geography}`);
+      logger.info(
         `  ${icons.bullet} QUIC: ${enrollment.networkConfiguration.quicEnabled ? format.green('Enabled') : format.red('Disabled')}`,
       );
 
       // Deployment Status
-      console.log(`\n${icons.rocket} ${format.bold('Deployment Status')}`);
+      logger.info(`\n${icons.rocket} ${format.bold('Deployment Status')}`);
       if (deployments.length === 0) {
-        console.log(`  ${icons.warning} No deployments found`);
+        logger.info(`  ${icons.warning} No deployments found`);
       } else {
         deployments.forEach((dep) => {
           const statusColor =
@@ -514,9 +516,9 @@ export class CPSCertificateAgent {
               : dep.status === 'failed'
                 ? format.red
                 : format.yellow;
-          console.log(`  ${icons.bullet} ${dep.network}: ${statusColor(dep.status)}`);
+          logger.info(`  ${icons.bullet} ${dep.network}: ${statusColor(dep.status)}`);
           if (dep.deploymentDate) {
-            console.log(
+            logger.info(
               `    ${icons.time} ${format.dim(new Date(dep.deploymentDate).toLocaleString())}`,
             );
           }
@@ -525,7 +527,7 @@ export class CPSCertificateAgent {
 
       // Validation Status
       if (validations.length > 0) {
-        console.log(`\n${icons.check} ${format.bold('Validation Status')}`);
+        logger.info(`\n${icons.check} ${format.bold('Validation Status')}`);
         validations.forEach((val) => {
           const statusIcon =
             val.status === 'completed'
@@ -535,11 +537,11 @@ export class CPSCertificateAgent {
                 : val.status === 'in-progress'
                   ? '[TIME]'
                   : '[INFO]';
-          console.log(`  ${statusIcon} ${val.domain}: ${val.status}`);
+          logger.info(`  ${statusIcon} ${val.domain}: ${val.status}`);
         });
       }
 
-      console.log(format.dim('═'.repeat(60)));
+      logger.info(format.dim('═'.repeat(60)));
     } catch (_error) {
       spinner.fail(
         `Failed to fetch certificate status: ${_error instanceof Error ? _error.message : String(_error)}`,
@@ -738,10 +740,10 @@ export class CPSCertificateAgent {
       organizationDetails?: Partial<EnrollmentRequest['organization']>;
     } = {},
   ): Promise<void> {
-    console.log(`\n${format.bold('Complete Certificate Provisioning')}`);
-    console.log(format.dim('═'.repeat(60)));
-    console.log(`${icons.certificate} Provisioning certificate for ${domains.length} domains`);
-    console.log(format.dim('═'.repeat(60)));
+    logger.info(`\n${format.bold('Complete Certificate Provisioning')}`);
+    logger.info(format.dim('═'.repeat(60)));
+    logger.info(`${icons.certificate} Provisioning certificate for ${domains.length} domains`);
+    logger.info(format.dim('═'.repeat(60)));
 
     try {
       // Step 1: Enroll certificate
@@ -769,7 +771,7 @@ export class CPSCertificateAgent {
       if (certificate.validationType === 'dv') {
         await this.automatedDNSValidation(certificate.enrollmentId, true);
       } else {
-        console.log(
+        logger.info(
           `\n${icons.info} Manual validation required for ${certificate.validationType.toUpperCase()} certificate`,
         );
       }
@@ -793,14 +795,14 @@ export class CPSCertificateAgent {
       // Display final status
       await this.displayCertificateStatus(certificate.enrollmentId);
 
-      console.log(`\n${icons.success} ${format.bold('Certificate Provisioning Complete!')}`);
-      console.log(`\n${icons.info} Next Steps:`);
-      console.log('  1. Verify certificate in Control Center');
-      console.log('  2. Test HTTPS connectivity on your domains');
-      console.log('  3. Monitor certificate expiry and renewal status');
+      logger.info(`\n${icons.success} ${format.bold('Certificate Provisioning Complete!')}`);
+      logger.info(`\n${icons.info} Next Steps:`);
+      logger.info('  1. Verify certificate in Control Center');
+      logger.info('  2. Test HTTPS connectivity on your domains');
+      logger.info('  3. Monitor certificate expiry and renewal status');
     } catch (_error) {
-      console.error(`\n${icons.error} ${format.red('Certificate provisioning failed:')}`);
-      console.error(format.red(_error instanceof Error ? _error.message : String(_error)));
+      logger.error(`\n${icons.error} ${format.red('Certificate provisioning failed:')}`);
+      logger.error(format.red(_error instanceof Error ? _error.message : String(_error)));
       throw _error;
     }
   }

@@ -9,6 +9,9 @@ import {
 import { type CPSCertificateAgent, createCPSCertificateAgent } from '../agents/cps-certificate.agent';
 import { type DNSMigrationAgent, createDNSMigrationAgent } from '../agents/dns-migration.agent';
 import { format, icons, ProgressBar } from '../utils/progress';
+import { createLogger } from '../utils/pino-logger';
+
+const logger = createLogger('akamai-orchestrator');
 
 
 export interface OrchestrationOptions {
@@ -26,8 +29,8 @@ export class AkamaiOrchestrator {
   }
 
   async initialize(): Promise<void> {
-    console.error(`${format.bold('Initializing Akamai Orchestrator')}`);
-    console.error(format.dim('─'.repeat(50)));
+    logger.info(`${format.bold('Initializing Akamai Orchestrator')}`);
+    logger.info(format.dim('─'.repeat(50)));
 
     const progress = new ProgressBar({
       total: 3,
@@ -75,12 +78,12 @@ export class AkamaiOrchestrator {
     activateProduction?: boolean;
     notifyEmails?: string[];
   }): Promise<void> {
-    console.error(`\n${format.bold('Complete Website Migration to Akamai')}`);
-    console.error(format.dim('═'.repeat(60)));
-    console.error(`${icons.globe} Domain: ${format.cyan(_options.domain)}`);
-    console.error(`${icons.server} Origin: ${format.green(_options.originHostname)}`);
-    console.error(`${icons.cloud} Source: ${format.yellow(_options.sourceProvider.toUpperCase())}`);
-    console.error(format.dim('═'.repeat(60)));
+    logger.info(`\n${format.bold('Complete Website Migration to Akamai')}`);
+    logger.info(format.dim('═'.repeat(60)));
+    logger.info(`${icons.globe} Domain: ${format.cyan(_options.domain)}`);
+    logger.info(`${icons.server} Origin: ${format.green(_options.originHostname)}`);
+    logger.info(`${icons.cloud} Source: ${format.yellow(_options.sourceProvider.toUpperCase())}`);
+    logger.info(format.dim('═'.repeat(60)));
 
     const steps = [
       'Migrate DNS zone',
@@ -150,7 +153,7 @@ export class AkamaiOrchestrator {
           ...(steps[currentStep - 1] && { message: steps[currentStep - 1] })
         });
         // This would call the CDN agent's activation method
-        console.error(`\nActivating to production...`);
+        logger.info(`\nActivating to production...`);
       }
 
       // Step 9: Generate migration report
@@ -163,20 +166,20 @@ export class AkamaiOrchestrator {
       progress.finish('Migration complete!');
 
       // Final summary
-      console.error(`\n${format.bold('Migration Summary')}`);
-      console.error(format.dim('─'.repeat(60)));
-      console.error(`${icons.success} DNS zone migrated with all records`);
-      console.error(`${icons.success} CDN property created and configured`);
-      console.error(`${icons.success} SSL certificates provisioned`);
-      console.error(
+      logger.info(`\n${format.bold('Migration Summary')}`);
+      logger.info(format.dim('─'.repeat(60)));
+      logger.info(`${icons.success} DNS zone migrated with all records`);
+      logger.info(`${icons.success} CDN property created and configured`);
+      logger.info(`${icons.success} SSL certificates provisioned`);
+      logger.info(
         `${icons.success} Property activated to ${_options.activateStaging ? 'staging' : 'ready for activation'}`,
       );
 
-      console.error(`\n${icons.info} Next Steps:`);
-      console.error('  1. Update nameservers at domain registrar');
-      console.error('  2. Test thoroughly on staging');
-      console.error('  3. Activate to production when ready');
-      console.error('  4. Monitor traffic and performance');
+      logger.info(`\n${icons.info} Next Steps:`);
+      logger.info('  1. Update nameservers at domain registrar');
+      logger.info('  2. Test thoroughly on staging');
+      logger.info('  3. Activate to production when ready');
+      logger.info('  4. Monitor traffic and performance');
     } catch (_error) {
       progress.update({
         current: progress['current'],
@@ -199,18 +202,18 @@ export class AkamaiOrchestrator {
     cacheStrategy?: 'aggressive' | 'moderate' | 'minimal';
     notifyEmails?: string[];
   }): Promise<void> {
-    console.error(`\n${format.bold('Secure Website Provisioning')}`);
-    console.error(format.dim('═'.repeat(60)));
-    console.error(
+    logger.info(`\n${format.bold('Secure Website Provisioning')}`);
+    logger.info(format.dim('═'.repeat(60)));
+    logger.info(
       `${icons.globe} Domains: ${_options.domains.map((d) => format.cyan(d)).join(', ')}`,
     );
-    console.error(
+    logger.info(
       `${icons.lock} Certificate: ${format.green(_options.certificateType || 'default-dv')}`,
     );
-    console.error(
+    logger.info(
       `${icons.shield} Security: WAF ${_options.enableWAF ? '[EMOJI]' : '[EMOJI]'} | DDoS ${_options.enableDDoS ? '[EMOJI]' : '[EMOJI]'}`,
     );
-    console.error(format.dim('═'.repeat(60)));
+    logger.info(format.dim('═'.repeat(60)));
 
     const progress = new ProgressBar({
       total: 8,
@@ -261,7 +264,7 @@ export class AkamaiOrchestrator {
       if (_options.enableWAF || _options.enableDDoS) {
         progress.update({ current: 8, message: 'Configuring security policies' });
         // This would integrate with security configuration APIs
-        console.error(`\n${icons.shield} Security configurations applied`);
+        logger.info(`\n${icons.shield} Security configurations applied`);
       }
 
       progress.finish('Secure website provisioned successfully!');
@@ -284,12 +287,12 @@ export class AkamaiOrchestrator {
     sourceConfig: any;
     parallel?: number;
   }): Promise<void> {
-    console.error(`\n${format.bold('Bulk DNS Zone Migration')}`);
-    console.error(format.dim('═'.repeat(60)));
-    console.error(`${icons.dns} Zones to migrate: ${format.cyan(_options.zones.length.toString())}`);
-    console.error(`${icons.cloud} Source: ${format.green(_options.sourceType.toUpperCase())}`);
-    console.error(`${icons.rocket} Parallel: ${format.yellow((_options.parallel || 1).toString())}`);
-    console.error(format.dim('═'.repeat(60)));
+    logger.info(`\n${format.bold('Bulk DNS Zone Migration')}`);
+    logger.info(format.dim('═'.repeat(60)));
+    logger.info(`${icons.dns} Zones to migrate: ${format.cyan(_options.zones.length.toString())}`);
+    logger.info(`${icons.cloud} Source: ${format.green(_options.sourceType.toUpperCase())}`);
+    logger.info(`${icons.rocket} Parallel: ${format.yellow((_options.parallel || 1).toString())}`);
+    logger.info(format.dim('═'.repeat(60)));
 
     const progress = new ProgressBar({
       total: _options.zones.length,
@@ -336,20 +339,20 @@ export class AkamaiOrchestrator {
       progress.finish('Bulk migration complete');
 
       // Display results
-      console.error(`\n${format.bold('Migration Results')}`);
-      console.error(format.dim('─'.repeat(50)));
-      console.error(`${icons.success} Successful: ${format.green(results.success.toString())}`);
-      console.error(`${icons.error} Failed: ${format.red(results.failed.toString())}`);
+      logger.info(`\n${format.bold('Migration Results')}`);
+      logger.info(format.dim('─'.repeat(50)));
+      logger.info(`${icons.success} Successful: ${format.green(results.success.toString())}`);
+      logger.info(`${icons.error} Failed: ${format.red(results.failed.toString())}`);
 
       if (results.errors.length > 0) {
-        console.error(`\n${icons.warning} Errors:`);
-        results.errors.forEach((err) => console.error(`  ${icons.cross} ${err}`));
+        logger.info(`\n${icons.warning} Errors:`);
+        results.errors.forEach((err) => logger.info(`  ${icons.cross} ${err}`));
       }
 
       // Generate nameserver migration instructions
       if (results.success > 0) {
-        console.error(`\n${icons.info} ${format.bold('Nameserver Update Required')}`);
-        console.error('Update nameservers for all migrated zones at your domain registrar');
+        logger.info(`\n${icons.info} ${format.bold('Nameserver Update Required')}`);
+        logger.info('Update nameservers for all migrated zones at your domain registrar');
       }
     } catch (_error) {
       progress.update({
@@ -363,7 +366,7 @@ export class AkamaiOrchestrator {
 
   // Helper methods
   private async runValidationTests(domain: string): Promise<void> {
-    console.error(`\n${icons.check} Running validation tests for ${domain}...`);
+    logger.info(`\n${icons.check} Running validation tests for ${domain}...`);
 
     // Simulate validation tests
     const tests = [
@@ -376,16 +379,16 @@ export class AkamaiOrchestrator {
 
     for (const test of tests) {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      console.error(`  ${icons.success} ${test}`);
+      logger.info(`  ${icons.success} ${test}`);
     }
   }
 
   private async generateMigrationReport(_options: any): Promise<void> {
-    console.error(`\n${icons.document} Generating migration report...`);
+    logger.info(`\n${icons.document} Generating migration report...`);
 
     // This would generate a detailed report
     const reportPath = `/tmp/migration-report-${_options.domain}-${Date.now()}.json`;
-    console.error(`  ${icons.success} Report saved to: ${reportPath}`);
+    logger.info(`  ${icons.success} Report saved to: ${reportPath}`);
   }
 
   /**
@@ -411,11 +414,11 @@ export async function createOrchestrator(
 
 // Export example usage functions
 export async function exampleUsage() {
-  console.error(`${format.bold('Akamai Orchestrator Examples')}`);
-  console.error(format.dim('═'.repeat(60)));
+  logger.info(`${format.bold('Akamai Orchestrator Examples')}`);
+  logger.info(format.dim('═'.repeat(60)));
 
-  console.error(`\n${icons.rocket} Example 1: Migrate website from Cloudflare`);
-  console.error(
+  logger.info(`\n${icons.rocket} Example 1: Migrate website from Cloudflare`);
+  logger.info(
     format.dim(`
     const result = await orchestrator.migrateWebsite({
       domain: 'example.com',
@@ -426,8 +429,8 @@ export async function exampleUsage() {
     `)
   );
 
-  console.error(`\n${icons.rocket} Example 2: Provision secure website`);
-  console.error(
+  logger.info(`\n${icons.rocket} Example 2: Provision secure website`);
+  logger.info(
     format.dim(`
     const result = await orchestrator.provisionSecureWebsite({
       hostname: 'api.example.com',
@@ -437,8 +440,8 @@ export async function exampleUsage() {
     `)
   );
 
-  console.error(`\n${icons.rocket} Example 3: Bulk DNS migration`);
-  console.error(
+  logger.info(`\n${icons.rocket} Example 3: Bulk DNS migration`);
+  logger.info(
     format.dim(`
     const result = await orchestrator.bulkMigrateDNS({
       zones: ['zone1.com', 'zone2.com', 'zone3.com'],
@@ -448,8 +451,8 @@ export async function exampleUsage() {
     `)
   );
 
-  console.error(`\n${icons.rocket} Example 4: Direct agent access`);
-  console.error(
+  logger.info(`\n${icons.rocket} Example 4: Direct agent access`);
+  logger.info(
     format.dim(`
     const dnsAgent = orchestrator.getDNSAgent();
     const result = await dnsAgent.createZone({
@@ -459,5 +462,5 @@ export async function exampleUsage() {
     `)
   );
 
-  console.error(format.dim('\n═'.repeat(60)));
+  logger.info(format.dim('\n═'.repeat(60)));
 }

@@ -8,6 +8,9 @@ import { validateApiResponse } from '../utils/api-response-validator';
 
 import { type AkamaiClient } from '../akamai-client';
 import { type MCPToolResponse } from '../types';
+import { createLogger } from '../utils/pino-logger';
+
+const logger = createLogger('dns-advanced-tools');
 
 // Advanced DNS Types
 export interface DNSSECStatus {
@@ -260,7 +263,7 @@ export async function getZoneContract(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', _error);
+    logger.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -510,7 +513,7 @@ export async function getZoneVersion(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', _error);
+    logger.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -566,7 +569,7 @@ export async function getVersionRecordSets(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', _error);
+    logger.error('[Error]:', _error);
     throw _error;
   }
 }
@@ -637,7 +640,7 @@ export async function getVersionMasterZoneFile(
       ],
     };
   } catch (_error) {
-    console.error('[Error]:', _error);
+    logger.error('[Error]:', _error);
     throw _error;
   }
 }
