@@ -1,6 +1,6 @@
 import { propertyOperations } from '@/tools/property';
 import { testTool } from '@/testing/unified-test-base';
-import { MCPToolResponse, MCPContent } from '@/types';
+import { MCPToolResponse } from '@/types';
 
 describe('Property Domain Tools', () => {
 
@@ -15,23 +15,23 @@ describe('Property Domain Tools', () => {
         },
       };
 
-      const result: MCPToolResponse = await testTool(propertyOperations.property_list.handler)
+      const result = await testTool(propertyOperations.property_list.handler)
         .withMockResponse('GET', '/papi/v1/properties', mockApiResponse)
         .run();
 
-      const content = result.content[0] as MCPContent;
-      expect(content.text).toContain('Found **2** properties:');
-      expect(content.text).toContain('test.com');
-      expect(content.text).toContain('example.org');
+      const content = result.content[0].text;
+      expect(content).toContain('Found **2** properties:');
+      expect(content).toContain('test.com');
+      expect(content).toContain('example.org');
     });
 
     it('should return a message when no properties are found', async () => {
-      const result: MCPToolResponse = await testTool(propertyOperations.property_list.handler)
+      const result = await testTool(propertyOperations.property_list.handler)
         .withMockResponse('GET', '/papi/v1/properties', { properties: { items: [] } })
         .run();
       
-      const content = result.content[0] as MCPContent;
-      expect(content.text).toContain('No properties found.');
+      const content = result.content[0].text;
+      expect(content).toContain('No properties found.');
     });
   });
 
@@ -45,15 +45,15 @@ describe('Property Domain Tools', () => {
         },
       };
 
-      const result: MCPToolResponse = await testTool(propertyOperations.property_get.handler)
+      const result = await testTool(propertyOperations.property_get.handler)
         .withArgs({ propertyId: 'prp_123' })
         .withMockResponse('GET', '/papi/v1/properties/prp_123', mockApiResponse)
         .run();
 
-      const content = result.content[0] as MCPContent;
-      expect(content.text).toContain('Property Details');
-      expect(content.text).toContain('details.com');
-      expect(content.text).toContain('prp_123');
+      const content = result.content[0].text;
+      expect(content).toContain('Property Details');
+      expect(content).toContain('details.com');
+      expect(content).toContain('prp_123');
     });
   });
 

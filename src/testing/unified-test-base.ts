@@ -47,16 +47,17 @@ export class MockAkamaiClient extends AkamaiClient {
  * 
  * A helper class to build and run tests for tool handlers.
  */
-export class ToolTestHarness {
-  private handler: (client: AkamaiClient, args: any) => Promise<MCPToolResponse>;
-  private args: any = {};
+export class ToolTestHarness<TArgs> {
+  private handler: (client: AkamaiClient, args: TArgs) => Promise<MCPToolResponse>;
+  private args: TArgs;
   private mockResponses: Map<string, any> = new Map();
 
-  constructor(handler: (client: AkamaiClient, args: any) => Promise<MCPToolResponse>) {
+  constructor(handler: (client: AkamaiClient, args: TArgs) => Promise<MCPToolResponse>) {
     this.handler = handler;
+    this.args = {} as TArgs;
   }
 
-  withArgs(args: any): this {
+  withArgs(args: TArgs): this {
     this.args = { ...this.args, ...args };
     return this;
   }
@@ -80,6 +81,6 @@ export class ToolTestHarness {
  * Creates a new test harness for a given tool handler.
  * @param handler - The tool handler function to test.
  */
-export function testTool(handler: (client: AkamaiClient, args: any) => Promise<MCPToolResponse>): ToolTestHarness {
-  return new ToolTestHarness(handler);
+export function testTool<TArgs>(handler: (client: AkamaiClient, args: TArgs) => Promise<MCPToolResponse>): ToolTestHarness<TArgs> {
+  return new ToolTestHarness<TArgs>(handler);
 }
