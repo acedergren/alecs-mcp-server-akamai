@@ -1,17 +1,15 @@
 /**
- * GTM API Implementation
+ * GTM API Implementation Details
  * 
- * Complete implementation of Akamai Global Traffic Management (GTM) API v1
- * 
- * CODE KAI PRINCIPLES APPLIED:
- * Key: Type-safe GTM operations with full API coverage
- * Approach: Zod schemas for runtime validation and comprehensive endpoints
- * Implementation: Production-ready Global Traffic Management integration
- * 
- * API Documentation: https://techdocs.akamai.com/gtm/reference
+ * Contains endpoints, schemas, and formatters for GTM tools
  */
 
 import { z } from 'zod';
+
+// Base schema for customer parameter
+const CustomerSchema = z.object({
+  customer: z.string().optional()
+});
 
 /**
  * GTM API Base Path
@@ -56,39 +54,7 @@ export const GTMEndpoints = {
   updateResource: (domainName: string, resourceName: string) => 
     `${GTM_API_BASE}/domains/${domainName}/resources/${resourceName}`,
   deleteResource: (domainName: string, resourceName: string) => 
-    `${GTM_API_BASE}/domains/${domainName}/resources/${resourceName}`,
-  
-  // Geographic Maps
-  getGeographicMaps: (domainName: string) => `${GTM_API_BASE}/domains/${domainName}/geographic-maps`,
-  getGeographicMap: (domainName: string, mapName: string) => 
-    `${GTM_API_BASE}/domains/${domainName}/geographic-maps/${mapName}`,
-  updateGeographicMap: (domainName: string, mapName: string) => 
-    `${GTM_API_BASE}/domains/${domainName}/geographic-maps/${mapName}`,
-  deleteGeographicMap: (domainName: string, mapName: string) => 
-    `${GTM_API_BASE}/domains/${domainName}/geographic-maps/${mapName}`,
-  
-  // CIDR Maps
-  getCidrMaps: (domainName: string) => `${GTM_API_BASE}/domains/${domainName}/cidr-maps`,
-  getCidrMap: (domainName: string, mapName: string) => 
-    `${GTM_API_BASE}/domains/${domainName}/cidr-maps/${mapName}`,
-  updateCidrMap: (domainName: string, mapName: string) => 
-    `${GTM_API_BASE}/domains/${domainName}/cidr-maps/${mapName}`,
-  deleteCidrMap: (domainName: string, mapName: string) => 
-    `${GTM_API_BASE}/domains/${domainName}/cidr-maps/${mapName}`,
-  
-  // AS Maps
-  getAsMaps: (domainName: string) => `${GTM_API_BASE}/domains/${domainName}/as-maps`,
-  getAsMap: (domainName: string, mapName: string) => 
-    `${GTM_API_BASE}/domains/${domainName}/as-maps/${mapName}`,
-  updateAsMap: (domainName: string, mapName: string) => 
-    `${GTM_API_BASE}/domains/${domainName}/as-maps/${mapName}`,
-  deleteAsMap: (domainName: string, mapName: string) => 
-    `${GTM_API_BASE}/domains/${domainName}/as-maps/${mapName}`,
-  
-  // Identity Management
-  getIdentity: () => `${GTM_API_BASE}/identity`,
-  getContracts: () => `${GTM_API_BASE}/identity/contracts`,
-  getGroups: () => `${GTM_API_BASE}/identity/groups`
+    `${GTM_API_BASE}/domains/${domainName}/resources/${resourceName}`
 };
 
 /**
@@ -98,230 +64,261 @@ export const DomainTypes = {
   basic: 'Basic - Simple load balancing',
   failover: 'Failover - Active/passive failover',
   weighted: 'Weighted - Weighted round-robin',
-  full: 'Full - All GTM features',
-  static: 'Static - Static mapping only'
-} as const;
-
-/**
- * GTM Property Types
- */
-export const PropertyTypes = {
-  failover: 'Failover property',
-  weighted: 'Weighted round-robin',
-  geographic: 'Geographic mapping',
-  cidrmapping: 'CIDR mapping',
-  asmapping: 'AS mapping',
-  qtr: 'QTR (Quality Threshold Routing)',
-  performance: 'Performance-based'
-} as const;
-
-/**
- * Liveness Test Protocols
- */
-export const TestProtocols = {
-  HTTP: 'HTTP',
-  HTTPS: 'HTTPS',
-  FTP: 'FTP',
-  POP: 'POP',
-  POPS: 'POPS',
-  SMTP: 'SMTP',
-  SMTPS: 'SMTPS',
-  TCP: 'TCP'
+  performance: 'Performance - Geographic routing',
+  qtr: 'QTR - Query/response time routing',
+  'geographic-based': 'Geographic-based routing'
 } as const;
 
 /**
  * GTM Tool Schemas
  */
 export const GTMToolSchemas = {
-  // Domain Management
-  listDomains: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    format: z.enum(['json', 'text']).optional().default('text')
+  listDomains: CustomerSchema,
+
+  getDomain: CustomerSchema.extend({
+    domainName: z.string().min(1, 'Domain name is required')
   }),
-  
-  createDomain: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    name: z.string().describe('Domain name (e.g., example.akadns.net)'),
-    type: z.enum(['basic', 'failover', 'weighted', 'full', 'static']).default('weighted'),
-    comment: z.string().optional(),
-    emailNotificationList: z.array(z.string()).optional()
+
+  createDomain: CustomerSchema.extend({
+    domainName: z.string().min(1, 'Domain name is required'),
+    type: z.enum(['basic', 'failover', 'weighted', 'performance', 'qtr', 'geographic-based']),
+    emailNotificationList: z.array(z.string().email()).optional(),
+    loadImbalancePercentage: z.number().min(0).max(100).optional(),
+    comment: z.string().optional()
   }),
-  
-  getDomain: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    domainName: z.string().describe('GTM domain name')
+
+  getDomainStatus: CustomerSchema.extend({
+    domainName: z.string().min(1, 'Domain name is required')
   }),
-  
-  updateDomain: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    domainName: z.string().describe('GTM domain name'),
-    comment: z.string().optional(),
-    emailNotificationList: z.array(z.string()).optional(),
-    loadImbalancePercentage: z.number().optional()
+
+  listDatacenters: CustomerSchema.extend({
+    domainName: z.string().min(1, 'Domain name is required')
   }),
-  
-  getDomainStatus: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    domainName: z.string().describe('GTM domain name')
+
+  createDatacenter: CustomerSchema.extend({
+    domainName: z.string().min(1, 'Domain name is required'),
+    nickname: z.string().min(1, 'Datacenter nickname is required'),
+    city: z.string().min(1, 'City is required'),
+    stateOrProvince: z.string().optional(),
+    country: z.string().min(2, 'Country code is required'),
+    latitude: z.number().min(-90).max(90),
+    longitude: z.number().min(-180).max(180),
+    continent: z.enum(['AF', 'AS', 'EU', 'NA', 'OC', 'SA']).optional(),
+    defaultLoadObject: z.object({
+      loadObject: z.string(),
+      loadObjectPort: z.number().optional(),
+      loadServers: z.array(z.string()).optional()
+    }).optional(),
+    enabled: z.boolean().optional()
   }),
-  
-  // Datacenter Management
-  listDatacenters: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    domainName: z.string().describe('GTM domain name')
+
+  listProperties: CustomerSchema.extend({
+    domainName: z.string().min(1, 'Domain name is required')
   }),
-  
-  createDatacenter: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    domainName: z.string().describe('GTM domain name'),
-    nickname: z.string().describe('Datacenter nickname'),
-    city: z.string().optional(),
-    country: z.string().optional(),
-    continent: z.string().optional(),
-    latitude: z.number().optional(),
-    longitude: z.number().optional(),
-    stateOrProvince: z.string().optional()
+
+  getProperty: CustomerSchema.extend({
+    domainName: z.string().min(1, 'Domain name is required'),
+    propertyName: z.string().min(1, 'Property name is required')
   }),
-  
-  updateDatacenter: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    domainName: z.string().describe('GTM domain name'),
-    datacenterId: z.number().describe('Datacenter ID'),
-    nickname: z.string().optional(),
-    city: z.string().optional(),
-    country: z.string().optional(),
-    latitude: z.number().optional(),
-    longitude: z.number().optional()
-  }),
-  
-  deleteDatacenter: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    domainName: z.string().describe('GTM domain name'),
-    datacenterId: z.number().describe('Datacenter ID'),
-    confirm: z.boolean().describe('Confirm deletion')
-  }),
-  
-  // Property Management
-  listProperties: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    domainName: z.string().describe('GTM domain name')
-  }),
-  
-  createProperty: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    domainName: z.string().describe('GTM domain name'),
-    name: z.string().describe('Property name'),
-    type: z.enum(['failover', 'weighted', 'geographic', 'cidrmapping', 'asmapping', 'qtr', 'performance']),
-    scoreAggregationType: z.enum(['mean', 'median', 'worst']).optional().default('mean'),
-    handoutMode: z.enum(['normal', 'persistent', 'all']).optional().default('normal'),
-    trafficTargets: z.array(z.object({
-      datacenterId: z.number(),
-      enabled: z.boolean().default(true),
-      weight: z.number().optional(),
-      servers: z.array(z.string()).optional()
-    }))
-  }),
-  
-  updateProperty: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    domainName: z.string().describe('GTM domain name'),
-    propertyName: z.string().describe('Property name'),
+
+  createProperty: CustomerSchema.extend({
+    domainName: z.string().min(1, 'Domain name is required'),
+    propertyName: z.string().min(1, 'Property name is required'),
+    type: z.enum(['A', 'AAAA', 'CNAME', 'MX', 'PTR', 'SRV', 'TXT']),
+    scoreAggregationType: z.enum(['mean', 'median', 'sum']).optional(),
+    handoutMode: z.enum(['normal', 'all']).optional(),
+    handoutLimit: z.number().min(1).max(8).optional(),
+    failoverDelay: z.number().min(0).optional(),
+    failbackDelay: z.number().min(0).optional(),
+    loadImbalancePercentage: z.number().min(0).max(100).optional(),
+    healthThreshold: z.number().min(0).max(100).optional(),
     trafficTargets: z.array(z.object({
       datacenterId: z.number(),
       enabled: z.boolean(),
-      weight: z.number().optional(),
-      servers: z.array(z.string()).optional()
+      weight: z.number().min(0),
+      servers: z.array(z.string()).optional(),
+      name: z.string().optional(),
+      handoutCName: z.string().optional()
     })).optional(),
     livenessTests: z.array(z.object({
       name: z.string(),
-      testObjectProtocol: z.enum(['HTTP', 'HTTPS', 'FTP', 'POP', 'POPS', 'SMTP', 'SMTPS', 'TCP']),
+      testType: z.enum(['HTTP', 'HTTPS', 'FTP', 'POP', 'IMAP', 'SMTP', 'TCP', 'DNS']),
       testObject: z.string(),
-      testObjectPort: z.number(),
-      testInterval: z.number().default(60),
-      testTimeout: z.number().default(10)
+      testObjectProtocol: z.enum(['HTTP', 'HTTPS', 'FTP', 'POP', 'IMAP', 'SMTP', 'TCP', 'DNS']).optional(),
+      testObjectPort: z.number().optional(),
+      enabled: z.boolean()
     })).optional()
-  }),
-  
-  deleteProperty: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    domainName: z.string().describe('GTM domain name'),
-    propertyName: z.string().describe('Property name'),
-    confirm: z.boolean().describe('Confirm deletion')
-  }),
-  
-  // Geographic Maps
-  createGeographicMap: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    domainName: z.string().describe('GTM domain name'),
-    name: z.string().describe('Map name'),
-    defaultDatacenterId: z.number().describe('Default datacenter ID'),
-    assignments: z.array(z.object({
-      datacenterId: z.number(),
-      countries: z.array(z.string()).optional(),
-      continents: z.array(z.string()).optional()
-    }))
-  }),
-  
-  updateGeographicMap: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    domainName: z.string().describe('GTM domain name'),
-    mapName: z.string().describe('Map name'),
-    assignments: z.array(z.object({
-      datacenterId: z.number(),
-      countries: z.array(z.string()).optional(),
-      continents: z.array(z.string()).optional()
-    }))
-  }),
-  
-  // Resource Management
-  listResources: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    domainName: z.string().describe('GTM domain name')
-  }),
-  
-  createResource: z.object({
-    customer: z.string().optional().describe('Akamai customer account (from .edgerc)'),
-    domainName: z.string().describe('GTM domain name'),
-    name: z.string().describe('Resource name'),
-    type: z.enum(['XML load object', 'Download score']),
-    hostHeader: z.string().optional(),
-    resourceInstances: z.array(z.object({
-      datacenterId: z.number(),
-      useDefaultLoadObject: z.boolean().default(false),
-      loadObject: z.string().optional(),
-      loadServers: z.array(z.string()).optional()
-    }))
   })
 };
 
 /**
- * Response formatting utilities
+ * Format domains list response
  */
-export function formatDatacenterLocation(datacenter: any): string {
-  const parts = [];
-  if (datacenter.city) {parts.push(datacenter.city);}
-  if (datacenter.stateOrProvince) {parts.push(datacenter.stateOrProvince);}
-  if (datacenter.country) {parts.push(datacenter.country);}
-  return parts.length > 0 ? parts.join(', ') : 'Unknown Location';
-}
+export function formatDomainsList(response: unknown): string {
+  const typedResponse = response as {
+    items?: Array<{
+      name: string;
+      type: string;
+      status: string;
+      lastModified: string;
+      lastModifiedBy?: string;
+    }>;
+  };
 
-export function formatPropertyType(type: string): string {
-  return PropertyTypes[type as keyof typeof PropertyTypes] || type;
-}
-
-export function formatTestProtocol(protocol: string): string {
-  return TestProtocols[protocol as keyof typeof TestProtocols] || protocol;
-}
-
-export function formatTrafficDistribution(targets: any[]): string {
-  const enabledTargets = targets.filter(t => t.enabled);
-  if (enabledTargets.length === 0) {return 'No active targets';}
+  const domains = typedResponse.items || [];
   
-  const totalWeight = enabledTargets.reduce((sum, t) => sum + (t.weight || 1), 0);
-  return enabledTargets
-    .map(t => {
-      const percentage = ((t.weight || 1) / totalWeight * 100).toFixed(1);
-      return `DC ${t.datacenterId}: ${percentage}%`;
-    })
-    .join(', ');
+  let text = `🌐 **GTM Domains**\n`;
+  text += `Total Domains: ${domains.length}\n\n`;
+  
+  if (domains.length > 0) {
+    domains.forEach((domain, index) => {
+      text += `${index + 1}. **${domain.name}** (${DomainTypes[domain.type as keyof typeof DomainTypes] || domain.type})\n`;
+      text += `   • Status: ${domain.status}\n`;
+      text += `   • Last Modified: ${new Date(domain.lastModified).toLocaleString()}\n`;
+      if (domain.lastModifiedBy) {
+        text += `   • Modified By: ${domain.lastModifiedBy}\n`;
+      }
+      text += `\n`;
+    });
+  } else {
+    text += '⚠️ No GTM domains found.\n';
+  }
+  
+  return text;
+}
+
+/**
+ * Format domain details response
+ */
+export function formatDomainDetails(response: unknown): string {
+  const domain = response as {
+    name: string;
+    type: string;
+    status: string;
+    lastModified: string;
+    lastModifiedBy?: string;
+    loadImbalancePercentage?: number;
+    datacenters?: Array<{
+      nickname: string;
+      datacenterId: number;
+      city: string;
+      country: string;
+      enabled: boolean;
+    }>;
+    properties?: Array<{
+      name: string;
+      type: string;
+      enabled: boolean;
+    }>;
+  };
+
+  let text = `🌐 **GTM Domain Details**\n\n`;
+  text += `**Name**: ${domain.name}\n`;
+  text += `**Type**: ${DomainTypes[domain.type as keyof typeof DomainTypes] || domain.type}\n`;
+  text += `**Status**: ${domain.status}\n`;
+  
+  if (domain.loadImbalancePercentage) {
+    text += `**Load Imbalance**: ${domain.loadImbalancePercentage}%\n`;
+  }
+  
+  text += `**Last Modified**: ${new Date(domain.lastModified).toLocaleString()}\n`;
+  if (domain.lastModifiedBy) {
+    text += `**Modified By**: ${domain.lastModifiedBy}\n`;
+  }
+  
+  if (domain.datacenters && domain.datacenters.length > 0) {
+    text += `\n**Datacenters** (${domain.datacenters.length}):\n`;
+    domain.datacenters.forEach((dc, index) => {
+      text += `${index + 1}. ${dc.nickname} (ID: ${dc.datacenterId})\n`;
+      text += `   • Location: ${dc.city}, ${dc.country}\n`;
+      text += `   • Enabled: ${dc.enabled ? 'Yes' : 'No'}\n`;
+    });
+  }
+  
+  if (domain.properties && domain.properties.length > 0) {
+    text += `\n**Properties** (${domain.properties.length}):\n`;
+    domain.properties.forEach((prop, index) => {
+      text += `${index + 1}. ${prop.name} (${prop.type}) - ${prop.enabled ? 'Enabled' : 'Disabled'}\n`;
+    });
+  }
+  
+  return text;
+}
+
+/**
+ * Format datacenters list response
+ */
+export function formatDatacentersList(response: unknown): string {
+  const typedResponse = response as {
+    items?: Array<{
+      nickname: string;
+      datacenterId: number;
+      city: string;
+      stateOrProvince?: string;
+      country: string;
+      continent: string;
+      enabled: boolean;
+      latitude: number;
+      longitude: number;
+    }>;
+  };
+
+  const datacenters = typedResponse.items || [];
+  
+  let text = `🏢 **GTM Datacenters**\n`;
+  text += `Total Datacenters: ${datacenters.length}\n\n`;
+  
+  if (datacenters.length > 0) {
+    datacenters.forEach((dc, index) => {
+      text += `${index + 1}. **${dc.nickname}** (ID: ${dc.datacenterId})\n`;
+      text += `   • Location: ${dc.city}${dc.stateOrProvince ? `, ${dc.stateOrProvince}` : ''}, ${dc.country}\n`;
+      text += `   • Coordinates: ${dc.latitude}, ${dc.longitude}\n`;
+      text += `   • Continent: ${dc.continent}\n`;
+      text += `   • Status: ${dc.enabled ? 'Enabled' : 'Disabled'}\n`;
+      text += `\n`;
+    });
+  } else {
+    text += '⚠️ No datacenters found.\n';
+  }
+  
+  return text;
+}
+
+/**
+ * Format properties list response
+ */
+export function formatPropertiesList(response: unknown): string {
+  const typedResponse = response as {
+    items?: Array<{
+      name: string;
+      type: string;
+      enabled: boolean;
+      scoreAggregationType: string;
+      handoutMode: string;
+      trafficTargets?: Array<{ datacenterId: number; enabled: boolean; weight: number }>;
+    }>;
+  };
+
+  const properties = typedResponse.items || [];
+  
+  let text = `🎯 **GTM Properties**\n`;
+  text += `Total Properties: ${properties.length}\n\n`;
+  
+  if (properties.length > 0) {
+    properties.forEach((prop, index) => {
+      text += `${index + 1}. **${prop.name}** (${prop.type})\n`;
+      text += `   • Status: ${prop.enabled ? 'Enabled' : 'Disabled'}\n`;
+      text += `   • Score Aggregation: ${prop.scoreAggregationType}\n`;
+      text += `   • Handout Mode: ${prop.handoutMode}\n`;
+      
+      if (prop.trafficTargets && prop.trafficTargets.length > 0) {
+        text += `   • Traffic Targets: ${prop.trafficTargets.length} configured\n`;
+      }
+      text += `\n`;
+    });
+  } else {
+    text += '⚠️ No properties found.\n';
+  }
+  
+  return text;
 }

@@ -48,46 +48,46 @@ export const CertificateToolSchemas = {
   }),
   
   createDvCertificate: z.object({
-    cn: z.string(),
-    sans: z.array(z.string()).optional(),
+    commonName: z.string().describe('Primary domain name for the certificate'),
+    sans: z.array(z.string()).optional().describe('Subject Alternative Names'),
     adminContact: z.object({
       firstName: z.string(),
       lastName: z.string(),
       email: z.string().email(),
       phone: z.string()
-    }),
+    }).describe('Administrative contact information'),
     techContact: z.object({
       firstName: z.string(),
       lastName: z.string(),
       email: z.string().email(),
       phone: z.string()
-    }),
-    org: z.object({
-      name: z.string(),
-      addressLineOne: z.string(),
-      city: z.string(),
-      region: z.string(),
-      postalCode: z.string(),
-      countryCode: z.string().length(2),
-      phone: z.string()
-    }),
-    contractId: z.string(),
-    networkConfiguration: z.object({
-      networkType: z.enum(['standard_tls', 'enhanced_tls']).optional(),
-      sniOnly: z.boolean().optional(),
-      quicEnabled: z.boolean().optional()
-    }).optional(),
-    customer: z.string().optional()
+    }).describe('Technical contact information'),
+    contractId: z.string().optional().describe('Akamai contract ID'),
+    organization: z.string().optional().describe('Organization name'),
+    organizationalUnit: z.string().optional().describe('Organizational unit'),
+    country: z.string().optional().describe('Country code'),
+    state: z.string().optional().describe('State or province'),
+    city: z.string().optional().describe('City'),
+    geography: z.enum(['core', 'china']).optional().describe('Geographic deployment'),
+    secureNetwork: z.enum(['standard-tls', 'enhanced-tls']).optional().describe('Network type'),
+    signatureAlgorithm: z.string().optional().describe('Certificate signature algorithm'),
+    enableMultiStackedCertificates: z.boolean().optional().describe('Enable multi-stacked certificates'),
+    customer: z.string().optional().describe('Customer context')
   }),
   
-  getDvStatus: z.object({
+  getDomainValidationStatus: z.object({
     enrollmentId: z.string(),
     customer: z.string().optional()
   }),
   
-  deployCertificate: z.object({
+  acknowledgeDvChallenges: z.object({
     enrollmentId: z.string(),
-    network: z.enum(['staging', 'production']),
+    acknowledgement: z.string().optional(),
+    customer: z.string().optional()
+  }),
+  
+  getDeploymentStatus: z.object({
+    enrollmentId: z.string(),
     customer: z.string().optional()
   }),
   

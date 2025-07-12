@@ -1,202 +1,36 @@
 /**
- * GTM Domain Tools
+ * GTM Domain - Complete Implementation
  * 
- * Complete implementation of Akamai Global Traffic Management (GTM) tools
+ * Snow Leopard Architecture compliant GTM operations using unified AkamaiOperation.execute pattern
  * 
- * CODE KAI PRINCIPLES APPLIED:
- * Key: Production-grade GTM operations
- * Approach: Type-safe implementation with comprehensive error handling
- * Implementation: Full API coverage for Global Traffic Management
- * 
- * Updated on 2025-01-11 to use AkamaiOperation.execute pattern
+ * ARCHITECTURE NOTES:
+ * - All functions use AkamaiOperation.execute for consistency
+ * - Proper Zod schema validation for all inputs
+ * - Type-safe implementations with no 'any' types
+ * - Unified error handling and response formatting
+ * - Human-readable error messages and next steps
  */
 
-import { type MCPToolResponse, AkamaiOperation } from '../common';
+import { z } from 'zod';
+import { AkamaiOperation } from '../common/akamai-operation';
+import type { MCPToolResponse } from '../../types/mcp-2025';
 import { 
   GTMEndpoints, 
   GTMToolSchemas,
-  formatDatacenterLocation,
-  formatPropertyType,
-  formatTestProtocol,
-  formatTrafficDistribution,
+  formatDomainsList,
+  formatDomainDetails,
+  formatDatacentersList,
+  formatPropertiesList,
   DomainTypes
 } from './api';
-import type { z } from 'zod';
-
-interface GTMResponse {
-  domains?: any[];
-  domain?: any;
-  datacenters?: any[];
-  properties?: any[];
-  resources?: any[];
-  maps?: any[];
-  geographicMaps?: any[];
-  cidrMaps?: any[];
-  asMaps?: any[];
-  status?: any;
-  history?: any[];
-  identity?: any;
-  contracts?: any[];
-  groups?: any[];
-  datacenterId?: number;
-  name?: string;
-  type?: string;
-  nickname?: string;
-  lastModified?: string;
-  lastModifiedBy?: string;
-  propagationStatus?: string;
-}
-
-/**
- * Format domains list for display
- */
-function formatDomainsList(response: GTMResponse): string {
-  const domains = (response as any).domains || [];
-  
-  let text = `🌐 **GTM Domains**\n`;
-  text += `Total Domains: ${domains.length}\n\n`;
-  
-  if (domains.length > 0) {
-    domains.forEach((domain: any, index: number) => {
-      text += `${index + 1}. **${domain.name}** (${DomainTypes[domain.type as keyof typeof DomainTypes] || domain.type})\n`;
-      text += `   • Status: ${domain.status}\n`;
-      text += `   • Last Modified: ${domain.lastModified}\n`;
-      if (domain.lastModifiedBy) {
-        text += `   • Modified By: ${domain.lastModifiedBy}\n`;
-      }
-      text += `\n`;
-    });
-  } else {
-    text += '⚠️ No GTM domains found.\n';
-  }
-  
-  return text;
-}
-
-/**
- * Format domain details
- */
-function formatDomainDetails(domain: any): string {
-  let text = `🌐 **GTM Domain Details**\n\n`;
-  text += `**Name**: ${domain.name}\n`;
-  text += `**Type**: ${DomainTypes[domain.type as keyof typeof DomainTypes] || domain.type}\n`;
-  text += `**Status**: ${domain.status}\n`;
-  
-  if (domain.loadImbalancePercentage) {
-    text += `**Load Imbalance**: ${domain.loadImbalancePercentage}%\n`;
-  }
-  
-  text += `**Last Modified**: ${domain.lastModified}\n`;
-  if (domain.lastModifiedBy) {
-    text += `**Modified By**: ${domain.lastModifiedBy}\n`;
-  }
-  
-  if (domain.datacenters && domain.datacenters.length > 0) {
-    text += `\n**Datacenters** (${domain.datacenters.length}):\n`;
-    domain.datacenters.forEach((dc: any, index: number) => {
-      text += `${index + 1}. ${dc.nickname} (ID: ${dc.datacenterId})\n`;
-      text += `   • Location: ${formatDatacenterLocation(dc)}\n`;
-      text += `   • Enabled: ${dc.enabled ? 'Yes' : 'No'}\n`;
-    });
-  }
-  
-  if (domain.properties && domain.properties.length > 0) {
-    text += `\n**Properties** (${domain.properties.length}):\n`;
-    domain.properties.forEach((prop: any, index: number) => {
-      text += `${index + 1}. ${prop.name} (${formatPropertyType(prop.type)})\n`;
-      text += `   • Score Aggregation: ${prop.scoreAggregationType}\n`;
-      text += `   • Traffic Targets: ${prop.trafficTargets?.length || 0}\n`;
-    });
-  }
-  
-  return text;
-}
-
-/**
- * Format datacenters list
- */
-function formatDatacentersList(response: GTMResponse, domainName: string): string {
-  const datacenters = (response as any).datacenters || [];
-  
-  let text = `🏢 **GTM Datacenters** for ${domainName}\n`;
-  text += `Total Datacenters: ${datacenters.length}\n\n`;
-  
-  if (datacenters.length > 0) {
-    datacenters.forEach((dc: any, index: number) => {
-      text += `${index + 1}. **${dc.nickname}** (ID: ${dc.datacenterId})\n`;
-      text += `   • Location: ${formatDatacenterLocation(dc)}\n`;
-      text += `   • Enabled: ${dc.enabled ? 'Yes' : 'No'}\n`;
-      text += `   • Virtual: ${dc.virtual ? 'Yes' : 'No'}\n`;
-      text += `\n`;
-    });
-  } else {
-    text += '⚠️ No datacenters found.\n';
-  }
-  
-  return text;
-}
-
-/**
- * Format properties list
- */
-function formatPropertiesList(response: GTMResponse, domainName: string): string {
-  const properties = (response as any).properties || [];
-  
-  let text = `📊 **GTM Properties** for ${domainName}\n`;
-  text += `Total Properties: ${properties.length}\n\n`;
-  
-  if (properties.length > 0) {
-    properties.forEach((prop: any, index: number) => {
-      text += `${index + 1}. **${prop.name}** (${formatPropertyType(prop.type)})\n`;
-      text += `   • Score Aggregation: ${prop.scoreAggregationType}\n`;
-      text += `   • Handout Mode: ${prop.handoutMode}\n`;
-      text += `   • Traffic Targets: ${prop.trafficTargets?.length || 0}\n`;
-      text += `   • Liveness Tests: ${prop.livenessTests?.length || 0}\n`;
-      text += `\n`;
-    });
-  } else {
-    text += '⚠️ No properties found.\n';
-  }
-  
-  return text;
-}
-
-/**
- * Format property details with traffic distribution
- */
-function formatPropertyDetails(property: any, domainName: string): string {
-  let text = `📊 **GTM Property Details**\n\n`;
-  text += `**Domain**: ${domainName}\n`;
-  text += `**Name**: ${(property as any).name}\n`;
-  text += `**Type**: ${formatPropertyType((property as any).type)}\n`;
-  text += `**Score Aggregation**: ${(property as any).scoreAggregationType}\n`;
-  text += `**Handout Mode**: ${(property as any).handoutMode}\n`;
-  
-  if ((property as any).trafficTargets && (property as any).trafficTargets.length > 0) {
-    text += `\n**Traffic Distribution**:\n`;
-    text += formatTrafficDistribution((property as any).trafficTargets);
-  }
-  
-  if ((property as any).livenessTests && (property as any).livenessTests.length > 0) {
-    text += `\n**Liveness Tests**:\n`;
-    (property as any).livenessTests.forEach((test: any, index: number) => {
-      text += `${index + 1}. ${test.name} (${formatTestProtocol(test.testProtocol)})\n`;
-      text += `   • Test Object: ${test.testObject}\n`;
-      text += `   • Interval: ${test.testInterval}s\n`;
-      text += `   • Timeout: ${test.testTimeout}s\n`;
-    });
-  }
-  
-  return text;
-}
 
 /**
  * List all GTM domains
  */
-export async function listDomains(args: z.infer<typeof GTMToolSchemas.listDomains>): Promise<MCPToolResponse> {
+export async function listGtmDomains(args: z.infer<typeof GTMToolSchemas.listDomains>): Promise<MCPToolResponse> {
   return AkamaiOperation.execute(
     'gtm',
-    'gtm_list_domains',
+    'gtm_domains_list',
     args,
     async (client) => {
       return client.request({
@@ -207,19 +41,19 @@ export async function listDomains(args: z.infer<typeof GTMToolSchemas.listDomain
     {
       format: 'text',
       formatter: formatDomainsList,
-      cacheKey: () => 'gtm:domains:list',
+      cacheKey: () => `gtm:domains:list`,
       cacheTtl: 300 // 5 minutes
     }
   );
 }
 
 /**
- * Get GTM domain details
+ * Get detailed information about a specific GTM domain
  */
-export async function getDomain(args: z.infer<typeof GTMToolSchemas.getDomain>): Promise<MCPToolResponse> {
+export async function getGtmDomain(args: z.infer<typeof GTMToolSchemas.getDomain>): Promise<MCPToolResponse> {
   return AkamaiOperation.execute(
     'gtm',
-    'gtm_get_domain',
+    'gtm_domain_get',
     args,
     async (client) => {
       return client.request({
@@ -231,42 +65,46 @@ export async function getDomain(args: z.infer<typeof GTMToolSchemas.getDomain>):
       format: 'text',
       formatter: formatDomainDetails,
       cacheKey: (p) => `gtm:domain:${p.domainName}`,
-      cacheTtl: 300 // 5 minutes
+      cacheTtl: 300
     }
   );
 }
 
 /**
- * Create GTM domain
+ * Create a new GTM domain
  */
-export async function createDomain(args: z.infer<typeof GTMToolSchemas.createDomain>): Promise<MCPToolResponse> {
+export async function createGtmDomain(args: z.infer<typeof GTMToolSchemas.createDomain>): Promise<MCPToolResponse> {
   return AkamaiOperation.execute(
     'gtm',
-    'gtm_create_domain',
+    'gtm_domain_create',
     args,
     async (client) => {
+      const domainConfig = {
+        name: args.domainName,
+        type: args.type,
+        emailNotificationList: args.emailNotificationList || [],
+        loadImbalancePercentage: args.loadImbalancePercentage || 10,
+        comment: args.comment || 'Created via ALECS MCP Server'
+      };
+
       return client.request({
         method: 'POST',
         path: GTMEndpoints.createDomain(),
-        body: {
-          name: args.name,
-          type: args.type,
-          comment: args.comment,
-          emailNotificationList: args.emailNotificationList
-        }
+        body: domainConfig
       });
     },
     {
       format: 'text',
-      formatter: (domain: any) => {
-        let text = `✅ **GTM Domain Created**\n\n`;
-        text += `**Name**: ${domain.name}\n`;
-        text += `**Type**: ${DomainTypes[domain.type as keyof typeof DomainTypes] || domain.type}\n`;
-        text += `**Status**: ${domain.status}\n`;
-        text += `\n📝 **Next Steps**:\n`;
-        text += `1. Create datacenters with gtm_create_datacenter\n`;
-        text += `2. Create properties with gtm_create_property\n`;
-        text += `3. Configure traffic distribution\n`;
+      formatter: (domain) => {
+        const typedDomain = domain as { name: string; type: string; status: string };
+        let text = `✅ **GTM Domain Created Successfully!**\n\n`;
+        text += `**Domain Name:** ${typedDomain.name}\n`;
+        text += `**Type:** ${DomainTypes[typedDomain.type as keyof typeof DomainTypes] || typedDomain.type}\n`;
+        text += `**Status:** ${typedDomain.status}\n`;
+        text += `\n🎯 **Next Steps:**\n`;
+        text += `1. Create datacenters: \`gtm_datacenter_create\`\n`;
+        text += `2. Add properties: \`gtm_property_create\`\n`;
+        text += `3. Configure traffic routing\n`;
         return text;
       }
     }
@@ -274,12 +112,12 @@ export async function createDomain(args: z.infer<typeof GTMToolSchemas.createDom
 }
 
 /**
- * List GTM datacenters
+ * List datacenters for a GTM domain
  */
-export async function listDatacenters(args: z.infer<typeof GTMToolSchemas.listDatacenters>): Promise<MCPToolResponse> {
+export async function listGtmDatacenters(args: z.infer<typeof GTMToolSchemas.listDatacenters>): Promise<MCPToolResponse> {
   return AkamaiOperation.execute(
     'gtm',
-    'gtm_list_datacenters',
+    'gtm_datacenters_list',
     args,
     async (client) => {
       return client.request({
@@ -289,44 +127,57 @@ export async function listDatacenters(args: z.infer<typeof GTMToolSchemas.listDa
     },
     {
       format: 'text',
-      formatter: (result) => formatDatacentersList(result as GTMResponse, args.domainName),
+      formatter: formatDatacentersList,
       cacheKey: (p) => `gtm:datacenters:${p.domainName}`,
-      cacheTtl: 300 // 5 minutes
+      cacheTtl: 300
     }
   );
 }
 
 /**
- * Create GTM datacenter
+ * Create a new datacenter for a GTM domain
  */
-export async function createDatacenter(args: z.infer<typeof GTMToolSchemas.createDatacenter>): Promise<MCPToolResponse> {
+export async function createGtmDatacenter(args: z.infer<typeof GTMToolSchemas.createDatacenter>): Promise<MCPToolResponse> {
   return AkamaiOperation.execute(
     'gtm',
-    'gtm_create_datacenter',
+    'gtm_datacenter_create',
     args,
     async (client) => {
+      const datacenterConfig = {
+        nickname: args.nickname,
+        city: args.city,
+        stateOrProvince: args.stateOrProvince,
+        country: args.country,
+        latitude: args.latitude,
+        longitude: args.longitude,
+        continent: args.continent || 'NA',
+        defaultLoadObject: args.defaultLoadObject,
+        enabled: args.enabled !== false
+      };
+
       return client.request({
         method: 'POST',
         path: GTMEndpoints.createDatacenter(args.domainName),
-        body: {
-          nickname: args.nickname,
-          city: args.city,
-          stateOrProvince: args.stateOrProvince,
-          country: args.country,
-          continent: args.continent,
-          latitude: args.latitude,
-          longitude: args.longitude
-        }
+        body: datacenterConfig
       });
     },
     {
       format: 'text',
-      formatter: (dc: any) => {
-        let text = `✅ **GTM Datacenter Created**\n\n`;
-        text += `**Nickname**: ${dc.nickname}\n`;
-        text += `**ID**: ${dc.datacenterId}\n`;
-        text += `**Location**: ${formatDatacenterLocation(dc)}\n`;
-        text += `**Enabled**: ${dc.enabled ? 'Yes' : 'No'}\n`;
+      formatter: (datacenter) => {
+        const typedDC = datacenter as { 
+          nickname: string; 
+          datacenterId: number; 
+          city: string; 
+          country: string 
+        };
+        let text = `✅ **GTM Datacenter Created Successfully!**\n\n`;
+        text += `**Nickname:** ${typedDC.nickname}\n`;
+        text += `**Datacenter ID:** ${typedDC.datacenterId}\n`;
+        text += `**Location:** ${typedDC.city}, ${typedDC.country}\n`;
+        text += `\n🎯 **Next Steps:**\n`;
+        text += `1. Configure load objects\n`;
+        text += `2. Set up traffic routing\n`;
+        text += `3. Test datacenter connectivity\n`;
         return text;
       }
     }
@@ -334,12 +185,12 @@ export async function createDatacenter(args: z.infer<typeof GTMToolSchemas.creat
 }
 
 /**
- * List GTM properties
+ * List properties for a GTM domain
  */
-export async function listProperties(args: z.infer<typeof GTMToolSchemas.listProperties>): Promise<MCPToolResponse> {
+export async function listGtmProperties(args: z.infer<typeof GTMToolSchemas.listProperties>): Promise<MCPToolResponse> {
   return AkamaiOperation.execute(
     'gtm',
-    'gtm_list_properties',
+    'gtm_properties_list',
     args,
     async (client) => {
       return client.request({
@@ -349,20 +200,20 @@ export async function listProperties(args: z.infer<typeof GTMToolSchemas.listPro
     },
     {
       format: 'text',
-      formatter: (result) => formatPropertiesList(result as GTMResponse, args.domainName),
+      formatter: formatPropertiesList,
       cacheKey: (p) => `gtm:properties:${p.domainName}`,
-      cacheTtl: 300 // 5 minutes
+      cacheTtl: 300
     }
   );
 }
 
 /**
- * Get GTM property details
+ * Get detailed information about a specific GTM property
  */
-export async function getProperty(args: z.infer<typeof GTMToolSchemas.updateProperty>): Promise<MCPToolResponse> {
+export async function getGtmProperty(args: z.infer<typeof GTMToolSchemas.getProperty>): Promise<MCPToolResponse> {
   return AkamaiOperation.execute(
     'gtm',
-    'gtm_get_property',
+    'gtm_property_get',
     args,
     async (client) => {
       return client.request({
@@ -372,43 +223,81 @@ export async function getProperty(args: z.infer<typeof GTMToolSchemas.updateProp
     },
     {
       format: 'text',
-      formatter: (result) => formatPropertyDetails(result, args.domainName),
+      formatter: (property) => {
+        const typedProperty = property as {
+          name: string;
+          type: string;
+          scoreAggregationType: string;
+          handoutMode: string;
+          trafficTargets?: Array<{ datacenterId: number; weight: number; enabled: boolean }>;
+          livenessTests?: Array<{ name: string; testType: string; enabled: boolean }>;
+        };
+        
+        let text = `🎯 **GTM Property Details**\n\n`;
+        text += `**Name:** ${typedProperty.name}\n`;
+        text += `**Type:** ${typedProperty.type}\n`;
+        text += `**Score Aggregation:** ${typedProperty.scoreAggregationType}\n`;
+        text += `**Handout Mode:** ${typedProperty.handoutMode}\n`;
+        
+        if (typedProperty.trafficTargets?.length) {
+          text += `\n**Traffic Targets:**\n`;
+          typedProperty.trafficTargets.forEach((target, index) => {
+            text += `${index + 1}. Datacenter ${target.datacenterId} - Weight: ${target.weight} - ${target.enabled ? 'Enabled' : 'Disabled'}\n`;
+          });
+        }
+        
+        if (typedProperty.livenessTests?.length) {
+          text += `\n**Liveness Tests:**\n`;
+          typedProperty.livenessTests.forEach((test, index) => {
+            text += `${index + 1}. ${test.name} (${test.testType}) - ${test.enabled ? 'Enabled' : 'Disabled'}\n`;
+          });
+        }
+        
+        return text;
+      },
       cacheKey: (p) => `gtm:property:${p.domainName}:${p.propertyName}`,
-      cacheTtl: 300 // 5 minutes
+      cacheTtl: 300
     }
   );
 }
 
 /**
- * Create GTM property
+ * Create a new GTM property
  */
-export async function createProperty(args: z.infer<typeof GTMToolSchemas.createProperty>): Promise<MCPToolResponse> {
+export async function createGtmProperty(args: z.infer<typeof GTMToolSchemas.createProperty>): Promise<MCPToolResponse> {
   return AkamaiOperation.execute(
     'gtm',
-    'gtm_create_property',
+    'gtm_property_create',
     args,
     async (client) => {
+      const propertyConfig = {
+        name: args.propertyName,
+        type: args.type,
+        scoreAggregationType: args.scoreAggregationType || 'mean',
+        handoutMode: args.handoutMode || 'normal',
+        handoutLimit: args.handoutLimit || 8,
+        failoverDelay: args.failoverDelay || 10,
+        failbackDelay: args.failbackDelay || 20,
+        loadImbalancePercentage: args.loadImbalancePercentage || 10,
+        healthThreshold: args.healthThreshold || 25,
+        trafficTargets: args.trafficTargets || [],
+        livenessTests: args.livenessTests || []
+      };
+
       return client.request({
         method: 'POST',
-        path: GTMEndpoints.updateProperty(args.domainName, args.name),
-        body: {
-          name: args.name,
-          type: args.type,
-          scoreAggregationType: args.scoreAggregationType,
-          handoutMode: args.handoutMode,
-          trafficTargets: args.trafficTargets || []
-        }
+        path: GTMEndpoints.listProperties(args.domainName),
+        body: propertyConfig
       });
     },
     {
       format: 'text',
-      formatter: (property: any) => {
-        let text = `✅ **GTM Property Created**\n\n`;
-        text += `**Name**: ${(property as any).name}\n`;
-        text += `**Type**: ${formatPropertyType((property as any).type)}\n`;
-        text += `**Score Aggregation**: ${(property as any).scoreAggregationType}\n`;
-        text += `**Handout Mode**: ${(property as any).handoutMode}\n`;
-        text += `\n📝 **Next Steps**:\n`;
+      formatter: (property) => {
+        const typedProperty = property as { name: string; type: string };
+        let text = `✅ **GTM Property Created Successfully!**\n\n`;
+        text += `**Property Name:** ${typedProperty.name}\n`;
+        text += `**Type:** ${typedProperty.type}\n`;
+        text += `\n🎯 **Next Steps:**\n`;
         text += `1. Configure traffic targets\n`;
         text += `2. Add liveness tests\n`;
         text += `3. Set up load balancing rules\n`;
@@ -419,56 +308,121 @@ export async function createProperty(args: z.infer<typeof GTMToolSchemas.createP
 }
 
 /**
- * Update GTM property traffic targets
+ * Get GTM domain status
  */
-export async function updatePropertyTraffic(args: z.infer<typeof GTMToolSchemas.updateProperty>): Promise<MCPToolResponse> {
+export async function getGtmDomainStatus(args: z.infer<typeof GTMToolSchemas.getDomainStatus>): Promise<MCPToolResponse> {
   return AkamaiOperation.execute(
     'gtm',
-    'gtm_update_property_traffic',
+    'gtm_domain_status',
     args,
     async (client) => {
-      // First get the property
-      const property = await client.request({
-        method: 'GET',
-        path: GTMEndpoints.getProperty(args.domainName, args.propertyName)
-      });
-      
-      // Update traffic targets
-      (property as any).trafficTargets = args.trafficTargets;
-      
-      // Update the property
       return client.request({
-        method: 'PUT',
-        path: GTMEndpoints.updateProperty(args.domainName, args.propertyName),
-        body: property
+        method: 'GET',
+        path: GTMEndpoints.getDomainStatus(args.domainName)
       });
     },
     {
       format: 'text',
-      formatter: (property: any) => {
-        let text = `✅ **GTM Property Traffic Updated**\n\n`;
-        text += `**Property**: ${(property as any).name}\n`;
-        text += `**Domain**: ${args.domainName}\n\n`;
-        text += `**New Traffic Distribution**:\n`;
-        text += formatTrafficDistribution((property as any).trafficTargets);
+      formatter: (status) => {
+        const typedStatus = status as {
+          propagationStatus: string;
+          lastModified: string;
+          lastModifiedBy: string;
+          changeId: string;
+        };
+        
+        let text = `📊 **GTM Domain Status**\n\n`;
+        text += `**Domain:** ${args.domainName}\n`;
+        text += `**Propagation Status:** ${typedStatus.propagationStatus}\n`;
+        text += `**Last Modified:** ${new Date(typedStatus.lastModified).toLocaleString()}\n`;
+        text += `**Modified By:** ${typedStatus.lastModifiedBy}\n`;
+        
+        if (typedStatus.changeId) {
+          text += `**Change ID:** ${typedStatus.changeId}\n`;
+        }
+        
+        const emoji = typedStatus.propagationStatus === 'COMPLETE' ? '✅' : 
+                     typedStatus.propagationStatus === 'PENDING' ? '⏳' : '⚠️';
+        text += `\n${emoji} **Status:** ${typedStatus.propagationStatus}\n`;
+        
         return text;
-      }
+      },
+      cacheKey: (p) => `gtm:status:${p.domainName}`,
+      cacheTtl: 60 // 1 minute for status
     }
   );
 }
 
 /**
- * Legacy class exports for backward compatibility
- * @deprecated Use direct function exports instead
+ * GTM operations registry for unified registry auto-discovery
+ * 
+ * SNOW LEOPARD ARCHITECTURE: All operations follow standard pattern
+ * - name: Tool identifier matching function name
+ * - description: Human-readable description 
+ * - inputSchema: Zod validation schema
+ * - handler: Implementation function
  */
 export const gtmOperations = {
-  listDomains,
-  getDomain,
-  createDomain,
-  listDatacenters,
-  createDatacenter,
-  listProperties,
-  getProperty,
-  createProperty,
-  updatePropertyTraffic
+  gtm_domains_list: {
+    name: 'gtm_domains_list',
+    description: 'List all GTM domains with status and configuration details',
+    inputSchema: GTMToolSchemas.listDomains,
+    handler: listGtmDomains
+  },
+  
+  gtm_domain_get: {
+    name: 'gtm_domain_get',
+    description: 'Get detailed information about a specific GTM domain',
+    inputSchema: GTMToolSchemas.getDomain,
+    handler: getGtmDomain
+  },
+  
+  gtm_domain_create: {
+    name: 'gtm_domain_create',
+    description: 'Create a new GTM domain with specified configuration',
+    inputSchema: GTMToolSchemas.createDomain,
+    handler: createGtmDomain
+  },
+  
+  gtm_datacenters_list: {
+    name: 'gtm_datacenters_list',
+    description: 'List all datacenters for a GTM domain',
+    inputSchema: GTMToolSchemas.listDatacenters,
+    handler: listGtmDatacenters
+  },
+  
+  gtm_datacenter_create: {
+    name: 'gtm_datacenter_create',
+    description: 'Create a new datacenter for a GTM domain',
+    inputSchema: GTMToolSchemas.createDatacenter,
+    handler: createGtmDatacenter
+  },
+  
+  gtm_properties_list: {
+    name: 'gtm_properties_list',
+    description: 'List all properties for a GTM domain',
+    inputSchema: GTMToolSchemas.listProperties,
+    handler: listGtmProperties
+  },
+  
+  gtm_property_get: {
+    name: 'gtm_property_get',
+    description: 'Get detailed information about a specific GTM property',
+    inputSchema: GTMToolSchemas.getProperty,
+    handler: getGtmProperty
+  },
+  
+  gtm_property_create: {
+    name: 'gtm_property_create',
+    description: 'Create a new GTM property with traffic routing configuration',
+    inputSchema: GTMToolSchemas.createProperty,
+    handler: createGtmProperty
+  },
+  
+  gtm_domain_status: {
+    name: 'gtm_domain_status',
+    description: 'Get current propagation status of a GTM domain',
+    inputSchema: GTMToolSchemas.getDomainStatus,
+    handler: getGtmDomainStatus
+  }
 };

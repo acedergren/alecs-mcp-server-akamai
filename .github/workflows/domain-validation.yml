@@ -1,0 +1,116 @@
+name: Domain Architecture Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'src/tools/**'
+      - 'scripts/validate-domains.ts'
+      - '.github/workflows/domain-validation.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/tools/**'
+      - 'scripts/validate-domains.ts'
+
+jobs:
+  validate-domains:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Validate domain architecture
+      run: npm run validate:domains
+      
+    - name: Run domain auto-discovery tests
+      run: npm test src/__tests__/registry/domain-auto-discovery.test.ts
+      
+    - name: Generate domain architecture report
+      if: always()
+      run: |
+        echo "## Domain Architecture Validation Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Validation Results" >> $GITHUB_STEP_SUMMARY
+        npm run validate:domains 2>&1 | tail -20 >> $GITHUB_STEP_SUMMARY || true
+        
+    - name: Check for architecture violations
+      run: |
+        # Fail if any domain doesn't follow the standard pattern
+        if npm run validate:domains 2>&1 | grep -q "❌"; then
+          echo "::error::Domain architecture validation failed"
+          exit 1
+        fi
+        
+        # Warn if compliance is low
+        if npm run validate:domains 2>&1 | grep -q "compliance below 80"; then
+          echo "::warning::Domain architecture compliance is below 80%"
+        fi
+
+  test-registry-integration:
+    runs-on: ubuntu-latest
+    needs: validate-domains
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Test registry auto-discovery
+      run: npm test -- --testPathPattern=domain-auto-discovery
+      
+    - name: Test individual domain exports
+      run: |
+        # Test that each domain can be imported without errors
+        node -e "
+          const domains = ['certificates', 'dns', 'diagnostics'];
+          for (const domain of domains) {
+            try {
+              console.log(\`Testing \${domain} domain...\`);
+              require(\`./src/tools/\${domain}/index.ts\`);
+              console.log(\`✅ \${domain} domain OK\`);
+            } catch (err) {
+              console.error(\`❌ \${domain} domain failed: \${err.message}\`);
+              process.exit(1);
+            }
+          }
+          console.log('🎉 All domains can be imported successfully');
+        "
+        
+    - name: Validate tool definitions
+      run: |
+        node -e "
+          const { initializeRegistry, getAllToolDefinitions } = require('./src/tools/registry.ts');
+          (async () => {
+            await initializeRegistry();
+            const tools = getAllToolDefinitions();
+            console.log(\`Found \${tools.length} tools across all domains\`);
+            
+            // Check each tool has required properties
+            for (const tool of tools) {
+              if (!tool.name || !tool.handler || !tool.description) {
+                console.error(\`❌ Invalid tool: \${JSON.stringify(tool)}\`);
+                process.exit(1);
+              }
+            }
+            console.log('✅ All tools are valid');
+          })();
+        "

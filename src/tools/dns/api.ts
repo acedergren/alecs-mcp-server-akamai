@@ -129,6 +129,78 @@ export const DNSToolSchemas = {
       })
     })),
     customer: z.string().optional()
+  }),
+  
+  // Changelist operations from migrated dns-tools.ts functions
+  getChangeListMetadata: z.object({
+    zone: z.string().describe('DNS zone name'),
+    customer: z.string().optional().describe('Customer context')
+  }),
+  
+  getChangeList: z.object({
+    zone: z.string().describe('DNS zone name'),
+    customer: z.string().optional().describe('Customer context')
+  }),
+  
+  submitChangeList: z.object({
+    zone: z.string().describe('DNS zone name'),
+    comment: z.string().optional().describe('Comment for the submission'),
+    validateOnly: z.boolean().optional().describe('Only validate, do not submit'),
+    waitForActivation: z.boolean().optional().describe('Wait for zone activation'),
+    timeout: z.number().optional().describe('Timeout in milliseconds'),
+    customer: z.string().optional().describe('Customer context')
+  }),
+  
+  discardChangeList: z.object({
+    zone: z.string().describe('DNS zone name'),
+    customer: z.string().optional().describe('Customer context')
+  }),
+  
+  waitForZoneActivation: z.object({
+    zone: z.string().describe('DNS zone name'),
+    timeout: z.number().optional().describe('Timeout in milliseconds'),
+    pollInterval: z.number().optional().describe('Poll interval in milliseconds'),
+    requestId: z.string().optional().describe('Request ID to track'),
+    customer: z.string().optional().describe('Customer context')
+  }),
+  
+  upsertRecord: z.object({
+    zone: z.string().describe('DNS zone name'),
+    name: z.string().describe('Record name'),
+    type: z.enum(['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'SRV', 'PTR', 'NS', 'SOA', 'CAA']).describe('Record type'),
+    ttl: z.number().min(30).max(86400).default(300).describe('Time to live'),
+    rdata: z.array(z.string()).describe('Record data'),
+    comment: z.string().optional().describe('Comment for the change'),
+    force: z.boolean().optional().describe('Force operation'),
+    autoSubmit: z.boolean().optional().describe('Auto-submit changes'),
+    customer: z.string().optional().describe('Customer context')
+  }),
+  
+  deleteRecordChangelist: z.object({
+    zone: z.string().describe('DNS zone name'),
+    name: z.string().describe('Record name'),
+    type: z.enum(['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'SRV', 'PTR', 'NS', 'SOA', 'CAA']).describe('Record type'),
+    comment: z.string().optional().describe('Comment for the deletion'),
+    force: z.boolean().optional().describe('Force operation'),
+    customer: z.string().optional().describe('Customer context')
+  }),
+  
+  activateZoneChanges: z.object({
+    zone: z.string().describe('DNS zone name'),
+    comment: z.string().optional().describe('Comment for activation'),
+    validateOnly: z.boolean().optional().describe('Only validate changes'),
+    waitForCompletion: z.boolean().optional().describe('Wait for activation to complete'),
+    timeout: z.number().optional().describe('Timeout in milliseconds'),
+    customer: z.string().optional().describe('Customer context')
+  }),
+  
+  delegateSubzone: z.object({
+    zone: z.string().describe('DNS zone name'),
+    nameservers: z.array(z.string()).describe('Nameserver list'),
+    provider: z.string().optional().describe('Provider name'),
+    ttl: z.number().optional().describe('TTL for NS records'),
+    createIfMissing: z.boolean().optional().describe('Create zone if it doesn\'t exist'),
+    customer: z.string().optional().describe('Customer context')
   })
 };
 

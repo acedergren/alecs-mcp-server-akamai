@@ -6,12 +6,8 @@
 
 import { type MCPToolResponse } from '../types';
 
-import {
-  withEnhancedErrorHandling as baseWithEnhancedErrorHandling,
-  handleAkamaiError,
-  type ErrorContext,
-  type RetryConfig,
-} from './enhanced-error-handling';
+import { UnifiedErrorHandler, withUnifiedErrorHandling } from '../services/error-handler';
+import type { ErrorContext, RetryConfig } from '../services/error-handler';
 
 // Re-export types for convenience
 export type { ErrorContext, RetryConfig };
@@ -20,7 +16,8 @@ export type { ErrorContext, RetryConfig };
  * Format _error as MCPToolResponse
  */
 export function formatErrorResponse(_error: any, _context: ErrorContext): MCPToolResponse {
-  const errorResult = handleAkamaiError(_error, _context);
+  const handler = new UnifiedErrorHandler(_context);
+  const errorResult = handler.handle(_error);
 
   let errorMessage = `[ERROR] Failed to ${_context.operation || 'complete operation'}`;
 
@@ -30,21 +27,16 @@ export function formatErrorResponse(_error: any, _context: ErrorContext): MCPToo
   }
 
   // Add _error code if available
-  if (errorResult.errorCode) {
-    errorMessage += `\n**Code:** ${errorResult.errorCode}`;
-  }
-
-  // Add request ID for support
   if (errorResult.requestId) {
     errorMessage += `\n**Request ID:** ${errorResult.requestId}`;
   }
 
   // Add suggestions
-  if (errorResult.suggestions.length > 0) {
-    errorMessage += '\n\n**Suggestions:**\n';
-    errorResult.suggestions.forEach((suggestion) => {
-      errorMessage += `- ${suggestion}\n`;
-    });
+  if (errorResult.suggestions?.length) {
+    errorMessage += '\nSuggestions:';
+    for (const suggestion of errorResult.suggestions) {
+      errorMessage += `\n- ${suggestion}`;
+    }
   }
 
   return {
@@ -70,7 +62,7 @@ export async function withToolErrorHandling<T extends MCPToolResponse>(
     const config =
       process.env['NODE_ENV'] === 'test' ? { maxAttempts: 1, ...retryConfig } : retryConfig;
 
-    return await baseWithEnhancedErrorHandling(operation, _context, config);
+    return await withUnifiedErrorHandling(operation, _context, config);
   } catch (_error) {
     return formatErrorResponse(_error, _context) as T;
   }

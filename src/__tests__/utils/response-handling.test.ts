@@ -5,11 +5,7 @@
 
 import { describe, it, expect } from '@jest/globals';
 
-import {
-  EnhancedErrorHandler,
-  handleAkamaiError,
-  ErrorType,
-} from '../../utils/enhanced-error-handling';
+import { UnifiedErrorHandler, withUnifiedErrorHandling, ErrorType } from '../../services/error-handler';
 import { ResponseParser, parseAkamaiResponse } from '../../utils/response-parsing';
 
 // Mock API responses for testing
@@ -562,7 +558,7 @@ describe('Response Parser Tests', () => {
 });
 
 describe('Enhanced Error Handler Tests', () => {
-  const errorHandler = new EnhancedErrorHandler();
+  const errorHandler = new UnifiedErrorHandler();
 
   describe('Error Categorization', () => {
     it('should categorize authentication errors', () => {
@@ -855,7 +851,7 @@ describe('Integration Response Handling', () => {
       },
     };
 
-    const result = handleAkamaiError(_error, {
+    const result = errorHandler.handle(_error, {
       operation: 'update property rules',
       apiType: 'papi',
     });

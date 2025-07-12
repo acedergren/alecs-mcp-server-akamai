@@ -1,12 +1,24 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "rootDir": "./",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@agents/*": ["src/agents/*"],
+      "@services/*": ["src/services/*"],
+      "@types/*": ["src/types/*"],
+      "@utils/*": ["src/utils/*"],
+      "@config/*": ["src/config/*"],
+      "@constants/*": ["src/constants/*"],
+      "@middleware/*": ["src/middleware/*"],
+      "@tools/*": ["src/tools/*"],
+      "@testing/*": ["src/testing/*"]
+    },
     "noEmit": true
   },
   "include": [
     "src/**/*",
-    "jest.config.ts"
+    "__tests__/**/*"
   ],
   "exclude": [
     "node_modules",

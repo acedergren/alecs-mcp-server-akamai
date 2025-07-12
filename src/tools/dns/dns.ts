@@ -501,226 +501,185 @@ export async function bulkRecords(args: z.infer<typeof DNSToolSchemas.bulkRecord
   );
 }
 
+// Import all DNS operation functions from domain files
+import { 
+  addDNSRecord, 
+  updateDNSRecord, 
+  deleteDNSRecord, 
+  batchUpdateDNS,
+  DNSRecordAddSchema,
+  DNSRecordUpdateSchema, 
+  DNSRecordDeleteSchema,
+  DNSBatchUpdateSchema
+} from './dns-changelist';
+
+import {
+  getChangeListMetadata,
+  getChangeList, 
+  submitChangeList,
+  discardChangeList,
+  waitForZoneActivation,
+  upsertRecord as upsertRecordLegacy,
+  deleteRecord as deleteRecordLegacy,
+  activateZoneChanges as activateZoneChangesLegacy,
+  delegateSubzone
+} from './dns-changelist-legacy';
+
 /**
- * Legacy consolidated DNS tools for backwards compatibility
- * These will be migrated to the new pattern in the next phase
+ * DNS Operations Registry
+ * 
+ * Comprehensive DNS management operations for the unified registry
+ * Consolidates all DNS tools from across the domain files into a single export
  */
 export const dnsOperations = {
-  listZones,
-  getZone,
-  createZone,
-  listRecords,
-  createRecord,
-  updateRecord,
-  deleteRecord,
-  bulkRecords,
-  
-  // Placeholder methods for service compatibility
-  async activateZoneChanges(args: any): Promise<MCPToolResponse> {
-    // This would typically activate pending changes for a zone
-    return {
-      content: [{
-        type: 'text',
-        text: `Zone changes for ${args.zone} would be activated. This is a placeholder implementation.`
-      }]
-    };
+  // Core zone operations from dns.ts
+  dns_zones_list: {
+    name: 'dns_zones_list',
+    description: 'List all DNS zones with filtering and pagination support',
+    inputSchema: DNSToolSchemas.listZones,
+    handler: listZones
   },
   
-  async activateZone(args: any): Promise<MCPToolResponse> {
-    return this.activateZoneChanges(args);
+  dns_zone_get: {
+    name: 'dns_zone_get', 
+    description: 'Get detailed information about a specific DNS zone',
+    inputSchema: DNSToolSchemas.getZone,
+    handler: getZone
   },
   
-  async bulkImportRecords(args: z.infer<typeof BulkDNSOperationSchema>): Promise<MCPToolResponse> {
-    return AkamaiOperation.execute(
-      'dns',
-      'dns_bulk_operation',
-      args,
-      async (client) => {
-        const params = BulkDNSOperationSchema.parse(args);
-        
-        // Validate records before bulk operation
-        const validationResult = await this.validateBulkRecords(params.records);
-        if (!validationResult.isValid && params.validationLevel === 'strict') {
-          throw new Error(`Bulk operation validation failed: ${validationResult.errors.join(', ')}`);
-        }
-        
-        return client.request({
-          path: `/config-dns/v2/zones/${params.zone}/bulk/${params.operationType}`,
-          method: 'POST',
-          body: {
-            records: params.records,
-            validationLevel: params.validationLevel,
-            rollbackOnError: params.rollbackOnError
-          }
-        });
-      },
-      {
-        format: 'text',
-        formatter: (response: any) => {
-          return `✅ **Bulk ${args.operationType.toUpperCase()} Operation Initiated**
-
-**Zone:** ${args.zone}
-**Operation ID:** ${response.operationId}
-**Records Count:** ${args.records.length}
-**Validation Level:** ${args.validationLevel}
-**Rollback on Error:** ${args.rollbackOnError ? 'Yes' : 'No'}
-**Status:** ${response.status || 'IN_PROGRESS'}
-
-**Estimated Completion:** ${response.estimatedCompletionTime || 'Unknown'}`;
-        },
-        progress: true,
-        progressMessage: `Processing ${args.records.length} DNS record operations...`
-      }
-    );
-  },
-
-  async validateBulkRecords(records: any[]): Promise<{isValid: boolean, errors: string[], warnings: string[]}> {
-    const errors = [];
-    const warnings = [];
-
-    for (const record of records) {
-      // Basic validation
-      if (!record.name || !record.type || !record.rdata) {
-        errors.push(`Invalid record: ${JSON.stringify(record)}`);
-      }
-
-      // Type-specific validation
-      if (record.type === 'A' && !record.rdata.some((r: string) => /^\d+\.\d+\.\d+\.\d+$/.test(r))) {
-        errors.push(`Invalid A record data: ${record.name}`);
-      }
-
-      if (record.type === 'MX' && !record.rdata.some((r: string) => /^\d+\s+/.test(r))) {
-        errors.push(`Invalid MX record data (missing priority): ${record.name}`);
-      }
-
-      // Warning for low TTL
-      if (record.ttl < 60) {
-        warnings.push(`Low TTL warning for ${record.name}: ${record.ttl} seconds`);
-      }
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings
-    };
+  dns_zone_create: {
+    name: 'dns_zone_create',
+    description: 'Create a new DNS zone with configuration options',
+    inputSchema: DNSToolSchemas.createZone,
+    handler: createZone
   },
   
-  async importZoneViaAxfr(args: z.infer<typeof ZoneTransferConfigSchema>): Promise<MCPToolResponse> {
-    return AkamaiOperation.execute(
-      'dns',
-      'dns_zone_transfer_configure',
-      args,
-      async (client) => {
-        const params = ZoneTransferConfigSchema.parse(args);
-        
-        return client.request({
-          path: `/config-dns/v2/zones/${params.zone}/transfer`,
-          method: 'PUT',
-          body: params
-        });
-      },
-      {
-        format: 'text',
-        formatter: (response: any) => {
-          return `✅ **Zone Transfer Configuration Updated**
-
-**Zone:** ${args.zone}
-**Transfer Type:** ${args.transferType}
-**Master Servers:** ${args.masterServers.length}
-**TSIG Enabled:** ${args.masterServers.some(server => server.tsigKey) ? 'Yes' : 'No'}
-**Status:** ${args.enabled ? 'Enabled' : 'Disabled'}
-
-**Configuration Details:**
-${JSON.stringify(response, null, 2)}`;
-        }
-      }
-    );
+  // Core record operations from dns.ts
+  dns_records_list: {
+    name: 'dns_records_list',
+    description: 'List DNS records in a zone with filtering options',
+    inputSchema: DNSToolSchemas.listRecords,
+    handler: listRecords
   },
   
-  async enableDnssec(args: z.infer<typeof DNSSECConfigSchema>): Promise<MCPToolResponse> {
-    return AkamaiOperation.execute(
-      'dns',
-      'dns_dnssec_enable',
-      args,
-      async (client) => {
-        const params = DNSSECConfigSchema.parse(args);
-        
-        return client.request({
-          path: `/config-dns/v2/zones/${params.zone}/dnssec`,
-          method: 'POST',
-          body: {
-            algorithm: params.algorithm,
-            keySize: params.keySize,
-            keyRotationPolicy: params.keyRotationPolicy,
-            enabled: params.enabled
-          }
-        });
-      },
-      {
-        format: 'text',
-        formatter: (response: any) => {
-          return `✅ **DNSSEC Enabled Successfully**
-
-**Zone:** ${args.zone}
-**Algorithm:** ${args.algorithm}
-**Key Size:** ${args.keySize} bits
-**KSK ID:** ${response.kskId}
-**ZSK ID:** ${response.zskId}
-
-**Next Steps:**
-1. Add DS records to parent zone
-2. Monitor key rotation schedule
-3. Verify DNSSEC chain of trust
-
-**DS Records to add to parent zone:**
-${response.dsRecords ? JSON.stringify(response.dsRecords, null, 2) : 'Will be available after key generation'}`;
-        }
-      }
-    );
+  dns_record_create: {
+    name: 'dns_record_create',
+    description: 'Create a new DNS record with optional changelist workflow',
+    inputSchema: DNSToolSchemas.createRecord,
+    handler: createRecord
   },
   
-  async getDsRecords(args: z.infer<typeof DNSZoneSchema>): Promise<MCPToolResponse> {
-    return AkamaiOperation.execute(
-      'dns',
-      'dns_dnssec_ds_records',
-      args,
-      async (client) => {
-        const params = DNSZoneSchema.parse(args);
-        
-        return client.request({
-          path: `/config-dns/v2/zones/${params.zone}/dnssec/ds-records`,
-          method: 'GET'
-        });
-      },
-      {
-        format: 'text',
-        formatter: (response: any) => {
-          return `✅ **DS Records for ${args.zone}**
-
-${response.dsRecords ? response.dsRecords.map((record: any) => 
-  `**Key Tag:** ${record.keyTag}
-**Algorithm:** ${record.algorithm}
-**Digest Type:** ${record.digestType}
-**Digest:** ${record.digest}
----`).join('\n') : 'No DS records found'}
-
-**Usage:** Add these DS records to the parent zone for DNSSEC chain of trust.`;
-        }
-      }
-    );
+  dns_record_update: {
+    name: 'dns_record_update',
+    description: 'Update an existing DNS record',
+    inputSchema: DNSToolSchemas.updateRecord,
+    handler: updateRecord
   },
   
-  async deleteZone(args: any): Promise<MCPToolResponse> {
-    return {
-      content: [{
-        type: 'text',
-        text: `Zone ${args.zone} would be deleted. This is a placeholder implementation.`
-      }]
-    };
+  dns_record_delete: {
+    name: 'dns_record_delete',
+    description: 'Delete a DNS record',
+    inputSchema: DNSToolSchemas.deleteRecord,
+    handler: deleteRecord
   },
   
-  async upsertRecord(args: any): Promise<MCPToolResponse> {
-    return createRecord(args);
+  dns_records_bulk: {
+    name: 'dns_records_bulk',
+    description: 'Perform bulk operations on multiple DNS records',
+    inputSchema: DNSToolSchemas.bulkRecords,
+    handler: bulkRecords
+  },
+  
+  // Changelist helper operations from dns-changelist.ts
+  dns_record_add: {
+    name: 'dns_record_add',
+    description: 'Add DNS record with automatic changelist management',
+    inputSchema: DNSRecordAddSchema,
+    handler: addDNSRecord
+  },
+  
+  dns_record_update_changelist: {
+    name: 'dns_record_update_changelist',
+    description: 'Update DNS record with automatic changelist management',
+    inputSchema: DNSRecordUpdateSchema,
+    handler: updateDNSRecord
+  },
+  
+  dns_record_delete_changelist: {
+    name: 'dns_record_delete_changelist',
+    description: 'Delete DNS record with automatic changelist management',
+    inputSchema: DNSRecordDeleteSchema,
+    handler: deleteDNSRecord
+  },
+  
+  dns_batch_update: {
+    name: 'dns_batch_update',
+    description: 'Execute multiple DNS operations in a single changelist',
+    inputSchema: DNSBatchUpdateSchema,
+    handler: batchUpdateDNS
+  },
+  
+  // Legacy changelist operations from dns-changelist-legacy.ts
+  dns_changelist_metadata: {
+    name: 'dns_changelist_metadata',
+    description: 'Get changelist metadata for a DNS zone',
+    inputSchema: DNSToolSchemas.getChangeListMetadata,
+    handler: getChangeListMetadata
+  },
+  
+  dns_changelist_get: {
+    name: 'dns_changelist_get',
+    description: 'Get full changelist with all pending changes',
+    inputSchema: DNSToolSchemas.getChangeList,
+    handler: getChangeList
+  },
+  
+  dns_changelist_submit: {
+    name: 'dns_changelist_submit',
+    description: 'Submit a changelist for activation',
+    inputSchema: DNSToolSchemas.submitChangeList,
+    handler: submitChangeList
+  },
+  
+  dns_changelist_discard: {
+    name: 'dns_changelist_discard',
+    description: 'Discard an existing changelist',
+    inputSchema: DNSToolSchemas.discardChangeList,
+    handler: discardChangeList
+  },
+  
+  dns_zone_activation_wait: {
+    name: 'dns_zone_activation_wait',
+    description: 'Wait for zone activation to complete with status monitoring',
+    inputSchema: DNSToolSchemas.waitForZoneActivation,
+    handler: waitForZoneActivation
+  },
+  
+  dns_record_upsert: {
+    name: 'dns_record_upsert',
+    description: 'Create or update DNS record using changelist workflow',
+    inputSchema: DNSToolSchemas.upsertRecord,
+    handler: upsertRecordLegacy
+  },
+  
+  dns_record_delete_legacy: {
+    name: 'dns_record_delete_legacy',
+    description: 'Delete DNS record using legacy changelist workflow',
+    inputSchema: DNSToolSchemas.deleteRecordChangelist,
+    handler: deleteRecordLegacy
+  },
+  
+  dns_zone_activate_changes: {
+    name: 'dns_zone_activate_changes',
+    description: 'Activate zone changes with validation and monitoring',
+    inputSchema: DNSToolSchemas.activateZoneChanges,
+    handler: activateZoneChangesLegacy
+  },
+  
+  dns_subzone_delegate: {
+    name: 'dns_subzone_delegate',
+    description: 'Delegate a subzone to external nameservers',
+    inputSchema: DNSToolSchemas.delegateSubzone,
+    handler: delegateSubzone
   }
 };

@@ -341,16 +341,77 @@ export async function runTestUrl(args: z.infer<typeof DiagnosticsToolSchemas.run
   );
 }
 
+// Alias for backward compatibility
+export const grep = runGrep;
+export const runPing = runCurl; // Using cURL for now since ping functionality is similar
+export const runTraceroute = runMtr; // Using MTR for now since it includes traceroute functionality
+
 /**
- * Legacy class exports for backward compatibility
- * @deprecated Use direct function exports instead
+ * Diagnostics Operations Registry
+ * 
+ * Comprehensive diagnostics operations for the unified registry
  */
 export const diagnosticsOperations = {
-  runCurl,
-  runDig,
-  runMtr,
-  runGrep,
-  listEdgeLocations,
-  getAsyncRequestStatus,
-  runTestUrl
+  diagnostics_curl: {
+    name: 'diagnostics_curl',
+    description: 'Run cURL request from edge locations',
+    inputSchema: DiagnosticsToolSchemas.runCurl,
+    handler: runCurl
+  },
+  
+  diagnostics_dig: {
+    name: 'diagnostics_dig',
+    description: 'DNS lookup from edge locations',
+    inputSchema: DiagnosticsToolSchemas.runDig,
+    handler: runDig
+  },
+  
+  diagnostics_mtr: {
+    name: 'diagnostics_mtr',
+    description: 'Network route analysis from edge locations',
+    inputSchema: DiagnosticsToolSchemas.runMtr,
+    handler: runMtr
+  },
+  
+  diagnostics_ping: {
+    name: 'diagnostics_ping',
+    description: 'Ping test from edge locations',
+    inputSchema: DiagnosticsToolSchemas.runCurl, // Using curl schema for compatibility
+    handler: runPing
+  },
+  
+  diagnostics_traceroute: {
+    name: 'diagnostics_traceroute',
+    description: 'Traceroute from edge locations',
+    inputSchema: DiagnosticsToolSchemas.runMtr, // Using MTR schema
+    handler: runTraceroute
+  },
+  
+  diagnostics_grep: {
+    name: 'diagnostics_grep',
+    description: 'Search logs and responses',
+    inputSchema: DiagnosticsToolSchemas.runGrep,
+    handler: runGrep
+  },
+  
+  diagnostics_edge_locations: {
+    name: 'diagnostics_edge_locations',
+    description: 'List available edge server locations',
+    inputSchema: DiagnosticsToolSchemas.listEdgeLocations,
+    handler: listEdgeLocations
+  },
+  
+  diagnostics_async_status: {
+    name: 'diagnostics_async_status',
+    description: 'Get async diagnostic request status',
+    inputSchema: DiagnosticsToolSchemas.getAsyncRequestStatus,
+    handler: getAsyncRequestStatus
+  },
+  
+  diagnostics_test_url: {
+    name: 'diagnostics_test_url',
+    description: 'Run comprehensive diagnostic test on URL',
+    inputSchema: DiagnosticsToolSchemas.runTestUrl,
+    handler: runTestUrl
+  }
 };

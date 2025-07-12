@@ -6,7 +6,7 @@
  */
 
 import { ErrorCode } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorType } from './enhanced-error-handling';
+import { ErrorType } from '../services/error-handler';
 
 /**
  * Map HTTP status and error type to MCP error code

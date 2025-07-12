@@ -2,13 +2,8 @@
 export * from './customer-config';
 export * from './edgegrid-client';
 
-// Export from enhanced-error-handling (selective to avoid conflicts)
-export {
-  withEnhancedErrorHandling,
-  handleAkamaiError,
-  ErrorType,
-  type EnhancedErrorResult,
-} from './enhanced-error-handling';
+// Export from unified error handler (single export)
+export * from '../services/error-handler';
 
 export * from './error-handling';
 

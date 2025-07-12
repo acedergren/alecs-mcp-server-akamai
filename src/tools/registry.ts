@@ -362,55 +362,6 @@ export const registry = new UnifiedRegistry();
 // Manual domain imports for transition period
 const manualDomainImports = async () => {
   try {
-    // Property domain
-    const property = await import('./property');
-    if (property.propertyOperations) {
-      registry.registerDomain({
-        name: 'property',
-        description: 'Property Manager operations',
-        toolCount: 0
-      });
-      const tools = registry.convertOperationsToTools(property.propertyOperations, 'property');
-      tools.forEach(tool => registry.registerTool(tool));
-    }
-
-    // DNS domain
-    const dns = await import('./dns');
-    if (dns.dnsOperationsRegistry || dns.dnsOperations) {
-      registry.registerDomain({
-        name: 'dns',
-        description: 'DNS operations',
-        toolCount: 0
-      });
-      const operations = dns.dnsOperationsRegistry || dns.dnsOperations;
-      const tools = registry.convertOperationsToTools(operations, 'dns');
-      tools.forEach(tool => registry.registerTool(tool));
-    }
-
-    // Certificates domain
-    const certificates = await import('./certificates');
-    if (certificates.certificateOperations) {
-      registry.registerDomain({
-        name: 'certificates',
-        description: 'Certificate operations',
-        toolCount: 0
-      });
-      const tools = registry.convertOperationsToTools(certificates.certificateOperations, 'certificates');
-      tools.forEach(tool => registry.registerTool(tool));
-    }
-
-    // Security domain
-    const security = await import('./security');
-    if (security.securityOperations) {
-      registry.registerDomain({
-        name: 'security',
-        description: 'Security operations',
-        toolCount: 0
-      });
-      const tools = registry.convertOperationsToTools(security.securityOperations, 'security');
-      tools.forEach(tool => registry.registerTool(tool));
-    }
-
     // FastPurge domain
     const fastpurge = await import('./fastpurge');
     if (fastpurge.fastPurgeOperations) {
@@ -432,6 +383,19 @@ const manualDomainImports = async () => {
         toolCount: 0
       });
       const tools = registry.convertOperationsToTools(bulkOperations.bulkOperationsOperations, 'bulk-operations');
+      tools.forEach(tool => registry.registerTool(tool));
+    }
+
+    // Rule Tree domain
+    const ruleTree = await import('./rule-tree');
+    if (ruleTree.ruleTreeOperationsRegistry || ruleTree.ruleTreeOperations) {
+      registry.registerDomain({
+        name: 'rule-tree',
+        description: 'Rule tree management for property configurations',
+        toolCount: 0
+      });
+      const operations = ruleTree.ruleTreeOperationsRegistry || ruleTree.ruleTreeOperations;
+      const tools = registry.convertOperationsToTools(operations, 'rule-tree');
       tools.forEach(tool => registry.registerTool(tool));
     }
 

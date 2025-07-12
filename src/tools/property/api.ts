@@ -5,7 +5,16 @@
  */
 
 import { z } from 'zod';
-import { CustomerSchema, PropertyIdSchema, ContractIdSchema, GroupIdSchema } from '../common/validators';
+
+// Base schema for customer parameter
+const CustomerSchema = z.object({
+  customer: z.string().optional()
+});
+
+// ID validation schemas
+const PropertyIdSchema = z.string().regex(/^prp_\d+$/, 'Property ID must be in format prp_123456');
+const ContractIdSchema = z.string().regex(/^ctr_[A-Z0-9-]+$/, 'Contract ID must be in format ctr_ABC123');
+const GroupIdSchema = z.string().regex(/^grp_\d+$/, 'Group ID must be in format grp_123456');
 
 /**
  * Property API Endpoints
@@ -21,7 +30,9 @@ export const PropertyEndpoints = {
   getActivation: (propertyId: string, activationId: string) => `/papi/v1/properties/${propertyId}/activations/${activationId}`,
   getPropertyVersions: (propertyId: string) => `/papi/v1/properties/${propertyId}/versions`,
   createPropertyVersion: (propertyId: string) => `/papi/v1/properties/${propertyId}/versions`,
-  deleteProperty: (propertyId: string) => `/papi/v1/properties/${propertyId}`
+  deleteProperty: (propertyId: string) => `/papi/v1/properties/${propertyId}`,
+  listContracts: () => '/papi/v1/contracts',
+  listGroups: (contractId?: string) => contractId ? `/papi/v1/contracts/${contractId}/groups` : '/papi/v1/groups'
 };
 
 /**
@@ -81,6 +92,34 @@ export const PropertyToolSchemas = {
     contractId: ContractIdSchema.optional(),
     groupId: GroupIdSchema.optional(),
     productId: z.string().optional()
+  }),
+
+  remove: CustomerSchema.extend({
+    propertyId: PropertyIdSchema
+  }),
+
+  listVersions: CustomerSchema.extend({
+    propertyId: PropertyIdSchema
+  }),
+
+  createVersion: CustomerSchema.extend({
+    propertyId: PropertyIdSchema,
+    notes: z.string().optional()
+  }),
+
+  getActivationStatus: CustomerSchema.extend({
+    propertyId: PropertyIdSchema,
+    activationId: z.string()
+  }),
+
+  listActivations: CustomerSchema.extend({
+    propertyId: PropertyIdSchema
+  }),
+
+  listContracts: CustomerSchema,
+
+  listGroups: CustomerSchema.extend({
+    contractId: ContractIdSchema.optional()
   })
 };
 
