@@ -619,7 +619,7 @@ export async function listGroups(args: { customer?: string; contractId?: string 
 }
 
 /**
- * Add hostname to property (placeholder - needs implementation)
+ * Add hostname to property
  */
 export async function addPropertyHostname(args: {
   customer?: string;
@@ -627,14 +627,83 @@ export async function addPropertyHostname(args: {
   hostname: string;
   edgeHostname: string;
   version?: number;
+  certificateType?: 'default' | 'enhanced' | 'shared';
 }): Promise<MCPToolResponse> {
-  // TODO: Implement property hostname addition
-  return {
-    content: [{
-      type: 'text',
-      text: `TODO: Add hostname ${args.hostname} to property ${args.propertyId} (function needs implementation)`
-    }]
-  };
+  return AkamaiOperation.execute(
+    'property',
+    'property_hostname_add',
+    args,
+    async (client) => {
+      // Get current hostnames first
+      const currentHostnamesResponse = await client.request({
+        method: 'GET',
+        path: `/papi/v1/properties/${args.propertyId}/versions/${args.version || 'latest'}/hostnames`
+      });
+      
+      const currentHostnames = currentHostnamesResponse.hostnames?.items || [];
+      
+      // Check if hostname already exists
+      const existingHostname = currentHostnames.find((h: any) => h.cnameFrom === args.hostname);
+      if (existingHostname) {
+        return {
+          hostname: args.hostname,
+          edgeHostname: args.edgeHostname,
+          status: 'already_exists',
+          message: `Hostname ${args.hostname} already exists on this property`
+        };
+      }
+      
+      // Add new hostname to the list
+      const newHostname = {
+        cnameFrom: args.hostname,
+        cnameTo: args.edgeHostname,
+        cnameType: 'EDGE_HOSTNAME',
+        certificateType: args.certificateType || 'enhanced'
+      };
+      
+      const updatedHostnames = [...currentHostnames, newHostname];
+      
+      // Update hostnames
+      const response = await client.request({
+        method: 'PUT',
+        path: `/papi/v1/properties/${args.propertyId}/versions/${args.version || 'latest'}/hostnames`,
+        body: updatedHostnames
+      });
+      
+      return {
+        hostname: args.hostname,
+        edgeHostname: args.edgeHostname,
+        certificateType: args.certificateType || 'enhanced',
+        totalHostnames: updatedHostnames.length,
+        response
+      };
+    },
+    {
+      format: 'text',
+      formatter: (data) => {
+        if (data.status === 'already_exists') {
+          let text = `⚠️ **Hostname Already Exists**\n\n`;
+          text += `**Hostname**: ${data.hostname}\n`;
+          text += `**Property ID**: ${args.propertyId}\n`;
+          text += `**Current Edge Hostname**: ${data.edgeHostname}\n`;
+          return text;
+        }
+
+        let text = `✅ **Hostname Added Successfully!**\n\n`;
+        text += `**Hostname**: ${data.hostname}\n`;
+        text += `**Edge Hostname**: ${data.edgeHostname}\n`;
+        text += `**Property ID**: ${args.propertyId}\n`;
+        text += `**Version**: ${args.version || 'latest'}\n`;
+        text += `**Certificate Type**: ${data.certificateType}\n`;
+        text += `**Total Hostnames**: ${data.totalHostnames}\n\n`;
+        text += `🎯 **Next Steps:**\n`;
+        text += `1. Update property rules if needed\n`;
+        text += `2. Activate property to staging: \`property_activate\`\n`;
+        text += `3. Test the hostname configuration\n`;
+        return text;
+      }
+    }
+  );
 }
 
 /**
